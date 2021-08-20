@@ -1,3 +1,10 @@
+using DN.WebApi.Application.Abstractions.Contexts;
+using DN.WebApi.Application.Configurations;
+using DN.WebApi.Infrastructure.Identity.Models;
+using DN.WebApi.Infrastructure.Persistence;
+using DN.WebApi.Infrastructure.Persistence.Extensions;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Any;
@@ -11,8 +18,31 @@ namespace DN.WebApi.Infrastructure.Extensions
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
         {
             services.AddControllers();
+            services
+                .Configure<PersistenceConfiguration>(config.GetSection(nameof(PersistenceConfiguration)));
+            services.AddIdentity();
+            services
+                .AddDatabaseContext<ApplicationDbContext>()
+                .AddScoped<IApplicationDbContext>(provider => provider.GetService<ApplicationDbContext>());
             services.AddRouting(options => options.LowercaseUrls = true);
             services.AddSwaggerDocumentation();
+            return services;
+        }
+        internal static IServiceCollection AddIdentity(this IServiceCollection services)
+        {
+            services
+                .AddIdentity<ExtendedUser, ExtendedRole>(options =>
+                {
+                    options.Password.RequiredLength = 6;
+                    options.Password.RequireDigit = false;
+                    options.Password.RequireLowercase = false;
+                    options.Password.RequireNonAlphanumeric = false;
+                    options.Password.RequireUppercase = false;
+                    options.User.RequireUniqueEmail = true;
+                })
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultTokenProviders();
+
             return services;
         }
         #region Swagger

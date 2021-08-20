@@ -1,12 +1,20 @@
-using DN.WebApi.Infrastructure.Extensions;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
-var builder = WebApplication.CreateBuilder(args);
+namespace DN.WebApi.Bootstrapper
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            CreateHostBuilder(args).Build().Run();
+        }
 
-// Add services to the container.
-builder.Services.AddInfrastructure(builder.Configuration);
-
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-app.UseInfrastructure();
-app.Run();
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseStartup<Startup>();
+                });
+    }
+}
