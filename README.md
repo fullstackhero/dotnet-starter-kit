@@ -14,7 +14,7 @@ This repository contains the WebApi Project of `fullstackhero`.
 1. Built on .NET 6.0
 2. Follows Clean Architecture Principles
 3. Completely Documented
-4. Test Projects Included
+4. Multi Tenancy Support
 5. Default Database Provider is PostgreSQL. Can be switched to MSSQL or MySQL
 6. Uses Entity Framework Core as DB Abstraction
 7. MediatR Pattern with Advanced Pipeline Behaviors

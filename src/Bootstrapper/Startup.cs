@@ -5,14 +5,13 @@ namespace Bootstrapper
     public class Startup
     {
         public IConfiguration _config { get; }
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration config)
         {
-            _config = configuration;
+            _config = config;
         }     
 
         public void ConfigureServices(IServiceCollection services)
         {
-
             services.AddInfrastructure(_config);
         }
 
