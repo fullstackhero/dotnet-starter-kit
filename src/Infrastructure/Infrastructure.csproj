@@ -1,8 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
+   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <Nullable>enable</Nullable>
+    <RootNamespace>DN.WebApi.Infrastructure</RootNamespace>
+    <AssemblyName>DN.WebApi.Infrastructure</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>Infrastructure.xml</DocumentationFile>
   </PropertyGroup>
 
 </Project>

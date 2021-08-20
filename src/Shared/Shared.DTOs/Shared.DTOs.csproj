@@ -1,8 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
+   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <Nullable>enable</Nullable>
+    <RootNamespace>DN.WebApi.Shared.DTOs</RootNamespace>
+    <AssemblyName>DN.WebApi.Shared.DTOs</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>Shared.DTOs.xml</DocumentationFile>
   </PropertyGroup>
 
 </Project>

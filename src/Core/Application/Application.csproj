@@ -1,8 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
+   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <Nullable>enable</Nullable>
+    <RootNamespace>DN.WebApi.Application</RootNamespace>
+    <AssemblyName>DN.WebApi.Application</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>Application.xml</DocumentationFile>
   </PropertyGroup>
 
 </Project>
