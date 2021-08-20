@@ -1,4 +1,4 @@
-namespace DN.WebApi.Domain.Abstractions
+namespace DN.WebApi.Domain.Contracts
 {
     public abstract class AuditableEntity : BaseEntity
     {
