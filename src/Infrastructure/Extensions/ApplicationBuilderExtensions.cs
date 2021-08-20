@@ -11,8 +11,12 @@ namespace DN.WebApi.Infrastructure.Extensions
         public static IApplicationBuilder UseInfrastructure(this IApplicationBuilder app)
         {
             app.UseRouting();
-            //app.UseAuthentication();
-            //app.UseAuthorization();
+            app.UseAuthentication();
+            app.UseAuthorization();
+            app.UseHttpsRedirection();
+
+            app.UseAuthorization();
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
@@ -28,7 +32,6 @@ namespace DN.WebApi.Infrastructure.Extensions
             {
                 options.DefaultModelsExpandDepth(-1);
                 options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-                options.SwaggerEndpoint("/swagger/v2/swagger.json", "v2");
                 options.RoutePrefix = "swagger";
                 options.DisplayRequestDuration();
                 options.DocExpansion(DocExpansion.None);
