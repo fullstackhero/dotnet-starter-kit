@@ -30,7 +30,7 @@ This repository contains the WebApi Project of `fullstackhero`.
 
 ## Community
 
-- Discord [@fullstackhero](https://discord.gg/**gdgHRt4mMw**)
+- Discord [@fullstackhero](https://discord.gg/gdgHRt4mMw)
 
 ## License
 
