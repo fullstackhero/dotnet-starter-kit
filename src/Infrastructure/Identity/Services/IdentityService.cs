@@ -78,13 +78,12 @@ namespace DN.WebApi.Infrastructure.Identity.Services
                         string emailVerificationUri = await GetEmailVerificationUriAsync(user, origin);
                         var mailRequest = new MailRequest
                         {
-                            From = "donotereply@fullstackhero.com",
+                            From = _mailSettings.From,
                             To = user.Email,
                             Body = string.Format(_localizer["Please confirm your account by <a href='{0}'>clicking here</a>."], emailVerificationUri),
                             Subject = _localizer["Confirm Registration"]
                         };
                         _jobService.Enqueue(() => _mailService.SendAsync(mailRequest));
-
                         messages.Add(_localizer["Please check your Mailbox to verify!"]);
                     }
 
