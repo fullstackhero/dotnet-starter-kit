@@ -1,6 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
-   <PropertyGroup>
+  <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>DN.WebApi.Application</RootNamespace>
     <AssemblyName>DN.WebApi.Application</AssemblyName>
@@ -11,5 +10,7 @@
   <PropertyGroup>
     <NoWarn>1701;1702;1591</NoWarn>
   </PropertyGroup>
-
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Domain\Domain.csproj" />
+  </ItemGroup>
 </Project>

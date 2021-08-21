@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using DN.WebApi.Application.Abstractions.Database;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.SwaggerUI;
@@ -14,16 +15,31 @@ namespace DN.WebApi.Infrastructure.Extensions
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseHttpsRedirection();
-
             app.UseAuthorization();
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
             app.UseSwaggerDocumentation();
+            app.Initialize();
             return app;
         }
+        #region Seeder
+        internal static IApplicationBuilder Initialize(this IApplicationBuilder app)
+        {
+            using var serviceScope = app.ApplicationServices.CreateScope();
+
+            var initializers = serviceScope.ServiceProvider.GetServices<ISeeder>();
+
+            foreach (var initializer in initializers)
+            {
+                initializer.Initialize();
+            }
+
+            return app;
+        }
+        #endregion
+
         #region Swagger
         private static IApplicationBuilder UseSwaggerDocumentation(this IApplicationBuilder app)
         {

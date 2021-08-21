@@ -1,8 +1,9 @@
-using DN.WebApi.Application.Abstractions.Contexts;
+using DN.WebApi.Application.Abstractions.Database;
 using DN.WebApi.Application.Configurations;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Infrastructure.Persistence.Extensions;
+using DN.WebApi.Infrastructure.Persistence.Seeders;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -18,6 +19,7 @@ namespace DN.WebApi.Infrastructure.Extensions
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
         {
             services.AddControllers();
+            services.AddTransient<ISeeder, IdentitySeeder>();
             services
                 .Configure<PersistenceConfiguration>(config.GetSection(nameof(PersistenceConfiguration)));
             services.AddIdentity();
@@ -25,6 +27,10 @@ namespace DN.WebApi.Infrastructure.Extensions
                 .AddDatabaseContext<ApplicationDbContext>()
                 .AddScoped<IApplicationDbContext>(provider => provider.GetService<ApplicationDbContext>());
             services.AddRouting(options => options.LowercaseUrls = true);
+            services.AddLocalization(options =>
+            {
+                options.ResourcesPath = "Resources";
+            });
             services.AddSwaggerDocumentation();
             return services;
         }

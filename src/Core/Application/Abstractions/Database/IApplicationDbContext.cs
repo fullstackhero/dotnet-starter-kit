@@ -1,4 +1,4 @@
-namespace DN.WebApi.Application.Abstractions.Contexts
+namespace DN.WebApi.Application.Abstractions.Database
 {
     public interface IApplicationDbContext
     {
