@@ -40,6 +40,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
 
         public async Task<IResult> RegisterAsync(RegisterRequest request, string origin)
         {
+            
             var userWithSameUserName = await _userManager.FindByNameAsync(request.UserName);
             if (userWithSameUserName != null)
             {
@@ -77,7 +78,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
                         string emailVerificationUri = await GetEmailVerificationUriAsync(user, origin);
                         var mailRequest = new MailRequest
                         {
-                            From = "mail@demo.com",
+                            From = "donotereply@fullstackhero.com",
                             To = user.Email,
                             Body = string.Format(_localizer["Please confirm your account by <a href='{0}'>clicking here</a>."], emailVerificationUri),
                             Subject = _localizer["Confirm Registration"]
@@ -128,14 +129,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             var result = await _userManager.ConfirmEmailAsync(user, code);
             if (result.Succeeded)
             {
-                if (user.PhoneNumberConfirmed)
-                {
-                    return await Result<string>.SuccessAsync(user.Id, string.Format(_localizer["Account Confirmed for E-Mail {0}. You can now use the /api/identity/token endpoint to generate JWT."], user.Email));
-                }
-                else
-                {
-                    return await Result<string>.SuccessAsync(user.Id, string.Format(_localizer["Account Confirmed for E-Mail {0}. You should confirm your Phone Number before using the /api/identity/token endpoint to generate JWT."], user.Email));
-                }
+               return await Result<string>.SuccessAsync(user.Id, string.Format(_localizer["Account Confirmed for E-Mail {0}. You can now use the /api/identity/token endpoint to generate JWT."], user.Email));
             }
             else
             {
@@ -191,8 +185,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
                 Subject = _localizer["Reset Password"],
                 To = request.Email
             };
-
-            // BackgroundJob.Enqueue(() => _mailService.SendAsync(mailRequest));
+            _jobService.Enqueue(() => _mailService.SendAsync(mailRequest));
             return await Result.SuccessAsync(_localizer["Password Reset Mail has been sent to your authorized Email."]);
         }
 

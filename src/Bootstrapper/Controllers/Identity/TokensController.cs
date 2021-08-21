@@ -29,7 +29,6 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
             return Ok(response);
         }
 
-        // ReSharper disable once InconsistentNaming
         private string GenerateIPAddress()
         {
             if (Request.Headers.ContainsKey("X-Forwarded-For"))

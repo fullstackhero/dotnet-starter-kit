@@ -43,6 +43,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             });
             services.AddSingleton<GlobalExceptionHandler>();
             services.AddSwaggerDocumentation();
+            services.AddCorsPolicy();
             return services;
         }
 
@@ -61,7 +62,8 @@ namespace DN.WebApi.Infrastructure.Extensions
         internal static IServiceCollection AddSettings(this IServiceCollection services, IConfiguration config)
         {
             services
-                .Configure<MailSettings>(config.GetSection(nameof(MailSettings)));
+                .Configure<MailSettings>(config.GetSection(nameof(MailSettings)))
+                .Configure<CorsSettings>(config.GetSection(nameof(CorsSettings)));
 
             return services;
         }
@@ -185,6 +187,20 @@ namespace DN.WebApi.Infrastructure.Extensions
                     Nullable = true,
                     Pattern = @"^([0-9]{1}|(?:0[0-9]|1[0-9]|2[0-3])+):([0-5]?[0-9])(?::([0-5]?[0-9])(?:.(\d{1,9}))?)?$",
                     Example = new OpenApiString("02:00:00")
+                });
+            });
+        }
+        #endregion
+
+        #region CORS
+        private static IServiceCollection AddCorsPolicy(this IServiceCollection services)
+        {
+            var corsSettings = services.GetOptions<CorsSettings>(nameof(CorsSettings));
+            return services.AddCors(opt =>
+            {
+                opt.AddPolicy("CorsPolicy", policy =>
+                {
+                    policy.AllowAnyHeader().AllowAnyMethod().WithOrigins(corsSettings.Ng);
                 });
             });
         }

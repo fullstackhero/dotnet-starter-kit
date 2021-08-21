@@ -15,17 +15,16 @@ namespace DN.WebApi.Infrastructure.Extensions
         {
             app.UseMiddleware<GlobalExceptionHandler>();
             app.UseRouting();
+            app.UseCors("CorsPolicy");
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseHttpsRedirection();
-            app.UseAuthorization();
+            app.UseHangfireDashboard("/jobs", new DashboardOptions
+            {
+                DashboardTitle = "Jobs"
+            });
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-            });
-             app.UseHangfireDashboard("/jobs", new DashboardOptions
-            {
-                DashboardTitle = "Jobs"
             });
             app.UseSwaggerDocumentation();
             app.Initialize();
