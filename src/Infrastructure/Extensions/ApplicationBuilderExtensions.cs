@@ -1,5 +1,7 @@
 using System.Runtime.CompilerServices;
 using DN.WebApi.Application.Abstractions.Database;
+using DN.WebApi.Infrastructure.Middlewares;
+using Hangfire;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.SwaggerUI;
@@ -11,6 +13,7 @@ namespace DN.WebApi.Infrastructure.Extensions
     {
         public static IApplicationBuilder UseInfrastructure(this IApplicationBuilder app)
         {
+            app.UseMiddleware<GlobalExceptionHandler>();
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
@@ -19,6 +22,10 @@ namespace DN.WebApi.Infrastructure.Extensions
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+            });
+             app.UseHangfireDashboard("/jobs", new DashboardOptions
+            {
+                DashboardTitle = "Jobs"
             });
             app.UseSwaggerDocumentation();
             app.Initialize();

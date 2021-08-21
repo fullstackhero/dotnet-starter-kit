@@ -23,6 +23,10 @@
     <ProjectReference Include="..\Shared\Shared.DTOs\Shared.DTOs.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Hangfire" Version="1.7.24" />
+    <PackageReference Include="Hangfire.PostgreSql" Version="1.8.5.4" />
+    <PackageReference Include="MailKit" Version="2.14.0" />
+    <PackageReference Include="MimeKit" Version="2.14.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="5.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />

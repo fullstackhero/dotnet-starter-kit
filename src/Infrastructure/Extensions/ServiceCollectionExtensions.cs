@@ -2,14 +2,18 @@ using System.Net;
 using System.Security.Claims;
 using System.Text;
 using DN.WebApi.Application.Abstractions.Database;
+using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Identity.Services;
+using DN.WebApi.Infrastructure.Middlewares;
 using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Infrastructure.Persistence.Extensions;
 using DN.WebApi.Infrastructure.Persistence.Seeders;
+using DN.WebApi.Infrastructure.Services.General;
+using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -25,19 +29,33 @@ namespace DN.WebApi.Infrastructure.Extensions
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
         {
             services.AddControllers();
+            services.AddGeneralServices();
             services.AddSettings(config);
             services.AddIdentity(config);
             services
                 .AddDatabaseContext<ApplicationDbContext>(config)
                 .AddScoped<IApplicationDbContext>(provider => provider.GetService<ApplicationDbContext>());
+            services.AddHangfireServer();
             services.AddRouting(options => options.LowercaseUrls = true);
             services.AddLocalization(options =>
             {
                 options.ResourcesPath = "Resources";
             });
+            services.AddSingleton<GlobalExceptionHandler>();
             services.AddSwaggerDocumentation();
             return services;
         }
+
+        #region General Services
+        internal static IServiceCollection AddGeneralServices(this IServiceCollection services)
+        {
+            services
+                .AddTransient<IMailService, SmtpMailService>()
+                .AddTransient<IJobService, HangfireService>()
+                .AddTransient<ISerializerService, NewtonSoftService>();
+            return services;
+        }
+        #endregion
 
         #region Settings
         internal static IServiceCollection AddSettings(this IServiceCollection services, IConfiguration config)
@@ -56,6 +74,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             services
                 .Configure<JwtSettings>(config.GetSection(nameof(JwtSettings)))
                 .AddTransient<ITokenService, TokenService>()
+                .AddTransient<IIdentityService, IdentityService>()
                 .AddIdentity<ExtendedUser, ExtendedRole>(options =>
                 {
                     options.Password.RequiredLength = 6;

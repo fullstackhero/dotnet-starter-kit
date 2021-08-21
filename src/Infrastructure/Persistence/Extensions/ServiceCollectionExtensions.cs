@@ -1,4 +1,6 @@
 using DN.WebApi.Application.Settings;
+using Hangfire;
+using Hangfire.PostgreSql;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,7 +10,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
     public static class ServiceCollectionExtensions
     {
         public static IServiceCollection AddDatabaseContext<T>(this IServiceCollection services, IConfiguration config) where T : DbContext
-        {            
+        {
             services.Configure<DbSettings>(config.GetSection(nameof(DbSettings)));
             var options = services.GetOptions<DbSettings>(nameof(DbSettings));
             if (options.UsePostgres)
@@ -30,16 +32,17 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             using var scope = services.BuildServiceProvider().CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<T>();
             dbContext.Database.Migrate();
+            services.AddHangfire(x => x.UsePostgreSqlStorage(connectionString));
             return services;
         }
 
-        private static IServiceCollection AddMSSQL<T>(this IServiceCollection services, string connectionString)where T : DbContext
+        private static IServiceCollection AddMSSQL<T>(this IServiceCollection services, string connectionString) where T : DbContext
         {
             services.AddDbContext<T>(m => m.UseSqlServer(connectionString, e => e.MigrationsAssembly(typeof(T).Assembly.FullName)));
             using var scope = services.BuildServiceProvider().CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<T>();
             dbContext.Database.Migrate();
-
+            services.AddHangfire(x => x.UseSqlServerStorage(connectionString));
             return services;
         }
 
