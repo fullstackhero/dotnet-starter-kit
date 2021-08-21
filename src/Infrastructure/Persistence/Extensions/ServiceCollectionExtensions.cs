@@ -1,4 +1,4 @@
-using DN.WebApi.Application.Configurations;
+using DN.WebApi.Application.Settings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,10 +7,10 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddDatabaseContext<T>(this IServiceCollection services)
-            where T : DbContext
-        {
-            var options = services.GetOptions<PersistenceConfiguration>(nameof(PersistenceConfiguration));
+        public static IServiceCollection AddDatabaseContext<T>(this IServiceCollection services, IConfiguration config) where T : DbContext
+        {            
+            services.Configure<DbSettings>(config.GetSection(nameof(DbSettings)));
+            var options = services.GetOptions<DbSettings>(nameof(DbSettings));
             if (options.UsePostgres)
             {
                 string connectionString = options.ConnectionStrings.Postgres;
@@ -24,8 +24,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
 
             return services;
         }
-        private static IServiceCollection AddPostgres<T>(this IServiceCollection services, string connectionString)
-            where T : DbContext
+        private static IServiceCollection AddPostgres<T>(this IServiceCollection services, string connectionString) where T : DbContext
         {
             services.AddDbContext<T>(m => m.UseNpgsql(connectionString, e => e.MigrationsAssembly(typeof(T).Assembly.FullName)));
             using var scope = services.BuildServiceProvider().CreateScope();
@@ -34,8 +33,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             return services;
         }
 
-        private static IServiceCollection AddMSSQL<T>(this IServiceCollection services, string connectionString)
-            where T : DbContext
+        private static IServiceCollection AddMSSQL<T>(this IServiceCollection services, string connectionString)where T : DbContext
         {
             services.AddDbContext<T>(m => m.UseSqlServer(connectionString, e => e.MigrationsAssembly(typeof(T).Assembly.FullName)));
             using var scope = services.BuildServiceProvider().CreateScope();

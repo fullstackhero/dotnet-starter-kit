@@ -1,4 +1,4 @@
-using DN.WebApi.Application.Configurations;
+using DN.WebApi.Application.Settings;
 using DN.WebApi.Infrastructure.Identity.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -7,9 +7,9 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
 {
     public static class ModelBuilderExtensions
     {
-        public static void ApplyDefaultConfiguration(this ModelBuilder builder, PersistenceConfiguration config)
+        public static void ApplyDefaultConfiguration(this ModelBuilder builder, DbSettings settings)
         {
-            if (config.UseMsSql)
+            if (settings.UseMsSql)
             {
                 foreach (var property in builder.Model.GetEntityTypes()
                     .SelectMany(t => t.GetProperties())

@@ -1,5 +1,5 @@
 using DN.WebApi.Application.Abstractions.Database;
-using DN.WebApi.Application.Configurations;
+using DN.WebApi.Application.Settings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -7,10 +7,10 @@ namespace DN.WebApi.Infrastructure.Persistence
 {
     public class ApplicationDbContext : BaseDbContext, IApplicationDbContext
     {
-        private readonly PersistenceConfiguration _persistenceConfig;
-        public ApplicationDbContext(DbContextOptions options, IOptions<PersistenceConfiguration> persistenceConfig) : base(options, persistenceConfig)
+        private readonly DbSettings _dbSettings;
+        public ApplicationDbContext(DbContextOptions options, IOptions<DbSettings> dbSettings) : base(options, dbSettings)
         {
-            _persistenceConfig = persistenceConfig.Value;
+            _dbSettings = dbSettings.Value;
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

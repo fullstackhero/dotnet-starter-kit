@@ -1,16 +1,22 @@
+using System.Net;
+using System.Security.Claims;
+using System.Text;
 using DN.WebApi.Application.Abstractions.Database;
-using DN.WebApi.Application.Configurations;
+using DN.WebApi.Application.Abstractions.Services.Identity;
+using DN.WebApi.Application.Exceptions;
+using DN.WebApi.Application.Settings;
 using DN.WebApi.Infrastructure.Identity.Models;
+using DN.WebApi.Infrastructure.Identity.Services;
 using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Infrastructure.Persistence.Extensions;
 using DN.WebApi.Infrastructure.Persistence.Seeders;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace DN.WebApi.Infrastructure.Extensions
 {
@@ -19,12 +25,10 @@ namespace DN.WebApi.Infrastructure.Extensions
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
         {
             services.AddControllers();
-            services.AddTransient<ISeeder, IdentitySeeder>();
+            services.AddSettings(config);
+            services.AddIdentity(config);
             services
-                .Configure<PersistenceConfiguration>(config.GetSection(nameof(PersistenceConfiguration)));
-            services.AddIdentity();
-            services
-                .AddDatabaseContext<ApplicationDbContext>()
+                .AddDatabaseContext<ApplicationDbContext>(config)
                 .AddScoped<IApplicationDbContext>(provider => provider.GetService<ApplicationDbContext>());
             services.AddRouting(options => options.LowercaseUrls = true);
             services.AddLocalization(options =>
@@ -34,9 +38,24 @@ namespace DN.WebApi.Infrastructure.Extensions
             services.AddSwaggerDocumentation();
             return services;
         }
-        internal static IServiceCollection AddIdentity(this IServiceCollection services)
+
+        #region Settings
+        internal static IServiceCollection AddSettings(this IServiceCollection services, IConfiguration config)
         {
             services
+                .Configure<MailSettings>(config.GetSection(nameof(MailSettings)));
+
+            return services;
+        }
+        #endregion
+
+        #region Identity
+        internal static IServiceCollection AddIdentity(this IServiceCollection services, IConfiguration config)
+        {
+            services.AddTransient<ISeeder, IdentitySeeder>();
+            services
+                .Configure<JwtSettings>(config.GetSection(nameof(JwtSettings)))
+                .AddTransient<ITokenService, TokenService>()
                 .AddIdentity<ExtendedUser, ExtendedRole>(options =>
                 {
                     options.Password.RequiredLength = 6;
@@ -48,9 +67,55 @@ namespace DN.WebApi.Infrastructure.Extensions
                 })
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
-
+            services.AddJwtAuthentication(config);
             return services;
         }
+        internal static IServiceCollection AddJwtAuthentication(
+            this IServiceCollection services, IConfiguration config)
+        {
+            var jwtSettings = services.GetOptions<JwtSettings>(nameof(JwtSettings));
+            byte[] key = Encoding.ASCII.GetBytes(jwtSettings.Key);
+            services
+                .AddAuthentication(authentication =>
+                {
+                    authentication.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    authentication.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(bearer =>
+                {
+                    bearer.RequireHttpsMetadata = false;
+                    bearer.SaveToken = true;
+                    bearer.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(key),
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        RoleClaimType = ClaimTypes.Role,
+                        ClockSkew = TimeSpan.Zero
+                    };
+                    bearer.Events = new JwtBearerEvents
+                    {
+                        OnChallenge = context =>
+                        {
+                            context.HandleResponse();
+                            if (!context.Response.HasStarted)
+                            {
+                                throw new IdentityException("You are not Authorized.", statusCode: HttpStatusCode.Unauthorized);
+                            }
+
+                            return Task.CompletedTask;
+                        },
+                        OnForbidden = context =>
+                        {
+                            throw new IdentityException("You are not authorized to access this resource.", statusCode: HttpStatusCode.Forbidden);
+                        },
+                    };
+                });
+            return services;
+        }
+        #endregion
+
         #region Swagger
         private static IServiceCollection AddSwaggerDocumentation(this IServiceCollection services)
         {

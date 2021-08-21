@@ -11,6 +11,7 @@
     <NoWarn>1701;1702;1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Core\Domain\Domain.csproj" />
+    <ProjectReference Include="..\..\Core\Domain\Domain.csproj" />
+    <ProjectReference Include="..\..\Shared\Shared.DTOs\Shared.DTOs.csproj" />
   </ItemGroup>
 </Project>

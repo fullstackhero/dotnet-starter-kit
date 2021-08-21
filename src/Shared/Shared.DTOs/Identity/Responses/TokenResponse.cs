@@ -1,4 +1,4 @@
 namespace DN.WebApi.Shared.DTOs.Identity.Responses
 {
-    public record TokenResponse(string Token, DateTime TokenExpiryTime, string RefreshToken, DateTime RefreshTokenExpiryTime);
+    public record TokenResponse(string Token, string RefreshToken, DateTime RefreshTokenExpiryTime);
 }

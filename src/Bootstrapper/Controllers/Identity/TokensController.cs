@@ -1,16 +1,45 @@
+using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Shared.DTOs.Identity.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DN.WebApi.Bootstrapper.Controllers.Identity
 {
-    public class TokensController : BaseController
+    public sealed class TokensController : BaseController
     {
+        private readonly ITokenService _tokenService;
+        public TokensController(ITokenService tokenService)
+        {
+            _tokenService = tokenService;
+        }
+
         [HttpPost]
         [AllowAnonymous]
-        public async Task<IActionResult> GenerateTokenAsync(TokenRequest request)
+        public async Task<IActionResult> GetTokenAsync(TokenRequest request)
         {
-            return Ok("token");
+            var token = await _tokenService.GetTokenAsync(request, GenerateIPAddress());
+            return Ok(token);
+        }
+
+        [HttpPost("refresh")]
+        [AllowAnonymous]
+        public async Task<ActionResult> RefreshAsync(RefreshTokenRequest request)
+        {
+            var response = await _tokenService.RefreshTokenAsync(request, GenerateIPAddress());
+            return Ok(response);
+        }
+
+        // ReSharper disable once InconsistentNaming
+        private string GenerateIPAddress()
+        {
+            if (Request.Headers.ContainsKey("X-Forwarded-For"))
+            {
+                return Request.Headers["X-Forwarded-For"];
+            }
+            else
+            {
+                return HttpContext.Connection.RemoteIpAddress?.MapToIPv4().ToString();
+            }
         }
     }
 }

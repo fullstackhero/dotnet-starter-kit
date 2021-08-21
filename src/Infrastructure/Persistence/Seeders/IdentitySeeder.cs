@@ -62,10 +62,11 @@ namespace DN.WebApi.Infrastructure.Persistence.Seeders
                 {
                     FirstName = "Mukesh",
                     LastName = "Murugan",
-                    Email = "sa@fullstackhero.com",
+                    Email = "sa@demo.com",
                     UserName = "superadmin",
                     EmailConfirmed = true,
-                    PhoneNumberConfirmed = true
+                    PhoneNumberConfirmed = true,
+                    IsActive = true
                 };
                 var superUserInDb = await _userManager.FindByEmailAsync(superUser.Email);
                 if (superUserInDb == null)
