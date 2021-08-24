@@ -1,3 +1,4 @@
+using DN.WebApi.Domain.Contracts;
 using Microsoft.AspNetCore.Identity;
 
 namespace DN.WebApi.Infrastructure.Identity.Models
@@ -10,5 +11,6 @@ namespace DN.WebApi.Infrastructure.Identity.Models
         public bool IsActive { get; set; }
         public string RefreshToken { get; set; }
         public DateTime RefreshTokenExpiryTime { get; set; }
+        public string TenantId { get; set; }
     }
 }

@@ -1,5 +1,6 @@
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Settings;
+using DN.WebApi.Domain.Contracts;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Persistence.Extensions;
 using Microsoft.AspNetCore.Identity;
@@ -31,6 +32,21 @@ namespace DN.WebApi.Infrastructure.Persistence
             {
                 optionsBuilder.UseNpgsql(_tenantService.GetConnectionString());
             }
+        }
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
+        {
+            foreach (var entry in ChangeTracker.Entries<IMustHaveTenant>())
+            {
+                switch (entry.State)
+                {
+                    case EntityState.Added:
+                    case EntityState.Modified:
+                        entry.Entity.TenantId = _tenantService.GetTenant()?.Name;
+                        break;
+                }
+            }
+            var result = await base.SaveChangesAsync(cancellationToken);
+            return result;
         }
     }
 }

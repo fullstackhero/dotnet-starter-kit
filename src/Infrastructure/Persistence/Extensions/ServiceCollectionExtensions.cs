@@ -40,7 +40,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                     services.AddPostgres<T>(connectionString, tenant.Name);
                 }
             }
-            
+
             services.AddHangfire(x => x.UsePostgreSqlStorage(defaultConnectionString));
             return services;
         }
@@ -58,16 +58,14 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                 var roleStore = new RoleStore<ExtendedRole>(dbContext);
                 if (!dbContext.Roles.Any(r => r.Name == roleName))
                 {
-                    var role = new ExtendedRole(roleName);
-                    role.NormalizedName = roleName.ToUpper();
-                    role.Description = $"Admin Role for {tenant.Name} Tenant";
+                    var role = new ExtendedRole(roleName, tenantName, $"Admin Role for {tenant.Name} Tenant");
                     roleStore.CreateAsync(role).Wait();
                 }
             }
-            var adminUserName = $"{tenant.Name}.admin";
+            var adminUserName = $"{tenantName}.admin";
             var superUser = new ExtendedUser
             {
-                FirstName = tenant.Name,
+                FirstName = tenantName,
                 LastName = "admin",
                 Email = tenant.AdminEmail,
                 UserName = adminUserName,
@@ -75,7 +73,8 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                 PhoneNumberConfirmed = true,
                 NormalizedEmail = tenant.AdminEmail.ToUpper(),
                 NormalizedUserName = adminUserName.ToUpper(),
-                IsActive = true
+                IsActive = true,
+                TenantId = tenantName
             };
             if (!dbContext.Users.Any(u => u.Email == tenant.AdminEmail))
             {

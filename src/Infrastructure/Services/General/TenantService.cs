@@ -26,5 +26,9 @@ namespace DN.WebApi.Infrastructure.Services.General
         {
             return _currentTenant?.ConnectionString;
         }
+        public Tenant GetTenant()
+        {
+            return _currentTenant;
+        }
     }
 }

@@ -39,61 +39,61 @@ namespace DN.WebApi.Infrastructure.Persistence.Seeders
         }
         private void AddDefaultRoles(Tenant tenant)
         {
-            Task.Run(async () =>
-            {
-                foreach (string roleName in typeof(RoleConstants).GetAllPublicConstantValues<string>())
-                {
-                    var role = new ExtendedRole(roleName);
-                    var roleInDb = await _roleManager.FindByNameAsync(roleName);
-                    if (roleInDb == null)
-                    {
-                        await _roleManager.CreateAsync(role);
-                        _logger.LogInformation(string.Format(_localizer["Added '{0}' to Roles"], roleName));
-                    }
-                }
-            }).GetAwaiter().GetResult();
+            // Task.Run(async () =>
+            // {
+            //     foreach (string roleName in typeof(RoleConstants).GetAllPublicConstantValues<string>())
+            //     {
+            //         var role = new ExtendedRole(roleName);
+            //         var roleInDb = await _roleManager.FindByNameAsync(roleName);
+            //         if (roleInDb == null)
+            //         {
+            //             await _roleManager.CreateAsync(role);
+            //             _logger.LogInformation(string.Format(_localizer["Added '{0}' to Roles"], roleName));
+            //         }
+            //     }
+            // }).GetAwaiter().GetResult();
         }
         private void AddAdmin(Tenant tenant)
         {
-            Task.Run(async () =>
-            {
-                // Check if Role Exists
-                var adminRole = new ExtendedRole(RoleConstants.Admin);
-                var adminRoleInDb = await _roleManager.FindByNameAsync(RoleConstants.Admin);
-                if (adminRoleInDb == null)
-                {
-                    await _roleManager.CreateAsync(adminRole);
-                    adminRoleInDb = await _roleManager.FindByNameAsync(RoleConstants.Admin);
-                }
+            // Task.Run(async () =>
+            // {
+            //     // Check if Role Exists
+            //     var adminRole = new ExtendedRole(RoleConstants.Admin);
+            //     var adminRoleInDb = await _roleManager.FindByNameAsync(RoleConstants.Admin);
+            //     if (adminRoleInDb == null)
+            //     {
+            //         await _roleManager.CreateAsync(adminRole);
+            //         adminRoleInDb = await _roleManager.FindByNameAsync(RoleConstants.Admin);
+            //     }
 
-                // Check if User Exists
-                var superUser = new ExtendedUser
-                {
-                    FirstName = tenant.Name,
-                    Email = tenant.AdminEmail,
-                    UserName = tenant.Name,
-                    EmailConfirmed = true,
-                    PhoneNumberConfirmed = true,
-                    IsActive = true
-                };
-                var superUserInDb = await _userManager.FindByEmailAsync(superUser.Email);
-                if (superUserInDb == null)
-                {
-                    await _userManager.CreateAsync(superUser, UserConstants.DefaultPassword);
-                    var result = await _userManager.AddToRoleAsync(superUser, RoleConstants.Admin);
-                    if (result.Succeeded)
-                    {
-                        _logger.LogInformation(_localizer["Added Admin User to {0} Tenant."], tenant.Name);
-                    }
-                    else
-                    {
-                        foreach (var error in result.Errors)
-                        {
-                            _logger.LogError(error.Description);
-                        }
-                    }
-                }
-            }).GetAwaiter().GetResult();
+            //     // Check if User Exists
+            //     var superUser = new ExtendedUser
+            //     {
+            //         FirstName = tenant.Name,
+            //         Email = tenant.AdminEmail,
+            //         UserName = tenant.Name,
+            //         EmailConfirmed = true,
+            //         PhoneNumberConfirmed = true,
+            //         IsActive = true
+            //     };
+            //     var superUserInDb = await _userManager.FindByEmailAsync(superUser.Email);
+            //     if (superUserInDb == null)
+            //     {
+            //         await _userManager.CreateAsync(superUser, UserConstants.DefaultPassword);
+            //         var result = await _userManager.AddToRoleAsync(superUser, RoleConstants.Admin);
+            //         if (result.Succeeded)
+            //         {
+            //             _logger.LogInformation(_localizer["Added Admin User to {0} Tenant."], tenant.Name);
+            //         }
+            //         else
+            //         {
+            //             foreach (var error in result.Errors)
+            //             {
+            //                 _logger.LogError(error.Description);
+            //             }
+            //         }
+            //     }
+            // }).GetAwaiter().GetResult();
         }
 
 
