@@ -8,6 +8,7 @@ namespace DN.WebApi.Application.Settings
     public class Tenant
     {
         public string Name { get; set; }
+        public string TID { get; set; }
         public string AdminEmail { get; set; }
 
         public string ConnectionString { get; set; }

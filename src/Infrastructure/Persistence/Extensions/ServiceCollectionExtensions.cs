@@ -9,14 +9,16 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace DN.WebApi.Infrastructure.Persistence.Extensions
 {
     public static class ServiceCollectionExtensions
     {
+        //private readonly ILogger _logger = LoggingUtilities.CreateLogger<ServiceCollectionExtensions>();
         public static IServiceCollection AddDatabaseContext<T>(this IServiceCollection services, IConfiguration config) where T : ApplicationDbContext
         {
-
+            //var logger = LoggingUtilities.CreateLogger<>("a");
             services.AddDbContext<T>(m => m.UseNpgsql(e => e.MigrationsAssembly(typeof(T).Assembly.FullName)));
             services.Configure<TenantSettings>(config.GetSection(nameof(TenantSettings)));
             var options = services.GetOptions<TenantSettings>(nameof(TenantSettings));
@@ -37,17 +39,17 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                 }
                 if (defaultDbProvider.ToLower() == "postgresql")
                 {
-                    services.AddPostgres<T>(connectionString, tenant.Name);
+                    services.AddPostgres<T>(connectionString, tenant.TID);
                 }
             }
 
             services.AddHangfire(x => x.UsePostgreSqlStorage(defaultConnectionString));
             return services;
         }
-        private static IServiceCollection AddPostgres<T>(this IServiceCollection services, string connectionString, string tenantName) where T : ApplicationDbContext
+        private static IServiceCollection AddPostgres<T>(this IServiceCollection services, string connectionString, string tenantId) where T : ApplicationDbContext
         {
             var options = services.GetOptions<TenantSettings>(nameof(TenantSettings));
-            var tenant = options.Tenants.Where(a => a.Name == tenantName).FirstOrDefault();
+            var tenant = options.Tenants.Where(a => a.TID == tenantId).FirstOrDefault();
             using var scope = services.BuildServiceProvider().CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<T>();
             dbContext.Database.SetConnectionString(connectionString);
@@ -58,14 +60,14 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                 var roleStore = new RoleStore<ExtendedRole>(dbContext);
                 if (!dbContext.Roles.Any(r => r.Name == roleName))
                 {
-                    var role = new ExtendedRole(roleName, tenantName, $"Admin Role for {tenant.Name} Tenant");
+                    var role = new ExtendedRole(roleName, tenantId, $"Admin Role for {tenant.Name} Tenant");
                     roleStore.CreateAsync(role).Wait();
                 }
             }
-            var adminUserName = $"{tenantName}.admin";
+            var adminUserName = $"{tenant.Name}.admin";
             var superUser = new ExtendedUser
             {
-                FirstName = tenantName,
+                FirstName = tenant.Name,
                 LastName = "admin",
                 Email = tenant.AdminEmail,
                 UserName = adminUserName,
@@ -74,7 +76,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                 NormalizedEmail = tenant.AdminEmail.ToUpper(),
                 NormalizedUserName = adminUserName.ToUpper(),
                 IsActive = true,
-                TenantId = tenantName
+                TenantId = tenantId
             };
             if (!dbContext.Users.Any(u => u.Email == tenant.AdminEmail))
             {

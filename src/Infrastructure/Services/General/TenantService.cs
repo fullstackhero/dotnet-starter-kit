@@ -17,9 +17,9 @@ namespace DN.WebApi.Infrastructure.Services.General
             _httpContext = contextAccessor.HttpContext;
             if (_httpContext != null)
             {
-                if (_httpContext.Request.Headers.TryGetValue("tenant", out var tenantName))
+                if (_httpContext.Request.Headers.TryGetValue("tenant", out var tenantId))
                 {
-                    _currentTenant = _tenantSettings.Tenants.Where(a => a.Name == tenantName).FirstOrDefault();
+                    _currentTenant = _tenantSettings.Tenants.Where(a => a.TID == tenantId).FirstOrDefault();
                     if(_currentTenant == null)
                     {
                         throw new InvalidTenantException();
@@ -32,10 +32,6 @@ namespace DN.WebApi.Infrastructure.Services.General
             }
         }
         public string GetConnectionString()
-        {
-            return _currentTenant?.ConnectionString;
-        }
-        public string GetDefaultConnectionString()
         {
             return _currentTenant?.ConnectionString;
         }
