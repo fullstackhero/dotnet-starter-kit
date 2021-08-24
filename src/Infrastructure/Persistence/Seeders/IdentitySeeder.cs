@@ -1,34 +1,43 @@
 using DN.WebApi.Application.Abstractions.Database;
+using DN.WebApi.Application.Settings;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Utilties;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace DN.WebApi.Infrastructure.Persistence.Seeders
 {
     public class IdentitySeeder : ISeeder
     {
+        private readonly TenantSettings _tenantSettings;
         private readonly UserManager<ExtendedUser> _userManager;
         private readonly RoleManager<ExtendedRole> _roleManager;
         private readonly ILogger<IdentitySeeder> _logger;
         private readonly IStringLocalizer<IdentitySeeder> _localizer;
 
-        public IdentitySeeder(IStringLocalizer<IdentitySeeder> localizer, ILogger<IdentitySeeder> logger, RoleManager<ExtendedRole> roleManager, UserManager<ExtendedUser> userManager)
+        public IdentitySeeder(IStringLocalizer<IdentitySeeder> localizer, ILogger<IdentitySeeder> logger, RoleManager<ExtendedRole> roleManager, UserManager<ExtendedUser> userManager, IOptions<TenantSettings> tenantSettings)
         {
             _localizer = localizer;
             _logger = logger;
             _roleManager = roleManager;
             _userManager = userManager;
+            _tenantSettings = tenantSettings.Value;
         }
 
         public void Initialize()
         {
-            AddDefaultRoles();
-            AddSuperAdmin();
+            //super tenant seeding
+            // foreach (var tenant in _tenantSettings.Tenants)
+            // {
+            //     AddDefaultRoles(tenant);
+            //     AddAdmin(tenant);
+            // }
+
         }
-        private void AddDefaultRoles()
+        private void AddDefaultRoles(Tenant tenant)
         {
             Task.Run(async () =>
             {
@@ -44,26 +53,25 @@ namespace DN.WebApi.Infrastructure.Persistence.Seeders
                 }
             }).GetAwaiter().GetResult();
         }
-        private void AddSuperAdmin()
+        private void AddAdmin(Tenant tenant)
         {
             Task.Run(async () =>
             {
                 // Check if Role Exists
-                var superAdminRole = new ExtendedRole(RoleConstants.SuperAdmin);
-                var superAdminRoleInDb = await _roleManager.FindByNameAsync(RoleConstants.SuperAdmin);
-                if (superAdminRoleInDb == null)
+                var adminRole = new ExtendedRole(RoleConstants.Admin);
+                var adminRoleInDb = await _roleManager.FindByNameAsync(RoleConstants.Admin);
+                if (adminRoleInDb == null)
                 {
-                    await _roleManager.CreateAsync(superAdminRole);
-                    superAdminRoleInDb = await _roleManager.FindByNameAsync(RoleConstants.SuperAdmin);
+                    await _roleManager.CreateAsync(adminRole);
+                    adminRoleInDb = await _roleManager.FindByNameAsync(RoleConstants.Admin);
                 }
 
                 // Check if User Exists
                 var superUser = new ExtendedUser
                 {
-                    FirstName = "Mukesh",
-                    LastName = "Murugan",
-                    Email = "sa@demo.com",
-                    UserName = "superadmin",
+                    FirstName = tenant.Name,
+                    Email = tenant.AdminEmail,
+                    UserName = tenant.Name,
                     EmailConfirmed = true,
                     PhoneNumberConfirmed = true,
                     IsActive = true
@@ -72,10 +80,10 @@ namespace DN.WebApi.Infrastructure.Persistence.Seeders
                 if (superUserInDb == null)
                 {
                     await _userManager.CreateAsync(superUser, UserConstants.DefaultPassword);
-                    var result = await _userManager.AddToRoleAsync(superUser, RoleConstants.SuperAdmin);
+                    var result = await _userManager.AddToRoleAsync(superUser, RoleConstants.Admin);
                     if (result.Succeeded)
                     {
-                        _logger.LogInformation(_localizer["Seeded SA User."]);
+                        _logger.LogInformation(_localizer["Added Admin User to {0} Tenant."], tenant.Name);
                     }
                     else
                     {

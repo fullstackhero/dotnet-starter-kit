@@ -53,6 +53,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             services
                 .AddTransient<IMailService, SmtpMailService>()
                 .AddTransient<IJobService, HangfireService>()
+                .AddTransient<ITenantService, TenantService>()
                 .AddTransient<ISerializerService, NewtonSoftService>();
             return services;
         }
@@ -63,6 +64,7 @@ namespace DN.WebApi.Infrastructure.Extensions
         {
             services
                 .Configure<MailSettings>(config.GetSection(nameof(MailSettings)))
+                .Configure<TenantSettings>(config.GetSection(nameof(TenantSettings)))
                 .Configure<CorsSettings>(config.GetSection(nameof(CorsSettings)));
 
             return services;
