@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
-
 <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>DN.WebApi.Bootstrapper</RootNamespace>
@@ -19,6 +18,25 @@
   </ItemGroup>  
   <ItemGroup>
     <ProjectReference Include="..\Infrastructure\Infrastructure.csproj"/>
-  </ItemGroup>  
-
+  </ItemGroup> 
+  <ItemGroup>
+   <Content Update="Configs/loggersettings.json">
+     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+   </Content>
+   <Content Update="Configs/tenantsettings.json">
+     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+   </Content>
+   <Content Update="Configs/corssettings.json">
+     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+   </Content>
+   <Content Update="Configs/mailsettings.json">
+     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+   </Content>
+   <Content Update="Configs/dbsettings.json">
+     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+   </Content>
+   <Content Update="Configs/jwtsettings.json">
+     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+   </Content>
+</ItemGroup>
 </Project>

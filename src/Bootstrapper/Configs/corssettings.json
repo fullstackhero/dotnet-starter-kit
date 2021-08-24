@@ -1,0 +1,6 @@
+{
+    "CorsSettings": {
+        "Angular": "http://localhost:4200"
+    },
+    "AllowedHosts": "*"
+}

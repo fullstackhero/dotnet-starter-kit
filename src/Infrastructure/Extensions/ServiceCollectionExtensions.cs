@@ -200,7 +200,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             {
                 opt.AddPolicy("CorsPolicy", policy =>
                 {
-                    policy.AllowAnyHeader().AllowAnyMethod().WithOrigins(corsSettings.Ng);
+                    policy.AllowAnyHeader().AllowAnyMethod().WithOrigins(corsSettings.Angular);
                 });
             });
         }

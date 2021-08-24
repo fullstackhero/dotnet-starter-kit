@@ -1,0 +1,10 @@
+{
+    "DbSettings": {
+        "UseMsSql": false,
+        "UsePostgres": true,
+        "connectionStrings": {
+            "mssql": "Data Source=(localdb)\\mssqllocaldb;Initial Catalog=dnwebapi;Integrated Security=True;MultipleActiveResultSets=True",
+            "postgres": "Host=localhost;Database=dnwebapiDev;Username=postgres;Password=root;Include Error Detail=true"
+        }
+    }
+}
