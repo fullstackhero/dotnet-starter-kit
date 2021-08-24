@@ -12,6 +12,7 @@ using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Shared.DTOs.Identity.Requests;
 using DN.WebApi.Shared.DTOs.Identity.Responses;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;

@@ -24,5 +24,13 @@ namespace DN.WebApi.Infrastructure.Persistence
             //modelBuilder.ApplyDefaultConfiguration(_tenantSettings);
             modelBuilder.ApplyIdentityConfiguration();
         }
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            var tenantConnectionString = _tenantService.GetConnectionString();
+            if (!string.IsNullOrEmpty(tenantConnectionString))
+            {
+                optionsBuilder.UseNpgsql(_tenantService.GetConnectionString());
+            }
+        }
     }
 }

@@ -40,6 +40,8 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                     services.AddPostgres<T>(connectionString, tenant.Name);
                 }
             }
+            
+            services.AddHangfire(x => x.UsePostgreSqlStorage(defaultConnectionString));
             return services;
         }
         private static IServiceCollection AddPostgres<T>(this IServiceCollection services, string connectionString, string tenantName) where T : ApplicationDbContext
@@ -51,40 +53,49 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             dbContext.Database.SetConnectionString(connectionString);
             dbContext.Database.Migrate();
 
-            foreach (string role in typeof(RoleConstants).GetAllPublicConstantValues<string>())
+            foreach (string roleName in typeof(RoleConstants).GetAllPublicConstantValues<string>())
             {
                 var roleStore = new RoleStore<ExtendedRole>(dbContext);
-
-                if (!dbContext.Roles.Any(r => r.Name == role))
+                if (!dbContext.Roles.Any(r => r.Name == roleName))
                 {
-                    roleStore.CreateAsync(new ExtendedRole(role)).Wait();
+                    var role = new ExtendedRole(roleName);
+                    role.NormalizedName = roleName.ToUpper();
+                    role.Description = $"Admin Role for {tenant.Name} Tenant";
+                    roleStore.CreateAsync(role).Wait();
                 }
             }
+            var adminUserName = $"{tenant.Name}.admin";
             var superUser = new ExtendedUser
             {
                 FirstName = tenant.Name,
+                LastName = "admin",
                 Email = tenant.AdminEmail,
-                UserName = tenant.Name,
+                UserName = adminUserName,
                 EmailConfirmed = true,
                 PhoneNumberConfirmed = true,
+                NormalizedEmail = tenant.AdminEmail.ToUpper(),
+                NormalizedUserName = adminUserName.ToUpper(),
                 IsActive = true
             };
-            if (!dbContext.Users.Any(u => u.UserName == tenant.AdminEmail))
+            if (!dbContext.Users.Any(u => u.Email == tenant.AdminEmail))
             {
                 var password = new PasswordHasher<ExtendedUser>();
                 var hashed = password.HashPassword(superUser, UserConstants.DefaultPassword);
                 superUser.PasswordHash = hashed;
                 var userStore = new UserStore<ExtendedUser>(dbContext);
                 userStore.CreateAsync(superUser).Wait();
-                userStore.AddToRoleAsync(superUser, RoleConstants.Admin);
+                AssignRoles(scope.ServiceProvider, superUser.Email, RoleConstants.Admin).Wait();
             }
-
-
-
-            services.AddHangfire(x => x.UsePostgreSqlStorage(connectionString));
             return services;
         }
+        public static async Task<IdentityResult> AssignRoles(IServiceProvider services, string email, string role)
+        {
+            UserManager<ExtendedUser> _userManager = services.GetService<UserManager<ExtendedUser>>();
+            ExtendedUser user = await _userManager.FindByEmailAsync(email);
+            var result = await _userManager.AddToRoleAsync(user, role);
 
+            return result;
+        }
         private static IServiceCollection AddMSSQL<T>(this IServiceCollection services, string connectionString) where T : DbContext
         {
             services.AddDbContext<T>(m => m.UseSqlServer(connectionString, e => e.MigrationsAssembly(typeof(T).Assembly.FullName)));
