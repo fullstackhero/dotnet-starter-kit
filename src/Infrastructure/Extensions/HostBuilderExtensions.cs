@@ -13,7 +13,6 @@ namespace DN.WebApi.Infrastructure.Extensions
                 .SetBasePath(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location))
                 .AddJsonFile("appsettings.Development.json")
                 .AddJsonFile("appsettings.json")
-                .AddJsonFile("Configs/loggersettings.json")
                 .AddEnvironmentVariables()
                 .Build();
             Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(configuration).CreateLogger();
