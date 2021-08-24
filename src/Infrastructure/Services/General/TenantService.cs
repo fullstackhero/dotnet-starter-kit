@@ -1,4 +1,5 @@
 using DN.WebApi.Application.Abstractions.Services.General;
+using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Settings;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
@@ -19,10 +20,22 @@ namespace DN.WebApi.Infrastructure.Services.General
                 if (_httpContext.Request.Headers.TryGetValue("tenant", out var tenantName))
                 {
                     _currentTenant = _tenantSettings.Tenants.Where(a => a.Name == tenantName).FirstOrDefault();
+                    if(_currentTenant == null)
+                    {
+                        throw new InvalidTenantException();
+                    }
+                }
+                else
+                {
+                     throw new InvalidTenantException();
                 }
             }
         }
         public string GetConnectionString()
+        {
+            return _currentTenant?.ConnectionString;
+        }
+        public string GetDefaultConnectionString()
         {
             return _currentTenant?.ConnectionString;
         }
