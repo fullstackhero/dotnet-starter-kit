@@ -46,14 +46,12 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
         private static IServiceCollection MigrateAndSeedIdentityData<T>(this IServiceCollection services, string connectionString, string tenantId, TenantSettings options) where T : ApplicationDbContext
         {
             var tenant = options.Tenants.Where(a => a.TID == tenantId).FirstOrDefault();
-            _logger.Information($"{tenant.Name} : Initializing Database....");
             using var scope = services.BuildServiceProvider().CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<T>();
+            dbContext.Database.SetConnectionString(connectionString);
             if (dbContext.Database.GetMigrations().Count() > 0)
             {
-                dbContext.Database.SetConnectionString(connectionString);
                 dbContext.Database.Migrate();
-                _logger.Information($"{tenant.Name} : Migrations complete....");
                 SeedRoles(tenantId, tenant, dbContext);
                 SeedTenantAdmins(tenantId, tenant, scope, dbContext);
             }
@@ -94,11 +92,11 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             foreach (string roleName in typeof(RoleConstants).GetAllPublicConstantValues<string>())
             {
                 var roleStore = new RoleStore<ExtendedRole>(dbContext);
-                if (!dbContext.Roles.IgnoreQueryFilters().Any(r => r.Name == roleName))
+                if (!dbContext.Roles.IgnoreQueryFilters().Any(r => r.Name == $"{tenant.Name}{roleName}"))
                 {
-                    var role = new ExtendedRole(roleName, tenantId, $"Admin Role for {tenant.Name} Tenant");
+                    var role = new ExtendedRole($"{tenant.Name}{roleName}", tenantId, $"Admin Role for {tenant.Name} Tenant");
                     roleStore.CreateAsync(role).Wait();
-                    _logger.Information($"{tenant.Name} : Seeding Admin Role....");
+                    _logger.Information($"{tenant.Name} : Seeding {tenant.Name}{roleName} Role....");
                 }
             }
         }

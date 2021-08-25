@@ -6,6 +6,7 @@ namespace DN.WebApi.Infrastructure.Identity.Models
     public class ExtendedUser : IdentityUser, IIdentityTenant
     {
         public string FirstName { get; set; }
+        public string MiddleName { get; set; }
         public string LastName { get; set; }
         public string ImageUrl { get; set; }
         public bool IsActive { get; set; }
