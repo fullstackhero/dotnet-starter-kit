@@ -79,6 +79,7 @@ namespace DN.WebApi.Infrastructure.Extensions
                 .Configure<JwtSettings>(config.GetSection(nameof(JwtSettings)))
                 .AddTransient<ITokenService, TokenService>()
                 .AddTransient<IIdentityService, IdentityService>()
+                .AddTransient<ICurrentUser, CurrentUser>()
                 .AddIdentity<ExtendedUser, ExtendedRole>(options =>
                 {
                     options.Password.RequiredLength = 6;
