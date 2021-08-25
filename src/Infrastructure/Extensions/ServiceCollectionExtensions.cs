@@ -11,7 +11,6 @@ using DN.WebApi.Infrastructure.Identity.Services;
 using DN.WebApi.Infrastructure.Middlewares;
 using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Infrastructure.Persistence.Extensions;
-using DN.WebApi.Infrastructure.Persistence.Seeders;
 using DN.WebApi.Infrastructure.Services.General;
 using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -74,7 +73,6 @@ namespace DN.WebApi.Infrastructure.Extensions
         #region Identity
         internal static IServiceCollection AddIdentity(this IServiceCollection services, IConfiguration config)
         {
-            services.AddTransient<ISeeder, IdentitySeeder>();
             services
                 .Configure<JwtSettings>(config.GetSection(nameof(JwtSettings)))
                 .AddTransient<ITokenService, TokenService>()

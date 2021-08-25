@@ -15,10 +15,8 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
 {
     public static class ServiceCollectionExtensions
     {
-        //private readonly ILogger _logger = LoggingUtilities.CreateLogger<ServiceCollectionExtensions>();
         public static IServiceCollection AddDatabaseContext<T>(this IServiceCollection services, IConfiguration config) where T : ApplicationDbContext
         {
-            //var logger = LoggingUtilities.CreateLogger<>("a");
             services.AddDbContext<T>(m => m.UseNpgsql(e => e.MigrationsAssembly(typeof(T).Assembly.FullName)));
             services.Configure<TenantSettings>(config.GetSection(nameof(TenantSettings)));
             var options = services.GetOptions<TenantSettings>(nameof(TenantSettings));
@@ -54,11 +52,10 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             var dbContext = scope.ServiceProvider.GetRequiredService<T>();
             dbContext.Database.SetConnectionString(connectionString);
             dbContext.Database.Migrate();
-
             foreach (string roleName in typeof(RoleConstants).GetAllPublicConstantValues<string>())
             {
                 var roleStore = new RoleStore<ExtendedRole>(dbContext);
-                if (!dbContext.Roles.Any(r => r.Name == roleName))
+                if (!dbContext.Roles.IgnoreQueryFilters().Any(r => r.Name == roleName))
                 {
                     var role = new ExtendedRole(roleName, tenantId, $"Admin Role for {tenant.Name} Tenant");
                     roleStore.CreateAsync(role).Wait();
@@ -78,7 +75,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                 IsActive = true,
                 TenantId = tenantId
             };
-            if (!dbContext.Users.Any(u => u.Email == tenant.AdminEmail))
+            if (!dbContext.Users.IgnoreQueryFilters().Any(u => u.Email == tenant.AdminEmail))
             {
                 var password = new PasswordHasher<ExtendedUser>();
                 var hashed = password.HashPassword(superUser, UserConstants.DefaultPassword);
@@ -92,7 +89,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
         public static async Task<IdentityResult> AssignRoles(IServiceProvider services, string email, string role)
         {
             UserManager<ExtendedUser> _userManager = services.GetService<UserManager<ExtendedUser>>();
-            ExtendedUser user = await _userManager.FindByEmailAsync(email);
+            var user = await _userManager.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Email.Equals(email));
             var result = await _userManager.AddToRoleAsync(user, role);
 
             return result;
