@@ -27,6 +27,7 @@ namespace DN.WebApi.Infrastructure.Persistence
             modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
             modelBuilder.ApplyIdentityConfiguration();
             modelBuilder.ApplyGlobalFilters<IMustHaveTenant>(b => EF.Property<string>(b, nameof(TenantId)) == TenantId);
+            modelBuilder.ApplyGlobalFilters<IIdentityTenant>(b => EF.Property<string>(b, nameof(TenantId)) == TenantId);
 
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
