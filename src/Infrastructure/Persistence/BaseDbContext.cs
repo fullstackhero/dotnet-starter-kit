@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Domain.Contracts;
@@ -13,9 +14,11 @@ namespace DN.WebApi.Infrastructure.Persistence
     public abstract class BaseDbContext : IdentityDbContext<ExtendedUser, ExtendedRole, string, IdentityUserClaim<string>, IdentityUserRole<string>, IdentityUserLogin<string>, ExtendedRoleClaim, IdentityUserToken<string>>
     {
         private readonly ITenantService _tenantService;
+        public string TenantId { get; set; }
         protected BaseDbContext(DbContextOptions options, ITenantService tenantService) : base(options)
         {
             _tenantService = tenantService;
+            TenantId = _tenantService?.GetTenant()?.TID;
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -24,6 +27,13 @@ namespace DN.WebApi.Infrastructure.Persistence
             modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
             //modelBuilder.ApplyDefaultConfiguration(_tenantSettings);
             modelBuilder.ApplyIdentityConfiguration();
+            modelBuilder.ApplyGlobalFilters<IIdentityTenant>(b => EF.Property<string>(b, "TenantId") == TenantId);
+            // if (!string.IsNullOrEmpty(TenantId))
+            // {
+            //     //modelBuilder.ApplyGlobalFilters<IIdentityTenant>(e => e.TenantId == TenantId);
+            //     modelBuilder.ApplyGlobalFilters<IIdentityTenant>(b => EF.Property<string>(b, "TenantId") == TenantId);
+            // }
+
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

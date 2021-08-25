@@ -1,7 +1,9 @@
+using System.Linq.Expressions;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Infrastructure.Identity.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace DN.WebApi.Infrastructure.Persistence.Extensions
 {
@@ -23,36 +25,49 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
         {
             builder.Entity<ExtendedUser>(entity =>
             {
-                entity.ToTable(name: "Users","Identity");
+                entity.ToTable(name: "Users", "Identity");
             });
             builder.Entity<ExtendedRole>(entity =>
             {
-                entity.ToTable(name: "Roles","Identity");
+                entity.ToTable(name: "Roles", "Identity");
             });
             builder.Entity<ExtendedRoleClaim>(entity =>
             {
-                entity.ToTable(name: "RoleClaims","Identity");
+                entity.ToTable(name: "RoleClaims", "Identity");
             });
 
             builder.Entity<IdentityUserRole<string>>(entity =>
             {
-                entity.ToTable("UserRoles","Identity");
+                entity.ToTable("UserRoles", "Identity");
             });
 
             builder.Entity<IdentityUserClaim<string>>(entity =>
             {
-                entity.ToTable("UserClaims","Identity");
+                entity.ToTable("UserClaims", "Identity");
             });
 
             builder.Entity<IdentityUserLogin<string>>(entity =>
             {
-                entity.ToTable("UserLogins","Identity");
+                entity.ToTable("UserLogins", "Identity");
             });
             builder.Entity<IdentityUserToken<string>>(entity =>
             {
-                entity.ToTable("UserTokens","Identity");
+                entity.ToTable("UserTokens", "Identity");
             });
-        
+
+        }
+        public static void ApplyGlobalFilters<TInterface>(this ModelBuilder modelBuilder, Expression<Func<TInterface, bool>> expression)
+        {
+            var entities = modelBuilder.Model
+                .GetEntityTypes()
+                .Where(e => e.ClrType.GetInterface(typeof(TInterface).Name) != null)
+                .Select(e => e.ClrType);
+            foreach (var entity in entities)
+            {
+                var newParam = Expression.Parameter(entity);
+                var newbody = ReplacingExpressionVisitor.Replace(expression.Parameters.Single(), newParam, expression.Body);
+                modelBuilder.Entity(entity).HasQueryFilter(Expression.Lambda(newbody, newParam));
+            }
         }
     }
 }

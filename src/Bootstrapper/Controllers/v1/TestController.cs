@@ -10,19 +10,16 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
     public class TestController : BaseController
     {
         private readonly ApplicationDbContext _context;
-        private readonly ICurrentUser _currentUser;
 
-        public TestController(ICurrentUser currentUser, ApplicationDbContext context)
+        public TestController(ApplicationDbContext context)
         {
-            _currentUser = currentUser;
             _context = context;
         }
 
         [HttpGet]
         public async Task<IActionResult> TestAsync()
         {
-            var tenant = _currentUser.GetTenantId();
-            var users = await _context.Users.Where(a => a.TenantId == tenant).ToListAsync();
+            var users = await _context.Users.ToListAsync();
             return Ok(users);
         }
     }
