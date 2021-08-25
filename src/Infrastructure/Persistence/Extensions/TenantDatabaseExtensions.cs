@@ -9,20 +9,19 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace DN.WebApi.Infrastructure.Persistence.Extensions
 {
-    public static class ServiceCollectionExtensions
+    public static class TenantDatabaseExtensions
     {
-        public static IServiceCollection AddDatabaseContext<T>(this IServiceCollection services, IConfiguration config) where T : ApplicationDbContext
+        private static readonly ILogger _logger = Log.ForContext(typeof(TenantDatabaseExtensions));
+        public static IServiceCollection PrepareTenantDatabases<T>(this IServiceCollection services, IConfiguration config) where T : ApplicationDbContext
         {
-            services.AddDbContext<T>(m => m.UseNpgsql(e => e.MigrationsAssembly(typeof(T).Assembly.FullName)));
             services.Configure<TenantSettings>(config.GetSection(nameof(TenantSettings)));
             var options = services.GetOptions<TenantSettings>(nameof(TenantSettings));
             var defaultConnectionString = options.Defaults?.ConnectionString;
             var defaultDbProvider = options.Defaults?.DBProvider;
-            //other tenants
             var tenants = options.Tenants;
             foreach (var tenant in tenants)
             {
@@ -37,30 +36,29 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                 }
                 if (defaultDbProvider.ToLower() == "postgresql")
                 {
-                    services.AddPostgres<T>(connectionString, tenant.TID);
+                    services.AddDbContext<T>(m => m.UseNpgsql(e => e.MigrationsAssembly(typeof(T).Assembly.FullName)));
+                    services.MigrateAndSeedIdentityData<T>(connectionString, tenant.TID, options);
+                    services.AddHangfire(x => x.UsePostgreSqlStorage(defaultConnectionString));
                 }
             }
-
-            services.AddHangfire(x => x.UsePostgreSqlStorage(defaultConnectionString));
             return services;
         }
-        private static IServiceCollection AddPostgres<T>(this IServiceCollection services, string connectionString, string tenantId) where T : ApplicationDbContext
+        private static IServiceCollection MigrateAndSeedIdentityData<T>(this IServiceCollection services, string connectionString, string tenantId, TenantSettings options) where T : ApplicationDbContext
         {
-            var options = services.GetOptions<TenantSettings>(nameof(TenantSettings));
             var tenant = options.Tenants.Where(a => a.TID == tenantId).FirstOrDefault();
+            _logger.Information($"{tenant.Name} : Initializing Database....");
             using var scope = services.BuildServiceProvider().CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<T>();
             dbContext.Database.SetConnectionString(connectionString);
             dbContext.Database.Migrate();
-            foreach (string roleName in typeof(RoleConstants).GetAllPublicConstantValues<string>())
-            {
-                var roleStore = new RoleStore<ExtendedRole>(dbContext);
-                if (!dbContext.Roles.IgnoreQueryFilters().Any(r => r.Name == roleName))
-                {
-                    var role = new ExtendedRole(roleName, tenantId, $"Admin Role for {tenant.Name} Tenant");
-                    roleStore.CreateAsync(role).Wait();
-                }
-            }
+             _logger.Information($"{tenant.Name} : Migrations complete....");
+            SeedRoles(tenantId, tenant, dbContext);
+            SeedTenantAdmins(tenantId, tenant, scope, dbContext);
+            return services;
+        }
+        #region Seeding
+        private static void SeedTenantAdmins<T>(string tenantId, Tenant tenant, IServiceScope scope, T dbContext) where T : ApplicationDbContext
+        {
             var adminUserName = $"{tenant.Name}.admin";
             var superUser = new ExtendedUser
             {
@@ -82,28 +80,33 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                 superUser.PasswordHash = hashed;
                 var userStore = new UserStore<ExtendedUser>(dbContext);
                 userStore.CreateAsync(superUser).Wait();
+                _logger.Information($"{tenant.Name} : Seeding Admin User {tenant.AdminEmail}....");
                 AssignRoles(scope.ServiceProvider, superUser.Email, RoleConstants.Admin).Wait();
             }
-            return services;
         }
+
+        private static void SeedRoles<T>(string tenantId, Tenant tenant, T dbContext) where T : ApplicationDbContext
+        {
+            foreach (string roleName in typeof(RoleConstants).GetAllPublicConstantValues<string>())
+            {
+                var roleStore = new RoleStore<ExtendedRole>(dbContext);
+                if (!dbContext.Roles.IgnoreQueryFilters().Any(r => r.Name == roleName))
+                {
+                    var role = new ExtendedRole(roleName, tenantId, $"Admin Role for {tenant.Name} Tenant");
+                    roleStore.CreateAsync(role).Wait();
+                    _logger.Information($"{tenant.Name} : Seeding Admin Role....");
+                }
+            }
+        }
+
         public static async Task<IdentityResult> AssignRoles(IServiceProvider services, string email, string role)
         {
             UserManager<ExtendedUser> _userManager = services.GetService<UserManager<ExtendedUser>>();
             var user = await _userManager.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Email.Equals(email));
             var result = await _userManager.AddToRoleAsync(user, role);
-
             return result;
         }
-        private static IServiceCollection AddMSSQL<T>(this IServiceCollection services, string connectionString) where T : DbContext
-        {
-            services.AddDbContext<T>(m => m.UseSqlServer(connectionString, e => e.MigrationsAssembly(typeof(T).Assembly.FullName)));
-            using var scope = services.BuildServiceProvider().CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<T>();
-            dbContext.Database.Migrate();
-            services.AddHangfire(x => x.UseSqlServerStorage(connectionString));
-            return services;
-        }
-
+        #endregion
         public static T GetOptions<T>(this IServiceCollection services, string sectionName) where T : new()
         {
             using var serviceProvider = services.BuildServiceProvider();

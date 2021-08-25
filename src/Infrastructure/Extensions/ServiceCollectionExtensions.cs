@@ -32,7 +32,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             services.AddSettings(config);
             services.AddIdentity(config);
             services
-                .AddDatabaseContext<ApplicationDbContext>(config)
+                .PrepareTenantDatabases<ApplicationDbContext>(config)
                 .AddScoped<IApplicationDbContext>(provider => provider.GetService<ApplicationDbContext>());
             services.AddHangfireServer();
             services.AddRouting(options => options.LowercaseUrls = true);
