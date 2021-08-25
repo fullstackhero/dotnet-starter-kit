@@ -49,11 +49,15 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             _logger.Information($"{tenant.Name} : Initializing Database....");
             using var scope = services.BuildServiceProvider().CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<T>();
-            dbContext.Database.SetConnectionString(connectionString);
-            dbContext.Database.Migrate();
-             _logger.Information($"{tenant.Name} : Migrations complete....");
-            SeedRoles(tenantId, tenant, dbContext);
-            SeedTenantAdmins(tenantId, tenant, scope, dbContext);
+            if (dbContext.Database.GetMigrations().Count() > 0)
+            {
+                dbContext.Database.SetConnectionString(connectionString);
+                dbContext.Database.Migrate();
+                _logger.Information($"{tenant.Name} : Migrations complete....");
+                SeedRoles(tenantId, tenant, dbContext);
+                SeedTenantAdmins(tenantId, tenant, scope, dbContext);
+            }
+
             return services;
         }
         #region Seeding
