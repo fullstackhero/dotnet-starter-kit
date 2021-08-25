@@ -10,7 +10,6 @@ namespace DN.WebApi.Infrastructure.Extensions
        public static IHostBuilder UseSerilog(this IHostBuilder builder)
         {
             var configuration = new ConfigurationBuilder()
-                .SetBasePath(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location))
                 .AddJsonFile("appsettings.Development.json")
                 .AddJsonFile("appsettings.json")
                 .AddEnvironmentVariables()

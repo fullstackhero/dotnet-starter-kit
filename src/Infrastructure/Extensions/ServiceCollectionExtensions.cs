@@ -11,7 +11,6 @@ using DN.WebApi.Infrastructure.Identity.Services;
 using DN.WebApi.Infrastructure.Middlewares;
 using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Infrastructure.Persistence.Extensions;
-using DN.WebApi.Infrastructure.Persistence.Seeders;
 using DN.WebApi.Infrastructure.Services.General;
 using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -33,7 +32,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             services.AddSettings(config);
             services.AddIdentity(config);
             services
-                .AddDatabaseContext<ApplicationDbContext>(config)
+                .PrepareTenantDatabases<ApplicationDbContext>(config)
                 .AddScoped<IApplicationDbContext>(provider => provider.GetService<ApplicationDbContext>());
             services.AddHangfireServer();
             services.AddRouting(options => options.LowercaseUrls = true);
@@ -53,6 +52,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             services
                 .AddTransient<IMailService, SmtpMailService>()
                 .AddTransient<IJobService, HangfireService>()
+                .AddTransient<ITenantService, TenantService>()
                 .AddTransient<ISerializerService, NewtonSoftService>();
             return services;
         }
@@ -63,6 +63,7 @@ namespace DN.WebApi.Infrastructure.Extensions
         {
             services
                 .Configure<MailSettings>(config.GetSection(nameof(MailSettings)))
+                .Configure<TenantSettings>(config.GetSection(nameof(TenantSettings)))
                 .Configure<CorsSettings>(config.GetSection(nameof(CorsSettings)));
 
             return services;
@@ -72,11 +73,11 @@ namespace DN.WebApi.Infrastructure.Extensions
         #region Identity
         internal static IServiceCollection AddIdentity(this IServiceCollection services, IConfiguration config)
         {
-            services.AddTransient<ISeeder, IdentitySeeder>();
             services
                 .Configure<JwtSettings>(config.GetSection(nameof(JwtSettings)))
                 .AddTransient<ITokenService, TokenService>()
                 .AddTransient<IIdentityService, IdentityService>()
+                .AddTransient<ICurrentUser, CurrentUser>()
                 .AddIdentity<ExtendedUser, ExtendedRole>(options =>
                 {
                     options.Password.RequiredLength = 6;

@@ -4,6 +4,7 @@ using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Settings;
@@ -12,6 +13,7 @@ using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Shared.DTOs.Identity.Requests;
 using DN.WebApi.Shared.DTOs.Identity.Responses;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -25,19 +27,21 @@ namespace DN.WebApi.Infrastructure.Identity.Services
         private readonly IStringLocalizer<TokenService> _localizer;
         private readonly MailSettings _mailSettings;
         private readonly JwtSettings _config;
+        private readonly ITenantService _tenantService;
 
         public TokenService(
             UserManager<ExtendedUser> userManager,
             RoleManager<ExtendedRole> roleManager,
             IOptions<JwtSettings> config,
             IStringLocalizer<TokenService> localizer,
-            IOptions<MailSettings> mailSettings)
+            IOptions<MailSettings> mailSettings, ITenantService tenantService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _localizer = localizer;
             _mailSettings = mailSettings.Value;
             _config = config.Value;
+            _tenantService = tenantService;
         }
 
         public async Task<IResult<TokenResponse>> GetTokenAsync(TokenRequest request, string ipAddress)
@@ -107,6 +111,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
 
         private async Task<IEnumerable<Claim>> GetClaimsAsync(ExtendedUser user, string ipAddress)
         {
+            var tenantId = _tenantService.GetTenant()?.TID;
             var userClaims = await _userManager.GetClaimsAsync(user);
             var roles = await _userManager.GetRolesAsync(user);
             var roleClaims = new List<Claim>();
@@ -126,7 +131,8 @@ namespace DN.WebApi.Infrastructure.Identity.Services
                 new("fullName", $"{user.FirstName} {user.LastName}"),
                 new(ClaimTypes.Name, user.FirstName),
                 new(ClaimTypes.Surname, user.LastName),
-                new("ipAddress", ipAddress)
+                new("ipAddress", ipAddress),
+                new("tenantId", tenantId)
             }
             .Union(userClaims)
             .Union(roleClaims)
