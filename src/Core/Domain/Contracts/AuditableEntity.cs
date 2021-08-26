@@ -9,8 +9,8 @@ namespace DN.WebApi.Domain.Contracts
 
         public AuditableEntity()
         {
-            CreatedOn = DateTime.Now;
-            LastModifiedOn = DateTime.Now;
+            CreatedOn = DateTime.UtcNow;
+            LastModifiedOn = DateTime.UtcNow;
         }
     }
 }
