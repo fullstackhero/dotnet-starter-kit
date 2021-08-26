@@ -46,7 +46,7 @@ namespace DN.WebApi.Infrastructure.Persistence
                 {
                     case EntityState.Added:
                     case EntityState.Modified:
-                        entry.Entity.TenantId = _tenantService.GetTenant()?.Name;
+                        entry.Entity.TenantId = TenantId;
                         break;
                 }
             }
