@@ -33,8 +33,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             services.AddGeneralServices();
             services.AddSettings(config);
             services.AddIdentity(config);
-            services
-                .PrepareTenantDatabases<ApplicationDbContext>(config);
+            services.PrepareTenantDatabases<ApplicationDbContext>(config);
             services.AddHangfireServer();
             services.AddRouting(options => options.LowercaseUrls = true);
             services.AddLocalization(options =>

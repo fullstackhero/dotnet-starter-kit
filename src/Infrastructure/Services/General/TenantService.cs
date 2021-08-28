@@ -61,6 +61,10 @@ namespace DN.WebApi.Infrastructure.Services.General
         {
             return _currentTenant?.ConnectionString;
         }
+        public string GetDatabaseProvider()
+        {
+            return _tenantSettings.Defaults?.DBProvider;
+        }
         public Tenant GetTenant()
         {
             return _currentTenant;

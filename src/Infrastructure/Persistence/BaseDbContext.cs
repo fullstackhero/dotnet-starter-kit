@@ -35,7 +35,11 @@ namespace DN.WebApi.Infrastructure.Persistence
             var tenantConnectionString = _tenantService.GetConnectionString();
             if (!string.IsNullOrEmpty(tenantConnectionString))
             {
-                optionsBuilder.UseNpgsql(_tenantService.GetConnectionString());
+                var DBProvider = _tenantService.GetDatabaseProvider();
+                if (DBProvider.ToLower() == "postgresql")
+                {
+                    optionsBuilder.UseNpgsql(_tenantService.GetConnectionString());
+                }
             }
         }
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
