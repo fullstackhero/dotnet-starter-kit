@@ -1,29 +1,30 @@
 using AutoMapper;
+using DN.WebApi.Application.Abstractions.Repositories;
 using DN.WebApi.Application.Abstractions.Services.Catalog;
+using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Wrapper;
-using DN.WebApi.Domain.Interfaces;
+using DN.WebApi.Domain.Entities.Catalog;
 using DN.WebApi.Shared.DTOs.Catalog;
-using MediatR;
 
 namespace DN.WebApi.Application.Services.Catalog
 {
     public class ProductService : IProductService
     {
         private readonly IMapper _mapper;
-        private readonly IProductRepository _repository;
-        private readonly IMediator _mediator;
+        private readonly IRepository _repository;
 
-        public ProductService(IProductRepository repository, IMapper mapper, IMediator mediator)
+        public ProductService(IRepository repository, IMapper mapper)
         {
             _repository = repository;
             _mapper = mapper;
-            _mediator = mediator;
         }
 
         public async Task<Result<ProductDetailsDto>> GetById(Guid id)
         {
-            var product = _mapper.Map<ProductDetailsDto>(await _repository.GetById(id));
-            return await Result<ProductDetailsDto>.SuccessAsync(product);
+            var product = await _repository.GetByIdAsync<Product>(id);
+            if(product == null) throw new EntityNotFoundException<Product>();
+            var mappedProduct = _mapper.Map<ProductDetailsDto>(product);
+            return await Result<ProductDetailsDto>.SuccessAsync(mappedProduct);
         }
     }
 }

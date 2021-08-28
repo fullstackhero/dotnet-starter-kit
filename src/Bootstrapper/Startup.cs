@@ -1,4 +1,5 @@
 using DN.WebApi.Infrastructure.Extensions;
+using DN.WebApi.Application.Extensions;
 
 namespace DN.WebApi.Bootstrapper
 {
@@ -14,6 +15,7 @@ namespace DN.WebApi.Bootstrapper
         public void ConfigureServices(IServiceCollection services)
         {
             services
+                .AddApplication()
                 .AddInfrastructure(_config);
         }
 

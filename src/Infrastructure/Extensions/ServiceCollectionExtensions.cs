@@ -1,6 +1,7 @@
 using System.Net;
 using System.Security.Claims;
 using System.Text;
+using DN.WebApi.Application.Abstractions.Repositories;
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Exceptions;
@@ -10,6 +11,7 @@ using DN.WebApi.Infrastructure.Identity.Services;
 using DN.WebApi.Infrastructure.Middlewares;
 using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Infrastructure.Persistence.Extensions;
+using DN.WebApi.Infrastructure.Persistence.Repositories;
 using DN.WebApi.Infrastructure.Services.General;
 using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -40,7 +42,8 @@ namespace DN.WebApi.Infrastructure.Extensions
             });
             services.AddSingleton<GlobalExceptionHandler>();
             services.AddSwaggerDocumentation();
-            services.AddCorsPolicy();
+            services.AddCorsPolicy(); 
+            services.AddTransient<IRepository,Repository>();
             return services;
         }
 

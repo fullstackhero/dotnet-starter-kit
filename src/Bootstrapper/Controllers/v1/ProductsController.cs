@@ -11,7 +11,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
         {
             _service = service;
         }
-
+        [HttpGet]
         public async Task<IActionResult> Get(Guid id)
         {
             var productDetails = await _service.GetById(id);
