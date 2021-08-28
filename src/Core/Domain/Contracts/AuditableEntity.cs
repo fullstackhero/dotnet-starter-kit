@@ -1,10 +1,10 @@
 namespace DN.WebApi.Domain.Contracts
 {
-    public abstract class AuditableEntity : BaseEntity
+    public abstract class AuditableEntity : BaseEntity, IAuditableEntity
     {
-        public string CreatedBy { get; set; }
+        public Guid CreatedBy { get; set; }
         public DateTime CreatedOn { get; private set; }
-        public string LastModifiedBy { get; set; }
+        public Guid LastModifiedBy { get; set; }
         public DateTime? LastModifiedOn { get; set; }
 
         public AuditableEntity()

@@ -23,15 +23,15 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
         }
         public static void ApplyIdentityConfiguration(this ModelBuilder builder)
         {
-            builder.Entity<ExtendedUser>(entity =>
+            builder.Entity<ApplicationUser>(entity =>
             {
                 entity.ToTable(name: "Users", "Identity");
             });
-            builder.Entity<ExtendedRole>(entity =>
+            builder.Entity<ApplicationRole>(entity =>
             {
                 entity.ToTable(name: "Roles", "Identity");
             });
-            builder.Entity<ExtendedRoleClaim>(entity =>
+            builder.Entity<ApplicationRoleClaim>(entity =>
             {
                 entity.ToTable(name: "RoleClaims", "Identity");
             });

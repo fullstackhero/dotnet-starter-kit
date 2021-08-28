@@ -1,18 +1,22 @@
-using DN.WebApi.Application.Abstractions.Database;
+using System.Data;
 using DN.WebApi.Application.Abstractions.Services.General;
-using DN.WebApi.Application.Settings;
+using DN.WebApi.Application.Abstractions.Services.Identity;
+using DN.WebApi.Domain.Entities.Catalog;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 
 namespace DN.WebApi.Infrastructure.Persistence
 {
-    public class ApplicationDbContext : BaseDbContext, IApplicationDbContext
+    public class ApplicationDbContext : BaseDbContext
     {
+        public IDbConnection Connection => Database.GetDbConnection();
+        private readonly ICurrentUser _currentUserService;
         private readonly ITenantService _tenantService;
-        public ApplicationDbContext(DbContextOptions options, ITenantService tenantService) : base(options, tenantService)
+        public ApplicationDbContext(DbContextOptions options, ITenantService tenantService, ICurrentUser currentUserService) : base(options, tenantService, currentUserService)
         {
             _tenantService = tenantService;
+            _currentUserService = currentUserService;
         }
+        public DbSet<Product> Products { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

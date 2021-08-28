@@ -62,7 +62,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
         private static void SeedTenantAdmins<T>(string tenantId, Tenant tenant, IServiceScope scope, T dbContext) where T : ApplicationDbContext
         {
             var adminUserName = $"{tenant.Name}.admin";
-            var superUser = new ExtendedUser
+            var superUser = new ApplicationUser
             {
                 FirstName = tenant.Name,
                 LastName = "admin",
@@ -77,10 +77,10 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             };
             if (!dbContext.Users.IgnoreQueryFilters().Any(u => u.Email == tenant.AdminEmail))
             {
-                var password = new PasswordHasher<ExtendedUser>();
+                var password = new PasswordHasher<ApplicationUser>();
                 var hashed = password.HashPassword(superUser, UserConstants.DefaultPassword);
                 superUser.PasswordHash = hashed;
-                var userStore = new UserStore<ExtendedUser>(dbContext);
+                var userStore = new UserStore<ApplicationUser>(dbContext);
                 userStore.CreateAsync(superUser).Wait();
                 _logger.Information($"{tenant.Name} : Seeding Admin User {tenant.AdminEmail}....");
                 AssignRoles(scope.ServiceProvider, superUser.Email, RoleConstants.Admin).Wait();
@@ -91,10 +91,10 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
         {
             foreach (string roleName in typeof(RoleConstants).GetAllPublicConstantValues<string>())
             {
-                var roleStore = new RoleStore<ExtendedRole>(dbContext);
+                var roleStore = new RoleStore<ApplicationRole>(dbContext);
                 if (!dbContext.Roles.IgnoreQueryFilters().Any(r => r.Name == $"{tenant.Name}{roleName}"))
                 {
-                    var role = new ExtendedRole($"{tenant.Name}{roleName}", tenantId, $"Admin Role for {tenant.Name} Tenant");
+                    var role = new ApplicationRole($"{tenant.Name}{roleName}", tenantId, $"Admin Role for {tenant.Name} Tenant");
                     roleStore.CreateAsync(role).Wait();
                     _logger.Information($"{tenant.Name} : Seeding {tenant.Name}{roleName} Role....");
                 }
@@ -103,7 +103,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
 
         public static async Task<IdentityResult> AssignRoles(IServiceProvider services, string email, string role)
         {
-            UserManager<ExtendedUser> _userManager = services.GetService<UserManager<ExtendedUser>>();
+            UserManager<ApplicationUser> _userManager = services.GetService<UserManager<ApplicationUser>>();
             var user = await _userManager.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Email.Equals(email));
             var result = await _userManager.AddToRoleAsync(user, role);
             return result;

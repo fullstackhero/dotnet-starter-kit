@@ -1,5 +1,4 @@
 using System.Runtime.CompilerServices;
-using DN.WebApi.Application.Abstractions.Database;
 using DN.WebApi.Infrastructure.Middlewares;
 using Hangfire;
 using Microsoft.AspNetCore.Builder;
@@ -27,24 +26,8 @@ namespace DN.WebApi.Infrastructure.Extensions
                 endpoints.MapControllers();
             });
             app.UseSwaggerDocumentation();
-            app.Initialize();
             return app;
         }
-        #region Seeder
-        internal static IApplicationBuilder Initialize(this IApplicationBuilder app)
-        {
-            using var serviceScope = app.ApplicationServices.CreateScope();
-
-            var initializers = serviceScope.ServiceProvider.GetServices<ISeeder>();
-
-            foreach (var initializer in initializers)
-            {
-                initializer.Initialize();
-            }
-
-            return app;
-        }
-        #endregion
 
         #region Swagger
         private static IApplicationBuilder UseSwaggerDocumentation(this IApplicationBuilder app)

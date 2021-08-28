@@ -18,14 +18,14 @@ namespace DN.WebApi.Infrastructure.Identity.Services
 {
     public class IdentityService : IIdentityService
     {
-        private readonly UserManager<ExtendedUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IJobService _jobService;
         private readonly IMailService _mailService;
         private readonly MailSettings _mailSettings;
         private readonly IStringLocalizer<IdentityService> _localizer;
 
         public IdentityService(
-            UserManager<ExtendedUser> userManager,
+            UserManager<ApplicationUser> userManager,
             IJobService jobService,
             IMailService mailService,
             IOptions<MailSettings> mailSettings,
@@ -47,7 +47,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
                 throw new IdentityException(string.Format(_localizer["Username {0} is already taken."], request.UserName));
             }
 
-            var user = new ExtendedUser
+            var user = new ApplicationUser
             {
                 Email = request.Email,
                 FirstName = request.FirstName,
@@ -100,7 +100,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             }
         }
 
-        private async Task<string> GetEmailVerificationUriAsync(ExtendedUser user, string origin)
+        private async Task<string> GetEmailVerificationUriAsync(ApplicationUser user, string origin)
         {
             string code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
@@ -111,7 +111,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             return verificationUri;
         }
 
-        private async Task<string> GetMobilePhoneVerificationCodeAsync(ExtendedUser user)
+        private async Task<string> GetMobilePhoneVerificationCodeAsync(ApplicationUser user)
         {
             return await _userManager.GenerateChangePhoneNumberTokenAsync(user, user.PhoneNumber);
         }

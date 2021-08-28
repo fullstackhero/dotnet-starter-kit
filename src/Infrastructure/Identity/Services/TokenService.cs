@@ -22,16 +22,16 @@ namespace DN.WebApi.Infrastructure.Identity.Services
 {
    public class TokenService : ITokenService
     {
-        private readonly UserManager<ExtendedUser> _userManager;
-        private readonly RoleManager<ExtendedRole> _roleManager;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly IStringLocalizer<TokenService> _localizer;
         private readonly MailSettings _mailSettings;
         private readonly JwtSettings _config;
         private readonly ITenantService _tenantService;
 
         public TokenService(
-            UserManager<ExtendedUser> userManager,
-            RoleManager<ExtendedRole> roleManager,
+            UserManager<ApplicationUser> userManager,
+            RoleManager<ApplicationRole> roleManager,
             IOptions<JwtSettings> config,
             IStringLocalizer<TokenService> localizer,
             IOptions<MailSettings> mailSettings, ITenantService tenantService)
@@ -104,12 +104,12 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             return await Result<TokenResponse>.SuccessAsync(response);
         }
 
-        private async Task<string> GenerateJwtAsync(ExtendedUser user, string ipAddress)
+        private async Task<string> GenerateJwtAsync(ApplicationUser user, string ipAddress)
         {
             return GenerateEncryptedToken(GetSigningCredentials(), await GetClaimsAsync(user, ipAddress));
         }
 
-        private async Task<IEnumerable<Claim>> GetClaimsAsync(ExtendedUser user, string ipAddress)
+        private async Task<IEnumerable<Claim>> GetClaimsAsync(ApplicationUser user, string ipAddress)
         {
             var tenantId = _tenantService.GetTenant()?.TID;
             var userClaims = await _userManager.GetClaimsAsync(user);

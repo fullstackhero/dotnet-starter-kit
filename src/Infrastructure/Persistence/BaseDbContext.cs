@@ -1,24 +1,24 @@
-using System.Linq.Expressions;
 using DN.WebApi.Application.Abstractions.Services.General;
-using DN.WebApi.Application.Settings;
+using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Domain.Contracts;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Persistence.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 
 namespace DN.WebApi.Infrastructure.Persistence
 {
-    public abstract class BaseDbContext : IdentityDbContext<ExtendedUser, ExtendedRole, string, IdentityUserClaim<string>, IdentityUserRole<string>, IdentityUserLogin<string>, ExtendedRoleClaim, IdentityUserToken<string>>
+    public abstract class BaseDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string, IdentityUserClaim<string>, IdentityUserRole<string>, IdentityUserLogin<string>, ApplicationRoleClaim, IdentityUserToken<string>>
     {
         private readonly ITenantService _tenantService;
+        private readonly ICurrentUser _currentUserService;
         public string TenantId { get; set; }
-        protected BaseDbContext(DbContextOptions options, ITenantService tenantService) : base(options)
+        protected BaseDbContext(DbContextOptions options, ITenantService tenantService, ICurrentUser currentUserService) : base(options)
         {
             _tenantService = tenantService;
             TenantId = _tenantService?.GetTenant()?.TID;
+            _currentUserService = currentUserService;
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -40,13 +40,28 @@ namespace DN.WebApi.Infrastructure.Persistence
         }
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
         {
-            foreach (var entry in ChangeTracker.Entries<IMustHaveTenant>())
+            foreach (var entry in ChangeTracker.Entries<IMustHaveTenant>().ToList())
             {
                 switch (entry.State)
                 {
                     case EntityState.Added:
                     case EntityState.Modified:
                         entry.Entity.TenantId = TenantId;
+                        break;
+                }
+            }
+            var currentUserId = _currentUserService.GetUserId();
+            foreach (var entry in ChangeTracker.Entries<IAuditableEntity>().ToList())
+            {
+                switch (entry.State)
+                {
+                    case EntityState.Added:
+                        entry.Entity.CreatedBy = currentUserId;
+                        break;
+
+                    case EntityState.Modified:
+                        entry.Entity.LastModifiedOn = DateTime.UtcNow;
+                        entry.Entity.LastModifiedBy = currentUserId;
                         break;
                 }
             }

@@ -1,7 +1,6 @@
 using System.Net;
 using System.Security.Claims;
 using System.Text;
-using DN.WebApi.Application.Abstractions.Database;
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Exceptions;
@@ -32,8 +31,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             services.AddSettings(config);
             services.AddIdentity(config);
             services
-                .PrepareTenantDatabases<ApplicationDbContext>(config)
-                .AddScoped<IApplicationDbContext>(provider => provider.GetService<ApplicationDbContext>());
+                .PrepareTenantDatabases<ApplicationDbContext>(config);
             services.AddHangfireServer();
             services.AddRouting(options => options.LowercaseUrls = true);
             services.AddLocalization(options =>
@@ -78,7 +76,7 @@ namespace DN.WebApi.Infrastructure.Extensions
                 .AddTransient<ITokenService, TokenService>()
                 .AddTransient<IIdentityService, IdentityService>()
                 .AddTransient<ICurrentUser, CurrentUser>()
-                .AddIdentity<ExtendedUser, ExtendedRole>(options =>
+                .AddIdentity<ApplicationUser, ApplicationRole>(options =>
                 {
                     options.Password.RequiredLength = 6;
                     options.Password.RequireDigit = false;
