@@ -2,7 +2,7 @@ using DN.WebApi.Domain.Contracts;
 
 namespace DN.WebApi.Domain.Entities.Catalog
 {
-    public class Product : AuditableEntity
+    public class Product : AuditableEntity, IMustHaveTenant
     {
         public Product(string name, string description, decimal rate)
         {
@@ -14,5 +14,6 @@ namespace DN.WebApi.Domain.Entities.Catalog
         public string Name { get; private set; }
         public string Description { get; private set; }
         public decimal Rate { get; private set; }
+        public string TenantId { get; set; }
     }
 }

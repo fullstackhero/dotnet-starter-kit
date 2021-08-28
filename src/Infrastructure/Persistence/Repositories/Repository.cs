@@ -6,6 +6,7 @@ using Dapper;
 using DN.WebApi.Application.Abstractions.Repositories;
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Constants;
+using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Domain.Contracts;
 using DN.WebApi.Shared.DTOs;
 using Microsoft.EntityFrameworkCore;
@@ -64,8 +65,9 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
                     byte[] serializedData = Encoding.Default.GetBytes(_serializer.Serialize(dto));
                     await _cache.SetAsync(cacheKey, serializedData, options, cancellationToken);
                     _logger.LogInformation($"Added To Cache : {cacheKey}");
+                    return dto;
                 }
-                return dto;
+                throw new EntityNotFoundException<T>(entityId);
             }
         }
         public async Task<List<T>> GetPaginatedListAsync<T>(int pageNumber, int pageSize) where T : BaseEntity
