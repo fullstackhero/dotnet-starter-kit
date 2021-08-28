@@ -10,11 +10,12 @@ namespace DN.WebApi.Application.Abstractions.Repositories
         Task<T> GetByIdAsync<T>(object id, CancellationToken cancellationToken = default) where T : BaseEntity;
         Task<TDto> GetCachedDtoByIdAsync<T, TDto>(object id, CancellationToken cancellationToken = default) where T : BaseEntity where TDto : IDto;
 
-        Task<List<T>> GetListAsync<T>(Expression<Func<T, bool>> conditions, CancellationToken cancellationToken = default) where T : BaseEntity;
+        Task<List<T>> GetListAsync<T>(Expression<Func<T, bool>> expression, CancellationToken cancellationToken = default) where T : BaseEntity;
 
         Task<List<T>> GetPaginatedListAsync<T>(int pageNumber, int pageSize) where T : BaseEntity;
 
-        Task<T> InsertAsync<T>(T entity) where T : BaseEntity;
+        Task<object> CreateAsync<T>(T entity) where T : BaseEntity;
+        Task<bool> ExistsAsync<T>(Expression<Func<T, bool>> expression, CancellationToken cancellationToken = default) where T : BaseEntity;
 
         Task UpdateAsync<T>(T entity) where T : BaseEntity;
 
@@ -26,5 +27,10 @@ namespace DN.WebApi.Application.Abstractions.Repositories
         Task<T> QuerySingleAsync<T>(string sql, object param = null, IDbTransaction transaction = null, CancellationToken cancellationToken = default) where T : BaseEntity;
         Task<int> ExecuteAsync(string sql, object param = null, IDbTransaction transaction = null, CancellationToken cancellationToken = default);
         #endregion
+
+        #region Save Changes
+        Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+        #endregion
+
     }
 }

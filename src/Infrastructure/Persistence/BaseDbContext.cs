@@ -57,6 +57,7 @@ namespace DN.WebApi.Infrastructure.Persistence
                 {
                     case EntityState.Added:
                         entry.Entity.CreatedBy = currentUserId;
+                        entry.Entity.LastModifiedBy = currentUserId;
                         break;
 
                     case EntityState.Modified:

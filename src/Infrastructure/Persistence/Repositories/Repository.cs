@@ -32,10 +32,10 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
         }
 
         #region  Entity Framework Core : Get All
-        public async Task<List<T>> GetListAsync<T>(Expression<Func<T, bool>> conditions, CancellationToken cancellationToken = default) where T : BaseEntity
+        public async Task<List<T>> GetListAsync<T>(Expression<Func<T, bool>> expression, CancellationToken cancellationToken = default) where T : BaseEntity
         {
             IQueryable<T> query = _dbContext.Set<T>();
-            if (conditions != null) query = query.Where(conditions);
+            if (expression != null) query = query.Where(expression);
             return await query.ToListAsync(cancellationToken);
         }
         #endregion
@@ -78,12 +78,18 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
                 .ToListAsync();
         }
 
-        public async Task<T> InsertAsync<T>(T entity) where T : BaseEntity
+        public async Task<object> CreateAsync<T>(T entity) where T : BaseEntity
         {
             await _dbContext.Set<T>().AddAsync(entity);
-            return entity;
+            return entity.Id;
         }
-        
+        public async Task<bool> ExistsAsync<T>(Expression<Func<T, bool>> expression, CancellationToken cancellationToken = default) where T : BaseEntity
+        {
+            IQueryable<T> query = _dbContext.Set<T>();
+            if (expression != null) return await query.AnyAsync(expression, cancellationToken);
+            return await query.AnyAsync(cancellationToken);
+        }
+
         public Task RemoveAsync<T>(T entity) where T : BaseEntity
         {
             var cacheKey = CacheKeys.GetDtoCacheKey<T>(entity.Id);
@@ -118,8 +124,10 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
             return await _dbContext.Connection.ExecuteAsync(sql, param, transaction);
         }
 
-
-
+        public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            return _dbContext.SaveChangesAsync(cancellationToken);
+        }
         #endregion
     }
 }

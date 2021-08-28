@@ -19,9 +19,19 @@ namespace DN.WebApi.Application.Services.Catalog
             _mapper = mapper;
         }
 
+        public async Task<Result<object>> CreateProductAsync(CreateProductRequest request)
+        {
+            var productExists = await _repository.ExistsAsync<Product>(a => a.Name == request.Name);
+            if (productExists) throw new EntityAlreadyExistsException<Product>(nameof(request.Name), request.Name);
+            var product = new Product(request.Name, request.Description, request.Rate);
+            var productId = await _repository.CreateAsync<Product>(product);
+            await _repository.SaveChangesAsync();
+            return await Result<object>.SuccessAsync(productId);
+        }
+
         public async Task<Result<ProductDetailsDto>> GetById(Guid id)
         {
-            var product = await _repository.GetCachedDtoByIdAsync<Product,ProductDetailsDto>(id);
+            var product = await _repository.GetCachedDtoByIdAsync<Product, ProductDetailsDto>(id);
             return await Result<ProductDetailsDto>.SuccessAsync(product);
         }
     }

@@ -21,5 +21,9 @@ namespace DN.WebApi.Infrastructure.Persistence
         {
             base.OnModelCreating(modelBuilder);
         }
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
+        {
+            return await base.SaveChangesAsync(cancellationToken);
+        }
     }
 }

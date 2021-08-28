@@ -1,4 +1,5 @@
 using DN.WebApi.Application.Abstractions.Services.Catalog;
+using DN.WebApi.Shared.DTOs.Catalog;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DN.WebApi.Bootstrapper.Controllers.v1
@@ -12,10 +13,15 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
             _service = service;
         }
         [HttpGet]
-        public async Task<IActionResult> Get(Guid id)
+        public async Task<IActionResult> GetAsync(Guid id)
         {
             var productDetails = await _service.GetById(id);
             return Ok(productDetails);
+        }
+        [HttpPost]
+        public async Task<IActionResult> CreateAsync(CreateProductRequest request)
+        {
+            return Ok(await _service.CreateProductAsync(request));
         }
     }
 }
