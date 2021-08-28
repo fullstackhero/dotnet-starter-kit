@@ -129,7 +129,10 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
 
         public async Task<T> QuerySingleAsync<T>(string sql, object param = null, IDbTransaction transaction = null, CancellationToken cancellationToken = default) where T : BaseEntity
         {
-            sql = $"{sql} AND \"TenantId\" = '{_dbContext.TenantId}'";
+            if (typeof(IMustHaveTenant).IsAssignableFrom(typeof(T)))
+            {
+                sql = sql.Replace("@tenantId", _dbContext.TenantId);
+            }
             return await _dbContext.Connection.QuerySingleAsync<T>(sql, param, transaction);
         }
         public async Task<int> ExecuteAsync(string sql, object param = null, IDbTransaction transaction = null, CancellationToken cancellationToken = default)
