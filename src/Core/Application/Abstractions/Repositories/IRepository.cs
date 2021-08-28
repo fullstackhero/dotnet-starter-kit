@@ -6,7 +6,7 @@ namespace DN.WebApi.Application.Abstractions.Repositories
 {
     public interface IRepository
     {
-        Task<T> GetByIdAsync<T>(object id, CancellationToken cancellationToken = default) where T : BaseEntity;
+        Task<T> GetByIdAsync<T>(object id, bool enforceCaching = true, CancellationToken cancellationToken = default) where T : BaseEntity;
 
         Task<List<T>> GetListAsync<T>(Expression<Func<T, bool>> conditions, CancellationToken cancellationToken = default) where T : BaseEntity;
 

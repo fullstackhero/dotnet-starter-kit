@@ -29,6 +29,7 @@ namespace DN.WebApi.Infrastructure.Extensions
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
         {
             services.AddControllers();
+            services.AddDistributedMemoryCache();
             services.AddGeneralServices();
             services.AddSettings(config);
             services.AddIdentity(config);

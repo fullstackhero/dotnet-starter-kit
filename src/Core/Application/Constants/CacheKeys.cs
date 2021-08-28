@@ -2,9 +2,9 @@ namespace DN.WebApi.Application.Constants
 {
     public static class CacheKeys
     {
-        public static string GetEntityCacheKey<T>(Guid id) where T : class
+        public static string GetEntityCacheKey<T>(object id) where T : class
         {
-            return $"{typeof(T).FullName}-{id}";
+            return $"{typeof(T).Name}-{id}";
         }
     }
 }
