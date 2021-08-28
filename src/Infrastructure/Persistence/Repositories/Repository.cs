@@ -114,11 +114,18 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
         }
         public async Task<T> QueryFirstOrDefaultAsync<T>(string sql, object param = null, IDbTransaction transaction = null, CancellationToken cancellationToken = default) where T : BaseEntity
         {
-            return await _dbContext.Connection.QueryFirstOrDefaultAsync<T>(sql, param, transaction);
+            if (typeof(IMustHaveTenant).IsAssignableFrom(typeof(T)))
+            {
+                sql = $"{sql} AND \"TenantId\" = '{_dbContext.TenantId}'";
+            }
+            var entity = await _dbContext.Connection.QueryFirstOrDefaultAsync<T>(sql, param, transaction);
+            if (entity == null) throw new EntityNotFoundException<T>("");
+            return entity;
         }
 
         public async Task<T> QuerySingleAsync<T>(string sql, object param = null, IDbTransaction transaction = null, CancellationToken cancellationToken = default) where T : BaseEntity
         {
+            sql = $"{sql} AND \"TenantId\" = '{_dbContext.TenantId}'";
             return await _dbContext.Connection.QuerySingleAsync<T>(sql, param, transaction);
         }
         public async Task<int> ExecuteAsync(string sql, object param = null, IDbTransaction transaction = null, CancellationToken cancellationToken = default)

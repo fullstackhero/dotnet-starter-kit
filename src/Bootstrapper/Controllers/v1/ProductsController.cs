@@ -18,6 +18,12 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
             var productDetails = await _service.GetById(id);
             return Ok(productDetails);
         }
+        [HttpGet("dapper")]
+        public async Task<IActionResult> GetDapperAsync(Guid id)
+        {
+            var productDetails = await _service.GetByIdDapper(id);
+            return Ok(productDetails);
+        }
         [HttpPost]
         public async Task<IActionResult> CreateAsync(CreateProductRequest request)
         {
