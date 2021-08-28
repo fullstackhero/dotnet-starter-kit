@@ -51,10 +51,13 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
                 else
                 {
                     var result = await _dbContext.Set<T>().FindAsync(id);
-                    var options = new DistributedCacheEntryOptions();
-                    byte[] serializedData = Encoding.Default.GetBytes(_serializer.Serialize(result));
-                    await _cache.SetAsync(cacheKey, serializedData, options, cancellationToken);
-                    _logger.LogInformation($"Added To Cache : {cacheKey}");
+                    if (result != null)
+                    {
+                        var options = new DistributedCacheEntryOptions();
+                        byte[] serializedData = Encoding.Default.GetBytes(_serializer.Serialize(result));
+                        await _cache.SetAsync(cacheKey, serializedData, options, cancellationToken);
+                        _logger.LogInformation($"Added To Cache : {cacheKey}");
+                    }
                     return result;
                 }
             }
