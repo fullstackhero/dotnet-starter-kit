@@ -7,13 +7,13 @@ using Microsoft.Extensions.Logging;
 
 namespace DN.WebApi.Infrastructure.Middlewares
 {
-    internal class GlobalExceptionHandler : IMiddleware
+    internal class ExceptionMiddleware : IMiddleware
     {
-        private readonly ILogger<GlobalExceptionHandler> _logger;
+        private readonly ILogger<ExceptionMiddleware> _logger;
         private readonly ISerializerService _jsonSerializer;
 
-        public GlobalExceptionHandler(
-            ILogger<GlobalExceptionHandler> logger,
+        public ExceptionMiddleware(
+            ILogger<ExceptionMiddleware> logger,
             ISerializerService jsonSerializer)
         {
             _logger = logger;
@@ -60,7 +60,6 @@ namespace DN.WebApi.Infrastructure.Middlewares
 
                 string result = string.Empty;
                 result = _jsonSerializer.Serialize(responseModel);
-
                 await response.WriteAsync(result);
             }
         }

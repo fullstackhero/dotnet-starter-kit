@@ -12,7 +12,8 @@ namespace DN.WebApi.Infrastructure.Extensions
     {
         public static IApplicationBuilder UseInfrastructure(this IApplicationBuilder app)
         {
-            app.UseMiddleware<GlobalExceptionHandler>();
+            app.UseMiddleware<RequestLoggingMiddleware>();
+            app.UseMiddleware<ExceptionMiddleware>();
             app.UseRouting();
             app.UseCors("CorsPolicy");
             app.UseAuthentication();

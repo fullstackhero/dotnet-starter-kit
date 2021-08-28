@@ -41,7 +41,8 @@ namespace DN.WebApi.Infrastructure.Extensions
             {
                 options.ResourcesPath = "Resources";
             });
-            services.AddSingleton<GlobalExceptionHandler>();
+            services.AddSingleton<RequestLoggingMiddleware>();
+            services.AddSingleton<ExceptionMiddleware>();
             services.AddSwaggerDocumentation();
             services.AddCorsPolicy(); 
             services.AddTransient<IRepository,Repository>();
