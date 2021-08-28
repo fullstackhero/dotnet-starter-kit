@@ -114,6 +114,10 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
         }
         public async Task<T> QueryFirstOrDefaultAsync<T>(string sql, object param = null, IDbTransaction transaction = null, CancellationToken cancellationToken = default) where T : BaseEntity
         {
+            //Dapper isn't advanced enough to support MultiTenancy
+            //Workaround - In Repository Layer, I check if T implements IMustHaveTenant Interface. If so, appends 'TenantId = '{tenantId}' to the SQL query.
+            //Not a clean way, but works.
+            //Make sure to include WHERE in your SQL here. If there is no WHERE required, include 'WHERE 1 = 1'
             if (typeof(IMustHaveTenant).IsAssignableFrom(typeof(T)))
             {
                 sql = $"{sql} AND \"TenantId\" = '{_dbContext.TenantId}'";
