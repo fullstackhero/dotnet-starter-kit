@@ -83,7 +83,9 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
 
         public Task RemoveAsync<T>(T entity) where T : BaseEntity
         {
+            var cacheKey = CacheKeys.GetEntityCacheKey<T>(entity.Id);
             _dbContext.Set<T>().Remove(entity);
+            _cache.Remove(cacheKey);
             return Task.CompletedTask;
         }
 
