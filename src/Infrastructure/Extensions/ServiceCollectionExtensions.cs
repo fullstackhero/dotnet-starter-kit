@@ -28,9 +28,9 @@ namespace DN.WebApi.Infrastructure.Extensions
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
         {
+            services.AddServices(config);
             services.AddControllers();
             services.AddDistributedMemoryCache();
-            services.AddGeneralServices();
             services.AddSettings(config);
             services.AddIdentity(config);
             services.PrepareTenantDatabases<ApplicationDbContext>(config);
@@ -47,18 +47,6 @@ namespace DN.WebApi.Infrastructure.Extensions
             services.AddTransient<IRepository,Repository>();
             return services;
         }
-
-        #region General Services
-        internal static IServiceCollection AddGeneralServices(this IServiceCollection services)
-        {
-            services
-                .AddTransient<IMailService, SmtpMailService>()
-                .AddTransient<IJobService, HangfireService>()
-                .AddTransient<ITenantService, TenantService>()
-                .AddTransient<ISerializerService, NewtonSoftService>();
-            return services;
-        }
-        #endregion
 
         #region Settings
         internal static IServiceCollection AddSettings(this IServiceCollection services, IConfiguration config)

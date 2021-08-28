@@ -1,6 +1,6 @@
 namespace DN.WebApi.Application.Abstractions.Services.General
 {
-    public interface ISerializerService
+    public interface ISerializerService: ITransientService
     {
         string Serialize<T>(T obj);
         string Serialize<T>(T obj, Type type);

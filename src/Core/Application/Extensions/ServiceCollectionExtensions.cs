@@ -14,25 +14,6 @@ namespace DN.WebApi.Application.Extensions
         }
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
-            var appServices = typeof(IApplicationService);
-            var types = appServices
-                .Assembly
-                .GetExportedTypes()
-                .Where(t => t.IsClass && !t.IsAbstract)
-                .Select(t => new
-                {
-                    Service = t.GetInterface($"I{t.Name}"),
-                    Implementation = t
-                })
-                .Where(t => t.Service != null);
-
-            foreach (var type in types)
-            {
-                if (appServices.IsAssignableFrom(type.Service))
-                {
-                    services.AddTransient(type.Service, type.Implementation);
-                }
-            }
             return services;
         }
     }

@@ -1,6 +1,6 @@
 namespace DN.WebApi.Application.Settings
 {
-    public class TenantSettings
+    public class TenantSettings : IAppSettings
     {
         public Configuration Defaults { get; set; }
         public List<Tenant> Tenants { get; set; }

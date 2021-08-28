@@ -1,6 +1,6 @@
 namespace DN.WebApi.Application.Settings
 {
-    public class DbSettings
+    public class DbSettings : IAppSettings
     {
         public bool UseMsSql { get; set; }
 
