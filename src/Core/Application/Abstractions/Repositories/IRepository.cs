@@ -1,12 +1,14 @@
 using System.Data;
 using System.Linq.Expressions;
 using DN.WebApi.Domain.Contracts;
+using DN.WebApi.Shared.DTOs;
 
 namespace DN.WebApi.Application.Abstractions.Repositories
 {
     public interface IRepository
     {
-        Task<T> GetByIdAsync<T>(object id, bool enforceCaching = true, CancellationToken cancellationToken = default) where T : BaseEntity;
+        Task<T> GetByIdAsync<T>(object id, CancellationToken cancellationToken = default) where T : BaseEntity;
+        Task<TDto> GetCachedDtoByIdAsync<T, TDto>(object id, CancellationToken cancellationToken = default) where T : BaseEntity where TDto : IDto;
 
         Task<List<T>> GetListAsync<T>(Expression<Func<T, bool>> conditions, CancellationToken cancellationToken = default) where T : BaseEntity;
 

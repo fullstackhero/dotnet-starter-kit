@@ -1,6 +1,6 @@
 namespace DN.WebApi.Shared.DTOs.Catalog
 {
-    public class ProductDetailsDto
+    public class ProductDetailsDto : IDto
     {
         public Guid Id { get; set; }
         public string Name { get; set; }

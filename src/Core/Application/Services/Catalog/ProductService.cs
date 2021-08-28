@@ -21,10 +21,8 @@ namespace DN.WebApi.Application.Services.Catalog
 
         public async Task<Result<ProductDetailsDto>> GetById(Guid id)
         {
-            var product = await _repository.GetByIdAsync<Product>(id);
-            if(product == null) throw new EntityNotFoundException<Product>(id);
-            var mappedProduct = _mapper.Map<ProductDetailsDto>(product);
-            return await Result<ProductDetailsDto>.SuccessAsync(mappedProduct);
+            var product = await _repository.GetCachedDtoByIdAsync<Product,ProductDetailsDto>(id);
+            return await Result<ProductDetailsDto>.SuccessAsync(product);
         }
     }
 }
