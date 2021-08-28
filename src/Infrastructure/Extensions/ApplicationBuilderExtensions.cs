@@ -23,7 +23,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             });
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllers();
+                endpoints.MapControllers().RequireAuthorization();
             });
             app.UseSwaggerDocumentation();
             return app;
