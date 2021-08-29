@@ -8,12 +8,7 @@ namespace DN.WebApi.Application.Extensions
     {
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
-            services.AddApplicationServices();
             services.AddAutoMapper(Assembly.GetExecutingAssembly());
-            return services;
-        }
-        public static IServiceCollection AddApplicationServices(this IServiceCollection services)
-        {
             return services;
         }
     }

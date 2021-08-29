@@ -2,7 +2,7 @@ using System.Security.Claims;
 
 namespace DN.WebApi.Application.Abstractions.Services.Identity
 {
-    public interface ICurrentUser
+    public interface ICurrentUser : ITransientService
     {
         string Name { get; }
         Guid GetUserId();

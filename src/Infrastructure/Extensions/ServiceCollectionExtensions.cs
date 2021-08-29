@@ -40,11 +40,9 @@ namespace DN.WebApi.Infrastructure.Extensions
             {
                 options.ResourcesPath = "Resources";
             });
-            services.AddSingleton<RequestLoggingMiddleware>();
-            services.AddSingleton<ExceptionMiddleware>();
+            services.AddMiddlewares(config);
             services.AddSwaggerDocumentation();
-            services.AddCorsPolicy(); 
-            services.AddTransient<IRepository,Repository>();
+            services.AddCorsPolicy();
             return services;
         }
 
@@ -55,7 +53,6 @@ namespace DN.WebApi.Infrastructure.Extensions
                 .Configure<MailSettings>(config.GetSection(nameof(MailSettings)))
                 .Configure<TenantSettings>(config.GetSection(nameof(TenantSettings)))
                 .Configure<CorsSettings>(config.GetSection(nameof(CorsSettings)));
-
             return services;
         }
         #endregion
@@ -65,9 +62,6 @@ namespace DN.WebApi.Infrastructure.Extensions
         {
             services
                 .Configure<JwtSettings>(config.GetSection(nameof(JwtSettings)))
-                .AddTransient<ITokenService, TokenService>()
-                .AddTransient<IIdentityService, IdentityService>()
-                .AddTransient<ICurrentUser, CurrentUser>()
                 .AddIdentity<ApplicationUser, ApplicationRole>(options =>
                 {
                     options.Password.RequiredLength = 6;
@@ -127,7 +121,12 @@ namespace DN.WebApi.Infrastructure.Extensions
             return services;
         }
         #endregion
-
+        internal static IServiceCollection AddMiddlewares(this IServiceCollection services, IConfiguration config)
+        {
+            services.AddSingleton<ExceptionMiddleware>();
+            //services.AddSingleton<RequestLoggingMiddleware>();
+            return services;
+        }
         #region Swagger
         private static IServiceCollection AddSwaggerDocumentation(this IServiceCollection services)
         {

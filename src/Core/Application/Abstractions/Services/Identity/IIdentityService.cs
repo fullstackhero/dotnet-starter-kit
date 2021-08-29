@@ -3,7 +3,7 @@ using DN.WebApi.Shared.DTOs.Identity.Requests;
 
 namespace DN.WebApi.Application.Abstractions.Services.Identity
 {
-    public interface IIdentityService
+    public interface IIdentityService : ITransientService
     {
         Task<IResult> RegisterAsync(RegisterRequest request, string origin);
 
