@@ -1,4 +1,8 @@
-# .NET WebAPI Boilerplate
+<p align="center">
+    <img src="https://codewithmukesh.com/wp-content/uploads/2021/08/fullstackhero-banner.jpg" alt="fullstackhero">
+<h1 align="center">.NET WebAPI Boilerplate</h1>
+</p>
+
 .NET WebAPI Boilerplate Template built with .NET 6.0. Incorporates the most essential Packages your projects will ever need. Follows Clean Architecture Principles.
 
 ## About
