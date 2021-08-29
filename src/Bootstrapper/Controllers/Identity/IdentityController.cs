@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DN.WebApi.Bootstrapper.Controllers.Identity
 {
+    [ApiController]
+    [Route("api/[controller]")]
     public sealed class IdentityController : ControllerBase
     {
         private readonly IIdentityService _identityService;
