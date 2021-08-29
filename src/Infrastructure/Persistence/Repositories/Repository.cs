@@ -46,7 +46,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
         }
         public async Task<TDto> GetCachedDtoByIdAsync<T, TDto>(object entityId, CancellationToken cancellationToken = default) where T : BaseEntity where TDto : IDto
         {
-            var cacheKey = CacheKeys.GetDtoCacheKey<T>(entityId);
+            var cacheKey = CacheKeys.GetCacheKey<T>(entityId);
             byte[] cachedData = !string.IsNullOrWhiteSpace(cacheKey) ? await _cache.GetAsync(cacheKey, cancellationToken) : null;
             if (cachedData != null)
             {
@@ -94,7 +94,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
 
         public Task RemoveAsync<T>(T entity) where T : BaseEntity
         {
-            var cacheKey = CacheKeys.GetDtoCacheKey<T>(entity.Id);
+            var cacheKey = CacheKeys.GetCacheKey<T>(entity.Id);
             _dbContext.Set<T>().Remove(entity);
             _cache.Remove(cacheKey);
             return Task.CompletedTask;

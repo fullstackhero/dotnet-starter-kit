@@ -16,6 +16,7 @@ using DN.WebApi.Infrastructure.Services.General;
 using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -43,6 +44,12 @@ namespace DN.WebApi.Infrastructure.Extensions
             services.AddMiddlewares(config);
             services.AddSwaggerDocumentation();
             services.AddCorsPolicy();
+             services.AddApiVersioning(config =>
+            {
+                config.DefaultApiVersion = new ApiVersion(1, 0);
+                config.AssumeDefaultVersionWhenUnspecified = true;
+                config.ReportApiVersions = true;
+            });
             return services;
         }
 
