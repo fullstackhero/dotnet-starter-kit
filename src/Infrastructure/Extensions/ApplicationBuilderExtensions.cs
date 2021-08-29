@@ -1,9 +1,11 @@
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using DN.WebApi.Application.Settings;
 using DN.WebApi.Infrastructure.Middlewares;
 using Hangfire;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
@@ -12,11 +14,10 @@ namespace DN.WebApi.Infrastructure.Extensions
 {
     internal static class ApplicationBuilderExtensions
     {
-        public static IApplicationBuilder UseInfrastructure(this IApplicationBuilder app)
+        public static IApplicationBuilder UseInfrastructure(this IApplicationBuilder app, IConfiguration config)
         {
-            //app.UseMiddleware<RequestLoggingMiddleware>();
-            app.UseMiddleware<ExceptionMiddleware>();
-            app.UseMiddleware<LocalizationMiddleware>();
+            app.UseMiddlewares(config);
+            
             app.UseRouting();
             app.UseCors("CorsPolicy");
             app.UseAuthentication();
@@ -32,24 +33,20 @@ namespace DN.WebApi.Infrastructure.Extensions
             app.UseSwaggerDocumentation();
             var options = new RequestLocalizationOptions
             {
-                DefaultRequestCulture = new RequestCulture(new CultureInfo("en-US")),
-                SupportedCultures = new CultureInfo[]{
-                    new CultureInfo("en-US"),
-                    new CultureInfo("ro-RO")
-                },
-                SupportedUICultures = new CultureInfo[]{
-                    new CultureInfo("en-US"),
-                    new CultureInfo("ro-RO")
-                }
+                DefaultRequestCulture = new RequestCulture(new CultureInfo("en-US"))
             };
-
             options.RequestCultureProviders.Insert(0, new CookieRequestCultureProvider());
-
             app.UseRequestLocalization(options);
             app.UseStaticFiles();
             return app;
         }
-
+        private static IApplicationBuilder UseMiddlewares(this IApplicationBuilder app, IConfiguration config)
+        {
+            app.UseMiddleware<ExceptionMiddleware>();
+            if(config.GetValue<bool>("MiddlewareSettings:EnableLocalization")) app.UseMiddleware<LocalizationMiddleware>();
+            if(config.GetValue<bool>("MiddlewareSettings:EnableRequestLogging")) app.UseMiddleware<RequestLoggingMiddleware>();
+            return app;
+        }
         #region Swagger
         private static IApplicationBuilder UseSwaggerDocumentation(this IApplicationBuilder app)
         {

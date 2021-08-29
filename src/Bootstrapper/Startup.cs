@@ -21,7 +21,7 @@ namespace DN.WebApi.Bootstrapper
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            app.UseInfrastructure();
+            app.UseInfrastructure(_config);
         }
     }
 }

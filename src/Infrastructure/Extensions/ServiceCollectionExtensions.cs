@@ -62,6 +62,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             services
                 .Configure<MailSettings>(config.GetSection(nameof(MailSettings)))
                 .Configure<TenantSettings>(config.GetSection(nameof(TenantSettings)))
+                .Configure<MiddlewareSettings>(config.GetSection(nameof(MiddlewareSettings)))
                 .Configure<CorsSettings>(config.GetSection(nameof(CorsSettings)));
             return services;
         }
@@ -133,9 +134,10 @@ namespace DN.WebApi.Infrastructure.Extensions
         #endregion
         internal static IServiceCollection AddMiddlewares(this IServiceCollection services, IConfiguration config)
         {
+            var middlewareSettings = services.GetOptions<MiddlewareSettings>(nameof(MiddlewareSettings));
             services.AddSingleton<ExceptionMiddleware>();
-            services.AddSingleton<LocalizationMiddleware>();
-            //services.AddSingleton<RequestLoggingMiddleware>();
+            if (middlewareSettings.EnableLocalization) services.AddSingleton<LocalizationMiddleware>();
+            if (middlewareSettings.EnableRequestLogging) services.AddSingleton<RequestLoggingMiddleware>();
             return services;
         }
         #region Swagger

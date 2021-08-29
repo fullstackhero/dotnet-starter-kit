@@ -107,8 +107,7 @@ namespace DN.WebApi.Infrastructure.Localizer
             {
                 while (reader.Read())
                 {
-                    if (reader.TokenType == JsonToken.PropertyName
-                        && (string)reader.Value == propertyName)
+                    if (reader.TokenType == JsonToken.PropertyName && (string)reader.Value == propertyName)
                     {
                         reader.Read();
                         return _serializer.Deserialize<T>(reader);
