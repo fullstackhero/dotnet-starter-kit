@@ -9,7 +9,6 @@ namespace DN.WebApi.Infrastructure.Localizer
     public class JsonStringLocalizer : IStringLocalizer
     {
         private string Localization => "Localization";
-        private string CacheKeyPrefix => "locale";
         private readonly IDistributedCache _cache;
         private readonly JsonSerializer _serializer = new JsonSerializer();
         public JsonStringLocalizer(IDistributedCache cache)
@@ -64,7 +63,7 @@ namespace DN.WebApi.Infrastructure.Localizer
             var fullFilePath = Path.GetFullPath(relativeFilePath);
             if (File.Exists(fullFilePath))
             {
-                var cacheKey = $"{CacheKeyPrefix}_{Thread.CurrentThread.CurrentCulture.Name}_{key}";
+                var cacheKey = $"locale_{Thread.CurrentThread.CurrentCulture.Name}_{key}";
                 var cacheValue = _cache.GetString(cacheKey);
                 if (!string.IsNullOrEmpty(cacheValue)) return cacheValue;
                 var result = PullDeserialize<string>(key, Path.GetFullPath(relativeFilePath));
