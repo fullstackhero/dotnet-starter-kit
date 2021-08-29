@@ -17,15 +17,23 @@ This repository contains the WebApi Project of `fullstackhero`.
 - [x] Multi Tenancy Support
 - [x] Default Database Provider is PostgreSQL. Can be switched to MSSQL or MySQL
 - [x] Uses Entity Framework Core as DB Abstraction
-- [ ] MediatR Pattern with Advanced Pipeline Behaviors
+- [x] Repository Pattern
+- [x] Dapper Integration
 - [x] Serilog Integration
 - [x] Swagger Support
 - [x] Automapper
 - [x] API Versioning
-- [ ] Response Caching - Distributed Caching
+- [x] Response Caching - Distributed Caching
 - [ ] Audit Logging
 - [ ] Advanced User & Role Based Permission Management 
 - [ ] & Much More
+
+## Developer's Guide
+
+### Prerequisites
+1. Visual Code v1.59.xx or higher
+2. .NET SDK 6.0.100-preview.7.21379.14 or higher
+3. PostgreSQL with pgAdmin4 or higher
 
 ## Community
 
