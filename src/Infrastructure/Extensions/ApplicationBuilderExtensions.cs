@@ -1,7 +1,9 @@
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using DN.WebApi.Infrastructure.Middlewares;
 using Hangfire;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
@@ -14,6 +16,7 @@ namespace DN.WebApi.Infrastructure.Extensions
         {
             //app.UseMiddleware<RequestLoggingMiddleware>();
             app.UseMiddleware<ExceptionMiddleware>();
+            app.UseMiddleware<LocalizationMiddleware>();
             app.UseRouting();
             app.UseCors("CorsPolicy");
             app.UseAuthentication();
@@ -27,6 +30,23 @@ namespace DN.WebApi.Infrastructure.Extensions
                 endpoints.MapControllers().RequireAuthorization();
             });
             app.UseSwaggerDocumentation();
+            var options = new RequestLocalizationOptions
+            {
+                DefaultRequestCulture = new RequestCulture(new CultureInfo("en-US")),
+                SupportedCultures = new CultureInfo[]{
+                    new CultureInfo("en-US"),
+                    new CultureInfo("ro-RO")
+                },
+                SupportedUICultures = new CultureInfo[]{
+                    new CultureInfo("en-US"),
+                    new CultureInfo("ro-RO")
+                }
+            };
+
+            options.RequestCultureProviders.Insert(0, new CookieRequestCultureProvider());
+
+            app.UseRequestLocalization(options);
+            app.UseStaticFiles();
             return app;
         }
 

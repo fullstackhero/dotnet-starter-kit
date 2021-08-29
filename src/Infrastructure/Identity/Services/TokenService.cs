@@ -49,7 +49,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             var user = await _userManager.FindByEmailAsync(request.Email);
             if (user == null)
             {
-                throw new IdentityException(_localizer["User Not Found."], statusCode: HttpStatusCode.Unauthorized);
+                throw new IdentityException(_localizer["identity.usernotfound"], statusCode: HttpStatusCode.Unauthorized);
             }
 
             if (!user.IsActive)

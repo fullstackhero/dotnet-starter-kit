@@ -8,6 +8,7 @@ using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Identity.Services;
+using DN.WebApi.Infrastructure.Localizer;
 using DN.WebApi.Infrastructure.Middlewares;
 using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Infrastructure.Persistence.Extensions;
@@ -19,6 +20,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
@@ -44,12 +46,13 @@ namespace DN.WebApi.Infrastructure.Extensions
             services.AddMiddlewares(config);
             services.AddSwaggerDocumentation();
             services.AddCorsPolicy();
-             services.AddApiVersioning(config =>
-            {
-                config.DefaultApiVersion = new ApiVersion(1, 0);
-                config.AssumeDefaultVersionWhenUnspecified = true;
-                config.ReportApiVersions = true;
-            });
+            services.AddApiVersioning(config =>
+           {
+               config.DefaultApiVersion = new ApiVersion(1, 0);
+               config.AssumeDefaultVersionWhenUnspecified = true;
+               config.ReportApiVersions = true;
+           });
+            services.AddSingleton<IStringLocalizerFactory, JsonStringLocalizerFactory>();
             return services;
         }
 
@@ -131,6 +134,7 @@ namespace DN.WebApi.Infrastructure.Extensions
         internal static IServiceCollection AddMiddlewares(this IServiceCollection services, IConfiguration config)
         {
             services.AddSingleton<ExceptionMiddleware>();
+            services.AddSingleton<LocalizationMiddleware>();
             //services.AddSingleton<RequestLoggingMiddleware>();
             return services;
         }
