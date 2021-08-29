@@ -15,15 +15,15 @@ using Microsoft.Extensions.Logging;
 
 namespace DN.WebApi.Infrastructure.Persistence.Repositories
 {
-    public class Repository : IRepository
+    public class RepositoryAsync : IRepositoryAsync
     {
         private readonly IMapper _mapper;
         private ISerializerService _serializer;
         private readonly IDistributedCache _cache;
         private readonly ApplicationDbContext _dbContext;
-        private readonly ILogger<Repository> _logger;
+        private readonly ILogger<RepositoryAsync> _logger;
 
-        public Repository(ApplicationDbContext dbContext, ISerializerService serializer, IDistributedCache cache, ILogger<Repository> logger, IMapper mapper)
+        public RepositoryAsync(ApplicationDbContext dbContext, ISerializerService serializer, IDistributedCache cache, ILogger<RepositoryAsync> logger, IMapper mapper)
         {
             _dbContext = dbContext;
             _serializer = serializer;
@@ -137,6 +137,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
         }
         public async Task<int> ExecuteAsync(string sql, object param = null, IDbTransaction transaction = null, CancellationToken cancellationToken = default)
         {
+            sql = sql.Replace("@tenantId", _dbContext.TenantId);
             return await _dbContext.Connection.ExecuteAsync(sql, param, transaction);
         }
 

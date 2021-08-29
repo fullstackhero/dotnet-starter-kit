@@ -11,9 +11,9 @@ namespace DN.WebApi.Application.Services.Catalog
     public class ProductService : IProductService
     {
         private readonly IMapper _mapper;
-        private readonly IRepository _repository;
+        private readonly IRepositoryAsync _repository;
 
-        public ProductService(IRepository repository, IMapper mapper)
+        public ProductService(IRepositoryAsync repository, IMapper mapper)
         {
             _repository = repository;
             _mapper = mapper;

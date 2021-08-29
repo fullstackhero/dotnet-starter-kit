@@ -6,7 +6,7 @@ using DN.WebApi.Shared.DTOs;
 
 namespace DN.WebApi.Application.Abstractions.Repositories
 {
-    public interface IRepository : ITransientService
+    public interface IRepositoryAsync : ITransientService
     {
         Task<T> GetByIdAsync<T>(object id, CancellationToken cancellationToken = default) where T : BaseEntity;
         Task<TDto> GetCachedDtoByIdAsync<T, TDto>(object id, CancellationToken cancellationToken = default) where T : BaseEntity where TDto : IDto;
