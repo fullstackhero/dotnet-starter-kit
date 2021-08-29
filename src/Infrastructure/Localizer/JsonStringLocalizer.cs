@@ -21,7 +21,7 @@ namespace DN.WebApi.Infrastructure.Localizer
             get
             {
                 var value = GetString(name);
-                return new LocalizedString(name, value ?? $"{name}", value == null);
+                return new LocalizedString(name, value ?? $"{name} [{Thread.CurrentThread.CurrentCulture.Name}]", value == null);
             }
         }
         public LocalizedString this[string name, params object[] arguments]
