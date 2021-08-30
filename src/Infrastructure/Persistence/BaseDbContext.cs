@@ -14,7 +14,8 @@ namespace DN.WebApi.Infrastructure.Persistence
         private readonly ITenantService _tenantService;
         private readonly ICurrentUser _currentUserService;
         public string TenantId { get; set; }
-        protected BaseDbContext(DbContextOptions options, ITenantService tenantService, ICurrentUser currentUserService) : base(options)
+        protected BaseDbContext(DbContextOptions options, ITenantService tenantService, ICurrentUser currentUserService)
+        : base(options)
         {
             _tenantService = tenantService;
             TenantId = _tenantService?.GetTenant()?.TID;
@@ -28,20 +29,21 @@ namespace DN.WebApi.Infrastructure.Persistence
             modelBuilder.ApplyIdentityConfiguration();
             modelBuilder.ApplyGlobalFilters<IMustHaveTenant>(b => EF.Property<string>(b, nameof(TenantId)) == TenantId);
             modelBuilder.ApplyGlobalFilters<IIdentityTenant>(b => EF.Property<string>(b, nameof(TenantId)) == TenantId);
-
         }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             var tenantConnectionString = _tenantService.GetConnectionString();
             if (!string.IsNullOrEmpty(tenantConnectionString))
             {
-                var DBProvider = _tenantService.GetDatabaseProvider();
-                if (DBProvider.ToLower() == "postgresql")
+                var dbProvider = _tenantService.GetDatabaseProvider();
+                if (dbProvider.ToLower() == "postgresql")
                 {
                     optionsBuilder.UseNpgsql(_tenantService.GetConnectionString());
                 }
             }
         }
+
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
         {
             foreach (var entry in ChangeTracker.Entries<IMustHaveTenant>().ToList())
@@ -54,6 +56,7 @@ namespace DN.WebApi.Infrastructure.Persistence
                         break;
                 }
             }
+
             var currentUserId = _currentUserService.GetUserId();
             foreach (var entry in ChangeTracker.Entries<IAuditableEntity>().ToList())
             {
@@ -70,6 +73,7 @@ namespace DN.WebApi.Infrastructure.Persistence
                         break;
                 }
             }
+
             var result = await base.SaveChangesAsync(cancellationToken);
             return result;
         }

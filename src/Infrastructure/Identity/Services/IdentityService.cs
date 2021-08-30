@@ -30,7 +30,8 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             IJobService jobService,
             IMailService mailService,
             IOptions<MailSettings> mailSettings,
-            IStringLocalizer<IdentityService> localizer, ITenantService tenantService)
+            IStringLocalizer<IdentityService> localizer,
+            ITenantService tenantService)
         {
             _userManager = userManager;
             _jobService = jobService;
@@ -58,7 +59,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
                 PhoneNumber = request.PhoneNumber,
                 IsActive = true,
                 TenantId = _tenantService.GetTenant()?.TID
-        };
+            };
             if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
             {
                 var userWithSamePhoneNumber = await _userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == request.PhoneNumber);
@@ -131,7 +132,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             var result = await _userManager.ConfirmEmailAsync(user, code);
             if (result.Succeeded)
             {
-               return await Result<string>.SuccessAsync(user.Id, string.Format(_localizer["Account Confirmed for E-Mail {0}. You can now use the /api/identity/token endpoint to generate JWT."], user.Email));
+                return await Result<string>.SuccessAsync(user.Id, string.Format(_localizer["Account Confirmed for E-Mail {0}. You can now use the /api/identity/token endpoint to generate JWT."], user.Email));
             }
             else
             {

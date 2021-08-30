@@ -6,6 +6,5 @@ namespace DN.WebApi.Bootstrapper.Controllers
     [Route("api/v{version:apiVersion}/[controller]")]
     public class BaseController : ControllerBase
     {
-
     }
 }

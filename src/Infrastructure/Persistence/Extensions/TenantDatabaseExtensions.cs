@@ -16,7 +16,8 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
     public static class TenantDatabaseExtensions
     {
         private static readonly ILogger _logger = Log.ForContext(typeof(TenantDatabaseExtensions));
-        public static IServiceCollection PrepareTenantDatabases<T>(this IServiceCollection services, IConfiguration config) where T : ApplicationDbContext
+        public static IServiceCollection PrepareTenantDatabases<T>(this IServiceCollection services, IConfiguration config)
+        where T : ApplicationDbContext
         {
             services.Configure<TenantSettings>(config.GetSection(nameof(TenantSettings)));
             var options = services.GetOptions<TenantSettings>(nameof(TenantSettings));
@@ -34,6 +35,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                 {
                     connectionString = tenant.ConnectionString;
                 }
+
                 if (defaultDbProvider.ToLower() == "postgresql")
                 {
                     services.AddDbContext<T>(m => m.UseNpgsql(e => e.MigrationsAssembly(typeof(T).Assembly.FullName)));
@@ -41,9 +43,12 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                     services.AddHangfire(x => x.UsePostgreSqlStorage(defaultConnectionString));
                 }
             }
+
             return services;
         }
-        private static IServiceCollection MigrateAndSeedIdentityData<T>(this IServiceCollection services, string connectionString, string tenantId, TenantSettings options) where T : ApplicationDbContext
+
+        private static IServiceCollection MigrateAndSeedIdentityData<T>(this IServiceCollection services, string connectionString, string tenantId, TenantSettings options)
+        where T : ApplicationDbContext
         {
             var tenant = options.Tenants.Where(a => a.TID == tenantId).FirstOrDefault();
             using var scope = services.BuildServiceProvider().CreateScope();
@@ -59,7 +64,8 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             return services;
         }
         #region Seeding
-        private static void SeedTenantAdmins<T>(string tenantId, Tenant tenant, IServiceScope scope, T dbContext) where T : ApplicationDbContext
+        private static void SeedTenantAdmins<T>(string tenantId, Tenant tenant, IServiceScope scope, T dbContext)
+        where T : ApplicationDbContext
         {
             var adminUserName = $"{tenant.Name}.admin";
             var superUser = new ApplicationUser
@@ -87,7 +93,8 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             }
         }
 
-        private static void SeedRoles<T>(string tenantId, Tenant tenant, T dbContext) where T : ApplicationDbContext
+        private static void SeedRoles<T>(string tenantId, Tenant tenant, T dbContext)
+        where T : ApplicationDbContext
         {
             foreach (string roleName in typeof(RoleConstants).GetAllPublicConstantValues<string>())
             {
@@ -103,13 +110,14 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
 
         public static async Task<IdentityResult> AssignRoles(IServiceProvider services, string email, string role)
         {
-            UserManager<ApplicationUser> _userManager = services.GetService<UserManager<ApplicationUser>>();
-            var user = await _userManager.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Email.Equals(email));
-            var result = await _userManager.AddToRoleAsync(user, role);
+            UserManager<ApplicationUser> userManager = services.GetService<UserManager<ApplicationUser>>();
+            var user = await userManager.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Email.Equals(email));
+            var result = await userManager.AddToRoleAsync(user, role);
             return result;
         }
         #endregion
-        public static T GetOptions<T>(this IServiceCollection services, string sectionName) where T : new()
+        public static T GetOptions<T>(this IServiceCollection services, string sectionName)
+        where T : new()
         {
             using var serviceProvider = services.BuildServiceProvider();
             var configuration = serviceProvider.GetRequiredService<IConfiguration>();

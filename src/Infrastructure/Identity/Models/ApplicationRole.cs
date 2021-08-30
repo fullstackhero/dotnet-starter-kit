@@ -8,10 +8,14 @@ namespace DN.WebApi.Infrastructure.Identity.Models
         public string Description { get; set; }
 
         public string TenantId { get; set; }
-        public ApplicationRole() : base()
+
+        public ApplicationRole()
+        : base()
         {
         }
-        public ApplicationRole(string roleName, string tenantId, string description = null) : base(roleName)
+
+        public ApplicationRole(string roleName, string tenantId, string description = null)
+        : base(roleName)
         {
             Description = description;
             NormalizedName = roleName.ToUpper();

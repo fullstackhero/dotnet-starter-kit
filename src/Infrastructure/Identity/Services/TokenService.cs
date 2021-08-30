@@ -33,7 +33,8 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             RoleManager<ApplicationRole> roleManager,
             IOptions<JwtSettings> config,
             IStringLocalizer<TokenService> localizer,
-            IOptions<MailSettings> mailSettings, ITenantService tenantService)
+            IOptions<MailSettings> mailSettings,
+            ITenantService tenantService)
         {
             _userManager = userManager;
             _roleManager = roleManager;

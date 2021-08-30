@@ -14,6 +14,7 @@ namespace DN.WebApi.Infrastructure.Middlewares
             _logger = loggerFactory.CreateLogger<RequestLoggingMiddleware>();
             _currentUser = currentUser;
         }
+
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
             try
@@ -25,7 +26,7 @@ namespace DN.WebApi.Infrastructure.Middlewares
                 var user = !string.IsNullOrEmpty(_currentUser.GetUserEmail()) ? _currentUser.GetUserEmail() : "Anonymous";
                 _logger.LogInformation($"HTTP Request Information:{Environment.NewLine}" +
                                         $"Request By: {user}{Environment.NewLine}" +
-                                        $"Tenant: {_currentUser.GetTenantId() ?? ""}{Environment.NewLine}" +
+                                        $"Tenant: {_currentUser.GetTenantId() ?? string.Empty}{Environment.NewLine}" +
                                         $"Schema: {context.Request.Scheme}{Environment.NewLine}" +
                                         $"Host: {context.Request.Host}{Environment.NewLine}" +
                                         $"Path: {context.Request.Path}{Environment.NewLine}" +

@@ -10,6 +10,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
     public sealed class TokensController : ControllerBase
     {
         private readonly ITokenService _tokenService;
+
         public TokensController(ITokenService tokenService)
         {
             _tokenService = tokenService;

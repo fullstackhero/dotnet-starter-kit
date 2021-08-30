@@ -39,6 +39,7 @@ namespace DN.WebApi.Infrastructure.Extensions
 
             return app;
         }
+
         private static IApplicationBuilder UseMiddlewares(this IApplicationBuilder app, IConfiguration config)
         {
             app.UseMiddleware<ExceptionMiddleware>();
@@ -46,6 +47,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             if (config.GetValue<bool>("MiddlewareSettings:EnableRequestLogging")) app.UseMiddleware<RequestLoggingMiddleware>();
             return app;
         }
+
         #region Swagger
         private static IApplicationBuilder UseSwaggerDocumentation(this IApplicationBuilder app)
         {

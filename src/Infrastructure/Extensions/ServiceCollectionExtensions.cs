@@ -39,7 +39,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             services.AddIdentity(config);
             services.PrepareTenantDatabases<ApplicationDbContext>(config);
             services.AddHangfireServer();
-            services.AddRouting(options => options.LowercaseUrls = true);            
+            services.AddRouting(options => options.LowercaseUrls = true);
             services.AddMiddlewares(config);
             services.AddSwaggerDocumentation();
             services.AddCorsPolicy();
@@ -84,6 +84,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             services.AddJwtAuthentication(config);
             return services;
         }
+
         internal static IServiceCollection AddJwtAuthentication(
             this IServiceCollection services, IConfiguration config)
         {

@@ -11,12 +11,17 @@ namespace DN.WebApi.Infrastructure.Services.General
     public class TenantService : ITenantService
     {
         private readonly IStringLocalizer<TenantService> _localizer;
+
         private readonly ICurrentUser _currentUser;
+
         private readonly TenantSettings _tenantSettings;
+
         private HttpContext _httpContext;
+
         private Tenant _currentTenant;
+
         public TenantService(IOptions<TenantSettings> options, IHttpContextAccessor contextAccessor, ICurrentUser currentUser, IStringLocalizer<TenantService> localizer)
-        {            
+        {
             _localizer = localizer;
             _tenantSettings = options.Value;
             _httpContext = contextAccessor.HttpContext;
@@ -38,7 +43,6 @@ namespace DN.WebApi.Infrastructure.Services.General
                         throw new InvalidTenantException(_localizer["tenant.invalidtenant"]);
                     }
                 }
-
             }
         }
 
@@ -49,7 +53,8 @@ namespace DN.WebApi.Infrastructure.Services.General
             {
                 throw new InvalidTenantException(_localizer["tenant.invalidtenant"]);
             }
-            if(string.IsNullOrEmpty(_currentTenant.ConnectionString))
+
+            if (string.IsNullOrEmpty(_currentTenant.ConnectionString))
             {
                 SetDefaultConnectionStringToCurrentTenant();
             }
@@ -64,10 +69,12 @@ namespace DN.WebApi.Infrastructure.Services.General
         {
             return _currentTenant?.ConnectionString;
         }
+
         public string GetDatabaseProvider()
         {
             return _tenantSettings.Defaults?.DBProvider;
         }
+
         public Tenant GetTenant()
         {
             return _currentTenant;

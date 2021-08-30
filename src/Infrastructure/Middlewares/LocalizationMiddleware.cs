@@ -17,8 +17,10 @@ namespace DN.WebApi.Infrastructure.Middlewares
                     Thread.CurrentThread.CurrentUICulture = culture;
                 }
             }
+
             await next(context);
         }
+
         private static bool DoesCultureExist(string cultureName)
         {
             return CultureInfo.GetCultures(CultureTypes.AllCultures).Any(culture => string.Equals(culture.Name, cultureName, StringComparison.CurrentCultureIgnoreCase));

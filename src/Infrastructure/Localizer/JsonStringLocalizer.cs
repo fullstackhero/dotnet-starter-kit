@@ -9,12 +9,16 @@ namespace DN.WebApi.Infrastructure.Localizer
     public class JsonStringLocalizer : IStringLocalizer
     {
         private string Localization => "Localization";
+
         private readonly IDistributedCache _cache;
+
         private readonly JsonSerializer _serializer = new JsonSerializer();
+
         public JsonStringLocalizer(IDistributedCache cache)
         {
             _cache = cache;
         }
+
         public LocalizedString this[string name]
         {
             get
@@ -23,6 +27,7 @@ namespace DN.WebApi.Infrastructure.Localizer
                 return new LocalizedString(name, value ?? $"{name} [{Thread.CurrentThread.CurrentCulture.Name}]", value == null);
             }
         }
+
         public LocalizedString this[string name, params object[] arguments]
         {
             get
@@ -33,6 +38,7 @@ namespace DN.WebApi.Infrastructure.Localizer
                     : actualValue;
             }
         }
+
         public IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures)
         {
             var filePath = $"{Localization}/{Thread.CurrentThread.CurrentCulture.Name}.json";
@@ -51,6 +57,7 @@ namespace DN.WebApi.Infrastructure.Localizer
                 }
             }
         }
+
         public IStringLocalizer WithCulture(CultureInfo culture)
         {
             CultureInfo.DefaultThreadCurrentCulture = culture;
@@ -70,6 +77,7 @@ namespace DN.WebApi.Infrastructure.Localizer
                 if (!string.IsNullOrEmpty(result)) _cache.SetString(cacheKey, result);
                 return result;
             }
+
             WriteEmptyKeys(new CultureInfo("en-US"), fullFilePath);
             return default(string);
         }
@@ -93,9 +101,11 @@ namespace DN.WebApi.Infrastructure.Localizer
                     writer.WritePropertyName(property.Name);
                     writer.WriteNull();
                 }
+
                 writer.WriteEndObject();
             }
         }
+
         private T PullDeserialize<T>(string propertyName, string filePath)
         {
             if (propertyName == null) return default(T);
@@ -112,6 +122,7 @@ namespace DN.WebApi.Infrastructure.Localizer
                         return _serializer.Deserialize<T>(reader);
                     }
                 }
+
                 return default(T);
             }
         }

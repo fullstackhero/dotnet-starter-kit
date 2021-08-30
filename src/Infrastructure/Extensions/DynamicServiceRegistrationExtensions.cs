@@ -28,8 +28,10 @@ namespace DN.WebApi.Infrastructure.Extensions
                     services.AddTransient(type.Service, type.Implementation);
                 }
             }
+
             return services;
         }
+
         public static IServiceCollection RegisterAppSettings(this IServiceCollection services, IConfiguration config)
         {
             var appSettingsType = typeof(IAppSettings);
@@ -49,10 +51,9 @@ namespace DN.WebApi.Infrastructure.Extensions
                 if (appSettingsType.IsAssignableFrom(type.Service))
                 {
                     config.Bind(type.Implementation);
-                    //services.Configure<type.Service.GetInterface()>(config);
-                    //services.Configure(type.Implementation,config.GetSection(nameof(type.Implementation)));
                 }
             }
+
             return services;
         }
     }

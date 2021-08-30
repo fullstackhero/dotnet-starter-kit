@@ -42,8 +42,8 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             {
                 entity.ToTable("UserTokens", "Identity");
             });
-
         }
+
         public static void ApplyGlobalFilters<TInterface>(this ModelBuilder modelBuilder, Expression<Func<TInterface, bool>> expression)
         {
             var entities = modelBuilder.Model
