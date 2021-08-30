@@ -11,7 +11,7 @@ namespace DN.WebApi.Application.Abstractions.Repositories
         Task<T> GetByIdAsync<T>(object id, CancellationToken cancellationToken = default) where T : BaseEntity;
         Task<TDto> GetCachedDtoByIdAsync<T, TDto>(object id, CancellationToken cancellationToken = default) where T : BaseEntity where TDto : IDto;
 
-        Task<List<T>> GetListAsync<T>(Expression<Func<T, bool>> expression, CancellationToken cancellationToken = default) where T : BaseEntity;
+        Task<List<T>> GetListAsync<T>(Expression<Func<T, bool>> expression, bool noTracking = false, CancellationToken cancellationToken = default) where T : BaseEntity;
 
         Task<List<T>> GetPaginatedListAsync<T>(int pageNumber, int pageSize) where T : BaseEntity;
 

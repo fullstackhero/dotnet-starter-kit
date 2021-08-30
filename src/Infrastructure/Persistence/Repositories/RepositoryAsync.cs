@@ -36,9 +36,10 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
         }
 
         #region  Entity Framework Core : Get All
-        public async Task<List<T>> GetListAsync<T>(Expression<Func<T, bool>> expression, CancellationToken cancellationToken = default) where T : BaseEntity
+        public async Task<List<T>> GetListAsync<T>(Expression<Func<T, bool>> expression, bool noTracking = false, CancellationToken cancellationToken = default) where T : BaseEntity
         {
             IQueryable<T> query = _dbContext.Set<T>();
+            if (noTracking) query = query.AsNoTracking();
             if (expression != null) query = query.Where(expression);
             return await query.ToListAsync(cancellationToken);
         }
