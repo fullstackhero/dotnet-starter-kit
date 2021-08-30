@@ -31,6 +31,7 @@ namespace DN.WebApi.Infrastructure.Extensions
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
         {
+            services.AddLocalization();
             services.AddServices(config);
             services.AddControllers();
             services.AddDistributedMemoryCache();
@@ -38,11 +39,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             services.AddIdentity(config);
             services.PrepareTenantDatabases<ApplicationDbContext>(config);
             services.AddHangfireServer();
-            services.AddRouting(options => options.LowercaseUrls = true);
-            services.AddLocalization(options =>
-            {
-                options.ResourcesPath = "Resources";
-            });
+            services.AddRouting(options => options.LowercaseUrls = true);            
             services.AddMiddlewares(config);
             services.AddSwaggerDocumentation();
             services.AddCorsPolicy();

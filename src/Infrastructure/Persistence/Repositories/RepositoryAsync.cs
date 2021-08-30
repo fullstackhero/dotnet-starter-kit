@@ -11,25 +11,28 @@ using DN.WebApi.Domain.Contracts;
 using DN.WebApi.Shared.DTOs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace DN.WebApi.Infrastructure.Persistence.Repositories
 {
     public class RepositoryAsync : IRepositoryAsync
     {
+        private readonly IStringLocalizer<RepositoryAsync> _localizer;
         private readonly IMapper _mapper;
         private ISerializerService _serializer;
         private readonly IDistributedCache _cache;
         private readonly ApplicationDbContext _dbContext;
         private readonly ILogger<RepositoryAsync> _logger;
 
-        public RepositoryAsync(ApplicationDbContext dbContext, ISerializerService serializer, IDistributedCache cache, ILogger<RepositoryAsync> logger, IMapper mapper)
+        public RepositoryAsync(ApplicationDbContext dbContext, ISerializerService serializer, IDistributedCache cache, ILogger<RepositoryAsync> logger, IMapper mapper, IStringLocalizer<RepositoryAsync> localizer)
         {
             _dbContext = dbContext;
             _serializer = serializer;
             _cache = cache;
             _logger = logger;
             _mapper = mapper;
+            _localizer = localizer;
         }
 
         #region  Entity Framework Core : Get All
@@ -51,7 +54,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
             if (cachedData != null)
             {
                 await _cache.RefreshAsync(cacheKey);
-                _logger.LogInformation($"Refreshed Cache : {cacheKey}");
+                _logger.LogInformation(string.Format(_localizer["caching.refreshed"], cacheKey));
                 var entity = _serializer.Deserialize<TDto>(Encoding.Default.GetString(cachedData));
                 return entity;
             }
@@ -64,10 +67,10 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
                     var options = new DistributedCacheEntryOptions();
                     byte[] serializedData = Encoding.Default.GetBytes(_serializer.Serialize(dto));
                     await _cache.SetAsync(cacheKey, serializedData, options, cancellationToken);
-                    _logger.LogInformation($"Added To Cache : {cacheKey}");
+                    _logger.LogInformation(string.Format(_localizer["caching.added"], cacheKey));
                     return dto;
                 }
-                throw new EntityNotFoundException<T>(entityId);
+                throw new EntityNotFoundException(string.Format(_localizer["entity.notfound"], typeof(T).Name, entityId));
             }
         }
         public async Task<List<T>> GetPaginatedListAsync<T>(int pageNumber, int pageSize) where T : BaseEntity
@@ -123,7 +126,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
                 sql = sql.Replace("@tenantId", _dbContext.TenantId);
             }
             var entity = await _dbContext.Connection.QueryFirstOrDefaultAsync<T>(sql, param, transaction);
-            if (entity == null) throw new EntityNotFoundException<T>("");
+            if (entity == null) throw new EntityNotFoundException("");
             return entity;
         }
 

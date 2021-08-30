@@ -4,7 +4,7 @@ namespace DN.WebApi.Application.Exceptions
 {
     public class InvalidTenantException : CustomException
     {
-        public InvalidTenantException() : base("Invalid Tenant.", null, HttpStatusCode.BadRequest)
+        public InvalidTenantException(string message) : base(message, null, HttpStatusCode.BadRequest)
         {
         }
     }

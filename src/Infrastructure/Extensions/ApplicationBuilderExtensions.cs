@@ -16,8 +16,13 @@ namespace DN.WebApi.Infrastructure.Extensions
     {
         public static IApplicationBuilder UseInfrastructure(this IApplicationBuilder app, IConfiguration config)
         {
+            var options = new RequestLocalizationOptions
+            {
+                DefaultRequestCulture = new RequestCulture(new CultureInfo("en-US"))
+            };
+            app.UseRequestLocalization(options);
+            app.UseStaticFiles();
             app.UseMiddlewares(config);
-            
             app.UseRouting();
             app.UseCors("CorsPolicy");
             app.UseAuthentication();
@@ -31,20 +36,14 @@ namespace DN.WebApi.Infrastructure.Extensions
                 endpoints.MapControllers().RequireAuthorization();
             });
             app.UseSwaggerDocumentation();
-            var options = new RequestLocalizationOptions
-            {
-                DefaultRequestCulture = new RequestCulture(new CultureInfo("en-US"))
-            };
-            options.RequestCultureProviders.Insert(0, new CookieRequestCultureProvider());
-            app.UseRequestLocalization(options);
-            app.UseStaticFiles();
+
             return app;
         }
         private static IApplicationBuilder UseMiddlewares(this IApplicationBuilder app, IConfiguration config)
         {
             app.UseMiddleware<ExceptionMiddleware>();
-            if(config.GetValue<bool>("MiddlewareSettings:EnableLocalization")) app.UseMiddleware<LocalizationMiddleware>();
-            if(config.GetValue<bool>("MiddlewareSettings:EnableRequestLogging")) app.UseMiddleware<RequestLoggingMiddleware>();
+            if (config.GetValue<bool>("MiddlewareSettings:EnableLocalization")) app.UseMiddleware<LocalizationMiddleware>();
+            if (config.GetValue<bool>("MiddlewareSettings:EnableRequestLogging")) app.UseMiddleware<RequestLoggingMiddleware>();
             return app;
         }
         #region Swagger

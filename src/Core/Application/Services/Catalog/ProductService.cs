@@ -5,24 +5,27 @@ using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Entities.Catalog;
 using DN.WebApi.Shared.DTOs.Catalog;
+using Microsoft.Extensions.Localization;
 
 namespace DN.WebApi.Application.Services.Catalog
 {
     public class ProductService : IProductService
     {
+        private readonly IStringLocalizer<ProductService> _localizer;
         private readonly IMapper _mapper;
         private readonly IRepositoryAsync _repository;
 
-        public ProductService(IRepositoryAsync repository, IMapper mapper)
+        public ProductService(IRepositoryAsync repository, IMapper mapper, IStringLocalizer<ProductService> localizer)
         {
             _repository = repository;
             _mapper = mapper;
+            _localizer = localizer;
         }
 
         public async Task<Result<object>> CreateProductAsync(CreateProductRequest request)
         {
             var productExists = await _repository.ExistsAsync<Product>(a => a.Name == request.Name);
-            if (productExists) throw new EntityAlreadyExistsException<Product>(nameof(request.Name), request.Name);
+            if (productExists) throw new EntityAlreadyExistsException(string.Format(_localizer["entity.alreadyexists"], "Product", "Name", request.Name));
             var product = new Product(request.Name, request.Description, request.Rate);
             var productId = await _repository.CreateAsync<Product>(product);
             await _repository.SaveChangesAsync();

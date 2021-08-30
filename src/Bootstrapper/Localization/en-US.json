@@ -1,3 +1,12 @@
 ﻿{
-	"identity.usernotfound": "User Not Found!"
+	"tenant.invalidtenant": "Invalid Tenant.",
+	"caching.added": "Cache Added : {0}",
+	"caching.refreshed": "Cache Refreshed : {0}",
+	"identity.usernotfound": "User Not Found!",
+	"identity.usernotactive": "User Not Active. Please contact the administrator.",
+	"identity.emailnotconfirmed": "E-Mail not confirmed!",
+	"identity.invalidcredentials": "Invalid Credentials!",
+	"identity.invalidtoken": "Invalid Token!",
+	"entity.notfound": "{0} {1} Not Found.",
+	"entity.alreadyexists": "{0} with {1} : {2} already Exists."
 }

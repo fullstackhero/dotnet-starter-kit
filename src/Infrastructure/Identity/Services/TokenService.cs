@@ -1,5 +1,4 @@
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -20,7 +19,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace DN.WebApi.Infrastructure.Identity.Services
 {
-   public class TokenService : ITokenService
+    public class TokenService : ITokenService
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<ApplicationRole> _roleManager;
@@ -54,18 +53,18 @@ namespace DN.WebApi.Infrastructure.Identity.Services
 
             if (!user.IsActive)
             {
-                throw new IdentityException(_localizer["User Not Active. Please contact the administrator."], statusCode: HttpStatusCode.Unauthorized);
+                throw new IdentityException(_localizer["identity.usernotactive"], statusCode: HttpStatusCode.Unauthorized);
             }
 
             if (_mailSettings.EnableVerification && !user.EmailConfirmed)
             {
-                throw new IdentityException(_localizer["E-Mail not confirmed."], statusCode: HttpStatusCode.Unauthorized);
+                throw new IdentityException(_localizer["identity.emailnotconfirmed"], statusCode: HttpStatusCode.Unauthorized);
             }
 
             bool passwordValid = await _userManager.CheckPasswordAsync(user, request.Password);
             if (!passwordValid)
             {
-                throw new IdentityException(_localizer["Invalid Credentials."], statusCode: HttpStatusCode.Unauthorized);
+                throw new IdentityException(_localizer["identity.invalidcredentials"], statusCode: HttpStatusCode.Unauthorized);
             }
 
             user.RefreshToken = GenerateRefreshToken();
@@ -80,7 +79,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
         {
             if (request is null)
             {
-                throw new IdentityException(_localizer["Invalid Client Token."], statusCode: HttpStatusCode.Unauthorized);
+                throw new IdentityException(_localizer["identity.invalidtoken"], statusCode: HttpStatusCode.Unauthorized);
             }
 
             var userPrincipal = GetPrincipalFromExpiredToken(request.Token);
@@ -88,12 +87,12 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             var user = await _userManager.FindByEmailAsync(userEmail);
             if (user == null)
             {
-                throw new IdentityException(_localizer["User Not Found."], statusCode: HttpStatusCode.NotFound);
+                throw new IdentityException(_localizer["identity.usernotfound"], statusCode: HttpStatusCode.NotFound);
             }
 
             if (user.RefreshToken != request.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
             {
-                throw new IdentityException(_localizer["Invalid Client Token."], statusCode: HttpStatusCode.Unauthorized);
+                throw new IdentityException(_localizer["identity.invalidtoken"], statusCode: HttpStatusCode.Unauthorized);
             }
 
             string token = GenerateEncryptedToken(GetSigningCredentials(), await GetClaimsAsync(user, ipAddress));
@@ -175,7 +174,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
                     SecurityAlgorithms.HmacSha256,
                     StringComparison.InvariantCultureIgnoreCase))
             {
-                throw new IdentityException(_localizer["Invalid Token."], statusCode: HttpStatusCode.Unauthorized);
+                throw new IdentityException(_localizer["identity.invalidtoken"], statusCode: HttpStatusCode.Unauthorized);
             }
 
             return principal;
