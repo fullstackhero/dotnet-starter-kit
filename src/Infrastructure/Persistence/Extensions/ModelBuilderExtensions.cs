@@ -9,18 +9,6 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
 {
     public static class ModelBuilderExtensions
     {
-        public static void ApplyDefaultConfiguration(this ModelBuilder builder, DbSettings settings)
-        {
-            if (settings.UseMsSql)
-            {
-                foreach (var property in builder.Model.GetEntityTypes()
-                    .SelectMany(t => t.GetProperties())
-                    .Where(p => p.ClrType == typeof(decimal) || p.ClrType == typeof(decimal?)))
-                {
-                    property.SetColumnType("decimal(23,2)");
-                }
-            }
-        }
         public static void ApplyIdentityConfiguration(this ModelBuilder builder)
         {
             builder.Entity<ApplicationUser>(entity =>
