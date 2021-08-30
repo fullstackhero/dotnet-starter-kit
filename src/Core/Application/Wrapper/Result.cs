@@ -78,6 +78,7 @@
         public string Exception { get; set; }
 
         public int ErrorCode { get; set; }
+        public string StackTrace { get; set; }
     }
 
     public class Result<T> : Result, IResult<T>

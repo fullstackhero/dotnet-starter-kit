@@ -25,7 +25,7 @@ namespace DN.WebApi.Application.Services.Catalog
         public async Task<Result<object>> CreateProductAsync(CreateProductRequest request)
         {
             var productExists = await _repository.ExistsAsync<Product>(a => a.Name == request.Name);
-            if (productExists) throw new EntityAlreadyExistsException(string.Format(_localizer["entity.alreadyexists"], "Product", "Name", request.Name));
+            if (productExists) throw new EntityAlreadyExistsException(string.Format(_localizer["product.alreadyexists"], request.Name));
             var product = new Product(request.Name, request.Description, request.Rate);
             var productId = await _repository.CreateAsync<Product>(product);
             await _repository.SaveChangesAsync();
