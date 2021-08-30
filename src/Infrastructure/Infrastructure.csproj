@@ -34,7 +34,7 @@
     <PackageReference Include="Hangfire" Version="1.7.24" />
     <PackageReference Include="Hangfire.PostgreSql" Version="1.8.5.4" />
     <PackageReference Include="MailKit" Version="2.14.0" />
-    <PackageReference Include="MimeKit" Version="2.14.0" />
+    <PackageReference Include="MimeKit" Version="2.15.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.8" />
