@@ -17,7 +17,7 @@ This repository contains the WebApi Project of `fullstackhero`.
 
 - [x] Built on .NET 6.0
 - [x] Follows Clean Architecture Principles
-- [ ] Completely Documented
+- [ ] Completely Documented at [fullstackhero.net](https://fullstackhero.net)
 - [x] Multi Tenancy Support
 - [x] Default Database Provider is PostgreSQL. Can be switched to MSSQL or MySQL
 - [x] Uses Entity Framework Core as DB Abstraction
@@ -29,7 +29,9 @@ This repository contains the WebApi Project of `fullstackhero`.
 - [x] API Versioning
 - [x] Response Caching - Distributed Caching
 - [ ] Audit Logging
-- [ ] Advanced User & Role Based Permission Management 
+- [ ] Advanced User & Role Based Permission Management
+- [x] JSON Based Localization with Caching
+- [x] Hangfire Support 
 - [ ] & Much More
 
 ## Developer's Guide
