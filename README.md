@@ -13,6 +13,18 @@
 
 This repository contains the WebApi Project of `fullstackhero`.
 
+## Release Planning
+
+Expected to be released by Novemeber, 2021 as soon as .NET 6 LTS is launched by Microsoft. Preview versions of this project will be available by October 15, 2021 for Initial Developer Testing.
+
+As of August 30, 2021, the .NET WebApi Boilerplate project has made a considerable progress.
+
+Track Progress - [Release 1.0 Milestones](https://github.com/fullstackhero/dotnet-webapi-boilerplate/milestone/1)
+
+Participate in Discussions - [QNA & General Discussions](https://github.com/fullstackhero/dotnet-webapi-boilerplate/discussions)
+
+Join our Discord - [fullstackhero @ Discord](https://discord.gg/gdgHRt4mMw)
+
 ## Features
 
 - [x] Built on .NET 6.0
@@ -32,6 +44,7 @@ This repository contains the WebApi Project of `fullstackhero`.
 - [ ] Advanced User & Role Based Permission Management
 - [x] JSON Based Localization with Caching
 - [x] Hangfire Support 
+- [ ] Test Projects
 - [ ] & Much More
 
 ## Developer's Guide
