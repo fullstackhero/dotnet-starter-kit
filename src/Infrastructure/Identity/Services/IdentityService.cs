@@ -23,24 +23,26 @@ namespace DN.WebApi.Infrastructure.Identity.Services
         private readonly IMailService _mailService;
         private readonly MailSettings _mailSettings;
         private readonly IStringLocalizer<IdentityService> _localizer;
+        private readonly ITenantService _tenantService;
 
         public IdentityService(
             UserManager<ApplicationUser> userManager,
             IJobService jobService,
             IMailService mailService,
             IOptions<MailSettings> mailSettings,
-            IStringLocalizer<IdentityService> localizer)
+            IStringLocalizer<IdentityService> localizer, ITenantService tenantService)
         {
             _userManager = userManager;
             _jobService = jobService;
             _mailService = mailService;
             _mailSettings = mailSettings.Value;
             _localizer = localizer;
+            _tenantService = tenantService;
         }
 
         public async Task<IResult> RegisterAsync(RegisterRequest request, string origin)
         {
-            
+            var users = await _userManager.Users.ToListAsync();
             var userWithSameUserName = await _userManager.FindByNameAsync(request.UserName);
             if (userWithSameUserName != null)
             {
@@ -54,8 +56,9 @@ namespace DN.WebApi.Infrastructure.Identity.Services
                 LastName = request.LastName,
                 UserName = request.UserName,
                 PhoneNumber = request.PhoneNumber,
-                IsActive = true
-            };
+                IsActive = true,
+                TenantId = _tenantService.GetTenant()?.TID
+        };
             if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
             {
                 var userWithSamePhoneNumber = await _userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == request.PhoneNumber);
@@ -84,7 +87,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
                             Subject = _localizer["Confirm Registration"]
                         };
                         _jobService.Enqueue(() => _mailService.SendAsync(mailRequest));
-                        messages.Add(_localizer["Please check your Mailbox to verify!"]);
+                        messages.Add(_localizer[$"Please check {user.Email} to verify your account!"]);
                     }
 
                     return await Result<string>.SuccessAsync(user.Id, messages: messages);
