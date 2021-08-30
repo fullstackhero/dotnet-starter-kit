@@ -138,11 +138,6 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
             }
             return await _dbContext.Connection.QuerySingleAsync<T>(sql, param, transaction);
         }
-        public async Task<int> ExecuteAsync(string sql, object param = null, IDbTransaction transaction = null, CancellationToken cancellationToken = default)
-        {
-            sql = sql.Replace("@tenantId", _dbContext.TenantId);
-            return await _dbContext.Connection.ExecuteAsync(sql, param, transaction);
-        }
 
         public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
