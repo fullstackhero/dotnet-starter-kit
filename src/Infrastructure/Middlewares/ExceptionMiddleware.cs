@@ -38,6 +38,7 @@ namespace DN.WebApi.Infrastructure.Middlewares
                         exception = exception.InnerException;
                     }
                 }
+
                 _logger.LogError(exception.Message);
                 var responseModel = await ErrorResult<string>.ReturnErrorAsync(exception.Message);
                 responseModel.Source = exception.Source;
