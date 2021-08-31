@@ -14,7 +14,7 @@
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
         <AdditionalFiles Include="$(SolutionDir)stylecop.json" Link="Properties\stylecop.json" />
-        <AdditionalFiles Include="$(SolutionDir)dotnet.ruleset" Link="Properties\fluentpos.ruleset" />
+        <AdditionalFiles Include="$(SolutionDir)dotnet.ruleset" Link="Properties\dotnet.ruleset" />
         <AdditionalFiles Include="$(SolutionDir).editorconfig" Link="Properties\.editorconfig" />
     </ItemGroup>
 </Project>

@@ -89,7 +89,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                 var userStore = new UserStore<ApplicationUser>(dbContext);
                 userStore.CreateAsync(superUser).Wait();
                 _logger.Information($"{tenant.Name} : Seeding Admin User {tenant.AdminEmail}....");
-                AssignRoles(scope.ServiceProvider, superUser.Email, RoleConstants.Admin).Wait();
+                AssignRolesAsync(scope.ServiceProvider, superUser.Email, RoleConstants.Admin).Wait();
             }
         }
 
@@ -108,7 +108,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             }
         }
 
-        public static async Task<IdentityResult> AssignRoles(IServiceProvider services, string email, string role)
+        public static async Task<IdentityResult> AssignRolesAsync(IServiceProvider services, string email, string role)
         {
             UserManager<ApplicationUser> userManager = services.GetService<UserManager<ApplicationUser>>();
             var user = await userManager.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Email.Equals(email));

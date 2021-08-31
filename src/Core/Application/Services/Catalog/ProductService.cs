@@ -32,13 +32,13 @@ namespace DN.WebApi.Application.Services.Catalog
             return await Result<object>.SuccessAsync(productId);
         }
 
-        public async Task<Result<ProductDetailsDto>> GetById(Guid id)
+        public async Task<Result<ProductDetailsDto>> GetByIdAsync(Guid id)
         {
             var product = await _repository.GetCachedDtoByIdAsync<Product, ProductDetailsDto>(id);
             return await Result<ProductDetailsDto>.SuccessAsync(product);
         }
 
-        public async Task<Result<ProductDetailsDto>> GetByIdDapper(Guid id)
+        public async Task<Result<ProductDetailsDto>> GetByIdUsingDapperAsync(Guid id)
         {
             // Dapper isn't advanced enough to support MultiTenancy
             // Workaround - In Repository Layer, I check if T implements IMustHaveTenant Interface. If so, replaces @tenantId with currentTenantId in the SQL query.
