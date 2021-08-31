@@ -6,7 +6,7 @@
 .NET WebAPI Boilerplate Template built with .NET 6.0. Incorporates the most essential Packages your projects will ever need. Follows Clean Architecture Principles.
 
 ## About
- 
+
 `dotnet-webapi-boilerplate` is the integral part of the `fullstackhero` project.
 
 `fullstackhero` is a venture to develop industry leading boilerplate templates for the dotnet stack as the backend (webapi) along with modern client frameworks like Angular, MVC and Blazor.
@@ -40,10 +40,11 @@ Join our Discord - [fullstackhero @ Discord](https://discord.gg/gdgHRt4mMw)
 - [x] Automapper
 - [x] API Versioning
 - [x] Response Caching - Distributed Caching
+- [x] Fluent Validations
 - [ ] Audit Logging
 - [ ] Advanced User & Role Based Permission Management
 - [x] JSON Based Localization with Caching
-- [x] Hangfire Support 
+- [x] Hangfire Support
 - [ ] Test Projects
 - [ ] & Much More
 
