@@ -1,5 +1,6 @@
 using DN.WebApi.Infrastructure.Extensions;
 using DN.WebApi.Application.Extensions;
+using FluentValidation.AspNetCore;
 
 namespace DN.WebApi.Bootstrapper
 {
@@ -14,6 +15,9 @@ namespace DN.WebApi.Bootstrapper
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services
+                .AddControllers()
+                .AddFluentValidation();
             services
                 .AddApplication()
                 .AddInfrastructure(_config);

@@ -33,7 +33,6 @@ namespace DN.WebApi.Infrastructure.Extensions
         {
             services.AddLocalization();
             services.AddServices(config);
-            services.AddControllers();
             services.AddDistributedMemoryCache();
             services.AddSettings(config);
             services.AddIdentity(config);

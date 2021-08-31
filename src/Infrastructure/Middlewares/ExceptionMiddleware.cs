@@ -42,17 +42,18 @@ namespace DN.WebApi.Infrastructure.Middlewares
                 var responseModel = await ErrorResult<string>.ReturnErrorAsync(exception.Message);
                 responseModel.Source = exception.Source;
                 responseModel.Exception = exception.Message;
-                try
-                {
-                    var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-                    if (env.ToLower() == "development")
-                    {
-                        _logger.LogError(exception.Message);
-                        responseModel.StackTrace = exception.StackTrace.ToString().Trim().Substring(0, exception.StackTrace.ToString().IndexOf(Environment.NewLine));
-                    }
-                }
-                catch
-                { }
+
+                // try
+                // {
+                //     var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+                //     if (env.ToLower() == "development")
+                //     {
+                //         _logger.LogError(exception.Message);
+                //         responseModel.StackTrace = exception.StackTrace.ToString().Trim().Substring(0, exception.StackTrace.ToString().IndexOf(Environment.NewLine));
+                //     }
+                // }
+                // catch
+                // { }
                 switch (exception)
                 {
                     case CustomException e:
