@@ -32,5 +32,12 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
         {
             return Ok(await _service.CreateProductAsync(request));
         }
+
+        [HttpDelete]
+        public async Task<IActionResult> DeleteAsync(Guid id)
+        {
+            var productDetails = await _service.DeleteProductAsync(id);
+            return Ok(productDetails);
+        }
     }
 }

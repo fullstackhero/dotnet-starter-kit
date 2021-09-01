@@ -29,6 +29,7 @@ namespace DN.WebApi.Infrastructure.Persistence
             modelBuilder.ApplyIdentityConfiguration();
             modelBuilder.ApplyGlobalFilters<IMustHaveTenant>(b => EF.Property<string>(b, nameof(TenantId)) == TenantId);
             modelBuilder.ApplyGlobalFilters<IIdentityTenant>(b => EF.Property<string>(b, nameof(TenantId)) == TenantId);
+            modelBuilder.ApplyGlobalFilters<ISoftDelete>(s => s.DeletedOn == null);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -70,6 +71,15 @@ namespace DN.WebApi.Infrastructure.Persistence
                     case EntityState.Modified:
                         entry.Entity.LastModifiedOn = DateTime.UtcNow;
                         entry.Entity.LastModifiedBy = currentUserId;
+                        break;
+                    case EntityState.Deleted:
+                        if (entry.Entity is ISoftDelete softDelete)
+                        {
+                            softDelete.DeletedBy = currentUserId;
+                            softDelete.DeletedOn = DateTime.UtcNow;
+                            entry.State = EntityState.Modified;
+                        }
+
                         break;
                 }
             }
