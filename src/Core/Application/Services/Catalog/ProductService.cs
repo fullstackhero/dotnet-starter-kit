@@ -34,8 +34,7 @@ namespace DN.WebApi.Application.Services.Catalog
 
         public async Task<Result<Guid>> DeleteProductAsync(Guid id)
         {
-            var product = await _repository.GetByIdAsync<Product>(id);
-            await _repository.RemoveAsync<Product>(product);
+            await _repository.RemoveByIdAsync<Product>(id);
             await _repository.SaveChangesAsync();
             return await Result<Guid>.SuccessAsync(id);
         }

@@ -116,6 +116,16 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
             return Task.CompletedTask;
         }
 
+        public async Task RemoveByIdAsync<T>(object entityId)
+        where T : BaseEntity
+        {
+            var cacheKey = CacheKeys.GetCacheKey<T>(entityId);
+            var entity = await _dbContext.Set<T>().FindAsync(entityId);
+            if (entity == null) throw new EntityNotFoundException(string.Format(_localizer["entity.notfound"], typeof(T).Name, entityId));
+            _dbContext.Set<T>().Remove(entity);
+            _cache.Remove(cacheKey);
+        }
+
         public Task UpdateAsync<T>(T entity)
         where T : BaseEntity
         {

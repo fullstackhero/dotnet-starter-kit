@@ -32,6 +32,8 @@ namespace DN.WebApi.Application.Abstractions.Repositories
 
         Task RemoveAsync<T>(T entity)
         where T : BaseEntity;
+        Task RemoveByIdAsync<T>(object id)
+        where T : BaseEntity;
 
         #region  Dapper
         Task<IReadOnlyList<T>> QueryAsync<T>(string sql, object param = null, IDbTransaction transaction = null, CancellationToken cancellationToken = default)
