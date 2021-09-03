@@ -89,7 +89,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                 var userStore = new UserStore<ApplicationUser>(dbContext);
                 userStore.CreateAsync(superUser).Wait();
                 _logger.Information($"{tenant.Name} : Seeding Admin User {tenant.AdminEmail}....");
-                AssignRolesAsync(scope.ServiceProvider, superUser.Email, RoleConstants.Admin).Wait();
+                AssignRolesAsync(scope.ServiceProvider, superUser.Email, $"{tenant.Name}{RoleConstants.Admin}").Wait();
             }
         }
 
