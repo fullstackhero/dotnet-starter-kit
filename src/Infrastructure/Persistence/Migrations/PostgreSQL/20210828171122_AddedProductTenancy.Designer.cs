@@ -10,18 +10,53 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DN.WebApi.Infrastructure.Persistence.Migrations.PostgreSQL
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20210825192405_Initial")]
-    partial class Initial
+    [Migration("20210828171122_AddedProductTenancy")]
+    partial class AddedProductTenancy
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("Relational:MaxIdentifierLength", 63)
-                .HasAnnotation("ProductVersion", "5.0.8")
+                .HasAnnotation("ProductVersion", "5.0.9")
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-            modelBuilder.Entity("DN.WebApi.Infrastructure.Identity.Models.ExtendedRole", b =>
+            modelBuilder.Entity("DN.WebApi.Domain.Entities.Catalog.Product", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("LastModifiedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("Rate")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("TenantId")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("DN.WebApi.Infrastructure.Identity.Models.ApplicationRole", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("text");
@@ -53,7 +88,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Migrations.PostgreSQL
                     b.ToTable("Roles", "Identity");
                 });
 
-            modelBuilder.Entity("DN.WebApi.Infrastructure.Identity.Models.ExtendedRoleClaim", b =>
+            modelBuilder.Entity("DN.WebApi.Infrastructure.Identity.Models.ApplicationRoleClaim", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -83,7 +118,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Migrations.PostgreSQL
                     b.ToTable("RoleClaims", "Identity");
                 });
 
-            modelBuilder.Entity("DN.WebApi.Infrastructure.Identity.Models.ExtendedUser", b =>
+            modelBuilder.Entity("DN.WebApi.Infrastructure.Identity.Models.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("text");
@@ -248,9 +283,9 @@ namespace DN.WebApi.Infrastructure.Persistence.Migrations.PostgreSQL
                     b.ToTable("UserTokens", "Identity");
                 });
 
-            modelBuilder.Entity("DN.WebApi.Infrastructure.Identity.Models.ExtendedRoleClaim", b =>
+            modelBuilder.Entity("DN.WebApi.Infrastructure.Identity.Models.ApplicationRoleClaim", b =>
                 {
-                    b.HasOne("DN.WebApi.Infrastructure.Identity.Models.ExtendedRole", null)
+                    b.HasOne("DN.WebApi.Infrastructure.Identity.Models.ApplicationRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -259,7 +294,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Migrations.PostgreSQL
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("DN.WebApi.Infrastructure.Identity.Models.ExtendedUser", null)
+                    b.HasOne("DN.WebApi.Infrastructure.Identity.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -268,7 +303,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Migrations.PostgreSQL
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("DN.WebApi.Infrastructure.Identity.Models.ExtendedUser", null)
+                    b.HasOne("DN.WebApi.Infrastructure.Identity.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -277,13 +312,13 @@ namespace DN.WebApi.Infrastructure.Persistence.Migrations.PostgreSQL
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
                 {
-                    b.HasOne("DN.WebApi.Infrastructure.Identity.Models.ExtendedRole", null)
+                    b.HasOne("DN.WebApi.Infrastructure.Identity.Models.ApplicationRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DN.WebApi.Infrastructure.Identity.Models.ExtendedUser", null)
+                    b.HasOne("DN.WebApi.Infrastructure.Identity.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -292,7 +327,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Migrations.PostgreSQL
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("DN.WebApi.Infrastructure.Identity.Models.ExtendedUser", null)
+                    b.HasOne("DN.WebApi.Infrastructure.Identity.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)

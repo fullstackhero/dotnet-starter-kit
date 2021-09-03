@@ -1,8 +1,11 @@
+using System.Globalization;
 using System.Runtime.CompilerServices;
-using DN.WebApi.Application.Abstractions.Database;
+using DN.WebApi.Application.Settings;
 using DN.WebApi.Infrastructure.Middlewares;
 using Hangfire;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
@@ -11,9 +14,15 @@ namespace DN.WebApi.Infrastructure.Extensions
 {
     internal static class ApplicationBuilderExtensions
     {
-        public static IApplicationBuilder UseInfrastructure(this IApplicationBuilder app)
+        public static IApplicationBuilder UseInfrastructure(this IApplicationBuilder app, IConfiguration config)
         {
-            app.UseMiddleware<GlobalExceptionHandler>();
+            var options = new RequestLocalizationOptions
+            {
+                DefaultRequestCulture = new RequestCulture(new CultureInfo("en-US"))
+            };
+            app.UseRequestLocalization(options);
+            app.UseStaticFiles();
+            app.UseMiddlewares(config);
             app.UseRouting();
             app.UseCors("CorsPolicy");
             app.UseAuthentication();
@@ -24,27 +33,20 @@ namespace DN.WebApi.Infrastructure.Extensions
             });
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllers();
+                endpoints.MapControllers().RequireAuthorization();
             });
             app.UseSwaggerDocumentation();
-            app.Initialize();
+
             return app;
         }
-        #region Seeder
-        internal static IApplicationBuilder Initialize(this IApplicationBuilder app)
+
+        private static IApplicationBuilder UseMiddlewares(this IApplicationBuilder app, IConfiguration config)
         {
-            using var serviceScope = app.ApplicationServices.CreateScope();
-
-            var initializers = serviceScope.ServiceProvider.GetServices<ISeeder>();
-
-            foreach (var initializer in initializers)
-            {
-                initializer.Initialize();
-            }
-
+            app.UseMiddleware<ExceptionMiddleware>();
+            if (config.GetValue<bool>("MiddlewareSettings:EnableLocalization")) app.UseMiddleware<LocalizationMiddleware>();
+            if (config.GetValue<bool>("MiddlewareSettings:EnableRequestLogging")) app.UseMiddleware<RequestLoggingMiddleware>();
             return app;
         }
-        #endregion
 
         #region Swagger
         private static IApplicationBuilder UseSwaggerDocumentation(this IApplicationBuilder app)

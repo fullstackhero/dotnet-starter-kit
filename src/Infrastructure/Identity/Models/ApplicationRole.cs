@@ -3,15 +3,19 @@ using Microsoft.AspNetCore.Identity;
 
 namespace DN.WebApi.Infrastructure.Identity.Models
 {
-    public class ExtendedRole : IdentityRole
+    public class ApplicationRole : IdentityRole
     {
         public string Description { get; set; }
 
         public string TenantId { get; set; }
-        public ExtendedRole() : base()
+
+        public ApplicationRole()
+        : base()
         {
         }
-        public ExtendedRole(string roleName, string tenantId, string description = null) : base(roleName)
+
+        public ApplicationRole(string roleName, string tenantId, string description = null)
+        : base(roleName)
         {
             Description = description;
             NormalizedName = roleName.ToUpper();

@@ -1,6 +1,6 @@
 namespace DN.WebApi.Application.Settings
 {
-    public class JwtSettings
+    public class JwtSettings : IAppSettings
     {
         public string Key { get; set; }
 

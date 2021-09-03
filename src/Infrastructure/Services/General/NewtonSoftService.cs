@@ -11,6 +11,7 @@ namespace DN.WebApi.Infrastructure.Services.General
         {
             return JsonConvert.DeserializeObject<T>(text);
         }
+
         public string Serialize<T>(T obj)
         {
             return JsonConvert.SerializeObject(obj, new JsonSerializerSettings

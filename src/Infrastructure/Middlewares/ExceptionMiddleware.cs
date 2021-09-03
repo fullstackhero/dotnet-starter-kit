@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Exceptions;
@@ -7,13 +8,13 @@ using Microsoft.Extensions.Logging;
 
 namespace DN.WebApi.Infrastructure.Middlewares
 {
-    internal class GlobalExceptionHandler : IMiddleware
+    internal class ExceptionMiddleware : IMiddleware
     {
-        private readonly ILogger<GlobalExceptionHandler> _logger;
+        private readonly ILogger<ExceptionMiddleware> _logger;
         private readonly ISerializerService _jsonSerializer;
 
-        public GlobalExceptionHandler(
-            ILogger<GlobalExceptionHandler> logger,
+        public ExceptionMiddleware(
+            ILogger<ExceptionMiddleware> logger,
             ISerializerService jsonSerializer)
         {
             _logger = logger;
@@ -38,10 +39,22 @@ namespace DN.WebApi.Infrastructure.Middlewares
                     }
                 }
 
+                _logger.LogError(exception.Message);
                 var responseModel = await ErrorResult<string>.ReturnErrorAsync(exception.Message);
                 responseModel.Source = exception.Source;
                 responseModel.Exception = exception.Message;
-                _logger.LogError(exception.Message);
+
+                // try
+                // {
+                //     var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+                //     if (env.ToLower() == "development")
+                //     {
+                //         _logger.LogError(exception.Message);
+                //         responseModel.StackTrace = exception.StackTrace.ToString().Trim().Substring(0, exception.StackTrace.ToString().IndexOf(Environment.NewLine));
+                //     }
+                // }
+                // catch
+                // { }
                 switch (exception)
                 {
                     case CustomException e:
@@ -60,7 +73,6 @@ namespace DN.WebApi.Infrastructure.Middlewares
 
                 string result = string.Empty;
                 result = _jsonSerializer.Serialize(responseModel);
-
                 await response.WriteAsync(result);
             }
         }

@@ -5,9 +5,12 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DN.WebApi.Bootstrapper.Controllers.Identity
 {
-    public sealed class TokensController : BaseController
+    [ApiController]
+    [Route("api/[controller]")]
+    public sealed class TokensController : ControllerBase
     {
         private readonly ITokenService _tokenService;
+
         public TokensController(ITokenService tokenService)
         {
             _tokenService = tokenService;

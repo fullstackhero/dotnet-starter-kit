@@ -18,43 +18,47 @@ namespace DN.WebApi.Infrastructure.Identity.Services
 {
     public class IdentityService : IIdentityService
     {
-        private readonly UserManager<ExtendedUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IJobService _jobService;
         private readonly IMailService _mailService;
         private readonly MailSettings _mailSettings;
         private readonly IStringLocalizer<IdentityService> _localizer;
+        private readonly ITenantService _tenantService;
 
         public IdentityService(
-            UserManager<ExtendedUser> userManager,
+            UserManager<ApplicationUser> userManager,
             IJobService jobService,
             IMailService mailService,
             IOptions<MailSettings> mailSettings,
-            IStringLocalizer<IdentityService> localizer)
+            IStringLocalizer<IdentityService> localizer,
+            ITenantService tenantService)
         {
             _userManager = userManager;
             _jobService = jobService;
             _mailService = mailService;
             _mailSettings = mailSettings.Value;
             _localizer = localizer;
+            _tenantService = tenantService;
         }
 
         public async Task<IResult> RegisterAsync(RegisterRequest request, string origin)
         {
-            
+            var users = await _userManager.Users.ToListAsync();
             var userWithSameUserName = await _userManager.FindByNameAsync(request.UserName);
             if (userWithSameUserName != null)
             {
                 throw new IdentityException(string.Format(_localizer["Username {0} is already taken."], request.UserName));
             }
 
-            var user = new ExtendedUser
+            var user = new ApplicationUser
             {
                 Email = request.Email,
                 FirstName = request.FirstName,
                 LastName = request.LastName,
                 UserName = request.UserName,
                 PhoneNumber = request.PhoneNumber,
-                IsActive = true
+                IsActive = true,
+                TenantId = _tenantService.GetTenant()?.TID
             };
             if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
             {
@@ -84,7 +88,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
                             Subject = _localizer["Confirm Registration"]
                         };
                         _jobService.Enqueue(() => _mailService.SendAsync(mailRequest));
-                        messages.Add(_localizer["Please check your Mailbox to verify!"]);
+                        messages.Add(_localizer[$"Please check {user.Email} to verify your account!"]);
                     }
 
                     return await Result<string>.SuccessAsync(user.Id, messages: messages);
@@ -100,7 +104,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             }
         }
 
-        private async Task<string> GetEmailVerificationUriAsync(ExtendedUser user, string origin)
+        private async Task<string> GetEmailVerificationUriAsync(ApplicationUser user, string origin)
         {
             string code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
@@ -111,7 +115,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             return verificationUri;
         }
 
-        private async Task<string> GetMobilePhoneVerificationCodeAsync(ExtendedUser user)
+        private async Task<string> GetMobilePhoneVerificationCodeAsync(ApplicationUser user)
         {
             return await _userManager.GenerateChangePhoneNumberTokenAsync(user, user.PhoneNumber);
         }
@@ -128,7 +132,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             var result = await _userManager.ConfirmEmailAsync(user, code);
             if (result.Succeeded)
             {
-               return await Result<string>.SuccessAsync(user.Id, string.Format(_localizer["Account Confirmed for E-Mail {0}. You can now use the /api/identity/token endpoint to generate JWT."], user.Email));
+                return await Result<string>.SuccessAsync(user.Id, string.Format(_localizer["Account Confirmed for E-Mail {0}. You can now use the /api/identity/token endpoint to generate JWT."], user.Email));
             }
             else
             {

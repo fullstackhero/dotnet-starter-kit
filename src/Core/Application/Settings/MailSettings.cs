@@ -1,6 +1,6 @@
 namespace DN.WebApi.Application.Settings
 {
-    public class MailSettings
+    public class MailSettings : IAppSettings
     {
         public string From { get; set; }
 

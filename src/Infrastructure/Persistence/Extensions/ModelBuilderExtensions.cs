@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using DN.WebApi.Application.Settings;
 using DN.WebApi.Infrastructure.Identity.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -9,29 +8,17 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
 {
     public static class ModelBuilderExtensions
     {
-        public static void ApplyDefaultConfiguration(this ModelBuilder builder, DbSettings settings)
-        {
-            if (settings.UseMsSql)
-            {
-                foreach (var property in builder.Model.GetEntityTypes()
-                    .SelectMany(t => t.GetProperties())
-                    .Where(p => p.ClrType == typeof(decimal) || p.ClrType == typeof(decimal?)))
-                {
-                    property.SetColumnType("decimal(23,2)");
-                }
-            }
-        }
         public static void ApplyIdentityConfiguration(this ModelBuilder builder)
         {
-            builder.Entity<ExtendedUser>(entity =>
+            builder.Entity<ApplicationUser>(entity =>
             {
                 entity.ToTable(name: "Users", "Identity");
             });
-            builder.Entity<ExtendedRole>(entity =>
+            builder.Entity<ApplicationRole>(entity =>
             {
                 entity.ToTable(name: "Roles", "Identity");
             });
-            builder.Entity<ExtendedRoleClaim>(entity =>
+            builder.Entity<ApplicationRoleClaim>(entity =>
             {
                 entity.ToTable(name: "RoleClaims", "Identity");
             });
@@ -54,8 +41,8 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             {
                 entity.ToTable("UserTokens", "Identity");
             });
-
         }
+
         public static void ApplyGlobalFilters<TInterface>(this ModelBuilder modelBuilder, Expression<Func<TInterface, bool>> expression)
         {
             var entities = modelBuilder.Model

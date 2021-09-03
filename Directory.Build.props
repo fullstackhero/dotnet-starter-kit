@@ -1,0 +1,20 @@
+<Project>
+    <PropertyGroup>
+        <CodeAnalysisRuleSet>$(SolutionDir)dotnet.ruleset</CodeAnalysisRuleSet>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <DocumentationFile>$(OutputPath)$(AssemblyName).xml</DocumentationFile>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Roslynator.Analyzers" Version="3.2.2">
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <AdditionalFiles Include="$(SolutionDir)stylecop.json" Link="Properties\stylecop.json" />
+        <AdditionalFiles Include="$(SolutionDir)dotnet.ruleset" Link="Properties\dotnet.ruleset" />
+        <AdditionalFiles Include="$(SolutionDir).editorconfig" Link="Properties\.editorconfig" />
+    </ItemGroup>
+</Project>

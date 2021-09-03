@@ -1,0 +1,150 @@
+root = true
+
+[*]
+
+indent_style = space
+
+trim_trailing_whitespace = true
+
+insert_final_newline = false
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.json]
+indent_size = 2
+
+[*.cs]
+csharp_style_var_for_built_in_types = false:warning
+
+csharp_style_var_when_type_is_apparent = true:warning
+
+csharp_style_var_elsewhere = true:warning
+
+csharp_new_line_before_members_in_anonymous_types = true:warning
+
+# SA1623: Property summary documentation should match accessors
+dotnet_diagnostic.SA1623.severity = none
+
+# SA1101: Prefix local calls with this
+dotnet_diagnostic.SA1101.severity = none
+
+# SA1642: Constructor summary documentation should begin with standard text
+dotnet_diagnostic.SA1642.severity = none
+
+# SA1309: Field names should not begin with underscore
+dotnet_diagnostic.SA1309.severity = none
+
+# RCS1194: Implement exception constructors.
+dotnet_diagnostic.RCS1194.severity = none
+
+# SA1000: Keywords should be spaced correctly
+dotnet_diagnostic.SA1000.severity = none
+
+# SA1124: Do not use regions
+dotnet_diagnostic.SA1124.severity = none
+
+# SA1413: Use trailing comma in multi-line initializers
+dotnet_diagnostic.SA1413.severity = none
+
+# SA1201: Elements should appear in the correct order
+dotnet_diagnostic.SA1201.severity = suggestion
+
+# SA1638: File header file name documentation should match file name
+dotnet_diagnostic.SA1638.severity = warning
+
+# SA1633: File should have header
+dotnet_diagnostic.SA1633.severity = none
+
+# SA1404: Code analysis suppression should have justification
+dotnet_diagnostic.SA1404.severity = none
+
+# SA1206: Declaration keywords should follow order
+dotnet_diagnostic.SA1206.severity = none
+
+# CA1040: Avoid empty interfaces
+dotnet_diagnostic.CA1040.severity = none
+
+# RCS1012: Use explicit type instead of 'var'
+dotnet_diagnostic.RCS1012.severity = none
+
+# RCS1008: Use explicit type instead of 'var'
+dotnet_diagnostic.RCS1008.severity = none
+
+# CA1725
+dotnet_diagnostic.CA1725.severity = none
+
+# RCS1009: Use explicit type instead of 'var'
+dotnet_diagnostic.RCS1009.severity = none
+
+# SA1402: File may only contain a single type
+dotnet_diagnostic.SA1402.severity = suggestion
+
+# CA1711
+dotnet_diagnostic.CA1711.severity = none
+
+# CA1720: Identifier contains type name
+dotnet_diagnostic.CA1720.severity = none
+
+# IDE0022: Use block body for methods
+dotnet_diagnostic.IDE0022.severity = none
+
+# SA1011: Closing square brackets should be spaced correctly
+dotnet_diagnostic.SA1011.severity = none
+
+# CA1721
+dotnet_diagnostic.CA1721.severity = none
+
+# SA1313: Parameter names should begin with lower-case letter
+dotnet_diagnostic.SA1313.severity = none
+
+# SecurityIntelliSenseCS: MS Security rules violation
+dotnet_diagnostic.SecurityIntelliSenseCS.severity = suggestion
+
+# SA1123: Do not place regions within elements
+dotnet_diagnostic.SA1123.severity = none
+
+# RCS1046: Add suffix 'Async' to asynchronous method name
+dotnet_diagnostic.RCS1046.severity = warning
+
+# SA1625: Element documentation should not be copied and pasted
+dotnet_diagnostic.SA1625.severity = none
+
+# SCS9999
+dotnet_diagnostic.SCS9999.severity = none
+
+# RCS1090 Add call to 'ConfigureAwait'
+dotnet_diagnostic.RCS1090.severity = none
+
+# RCS1170 Use read-only auto-implemented property
+dotnet_diagnostic.RCS1170.severity = none
+
+# SA1649
+dotnet_diagnostic.SA1649.severity = none
+
+# RCS1021 Use expression-bodied lambda.
+dotnet_diagnostic.RCS1021.severity = none
+
+# RCS1047 Remove suffix 'Async' from non-asynchronous method name.
+# dotnet_diagnostic.RCS1047.severity = silent
+
+# SA1600 Elements should be documented
+dotnet_diagnostic.SA1600.severity = silent
+
+# CS1591 Missing XML comment for publicly visible type or member
+dotnet_diagnostic.CS1591.severity = none
+
+# SA1602: Enumeration items should be documented
+dotnet_diagnostic.SA1602.severity = none
+
+# CA1720 Identifier 'Decimal' contains type name
+dotnet_diagnostic.CA1720.severity = none
+
+# SA1601: Partial elements should be documented
+dotnet_diagnostic.SA1601.severity = silent
+
+# CA1711 Rename type name UserEventHandler so that it does not end in 'EventHandler'
+dotnet_diagnostic.CA1711.severity = none
+
+# CA1307: Specify StringComparison for clarity
+dotnet_diagnostic.CA1307.severity = none

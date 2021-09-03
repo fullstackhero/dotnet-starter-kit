@@ -1,22 +1,26 @@
 using System.Net;
 using System.Security.Claims;
 using System.Text;
-using DN.WebApi.Application.Abstractions.Database;
+using DN.WebApi.Application.Abstractions.Repositories;
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Identity.Services;
+using DN.WebApi.Infrastructure.Localizer;
 using DN.WebApi.Infrastructure.Middlewares;
 using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Infrastructure.Persistence.Extensions;
+using DN.WebApi.Infrastructure.Persistence.Repositories;
 using DN.WebApi.Infrastructure.Services.General;
 using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
@@ -27,36 +31,26 @@ namespace DN.WebApi.Infrastructure.Extensions
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
         {
-            services.AddControllers();
-            services.AddGeneralServices();
+            services.AddLocalization();
+            services.AddServices(config);
+            services.AddDistributedMemoryCache();
             services.AddSettings(config);
             services.AddIdentity(config);
-            services
-                .PrepareTenantDatabases<ApplicationDbContext>(config)
-                .AddScoped<IApplicationDbContext>(provider => provider.GetService<ApplicationDbContext>());
+            services.PrepareTenantDatabases<ApplicationDbContext>(config);
             services.AddHangfireServer();
             services.AddRouting(options => options.LowercaseUrls = true);
-            services.AddLocalization(options =>
-            {
-                options.ResourcesPath = "Resources";
-            });
-            services.AddSingleton<GlobalExceptionHandler>();
+            services.AddMiddlewares(config);
             services.AddSwaggerDocumentation();
             services.AddCorsPolicy();
+            services.AddApiVersioning(config =>
+           {
+               config.DefaultApiVersion = new ApiVersion(1, 0);
+               config.AssumeDefaultVersionWhenUnspecified = true;
+               config.ReportApiVersions = true;
+           });
+            services.AddSingleton<IStringLocalizerFactory, JsonStringLocalizerFactory>();
             return services;
         }
-
-        #region General Services
-        internal static IServiceCollection AddGeneralServices(this IServiceCollection services)
-        {
-            services
-                .AddTransient<IMailService, SmtpMailService>()
-                .AddTransient<IJobService, HangfireService>()
-                .AddTransient<ITenantService, TenantService>()
-                .AddTransient<ISerializerService, NewtonSoftService>();
-            return services;
-        }
-        #endregion
 
         #region Settings
         internal static IServiceCollection AddSettings(this IServiceCollection services, IConfiguration config)
@@ -64,8 +58,8 @@ namespace DN.WebApi.Infrastructure.Extensions
             services
                 .Configure<MailSettings>(config.GetSection(nameof(MailSettings)))
                 .Configure<TenantSettings>(config.GetSection(nameof(TenantSettings)))
+                .Configure<MiddlewareSettings>(config.GetSection(nameof(MiddlewareSettings)))
                 .Configure<CorsSettings>(config.GetSection(nameof(CorsSettings)));
-
             return services;
         }
         #endregion
@@ -75,10 +69,7 @@ namespace DN.WebApi.Infrastructure.Extensions
         {
             services
                 .Configure<JwtSettings>(config.GetSection(nameof(JwtSettings)))
-                .AddTransient<ITokenService, TokenService>()
-                .AddTransient<IIdentityService, IdentityService>()
-                .AddTransient<ICurrentUser, CurrentUser>()
-                .AddIdentity<ExtendedUser, ExtendedRole>(options =>
+                .AddIdentity<ApplicationUser, ApplicationRole>(options =>
                 {
                     options.Password.RequiredLength = 6;
                     options.Password.RequireDigit = false;
@@ -92,6 +83,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             services.AddJwtAuthentication(config);
             return services;
         }
+
         internal static IServiceCollection AddJwtAuthentication(
             this IServiceCollection services, IConfiguration config)
         {
@@ -137,7 +129,14 @@ namespace DN.WebApi.Infrastructure.Extensions
             return services;
         }
         #endregion
-
+        internal static IServiceCollection AddMiddlewares(this IServiceCollection services, IConfiguration config)
+        {
+            var middlewareSettings = services.GetOptions<MiddlewareSettings>(nameof(MiddlewareSettings));
+            services.AddSingleton<ExceptionMiddleware>();
+            if (middlewareSettings.EnableLocalization) services.AddSingleton<LocalizationMiddleware>();
+            if (middlewareSettings.EnableRequestLogging) services.AddSingleton<RequestLoggingMiddleware>();
+            return services;
+        }
         #region Swagger
         private static IServiceCollection AddSwaggerDocumentation(this IServiceCollection services)
         {
