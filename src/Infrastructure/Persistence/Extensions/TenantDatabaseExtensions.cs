@@ -53,14 +53,16 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             var tenant = options.Tenants.Where(a => a.TID == tenantId).FirstOrDefault();
             using var scope = services.BuildServiceProvider().CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<T>();
+          
             dbContext.Database.SetConnectionString(connectionString);
-            if (dbContext.Database.GetMigrations().Count() > 0)
-            {
+            SeedRoles(tenantId, tenant, dbContext);
+            SeedTenantAdmins(tenantId, tenant, scope, dbContext);
+            if (dbContext.Database.GetPendingMigrations().Any())
+            {                
                 dbContext.Database.Migrate();
-                SeedRoles(tenantId, tenant, dbContext);
-                SeedTenantAdmins(tenantId, tenant, scope, dbContext);
+                _logger.Information($"{tenant.Name} : Migrations complete....");                
             }
-
+         
             return services;
         }
         #region Seeding
@@ -101,9 +103,9 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                 var roleStore = new RoleStore<ApplicationRole>(dbContext);
                 if (!dbContext.Roles.IgnoreQueryFilters().Any(r => r.Name == $"{tenant.Name}{roleName}"))
                 {
-                    var role = new ApplicationRole($"{tenant.Name}{roleName}", tenantId, $"Admin Role for {tenant.Name} Tenant");
+                    var role = new ExtendedRole(roleName, tenantId, $"{roleName} Role for {tenant.Name} Tenant");
                     roleStore.CreateAsync(role).Wait();
-                    _logger.Information($"{tenant.Name} : Seeding {tenant.Name}{roleName} Role....");
+                    _logger.Information($"{tenant.Name} : Seeding {roleName} Role....");
                 }
             }
         }
