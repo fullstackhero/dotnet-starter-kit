@@ -5,7 +5,7 @@ using Serilog;
 
 namespace DN.WebApi.Infrastructure.Extensions
 {
-    public static class HostBuilderExtensions
+    public static class SerilogExtensions
     {
        public static IHostBuilder UseSerilog(this IHostBuilder builder)
         {

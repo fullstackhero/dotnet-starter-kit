@@ -36,32 +36,7 @@ namespace DN.WebApi.Infrastructure.Extensions
                 endpoints.MapControllers().RequireAuthorization();
             });
             app.UseSwaggerDocumentation();
-
             return app;
         }
-
-        private static IApplicationBuilder UseMiddlewares(this IApplicationBuilder app, IConfiguration config)
-        {
-            app.UseMiddleware<ExceptionMiddleware>();
-            if (config.GetValue<bool>("MiddlewareSettings:EnableLocalization")) app.UseMiddleware<LocalizationMiddleware>();
-            if (config.GetValue<bool>("MiddlewareSettings:EnableRequestLogging")) app.UseMiddleware<RequestLoggingMiddleware>();
-            return app;
-        }
-
-        #region Swagger
-        private static IApplicationBuilder UseSwaggerDocumentation(this IApplicationBuilder app)
-        {
-            app.UseSwagger();
-            app.UseSwaggerUI(options =>
-            {
-                options.DefaultModelsExpandDepth(-1);
-                options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-                options.RoutePrefix = "swagger";
-                options.DisplayRequestDuration();
-                options.DocExpansion(DocExpansion.None);
-            });
-            return app;
-        }
-        #endregion
     }
 }
