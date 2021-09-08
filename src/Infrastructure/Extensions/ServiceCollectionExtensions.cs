@@ -18,7 +18,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             services.AddDistributedMemoryCache();
             services.AddSettings(config);
             services.AddIdentity(config);
-            services.PrepareTenantDatabases<ApplicationDbContext>(config);
+            services.SetupRootDatabase(config);
             services.AddHangfireServer();
             services.AddRouting(options => options.LowercaseUrls = true);
             services.AddMiddlewares(config);

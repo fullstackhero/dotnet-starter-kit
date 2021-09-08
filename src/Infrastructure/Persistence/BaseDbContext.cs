@@ -1,6 +1,7 @@
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Domain.Contracts;
+using DN.WebApi.Domain.Entities.Tenancy;
 using DN.WebApi.Infrastructure.Auditing.Enums;
 using DN.WebApi.Infrastructure.Auditing.Models;
 using DN.WebApi.Infrastructure.Identity.Models;

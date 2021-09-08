@@ -5,6 +5,10 @@ namespace DN.WebApi.Application.Settings
         public Configuration Defaults { get; set; }
 
         public List<Tenant> Tenants { get; set; }
+
+        public string RootDBProvider { get; set; }
+
+        public string RootConnectionString { get; set; }
     }
 
     public class Tenant

@@ -13,7 +13,7 @@ namespace DN.WebApi.Infrastructure.Persistence
         public IDbConnection Connection => Database.GetDbConnection();
         private readonly ICurrentUser _currentUserService;
         private readonly ITenantService _tenantService;
-        public ApplicationDbContext(DbContextOptions options, ITenantService tenantService, ICurrentUser currentUserService, ISerializerService serializer)
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, ITenantService tenantService, ICurrentUser currentUserService, ISerializerService serializer)
         : base(options, tenantService, currentUserService, serializer)
         {
             _tenantService = tenantService;

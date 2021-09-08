@@ -1,5 +1,6 @@
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Domain.Constants;
+using DN.WebApi.Domain.Entities.Tenancy;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Utilties;
 using Hangfire;
@@ -16,108 +17,141 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
     public static class TenantDatabaseExtensions
     {
         private static readonly ILogger _logger = Log.ForContext(typeof(TenantDatabaseExtensions));
-        public static IServiceCollection PrepareTenantDatabases<T>(this IServiceCollection services, IConfiguration config)
-        where T : ApplicationDbContext
+
+        public static IServiceCollection SetupRootDatabase(this IServiceCollection services, IConfiguration config)
         {
             services.Configure<TenantSettings>(config.GetSection(nameof(TenantSettings)));
             var options = services.GetOptions<TenantSettings>(nameof(TenantSettings));
-            var defaultConnectionString = options.Defaults?.ConnectionString;
-            var defaultDbProvider = options.Defaults?.DBProvider;
-            var tenants = options.Tenants;
-            foreach (var tenant in tenants)
+            var connectionString = options.RootConnectionString;
+            var dbProvider = options.RootDBProvider;
+            var tenantCode = "root";
+            if (dbProvider.ToLower() == "postgresql")
             {
-                string connectionString;
-                if (string.IsNullOrEmpty(tenant.ConnectionString))
+                services.AddDbContext<TenantDbContext>(m => m.UseNpgsql(e => e.MigrationsAssembly(typeof(TenantDbContext).Assembly.FullName)));
+                services.AddDbContext<ApplicationDbContext>(m => m.UseNpgsql(e => e.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
+                using var scope = services.BuildServiceProvider().CreateScope();
+                var dbContext = scope.ServiceProvider.GetRequiredService<TenantDbContext>();
+                dbContext.Database.SetConnectionString(connectionString);
+                if (dbContext.Database.GetMigrations().Count() > 0)
                 {
-                    connectionString = defaultConnectionString;
-                }
-                else
-                {
-                    connectionString = tenant.ConnectionString;
+                    dbContext.Database.Migrate();
+                    SeedTenant(tenantCode, dbContext, connectionString);
                 }
 
-                if (defaultDbProvider.ToLower() == "postgresql")
-                {
-                    services.AddDbContext<T>(m => m.UseNpgsql(e => e.MigrationsAssembly(typeof(T).Assembly.FullName)));
-                    services.MigrateAndSeedIdentityData<T>(connectionString, tenant.TID, options);
-                    services.AddHangfire(x => x.UsePostgreSqlStorage(defaultConnectionString));
-                }
+                services.AddHangfire(x => x.UsePostgreSqlStorage(connectionString));
             }
 
             return services;
         }
 
-        private static IServiceCollection MigrateAndSeedIdentityData<T>(this IServiceCollection services, string connectionString, string tenantId, TenantSettings options)
-        where T : ApplicationDbContext
-        {
-            var tenant = options.Tenants.Where(a => a.TID == tenantId).FirstOrDefault();
-            using var scope = services.BuildServiceProvider().CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<T>();
+        // public static IServiceCollection PrepareTenantDatabases<T>(this IServiceCollection services, IConfiguration config)
+        // where T : ApplicationDbContext
+        // {
+        //     services.Configure<TenantSettings>(config.GetSection(nameof(TenantSettings)));
+        //     var options = services.GetOptions<TenantSettings>(nameof(TenantSettings));
+        //     var rootConnectionString = options.RootConnectionString;
+        //     var rootDbProvider = options.RootDBProvider;
+        //     var rootTenantCode = "root";
+        //     var tenants = options.Tenants;
+        //     if (rootDbProvider.ToLower() == "postgresql")
+        //     {
+        //         services.AddDbContext<T>(m => m.UseNpgsql(e => e.MigrationsAssembly(typeof(T).Assembly.FullName)));
+        //         services.MigrateAndSeedIdentityData<T>(rootConnectionString, rootTenantCode, options);
+        //         services.AddHangfire(x => x.UsePostgreSqlStorage(rootConnectionString));
+        //     }
 
-            dbContext.Database.SetConnectionString(connectionString);
-            SeedRoles(tenantId, tenant, dbContext);
-            SeedTenantAdmins(tenantId, tenant, scope, dbContext);
-            if (dbContext.Database.GetPendingMigrations().Any())
-            {
-                dbContext.Database.Migrate();
-                _logger.Information($"{tenant.Name} : Migrations complete....");
-            }
+        //     return services;
+        // }
 
-            return services;
-        }
-        #region Seeding
-        private static void SeedTenantAdmins<T>(string tenantId, Tenant tenant, IServiceScope scope, T dbContext)
-        where T : ApplicationDbContext
+        // private static IServiceCollection MigrateAndSeedIdentityData<T>(this IServiceCollection services, string connectionString, string tenantId, TenantSettings options)
+        // where T : DbContext
+        // {
+        //     using var scope = services.BuildServiceProvider().CreateScope();
+        //     var dbContext = scope.ServiceProvider.GetRequiredService<T>();
+
+        //     dbContext.Database.SetConnectionString(connectionString);
+        //     if (dbContext.Database.GetMigrations().Count() > 0)
+        //     {
+        //         dbContext.Database.Migrate();
+        //         SeedRoles(tenantId, dbContext);
+        //         SeedTenantAdmins(tenantId, scope, dbContext, connectionString);
+        //         SeedTenant(tenantId, dbContext, connectionString);
+        //     }
+
+        //     return services;
+        // }
+        // #region Seeding
+        // private static void SeedTenantAdmins<T>(string tenantCode, IServiceScope scope, T dbContext, string connectionString)
+        // where T : ApplicationDbContext
+        // {
+
+        //     var adminUserName = $"{tenantCode}.admin";
+        //     var superUser = new ApplicationUser
+        //     {
+        //         FirstName = tenantCode,
+        //         LastName = "admin",
+        //         Email = "admin@root.com",
+        //         UserName = adminUserName,
+        //         EmailConfirmed = true,
+        //         PhoneNumberConfirmed = true,
+        //         NormalizedEmail = "admin@root.com".ToUpper(),
+        //         NormalizedUserName = adminUserName.ToUpper(),
+        //         IsActive = true,
+        //         TenantId = tenantCode
+        //     };
+        //     if (!dbContext.Users.IgnoreQueryFilters().Any(u => u.Email == "admin@root.com"))
+        //     {
+        //         var password = new PasswordHasher<ApplicationUser>();
+        //         var hashed = password.HashPassword(superUser, UserConstants.DefaultPassword);
+        //         superUser.PasswordHash = hashed;
+        //         var userStore = new UserStore<ApplicationUser>(dbContext);
+        //         userStore.CreateAsync(superUser).Wait();
+        //         AssignRolesAsync(scope.ServiceProvider, superUser.Email, RoleConstants.Admin).Wait();
+        //     }
+        // }
+
+        private static void SeedTenant<T>(string tenantCode, T dbContext, string connectionString)
+        where T : TenantDbContext
         {
-            var adminUserName = $"{tenant.Name}.admin";
-            var superUser = new ApplicationUser
+            var tenant = new Domain.Entities.Tenancy.Tenant()
             {
-                FirstName = tenant.Name,
-                LastName = "admin",
-                Email = tenant.AdminEmail,
-                UserName = adminUserName,
-                EmailConfirmed = true,
-                PhoneNumberConfirmed = true,
-                NormalizedEmail = tenant.AdminEmail.ToUpper(),
-                NormalizedUserName = adminUserName.ToUpper(),
+                Name = tenantCode,
+                ConnectionString = connectionString,
                 IsActive = true,
-                TenantId = tenantId
+                AdminEmail = "admin@root.com",
+                Code = tenantCode,
+                DBProvider = "postgresql",
+                ValidUpto = DateTime.Now.AddMonths(1)
             };
-            if (!dbContext.Users.IgnoreQueryFilters().Any(u => u.Email == tenant.AdminEmail))
+            if (!dbContext.Tenants.Any(a => a.Code == tenantCode))
             {
-                var password = new PasswordHasher<ApplicationUser>();
-                var hashed = password.HashPassword(superUser, UserConstants.DefaultPassword);
-                superUser.PasswordHash = hashed;
-                var userStore = new UserStore<ApplicationUser>(dbContext);
-                userStore.CreateAsync(superUser).Wait();
-                _logger.Information($"{tenant.Name} : Seeding Admin User {tenant.AdminEmail}....");
-                AssignRolesAsync(scope.ServiceProvider, superUser.Email, RoleConstants.Admin).Wait();
+                dbContext.Tenants.Add(tenant);
+                dbContext.SaveChangesAsync().Wait();
             }
         }
 
-        private static void SeedRoles<T>(string tenantId, Tenant tenant, T dbContext)
-        where T : ApplicationDbContext
-        {
-            foreach (string roleName in typeof(RoleConstants).GetAllPublicConstantValues<string>())
-            {
-                var roleStore = new RoleStore<ApplicationRole>(dbContext);
-                if (!dbContext.Roles.IgnoreQueryFilters().Any(r => r.Name == $"{tenant.Name}{roleName}"))
-                {
-                    var role = new ApplicationRole(roleName, tenantId, $"{roleName} Role for {tenant.Name} Tenant");
-                    roleStore.CreateAsync(role).Wait();
-                    _logger.Information($"{tenant.Name} : Seeding {roleName} Role....");
-                }
-            }
-        }
+        // private static void SeedRoles<T>(string tenantCode, T dbContext)
+        // where T : ApplicationDbContext
+        // {
+        //     foreach (string roleName in typeof(RoleConstants).GetAllPublicConstantValues<string>())
+        //     {
+        //         var roleStore = new RoleStore<ApplicationRole>(dbContext);
+        //         if (!dbContext.Roles.IgnoreQueryFilters().Any(r => r.Name == $"{roleName}"))
+        //         {
+        //             var role = new ApplicationRole(roleName, tenantCode, $"{roleName} Role for {tenantCode} Tenant");
+        //             roleStore.CreateAsync(role).Wait();
+        //         }
+        //     }
+        // }
 
-        public static async Task<IdentityResult> AssignRolesAsync(IServiceProvider services, string email, string role)
-        {
-            UserManager<ApplicationUser> userManager = services.GetService<UserManager<ApplicationUser>>();
-            var user = await userManager.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Email.Equals(email));
-            var result = await userManager.AddToRoleAsync(user, role);
-            return result;
-        }
-        #endregion
+        // public static async Task<IdentityResult> AssignRolesAsync(IServiceProvider services, string email, string role)
+        // {
+        //     UserManager<ApplicationUser> userManager = services.GetService<UserManager<ApplicationUser>>();
+        //     var user = await userManager.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Email.Equals(email));
+        //     var result = await userManager.AddToRoleAsync(user, role);
+        //     return result;
+        // }
+        // #endregion
         public static T GetOptions<T>(this IServiceCollection services, string sectionName)
         where T : new()
         {
