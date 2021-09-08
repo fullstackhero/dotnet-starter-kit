@@ -7,25 +7,26 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{56B4195C-A86
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{225C0FD8-B796-4E9E-B1E7-0E4CD13F2E45}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain", "src\Core\Domain\Domain.csproj", "{F7E6892A-99E4-4702-AC1B-8B325B959089}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain", "src\Core\Domain\Domain.csproj", "{F7E6892A-99E4-4702-AC1B-8B325B959089}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application", "src\Core\Application\Application.csproj", "{5829CFAE-7801-4CB9-9F39-3185F8AFFB19}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application", "src\Core\Application\Application.csproj", "{5829CFAE-7801-4CB9-9F39-3185F8AFFB19}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{A3D1876A-4A2B-46AC-88CF-01CC54C7CE71}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared.DTOs", "src\Shared\Shared.DTOs\Shared.DTOs.csproj", "{243B5903-95EF-4B51-8C62-B412217DC020}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared.DTOs", "src\Shared\Shared.DTOs\Shared.DTOs.csproj", "{243B5903-95EF-4B51-8C62-B412217DC020}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "src\Infrastructure\Infrastructure.csproj", "{5C3397B9-EF56-4499-B625-D1B8D1B7DD68}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "src\Infrastructure\Infrastructure.csproj", "{5C3397B9-EF56-4499-B625-D1B8D1B7DD68}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bootstrapper", "src\Bootstrapper\Bootstrapper.csproj", "{AD21F819-C24F-4FBB-8033-491E424B6349}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bootstrapper", "src\Bootstrapper\Bootstrapper.csproj", "{AD21F819-C24F-4FBB-8033-491E424B6349}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Migrators", "Migrators", "{B778FB14-BDFD-454E-9FD7-5CE3572552B7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Migrators.PostgreSQL", "src\Migrators\Migrators.PostgreSQL\Migrators.PostgreSQL.csproj", "{927D3251-8F4E-47B2-B6FB-C2BBD49427CC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{F7E6892A-99E4-4702-AC1B-8B325B959089}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -48,6 +49,13 @@ Global
 		{AD21F819-C24F-4FBB-8033-491E424B6349}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AD21F819-C24F-4FBB-8033-491E424B6349}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AD21F819-C24F-4FBB-8033-491E424B6349}.Release|Any CPU.Build.0 = Release|Any CPU
+		{927D3251-8F4E-47B2-B6FB-C2BBD49427CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{927D3251-8F4E-47B2-B6FB-C2BBD49427CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{927D3251-8F4E-47B2-B6FB-C2BBD49427CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{927D3251-8F4E-47B2-B6FB-C2BBD49427CC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{225C0FD8-B796-4E9E-B1E7-0E4CD13F2E45} = {56B4195C-A86F-45DB-BAA5-8F974D17112D}
@@ -57,5 +65,10 @@ Global
 		{243B5903-95EF-4B51-8C62-B412217DC020} = {A3D1876A-4A2B-46AC-88CF-01CC54C7CE71}
 		{5C3397B9-EF56-4499-B625-D1B8D1B7DD68} = {56B4195C-A86F-45DB-BAA5-8F974D17112D}
 		{AD21F819-C24F-4FBB-8033-491E424B6349} = {56B4195C-A86F-45DB-BAA5-8F974D17112D}
+		{B778FB14-BDFD-454E-9FD7-5CE3572552B7} = {56B4195C-A86F-45DB-BAA5-8F974D17112D}
+		{927D3251-8F4E-47B2-B6FB-C2BBD49427CC} = {B778FB14-BDFD-454E-9FD7-5CE3572552B7}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D0D80036-558A-4A3A-A0BE-00CED864A4DD}
 	EndGlobalSection
 EndGlobal

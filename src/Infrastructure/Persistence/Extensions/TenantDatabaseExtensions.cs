@@ -38,7 +38,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
 
                 if (defaultDbProvider.ToLower() == "postgresql")
                 {
-                    services.AddDbContext<T>(m => m.UseNpgsql(e => e.MigrationsAssembly(typeof(T).Assembly.FullName)));
+                    services.AddDbContext<T>(m => m.UseNpgsql(e => e.MigrationsAssembly("Migrators.PostgreSQL")));
                     services.MigrateAndSeedIdentityData<T>(connectionString, tenant.TID, options);
                     services.AddHangfire(x => x.UsePostgreSqlStorage(defaultConnectionString));
                 }
