@@ -50,17 +50,20 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
         private static IServiceCollection MigrateAndSeedIdentityData<T>(this IServiceCollection services, string connectionString, string tenantId, TenantSettings options)
         where T : ApplicationDbContext
         {
-            var tenant = options.Tenants.Where(a => a.TID == tenantId).FirstOrDefault();
             using var scope = services.BuildServiceProvider().CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<T>();
-
             dbContext.Database.SetConnectionString(connectionString);
-            SeedRoles(tenantId, tenant, dbContext);
-            SeedTenantAdmins(tenantId, tenant, scope, dbContext);
+            var tenant = options.Tenants.Where(a => a.TID == tenantId).FirstOrDefault();
             if (dbContext.Database.GetPendingMigrations().Any())
             {
                 dbContext.Database.Migrate();
                 _logger.Information($"{tenant.Name} : Migrations complete....");
+            }
+
+            if (dbContext.Database.CanConnect())
+            {
+                SeedRoles(tenant, dbContext);
+                SeedTenantAdmins(tenantId, tenant, scope, dbContext);
             }
 
             return services;
@@ -95,17 +98,16 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             }
         }
 
-        private static void SeedRoles<T>(string tenantId, Tenant tenant, T dbContext)
+        private static void SeedRoles<T>(Tenant tenant, T dbContext)
         where T : ApplicationDbContext
         {
             foreach (string roleName in typeof(RoleConstants).GetAllPublicConstantValues<string>())
             {
                 var roleStore = new RoleStore<ApplicationRole>(dbContext);
-                if (!dbContext.Roles.IgnoreQueryFilters().Any(r => r.Name == $"{tenant.Name}{roleName}"))
+                if (!dbContext.Roles.IgnoreQueryFilters().Any(r => r.Name == roleName))
                 {
-                    var role = new ApplicationRole(roleName, tenantId, $"{roleName} Role for {tenant.Name} Tenant");
+                    var role = new ApplicationRole(roleName, $"{roleName} Role");
                     roleStore.CreateAsync(role).Wait();
-                    _logger.Information($"{tenant.Name} : Seeding {roleName} Role....");
                 }
             }
         }

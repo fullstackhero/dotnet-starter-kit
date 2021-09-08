@@ -7,11 +7,11 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
-namespace DN.WebApi.Infrastructure.Persistence.Migrations.PostgreSQL
+namespace DN.WebApi.Infrastructure.Persistence.Migrations.Application
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20210828171122_AddedProductTenancy")]
-    partial class AddedProductTenancy
+    [Migration("20210908221828_initial")]
+    partial class initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -31,6 +31,12 @@ namespace DN.WebApi.Infrastructure.Persistence.Migrations.PostgreSQL
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DeletedOn")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Description")
@@ -56,6 +62,41 @@ namespace DN.WebApi.Infrastructure.Persistence.Migrations.PostgreSQL
                     b.ToTable("Products");
                 });
 
+            modelBuilder.Entity("DN.WebApi.Infrastructure.Auditing.Models.Trail", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AffectedColumns")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("DateTime")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("NewValues")
+                        .HasColumnType("text");
+
+                    b.Property<string>("OldValues")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PrimaryKey")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TableName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Type")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AuditTrails");
+                });
+
             modelBuilder.Entity("DN.WebApi.Infrastructure.Identity.Models.ApplicationRole", b =>
                 {
                     b.Property<string>("Id")
@@ -75,9 +116,6 @@ namespace DN.WebApi.Infrastructure.Persistence.Migrations.PostgreSQL
                     b.Property<string>("NormalizedName")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
-
-                    b.Property<string>("TenantId")
-                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
