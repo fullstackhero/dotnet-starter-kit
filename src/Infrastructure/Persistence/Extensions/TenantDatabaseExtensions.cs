@@ -22,25 +22,34 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             services.Configure<TenantSettings>(config.GetSection(nameof(TenantSettings)));
             var options = services.GetOptions<TenantSettings>(nameof(TenantSettings));
             var defaultConnectionString = options.Defaults?.ConnectionString;
-            var defaultDbProvider = options.Defaults?.DBProvider;
+            var dbProvider = options.Defaults?.DBProvider;
+            switch (dbProvider.ToLower())
+            {
+                case "postgresql":
+                    services.AddHangfire(x => x.UsePostgreSqlStorage(defaultConnectionString));
+                    break;
+                case "mssql":
+                    services.AddHangfire(x => x.UseSqlServerStorage(defaultConnectionString));
+                    break;
+            }
+
             var tenants = options.Tenants;
             foreach (var tenant in tenants)
             {
                 string connectionString;
-                if (string.IsNullOrEmpty(tenant.ConnectionString))
-                {
-                    connectionString = defaultConnectionString;
-                }
-                else
-                {
-                    connectionString = tenant.ConnectionString;
-                }
+                if (string.IsNullOrEmpty(tenant.ConnectionString)) connectionString = defaultConnectionString;
+                else connectionString = tenant.ConnectionString;
 
-                if (defaultDbProvider.ToLower() == "postgresql")
+                switch (dbProvider.ToLower())
                 {
-                    services.AddDbContext<T>(m => m.UseNpgsql(e => e.MigrationsAssembly("Migrators.PostgreSQL")));
-                    services.MigrateAndSeedIdentityData<T>(connectionString, tenant.TID, options);
-                    services.AddHangfire(x => x.UsePostgreSqlStorage(defaultConnectionString));
+                    case "postgresql":
+                        services.AddDbContext<T>(m => m.UseNpgsql(e => e.MigrationsAssembly("Migrators.PostgreSQL")));
+                        services.MigrateAndSeedIdentityData<T>(connectionString, tenant.TID, options);
+                        break;
+                    case "mssql":
+                        services.AddDbContext<T>(m => m.UseSqlServer(e => e.MigrationsAssembly("Migrators.MSSQL")));
+                        services.MigrateAndSeedIdentityData<T>(connectionString, tenant.TID, options);
+                        break;
                 }
             }
 
