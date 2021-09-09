@@ -12,7 +12,7 @@ namespace DN.WebApi.Application.Abstractions.Repositories
         Task<T> GetByIdAsync<T>(object id, CancellationToken cancellationToken = default)
         where T : BaseEntity;
 
-        Task<TDto> GetCachedDtoByIdAsync<T, TDto>(object id, CancellationToken cancellationToken = default)
+        Task<TDto> GetByIdAsync<T, TDto>(object id, CancellationToken cancellationToken = default)
         where T : BaseEntity
         where TDto : IDto;
 

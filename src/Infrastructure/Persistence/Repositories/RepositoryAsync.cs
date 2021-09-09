@@ -52,7 +52,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
             return await _dbContext.Set<T>().FindAsync(entityId);
         }
 
-        public async Task<TDto> GetCachedDtoByIdAsync<T, TDto>(object entityId, CancellationToken cancellationToken = default)
+        public async Task<TDto> GetByIdAsync<T, TDto>(object entityId, CancellationToken cancellationToken = default)
         where T : BaseEntity
         where TDto : IDto
         {

@@ -41,7 +41,7 @@ namespace DN.WebApi.Application.Services.Catalog
 
         public async Task<Result<ProductDetailsDto>> GetByIdAsync(Guid id)
         {
-            var product = await _repository.GetCachedDtoByIdAsync<Product, ProductDetailsDto>(id);
+            var product = await _repository.GetByIdAsync<Product, ProductDetailsDto>(id);
             return await Result<ProductDetailsDto>.SuccessAsync(product);
         }
 
