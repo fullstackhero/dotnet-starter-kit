@@ -1,3 +1,4 @@
+using System.Reflection;
 using DN.WebApi.Infrastructure.Localizer;
 using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Infrastructure.Persistence.Extensions;
@@ -13,6 +14,7 @@ namespace DN.WebApi.Infrastructure.Extensions
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
         {
+            services.AddAutoMapper(Assembly.GetExecutingAssembly());
             services.AddLocalization();
             services.AddServices(config);
             services.AddDistributedMemoryCache();
