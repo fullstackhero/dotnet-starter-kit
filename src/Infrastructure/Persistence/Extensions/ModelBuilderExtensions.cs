@@ -17,6 +17,8 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             builder.Entity<ApplicationRole>(entity =>
             {
                 entity.ToTable(name: "Roles", "Identity");
+                entity.Metadata.RemoveIndex(new[] { entity.Property(r => r.NormalizedName).Metadata });
+                entity.HasIndex(r => new { r.NormalizedName, r.TenantId }).HasDatabaseName("RoleNameIndex").IsUnique();
             });
             builder.Entity<ApplicationRoleClaim>(entity =>
             {
