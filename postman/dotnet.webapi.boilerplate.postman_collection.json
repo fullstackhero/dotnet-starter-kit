@@ -1,0 +1,263 @@
+{
+	"info": {
+		"_postman_id": "7bc4b7a3-1161-4775-946b-1c2d70f3c34b",
+		"name": "dotnet.webapi.boilerplate",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Identity",
+			"item": [
+				{
+					"name": "get-token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"pm.collectionVariables.set(\"token\", jsonData.data.token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "beta",
+								"type": "text"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "en-US",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\":\"mukesh@beta.com\",\r\n    \"password\":\"123Pa$$word!\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/tokens/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"tokens",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "register-user",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "alpha",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"firstName\": \"John\",\r\n  \"lastName\": \"Smith\",\r\n  \"email\": \"smi3th@demo.com\",\r\n  \"userName\": \"sm3ith.parson\",\r\n  \"password\": \"123Pa$$word!\",\r\n  \"confirmPassword\": \"123Pa$$word!\",\r\n  \"phoneNumber\": \"12343567899\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/identity/register/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"identity",
+								"register",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get-roles",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/roles/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"roles",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create-role",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"Manager\",\r\n    \"description\":\"tadaaaa!\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/roles/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"roles",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Catalog",
+			"item": [
+				{
+					"name": "get-products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/v1/products",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"v1",
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create-product",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"wqedwcce\",\r\n    \"description\":\"Redmi Note 61 Pro\",\r\n    \"rate\":10\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/v1/products",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"v1",
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete-product",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/v1/products?id=6b9cc0ac-16b2-4c06-bbe5-60fa9e9d7644",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"v1",
+								"products"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "6b9cc0ac-16b2-4c06-bbe5-60fa9e9d7644"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "url",
+			"value": "https://localhost:5001/api"
+		},
+		{
+			"key": "token",
+			"value": ""
+		}
+	]
+}
