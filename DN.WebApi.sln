@@ -21,7 +21,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bootstrapper", "src\Bootstr
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Migrators", "Migrators", "{B778FB14-BDFD-454E-9FD7-5CE3572552B7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Migrators.PostgreSQL", "src\Migrators\Migrators.PostgreSQL\Migrators.PostgreSQL.csproj", "{927D3251-8F4E-47B2-B6FB-C2BBD49427CC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Migrators.PostgreSQL", "src\Migrators\Migrators.PostgreSQL\Migrators.PostgreSQL.csproj", "{927D3251-8F4E-47B2-B6FB-C2BBD49427CC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Migrators.MSSQL", "src\Migrators\Migrators.MSSQL\Migrators.MSSQL.csproj", "{BF2C59A8-8288-4260-9A95-B07503A5A134}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,6 +55,10 @@ Global
 		{927D3251-8F4E-47B2-B6FB-C2BBD49427CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{927D3251-8F4E-47B2-B6FB-C2BBD49427CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{927D3251-8F4E-47B2-B6FB-C2BBD49427CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF2C59A8-8288-4260-9A95-B07503A5A134}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF2C59A8-8288-4260-9A95-B07503A5A134}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF2C59A8-8288-4260-9A95-B07503A5A134}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF2C59A8-8288-4260-9A95-B07503A5A134}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -67,6 +73,7 @@ Global
 		{AD21F819-C24F-4FBB-8033-491E424B6349} = {56B4195C-A86F-45DB-BAA5-8F974D17112D}
 		{B778FB14-BDFD-454E-9FD7-5CE3572552B7} = {56B4195C-A86F-45DB-BAA5-8F974D17112D}
 		{927D3251-8F4E-47B2-B6FB-C2BBD49427CC} = {B778FB14-BDFD-454E-9FD7-5CE3572552B7}
+		{BF2C59A8-8288-4260-9A95-B07503A5A134} = {B778FB14-BDFD-454E-9FD7-5CE3572552B7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D0D80036-558A-4A3A-A0BE-00CED864A4DD}
