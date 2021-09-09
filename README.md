@@ -31,7 +31,7 @@ Join our Discord - [fullstackhero @ Discord](https://discord.gg/gdgHRt4mMw)
 - [x] Follows Clean Architecture Principles
 - [ ] Completely Documented at [fullstackhero.net](https://fullstackhero.net)
 - [x] Multi Tenancy Support
-- [x] Default Database Provider is PostgreSQL. Can be switched to MSSQL or MySQL
+- [x] Supports MySQL, MSSQL & PostgreSQL!
 - [x] Uses Entity Framework Core as DB Abstraction
 - [x] Repository Pattern
 - [x] Dapper Integration
@@ -54,7 +54,7 @@ Join our Discord - [fullstackhero @ Discord](https://discord.gg/gdgHRt4mMw)
 ### Prerequisites
 1. Visual Code v1.59.xx or higher
 2. .NET SDK 6.0.100-preview.7.21379.14 or higher
-3. PostgreSQL with pgAdmin4 or higher
+3. PostgreSQL with pgAdmin4 or higher / MSSQL / MySQL
 
 ## Community
 
