@@ -13,10 +13,18 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
             _service = service;
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetAsync(Guid id)
         {
             var productDetails = await _service.GetByIdAsync(id);
+            return Ok(productDetails);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetListAsync()
+        {
+            // TODO: Add Query Parameters for pages numbers & sizes
+            var productDetails = await _service.GetListAsync();
             return Ok(productDetails);
         }
 

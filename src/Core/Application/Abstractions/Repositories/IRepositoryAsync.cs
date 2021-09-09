@@ -1,6 +1,7 @@
 using System.Data;
 using System.Linq.Expressions;
 using DN.WebApi.Application.Abstractions.Services;
+using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Contracts;
 using DN.WebApi.Shared.DTOs;
 
@@ -18,8 +19,9 @@ namespace DN.WebApi.Application.Abstractions.Repositories
         Task<List<T>> GetListAsync<T>(Expression<Func<T, bool>> expression, bool noTracking = false, CancellationToken cancellationToken = default)
         where T : BaseEntity;
 
-        Task<List<T>> GetPaginatedListAsync<T>(int pageNumber, int pageSize)
-        where T : BaseEntity;
+        Task<PaginatedResult<TDto>> GetPaginatedListAsync<T, TDto>(int pageNumber, int pageSize, Expression<Func<T, bool>> expression = null, CancellationToken cancellationToken = default)
+        where T : BaseEntity
+        where TDto : IDto;
 
         Task<object> CreateAsync<T>(T entity)
         where T : BaseEntity;

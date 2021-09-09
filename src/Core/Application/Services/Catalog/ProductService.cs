@@ -51,5 +51,11 @@ namespace DN.WebApi.Application.Services.Catalog
             var mappedProduct = _mapper.Map<ProductDetailsDto>(product);
             return await Result<ProductDetailsDto>.SuccessAsync(mappedProduct);
         }
+
+        public async Task<PaginatedResult<ProductDetailsDto>> GetListAsync()
+        {
+            var products = await _repository.GetPaginatedListAsync<Product, ProductDetailsDto>(1, 10);
+            return products;
+        }
     }
 }

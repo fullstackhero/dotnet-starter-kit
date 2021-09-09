@@ -7,6 +7,7 @@ using DN.WebApi.Application.Abstractions.Repositories;
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Constants;
 using DN.WebApi.Application.Exceptions;
+using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Contracts;
 using DN.WebApi.Shared.DTOs;
 using Microsoft.EntityFrameworkCore;
@@ -81,15 +82,19 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
             }
         }
 
-        public async Task<List<T>> GetPaginatedListAsync<T>(int pageNumber, int pageSize)
+        public async Task<PaginatedResult<TDto>> GetPaginatedListAsync<T, TDto>(int pageNumber, int pageSize, Expression<Func<T, bool>> expression = null, CancellationToken cancellationToken = default)
         where T : BaseEntity
+        where TDto : IDto
         {
-            return await _dbContext
-                .Set<T>()
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .AsNoTracking()
-                .ToListAsync();
+            IQueryable<T> query = _dbContext.Set<T>();
+            pageNumber = pageNumber == 0 ? 1 : pageNumber;
+            pageSize = pageSize == 0 ? 10 : pageSize;
+            int count = await query.AsNoTracking().CountAsync();
+            pageNumber = pageNumber <= 0 ? 1 : pageNumber;
+            if (expression != null) query = query.Where(expression);
+            var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+            var mappedItems = _mapper.Map<List<T>, List<TDto>>(items);
+            return PaginatedResult<TDto>.Success(mappedItems, count, pageNumber, pageSize);
         }
 
         public async Task<object> CreateAsync<T>(T entity)
