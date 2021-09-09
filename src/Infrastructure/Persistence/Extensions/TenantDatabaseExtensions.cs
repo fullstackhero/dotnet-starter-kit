@@ -4,6 +4,7 @@ using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Utilties;
 using Hangfire;
 using Hangfire.PostgreSql;
+using Hangfire.MySql;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -31,6 +32,9 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                 case "mssql":
                     services.AddHangfire(x => x.UseSqlServerStorage(defaultConnectionString));
                     break;
+                case "mysql":
+                    services.AddHangfire(x => x.UseStorage(new MySqlStorage(defaultConnectionString, new MySqlStorageOptions())));
+                    break;
             }
 
             var tenants = options.Tenants;
@@ -48,6 +52,10 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                         break;
                     case "mssql":
                         services.AddDbContext<T>(m => m.UseSqlServer(e => e.MigrationsAssembly("Migrators.MSSQL")));
+                        services.MigrateAndSeedIdentityData<T>(connectionString, tenant.TID, options);
+                        break;
+                    case "mysql":
+                        services.AddDbContext<T>(m => m.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), e => e.MigrationsAssembly("Migrators.MySQL")));
                         services.MigrateAndSeedIdentityData<T>(connectionString, tenant.TID, options);
                         break;
                 }

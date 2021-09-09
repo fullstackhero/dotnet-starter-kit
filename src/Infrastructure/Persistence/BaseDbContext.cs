@@ -31,7 +31,7 @@ namespace DN.WebApi.Infrastructure.Persistence
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
-            modelBuilder.ApplyIdentityConfiguration();
+            modelBuilder.ApplyIdentityConfiguration(_tenantService);
             modelBuilder.ApplyGlobalFilters<IMustHaveTenant>(b => EF.Property<string>(b, nameof(TenantId)) == TenantId);
             modelBuilder.ApplyGlobalFilters<IIdentityTenant>(b => EF.Property<string>(b, nameof(TenantId)) == TenantId);
             modelBuilder.ApplyGlobalFilters<ISoftDelete>(s => s.DeletedOn == null);
@@ -43,9 +43,17 @@ namespace DN.WebApi.Infrastructure.Persistence
             if (!string.IsNullOrEmpty(tenantConnectionString))
             {
                 var dbProvider = _tenantService.GetDatabaseProvider();
-                if (dbProvider.ToLower() == "postgresql")
+                switch (dbProvider.ToLower())
                 {
-                    optionsBuilder.UseNpgsql(_tenantService.GetConnectionString());
+                    case "postgresql":
+                        optionsBuilder.UseNpgsql(_tenantService.GetConnectionString());
+                        break;
+                    case "mssql":
+                        optionsBuilder.UseSqlServer(_tenantService.GetConnectionString());
+                        break;
+                    case "mysql":
+                        optionsBuilder.UseMySql(_tenantService.GetConnectionString(), ServerVersion.AutoDetect(_tenantService.GetConnectionString()));
+                        break;
                 }
             }
         }
