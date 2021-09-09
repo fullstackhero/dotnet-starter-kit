@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace DN.WebApi.Infrastructure.Identity.Models
 {
-    public class ApplicationRole : IdentityRole
+    public class ApplicationRole : IdentityRole, IIdentityTenant
     {
         public string Description { get; set; }
         public string TenantId { get; set; }
