@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Infrastructure.Identity.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -8,40 +9,42 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
 {
     public static class ModelBuilderExtensions
     {
-        public static void ApplyIdentityConfiguration(this ModelBuilder builder)
+
+        public static void ApplyIdentityConfiguration(this ModelBuilder builder, ITenantService _tenantService)
         {
+            var dbProvider = _tenantService.GetDatabaseProvider();
             builder.Entity<ApplicationUser>(entity =>
             {
-                entity.ToTable(name: "Users", "Identity");
+                entity.ToTable(name: "Users", dbProvider.ToLower() == "mysql" ? null : "Identity");
             });
             builder.Entity<ApplicationRole>(entity =>
             {
-                entity.ToTable(name: "Roles", "Identity");
+                entity.ToTable(name: "Roles", dbProvider.ToLower() == "mysql" ? null : "Identity");
                 entity.Metadata.RemoveIndex(new[] { entity.Property(r => r.NormalizedName).Metadata });
                 entity.HasIndex(r => new { r.NormalizedName, r.TenantId }).HasDatabaseName("RoleNameIndex").IsUnique();
             });
             builder.Entity<ApplicationRoleClaim>(entity =>
             {
-                entity.ToTable(name: "RoleClaims", "Identity");
+                entity.ToTable(name: "RoleClaims", dbProvider.ToLower() == "mysql" ? null : "Identity");
             });
 
             builder.Entity<IdentityUserRole<string>>(entity =>
             {
-                entity.ToTable("UserRoles", "Identity");
+                entity.ToTable("UserRoles", dbProvider.ToLower() == "mysql" ? null : "Identity");
             });
 
             builder.Entity<IdentityUserClaim<string>>(entity =>
             {
-                entity.ToTable("UserClaims", "Identity");
+                entity.ToTable("UserClaims", dbProvider.ToLower() == "mysql" ? null : "Identity");
             });
 
             builder.Entity<IdentityUserLogin<string>>(entity =>
             {
-                entity.ToTable("UserLogins", "Identity");
+                entity.ToTable("UserLogins", dbProvider.ToLower() == "mysql" ? null : "Identity");
             });
             builder.Entity<IdentityUserToken<string>>(entity =>
             {
-                entity.ToTable("UserTokens", "Identity");
+                entity.ToTable("UserTokens", dbProvider.ToLower() == "mysql" ? null : "Identity");
             });
         }
 
