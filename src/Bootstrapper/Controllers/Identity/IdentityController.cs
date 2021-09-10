@@ -17,7 +17,6 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
         }
 
         [HttpPost("register")]
-        [AllowAnonymous]
         public async Task<IActionResult> RegisterAsync(RegisterRequest request)
         {
             var baseUrl = $"{this.Request.Scheme}://{this.Request.Host.Value.ToString()}{this.Request.PathBase.Value.ToString()}";
