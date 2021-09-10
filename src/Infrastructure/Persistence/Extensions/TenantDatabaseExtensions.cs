@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 namespace DN.WebApi.Infrastructure.Persistence.Extensions
 {
@@ -55,7 +56,11 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                         services.MigrateAndSeedIdentityData<T>(connectionString, tenant.TID, options);
                         break;
                     case "mysql":
-                        services.AddDbContext<T>(m => m.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), e => e.MigrationsAssembly("Migrators.MySQL")));
+                        services.AddDbContext<T>(m => m.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), e =>
+                        {
+                            e.MigrationsAssembly("Migrators.MySQL");
+                            e.SchemaBehavior(MySqlSchemaBehavior.Ignore);
+                        }));
                         services.MigrateAndSeedIdentityData<T>(connectionString, tenant.TID, options);
                         break;
                 }

@@ -15,36 +15,36 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             var dbProvider = _tenantService.GetDatabaseProvider();
             builder.Entity<ApplicationUser>(entity =>
             {
-                entity.ToTable(name: "Users", dbProvider.ToLower() == "mysql" ? null : "Identity");
+                entity.ToTable("Users", "Identity");
             });
             builder.Entity<ApplicationRole>(entity =>
             {
-                entity.ToTable(name: "Roles", dbProvider.ToLower() == "mysql" ? null : "Identity");
+                entity.ToTable("Roles", "Identity");
                 entity.Metadata.RemoveIndex(new[] { entity.Property(r => r.NormalizedName).Metadata });
                 entity.HasIndex(r => new { r.NormalizedName, r.TenantId }).HasDatabaseName("RoleNameIndex").IsUnique();
             });
             builder.Entity<ApplicationRoleClaim>(entity =>
             {
-                entity.ToTable(name: "RoleClaims", dbProvider.ToLower() == "mysql" ? null : "Identity");
+                entity.ToTable("RoleClaims", "Identity");
             });
 
             builder.Entity<IdentityUserRole<string>>(entity =>
             {
-                entity.ToTable("UserRoles", dbProvider.ToLower() == "mysql" ? null : "Identity");
+                entity.ToTable("UserRoles", "Identity");
             });
 
             builder.Entity<IdentityUserClaim<string>>(entity =>
             {
-                entity.ToTable("UserClaims", dbProvider.ToLower() == "mysql" ? null : "Identity");
+                entity.ToTable("UserClaims", "Identity");
             });
 
             builder.Entity<IdentityUserLogin<string>>(entity =>
             {
-                entity.ToTable("UserLogins", dbProvider.ToLower() == "mysql" ? null : "Identity");
+                entity.ToTable("UserLogins", "Identity");
             });
             builder.Entity<IdentityUserToken<string>>(entity =>
             {
-                entity.ToTable("UserTokens", dbProvider.ToLower() == "mysql" ? null : "Identity");
+                entity.ToTable("UserTokens", "Identity");
             });
         }
 

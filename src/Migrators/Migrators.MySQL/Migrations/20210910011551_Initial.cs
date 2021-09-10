@@ -8,6 +8,9 @@ namespace Migrators.MySQL.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.EnsureSchema(
+                name: "Identity");
+
             migrationBuilder.AlterDatabase()
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -64,6 +67,7 @@ namespace Migrators.MySQL.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Roles",
+                schema: "Identity",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "varchar(255)", nullable: false)
@@ -87,6 +91,7 @@ namespace Migrators.MySQL.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Users",
+                schema: "Identity",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "varchar(255)", nullable: false)
@@ -134,6 +139,7 @@ namespace Migrators.MySQL.Migrations
 
             migrationBuilder.CreateTable(
                 name: "RoleClaims",
+                schema: "Identity",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -155,6 +161,7 @@ namespace Migrators.MySQL.Migrations
                     table.ForeignKey(
                         name: "FK_RoleClaims_Roles_RoleId",
                         column: x => x.RoleId,
+                        principalSchema: "Identity",
                         principalTable: "Roles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -163,6 +170,7 @@ namespace Migrators.MySQL.Migrations
 
             migrationBuilder.CreateTable(
                 name: "UserClaims",
+                schema: "Identity",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -180,6 +188,7 @@ namespace Migrators.MySQL.Migrations
                     table.ForeignKey(
                         name: "FK_UserClaims_Users_UserId",
                         column: x => x.UserId,
+                        principalSchema: "Identity",
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -188,6 +197,7 @@ namespace Migrators.MySQL.Migrations
 
             migrationBuilder.CreateTable(
                 name: "UserLogins",
+                schema: "Identity",
                 columns: table => new
                 {
                     LoginProvider = table.Column<string>(type: "varchar(255)", nullable: false)
@@ -205,6 +215,7 @@ namespace Migrators.MySQL.Migrations
                     table.ForeignKey(
                         name: "FK_UserLogins_Users_UserId",
                         column: x => x.UserId,
+                        principalSchema: "Identity",
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -213,6 +224,7 @@ namespace Migrators.MySQL.Migrations
 
             migrationBuilder.CreateTable(
                 name: "UserRoles",
+                schema: "Identity",
                 columns: table => new
                 {
                     UserId = table.Column<string>(type: "varchar(255)", nullable: false)
@@ -226,12 +238,14 @@ namespace Migrators.MySQL.Migrations
                     table.ForeignKey(
                         name: "FK_UserRoles_Roles_RoleId",
                         column: x => x.RoleId,
+                        principalSchema: "Identity",
                         principalTable: "Roles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_UserRoles_Users_UserId",
                         column: x => x.UserId,
+                        principalSchema: "Identity",
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -240,6 +254,7 @@ namespace Migrators.MySQL.Migrations
 
             migrationBuilder.CreateTable(
                 name: "UserTokens",
+                schema: "Identity",
                 columns: table => new
                 {
                     UserId = table.Column<string>(type: "varchar(255)", nullable: false)
@@ -257,6 +272,7 @@ namespace Migrators.MySQL.Migrations
                     table.ForeignKey(
                         name: "FK_UserTokens_Users_UserId",
                         column: x => x.UserId,
+                        principalSchema: "Identity",
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -265,37 +281,44 @@ namespace Migrators.MySQL.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_RoleClaims_RoleId",
+                schema: "Identity",
                 table: "RoleClaims",
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
                 name: "RoleNameIndex",
+                schema: "Identity",
                 table: "Roles",
                 columns: new[] { "NormalizedName", "TenantId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserClaims_UserId",
+                schema: "Identity",
                 table: "UserClaims",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserLogins_UserId",
+                schema: "Identity",
                 table: "UserLogins",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserRoles_RoleId",
+                schema: "Identity",
                 table: "UserRoles",
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
                 name: "EmailIndex",
+                schema: "Identity",
                 table: "Users",
                 column: "NormalizedEmail");
 
             migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
+                schema: "Identity",
                 table: "Users",
                 column: "NormalizedUserName",
                 unique: true);
@@ -310,25 +333,32 @@ namespace Migrators.MySQL.Migrations
                 name: "Products");
 
             migrationBuilder.DropTable(
-                name: "RoleClaims");
+                name: "RoleClaims",
+                schema: "Identity");
 
             migrationBuilder.DropTable(
-                name: "UserClaims");
+                name: "UserClaims",
+                schema: "Identity");
 
             migrationBuilder.DropTable(
-                name: "UserLogins");
+                name: "UserLogins",
+                schema: "Identity");
 
             migrationBuilder.DropTable(
-                name: "UserRoles");
+                name: "UserRoles",
+                schema: "Identity");
 
             migrationBuilder.DropTable(
-                name: "UserTokens");
+                name: "UserTokens",
+                schema: "Identity");
 
             migrationBuilder.DropTable(
-                name: "Roles");
+                name: "Roles",
+                schema: "Identity");
 
             migrationBuilder.DropTable(
-                name: "Users");
+                name: "Users",
+                schema: "Identity");
         }
     }
 }

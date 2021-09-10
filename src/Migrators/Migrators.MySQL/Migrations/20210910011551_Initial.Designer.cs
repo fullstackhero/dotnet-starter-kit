@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Migrators.MySQL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20210909223227_Initial")]
+    [Migration("20210910011551_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -124,7 +124,7 @@ namespace Migrators.MySQL.Migrations
                         .IsUnique()
                         .HasDatabaseName("RoleNameIndex");
 
-                    b.ToTable("Roles");
+                    b.ToTable("Roles", "Identity");
                 });
 
             modelBuilder.Entity("DN.WebApi.Infrastructure.Identity.Models.ApplicationRoleClaim", b =>
@@ -153,7 +153,7 @@ namespace Migrators.MySQL.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("RoleClaims");
+                    b.ToTable("RoleClaims", "Identity");
                 });
 
             modelBuilder.Entity("DN.WebApi.Infrastructure.Identity.Models.ApplicationUser", b =>
@@ -238,7 +238,7 @@ namespace Migrators.MySQL.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", "Identity");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
@@ -261,7 +261,7 @@ namespace Migrators.MySQL.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserClaims");
+                    b.ToTable("UserClaims", "Identity");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
@@ -283,7 +283,7 @@ namespace Migrators.MySQL.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserLogins");
+                    b.ToTable("UserLogins", "Identity");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
@@ -298,7 +298,7 @@ namespace Migrators.MySQL.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("UserRoles");
+                    b.ToTable("UserRoles", "Identity");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
@@ -317,7 +317,7 @@ namespace Migrators.MySQL.Migrations
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("UserTokens");
+                    b.ToTable("UserTokens", "Identity");
                 });
 
             modelBuilder.Entity("DN.WebApi.Infrastructure.Identity.Models.ApplicationRoleClaim", b =>
