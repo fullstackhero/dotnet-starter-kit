@@ -30,7 +30,7 @@
 						"header": [
 							{
 								"key": "tenant",
-								"value": "beta",
+								"value": "alpha",
 								"type": "text"
 							},
 							{
@@ -41,7 +41,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"email\":\"mukesh@beta.com\",\r\n    \"password\":\"123Pa$$word!\"\r\n}",
+							"raw": "{\r\n    \"email\":\"mukesh@alpha.com\",\r\n    \"password\":\"123Pa$$word!\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -64,20 +64,17 @@
 				{
 					"name": "register-user",
 					"request": {
-						"auth": {
-							"type": "noauth"
-						},
 						"method": "POST",
 						"header": [
 							{
 								"key": "tenant",
-								"value": "alpha",
+								"value": "beta",
 								"type": "text"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"firstName\": \"John\",\r\n  \"lastName\": \"Smith\",\r\n  \"email\": \"smi3th@demo.com\",\r\n  \"userName\": \"sm3ith.parson\",\r\n  \"password\": \"123Pa$$word!\",\r\n  \"confirmPassword\": \"123Pa$$word!\",\r\n  \"phoneNumber\": \"12343567899\"\r\n}",
+							"raw": "{\r\n  \"firstName\": \"John\",\r\n  \"lastName\": \"Smith\",\r\n  \"email\": \"test@demo.com\",\r\n  \"userName\": \"test.parson\",\r\n  \"password\": \"123Pa$$word!\",\r\n  \"confirmPassword\": \"123Pa$$word!\",\r\n  \"phoneNumber\": \"99999\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -173,7 +170,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"name\":\"wqedwcce\",\r\n    \"description\":\"Redmi Note 61 Pro\",\r\n    \"rate\":10\r\n}",
+							"raw": "{\r\n    \"name\":\"Product #1\",\r\n    \"description\":\"Something Cool!\",\r\n    \"rate\":10\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
