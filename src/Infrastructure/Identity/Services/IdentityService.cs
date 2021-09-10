@@ -121,9 +121,9 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             return await _userManager.GenerateChangePhoneNumberTokenAsync(user, user.PhoneNumber);
         }
 
-        public async Task<IResult<string>> ConfirmEmailAsync(string userId, string code)
+        public async Task<IResult<string>> ConfirmEmailAsync(string userId, string code, string tenantId)
         {
-            var user = await _userManager.FindByIdAsync(userId);
+            var user = await _userManager.Users.IgnoreQueryFilters().Where(a => a.Id == userId && a.EmailConfirmed == false && a.TenantId == tenantId).FirstOrDefaultAsync();
             if (user == null)
             {
                 throw new IdentityException(_localizer["An error occurred while confirming E-Mail."]);

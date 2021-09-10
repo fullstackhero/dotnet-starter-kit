@@ -26,9 +26,9 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
 
         [HttpGet("confirm-email")]
         [AllowAnonymous]
-        public async Task<IActionResult> ConfirmEmailAsync([FromQuery] string userId, [FromQuery] string code)
+        public async Task<IActionResult> ConfirmEmailAsync([FromQuery] string userId, [FromQuery] string code, [FromQuery] string tenantId)
         {
-            return Ok(await _identityService.ConfirmEmailAsync(userId, code));
+            return Ok(await _identityService.ConfirmEmailAsync(userId, code, tenantId));
         }
 
         [HttpGet("confirm-phone-number")]
