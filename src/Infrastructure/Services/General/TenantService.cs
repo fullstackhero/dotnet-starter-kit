@@ -1,3 +1,4 @@
+using System.Web;
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Exceptions;
@@ -34,7 +35,12 @@ namespace DN.WebApi.Infrastructure.Services.General
                 }
                 else
                 {
-                    if (_httpContext.Request.Headers.TryGetValue("tenant", out var tenantId))
+                    var tenantFromQueryString = System.Web.HttpUtility.ParseQueryString(_httpContext.Request.QueryString.Value).Get("tenantId");
+                    if(!string.IsNullOrEmpty(tenantFromQueryString))
+                    {
+                         SetTenant(tenantFromQueryString);
+                    }
+                    else if (_httpContext.Request.Headers.TryGetValue("tenant", out var tenantId))
                     {
                         SetTenant(tenantId);
                     }

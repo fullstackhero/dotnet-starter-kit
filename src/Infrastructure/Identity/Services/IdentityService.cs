@@ -112,6 +112,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             var endpointUri = new Uri(string.Concat($"{origin}/", route));
             string verificationUri = QueryHelpers.AddQueryString(endpointUri.ToString(), "userId", user.Id);
             verificationUri = QueryHelpers.AddQueryString(verificationUri, "code", code);
+            verificationUri = QueryHelpers.AddQueryString(verificationUri, "tenantId", _tenantService.GetTenant()?.TID);
             return verificationUri;
         }
 
