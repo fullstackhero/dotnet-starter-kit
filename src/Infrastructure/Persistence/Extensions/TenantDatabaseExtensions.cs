@@ -140,7 +140,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             UserManager<ApplicationUser> userManager = services.GetService<UserManager<ApplicationUser>>();
             var user = await userManager.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Email.Equals(email));
             if (user == null) return;
-            var roleRecord = dbContext.Roles.Where(a => a.NormalizedName == role.ToUpper() && a.TenantId == tenantId).FirstOrDefaultAsync().Result;
+            var roleRecord = dbContext.Roles.IgnoreQueryFilters().Where(a => a.NormalizedName == role.ToUpper() && a.TenantId == tenantId).FirstOrDefaultAsync().Result;
             if (roleRecord == null) return;
             var isUserInRole = dbContext.UserRoles.Any(a => a.UserId == user.Id && a.RoleId == roleRecord.Id);
             if (!isUserInRole)
