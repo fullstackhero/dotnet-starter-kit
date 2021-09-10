@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Models;
@@ -116,7 +117,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                 var userStore = new UserStore<ApplicationUser>(dbContext);
                 userStore.CreateAsync(superUser).Wait();
                 _logger.Information($"{tenant.Name} : Seeding Admin User {tenant.AdminEmail}....");
-                AssignRolesAsync(scope.ServiceProvider, superUser.Email, RoleConstants.Admin, dbContext, tenantId).Wait();
+                AssignAdminRoleAsync(scope.ServiceProvider, superUser.Email, dbContext, tenantId).Wait();
             }
         }
 
@@ -134,19 +135,28 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             }
         }
 
-        public static async Task AssignRolesAsync<T>(IServiceProvider services, string email, string role, T dbContext, string tenantId)
+        public static async Task AssignAdminRoleAsync<T>(IServiceProvider services, string email, T dbContext, string tenantId)
         where T : ApplicationDbContext
         {
+            var adminRole = RoleConstants.Admin;
             UserManager<ApplicationUser> userManager = services.GetService<UserManager<ApplicationUser>>();
+            RoleManager<ApplicationRole> roleManager = services.GetService<RoleManager<ApplicationRole>>();
             var user = await userManager.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Email.Equals(email));
             if (user == null) return;
-            var roleRecord = dbContext.Roles.IgnoreQueryFilters().Where(a => a.NormalizedName == role.ToUpper() && a.TenantId == tenantId).FirstOrDefaultAsync().Result;
+            var roleRecord = roleManager.Roles.IgnoreQueryFilters().Where(a => a.NormalizedName == adminRole.ToUpper() && a.TenantId == tenantId).FirstOrDefaultAsync().Result;
             if (roleRecord == null) return;
             var isUserInRole = dbContext.UserRoles.Any(a => a.UserId == user.Id && a.RoleId == roleRecord.Id);
             if (!isUserInRole)
             {
                 dbContext.UserRoles.Add(new IdentityUserRole<string>() { RoleId = roleRecord.Id, UserId = user.Id });
-                dbContext.SaveChangesAsync().Wait();
+                foreach (string permission in typeof(Permissions).GetNestedClassesStaticStringValues())
+                {
+                    var allClaims = await roleManager.GetClaimsAsync(roleRecord);
+                    if (!allClaims.Any(a => a.Type == Domain.Constants.ClaimConstants.Permission && a.Value == permission))
+                    {
+                        await roleManager.AddClaimAsync(roleRecord, new Claim(Domain.Constants.ClaimConstants.Permission, permission));
+                    }
+                }
             }
         }
         #endregion

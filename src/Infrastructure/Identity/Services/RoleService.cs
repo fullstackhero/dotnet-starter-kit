@@ -16,19 +16,21 @@ namespace DN.WebApi.Infrastructure.Identity.Services
 {
     public class RoleService : IRoleService
     {
+        private readonly ICurrentUser _currentUser;
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
         private readonly IStringLocalizer<RoleService> _localizer;
         private readonly IMapper _mapper;
 
-        public RoleService(RoleManager<ApplicationRole> roleManager, UserManager<ApplicationUser> userManager, ApplicationDbContext context, IStringLocalizer<RoleService> localizer, IMapper mapper)
+        public RoleService(RoleManager<ApplicationRole> roleManager, UserManager<ApplicationUser> userManager, ApplicationDbContext context, IStringLocalizer<RoleService> localizer, IMapper mapper, ICurrentUser currentUser)
         {
             _roleManager = roleManager;
             _userManager = userManager;
             _context = context;
             _localizer = localizer;
             _mapper = mapper;
+            _currentUser = currentUser;
         }
 
         private static List<string> DefaultRoles()
@@ -85,6 +87,14 @@ namespace DN.WebApi.Infrastructure.Identity.Services
         public async Task<Result<List<RoleDto>>> GetListAsync()
         {
             var roles = await _roleManager.Roles.ToListAsync();
+            var rolesResponse = _mapper.Map<List<RoleDto>>(roles);
+            return await Result<List<RoleDto>>.SuccessAsync(rolesResponse);
+        }
+
+        public async Task<Result<List<RoleDto>>> GetUserRolesAsync(string userId)
+        {
+            var userRoles = await _context.UserRoles.Where(a => a.UserId == userId).Select(a => a.RoleId).ToListAsync();
+            var roles = await _roleManager.Roles.Where(a => userRoles.Contains(a.Id)).ToListAsync();
             var rolesResponse = _mapper.Map<List<RoleDto>>(roles);
             return await Result<List<RoleDto>>.SuccessAsync(rolesResponse);
         }

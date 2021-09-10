@@ -1,8 +1,10 @@
 using System.Reflection;
+using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Infrastructure.Localizer;
 using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Infrastructure.Persistence.Extensions;
 using Hangfire;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +21,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             services.AddServices(config);
             services.AddDistributedMemoryCache();
             services.AddSettings(config);
+            services.AddPermissions(config);
             services.AddIdentity(config);
             services.PrepareTenantDatabases<ApplicationDbContext>(config);
             services.AddHangfireServer();
@@ -33,6 +36,13 @@ namespace DN.WebApi.Infrastructure.Extensions
                config.ReportApiVersions = true;
            });
             services.AddSingleton<IStringLocalizerFactory, JsonStringLocalizerFactory>();
+            return services;
+        }
+
+        public static IServiceCollection AddPermissions(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>()
+                .AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
             return services;
         }
     }

@@ -8,17 +8,28 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
     [Route("api/[controller]")]
     public class RolesController : ControllerBase
     {
+        private readonly ICurrentUser _currentUser;
         private readonly IRoleService _roleService;
 
-        public RolesController(IRoleService roleService)
+        public RolesController(IRoleService roleService, ICurrentUser currentUser)
         {
             _roleService = roleService;
+            _currentUser = currentUser;
         }
 
-        [HttpGet]
+        [HttpGet("all")]
         public async Task<IActionResult> GetListAsync()
         {
             var roles = await _roleService.GetListAsync();
+            return Ok(roles);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetCurrentUserRolesAsync()
+        {
+
+            var userId = _currentUser.GetUserId().ToString();
+            var roles = await _roleService.GetUserRolesAsync(userId);
             return Ok(roles);
         }
 

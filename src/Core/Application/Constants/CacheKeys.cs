@@ -10,5 +10,10 @@ namespace DN.WebApi.Application.Constants
         {
             return $"{typeof(T).Name}-{id}";
         }
+
+        public static string GetCacheKey(string name, object id)
+        {
+            return $"{name}-{id}";
+        }
     }
 }

@@ -1,4 +1,6 @@
 using DN.WebApi.Application.Abstractions.Services.Catalog;
+using DN.WebApi.Domain.Constants;
+using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Shared.DTOs.Catalog;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,6 +16,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
         }
 
         [HttpGet("{id}")]
+        [MustHavePermission(Permissions.Products.View)]
         public async Task<IActionResult> GetAsync(Guid id)
         {
             var productDetails = await _service.GetByIdAsync(id);
@@ -21,6 +24,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
         }
 
         [HttpGet]
+        [MustHavePermission(Permissions.Products.ListAll)]
         public async Task<IActionResult> GetListAsync()
         {
             // TODO: Add Query Parameters for pages numbers & sizes
