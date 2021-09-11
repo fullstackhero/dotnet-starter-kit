@@ -20,8 +20,9 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
     {
         private static readonly ILogger _logger = Log.ForContext(typeof(MultitenancyExtensions));
 
-        public static IServiceCollection AddMultitenancy<T>(this IServiceCollection services, IConfiguration config)
+        public static IServiceCollection AddMultitenancy<T, TA>(this IServiceCollection services, IConfiguration config)
         where T : TenantManagementDbContext
+        where TA : ApplicationDbContext
         {
             services.Configure<MultitenancySettings>(config.GetSection(nameof(MultitenancySettings)));
             var multitenancySettings = services.GetOptions<MultitenancySettings>(nameof(MultitenancySettings));
@@ -31,9 +32,11 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             {
                 case "postgresql":
                     services.AddDbContext<T>(m => m.UseNpgsql(e => e.MigrationsAssembly("Migrators.PostgreSQL")));
+                    services.AddHangfire(x => x.UsePostgreSqlStorage(rootConnectionString));
                     break;
                 case "mssql":
                     services.AddDbContext<T>(m => m.UseSqlServer(e => e.MigrationsAssembly("Migrators.MSSQL")));
+                    services.AddHangfire(x => x.UseSqlServerStorage(rootConnectionString));
                     break;
                 case "mysql":
                     services.AddDbContext<T>(m => m.UseMySql(rootConnectionString, ServerVersion.AutoDetect(rootConnectionString), e =>
@@ -41,61 +44,11 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                         e.MigrationsAssembly("Migrators.MySQL");
                         e.SchemaBehavior(MySqlSchemaBehavior.Ignore);
                     }));
+                    services.AddHangfire(x => x.UseStorage(new MySqlStorage(rootConnectionString, new MySqlStorageOptions())));
                     break;
             }
 
-            services.MigrateRootDatabase<T>(multitenancySettings);
-            return services;
-        }
-
-        public static IServiceCollection PrepareTenantDatabases<T>(this IServiceCollection services, IConfiguration config)
-        where T : ApplicationDbContext
-        {
-            services.Configure<TenantSettings>(config.GetSection(nameof(TenantSettings)));
-            var options = services.GetOptions<TenantSettings>(nameof(TenantSettings));
-            var defaultConnectionString = options.Defaults?.ConnectionString;
-            var dbProvider = options.Defaults?.DBProvider;
-            switch (dbProvider.ToLower())
-            {
-                case "postgresql":
-                    services.AddHangfire(x => x.UsePostgreSqlStorage(defaultConnectionString));
-                    break;
-                case "mssql":
-                    services.AddHangfire(x => x.UseSqlServerStorage(defaultConnectionString));
-                    break;
-                case "mysql":
-                    services.AddHangfire(x => x.UseStorage(new MySqlStorage(defaultConnectionString, new MySqlStorageOptions())));
-                    break;
-            }
-
-            var tenants = options.Tenants;
-            foreach (var tenant in tenants)
-            {
-                string connectionString;
-                if (string.IsNullOrEmpty(tenant.ConnectionString)) connectionString = defaultConnectionString;
-                else connectionString = tenant.ConnectionString;
-
-                switch (dbProvider.ToLower())
-                {
-                    case "postgresql":
-                        services.AddDbContext<T>(m => m.UseNpgsql(e => e.MigrationsAssembly("Migrators.PostgreSQL")));
-                        services.MigrateAndSeedIdentityData<T>(connectionString, tenant.TID, options);
-                        break;
-                    case "mssql":
-                        services.AddDbContext<T>(m => m.UseSqlServer(e => e.MigrationsAssembly("Migrators.MSSQL")));
-                        services.MigrateAndSeedIdentityData<T>(connectionString, tenant.TID, options);
-                        break;
-                    case "mysql":
-                        services.AddDbContext<T>(m => m.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), e =>
-                        {
-                            e.MigrationsAssembly("Migrators.MySQL");
-                            e.SchemaBehavior(MySqlSchemaBehavior.Ignore);
-                        }));
-                        services.MigrateAndSeedIdentityData<T>(connectionString, tenant.TID, options);
-                        break;
-                }
-            }
-
+            services.SetupDatabases<T, TA>(multitenancySettings);
             return services;
         }
 
@@ -108,6 +61,73 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             var tenant = options.Tenants.Where(a => a.TID == tenantId).FirstOrDefault();
             if (dbContext.Database.GetPendingMigrations().Any())
             {
+                // dbContext.Database.Migrate();
+                _logger.Information($"{tenant.Name} : Migrations complete....");
+            }
+
+            if (dbContext.Database.CanConnect())
+            {
+                // SeedRoles(tenant, dbContext);
+                // SeedTenantAdmins(tenantId, tenant, scope, dbContext);
+            }
+
+            return services;
+        }
+
+        private static IServiceCollection SetupDatabases<T, TA>(this IServiceCollection services, MultitenancySettings options)
+        where T : TenantManagementDbContext
+        where TA : ApplicationDbContext
+        {
+            var scope = services.BuildServiceProvider().CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<T>();
+            dbContext.Database.SetConnectionString(options.ConnectionString);
+            if (dbContext.Database.GetPendingMigrations().Any())
+            {
+                dbContext.Database.Migrate();
+                _logger.Information($"Applying Root Migrations.");
+            }
+
+            if (dbContext.Database.CanConnect())
+            {
+                SeedRootTenant(dbContext, options);
+            }
+
+            var availableTenants = dbContext.Tenants.ToListAsync().Result;
+            foreach (var tenant in availableTenants)
+            {
+                services.SetupTenantDatabase<TA>(options, tenant);
+            }
+
+            return services;
+        }
+
+        private static IServiceCollection SetupTenantDatabase<TA>(this IServiceCollection services, MultitenancySettings options, Domain.Entities.Multitenancy.Tenant tenant)
+        where TA : ApplicationDbContext
+        {
+
+            var tenantConnectionString = tenant.ConnectionString ?? options.ConnectionString;
+            switch (options.DBProvider.ToLower())
+            {
+                case "postgresql":
+                    services.AddDbContext<TA>(m => m.UseNpgsql(e => e.MigrationsAssembly("Migrators.PostgreSQL")));
+                    break;
+                case "mssql":
+                    services.AddDbContext<TA>(m => m.UseSqlServer(e => e.MigrationsAssembly("Migrators.MSSQL")));
+                    break;
+                case "mysql":
+                    services.AddDbContext<TA>(m => m.UseMySql(tenantConnectionString, ServerVersion.AutoDetect(tenantConnectionString), e =>
+                    {
+                        e.MigrationsAssembly("Migrators.MySQL");
+                        e.SchemaBehavior(MySqlSchemaBehavior.Ignore);
+                    }));
+                    break;
+            }
+
+            var scope = services.BuildServiceProvider().CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<TA>();
+            dbContext.Database.SetConnectionString(tenantConnectionString);
+            if (dbContext.Database.GetPendingMigrations().Any())
+            {
                 dbContext.Database.Migrate();
                 _logger.Information($"{tenant.Name} : Migrations complete....");
             }
@@ -115,27 +135,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             if (dbContext.Database.CanConnect())
             {
                 SeedRoles(tenant, dbContext);
-                SeedTenantAdmins(tenantId, tenant, scope, dbContext);
-            }
-
-            return services;
-        }
-
-        private static IServiceCollection MigrateRootDatabase<T>(this IServiceCollection services, MultitenancySettings options)
-        where T : TenantManagementDbContext
-        {
-            using var scope = services.BuildServiceProvider().CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<T>();
-            dbContext.Database.SetConnectionString(options.ConnectionString);
-            if (dbContext.Database.GetPendingMigrations().Any())
-            {
-                dbContext.Database.Migrate();
-                _logger.Information($"Root Migrations complete....");
-            }
-
-            if (dbContext.Database.CanConnect())
-            {
-                SeedRootTenant(dbContext, options);
+                SeedAdmin(tenant, scope, dbContext);
             }
 
             return services;
@@ -152,10 +152,10 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             }
         }
         #region Seeding
-        private static void SeedTenantAdmins<T>(string tenantId, Tenant tenant, IServiceScope scope, T dbContext)
+        private static void SeedAdmin<T>(DN.WebApi.Domain.Entities.Multitenancy.Tenant tenant, IServiceScope scope, T dbContext)
         where T : ApplicationDbContext
         {
-            var adminUserName = $"{tenant.Name}.admin";
+            var adminUserName = $"{tenant.Name.ToLower()}.admin";
             var superUser = new ApplicationUser
             {
                 FirstName = tenant.Name,
@@ -167,7 +167,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                 NormalizedEmail = tenant.AdminEmail.ToUpper(),
                 NormalizedUserName = adminUserName.ToUpper(),
                 IsActive = true,
-                TenantId = tenantId
+                TenantId = tenant.Key
             };
             if (!dbContext.Users.IgnoreQueryFilters().Any(u => u.Email == tenant.AdminEmail))
             {
@@ -177,19 +177,19 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                 var userStore = new UserStore<ApplicationUser>(dbContext);
                 userStore.CreateAsync(superUser).Wait();
                 _logger.Information($"{tenant.Name} : Seeding Admin User {tenant.AdminEmail}....");
-                AssignAdminRoleAsync(scope.ServiceProvider, superUser.Email, dbContext, tenantId).Wait();
+                AssignAdminRoleAsync(scope.ServiceProvider, superUser.Email, dbContext, tenant.Key).Wait();
             }
         }
 
-        private static void SeedRoles<T>(Tenant tenant, T dbContext)
+        private static void SeedRoles<T>(DN.WebApi.Domain.Entities.Multitenancy.Tenant tenant, T dbContext)
         where T : ApplicationDbContext
         {
             foreach (string roleName in typeof(RoleConstants).GetAllPublicConstantValues<string>())
             {
                 var roleStore = new RoleStore<ApplicationRole>(dbContext);
-                if (!dbContext.Roles.IgnoreQueryFilters().Any(r => r.Name == roleName && r.TenantId == tenant.TID))
+                if (!dbContext.Roles.IgnoreQueryFilters().Any(r => r.Name == roleName && r.TenantId == tenant.Key))
                 {
-                    var role = new ApplicationRole(roleName, tenant.TID, $"{roleName} Role for {tenant.Name} Tenant");
+                    var role = new ApplicationRole(roleName, tenant.Key, $"{roleName} Role for {tenant.Name} Tenant");
                     roleStore.CreateAsync(role).Wait();
                 }
             }
