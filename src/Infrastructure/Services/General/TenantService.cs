@@ -1,9 +1,13 @@
 using System.Web;
+using AutoMapper;
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Settings;
+using DN.WebApi.Infrastructure.Persistence;
+using DN.WebApi.Shared.DTOs.Multitenancy;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 
@@ -15,18 +19,24 @@ namespace DN.WebApi.Infrastructure.Services.General
 
         private readonly ICurrentUser _currentUser;
 
-        private readonly TenantSettings _tenantSettings;
+        private readonly MultitenancySettings _options;
+
+        private readonly TenantManagementDbContext _context;
+
+        private readonly IMapper _mapper;
 
         private HttpContext _httpContext;
 
-        private Tenant _currentTenant;
+        private TenantDto _currentTenant;
 
-        public TenantService(IOptions<TenantSettings> options, IHttpContextAccessor contextAccessor, ICurrentUser currentUser, IStringLocalizer<TenantService> localizer)
+        public TenantService(IOptions<MultitenancySettings> options, IHttpContextAccessor contextAccessor, ICurrentUser currentUser, IStringLocalizer<TenantService> localizer, TenantManagementDbContext context, IMapper mapper)
         {
             _localizer = localizer;
-            _tenantSettings = options.Value;
+            _options = options.Value;
             _httpContext = contextAccessor.HttpContext;
             _currentUser = currentUser;
+            _context = context;
+            _mapper = mapper;
             if (_httpContext != null)
             {
                 if (_currentUser.IsAuthenticated())
@@ -36,9 +46,9 @@ namespace DN.WebApi.Infrastructure.Services.General
                 else
                 {
                     var tenantFromQueryString = System.Web.HttpUtility.ParseQueryString(_httpContext.Request.QueryString.Value).Get("tenantId");
-                    if(!string.IsNullOrEmpty(tenantFromQueryString))
+                    if (!string.IsNullOrEmpty(tenantFromQueryString))
                     {
-                         SetTenant(tenantFromQueryString);
+                        SetTenant(tenantFromQueryString);
                     }
                     else if (_httpContext.Request.Headers.TryGetValue("tenant", out var tenantId))
                     {
@@ -54,7 +64,8 @@ namespace DN.WebApi.Infrastructure.Services.General
 
         private void SetTenant(string tenantId)
         {
-            _currentTenant = _tenantSettings.Tenants.Where(a => a.TID == tenantId).FirstOrDefault();
+            var tenant = _context.Tenants.Where(a => a.Key == tenantId).FirstOrDefaultAsync().Result;
+            _currentTenant = _mapper.Map<TenantDto>(tenant);
             if (_currentTenant == null)
             {
                 throw new InvalidTenantException(_localizer["tenant.invalidtenant"]);
@@ -68,7 +79,7 @@ namespace DN.WebApi.Infrastructure.Services.General
 
         private void SetDefaultConnectionStringToCurrentTenant()
         {
-            _currentTenant.ConnectionString = _tenantSettings.Defaults.ConnectionString;
+            _currentTenant.ConnectionString = _options.ConnectionString;
         }
 
         public string GetConnectionString()
@@ -78,10 +89,10 @@ namespace DN.WebApi.Infrastructure.Services.General
 
         public string GetDatabaseProvider()
         {
-            return _tenantSettings.Defaults?.DBProvider;
+            return _options.DBProvider;
         }
 
-        public Tenant GetTenant()
+        public TenantDto GetTenant()
         {
             return _currentTenant;
         }

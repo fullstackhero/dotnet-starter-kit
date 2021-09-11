@@ -111,18 +111,8 @@ namespace DN.WebApi.Infrastructure.Identity.Services
 
         private async Task<IEnumerable<Claim>> GetClaimsAsync(ApplicationUser user, string ipAddress)
         {
-            var tenantId = _tenantService.GetTenant()?.TID;
-            var userClaims = await _userManager.GetClaimsAsync(user);
+            var tenantId = _tenantService.GetTenant()?.Key;
             var roles = await _userManager.GetRolesAsync(user);
-            var roleClaims = new List<Claim>();
-            var permissionClaims = new List<Claim>();
-            foreach (string role in roles)
-            {
-                roleClaims.Add(new Claim(ClaimTypes.Role, role));
-                var thisRole = await _roleManager.FindByNameAsync(role);
-                var allPermissionsForThisRoles = await _roleManager.GetClaimsAsync(thisRole);
-                permissionClaims.AddRange(allPermissionsForThisRoles);
-            }
 
             return new List<Claim>
             {
@@ -133,10 +123,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
                 new(ClaimTypes.Surname, user.LastName),
                 new("ipAddress", ipAddress),
                 new("tenantId", tenantId)
-            }
-            .Union(userClaims)
-            .Union(roleClaims)
-            .Union(permissionClaims);
+            };
         }
 
         private string GenerateRefreshToken()
