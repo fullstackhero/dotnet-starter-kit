@@ -7,10 +7,10 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-namespace Migrators.MSSQL.Migrations
+namespace Migrators.MSSQL.Migrations.Application
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20210909160413_Initial")]
+    [Migration("20210911221040_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -54,7 +54,7 @@ namespace Migrators.MSSQL.Migrations
                     b.Property<decimal>("Rate")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("TenantId")
+                    b.Property<string>("TenantKey")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -117,15 +117,15 @@ namespace Migrators.MSSQL.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<string>("TenantId")
+                    b.Property<string>("TenantKey")
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("NormalizedName", "TenantId")
+                    b.HasIndex("NormalizedName", "TenantKey")
                         .IsUnique()
                         .HasDatabaseName("RoleNameIndex")
-                        .HasFilter("[NormalizedName] IS NOT NULL AND [TenantId] IS NOT NULL");
+                        .HasFilter("[NormalizedName] IS NOT NULL AND [TenantKey] IS NOT NULL");
 
                     b.ToTable("Roles", "Identity");
                 });
@@ -150,7 +150,7 @@ namespace Migrators.MSSQL.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("TenantId")
+                    b.Property<string>("TenantKey")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -223,7 +223,7 @@ namespace Migrators.MSSQL.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("TenantId")
+                    b.Property<string>("TenantKey")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("TwoFactorEnabled")

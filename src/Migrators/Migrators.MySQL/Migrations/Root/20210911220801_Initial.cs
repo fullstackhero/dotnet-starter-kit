@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace Migrators.MySQL.Migrations.TenantManagementDb
+namespace Migrators.MySQL.Migrations.Root
 {
     public partial class Initial : Migration
     {

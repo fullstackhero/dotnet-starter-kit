@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace Migrators.MySQL.Migrations
+namespace Migrators.MySQL.Migrations.Application
 {
     public partial class Initial : Migration
     {
@@ -50,7 +50,7 @@ namespace Migrators.MySQL.Migrations
                     Description = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Rate = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
-                    TenantId = table.Column<string>(type: "longtext", nullable: true)
+                    TenantKey = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     CreatedBy = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     CreatedOn = table.Column<DateTime>(type: "datetime(6)", nullable: false),
@@ -74,7 +74,7 @@ namespace Migrators.MySQL.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Description = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    TenantId = table.Column<string>(type: "varchar(255)", nullable: true)
+                    TenantKey = table.Column<string>(type: "varchar(255)", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Name = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -106,7 +106,7 @@ namespace Migrators.MySQL.Migrations
                     RefreshToken = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     RefreshTokenExpiryTime = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    TenantId = table.Column<string>(type: "longtext", nullable: true)
+                    TenantKey = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     UserName = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -146,7 +146,7 @@ namespace Migrators.MySQL.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     Description = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    TenantId = table.Column<string>(type: "longtext", nullable: true)
+                    TenantKey = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     RoleId = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -289,7 +289,7 @@ namespace Migrators.MySQL.Migrations
                 name: "RoleNameIndex",
                 schema: "Identity",
                 table: "Roles",
-                columns: new[] { "NormalizedName", "TenantId" },
+                columns: new[] { "NormalizedName", "TenantKey" },
                 unique: true);
 
             migrationBuilder.CreateIndex(

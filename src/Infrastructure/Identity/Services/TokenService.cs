@@ -111,7 +111,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
 
         private async Task<IEnumerable<Claim>> GetClaimsAsync(ApplicationUser user, string ipAddress)
         {
-            var tenantId = _tenantService.GetTenant()?.Key;
+            var tenantKey = _tenantService.GetTenant()?.Key;
             var roles = await _userManager.GetRolesAsync(user);
 
             return new List<Claim>
@@ -122,7 +122,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
                 new(ClaimTypes.Name, user.FirstName),
                 new(ClaimTypes.Surname, user.LastName),
                 new("ipAddress", ipAddress),
-                new("tenantId", tenantId)
+                new("tenantKey", tenantKey)
             };
         }
 

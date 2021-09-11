@@ -21,6 +21,6 @@ namespace DN.WebApi.Domain.Entities.Catalog
 
         public decimal Rate { get; private set; }
 
-        public string TenantId { get; set; }
+        public string TenantKey { get; set; }
     }
 }

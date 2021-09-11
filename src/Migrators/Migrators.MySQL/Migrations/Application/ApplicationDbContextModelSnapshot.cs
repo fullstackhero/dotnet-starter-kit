@@ -3,16 +3,14 @@ using System;
 using DN.WebApi.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-namespace Migrators.MySQL.Migrations
+namespace Migrators.MySQL.Migrations.Application
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20210910011551_Initial")]
-    partial class Initial
+    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
     {
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -52,7 +50,7 @@ namespace Migrators.MySQL.Migrations
                     b.Property<decimal>("Rate")
                         .HasColumnType("decimal(65,30)");
 
-                    b.Property<string>("TenantId")
+                    b.Property<string>("TenantKey")
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
@@ -115,12 +113,12 @@ namespace Migrators.MySQL.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)");
 
-                    b.Property<string>("TenantId")
+                    b.Property<string>("TenantKey")
                         .HasColumnType("varchar(255)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("NormalizedName", "TenantId")
+                    b.HasIndex("NormalizedName", "TenantKey")
                         .IsUnique()
                         .HasDatabaseName("RoleNameIndex");
 
@@ -146,7 +144,7 @@ namespace Migrators.MySQL.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(255)");
 
-                    b.Property<string>("TenantId")
+                    b.Property<string>("TenantKey")
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
@@ -219,7 +217,7 @@ namespace Migrators.MySQL.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("TenantId")
+                    b.Property<string>("TenantKey")
                         .HasColumnType("longtext");
 
                     b.Property<bool>("TwoFactorEnabled")

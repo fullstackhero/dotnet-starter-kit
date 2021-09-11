@@ -58,7 +58,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
                 UserName = request.UserName,
                 PhoneNumber = request.PhoneNumber,
                 IsActive = true,
-                TenantId = _tenantService.GetTenant()?.Key
+                TenantKey = _tenantService.GetTenant()?.Key
             };
             if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
             {
@@ -112,7 +112,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             var endpointUri = new Uri(string.Concat($"{origin}/", route));
             string verificationUri = QueryHelpers.AddQueryString(endpointUri.ToString(), "userId", user.Id);
             verificationUri = QueryHelpers.AddQueryString(verificationUri, "code", code);
-            verificationUri = QueryHelpers.AddQueryString(verificationUri, "tenantId", _tenantService.GetTenant()?.Key);
+            verificationUri = QueryHelpers.AddQueryString(verificationUri, "tenantKey", _tenantService.GetTenant()?.Key);
             return verificationUri;
         }
 
@@ -121,9 +121,9 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             return await _userManager.GenerateChangePhoneNumberTokenAsync(user, user.PhoneNumber);
         }
 
-        public async Task<IResult<string>> ConfirmEmailAsync(string userId, string code, string tenantId)
+        public async Task<IResult<string>> ConfirmEmailAsync(string userId, string code, string tenantKey)
         {
-            var user = await _userManager.Users.IgnoreQueryFilters().Where(a => a.Id == userId && a.EmailConfirmed == false && a.TenantId == tenantId).FirstOrDefaultAsync();
+            var user = await _userManager.Users.IgnoreQueryFilters().Where(a => a.Id == userId && a.EmailConfirmed == false && a.TenantKey == tenantKey).FirstOrDefaultAsync();
             if (user == null)
             {
                 throw new IdentityException(_localizer["An error occurred while confirming E-Mail."]);

@@ -46,9 +46,9 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             return _accessor.HttpContext;
         }
 
-        public string GetTenantId()
+        public string GetTenantKey()
         {
-            return IsAuthenticated() ? _accessor.HttpContext?.User.GetTenantId() : string.Empty;
+            return IsAuthenticated() ? _accessor.HttpContext?.User.GetTenantKey() : string.Empty;
         }
     }
 }

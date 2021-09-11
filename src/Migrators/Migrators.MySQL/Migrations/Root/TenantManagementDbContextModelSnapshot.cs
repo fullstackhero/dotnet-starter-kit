@@ -3,16 +3,14 @@ using System;
 using DN.WebApi.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-namespace Migrators.MySQL.Migrations.TenantManagementDb
+namespace Migrators.MySQL.Migrations.Root
 {
     [DbContext(typeof(TenantManagementDbContext))]
-    [Migration("20210911192726_Initial")]
-    partial class Initial
+    partial class TenantManagementDbContextModelSnapshot : ModelSnapshot
     {
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

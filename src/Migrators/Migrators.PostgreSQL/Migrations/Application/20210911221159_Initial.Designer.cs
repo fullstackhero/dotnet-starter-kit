@@ -3,15 +3,17 @@ using System;
 using DN.WebApi.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
-namespace Migrators.PostgreSQL.Migrations
+namespace Migrators.PostgreSQL.Migrations.Application
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210911221159_Initial")]
+    partial class Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -52,7 +54,7 @@ namespace Migrators.PostgreSQL.Migrations
                     b.Property<decimal>("Rate")
                         .HasColumnType("numeric");
 
-                    b.Property<string>("TenantId")
+                    b.Property<string>("TenantKey")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -115,12 +117,12 @@ namespace Migrators.PostgreSQL.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
-                    b.Property<string>("TenantId")
+                    b.Property<string>("TenantKey")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("NormalizedName", "TenantId")
+                    b.HasIndex("NormalizedName", "TenantKey")
                         .IsUnique()
                         .HasDatabaseName("RoleNameIndex");
 
@@ -147,7 +149,7 @@ namespace Migrators.PostgreSQL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("TenantId")
+                    b.Property<string>("TenantKey")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -220,7 +222,7 @@ namespace Migrators.PostgreSQL.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
 
-                    b.Property<string>("TenantId")
+                    b.Property<string>("TenantKey")
                         .HasColumnType("text");
 
                     b.Property<bool>("TwoFactorEnabled")

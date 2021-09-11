@@ -47,7 +47,7 @@ namespace DN.WebApi.Application.Services.Catalog
 
         public async Task<Result<ProductDetailsDto>> GetByIdUsingDapperAsync(Guid id)
         {
-            var product = await _repository.QueryFirstOrDefaultAsync<Product>($"SELECT * FROM public.\"Products\" WHERE \"Id\"  = '{id}' AND \"TenantId\"='@tenantId'");
+            var product = await _repository.QueryFirstOrDefaultAsync<Product>($"SELECT * FROM public.\"Products\" WHERE \"Id\"  = '{id}' AND \"TenantKey\"='@tenantKey'");
             var mappedProduct = _mapper.Map<ProductDetailsDto>(product);
             return await Result<ProductDetailsDto>.SuccessAsync(mappedProduct);
         }

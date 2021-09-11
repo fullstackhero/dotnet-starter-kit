@@ -41,18 +41,18 @@ namespace DN.WebApi.Infrastructure.Services.General
             {
                 if (_currentUser.IsAuthenticated())
                 {
-                    SetTenant(_currentUser.GetTenantId());
+                    SetTenant(_currentUser.GetTenantKey());
                 }
                 else
                 {
-                    var tenantFromQueryString = System.Web.HttpUtility.ParseQueryString(_httpContext.Request.QueryString.Value).Get("tenantId");
+                    var tenantFromQueryString = System.Web.HttpUtility.ParseQueryString(_httpContext.Request.QueryString.Value).Get("tenantKey");
                     if (!string.IsNullOrEmpty(tenantFromQueryString))
                     {
                         SetTenant(tenantFromQueryString);
                     }
-                    else if (_httpContext.Request.Headers.TryGetValue("tenant", out var tenantId))
+                    else if (_httpContext.Request.Headers.TryGetValue("tenant", out var tenantKey))
                     {
-                        SetTenant(tenantId);
+                        SetTenant(tenantKey);
                     }
                     else
                     {
@@ -62,9 +62,9 @@ namespace DN.WebApi.Infrastructure.Services.General
             }
         }
 
-        private void SetTenant(string tenantId)
+        private void SetTenant(string tenantKey)
         {
-            var tenant = _context.Tenants.Where(a => a.Key == tenantId).FirstOrDefaultAsync().Result;
+            var tenant = _context.Tenants.Where(a => a.Key == tenantKey).FirstOrDefaultAsync().Result;
             _currentTenant = _mapper.Map<TenantDto>(tenant);
             if (_currentTenant == null)
             {

@@ -59,21 +59,41 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             var scope = services.BuildServiceProvider().CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<T>();
             dbContext.Database.SetConnectionString(options.ConnectionString);
-            if (dbContext.Database.GetPendingMigrations().Any())
+            switch (options.DBProvider.ToLower())
             {
-                dbContext.Database.Migrate();
-                _logger.Information($"Applying Root Migrations.");
+                case "postgresql":
+                    services.AddDbContext<TA>(m => m.UseNpgsql(e => e.MigrationsAssembly("Migrators.PostgreSQL")));
+                    break;
+                case "mssql":
+                    services.AddDbContext<TA>(m => m.UseSqlServer(e => e.MigrationsAssembly("Migrators.MSSQL")));
+                    break;
+                case "mysql":
+                    services.AddDbContext<TA>(m => m.UseMySql(options.ConnectionString, ServerVersion.AutoDetect(options.ConnectionString), e =>
+                    {
+                        e.MigrationsAssembly("Migrators.MySQL");
+                        e.SchemaBehavior(MySqlSchemaBehavior.Ignore);
+                    }));
+                    break;
             }
 
-            if (dbContext.Database.CanConnect())
+            if (dbContext.Database.GetMigrations().Count() > 0)
             {
-                SeedRootTenant(dbContext, options);
-            }
+                if (dbContext.Database.GetPendingMigrations().Any())
+                {
+                    dbContext.Database.Migrate();
+                    _logger.Information($"Applying Root Migrations.");
+                }
 
-            var availableTenants = dbContext.Tenants.ToListAsync().Result;
-            foreach (var tenant in availableTenants)
-            {
-                services.SetupTenantDatabase<TA>(options, tenant);
+                if (dbContext.Database.CanConnect())
+                {
+                    var availableTenants = dbContext.Tenants.ToListAsync().Result;
+                    foreach (var tenant in availableTenants)
+                    {
+                        services.SetupTenantDatabase<TA>(options, tenant);
+                    }
+
+                    SeedRootTenant(dbContext, options);
+                }
             }
 
             return services;
@@ -104,16 +124,19 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             var scope = services.BuildServiceProvider().CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<TA>();
             dbContext.Database.SetConnectionString(tenantConnectionString);
-            if (dbContext.Database.GetPendingMigrations().Any())
+            if (dbContext.Database.GetMigrations().Count() > 0)
             {
-                dbContext.Database.Migrate();
-                _logger.Information($"{tenant.Name} : Migrations complete....");
-            }
+                if (dbContext.Database.GetPendingMigrations().Any())
+                {
+                    dbContext.Database.Migrate();
+                    _logger.Information($"{tenant.Name} : Migrations complete....");
+                }
 
-            if (dbContext.Database.CanConnect())
-            {
-                SeedRoles(tenant, dbContext);
-                SeedAdmin(tenant, scope, dbContext);
+                if (dbContext.Database.CanConnect())
+                {
+                    SeedRoles(tenant, dbContext);
+                    SeedAdmin(tenant, scope, dbContext);
+                }
             }
 
             return services;
@@ -145,7 +168,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                 NormalizedEmail = tenant.AdminEmail.ToUpper(),
                 NormalizedUserName = adminUserName.ToUpper(),
                 IsActive = true,
-                TenantId = tenant.Key
+                TenantKey = tenant.Key
             };
             if (!dbContext.Users.IgnoreQueryFilters().Any(u => u.Email == tenant.AdminEmail))
             {
@@ -165,7 +188,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             foreach (string roleName in typeof(RoleConstants).GetAllPublicConstantValues<string>())
             {
                 var roleStore = new RoleStore<ApplicationRole>(dbContext);
-                if (!dbContext.Roles.IgnoreQueryFilters().Any(r => r.Name == roleName && r.TenantId == tenant.Key))
+                if (!dbContext.Roles.IgnoreQueryFilters().Any(r => r.Name == roleName && r.TenantKey == tenant.Key))
                 {
                     var role = new ApplicationRole(roleName, tenant.Key, $"{roleName} Role for {tenant.Name} Tenant");
                     roleStore.CreateAsync(role).Wait();
@@ -173,7 +196,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             }
         }
 
-        public static async Task AssignAdminRoleAsync<T>(IServiceProvider services, string email, T dbContext, string tenantId)
+        public static async Task AssignAdminRoleAsync<T>(IServiceProvider services, string email, T dbContext, string tenantKey)
         where T : ApplicationDbContext
         {
             var adminRole = RoleConstants.Admin;
@@ -181,7 +204,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             RoleManager<ApplicationRole> roleManager = services.GetService<RoleManager<ApplicationRole>>();
             var user = await userManager.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Email.Equals(email));
             if (user == null) return;
-            var roleRecord = roleManager.Roles.IgnoreQueryFilters().Where(a => a.NormalizedName == adminRole.ToUpper() && a.TenantId == tenantId).FirstOrDefaultAsync().Result;
+            var roleRecord = roleManager.Roles.IgnoreQueryFilters().Where(a => a.NormalizedName == adminRole.ToUpper() && a.TenantKey == tenantKey).FirstOrDefaultAsync().Result;
             if (roleRecord == null) return;
             var isUserInRole = dbContext.UserRoles.Any(a => a.UserId == user.Id && a.RoleId == roleRecord.Id);
             if (!isUserInRole)
