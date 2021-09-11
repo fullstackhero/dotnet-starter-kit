@@ -23,6 +23,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             services.AddSettings(config);
             services.AddPermissions(config);
             services.AddIdentity(config);
+            services.AddMultitenancy<TenantManagementDbContext>(config);
             services.PrepareTenantDatabases<ApplicationDbContext>(config);
             services.AddHangfireServer();
             services.AddRouting(options => options.LowercaseUrls = true);

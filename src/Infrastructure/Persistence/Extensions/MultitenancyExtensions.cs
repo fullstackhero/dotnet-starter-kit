@@ -16,9 +16,38 @@ using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 namespace DN.WebApi.Infrastructure.Persistence.Extensions
 {
-    public static class TenantDatabaseExtensions
+    public static class MultitenancyExtensions
     {
-        private static readonly ILogger _logger = Log.ForContext(typeof(TenantDatabaseExtensions));
+        private static readonly ILogger _logger = Log.ForContext(typeof(MultitenancyExtensions));
+
+        public static IServiceCollection AddMultitenancy<T>(this IServiceCollection services, IConfiguration config)
+        where T : TenantManagementDbContext
+        {
+            services.Configure<MultitenancySettings>(config.GetSection(nameof(MultitenancySettings)));
+            var multitenancySettings = services.GetOptions<MultitenancySettings>(nameof(MultitenancySettings));
+            var rootConnectionString = multitenancySettings.ConnectionString;
+            var dbProvider = multitenancySettings.DBProvider;
+            switch (dbProvider.ToLower())
+            {
+                case "postgresql":
+                    services.AddDbContext<T>(m => m.UseNpgsql(e => e.MigrationsAssembly("Migrators.PostgreSQL")));
+                    break;
+                case "mssql":
+                    services.AddDbContext<T>(m => m.UseSqlServer(e => e.MigrationsAssembly("Migrators.MSSQL")));
+                    break;
+                case "mysql":
+                    services.AddDbContext<T>(m => m.UseMySql(rootConnectionString, ServerVersion.AutoDetect(rootConnectionString), e =>
+                    {
+                        e.MigrationsAssembly("Migrators.MySQL");
+                        e.SchemaBehavior(MySqlSchemaBehavior.Ignore);
+                    }));
+                    break;
+            }
+
+            services.MigrateRootDatabase<T>(multitenancySettings);
+            return services;
+        }
+
         public static IServiceCollection PrepareTenantDatabases<T>(this IServiceCollection services, IConfiguration config)
         where T : ApplicationDbContext
         {
@@ -90,6 +119,37 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             }
 
             return services;
+        }
+
+        private static IServiceCollection MigrateRootDatabase<T>(this IServiceCollection services, MultitenancySettings options)
+        where T : TenantManagementDbContext
+        {
+            using var scope = services.BuildServiceProvider().CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<T>();
+            dbContext.Database.SetConnectionString(options.ConnectionString);
+            if (dbContext.Database.GetPendingMigrations().Any())
+            {
+                dbContext.Database.Migrate();
+                _logger.Information($"Root Migrations complete....");
+            }
+
+            if (dbContext.Database.CanConnect())
+            {
+                SeedRootTenant(dbContext, options);
+            }
+
+            return services;
+        }
+
+        private static void SeedRootTenant<T>(T dbContext, MultitenancySettings options)
+        where T : TenantManagementDbContext
+        {
+            if (!dbContext.Tenants.Any(t => t.Key == "root"))
+            {
+                var rootTenant = new DN.WebApi.Domain.Entities.Multitenancy.Tenant("Root", "root", "admin@root.com", options.ConnectionString);
+                dbContext.Tenants.Add(rootTenant);
+                dbContext.SaveChangesAsync().Wait();
+            }
         }
         #region Seeding
         private static void SeedTenantAdmins<T>(string tenantId, Tenant tenant, IServiceScope scope, T dbContext)
