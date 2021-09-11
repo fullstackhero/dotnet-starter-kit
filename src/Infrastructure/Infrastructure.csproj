@@ -59,4 +59,10 @@
     </PackageReference>
     <AdditionalFiles Include="..\..\stylecop.json" />
   </ItemGroup>
+  <ItemGroup>
+    <None Remove="SwaggerFilters\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="SwaggerFilters\" />
+  </ItemGroup>
 </Project>
