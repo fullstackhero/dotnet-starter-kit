@@ -55,6 +55,7 @@ namespace DN.WebApi.Infrastructure.Extensions
                         ValidateIssuerSigningKey = true,
                         IssuerSigningKey = new SymmetricSecurityKey(key),
                         ValidateIssuer = false,
+                        ValidateLifetime = true,
                         ValidateAudience = false,
                         RoleClaimType = ClaimTypes.Role,
                         ClockSkew = TimeSpan.Zero
@@ -75,6 +76,10 @@ namespace DN.WebApi.Infrastructure.Extensions
                         {
                             throw new IdentityException("You are not authorized to access this resource.", statusCode: HttpStatusCode.Forbidden);
                         },
+                        OnAuthenticationFailed = c =>
+                        {
+                            throw new IdentityException("Authentication Failed.", statusCode: HttpStatusCode.Unauthorized);
+                        }
                     };
                 });
             return services;
