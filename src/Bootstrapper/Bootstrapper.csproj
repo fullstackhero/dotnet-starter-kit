@@ -8,6 +8,7 @@
     <DocumentationFile>Bootstrapper.xml</DocumentationFile>
     <CodeAnalysisRuleSet>..\..\dotnet.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(RunConfiguration)' == 'Bootstrapper' " />
   <ItemGroup>
     <PackageReference Include="FluentValidation.AspNetCore" Version="10.3.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.9">

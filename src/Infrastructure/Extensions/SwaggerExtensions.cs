@@ -1,3 +1,4 @@
+using DN.WebApi.Infrastructure.SwaggerFilters;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Any;
@@ -72,6 +73,8 @@ namespace DN.WebApi.Infrastructure.Extensions
                     Pattern = @"^([0-9]{1}|(?:0[0-9]|1[0-9]|2[0-3])+):([0-5]?[0-9])(?::([0-5]?[0-9])(?:.(\d{1,9}))?)?$",
                     Example = new OpenApiString("02:00:00")
                 });
+
+                options.OperationFilter<AddTenantIdFilter>();
             });
         }
     }
