@@ -106,7 +106,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
         where TA : ApplicationDbContext
         {
 
-            var tenantConnectionString = tenant.ConnectionString ?? options.ConnectionString;
+            var tenantConnectionString = string.IsNullOrEmpty(tenant.ConnectionString) ? options.ConnectionString : tenant.ConnectionString;
             switch (options.DBProvider.ToLower())
             {
                 case "postgresql":

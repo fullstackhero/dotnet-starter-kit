@@ -58,7 +58,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
                 UserName = request.UserName,
                 PhoneNumber = request.PhoneNumber,
                 IsActive = true,
-                TenantKey = _tenantService.GetTenant()?.Key
+                TenantKey = _tenantService.GetCurrentTenant()?.Key
             };
             if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
             {
@@ -112,7 +112,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             var endpointUri = new Uri(string.Concat($"{origin}/", route));
             string verificationUri = QueryHelpers.AddQueryString(endpointUri.ToString(), "userId", user.Id);
             verificationUri = QueryHelpers.AddQueryString(verificationUri, "code", code);
-            verificationUri = QueryHelpers.AddQueryString(verificationUri, "tenantKey", _tenantService.GetTenant()?.Key);
+            verificationUri = QueryHelpers.AddQueryString(verificationUri, "tenantKey", _tenantService.GetCurrentTenant()?.Key);
             return verificationUri;
         }
 

@@ -22,7 +22,7 @@ namespace DN.WebApi.Infrastructure.Persistence
         : base(options)
         {
             _tenantService = tenantService;
-            TenantKey = _tenantService?.GetTenant()?.Key;
+            TenantKey = _tenantService?.GetCurrentTenant()?.Key;
             _currentUserService = currentUserService;
             _serializer = serializer;
         }

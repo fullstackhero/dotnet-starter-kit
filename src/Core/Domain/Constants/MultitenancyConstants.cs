@@ -9,6 +9,6 @@ namespace DN.WebApi.Domain.Constants
             public const string EmailAddress = "admin@root.com";
         }
 
-        public const string DefaultPassword = "root";
+        public const string DefaultPassword = "123Pa$$word!";
     }
 }

@@ -111,7 +111,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
 
         private async Task<IEnumerable<Claim>> GetClaimsAsync(ApplicationUser user, string ipAddress)
         {
-            var tenantKey = _tenantService.GetTenant()?.Key;
+            var tenantKey = _tenantService.GetCurrentTenant()?.Key;
             var roles = await _userManager.GetRolesAsync(user);
 
             return new List<Claim>
