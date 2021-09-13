@@ -109,7 +109,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
                     throw new IdentityException(_localizer["Similar Role already exists."], statusCode: System.Net.HttpStatusCode.BadRequest);
                 }
 
-                var newRole = new ApplicationRole(request.Name, _context.TenantId, request.Description);
+                var newRole = new ApplicationRole(request.Name, _context.TenantKey, request.Description);
                 var response = await _roleManager.CreateAsync(newRole);
                 await _context.SaveChangesAsync();
                 if (response.Succeeded)

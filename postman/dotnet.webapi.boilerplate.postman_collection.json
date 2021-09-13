@@ -30,7 +30,7 @@
 						"header": [
 							{
 								"key": "tenant",
-								"value": "alpha",
+								"value": "root",
 								"type": "text"
 							},
 							{
@@ -41,7 +41,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"email\":\"mukesh@alpha.com\",\r\n    \"password\":\"123Pa$$word!\"\r\n}",
+							"raw": "{\r\n    \"email\":\"admin@root.com\",\r\n    \"password\":\"123Pa$$word!\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -101,13 +101,12 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}/roles/",
+							"raw": "{{url}}/roles",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
-								"roles",
-								""
+								"roles"
 							]
 						}
 					},
@@ -209,6 +208,74 @@
 									"key": "id",
 									"value": "6b9cc0ac-16b2-4c06-bbe5-60fa9e9d7644"
 								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Multitenancy",
+			"item": [
+				{
+					"name": "get-by-key",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/tenants/root",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"tenants",
+								"root"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get-all",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/tenants/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"tenants",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create-tenant",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\" : \"Alpha Tenant\",\r\n    \"key\":\"alpha\",\r\n    \"adminEmail\":\"admin@alpha.com\",\r\n    \"connectionString\":\"Host=localhost;Database=alphaDb;Username=postgres;Password=root;Include Error Detail=true\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/tenants/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"tenants",
+								""
 							]
 						}
 					},

@@ -10,7 +10,6 @@ namespace DN.WebApi.Infrastructure.Extensions
         {
             services
                 .Configure<MailSettings>(config.GetSection(nameof(MailSettings)))
-                .Configure<TenantSettings>(config.GetSection(nameof(TenantSettings)))
                 .Configure<MiddlewareSettings>(config.GetSection(nameof(MiddlewareSettings)))
                 .Configure<CorsSettings>(config.GetSection(nameof(CorsSettings)));
             return services;

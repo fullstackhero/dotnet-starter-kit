@@ -1,4 +1,5 @@
-using DN.WebApi.Application.Settings;
+using DN.WebApi.Application.Wrapper;
+using DN.WebApi.Shared.DTOs.Multitenancy;
 
 namespace DN.WebApi.Application.Abstractions.Services.General
 {
@@ -6,6 +7,6 @@ namespace DN.WebApi.Application.Abstractions.Services.General
     {
         public string GetDatabaseProvider();
         public string GetConnectionString();
-        public Tenant GetTenant();
+        public TenantDto GetCurrentTenant();
     }
 }
