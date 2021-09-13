@@ -28,6 +28,8 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             var multitenancySettings = services.GetOptions<MultitenancySettings>(nameof(MultitenancySettings));
             var rootConnectionString = multitenancySettings.ConnectionString;
             var dbProvider = multitenancySettings.DBProvider;
+            if (string.IsNullOrEmpty(dbProvider)) throw new Exception("DB Provider is not configured.");
+            _logger.Information($"Current DB Provider : {dbProvider}");
             switch (dbProvider.ToLower())
             {
                 case "postgresql":
@@ -46,6 +48,8 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                     }));
                     services.AddHangfire(x => x.UseStorage(new MySqlStorage(rootConnectionString, new MySqlStorageOptions())));
                     break;
+                default:
+                    throw new Exception($"DB Provider {dbProvider} is not supported.");
             }
 
             services.SetupDatabases<T, TA>(multitenancySettings);
