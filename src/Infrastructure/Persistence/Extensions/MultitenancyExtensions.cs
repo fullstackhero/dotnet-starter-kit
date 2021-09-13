@@ -144,9 +144,9 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
         private static void SeedRootTenant<T>(T dbContext, MultitenancySettings options)
         where T : TenantManagementDbContext
         {
-            if (!dbContext.Tenants.Any(t => t.Key == "root"))
+            if (!dbContext.Tenants.Any(t => t.Key == MultitenancyConstants.Root.Key))
             {
-                var rootTenant = new DN.WebApi.Domain.Entities.Multitenancy.Tenant("Root", "root", "admin@root.com", options.ConnectionString);
+                var rootTenant = new DN.WebApi.Domain.Entities.Multitenancy.Tenant(MultitenancyConstants.Root.Name, MultitenancyConstants.Root.Key, MultitenancyConstants.Root.EmailAddress, options.ConnectionString);
                 dbContext.Tenants.Add(rootTenant);
                 dbContext.SaveChangesAsync().Wait();
             }
@@ -172,7 +172,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             if (!dbContext.Users.IgnoreQueryFilters().Any(u => u.Email == tenant.AdminEmail))
             {
                 var password = new PasswordHasher<ApplicationUser>();
-                var hashed = password.HashPassword(superUser, UserConstants.DefaultPassword);
+                var hashed = password.HashPassword(superUser, MultitenancyConstants.DefaultPassword);
                 superUser.PasswordHash = hashed;
                 var userStore = new UserStore<ApplicationUser>(dbContext);
                 userStore.CreateAsync(superUser).Wait();
