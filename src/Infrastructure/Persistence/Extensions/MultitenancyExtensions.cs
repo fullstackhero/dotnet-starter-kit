@@ -31,11 +31,11 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             switch (dbProvider.ToLower())
             {
                 case "postgresql":
-                    services.AddDbContext<T>(m => m.UseNpgsql(e => e.MigrationsAssembly("Migrators.PostgreSQL")));
+                    services.AddDbContext<T>(m => m.UseNpgsql(rootConnectionString, e => e.MigrationsAssembly("Migrators.PostgreSQL")));
                     services.AddHangfire(x => x.UsePostgreSqlStorage(rootConnectionString));
                     break;
                 case "mssql":
-                    services.AddDbContext<T>(m => m.UseSqlServer(e => e.MigrationsAssembly("Migrators.MSSQL")));
+                    services.AddDbContext<T>(m => m.UseSqlServer(rootConnectionString, e => e.MigrationsAssembly("Migrators.MSSQL")));
                     services.AddHangfire(x => x.UseSqlServerStorage(rootConnectionString));
                     break;
                 case "mysql":
@@ -86,13 +86,12 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
 
                 if (dbContext.Database.CanConnect())
                 {
+                    SeedRootTenant(dbContext, options);
                     var availableTenants = dbContext.Tenants.ToListAsync().Result;
                     foreach (var tenant in availableTenants)
                     {
                         services.SetupTenantDatabase<TA>(options, tenant);
                     }
-
-                    SeedRootTenant(dbContext, options);
                 }
             }
 
