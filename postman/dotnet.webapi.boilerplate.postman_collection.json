@@ -261,7 +261,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"name\" : \"Alpha Tenant\",\r\n    \"key\":\"alpha\",\r\n    \"adminEmail\":\"admin@alpha.com\",\r\n    \"connectionString\":\"Host=localhost;Database=alphaDb;Username=postgres;Password=root;Include Error Detail=true\"\r\n}",
+							"raw": "{\r\n    \"name\" : \"Alpha\",\r\n    \"key\":\"alpha\",\r\n    \"adminEmail\":\"admin@alpha.com\",\r\n    \"connectionString\":\"Data Source=(localdb)\\\\mssqllocaldb;Initial Catalog=alphaDb;Integrated Security=True;MultipleActiveResultSets=True\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
