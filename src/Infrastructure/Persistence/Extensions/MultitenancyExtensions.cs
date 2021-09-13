@@ -181,8 +181,9 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                 var userStore = new UserStore<ApplicationUser>(dbContext);
                 userStore.CreateAsync(superUser).Wait();
                 _logger.Information($"{tenant.Name} : Seeding Admin User {tenant.AdminEmail}....");
-                AssignAdminRoleAsync(scope.ServiceProvider, superUser.Email, dbContext, tenant.Key).Wait();
             }
+
+            AssignAdminRoleAsync(scope.ServiceProvider, superUser.Email, dbContext, tenant.Key).Wait();
         }
 
         private static void SeedRoles<T>(DN.WebApi.Domain.Entities.Multitenancy.Tenant tenant, T dbContext)
@@ -213,13 +214,14 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             if (!isUserInRole)
             {
                 dbContext.UserRoles.Add(new IdentityUserRole<string>() { RoleId = roleRecord.Id, UserId = user.Id });
-                foreach (string permission in typeof(Permissions).GetNestedClassesStaticStringValues())
+            }
+
+            foreach (string permission in typeof(Permissions).GetNestedClassesStaticStringValues())
+            {
+                var allClaims = await roleManager.GetClaimsAsync(roleRecord);
+                if (!allClaims.Any(a => a.Type == Domain.Constants.ClaimConstants.Permission && a.Value == permission))
                 {
-                    var allClaims = await roleManager.GetClaimsAsync(roleRecord);
-                    if (!allClaims.Any(a => a.Type == Domain.Constants.ClaimConstants.Permission && a.Value == permission))
-                    {
-                        await roleManager.AddClaimAsync(roleRecord, new Claim(Domain.Constants.ClaimConstants.Permission, permission));
-                    }
+                    await roleManager.AddClaimAsync(roleRecord, new Claim(Domain.Constants.ClaimConstants.Permission, permission));
                 }
             }
         }
