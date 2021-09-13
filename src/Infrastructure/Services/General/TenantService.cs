@@ -5,6 +5,7 @@ using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Application.Wrapper;
+using DN.WebApi.Domain.Constants;
 using DN.WebApi.Domain.Entities.Multitenancy;
 using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Shared.DTOs.Multitenancy;
@@ -59,7 +60,7 @@ namespace DN.WebApi.Infrastructure.Services.General
                     }
                     else
                     {
-                        throw new InvalidTenantException(_localizer["tenant.invalidtenant"]);
+                        throw new InvalidTenantException(_localizer["tenant.invalid"]);
                     }
                 }
             }
@@ -68,10 +69,23 @@ namespace DN.WebApi.Infrastructure.Services.General
         private void SetTenant(string tenantKey)
         {
             var tenant = _context.Tenants.Where(a => a.Key == tenantKey).FirstOrDefaultAsync().Result;
+            if (tenant.Key != MultitenancyConstants.Root.Key)
+            {
+                if (!tenant.IsActive)
+                {
+                    throw new InvalidTenantException(_localizer["tenant.inactive"]);
+                }
+
+                if (DateTime.UtcNow > tenant.ValidUpto)
+                {
+                    throw new InvalidTenantException(_localizer["tenant.expired"]);
+                }
+            }
+
             _currentTenant = _mapper.Map<TenantDto>(tenant);
             if (_currentTenant == null)
             {
-                throw new InvalidTenantException(_localizer["tenant.invalidtenant"]);
+                throw new InvalidTenantException(_localizer["tenant.invalid"]);
             }
 
             if (string.IsNullOrEmpty(_currentTenant.ConnectionString))

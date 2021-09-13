@@ -92,11 +92,17 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
 
                 if (dbContext.Database.CanConnect())
                 {
-                    SeedRootTenant(dbContext, options);
-                    var availableTenants = dbContext.Tenants.ToListAsync().Result;
-                    foreach (var tenant in availableTenants)
+                    try
                     {
-                        services.SetupTenantDatabase<TA>(options, tenant);
+                        SeedRootTenant(dbContext, options);
+                        var availableTenants = dbContext.Tenants.ToListAsync().Result;
+                        foreach (var tenant in availableTenants)
+                        {
+                            services.SetupTenantDatabase<TA>(options, tenant);
+                        }
+                    }
+                    catch
+                    {
                     }
                 }
             }
@@ -139,7 +145,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
         {
             if (!dbContext.Tenants.Any(t => t.Key == MultitenancyConstants.Root.Key))
             {
-                var rootTenant = new DN.WebApi.Domain.Entities.Multitenancy.Tenant(MultitenancyConstants.Root.Name, MultitenancyConstants.Root.Key, MultitenancyConstants.Root.EmailAddress, options.ConnectionString);
+                var rootTenant = new Tenant(MultitenancyConstants.Root.Name, MultitenancyConstants.Root.Key, MultitenancyConstants.Root.EmailAddress, options.ConnectionString);
                 dbContext.Tenants.Add(rootTenant);
                 dbContext.SaveChangesAsync().Wait();
             }

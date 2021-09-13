@@ -43,6 +43,9 @@ namespace Migrators.MSSQL.Migrations.Root
                     b.Property<DateTime?>("DeletedOn")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Key")
                         .HasColumnType("nvarchar(max)");
 
@@ -54,6 +57,9 @@ namespace Migrators.MSSQL.Migrations.Root
 
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ValidUpto")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 

@@ -1,3 +1,4 @@
+using System.Data.SqlClient;
 using System.Security.Claims;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Domain.Constants;
@@ -7,6 +8,7 @@ using DN.WebApi.Infrastructure.Utilties;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using MySqlConnector;
 using Npgsql;
 using Serilog;
 
@@ -130,7 +132,13 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
                 switch (options.DBProvider)
                 {
                     case "postgresql":
-                        var con = new NpgsqlConnectionStringBuilder(connectionString);
+                        var postgresqlcs = new NpgsqlConnectionStringBuilder(connectionString);
+                        break;
+                    case "mysql":
+                        var mysqlcs = new MySqlConnectionStringBuilder(connectionString);
+                        break;
+                    case "mssql":
+                        var mssqlcs = new SqlConnectionStringBuilder(connectionString);
                         break;
                 }
 

@@ -41,6 +41,9 @@ namespace Migrators.MySQL.Migrations.Root
                     b.Property<DateTime?>("DeletedOn")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<string>("Key")
                         .HasColumnType("longtext");
 
@@ -52,6 +55,9 @@ namespace Migrators.MySQL.Migrations.Root
 
                     b.Property<string>("Name")
                         .HasColumnType("longtext");
+
+                    b.Property<DateTime>("ValidUpto")
+                        .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");
 

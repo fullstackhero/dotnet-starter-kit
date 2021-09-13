@@ -8,7 +8,9 @@ using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Application.Wrapper;
+using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Models;
+using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Shared.DTOs.Identity.Requests;
 using DN.WebApi.Shared.DTOs.Identity.Responses;
 using Microsoft.AspNetCore.Identity;
@@ -21,6 +23,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
 {
     public class TokenService : ITokenService
     {
+        private readonly TenantManagementDbContext _tenantContext;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly IStringLocalizer<TokenService> _localizer;
@@ -34,7 +37,8 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             IOptions<JwtSettings> config,
             IStringLocalizer<TokenService> localizer,
             IOptions<MailSettings> mailSettings,
-            ITenantService tenantService)
+            ITenantService tenantService,
+            TenantManagementDbContext tenantContext)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -42,6 +46,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             _mailSettings = mailSettings.Value;
             _config = config.Value;
             _tenantService = tenantService;
+            _tenantContext = tenantContext;
         }
 
         public async Task<IResult<TokenResponse>> GetTokenAsync(TokenRequest request, string ipAddress)
@@ -50,6 +55,21 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             if (user == null)
             {
                 throw new IdentityException(_localizer["identity.usernotfound"], statusCode: HttpStatusCode.Unauthorized);
+            }
+
+            var tenantKey = user.TenantKey;
+            var tenant = await _tenantContext.Tenants.Where(a => a.Key == tenantKey).FirstOrDefaultAsync();
+            if (tenantKey != MultitenancyConstants.Root.Key)
+            {
+                if (!tenant.IsActive)
+                {
+                    throw new InvalidTenantException(_localizer["tenant.inactive"]);
+                }
+
+                if (DateTime.UtcNow > tenant.ValidUpto)
+                {
+                    throw new InvalidTenantException(_localizer["tenant.expired"]);
+                }
             }
 
             if (!user.IsActive)
