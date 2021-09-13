@@ -1,0 +1,79 @@
+using System.Security.Claims;
+using AutoMapper;
+using DN.WebApi.Application.Abstractions.Services.General;
+using DN.WebApi.Application.Abstractions.Services.Identity;
+using DN.WebApi.Application.Exceptions;
+using DN.WebApi.Application.Settings;
+using DN.WebApi.Application.Wrapper;
+using DN.WebApi.Domain.Constants;
+using DN.WebApi.Domain.Entities.Multitenancy;
+using DN.WebApi.Infrastructure.Identity.Models;
+using DN.WebApi.Infrastructure.Persistence;
+using DN.WebApi.Infrastructure.Persistence.Multitenancy;
+using DN.WebApi.Infrastructure.Utilties;
+using DN.WebApi.Shared.DTOs.Multitenancy;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Options;
+using Npgsql;
+
+namespace DN.WebApi.Infrastructure.Services.General
+{
+    public class TenantManager : ITenantManager
+    {
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<ApplicationRole> _roleManager;
+        private readonly ApplicationDbContext _appContext;
+        private readonly IStringLocalizer<TenantService> _localizer;
+
+        private readonly MultitenancySettings _options;
+
+        private readonly TenantManagementDbContext _context;
+
+        private readonly IMapper _mapper;
+        private readonly ICurrentUser _user;
+
+        public TenantManager(ApplicationDbContext appContext, IStringLocalizer<TenantService> localizer, IOptions<MultitenancySettings> options, TenantManagementDbContext context, IMapper mapper, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ICurrentUser user)
+        {
+            _appContext = appContext;
+            _localizer = localizer;
+            _options = options.Value;
+            _context = context;
+            _mapper = mapper;
+            _userManager = userManager;
+            _roleManager = roleManager;
+            _user = user;
+        }
+
+        public async Task<Result<TenantDto>> GetByKeyAsync(string key)
+        {
+            var tenant = await _context.Tenants.Where(a => a.Key == key).FirstOrDefaultAsync();
+            if (tenant == null) throw new EntityNotFoundException(string.Format(_localizer["entity.notfound"], typeof(Tenant).Name, key));
+            var tenantDto = _mapper.Map<TenantDto>(tenant);
+            return await Result<TenantDto>.SuccessAsync(tenantDto);
+        }
+
+        public async Task<Result<List<TenantDto>>> GetAllAsync()
+        {
+            var tenants = await _context.Tenants.ToListAsync();
+            var tenantDto = _mapper.Map<List<TenantDto>>(tenants);
+            return await Result<List<TenantDto>>.SuccessAsync(tenantDto);
+        }
+
+        public async Task<Result<object>> CreateTenantAsync(CreateTenantRequest request)
+        {
+            if (_context.Tenants.Any(a => a.Key == request.Key)) throw new Exception("Tenant with same key exists.");
+            if (string.IsNullOrEmpty(request.ConnectionString)) request.ConnectionString = _options.ConnectionString;
+            var isValidConnectionString = TenantBootstrapper.TryValidateConnectionString(_options, request.ConnectionString, request.Key);
+            if (!isValidConnectionString) throw new Exception($"Failed to Establish Connection to Database. Please check your connection string.");
+            var tenant = _mapper.Map<Tenant>(request);
+            tenant.CreatedBy = _user.GetUserId();
+            TenantBootstrapper.Initialize(_appContext, _options, tenant, _userManager, _roleManager);
+            _context.Tenants.Add(tenant);
+            await _context.SaveChangesAsync();
+            return await Result<object>.SuccessAsync(tenant.Id);
+        }
+    }
+}

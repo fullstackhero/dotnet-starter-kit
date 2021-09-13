@@ -13,6 +13,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
+using DN.WebApi.Domain.Entities.Multitenancy;
+using DN.WebApi.Infrastructure.Persistence.Multitenancy;
 
 namespace DN.WebApi.Infrastructure.Persistence.Extensions
 {
@@ -102,7 +104,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             return services;
         }
 
-        private static IServiceCollection SetupTenantDatabase<TA>(this IServiceCollection services, MultitenancySettings options, Domain.Entities.Multitenancy.Tenant tenant)
+        private static IServiceCollection SetupTenantDatabase<TA>(this IServiceCollection services, MultitenancySettings options, Tenant tenant)
         where TA : ApplicationDbContext
         {
 
@@ -126,22 +128,9 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
 
             var scope = services.BuildServiceProvider().CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<TA>();
-            dbContext.Database.SetConnectionString(tenantConnectionString);
-            if (dbContext.Database.GetMigrations().Count() > 0)
-            {
-                if (dbContext.Database.GetPendingMigrations().Any())
-                {
-                    dbContext.Database.Migrate();
-                    _logger.Information($"{tenant.Name} : Migrations complete....");
-                }
-
-                if (dbContext.Database.CanConnect())
-                {
-                    SeedRoles(tenant, dbContext);
-                    SeedAdmin(tenant, scope, dbContext);
-                }
-            }
-
+            var userManager = scope.ServiceProvider.GetService<UserManager<ApplicationUser>>();
+            var roleManager = scope.ServiceProvider.GetService<RoleManager<ApplicationRole>>();
+            TenantBootstrapper.Initialize(dbContext, options, tenant, userManager, roleManager);
             return services;
         }
 
@@ -155,77 +144,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                 dbContext.SaveChangesAsync().Wait();
             }
         }
-        #region Seeding
-        private static void SeedAdmin<T>(DN.WebApi.Domain.Entities.Multitenancy.Tenant tenant, IServiceScope scope, T dbContext)
-        where T : ApplicationDbContext
-        {
-            var adminUserName = $"{tenant.Name.ToLower()}.admin";
-            var superUser = new ApplicationUser
-            {
-                FirstName = tenant.Name,
-                LastName = "admin",
-                Email = tenant.AdminEmail,
-                UserName = adminUserName,
-                EmailConfirmed = true,
-                PhoneNumberConfirmed = true,
-                NormalizedEmail = tenant.AdminEmail.ToUpper(),
-                NormalizedUserName = adminUserName.ToUpper(),
-                IsActive = true,
-                TenantKey = tenant.Key
-            };
-            if (!dbContext.Users.IgnoreQueryFilters().Any(u => u.Email == tenant.AdminEmail))
-            {
-                var password = new PasswordHasher<ApplicationUser>();
-                var hashed = password.HashPassword(superUser, MultitenancyConstants.DefaultPassword);
-                superUser.PasswordHash = hashed;
-                var userStore = new UserStore<ApplicationUser>(dbContext);
-                userStore.CreateAsync(superUser).Wait();
-                _logger.Information($"{tenant.Name} : Seeding Admin User {tenant.AdminEmail}....");
-            }
 
-            AssignAdminRoleAsync(scope.ServiceProvider, superUser.Email, dbContext, tenant.Key).Wait();
-        }
-
-        private static void SeedRoles<T>(DN.WebApi.Domain.Entities.Multitenancy.Tenant tenant, T dbContext)
-        where T : ApplicationDbContext
-        {
-            foreach (string roleName in typeof(RoleConstants).GetAllPublicConstantValues<string>())
-            {
-                var roleStore = new RoleStore<ApplicationRole>(dbContext);
-                if (!dbContext.Roles.IgnoreQueryFilters().Any(r => r.Name == roleName && r.TenantKey == tenant.Key))
-                {
-                    var role = new ApplicationRole(roleName, tenant.Key, $"{roleName} Role for {tenant.Name} Tenant");
-                    roleStore.CreateAsync(role).Wait();
-                }
-            }
-        }
-
-        public static async Task AssignAdminRoleAsync<T>(IServiceProvider services, string email, T dbContext, string tenantKey)
-        where T : ApplicationDbContext
-        {
-            var adminRole = RoleConstants.Admin;
-            UserManager<ApplicationUser> userManager = services.GetService<UserManager<ApplicationUser>>();
-            RoleManager<ApplicationRole> roleManager = services.GetService<RoleManager<ApplicationRole>>();
-            var user = await userManager.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Email.Equals(email));
-            if (user == null) return;
-            var roleRecord = roleManager.Roles.IgnoreQueryFilters().Where(a => a.NormalizedName == adminRole.ToUpper() && a.TenantKey == tenantKey).FirstOrDefaultAsync().Result;
-            if (roleRecord == null) return;
-            var isUserInRole = dbContext.UserRoles.Any(a => a.UserId == user.Id && a.RoleId == roleRecord.Id);
-            if (!isUserInRole)
-            {
-                dbContext.UserRoles.Add(new IdentityUserRole<string>() { RoleId = roleRecord.Id, UserId = user.Id });
-            }
-
-            foreach (string permission in typeof(Permissions).GetNestedClassesStaticStringValues())
-            {
-                var allClaims = await roleManager.GetClaimsAsync(roleRecord);
-                if (!allClaims.Any(a => a.Type == Domain.Constants.ClaimConstants.Permission && a.Value == permission))
-                {
-                    await roleManager.AddClaimAsync(roleRecord, new Claim(Domain.Constants.ClaimConstants.Permission, permission));
-                }
-            }
-        }
-        #endregion
         public static T GetOptions<T>(this IServiceCollection services, string sectionName)
         where T : new()
         {
