@@ -69,6 +69,12 @@ namespace DN.WebApi.Infrastructure.Services.General
         private void SetTenant(string tenantKey)
         {
             var tenant = _context.Tenants.Where(a => a.Key == tenantKey).FirstOrDefaultAsync().Result;
+
+            if (tenant == null)
+            {
+                throw new InvalidTenantException(_localizer["tenant.invalid"]);
+            }
+
             if (tenant.Key != MultitenancyConstants.Root.Key)
             {
                 if (!tenant.IsActive)
@@ -83,11 +89,6 @@ namespace DN.WebApi.Infrastructure.Services.General
             }
 
             _currentTenant = _mapper.Map<TenantDto>(tenant);
-            if (_currentTenant == null)
-            {
-                throw new InvalidTenantException(_localizer["tenant.invalid"]);
-            }
-
             if (string.IsNullOrEmpty(_currentTenant.ConnectionString))
             {
                 SetDefaultConnectionStringToCurrentTenant();
