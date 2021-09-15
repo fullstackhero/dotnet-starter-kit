@@ -92,12 +92,12 @@ namespace DN.WebApi.Application.Wrapper
 
         public T Data { get; set; }
 
-        public new static Result<T> Fail()
+        public static new Result<T> Fail()
         {
             return new() { Succeeded = false };
         }
 
-        public new static Result<T> Fail(string message)
+        public static new Result<T> Fail(string message)
         {
             return new() { Succeeded = false, Messages = new List<string> { message } };
         }
@@ -107,7 +107,7 @@ namespace DN.WebApi.Application.Wrapper
             return new() { Succeeded = false, Messages = new List<string> { message }, ErrorCode = 500 };
         }
 
-        public new static Result<T> Fail(List<string> messages)
+        public static new Result<T> Fail(List<string> messages)
         {
             return new() { Succeeded = false, Messages = messages };
         }
@@ -117,12 +117,12 @@ namespace DN.WebApi.Application.Wrapper
             return new() { Succeeded = false, Messages = messages, ErrorCode = 500 };
         }
 
-        public new static Task<Result<T>> FailAsync()
+        public static new Task<Result<T>> FailAsync()
         {
             return Task.FromResult(Fail());
         }
 
-        public new static Task<Result<T>> FailAsync(string message)
+        public static new Task<Result<T>> FailAsync(string message)
         {
             return Task.FromResult(Fail(message));
         }
@@ -132,7 +132,7 @@ namespace DN.WebApi.Application.Wrapper
             return Task.FromResult(ReturnError(message));
         }
 
-        public new static Task<Result<T>> FailAsync(List<string> messages)
+        public static new Task<Result<T>> FailAsync(List<string> messages)
         {
             return Task.FromResult(Fail(messages));
         }
@@ -142,17 +142,17 @@ namespace DN.WebApi.Application.Wrapper
             return Task.FromResult(ReturnError(messages));
         }
 
-        public new static Result<T> Success()
+        public static new Result<T> Success()
         {
             return new() { Succeeded = true };
         }
 
-        public new static Result<T> Success(string message)
+        public static new Result<T> Success(string message)
         {
             return new() { Succeeded = true, Messages = new List<string> { message } };
         }
 
-        public new static Result<T> Success(List<string> messages)
+        public static new Result<T> Success(List<string> messages)
         {
             return new() { Succeeded = true, Messages = messages };
         }
@@ -172,17 +172,17 @@ namespace DN.WebApi.Application.Wrapper
             return new() { Succeeded = true, Data = data, Messages = messages };
         }
 
-        public new static Task<Result<T>> SuccessAsync()
+        public static new Task<Result<T>> SuccessAsync()
         {
             return Task.FromResult(Success());
         }
 
-        public new static Task<Result<T>> SuccessAsync(string message)
+        public static new Task<Result<T>> SuccessAsync(string message)
         {
             return Task.FromResult(Success(message));
         }
 
-        public new static Task<Result<T>> SuccessAsync(List<string> messages)
+        public static new Task<Result<T>> SuccessAsync(List<string> messages)
         {
             return Task.FromResult(Success(messages));
         }
