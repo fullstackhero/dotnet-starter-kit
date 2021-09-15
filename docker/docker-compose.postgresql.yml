@@ -1,0 +1,27 @@
+version: '3.4'
+
+services:
+  dotnet-webapi:
+    image: dotnet-webapi
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    environment:
+      - "MultitenancySettings__ConnectionString=Host=db;Database=rootTenantDb;Username=postgres;Password=root;Include Error Detail=true"
+      - "MultitenancySettings__DBProvider=postgresql"
+      - "ASPNETCORE_Kestrel__Certificates__Default__Password=securePassword123"
+      - "ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx"
+    volumes:
+      - ~/.aspnet/https:/https:ro
+    ports:
+      - "5050:5050"
+      - "5060:5060"
+    depends_on:
+      - db
+    restart: on-failure
+    container_name: dotnet-webapi
+  db:
+    image: "postgres:latest"
+    environment:
+      - "POSTGRES_PASSWORD=root"
+    container_name: postgresql

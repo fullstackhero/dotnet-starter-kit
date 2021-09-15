@@ -1,0 +1,27 @@
+version: '3.4'
+services:
+  dotnetwebapi:
+    image: dotnet-webapi
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    environment:
+      - "MultitenancySettings__ConnectionString=server=db;uid=root;pwd=root;database=rootTenantDb;Allow User Variables=True"
+      - "MultitenancySettings__DBProvider=mysql"
+      - "ASPNETCORE_Kestrel__Certificates__Default__Password=securePassword123"
+      - "ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx"
+    volumes:
+      - ~/.aspnet/https:/https:ro
+    ports:
+      - "5050:5050"
+      - "5060:5060"
+    depends_on:
+      - db
+    restart: on-failure
+    container_name: dotnet-webapi
+  db:
+    image: "mysql:latest"
+    environment:
+      - "MYSQL_ROOT_PASSWORD=root"
+      - "MYSQL_PASSWORD=root"
+    container_name: mysql

@@ -20,26 +20,26 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
     public class TenantBootstrapper
     {
         private static readonly ILogger _logger = Log.ForContext(typeof(TenantBootstrapper));
-        public static void Initialize(ApplicationDbContext _appContext, MultitenancySettings _options, Tenant tenant, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager)
+        public static void Initialize(ApplicationDbContext appContext, MultitenancySettings options, Tenant tenant, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager)
         {
-            var connectionString = string.IsNullOrEmpty(tenant.ConnectionString) ? _options.ConnectionString : tenant.ConnectionString;
-            var isValid = TryValidateConnectionString(_options, connectionString, tenant.Key);
+            var connectionString = string.IsNullOrEmpty(tenant.ConnectionString) ? options.ConnectionString : tenant.ConnectionString;
+            var isValid = TryValidateConnectionString(options, connectionString, tenant.Key);
             if (isValid)
             {
-                _appContext.Database.SetConnectionString(connectionString);
-                if (_appContext.Database.GetMigrations().Count() > 0)
+                appContext.Database.SetConnectionString(connectionString);
+                if (appContext.Database.GetMigrations().Count() > 0)
                 {
-                    if (_appContext.Database.GetPendingMigrations().Any())
+                    if (appContext.Database.GetPendingMigrations().Any())
                     {
                         _logger.Information($"Applying Migrations for '{tenant.Key}' tenant.");
-                        _appContext.Database.Migrate();
+                        appContext.Database.Migrate();
                     }
 
-                    if (_appContext.Database.CanConnect())
+                    if (appContext.Database.CanConnect())
                     {
                         _logger.Information($"Connection to {tenant.Key}'s Database Succeeded.");
-                        SeedRoles(tenant, roleManager, _appContext);
-                        SeedAdmin(tenant, userManager, roleManager, _appContext);
+                        SeedRoles(tenant, roleManager, appContext);
+                        SeedAdmin(tenant, userManager, roleManager, appContext);
                     }
                 }
             }
