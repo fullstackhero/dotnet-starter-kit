@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Domain.Contracts;
@@ -13,6 +8,11 @@ using DN.WebApi.Infrastructure.Persistence.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DN.WebApi.Infrastructure.Persistence
 {

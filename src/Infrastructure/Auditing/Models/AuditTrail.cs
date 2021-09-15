@@ -1,9 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Infrastructure.Auditing.Enums;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DN.WebApi.Infrastructure.Auditing.Models
 {

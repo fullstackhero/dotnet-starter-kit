@@ -1,9 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Security.Claims;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Http;
+using System;
+using System.Collections.Generic;
+using System.Security.Claims;
 
 namespace DN.WebApi.Infrastructure.Identity.Services
 {

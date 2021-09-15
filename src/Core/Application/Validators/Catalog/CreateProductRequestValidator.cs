@@ -1,5 +1,5 @@
-using FluentValidation;
 using DN.WebApi.Shared.DTOs.Catalog;
+using FluentValidation;
 
 namespace DN.WebApi.Application.Validators.Catalog
 {

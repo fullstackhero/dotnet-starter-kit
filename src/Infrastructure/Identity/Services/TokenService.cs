@@ -1,12 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Net;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Exceptions;
@@ -22,6 +13,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using System;
+using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Net;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace DN.WebApi.Infrastructure.Identity.Services
 {

@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using AutoMapper;
 using DN.WebApi.Application.Abstractions.Repositories;
 using DN.WebApi.Application.Abstractions.Services.Catalog;
@@ -8,6 +6,8 @@ using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Entities.Catalog;
 using DN.WebApi.Shared.DTOs.Catalog;
 using Microsoft.Extensions.Localization;
+using System;
+using System.Threading.Tasks;
 
 namespace DN.WebApi.Application.Services.Catalog
 {

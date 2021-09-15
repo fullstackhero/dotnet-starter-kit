@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
-using Microsoft.Extensions.Localization;
 
 namespace DN.WebApi.Application.Exceptions
 {

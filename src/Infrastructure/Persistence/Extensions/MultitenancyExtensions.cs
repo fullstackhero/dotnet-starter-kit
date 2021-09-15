@@ -1,21 +1,19 @@
-using System;
-using System.Linq;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Domain.Constants;
+using DN.WebApi.Domain.Entities.Multitenancy;
 using DN.WebApi.Infrastructure.Identity.Models;
-using DN.WebApi.Infrastructure.Utilties;
+using DN.WebApi.Infrastructure.Persistence.Multitenancy;
 using Hangfire;
-using Hangfire.PostgreSql;
 using Hangfire.MySql;
+using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Serilog;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
-using DN.WebApi.Domain.Entities.Multitenancy;
-using DN.WebApi.Infrastructure.Persistence.Multitenancy;
+using Serilog;
+using System;
+using System.Linq;
 
 namespace DN.WebApi.Infrastructure.Persistence.Extensions
 {

@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Shared.DTOs.General.Requests;
@@ -7,6 +6,7 @@ using MailKit.Security;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using System.Threading.Tasks;
 
 namespace DN.WebApi.Infrastructure.Services.General
 {

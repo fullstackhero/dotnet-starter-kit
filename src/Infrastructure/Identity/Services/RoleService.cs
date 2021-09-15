@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Exceptions;
@@ -14,6 +11,9 @@ using DN.WebApi.Shared.DTOs.Identity.Requests;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace DN.WebApi.Infrastructure.Identity.Services
 {

@@ -1,9 +1,9 @@
-using System.Threading.Tasks;
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Shared.DTOs.Multitenancy;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace DN.WebApi.Bootstrapper.Controllers.Multitenancy
 {

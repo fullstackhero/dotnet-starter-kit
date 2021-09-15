@@ -1,4 +1,3 @@
-using System.Reflection;
 using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Infrastructure.Localizer;
 using DN.WebApi.Infrastructure.Persistence;
@@ -9,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
+using System.Reflection;
 
 namespace DN.WebApi.Infrastructure.Extensions
 {

@@ -1,4 +1,3 @@
-using System.Reflection;
 using DN.WebApi.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;

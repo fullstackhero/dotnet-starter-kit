@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using Microsoft.OpenApi.Any;
+﻿using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 
 namespace DN.WebApi.Infrastructure.SwaggerFilters
 {

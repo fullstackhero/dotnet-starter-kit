@@ -1,12 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using DN.WebApi.Infrastructure.SwaggerFilters;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerUI;
+using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace DN.WebApi.Infrastructure.Extensions
 {

@@ -1,11 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using AutoMapper;
 using Dapper;
 using DN.WebApi.Application.Abstractions.Repositories;
@@ -19,6 +11,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DN.WebApi.Infrastructure.Persistence.Repositories
 {

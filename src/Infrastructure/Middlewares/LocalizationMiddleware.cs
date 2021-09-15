@@ -1,9 +1,9 @@
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 
 namespace DN.WebApi.Infrastructure.Middlewares
 {

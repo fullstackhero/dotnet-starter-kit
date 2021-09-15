@@ -1,10 +1,8 @@
+using DN.WebApi.Application.Abstractions.Services.Identity;
+using Microsoft.AspNetCore.Authorization;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using DN.WebApi.Application.Abstractions.Services.Identity;
-using DN.WebApi.Domain.Constants;
-using DN.WebApi.Infrastructure.Persistence;
-using Microsoft.AspNetCore.Authorization;
 
 namespace DN.WebApi.Infrastructure.Identity.Permissions
 {

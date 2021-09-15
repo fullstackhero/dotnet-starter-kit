@@ -1,13 +1,9 @@
-using System.Globalization;
-using System.Runtime.CompilerServices;
-using DN.WebApi.Application.Settings;
-using DN.WebApi.Infrastructure.Middlewares;
 using Hangfire;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Swashbuckle.AspNetCore.SwaggerUI;
+using System.Globalization;
+using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("DN.WebApi.Bootstrapper")]
 namespace DN.WebApi.Infrastructure.Extensions

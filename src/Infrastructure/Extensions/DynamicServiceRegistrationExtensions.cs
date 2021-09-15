@@ -1,9 +1,9 @@
-using System;
-using System.Linq;
 using DN.WebApi.Application.Abstractions.Services;
 using DN.WebApi.Application.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Linq;
 
 namespace DN.WebApi.Infrastructure.Extensions
 {

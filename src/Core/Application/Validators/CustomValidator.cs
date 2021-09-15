@@ -1,6 +1,6 @@
-using System.Linq;
 using FluentValidation;
 using FluentValidation.Results;
+using System.Linq;
 
 namespace DN.WebApi.Application.Validators
 {

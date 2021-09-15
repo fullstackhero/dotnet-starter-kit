@@ -1,11 +1,11 @@
-﻿using System.Threading;
-using System.IO;
-using System.Collections.Generic;
-using System.Globalization;
+﻿using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Localization;
-using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Threading;
 
 namespace DN.WebApi.Infrastructure.Localizer
 {

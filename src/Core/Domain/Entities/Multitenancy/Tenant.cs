@@ -1,5 +1,5 @@
-using System;
 using DN.WebApi.Domain.Contracts;
+using System;
 
 namespace DN.WebApi.Domain.Entities.Multitenancy
 {

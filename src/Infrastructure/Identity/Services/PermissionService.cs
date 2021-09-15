@@ -1,17 +1,16 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using AutoMapper;
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Constants;
 using DN.WebApi.Domain.Constants;
-using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Shared.DTOs.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace DN.WebApi.Infrastructure.Identity.Services
 {

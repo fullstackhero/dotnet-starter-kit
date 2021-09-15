@@ -1,4 +1,3 @@
-using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Shared.DTOs.Multitenancy;
 
 namespace DN.WebApi.Application.Abstractions.Services.General

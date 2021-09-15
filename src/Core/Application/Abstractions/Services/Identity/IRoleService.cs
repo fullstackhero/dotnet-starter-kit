@@ -1,8 +1,8 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Shared.DTOs.Identity;
 using DN.WebApi.Shared.DTOs.Identity.Requests;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace DN.WebApi.Application.Abstractions.Services.Identity
 {

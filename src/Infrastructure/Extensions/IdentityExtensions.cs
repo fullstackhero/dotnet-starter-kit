@@ -1,8 +1,3 @@
-using System;
-using System.Net;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Infrastructure.Identity.Models;
@@ -13,6 +8,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using System;
+using System.Net;
+using System.Security.Claims;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace DN.WebApi.Infrastructure.Extensions
 {

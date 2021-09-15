@@ -1,10 +1,10 @@
-using System.ComponentModel.DataAnnotations;
-using System.Threading.Tasks;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Infrastructure.SwaggerFilters;
 using DN.WebApi.Shared.DTOs.Identity.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
+using System.Threading.Tasks;
 
 namespace DN.WebApi.Bootstrapper.Controllers.Identity
 {
