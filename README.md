@@ -51,10 +51,10 @@ Join our Discord - [fullstackhero @ Discord](https://discord.gg/gdgHRt4mMw)
 
 ## Developer's Guide
 
-### Prerequisites
-1. Visual Code v1.59.xx or higher
-2. .NET SDK 6.0.100-preview.7.21379.14 or higher
-3. PostgreSQL with pgAdmin4 or higher / MSSQL / MySQL
+## Prerequisites
+1. Visual Code v1.59.xx or higher / Visual Studio 2022 Preview (17.0.0 Preview 4.0) or Higher.
+2. dotnet-sdk-6.0.100-rc.1.21458.32 or higher.
+3. PostgreSQL / MSSQL / MySQL Database Server instances.
 
 ## Community
 
