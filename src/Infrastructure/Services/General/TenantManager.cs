@@ -12,7 +12,6 @@ using DN.WebApi.Infrastructure.Persistence.Multitenancy;
 using DN.WebApi.Shared.DTOs.Multitenancy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using System;
