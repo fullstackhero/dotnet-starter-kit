@@ -1,23 +1,30 @@
 using AutoMapper;
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Abstractions.Services.Identity;
+using DN.WebApi.Application.Constants;
 using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Domain.Constants;
+using DN.WebApi.Domain.Entities.Multitenancy;
 using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Shared.DTOs.Multitenancy;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using System;
 using System.Linq;
 using System.Net;
+using System.Text;
 
 namespace DN.WebApi.Infrastructure.Services.General
 {
     public class TenantService : ITenantService
     {
+        private readonly ISerializerService _serializer;
+        private readonly IDistributedCache _cache;
+
         private readonly IStringLocalizer<TenantService> _localizer;
 
         private readonly ICurrentUser _currentUser;
@@ -32,7 +39,7 @@ namespace DN.WebApi.Infrastructure.Services.General
 
         private TenantDto _currentTenant;
 
-        public TenantService(IOptions<MultitenancySettings> options, IHttpContextAccessor contextAccessor, ICurrentUser currentUser, IStringLocalizer<TenantService> localizer, TenantManagementDbContext context, IMapper mapper)
+        public TenantService(IOptions<MultitenancySettings> options, IHttpContextAccessor contextAccessor, ICurrentUser currentUser, IStringLocalizer<TenantService> localizer, TenantManagementDbContext context, IMapper mapper, IDistributedCache cache, ISerializerService serializer)
         {
             _localizer = localizer;
             _options = options.Value;
@@ -40,6 +47,8 @@ namespace DN.WebApi.Infrastructure.Services.General
             _currentUser = currentUser;
             _context = context;
             _mapper = mapper;
+            _cache = cache;
+            _serializer = serializer;
             if (_httpContext != null)
             {
                 if (_currentUser.IsAuthenticated())
@@ -48,7 +57,7 @@ namespace DN.WebApi.Infrastructure.Services.General
                 }
                 else
                 {
-                    var tenantFromQueryString = System.Web.HttpUtility.ParseQueryString(_httpContext.Request.QueryString.Value).Get("tenantKey");
+                    string tenantFromQueryString = System.Web.HttpUtility.ParseQueryString(_httpContext.Request.QueryString.Value).Get("tenantKey");
                     if (!string.IsNullOrEmpty(tenantFromQueryString))
                     {
                         SetTenant(tenantFromQueryString);
@@ -67,27 +76,45 @@ namespace DN.WebApi.Infrastructure.Services.General
 
         private void SetTenant(string tenantKey)
         {
-            var tenant = _context.Tenants.Where(a => a.Key == tenantKey).FirstOrDefaultAsync().Result;
+            TenantDto tenantDto;
+            var cacheKey = CacheKeys.GetCacheKey("tenantDto", tenantKey);
+            byte[] cachedData = !string.IsNullOrWhiteSpace(cacheKey) ? _cache.GetAsync(cacheKey).Result : null;
+            if (cachedData != null)
+            {
+                _cache.RefreshAsync(cacheKey).Wait();
+                tenantDto = _serializer.Deserialize<TenantDto>(Encoding.Default.GetString(cachedData));
+            }
+            else
+            {
+                var tenant = _context.Tenants.Where(a => a.Key == tenantKey).FirstOrDefaultAsync().Result;
+                tenantDto = _mapper.Map<TenantDto>(tenant);
+                if (tenantDto != null)
+                {
+                    var options = new DistributedCacheEntryOptions();
+                    byte[] serializedData = Encoding.Default.GetBytes(_serializer.Serialize(tenantDto));
+                    _cache.SetAsync(cacheKey, serializedData, options).Wait();
+                }
+            }
 
-            if (tenant == null)
+            if (tenantDto == null)
             {
                 throw new InvalidTenantException(_localizer["tenant.invalid"]);
             }
 
-            if (tenant.Key != MultitenancyConstants.Root.Key)
+            if (tenantDto.Key != MultitenancyConstants.Root.Key)
             {
-                if (!tenant.IsActive)
+                if (!tenantDto.IsActive)
                 {
                     throw new InvalidTenantException(_localizer["tenant.inactive"]);
                 }
 
-                if (DateTime.UtcNow > tenant.ValidUpto)
+                if (DateTime.UtcNow > tenantDto.ValidUpto)
                 {
                     throw new InvalidTenantException(_localizer["tenant.expired"]);
                 }
             }
 
-            _currentTenant = _mapper.Map<TenantDto>(tenant);
+            _currentTenant = tenantDto;
             if (string.IsNullOrEmpty(_currentTenant.ConnectionString))
             {
                 SetDefaultConnectionStringToCurrentTenant();
