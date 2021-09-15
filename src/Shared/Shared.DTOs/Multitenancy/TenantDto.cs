@@ -1,3 +1,5 @@
+using System;
+
 namespace DN.WebApi.Shared.DTOs.Multitenancy
 {
     public class TenantDto

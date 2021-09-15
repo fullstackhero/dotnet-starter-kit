@@ -1,4 +1,6 @@
-﻿namespace DN.WebApi.Infrastructure.SwaggerFilters
+﻿using System;
+
+namespace DN.WebApi.Infrastructure.SwaggerFilters
 {
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     public class SwaggerHeaderAttribute : Attribute

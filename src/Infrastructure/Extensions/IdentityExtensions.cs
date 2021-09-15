@@ -1,6 +1,8 @@
+using System;
 using System.Net;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.Tasks;
 using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Infrastructure.Identity.Models;
@@ -67,7 +69,7 @@ namespace DN.WebApi.Infrastructure.Extensions
                             context.HandleResponse();
                             if (!context.Response.HasStarted)
                             {
-                                throw new IdentityException("You are not Authorized.", statusCode: HttpStatusCode.Unauthorized);
+                                throw new IdentityException("Authentication Failed.", statusCode: HttpStatusCode.Unauthorized);
                             }
 
                             return Task.CompletedTask;

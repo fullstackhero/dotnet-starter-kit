@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using DN.WebApi.Shared.DTOs.General.Requests;
 
 namespace DN.WebApi.Application.Abstractions.Services.General

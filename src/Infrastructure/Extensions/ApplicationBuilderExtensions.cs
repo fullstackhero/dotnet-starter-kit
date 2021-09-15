@@ -34,6 +34,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers().RequireAuthorization();
+                endpoints.MapHealthChecks("/health").RequireAuthorization();
             });
             app.UseSwaggerDocumentation();
             return app;

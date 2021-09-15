@@ -1,4 +1,5 @@
 ﻿{
+  "auth.failed": "Authentication Failed.",
   "tenant.invalid": "Invalid Tenant.",
   "tenant.expired": "Tenant Validity Has Expired. Please contact the Application Adminstrator.",
   "tenant.inactive": "Tenant is not Active. Please contact the Application Adminstrator.",

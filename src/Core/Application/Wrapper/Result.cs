@@ -1,4 +1,7 @@
-﻿namespace DN.WebApi.Application.Wrapper
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace DN.WebApi.Application.Wrapper
 {
     public class Result : IResult
     {

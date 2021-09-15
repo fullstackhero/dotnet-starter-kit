@@ -1,6 +1,10 @@
 using DN.WebApi.Infrastructure.Extensions;
 using DN.WebApi.Application.Extensions;
 using FluentValidation.AspNetCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 
 namespace DN.WebApi.Bootstrapper
 {

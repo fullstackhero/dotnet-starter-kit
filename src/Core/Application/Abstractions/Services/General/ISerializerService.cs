@@ -1,3 +1,5 @@
+using System;
+
 namespace DN.WebApi.Application.Abstractions.Services.General
 {
     public interface ISerializerService : ITransientService

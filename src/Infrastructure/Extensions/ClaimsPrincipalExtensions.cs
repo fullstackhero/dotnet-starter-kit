@@ -1,3 +1,4 @@
+using System;
 using System.Security.Claims;
 
 namespace DN.WebApi.Infrastructure.Extensions

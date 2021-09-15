@@ -1,4 +1,5 @@
-using System.Security.Claims;
+using System;
+using System.Linq;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Models;

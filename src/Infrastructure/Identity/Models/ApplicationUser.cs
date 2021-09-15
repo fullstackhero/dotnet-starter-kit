@@ -1,3 +1,4 @@
+using System;
 using DN.WebApi.Domain.Contracts;
 using Microsoft.AspNetCore.Identity;
 

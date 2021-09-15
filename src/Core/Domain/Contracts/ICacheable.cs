@@ -1,3 +1,5 @@
+using System;
+
 namespace DN.WebApi.Domain.Contracts
 {
     public interface ICacheableQuery

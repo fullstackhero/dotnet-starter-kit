@@ -1,4 +1,6 @@
-﻿namespace DN.WebApi.Application.Wrapper
+﻿using System.Collections.Generic;
+
+namespace DN.WebApi.Application.Wrapper
 {
     public interface IResult
     {

@@ -1,3 +1,6 @@
+using System;
+using System.Linq;
+using System.Net;
 using System.Web;
 using AutoMapper;
 using DN.WebApi.Application.Abstractions.Services.General;
@@ -48,19 +51,18 @@ namespace DN.WebApi.Infrastructure.Services.General
                 }
                 else
                 {
-                    // Check if Token is Expired
                     var tenantFromQueryString = System.Web.HttpUtility.ParseQueryString(_httpContext.Request.QueryString.Value).Get("tenantKey");
                     if (!string.IsNullOrEmpty(tenantFromQueryString))
                     {
                         SetTenant(tenantFromQueryString);
                     }
-                    else if (_httpContext.Request.Headers.TryGetValue("tenant", out var tenantKey))
+                    else if (_httpContext.Request.Headers.TryGetValue("tenantKey", out var tenantKey))
                     {
                         SetTenant(tenantKey);
                     }
                     else
                     {
-                        throw new InvalidTenantException(_localizer["tenant.invalid"]);
+                        throw new IdentityException(_localizer["auth.failed"], statusCode: HttpStatusCode.Unauthorized);
                     }
                 }
             }

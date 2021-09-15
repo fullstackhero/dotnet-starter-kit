@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
+﻿using System;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Localization;
 
 namespace DN.WebApi.Infrastructure.Localizer

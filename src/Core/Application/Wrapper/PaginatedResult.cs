@@ -1,4 +1,7 @@
-﻿namespace DN.WebApi.Application.Wrapper
+﻿using System;
+using System.Collections.Generic;
+
+namespace DN.WebApi.Application.Wrapper
 {
     public class PaginatedResult<T> : Result
     {
