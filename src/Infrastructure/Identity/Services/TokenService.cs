@@ -61,7 +61,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
                 throw new IdentityException(_localizer["identity.usernotfound"], statusCode: HttpStatusCode.Unauthorized);
             }
 
-            var tenantKey = user.TenantKey;
+            string tenantKey = user.TenantKey;
             var tenant = await _tenantContext.Tenants.Where(a => a.Key == tenantKey).FirstOrDefaultAsync();
             if (tenantKey != MultitenancyConstants.Root.Key)
             {
@@ -135,7 +135,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
 
         private async Task<IEnumerable<Claim>> GetClaimsAsync(ApplicationUser user, string ipAddress)
         {
-            var tenantKey = _tenantService.GetCurrentTenant()?.Key;
+            string tenantKey = _tenantService.GetCurrentTenant()?.Key;
             var roles = await _userManager.GetRolesAsync(user);
 
             return new List<Claim>
