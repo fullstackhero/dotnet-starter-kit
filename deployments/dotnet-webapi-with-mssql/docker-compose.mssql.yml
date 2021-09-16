@@ -1,24 +1,22 @@
 version: '3.4'
 services:
   dotnet-webapi:
-    image: dotnet-webapi
-    build:
-      context: ../
-      dockerfile: Dockerfile
+    image: "iammukeshm/dotnet-webapi:1.0.0-preview.1"
     environment:
       - "MultitenancySettings__ConnectionString=Server=db;Database=rootTenantDb;User=sa;Password=securePassword123;MultipleActiveResultSets=true"
       - "MultitenancySettings__DBProvider=mssql"
       - "ASPNETCORE_Kestrel__Certificates__Default__Password=securePassword123"
       - "ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx"
+      - "ASPNETCORE_URLS=https://+:5051;http://+:5061"
     volumes:
       - ~/.aspnet/https:/https:ro
     ports:
-      - "5050:5050"
-      - "5060:5060"
+      - "5051:5051"
+      - "5061:5061"
     depends_on:
       - db
     restart: on-failure
-    container_name: dotnet-webapi
+    container_name: dotnet-webapi-with-mssql
   db:
     image: "mcr.microsoft.com/mssql/server"
     environment:
