@@ -2,6 +2,7 @@ using DN.WebApi.Application.Abstractions.Services;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Contracts;
 using DN.WebApi.Shared.DTOs;
+using DN.WebApi.Shared.DTOs.Filters;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -23,7 +24,7 @@ namespace DN.WebApi.Application.Abstractions.Repositories
         Task<List<T>> GetListAsync<T>(Expression<Func<T, bool>> expression, bool noTracking = false, CancellationToken cancellationToken = default)
         where T : BaseEntity;
 
-        Task<PaginatedResult<TDto>> GetPaginatedListAsync<T, TDto>(int pageNumber, int pageSize, string[] orderBy, Expression<Func<T, bool>> expression = null, CancellationToken cancellationToken = default)
+        Task<PaginatedResult<TDto>> GetPaginatedListAsync<T, TDto>(int pageNumber, int pageSize, string[] orderBy, Search search, Expression<Func<T, bool>> expression = null, CancellationToken cancellationToken = default)
         where T : BaseEntity
         where TDto : IDto;
 

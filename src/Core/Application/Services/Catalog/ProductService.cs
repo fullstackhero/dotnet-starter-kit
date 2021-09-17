@@ -5,6 +5,7 @@ using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Entities.Catalog;
 using DN.WebApi.Shared.DTOs.Catalog;
+using DN.WebApi.Shared.DTOs.Filters;
 using Microsoft.Extensions.Localization;
 using System;
 using System.Threading.Tasks;
@@ -54,9 +55,9 @@ namespace DN.WebApi.Application.Services.Catalog
             return await Result<ProductDetailsDto>.SuccessAsync(mappedProduct);
         }
 
-        public async Task<PaginatedResult<ProductDetailsDto>> GetListAsync(int pageNumber, int pageSize, string[] orderBy)
+        public async Task<PaginatedResult<ProductDetailsDto>> GetListAsync(int pageNumber, int pageSize, string[] orderBy, Search search)
         {
-            var products = await _repository.GetPaginatedListAsync<Product, ProductDetailsDto>(pageNumber, pageSize, orderBy);
+            var products = await _repository.GetPaginatedListAsync<Product, ProductDetailsDto>(pageNumber, pageSize, orderBy, search);
             return products;
         }
     }

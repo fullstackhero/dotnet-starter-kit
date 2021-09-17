@@ -29,7 +29,7 @@
 						"method": "POST",
 						"header": [
 							{
-								"key": "tenant",
+								"key": "tenantKey",
 								"value": "root",
 								"type": "text"
 							},
@@ -146,17 +146,38 @@
 			"item": [
 				{
 					"name": "get-products",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true,
+						"disabledSystemHeaders": {}
+					},
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"pageNumber\":1,\r\n    \"orderBy\":[\"rate desc\"],\r\n    \"search\":{\r\n        \"fields\":[\"rate\",\"name\",\"description\"],\r\n        \"keyword\":\"bandwidth\"\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
-							"raw": "{{url}}/v1/products",
+							"raw": "{{url}}/v1/products/",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
 								"v1",
-								"products"
+								"products",
+								""
 							]
 						}
 					},
@@ -169,7 +190,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"name\":\"Product #1\",\r\n    \"description\":\"Something Cool!\",\r\n    \"rate\":10\r\n}",
+							"raw": "{\r\n    \"name\":\"Product #4\",\r\n    \"description\":\"Something Cool!\",\r\n    \"rate\":10\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -208,6 +229,25 @@
 									"key": "id",
 									"value": "6b9cc0ac-16b2-4c06-bbe5-60fa9e9d7644"
 								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get-product-by-id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/v1/products/e897b528-1c73-41f8-b73d-02800593ead3",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"v1",
+								"products",
+								"e897b528-1c73-41f8-b73d-02800593ead3"
 							]
 						}
 					},
@@ -261,7 +301,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"name\" : \"Alpha\",\r\n    \"key\":\"alpha\",\r\n    \"adminEmail\":\"admin@alpha.com\",\r\n    \"connectionString\":\"Data Source=(localdb)\\\\mssqllocaldb;Initial Catalog=alphaDb;Integrated Security=True;MultipleActiveResultSets=True\"\r\n}",
+							"raw": "{\r\n    \"name\" : \"Alpha\",\r\n    \"key\":\"alpha\",\r\n    \"adminEmail\":\"admin@alpha.com\",\r\n    \"connectionString\":\"Server=db;Database=alphadb;User=sa;Password=Your_password123;MultipleActiveResultSets=true\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -275,6 +315,29 @@
 							],
 							"path": [
 								"tenants",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Health",
+			"item": [
+				{
+					"name": "health-check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/health/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"health",
 								""
 							]
 						}
