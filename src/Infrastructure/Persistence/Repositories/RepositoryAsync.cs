@@ -91,7 +91,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
             }
         }
 
-        public async Task<PaginatedResult<TDto>> GetPaginatedListAsync<T, TDto>(int pageNumber, int pageSize, string[] orderBy, Search search, Expression<Func<T, bool>> expression = null, CancellationToken cancellationToken = default)
+        public async Task<PaginatedResult<TDto>> GetPaginatedListAsync<T, TDto>(int pageNumber, int pageSize, string[] orderBy = null, Search search = null, Expression<Func<T, bool>> expression = null, CancellationToken cancellationToken = default)
         where T : BaseEntity
         where TDto : IDto
         {
@@ -180,6 +180,18 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
         public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             return _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        public async Task<int> GetCountAsync<T>(Expression<Func<T, bool>> expression = null, CancellationToken cancellationToken = default)
+        where T : BaseEntity
+        {
+            IQueryable<T> query = _dbContext.Set<T>();
+            if (expression != null)
+            {
+                query = query.Where(expression);
+            }
+
+            return await query.CountAsync(cancellationToken);
         }
         #endregion
     }
