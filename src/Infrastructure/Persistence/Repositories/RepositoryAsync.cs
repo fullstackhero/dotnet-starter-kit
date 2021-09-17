@@ -7,6 +7,7 @@ using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Contracts;
 using DN.WebApi.Infrastructure.Extensions;
+using DN.WebApi.Infrastructure.Persistence.Converters;
 using DN.WebApi.Shared.DTOs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
@@ -20,6 +21,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq.Dynamic.Core;
 
 namespace DN.WebApi.Infrastructure.Persistence.Repositories
 {
@@ -88,12 +90,14 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
             }
         }
 
-        public async Task<PaginatedResult<TDto>> GetPaginatedListAsync<T, TDto>(int pageNumber, int pageSize, Expression<Func<T, bool>> expression = null, CancellationToken cancellationToken = default)
+        public async Task<PaginatedResult<TDto>> GetPaginatedListAsync<T, TDto>(int pageNumber, int pageSize, string[] orderBy, Expression<Func<T, bool>> expression = null, CancellationToken cancellationToken = default)
         where T : BaseEntity
         where TDto : IDto
         {
             IQueryable<T> query = _dbContext.Set<T>();
             if (expression != null) query = query.Where(expression);
+            string ordering = new OrderByConverter().Convert(orderBy);
+            query = !string.IsNullOrWhiteSpace(ordering) ? query.OrderBy(ordering) : query.OrderBy(a => a.Id);
             return await _mapper.ToMappedPaginatedResultAsync<T, TDto>(query, pageNumber, pageSize);
         }
 

@@ -6,7 +6,7 @@ namespace DN.WebApi.Shared.DTOs.Filters
 
         public int PageSize { get; set; }
 
-        public string OrderBy { get; set; }
+        public string[] OrderBy { get; set; }
 
     }
 }

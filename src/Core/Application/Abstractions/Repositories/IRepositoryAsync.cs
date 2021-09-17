@@ -23,7 +23,7 @@ namespace DN.WebApi.Application.Abstractions.Repositories
         Task<List<T>> GetListAsync<T>(Expression<Func<T, bool>> expression, bool noTracking = false, CancellationToken cancellationToken = default)
         where T : BaseEntity;
 
-        Task<PaginatedResult<TDto>> GetPaginatedListAsync<T, TDto>(int pageNumber, int pageSize, Expression<Func<T, bool>> expression = null, CancellationToken cancellationToken = default)
+        Task<PaginatedResult<TDto>> GetPaginatedListAsync<T, TDto>(int pageNumber, int pageSize, string[] orderBy, Expression<Func<T, bool>> expression = null, CancellationToken cancellationToken = default)
         where T : BaseEntity
         where TDto : IDto;
 
