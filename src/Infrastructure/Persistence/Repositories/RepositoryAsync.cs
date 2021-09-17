@@ -6,6 +6,7 @@ using DN.WebApi.Application.Constants;
 using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Contracts;
+using DN.WebApi.Infrastructure.Extensions;
 using DN.WebApi.Shared.DTOs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
@@ -92,14 +93,8 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
         where TDto : IDto
         {
             IQueryable<T> query = _dbContext.Set<T>();
-            pageNumber = pageNumber == 0 ? 1 : pageNumber;
-            pageSize = pageSize == 0 ? 10 : pageSize;
-            int count = await query.AsNoTracking().CountAsync();
-            pageNumber = pageNumber <= 0 ? 1 : pageNumber;
             if (expression != null) query = query.Where(expression);
-            var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
-            var mappedItems = _mapper.Map<List<T>, List<TDto>>(items);
-            return PaginatedResult<TDto>.Success(mappedItems, count, pageNumber, pageSize);
+            return await _mapper.ToMappedPaginatedResultAsync<T, TDto>(query, pageNumber, pageSize);
         }
 
         public async Task<object> CreateAsync<T>(T entity)
