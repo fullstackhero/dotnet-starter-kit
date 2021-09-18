@@ -1,8 +1,11 @@
 using Hangfire;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.FileProviders;
 using System.Globalization;
+using System.IO;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("DN.WebApi.Bootstrapper")]
@@ -18,6 +21,11 @@ namespace DN.WebApi.Infrastructure.Extensions
             };
             app.UseRequestLocalization(options);
             app.UseStaticFiles();
+            app.UseStaticFiles(new StaticFileOptions()
+            {
+                FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), @"Files")),
+                RequestPath = new PathString("/Files")
+            });
             app.UseMiddlewares(config);
             app.UseRouting();
             app.UseCors("CorsPolicy");

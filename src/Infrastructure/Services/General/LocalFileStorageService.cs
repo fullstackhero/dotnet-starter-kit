@@ -9,6 +9,7 @@ using DN.WebApi.Domain.Contracts;
 using DN.WebApi.Domain.Enums;
 using DN.WebApi.Infrastructure.Extensions;
 using DN.WebApi.Shared.DTOs.General.Requests;
+using Microsoft.AspNetCore.Http;
 
 namespace DN.WebApi.Infrastructure.Services.General
 {
@@ -67,7 +68,8 @@ namespace DN.WebApi.Infrastructure.Services.General
 
                 using var stream = new FileStream(fullPath, FileMode.Create);
                 streamData.CopyTo(stream);
-                return Task.FromResult(dbPath);
+                dbPath = dbPath.Replace("\\", "/");
+                return Task.FromResult("{server_url}/" + dbPath);
             }
             else
             {
@@ -75,7 +77,7 @@ namespace DN.WebApi.Infrastructure.Services.General
             }
         }
 
-        private static string numberPattern = " ({0})";
+        private static string numberPattern = "-{0}";
 
         private static string NextAvailableFilename(string path)
         {
