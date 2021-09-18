@@ -29,7 +29,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
         public async Task<IActionResult> GetCurrentUserRolesAsync()
         {
 
-            var userId = _currentUser.GetUserId().ToString();
+            string userId = _currentUser.GetUserId().ToString();
             var roles = await _roleService.GetUserRolesAsync(userId);
             return Ok(roles);
         }

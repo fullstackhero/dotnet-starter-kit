@@ -20,8 +20,8 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
         [HttpPost("register")]
         public async Task<IActionResult> RegisterAsync(RegisterRequest request)
         {
-            var baseUrl = $"{this.Request.Scheme}://{this.Request.Host.Value.ToString()}{this.Request.PathBase.Value.ToString()}";
-            var origin = string.IsNullOrEmpty(Request.Headers["origin"].ToString()) ? baseUrl : Request.Headers["origin"].ToString();
+            string baseUrl = $"{this.Request.Scheme}://{this.Request.Host.Value.ToString()}{this.Request.PathBase.Value.ToString()}";
+            string origin = string.IsNullOrEmpty(Request.Headers["origin"].ToString()) ? baseUrl : Request.Headers["origin"].ToString();
             return Ok(await _identityService.RegisterAsync(request, origin));
         }
 

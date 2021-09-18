@@ -26,7 +26,7 @@ namespace DN.WebApi.Infrastructure.Localizer
         {
             get
             {
-                var value = GetString(name);
+                string value = GetString(name);
                 return new LocalizedString(name, value ?? $"{name} [{Thread.CurrentThread.CurrentCulture.Name}]", value == null);
             }
         }
@@ -44,7 +44,7 @@ namespace DN.WebApi.Infrastructure.Localizer
 
         public IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures)
         {
-            var filePath = $"{Localization}/{Thread.CurrentThread.CurrentCulture.Name}.json";
+            string filePath = $"{Localization}/{Thread.CurrentThread.CurrentCulture.Name}.json";
             using (var str = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
             using (var sReader = new StreamReader(str))
             using (var reader = new JsonTextReader(sReader))
@@ -53,9 +53,9 @@ namespace DN.WebApi.Infrastructure.Localizer
                 {
                     if (reader.TokenType != JsonToken.PropertyName)
                         continue;
-                    var key = (string)reader.Value;
+                    string key = (string)reader.Value;
                     reader.Read();
-                    var value = _serializer.Deserialize<string>(reader);
+                    string value = _serializer.Deserialize<string>(reader);
                     yield return new LocalizedString(key, value, false);
                 }
             }
@@ -69,14 +69,14 @@ namespace DN.WebApi.Infrastructure.Localizer
 
         private string GetString(string key)
         {
-            var relativeFilePath = $"{Localization}/{Thread.CurrentThread.CurrentCulture.Name}.json";
-            var fullFilePath = Path.GetFullPath(relativeFilePath);
+            string relativeFilePath = $"{Localization}/{Thread.CurrentThread.CurrentCulture.Name}.json";
+            string fullFilePath = Path.GetFullPath(relativeFilePath);
             if (File.Exists(fullFilePath))
             {
-                var cacheKey = $"locale_{Thread.CurrentThread.CurrentCulture.Name}_{key}";
-                var cacheValue = _cache.GetString(cacheKey);
+                string cacheKey = $"locale_{Thread.CurrentThread.CurrentCulture.Name}_{key}";
+                string cacheValue = _cache.GetString(cacheKey);
                 if (!string.IsNullOrEmpty(cacheValue)) return cacheValue;
-                var result = PullDeserialize<string>(key, Path.GetFullPath(relativeFilePath));
+                string result = PullDeserialize<string>(key, Path.GetFullPath(relativeFilePath));
                 if (!string.IsNullOrEmpty(result)) _cache.SetString(cacheKey, result);
                 return result;
             }
@@ -87,7 +87,7 @@ namespace DN.WebApi.Infrastructure.Localizer
 
         private void WriteEmptyKeys(CultureInfo sourceCulture, string fullFilePath)
         {
-            var sourceFilePath = $"{Localization}/{sourceCulture.Name}.json";
+            string sourceFilePath = $"{Localization}/{sourceCulture.Name}.json";
             if (!File.Exists(sourceFilePath)) return;
             using (var str = new FileStream(sourceFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
             using (var outStream = File.Create(fullFilePath))

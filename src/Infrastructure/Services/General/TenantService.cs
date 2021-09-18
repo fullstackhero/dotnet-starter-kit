@@ -77,7 +77,7 @@ namespace DN.WebApi.Infrastructure.Services.General
         private void SetTenant(string tenantKey)
         {
             TenantDto tenantDto;
-            var cacheKey = CacheKeys.GetCacheKey("tenantDto", tenantKey);
+            string cacheKey = CacheKeys.GetCacheKey("tenantDto", tenantKey);
             byte[] cachedData = !string.IsNullOrWhiteSpace(cacheKey) ? _cache.GetAsync(cacheKey).Result : null;
             if (cachedData != null)
             {
