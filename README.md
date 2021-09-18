@@ -27,14 +27,14 @@ Join our Discord - [fullstackhero @ Discord](https://discord.gg/gdgHRt4mMw)
 
 ## Features
 
-- [x] Built on .NET 6.0
+- [x] Built on .NET 6.0 :heavy_check_mark:
 - [x] Follows Clean Architecture Principles
 - [ ] Completely Documented at [fullstackhero.net](https://fullstackhero.net)
 - [x] Multi Tenancy Support
 - [x] Supports MySQL, MSSQL & PostgreSQL!
 - [x] Uses Entity Framework Core as DB Abstraction
-- [x] Repository Pattern
-- [x] Dapper Integration
+- [x] Flexible Repository Pattern
+- [x] Dapper Integration for Optimal Performance
 - [x] Serilog Integration
 - [x] Swagger Support
 - [x] Automapper
@@ -46,6 +46,7 @@ Join our Discord - [fullstackhero @ Discord](https://discord.gg/gdgHRt4mMw)
 - [x] Code Analysis & StyleCop Integration with Rulesets
 - [x] JSON Based Localization with Caching
 - [x] Hangfire Support
+- [x] File Storage Service
 - [ ] Test Projects
 - [ ] & Much More
 
