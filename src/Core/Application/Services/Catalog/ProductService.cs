@@ -1,9 +1,11 @@
 using AutoMapper;
 using DN.WebApi.Application.Abstractions.Repositories;
 using DN.WebApi.Application.Abstractions.Services.Catalog;
+using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Entities.Catalog;
+using DN.WebApi.Domain.Enums;
 using DN.WebApi.Shared.DTOs.Catalog;
 using DN.WebApi.Shared.DTOs.Filters;
 using Microsoft.Extensions.Localization;
@@ -16,20 +18,23 @@ namespace DN.WebApi.Application.Services.Catalog
     {
         private readonly IStringLocalizer<ProductService> _localizer;
         private readonly IMapper _mapper;
+        private readonly IFileStorageService _file;
         private readonly IRepositoryAsync _repository;
 
-        public ProductService(IRepositoryAsync repository, IMapper mapper, IStringLocalizer<ProductService> localizer)
+        public ProductService(IRepositoryAsync repository, IMapper mapper, IStringLocalizer<ProductService> localizer, IFileStorageService file)
         {
             _repository = repository;
             _mapper = mapper;
             _localizer = localizer;
+            _file = file;
         }
 
         public async Task<Result<object>> CreateProductAsync(CreateProductRequest request)
         {
             var productExists = await _repository.ExistsAsync<Product>(a => a.Name == request.Name);
             if (productExists) throw new EntityAlreadyExistsException(string.Format(_localizer["product.alreadyexists"], request.Name));
-            var product = new Product(request.Name, request.Description, request.Rate);
+            string productImagePath = await _file.UploadAsync<Product>(request.Image, FileType.Image);
+            var product = new Product(request.Name, request.Description, request.Rate, productImagePath);
             var productId = await _repository.CreateAsync<Product>(product);
             await _repository.SaveChangesAsync();
             return await Result<object>.SuccessAsync(productId);
