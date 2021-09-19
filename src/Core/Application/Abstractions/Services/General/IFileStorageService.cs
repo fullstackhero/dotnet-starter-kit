@@ -8,6 +8,6 @@ namespace DN.WebApi.Application.Abstractions.Services.General
     public interface IFileStorageService : ITransientService
     {
         public Task<string> UploadAsync<T>(FileUploadRequest request, FileType supportedFileType)
-        where T : BaseEntity;
+        where T : class;
     }
 }

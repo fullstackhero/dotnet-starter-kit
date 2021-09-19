@@ -1,4 +1,5 @@
 using DN.WebApi.Application.Abstractions.Services.Identity;
+using DN.WebApi.Shared.DTOs.General.Requests;
 using DN.WebApi.Shared.DTOs.Identity.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,11 +11,13 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
     [Route("api/[controller]")]
     public sealed class IdentityController : ControllerBase
     {
+        private readonly ICurrentUser _user;
         private readonly IIdentityService _identityService;
 
-        public IdentityController(IIdentityService identityService)
+        public IdentityController(IIdentityService identityService, ICurrentUser user)
         {
             _identityService = identityService;
+            _user = user;
         }
 
         [HttpPost("register")]
@@ -52,6 +55,12 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
         public async Task<IActionResult> ResetPasswordAsync(ResetPasswordRequest request)
         {
             return Ok(await _identityService.ResetPasswordAsync(request));
+        }
+
+        [HttpPut("profile")]
+        public async Task<IActionResult> UpdateProfileAsync(UpdateProfileRequest request)
+        {
+            return Ok(await _identityService.UpdateProfileAsync(request, _user.GetUserId().ToString()));
         }
     }
 }

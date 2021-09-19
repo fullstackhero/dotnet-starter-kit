@@ -16,7 +16,7 @@ namespace DN.WebApi.Infrastructure.Services.General
     public class LocalFileStorageService : IFileStorageService
     {
         public Task<string> UploadAsync<T>(FileUploadRequest request, FileType supportedFileType)
-        where T : BaseEntity
+        where T : class
         {
             if (request == null || request.Data == null)
             {

@@ -3,6 +3,7 @@ using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Application.Wrapper;
+using DN.WebApi.Domain.Enums;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Shared.DTOs.General.Requests;
 using DN.WebApi.Shared.DTOs.Identity.Requests;
@@ -22,6 +23,8 @@ namespace DN.WebApi.Infrastructure.Identity.Services
 {
     public class IdentityService : IIdentityService
     {
+        private readonly IFileStorageService _fileStorage;
+        private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IJobService _jobService;
         private readonly IMailService _mailService;
@@ -35,7 +38,9 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             IMailService mailService,
             IOptions<MailSettings> mailSettings,
             IStringLocalizer<IdentityService> localizer,
-            ITenantService tenantService)
+            ITenantService tenantService,
+            SignInManager<ApplicationUser> signInManager,
+            IFileStorageService fileStorage)
         {
             _userManager = userManager;
             _jobService = jobService;
@@ -43,6 +48,12 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             _mailSettings = mailSettings.Value;
             _localizer = localizer;
             _tenantService = tenantService;
+            _signInManager = signInManager;
+            _fileStorage = fileStorage;
+        }
+
+        public IdentityService()
+        {
         }
 
         public async Task<IResult> RegisterAsync(RegisterRequest request, string origin)
@@ -214,6 +225,52 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             else
             {
                 throw new IdentityException(_localizer["An Error has occurred!"]);
+            }
+        }
+
+        public async Task<IResult> UpdateProfileAsync(UpdateProfileRequest request, string userId)
+        {
+            if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
+            {
+                var userWithSamePhoneNumber = await _userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == request.PhoneNumber);
+                if (userWithSamePhoneNumber != null)
+                {
+                    return await Result.FailAsync(string.Format(_localizer["Phone number {0} is already used."], request.PhoneNumber));
+                }
+            }
+
+            var userWithSameEmail = await _userManager.FindByEmailAsync(request.Email);
+            if (userWithSameEmail == null || userWithSameEmail.Id == userId)
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null)
+                {
+                    return await Result.FailAsync(_localizer["User Not Found."]);
+                }
+
+                if (request.Image != null)
+                {
+                    var imagePath = await _fileStorage.UploadAsync<ApplicationUser>(request.Image, FileType.Image);
+                    user.ImageUrl = imagePath;
+                }
+
+                user.FirstName = request.FirstName;
+                user.LastName = request.LastName;
+                user.PhoneNumber = request.PhoneNumber;
+                var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
+                if (request.PhoneNumber != phoneNumber)
+                {
+                    var setPhoneResult = await _userManager.SetPhoneNumberAsync(user, request.PhoneNumber);
+                }
+
+                var identityResult = await _userManager.UpdateAsync(user);
+                var errors = identityResult.Errors.Select(e => _localizer[e.Description].ToString()).ToList();
+                await _signInManager.RefreshSignInAsync(user);
+                return identityResult.Succeeded ? await Result.SuccessAsync() : await Result.FailAsync(errors);
+            }
+            else
+            {
+                return await Result.FailAsync(string.Format(_localizer["Email {0} is already used."], request.Email));
             }
         }
     }
