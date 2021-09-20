@@ -1,0 +1,10 @@
+@url = https://localhost:5001/api
+
+post {{url}}/tokens
+tenantKey:root
+Content-Type: application/json
+
+{
+    "email":"admin@root.com",
+    "password":"123Pa$$word!"
+}
