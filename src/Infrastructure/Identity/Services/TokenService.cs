@@ -55,7 +55,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
 
         public async Task<IResult<TokenResponse>> GetTokenAsync(TokenRequest request, string ipAddress)
         {
-            var user = await _userManager.FindByEmailAsync(request.Email);
+            var user = await _userManager.FindByEmailAsync(request.Email.Trim());
             if (user == null)
             {
                 throw new IdentityException(_localizer["identity.usernotfound"], statusCode: HttpStatusCode.Unauthorized);
