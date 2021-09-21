@@ -25,10 +25,17 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
             return Ok(roles);
         }
 
-        [HttpGet("user/{userId}")]
-        public async Task<IActionResult> GetUserRolesAsync(string userId)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetByIdAsync(string id)
         {
-            var roles = await _roleService.GetUserRolesAsync(userId);
+            var roles = await _roleService.GetByIdAsync(id);
+            return Ok(roles);
+        }
+
+        [HttpGet("{id}/permissions")]
+        public async Task<IActionResult> GetRolePermissionsAsync(string id)
+        {
+            var roles = await _roleService.GetByIdAsync(id);
             return Ok(roles);
         }
 

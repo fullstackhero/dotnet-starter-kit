@@ -40,10 +40,10 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
             return Ok(userRoles);
         }
 
-        [HttpPut("roles/{id}")]
-        public async Task<IActionResult> AddUserToRoleAsync(string id, UserRolesRequest request)
+        [HttpPost("{id}/roles")]
+        public async Task<IActionResult> AssignRolesAsync(string id, UserRolesRequest request)
         {
-            var result = await _userService.AddUserToRoleAsync(id, request);
+            var result = await _userService.AssignRolesAsync(id, request);
             return Ok(result);
         }
     }

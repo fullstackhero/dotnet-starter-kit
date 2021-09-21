@@ -15,6 +15,6 @@ namespace DN.WebApi.Application.Abstractions.Services.Identity
 
         Task<IResult<UserRolesResponse>> GetRolesAsync(string userId);
 
-        Task<IResult<string>> AddUserToRoleAsync(string userId, UserRolesRequest request);
+        Task<IResult<string>> AssignRolesAsync(string userId, UserRolesRequest request);
     }
 }

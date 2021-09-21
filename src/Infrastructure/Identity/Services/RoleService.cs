@@ -3,11 +3,13 @@ using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Constants;
+using DN.WebApi.Infrastructure.Extensions;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Infrastructure.Utilties;
 using DN.WebApi.Shared.DTOs.Identity;
 using DN.WebApi.Shared.DTOs.Identity.Requests;
+using DN.WebApi.Shared.DTOs.Identity.Responses;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
@@ -75,6 +77,11 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             }
         }
 
+        public Task<Result<List<RoleClaimResponse>>> GetAllPermissionsAsync()
+        {
+            throw new System.NotImplementedException();
+        }
+
         public async Task<Result<RoleDto>> GetByIdAsync(string id)
         {
             var roles = await _roleManager.Roles.SingleOrDefaultAsync(x => x.Id == id);
@@ -92,6 +99,11 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             var roles = await _roleManager.Roles.ToListAsync();
             var rolesResponse = _mapper.Map<List<RoleDto>>(roles);
             return await Result<List<RoleDto>>.SuccessAsync(rolesResponse);
+        }
+
+        public Task<Result<PermissionResponse>> GetRolePermissionsAsync(string id)
+        {
+            return default;
         }
 
         public async Task<Result<List<RoleDto>>> GetUserRolesAsync(string userId)

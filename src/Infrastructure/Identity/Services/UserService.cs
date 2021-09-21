@@ -77,7 +77,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             return await Result<UserRolesResponse>.SuccessAsync(result);
         }
 
-        public async Task<IResult<string>> AddUserToRoleAsync(string userId, UserRolesRequest request)
+        public async Task<IResult<string>> AssignRolesAsync(string userId, UserRolesRequest request)
         {
             var user = await _userManager.Users.Where(u => u.Id == userId).FirstOrDefaultAsync();
             if (user == null)
