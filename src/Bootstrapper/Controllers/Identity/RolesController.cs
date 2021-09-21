@@ -25,11 +25,9 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
             return Ok(roles);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetCurrentUserRolesAsync()
+        [HttpGet("user/{userId}")]
+        public async Task<IActionResult> GetUserRolesAsync(string userId)
         {
-
-            string userId = _currentUser.GetUserId().ToString();
             var roles = await _roleService.GetUserRolesAsync(userId);
             return Ok(roles);
         }
