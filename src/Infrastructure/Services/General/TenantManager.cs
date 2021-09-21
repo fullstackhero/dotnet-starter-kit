@@ -1,4 +1,4 @@
-using AutoMapper;
+// using AutoMapper;
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Constants;
@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Mapster;
 
 namespace DN.WebApi.Infrastructure.Services.General
 {
@@ -32,16 +33,17 @@ namespace DN.WebApi.Infrastructure.Services.General
 
         private readonly TenantManagementDbContext _context;
 
-        private readonly IMapper _mapper;
+       // private readonly IMapper _mapper;
         private readonly ICurrentUser _user;
 
-        public TenantManager(ApplicationDbContext appContext, IStringLocalizer<TenantService> localizer, IOptions<MultitenancySettings> options, TenantManagementDbContext context, IMapper mapper, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ICurrentUser user)
+        public TenantManager(ApplicationDbContext appContext, IStringLocalizer<TenantService> localizer, IOptions<MultitenancySettings> options, TenantManagementDbContext context, /*IMapper mapper,*/ UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ICurrentUser user)
         {
             _appContext = appContext;
             _localizer = localizer;
             _options = options.Value;
             _context = context;
-            _mapper = mapper;
+
+            // _mapper = mapper;
             _userManager = userManager;
             _roleManager = roleManager;
             _user = user;
@@ -51,14 +53,14 @@ namespace DN.WebApi.Infrastructure.Services.General
         {
             var tenant = await _context.Tenants.Where(a => a.Key == key).FirstOrDefaultAsync();
             if (tenant == null) throw new EntityNotFoundException(string.Format(_localizer["entity.notfound"], typeof(Tenant).Name, key));
-            var tenantDto = _mapper.Map<TenantDto>(tenant);
+            var tenantDto = tenant.Adapt<TenantDto>();
             return await Result<TenantDto>.SuccessAsync(tenantDto);
         }
 
         public async Task<Result<List<TenantDto>>> GetAllAsync()
         {
             var tenants = await _context.Tenants.ToListAsync();
-            var tenantDto = _mapper.Map<List<TenantDto>>(tenants);
+            var tenantDto = tenants.Adapt<List<TenantDto>>();
             return await Result<List<TenantDto>>.SuccessAsync(tenantDto);
         }
 
@@ -66,9 +68,9 @@ namespace DN.WebApi.Infrastructure.Services.General
         {
             if (_context.Tenants.Any(a => a.Key == request.Key)) throw new Exception("Tenant with same key exists.");
             if (string.IsNullOrEmpty(request.ConnectionString)) request.ConnectionString = _options.ConnectionString;
-            var isValidConnectionString = TenantBootstrapper.TryValidateConnectionString(_options, request.ConnectionString, request.Key);
+            bool isValidConnectionString = TenantBootstrapper.TryValidateConnectionString(_options, request.ConnectionString, request.Key);
             if (!isValidConnectionString) throw new Exception($"Failed to Establish Connection to Database. Please check your connection string.");
-            var tenant = _mapper.Map<Tenant>(request);
+            var tenant = request.Adapt<Tenant>();
             tenant.CreatedBy = _user.GetUserId();
             TenantBootstrapper.Initialize(_appContext, _options, tenant, _userManager, _roleManager);
             _context.Tenants.Add(tenant);
