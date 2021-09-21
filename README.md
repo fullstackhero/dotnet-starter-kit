@@ -37,7 +37,7 @@ Join our Discord - [fullstackhero @ Discord](https://discord.gg/gdgHRt4mMw)
 - [x] Dapper Integration for Optimal Performance :heavy_check_mark:
 - [x] Serilog Integration :heavy_check_mark:
 - [x] Swagger Support :heavy_check_mark:
-- [x] Automapper :heavy_check_mark:
+- [x] Mapster :heavy_check_mark:
 - [x] API Versioning :heavy_check_mark:
 - [x] Response Caching - Distributed Caching :heavy_check_mark:
 - [x] Fluent Validations :heavy_check_mark:
