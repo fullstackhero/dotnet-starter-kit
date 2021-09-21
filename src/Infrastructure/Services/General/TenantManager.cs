@@ -1,4 +1,3 @@
-// using AutoMapper;
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Constants;
@@ -32,18 +31,14 @@ namespace DN.WebApi.Infrastructure.Services.General
         private readonly MultitenancySettings _options;
 
         private readonly TenantManagementDbContext _context;
-
-       // private readonly IMapper _mapper;
         private readonly ICurrentUser _user;
 
-        public TenantManager(ApplicationDbContext appContext, IStringLocalizer<TenantService> localizer, IOptions<MultitenancySettings> options, TenantManagementDbContext context, /*IMapper mapper,*/ UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ICurrentUser user)
+        public TenantManager(ApplicationDbContext appContext, IStringLocalizer<TenantService> localizer, IOptions<MultitenancySettings> options, TenantManagementDbContext context, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ICurrentUser user)
         {
             _appContext = appContext;
             _localizer = localizer;
             _options = options.Value;
             _context = context;
-
-            // _mapper = mapper;
             _userManager = userManager;
             _roleManager = roleManager;
             _user = user;

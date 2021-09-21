@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
-// using AutoMapper;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Shared.DTOs;
 using Mapster;
@@ -21,26 +19,6 @@ namespace DN.WebApi.Infrastructure.Extensions
             return await converter.ConvertBackAsync(query);
         }
 
-        /*
-        public static async Task<PaginatedResult<TDto>> ToMappedPaginatedResultAsync<T, TDto>(/*this IMapper mapper,#1#this IQueryable<T> query, int pageNumber, int pageSize)
-        where T : class
-        {
-            if (query == null)
-            {
-                throw new ArgumentNullException(nameof(query));
-            }
-
-            pageNumber = pageNumber == 0 ? 1 : pageNumber;
-            pageSize = pageSize == 0 ? 10 : pageSize;
-            int count = await query.AsNoTracking().CountAsync();
-            pageNumber = pageNumber <= 0 ? 1 : pageNumber;
-            var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
-
-            // var mappedItems = mapper.Map<List<T>, List<TDto>>(items);
-            var mappedItems = items.Adapt<List<TDto>>();
-            return PaginatedResult<TDto>.Success(mappedItems, count, pageNumber, pageSize);
-        }
-    }*/
         public class MappedPaginatedResultConverter<T, TDto> : IMapsterConverterAsync<PaginatedResult<TDto>, IQueryable<T>>
             where T : class
         {
@@ -70,8 +48,6 @@ namespace DN.WebApi.Infrastructure.Extensions
                 int count = await query.AsNoTracking().CountAsync();
                 _pageNumber = _pageNumber <= 0 ? 1 : _pageNumber;
                 var items = await query.Skip((_pageNumber - 1) * _pageSize).Take(_pageSize).ToListAsync();
-
-                // var mappedItems = mapper.Map<List<T>, List<TDto>>(items);
                 var mappedItems = items.Adapt<List<TDto>>();
                 return await Task.FromResult(PaginatedResult<TDto>.Success(mappedItems, count, _pageNumber, _pageSize));
             }

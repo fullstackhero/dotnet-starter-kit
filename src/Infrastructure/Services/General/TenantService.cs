@@ -1,4 +1,3 @@
-// using AutoMapper;
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Constants;
@@ -34,13 +33,11 @@ namespace DN.WebApi.Infrastructure.Services.General
 
         private readonly TenantManagementDbContext _context;
 
-       // private readonly IMapper _mapper;
-
         private HttpContext _httpContext;
 
         private TenantDto _currentTenant;
 
-        public TenantService(IOptions<MultitenancySettings> options, IHttpContextAccessor contextAccessor, ICurrentUser currentUser, IStringLocalizer<TenantService> localizer, TenantManagementDbContext context, /*IMapper mapper,*/ IDistributedCache cache, ISerializerService serializer)
+        public TenantService(IOptions<MultitenancySettings> options, IHttpContextAccessor contextAccessor, ICurrentUser currentUser, IStringLocalizer<TenantService> localizer, TenantManagementDbContext context, IDistributedCache cache, ISerializerService serializer)
         {
             _localizer = localizer;
             _options = options.Value;
