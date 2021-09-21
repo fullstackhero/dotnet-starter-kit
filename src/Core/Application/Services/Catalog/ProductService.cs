@@ -1,4 +1,3 @@
-// using AutoMapper;
 using DN.WebApi.Application.Abstractions.Repositories;
 using DN.WebApi.Application.Abstractions.Services.Catalog;
 using DN.WebApi.Application.Abstractions.Services.General;
@@ -17,16 +16,12 @@ namespace DN.WebApi.Application.Services.Catalog
     public class ProductService : IProductService
     {
         private readonly IStringLocalizer<ProductService> _localizer;
-
-        // private readonly IMapper _mapper;
         private readonly IFileStorageService _file;
         private readonly IRepositoryAsync _repository;
 
-        public ProductService(IRepositoryAsync repository, /*IMapper mapper, */IStringLocalizer<ProductService> localizer, IFileStorageService file)
+        public ProductService(IRepositoryAsync repository, IStringLocalizer<ProductService> localizer, IFileStorageService file)
         {
             _repository = repository;
-
-            // _mapper = mapper;
             _localizer = localizer;
             _file = file;
         }
@@ -58,8 +53,6 @@ namespace DN.WebApi.Application.Services.Catalog
         public async Task<Result<ProductDetailsDto>> GetByIdUsingDapperAsync(Guid id)
         {
             var product = await _repository.QueryFirstOrDefaultAsync<Product>($"SELECT * FROM public.\"Products\" WHERE \"Id\"  = '{id}' AND \"TenantKey\"='@tenantKey'");
-
-            // var mappedProduct = _mapper.Map<ProductDetailsDto>(product);
             var mappedProduct = product.Adapt<ProductDetailsDto>();
             return await Result<ProductDetailsDto>.SuccessAsync(mappedProduct);
         }

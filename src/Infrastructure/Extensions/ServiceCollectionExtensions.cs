@@ -17,8 +17,6 @@ namespace DN.WebApi.Infrastructure.Extensions
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
         {
             services.AddHealthCheckExtension();
-
-            // services.AddAutoMapper(Assembly.GetExecutingAssembly());
             services.AddLocalization();
             services.AddServices(config);
             services.AddDistributedMemoryCache();
