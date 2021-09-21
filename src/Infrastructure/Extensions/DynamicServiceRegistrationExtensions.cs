@@ -12,7 +12,8 @@ namespace DN.WebApi.Infrastructure.Extensions
         public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration config)
         {
             var transientServiceType = typeof(ITransientService);
-            var servicetypes = AppDomain.CurrentDomain.GetAssemblies()
+            var scopedServiceType = typeof(IScopedService);
+            var transientServices = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(s => s.GetTypes())
                 .Where(p => transientServiceType.IsAssignableFrom(p))
                 .Where(t => t.IsClass && !t.IsAbstract)
@@ -23,11 +24,30 @@ namespace DN.WebApi.Infrastructure.Extensions
                 })
                 .Where(t => t.Service != null);
 
-            foreach (var type in servicetypes)
-            {
-                if (transientServiceType.IsAssignableFrom(type.Service))
+            var scopedServices = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(s => s.GetTypes())
+                .Where(p => scopedServiceType.IsAssignableFrom(p))
+                .Where(t => t.IsClass && !t.IsAbstract)
+                .Select(t => new
                 {
-                    services.AddTransient(type.Service, type.Implementation);
+                    Service = t.GetInterfaces().FirstOrDefault(),
+                    Implementation = t
+                })
+                .Where(t => t.Service != null);
+
+            foreach (var transientService in transientServices)
+            {
+                if (transientServiceType.IsAssignableFrom(transientService.Service))
+                {
+                    services.AddTransient(transientService.Service, transientService.Implementation);
+                }
+            }
+
+            foreach (var scopedService in scopedServices)
+            {
+                if (scopedServiceType.IsAssignableFrom(scopedService.Service))
+                {
+                    services.AddScoped(scopedService.Service, scopedService.Implementation);
                 }
             }
 
