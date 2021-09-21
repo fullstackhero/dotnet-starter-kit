@@ -1,4 +1,4 @@
-using AutoMapper;
+// using AutoMapper;
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Constants;
@@ -17,6 +17,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Text;
+using Mapster;
 
 namespace DN.WebApi.Infrastructure.Services.General
 {
@@ -33,20 +34,21 @@ namespace DN.WebApi.Infrastructure.Services.General
 
         private readonly TenantManagementDbContext _context;
 
-        private readonly IMapper _mapper;
+       // private readonly IMapper _mapper;
 
         private HttpContext _httpContext;
 
         private TenantDto _currentTenant;
 
-        public TenantService(IOptions<MultitenancySettings> options, IHttpContextAccessor contextAccessor, ICurrentUser currentUser, IStringLocalizer<TenantService> localizer, TenantManagementDbContext context, IMapper mapper, IDistributedCache cache, ISerializerService serializer)
+        public TenantService(IOptions<MultitenancySettings> options, IHttpContextAccessor contextAccessor, ICurrentUser currentUser, IStringLocalizer<TenantService> localizer, TenantManagementDbContext context, /*IMapper mapper,*/ IDistributedCache cache, ISerializerService serializer)
         {
             _localizer = localizer;
             _options = options.Value;
             _httpContext = contextAccessor.HttpContext;
             _currentUser = currentUser;
             _context = context;
-            _mapper = mapper;
+
+            // _mapper = mapper;
             _cache = cache;
             _serializer = serializer;
             if (_httpContext != null)
@@ -87,7 +89,7 @@ namespace DN.WebApi.Infrastructure.Services.General
             else
             {
                 var tenant = _context.Tenants.Where(a => a.Key == tenantKey).FirstOrDefaultAsync().Result;
-                tenantDto = _mapper.Map<TenantDto>(tenant);
+                tenantDto = tenant.Adapt<TenantDto>();
                 if (tenantDto != null)
                 {
                     var options = new DistributedCacheEntryOptions();

@@ -1,4 +1,3 @@
-using AutoMapper;
 using Dapper;
 using DN.WebApi.Application.Abstractions.Repositories;
 using DN.WebApi.Application.Abstractions.Services.General;
@@ -23,25 +22,28 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Linq.Dynamic.Core;
 using DN.WebApi.Shared.DTOs.Filters;
+using Mapster;
 
 namespace DN.WebApi.Infrastructure.Persistence.Repositories
 {
     public class RepositoryAsync : IRepositoryAsync
     {
         private readonly IStringLocalizer<RepositoryAsync> _localizer;
-        private readonly IMapper _mapper;
+
+        // private readonly IMapper _mapper;
         private readonly IDistributedCache _cache;
         private readonly ApplicationDbContext _dbContext;
         private readonly ILogger<RepositoryAsync> _logger;
         private ISerializerService _serializer;
 
-        public RepositoryAsync(ApplicationDbContext dbContext, ISerializerService serializer, IDistributedCache cache, ILogger<RepositoryAsync> logger, IMapper mapper, IStringLocalizer<RepositoryAsync> localizer)
+        public RepositoryAsync(ApplicationDbContext dbContext, ISerializerService serializer, IDistributedCache cache, ILogger<RepositoryAsync> logger, /*IMapper mapper, */IStringLocalizer<RepositoryAsync> localizer)
         {
             _dbContext = dbContext;
             _serializer = serializer;
             _cache = cache;
             _logger = logger;
-            _mapper = mapper;
+
+            // _mapper = mapper;
             _localizer = localizer;
         }
 
@@ -77,7 +79,9 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
             else
             {
                 var entity = await _dbContext.Set<T>().FindAsync(entityId);
-                var dto = _mapper.Map<TDto>(entity);
+
+                // var dto = _mapper.Map<TDto>(entity);
+                var dto = entity.Adapt<TDto>();
                 if (dto != null)
                 {
                     var options = new DistributedCacheEntryOptions();
@@ -99,9 +103,9 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
             if (expression != null) query = query.Where(expression);
             if (search != null && search.Fields.Count > 0 && !string.IsNullOrEmpty(search.Keyword))
                 query = query.Search(search);
-            string ordering = new OrderByConverter().Convert(orderBy);
+            string ordering = new OrderByConverter().ConvertBack(orderBy);
             query = !string.IsNullOrWhiteSpace(ordering) ? query.OrderBy(ordering) : query.OrderBy(a => a.Id);
-            return await _mapper.ToMappedPaginatedResultAsync<T, TDto>(query, pageNumber, pageSize);
+            return await query.ToMappedPaginatedResultAsync<T, TDto>(pageNumber, pageSize);
         }
 
         public async Task<object> CreateAsync<T>(T entity)

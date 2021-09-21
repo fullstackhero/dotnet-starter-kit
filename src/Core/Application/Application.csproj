@@ -13,9 +13,8 @@
     <ProjectReference Include="..\..\Shared\Shared.DTOs\Shared.DTOs.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Mapster" Version="7.2.0" />
     <PackageReference Include="Microsoft.Extensions.Localization" Version="5.0.10" />
-    <PackageReference Include="AutoMapper" Version="10.1.1" />
-    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="8.1.1" />
     <PackageReference Include="FluentValidation" Version="10.3.3" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="10.3.3" />
   </ItemGroup>
