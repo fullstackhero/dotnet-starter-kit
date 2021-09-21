@@ -1,4 +1,4 @@
-using AutoMapper;
+// using AutoMapper;
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Constants;
@@ -11,22 +11,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Mapster;
 
 namespace DN.WebApi.Infrastructure.Identity.Services
 {
     public class PermissionService : IPermissionService
     {
-        private readonly IMapper _mapper;
+        // private readonly IMapper _mapper;
         private readonly ApplicationDbContext _context;
         private readonly IDistributedCache _cache;
         private readonly ICurrentUser _currentUser;
         private readonly ISerializerService _serializer;
 
-        public PermissionService(ApplicationDbContext context, ICurrentUser currentUser, IMapper mapper, IDistributedCache cache, ISerializerService serializer)
+        public PermissionService(ApplicationDbContext context, ICurrentUser currentUser, /* IMapper mapper,*/ IDistributedCache cache, ISerializerService serializer)
         {
             _context = context;
             _currentUser = currentUser;
-            _mapper = mapper;
+
+            // _mapper = mapper;
             _cache = cache;
             _serializer = serializer;
         }
@@ -45,7 +47,9 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             {
                 var userRoles = await _context.UserRoles.Where(a => a.UserId == userId).Select(a => a.RoleId).ToListAsync();
                 var applicationRoles = await _context.Roles.Where(a => userRoles.Contains(a.Id)).ToListAsync();
-                roles = _mapper.Map<List<RoleDto>>(applicationRoles);
+
+                // roles = _mapper.Map<List<RoleDto>>(applicationRoles);
+                roles = applicationRoles.Adapt<List<RoleDto>>();
                 if (roles != null)
                 {
                     var options = new DistributedCacheEntryOptions();

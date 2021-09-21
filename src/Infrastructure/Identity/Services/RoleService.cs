@@ -1,4 +1,4 @@
-using AutoMapper;
+// using AutoMapper;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Wrapper;
@@ -14,6 +14,7 @@ using Microsoft.Extensions.Localization;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Mapster;
 
 namespace DN.WebApi.Infrastructure.Identity.Services
 {
@@ -24,15 +25,17 @@ namespace DN.WebApi.Infrastructure.Identity.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
         private readonly IStringLocalizer<RoleService> _localizer;
-        private readonly IMapper _mapper;
 
-        public RoleService(RoleManager<ApplicationRole> roleManager, UserManager<ApplicationUser> userManager, ApplicationDbContext context, IStringLocalizer<RoleService> localizer, IMapper mapper, ICurrentUser currentUser)
+        // private readonly IMapper _mapper;
+
+        public RoleService(RoleManager<ApplicationRole> roleManager, UserManager<ApplicationUser> userManager, ApplicationDbContext context, IStringLocalizer<RoleService> localizer, /* IMapper mapper,*/ ICurrentUser currentUser)
         {
             _roleManager = roleManager;
             _userManager = userManager;
             _context = context;
             _localizer = localizer;
-            _mapper = mapper;
+
+            // _mapper = mapper;
             _currentUser = currentUser;
         }
 
@@ -78,7 +81,9 @@ namespace DN.WebApi.Infrastructure.Identity.Services
         public async Task<Result<RoleDto>> GetByIdAsync(string id)
         {
             var roles = await _roleManager.Roles.SingleOrDefaultAsync(x => x.Id == id);
-            var rolesResponse = _mapper.Map<RoleDto>(roles);
+
+            // var rolesResponse = _mapper.Map<RoleDto>(roles);
+            var rolesResponse = roles.Adapt<RoleDto>();
             return await Result<RoleDto>.SuccessAsync(rolesResponse);
         }
 
@@ -90,7 +95,9 @@ namespace DN.WebApi.Infrastructure.Identity.Services
         public async Task<Result<List<RoleDto>>> GetListAsync()
         {
             var roles = await _roleManager.Roles.ToListAsync();
-            var rolesResponse = _mapper.Map<List<RoleDto>>(roles);
+
+            // var rolesResponse = _mapper.Map<List<RoleDto>>(roles);
+            var rolesResponse = roles.Adapt<List<RoleDto>>();
             return await Result<List<RoleDto>>.SuccessAsync(rolesResponse);
         }
 
@@ -98,7 +105,9 @@ namespace DN.WebApi.Infrastructure.Identity.Services
         {
             var userRoles = await _context.UserRoles.Where(a => a.UserId == userId).Select(a => a.RoleId).ToListAsync();
             var roles = await _roleManager.Roles.Where(a => userRoles.Contains(a.Id)).ToListAsync();
-            var rolesResponse = _mapper.Map<List<RoleDto>>(roles);
+
+            // var rolesResponse = _mapper.Map<List<RoleDto>>(roles);
+            var rolesResponse = roles.Adapt<List<RoleDto>>();
             return await Result<List<RoleDto>>.SuccessAsync(rolesResponse);
         }
 
