@@ -10,6 +10,7 @@ using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Shared.DTOs.Identity;
 using DN.WebApi.Shared.DTOs.Identity.Requests;
 using DN.WebApi.Shared.DTOs.Identity.Responses;
+using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
@@ -20,17 +21,14 @@ namespace DN.WebApi.Infrastructure.Identity.Services
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<ApplicationRole> _roleManager;
-        private readonly IMapper _mapper;
         private readonly IStringLocalizer<UserService> _localizer;
 
         public UserService(
             UserManager<ApplicationUser> userManager,
-            IMapper mapper,
             RoleManager<ApplicationRole> roleManager,
             IStringLocalizer<UserService> localizer)
         {
             _userManager = userManager;
-            _mapper = mapper;
             _roleManager = roleManager;
             _localizer = localizer;
         }
@@ -38,14 +36,14 @@ namespace DN.WebApi.Infrastructure.Identity.Services
         public async Task<Result<List<UserDetailsDto>>> GetAllAsync()
         {
             var users = await _userManager.Users.AsNoTracking().ToListAsync();
-            var result = _mapper.Map<List<UserDetailsDto>>(users);
+            var result = users.Adapt<List<UserDetailsDto>>();
             return await Result<List<UserDetailsDto>>.SuccessAsync(result);
         }
 
         public async Task<IResult<UserDetailsDto>> GetAsync(string userId)
         {
             var user = await _userManager.Users.AsNoTracking().Where(u => u.Id == userId).FirstOrDefaultAsync();
-            var result = _mapper.Map<UserDetailsDto>(user);
+            var result = user.Adapt<UserDetailsDto>();
             return await Result<UserDetailsDto>.SuccessAsync(result);
         }
 
