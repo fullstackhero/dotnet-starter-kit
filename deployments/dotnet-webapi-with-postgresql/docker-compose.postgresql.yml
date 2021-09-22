@@ -15,7 +15,8 @@ services:
       - "5053:5053"
       - "5063:5063"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     restart: on-failure
     container_name: dotnet-webapi-with-postgresql
   db:
@@ -23,3 +24,8 @@ services:
     environment:
       - "POSTGRES_PASSWORD=root"
     container_name: postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

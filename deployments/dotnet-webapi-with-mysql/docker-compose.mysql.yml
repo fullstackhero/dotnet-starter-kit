@@ -14,7 +14,8 @@ services:
       - "5052:5052"
       - "5062:5062"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     restart: on-failure
     container_name: dotnet-webapi-with-mysql
   db:
@@ -23,3 +24,8 @@ services:
       - "MYSQL_ROOT_PASSWORD=root"
       - "MYSQL_PASSWORD=root"
     container_name: mysql
+    healthcheck:
+        test: "/usr/bin/mysql --user=root --password=root --execute \"SHOW DATABASES;\""
+        interval: 2s
+        timeout: 20s
+        retries: 10
