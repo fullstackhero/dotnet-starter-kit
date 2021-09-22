@@ -1,7 +1,7 @@
 version: '3.4'
 services:
   dotnetwebapi:
-    image: "iammukeshm/dotnet-webapi:1.0.0-preview.1"
+    image: "iammukeshm/dotnet-webapi"
     environment:
       - "MultitenancySettings__ConnectionString=server=db;uid=root;pwd=root;database=rootTenantDb;Allow User Variables=True"
       - "MultitenancySettings__DBProvider=mysql"

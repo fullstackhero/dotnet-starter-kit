@@ -2,7 +2,7 @@ version: '3.4'
 
 services:
   dotnet-webapi:
-    image: "iammukeshm/dotnet-webapi:1.0.0-preview.1"
+    image: "iammukeshm/dotnet-webapi"
     environment:
       - "MultitenancySettings__ConnectionString=Host=db;Database=rootTenantDb;Username=postgres;Password=root;Include Error Detail=true"
       - "MultitenancySettings__DBProvider=postgresql"

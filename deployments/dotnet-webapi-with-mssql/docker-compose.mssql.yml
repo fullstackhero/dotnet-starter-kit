@@ -1,7 +1,7 @@
 version: '3.4'
 services:
   dotnet-webapi:
-    image: "iammukeshm/dotnet-webapi:1.0.0-preview.1"
+    image: "iammukeshm/dotnet-webapi"
     environment:
       - "MultitenancySettings__ConnectionString=Server=db;Database=rootTenantDb;User=sa;Password=securePassword123;MultipleActiveResultSets=true"
       - "MultitenancySettings__DBProvider=mssql"
