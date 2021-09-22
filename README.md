@@ -27,26 +27,26 @@ Join our Discord - [fullstackhero @ Discord](https://discord.gg/gdgHRt4mMw)
 
 ## Features
 
-- [x] Built on .NET 6.0 :heavy_check_mark:
-- [x] Follows Clean Architecture Principles :heavy_check_mark:
+- [x] Built on .NET 6.0
+- [x] Follows Clean Architecture Principles
 - [ ] Completely Documented at [fullstackhero.net](https://fullstackhero.net)
-- [x] Multi Tenancy Support :heavy_check_mark:
-- [x] Supports MySQL, MSSQL & PostgreSQL! :heavy_check_mark:
-- [x] Uses Entity Framework Core as DB Abstraction :heavy_check_mark:
-- [x] Flexible Repository Pattern :heavy_check_mark:
-- [x] Dapper Integration for Optimal Performance :heavy_check_mark:
-- [x] Serilog Integration :heavy_check_mark:
-- [x] Swagger Support :heavy_check_mark:
-- [x] Mapster :heavy_check_mark:
-- [x] API Versioning :heavy_check_mark:
-- [x] Response Caching - Distributed Caching :heavy_check_mark:
-- [x] Fluent Validations :heavy_check_mark:
-- [x] Audit Logging :heavy_check_mark:
+- [x] Multi Tenancy Support
+- [x] Supports MySQL, MSSQL & PostgreSQL!
+- [x] Uses Entity Framework Core as DB Abstraction
+- [x] Flexible Repository Pattern
+- [x] Dapper Integration for Optimal Performance
+- [x] Serilog Integration
+- [x] Swagger Support
+- [x] Mapster
+- [x] API Versioning
+- [x] Response Caching - Distributed Caching
+- [x] Fluent Validations
+- [x] Audit Logging
 - [ ] Advanced User & Role Based Permission Management
-- [x] Code Analysis & StyleCop Integration with Rulesets :heavy_check_mark:
-- [x] JSON Based Localization with Caching :heavy_check_mark:
-- [x] Hangfire Support :heavy_check_mark:
-- [x] File Storage Service :heavy_check_mark:
+- [x] Code Analysis & StyleCop Integration with Rulesets
+- [x] JSON Based Localization with Caching
+- [x] Hangfire Support
+- [x] File Storage Service
 - [ ] Test Projects
 - [ ] & Much More
 
