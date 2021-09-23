@@ -11,7 +11,7 @@ namespace DN.WebApi.Infrastructure.HealthChecks
     {
         public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
-            //Descoped
+            // Descoped
             var check = new HealthCheckResult(HealthStatus.Healthy);
             return await Task.FromResult<HealthCheckResult>(check);
         }
