@@ -83,13 +83,13 @@ namespace DN.WebApi.Infrastructure.Persistence
             return result;
         }
 
-        private List<TrailEntry> OnBeforeSaveChanges(Guid userId)
+        private List<AuditTrail> OnBeforeSaveChanges(Guid userId)
         {
             ChangeTracker.DetectChanges();
-            var trailEntries = new List<TrailEntry>();
+            var trailEntries = new List<AuditTrail>();
             foreach (var entry in ChangeTracker.Entries<AuditableEntity>().ToList())
             {
-                var trailEntry = new TrailEntry(entry, _serializer)
+                var trailEntry = new AuditTrail(entry, _serializer)
                 {
                     TableName = entry.Entity.GetType().Name,
                     UserId = userId
@@ -151,7 +151,7 @@ namespace DN.WebApi.Infrastructure.Persistence
             return trailEntries.Where(_ => _.HasTemporaryProperties).ToList();
         }
 
-        private Task OnAfterSaveChangesAsync(List<TrailEntry> trailEntries, CancellationToken cancellationToken = new())
+        private Task OnAfterSaveChangesAsync(List<AuditTrail> trailEntries, CancellationToken cancellationToken = new())
         {
             if (trailEntries == null || trailEntries.Count == 0)
                 return Task.CompletedTask;

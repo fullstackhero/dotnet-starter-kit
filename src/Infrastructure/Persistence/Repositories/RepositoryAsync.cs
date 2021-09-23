@@ -31,12 +31,12 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
         private readonly IStringLocalizer<RepositoryAsync> _localizer;
 
         // private readonly IMapper _mapper;
-        private readonly IDistributedCache _cache;
+        private readonly ICacheService _cache;
         private readonly ApplicationDbContext _dbContext;
         private readonly ILogger<RepositoryAsync> _logger;
         private ISerializerService _serializer;
 
-        public RepositoryAsync(ApplicationDbContext dbContext, ISerializerService serializer, IDistributedCache cache, ILogger<RepositoryAsync> logger, /*IMapper mapper, */IStringLocalizer<RepositoryAsync> localizer)
+        public RepositoryAsync(ApplicationDbContext dbContext, ISerializerService serializer, ICacheService cache, ILogger<RepositoryAsync> logger, /*IMapper mapper, */IStringLocalizer<RepositoryAsync> localizer)
         {
             _dbContext = dbContext;
             _serializer = serializer;
@@ -72,22 +72,18 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
             if (cachedData != null)
             {
                 await _cache.RefreshAsync(cacheKey);
-                _logger.LogInformation(string.Format(_localizer["caching.refreshed"], cacheKey));
                 var entity = _serializer.Deserialize<TDto>(Encoding.Default.GetString(cachedData));
                 return entity;
             }
             else
             {
                 var entity = await _dbContext.Set<T>().FindAsync(entityId);
-
-                // var dto = _mapper.Map<TDto>(entity);
                 var dto = entity.Adapt<TDto>();
                 if (dto != null)
                 {
                     var options = new DistributedCacheEntryOptions();
                     byte[] serializedData = Encoding.Default.GetBytes(_serializer.Serialize(dto));
                     await _cache.SetAsync(cacheKey, serializedData, options, cancellationToken);
-                    _logger.LogInformation(string.Format(_localizer["caching.added"], cacheKey));
                     return dto;
                 }
 

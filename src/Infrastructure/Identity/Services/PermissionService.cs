@@ -17,11 +17,11 @@ namespace DN.WebApi.Infrastructure.Identity.Services
     public class PermissionService : IPermissionService
     {
         private readonly ApplicationDbContext _context;
-        private readonly IDistributedCache _cache;
+        private readonly ICacheService _cache;
         private readonly ICurrentUser _currentUser;
         private readonly ISerializerService _serializer;
 
-        public PermissionService(ApplicationDbContext context, ICurrentUser currentUser, IDistributedCache cache, ISerializerService serializer)
+        public PermissionService(ApplicationDbContext context, ICurrentUser currentUser, ICacheService cache, ISerializerService serializer)
         {
             _context = context;
             _currentUser = currentUser;

@@ -7,10 +7,10 @@ using System.Linq;
 
 namespace DN.WebApi.Infrastructure.Auditing.Models
 {
-    public class TrailEntry
+    public class AuditTrail
     {
         private readonly ISerializerService _serializer;
-        public TrailEntry(EntityEntry entry, ISerializerService serializer)
+        public AuditTrail(EntityEntry entry, ISerializerService serializer)
         {
             Entry = entry;
             _serializer = serializer;

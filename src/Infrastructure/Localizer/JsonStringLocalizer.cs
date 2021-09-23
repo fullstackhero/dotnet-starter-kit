@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
+﻿using DN.WebApi.Application.Abstractions.Services.General;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Localization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -6,6 +7,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Threading;
+using DN.WebApi.Infrastructure.Extensions;
 
 namespace DN.WebApi.Infrastructure.Localizer
 {
@@ -13,11 +15,11 @@ namespace DN.WebApi.Infrastructure.Localizer
     {
         private string Localization => "Localization";
 
-        private readonly IDistributedCache _cache;
+        private readonly ICacheService _cache;
 
         private readonly JsonSerializer _serializer = new JsonSerializer();
 
-        public JsonStringLocalizer(IDistributedCache cache)
+        public JsonStringLocalizer(ICacheService cache)
         {
             _cache = cache;
         }

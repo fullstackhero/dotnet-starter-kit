@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace DN.WebApi.Infrastructure.Extensions
 {
-    public static class ServiceRegistrationExtensions
+    public static class DynamicServiceRegistrationExtensions
     {
         public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration config)
         {

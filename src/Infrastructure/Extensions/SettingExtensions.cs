@@ -11,7 +11,8 @@ namespace DN.WebApi.Infrastructure.Extensions
             services
                 .Configure<MailSettings>(config.GetSection(nameof(MailSettings)))
                 .Configure<MiddlewareSettings>(config.GetSection(nameof(MiddlewareSettings)))
-                .Configure<CorsSettings>(config.GetSection(nameof(CorsSettings)));
+                .Configure<CorsSettings>(config.GetSection(nameof(CorsSettings)))
+                .Configure<CacheSettings>(config.GetSection(nameof(CacheSettings)));
             return services;
         }
     }

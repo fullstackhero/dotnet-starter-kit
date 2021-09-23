@@ -1,12 +1,15 @@
+using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Infrastructure.Localizer;
 using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Infrastructure.Persistence.Extensions;
+using DN.WebApi.Infrastructure.Services.General;
 using Hangfire;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Localization;
 using System.Reflection;
 
@@ -16,10 +19,22 @@ namespace DN.WebApi.Infrastructure.Extensions
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
         {
+            if (config.GetSection("CacheSettings:PreferRedis").Get<bool>())
+            {
+                services.AddDistributedRedisCache(options =>
+                {
+                    options.Configuration = config.GetSection("CacheSettings:RedisURL").Get<string>();
+                });
+            }
+            else
+            {
+                services.AddDistributedMemoryCache();
+            }
+
+            services.TryAdd(ServiceDescriptor.Singleton<ICacheService, CacheService>());
             services.AddHealthCheckExtension();
             services.AddLocalization();
             services.AddServices(config);
-            services.AddDistributedMemoryCache();
             services.AddSettings(config);
             services.AddPermissions(config);
             services.AddIdentity(config);

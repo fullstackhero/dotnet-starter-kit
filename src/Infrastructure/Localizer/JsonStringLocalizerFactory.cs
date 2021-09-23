@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
+﻿using DN.WebApi.Application.Abstractions.Services.General;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Localization;
 using System;
 
@@ -6,9 +7,9 @@ namespace DN.WebApi.Infrastructure.Localizer
 {
     public class JsonStringLocalizerFactory : IStringLocalizerFactory
     {
-        private readonly IDistributedCache _cache;
+        private readonly ICacheService _cache;
 
-        public JsonStringLocalizerFactory(IDistributedCache cache)
+        public JsonStringLocalizerFactory(ICacheService cache)
         {
             _cache = cache;
         }

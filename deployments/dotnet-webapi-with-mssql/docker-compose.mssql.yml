@@ -1,10 +1,17 @@
 version: '3.4'
 services:
+  redis:
+    image: redis
+    ports:
+      - "6579:6379"
+    restart: on-failure
+    container_name: redis-for-dotnet-webapi-with-mssql
   dotnet-webapi:
-    image: "iammukeshm/dotnet-webapi"
+    image: "iammukeshm/dotnet-webapi:latest"
     environment:
       - "MultitenancySettings__ConnectionString=Server=db;Database=rootTenantDb;User=sa;Password=securePassword123;MultipleActiveResultSets=true"
       - "MultitenancySettings__DBProvider=mssql"
+      - "CacheSettings__RedisURL=redis"
       - "ASPNETCORE_Kestrel__Certificates__Default__Password=securePassword123"
       - "ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx"
       - "ASPNETCORE_URLS=https://+:5051;http://+:5061"

@@ -23,7 +23,7 @@ namespace DN.WebApi.Infrastructure.Services.General
     public class TenantService : ITenantService
     {
         private readonly ISerializerService _serializer;
-        private readonly IDistributedCache _cache;
+        private readonly ICacheService _cache;
 
         private readonly IStringLocalizer<TenantService> _localizer;
 
@@ -37,7 +37,7 @@ namespace DN.WebApi.Infrastructure.Services.General
 
         private TenantDto _currentTenant;
 
-        public TenantService(IOptions<MultitenancySettings> options, IHttpContextAccessor contextAccessor, ICurrentUser currentUser, IStringLocalizer<TenantService> localizer, TenantManagementDbContext context, IDistributedCache cache, ISerializerService serializer)
+        public TenantService(IOptions<MultitenancySettings> options, IHttpContextAccessor contextAccessor, ICurrentUser currentUser, IStringLocalizer<TenantService> localizer, TenantManagementDbContext context, ICacheService cache, ISerializerService serializer)
         {
             _localizer = localizer;
             _options = options.Value;
@@ -76,7 +76,7 @@ namespace DN.WebApi.Infrastructure.Services.General
         private void SetTenant(string tenantKey)
         {
             TenantDto tenantDto;
-            string cacheKey = CacheKeys.GetCacheKey("tenantDto", tenantKey);
+            string cacheKey = CacheKeys.GetCacheKey("tenant", tenantKey);
             byte[] cachedData = !string.IsNullOrWhiteSpace(cacheKey) ? _cache.GetAsync(cacheKey).Result : null;
             if (cachedData != null)
             {
