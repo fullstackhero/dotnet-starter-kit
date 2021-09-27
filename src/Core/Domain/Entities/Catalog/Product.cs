@@ -16,6 +16,21 @@ namespace DN.WebApi.Domain.Entities.Catalog
         {
         }
 
+        public Product Update(string name, string description, decimal rate, string imagePath)
+        {
+            Name = name;
+            Description = description;
+            Rate = rate;
+
+            // Update image path if one is provided
+            if (!string.IsNullOrEmpty(imagePath))
+            {
+                ImagePath = imagePath;
+            }
+
+            return this;
+        }
+
         public string Name { get; private set; }
 
         public string Description { get; private set; }

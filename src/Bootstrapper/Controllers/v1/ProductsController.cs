@@ -47,6 +47,12 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
             return Ok(await _service.CreateProductAsync(request));
         }
 
+        [HttpPut]
+        public async Task<IActionResult> UpdateAsync(CreateProductRequest request, Guid id)
+        {
+            return Ok(await _service.UpdateProductAsync(request, id));
+        }
+
         [HttpDelete]
         public async Task<IActionResult> DeleteAsync(Guid id)
         {

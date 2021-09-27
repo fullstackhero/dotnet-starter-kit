@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "7bc4b7a3-1161-4775-946b-1c2d70f3c34b",
+		"_postman_id": "2059afd5-1d5c-4093-a29b-c3e16a45c202",
 		"name": "dotnet.webapi.boilerplate",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -248,6 +248,39 @@
 								"v1",
 								"products",
 								"e897b528-1c73-41f8-b73d-02800593ead3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update-product",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"Product Test to max name length to be exactly or around 75 which is the max\",\r\n    \"description\":\"Something more Cool!\",\r\n    \"rate\":5\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/v1/products?id=a5d1b2e5-295c-4ebd-a80e-fb6b82b1cb55",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"v1",
+								"products"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "a5d1b2e5-295c-4ebd-a80e-fb6b82b1cb55"
+								}
 							]
 						}
 					},
