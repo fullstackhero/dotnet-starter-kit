@@ -21,8 +21,6 @@ namespace DN.WebApi.Domain.Entities.Catalog
             Name = name;
             Description = description;
             Rate = rate;
-
-            // Update image path if one is provided
             if (!string.IsNullOrEmpty(imagePath))
             {
                 ImagePath = imagePath;

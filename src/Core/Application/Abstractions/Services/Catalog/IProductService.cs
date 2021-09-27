@@ -12,7 +12,7 @@ namespace DN.WebApi.Application.Abstractions.Services.Catalog
         Task<Result<ProductDetailsDto>> GetByIdUsingDapperAsync(Guid id);
         Task<PaginatedResult<ProductDetailsDto>> GetListAsync(ProductListFilter filter);
         Task<Result<object>> CreateProductAsync(CreateProductRequest request);
-        Task<Result<object>> UpdateProductAsync(CreateProductRequest request, Guid id);
+        Task<Result<object>> UpdateProductAsync(UpdateProductRequest request, Guid id);
         Task<Result<Guid>> DeleteProductAsync(Guid id);
     }
 }

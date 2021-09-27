@@ -37,29 +37,24 @@ namespace DN.WebApi.Application.Services.Catalog
             return await Result<object>.SuccessAsync(productId);
         }
 
-        public async Task<Result<object>> UpdateProductAsync(CreateProductRequest request, Guid id)
+        public async Task<Result<object>> UpdateProductAsync(UpdateProductRequest request, Guid id)
         {
             var product = await _repository.GetByIdAsync<Product>(id);
-
             if(product == null)
             {
                 return await Result<object>.FailAsync("Product Id provided is invalid, it doesn't return a product.");
             }
 
             string productImagePath = string.Empty;
-
-            // If image is provided process upload
             if (request.Image != null)
             {
                 productImagePath = await _file.UploadAsync<Product>(request.Image, FileType.Image);
             }
 
-            var updateProduct = product.Update(request.Name, request.Description, request.Rate, productImagePath);
-
-            await _repository.UpdateAsync<Product>(updateProduct);
+            var updatedProduct = product.Update(request.Name, request.Description, request.Rate, productImagePath);
+            await _repository.UpdateAsync<Product>(updatedProduct);
             await _repository.SaveChangesAsync();
-
-            return await Result<object>.SuccessAsync(updateProduct);
+            return await Result<object>.SuccessAsync(updatedProduct);
         }
 
         public async Task<Result<Guid>> DeleteProductAsync(Guid id)
