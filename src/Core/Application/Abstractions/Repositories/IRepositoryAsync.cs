@@ -1,4 +1,5 @@
 using DN.WebApi.Application.Abstractions.Services;
+using DN.WebApi.Application.Specifications;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Contracts;
 using DN.WebApi.Shared.DTOs;
@@ -14,10 +15,10 @@ namespace DN.WebApi.Application.Abstractions.Repositories
 {
     public interface IRepositoryAsync : ITransientService
     {
-        Task<T> GetByIdAsync<T>(object id, CancellationToken cancellationToken = default)
+        Task<T> GetByIdAsync<T>(Guid id, BaseSpecification<T> specification, CancellationToken cancellationToken = default)
         where T : BaseEntity;
 
-        Task<TDto> GetByIdAsync<T, TDto>(object id, CancellationToken cancellationToken = default)
+        Task<TDto> GetByIdAsync<T, TDto>(Guid id, BaseSpecification<T> specification, CancellationToken cancellationToken = default)
         where T : BaseEntity
         where TDto : IDto;
 

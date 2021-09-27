@@ -61,7 +61,7 @@ namespace DN.WebApi.Infrastructure.Services.General
             try
             {
                 await _cache.RefreshAsync(key, token);
-                _logger.LogInformation(string.Format("Cache Refreshed : {0}", key));
+                _logger.LogDebug(string.Format("Cache Refreshed : {0}", key));
             }
             catch
             {
@@ -95,7 +95,7 @@ namespace DN.WebApi.Infrastructure.Services.General
             try
             {
                 _cache.Set(key, value, options);
-                _logger.LogInformation(string.Format("Added to Cache : {0}", key));
+                _logger.LogDebug(string.Format("Added to Cache : {0}", key));
             }
             catch
             {
@@ -108,7 +108,7 @@ namespace DN.WebApi.Infrastructure.Services.General
             try
             {
                 await _cache.SetAsync(key, value, options, token);
-                _logger.LogInformation(string.Format("Added to Cache : {0}", key));
+                _logger.LogDebug(string.Format("Added to Cache : {0}", key));
             }
             catch
             {

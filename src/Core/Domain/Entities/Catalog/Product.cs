@@ -1,15 +1,17 @@
+using System;
 using DN.WebApi.Domain.Contracts;
 
 namespace DN.WebApi.Domain.Entities.Catalog
 {
     public class Product : AuditableEntity, IMustHaveTenant
     {
-        public Product(string name, string description, decimal rate, string imagePath)
+        public Product(string name, string description, decimal rate, Guid brandId, string imagePath)
         {
             Name = name;
             Description = description;
             Rate = rate;
             ImagePath = imagePath;
+            BrandId = brandId;
         }
 
         protected Product()
@@ -37,5 +39,7 @@ namespace DN.WebApi.Domain.Entities.Catalog
 
         public string TenantKey { get; set; }
         public string ImagePath { get; set; }
+        public Guid BrandId { get; set; }
+        public virtual Brand Brand { get; set; }
     }
 }

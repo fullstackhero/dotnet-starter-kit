@@ -10,6 +10,7 @@ using Microsoft.Extensions.Localization;
 using System;
 using System.Threading.Tasks;
 using Mapster;
+using DN.WebApi.Application.Specifications;
 
 namespace DN.WebApi.Application.Services.Catalog
 {
@@ -30,8 +31,10 @@ namespace DN.WebApi.Application.Services.Catalog
         {
             var productExists = await _repository.ExistsAsync<Product>(a => a.Name == request.Name);
             if (productExists) throw new EntityAlreadyExistsException(string.Format(_localizer["product.alreadyexists"], request.Name));
+            var brandExists = await _repository.ExistsAsync<Brand>(a => a.Id == request.BrandId);
+            if (!brandExists) throw new EntityNotFoundException(string.Format(_localizer["brand.notfound"], request.BrandId));
             string productImagePath = await _file.UploadAsync<Product>(request.Image, FileType.Image);
-            var product = new Product(request.Name, request.Description, request.Rate, productImagePath);
+            var product = new Product(request.Name, request.Description, request.Rate, request.BrandId, productImagePath);
             var productId = await _repository.CreateAsync<Product>(product);
             await _repository.SaveChangesAsync();
             return await Result<object>.SuccessAsync(productId);
@@ -39,8 +42,8 @@ namespace DN.WebApi.Application.Services.Catalog
 
         public async Task<Result<object>> UpdateProductAsync(UpdateProductRequest request, Guid id)
         {
-            var product = await _repository.GetByIdAsync<Product>(id);
-            if(product == null)
+            var product = await _repository.GetByIdAsync<Product>(id, null);
+            if (product == null)
             {
                 return await Result<object>.FailAsync("Product Id provided is invalid, it doesn't return a product.");
             }
@@ -64,22 +67,24 @@ namespace DN.WebApi.Application.Services.Catalog
             return await Result<Guid>.SuccessAsync(id);
         }
 
-        public async Task<Result<ProductDetailsDto>> GetByIdAsync(Guid id)
+        public async Task<Result<ProductDetailsDto>> GetProductDetailsAsync(Guid id)
         {
-            var product = await _repository.GetByIdAsync<Product, ProductDetailsDto>(id);
+            var spec = new BaseSpecification<Product>();
+            spec.Includes.Add(a => a.Brand);
+            var product = await _repository.GetByIdAsync<Product, ProductDetailsDto>(id, spec);
             return await Result<ProductDetailsDto>.SuccessAsync(product);
         }
 
-        public async Task<Result<ProductDetailsDto>> GetByIdUsingDapperAsync(Guid id)
+        public async Task<Result<ProductDto>> GetByIdUsingDapperAsync(Guid id)
         {
             var product = await _repository.QueryFirstOrDefaultAsync<Product>($"SELECT * FROM public.\"Products\" WHERE \"Id\"  = '{id}' AND \"TenantKey\"='@tenantKey'");
-            var mappedProduct = product.Adapt<ProductDetailsDto>();
-            return await Result<ProductDetailsDto>.SuccessAsync(mappedProduct);
+            var mappedProduct = product.Adapt<ProductDto>();
+            return await Result<ProductDto>.SuccessAsync(mappedProduct);
         }
 
-        public async Task<PaginatedResult<ProductDetailsDto>> GetListAsync(ProductListFilter filter)
+        public async Task<PaginatedResult<ProductDto>> GetListAsync(ProductListFilter filter)
         {
-            var products = await _repository.GetPaginatedListAsync<Product, ProductDetailsDto>(filter.PageNumber, filter.PageSize, filter.OrderBy, filter.Search);
+            var products = await _repository.GetPaginatedListAsync<Product, ProductDto>(filter.PageNumber, filter.PageSize, filter.OrderBy, filter.Search);
             return products;
         }
     }

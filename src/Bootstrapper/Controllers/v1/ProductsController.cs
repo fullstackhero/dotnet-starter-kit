@@ -22,7 +22,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
         [MustHavePermission(Permissions.Products.View)]
         public async Task<IActionResult> GetAsync(Guid id)
         {
-            var productDetails = await _service.GetByIdAsync(id);
+            var productDetails = await _service.GetProductDetailsAsync(id);
             return Ok(productDetails);
         }
 

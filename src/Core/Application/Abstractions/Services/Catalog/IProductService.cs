@@ -8,9 +8,9 @@ namespace DN.WebApi.Application.Abstractions.Services.Catalog
 {
     public interface IProductService : ITransientService
     {
-        Task<Result<ProductDetailsDto>> GetByIdAsync(Guid id);
-        Task<Result<ProductDetailsDto>> GetByIdUsingDapperAsync(Guid id);
-        Task<PaginatedResult<ProductDetailsDto>> GetListAsync(ProductListFilter filter);
+        Task<Result<ProductDetailsDto>> GetProductDetailsAsync(Guid id);
+        Task<Result<ProductDto>> GetByIdUsingDapperAsync(Guid id);
+        Task<PaginatedResult<ProductDto>> GetListAsync(ProductListFilter filter);
         Task<Result<object>> CreateProductAsync(CreateProductRequest request);
         Task<Result<object>> UpdateProductAsync(UpdateProductRequest request, Guid id);
         Task<Result<Guid>> DeleteProductAsync(Guid id);

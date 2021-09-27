@@ -23,6 +23,7 @@ using System.Threading.Tasks;
 using System.Linq.Dynamic.Core;
 using DN.WebApi.Shared.DTOs.Filters;
 using Mapster;
+using DN.WebApi.Application.Specifications;
 
 namespace DN.WebApi.Infrastructure.Persistence.Repositories
 {
@@ -57,13 +58,15 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
             return await query.ToListAsync(cancellationToken);
         }
         #endregion
-        public async Task<T> GetByIdAsync<T>(object entityId, CancellationToken cancellationToken = default)
+        public async Task<T> GetByIdAsync<T>(Guid entityId, BaseSpecification<T> specification, CancellationToken cancellationToken = default)
         where T : BaseEntity
         {
-            return await _dbContext.Set<T>().FindAsync(entityId);
+            IQueryable<T> query = _dbContext.Set<T>();
+            query = query.Specify(specification);
+            return await query.FirstOrDefaultAsync();
         }
 
-        public async Task<TDto> GetByIdAsync<T, TDto>(object entityId, CancellationToken cancellationToken = default)
+        public async Task<TDto> GetByIdAsync<T, TDto>(Guid entityId, BaseSpecification<T> specification, CancellationToken cancellationToken = default)
         where T : BaseEntity
         where TDto : IDto
         {
@@ -77,7 +80,10 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
             }
             else
             {
-                var entity = await _dbContext.Set<T>().FindAsync(entityId);
+                IQueryable<T> query = _dbContext.Set<T>();
+                if (specification != null)
+                    query = query.Specify(specification).Where(a => a.Id == entityId);
+                var entity = await query.FirstOrDefaultAsync();
                 var dto = entity.Adapt<TDto>();
                 if (dto != null)
                 {
