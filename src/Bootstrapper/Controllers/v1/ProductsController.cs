@@ -22,23 +22,23 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
         [MustHavePermission(Permissions.Products.View)]
         public async Task<IActionResult> GetAsync(Guid id)
         {
-            var productDetails = await _service.GetProductDetailsAsync(id);
-            return Ok(productDetails);
+            var product = await _service.GetProductDetailsAsync(id);
+            return Ok(product);
         }
 
         [HttpGet]
         [MustHavePermission(Permissions.Products.ListAll)]
         public async Task<IActionResult> GetListAsync(ProductListFilter filter)
         {
-            var productDetails = await _service.GetProductsAsync(filter);
-            return Ok(productDetails);
+            var products = await _service.GetProductsAsync(filter);
+            return Ok(products);
         }
 
         [HttpGet("dapper")]
         public async Task<IActionResult> GetDapperAsync(Guid id)
         {
-            var productDetails = await _service.GetByIdUsingDapperAsync(id);
-            return Ok(productDetails);
+            var products = await _service.GetByIdUsingDapperAsync(id);
+            return Ok(products);
         }
 
         [HttpPost]
@@ -56,8 +56,8 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
         [HttpDelete]
         public async Task<IActionResult> DeleteAsync(Guid id)
         {
-            var productDetails = await _service.DeleteProductAsync(id);
-            return Ok(productDetails);
+            var productId = await _service.DeleteProductAsync(id);
+            return Ok(productId);
         }
     }
 }

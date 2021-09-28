@@ -58,11 +58,12 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
             return await query.ToListAsync(cancellationToken);
         }
         #endregion
-        public async Task<T> GetByIdAsync<T>(Guid entityId, BaseSpecification<T> specification, CancellationToken cancellationToken = default)
+        public async Task<T> GetByIdAsync<T>(Guid entityId, BaseSpecification<T> specification = null, CancellationToken cancellationToken = default)
         where T : BaseEntity
         {
             IQueryable<T> query = _dbContext.Set<T>();
-            query = query.Specify(specification);
+            if (specification != null)
+                query = query.Specify(specification);
             return await query.FirstOrDefaultAsync();
         }
 
@@ -110,7 +111,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
             return await query.ToMappedPaginatedResultAsync<T, TDto>(pageNumber, pageSize);
         }
 
-        public async Task<object> CreateAsync<T>(T entity)
+        public async Task<Guid> CreateAsync<T>(T entity)
         where T : BaseEntity
         {
             await _dbContext.Set<T>().AddAsync(entity);
@@ -134,7 +135,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
             return Task.CompletedTask;
         }
 
-        public async Task RemoveByIdAsync<T>(object entityId)
+        public async Task RemoveByIdAsync<T>(Guid entityId)
         where T : BaseEntity
         {
             var cacheKey = CacheKeys.GetCacheKey<T>(entityId);

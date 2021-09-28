@@ -23,19 +23,21 @@ namespace DN.WebApi.Application.Services.Catalog
             _localizer = localizer;
         }
 
-        public async Task<Result<object>> CreateBrandAsync(CreateBrandRequest request)
+        public async Task<Result<Guid>> CreateBrandAsync(CreateBrandRequest request)
         {
             var brandExists = await _repository.ExistsAsync<Brand>(a => a.Name == request.Name);
             if (brandExists) throw new EntityAlreadyExistsException(string.Format(_localizer["brand.alreadyexists"], request.Name));
             var brand = new Brand(request.Name, request.Description);
             var brandId = await _repository.CreateAsync<Brand>(brand);
             await _repository.SaveChangesAsync();
-            return await Result<object>.SuccessAsync(brandId);
+            return await Result<Guid>.SuccessAsync(brandId);
         }
 
-        public Task<Result<Guid>> DeleteBrandAsync(Guid id)
+        public async Task<Result<Guid>> DeleteBrandAsync(Guid id)
         {
-            throw new NotImplementedException();
+            await _repository.RemoveByIdAsync<Brand>(id);
+            await _repository.SaveChangesAsync();
+            return await Result<Guid>.SuccessAsync(id);
         }
 
         public async Task<PaginatedResult<BrandDto>> GetBrandsAsync(BrandListFilter filter)
@@ -44,9 +46,14 @@ namespace DN.WebApi.Application.Services.Catalog
             return brands;
         }
 
-        public Task<Result<object>> UpdateBrandAsync(UpdateBrandRequest request, Guid id)
+        public async Task<Result<Guid>> UpdateBrandAsync(UpdateBrandRequest request, Guid id)
         {
-            throw new NotImplementedException();
+            var brand = await _repository.GetByIdAsync<Brand>(id);
+            if (brand == null) throw new EntityNotFoundException(string.Format(_localizer["brand.notfound"], id));
+            var updatedBrand = brand.Update(request.Name, request.Description);
+            await _repository.UpdateAsync<Brand>(updatedBrand);
+            await _repository.SaveChangesAsync();
+            return await Result<Guid>.SuccessAsync(id);
         }
     }
 }

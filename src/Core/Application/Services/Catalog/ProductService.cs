@@ -27,7 +27,7 @@ namespace DN.WebApi.Application.Services.Catalog
             _file = file;
         }
 
-        public async Task<Result<object>> CreateProductAsync(CreateProductRequest request)
+        public async Task<Result<Guid>> CreateProductAsync(CreateProductRequest request)
         {
             var productExists = await _repository.ExistsAsync<Product>(a => a.Name == request.Name);
             if (productExists) throw new EntityAlreadyExistsException(string.Format(_localizer["product.alreadyexists"], request.Name));
@@ -37,27 +37,19 @@ namespace DN.WebApi.Application.Services.Catalog
             var product = new Product(request.Name, request.Description, request.Rate, request.BrandId, productImagePath);
             var productId = await _repository.CreateAsync<Product>(product);
             await _repository.SaveChangesAsync();
-            return await Result<object>.SuccessAsync(productId);
+            return await Result<Guid>.SuccessAsync(productId);
         }
 
-        public async Task<Result<object>> UpdateProductAsync(UpdateProductRequest request, Guid id)
+        public async Task<Result<Guid>> UpdateProductAsync(UpdateProductRequest request, Guid id)
         {
             var product = await _repository.GetByIdAsync<Product>(id, null);
-            if (product == null)
-            {
-                return await Result<object>.FailAsync("Product Id provided is invalid, it doesn't return a product.");
-            }
-
+            if (product == null) throw new EntityNotFoundException(string.Format(_localizer["product.notfound"], id));
             string productImagePath = string.Empty;
-            if (request.Image != null)
-            {
-                productImagePath = await _file.UploadAsync<Product>(request.Image, FileType.Image);
-            }
-
+            if (request.Image != null) productImagePath = await _file.UploadAsync<Product>(request.Image, FileType.Image);
             var updatedProduct = product.Update(request.Name, request.Description, request.Rate, productImagePath);
             await _repository.UpdateAsync<Product>(updatedProduct);
             await _repository.SaveChangesAsync();
-            return await Result<object>.SuccessAsync(updatedProduct);
+            return await Result<Guid>.SuccessAsync(id);
         }
 
         public async Task<Result<Guid>> DeleteProductAsync(Guid id)

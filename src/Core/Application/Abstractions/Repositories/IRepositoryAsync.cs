@@ -15,10 +15,10 @@ namespace DN.WebApi.Application.Abstractions.Repositories
 {
     public interface IRepositoryAsync : ITransientService
     {
-        Task<T> GetByIdAsync<T>(Guid id, BaseSpecification<T> specification, CancellationToken cancellationToken = default)
+        Task<T> GetByIdAsync<T>(Guid id, BaseSpecification<T> specification = null, CancellationToken cancellationToken = default)
         where T : BaseEntity;
 
-        Task<TDto> GetByIdAsync<T, TDto>(Guid id, BaseSpecification<T> specification, CancellationToken cancellationToken = default)
+        Task<TDto> GetByIdAsync<T, TDto>(Guid id, BaseSpecification<T> specification = null, CancellationToken cancellationToken = default)
         where T : BaseEntity
         where TDto : IDto;
 
@@ -32,7 +32,7 @@ namespace DN.WebApi.Application.Abstractions.Repositories
         where T : BaseEntity
         where TDto : IDto;
 
-        Task<object> CreateAsync<T>(T entity)
+        Task<Guid> CreateAsync<T>(T entity)
         where T : BaseEntity;
 
         Task<bool> ExistsAsync<T>(Expression<Func<T, bool>> expression, CancellationToken cancellationToken = default)
@@ -43,7 +43,7 @@ namespace DN.WebApi.Application.Abstractions.Repositories
 
         Task RemoveAsync<T>(T entity)
         where T : BaseEntity;
-        Task RemoveByIdAsync<T>(object id)
+        Task RemoveByIdAsync<T>(Guid id)
         where T : BaseEntity;
 
         #region  Dapper

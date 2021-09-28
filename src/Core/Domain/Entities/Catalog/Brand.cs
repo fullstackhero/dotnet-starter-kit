@@ -1,3 +1,4 @@
+using System;
 using DN.WebApi.Domain.Contracts;
 
 namespace DN.WebApi.Domain.Entities.Catalog
@@ -12,6 +13,13 @@ namespace DN.WebApi.Domain.Entities.Catalog
         {
             Name = name;
             Description = description;
+        }
+
+        public Brand Update(string name, string description)
+        {
+            Name = name;
+            Description = description;
+            return this;
         }
     }
 }
