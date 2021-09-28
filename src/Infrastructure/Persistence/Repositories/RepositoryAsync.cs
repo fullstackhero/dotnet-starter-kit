@@ -98,7 +98,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
             }
         }
 
-        public async Task<PaginatedResult<TDto>> GetPaginatedListAsync<T, TDto>(int pageNumber, int pageSize, string[] orderBy = null, Search search = null, Expression<Func<T, bool>> expression = null, CancellationToken cancellationToken = default)
+        public async Task<PaginatedResult<TDto>> GetPaginatedListAsync<T, TDto>(int pageNumber, int pageSize = int.MaxValue, string[] orderBy = null, Search search = null, Expression<Func<T, bool>> expression = null, CancellationToken cancellationToken = default)
         where T : BaseEntity
         where TDto : IDto
         {
