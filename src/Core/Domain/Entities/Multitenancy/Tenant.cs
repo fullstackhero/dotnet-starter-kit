@@ -24,7 +24,7 @@ namespace DN.WebApi.Domain.Entities.Multitenancy
             ValidUpto = DateTime.UtcNow.AddMonths(1);
         }
 
-        protected Tenant()
+        public Tenant()
         {
 
         }
