@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "2059afd5-1d5c-4093-a29b-c3e16a45c202",
+		"_postman_id": "28cce6f5-5d0f-4369-a2ac-bed4b815ccfc",
 		"name": "dotnet.webapi.boilerplate",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -162,7 +162,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"pageNumber\":1,\r\n    \"orderBy\":[\"rate desc\"],\r\n    \"search\":{\r\n        \"fields\":[\"rate\",\"name\",\"description\"],\r\n        \"keyword\":\"bandwidth\"\r\n    }\r\n}",
+							"raw": "{\r\n    \"pageNumber\":1,\r\n    \"orderBy\":[\"rate desc\"]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -184,13 +184,52 @@
 					"response": []
 				},
 				{
+					"name": "get-brands",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true,
+						"disabledSystemHeaders": {}
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/v1/brands/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"v1",
+								"brands",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "create-product",
 					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"name\":\"Product #4\",\r\n    \"description\":\"Something Cool!\",\r\n    \"rate\":10\r\n}",
+							"raw": "{\r\n    \"name\":\"Product #40\",\r\n    \"description\":\"Something Cool!\",\r\n    \"rate\":10,\r\n    \"brandId\":\"8d7f520a-9a0f-48f9-9a5d-ecfce6cd7d55\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -205,6 +244,33 @@
 							"path": [
 								"v1",
 								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create-brand",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"Brand #4\",\r\n    \"description\":\"Something Cool!\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/v1/brands",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"v1",
+								"brands"
 							]
 						}
 					},
@@ -240,14 +306,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}/v1/products/e897b528-1c73-41f8-b73d-02800593ead3",
+							"raw": "{{url}}/v1/products/b9e5ee3f-5f41-49d1-a519-871d48020194",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
 								"v1",
 								"products",
-								"e897b528-1c73-41f8-b73d-02800593ead3"
+								"b9e5ee3f-5f41-49d1-a519-871d48020194"
 							]
 						}
 					},
@@ -268,7 +334,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/v1/products?id=a5d1b2e5-295c-4ebd-a80e-fb6b82b1cb55",
+							"raw": "{{url}}/v1/products?id=a63c644e-bb71-40cb-950a-e3adb5f87d51",
 							"host": [
 								"{{url}}"
 							],
@@ -279,7 +345,7 @@
 							"query": [
 								{
 									"key": "id",
-									"value": "a5d1b2e5-295c-4ebd-a80e-fb6b82b1cb55"
+									"value": "a63c644e-bb71-40cb-950a-e3adb5f87d51"
 								}
 							]
 						}
