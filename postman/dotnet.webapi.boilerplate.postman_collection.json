@@ -301,6 +301,30 @@
 					"response": []
 				},
 				{
+					"name": "delete-brand",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/v1/brands?id=6b9cc0ac-16b2-4c06-bbe5-60fa9e9d7644",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"v1",
+								"brands"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "6b9cc0ac-16b2-4c06-bbe5-60fa9e9d7644"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "get-product-by-id",
 					"request": {
 						"method": "GET",
@@ -341,6 +365,39 @@
 							"path": [
 								"v1",
 								"products"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "a63c644e-bb71-40cb-950a-e3adb5f87d51"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update-brand",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"Product Test to max name length to be exactly or around 75 which is the max\",\r\n    \"description\":\"Something more Cool!\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/v1/brands?id=a63c644e-bb71-40cb-950a-e3adb5f87d51",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"v1",
+								"brands"
 							],
 							"query": [
 								{
