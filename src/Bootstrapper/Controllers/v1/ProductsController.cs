@@ -30,7 +30,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
         [MustHavePermission(Permissions.Products.ListAll)]
         public async Task<IActionResult> GetListAsync(ProductListFilter filter)
         {
-            var productDetails = await _service.GetListAsync(filter);
+            var productDetails = await _service.GetProductsAsync(filter);
             return Ok(productDetails);
         }
 

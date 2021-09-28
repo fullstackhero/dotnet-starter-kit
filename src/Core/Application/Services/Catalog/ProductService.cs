@@ -82,7 +82,7 @@ namespace DN.WebApi.Application.Services.Catalog
             return await Result<ProductDto>.SuccessAsync(mappedProduct);
         }
 
-        public async Task<PaginatedResult<ProductDto>> GetListAsync(ProductListFilter filter)
+        public async Task<PaginatedResult<ProductDto>> GetProductsAsync(ProductListFilter filter)
         {
             var products = await _repository.GetPaginatedListAsync<Product, ProductDto>(filter.PageNumber, filter.PageSize, filter.OrderBy, filter.Search);
             return products;
