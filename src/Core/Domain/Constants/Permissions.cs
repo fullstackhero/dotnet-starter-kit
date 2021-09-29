@@ -4,6 +4,24 @@ namespace DN.WebApi.Domain.Constants
 {
     public class Permissions
     {
+        [DisplayName("Identity")]
+        [Description("Identity Permissions")]
+        public static class Identity
+        {
+            public const string Register = "Permissions.Identity.Register";
+        }
+
+        [DisplayName("Roles")]
+        [Description("Roles Permissions")]
+        public static class Roles
+        {
+            public const string View = "Permissions.Roles.View";
+            public const string ListAll = "Permissions.Roles.ViewAll";
+            public const string Register = "Permissions.Roles.Register";
+            public const string Update = "Permissions.Roles.Update";
+            public const string Remove = "Permissions.Roles.Remove";
+        }
+
         [DisplayName("Products")]
         [Description("Products Permissions")]
         public static class Products

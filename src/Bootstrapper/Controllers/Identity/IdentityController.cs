@@ -1,4 +1,6 @@
 using DN.WebApi.Application.Abstractions.Services.Identity;
+using DN.WebApi.Domain.Constants;
+using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Shared.DTOs.General.Requests;
 using DN.WebApi.Shared.DTOs.Identity.Requests;
 using Microsoft.AspNetCore.Authorization;
@@ -21,6 +23,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
         }
 
         [HttpPost("register")]
+        [MustHavePermission(Permissions.Identity.Register)]
         public async Task<IActionResult> RegisterAsync(RegisterRequest request)
         {
             string baseUrl = $"{this.Request.Scheme}://{this.Request.Host.Value.ToString()}{this.Request.PathBase.Value.ToString()}";

@@ -112,7 +112,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             return await Result<List<RoleDto>>.SuccessAsync(rolesResponse);
         }
 
-        public async Task<Result<string>> SaveAsync(RoleRequest request)
+        public async Task<Result<string>> RegisterRoleAsync(RoleRequest request)
         {
             if (string.IsNullOrEmpty(request.Id))
             {

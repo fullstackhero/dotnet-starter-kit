@@ -15,7 +15,7 @@ namespace DN.WebApi.Application.Abstractions.Services.Identity
 
         Task<Result<RoleDto>> GetByIdAsync(string id);
 
-        Task<Result<string>> SaveAsync(RoleRequest request);
+        Task<Result<string>> RegisterRoleAsync(RoleRequest request);
 
         Task<Result<string>> DeleteAsync(string id);
 

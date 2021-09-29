@@ -1,4 +1,6 @@
 using DN.WebApi.Application.Abstractions.Services.Identity;
+using DN.WebApi.Domain.Constants;
+using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Shared.DTOs.Identity.Requests;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
@@ -19,6 +21,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
         }
 
         [HttpGet("all")]
+        [MustHavePermission(Permissions.Roles.ListAll)]
         public async Task<IActionResult> GetListAsync()
         {
             var roles = await _roleService.GetListAsync();
@@ -26,6 +29,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
         }
 
         [HttpGet("{id}")]
+        [MustHavePermission(Permissions.Roles.View)]
         public async Task<IActionResult> GetByIdAsync(string id)
         {
             var roles = await _roleService.GetByIdAsync(id);
@@ -40,13 +44,15 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
         }
 
         [HttpPost]
-        public async Task<IActionResult> SaveAsync(RoleRequest request)
+        [MustHavePermission(Permissions.Roles.Register)]
+        public async Task<IActionResult> RegisterRoleAsync(RoleRequest request)
         {
-            var response = await _roleService.SaveAsync(request);
+            var response = await _roleService.RegisterRoleAsync(request);
             return Ok(response);
         }
 
         [HttpDelete("{id}")]
+        [MustHavePermission(Permissions.Roles.Remove)]
         public async Task<IActionResult> DeleteAsync(string id)
         {
             var response = await _roleService.DeleteAsync(id);
