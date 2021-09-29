@@ -1,7 +1,6 @@
-using System.Threading.Tasks;
-using DN.WebApi.Domain.Contracts;
 using DN.WebApi.Domain.Enums;
 using DN.WebApi.Shared.DTOs.General.Requests;
+using System.Threading.Tasks;
 
 namespace DN.WebApi.Application.Abstractions.Services.General
 {

@@ -4,9 +4,9 @@ using DN.WebApi.Application.Constants;
 using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Domain.Constants;
-using DN.WebApi.Domain.Entities.Multitenancy;
 using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Shared.DTOs.Multitenancy;
+using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
@@ -16,7 +16,6 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Text;
-using Mapster;
 
 namespace DN.WebApi.Infrastructure.Services.General
 {

@@ -4,7 +4,6 @@ using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Shared.DTOs.Catalog;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace DN.WebApi.Bootstrapper.Controllers.v1
@@ -28,7 +27,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
 
         [HttpGet]
         [MustHavePermission(Permissions.Products.ListAll)]
-        public async Task<IActionResult> GetListAsync([FromQuery]ProductListFilter filter)
+        public async Task<IActionResult> GetListAsync([FromQuery] ProductListFilter filter)
         {
             var products = await _service.GetProductsAsync(filter);
             return Ok(products);

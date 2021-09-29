@@ -1,10 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
 using DN.WebApi.Application.Extensions;
 using DN.WebApi.Domain.Contracts;
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
 
 namespace DN.WebApi.Application.Specifications
 {

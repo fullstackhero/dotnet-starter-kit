@@ -1,12 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using DN.WebApi.Application.Abstractions.Services.General;
 using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DN.WebApi.Infrastructure.Services.General
 {

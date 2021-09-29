@@ -1,6 +1,5 @@
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Shared.DTOs.Catalog;
-using DN.WebApi.Shared.DTOs.Filters;
 using System;
 using System.Threading.Tasks;
 

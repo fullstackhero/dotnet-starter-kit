@@ -1,4 +1,5 @@
 ﻿using DN.WebApi.Application.Abstractions.Services.General;
+using DN.WebApi.Infrastructure.Extensions;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Localization;
 using Newtonsoft.Json;
@@ -7,7 +8,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Threading;
-using DN.WebApi.Infrastructure.Extensions;
 
 namespace DN.WebApi.Infrastructure.Localizer
 {

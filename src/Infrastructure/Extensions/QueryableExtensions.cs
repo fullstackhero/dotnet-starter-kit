@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using DN.WebApi.Application.Specifications;
 using DN.WebApi.Domain.Contracts;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace DN.WebApi.Infrastructure.Extensions
 {

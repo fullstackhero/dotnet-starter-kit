@@ -1,11 +1,9 @@
-using System;
+using DN.WebApi.Domain.Constants;
+using DN.WebApi.Shared.DTOs.Identity.Responses;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
-using DN.WebApi.Domain.Constants;
-using DN.WebApi.Shared.DTOs.Identity.Responses;
 
 namespace DN.WebApi.Infrastructure.Extensions
 {

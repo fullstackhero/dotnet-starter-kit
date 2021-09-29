@@ -1,10 +1,10 @@
-using System;
-using System.Threading.Tasks;
 using DN.WebApi.Application.Abstractions.Services.Catalog;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Shared.DTOs.Catalog;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Threading.Tasks;
 
 namespace DN.WebApi.Bootstrapper.Controllers.v1
 {
@@ -19,7 +19,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
 
         [HttpGet]
         [MustHavePermission(Permissions.Brands.ListAll)]
-        public async Task<IActionResult> GetListAsync([FromQuery]BrandListFilter filter)
+        public async Task<IActionResult> GetListAsync([FromQuery] BrandListFilter filter)
         {
             var brands = await _service.GetBrandsAsync(filter);
             return Ok(brands);

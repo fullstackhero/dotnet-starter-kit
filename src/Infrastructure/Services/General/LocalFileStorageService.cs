@@ -1,15 +1,12 @@
-using System;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using DN.WebApi.Application.Abstractions.Services.General;
-using DN.WebApi.Domain.Contracts;
 using DN.WebApi.Domain.Enums;
 using DN.WebApi.Infrastructure.Extensions;
 using DN.WebApi.Shared.DTOs.General.Requests;
-using Microsoft.AspNetCore.Http;
+using System;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace DN.WebApi.Infrastructure.Services.General
 {

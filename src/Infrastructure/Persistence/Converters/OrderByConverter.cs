@@ -1,6 +1,6 @@
+using DN.WebApi.Shared.DTOs;
 using System;
 using System.Linq;
-using DN.WebApi.Shared.DTOs;
 namespace DN.WebApi.Infrastructure.Persistence.Converters
 {
     public class OrderByConverter : IMapsterConverter<string, string[]>

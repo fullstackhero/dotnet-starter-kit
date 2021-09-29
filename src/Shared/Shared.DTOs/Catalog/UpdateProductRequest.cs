@@ -1,5 +1,5 @@
-using System;
 using DN.WebApi.Shared.DTOs.General.Requests;
+using System;
 
 namespace DN.WebApi.Shared.DTOs.Catalog
 {

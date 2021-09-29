@@ -1,7 +1,6 @@
 using DN.WebApi.Application.Abstractions;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 
 namespace DN.WebApi.Application.Extensions
 {
