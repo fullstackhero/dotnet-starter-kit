@@ -101,12 +101,13 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}/roles",
+							"raw": "{{url}}/roles/all",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
-								"roles"
+								"roles",
+								"all"
 							]
 						}
 					},
