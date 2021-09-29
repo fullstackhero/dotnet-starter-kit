@@ -27,7 +27,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
 
         [HttpGet]
         [MustHavePermission(Permissions.Products.ListAll)]
-        public async Task<IActionResult> GetListAsync([FromQuery] ProductListFilter filter)
+        public async Task<IActionResult> GetListAsync(ProductListFilter filter)
         {
             var products = await _service.GetProductsAsync(filter);
             return Ok(products);
