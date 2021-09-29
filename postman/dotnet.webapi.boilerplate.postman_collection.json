@@ -163,7 +163,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"pageNumber\":1,\r\n    \"orderBy\":[\"rate desc\"]\r\n}",
+							"raw": "{\r\n    \"pageNumber\":1,\r\n    \"orderBy\":[\"name\"],\r\n    \"search\":\r\n    {\r\n        \"fields\": [ \"name\" ],\r\n        \"keyword\": \"1\"\r\n    }\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
