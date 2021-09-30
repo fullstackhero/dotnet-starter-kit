@@ -17,7 +17,7 @@ This repository contains the WebApi Project of `fullstackhero`.
 
 ### 0.0.1 RC is available now!
 
-This is the first pre-release version of the 'fullstackhero .NET WebAPI Boilerplate' package. Newer versions will be available on a weekly basis with newer updates and patches. [Read the getting-started guide for more.](https://fullstackhero.net/dotnet-webapi-boilerplate/general/getting-started/)
+This is the first pre-release version of the `fullstackhero .NET WebAPI Boilerplate` package. Newer versions will be available on a weekly basis with newer updates and patches. [Read the getting-started guide for more.](https://fullstackhero.net/dotnet-webapi-boilerplate/general/getting-started/)
 
 The Release Version is expected to be out by Novemeber, 2021 as soon as .NET 6 LTS is launched by Microsoft. Preview versions of this project is available for Initial Developer Testing.
 
