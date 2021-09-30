@@ -15,9 +15,19 @@ This repository contains the WebApi Project of `fullstackhero`.
 
 ## Release Planning
 
-Expected to be released by Novemeber, 2021 as soon as .NET 6 LTS is launched by Microsoft. Preview versions of this project will be available by October 15, 2021 for Initial Developer Testing.
+### 0.0.1 RC is available now!
 
-As of August 30, 2021, the .NET WebApi Boilerplate project has made a considerable progress.
+This is the first pre-release version of the `fullstackhero .NET WebAPI Boilerplate` package. Newer versions will be available on a weekly basis with newer updates and patches. [Read the getting-started guide for more.](https://fullstackhero.net/dotnet-webapi-boilerplate/general/getting-started/)
+
+The Release Version is expected to be out by Novemeber, 2021 as soon as .NET 6 LTS is launched by Microsoft. Preview versions of this project is available for Initial Developer Testing.
+
+## Important Links & Documentations
+
+[Documentation] Overview - [Read](https://fullstackhero.net/dotnet-webapi-boilerplate/general/overview/)
+
+[Documentation] Getting Started - [Read](https://fullstackhero.net/dotnet-webapi-boilerplate/general/getting-started/)
+
+[Documentation] Development Environment - [Learn about setting up the DEV environment](https://fullstackhero.net/dotnet-webapi-boilerplate/general/development-environment/)
 
 Track Progress - [Release 1.0 Milestones](https://github.com/fullstackhero/dotnet-webapi-boilerplate/milestone/1)
 
@@ -49,13 +59,6 @@ Join our Discord - [fullstackhero @ Discord](https://discord.gg/gdgHRt4mMw)
 - [x] File Storage Service
 - [ ] Test Projects
 - [ ] & Much More
-
-## Developer's Guide
-
-## Prerequisites
-1. Visual Code v1.59.xx or higher / Visual Studio 2022 Preview (17.0.0 Preview 4.0) or Higher.
-2. dotnet-sdk-6.0.100-rc.1.21458.32 or higher.
-3. PostgreSQL / MSSQL / MySQL Database Server instances.
 
 ## Community
 
