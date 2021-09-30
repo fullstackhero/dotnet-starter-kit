@@ -16,8 +16,8 @@ namespace DN.WebApi.Domain.Entities.Catalog
 
         public Brand Update(string name, string description)
         {
-            Name = name;
-            Description = description;
+            if (!Name.Equals(name)) Name = name;
+            if (!Description.Equals(description)) Description = description;
             return this;
         }
     }

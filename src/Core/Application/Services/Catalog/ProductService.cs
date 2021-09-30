@@ -46,7 +46,7 @@ namespace DN.WebApi.Application.Services.Catalog
             if (product == null) throw new EntityNotFoundException(string.Format(_localizer["product.notfound"], id));
             string productImagePath = string.Empty;
             if (request.Image != null) productImagePath = await _file.UploadAsync<Product>(request.Image, FileType.Image);
-            var updatedProduct = product.Update(request.Name, request.Description, request.Rate, productImagePath);
+            var updatedProduct = product.Update(request.Name, request.Description, request.Rate, request.BrandId, productImagePath);
             await _repository.UpdateAsync<Product>(updatedProduct);
             await _repository.SaveChangesAsync();
             return await Result<Guid>.SuccessAsync(id);
