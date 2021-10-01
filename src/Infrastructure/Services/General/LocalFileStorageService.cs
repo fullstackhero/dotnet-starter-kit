@@ -53,6 +53,7 @@ namespace DN.WebApi.Infrastructure.Services.General
                 }
 
                 string fileName = request.Name.Trim('"');
+                fileName = RemoveSpecialCharacters(fileName);
                 fileName = RegexExtensions.ReplaceWhitespace(fileName, "-");
                 fileName = fileName + request.Extension.Trim();
                 string fullPath = Path.Combine(pathToSave, fileName);
@@ -72,6 +73,11 @@ namespace DN.WebApi.Infrastructure.Services.General
             {
                 return Task.FromResult(string.Empty);
             }
+        }
+
+        public static string RemoveSpecialCharacters(string str)
+        {
+            return Regex.Replace(str, "[^a-zA-Z0-9_.]+", string.Empty, RegexOptions.Compiled);
         }
 
         private static string numberPattern = "-{0}";
