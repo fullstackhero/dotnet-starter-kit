@@ -41,7 +41,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             services.AddHangfireServer();
             services.AddRouting(options => options.LowercaseUrls = true);
             services.AddMiddlewares(config);
-            services.AddSwaggerDocumentation();
+            services.AddSwaggerDocumentation(config);
             services.AddCorsPolicy();
             services.AddApiVersioning(config =>
            {
