@@ -54,7 +54,7 @@ namespace Migrators.MSSQL.Migrations.Application
 
                     b.HasKey("Id");
 
-                    b.ToTable("Brand");
+                    b.ToTable("Brands");
                 });
 
             modelBuilder.Entity("DN.WebApi.Domain.Entities.Catalog.Product", b =>

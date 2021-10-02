@@ -1,10 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
-using System;
 
 namespace Migrators.MySQL.Migrations.Application
 {
-    public partial class Initial : Migration
+    public partial class initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -41,7 +41,7 @@ namespace Migrators.MySQL.Migrations.Application
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Products",
+                name: "Brands",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -49,7 +49,6 @@ namespace Migrators.MySQL.Migrations.Application
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Description = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Rate = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
                     TenantKey = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     CreatedBy = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -61,7 +60,7 @@ namespace Migrators.MySQL.Migrations.Application
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Products", x => x.Id);
+                    table.PrimaryKey("PK_Brands", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -134,6 +133,40 @@ namespace Migrators.MySQL.Migrations.Application
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Products",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Name = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Description = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Rate = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    TenantKey = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ImagePath = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    BrandId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    CreatedBy = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    CreatedOn = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    LastModifiedBy = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    LastModifiedOn = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    DeletedOn = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    DeletedBy = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Products", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Products_Brands_BrandId",
+                        column: x => x.BrandId,
+                        principalTable: "Brands",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -280,6 +313,11 @@ namespace Migrators.MySQL.Migrations.Application
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Products_BrandId",
+                table: "Products",
+                column: "BrandId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_RoleClaims_RoleId",
                 schema: "Identity",
                 table: "RoleClaims",
@@ -351,6 +389,9 @@ namespace Migrators.MySQL.Migrations.Application
             migrationBuilder.DropTable(
                 name: "UserTokens",
                 schema: "Identity");
+
+            migrationBuilder.DropTable(
+                name: "Brands");
 
             migrationBuilder.DropTable(
                 name: "Roles",

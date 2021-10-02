@@ -19,10 +19,51 @@ namespace Migrators.PostgreSQL.Migrations.Application
                 .HasAnnotation("ProductVersion", "5.0.10")
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
+            modelBuilder.Entity("DN.WebApi.Domain.Entities.Catalog.Brand", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("LastModifiedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TenantKey")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Brands");
+                });
+
             modelBuilder.Entity("DN.WebApi.Domain.Entities.Catalog.Product", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BrandId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("CreatedBy")
@@ -59,6 +100,8 @@ namespace Migrators.PostgreSQL.Migrations.Application
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BrandId");
 
                     b.ToTable("Products");
                 });
@@ -323,6 +366,17 @@ namespace Migrators.PostgreSQL.Migrations.Application
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("UserTokens", "Identity");
+                });
+
+            modelBuilder.Entity("DN.WebApi.Domain.Entities.Catalog.Product", b =>
+                {
+                    b.HasOne("DN.WebApi.Domain.Entities.Catalog.Brand", "Brand")
+                        .WithMany()
+                        .HasForeignKey("BrandId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Brand");
                 });
 
             modelBuilder.Entity("DN.WebApi.Infrastructure.Identity.Models.ApplicationRoleClaim", b =>

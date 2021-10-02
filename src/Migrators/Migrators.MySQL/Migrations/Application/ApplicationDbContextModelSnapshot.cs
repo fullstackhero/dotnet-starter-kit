@@ -17,10 +17,51 @@ namespace Migrators.MySQL.Migrations.Application
                 .HasAnnotation("Relational:MaxIdentifierLength", 64)
                 .HasAnnotation("ProductVersion", "5.0.10");
 
+            modelBuilder.Entity("DN.WebApi.Domain.Entities.Catalog.Brand", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("longtext");
+
+                    b.Property<Guid>("LastModifiedBy")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("TenantKey")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Brands");
+                });
+
             modelBuilder.Entity("DN.WebApi.Domain.Entities.Catalog.Product", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("BrandId")
                         .HasColumnType("char(36)");
 
                     b.Property<Guid>("CreatedBy")
@@ -57,6 +98,8 @@ namespace Migrators.MySQL.Migrations.Application
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BrandId");
 
                     b.ToTable("Products");
                 });
@@ -319,6 +362,17 @@ namespace Migrators.MySQL.Migrations.Application
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("UserTokens", "Identity");
+                });
+
+            modelBuilder.Entity("DN.WebApi.Domain.Entities.Catalog.Product", b =>
+                {
+                    b.HasOne("DN.WebApi.Domain.Entities.Catalog.Brand", "Brand")
+                        .WithMany()
+                        .HasForeignKey("BrandId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Brand");
                 });
 
             modelBuilder.Entity("DN.WebApi.Infrastructure.Identity.Models.ApplicationRoleClaim", b =>
