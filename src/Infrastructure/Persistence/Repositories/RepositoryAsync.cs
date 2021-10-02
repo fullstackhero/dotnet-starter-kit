@@ -30,21 +30,17 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
     public class RepositoryAsync : IRepositoryAsync
     {
         private readonly IStringLocalizer<RepositoryAsync> _localizer;
-
-        // private readonly IMapper _mapper;
         private readonly ICacheService _cache;
         private readonly ApplicationDbContext _dbContext;
         private readonly ILogger<RepositoryAsync> _logger;
         private ISerializerService _serializer;
 
-        public RepositoryAsync(ApplicationDbContext dbContext, ISerializerService serializer, ICacheService cache, ILogger<RepositoryAsync> logger, /*IMapper mapper, */IStringLocalizer<RepositoryAsync> localizer)
+        public RepositoryAsync(ApplicationDbContext dbContext, ISerializerService serializer, ICacheService cache, ILogger<RepositoryAsync> logger, IStringLocalizer<RepositoryAsync> localizer)
         {
             _dbContext = dbContext;
             _serializer = serializer;
             _cache = cache;
             _logger = logger;
-
-            // _mapper = mapper;
             _localizer = localizer;
         }
 
