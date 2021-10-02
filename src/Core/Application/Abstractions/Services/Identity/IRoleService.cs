@@ -11,7 +11,7 @@ namespace DN.WebApi.Application.Abstractions.Services.Identity
     {
         Task<Result<List<RoleDto>>> GetListAsync();
 
-        Task<Result<List<RoleDto>>> GetPermissionsAsync();
+        Task<Result<List<PermissionDto>>> GetPermissionsAsync(string id);
 
         Task<int> GetCountAsync();
 
@@ -22,9 +22,5 @@ namespace DN.WebApi.Application.Abstractions.Services.Identity
         Task<Result<string>> DeleteAsync(string id);
 
         Task<Result<List<RoleDto>>> GetUserRolesAsync(string userId);
-
-        Task<Result<PermissionResponse>> GetRolePermissionsAsync(string id);
-
-        Task<Result<List<RoleClaimResponse>>> GetAllPermissionsAsync();
     }
 }

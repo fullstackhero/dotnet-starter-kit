@@ -37,9 +37,9 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
         }
 
         [HttpGet("{id}/permissions")]
-        public async Task<IActionResult> GetRolePermissionsAsync(string id)
+        public async Task<IActionResult> GetPermissionsAsync(string id)
         {
-            var roles = await _roleService.GetPermissionsAsync();
+            var roles = await _roleService.GetPermissionsAsync(id);
             return Ok(roles);
         }
 
