@@ -11,6 +11,8 @@ namespace DN.WebApi.Application.Abstractions.Services.Identity
     {
         Task<Result<List<RoleDto>>> GetListAsync();
 
+        Task<Result<List<RoleDto>>> GetPermissionsAsync();
+
         Task<int> GetCountAsync();
 
         Task<Result<RoleDto>> GetByIdAsync(string id);

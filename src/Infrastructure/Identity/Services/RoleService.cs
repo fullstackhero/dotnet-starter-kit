@@ -4,7 +4,7 @@ using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Persistence;
-using DN.WebApi.Infrastructure.Utilties;
+using DN.WebApi.Infrastructure.Utilities;
 using DN.WebApi.Shared.DTOs.Identity;
 using DN.WebApi.Shared.DTOs.Identity.Requests;
 using DN.WebApi.Shared.DTOs.Identity.Responses;
@@ -96,6 +96,11 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             var roles = await _roleManager.Roles.ToListAsync();
             var rolesResponse = roles.Adapt<List<RoleDto>>();
             return await Result<List<RoleDto>>.SuccessAsync(rolesResponse);
+        }
+
+        public Task<Result<List<RoleDto>>> GetPermissionsAsync()
+        {
+            throw new System.NotImplementedException();
         }
 
         public Task<Result<PermissionResponse>> GetRolePermissionsAsync(string id)

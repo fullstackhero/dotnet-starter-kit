@@ -2,7 +2,7 @@ using DN.WebApi.Application.Settings;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Domain.Entities.Multitenancy;
 using DN.WebApi.Infrastructure.Identity.Models;
-using DN.WebApi.Infrastructure.Utilties;
+using DN.WebApi.Infrastructure.Utilities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
