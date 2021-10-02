@@ -95,7 +95,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
 
         public async Task<Result<List<PermissionDto>>> GetPermissionsAsync(string id)
         {
-            var permissions = await _context.RoleClaims.Where(a => a.RoleId == id).ToListAsync();
+            var permissions = await _context.RoleClaims.Where(a => a.RoleId == id && a.ClaimType == "Permission").ToListAsync();
             var permissionResponse = permissions.Adapt<List<PermissionDto>>();
             return await Result<List<PermissionDto>>.SuccessAsync(permissionResponse);
         }
