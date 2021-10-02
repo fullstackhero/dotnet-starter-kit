@@ -21,6 +21,25 @@ This is the first pre-release version of the `fullstackhero .NET WebAPI Boilerpl
 
 The Release Version is expected to be out by Novemeber, 2021 as soon as .NET 6 LTS is launched by Microsoft. Preview versions of this project is available for Initial Developer Testing.
 
+## Quick Start Guide
+
+Open up your Command Prompt / Powershell and run the following command to install the solution template.
+
+```powershell
+dotnet new --install FullStackHero.WebAPI.Boilerplate
+```
+This would install the `fullstackhero .NET WebAPI Boilerplate` template globally on your machine. With that done, let's see how you can start generating complete .NET WebAPI Solutions seamlessly.
+
+Simply navigate to a new directory (wherever you want to place your new solution at), and open up Command Prompt at the opened directory.
+
+Run the following command. Note that, in this demonstration I am naming my new solution as `FSH.Starter`.
+
+```powershell
+dotnet new fsh-api -o FSH.Starter
+```
+
+For further steps and details, [Read the Getting Started Guide](https://fullstackhero.net/dotnet-webapi-boilerplate/general/getting-started/)
+
 ## Important Links & Documentations
 
 [Documentation] Overview - [Read](https://fullstackhero.net/dotnet-webapi-boilerplate/general/overview/)
