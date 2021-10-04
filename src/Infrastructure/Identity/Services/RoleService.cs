@@ -7,7 +7,6 @@ using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Infrastructure.Utilities;
 using DN.WebApi.Shared.DTOs.Identity;
 using DN.WebApi.Shared.DTOs.Identity.Requests;
-using DN.WebApi.Shared.DTOs.Identity.Responses;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;

@@ -1,7 +1,6 @@
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Shared.DTOs.Identity;
 using DN.WebApi.Shared.DTOs.Identity.Requests;
-using DN.WebApi.Shared.DTOs.Identity.Responses;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
