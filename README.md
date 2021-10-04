@@ -42,11 +42,11 @@ For further steps and details, [Read the Getting Started Guide](https://fullstac
 
 ## Important Links & Documentations
 
-[Documentation] Overview - [Read](https://fullstackhero.net/dotnet-webapi-boilerplate/general/overview/)
+Overview - [Read](https://fullstackhero.net/dotnet-webapi-boilerplate/general/overview/)
 
-[Documentation] Getting Started - [Read](https://fullstackhero.net/dotnet-webapi-boilerplate/general/getting-started/)
+Getting Started - [Read](https://fullstackhero.net/dotnet-webapi-boilerplate/general/getting-started/)
 
-[Documentation] Development Environment - [Learn about setting up the DEV environment](https://fullstackhero.net/dotnet-webapi-boilerplate/general/development-environment/)
+Development Environment - [Learn about setting up the DEV environment](https://fullstackhero.net/dotnet-webapi-boilerplate/general/development-environment/)
 
 Track Progress - [Release 1.0 Milestones](https://github.com/fullstackhero/dotnet-webapi-boilerplate/milestone/1)
 
