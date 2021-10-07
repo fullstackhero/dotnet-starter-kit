@@ -68,11 +68,6 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
         where TDto : IDto
         {
             var cacheKey = CacheKeys.GetCacheKey<T>(entityId);
-            if (specification != null && specification.Includes?.Count > 0)
-            {
-                await _cache.RemoveAsync(cacheKey);
-            }
-
             byte[] cachedData = !string.IsNullOrWhiteSpace(cacheKey) ? await _cache.GetAsync(cacheKey, cancellationToken) : null;
             if (cachedData != null)
             {
@@ -89,9 +84,13 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
                 var dto = entity.Adapt<TDto>();
                 if (dto != null)
                 {
-                    var options = new DistributedCacheEntryOptions();
-                    byte[] serializedData = Encoding.Default.GetBytes(_serializer.Serialize(dto));
-                    await _cache.SetAsync(cacheKey, serializedData, options, cancellationToken);
+                    if ((specification != null && specification.Includes?.Count == 0) || specification == null)
+                    {
+                        var options = new DistributedCacheEntryOptions();
+                        byte[] serializedData = Encoding.Default.GetBytes(_serializer.Serialize(dto));
+                        await _cache.SetAsync(cacheKey, serializedData, options, cancellationToken);
+                    }
+
                     return dto;
                 }
 
