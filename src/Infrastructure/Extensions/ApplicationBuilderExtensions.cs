@@ -40,7 +40,7 @@ namespace DN.WebApi.Infrastructure.Extensions
                 endpoints.MapControllers().RequireAuthorization();
                 endpoints.MapHealthChecks("/health").RequireAuthorization();
             });
-            app.UseSwaggerDocumentation(config);
+            app.UseSwaggerDocumentation();
             return app;
         }
     }

@@ -54,7 +54,6 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             }
 
             services.SetupDatabases<T, TA>(multitenancySettings);
-            _logger.Information($"For documentations and guides, please visit fullstackhero.net");
             return services;
         }
 

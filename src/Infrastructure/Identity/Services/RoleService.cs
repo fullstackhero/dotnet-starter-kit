@@ -74,6 +74,11 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             }
         }
 
+        public Task<Result<List<RoleClaimResponse>>> GetAllPermissionsAsync()
+        {
+            throw new System.NotImplementedException();
+        }
+
         public async Task<Result<RoleDto>> GetByIdAsync(string id)
         {
             var roles = await _roleManager.Roles.SingleOrDefaultAsync(x => x.Id == id);
@@ -93,11 +98,14 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             return await Result<List<RoleDto>>.SuccessAsync(rolesResponse);
         }
 
-        public async Task<Result<List<PermissionDto>>> GetPermissionsAsync(string id)
+        public Task<Result<List<RoleDto>>> GetPermissionsAsync()
         {
-            var permissions = await _context.RoleClaims.Where(a => a.RoleId == id && a.ClaimType == "Permission").ToListAsync();
-            var permissionResponse = permissions.Adapt<List<PermissionDto>>();
-            return await Result<List<PermissionDto>>.SuccessAsync(permissionResponse);
+            throw new System.NotImplementedException();
+        }
+
+        public Task<Result<PermissionResponse>> GetRolePermissionsAsync(string id)
+        {
+            return default;
         }
 
         public async Task<Result<List<RoleDto>>> GetUserRolesAsync(string userId)
