@@ -68,10 +68,15 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
         where TDto : IDto
         {
             var cacheKey = CacheKeys.GetCacheKey<T>(entityId);
+            if (specification != null && specification.Includes?.Count > 0)
+            {
+                await _cache.RemoveAsync(cacheKey);
+            }
+
             byte[] cachedData = !string.IsNullOrWhiteSpace(cacheKey) ? await _cache.GetAsync(cacheKey, cancellationToken) : null;
             if (cachedData != null)
             {
-                await _cache.RefreshAsync(cacheKey);
+
                 var entity = _serializer.Deserialize<TDto>(Encoding.Default.GetString(cachedData));
                 return entity;
             }
@@ -125,20 +130,18 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
         public Task RemoveAsync<T>(T entity)
         where T : BaseEntity
         {
-            var cacheKey = CacheKeys.GetCacheKey<T>(entity.Id);
             _dbContext.Set<T>().Remove(entity);
-            _cache.Remove(cacheKey);
+            _cache.Remove(CacheKeys.GetCacheKey<T>(entity.Id));
             return Task.CompletedTask;
         }
 
         public async Task RemoveByIdAsync<T>(Guid entityId)
         where T : BaseEntity
         {
-            var cacheKey = CacheKeys.GetCacheKey<T>(entityId);
             var entity = await _dbContext.Set<T>().FindAsync(entityId);
             if (entity == null) throw new EntityNotFoundException(string.Format(_localizer["entity.notfound"], typeof(T).Name, entityId));
             _dbContext.Set<T>().Remove(entity);
-            _cache.Remove(cacheKey);
+            _cache.Remove(CacheKeys.GetCacheKey<T>(entityId));
         }
 
         public Task UpdateAsync<T>(T entity)
@@ -146,6 +149,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
         {
             T exist = _dbContext.Set<T>().Find(entity.Id);
             _dbContext.Entry(exist).CurrentValues.SetValues(entity);
+            _cache.Remove(CacheKeys.GetCacheKey<T>(entity.Id));
             return Task.CompletedTask;
         }
 
