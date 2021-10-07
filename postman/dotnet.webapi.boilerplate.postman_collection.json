@@ -139,6 +139,25 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "get-permissions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/roles/874c889e-aff7-4c39-999b-83c6e08f726b/permissions",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"roles",
+								"874c889e-aff7-4c39-999b-83c6e08f726b",
+								"permissions"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},

@@ -7,3 +7,4 @@
 - Migration Refresh
 - Security Patches
 - Image Upload Fix
+- Option to Disable Swagger
