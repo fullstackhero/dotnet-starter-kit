@@ -76,7 +76,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
             byte[] cachedData = !string.IsNullOrWhiteSpace(cacheKey) ? await _cache.GetAsync(cacheKey, cancellationToken) : null;
             if (cachedData != null)
             {
-
+                await _cache.RefreshAsync(cacheKey);
                 var entity = _serializer.Deserialize<TDto>(Encoding.Default.GetString(cachedData));
                 return entity;
             }
