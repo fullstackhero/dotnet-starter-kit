@@ -19,6 +19,7 @@ namespace DN.WebApi.Infrastructure.Middlewares
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
+
             try
             {
                 await next(context);
@@ -26,14 +27,15 @@ namespace DN.WebApi.Infrastructure.Middlewares
             finally
             {
                 var user = !string.IsNullOrEmpty(_currentUser.GetUserEmail()) ? _currentUser.GetUserEmail() : "Anonymous";
-                _logger.LogInformation($"HTTP Request Information:{Environment.NewLine}" +
-                                        $"Request By: {user}{Environment.NewLine}" +
-                                        $"Tenant: {_currentUser.GetTenantKey() ?? string.Empty}{Environment.NewLine}" +
-                                        $"Schema: {context.Request.Scheme}{Environment.NewLine}" +
-                                        $"Host: {context.Request.Host}{Environment.NewLine}" +
-                                        $"Path: {context.Request.Path}{Environment.NewLine}" +
-                                        $"Query String: {context.Request.QueryString}{Environment.NewLine}" +
-                                        $"Response Status Code: {context.Response?.StatusCode}");
+                _logger.LogInformation($"{Environment.NewLine}HTTP Request Information:{Environment.NewLine}" +
+                                       $"  Request By: {user}{Environment.NewLine}" +
+                                       $"  Tenant: {_currentUser.GetTenantKey() ?? string.Empty}{Environment.NewLine}" +
+                                       $"  RemoteIP: {context.Connection.RemoteIpAddress}{Environment.NewLine}" +
+                                       $"  Schema: {context.Request.Scheme}{Environment.NewLine}" +
+                                       $"  Host: {context.Request.Host}{Environment.NewLine}" +
+                                       $"  Path: {context.Request.Path}{Environment.NewLine}" +
+                                       $"  Query String: {context.Request.QueryString}{Environment.NewLine}" +
+                                       $"  Response Status Code: {context.Response?.StatusCode}{Environment.NewLine}");
             }
         }
     }
