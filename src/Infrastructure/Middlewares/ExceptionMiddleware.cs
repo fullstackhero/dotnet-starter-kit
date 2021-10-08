@@ -48,7 +48,6 @@ namespace DN.WebApi.Infrastructure.Middlewares
                 }
 
                 var user = !string.IsNullOrEmpty(_currentUser.GetUserEmail()) ? _currentUser.GetUserEmail() : "Anonymous";
-                
                 _logger.LogError(
                 $"{exception.Message}{Environment.NewLine}HTTP Request Information:{Environment.NewLine}" +
                     $"  Request By: {user}{Environment.NewLine}" +
@@ -58,7 +57,8 @@ namespace DN.WebApi.Infrastructure.Middlewares
                     $"  Host: {context.Request.Host}{Environment.NewLine}" +
                     $"  Path: {context.Request.Path}{Environment.NewLine}" +
                     $"  Query String: {context.Request.QueryString}{Environment.NewLine}" +
-                    //$"  Request Body: {context.Request.Body}{Environment.NewLine}" +
+
+                    // $"  Request Body: {context.Request.Body}{Environment.NewLine}" +
                     $"  Response Status Code: {context.Response?.StatusCode}{Environment.NewLine}");
 
                 // TODO: Being able to troubleshoot exceptions almost always requires understanding what
