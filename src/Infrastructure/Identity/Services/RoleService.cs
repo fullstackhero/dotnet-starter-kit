@@ -178,7 +178,9 @@ namespace DN.WebApi.Infrastructure.Identity.Services
                     {
                         return await Result<string>.FailAsync(string.Format(
                             _localizer["Not allowed to deselect {0} or {1} or {2} for this Role."],
-                            PermissionConstants.Roles.View, PermissionConstants.Roles.UpdatePermissions, PermissionConstants.Roles.UpdatePermissions));
+                            PermissionConstants.Roles.View,
+                            PermissionConstants.Roles.UpdatePermissions,
+                            PermissionConstants.Roles.UpdatePermissions));
                     }
                 }
 
@@ -187,9 +189,10 @@ namespace DN.WebApi.Infrastructure.Identity.Services
                 {
                     await _roleManager.RemoveClaimAsync(role, claim);
                 }
+
                 foreach (var claim in selectedClaims)
                 {
-                    var addResult = await _roleManager.AddPermissionClaim(role, claim.Value);
+                    var addResult = await _roleManager.AddPermissionClaimAsync(role, claim.Value);
                     if (!addResult.Succeeded)
                     {
                         errors.AddRange(addResult.Errors.Select(e => _localizer[e.Description].ToString()));
@@ -201,17 +204,17 @@ namespace DN.WebApi.Infrastructure.Identity.Services
                 {
                     foreach (var claim in selectedClaims)
                     {
-                        var addedClaim = addedClaims.Data.SingleOrDefault(x => x.Type == claim.Type && x.Value == claim.Value);
-                        if (addedClaim != null)
-                        {
-                            claim.Id = addedClaim.Id;
-                            claim.RoleId = addedClaim.RoleId;
-                            var saveResult = await _roleClaimService.SaveAsync(claim);
-                            if (!saveResult.Succeeded)
-                            {
-                                errors.AddRange(saveResult.Messages);
-                            }
-                        }
+                        // var addedClaim = addedClaims.Data.SingleOrDefault(x => x.Type == claim.Type && x.Value == claim.Value);
+                        // if (addedClaim != null)
+                        // {
+                        //     claim.Id = addedClaim.Id;
+                        //     claim.RoleId = addedClaim.RoleId;
+                        //     var saveResult = await _roleClaimService.SaveAsync(claim);
+                        //     if (!saveResult.Succeeded)
+                        //     {
+                        //         errors.AddRange(saveResult.Messages);
+                        //     }
+                        // }
                     }
                 }
                 else

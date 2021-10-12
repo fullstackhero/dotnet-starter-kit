@@ -4,15 +4,17 @@ using System.Linq;
 using System.Threading.Tasks;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Wrapper;
+using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Shared.DTOs.Identity.Requests;
 using DN.WebApi.Shared.DTOs.Identity.Responses;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 
 namespace DN.WebApi.Infrastructure.Identity.Services
 {
-     public class RoleClaimService : IRoleClaimService
+    public class RoleClaimService : IRoleClaimService
     {
         private readonly IStringLocalizer<RoleClaimService> _localizer;
         private readonly ICurrentUser _currentUserService;
@@ -31,7 +33,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
         public async Task<Result<List<RoleClaimResponse>>> GetAllAsync()
         {
             var roleClaims = await _db.RoleClaims.ToListAsync();
-            var roleClaimsResponse = _mapper.Map<List<RoleClaimResponse>>(roleClaims);
+            var roleClaimsResponse = roleClaims.Adapt<List<RoleClaimResponse>>();
             return await Result<List<RoleClaimResponse>>.SuccessAsync(roleClaimsResponse);
         }
 
@@ -45,18 +47,20 @@ namespace DN.WebApi.Infrastructure.Identity.Services
         {
             var roleClaim = await _db.RoleClaims
                 .SingleOrDefaultAsync(x => x.Id == id);
-            var roleClaimResponse = _mapper.Map<RoleClaimResponse>(roleClaim);
+            var roleClaimResponse = roleClaim.Adapt<RoleClaimResponse>();
             return await Result<RoleClaimResponse>.SuccessAsync(roleClaimResponse);
         }
 
-        public async Task<Result<List<RoleClaimResponse>>> GetAllByRoleIdAsync(string roleId)
+        public Task<Result<List<RoleClaimResponse>>> GetAllByRoleIdAsync(string roleId)
         {
-            var roleClaims = await _db.RoleClaims
-                .Include(x => x.Role)
-                .Where(x => x.RoleId == roleId)
-                .ToListAsync();
-            var roleClaimsResponse = _mapper.Map<List<RoleClaimResponse>>(roleClaims);
-            return await Result<List<RoleClaimResponse>>.SuccessAsync(roleClaimsResponse);
+            // var roleClaims = await _db.RoleClaims
+            //     .Include(x => x.Role)
+            //     .Where(x => x.RoleId == roleId)
+            //     .ToListAsync();
+            // var roleClaimsResponse = roleClaims.Adapt<List<RoleClaimResponse>>();
+            // return await Result<List<RoleClaimResponse>>.SuccessAsync(roleClaimsResponse);
+
+            return default;
         }
 
         public async Task<Result<string>> SaveAsync(RoleClaimRequest request)
@@ -76,7 +80,8 @@ namespace DN.WebApi.Infrastructure.Identity.Services
                 {
                     return await Result<string>.FailAsync(_localizer["Similar Role Claim already exists."]);
                 }
-                var roleClaim = _mapper.Map<BlazorHeroRoleClaim>(request);
+
+                var roleClaim = request.Adapt<ApplicationRoleClaim>();
                 await _db.RoleClaims.AddAsync(roleClaim);
                 await _db.SaveChangesAsync();
                 return await Result<string>.SuccessAsync(string.Format(_localizer["Role Claim {0} created."], request.Value));
@@ -85,7 +90,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             {
                 var existingRoleClaim =
                     await _db.RoleClaims
-                        .Include(x => x.Role)
+                        .Include(x => x.RoleId)
                         .SingleOrDefaultAsync(x => x.Id == request.Id);
                 if (existingRoleClaim == null)
                 {
@@ -95,31 +100,35 @@ namespace DN.WebApi.Infrastructure.Identity.Services
                 {
                     existingRoleClaim.ClaimType = request.Type;
                     existingRoleClaim.ClaimValue = request.Value;
-                    existingRoleClaim.Group = request.Group;
                     existingRoleClaim.Description = request.Description;
                     existingRoleClaim.RoleId = request.RoleId;
                     _db.RoleClaims.Update(existingRoleClaim);
                     await _db.SaveChangesAsync();
-                    return await Result<string>.SuccessAsync(string.Format(_localizer["Role Claim {0} for Role {1} updated."], request.Value, existingRoleClaim.Role.Name));
+
+                    // return await Result<string>.SuccessAsync(string.Format(_localizer["Role Claim {0} for Role {1} updated."], request.Value, existingRoleClaim.Role.Name));
+
+                    return default;
                 }
             }
         }
 
-        public async Task<Result<string>> DeleteAsync(int id)
+        public Task<Result<string>> DeleteAsync(int id)
         {
-            var existingRoleClaim = await _db.RoleClaims
-                .Include(x => x.Role)
-                .FirstOrDefaultAsync(x => x.Id == id);
-            if (existingRoleClaim != null)
-            {
-                _db.RoleClaims.Remove(existingRoleClaim);
-                await _db.SaveChangesAsync(_currentUserService.UserId);
-                return await Result<string>.SuccessAsync(string.Format(_localizer["Role Claim {0} for {1} Role deleted."], existingRoleClaim.ClaimValue, existingRoleClaim.Role.Name));
-            }
-            else
-            {
-                return await Result<string>.FailAsync(_localizer["Role Claim does not exist."]);
-            }
+            // var existingRoleClaim = await _db.RoleClaims
+            //     .Include(x => x.Role)
+            //     .FirstOrDefaultAsync(x => x.Id == id);
+            // if (existingRoleClaim != null)
+            // {
+            //     _db.RoleClaims.Remove(existingRoleClaim);
+            //     await _db.SaveChangesAsync();
+            //     return await Result<string>.SuccessAsync(string.Format(_localizer["Role Claim {0} for {1} Role deleted."], existingRoleClaim.ClaimValue, existingRoleClaim.Role.Name));
+            // }
+            // else
+            // {
+            //     return await Result<string>.FailAsync(_localizer["Role Claim does not exist."]);
+            // }
+
+            return default;
         }
     }
 }
