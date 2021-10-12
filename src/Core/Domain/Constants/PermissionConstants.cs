@@ -2,7 +2,7 @@ using System.ComponentModel;
 
 namespace DN.WebApi.Domain.Constants
 {
-    public class Permissions
+    public class PermissionConstants
     {
         [DisplayName("Identity")]
         [Description("Identity Permissions")]
@@ -20,6 +20,10 @@ namespace DN.WebApi.Domain.Constants
             public const string Register = "Permissions.Roles.Register";
             public const string Update = "Permissions.Roles.Update";
             public const string Remove = "Permissions.Roles.Remove";
+
+            public const string ViewPermissions = "Permissions.Roles.ViewPermissions";
+            public const string UpdatePermissions = "Permissions.Roles.UpdatePermissions";
+
         }
 
         [DisplayName("Products")]

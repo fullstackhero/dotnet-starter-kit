@@ -18,7 +18,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
         }
 
         [HttpGet]
-        [MustHavePermission(Permissions.Brands.ListAll)]
+        [MustHavePermission(PermissionConstants.Brands.ListAll)]
         public async Task<IActionResult> GetListAsync(BrandListFilter filter)
         {
             var brands = await _service.GetBrandsAsync(filter);
@@ -26,21 +26,21 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
         }
 
         [HttpPost]
-        [MustHavePermission(Permissions.Brands.Register)]
+        [MustHavePermission(PermissionConstants.Brands.Register)]
         public async Task<IActionResult> CreateAsync(CreateBrandRequest request)
         {
             return Ok(await _service.CreateBrandAsync(request));
         }
 
         [HttpPut]
-        [MustHavePermission(Permissions.Brands.Update)]
+        [MustHavePermission(PermissionConstants.Brands.Update)]
         public async Task<IActionResult> UpdateAsync(UpdateBrandRequest request, Guid id)
         {
             return Ok(await _service.UpdateBrandAsync(request, id));
         }
 
         [HttpDelete]
-        [MustHavePermission(Permissions.Brands.Remove)]
+        [MustHavePermission(PermissionConstants.Brands.Remove)]
         public async Task<IActionResult> DeleteAsync(Guid id)
         {
             var brandId = await _service.DeleteBrandAsync(id);
