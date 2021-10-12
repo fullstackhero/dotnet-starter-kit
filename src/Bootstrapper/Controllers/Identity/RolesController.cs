@@ -21,7 +21,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
         }
 
         [HttpGet("all")]
-        [MustHavePermission(PermissionConstants.Roles.ListAll)]
+        [MustHavePermission(Permissions.Roles.ListAll)]
         public async Task<IActionResult> GetListAsync()
         {
             var roles = await _roleService.GetListAsync();
@@ -29,18 +29,13 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
         }
 
         [HttpGet("{id}")]
-        [MustHavePermission(PermissionConstants.Roles.View)]
+        [MustHavePermission(Permissions.Roles.View)]
         public async Task<IActionResult> GetByIdAsync(string id)
         {
             var roles = await _roleService.GetByIdAsync(id);
             return Ok(roles);
         }
 
-        /// <summary>
-        /// Gets all the Permissions associated for the Role Id.
-        /// </summary>
-        /// <param name="id">Role Id.</param>
-        /// <returns>List of Permissions.</returns>
         [HttpGet("{id}/permissions")]
         public async Task<IActionResult> GetPermissionsAsync(string id)
         {
@@ -49,7 +44,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
         }
 
         [HttpPost]
-        [MustHavePermission(PermissionConstants.Roles.Register)]
+        [MustHavePermission(Permissions.Roles.Register)]
         public async Task<IActionResult> RegisterRoleAsync(RoleRequest request)
         {
             var response = await _roleService.RegisterRoleAsync(request);
@@ -57,7 +52,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
         }
 
         [HttpDelete("{id}")]
-        [MustHavePermission(PermissionConstants.Roles.Remove)]
+        [MustHavePermission(Permissions.Roles.Remove)]
         public async Task<IActionResult> DeleteAsync(string id)
         {
             var response = await _roleService.DeleteAsync(id);

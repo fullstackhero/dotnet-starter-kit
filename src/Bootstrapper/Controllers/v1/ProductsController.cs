@@ -18,7 +18,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
         }
 
         [HttpGet("{id}")]
-        [MustHavePermission(PermissionConstants.Products.View)]
+        [MustHavePermission(Permissions.Products.View)]
         public async Task<IActionResult> GetAsync(Guid id)
         {
             var product = await _service.GetProductDetailsAsync(id);
@@ -26,7 +26,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
         }
 
         [HttpGet]
-        [MustHavePermission(PermissionConstants.Products.ListAll)]
+        [MustHavePermission(Permissions.Products.ListAll)]
         public async Task<IActionResult> GetListAsync(ProductListFilter filter)
         {
             var products = await _service.GetProductsAsync(filter);

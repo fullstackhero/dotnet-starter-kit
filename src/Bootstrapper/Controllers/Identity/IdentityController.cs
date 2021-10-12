@@ -22,7 +22,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
         }
 
         [HttpPost("register")]
-        [MustHavePermission(PermissionConstants.Identity.Register)]
+        [MustHavePermission(Permissions.Identity.Register)]
         public async Task<IActionResult> RegisterAsync(RegisterRequest request)
         {
             string baseUrl = $"{this.Request.Scheme}://{this.Request.Host.Value.ToString()}{this.Request.PathBase.Value.ToString()}";
