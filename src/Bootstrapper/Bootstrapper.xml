@@ -4,5 +4,12 @@
         <name>DN.WebApi.Bootstrapper</name>
     </assembly>
     <members>
+        <member name="M:DN.WebApi.Bootstrapper.Controllers.Identity.RolesController.GetPermissionsAsync(System.String)">
+            <summary>
+            Gets all the Permissions associated for the Role Id.
+            </summary>
+            <param name="id">Role Id.</param>
+            <returns>List of Permissions.</returns>
+        </member>
     </members>
 </doc>
