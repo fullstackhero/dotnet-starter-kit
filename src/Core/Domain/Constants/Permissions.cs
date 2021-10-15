@@ -43,5 +43,16 @@ namespace DN.WebApi.Domain.Constants
             public const string Update = "Permissions.Brands.Update";
             public const string Remove = "Permissions.Brands.Remove";
         }
+
+        [DisplayName("Role Claims")]
+        [Description("Role Claims Permissions")]
+        public static class RoleClaims
+        {
+            public const string View = "Permissions.RoleClaims.View";
+            public const string Create = "Permissions.RoleClaims.Create";
+            public const string Edit = "Permissions.RoleClaims.Edit";
+            public const string Delete = "Permissions.RoleClaims.Delete";
+            public const string Search = "Permissions.RoleClaims.Search";
+        }
     }
 }
