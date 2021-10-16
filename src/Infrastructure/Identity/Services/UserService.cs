@@ -2,6 +2,7 @@ using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Models;
+using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Shared.DTOs.Identity;
 using DN.WebApi.Shared.DTOs.Identity.Requests;
 using DN.WebApi.Shared.DTOs.Identity.Responses;
@@ -21,14 +22,18 @@ namespace DN.WebApi.Infrastructure.Identity.Services
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly IStringLocalizer<UserService> _localizer;
 
+        private readonly ApplicationDbContext _context;
+
         public UserService(
             UserManager<ApplicationUser> userManager,
             RoleManager<ApplicationRole> roleManager,
-            IStringLocalizer<UserService> localizer)
+            IStringLocalizer<UserService> localizer,
+            ApplicationDbContext context)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _localizer = localizer;
+            _context = context;
         }
 
         public async Task<Result<List<UserDetailsDto>>> GetAllAsync()
@@ -106,6 +111,21 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             }
 
             return await Result<string>.SuccessAsync(userId, string.Format(_localizer["User Roles Updated Successfully."]));
+        }
+
+        public async Task<Result<List<PermissionDto>>> GetPermissionsAsync(string userId)
+        {
+            var userPermissions = new List<PermissionDto>();
+            var user = await _userManager.FindByIdAsync(userId);
+            var roles = await _roleManager.Roles.AsNoTracking().ToListAsync();
+            foreach (var role in roles)
+            {
+                var permissions = await _context.RoleClaims.Where(a => a.RoleId == role.Id && a.ClaimType == "Permission").ToListAsync();
+                var permissionResponse = permissions.Adapt<List<PermissionDto>>();
+                userPermissions.AddRange(permissionResponse);
+            }
+
+            return await Result<List<PermissionDto>>.SuccessAsync(userPermissions.Distinct().ToList());
         }
     }
 }
