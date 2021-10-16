@@ -17,7 +17,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
             _service = service;
         }
 
-        [HttpGet]
+        [HttpPost("all")]
         [MustHavePermission(Permissions.Brands.ListAll)]
         public async Task<IActionResult> GetListAsync(BrandListFilter filter)
         {
@@ -39,7 +39,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
             return Ok(await _service.UpdateBrandAsync(request, id));
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [MustHavePermission(Permissions.Brands.Remove)]
         public async Task<IActionResult> DeleteAsync(Guid id)
         {
