@@ -84,7 +84,7 @@ namespace DN.WebApi.Infrastructure.Services.General
             }
             else
             {
-                var tenant = _context.Tenants.Where(a => a.Key == tenantKey).FirstOrDefaultAsync().Result;
+                var tenant = _context.Tenants.Where(a => a.Referral == tenantKey).FirstOrDefaultAsync().Result;
                 tenantDto = tenant.Adapt<TenantDto>();
                 if (tenantDto != null)
                 {

@@ -39,15 +39,15 @@ namespace DN.WebApi.Infrastructure.Persistence
             modelBuilder.ApplyIdentityConfiguration(_tenantService);
             modelBuilder.ApplyGlobalFilters<IMustHaveTenant>(b => EF.Property<string>(b, nameof(TenantKey)) == TenantKey);
             modelBuilder.ApplyGlobalFilters<IIdentityTenant>(b => EF.Property<string>(b, nameof(TenantKey)) == TenantKey);
-            modelBuilder.ApplyGlobalFilters<ISoftDelete>(s => s.DeletedOn == null);
+            modelBuilder.ApplyGlobalFilters<ISoftDelete>(s => !s.IsDeleted);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            var tenantConnectionString = _tenantService.GetConnectionString();
+            string tenantConnectionString = _tenantService.GetConnectionString();
             if (!string.IsNullOrEmpty(tenantConnectionString))
             {
-                var dbProvider = _tenantService.GetDatabaseProvider();
+                string dbProvider = _tenantService.GetDatabaseProvider();
                 switch (dbProvider.ToLower())
                 {
                     case "postgresql":
@@ -78,7 +78,7 @@ namespace DN.WebApi.Infrastructure.Persistence
 
             var currentUserId = _currentUserService.GetUserId();
             var auditEntries = OnBeforeSaveChanges(currentUserId);
-            var result = await base.SaveChangesAsync(cancellationToken);
+            int result = await base.SaveChangesAsync(cancellationToken);
             await OnAfterSaveChangesAsync(auditEntries, cancellationToken);
             return result;
         }

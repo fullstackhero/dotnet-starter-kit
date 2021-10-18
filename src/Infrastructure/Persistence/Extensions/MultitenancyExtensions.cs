@@ -1,4 +1,4 @@
-using DN.WebApi.Application.Settings;
+﻿using DN.WebApi.Application.Settings;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Domain.Entities.Multitenancy;
 using DN.WebApi.Infrastructure.Identity.Models;
@@ -143,9 +143,15 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
         private static void SeedRootTenant<T>(T dbContext, MultitenancySettings options)
         where T : TenantManagementDbContext
         {
-            if (!dbContext.Tenants.Any(t => t.Key == MultitenancyConstants.Root.Key))
+            if (!dbContext.Tenants.Any(t => t.Referral == MultitenancyConstants.Root.Key))
             {
-                var rootTenant = new Tenant(MultitenancyConstants.Root.Name, MultitenancyConstants.Root.Key, MultitenancyConstants.Root.EmailAddress, options.ConnectionString);
+                var rootTenant = new Tenant(
+                    MultitenancyConstants.Root.Name,
+                    MultitenancyConstants.Root.Key,
+                    MultitenancyConstants.Root.EmailAddress,
+                    MultitenancyConstants.Root.ParentTenantId,
+                    MultitenancyConstants.Root.CreatedBy,
+                    options.ConnectionString);
                 dbContext.Tenants.Add(rootTenant);
                 dbContext.SaveChangesAsync().Wait();
             }

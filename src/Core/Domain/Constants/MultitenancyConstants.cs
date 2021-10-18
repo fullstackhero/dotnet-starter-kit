@@ -1,3 +1,5 @@
+using System;
+
 namespace DN.WebApi.Domain.Constants
 {
     public class MultitenancyConstants
@@ -7,6 +9,8 @@ namespace DN.WebApi.Domain.Constants
             public const string Name = "Root";
             public const string Key = "root";
             public const string EmailAddress = "admin@root.com";
+            public static Guid? ParentTenantId;
+            public static Guid CreatedBy = Guid.NewGuid();
         }
 
         public const string DefaultPassword = "123Pa$$word!";

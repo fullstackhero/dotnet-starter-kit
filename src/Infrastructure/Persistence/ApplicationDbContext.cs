@@ -41,18 +41,17 @@ namespace DN.WebApi.Infrastructure.Persistence
                 {
                     case EntityState.Added:
                         entry.Entity.CreatedBy = currentUserId;
-                        entry.Entity.LastModifiedBy = currentUserId;
+                        entry.Entity.IsModified = false;
+                        entry.Entity.IsDeleted = false;
                         break;
 
                     case EntityState.Modified:
-                        entry.Entity.LastModifiedOn = DateTime.UtcNow;
-                        entry.Entity.LastModifiedBy = currentUserId;
+                        entry.Entity.IsModified = true;
                         break;
                     case EntityState.Deleted:
-                        if (entry.Entity is ISoftDelete softDelete)
+                        if (entry.Entity is ISoftDelete)
                         {
-                            softDelete.DeletedBy = currentUserId;
-                            softDelete.DeletedOn = DateTime.UtcNow;
+                            entry.Entity.IsDeleted = true;
                             entry.State = EntityState.Modified;
                         }
 

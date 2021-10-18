@@ -45,7 +45,7 @@ namespace DN.WebApi.Infrastructure.Services.General
 
         public async Task<Result<TenantDto>> GetByKeyAsync(string key)
         {
-            var tenant = await _context.Tenants.Where(a => a.Key == key).FirstOrDefaultAsync();
+            var tenant = await _context.Tenants.Where(a => a.Referral == key).FirstOrDefaultAsync();
             if (tenant == null) throw new EntityNotFoundException(string.Format(_localizer["entity.notfound"], typeof(Tenant).Name, key));
             var tenantDto = tenant.Adapt<TenantDto>();
             return await Result<TenantDto>.SuccessAsync(tenantDto);
@@ -60,11 +60,11 @@ namespace DN.WebApi.Infrastructure.Services.General
 
         public async Task<Result<object>> CreateTenantAsync(CreateTenantRequest request)
         {
-            if (_context.Tenants.Any(a => a.Key == request.Key)) throw new Exception("Tenant with same key exists.");
+            if (_context.Tenants.Any(a => a.Referral == request.Key)) throw new Exception("Tenant with same key exists.");
             if (string.IsNullOrEmpty(request.ConnectionString)) request.ConnectionString = _options.ConnectionString;
             bool isValidConnectionString = TenantBootstrapper.TryValidateConnectionString(_options, request.ConnectionString, request.Key);
             if (!isValidConnectionString) throw new Exception($"Failed to Establish Connection to Database. Please check your connection string.");
-            var tenant = new Tenant(request.Name, request.Key, request.AdminEmail, request.ConnectionString);
+            var tenant = new Tenant(request.Name, request.Key, request.AdminEmail, null, Guid.NewGuid(), request.ConnectionString);
             tenant.CreatedBy = _user.GetUserId();
             TenantBootstrapper.Initialize(_appContext, _options, tenant, _userManager, _roleManager);
             _context.Tenants.Add(tenant);

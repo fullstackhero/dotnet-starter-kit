@@ -62,7 +62,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             }
 
             string tenantKey = user.TenantKey;
-            var tenant = await _tenantContext.Tenants.Where(a => a.Key == tenantKey).FirstOrDefaultAsync();
+            var tenant = await _tenantContext.Tenants.Where(a => a.Referral == tenantKey).FirstOrDefaultAsync();
             if (tenantKey != MultitenancyConstants.Root.Key)
             {
                 if (!tenant.IsActive)

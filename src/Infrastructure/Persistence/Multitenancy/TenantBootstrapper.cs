@@ -23,7 +23,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
         public static void Initialize(ApplicationDbContext appContext, MultitenancySettings options, Tenant tenant, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager)
         {
             var connectionString = string.IsNullOrEmpty(tenant.ConnectionString) ? options.ConnectionString : tenant.ConnectionString;
-            var isValid = TryValidateConnectionString(options, connectionString, tenant.Key);
+            var isValid = TryValidateConnectionString(options, connectionString, tenant.Referral);
             if (isValid)
             {
                 appContext.Database.SetConnectionString(connectionString);
@@ -31,13 +31,13 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
                 {
                     if (appContext.Database.GetPendingMigrations().Any())
                     {
-                        _logger.Information($"Applying Migrations for '{tenant.Key}' tenant.");
+                        _logger.Information($"Applying Migrations for '{tenant.Referral}' tenant.");
                         appContext.Database.Migrate();
                     }
 
                     if (appContext.Database.CanConnect())
                     {
-                        _logger.Information($"Connection to {tenant.Key}'s Database Succeeded.");
+                        _logger.Information($"Connection to {tenant.Referral}'s Database Succeeded.");
                         SeedRoles(tenant, roleManager, appContext);
                         SeedAdmin(tenant, userManager, roleManager, appContext);
                     }
@@ -50,21 +50,21 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
             foreach (string roleName in typeof(RoleConstants).GetAllPublicConstantValues<string>())
             {
                 var roleStore = new RoleStore<ApplicationRole>(applicationDbContext);
-                if (!applicationDbContext.Roles.IgnoreQueryFilters().Any(r => r.Name == roleName && r.TenantKey == tenant.Key))
+                if (!applicationDbContext.Roles.IgnoreQueryFilters().Any(r => r.Name == roleName && r.TenantKey == tenant.Referral))
                 {
-                    var role = new ApplicationRole(roleName, tenant.Key, $"{roleName} Role for {tenant.Key} Tenant");
+                    var role = new ApplicationRole(roleName, tenant.Referral, $"{roleName} Role for {tenant.Referral} Tenant");
                     roleStore.CreateAsync(role).Wait();
-                    _logger.Information($"Seeding {roleName} Role for '{tenant.Key}' Tenant.");
+                    _logger.Information($"Seeding {roleName} Role for '{tenant.Referral}' Tenant.");
                 }
             }
         }
 
         private static void SeedAdmin(Tenant tenant, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ApplicationDbContext applicationDbContext)
         {
-            var adminUserName = $"{tenant.Key.Trim().ToLower()}.admin";
+            var adminUserName = $"{tenant.Referral.Trim().ToLower()}.admin";
             var superUser = new ApplicationUser
             {
-                FirstName = tenant.Key.Trim().ToLower(),
+                FirstName = tenant.Referral.Trim().ToLower(),
                 LastName = "admin",
                 Email = tenant.AdminEmail,
                 UserName = adminUserName,
@@ -73,7 +73,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
                 NormalizedEmail = tenant.AdminEmail.ToUpper(),
                 NormalizedUserName = adminUserName.ToUpper(),
                 IsActive = true,
-                TenantKey = tenant.Key.Trim().ToLower()
+                TenantKey = tenant.Referral.Trim().ToLower()
             };
             if (!applicationDbContext.Users.IgnoreQueryFilters().Any(u => u.Email == tenant.AdminEmail))
             {
@@ -82,10 +82,10 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
                 superUser.PasswordHash = hashed;
                 var userStore = new UserStore<ApplicationUser>(applicationDbContext);
                 userStore.CreateAsync(superUser).Wait();
-                _logger.Information($"Seeding Default Admin User for '{tenant.Key}' Tenant.");
+                _logger.Information($"Seeding Default Admin User for '{tenant.Referral}' Tenant.");
             }
 
-            AssignAdminRoleAsync(superUser.Email, tenant.Key, applicationDbContext, userManager, roleManager).Wait();
+            AssignAdminRoleAsync(superUser.Email, tenant.Referral, applicationDbContext, userManager, roleManager).Wait();
         }
 
         public static async Task AssignAdminRoleAsync(string email, string tenantKey, ApplicationDbContext applicationDbContext, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager)

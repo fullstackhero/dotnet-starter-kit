@@ -1,24 +1,34 @@
 using DN.WebApi.Domain.Contracts;
 using System;
+using System.Collections.Generic;
 
 namespace DN.WebApi.Domain.Entities.Multitenancy
 {
     public class Tenant : AuditableEntity
     {
         public string Name { get; private set; }
-        public string Key { get; private set; }
         public string AdminEmail { get; private set; }
         public string ConnectionString { get; private set; }
         public bool IsActive { get; private set; }
         public DateTime ValidUpto { get; private set; }
+        public Guid? ParentTenantId { get; set; }
 
-        public Tenant(string name, string key, string adminEmail, string connectionString)
+        #region Navigation
+        public virtual Tenant ParentTenant { get; set; }
+        public virtual ICollection<Tenant> SubTenants { get; set; }
+        #endregion
+
+        public Tenant(string name, string key, string adminEmail, Guid? parentTenantId, Guid createdBy, string connectionString)
         {
             Name = name;
-            Key = key;
+            Referral = key;
             AdminEmail = adminEmail;
             ConnectionString = connectionString;
+            ParentTenantId = parentTenantId;
+            CreatedBy = createdBy;
+            CreatedOn = DateTime.Now;
             IsActive = true;
+            ConcurrencyStamp = Guid.NewGuid();
 
             // Add Default 1 Month Validity for all new tenants. Something like a DEMO period for tenants.
             ValidUpto = DateTime.UtcNow.AddMonths(1);

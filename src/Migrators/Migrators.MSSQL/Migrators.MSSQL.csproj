@@ -22,4 +22,7 @@
     </PackageReference>
     <AdditionalFiles Include="..\..\..\stylecop.json" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+  </ItemGroup>
 </Project>

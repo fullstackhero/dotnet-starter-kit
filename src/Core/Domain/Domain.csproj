@@ -10,6 +10,7 @@
     <CodeAnalysisRuleSet>..\..\..\dotnet.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.11" />
     <PackageReference Include="NewId" Version="3.0.3" />
     <PackageReference Include="Roslynator.Analyzers" Version="3.2.2">
       <PrivateAssets>all</PrivateAssets>
@@ -20,5 +21,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <AdditionalFiles Include="..\..\..\stylecop.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Configuration\Catalog\" />
   </ItemGroup>
 </Project>

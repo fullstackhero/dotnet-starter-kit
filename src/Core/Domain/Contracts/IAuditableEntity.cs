@@ -6,7 +6,7 @@ namespace DN.WebApi.Domain.Contracts
     {
         public Guid CreatedBy { get; set; }
         public DateTime CreatedOn { get; }
-        public Guid LastModifiedBy { get; set; }
-        public DateTime? LastModifiedOn { get; set; }
+        public bool IsModified { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }

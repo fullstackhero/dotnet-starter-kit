@@ -4,5 +4,21 @@
         <name>DN.WebApi.Domain</name>
     </assembly>
     <members>
+        <member name="P:DN.WebApi.Domain.Contracts.BaseEntity.Id">
+            <summary>
+            Global Unique Identifier.
+            </summary>
+        </member>
+        <member name="P:DN.WebApi.Domain.Contracts.BaseEntity.Referral">
+            <summary>
+            String representation of Unique Identifier.
+            </summary>
+            <example>abc (max 50 characters).</example>
+        </member>
+        <member name="P:DN.WebApi.Domain.Contracts.BaseEntity.ConcurrencyStamp">
+            <summary>
+            Concurrency token.
+            </summary>
+        </member>
     </members>
 </doc>

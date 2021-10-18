@@ -1,3 +1,4 @@
+using DN.WebApi.Domain.Configuration;
 using DN.WebApi.Domain.Entities.Multitenancy;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,5 +12,12 @@ namespace DN.WebApi.Infrastructure.Persistence
         }
 
         public DbSet<Tenant> Tenants { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.ApplyConfiguration(new TenantTypeConfiguration());
+
+            base.OnModelCreating(modelBuilder);
+        }
     }
 }
