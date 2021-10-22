@@ -1,5 +1,6 @@
 using DN.WebApi.Application.Extensions;
 using DN.WebApi.Infrastructure.Extensions;
+using DN.WebApi.Infrastructure.Middlewares;
 using DN.WebApi.Shared.DTOs;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Builder;
@@ -44,7 +45,8 @@ namespace DN.WebApi.Bootstrapper
                 app.UseExceptionHandler("/Error");
             }
 
-            app.UseSerilogRequestLogging();
+            // app.UseSerilogRequestLogging();
+            app.UseMiddleware<RequestLoggingMiddleware>();
 
             app.UseInfrastructure(_config);
         }

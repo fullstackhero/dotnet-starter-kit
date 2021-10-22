@@ -2,13 +2,20 @@ using DN.WebApi.Application.Abstractions.Services.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System;
+using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using Serilog;
+using Serilog.Context;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace DN.WebApi.Infrastructure.Middlewares
 {
     public class RequestLoggingMiddleware : IMiddleware
     {
         private readonly ICurrentUser _currentUser;
+
         private readonly ILogger _logger;
 
         public RequestLoggingMiddleware(ILoggerFactory loggerFactory, ICurrentUser currentUser)
@@ -19,6 +26,24 @@ namespace DN.WebApi.Infrastructure.Middlewares
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
+            // Getting the request body is a little tricky because it's a stream
+            // So, we need to read the stream and then rewind it back to the beginning
+            string requestBody = string.Empty;
+            context.Request.EnableBuffering();
+            Stream body = context.Request.Body;
+            byte[] buffer = new byte[Convert.ToInt32(context.Request.ContentLength)];
+            await context.Request.Body.ReadAsync(buffer, 0, buffer.Length);
+            requestBody = Encoding.UTF8.GetString(buffer);
+            body.Seek(0, SeekOrigin.Begin);
+            context.Request.Body = body;
+
+            // Log.ForContext("RequestHeaders", context.Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString()), destructureObjects: true)
+            //    .ForContext("RequestBody", requestBody)
+            //    .Information("Request information {RequestMethod} {RequestPath} information", context.Request.Method, context.Request.Path);
+            if (requestBody != string.Empty)
+            {
+                requestBody = $"Body: " + requestBody + Environment.NewLine;
+            }
 
             try
             {
@@ -26,7 +51,10 @@ namespace DN.WebApi.Infrastructure.Middlewares
             }
             finally
             {
-                var user = !string.IsNullOrEmpty(_currentUser.GetUserEmail()) ? _currentUser.GetUserEmail() : "Anonymous";
+                string user = !string.IsNullOrEmpty(_currentUser.GetUserEmail()) ? _currentUser.GetUserEmail() : "Anonymous";
+
+                LogContext.PushProperty("UserName", user);
+
                 _logger.LogInformation($"{Environment.NewLine}HTTP Request Information:{Environment.NewLine}" +
                                        $"  Request By: {user}{Environment.NewLine}" +
                                        $"  Tenant: {_currentUser.GetTenantKey() ?? string.Empty}{Environment.NewLine}" +
@@ -35,6 +63,7 @@ namespace DN.WebApi.Infrastructure.Middlewares
                                        $"  Host: {context.Request.Host}{Environment.NewLine}" +
                                        $"  Path: {context.Request.Path}{Environment.NewLine}" +
                                        $"  Query String: {context.Request.QueryString}{Environment.NewLine}" +
+                                       requestBody +
                                        $"  Response Status Code: {context.Response?.StatusCode}{Environment.NewLine}");
             }
         }
