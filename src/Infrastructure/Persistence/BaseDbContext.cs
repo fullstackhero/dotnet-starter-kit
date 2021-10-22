@@ -44,6 +44,8 @@ namespace DN.WebApi.Infrastructure.Persistence
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            optionsBuilder.EnableSensitiveDataLogging();
+
             var tenantConnectionString = _tenantService.GetConnectionString();
             if (!string.IsNullOrEmpty(tenantConnectionString))
             {

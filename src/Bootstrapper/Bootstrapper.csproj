@@ -16,6 +16,13 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0-rc.2.*" />
+    <PackageReference Include="serilog.aspnetcore" Version="4.1.0" />
+    <PackageReference Include="serilog.Enrichers.Environment" Version="2.2.0" />
+    <PackageReference Include="serilog.Enrichers.Process" Version="2.0.2" />
+    <PackageReference Include="serilog.Enrichers.Thread" Version="3.1.0" />
+    <PackageReference Include="serilog.settings.Configuration" Version="3.3.0" />
+    <PackageReference Include="serilog.Sinks.MSSqlServer" Version="5.6.1" />
+    <PackageReference Include="serilog.Sinks.Seq" Version="5.0.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Application\Application.csproj" />
