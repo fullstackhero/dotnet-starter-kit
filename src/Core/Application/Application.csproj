@@ -17,7 +17,7 @@
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="6.0.0-rc.2.*" />
     <PackageReference Include="Microsoft.Extensions.Localization" Version="6.0.0-rc.2.*" />
     <PackageReference Include="FluentValidation" Version="10.3.4" />
-    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="10.3.3" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="10.3.4" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Roslynator.Analyzers" Version="3.2.2">
