@@ -147,7 +147,6 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             {
                 var rootTenant = new Tenant(MultitenancyConstants.Root.Name, MultitenancyConstants.Root.Key, MultitenancyConstants.Root.EmailAddress, options.ConnectionString);
                 rootTenant.SetValidity(DateTime.UtcNow.AddYears(1));
-                rootTenant.Activate();
                 dbContext.Tenants.Add(rootTenant);
                 dbContext.SaveChangesAsync().Wait();
             }

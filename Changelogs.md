@@ -2,7 +2,7 @@
 
 - Initial release
 
-0.0.2-rc - Current Stable Version
+0.0.2-rc
 
 - Migration Refresh
 - Security Patches
@@ -12,3 +12,7 @@
 - Activate / Deactivate Tenants
 - Upgrade Tenant Subscription
 - Advanced Search
+
+0.0.3-rc - Current Stable Version
+
+- Security Patches

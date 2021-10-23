@@ -19,7 +19,7 @@ This repository contains the WebApi Project of `fullstackhero`.
 
 ## Release Planning
 
-### 0.0.2 RC is available now!
+### 0.0.3 RC is available now!
 
 - Migration Refresh
 - Security Patches
