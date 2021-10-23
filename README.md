@@ -60,13 +60,16 @@ Join our Discord - [fullstackhero @ Discord](https://discord.gg/gdgHRt4mMw)
 - [x] Follows Clean Architecture Principles
 - [ ] Completely Documented at [fullstackhero.net](https://fullstackhero.net)
 - [x] Multi Tenancy Support
+  - [x] Create Tenants with Multi Database / Shared Database Support
+  - [x] Activate / Deactivate Tenants on Demand
+  - [x] Upgrade Subscription of Tenants - Add More Validity Months to each tenant!
 - [x] Supports MySQL, MSSQL & PostgreSQL!
 - [x] Uses Entity Framework Core as DB Abstraction
 - [x] Flexible Repository Pattern
 - [x] Dapper Integration for Optimal Performance
 - [x] Serilog Integration
 - [x] Swagger Support
-- [x] Mapster
+- [x] Mapster Integration for Quicker Mapping
 - [x] API Versioning
 - [x] Response Caching - Distributed Caching
 - [x] Fluent Validations
