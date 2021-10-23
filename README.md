@@ -3,7 +3,7 @@
 <p align="center">
     <img src="https://codewithmukesh.com/wp-content/uploads/2021/08/fullstackhero-banner.jpg" alt="fullstackhero">
     <a href="https://www.buymeacoffee.com/codewithmukesh"><img width="200" alt="black-button" src="https://user-images.githubusercontent.com/31455818/138557309-27587d91-7b82-4cab-96bb-90f4f4e600f1.png" ></a>
-    
+
 <h1 align="center">.NET WebAPI Boilerplate</h1>
 </p>
 
@@ -19,7 +19,16 @@ This repository contains the WebApi Project of `fullstackhero`.
 
 ## Release Planning
 
-### 0.0.1 RC is available now!
+### 0.0.2 RC is available now!
+
+- Migration Refresh
+- Security Patches
+- Image Upload Fix
+- Option to Disable Swagger
+- Cleaner Code
+- Activate / Deactivate Tenants
+- Upgrade Tenant Subscription
+- Advanced Search
 
 This is the first pre-release version of the `fullstackhero .NET WebAPI Boilerplate` package. Newer versions will be available on a weekly basis with newer updates and patches. [Read the getting-started guide for more.](https://fullstackhero.net/dotnet-webapi-boilerplate/general/getting-started/)
 
@@ -96,7 +105,7 @@ This project is licensed with the [MIT license](LICENSE).
 
 ## Support :star:
 
-Has this Project helped you learn something New? or Helped you at work? Do Consider Supporting. 
+Has this Project helped you learn something New? or Helped you at work? Do Consider Supporting.
 Here are a few ways by which you can support.
 
 -   Leave a star! :star:
@@ -105,4 +114,3 @@ Here are a few ways by which you can support.
 -   Or, If you want to support this project on the long run, [consider buying me a coffee](https://www.buymeacoffee.com/codewithmukesh)! ☕
 
 <a href="https://www.buymeacoffee.com/codewithmukesh"><img width="200" alt="black-button" src="https://user-images.githubusercontent.com/31455818/138557309-27587d91-7b82-4cab-96bb-90f4f4e600f1.png" ></a>
-
