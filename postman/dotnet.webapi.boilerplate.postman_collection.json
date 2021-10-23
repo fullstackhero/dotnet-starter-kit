@@ -514,6 +514,89 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "upgrade",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"tenantKey\": \"root\",\r\n  \"extendedExpiryDate\": 10\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/tenants/upgrade",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"tenants",
+								"upgrade"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "activate",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"tenantKey\": \"root\",\r\n  \"extendedExpiryDate\": 10\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/tenants/beta/activate",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"tenants",
+								"beta",
+								"activate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deactivate",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"tenantKey\": \"root\",\r\n  \"extendedExpiryDate\": 10\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/tenants/beta/deactivate",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"tenants",
+								"beta",
+								"deactivate"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},

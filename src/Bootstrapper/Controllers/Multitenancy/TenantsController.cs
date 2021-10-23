@@ -3,6 +3,7 @@ using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Shared.DTOs.Multitenancy;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 using System.Threading.Tasks;
 
 namespace DN.WebApi.Bootstrapper.Controllers.Multitenancy
@@ -20,6 +21,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.Multitenancy
 
         [HttpGet("{key}")]
         [MustHavePermission(RootPermissions.Tenants.View)]
+        [SwaggerOperation(Summary = "Get Tenant Details.")]
         public async Task<IActionResult> GetAsync(string key)
         {
             var tenant = await _tenantService.GetByKeyAsync(key);
@@ -28,6 +30,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.Multitenancy
 
         [HttpGet]
         [MustHavePermission(RootPermissions.Tenants.ListAll)]
+        [SwaggerOperation(Summary = "Get all the available Tenants.")]
         public async Task<IActionResult> GetAllAsync()
         {
             var tenants = await _tenantService.GetAllAsync();
@@ -36,10 +39,35 @@ namespace DN.WebApi.Bootstrapper.Controllers.Multitenancy
 
         [HttpPost]
         [MustHavePermission(RootPermissions.Tenants.Create)]
+        [SwaggerOperation(Summary = "Create a new Tenant.")]
         public async Task<IActionResult> CreateAsync(CreateTenantRequest request)
         {
             var tenantId = await _tenantService.CreateTenantAsync(request);
             return Ok(tenantId);
+        }
+
+        [HttpPost("upgrade")]
+        [MustHavePermission(RootPermissions.Tenants.UpgradeSubscription)]
+        [SwaggerOperation(Summary = "Upgrade Subscription of Tenant.")]
+        public async Task<IActionResult> UpgradeSubscriptionAsync(UpgradeSubscriptionRequest request)
+        {
+            return Ok(await _tenantService.UpgradeSubscriptionAsync(request));
+        }
+
+        [HttpPost("{id}/deactivate")]
+        [MustHavePermission(RootPermissions.Tenants.Update)]
+        [SwaggerOperation(Summary = "Deactivate Tenant.")]
+        public async Task<IActionResult> DeactivateTenantAsync(string id)
+        {
+            return Ok(await _tenantService.DeactivateTenantAsync(id));
+        }
+
+        [HttpPost("{id}/activate")]
+        [MustHavePermission(RootPermissions.Tenants.Update)]
+        [SwaggerOperation(Summary = "Activate Tenant.")]
+        public async Task<IActionResult> ActivateTenantAsync(string id)
+        {
+            return Ok(await _tenantService.ActivateTenantAsync(id));
         }
     }
 }
