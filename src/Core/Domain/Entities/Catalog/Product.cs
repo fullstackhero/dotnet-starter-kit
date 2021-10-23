@@ -32,7 +32,7 @@ namespace DN.WebApi.Domain.Entities.Catalog
             if (name != null && !Name.NullToString().Equals(name)) Name = name;
             if (description != null && !Description.NullToString().Equals(description)) Description = description;
             if (Rate != rate) Rate = rate;
-            if (brandId != null && !BrandId.NullToString().Equals(brandId)) BrandId = brandId;
+            if (brandId != Guid.Empty && !BrandId.NullToString().Equals(brandId)) BrandId = brandId;
             if (imagePath != null && !ImagePath.NullToString().Equals(imagePath)) ImagePath = imagePath;
             return this;
         }
