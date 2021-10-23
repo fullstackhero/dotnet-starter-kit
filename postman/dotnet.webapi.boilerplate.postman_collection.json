@@ -166,7 +166,7 @@
 			"name": "Catalog",
 			"item": [
 				{
-					"name": "get-products",
+					"name": "search-products",
 					"protocolProfileBehavior": {
 						"disabledSystemHeaders": {}
 					},
