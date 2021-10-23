@@ -168,11 +168,10 @@
 				{
 					"name": "get-products",
 					"protocolProfileBehavior": {
-						"disableBodyPruning": true,
 						"disabledSystemHeaders": {}
 					},
 					"request": {
-						"method": "GET",
+						"method": "POST",
 						"header": [
 							{
 								"key": "",
@@ -183,7 +182,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \r\n}",
+							"raw": "{\r\n  \"advancedSearch\": {\r\n    \"fields\": [\r\n      \"id\"\r\n    ],\r\n    \"keyword\": \"\"\r\n  },\r\n  \"keyword\": \"\",\r\n  \"pageNumber\": 1,\r\n  \"pageSize\": 1,\r\n  \"orderBy\": [\r\n    \"id\"\r\n  ]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -191,27 +190,26 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/v1/products/",
+							"raw": "{{url}}/v1/products/search",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
 								"v1",
 								"products",
-								""
+								"search"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "get-brands",
+					"name": "search-brands",
 					"protocolProfileBehavior": {
-						"disableBodyPruning": true,
 						"disabledSystemHeaders": {}
 					},
 					"request": {
-						"method": "GET",
+						"method": "POST",
 						"header": [
 							{
 								"key": "",
@@ -222,7 +220,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"search\":\"cool\"\r\n}",
+							"raw": "{\r\n  \"advancedSearch\": {\r\n    \"fields\": [\r\n      \"id\"\r\n    ],\r\n    \"keyword\": \"\"\r\n  },\r\n  \"keyword\": \"pepsi\",\r\n  \"pageNumber\": 1,\r\n  \"pageSize\": 1,\r\n  \"orderBy\": [\r\n    \"id\"\r\n  ]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -230,13 +228,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/v1/brands",
+							"raw": "{{url}}/v1/brands/search",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
 								"v1",
-								"brands"
+								"brands",
+								"search"
 							]
 						}
 					},
@@ -346,6 +345,25 @@
 				},
 				{
 					"name": "get-product-by-id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/v1/products/b9e5ee3f-5f41-49d1-a519-871d48020194",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"v1",
+								"products",
+								"b9e5ee3f-5f41-49d1-a519-871d48020194"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get-brand-by-id",
 					"request": {
 						"method": "GET",
 						"header": [],

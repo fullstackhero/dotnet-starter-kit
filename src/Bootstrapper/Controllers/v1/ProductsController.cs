@@ -25,11 +25,11 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
             return Ok(product);
         }
 
-        [HttpGet]
-        [MustHavePermission(Permissions.Products.ListAll)]
-        public async Task<IActionResult> GetListAsync(ProductListFilter filter)
+        [HttpPost("search")]
+        [MustHavePermission(Permissions.Products.Search)]
+        public async Task<IActionResult> SearchAsync(ProductListFilter filter)
         {
-            var products = await _service.GetProductsAsync(filter);
+            var products = await _service.SearchAsync(filter);
             return Ok(products);
         }
 

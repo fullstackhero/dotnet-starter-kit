@@ -3,6 +3,7 @@ using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Shared.DTOs.Catalog;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.Threading.Tasks;
 
@@ -17,11 +18,12 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
             _service = service;
         }
 
-        [HttpGet]
-        [MustHavePermission(Permissions.Brands.ListAll)]
-        public async Task<IActionResult> GetListAsync(BrandListFilter filter)
+        [HttpPost("search")]
+        [MustHavePermission(Permissions.Brands.Search)]
+        [SwaggerOperation(Summary = "Search Brands using available Filters.")]
+        public async Task<IActionResult> SearchAsync(BrandListFilter filter)
         {
-            var brands = await _service.GetBrandsAsync(filter);
+            var brands = await _service.SearchAsync(filter);
             return Ok(brands);
         }
 

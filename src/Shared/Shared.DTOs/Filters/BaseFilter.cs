@@ -10,6 +10,6 @@ namespace DN.WebApi.Shared.DTOs.Filters
         /// <summary>
         /// Keyword to Search in All the available columns of the Resource.
         /// </summary>
-        public string Search { get; set; }
+        public string Keyword { get; set; }
     }
 }

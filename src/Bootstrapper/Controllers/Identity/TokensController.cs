@@ -3,6 +3,7 @@ using DN.WebApi.Infrastructure.SwaggerFilters;
 using DN.WebApi.Shared.DTOs.Identity.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
@@ -22,6 +23,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
         [HttpPost]
         [AllowAnonymous]
         [SwaggerHeader("tenantKey", "Input your tenant Id to access this API", "", true)]
+        [SwaggerOperation(Summary = "Submit Credentials with Tenant Key to generate valid Access Token.")]
         public async Task<IActionResult> GetTokenAsync(TokenRequest request, [FromHeader(Name = "tenantKey")][Required] string tenantKey = null)
         {
             var token = await _tokenService.GetTokenAsync(request, GenerateIPAddress());

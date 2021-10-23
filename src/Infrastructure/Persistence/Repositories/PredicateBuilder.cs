@@ -40,7 +40,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
             return query.Where(predicate);
         }
 
-        public static IQueryable<T> CompleteSearch<T>(this IQueryable<T> query, string keyword)
+        public static IQueryable<T> SearchByKeyword<T>(this IQueryable<T> query, string keyword)
         {
             var predicate = False<T>();
             var properties = typeof(T).GetProperties();

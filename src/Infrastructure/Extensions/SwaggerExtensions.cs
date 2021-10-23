@@ -58,7 +58,7 @@ namespace DN.WebApi.Infrastructure.Extensions
                     {
                         Name = "Authorization",
                         In = ParameterLocation.Header,
-                        Type = SecuritySchemeType.ApiKey,
+                        Type = SecuritySchemeType.Http,
                         Scheme = "Bearer",
                         BearerFormat = "JWT",
                         Description = "Input your Bearer token in this format - Bearer {your token here} to access this API",
@@ -88,7 +88,7 @@ namespace DN.WebApi.Infrastructure.Extensions
                         Pattern = @"^([0-9]{1}|(?:0[0-9]|1[0-9]|2[0-3])+):([0-5]?[0-9])(?::([0-5]?[0-9])(?:.(\d{1,9}))?)?$",
                         Example = new OpenApiString("02:00:00")
                     });
-
+                    options.EnableAnnotations();
                     options.OperationFilter<AddTenantIdFilter>();
                 });
             }

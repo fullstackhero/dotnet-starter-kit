@@ -9,7 +9,7 @@
             Column Wise Search is Supported.
             </summary>
         </member>
-        <member name="P:DN.WebApi.Shared.DTOs.Filters.BaseFilter.Search">
+        <member name="P:DN.WebApi.Shared.DTOs.Filters.BaseFilter.Keyword">
             <summary>
             Keyword to Search in All the available columns of the Resource.
             </summary>
