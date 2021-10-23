@@ -17,7 +17,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
             _service = service;
         }
 
-        [HttpPost("all")]
+        [HttpGet]
         [MustHavePermission(Permissions.Brands.ListAll)]
         public async Task<IActionResult> GetListAsync(BrandListFilter filter)
         {

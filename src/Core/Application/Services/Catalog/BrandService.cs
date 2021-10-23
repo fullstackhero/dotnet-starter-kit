@@ -40,7 +40,7 @@ namespace DN.WebApi.Application.Services.Catalog
 
         public async Task<PaginatedResult<BrandDto>> GetBrandsAsync(BrandListFilter filter)
         {
-            var brands = await _repository.GetPaginatedListAsync<Brand, BrandDto>(filter.PageNumber, filter.PageSize, filter.OrderBy, filter.Search);
+            var brands = await _repository.GetPaginatedListAsync<Brand, BrandDto>(filter.PageNumber, filter.PageSize, filter.OrderBy, filter.AdvancedSearch, filter.Search);
             return brands;
         }
 

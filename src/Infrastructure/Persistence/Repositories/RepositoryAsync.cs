@@ -98,14 +98,16 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
             }
         }
 
-        public async Task<PaginatedResult<TDto>> GetPaginatedListAsync<T, TDto>(int pageNumber, int pageSize = int.MaxValue, string[] orderBy = null, Search search = null, Expression<Func<T, bool>> expression = null, CancellationToken cancellationToken = default)
+        public async Task<PaginatedResult<TDto>> GetPaginatedListAsync<T, TDto>(int pageNumber, int pageSize = int.MaxValue, string[] orderBy = null, Search advancedSearch = null, string searchKeyword = null, Expression<Func<T, bool>> expression = null, CancellationToken cancellationToken = default)
         where T : BaseEntity
         where TDto : IDto
         {
             IQueryable<T> query = _dbContext.Set<T>();
             if (expression != null) query = query.Where(expression);
-            if (search != null && search.Fields.Count > 0 && !string.IsNullOrEmpty(search.Keyword))
-                query = query.Search(search);
+            if (advancedSearch != null && advancedSearch.Fields.Count > 0 && !string.IsNullOrEmpty(advancedSearch.Keyword))
+                query = query.AdvancedSearch(advancedSearch);
+            else if (!string.IsNullOrEmpty(searchKeyword))
+                query = query.CompleteSearch(searchKeyword);
             string ordering = new OrderByConverter().ConvertBack(orderBy);
             query = !string.IsNullOrWhiteSpace(ordering) ? query.OrderBy(ordering) : query.OrderBy(a => a.Id);
             return await query.ToMappedPaginatedResultAsync<T, TDto>(pageNumber, pageSize);
