@@ -23,6 +23,10 @@ namespace DN.WebApi.Infrastructure.Extensions
                 services.AddDistributedRedisCache(options =>
                 {
                     options.Configuration = config.GetSection("CacheSettings:RedisURL").Get<string>();
+                    options.ConfigurationOptions = new StackExchange.Redis.ConfigurationOptions()
+                    {
+                        AbortOnConnectFail = true
+                    };
                 });
             }
             else
