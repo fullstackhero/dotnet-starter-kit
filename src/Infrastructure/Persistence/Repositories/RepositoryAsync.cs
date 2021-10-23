@@ -148,6 +148,11 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
         public Task UpdateAsync<T>(T entity)
         where T : BaseEntity
         {
+            if (_dbContext.Entry(entity).State == EntityState.Unchanged)
+            {
+                throw new NothingToUpdateException();
+            }
+
             T exist = _dbContext.Set<T>().Find(entity.Id);
             _dbContext.Entry(exist).CurrentValues.SetValues(entity);
             _cache.Remove(CacheKeys.GetCacheKey<T>(entity.Id));
