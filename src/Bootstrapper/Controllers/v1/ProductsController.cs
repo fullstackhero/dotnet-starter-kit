@@ -34,6 +34,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
         }
 
         [HttpGet("dapper")]
+        [MustHavePermission(Permissions.Products.View)]
         public async Task<IActionResult> GetDapperAsync(Guid id)
         {
             var products = await _service.GetByIdUsingDapperAsync(id);
@@ -41,18 +42,21 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
         }
 
         [HttpPost]
+        [MustHavePermission(Permissions.Products.Register)]
         public async Task<IActionResult> CreateAsync(CreateProductRequest request)
         {
             return Ok(await _service.CreateProductAsync(request));
         }
 
         [HttpPut]
+        [MustHavePermission(Permissions.Products.Update)]
         public async Task<IActionResult> UpdateAsync(UpdateProductRequest request, Guid id)
         {
             return Ok(await _service.UpdateProductAsync(request, id));
         }
 
         [HttpDelete]
+        [MustHavePermission(Permissions.Products.Remove)]
         public async Task<IActionResult> DeleteAsync(Guid id)
         {
             var productId = await _service.DeleteProductAsync(id);
