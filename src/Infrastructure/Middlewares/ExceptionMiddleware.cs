@@ -1,14 +1,14 @@
 using DN.WebApi.Application.Abstractions.Services.General;
+using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Wrapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Threading.Tasks;
-using DN.WebApi.Application.Abstractions.Services.Identity;
-using System.IO;
 
 namespace DN.WebApi.Infrastructure.Middlewares
 {
