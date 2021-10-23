@@ -41,7 +41,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
             return Ok(await _service.UpdateBrandAsync(request, id));
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete]
         [MustHavePermission(Permissions.Brands.Remove)]
         public async Task<IActionResult> DeleteAsync(Guid id)
         {
