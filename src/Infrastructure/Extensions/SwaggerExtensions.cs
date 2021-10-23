@@ -40,6 +40,23 @@ namespace DN.WebApi.Infrastructure.Extensions
             {
                 services.AddSwaggerGen(options =>
                 {
+                    options.SwaggerDoc("v1", new OpenApiInfo
+                    {
+                        Title = ".NET 6.0 WebAPI - Clean Architecture",
+                        Version = "v1",
+                        Description = "Clean Architecture Template for .NET 6.0 WebApi built with Multitenancy Support.",
+                        Contact = new OpenApiContact
+                        {
+                            Name = "Mukesh Murugan",
+                            Email = "hello@codewithmukesh.com",
+                            Url = new Uri("https://linkedin.com/in/iammukeshm"),
+                        },
+                        License = new OpenApiLicense
+                        {
+                            Name = "MIT License",
+                            Url = new Uri("https://github.com/fullstackhero/dotnet-webapi-boilerplate/blob/main/LICENSE"),
+                        }
+                    });
                     string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
                     foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
                     {
