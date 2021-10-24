@@ -11,9 +11,9 @@
 
 ## About
 
-`dotnet-webapi-boilerplate` is the integral part of the `fullstackhero` project.
+`dotnet-webapi-boilerplate` is an integral part of the `fullstackhero` project.
 
-`fullstackhero` is a venture to develop industry leading boilerplate templates for the dotnet stack as the backend (webapi) along with modern client frameworks like Angular, MVC and Blazor.
+`fullstackhero` is a venture to develop industry-leading boilerplate templates for the dotnet stack as the backend (web API) along with modern client frameworks like Angular, MVC, and Blazor.
 
 This repository contains the WebApi Project of `fullstackhero`.
 
@@ -32,7 +32,7 @@ This repository contains the WebApi Project of `fullstackhero`.
 
 This is the first pre-release version of the `fullstackhero .NET WebAPI Boilerplate` package. Newer versions will be available on a weekly basis with newer updates and patches. [Read the getting-started guide for more.](https://fullstackhero.net/dotnet-webapi-boilerplate/general/getting-started/)
 
-The Release Version is expected to be out by November, 2021 as soon as .NET 6 LTS is launched by Microsoft. Preview versions of this project is available for Initial Developer Testing.
+The Release Version is expected to be out by November 2021 as soon as .NET 6 LTS is launched by Microsoft. Preview versions of this project are available for Initial Developer Testing.
 
 ## Quick Start Guide
 
@@ -43,9 +43,9 @@ dotnet new --install FullStackHero.WebAPI.Boilerplate
 ```
 This would install the `fullstackhero .NET WebAPI Boilerplate` template globally on your machine. With that done, let's see how you can start generating complete .NET WebAPI Solutions seamlessly.
 
-Simply navigate to a new directory (wherever you want to place your new solution at), and open up Command Prompt at the opened directory.
+Simply navigate to a new directory (wherever you want to place your new solution), and open up Command Prompt at the opened directory.
 
-Run the following command. Note that, in this demonstration I am naming my new solution as `FSH.Starter`.
+Run the following command. Note that, in this demonstration, I am naming my new solution as `FSH.Starter`.
 
 ```powershell
 dotnet new fsh-api -o FSH.Starter
@@ -105,12 +105,12 @@ This project is licensed with the [MIT license](LICENSE).
 
 ## Support :star:
 
-Has this Project helped you learn something New? or Helped you at work? Do Consider Supporting.
+Has this Project helped you learn something New? or Helped you at work?
 Here are a few ways by which you can support.
 
 -   Leave a star! :star:
 -   Recommend this awesome project to your colleagues. 🥇
 -   Do consider endorsing me on LinkedIn for ASP.NET Core - [Connect via LinkedIn](https://codewithmukesh.com/linkedin) 🦸
--   Or, If you want to support this project on the long run, [consider buying me a coffee](https://www.buymeacoffee.com/codewithmukesh)! ☕
+-   Or, If you want to support this project in the long run, [consider buying me a coffee](https://www.buymeacoffee.com/codewithmukesh)! ☕
 
 <a href="https://www.buymeacoffee.com/codewithmukesh"><img width="200" alt="black-button" src="https://user-images.githubusercontent.com/31455818/138557309-27587d91-7b82-4cab-96bb-90f4f4e600f1.png" ></a>
