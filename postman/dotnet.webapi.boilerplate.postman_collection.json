@@ -101,14 +101,13 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}/users/969496fc-3400-4833-b77f-e9a6823ac86e/permissions",
+							"raw": "{{url}}/roles/all",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
-								"users",
-								"969496fc-3400-4833-b77f-e9a6823ac86e",
-								"permissions"
+								"roles",
+								"all"
 							]
 						}
 					},
@@ -142,18 +141,64 @@
 					"response": []
 				},
 				{
-					"name": "get-permissions",
+					"name": "get-role-permissions",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}/roles/2d6319a4-b315-4b51-a492-aab21b1f8fc7/permissions",
+							"raw": "{{url}}/roles/17c9fb87-a92f-404d-b2e4-30ce88f5f6b6/permissions",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
 								"roles",
-								"2d6319a4-b315-4b51-a492-aab21b1f8fc7",
+								"17c9fb87-a92f-404d-b2e4-30ce88f5f6b6",
+								"permissions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get-my-profile",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/identity/profile",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"identity",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update-role-permissions",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "[]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/roles/43110319-586f-4373-a9ce-f9fd682d744e/permissions",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"roles",
+								"43110319-586f-4373-a9ce-f9fd682d744e",
 								"permissions"
 							]
 						}
@@ -325,7 +370,7 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{url}}/v1/brands?id=8610c2b6-30c0-414a-82f0-1b32663b5e04",
+							"raw": "{{url}}/v1/brands?id=623e0000-3f5a-3c7c-e7d0-08d9962dbbe4",
 							"host": [
 								"{{url}}"
 							],
@@ -336,7 +381,7 @@
 							"query": [
 								{
 									"key": "id",
-									"value": "8610c2b6-30c0-414a-82f0-1b32663b5e04"
+									"value": "623e0000-3f5a-3c7c-e7d0-08d9962dbbe4"
 								}
 							]
 						}
