@@ -2,7 +2,7 @@ using System.ComponentModel;
 
 namespace DN.WebApi.Domain.Constants
 {
-    public class Permissions
+    public class PermissionConstants
     {
         [DisplayName("Identity")]
         [Description("Identity Permissions")]

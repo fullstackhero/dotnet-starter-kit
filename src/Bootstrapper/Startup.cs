@@ -1,5 +1,6 @@
 using DN.WebApi.Application.Extensions;
 using DN.WebApi.Infrastructure.Extensions;
+using DN.WebApi.Infrastructure.Mappings;
 using DN.WebApi.Shared.DTOs;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Builder;
@@ -29,7 +30,6 @@ namespace DN.WebApi.Bootstrapper
             services
                 .AddApplication()
                 .AddInfrastructure(_config);
-            MapsterSettings.Configure();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

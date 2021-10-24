@@ -2,6 +2,7 @@ using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Constants;
+using DN.WebApi.Infrastructure.Extensions;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Infrastructure.Utilities;
@@ -11,6 +12,7 @@ using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -24,14 +26,16 @@ namespace DN.WebApi.Infrastructure.Identity.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
         private readonly IStringLocalizer<RoleService> _localizer;
+        private readonly IRoleClaimsService _roleClaimService;
 
-        public RoleService(RoleManager<ApplicationRole> roleManager, UserManager<ApplicationUser> userManager, ApplicationDbContext context, IStringLocalizer<RoleService> localizer, ICurrentUser currentUser)
+        public RoleService(RoleManager<ApplicationRole> roleManager, UserManager<ApplicationUser> userManager, ApplicationDbContext context, IStringLocalizer<RoleService> localizer, ICurrentUser currentUser, IRoleClaimsService roleClaimService)
         {
             _roleManager = roleManager;
             _userManager = userManager;
             _context = context;
             _localizer = localizer;
             _currentUser = currentUser;
+            _roleClaimService = roleClaimService;
         }
 
         private static List<string> DefaultRoles()
@@ -103,6 +107,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
         {
             var userRoles = await _context.UserRoles.Where(a => a.UserId == userId).Select(a => a.RoleId).ToListAsync();
             var roles = await _roleManager.Roles.Where(a => userRoles.Contains(a.Id)).ToListAsync();
+
             var rolesResponse = roles.Adapt<List<RoleDto>>();
             return await Result<List<RoleDto>>.SuccessAsync(rolesResponse);
         }
@@ -147,6 +152,86 @@ namespace DN.WebApi.Infrastructure.Identity.Services
                 existingRole.Description = request.Description;
                 await _roleManager.UpdateAsync(existingRole);
                 return await Result<string>.SuccessAsync(existingRole.Id, string.Format(_localizer["Role {0} Updated."], existingRole.Name));
+            }
+        }
+
+        public async Task<Result<string>> UpdatePermissionsAsync(string roleId, List<UpdatePermissionsRequest> request)
+        {
+            try
+            {
+                var errors = new List<string>();
+                var role = await _roleManager.FindByIdAsync(roleId);
+                if (role.Name == RoleConstants.Admin)
+                {
+                    var currentUser = await _userManager.Users.SingleAsync(x => x.Id == _currentUser.GetUserId().ToString());
+                    if (await _userManager.IsInRoleAsync(currentUser, RoleConstants.Admin))
+                    {
+                        return await Result<string>.FailAsync(_localizer["Not allowed to modify Permissions for this Role."]);
+                    }
+                }
+
+                var selectedPermissions = request.Where(a => a.Enabled).ToList();
+                if (role.Name == RoleConstants.Admin)
+                {
+                    if (!selectedPermissions.Any(x => x.Permission == PermissionConstants.Roles.View)
+                       || !selectedPermissions.Any(x => x.Permission == PermissionConstants.RoleClaims.View)
+                       || !selectedPermissions.Any(x => x.Permission == PermissionConstants.RoleClaims.Edit))
+                    {
+                        return await Result<string>.FailAsync(string.Format(
+                            _localizer["Not allowed to deselect {0} or {1} or {2} for this Role."],
+                            PermissionConstants.Roles.View,
+                            PermissionConstants.RoleClaims.View,
+                            PermissionConstants.RoleClaims.Edit));
+                    }
+                }
+
+                var permissions = await _roleManager.GetClaimsAsync(role);
+                foreach (var claim in permissions.Where(p => request.Any(a => a.Permission == p.Value)))
+                {
+                    await _roleManager.RemoveClaimAsync(role, claim);
+                }
+
+                foreach (var permission in selectedPermissions)
+                {
+                    var addResult = await _roleManager.AddPermissionClaimAsync(role, permission.Permission);
+                    if (!addResult.Succeeded)
+                    {
+                        errors.AddRange(addResult.Errors.Select(e => _localizer[e.Description].ToString()));
+                    }
+                }
+
+                var addedPermissions = await _roleClaimService.GetAllByRoleIdAsync(role.Id);
+                if (addedPermissions.Succeeded)
+                {
+                    foreach (var permission in selectedPermissions)
+                    {
+                        var addedPermission = addedPermissions.Data.SingleOrDefault(x => x.Type == ClaimConstants.Permission && x.Value == permission.Permission);
+                        if (addedPermission != null)
+                        {
+                            var newPermission = addedPermission.Adapt<RoleClaimRequest>();
+                            var saveResult = await _roleClaimService.SaveAsync(newPermission);
+                            if (!saveResult.Succeeded)
+                            {
+                                errors.AddRange(saveResult.Messages);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    errors.AddRange(addedPermissions.Messages);
+                }
+
+                if (errors.Any())
+                {
+                    return await Result<string>.FailAsync(errors);
+                }
+
+                return await Result<string>.SuccessAsync(_localizer["Permissions Updated."]);
+            }
+            catch (Exception ex)
+            {
+                return await Result<string>.FailAsync(ex.Message);
             }
         }
     }
