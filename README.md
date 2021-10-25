@@ -1,5 +1,9 @@
+
+
 <p align="center">
     <img src="https://codewithmukesh.com/wp-content/uploads/2021/08/fullstackhero-banner.jpg" alt="fullstackhero">
+    <a href="https://www.buymeacoffee.com/codewithmukesh"><img width="200" alt="black-button" src="https://user-images.githubusercontent.com/31455818/138557309-27587d91-7b82-4cab-96bb-90f4f4e600f1.png" ></a>
+
 <h1 align="center">.NET WebAPI Boilerplate</h1>
 </p>
 
@@ -7,19 +11,28 @@
 
 ## About
 
-`dotnet-webapi-boilerplate` is the integral part of the `fullstackhero` project.
+`dotnet-webapi-boilerplate` is an integral part of the `fullstackhero` project.
 
-`fullstackhero` is a venture to develop industry leading boilerplate templates for the dotnet stack as the backend (webapi) along with modern client frameworks like Angular, MVC and Blazor.
+`fullstackhero` is a venture to develop industry-leading boilerplate templates for the dotnet stack as the backend (web API) along with modern client frameworks like Angular, MVC, and Blazor.
 
 This repository contains the WebApi Project of `fullstackhero`.
 
 ## Release Planning
 
-### 0.0.1 RC is available now!
+### 0.0.3 RC is available now!
+
+- Migration Refresh
+- Security Patches
+- Image Upload Fix
+- Option to Disable Swagger
+- Cleaner Code
+- Activate / Deactivate Tenants
+- Upgrade Tenant Subscription
+- Advanced Search
 
 This is the first pre-release version of the `fullstackhero .NET WebAPI Boilerplate` package. Newer versions will be available on a weekly basis with newer updates and patches. [Read the getting-started guide for more.](https://fullstackhero.net/dotnet-webapi-boilerplate/general/getting-started/)
 
-The Release Version is expected to be out by November, 2021 as soon as .NET 6 LTS is launched by Microsoft. Preview versions of this project is available for Initial Developer Testing.
+The Release Version is expected to be out by November 2021 as soon as .NET 6 LTS is launched by Microsoft. Preview versions of this project are available for Initial Developer Testing.
 
 ## Quick Start Guide
 
@@ -30,9 +43,9 @@ dotnet new --install FullStackHero.WebAPI.Boilerplate
 ```
 This would install the `fullstackhero .NET WebAPI Boilerplate` template globally on your machine. With that done, let's see how you can start generating complete .NET WebAPI Solutions seamlessly.
 
-Simply navigate to a new directory (wherever you want to place your new solution at), and open up Command Prompt at the opened directory.
+Simply navigate to a new directory (wherever you want to place your new solution), and open up Command Prompt at the opened directory.
 
-Run the following command. Note that, in this demonstration I am naming my new solution as `FSH.Starter`.
+Run the following command. Note that, in this demonstration, I am naming my new solution as `FSH.Starter`.
 
 ```powershell
 dotnet new fsh-api -o FSH.Starter
@@ -60,13 +73,16 @@ Join our Discord - [fullstackhero @ Discord](https://discord.gg/gdgHRt4mMw)
 - [x] Follows Clean Architecture Principles
 - [ ] Completely Documented at [fullstackhero.net](https://fullstackhero.net)
 - [x] Multi Tenancy Support
+  - [x] Create Tenants with Multi Database / Shared Database Support
+  - [x] Activate / Deactivate Tenants on Demand
+  - [x] Upgrade Subscription of Tenants - Add More Validity Months to each tenant!
 - [x] Supports MySQL, MSSQL & PostgreSQL!
 - [x] Uses Entity Framework Core as DB Abstraction
 - [x] Flexible Repository Pattern
 - [x] Dapper Integration for Optimal Performance
 - [x] Serilog Integration
 - [x] Swagger Support
-- [x] Mapster
+- [x] Mapster Integration for Quicker Mapping
 - [x] API Versioning
 - [x] Response Caching - Distributed Caching
 - [x] Fluent Validations
@@ -86,3 +102,15 @@ Join our Discord - [fullstackhero @ Discord](https://discord.gg/gdgHRt4mMw)
 ## License
 
 This project is licensed with the [MIT license](LICENSE).
+
+## Support :star:
+
+Has this Project helped you learn something New? or Helped you at work?
+Here are a few ways by which you can support.
+
+-   Leave a star! :star:
+-   Recommend this awesome project to your colleagues. 🥇
+-   Do consider endorsing me on LinkedIn for ASP.NET Core - [Connect via LinkedIn](https://codewithmukesh.com/linkedin) 🦸
+-   Or, If you want to support this project in the long run, [consider buying me a coffee](https://www.buymeacoffee.com/codewithmukesh)! ☕
+
+<a href="https://www.buymeacoffee.com/codewithmukesh"><img width="200" alt="black-button" src="https://user-images.githubusercontent.com/31455818/138557309-27587d91-7b82-4cab-96bb-90f4f4e600f1.png" ></a>

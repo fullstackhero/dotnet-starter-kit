@@ -1,5 +1,5 @@
-using System;
 using MassTransit;
+using System;
 
 namespace DN.WebApi.Domain.Contracts
 {

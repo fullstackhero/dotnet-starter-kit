@@ -1,12 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Shared.DTOs.Identity.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace DN.WebApi.Bootstrapper.Controllers.Identity
 {
@@ -21,7 +18,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
             _roleClaimService = roleClaimService;
         }
 
-        [Authorize(Policy = Permissions.RoleClaims.View)]
+        [Authorize(Policy = PermissionConstants.RoleClaims.View)]
         [HttpGet]
         public async Task<IActionResult> GetAllAsync()
         {
@@ -29,7 +26,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
             return Ok(roleClaims);
         }
 
-        [Authorize(Policy = Permissions.RoleClaims.View)]
+        [Authorize(Policy = PermissionConstants.RoleClaims.View)]
         [HttpGet("{roleId}")]
         public async Task<IActionResult> GetAllByRoleIdAsync([FromRoute] string roleId)
         {
@@ -37,7 +34,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
             return Ok(response);
         }
 
-        [Authorize(Policy = Permissions.RoleClaims.Create)]
+        [Authorize(Policy = PermissionConstants.RoleClaims.Create)]
         [HttpPost]
         public async Task<IActionResult> PostAsync(RoleClaimRequest request)
         {
@@ -45,7 +42,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
             return Ok(response);
         }
 
-        [Authorize(Policy = Permissions.RoleClaims.Delete)]
+        [Authorize(Policy = PermissionConstants.RoleClaims.Delete)]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAsync(int id)
         {

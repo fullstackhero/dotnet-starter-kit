@@ -103,7 +103,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
                 _logger.Information($"Assigning Admin Permissions for '{tenantKey}' Tenant.");
             }
 
-            foreach (string permission in typeof(Permissions).GetNestedClassesStaticStringValues())
+            foreach (string permission in typeof(PermissionConstants).GetNestedClassesStaticStringValues())
             {
                 var allClaims = await roleManager.GetClaimsAsync(roleRecord);
                 if (!allClaims.Any(a => a.Type == Domain.Constants.ClaimConstants.Permission && a.Value == permission))

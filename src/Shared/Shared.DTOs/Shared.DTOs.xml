@@ -4,5 +4,15 @@
         <name>DN.WebApi.Shared.DTOs</name>
     </assembly>
     <members>
+        <member name="P:DN.WebApi.Shared.DTOs.Filters.BaseFilter.AdvancedSearch">
+            <summary>
+            Column Wise Search is Supported.
+            </summary>
+        </member>
+        <member name="P:DN.WebApi.Shared.DTOs.Filters.BaseFilter.Keyword">
+            <summary>
+            Keyword to Search in All the available columns of the Resource.
+            </summary>
+        </member>
     </members>
 </doc>

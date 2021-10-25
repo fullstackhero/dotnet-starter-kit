@@ -14,15 +14,17 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
     {
         private readonly ICurrentUser _user;
         private readonly IIdentityService _identityService;
+        private readonly IUserService _userService;
 
-        public IdentityController(IIdentityService identityService, ICurrentUser user)
+        public IdentityController(IIdentityService identityService, ICurrentUser user, IUserService userService)
         {
             _identityService = identityService;
             _user = user;
+            _userService = userService;
         }
 
         [HttpPost("register")]
-        [MustHavePermission(Permissions.Identity.Register)]
+        [MustHavePermission(PermissionConstants.Identity.Register)]
         public async Task<IActionResult> RegisterAsync(RegisterRequest request)
         {
             string baseUrl = $"{this.Request.Scheme}://{this.Request.Host.Value.ToString()}{this.Request.PathBase.Value.ToString()}";
@@ -63,6 +65,12 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
         public async Task<IActionResult> UpdateProfileAsync(UpdateProfileRequest request)
         {
             return Ok(await _identityService.UpdateProfileAsync(request, _user.GetUserId().ToString()));
+        }
+
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetProfileDetailsAsync()
+        {
+            return Ok(await _userService.GetAsync(_user.GetUserId().ToString()));
         }
     }
 }

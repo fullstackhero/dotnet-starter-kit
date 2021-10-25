@@ -17,7 +17,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
             return f => false;
         }
 
-        public static IQueryable<T> Search<T>(this IQueryable<T> query, Search search)
+        public static IQueryable<T> AdvancedSearch<T>(this IQueryable<T> query, Search search)
         {
             var predicate = False<T>();
             var properties = typeof(T).GetProperties().Where(p => search.Fields.Any(field => p.Name.ToLower() == field.ToLower()));
@@ -32,6 +32,29 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
                 var nullCheck = Expression.NotEqual(propertyAsObject, Expression.Constant(null, typeof(object)));
                 var propertyAsString = Expression.Call(property, "ToString", null, null);
                 var keywordExpression = Expression.Constant(search.Keyword);
+                var contains = propertyInfo.PropertyType == typeof(string) ? Expression.Call(property, "Contains", null, keywordExpression) : Expression.Call(propertyAsString, "Contains", null, keywordExpression);
+                var lambda = Expression.Lambda(Expression.AndAlso(nullCheck, contains), parameter);
+                predicate = predicate.Or((Expression<Func<T, bool>>)lambda);
+            }
+
+            return query.Where(predicate);
+        }
+
+        public static IQueryable<T> SearchByKeyword<T>(this IQueryable<T> query, string keyword)
+        {
+            var predicate = False<T>();
+            var properties = typeof(T).GetProperties();
+            foreach (var propertyInfo in properties)
+            {
+                if (propertyInfo.GetGetMethod().IsVirtual)
+                    continue;
+
+                var parameter = Expression.Parameter(typeof(T), "x");
+                var property = Expression.Property(parameter, propertyInfo);
+                var propertyAsObject = Expression.Convert(property, typeof(object));
+                var nullCheck = Expression.NotEqual(propertyAsObject, Expression.Constant(null, typeof(object)));
+                var propertyAsString = Expression.Call(property, "ToString", null, null);
+                var keywordExpression = Expression.Constant(keyword);
                 var contains = propertyInfo.PropertyType == typeof(string) ? Expression.Call(property, "Contains", null, keywordExpression) : Expression.Call(propertyAsString, "Contains", null, keywordExpression);
                 var lambda = Expression.Lambda(Expression.AndAlso(nullCheck, contains), parameter);
                 predicate = predicate.Or((Expression<Func<T, bool>>)lambda);

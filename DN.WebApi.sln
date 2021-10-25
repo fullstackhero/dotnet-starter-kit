@@ -15,7 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{A3D187
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared.DTOs", "src\Shared\Shared.DTOs\Shared.DTOs.csproj", "{243B5903-95EF-4B51-8C62-B412217DC020}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "src\Infrastructure\Infrastructure.csproj", "{5C3397B9-EF56-4499-B625-D1B8D1B7DD68}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "src\Infrastructure\Infrastructure.csproj", "{5C3397B9-EF56-4499-B625-D1B8D1B7DD68}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bootstrapper", "src\Bootstrapper\Bootstrapper.csproj", "{AD21F819-C24F-4FBB-8033-491E424B6349}"
 EndProject
@@ -25,7 +25,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Migrators.PostgreSQL", "src
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Migrators.MSSQL", "src\Migrators\Migrators.MSSQL\Migrators.MSSQL.csproj", "{BF2C59A8-8288-4260-9A95-B07503A5A134}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Migrators.MySQL", "src\Migrators\Migrators.MySQL\Migrators.MySQL.csproj", "{3C50A473-F439-47B8-8FCB-7CA9C3367247}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Migrators.MySQL", "src\Migrators\Migrators.MySQL\Migrators.MySQL.csproj", "{3C50A473-F439-47B8-8FCB-7CA9C3367247}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

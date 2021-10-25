@@ -3,7 +3,7 @@
   <metadata>
     <id>FullStackHero.WebAPI.Boilerplate</id>
     <title>FullStackHero WebAPI Boilerplate</title>
-    <version>0.0.1-rc</version>
+    <version>0.0.3-rc</version>
     <authors>Mukesh Murugan</authors>
     <description>
       Clean Architecture Template for .NET 6.0 WebAPI built with Multitenancy Support.
@@ -20,6 +20,6 @@
     <icon>./content/icon.png</icon>
   </metadata>
   <files>
-    <file src=".\**" target="content" exclude="**\bin\**;**\obj\**;**\.git\**;**\.github\**;**\*.user;**\.vs\**;**\.vscode\**;**\Images\**" />
+    <file src=".\**" target="content" exclude="**\bin\**;**\obj\**;**\.git\**;**\.github\**;**\*.user;**\.vs\**;**\.vscode\**;**\Images\**;**\Logs\**" />
   </files>
 </package>

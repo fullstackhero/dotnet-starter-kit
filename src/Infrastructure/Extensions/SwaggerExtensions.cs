@@ -40,6 +40,23 @@ namespace DN.WebApi.Infrastructure.Extensions
             {
                 services.AddSwaggerGen(options =>
                 {
+                    options.SwaggerDoc("v1", new OpenApiInfo
+                    {
+                        Title = ".NET 6.0 WebAPI - Clean Architecture",
+                        Version = "v1",
+                        Description = "Clean Architecture Template for .NET 6.0 WebApi built with Multitenancy Support.",
+                        Contact = new OpenApiContact
+                        {
+                            Name = "Mukesh Murugan",
+                            Email = "hello@codewithmukesh.com",
+                            Url = new Uri("https://linkedin.com/in/iammukeshm"),
+                        },
+                        License = new OpenApiLicense
+                        {
+                            Name = "MIT License",
+                            Url = new Uri("https://github.com/fullstackhero/dotnet-webapi-boilerplate/blob/main/LICENSE"),
+                        }
+                    });
                     string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
                     foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
                     {
@@ -58,7 +75,7 @@ namespace DN.WebApi.Infrastructure.Extensions
                     {
                         Name = "Authorization",
                         In = ParameterLocation.Header,
-                        Type = SecuritySchemeType.ApiKey,
+                        Type = SecuritySchemeType.Http,
                         Scheme = "Bearer",
                         BearerFormat = "JWT",
                         Description = "Input your Bearer token in this format - Bearer {your token here} to access this API",
@@ -88,7 +105,7 @@ namespace DN.WebApi.Infrastructure.Extensions
                         Pattern = @"^([0-9]{1}|(?:0[0-9]|1[0-9]|2[0-3])+):([0-5]?[0-9])(?::([0-5]?[0-9])(?:.(\d{1,9}))?)?$",
                         Example = new OpenApiString("02:00:00")
                     });
-
+                    options.EnableAnnotations();
                     options.OperationFilter<AddTenantIdFilter>();
                 });
             }

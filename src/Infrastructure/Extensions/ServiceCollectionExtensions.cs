@@ -1,6 +1,7 @@
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Infrastructure.Localizer;
+using DN.WebApi.Infrastructure.Mappings;
 using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Infrastructure.Persistence.Extensions;
 using DN.WebApi.Infrastructure.Services.General;
@@ -18,11 +19,16 @@ namespace DN.WebApi.Infrastructure.Extensions
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
         {
+            MapsterSettings.Configure();
             if (config.GetSection("CacheSettings:PreferRedis").Get<bool>())
             {
                 services.AddDistributedRedisCache(options =>
                 {
                     options.Configuration = config.GetSection("CacheSettings:RedisURL").Get<string>();
+                    options.ConfigurationOptions = new StackExchange.Redis.ConfigurationOptions()
+                    {
+                        AbortOnConnectFail = true
+                    };
                 });
             }
             else

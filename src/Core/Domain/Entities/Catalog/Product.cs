@@ -1,4 +1,5 @@
 using DN.WebApi.Domain.Contracts;
+using DN.WebApi.Domain.Extensions;
 using System;
 
 namespace DN.WebApi.Domain.Entities.Catalog
@@ -28,11 +29,11 @@ namespace DN.WebApi.Domain.Entities.Catalog
 
         public Product Update(string name, string description, decimal rate, Guid brandId, string imagePath)
         {
-            if (!Name.Equals(name)) Name = name;
-            if (!Description.Equals(description)) Description = description;
+            if (name != null && !Name.NullToString().Equals(name)) Name = name;
+            if (description != null && !Description.NullToString().Equals(description)) Description = description;
             if (Rate != rate) Rate = rate;
-            if (!BrandId.Equals(brandId)) BrandId = brandId;
-            if (!string.IsNullOrEmpty(imagePath)) ImagePath = imagePath;
+            if (brandId != Guid.Empty && !BrandId.NullToString().Equals(brandId)) BrandId = brandId;
+            if (imagePath != null && !ImagePath.NullToString().Equals(imagePath)) ImagePath = imagePath;
             return this;
         }
     }
