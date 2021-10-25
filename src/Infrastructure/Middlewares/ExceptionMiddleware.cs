@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using System.IO;
 using System.Text;
+using Serilog;
 using Serilog.Context;
 
 namespace DN.WebApi.Infrastructure.Middlewares
@@ -60,25 +61,31 @@ namespace DN.WebApi.Infrastructure.Middlewares
                 body.Seek(0, SeekOrigin.Begin);
                 context.Request.Body = body;
 
-                // Log.ForContext("RequestHeaders", context.Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString()), destructureObjects: true)
-                //    .ForContext("RequestBody", requestBody)
-                //    .Information("Request information {RequestMethod} {RequestPath} information", context.Request.Method, context.Request.Path);
-                if (requestBody != string.Empty)
+                if (requestBody != string.Empty && context.Request.Path.ToString() != "/api/tokens/")
                 {
-                    requestBody = $"Body: " + requestBody + Environment.NewLine;
+                    requestBody = $"  Body: " + requestBody + Environment.NewLine;
+                }
+
+                // Logs should always be secured! However, we will take the extra step of not logging passwords.
+                if (context.Request.Path.ToString() == "/api/tokens/")
+                {
+                    requestBody = string.Empty;
                 }
 
                 var user = !string.IsNullOrEmpty(_currentUser.GetUserEmail()) ? _currentUser.GetUserEmail() : "Anonymous";
-
                 LogContext.PushProperty("UserName", user);
 
+                string errorId = Guid.NewGuid().ToString().Substring(0, 10);
+                LogContext.PushProperty("TechSptMsg", "Sorry, an unexpected error has occurred. Provide the following to our technical support department: " + errorId);
+
                 _logger.LogError(
-                $"{exception.Message}{Environment.NewLine}HTTP Request Information:{Environment.NewLine}" +
+                $"Exception: {exception.Message}{Environment.NewLine}" +
                     $"  Request By: {user}{Environment.NewLine}" +
                     $"  Tenant: {_currentUser.GetTenantKey() ?? string.Empty}{Environment.NewLine}" +
                     $"  RemoteIP: {context.Connection.RemoteIpAddress}{Environment.NewLine}" +
                     $"  Schema: {context.Request.Scheme}{Environment.NewLine}" +
                     $"  Host: {context.Request.Host}{Environment.NewLine}" +
+                    $"  Method: {context.Request.Method}{Environment.NewLine}" +
                     $"  Path: {context.Request.Path}{Environment.NewLine}" +
                     $"  Query String: {context.Request.QueryString}{Environment.NewLine}" + requestBody +
                     $"  Response Status Code: {context.Response?.StatusCode}{Environment.NewLine}");
@@ -114,7 +121,7 @@ namespace DN.WebApi.Infrastructure.Middlewares
                         break;
                 }
 
-                string result = string.Empty;
+                var result = string.Empty;
                 result = _jsonSerializer.Serialize(responseModel);
                 await response.WriteAsync(result);
             }

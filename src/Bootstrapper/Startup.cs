@@ -45,10 +45,8 @@ namespace DN.WebApi.Bootstrapper
                 app.UseExceptionHandler("/Error");
             }
 
-            // app.UseSerilogRequestLogging();
-            app.UseMiddleware<RequestLoggingMiddleware>();
-
             app.UseInfrastructure(_config);
+            app.UseMiddleware<RequestLoggingMiddleware>();
         }
     }
 }
