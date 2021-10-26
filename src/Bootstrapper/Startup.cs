@@ -46,7 +46,6 @@ namespace DN.WebApi.Bootstrapper
             }
 
             app.UseInfrastructure(_config);
-            app.UseMiddleware<RequestLoggingMiddleware>();
         }
     }
 }
