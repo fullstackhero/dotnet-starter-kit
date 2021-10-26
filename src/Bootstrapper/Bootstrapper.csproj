@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>DN.WebApi.Bootstrapper</RootNamespace>
@@ -12,11 +12,19 @@
   <ItemGroup>
     <PackageReference Include="FluentValidation.AspNetCore" Version="10.3.4" />
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.2.3" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.0-rc.2.*">
+
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.0-rc.2.*">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0-rc.2.*" />
+    <PackageReference Include="serilog.aspnetcore" Version="4.1.0" />
+
+      <PackageReference Include="serilog.Enrichers.Process" Version="2.0.2" />
+    <PackageReference Include="serilog.Enrichers.Thread" Version="3.1.0" />
+    <PackageReference Include="serilog.settings.Configuration" Version="3.3.0" />
+    <PackageReference Include="serilog.Sinks.MSSqlServer" Version="5.6.1" />
+    <!--<PackageReference Include="serilog.Sinks.Seq" Version="5.0.1" />-->
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Application\Application.csproj" />
@@ -30,7 +38,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.354">
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

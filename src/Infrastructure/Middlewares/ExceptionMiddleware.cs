@@ -1,14 +1,17 @@
 using DN.WebApi.Application.Abstractions.Services.General;
-using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Wrapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Threading.Tasks;
+using DN.WebApi.Application.Abstractions.Services.Identity;
+using System.IO;
+using System.Text;
+using Serilog;
+using Serilog.Context;
 
 namespace DN.WebApi.Infrastructure.Middlewares
 {
@@ -47,24 +50,45 @@ namespace DN.WebApi.Infrastructure.Middlewares
                     }
                 }
 
+                // Getting the request body is a little tricky because it's a stream
+                // So, we need to read the stream and then rewind it back to the beginning
+                string requestBody = string.Empty;
+                context.Request.EnableBuffering();
+                Stream body = context.Request.Body;
+                byte[] buffer = new byte[Convert.ToInt32(context.Request.ContentLength)];
+                await context.Request.Body.ReadAsync(buffer, 0, buffer.Length);
+                requestBody = Encoding.UTF8.GetString(buffer);
+                body.Seek(0, SeekOrigin.Begin);
+                context.Request.Body = body;
+
+                if (requestBody != string.Empty && context.Request.Path.ToString() != "/api/tokens/")
+                {
+                    requestBody = $"  Body: " + requestBody + Environment.NewLine;
+                }
+
+                // Logs should always be secured! However, we will take the extra step of not logging passwords.
+                if (context.Request.Path.ToString() == "/api/tokens/")
+                {
+                    requestBody = string.Empty;
+                }
+
                 var user = !string.IsNullOrEmpty(_currentUser.GetUserEmail()) ? _currentUser.GetUserEmail() : "Anonymous";
+                LogContext.PushProperty("UserName", user);
+
+                string errorId = Guid.NewGuid().ToString().Substring(0, 10);
+                LogContext.PushProperty("TechSptMsg", "Sorry, an unexpected error has occurred. Provide the following to our technical support department: " + errorId);
+
                 _logger.LogError(
-                $"{exception.Message}{Environment.NewLine}HTTP Request Information:{Environment.NewLine}" +
+                $"Exception: {exception.Message}{Environment.NewLine}" +
                     $"  Request By: {user}{Environment.NewLine}" +
                     $"  Tenant: {_currentUser.GetTenantKey() ?? string.Empty}{Environment.NewLine}" +
                     $"  RemoteIP: {context.Connection.RemoteIpAddress}{Environment.NewLine}" +
                     $"  Schema: {context.Request.Scheme}{Environment.NewLine}" +
                     $"  Host: {context.Request.Host}{Environment.NewLine}" +
+                    $"  Method: {context.Request.Method}{Environment.NewLine}" +
                     $"  Path: {context.Request.Path}{Environment.NewLine}" +
-                    $"  Query String: {context.Request.QueryString}{Environment.NewLine}" +
-
-                    // $"  Request Body: {context.Request.Body}{Environment.NewLine}" +
+                    $"  Query String: {context.Request.QueryString}{Environment.NewLine}" + requestBody +
                     $"  Response Status Code: {context.Response?.StatusCode}{Environment.NewLine}");
-
-                // TODO: Being able to troubleshoot exceptions almost always requires understanding what
-                // the message body contained. The context.Request.Body is a ForwardOnly StreamReader. Middleware, by it's
-                // nature, will be making multiple reads against this object. That requires non-trivial handling at the
-                // architectural level. This is probably a good starting point: https://markb.uk/asp-net-core-read-raw-request-body-as-string.html
 
                 var responseModel = await ErrorResult<string>.ReturnErrorAsync(exception.Message);
                 responseModel.Source = exception.Source;
@@ -97,7 +121,7 @@ namespace DN.WebApi.Infrastructure.Middlewares
                         break;
                 }
 
-                string result = string.Empty;
+                var result = string.Empty;
                 result = _jsonSerializer.Serialize(responseModel);
                 await response.WriteAsync(result);
             }

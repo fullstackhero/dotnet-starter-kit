@@ -1,6 +1,7 @@
 using DN.WebApi.Application.Extensions;
 using DN.WebApi.Infrastructure.Extensions;
 using DN.WebApi.Infrastructure.Mappings;
+using DN.WebApi.Infrastructure.Middlewares;
 using DN.WebApi.Shared.DTOs;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Builder;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 
 namespace DN.WebApi.Bootstrapper
 {
@@ -44,6 +46,7 @@ namespace DN.WebApi.Bootstrapper
             }
 
             app.UseInfrastructure(_config);
+            app.UseMiddleware<RequestLoggingMiddleware>();
         }
     }
 }
