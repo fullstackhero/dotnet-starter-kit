@@ -11,7 +11,25 @@
   },
   "identity": "FullStackHero.WebAPI.Boilerplate",
   "name": "FullStackHero WebAPI Boilerplate",
+  "description": "Clean Architecture Template for .NET 6.0 WebApi built with Multitenancy Support.",
   "shortName": "fsh-api",
   "sourceName": "DN.WebApi",
-  "preferNameDirectory": true
+  "preferNameDirectory": true,
+  "primaryOutputs": [
+    {
+      "path": "./"
+    }
+  ],
+  "postActions": [
+    {
+      "description": "Restore NuGet packages required by this project.",
+      "manualInstructions": [
+        {
+          "text": "Run 'dotnet restore'"
+        }
+      ],
+      "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+      "continueOnError": true
+    }
+  ]
 }
