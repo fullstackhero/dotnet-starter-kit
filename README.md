@@ -1,4 +1,8 @@
-
+[![GitHub](https://img.shields.io/github/license/fullstackhero/dotnet-webapi-boilerplate?color=%23594ae2&style=flat-square)](https://github.com/fullstackhero/dotnet-webapi-boilerplate/blob/master/LICENSE)
+[![Discord](https://img.shields.io/discord/878181478972928011?color=%237289da&label=Discord&logo=discord&logoColor=%237289da&style=flat-square)](https://discord.gg/yQWpShsKrf)
+[![Twitter](https://img.shields.io/twitter/follow/codewithmukesh?color=1DA1F2&label=Twitter&logo=Twitter&style=flat-square)](https://twitter.com/codewithmukesh)
+[![Nuget version](https://img.shields.io/nuget/v/FullStackHero.WebAPI.Boilerplate?color=ff4081&label=nuget%20version&logo=nuget&style=flat-square)](https://www.nuget.org/packages/FullStackHero.WebAPI.Boilerplate/)
+[![Nuget downloads](https://img.shields.io/nuget/dt/FullStackHero.WebAPI.Boilerplate?color=ff4081&label=nuget%20downloads&logo=nuget&style=flat-square)](https://www.nuget.org/packages/FullStackHero.WebAPI.Boilerplate/)
 
 <p align="center">
     <img src="https://codewithmukesh.com/wp-content/uploads/2021/08/fullstackhero-banner.jpg" alt="fullstackhero">
