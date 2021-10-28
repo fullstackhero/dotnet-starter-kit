@@ -3,7 +3,12 @@
   "author": "Mukesh Murugan",
   "classifications": [
     "WebAPI",
-    "Clean Architecture"
+    "Clean Architecture",
+    "Boilerplate",
+    "macOS",
+    "Windows",
+    "Cloud",
+    "Web"
   ],
   "tags": {
     "language": "C#",
