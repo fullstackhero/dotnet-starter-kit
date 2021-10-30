@@ -76,11 +76,11 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
 
         private static void SeedTenantAdmin(Tenant tenant, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ApplicationDbContext applicationDbContext)
         {
-            var adminUserName = $"{tenant.Key.Trim().ToLower()}.admin";
+            var adminUserName = $"{tenant.Key.Trim()}.{RoleConstants.Admin}".ToLower();
             var superUser = new ApplicationUser
             {
                 FirstName = tenant.Key.Trim().ToLower(),
-                LastName = "admin",
+                LastName = RoleConstants.Admin,
                 Email = tenant.AdminEmail,
                 UserName = adminUserName,
                 EmailConfirmed = true,
