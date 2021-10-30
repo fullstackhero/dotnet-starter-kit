@@ -39,7 +39,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
                     {
                         _logger.Information($"Connection to {tenant.Key}'s Database Succeeded.");
                         SeedRoles(tenant, roleManager, appContext);
-                        SeedAdmin(tenant, userManager, roleManager, appContext);
+                        SeedTenantAdmin(tenant, userManager, roleManager, appContext);
                     }
                 }
             }
@@ -50,16 +50,31 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
             foreach (string roleName in typeof(RoleConstants).GetAllPublicConstantValues<string>())
             {
                 var roleStore = new RoleStore<ApplicationRole>(applicationDbContext);
+
+                var role = new ApplicationRole(roleName, tenant.Key, $"{roleName} Role for {tenant.Key} Tenant");
                 if (!applicationDbContext.Roles.IgnoreQueryFilters().Any(r => r.Name == roleName && r.TenantKey == tenant.Key))
                 {
-                    var role = new ApplicationRole(roleName, tenant.Key, $"{roleName} Role for {tenant.Key} Tenant");
                     roleStore.CreateAsync(role).Wait();
                     _logger.Information($"Seeding {roleName} Role for '{tenant.Key}' Tenant.");
+                }
+
+                if (roleName == RoleConstants.Basic)
+                {
+                    var basicRole = roleManager.Roles.IgnoreQueryFilters().Where(a => a.NormalizedName == RoleConstants.Basic.ToUpper() && a.TenantKey == tenant.Key).FirstOrDefaultAsync().Result;
+                    var basicClaims = roleManager.GetClaimsAsync(basicRole).Result;
+                    foreach (string permission in DefaultPermissions.Basics)
+                    {
+                        if (!basicClaims.Any(a => a.Type == Domain.Constants.ClaimConstants.Permission && a.Value == permission))
+                        {
+                            roleManager.AddClaimAsync(basicRole, new Claim(Domain.Constants.ClaimConstants.Permission, permission)).Wait();
+                            _logger.Information($"Seeding Basic Permission '{permission}' for '{tenant.Key}' Tenant.");
+                        }
+                    }
                 }
             }
         }
 
-        private static void SeedAdmin(Tenant tenant, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ApplicationDbContext applicationDbContext)
+        private static void SeedTenantAdmin(Tenant tenant, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ApplicationDbContext applicationDbContext)
         {
             var adminUserName = $"{tenant.Key.Trim().ToLower()}.admin";
             var superUser = new ApplicationUser
@@ -103,9 +118,9 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
                 _logger.Information($"Assigning Admin Permissions for '{tenantKey}' Tenant.");
             }
 
+            var allClaims = await roleManager.GetClaimsAsync(roleRecord);
             foreach (string permission in typeof(PermissionConstants).GetNestedClassesStaticStringValues())
             {
-                var allClaims = await roleManager.GetClaimsAsync(roleRecord);
                 if (!allClaims.Any(a => a.Type == Domain.Constants.ClaimConstants.Permission && a.Value == permission))
                 {
                     await roleManager.AddClaimAsync(roleRecord, new Claim(Domain.Constants.ClaimConstants.Permission, permission));
@@ -116,7 +131,6 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
             {
                 foreach (string rootPermission in typeof(RootPermissions).GetNestedClassesStaticStringValues())
                 {
-                    var allClaims = await roleManager.GetClaimsAsync(roleRecord);
                     if (!allClaims.Any(a => a.Type == Domain.Constants.ClaimConstants.Permission && a.Value == rootPermission))
                     {
                         await roleManager.AddClaimAsync(roleRecord, new Claim(Domain.Constants.ClaimConstants.Permission, rootPermission));
