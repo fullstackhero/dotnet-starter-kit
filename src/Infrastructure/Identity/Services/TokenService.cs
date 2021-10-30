@@ -95,7 +95,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             user.RefreshToken = GenerateRefreshToken();
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_config.RefreshTokenExpirationInDays);
             await _userManager.UpdateAsync(user);
-            string token = await GenerateJwtAsync(user, ipAddress);
+            string token = GenerateJwtAsync(user, ipAddress);
             var response = new TokenResponse(token, user.RefreshToken, user.RefreshTokenExpiryTime);
             return await Result<TokenResponse>.SuccessAsync(response);
         }
@@ -120,7 +120,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
                 throw new IdentityException(_localizer["identity.invalidtoken"], statusCode: HttpStatusCode.Unauthorized);
             }
 
-            string token = GenerateEncryptedToken(GetSigningCredentials(), await GetClaimsAsync(user, ipAddress));
+            string token = GenerateEncryptedToken(GetSigningCredentials(), GetClaimsAsync(user, ipAddress));
             user.RefreshToken = GenerateRefreshToken();
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_config.RefreshTokenExpirationInDays);
             await _userManager.UpdateAsync(user);
@@ -128,16 +128,14 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             return await Result<TokenResponse>.SuccessAsync(response);
         }
 
-        private async Task<string> GenerateJwtAsync(ApplicationUser user, string ipAddress)
+        private string GenerateJwtAsync(ApplicationUser user, string ipAddress)
         {
-            return GenerateEncryptedToken(GetSigningCredentials(), await GetClaimsAsync(user, ipAddress));
+            return GenerateEncryptedToken(GetSigningCredentials(), GetClaimsAsync(user, ipAddress));
         }
 
-        private async Task<IEnumerable<Claim>> GetClaimsAsync(ApplicationUser user, string ipAddress)
+        private IEnumerable<Claim> GetClaimsAsync(ApplicationUser user, string ipAddress)
         {
             string tenantKey = _tenantService.GetCurrentTenant()?.Key;
-            var roles = await _userManager.GetRolesAsync(user);
-
             return new List<Claim>
             {
                 new(ClaimTypes.NameIdentifier, user.Id),
