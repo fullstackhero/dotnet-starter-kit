@@ -60,7 +60,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
             IQueryable<T> query = _dbContext.Set<T>();
             if (specification != null)
                 query = query.Specify(specification);
-            return await query.FirstOrDefaultAsync();
+            return await query.Where(e => e.Id == entityId).FirstOrDefaultAsync();
         }
 
         public async Task<TDto> GetByIdAsync<T, TDto>(Guid entityId, BaseSpecification<T> specification, CancellationToken cancellationToken = default)
