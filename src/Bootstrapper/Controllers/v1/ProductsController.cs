@@ -48,7 +48,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
             return Ok(await _service.CreateProductAsync(request));
         }
 
-        [HttpPut]
+        [HttpPut("{id}")]
         [MustHavePermission(PermissionConstants.Products.Update)]
         public async Task<IActionResult> UpdateAsync(UpdateProductRequest request, Guid id)
         {

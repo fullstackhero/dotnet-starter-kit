@@ -34,7 +34,7 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
             return Ok(await _service.CreateBrandAsync(request));
         }
 
-        [HttpPut]
+        [HttpPut("{id}")]
         [MustHavePermission(PermissionConstants.Brands.Update)]
         public async Task<IActionResult> UpdateAsync(UpdateBrandRequest request, Guid id)
         {
