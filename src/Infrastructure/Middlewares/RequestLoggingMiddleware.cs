@@ -1,13 +1,11 @@
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Serilog.Context;
 using System;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Serilog;
-using Serilog.Context;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace DN.WebApi.Infrastructure.Middlewares

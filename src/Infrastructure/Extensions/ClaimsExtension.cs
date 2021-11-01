@@ -1,11 +1,7 @@
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Models;
-using DN.WebApi.Shared.DTOs.Identity.Responses;
 using Microsoft.AspNetCore.Identity;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Reflection;
 using System.Security.Claims;
 using System.Threading.Tasks;
 

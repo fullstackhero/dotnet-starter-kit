@@ -1,17 +1,16 @@
 using DN.WebApi.Application.Abstractions.Services.General;
+using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Wrapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Serilog.Context;
 using System;
 using System.Collections.Generic;
-using System.Net;
-using System.Threading.Tasks;
-using DN.WebApi.Application.Abstractions.Services.Identity;
 using System.IO;
+using System.Net;
 using System.Text;
-using Serilog;
-using Serilog.Context;
+using System.Threading.Tasks;
 
 namespace DN.WebApi.Infrastructure.Middlewares
 {
