@@ -36,14 +36,13 @@ namespace DN.WebApi.Infrastructure.Middlewares
             requestBody = Encoding.UTF8.GetString(buffer);
             body.Seek(0, SeekOrigin.Begin);
             context.Request.Body = body;
-
             if (requestBody != string.Empty)
             {
                 requestBody = $"  Body: " + requestBody + Environment.NewLine;
             }
 
             // Logs should always be secured! However, we will take the extra step of not logging passwords.
-            if (context.Request.Path.ToString() == "/api/tokens/")
+            if (context.Request.Path.ToString().Contains("tokens"))
             {
                 requestBody = string.Empty;
             }
