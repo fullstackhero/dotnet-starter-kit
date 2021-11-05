@@ -20,6 +20,15 @@
   "shortName": "fsh-api",
   "sourceName": "DN.WebApi",
   "preferNameDirectory": true,
+  "sources": [
+    {
+      "source": "./",
+      "target": "./",
+      "exclude": [
+        ".template.config/**"
+      ]
+    }
+  ],
   "primaryOutputs": [
     {
       "path": "./"
