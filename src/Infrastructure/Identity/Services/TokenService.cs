@@ -95,7 +95,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             user.RefreshToken = GenerateRefreshToken();
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_config.RefreshTokenExpirationInDays);
             await _userManager.UpdateAsync(user);
-            string token = GenerateJwtAsync(user, ipAddress);
+            string token = GenerateJwt(user, ipAddress);
             var response = new TokenResponse(token, user.RefreshToken, user.RefreshTokenExpiryTime);
             return await Result<TokenResponse>.SuccessAsync(response);
         }
@@ -120,7 +120,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
                 throw new IdentityException(_localizer["identity.invalidtoken"], statusCode: HttpStatusCode.Unauthorized);
             }
 
-            string token = GenerateEncryptedToken(GetSigningCredentials(), GetClaimsAsync(user, ipAddress));
+            string token = GenerateEncryptedToken(GetSigningCredentials(), GetClaims(user, ipAddress));
             user.RefreshToken = GenerateRefreshToken();
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_config.RefreshTokenExpirationInDays);
             await _userManager.UpdateAsync(user);
@@ -128,12 +128,12 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             return await Result<TokenResponse>.SuccessAsync(response);
         }
 
-        private string GenerateJwtAsync(ApplicationUser user, string ipAddress)
+        private string GenerateJwt(ApplicationUser user, string ipAddress)
         {
-            return GenerateEncryptedToken(GetSigningCredentials(), GetClaimsAsync(user, ipAddress));
+            return GenerateEncryptedToken(GetSigningCredentials(), GetClaims(user, ipAddress));
         }
 
-        private IEnumerable<Claim> GetClaimsAsync(ApplicationUser user, string ipAddress)
+        private IEnumerable<Claim> GetClaims(ApplicationUser user, string ipAddress)
         {
             string tenantKey = _tenantService.GetCurrentTenant()?.Key;
             return new List<Claim>
