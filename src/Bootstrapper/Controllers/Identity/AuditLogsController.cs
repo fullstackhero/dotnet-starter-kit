@@ -9,13 +9,13 @@ using Microsoft.AspNetCore.Mvc;
 namespace DN.WebApi.Bootstrapper.Controllers.Identity
 {
     [ApiController]
-    [Route("api/[controller]")]
-    public class AuditsController : ControllerBase
+    [Route("api/audit-logs")]
+    public class AuditLogsController : ControllerBase
     {
         private readonly ICurrentUser _user;
         private readonly IAuditService _auditService;
 
-        public AuditsController(IAuditService auditService, ICurrentUser user)
+        public AuditLogsController(IAuditService auditService, ICurrentUser user)
         {
             _auditService = auditService;
             _user = user;

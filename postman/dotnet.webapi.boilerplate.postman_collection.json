@@ -211,13 +211,12 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}/audits/",
+							"raw": "{{url}}/audit-logs",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
-								"audits",
-								""
+								"audit-logs"
 							]
 						}
 					},
