@@ -99,9 +99,9 @@ namespace DN.WebApi.Infrastructure.Localizer
             using (var reader = new JsonTextReader(sReader))
             {
                 writer.Formatting = Formatting.Indented;
-                var jobj = JObject.Load(reader);
+                var job = JObject.Load(reader);
                 writer.WriteStartObject();
-                foreach (var property in jobj.Properties())
+                foreach (var property in job.Properties())
                 {
                     writer.WritePropertyName(property.Name);
                     writer.WriteNull();

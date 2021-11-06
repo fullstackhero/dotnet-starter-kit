@@ -32,6 +32,8 @@ namespace DN.WebApi.Infrastructure.Identity.Services
         private readonly IStringLocalizer<IdentityService> _localizer;
         private readonly ITenantService _tenantService;
 
+        private readonly IEmailTemplateService _templateService;
+
         public IdentityService(
             UserManager<ApplicationUser> userManager,
             IJobService jobService,
@@ -40,7 +42,8 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             IStringLocalizer<IdentityService> localizer,
             ITenantService tenantService,
             SignInManager<ApplicationUser> signInManager,
-            IFileStorageService fileStorage)
+            IFileStorageService fileStorage,
+            IEmailTemplateService templateService)
         {
             _userManager = userManager;
             _jobService = jobService;
@@ -50,6 +53,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             _tenantService = tenantService;
             _signInManager = signInManager;
             _fileStorage = fileStorage;
+            _templateService = templateService;
         }
 
         public IdentityService()
@@ -99,7 +103,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
                         {
                             From = _mailSettings.From,
                             To = user.Email,
-                            Body = string.Format(_localizer["Please confirm your account by <a href='{0}'>clicking here</a>."], emailVerificationUri),
+                            Body = _templateService.GenerateEmailConfirmationMail(user.UserName, user.Email, emailVerificationUri),
                             Subject = _localizer["Confirm Registration"]
                         };
                         _jobService.Enqueue(() => _mailService.SendAsync(mailRequest));
