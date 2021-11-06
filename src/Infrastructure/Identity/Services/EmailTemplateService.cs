@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using DN.WebApi.Application.Abstractions.Services.General;
 using Microsoft.Extensions.Localization;
+using System.IO;
 
 namespace DN.WebApi.Infrastructure.Identity.Services
 {
