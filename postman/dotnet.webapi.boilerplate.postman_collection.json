@@ -204,6 +204,24 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "get-current-user-audit-logs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/audits/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"audits",
+								""
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
