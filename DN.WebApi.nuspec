@@ -3,7 +3,7 @@
   <metadata>
     <id>FullStackHero.WebAPI.Boilerplate</id>
     <title>FullStackHero WebAPI Boilerplate</title>
-    <version>0.0.3-rc</version>
+    <version>0.0.4-rc</version>
     <authors>Mukesh Murugan</authors>
     <description>
       Clean Architecture Template for .NET 6.0 WebAPI built with Multitenancy Support.
