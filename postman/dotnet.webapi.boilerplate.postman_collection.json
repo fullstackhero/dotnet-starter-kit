@@ -226,7 +226,14 @@
 					"name": "forgot-password",
 					"request": {
 						"auth": {
-							"type": "noauth"
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
 						},
 						"method": "POST",
 						"header": [
@@ -272,7 +279,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"email\":\"admin@root.com\",\r\n    \"password\":\"iLoveMukesh123\",\r\n    \"token\":\"Q2ZESjhQSUY5ajNvRXY5T2hRb3hhRnVXU2RvZUZ1R3pyNENXZFJ3SGFGSHlBMG9nSHNHS0RDczgyQWNvMUtzK1daS2xHcVRRZ0F4bUJzOFkrbXNZcE1TTWN5SjFwdVEwZFloaE9EMlBvVEZVZEIrZGQzMVc5cUh5akNTYW9TRTRFUEZITnpYbnJPUUtJaTg0OFJzNllwd2FaVlIwOGFhdU9vTFVFMXFod2hBRFdEL3RKdmtlWUJ1NERUUjhYWjZsL3lvNjRka3pKNko5QlVSc1paOHZPTzFWWHR5ektaejd0RGY4cVZpZ0VNcFBrVGlSY0tVdTBscEc3Y3ZSVkw5ZDRaWHJzQT09\"\r\n}",
+							"raw": "{\r\n    \"email\":\"admin@root.com\",\r\n    \"password\":\"someNewPasswordHere\",\r\n    \"token\": \"CfDJ8PIF9j3oEv9OhQoxaFuWSdrXdo285moY/7tDJk0Kf03ghZ/tjf7/LZVR4tN8mHnr4Ot+TdZaxOTxAYm7j2yY38I/ZJmle6RtrDAVrDUXJ+jqk+pqN7W9MpCigtt7n4wjTeOIzgSWzHUAAXWeUA1pDM2DWHGYMGF2BcRrdfwCWQ2UyQn13newFVAi8DwRwziAMCLvpS6Kynm1m/TzKaBZMft3uISeRc2hG1yFW45dRHxAlqurYRqzaKPZRSTJsTkQag==\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"

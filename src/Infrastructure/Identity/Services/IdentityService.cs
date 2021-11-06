@@ -198,7 +198,6 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             // For more information on how to enable account confirmation and password reset please
             // visit https://go.microsoft.com/fwlink/?LinkID=532713
             string code = await _userManager.GeneratePasswordResetTokenAsync(user);
-            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
             string route = "account/reset-password";
             var endpointUri = new Uri(string.Concat($"{origin}/", route));
             string passwordResetUrl = QueryHelpers.AddQueryString(endpointUri.ToString(), "Token", code);
