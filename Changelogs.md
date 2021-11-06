@@ -25,3 +25,5 @@
 - Disabled Request Logger by default to save log space.
 - Adds default Role (Basic) to any new registered user.
 - Basic User has default View / Search Permissions
+- Code Cleanups
+- Templated Emails for User Registrations
