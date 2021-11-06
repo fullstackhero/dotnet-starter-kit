@@ -204,7 +204,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             string passwordResetUrl = QueryHelpers.AddQueryString(endpointUri.ToString(), "Token", code);
             var mailRequest = new MailRequest
             {
-                Body = string.Format(_localizer["Please reset your password by <a href='{0}>clicking here</a>."], HtmlEncoder.Default.Encode(passwordResetUrl)),
+                Body = _localizer[$"Your Password Reset Token is '{code}'. You can reset your password using the {endpointUri} Endpoint."],
                 Subject = _localizer["Reset Password"],
                 To = request.Email
             };

@@ -221,6 +221,77 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "forgot-password",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenantKey",
+								"value": "root",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\":\"admin@root.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/identity/forgot-password/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"identity",
+								"forgot-password",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "reset-password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenantKey",
+								"value": "root",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\":\"admin@root.com\",\r\n    \"password\":\"iLoveMukesh123\",\r\n    \"token\":\"Q2ZESjhQSUY5ajNvRXY5T2hRb3hhRnVXU2RvZUZ1R3pyNENXZFJ3SGFGSHlBMG9nSHNHS0RDczgyQWNvMUtzK1daS2xHcVRRZ0F4bUJzOFkrbXNZcE1TTWN5SjFwdVEwZFloaE9EMlBvVEZVZEIrZGQzMVc5cUh5akNTYW9TRTRFUEZITnpYbnJPUUtJaTg0OFJzNllwd2FaVlIwOGFhdU9vTFVFMXFod2hBRFdEL3RKdmtlWUJ1NERUUjhYWjZsL3lvNjRka3pKNko5QlVSc1paOHZPTzFWWHR5ektaejd0RGY4cVZpZ0VNcFBrVGlSY0tVdTBscEc3Y3ZSVkw5ZDRaWHJzQT09\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/identity/reset-password/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"identity",
+								"reset-password",
+								""
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
