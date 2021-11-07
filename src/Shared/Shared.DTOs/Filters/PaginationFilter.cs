@@ -2,7 +2,7 @@ namespace DN.WebApi.Shared.DTOs.Filters
 {
     public abstract class PaginationFilter : BaseFilter
     {
-        public PaginationFilter()
+        protected PaginationFilter()
         {
             PageSize = int.MaxValue;
         }
@@ -12,6 +12,5 @@ namespace DN.WebApi.Shared.DTOs.Filters
         public int PageSize { get; set; }
 
         public string[] OrderBy { get; set; }
-
     }
 }

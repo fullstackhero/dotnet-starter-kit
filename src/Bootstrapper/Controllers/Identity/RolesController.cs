@@ -12,13 +12,11 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
     [Route("api/[controller]")]
     public class RolesController : ControllerBase
     {
-        private readonly ICurrentUser _currentUser;
         private readonly IRoleService _roleService;
 
-        public RolesController(IRoleService roleService, ICurrentUser currentUser)
+        public RolesController(IRoleService roleService)
         {
             _roleService = roleService;
-            _currentUser = currentUser;
         }
 
         [HttpGet("all")]

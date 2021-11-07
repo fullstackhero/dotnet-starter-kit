@@ -46,10 +46,10 @@ namespace DN.WebApi.Infrastructure.Persistence
         {
             optionsBuilder.EnableSensitiveDataLogging();
 
-            var tenantConnectionString = _tenantService.GetConnectionString();
+            string tenantConnectionString = _tenantService.GetConnectionString();
             if (!string.IsNullOrEmpty(tenantConnectionString))
             {
-                var dbProvider = _tenantService.GetDatabaseProvider();
+                string dbProvider = _tenantService.GetDatabaseProvider();
                 switch (dbProvider.ToLower())
                 {
                     case "postgresql":
@@ -80,7 +80,7 @@ namespace DN.WebApi.Infrastructure.Persistence
 
             var currentUserId = _currentUserService.GetUserId();
             var auditEntries = OnBeforeSaveChanges(currentUserId);
-            var result = await base.SaveChangesAsync(cancellationToken);
+            int result = await base.SaveChangesAsync(cancellationToken);
             await OnAfterSaveChangesAsync(auditEntries, cancellationToken);
             return result;
         }

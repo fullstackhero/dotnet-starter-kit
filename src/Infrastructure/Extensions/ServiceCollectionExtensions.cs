@@ -39,15 +39,15 @@ namespace DN.WebApi.Infrastructure.Extensions
             services.TryAdd(ServiceDescriptor.Singleton<ICacheService, CacheService>());
             services.AddHealthCheckExtension();
             services.AddLocalization();
-            services.AddServices(config);
+            services.AddServices();
             services.AddSettings(config);
-            services.AddPermissions(config);
+            services.AddPermissions();
             services.AddIdentity(config);
             services.AddMultitenancy<TenantManagementDbContext, ApplicationDbContext>(config);
             services.AddHangfireServer();
             services.AddRouting(options => options.LowercaseUrls = true);
-            services.AddMiddlewares(config);
-            services.AddSwaggerDocumentation(config);
+            services.AddMiddlewares();
+            services.AddSwaggerDocumentation();
             services.AddCorsPolicy();
             services.AddApiVersioning(config =>
            {
@@ -59,7 +59,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             return services;
         }
 
-        public static IServiceCollection AddPermissions(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddPermissions(this IServiceCollection services)
         {
             services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>()
                 .AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();

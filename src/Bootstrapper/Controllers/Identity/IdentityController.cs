@@ -53,13 +53,6 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
             return Ok(await _identityService.ForgotPasswordAsync(request, origin));
         }
 
-        private string GenerateOrigin()
-        {
-            string baseUrl = $"{this.Request.Scheme}://{this.Request.Host.Value.ToString()}{this.Request.PathBase.Value.ToString()}";
-            string origin = string.IsNullOrEmpty(Request.Headers["origin"].ToString()) ? baseUrl : Request.Headers["origin"].ToString();
-            return origin;
-        }
-
         [HttpPost("reset-password")]
         [AllowAnonymous]
         public async Task<IActionResult> ResetPasswordAsync(ResetPasswordRequest request)
@@ -77,6 +70,13 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
         public async Task<IActionResult> GetProfileDetailsAsync()
         {
             return Ok(await _userService.GetAsync(_user.GetUserId().ToString()));
+        }
+
+        private string GenerateOrigin()
+        {
+            string baseUrl = $"{this.Request.Scheme}://{this.Request.Host.Value}{this.Request.PathBase.Value}";
+            string origin = string.IsNullOrEmpty(Request.Headers["origin"].ToString()) ? baseUrl : Request.Headers["origin"].ToString();
+            return origin;
         }
     }
 }

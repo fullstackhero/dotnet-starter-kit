@@ -23,7 +23,7 @@ namespace DN.WebApi.Application.Services.Catalog
 
         public async Task<Result<Guid>> CreateBrandAsync(CreateBrandRequest request)
         {
-            var brandExists = await _repository.ExistsAsync<Brand>(a => a.Name == request.Name);
+            bool brandExists = await _repository.ExistsAsync<Brand>(a => a.Name == request.Name);
             if (brandExists) throw new EntityAlreadyExistsException(string.Format(_localizer["brand.alreadyexists"], request.Name));
             var brand = new Brand(request.Name, request.Description);
             var brandId = await _repository.CreateAsync<Brand>(brand);

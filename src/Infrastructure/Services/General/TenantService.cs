@@ -32,7 +32,7 @@ namespace DN.WebApi.Infrastructure.Services.General
 
         private readonly TenantManagementDbContext _context;
 
-        private HttpContext _httpContext;
+        private readonly HttpContext _httpContext;
 
         private TenantDto _currentTenant;
 

@@ -27,8 +27,8 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
         {
             services.Configure<MultitenancySettings>(config.GetSection(nameof(MultitenancySettings)));
             var multitenancySettings = services.GetOptions<MultitenancySettings>(nameof(MultitenancySettings));
-            var rootConnectionString = multitenancySettings.ConnectionString;
-            var dbProvider = multitenancySettings.DBProvider;
+            string rootConnectionString = multitenancySettings.ConnectionString;
+            string dbProvider = multitenancySettings.DBProvider;
             if (string.IsNullOrEmpty(dbProvider)) throw new Exception("DB Provider is not configured.");
             _logger.Information($"Current DB Provider : {dbProvider}");
             switch (dbProvider.ToLower())
@@ -82,7 +82,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                     break;
             }
 
-            if (dbContext.Database.GetMigrations().Count() > 0)
+            if (dbContext.Database.GetMigrations().Any())
             {
                 if (dbContext.Database.GetPendingMigrations().Any())
                 {
@@ -114,7 +114,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
         where TA : ApplicationDbContext
         {
 
-            var tenantConnectionString = string.IsNullOrEmpty(tenant.ConnectionString) ? options.ConnectionString : tenant.ConnectionString;
+            string tenantConnectionString = string.IsNullOrEmpty(tenant.ConnectionString) ? options.ConnectionString : tenant.ConnectionString;
             switch (options.DBProvider.ToLower())
             {
                 case "postgresql":
@@ -140,18 +140,6 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             return services;
         }
 
-        private static void SeedRootTenant<T>(T dbContext, MultitenancySettings options)
-        where T : TenantManagementDbContext
-        {
-            if (!dbContext.Tenants.Any(t => t.Key == MultitenancyConstants.Root.Key))
-            {
-                var rootTenant = new Tenant(MultitenancyConstants.Root.Name, MultitenancyConstants.Root.Key, MultitenancyConstants.Root.EmailAddress, options.ConnectionString);
-                rootTenant.SetValidity(DateTime.UtcNow.AddYears(1));
-                dbContext.Tenants.Add(rootTenant);
-                dbContext.SaveChangesAsync().Wait();
-            }
-        }
-
         public static T GetOptions<T>(this IServiceCollection services, string sectionName)
         where T : new()
         {
@@ -162,6 +150,18 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             section.Bind(options);
 
             return options;
+        }
+
+        private static void SeedRootTenant<T>(T dbContext, MultitenancySettings options)
+        where T : TenantManagementDbContext
+        {
+            if (!dbContext.Tenants.Any(t => t.Key == MultitenancyConstants.Root.Key))
+            {
+                var rootTenant = new Tenant(MultitenancyConstants.Root.Name, MultitenancyConstants.Root.Key, MultitenancyConstants.Root.EmailAddress, options.ConnectionString);
+                rootTenant.SetValidity(DateTime.UtcNow.AddYears(1));
+                dbContext.Tenants.Add(rootTenant);
+                dbContext.SaveChangesAsync().Wait();
+            }
         }
     }
 }

@@ -29,7 +29,6 @@ namespace DN.WebApi.Infrastructure.Identity.Services
     {
         private readonly TenantManagementDbContext _tenantContext;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly IStringLocalizer<TokenService> _localizer;
         private readonly MailSettings _mailSettings;
         private readonly JwtSettings _config;
@@ -37,7 +36,6 @@ namespace DN.WebApi.Infrastructure.Identity.Services
 
         public TokenService(
             UserManager<ApplicationUser> userManager,
-            RoleManager<ApplicationRole> roleManager,
             IOptions<JwtSettings> config,
             IStringLocalizer<TokenService> localizer,
             IOptions<MailSettings> mailSettings,
@@ -45,7 +43,6 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             TenantManagementDbContext tenantContext)
         {
             _userManager = userManager;
-            _roleManager = roleManager;
             _localizer = localizer;
             _mailSettings = mailSettings.Value;
             _config = config.Value;

@@ -11,6 +11,5 @@ namespace DN.WebApi.Domain.Constants
             public const string UpgradeSubscription = "Permissions.Tenants.UpgradeSubscription";
             public const string Remove = "Permissions.Tenants.Remove";
         }
-
     }
 }

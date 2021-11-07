@@ -33,7 +33,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             return app;
         }
 
-        internal static IServiceCollection AddSwaggerDocumentation(this IServiceCollection services, Microsoft.Extensions.Configuration.IConfiguration config)
+        internal static IServiceCollection AddSwaggerDocumentation(this IServiceCollection services)
         {
             var settings = services.GetOptions<SwaggerSettings>(nameof(SwaggerSettings));
             if (settings.Enable)

@@ -91,11 +91,10 @@ namespace DN.WebApi.Infrastructure.Services.General
             try
             {
                 _cache.Set(key, value, options);
-                _logger.LogDebug(string.Format("Added to Cache : {0}", key));
+                _logger.LogDebug($"Added to Cache : {key}");
             }
             catch
             {
-
             }
         }
 
@@ -104,11 +103,10 @@ namespace DN.WebApi.Infrastructure.Services.General
             try
             {
                 await _cache.SetAsync(key, value, options, token);
-                _logger.LogDebug(string.Format("Added to Cache : {0}", key));
+                _logger.LogDebug($"Added to Cache : {key}");
             }
             catch
             {
-
             }
         }
     }

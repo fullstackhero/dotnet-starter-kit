@@ -21,7 +21,7 @@ namespace DN.WebApi.Infrastructure.Identity.Permissions
                 await Task.CompletedTask;
             }
 
-            var userId = context.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+            string userId = context.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
             if (await _permissionService.HasPermissionAsync(userId, requirement.Permission))
             {
                 context.Succeed(requirement);

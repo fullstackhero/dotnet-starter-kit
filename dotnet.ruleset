@@ -116,6 +116,7 @@
   </Rules>
   <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
     <Rule Id="SA1649" Action="None"/>
+    <Rule Id="SA1600" Action="None"/>
     <Rule Id="SA1208" Action="None"/>
     <Rule Id="SA1616" Action="None"/>
     <Rule Id="SA1614" Action="None"/>
@@ -141,7 +142,6 @@
     <Rule Id="SA1413" Action="None" />
     <Rule Id="SA1512" Action="None" />
     <Rule Id="SA1516" Action="None" />
-    <Rule Id="SA1600" Action="Info" />
     <Rule Id="SA1601" Action="None" />
     <Rule Id="SA1602" Action="None" />
     <Rule Id="SA1604" Action="None" />

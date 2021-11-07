@@ -1,3 +1,8 @@
+using System;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Domain.Entities.Multitenancy;
@@ -9,11 +14,6 @@ using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
 using Npgsql;
 using Serilog;
-using System;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
 {
@@ -22,12 +22,12 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
         private static readonly ILogger _logger = Log.ForContext(typeof(TenantBootstrapper));
         public static void Initialize(ApplicationDbContext appContext, MultitenancySettings options, Tenant tenant, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager)
         {
-            var connectionString = string.IsNullOrEmpty(tenant.ConnectionString) ? options.ConnectionString : tenant.ConnectionString;
-            var isValid = TryValidateConnectionString(options, connectionString, tenant.Key);
+            string connectionString = string.IsNullOrEmpty(tenant.ConnectionString) ? options.ConnectionString : tenant.ConnectionString;
+            bool isValid = TryValidateConnectionString(options, connectionString, tenant.Key);
             if (isValid)
             {
                 appContext.Database.SetConnectionString(connectionString);
-                if (appContext.Database.GetMigrations().Count() > 0)
+                if (appContext.Database.GetMigrations().Any())
                 {
                     if (appContext.Database.GetPendingMigrations().Any())
                     {
@@ -76,7 +76,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
 
         private static void SeedTenantAdmin(Tenant tenant, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ApplicationDbContext applicationDbContext)
         {
-            var adminUserName = $"{tenant.Key.Trim()}.{RoleConstants.Admin}".ToLower();
+            string adminUserName = $"{tenant.Key.Trim()}.{RoleConstants.Admin}".ToLower();
             var superUser = new ApplicationUser
             {
                 FirstName = tenant.Key.Trim().ToLower(),
@@ -93,8 +93,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
             if (!applicationDbContext.Users.IgnoreQueryFilters().Any(u => u.Email == tenant.AdminEmail))
             {
                 var password = new PasswordHasher<ApplicationUser>();
-                var hashed = password.HashPassword(superUser, MultitenancyConstants.DefaultPassword);
-                superUser.PasswordHash = hashed;
+                superUser.PasswordHash = password.HashPassword(superUser, MultitenancyConstants.DefaultPassword);
                 var userStore = new UserStore<ApplicationUser>(applicationDbContext);
                 userStore.CreateAsync(superUser).Wait();
                 _logger.Information($"Seeding Default Admin User for '{tenant.Key}' Tenant.");
@@ -105,12 +104,12 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
 
         public static async Task AssignAdminRoleAsync(string email, string tenantKey, ApplicationDbContext applicationDbContext, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager)
         {
-            var adminRole = RoleConstants.Admin;
+            const string adminRole = RoleConstants.Admin;
             var user = await userManager.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Email.Equals(email));
             if (user == null) return;
             var roleRecord = roleManager.Roles.IgnoreQueryFilters().Where(a => a.NormalizedName == adminRole.ToUpper() && a.TenantKey == tenantKey).FirstOrDefaultAsync().Result;
             if (roleRecord == null) return;
-            var isUserInRole = applicationDbContext.UserRoles.Any(a => a.UserId == user.Id && a.RoleId == roleRecord.Id);
+            bool isUserInRole = applicationDbContext.UserRoles.Any(a => a.UserId == user.Id && a.RoleId == roleRecord.Id);
             if (!isUserInRole)
             {
                 applicationDbContext.UserRoles.Add(new IdentityUserRole<string>() { RoleId = roleRecord.Id, UserId = user.Id });
@@ -136,7 +135,6 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
                         await roleManager.AddClaimAsync(roleRecord, new Claim(Domain.Constants.ClaimConstants.Permission, rootPermission));
                     }
                 }
-
             }
 
             await applicationDbContext.SaveChangesAsync();

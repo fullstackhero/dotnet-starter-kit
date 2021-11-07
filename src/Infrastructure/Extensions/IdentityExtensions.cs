@@ -33,16 +33,16 @@ namespace DN.WebApi.Infrastructure.Extensions
                 })
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
-            services.AddJwtAuthentication(config);
+            services.AddJwtAuthentication();
             return services;
         }
 
         internal static IServiceCollection AddJwtAuthentication(
-            this IServiceCollection services, IConfiguration config)
+            this IServiceCollection services)
         {
             var jwtSettings = services.GetOptions<JwtSettings>(nameof(JwtSettings));
             byte[] key = Encoding.ASCII.GetBytes(jwtSettings.Key);
-            services
+            _ = services
                 .AddAuthentication(authentication =>
                 {
                     authentication.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -74,11 +74,11 @@ namespace DN.WebApi.Infrastructure.Extensions
 
                             return Task.CompletedTask;
                         },
-                        OnForbidden = context =>
+                        OnForbidden = _ =>
                         {
                             throw new IdentityException("You are not authorized to access this resource.", statusCode: HttpStatusCode.Forbidden);
                         },
-                        OnAuthenticationFailed = c =>
+                        OnAuthenticationFailed = _ =>
                         {
                             throw new IdentityException("Authentication Failed.", statusCode: HttpStatusCode.Unauthorized);
                         }

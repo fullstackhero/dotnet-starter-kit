@@ -9,7 +9,7 @@ namespace DN.WebApi.Infrastructure.Extensions
 {
     public static class DynamicServiceRegistrationExtensions
     {
-        public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration config)
+        public static IServiceCollection AddServices(this IServiceCollection services)
         {
             var transientServiceType = typeof(ITransientService);
             var scopedServiceType = typeof(IScopedService);

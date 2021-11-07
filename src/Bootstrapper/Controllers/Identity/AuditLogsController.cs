@@ -23,6 +23,5 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
         {
             return Ok(await _auditService.GetUserTrailsAsync(_user.GetUserId()));
         }
-
     }
 }

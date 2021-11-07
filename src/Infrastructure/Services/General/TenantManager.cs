@@ -63,9 +63,11 @@ namespace DN.WebApi.Infrastructure.Services.General
             if (_context.Tenants.Any(a => a.Key == request.Key)) throw new Exception("Tenant with same key exists.");
             if (string.IsNullOrEmpty(request.ConnectionString)) request.ConnectionString = _options.ConnectionString;
             bool isValidConnectionString = TenantBootstrapper.TryValidateConnectionString(_options, request.ConnectionString, request.Key);
-            if (!isValidConnectionString) throw new Exception($"Failed to Establish Connection to Database. Please check your connection string.");
-            var tenant = new Tenant(request.Name, request.Key, request.AdminEmail, request.ConnectionString);
-            tenant.CreatedBy = _user.GetUserId();
+            if (!isValidConnectionString) throw new Exception("Failed to Establish Connection to Database. Please check your connection string.");
+            var tenant = new Tenant(request.Name, request.Key, request.AdminEmail, request.ConnectionString)
+            {
+                CreatedBy = _user.GetUserId()
+            };
             TenantBootstrapper.Initialize(_appContext, _options, tenant, _userManager, _roleManager);
             _context.Tenants.Add(tenant);
             await _context.SaveChangesAsync();

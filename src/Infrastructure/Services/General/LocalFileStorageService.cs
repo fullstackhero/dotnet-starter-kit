@@ -1,12 +1,12 @@
-using DN.WebApi.Application.Abstractions.Services.General;
-using DN.WebApi.Domain.Enums;
-using DN.WebApi.Infrastructure.Extensions;
-using DN.WebApi.Shared.DTOs.General.Requests;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using DN.WebApi.Application.Abstractions.Services.General;
+using DN.WebApi.Domain.Enums;
+using DN.WebApi.Infrastructure.Extensions;
+using DN.WebApi.Shared.DTOs.General.Requests;
 
 namespace DN.WebApi.Infrastructure.Services.General
 {
@@ -34,17 +34,11 @@ namespace DN.WebApi.Infrastructure.Services.General
                     folder = folder.Replace(@"\", "/");
                 }
 
-                string folderName = string.Empty;
-                switch (supportedFileType)
+                string folderName = supportedFileType switch
                 {
-                    case FileType.Image:
-                        folderName = Path.Combine("Files", "Images", folder);
-                        break;
-                    default:
-                        folderName = Path.Combine("Files", "Others", folder);
-                        break;
-                }
-
+                    FileType.Image => Path.Combine("Files", "Images", folder),
+                    _ => Path.Combine("Files", "Others", folder),
+                };
                 string pathToSave = Path.Combine(Directory.GetCurrentDirectory(), folderName);
                 bool exists = Directory.Exists(pathToSave);
                 if (!exists)
@@ -55,7 +49,7 @@ namespace DN.WebApi.Infrastructure.Services.General
                 string fileName = request.Name.Trim('"');
                 fileName = RemoveSpecialCharacters(fileName);
                 fileName = RegexExtensions.ReplaceWhitespace(fileName, "-");
-                fileName = fileName + request.Extension.Trim();
+                fileName += request.Extension.Trim();
                 string fullPath = Path.Combine(pathToSave, fileName);
                 string dbPath = Path.Combine(folderName, fileName);
                 if (File.Exists(dbPath))
@@ -80,7 +74,7 @@ namespace DN.WebApi.Infrastructure.Services.General
             return Regex.Replace(str, "[^a-zA-Z0-9_.]+", string.Empty, RegexOptions.Compiled);
         }
 
-        private static string numberPattern = "-{0}";
+        private const string NumberPattern = "-{0}";
 
         private static string NextAvailableFilename(string path)
         {
@@ -91,10 +85,10 @@ namespace DN.WebApi.Infrastructure.Services.General
 
             if (Path.HasExtension(path))
             {
-                return GetNextFilename(path.Insert(path.LastIndexOf(Path.GetExtension(path), StringComparison.Ordinal), numberPattern));
+                return GetNextFilename(path.Insert(path.LastIndexOf(Path.GetExtension(path), StringComparison.Ordinal), NumberPattern));
             }
 
-            return GetNextFilename(path + numberPattern);
+            return GetNextFilename(path + NumberPattern);
         }
 
         private static string GetNextFilename(string pattern)

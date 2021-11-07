@@ -13,7 +13,7 @@ namespace DN.WebApi.Application.Validators
             {
                 var failures = validationResult.Errors.ToList();
                 if (failures.Count != 0)
-                    throw new Exceptions.ValidationException(failures.Select(a => a.ErrorMessage).ToList());
+                    throw new Exceptions.ValidationException(failures.ConvertAll(a => a.ErrorMessage));
             }
 
             return validationResult;

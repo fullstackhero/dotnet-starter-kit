@@ -12,12 +12,10 @@ namespace DN.WebApi.Bootstrapper
     public class Startup
     {
         private readonly IConfiguration _config;
-        private readonly IWebHostEnvironment _env;
 
-        public Startup(IConfiguration config, IWebHostEnvironment env)
+        public Startup(IConfiguration config)
         {
             _config = config;
-            _env = env;
         }
 
         public void ConfigureServices(IServiceCollection services)

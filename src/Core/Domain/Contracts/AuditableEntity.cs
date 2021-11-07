@@ -11,7 +11,7 @@ namespace DN.WebApi.Domain.Contracts
         public DateTime? DeletedOn { get; set; }
         public Guid? DeletedBy { get; set; }
 
-        public AuditableEntity()
+        protected AuditableEntity()
         {
             CreatedOn = DateTime.UtcNow;
             LastModifiedOn = DateTime.UtcNow;

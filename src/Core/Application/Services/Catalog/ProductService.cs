@@ -29,9 +29,9 @@ namespace DN.WebApi.Application.Services.Catalog
 
         public async Task<Result<Guid>> CreateProductAsync(CreateProductRequest request)
         {
-            var productExists = await _repository.ExistsAsync<Product>(a => a.Name == request.Name);
+            bool productExists = await _repository.ExistsAsync<Product>(a => a.Name == request.Name);
             if (productExists) throw new EntityAlreadyExistsException(string.Format(_localizer["product.alreadyexists"], request.Name));
-            var brandExists = await _repository.ExistsAsync<Brand>(a => a.Id == request.BrandId);
+            bool brandExists = await _repository.ExistsAsync<Brand>(a => a.Id == request.BrandId);
             if (!brandExists) throw new EntityNotFoundException(string.Format(_localizer["brand.notfound"], request.BrandId));
             string productImagePath = await _file.UploadAsync<Product>(request.Image, FileType.Image);
             var product = new Product(request.Name, request.Description, request.Rate, request.BrandId, productImagePath);

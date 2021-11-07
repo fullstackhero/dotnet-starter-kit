@@ -32,15 +32,13 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
         private readonly IStringLocalizer<RepositoryAsync> _localizer;
         private readonly ICacheService _cache;
         private readonly ApplicationDbContext _dbContext;
-        private readonly ILogger<RepositoryAsync> _logger;
-        private ISerializerService _serializer;
+        private readonly ISerializerService _serializer;
 
-        public RepositoryAsync(ApplicationDbContext dbContext, ISerializerService serializer, ICacheService cache, ILogger<RepositoryAsync> logger, IStringLocalizer<RepositoryAsync> localizer)
+        public RepositoryAsync(ApplicationDbContext dbContext, ISerializerService serializer, ICacheService cache, IStringLocalizer<RepositoryAsync> localizer)
         {
             _dbContext = dbContext;
             _serializer = serializer;
             _cache = cache;
-            _logger = logger;
             _localizer = localizer;
         }
 
@@ -60,18 +58,18 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
             IQueryable<T> query = _dbContext.Set<T>();
             if (specification != null)
                 query = query.Specify(specification);
-            return await query.Where(e => e.Id == entityId).FirstOrDefaultAsync();
+            return await query.Where(e => e.Id == entityId).FirstOrDefaultAsync(cancellationToken: cancellationToken);
         }
 
         public async Task<TDto> GetByIdAsync<T, TDto>(Guid entityId, BaseSpecification<T> specification, CancellationToken cancellationToken = default)
         where T : BaseEntity
         where TDto : IDto
         {
-            var cacheKey = CacheKeys.GetCacheKey<T>(entityId);
+            string cacheKey = CacheKeys.GetCacheKey<T>(entityId);
             byte[] cachedData = !string.IsNullOrWhiteSpace(cacheKey) ? await _cache.GetAsync(cacheKey, cancellationToken) : null;
             if (cachedData != null)
             {
-                await _cache.RefreshAsync(cacheKey);
+                await _cache.RefreshAsync(cacheKey, cancellationToken);
                 var entity = _serializer.Deserialize<TDto>(Encoding.Default.GetString(cachedData));
                 return entity;
             }
@@ -80,11 +78,11 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
                 IQueryable<T> query = _dbContext.Set<T>();
                 if (specification != null)
                     query = query.Specify(specification).Where(a => a.Id == entityId);
-                var entity = await query.FirstOrDefaultAsync();
+                var entity = await query.FirstOrDefaultAsync(cancellationToken: cancellationToken);
                 var dto = entity.Adapt<TDto>();
                 if (dto != null)
                 {
-                    if ((specification != null && specification.Includes?.Count == 0) || specification == null)
+                    if ((specification?.Includes?.Count == 0) || specification == null)
                     {
                         var options = new DistributedCacheEntryOptions();
                         byte[] serializedData = Encoding.Default.GetBytes(_serializer.Serialize(dto));
@@ -104,7 +102,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
         {
             IQueryable<T> query = _dbContext.Set<T>();
             if (expression != null) query = query.Where(expression);
-            if (advancedSearch != null && advancedSearch.Fields.Count > 0 && !string.IsNullOrEmpty(advancedSearch.Keyword))
+            if (advancedSearch?.Fields.Count > 0 && !string.IsNullOrEmpty(advancedSearch.Keyword))
                 query = query.AdvancedSearch(advancedSearch);
             else if (!string.IsNullOrEmpty(keyword))
                 query = query.SearchByKeyword(keyword);

@@ -62,14 +62,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
                     RoleId = role.Id,
                     RoleName = role.Name
                 };
-                if (await _userManager.IsInRoleAsync(user, role.Name))
-                {
-                    userRolesViewModel.Enabled = true;
-                }
-                else
-                {
-                    userRolesViewModel.Enabled = false;
-                }
+                userRolesViewModel.Enabled = await _userManager.IsInRoleAsync(user, role.Name);
 
                 viewModel.Add(userRolesViewModel);
             }

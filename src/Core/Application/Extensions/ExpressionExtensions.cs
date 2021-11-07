@@ -9,10 +9,10 @@ namespace DN.WebApi.Application.Extensions
     {
         public static Expression<Func<T, bool>> And<T>(this Expression<Func<T, bool>> left, Expression<Func<T, bool>> right)
         {
-            ParameterExpression p = left.Parameters.First();
+            ParameterExpression p = left.Parameters[0];
             SubstExpressionVisitor visitor = new SubstExpressionVisitor
             {
-                Subst = { [right.Parameters.First()] = p }
+                Subst = { [right.Parameters[0]] = p }
             };
 
             Expression body = Expression.AndAlso(left.Body, visitor.Visit(right.Body));
@@ -21,11 +21,10 @@ namespace DN.WebApi.Application.Extensions
 
         public static Expression<Func<T, bool>> Or<T>(this Expression<Func<T, bool>> left, Expression<Func<T, bool>> right)
         {
-
-            ParameterExpression p = left.Parameters.First();
+            ParameterExpression p = left.Parameters[0];
             SubstExpressionVisitor visitor = new SubstExpressionVisitor
             {
-                Subst = { [right.Parameters.First()] = p }
+                Subst = { [right.Parameters[0]] = p }
             };
 
             Expression body = Expression.OrElse(left.Body, visitor.Visit(right.Body));

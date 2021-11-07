@@ -23,14 +23,12 @@ namespace DN.WebApi.Infrastructure.Identity.Services
     {
         private readonly ApplicationDbContext _db;
         private readonly ICacheService _cache;
-        private readonly ICurrentUser _currentUser;
         private readonly ISerializerService _serializer;
         private readonly IStringLocalizer<RoleClaimsService> _localizer;
 
-        public RoleClaimsService(ApplicationDbContext context, ICurrentUser currentUser, ICacheService cache, ISerializerService serializer, IStringLocalizer<RoleClaimsService> localizer)
+        public RoleClaimsService(ApplicationDbContext context, ICacheService cache, ISerializerService serializer, IStringLocalizer<RoleClaimsService> localizer)
         {
             _db = context;
-            _currentUser = currentUser;
             _cache = cache;
             _serializer = serializer;
             _localizer = localizer;
@@ -39,7 +37,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
         public async Task<bool> HasPermissionAsync(string userId, string permission)
         {
             var roles = new List<RoleDto>();
-            var cacheKey = CacheKeys.GetCacheKey(ClaimConstants.Permission, userId);
+            string cacheKey = CacheKeys.GetCacheKey(ClaimConstants.Permission, userId);
             byte[] cachedData = !string.IsNullOrWhiteSpace(cacheKey) ? await _cache.GetAsync(cacheKey) : null;
             if (cachedData != null)
             {
@@ -80,8 +78,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
 
         public async Task<int> GetCountAsync()
         {
-            var count = await _db.RoleClaims.CountAsync();
-            return count;
+            return await _db.RoleClaims.CountAsync();
         }
 
         public async Task<Result<RoleClaimResponse>> GetByIdAsync(int id)

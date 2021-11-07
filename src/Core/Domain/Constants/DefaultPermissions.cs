@@ -4,7 +4,7 @@ namespace DN.WebApi.Domain.Constants
 {
     public static class DefaultPermissions
     {
-        public static List<string> Basics => new List<string>()
+        public static List<string> Basics => new()
         {
             PermissionConstants.Products.Search,
             PermissionConstants.Products.View,

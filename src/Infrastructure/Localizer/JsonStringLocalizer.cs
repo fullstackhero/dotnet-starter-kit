@@ -17,7 +17,7 @@ namespace DN.WebApi.Infrastructure.Localizer
 
         private readonly ICacheService _cache;
 
-        private readonly JsonSerializer _serializer = new JsonSerializer();
+        private readonly JsonSerializer _serializer = new();
 
         public JsonStringLocalizer(ICacheService cache)
         {
@@ -47,19 +47,17 @@ namespace DN.WebApi.Infrastructure.Localizer
         public IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures)
         {
             string filePath = $"{Localization}/{Thread.CurrentThread.CurrentCulture.Name}.json";
-            using (var str = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
-            using (var sReader = new StreamReader(str))
-            using (var reader = new JsonTextReader(sReader))
+            using var str = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var sReader = new StreamReader(str);
+            using var reader = new JsonTextReader(sReader);
+            while (reader.Read())
             {
-                while (reader.Read())
-                {
-                    if (reader.TokenType != JsonToken.PropertyName)
-                        continue;
-                    string key = (string)reader.Value;
-                    reader.Read();
-                    string value = _serializer.Deserialize<string>(reader);
-                    yield return new LocalizedString(key, value, false);
-                }
+                if (reader.TokenType != JsonToken.PropertyName)
+                    continue;
+                string key = (string)reader.Value;
+                reader.Read();
+                string value = _serializer.Deserialize<string>(reader);
+                yield return new LocalizedString(key, value, false);
             }
         }
 
@@ -84,52 +82,48 @@ namespace DN.WebApi.Infrastructure.Localizer
             }
 
             WriteEmptyKeys(new CultureInfo("en-US"), fullFilePath);
-            return default(string);
+            return default;
         }
 
         private void WriteEmptyKeys(CultureInfo sourceCulture, string fullFilePath)
         {
             string sourceFilePath = $"{Localization}/{sourceCulture.Name}.json";
             if (!File.Exists(sourceFilePath)) return;
-            using (var str = new FileStream(sourceFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
-            using (var outStream = File.Create(fullFilePath))
-            using (var sWriter = new StreamWriter(outStream))
-            using (var writer = new JsonTextWriter(sWriter))
-            using (var sReader = new StreamReader(str))
-            using (var reader = new JsonTextReader(sReader))
+            using var str = new FileStream(sourceFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var outStream = File.Create(fullFilePath);
+            using var sWriter = new StreamWriter(outStream);
+            using var writer = new JsonTextWriter(sWriter);
+            using var sReader = new StreamReader(str);
+            using var reader = new JsonTextReader(sReader);
+            writer.Formatting = Formatting.Indented;
+            var job = JObject.Load(reader);
+            writer.WriteStartObject();
+            foreach (var property in job.Properties())
             {
-                writer.Formatting = Formatting.Indented;
-                var job = JObject.Load(reader);
-                writer.WriteStartObject();
-                foreach (var property in job.Properties())
-                {
-                    writer.WritePropertyName(property.Name);
-                    writer.WriteNull();
-                }
-
-                writer.WriteEndObject();
+                writer.WritePropertyName(property.Name);
+                writer.WriteNull();
             }
+
+            writer.WriteEndObject();
         }
 
         private T PullDeserialize<T>(string propertyName, string filePath)
         {
-            if (propertyName == null) return default(T);
-            if (filePath == null) return default(T);
-            using (var str = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
-            using (var sReader = new StreamReader(str))
-            using (var reader = new JsonTextReader(sReader))
+            if (propertyName == null) return default;
+            if (filePath == null) return default;
+            using var str = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var sReader = new StreamReader(str);
+            using var reader = new JsonTextReader(sReader);
+            while (reader.Read())
             {
-                while (reader.Read())
+                if (reader.TokenType == JsonToken.PropertyName && (string)reader.Value == propertyName)
                 {
-                    if (reader.TokenType == JsonToken.PropertyName && (string)reader.Value == propertyName)
-                    {
-                        reader.Read();
-                        return _serializer.Deserialize<T>(reader);
-                    }
+                    reader.Read();
+                    return _serializer.Deserialize<T>(reader);
                 }
-
-                return default(T);
             }
+
+            return default;
         }
     }
 }

@@ -26,17 +26,16 @@ namespace DN.WebApi.Infrastructure.Middlewares
         {
             // Getting the request body is a little tricky because it's a stream
             // So, we need to read the stream and then rewind it back to the beginning
-            string requestBody = string.Empty;
             context.Request.EnableBuffering();
             Stream body = context.Request.Body;
             byte[] buffer = new byte[Convert.ToInt32(context.Request.ContentLength)];
-            await context.Request.Body.ReadAsync(buffer, 0, buffer.Length);
-            requestBody = Encoding.UTF8.GetString(buffer);
+            await context.Request.Body.ReadAsync(buffer);
+            string requestBody = Encoding.UTF8.GetString(buffer);
             body.Seek(0, SeekOrigin.Begin);
             context.Request.Body = body;
             if (requestBody != string.Empty)
             {
-                requestBody = $"  Body: " + requestBody + Environment.NewLine;
+                requestBody = "Body: " + requestBody + Environment.NewLine;
             }
 
             // Logs should always be secured! However, we will take the extra step of not logging passwords.

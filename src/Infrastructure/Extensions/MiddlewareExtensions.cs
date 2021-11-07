@@ -17,7 +17,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             return app;
         }
 
-        internal static IServiceCollection AddMiddlewares(this IServiceCollection services, IConfiguration config)
+        internal static IServiceCollection AddMiddlewares(this IServiceCollection services)
         {
             var middlewareSettings = services.GetOptions<MiddlewareSettings>(nameof(MiddlewareSettings));
             services.AddSingleton<ExceptionMiddleware>();

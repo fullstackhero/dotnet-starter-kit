@@ -222,7 +222,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
                     errors.AddRange(addedPermissions.Messages);
                 }
 
-                if (errors.Any())
+                if (errors.Count > 0)
                 {
                     return await Result<string>.FailAsync(errors);
                 }
