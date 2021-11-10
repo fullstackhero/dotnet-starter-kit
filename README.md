@@ -5,10 +5,7 @@
 [![Nuget downloads](https://img.shields.io/nuget/dt/FullStackHero.WebAPI.Boilerplate?color=ff4081&label=nuget%20downloads&logo=nuget&style=flat-square)](https://www.nuget.org/packages/FullStackHero.WebAPI.Boilerplate/)
 
 <p align="center">
-    <img src="https://codewithmukesh.com/wp-content/uploads/2021/08/fullstackhero-banner.jpg" alt="fullstackhero">
-    <a href="https://www.buymeacoffee.com/codewithmukesh"><img width="200" alt="black-button" src="https://user-images.githubusercontent.com/31455818/138557309-27587d91-7b82-4cab-96bb-90f4f4e600f1.png" ></a>
-
-<h1 align="center">.NET WebAPI Boilerplate</h1>
+    <img src="https://codewithmukesh.com/wp-content/uploads/2021/11/fullstackhero-webapi-banner-1.jpg" alt="fullstackhero">
 </p>
 
 .NET WebAPI Boilerplate Template built with .NET 6.0. Incorporates the most essential Packages your projects will ever need. Follows Clean Architecture Principles.
