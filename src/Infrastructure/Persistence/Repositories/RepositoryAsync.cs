@@ -70,15 +70,14 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
             if (cachedData != null)
             {
                 await _cache.RefreshAsync(cacheKey, cancellationToken);
-                var entity = _serializer.Deserialize<TDto>(Encoding.Default.GetString(cachedData));
-                return entity;
+                return _serializer.Deserialize<TDto>(Encoding.Default.GetString(cachedData));
             }
             else
             {
                 IQueryable<T> query = _dbContext.Set<T>();
                 if (specification != null)
-                    query = query.Specify(specification).Where(a => a.Id == entityId);
-                var entity = await query.FirstOrDefaultAsync(cancellationToken: cancellationToken);
+                    query = query.Specify(specification);
+                var entity = await query.Where(a => a.Id == entityId).FirstOrDefaultAsync(cancellationToken: cancellationToken);
                 var dto = entity.Adapt<TDto>();
                 if (dto != null)
                 {

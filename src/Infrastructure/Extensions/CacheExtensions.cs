@@ -24,7 +24,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             cache.Set(key, value, new DistributedCacheEntryOptions());
         }
 
-        public static Task SetAsync(this ICacheService cache, string key, byte[] value, CancellationToken token = default)
+        public static Task SetAsync(this ICacheService cache, string key, byte[] value, in CancellationToken token = default)
         {
             if (key == null)
             {
@@ -59,12 +59,12 @@ namespace DN.WebApi.Infrastructure.Extensions
             cache.Set(key, Encoding.UTF8.GetBytes(value), options);
         }
 
-        public static Task SetStringAsync(this ICacheService cache, string key, string value, CancellationToken token = default)
+        public static Task SetStringAsync(this ICacheService cache, string key, string value, in CancellationToken token = default)
         {
             return cache.SetStringAsync(key, value, new DistributedCacheEntryOptions(), token);
         }
 
-        public static Task SetStringAsync(this ICacheService cache, string key, string value, DistributedCacheEntryOptions options, CancellationToken token = default)
+        public static Task SetStringAsync(this ICacheService cache, string key, string value, DistributedCacheEntryOptions options, in CancellationToken token = default)
         {
             if (key == null)
             {

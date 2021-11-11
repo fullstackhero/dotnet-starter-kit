@@ -1,6 +1,6 @@
+using System;
 using DN.WebApi.Domain.Contracts;
 using DN.WebApi.Domain.Extensions;
-using System;
 
 namespace DN.WebApi.Domain.Entities.Catalog
 {
@@ -14,7 +14,7 @@ namespace DN.WebApi.Domain.Entities.Catalog
         public Guid BrandId { get; set; }
         public virtual Brand Brand { get; set; }
 
-        public Product(string name, string description, decimal rate, Guid brandId, string imagePath)
+        public Product(string name, string description, decimal rate, in Guid brandId, string imagePath)
         {
             Name = name;
             Description = description;
@@ -27,7 +27,7 @@ namespace DN.WebApi.Domain.Entities.Catalog
         {
         }
 
-        public Product Update(string name, string description, decimal rate, Guid brandId, string imagePath)
+        public Product Update(string name, string description, decimal rate, in Guid brandId, string imagePath)
         {
             if (name != null && !Name.NullToString().Equals(name)) Name = name;
             if (description != null && !Description.NullToString().Equals(description)) Description = description;

@@ -27,7 +27,6 @@ namespace DN.WebApi.Domain.Entities.Multitenancy
 
         public Tenant()
         {
-
         }
 
         public void AddValidity(int months)
@@ -35,7 +34,7 @@ namespace DN.WebApi.Domain.Entities.Multitenancy
             this.ValidUpto = this.ValidUpto.AddMonths(months);
         }
 
-        public void SetValidity(DateTime validTill)
+        public void SetValidity(in DateTime validTill)
         {
             if (this.ValidUpto < validTill)
                 this.ValidUpto = validTill;

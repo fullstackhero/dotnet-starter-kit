@@ -9,19 +9,18 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
     {
         public static Expression<Func<T, bool>> True<T>()
         {
-            return f => true;
+            return _ => true;
         }
 
         public static Expression<Func<T, bool>> False<T>()
         {
-            return f => false;
+            return _ => false;
         }
 
         public static IQueryable<T> AdvancedSearch<T>(this IQueryable<T> query, Search search)
         {
             var predicate = False<T>();
-            var properties = typeof(T).GetProperties().Where(p => search.Fields.Any(field => p.Name.ToLower() == field.ToLower()));
-            foreach (var propertyInfo in properties)
+            foreach (var propertyInfo in typeof(T).GetProperties().Where(p => search.Fields.Any(field => p.Name.ToLower() == field.ToLower())))
             {
                 if (propertyInfo.GetGetMethod().IsVirtual)
                     continue;

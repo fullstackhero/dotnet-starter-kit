@@ -25,7 +25,7 @@ namespace DN.WebApi.Infrastructure.Auditing.Models
         public List<PropertyEntry> TemporaryProperties { get; } = new();
         public TrailType TrailType { get; set; }
         public List<string> ChangedColumns { get; } = new();
-        public bool HasTemporaryProperties => TemporaryProperties.Any();
+        public bool HasTemporaryProperties => TemporaryProperties.Count > 0;
 
         public Trail ToAuditTrail()
         {

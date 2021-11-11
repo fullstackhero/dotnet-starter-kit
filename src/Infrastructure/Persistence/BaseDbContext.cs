@@ -85,7 +85,7 @@ namespace DN.WebApi.Infrastructure.Persistence
             return result;
         }
 
-        private List<AuditTrail> OnBeforeSaveChanges(Guid userId)
+        private List<AuditTrail> OnBeforeSaveChanges(in Guid userId)
         {
             ChangeTracker.DetectChanges();
             var trailEntries = new List<AuditTrail>();
@@ -153,7 +153,7 @@ namespace DN.WebApi.Infrastructure.Persistence
             return trailEntries.Where(_ => _.HasTemporaryProperties).ToList();
         }
 
-        private Task OnAfterSaveChangesAsync(List<AuditTrail> trailEntries, CancellationToken cancellationToken = new())
+        private Task OnAfterSaveChangesAsync(List<AuditTrail> trailEntries, in CancellationToken cancellationToken = new())
         {
             if (trailEntries == null || trailEntries.Count == 0)
                 return Task.CompletedTask;

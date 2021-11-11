@@ -54,7 +54,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             }
 
             services.SetupDatabases<T, TA>(multitenancySettings);
-            _logger.Information($"For documentations and guides, please visit fullstackhero.net");
+            _logger.Information("For documentations and guides, please visit fullstackhero.net");
             return services;
         }
 
@@ -87,7 +87,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                 if (dbContext.Database.GetPendingMigrations().Any())
                 {
                     dbContext.Database.Migrate();
-                    _logger.Information($"Applying Root Migrations.");
+                    _logger.Information("Applying Root Migrations.");
                 }
 
                 if (dbContext.Database.CanConnect())
@@ -113,7 +113,6 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
         private static IServiceCollection SetupTenantDatabase<TA>(this IServiceCollection services, MultitenancySettings options, Tenant tenant)
         where TA : ApplicationDbContext
         {
-
             string tenantConnectionString = string.IsNullOrEmpty(tenant.ConnectionString) ? options.ConnectionString : tenant.ConnectionString;
             switch (options.DBProvider.ToLower())
             {
