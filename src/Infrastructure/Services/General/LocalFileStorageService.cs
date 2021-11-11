@@ -48,7 +48,7 @@ namespace DN.WebApi.Infrastructure.Services.General
 
                 string fileName = request.Name.Trim('"');
                 fileName = RemoveSpecialCharacters(fileName);
-                fileName = RegexExtensions.ReplaceWhitespace(fileName, "-");
+                fileName = fileName.ReplaceWhitespace("-");
                 fileName += request.Extension.Trim();
                 string fullPath = Path.Combine(pathToSave, fileName);
                 string dbPath = Path.Combine(folderName, fileName);
