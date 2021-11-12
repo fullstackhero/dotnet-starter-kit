@@ -34,7 +34,7 @@
     <PackageReference Include="Serilog.Sinks.Async" Version="1.5.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="4.0.1-dev-00879" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.1-dev-00947" />
-    <PackageReference Include="Hangfire" Version="1.8.0-beta3" />
+    <PackageReference Include="Hangfire" Version="1.8.0-beta4" />
     <PackageReference Include="Hangfire.PostgreSql" Version="1.8.6" />
     <PackageReference Include="MailKit" Version="3.0.0-preview1" />
     <PackageReference Include="MimeKit" Version="3.0.0-preview1" />
