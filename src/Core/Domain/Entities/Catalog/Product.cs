@@ -1,6 +1,6 @@
-using System;
 using DN.WebApi.Domain.Contracts;
 using DN.WebApi.Domain.Extensions;
+using System;
 
 namespace DN.WebApi.Domain.Entities.Catalog
 {

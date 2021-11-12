@@ -3,7 +3,6 @@ using DN.WebApi.Infrastructure.Auditing.Enums;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace DN.WebApi.Infrastructure.Auditing.Models
 {

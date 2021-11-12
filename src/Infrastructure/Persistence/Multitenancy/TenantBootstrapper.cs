@@ -1,8 +1,3 @@
-using System;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Domain.Entities.Multitenancy;
@@ -14,6 +9,11 @@ using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
 using Npgsql;
 using Serilog;
+using System;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
 {

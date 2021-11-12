@@ -1,10 +1,9 @@
-using System;
-using System.Runtime.InteropServices;
 using DN.WebApi.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using System;
 
 namespace DN.WebApi.Bootstrapper
 {
