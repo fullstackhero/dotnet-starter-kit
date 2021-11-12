@@ -15,6 +15,7 @@ namespace DN.WebApi.Application.Abstractions.Services.Identity
         Task<IResult> ForgotPasswordAsync(ForgotPasswordRequest request, string origin);
 
         Task<IResult> ResetPasswordAsync(ResetPasswordRequest request);
+
         Task<IResult> UpdateProfileAsync(UpdateProfileRequest request, string userId);
     }
 }

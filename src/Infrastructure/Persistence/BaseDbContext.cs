@@ -23,6 +23,7 @@ namespace DN.WebApi.Infrastructure.Persistence
         private readonly ICurrentUser _currentUserService;
         public DbSet<Trail> AuditTrails { get; set; }
         public string TenantKey { get; set; }
+
         protected BaseDbContext(DbContextOptions options, ITenantService tenantService, ICurrentUser currentUserService, ISerializerService serializer)
         : base(options)
         {
@@ -55,9 +56,11 @@ namespace DN.WebApi.Infrastructure.Persistence
                     case "postgresql":
                         optionsBuilder.UseNpgsql(_tenantService.GetConnectionString());
                         break;
+
                     case "mssql":
                         optionsBuilder.UseSqlServer(_tenantService.GetConnectionString());
                         break;
+
                     case "mysql":
                         optionsBuilder.UseMySql(_tenantService.GetConnectionString(), ServerVersion.AutoDetect(_tenantService.GetConnectionString()));
                         break;

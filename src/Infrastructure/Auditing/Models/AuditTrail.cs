@@ -9,6 +9,7 @@ namespace DN.WebApi.Infrastructure.Auditing.Models
     public class AuditTrail
     {
         private readonly ISerializerService _serializer;
+
         public AuditTrail(EntityEntry entry, ISerializerService serializer)
         {
             Entry = entry;

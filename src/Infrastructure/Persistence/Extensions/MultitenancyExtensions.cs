@@ -37,10 +37,12 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                     services.AddDbContext<T>(m => m.UseNpgsql(rootConnectionString, e => e.MigrationsAssembly("Migrators.PostgreSQL")));
                     services.AddHangfire(x => x.UsePostgreSqlStorage(rootConnectionString));
                     break;
+
                 case "mssql":
                     services.AddDbContext<T>(m => m.UseSqlServer(rootConnectionString, e => e.MigrationsAssembly("Migrators.MSSQL")));
                     services.AddHangfire(x => x.UseSqlServerStorage(rootConnectionString));
                     break;
+
                 case "mysql":
                     services.AddDbContext<T>(m => m.UseMySql(rootConnectionString, ServerVersion.AutoDetect(rootConnectionString), e =>
                     {
@@ -49,6 +51,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                     }));
                     services.AddHangfire(x => x.UseStorage(new MySqlStorage(rootConnectionString, new MySqlStorageOptions())));
                     break;
+
                 default:
                     throw new Exception($"DB Provider {dbProvider} is not supported.");
             }
@@ -70,9 +73,11 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                 case "postgresql":
                     services.AddDbContext<TA>(m => m.UseNpgsql(e => e.MigrationsAssembly("Migrators.PostgreSQL")));
                     break;
+
                 case "mssql":
                     services.AddDbContext<TA>(m => m.UseSqlServer(e => e.MigrationsAssembly("Migrators.MSSQL")));
                     break;
+
                 case "mysql":
                     services.AddDbContext<TA>(m => m.UseMySql(options.ConnectionString, ServerVersion.AutoDetect(options.ConnectionString), e =>
                     {
@@ -119,9 +124,11 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                 case "postgresql":
                     services.AddDbContext<TA>(m => m.UseNpgsql(e => e.MigrationsAssembly("Migrators.PostgreSQL")));
                     break;
+
                 case "mssql":
                     services.AddDbContext<TA>(m => m.UseSqlServer(e => e.MigrationsAssembly("Migrators.MSSQL")));
                     break;
+
                 case "mysql":
                     services.AddDbContext<TA>(m => m.UseMySql(tenantConnectionString, ServerVersion.AutoDetect(tenantConnectionString), e =>
                     {

@@ -43,10 +43,12 @@ namespace DN.WebApi.Application.Abstractions.Repositories
 
         Task RemoveAsync<T>(T entity)
         where T : BaseEntity;
+
         Task RemoveByIdAsync<T>(Guid id)
         where T : BaseEntity;
 
-        #region  Dapper
+        #region Dapper
+
         Task<IReadOnlyList<T>> QueryAsync<T>(string sql, object param = null, IDbTransaction transaction = null, CancellationToken cancellationToken = default)
         where T : BaseEntity;
 
@@ -56,11 +58,12 @@ namespace DN.WebApi.Application.Abstractions.Repositories
         Task<T> QuerySingleAsync<T>(string sql, object param = null, IDbTransaction transaction = null, CancellationToken cancellationToken = default)
         where T : BaseEntity;
 
-        #endregion
+        #endregion Dapper
 
         #region Save Changes
-        Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
-        #endregion
 
+        Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+
+        #endregion Save Changes
     }
 }

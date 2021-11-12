@@ -21,6 +21,7 @@ namespace DN.WebApi.Application.Abstractions.Services.Identity
         Task<Result<string>> DeleteAsync(string id);
 
         Task<Result<List<RoleDto>>> GetUserRolesAsync(string userId);
+
         Task<Result<string>> UpdatePermissionsAsync(string id, List<UpdatePermissionsRequest> request);
     }
 }

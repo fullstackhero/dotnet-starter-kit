@@ -20,6 +20,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
     public class TenantBootstrapper
     {
         private static readonly ILogger _logger = Log.ForContext(typeof(TenantBootstrapper));
+
         public static void Initialize(ApplicationDbContext appContext, MultitenancySettings options, Tenant tenant, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager)
         {
             string connectionString = string.IsNullOrEmpty(tenant.ConnectionString) ? options.ConnectionString : tenant.ConnectionString;
@@ -149,9 +150,11 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
                     case "postgresql":
                         var postgresqlcs = new NpgsqlConnectionStringBuilder(connectionString);
                         break;
+
                     case "mysql":
                         var mysqlcs = new MySqlConnectionStringBuilder(connectionString);
                         break;
+
                     case "mssql":
                         var mssqlcs = new SqlConnectionStringBuilder(connectionString);
                         break;

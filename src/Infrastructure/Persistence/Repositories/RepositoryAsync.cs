@@ -41,7 +41,8 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
             _localizer = localizer;
         }
 
-        #region  Entity Framework Core : Get All
+        #region Entity Framework Core : Get All
+
         public async Task<List<T>> GetListAsync<T>(Expression<Func<T, bool>> expression, bool noTracking = false, CancellationToken cancellationToken = default)
         where T : BaseEntity
         {
@@ -50,7 +51,9 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
             if (expression != null) query = query.Where(expression);
             return await query.ToListAsync(cancellationToken);
         }
-        #endregion
+
+        #endregion Entity Framework Core : Get All
+
         public async Task<T> GetByIdAsync<T>(Guid entityId, BaseSpecification<T> specification = null, CancellationToken cancellationToken = default)
         where T : BaseEntity
         {
@@ -156,6 +159,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
         }
 
         #region Dapper
+
         public async Task<IReadOnlyList<T>> QueryAsync<T>(string sql, object param = null, IDbTransaction transaction = null, CancellationToken cancellationToken = default)
         where T : BaseEntity
         {
@@ -202,6 +206,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
 
             return await query.CountAsync(cancellationToken);
         }
-        #endregion
+
+        #endregion Dapper
     }
 }

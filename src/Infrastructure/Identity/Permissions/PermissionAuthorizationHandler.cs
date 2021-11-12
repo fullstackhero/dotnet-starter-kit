@@ -9,6 +9,7 @@ namespace DN.WebApi.Infrastructure.Identity.Permissions
     internal class PermissionAuthorizationHandler : AuthorizationHandler<PermissionRequirement>
     {
         private readonly IRoleClaimsService _permissionService;
+
         public PermissionAuthorizationHandler(IRoleClaimsService permissionService)
         {
             _permissionService = permissionService;

@@ -9,6 +9,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("DN.WebApi.Bootstrapper")]
+
 namespace DN.WebApi.Infrastructure.Extensions
 {
     internal static class ApplicationBuilderExtensions
