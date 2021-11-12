@@ -1,4 +1,5 @@
 using DN.WebApi.Infrastructure.Extensions;
+using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -11,8 +12,10 @@ namespace DN.WebApi.Bootstrapper
     {
         public static void Main(string[] args)
         {
+            var runtimetEnv = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "Windows" : "Others";
             var configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json")
+                .AddJsonFile($"appsettings.{runtimetEnv}.json")
                 .Build();
 
             Log.Logger = new LoggerConfiguration()
