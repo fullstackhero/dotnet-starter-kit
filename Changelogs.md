@@ -13,7 +13,7 @@
 - Upgrade Tenant Subscription
 - Advanced Search
 
-0.0.3-rc 
+0.0.3-rc
 
 - Security Patches
 
@@ -31,3 +31,5 @@
 0.0.5-rc - Next Release
 
 - Fixed Password Reset / Forgot
+- Fixed Omnisharp Warnings / Code Cleanup
+- Fixed Repository Method
