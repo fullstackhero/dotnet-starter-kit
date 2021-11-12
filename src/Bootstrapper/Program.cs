@@ -1,10 +1,10 @@
-using DN.WebApi.Infrastructure.Extensions;
+using System;
 using System.Runtime.InteropServices;
+using DN.WebApi.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Serilog;
-using System;
 
 namespace DN.WebApi.Bootstrapper
 {
@@ -12,10 +12,8 @@ namespace DN.WebApi.Bootstrapper
     {
         public static void Main(string[] args)
         {
-            var runtimetEnv = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "Windows" : "Others";
             var configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json")
-                .AddJsonFile($"appsettings.{runtimetEnv}.json")
                 .Build();
 
             Log.Logger = new LoggerConfiguration()
