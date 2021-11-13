@@ -6,6 +6,7 @@ using DN.WebApi.Infrastructure.Persistence.Multitenancy;
 using Hangfire;
 using Hangfire.MySql;
 using Hangfire.PostgreSql;
+using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -35,12 +36,10 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             {
                 case "postgresql":
                     services.AddDbContext<T>(m => m.UseNpgsql(rootConnectionString, e => e.MigrationsAssembly("Migrators.PostgreSQL")));
-                    services.AddHangfire(x => x.UsePostgreSqlStorage(rootConnectionString));
                     break;
 
                 case "mssql":
                     services.AddDbContext<T>(m => m.UseSqlServer(rootConnectionString, e => e.MigrationsAssembly("Migrators.MSSQL")));
-                    services.AddHangfire(x => x.UseSqlServerStorage(rootConnectionString));
                     break;
 
                 case "mysql":
@@ -49,11 +48,34 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                         e.MigrationsAssembly("Migrators.MySQL");
                         e.SchemaBehavior(MySqlSchemaBehavior.Ignore);
                     }));
-                    services.AddHangfire(x => x.UseStorage(new MySqlStorage(rootConnectionString, new MySqlStorageOptions())));
                     break;
 
                 default:
                     throw new Exception($"DB Provider {dbProvider} is not supported.");
+            }
+
+            var storageSettings = services.GetOptions<HangFireStorageSettings>("HangFireSettings:Storage");
+
+            if (string.IsNullOrEmpty(storageSettings.StorageProvider)) throw new Exception("Storage HangFire Provider is not configured.");
+            _logger.Information($"HagnFire: Current Storage Provider : {storageSettings.StorageProvider}");
+            _logger.Information("For more HangFire storage, visit https://www.hangfire.io/extensions.html");
+
+            switch (storageSettings.StorageProvider.ToLower())
+            {
+                case "postgresql":
+                    services.AddHangfire(x => x.UsePostgreSqlStorage(storageSettings.ConnectionString, services.GetOptions<PostgreSqlStorageOptions>("HangFireSettings:Storage:Options")));
+                    break;
+
+                case "mssql":
+                    services.AddHangfire(x => x.UseSqlServerStorage(storageSettings.ConnectionString, services.GetOptions<SqlServerStorageOptions>("HangFireSettings:Storage:Options")));
+                    break;
+
+                case "mysql":
+                    services.AddHangfire(x => x.UseStorage(new MySqlStorage(storageSettings.ConnectionString, services.GetOptions<MySqlStorageOptions>("HangFireSettings:Storage:Options"))));
+                    break;
+
+                default:
+                    throw new Exception($"HangFire Storage Provider {storageSettings.StorageProvider} is not supported.");
             }
 
             services.SetupDatabases<T, TA>(multitenancySettings);

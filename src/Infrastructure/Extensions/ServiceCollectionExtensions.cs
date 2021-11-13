@@ -44,17 +44,17 @@ namespace DN.WebApi.Infrastructure.Extensions
             services.AddPermissions();
             services.AddIdentity(config);
             services.AddMultitenancy<TenantManagementDbContext, ApplicationDbContext>(config);
-            services.AddHangfireServer();
+            services.AddHangfireServer(options => options = services.GetOptions<BackgroundJobServerOptions>("Hangfire:Server"));
             services.AddRouting(options => options.LowercaseUrls = true);
             services.AddMiddlewares();
             services.AddSwaggerDocumentation();
             services.AddCorsPolicy();
             services.AddApiVersioning(config =>
-           {
-               config.DefaultApiVersion = new ApiVersion(1, 0);
-               config.AssumeDefaultVersionWhenUnspecified = true;
-               config.ReportApiVersions = true;
-           });
+            {
+                config.DefaultApiVersion = new ApiVersion(1, 0);
+                config.AssumeDefaultVersionWhenUnspecified = true;
+                config.ReportApiVersions = true;
+            });
             services.AddSingleton<IStringLocalizerFactory, JsonStringLocalizerFactory>();
             return services;
         }
