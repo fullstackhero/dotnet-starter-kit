@@ -33,10 +33,6 @@ namespace DN.WebApi.Infrastructure.Middlewares
             string requestBody = Encoding.UTF8.GetString(buffer);
             body.Seek(0, SeekOrigin.Begin);
             context.Request.Body = body;
-            if (requestBody != string.Empty)
-            {
-                requestBody = "Body: " + requestBody + Environment.NewLine;
-            }
 
             // Logs should always be secured! However, we will take the extra step of not logging passwords.
             if (context.Request.Path.ToString().Contains("tokens"))
@@ -51,20 +47,12 @@ namespace DN.WebApi.Infrastructure.Middlewares
             finally
             {
                 string user = !string.IsNullOrEmpty(_currentUser.GetUserEmail()) ? _currentUser.GetUserEmail() : "Anonymous";
-
+                string tenant = _currentUser.GetTenantKey() ?? string.Empty;
                 LogContext.PushProperty("UserName", user);
+                LogContext.PushProperty("Tenant", tenant);
 
-                _logger.LogInformation($"{Environment.NewLine}HTTP Request:{Environment.NewLine}" +
-                                       $"  Request By: {user}{Environment.NewLine}" +
-                                       $"  Tenant: {_currentUser.GetTenantKey() ?? string.Empty}{Environment.NewLine}" +
-                                       $"  RemoteIP: {context.Connection.RemoteIpAddress}{Environment.NewLine}" +
-                                       $"  Schema: {context.Request.Scheme}{Environment.NewLine}" +
-                                       $"  Host: {context.Request.Host}{Environment.NewLine}" +
-                                       $"  Method: {context.Request.Method}{Environment.NewLine}" +
-                                       $"  Path: {context.Request.Path}{Environment.NewLine}" +
-                                       $"  Query String: {context.Request.QueryString}{Environment.NewLine}" +
-                                       requestBody +
-                                       $"  Response Status Code: {context.Response?.StatusCode}{Environment.NewLine}");
+                string message = $"{Environment.NewLine}HTTP Request:{Environment.NewLine}  Request By: {user}{Environment.NewLine}  Tenant: {tenant}{Environment.NewLine}  RemoteIP: {context.Connection.RemoteIpAddress}{Environment.NewLine}  Schema: {context.Request.Scheme}{Environment.NewLine}  Host: {context.Request.Host}{Environment.NewLine}  Method: {context.Request.Method}{Environment.NewLine}  Path: {context.Request.Path}{Environment.NewLine}  Query String: {context.Request.QueryString}{Environment.NewLine}  Request Body: {requestBody}{Environment.NewLine}  Response Status Code: {context.Response.StatusCode}{Environment.NewLine}";
+                _logger.LogInformation(message);
             }
         }
     }

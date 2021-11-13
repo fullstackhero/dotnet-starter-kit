@@ -70,7 +70,9 @@ namespace DN.WebApi.Infrastructure.Middlewares
                 }
 
                 string user = !string.IsNullOrEmpty(_currentUser.GetUserEmail()) ? _currentUser.GetUserEmail() : "Anonymous";
+                string tenant = _currentUser.GetTenantKey() ?? string.Empty;
                 LogContext.PushProperty("UserName", user);
+                LogContext.PushProperty("Tenant", tenant);
 
                 string errorId = Guid.NewGuid().ToString()[..10];
                 LogContext.PushProperty("TechSptMsg", "Sorry, an unexpected error has occurred. Provide the following to our technical support department: " + errorId);
@@ -94,7 +96,7 @@ namespace DN.WebApi.Infrastructure.Middlewares
                         break;
                 }
 
-                string message = $"Exception: {exception.Message}{Environment.NewLine}  Request By: {user}{Environment.NewLine}  Tenant: {_currentUser.GetTenantKey() ?? string.Empty}{Environment.NewLine}  RemoteIP: {context.Connection.RemoteIpAddress}{Environment.NewLine}  Schema: {context.Request.Scheme}{Environment.NewLine}  Host: {context.Request.Host}{Environment.NewLine}  Method: {context.Request.Method}{Environment.NewLine}  Path: {context.Request.Path}{Environment.NewLine}  Query String: {context.Request.QueryString}{Environment.NewLine}{requestBody}  Response Status Code: {response.StatusCode}{Environment.NewLine}";
+                string message = $"Exception: {exception.Message}{Environment.NewLine}  Request By: {user}{Environment.NewLine}  Tenant: {tenant}{Environment.NewLine}  RemoteIP: {context.Connection.RemoteIpAddress}{Environment.NewLine}  Schema: {context.Request.Scheme}{Environment.NewLine}  Host: {context.Request.Host}{Environment.NewLine}  Method: {context.Request.Method}{Environment.NewLine}  Path: {context.Request.Path}{Environment.NewLine}  Query String: {context.Request.QueryString}{Environment.NewLine}{requestBody}  Response Status Code: {response.StatusCode}{Environment.NewLine}";
                 _logger.LogError(message);
                 string result = string.Empty;
                 result = _jsonSerializer.Serialize(responseModel);
