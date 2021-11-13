@@ -1,10 +1,14 @@
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DN.WebApi.Application.Abstractions.Services.Identity;
+using DN.WebApi.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Serilog;
 using Serilog.Context;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
@@ -14,46 +18,36 @@ namespace DN.WebApi.Infrastructure.Middlewares
     {
         private readonly ICurrentUser _currentUser;
 
-        private readonly ILogger _logger;
-
-        public RequestLoggingMiddleware(ILoggerFactory loggerFactory, ICurrentUser currentUser)
+        public RequestLoggingMiddleware(ICurrentUser currentUser)
         {
-            _logger = loggerFactory.CreateLogger<RequestLoggingMiddleware>();
             _currentUser = currentUser;
         }
 
-        public async Task InvokeAsync(HttpContext context, RequestDelegate next)
+        public async Task InvokeAsync(HttpContext httpContext, RequestDelegate next)
         {
-            // Getting the request body is a little tricky because it's a stream
-            // So, we need to read the stream and then rewind it back to the beginning
-            context.Request.EnableBuffering();
-            Stream body = context.Request.Body;
-            byte[] buffer = new byte[Convert.ToInt32(context.Request.ContentLength)];
-            await context.Request.Body.ReadAsync(buffer);
-            string requestBody = Encoding.UTF8.GetString(buffer);
-            body.Seek(0, SeekOrigin.Begin);
-            context.Request.Body = body;
 
-            // Logs should always be secured! However, we will take the extra step of not logging passwords.
-            if (context.Request.Path.ToString().Contains("tokens"))
+            Stream body = httpContext.Request.Body;
+            LogContext.PushProperty("RequestTimeUTC", DateTime.UtcNow);
+            string requestBody = string.Empty;
+            if (httpContext.Request.Path.ToString().Contains("tokens"))
             {
-                requestBody = "Request contains Sensitive Data." + Environment.NewLine;
+                requestBody = "[Redacted] Contains Sensitive Information.";
+            }
+            else
+            {
+                httpContext.Request.EnableBuffering();
+                byte[] buffer = new byte[Convert.ToInt32(httpContext.Request.ContentLength)];
+                await httpContext.Request.Body.ReadAsync(buffer);
+                requestBody = Encoding.UTF8.GetString(buffer).ReplaceWhitespace(string.Empty);
+                body.Seek(0, SeekOrigin.Begin);
+                httpContext.Request.Body = body;
             }
 
-            try
-            {
-                await next(context);
-            }
-            finally
-            {
-                string user = !string.IsNullOrEmpty(_currentUser.GetUserEmail()) ? _currentUser.GetUserEmail() : "Anonymous";
-                string tenant = _currentUser.GetTenantKey() ?? string.Empty;
-                LogContext.PushProperty("UserName", user);
-                LogContext.PushProperty("Tenant", tenant);
-
-                string message = $"{Environment.NewLine}HTTP Request:{Environment.NewLine}  Request By: {user}{Environment.NewLine}  Tenant: {tenant}{Environment.NewLine}  RemoteIP: {context.Connection.RemoteIpAddress}{Environment.NewLine}  Schema: {context.Request.Scheme}{Environment.NewLine}  Host: {context.Request.Host}{Environment.NewLine}  Method: {context.Request.Method}{Environment.NewLine}  Path: {context.Request.Path}{Environment.NewLine}  Query String: {context.Request.QueryString}{Environment.NewLine}  Request Body: {requestBody}{Environment.NewLine}  Response Status Code: {context.Response.StatusCode}{Environment.NewLine}";
-                _logger.LogInformation(message);
-            }
+            LogContext.PushProperty("RequestBody", requestBody);
+            Log.ForContext("RequestHeaders", httpContext.Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString()), destructureObjects: true)
+               .ForContext("RequestBody", requestBody)
+               .Information("HTTP {RequestMethod} Request sent to {RequestPath}", httpContext.Request.Method, httpContext.Request.Path);
+            await next(httpContext);
         }
     }
 }

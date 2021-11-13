@@ -1,3 +1,8 @@
+using System;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Domain.Entities.Multitenancy;
@@ -9,17 +14,12 @@ using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
 using Npgsql;
 using Serilog;
-using System;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
 {
     public class TenantBootstrapper
     {
-        private static readonly ILogger _logger = Log.ForContext(typeof(TenantBootstrapper));
+        private static readonly ILogger _logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 
         public static void Initialize(ApplicationDbContext appContext, MultitenancySettings options, Tenant tenant, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager)
         {

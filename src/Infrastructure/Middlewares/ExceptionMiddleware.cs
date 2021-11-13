@@ -8,24 +8,23 @@ using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Wrapper;
+using DN.WebApi.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Serilog;
 using Serilog.Context;
 
 namespace DN.WebApi.Infrastructure.Middlewares
 {
     internal class ExceptionMiddleware : IMiddleware
     {
-        private readonly ILogger<ExceptionMiddleware> _logger;
         private readonly ICurrentUser _currentUser;
         private readonly ISerializerService _jsonSerializer;
 
         public ExceptionMiddleware(
-            ILogger<ExceptionMiddleware> logger,
             ISerializerService jsonSerializer,
             ICurrentUser currentUser)
         {
-            _logger = logger;
             _jsonSerializer = jsonSerializer;
             _currentUser = currentUser;
         }
@@ -38,6 +37,20 @@ namespace DN.WebApi.Infrastructure.Middlewares
             }
             catch (Exception exception)
             {
+                string email = !string.IsNullOrEmpty(_currentUser.GetUserEmail()) ? _currentUser.GetUserEmail() : "Anonymous";
+                var userId = _currentUser.GetUserId();
+                string tenant = _currentUser.GetTenantKey() ?? string.Empty;
+                if (userId != Guid.Empty) LogContext.PushProperty("UserId", userId);
+                LogContext.PushProperty("UserEmail", email);
+                if (!string.IsNullOrEmpty(tenant)) LogContext.PushProperty("Tenant", tenant);
+                string errorId = Guid.NewGuid().ToString();
+                LogContext.PushProperty("ErrorId", errorId);
+                LogContext.PushProperty("StackTrace", exception.StackTrace);
+                var responseModel = await ErrorResult<string>.ReturnErrorAsync(exception.Message);
+                responseModel.Source = exception.TargetSite.DeclaringType.FullName;
+                responseModel.Exception = exception.Message;
+                responseModel.ErrorId = errorId;
+                responseModel.SupportMessage = "Please provide the ErrorId to the support team to analyse this exception.";
                 var response = context.Response;
                 response.ContentType = "application/json";
                 if (exception is not CustomException && exception.InnerException != null)
@@ -48,59 +61,24 @@ namespace DN.WebApi.Infrastructure.Middlewares
                     }
                 }
 
-                // Getting the request body is a little tricky because it's a stream
-                // So, we need to read the stream and then rewind it back to the beginning
-                context.Request.EnableBuffering();
-                Stream body = context.Request.Body;
-                byte[] buffer = new byte[Convert.ToInt32(context.Request.ContentLength)];
-                await context.Request.Body.ReadAsync(buffer);
-                string requestBody = Encoding.UTF8.GetString(buffer);
-                body.Seek(0, SeekOrigin.Begin);
-                context.Request.Body = body;
-
-                if (requestBody != string.Empty)
-                {
-                    requestBody = "Body: " + requestBody + Environment.NewLine;
-                }
-
-                // Logs should always be secured! However, we will take the extra step of not logging passwords.
-                if (context.Request.Path.ToString().Contains("tokens"))
-                {
-                    requestBody = "Request contains Sensitive Data." + Environment.NewLine;
-                }
-
-                string user = !string.IsNullOrEmpty(_currentUser.GetUserEmail()) ? _currentUser.GetUserEmail() : "Anonymous";
-                string tenant = _currentUser.GetTenantKey() ?? string.Empty;
-                LogContext.PushProperty("UserName", user);
-                LogContext.PushProperty("Tenant", tenant);
-
-                string errorId = Guid.NewGuid().ToString()[..10];
-                LogContext.PushProperty("TechSptMsg", "Sorry, an unexpected error has occurred. Provide the following to our technical support department: " + errorId);
-                var responseModel = await ErrorResult<string>.ReturnErrorAsync(exception.Message);
-                responseModel.Source = exception.Source;
-                responseModel.Exception = exception.Message;
-
                 switch (exception)
                 {
                     case CustomException e:
-                        response.StatusCode = responseModel.ErrorCode = (int)e.StatusCode;
+                        response.StatusCode = responseModel.StatusCode = (int)e.StatusCode;
                         responseModel.Messages = e.ErrorMessages;
                         break;
 
                     case KeyNotFoundException:
-                        response.StatusCode = responseModel.ErrorCode = (int)HttpStatusCode.NotFound;
+                        response.StatusCode = responseModel.StatusCode = (int)HttpStatusCode.NotFound;
                         break;
 
                     default:
-                        response.StatusCode = responseModel.ErrorCode = (int)HttpStatusCode.InternalServerError;
+                        response.StatusCode = responseModel.StatusCode = (int)HttpStatusCode.InternalServerError;
                         break;
                 }
 
-                string message = $"Exception: {exception.Message}{Environment.NewLine}  Request By: {user}{Environment.NewLine}  Tenant: {tenant}{Environment.NewLine}  RemoteIP: {context.Connection.RemoteIpAddress}{Environment.NewLine}  Schema: {context.Request.Scheme}{Environment.NewLine}  Host: {context.Request.Host}{Environment.NewLine}  Method: {context.Request.Method}{Environment.NewLine}  Path: {context.Request.Path}{Environment.NewLine}  Query String: {context.Request.QueryString}{Environment.NewLine}{requestBody}  Response Status Code: {response.StatusCode}{Environment.NewLine}";
-                _logger.LogError(message);
-                string result = string.Empty;
-                result = _jsonSerializer.Serialize(responseModel);
-                await response.WriteAsync(result);
+                Log.Error($"{responseModel.Exception} Request failed with Status Code {context.Response.StatusCode} and Error Id {errorId}.");
+                await response.WriteAsync(_jsonSerializer.Serialize(responseModel));
             }
         }
     }

@@ -77,10 +77,6 @@ namespace DN.WebApi.Infrastructure.Extensions
                         OnForbidden = _ =>
                         {
                             throw new IdentityException("You are not authorized to access this resource.", statusCode: HttpStatusCode.Forbidden);
-                        },
-                        OnAuthenticationFailed = _ =>
-                        {
-                            throw new IdentityException("Authentication Failed.", statusCode: HttpStatusCode.Unauthorized);
                         }
                     };
                 });
