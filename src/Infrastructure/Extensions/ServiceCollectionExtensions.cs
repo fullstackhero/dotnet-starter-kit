@@ -44,7 +44,18 @@ namespace DN.WebApi.Infrastructure.Extensions
             services.AddPermissions();
             services.AddIdentity(config);
             services.AddMultitenancy<TenantManagementDbContext, ApplicationDbContext>(config);
-            services.AddHangfireServer(options => options = services.GetOptions<BackgroundJobServerOptions>("Hangfire:Server"));
+            services.AddHangfireServer(options =>
+            {
+                var optionsServer = services.GetOptions<BackgroundJobServerOptions>("HangFireSettings:Server");
+                options.HeartbeatInterval = optionsServer.HeartbeatInterval;
+                options.Queues = optionsServer.Queues;
+                options.SchedulePollingInterval = optionsServer.SchedulePollingInterval;
+                options.ServerCheckInterval = optionsServer.ServerCheckInterval;
+                options.ServerName = optionsServer.ServerName;
+                options.ServerTimeout = optionsServer.ServerTimeout;
+                options.ShutdownTimeout = optionsServer.ShutdownTimeout;
+                options.WorkerCount = optionsServer.WorkerCount;
+            });
             services.AddRouting(options => options.LowercaseUrls = true);
             services.AddMiddlewares();
             services.AddSwaggerDocumentation();
