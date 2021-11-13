@@ -1,11 +1,11 @@
-using DN.WebApi.Application.Abstractions.Services.Identity;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using Serilog.Context;
 using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using DN.WebApi.Application.Abstractions.Services.Identity;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using Serilog.Context;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace DN.WebApi.Infrastructure.Middlewares
@@ -41,7 +41,7 @@ namespace DN.WebApi.Infrastructure.Middlewares
             // Logs should always be secured! However, we will take the extra step of not logging passwords.
             if (context.Request.Path.ToString().Contains("tokens"))
             {
-                requestBody = string.Empty;
+                requestBody = "Request contains Sensitive Data." + Environment.NewLine;
             }
 
             try

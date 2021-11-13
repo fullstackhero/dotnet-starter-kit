@@ -1,47 +1,31 @@
-using DN.WebApi.Infrastructure.Extensions;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using Serilog;
 using System;
+using DN.WebApi.Application.Extensions;
+using DN.WebApi.Infrastructure.Extensions;
+using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 
-namespace DN.WebApi.Bootstrapper
+var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+Log.Logger = new LoggerConfiguration().WriteTo.Console().ReadFrom.Configuration(configuration).CreateLogger();
+Log.Information("FullStackHero API Starting up...");
+try
 {
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            var configuration = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json")
-                .Build();
-
-            Log.Logger = new LoggerConfiguration()
-                .ReadFrom.Configuration(configuration)
-                .CreateLogger();
-
-            try
-            {
-                Log.Information("Bootstrapper Startup");
-                CreateHostBuilder(args).Build().Run();
-            }
-            catch (Exception e)
-            {
-                Log.Fatal(e, "Bootstrapper Died!!");
-                Console.WriteLine(e);
-                throw;
-            }
-            finally
-            {
-                Log.CloseAndFlush();
-            }
-        }
-
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-            .UseSerilog()
-            .ConfigureWebHostDefaults(webBuilder =>
-            {
-                webBuilder.UseStartup<Startup>();
-            });
-    }
+    var builder = WebApplication.CreateBuilder(args);
+    builder.Host.UseSerilog((ctx, lc) => lc.WriteTo.Console().ReadFrom.Configuration(ctx.Configuration));
+    builder.Services.AddControllers().AddFluentValidation();
+    builder.Services.AddApplication().AddInfrastructure(builder.Configuration);
+    var app = builder.Build();
+    app.UseInfrastructure(builder.Configuration);
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Unhandled exception");
+}
+finally
+{
+    Log.Information("FullStackHero API has Shutdown.");
+    Log.CloseAndFlush();
 }
