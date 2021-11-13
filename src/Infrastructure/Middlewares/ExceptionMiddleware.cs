@@ -50,7 +50,7 @@ namespace DN.WebApi.Infrastructure.Middlewares
                 responseModel.Source = exception.TargetSite.DeclaringType.FullName;
                 responseModel.Exception = exception.Message;
                 responseModel.ErrorId = errorId;
-                responseModel.SupportMessage = "Please provide the ErrorId to the support team to analyse this exception.";
+                responseModel.SupportMessage = "Provide the ErrorId to the support team for further analysis.";
                 var response = context.Response;
                 response.ContentType = "application/json";
                 if (exception is not CustomException && exception.InnerException != null)
