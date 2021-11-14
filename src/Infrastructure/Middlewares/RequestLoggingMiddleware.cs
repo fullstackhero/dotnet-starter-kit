@@ -26,7 +26,6 @@ namespace DN.WebApi.Infrastructure.Middlewares
         public async Task InvokeAsync(HttpContext httpContext, RequestDelegate next)
         {
 
-            Stream body = httpContext.Request.Body;
             LogContext.PushProperty("RequestTimeUTC", DateTime.UtcNow);
             string requestBody = string.Empty;
             if (httpContext.Request.Path.ToString().Contains("tokens"))
@@ -35,12 +34,19 @@ namespace DN.WebApi.Infrastructure.Middlewares
             }
             else
             {
-                httpContext.Request.EnableBuffering();
-                byte[] buffer = new byte[Convert.ToInt32(httpContext.Request.ContentLength)];
-                await httpContext.Request.Body.ReadAsync(buffer);
-                requestBody = Encoding.UTF8.GetString(buffer).ReplaceWhitespace(string.Empty);
-                body.Seek(0, SeekOrigin.Begin);
-                httpContext.Request.Body = body;
+                var request = httpContext.Request;
+
+                if (!string.IsNullOrEmpty(request.ContentType)
+                    && request.ContentType.StartsWith("application/json"))
+                {
+                    request.EnableBuffering();
+                    using var reader = new StreamReader(request.Body, Encoding.UTF8, true, 4096, true);
+                    requestBody = await reader.ReadToEndAsync();
+
+                    // rewind for next middleware.
+                    request.Body.Position = 0;
+                }
+
             }
 
             LogContext.PushProperty("RequestBody", requestBody);
