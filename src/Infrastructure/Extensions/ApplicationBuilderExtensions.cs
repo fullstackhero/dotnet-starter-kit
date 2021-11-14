@@ -32,9 +32,31 @@ namespace DN.WebApi.Infrastructure.Extensions
             app.UseCors("CorsPolicy");
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseHangfireDashboard("/jobs", new DashboardOptions
+
+            var configDashboard = config.GetSection("HangFireSettings:Dashboard").Get<DashboardOptions>();
+            app.UseHangfireDashboard(config["HangFireSettings:Route"], new DashboardOptions
             {
-                DashboardTitle = "Jobs"
+                DashboardTitle = configDashboard.DashboardTitle,
+                StatsPollingInterval = configDashboard.StatsPollingInterval,
+                AppPath = configDashboard.AppPath
+
+                // ** OPtional BasicAuthAuthorizationFilter **
+                // Authorization = new[] { new BasicAuthAuthorizationFilter(
+                //    new BasicAuthAuthorizationFilterOptions {
+                //        RequireSsl = false,
+                //        SslRedirect = false,
+                //        LoginCaseSensitive = true,
+                //        Users = new []
+                //        {
+                //            new BasicAuthAuthorizationUser
+                //            {
+                //                Login = config["HangFireSettings:Credentiales:User"],
+                //                PasswordClear =  config["HangFireSettings:Credentiales:Password"]
+                //            }
+                //        }
+                //    })
+                // }
+
             });
             app.UseEndpoints(endpoints =>
             {
