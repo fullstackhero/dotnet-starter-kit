@@ -15,6 +15,8 @@ namespace DN.WebApi.Infrastructure.Localizer
     {
         private string Localization => "Localization";
 
+        private string DefaultCulture => "en-US";
+
         private readonly ICacheService _cache;
 
         private readonly JsonSerializer _serializer = new();
@@ -69,11 +71,23 @@ namespace DN.WebApi.Infrastructure.Localizer
 
         private string GetString(string key)
         {
-            string relativeFilePath = $"{Localization}/{Thread.CurrentThread.CurrentCulture.Name}.json";
+            string stringCulture = GetSpecificCulture(key);
+            if (!string.IsNullOrEmpty(stringCulture)) return stringCulture;
+            stringCulture = GetNaturalCulture(key);
+            if (!string.IsNullOrEmpty(stringCulture)) return stringCulture;
+            stringCulture = GetDefaultCulture(key);
+            if (!string.IsNullOrEmpty(stringCulture)) return stringCulture;
+
+            return default;
+        }
+
+        private string ValidateCulture(string key, string culture)
+        {
+            string relativeFilePath = $"{Localization}/{culture}.json";
             string fullFilePath = Path.GetFullPath(relativeFilePath);
             if (File.Exists(fullFilePath))
             {
-                string cacheKey = $"locale_{Thread.CurrentThread.CurrentCulture.Name}_{key}";
+                string cacheKey = $"locale_{culture}_{key}";
                 string cacheValue = _cache.GetString(cacheKey);
                 if (!string.IsNullOrEmpty(cacheValue)) return cacheValue;
                 string result = PullDeserialize<string>(key, Path.GetFullPath(relativeFilePath));
@@ -83,6 +97,22 @@ namespace DN.WebApi.Infrastructure.Localizer
 
             WriteEmptyKeys(new CultureInfo("en-US"), fullFilePath);
             return default;
+
+        }
+
+        private string GetSpecificCulture(string key)
+        {
+            return ValidateCulture(key, Thread.CurrentThread.CurrentCulture.Name);
+        }
+
+        private string GetNaturalCulture(string key)
+        {
+            return ValidateCulture(key, Thread.CurrentThread.CurrentCulture.Name.Split("-")[0]);
+        }
+
+        private string GetDefaultCulture(string key)
+        {
+            return ValidateCulture(key, DefaultCulture);
         }
 
         private void WriteEmptyKeys(CultureInfo sourceCulture, string fullFilePath)
