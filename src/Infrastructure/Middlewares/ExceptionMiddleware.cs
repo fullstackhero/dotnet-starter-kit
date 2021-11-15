@@ -10,6 +10,7 @@ using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Context;
@@ -20,13 +21,16 @@ namespace DN.WebApi.Infrastructure.Middlewares
     {
         private readonly ICurrentUser _currentUser;
         private readonly ISerializerService _jsonSerializer;
+        private readonly IStringLocalizer<ExceptionMiddleware> _localizer;
 
         public ExceptionMiddleware(
             ISerializerService jsonSerializer,
-            ICurrentUser currentUser)
+            ICurrentUser currentUser,
+            IStringLocalizer<ExceptionMiddleware> localizer)
         {
             _jsonSerializer = jsonSerializer;
             _currentUser = currentUser;
+            _localizer = localizer;
         }
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
@@ -50,7 +54,7 @@ namespace DN.WebApi.Infrastructure.Middlewares
                 responseModel.Source = exception.TargetSite.DeclaringType.FullName;
                 responseModel.Exception = exception.Message;
                 responseModel.ErrorId = errorId;
-                responseModel.SupportMessage = "Provide the ErrorId to the support team for further analysis.";
+                responseModel.SupportMessage = _localizer["exceptionmiddleware.supportmessage"];
                 var response = context.Response;
                 response.ContentType = "application/json";
                 if (exception is not CustomException && exception.InnerException != null)
