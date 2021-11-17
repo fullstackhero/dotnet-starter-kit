@@ -5,13 +5,17 @@ using DN.WebApi.Infrastructure.Mappings;
 using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Infrastructure.Persistence.Extensions;
 using DN.WebApi.Infrastructure.Services.General;
+using DN.WebApi.Infrastructure.Tasks;
 using Hangfire;
+using Hangfire.Common;
+using Hangfire.Console.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Localization;
+using System.Collections.Generic;
 
 namespace DN.WebApi.Infrastructure.Extensions
 {
@@ -56,6 +60,7 @@ namespace DN.WebApi.Infrastructure.Extensions
                 options.ShutdownTimeout = optionsServer.ShutdownTimeout;
                 options.WorkerCount = optionsServer.WorkerCount;
             });
+            services.AddHangfireConsoleExtensions();
             services.AddRouting(options => options.LowercaseUrls = true);
             services.AddMiddlewares();
             services.AddSwaggerDocumentation();

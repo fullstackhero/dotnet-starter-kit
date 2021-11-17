@@ -1,9 +1,13 @@
+using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Domain.Entities.Multitenancy;
+using DN.WebApi.Infrastructure.Filters.HangFire;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Persistence.Multitenancy;
+using DN.WebApi.Infrastructure.Services.General;
 using Hangfire;
+using Hangfire.Console;
 using Hangfire.MySql;
 using Hangfire.PostgreSql;
 using Hangfire.SqlServer;
@@ -63,15 +67,33 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             switch (storageSettings.StorageProvider.ToLower())
             {
                 case "postgresql":
-                    services.AddHangfire(x => x.UsePostgreSqlStorage(storageSettings.ConnectionString, services.GetOptions<PostgreSqlStorageOptions>("HangFireSettings:Storage:Options")));
+                    services.AddHangfire((provider, config) =>
+                    {
+                        config.UsePostgreSqlStorage(storageSettings.ConnectionString, services.GetOptions<PostgreSqlStorageOptions>("HangFireSettings:Storage:Options"))
+                        .UseFilter(new TenantJobFilter(provider.GetService<ICurrentUser>()))
+                        .UseFilter(new LogJobFilter())
+                        .UseConsole();
+                    });
                     break;
 
                 case "mssql":
-                    services.AddHangfire(x => x.UseSqlServerStorage(storageSettings.ConnectionString, services.GetOptions<SqlServerStorageOptions>("HangFireSettings:Storage:Options")));
+                    services.AddHangfire((provider, config) =>
+                    {
+                        config.UseSqlServerStorage(storageSettings.ConnectionString, services.GetOptions<SqlServerStorageOptions>("HangFireSettings:Storage:Options"))
+                        .UseFilter(new TenantJobFilter(provider.GetService<ICurrentUser>()))
+                        .UseFilter(new LogJobFilter())
+                        .UseConsole();
+                    });
                     break;
 
                 case "mysql":
-                    services.AddHangfire(x => x.UseStorage(new MySqlStorage(storageSettings.ConnectionString, services.GetOptions<MySqlStorageOptions>("HangFireSettings:Storage:Options"))));
+                    services.AddHangfire((provider, config) =>
+                    {
+                        config.UseStorage(new MySqlStorage(storageSettings.ConnectionString, services.GetOptions<MySqlStorageOptions>("HangFireSettings:Storage:Options")))
+                        .UseFilter(new TenantJobFilter(provider.GetService<ICurrentUser>()))
+                        .UseFilter(new LogJobFilter())
+                        .UseConsole();
+                    });
                     break;
 
                 default:

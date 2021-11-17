@@ -6,6 +6,8 @@ using DN.WebApi.Application.Settings;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Shared.DTOs.Multitenancy;
+using Hangfire.Console.Extensions;
+using Hangfire.Server;
 using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -36,7 +38,7 @@ namespace DN.WebApi.Infrastructure.Services.General
 
         private TenantDto _currentTenant;
 
-        public TenantService(IOptions<MultitenancySettings> options, IHttpContextAccessor contextAccessor, ICurrentUser currentUser, IStringLocalizer<TenantService> localizer, TenantManagementDbContext context, ICacheService cache, ISerializerService serializer)
+        public TenantService(IOptions<MultitenancySettings> options, IHttpContextAccessor contextAccessor, ICurrentUser currentUser, IStringLocalizer<TenantService> localizer, TenantManagementDbContext context, ICacheService cache, ISerializerService serializer, PerformingContext performingContext)
         {
             _localizer = localizer;
             _options = options.Value;
@@ -68,6 +70,14 @@ namespace DN.WebApi.Infrastructure.Services.General
                     {
                         throw new IdentityException(_localizer["auth.failed"], statusCode: HttpStatusCode.Unauthorized);
                     }
+                }
+            }
+            else if(performingContext != null)
+            {
+                string tenantkey = performingContext.GetJobParameter<string>("tenantKey");
+                if (!string.IsNullOrEmpty(tenantkey))
+                {
+                    SetTenant(tenantkey);
                 }
             }
         }

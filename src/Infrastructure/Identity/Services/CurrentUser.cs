@@ -1,5 +1,6 @@
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Infrastructure.Extensions;
+using Hangfire.Server;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -10,17 +11,32 @@ namespace DN.WebApi.Infrastructure.Identity.Services
     public class CurrentUser : ICurrentUser
     {
         private readonly IHttpContextAccessor _accessor;
+        private readonly PerformingContext _performingContext;
 
-        public CurrentUser(IHttpContextAccessor accessor)
+        public CurrentUser(IHttpContextAccessor accessor, PerformingContext performingContext)
         {
             _accessor = accessor;
+            _performingContext = performingContext;
         }
 
         public string Name => _accessor.HttpContext?.User.Identity?.Name;
 
         public Guid GetUserId()
         {
-            return IsAuthenticated() ? Guid.Parse(_accessor.HttpContext?.User.GetUserId() ?? Guid.Empty.ToString()) : Guid.Empty;
+            if (IsAuthenticated())
+            {
+                return Guid.Parse(_accessor.HttpContext?.User.GetUserId() ?? Guid.Empty.ToString());
+            }
+            else if (_performingContext != null)
+            {
+                string userId = _performingContext.GetJobParameter<string>("userId");
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    return Guid.Parse(userId);
+                }
+            }
+
+            return Guid.Empty;
         }
 
         public string GetUserEmail()
@@ -50,7 +66,20 @@ namespace DN.WebApi.Infrastructure.Identity.Services
 
         public string GetTenantKey()
         {
-            return IsAuthenticated() ? _accessor.HttpContext?.User.GetTenantKey() : string.Empty;
+            if (IsAuthenticated())
+            {
+                return _accessor.HttpContext?.User.GetTenantKey();
+            }
+            else if (_performingContext != null)
+            {
+                string tenantkey = _performingContext.GetJobParameter<string>("tenantKey");
+                if (!string.IsNullOrEmpty(tenantkey))
+                {
+                    return tenantkey;
+                }
+            }
+
+            return string.Empty;
         }
     }
 }

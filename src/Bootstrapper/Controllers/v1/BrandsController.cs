@@ -48,5 +48,20 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
             var brandId = await _service.DeleteBrandAsync(id);
             return Ok(brandId);
         }
+
+        [HttpPost("generate-random")]
+        public async Task<IActionResult> GenerateRandomAsync(GenerateRandomBrandRequest request)
+        {
+            var jobId = await _service.GenerateRandomBrandAsync(request);
+            return Ok(jobId);
+        }
+
+        [HttpDelete("delete-random")]
+        public async Task<IActionResult> DeleteRandomAsync()
+        {
+            var jobId = await _service.DeleteRandomBrandAsync();
+            return Ok(jobId);
+        }
+
     }
 }
