@@ -27,12 +27,12 @@ namespace DN.WebApi.Infrastructure.Services.General
         private readonly ApplicationDbContext _appContext;
         private readonly IStringLocalizer<TenantService> _localizer;
 
-        private readonly MultitenancySettings _options;
+        private readonly DatabaseSettings _options;
 
         private readonly TenantManagementDbContext _context;
         private readonly ICurrentUser _user;
 
-        public TenantManager(ApplicationDbContext appContext, IStringLocalizer<TenantService> localizer, IOptions<MultitenancySettings> options, TenantManagementDbContext context, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ICurrentUser user)
+        public TenantManager(ApplicationDbContext appContext, IStringLocalizer<TenantService> localizer, IOptions<DatabaseSettings> options, TenantManagementDbContext context, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ICurrentUser user)
         {
             _appContext = appContext;
             _localizer = localizer;

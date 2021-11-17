@@ -1,0 +1,6 @@
+{
+  "CacheSettings": {
+    "RedisURL": "localhost:6379",
+    "PreferRedis": false
+  }
+}

@@ -1,13 +1,13 @@
-﻿using DN.WebApi.Application.Abstractions.Jobs;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using DN.WebApi.Application.Abstractions.Jobs;
 using DN.WebApi.Application.Abstractions.Repositories;
 using DN.WebApi.Domain.Entities.Catalog;
 using Hangfire;
 using Hangfire.Console.Extensions;
 using Hangfire.Server;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace DN.WebApi.Infrastructure.Tasks
 {
@@ -33,7 +33,7 @@ namespace DN.WebApi.Infrastructure.Tasks
             var progress = _progressBar.Create();
             foreach (int index in Enumerable.Range(1, nSeed))
             {
-                await _repository.CreateAsync<Brand>(new Brand(name: $"Brand Random - {Guid.NewGuid()}", "Funny description"));
+                await _repository.CreateAsync(new Brand(name: $"Brand Random - {Guid.NewGuid()}", "Funny description"));
                 progress.SetValue(index * 100 / nSeed);
             }
 
@@ -44,22 +44,13 @@ namespace DN.WebApi.Infrastructure.Tasks
         [AutomaticRetry(Attempts = 5)]
         public async Task CleanAsync()
         {
-            _logger.LogInformation("Iniciando JobId: {JobId}", _performingContext.BackgroundJob.Id);
-
-            // Example Logs to Serilog and HangFire
-            _logger.LogTrace("Test - LogTrace");
-            _logger.LogDebug("Test - LogDebug");
-            _logger.LogInformation("Test - LogInformation");
-            _logger.LogWarning("Test - LogWarning");
-            _logger.LogError("Test - LogError");
-            _logger.LogCritical("Test - LogCritical");
-
+            _logger.LogInformation("Initializing Job with Id: {JobId}", _performingContext.BackgroundJob.Id);
             var items = await _repository.GetListAsync<Brand>(x => x.Name.Contains("Brand Random"), true);
             _logger.LogInformation("Brands Random: {BrandsCount} ", items.Count.ToString());
 
             foreach (var item in items)
             {
-                await _repository.RemoveAsync<Brand>(item);
+                await _repository.RemoveAsync(item);
             }
 
             int rows = await _repository.SaveChangesAsync();

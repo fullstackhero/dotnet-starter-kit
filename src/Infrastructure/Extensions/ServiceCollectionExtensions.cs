@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Infrastructure.Localizer;
@@ -15,7 +16,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Localization;
-using System.Collections.Generic;
 
 namespace DN.WebApi.Infrastructure.Extensions
 {
@@ -47,7 +47,6 @@ namespace DN.WebApi.Infrastructure.Extensions
             services.AddSettings(config);
             services.AddPermissions();
             services.AddIdentity(config);
-            services.AddMultitenancy<TenantManagementDbContext, ApplicationDbContext>(config);
             services.AddHangfireServer(options =>
             {
                 var optionsServer = services.GetOptions<BackgroundJobServerOptions>("HangFireSettings:Server");
@@ -61,6 +60,7 @@ namespace DN.WebApi.Infrastructure.Extensions
                 options.WorkerCount = optionsServer.WorkerCount;
             });
             services.AddHangfireConsoleExtensions();
+            services.AddMultitenancy<TenantManagementDbContext, ApplicationDbContext>(config);
             services.AddRouting(options => options.LowercaseUrls = true);
             services.AddMiddlewares();
             services.AddSwaggerDocumentation();

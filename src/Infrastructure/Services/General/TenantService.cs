@@ -30,7 +30,7 @@ namespace DN.WebApi.Infrastructure.Services.General
 
         private readonly ICurrentUser _currentUser;
 
-        private readonly MultitenancySettings _options;
+        private readonly DatabaseSettings _options;
 
         private readonly TenantManagementDbContext _context;
 
@@ -38,7 +38,7 @@ namespace DN.WebApi.Infrastructure.Services.General
 
         private TenantDto _currentTenant;
 
-        public TenantService(IOptions<MultitenancySettings> options, IHttpContextAccessor contextAccessor, ICurrentUser currentUser, IStringLocalizer<TenantService> localizer, TenantManagementDbContext context, ICacheService cache, ISerializerService serializer, PerformingContext performingContext)
+        public TenantService(IOptions<DatabaseSettings> options, IHttpContextAccessor contextAccessor, ICurrentUser currentUser, IStringLocalizer<TenantService> localizer, TenantManagementDbContext context, ICacheService cache, ISerializerService serializer, PerformingContext performingContext)
         {
             _localizer = localizer;
             _options = options.Value;

@@ -21,7 +21,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
     {
         private static readonly ILogger _logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 
-        public static void Initialize(ApplicationDbContext appContext, MultitenancySettings options, Tenant tenant, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager)
+        public static void Initialize(ApplicationDbContext appContext, DatabaseSettings options, Tenant tenant, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager)
         {
             string connectionString = string.IsNullOrEmpty(tenant.ConnectionString) ? options.ConnectionString : tenant.ConnectionString;
             bool isValid = TryValidateConnectionString(options, connectionString, tenant.Key);
@@ -141,7 +141,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
             await applicationDbContext.SaveChangesAsync();
         }
 
-        public static bool TryValidateConnectionString(MultitenancySettings options, string connectionString, string key)
+        public static bool TryValidateConnectionString(DatabaseSettings options, string connectionString, string key)
         {
             try
             {

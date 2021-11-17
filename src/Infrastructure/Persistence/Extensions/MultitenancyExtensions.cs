@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Domain.Constants;
@@ -17,8 +19,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Serilog;
-using System;
-using System.Linq;
 
 namespace DN.WebApi.Infrastructure.Persistence.Extensions
 {
@@ -30,10 +30,10 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
         where T : TenantManagementDbContext
         where TA : ApplicationDbContext
         {
-            services.Configure<MultitenancySettings>(config.GetSection(nameof(MultitenancySettings)));
-            var multitenancySettings = services.GetOptions<MultitenancySettings>(nameof(MultitenancySettings));
-            string rootConnectionString = multitenancySettings.ConnectionString;
-            string dbProvider = multitenancySettings.DBProvider;
+            services.Configure<DatabaseSettings>(config.GetSection(nameof(DatabaseSettings)));
+            var databaseSettings = services.GetOptions<DatabaseSettings>(nameof(DatabaseSettings));
+            string rootConnectionString = databaseSettings.ConnectionString;
+            string dbProvider = databaseSettings.DBProvider;
             if (string.IsNullOrEmpty(dbProvider)) throw new Exception("DB Provider is not configured.");
             _logger.Information($"Current DB Provider : {dbProvider}");
             switch (dbProvider.ToLower())
@@ -61,7 +61,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             var storageSettings = services.GetOptions<HangFireStorageSettings>("HangFireSettings:Storage");
 
             if (string.IsNullOrEmpty(storageSettings.StorageProvider)) throw new Exception("Storage HangFire Provider is not configured.");
-            _logger.Information($"HagnFire: Current Storage Provider : {storageSettings.StorageProvider}");
+            _logger.Information($"Hangfire: Current Storage Provider : {storageSettings.StorageProvider}");
             _logger.Information("For more HangFire storage, visit https://www.hangfire.io/extensions.html");
 
             switch (storageSettings.StorageProvider.ToLower())
@@ -100,13 +100,13 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                     throw new Exception($"HangFire Storage Provider {storageSettings.StorageProvider} is not supported.");
             }
 
-            services.SetupDatabases<T, TA>(multitenancySettings);
+            services.SetupDatabases<T, TA>(databaseSettings);
             _logger.Information("For documentations and guides, visit https://www.fullstackhero.net");
             _logger.Information("To Sponsor this project, visit https://opencollective.com/fullstackhero");
             return services;
         }
 
-        private static IServiceCollection SetupDatabases<T, TA>(this IServiceCollection services, MultitenancySettings options)
+        private static IServiceCollection SetupDatabases<T, TA>(this IServiceCollection services, DatabaseSettings options)
         where T : TenantManagementDbContext
         where TA : ApplicationDbContext
         {
@@ -151,8 +151,9 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                             services.SetupTenantDatabase<TA>(options, tenant);
                         }
                     }
-                    catch
+                    catch(Exception ex)
                     {
+                        Console.WriteLine(ex.Message);
                     }
                 }
             }
@@ -160,7 +161,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             return services;
         }
 
-        private static IServiceCollection SetupTenantDatabase<TA>(this IServiceCollection services, MultitenancySettings options, Tenant tenant)
+        private static IServiceCollection SetupTenantDatabase<TA>(this IServiceCollection services, DatabaseSettings options, Tenant tenant)
         where TA : ApplicationDbContext
         {
             string tenantConnectionString = string.IsNullOrEmpty(tenant.ConnectionString) ? options.ConnectionString : tenant.ConnectionString;
@@ -203,7 +204,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             return options;
         }
 
-        private static void SeedRootTenant<T>(T dbContext, MultitenancySettings options)
+        private static void SeedRootTenant<T>(T dbContext, DatabaseSettings options)
         where T : TenantManagementDbContext
         {
             if (!dbContext.Tenants.Any(t => t.Key == MultitenancyConstants.Root.Key))
