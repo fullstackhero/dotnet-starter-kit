@@ -14,5 +14,9 @@ namespace DN.WebApi.Application.Abstractions.Services.Catalog
         Task<Result<Guid>> UpdateBrandAsync(UpdateBrandRequest request, Guid id);
 
         Task<Result<Guid>> DeleteBrandAsync(Guid id);
+
+        Task<Result<string>> GenerateRandomBrandAsync(GenerateRandomBrandRequest request);
+
+        Task<Result<string>> DeleteRandomBrandAsync();
     }
 }

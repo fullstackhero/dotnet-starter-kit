@@ -42,6 +42,8 @@ namespace DN.WebApi.Domain.Constants
             public const string Register = "Permissions.Brands.Register";
             public const string Update = "Permissions.Brands.Update";
             public const string Remove = "Permissions.Brands.Remove";
+            public const string Generate = "Permissions.Brands.Generate";
+            public const string Clean = "Permissions.Brands.Clean";
         }
 
         [DisplayName("Role Claims")]
