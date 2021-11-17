@@ -6,7 +6,6 @@ using Hangfire.Console.Extensions;
 using Hangfire.Server;
 using Microsoft.Extensions.Logging;
 using System;
-using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -28,7 +27,6 @@ namespace DN.WebApi.Infrastructure.Tasks
         }
 
         [Queue("notdefault")]
-        [DisplayName("Generate Random Brand example job on Queue notDefault")]
         public async Task GenerateAsync(int nSeed)
         {
             // Example ProgressBar Hangfire
@@ -44,7 +42,6 @@ namespace DN.WebApi.Infrastructure.Tasks
 
         [Queue("notdefault")]
         [AutomaticRetry(Attempts = 5)]
-        [DisplayName("removes all radom brands created example job on Queue notDefault")]
         public async Task CleanAsync()
         {
             _logger.LogInformation("Iniciando JobId: {JobId}", _performingContext.BackgroundJob.Id);
