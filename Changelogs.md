@@ -33,3 +33,6 @@
 - Fixed Password Reset / Forgot
 - Fixed Omnisharp Warnings / Code Cleanup
 - Fixed Repository Method
+- Log Hangfire to Serilog
+- Extras Hangfire extensions
+- Hangfire implementation examples
