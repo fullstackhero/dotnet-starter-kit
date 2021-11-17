@@ -35,6 +35,5 @@ namespace DN.WebApi.Infrastructure.Filters.HangFire
                 "Job created with parameters `{0}`",
                 context.Parameters.Select(x => x.Key + "=" + x.Value).Aggregate((s1, s2) => s1 + ";" + s2));
         }
-
     }
 }

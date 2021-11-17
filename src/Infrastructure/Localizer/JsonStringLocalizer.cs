@@ -97,7 +97,6 @@ namespace DN.WebApi.Infrastructure.Localizer
 
             WriteEmptyKeys(new CultureInfo("en-US"), fullFilePath);
             return default;
-
         }
 
         private string GetSpecificCulture(string key)

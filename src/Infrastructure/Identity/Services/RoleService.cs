@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Wrapper;
@@ -12,10 +16,6 @@ using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace DN.WebApi.Infrastructure.Identity.Services
 {
@@ -36,11 +36,6 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             _localizer = localizer;
             _currentUser = currentUser;
             _roleClaimService = roleClaimService;
-        }
-
-        private static List<string> DefaultRoles()
-        {
-            return typeof(RoleConstants).GetAllPublicConstantValues<string>();
         }
 
         public async Task<Result<string>> DeleteAsync(string id)
@@ -233,6 +228,11 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             {
                 return await Result<string>.FailAsync(ex.Message);
             }
+        }
+
+        private static List<string> DefaultRoles()
+        {
+            return typeof(RoleConstants).GetAllPublicConstantValues<string>();
         }
     }
 }

@@ -37,8 +37,7 @@ namespace DN.WebApi.Infrastructure.Filters.HangFire
 
         public void OnStateElection(ElectStateContext context)
         {
-            var failedState = context.CandidateState as FailedState;
-            if (failedState != null)
+            if (context.CandidateState is FailedState failedState)
             {
                 Logger.WarnFormat(
                     "Job `{0}` has been failed due to an exception `{1}`",
@@ -63,6 +62,5 @@ namespace DN.WebApi.Infrastructure.Filters.HangFire
                 context.BackgroundJob.Id,
                 context.OldStateName);
         }
-
     }
 }

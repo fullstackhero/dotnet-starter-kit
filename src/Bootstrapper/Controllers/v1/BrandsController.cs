@@ -62,6 +62,5 @@ namespace DN.WebApi.Bootstrapper.Controllers.v1
             var jobId = await _service.DeleteRandomBrandAsync();
             return Ok(jobId);
         }
-
     }
 }

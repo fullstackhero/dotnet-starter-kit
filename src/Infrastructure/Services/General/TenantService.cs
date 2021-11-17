@@ -1,3 +1,7 @@
+using System;
+using System.Linq;
+using System.Net;
+using System.Text;
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Constants;
@@ -14,10 +18,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
-using System;
-using System.Linq;
-using System.Net;
-using System.Text;
 
 namespace DN.WebApi.Infrastructure.Services.General
 {
@@ -72,7 +72,7 @@ namespace DN.WebApi.Infrastructure.Services.General
                     }
                 }
             }
-            else if(performingContext != null)
+            else if (performingContext != null)
             {
                 string tenantkey = performingContext.GetJobParameter<string>("tenantKey");
                 if (!string.IsNullOrEmpty(tenantkey))
@@ -80,6 +80,26 @@ namespace DN.WebApi.Infrastructure.Services.General
                     SetTenant(tenantkey);
                 }
             }
+        }
+
+        public string GetConnectionString()
+        {
+            return _currentTenant?.ConnectionString;
+        }
+
+        public string GetDatabaseProvider()
+        {
+            return _options.DBProvider;
+        }
+
+        public TenantDto GetCurrentTenant()
+        {
+            return _currentTenant;
+        }
+
+        private void SetDefaultConnectionStringToCurrentTenant()
+        {
+            _currentTenant.ConnectionString = _options.ConnectionString;
         }
 
         private void SetTenant(string tenantKey)
@@ -127,26 +147,6 @@ namespace DN.WebApi.Infrastructure.Services.General
             {
                 SetDefaultConnectionStringToCurrentTenant();
             }
-        }
-
-        private void SetDefaultConnectionStringToCurrentTenant()
-        {
-            _currentTenant.ConnectionString = _options.ConnectionString;
-        }
-
-        public string GetConnectionString()
-        {
-            return _currentTenant?.ConnectionString;
-        }
-
-        public string GetDatabaseProvider()
-        {
-            return _options.DBProvider;
-        }
-
-        public TenantDto GetCurrentTenant()
-        {
-            return _currentTenant;
         }
     }
 }
