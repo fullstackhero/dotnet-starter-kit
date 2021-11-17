@@ -36,3 +36,4 @@
 - Log Hangfire to Serilog
 - Extras Hangfire extensions
 - Hangfire implementation examples
+- Separate JSON files for each Settings
