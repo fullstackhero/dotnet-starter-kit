@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "28cce6f5-5d0f-4369-a2ac-bed4b815ccfc",
+		"_postman_id": "fbd54d77-01ce-4d82-8138-e666c7cf054f",
 		"name": "dotnet.webapi.boilerplate",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -505,6 +505,62 @@
 									"path": [
 										"v1",
 										"brands"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "generate-random-brand",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"nSeed\": 100000\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/v1/brands/generate-random",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"v1",
+										"brands",
+										"generate-random"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete-random-brands",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/v1/brands/delete-random",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"v1",
+										"brands",
+										"delete-random"
 									]
 								}
 							},
