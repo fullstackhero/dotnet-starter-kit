@@ -82,8 +82,7 @@ namespace DN.WebApi.Application.Services.Catalog
             filters.Add(filter.MinimumRate.HasValue, x => x.Rate >= filter.MinimumRate.Value);
             filters.Add(filter.MaximumRate.HasValue, x => x.Rate <= filter.MaximumRate.Value);
 
-            var products = await _repository.GetSearchResultsAsync<Product, ProductDto>(filter.PageNumber, filter.PageSize, filter.OrderBy, filters, filter.AdvancedSearch, filter.Keyword);
-            return products;
+            return await _repository.GetSearchResultsAsync<Product, ProductDto>(filter.PageNumber, filter.PageSize, filter.OrderBy, filters, filter.AdvancedSearch, filter.Keyword);
         }
     }
 }

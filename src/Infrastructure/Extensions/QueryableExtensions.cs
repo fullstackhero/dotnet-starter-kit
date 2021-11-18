@@ -25,7 +25,7 @@ namespace DN.WebApi.Infrastructure.Extensions
         public static IQueryable<T> ApplyFilter<T>(this IQueryable<T> query, Filters<T> filters)
         where T : BaseEntity
         {
-            if (filters != null && filters.IsValid())
+            if (filters?.IsValid() == true)
                 query = filters.Get().Aggregate(query, (current, filter) => current.Where(filter.Expression));
             return query;
         }
@@ -34,9 +34,7 @@ namespace DN.WebApi.Infrastructure.Extensions
         where T : BaseEntity
         {
             string ordering = new OrderByConverter().ConvertBack(orderBy);
-            query = !string.IsNullOrWhiteSpace(ordering) ? query.OrderBy(ordering) : query.OrderBy(a => a.Id);
-
-            return query;
+            return !string.IsNullOrWhiteSpace(ordering) ? query.OrderBy(ordering) : query.OrderBy(a => a.Id);
         }
     }
 }

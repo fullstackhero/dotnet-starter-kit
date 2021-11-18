@@ -32,5 +32,4 @@ namespace DN.WebApi.Domain.Contracts
             return _filterList.Where(f => f.Condition).ToList();
         }
     }
-
 }
