@@ -4,6 +4,7 @@ using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Specifications;
 using DN.WebApi.Application.Wrapper;
+using DN.WebApi.Domain.Contracts;
 using DN.WebApi.Domain.Entities.Catalog;
 using DN.WebApi.Domain.Enums;
 using DN.WebApi.Shared.DTOs.Catalog;
@@ -76,7 +77,12 @@ namespace DN.WebApi.Application.Services.Catalog
 
         public async Task<PaginatedResult<ProductDto>> SearchAsync(ProductListFilter filter)
         {
-            var products = await _repository.GetSearchResultsAsync<Product, ProductDto>(filter.PageNumber, filter.PageSize, filter.OrderBy, filter.AdvancedSearch, filter.Keyword);
+            var filters = new Filters<Product>();
+            filters.Add(filter.BrandId.HasValue, x => x.BrandId.Equals(filter.BrandId.Value));
+            filters.Add(filter.MinimumRate.HasValue, x => x.Rate >= filter.MinimumRate.Value);
+            filters.Add(filter.MaximumRate.HasValue, x => x.Rate <= filter.MaximumRate.Value);
+
+            var products = await _repository.GetSearchResultsAsync<Product, ProductDto>(filter.PageNumber, filter.PageSize, filter.OrderBy, filters, filter.AdvancedSearch, filter.Keyword);
             return products;
         }
     }
