@@ -6,9 +6,7 @@ using DN.WebApi.Infrastructure.Mappings;
 using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Infrastructure.Persistence.Extensions;
 using DN.WebApi.Infrastructure.Services.General;
-using DN.WebApi.Infrastructure.Tasks;
 using Hangfire;
-using Hangfire.Common;
 using Hangfire.Console.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -26,7 +24,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             MapsterSettings.Configure();
             if (config.GetSection("CacheSettings:PreferRedis").Get<bool>())
             {
-                services.AddDistributedRedisCache(options =>
+                services.AddStackExchangeRedisCache(options =>
                 {
                     options.Configuration = config.GetSection("CacheSettings:RedisURL").Get<string>();
                     options.ConfigurationOptions = new StackExchange.Redis.ConfigurationOptions()
