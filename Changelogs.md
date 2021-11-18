@@ -37,3 +37,4 @@
 - Extras Hangfire extensions
 - Hangfire implementation examples
 - Separate JSON files for each Settings
+- Added Events and Handlers via MediatR
