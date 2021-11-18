@@ -13,17 +13,19 @@ namespace DN.WebApi.Infrastructure.Persistence
 {
     public class ApplicationDbContext : BaseDbContext
     {
+        private readonly IEventService _eventService;
         private readonly ISerializerService _serializer;
         public IDbConnection Connection => Database.GetDbConnection();
         private readonly ICurrentUser _currentUserService;
         private readonly ITenantService _tenantService;
 
-        public ApplicationDbContext(DbContextOptions options, ITenantService tenantService, ICurrentUser currentUserService, ISerializerService serializer)
+        public ApplicationDbContext(DbContextOptions options, ITenantService tenantService, ICurrentUser currentUserService, ISerializerService serializer, IEventService eventService)
         : base(options, tenantService, currentUserService, serializer)
         {
             _tenantService = tenantService;
             _currentUserService = currentUserService;
             _serializer = serializer;
+            _eventService = eventService;
         }
 
         public DbSet<Product> Products { get; set; }
@@ -58,7 +60,24 @@ namespace DN.WebApi.Infrastructure.Persistence
                 }
             }
 
-            return await base.SaveChangesAsync(cancellationToken);
+            int results = await base.SaveChangesAsync(cancellationToken);
+            if (_eventService == null) return results;
+            var entitiesWithEvents = ChangeTracker.Entries<BaseEntity>()
+                                                    .Select(e => e.Entity)
+                                                    .Where(e => e.DomainEvents.Count > 0)
+                                                    .ToArray();
+
+            foreach (var entity in entitiesWithEvents)
+            {
+                var events = entity.DomainEvents.ToArray();
+                entity.DomainEvents.Clear();
+                foreach (var @event in events)
+                {
+                    await _eventService.PublishAsync(@event);
+                }
+            }
+
+            return results;
         }
     }
 }

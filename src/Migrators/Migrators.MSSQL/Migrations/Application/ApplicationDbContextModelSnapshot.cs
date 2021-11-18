@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
+#nullable disable
+
 namespace Migrators.MSSQL.Migrations.Application
 {
     [DbContext(typeof(ApplicationDbContext))]
@@ -15,9 +17,10 @@ namespace Migrators.MSSQL.Migrations.Application
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("Relational:MaxIdentifierLength", 128)
-                .HasAnnotation("ProductVersion", "5.0.11")
-                .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                .HasAnnotation("ProductVersion", "6.0.0")
+                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
             modelBuilder.Entity("DN.WebApi.Domain.Entities.Catalog.Brand", b =>
                 {
@@ -49,7 +52,7 @@ namespace Migrators.MSSQL.Migrations.Application
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("TenantKey")
+                    b.Property<string>("Tenant")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -96,7 +99,7 @@ namespace Migrators.MSSQL.Migrations.Application
                     b.Property<decimal>("Rate")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("TenantKey")
+                    b.Property<string>("Tenant")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -161,15 +164,15 @@ namespace Migrators.MSSQL.Migrations.Application
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<string>("TenantKey")
+                    b.Property<string>("Tenant")
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("NormalizedName", "TenantKey")
+                    b.HasIndex("NormalizedName", "Tenant")
                         .IsUnique()
                         .HasDatabaseName("RoleNameIndex")
-                        .HasFilter("[NormalizedName] IS NOT NULL AND [TenantKey] IS NOT NULL");
+                        .HasFilter("[NormalizedName] IS NOT NULL AND [Tenant] IS NOT NULL");
 
                     b.ToTable("Roles", "Identity");
                 });
@@ -178,8 +181,9 @@ namespace Migrators.MSSQL.Migrations.Application
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("ClaimType")
                         .HasColumnType("nvarchar(max)");
@@ -212,7 +216,7 @@ namespace Migrators.MSSQL.Migrations.Application
                     b.Property<string>("RoleId1")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("TenantKey")
+                    b.Property<string>("Tenant")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -287,7 +291,7 @@ namespace Migrators.MSSQL.Migrations.Application
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("TenantKey")
+                    b.Property<string>("Tenant")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("TwoFactorEnabled")
@@ -314,8 +318,9 @@ namespace Migrators.MSSQL.Migrations.Application
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("ClaimType")
                         .HasColumnType("nvarchar(max)");

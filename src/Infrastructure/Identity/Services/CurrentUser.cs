@@ -1,10 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.Security.Claims;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Infrastructure.Extensions;
 using Hangfire.Server;
 using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.Security.Claims;
 
 namespace DN.WebApi.Infrastructure.Identity.Services
 {
@@ -64,18 +64,18 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             return _accessor.HttpContext;
         }
 
-        public string GetTenantKey()
+        public string GetTenant()
         {
             if (IsAuthenticated())
             {
-                return _accessor.HttpContext?.User.GetTenantKey();
+                return _accessor.HttpContext?.User.GetTenant();
             }
             else if (_performingContext != null)
             {
-                string tenantkey = _performingContext.GetJobParameter<string>("tenantKey");
-                if (!string.IsNullOrEmpty(tenantkey))
+                string tenant = _performingContext.GetJobParameter<string>("tenant");
+                if (!string.IsNullOrEmpty(tenant))
                 {
-                    return tenantkey;
+                    return tenant;
                 }
             }
 

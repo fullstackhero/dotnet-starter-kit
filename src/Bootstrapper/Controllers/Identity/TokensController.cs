@@ -22,9 +22,9 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
 
         [HttpPost]
         [AllowAnonymous]
-        [SwaggerHeader("tenantKey", "Input your tenant Id to access this API", "", true)]
+        [SwaggerHeader("tenant", "Input your tenant Id to access this API", "", true)]
         [SwaggerOperation(Summary = "Submit Credentials with Tenant Key to generate valid Access Token.")]
-        public async Task<IActionResult> GetTokenAsync(TokenRequest request, [FromHeader(Name = "tenantKey")][Required] string tenantKey = null)
+        public async Task<IActionResult> GetTokenAsync(TokenRequest request, [FromHeader(Name = "tenant")][Required] string tenant = null)
         {
             var token = await _tokenService.GetTokenAsync(request, GenerateIPAddress());
             return Ok(token);
@@ -32,8 +32,8 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity
 
         [HttpPost("refresh")]
         [AllowAnonymous]
-        [SwaggerHeader("tenantKey", "Input your tenant Id to access this API", "", true)]
-        public async Task<ActionResult> RefreshAsync(RefreshTokenRequest request, [FromHeader(Name = "tenantKey")][Required] string tenantKey = null)
+        [SwaggerHeader("tenant", "Input your tenant Id to access this API", "", true)]
+        public async Task<ActionResult> RefreshAsync(RefreshTokenRequest request, [FromHeader(Name = "tenant")][Required] string tenant = null)
         {
             var response = await _tokenService.RefreshTokenAsync(request, GenerateIPAddress());
             return Ok(response);

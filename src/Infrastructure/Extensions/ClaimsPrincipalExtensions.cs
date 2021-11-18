@@ -27,14 +27,14 @@ namespace DN.WebApi.Infrastructure.Extensions
             return claim?.Value;
         }
 
-        public static string GetTenantKey(this ClaimsPrincipal principal)
+        public static string GetTenant(this ClaimsPrincipal principal)
         {
             if (principal == null)
             {
                 throw new ArgumentNullException(nameof(principal));
             }
 
-            var claim = principal.FindFirst("tenantKey");
+            var claim = principal.FindFirst("tenant");
             return claim?.Value;
         }
     }

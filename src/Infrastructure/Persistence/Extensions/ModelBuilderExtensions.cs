@@ -22,7 +22,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
             {
                 entity.ToTable("Roles", "Identity");
                 entity.Metadata.RemoveIndex(new[] { entity.Property(r => r.NormalizedName).Metadata });
-                entity.HasIndex(r => new { r.NormalizedName, r.TenantKey }).HasDatabaseName("RoleNameIndex").IsUnique();
+                entity.HasIndex(r => new { r.NormalizedName, r.Tenant }).HasDatabaseName("RoleNameIndex").IsUnique();
             });
             builder.Entity<ApplicationRoleClaim>(entity =>
             {

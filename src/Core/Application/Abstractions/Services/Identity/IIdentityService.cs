@@ -8,7 +8,7 @@ namespace DN.WebApi.Application.Abstractions.Services.Identity
     {
         Task<IResult> RegisterAsync(RegisterRequest request, string origin);
 
-        Task<IResult<string>> ConfirmEmailAsync(string userId, string code, string tenantKey);
+        Task<IResult<string>> ConfirmEmailAsync(string userId, string code, string tenant);
 
         Task<IResult<string>> ConfirmPhoneNumberAsync(string userId, string code);
 

@@ -12,7 +12,7 @@ namespace DN.WebApi.Application.Abstractions.Services.Identity
 
         string GetUserEmail();
 
-        string GetTenantKey();
+        string GetTenant();
 
         bool IsAuthenticated();
 

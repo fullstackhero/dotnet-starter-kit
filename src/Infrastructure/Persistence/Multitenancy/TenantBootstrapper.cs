@@ -53,7 +53,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
                 var roleStore = new RoleStore<ApplicationRole>(applicationDbContext);
 
                 var role = new ApplicationRole(roleName, tenant.Key, $"{roleName} Role for {tenant.Key} Tenant");
-                if (!applicationDbContext.Roles.IgnoreQueryFilters().Any(r => r.Name == roleName && r.TenantKey == tenant.Key))
+                if (!applicationDbContext.Roles.IgnoreQueryFilters().Any(r => r.Name == roleName && r.Tenant == tenant.Key))
                 {
                     roleStore.CreateAsync(role).Wait();
                     _logger.Information($"Seeding {roleName} Role for '{tenant.Key}' Tenant.");
@@ -61,7 +61,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
 
                 if (roleName == RoleConstants.Basic)
                 {
-                    var basicRole = roleManager.Roles.IgnoreQueryFilters().Where(a => a.NormalizedName == RoleConstants.Basic.ToUpper() && a.TenantKey == tenant.Key).FirstOrDefaultAsync().Result;
+                    var basicRole = roleManager.Roles.IgnoreQueryFilters().Where(a => a.NormalizedName == RoleConstants.Basic.ToUpper() && a.Tenant == tenant.Key).FirstOrDefaultAsync().Result;
                     var basicClaims = roleManager.GetClaimsAsync(basicRole).Result;
                     foreach (string permission in DefaultPermissions.Basics)
                     {
@@ -89,7 +89,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
                 NormalizedEmail = tenant.AdminEmail.ToUpper(),
                 NormalizedUserName = adminUserName.ToUpper(),
                 IsActive = true,
-                TenantKey = tenant.Key.Trim().ToLower()
+                Tenant = tenant.Key.Trim().ToLower()
             };
             if (!applicationDbContext.Users.IgnoreQueryFilters().Any(u => u.Email == tenant.AdminEmail))
             {
@@ -103,19 +103,19 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
             AssignAdminRoleAsync(superUser.Email, tenant.Key, applicationDbContext, userManager, roleManager).Wait();
         }
 
-        public static async Task AssignAdminRoleAsync(string email, string tenantKey, ApplicationDbContext applicationDbContext, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager)
+        public static async Task AssignAdminRoleAsync(string email, string tenant, ApplicationDbContext applicationDbContext, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager)
         {
             const string adminRole = RoleConstants.Admin;
             var user = await userManager.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Email.Equals(email));
             if (user == null) return;
-            var roleRecord = roleManager.Roles.IgnoreQueryFilters().Where(a => a.NormalizedName == adminRole.ToUpper() && a.TenantKey == tenantKey).FirstOrDefaultAsync().Result;
+            var roleRecord = roleManager.Roles.IgnoreQueryFilters().Where(a => a.NormalizedName == adminRole.ToUpper() && a.Tenant == tenant).FirstOrDefaultAsync().Result;
             if (roleRecord == null) return;
             bool isUserInRole = applicationDbContext.UserRoles.Any(a => a.UserId == user.Id && a.RoleId == roleRecord.Id);
             if (!isUserInRole)
             {
                 applicationDbContext.UserRoles.Add(new IdentityUserRole<string>() { RoleId = roleRecord.Id, UserId = user.Id });
                 await applicationDbContext.SaveChangesAsync();
-                _logger.Information($"Assigning Admin Permissions for '{tenantKey}' Tenant.");
+                _logger.Information($"Assigning Admin Permissions for '{tenant}' Tenant.");
             }
 
             var allClaims = await roleManager.GetClaimsAsync(roleRecord);
@@ -127,7 +127,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
                 }
             }
 
-            if (tenantKey == MultitenancyConstants.Root.Key && email == MultitenancyConstants.Root.EmailAddress)
+            if (tenant == MultitenancyConstants.Root.Key && email == MultitenancyConstants.Root.EmailAddress)
             {
                 foreach (string rootPermission in typeof(RootPermissions).GetNestedClassesStaticStringValues())
                 {
