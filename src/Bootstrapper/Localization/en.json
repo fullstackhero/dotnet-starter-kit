@@ -1,0 +1,16 @@
+{
+  "auth.failed": "Authentication Failed.",
+  "tenant.invalid": "Invalid Tenant.",
+  "tenant.expired": "Tenant Validity Has Expired. Please contact the Application Administrator.",
+  "tenant.inactive": "Tenant is not Active. Please contact the Application Administrator.",
+  "caching.added": "Cache Added : {0}",
+  "caching.refreshed": "Cache Refreshed : {0}",
+  "identity.usernotfound": "User Not Found.",
+  "identity.usernotactive": "User Not Active. Please contact the administrator.",
+  "identity.emailnotconfirmed": "E-Mail not confirmed.",
+  "identity.invalidcredentials": "Provided Credentials are invalid.",
+  "identity.invalidtoken": "Invalid Token.",
+  "entity.notfound": "{0} {1} Not Found.",
+  "product.alreadyexists": "Product {0} already Exists.",
+  "exceptionmiddleware.supportmessage": "Provide the ErrorId to the support team for further analysis."
+}
