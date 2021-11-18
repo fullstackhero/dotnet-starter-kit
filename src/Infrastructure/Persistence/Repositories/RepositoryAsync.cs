@@ -185,7 +185,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
         {
             if (typeof(IMustHaveTenant).IsAssignableFrom(typeof(T)))
             {
-                sql = sql.Replace("@tenantKey", _dbContext.TenantKey);
+                sql = sql.Replace("@tenant", _dbContext.Tenant);
             }
 
             var entity = await _dbContext.Connection.QueryFirstOrDefaultAsync<T>(sql, param, transaction);
@@ -198,7 +198,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
         {
             if (typeof(IMustHaveTenant).IsAssignableFrom(typeof(T)))
             {
-                sql = sql.Replace("@tenantKey", _dbContext.TenantKey);
+                sql = sql.Replace("@tenant", _dbContext.Tenant);
             }
 
             return await _dbContext.Connection.QuerySingleAsync<T>(sql, param, transaction);

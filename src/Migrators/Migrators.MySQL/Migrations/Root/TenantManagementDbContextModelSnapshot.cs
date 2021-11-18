@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
+#nullable disable
+
 namespace Migrators.MySQL.Migrations.Root
 {
     [DbContext(typeof(TenantManagementDbContext))]
@@ -14,8 +16,8 @@ namespace Migrators.MySQL.Migrations.Root
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("Relational:MaxIdentifierLength", 64)
-                .HasAnnotation("ProductVersion", "5.0.9");
+                .HasAnnotation("ProductVersion", "6.0.0")
+                .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("DN.WebApi.Domain.Entities.Multitenancy.Tenant", b =>
                 {

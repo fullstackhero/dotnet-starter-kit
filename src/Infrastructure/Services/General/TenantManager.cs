@@ -84,26 +84,26 @@ namespace DN.WebApi.Infrastructure.Services.General
             return await Result<object>.SuccessAsync($"Tenant {request.Tenant}'s Subscription Upgraded. Now Valid till {tenant.ValidUpto}.");
         }
 
-        public async Task<Result<object>> DeactivateTenantAsync(string tenantKey)
+        public async Task<Result<object>> DeactivateTenantAsync(string tenant)
         {
-            var tenant = await _context.Tenants.Where(a => a.Key == tenantKey).FirstOrDefaultAsync();
-            if (tenant == null) throw new Exception("Tenant Not Found.");
-            if (!tenant.IsActive) throw new Exception("Tenant is already Deactivated.");
-            tenant.Deactivate();
-            _context.Tenants.Update(tenant);
+            var tenantInfo = await _context.Tenants.Where(a => a.Key == tenant).FirstOrDefaultAsync();
+            if (tenantInfo == null) throw new Exception("Tenant Not Found.");
+            if (!tenantInfo.IsActive) throw new Exception("Tenant is already Deactivated.");
+            tenantInfo.Deactivate();
+            _context.Tenants.Update(tenantInfo);
             await _context.SaveChangesAsync();
-            return await Result<object>.SuccessAsync($"Tenant {tenantKey} is now Deactivated.");
+            return await Result<object>.SuccessAsync($"Tenant {tenantInfo} is now Deactivated.");
         }
 
-        public async Task<Result<object>> ActivateTenantAsync(string tenantKey)
+        public async Task<Result<object>> ActivateTenantAsync(string tenant)
         {
-            var tenant = await _context.Tenants.Where(a => a.Key == tenantKey).FirstOrDefaultAsync();
-            if (tenant == null) throw new Exception("Tenant Not Found.");
-            if (tenant.IsActive) throw new Exception("Tenant is already Activated.");
-            tenant.Activate();
-            _context.Tenants.Update(tenant);
+            var tenantInfo = await _context.Tenants.Where(a => a.Key == tenant).FirstOrDefaultAsync();
+            if (tenantInfo == null) throw new Exception("Tenant Not Found.");
+            if (tenantInfo.IsActive) throw new Exception("Tenant is already Activated.");
+            tenantInfo.Activate();
+            _context.Tenants.Update(tenantInfo);
             await _context.SaveChangesAsync();
-            return await Result<object>.SuccessAsync($"Tenant {tenantKey} is now Activated.");
+            return await Result<object>.SuccessAsync($"Tenant {tenant} is now Activated.");
         }
     }
 }

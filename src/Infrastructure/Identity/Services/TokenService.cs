@@ -1,3 +1,12 @@
+using System;
+using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Net;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Exceptions;
@@ -13,15 +22,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Net;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DN.WebApi.Infrastructure.Identity.Services
 {
@@ -58,16 +58,16 @@ namespace DN.WebApi.Infrastructure.Identity.Services
                 throw new IdentityException(_localizer["identity.usernotfound"], statusCode: HttpStatusCode.Unauthorized);
             }
 
-            string tenantKey = user.TenantKey;
-            var tenant = await _tenantContext.Tenants.Where(a => a.Key == tenantKey).FirstOrDefaultAsync();
-            if (tenantKey != MultitenancyConstants.Root.Key)
+            string tenant = user.Tenant;
+            var tenantInfo = await _tenantContext.Tenants.Where(a => a.Key == tenant).FirstOrDefaultAsync();
+            if (tenant != MultitenancyConstants.Root.Key)
             {
-                if (!tenant.IsActive)
+                if (!tenantInfo.IsActive)
                 {
                     throw new InvalidTenantException(_localizer["tenant.inactive"]);
                 }
 
-                if (DateTime.UtcNow > tenant.ValidUpto)
+                if (DateTime.UtcNow > tenantInfo.ValidUpto)
                 {
                     throw new InvalidTenantException(_localizer["tenant.expired"]);
                 }
@@ -132,7 +132,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
 
         private IEnumerable<Claim> GetClaims(ApplicationUser user, string ipAddress)
         {
-            string tenantKey = _tenantService.GetCurrentTenant()?.Key;
+            string tenant = _tenantService.GetCurrentTenant()?.Key;
             return new List<Claim>
             {
                 new(ClaimTypes.NameIdentifier, user.Id),
@@ -141,7 +141,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
                 new(ClaimTypes.Name, user.FirstName),
                 new(ClaimTypes.Surname, user.LastName),
                 new("ipAddress", ipAddress),
-                new("tenantKey", tenantKey)
+                new("tenant", tenant)
             };
         }
 

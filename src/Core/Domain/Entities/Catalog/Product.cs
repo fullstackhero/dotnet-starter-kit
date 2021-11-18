@@ -9,7 +9,7 @@ namespace DN.WebApi.Domain.Entities.Catalog
         public string Name { get; private set; }
         public string Description { get; private set; }
         public decimal Rate { get; private set; }
-        public string TenantKey { get; set; }
+        public string Tenant { get; set; }
         public string ImagePath { get; set; }
         public Guid BrandId { get; set; }
         public virtual Brand Brand { get; set; }

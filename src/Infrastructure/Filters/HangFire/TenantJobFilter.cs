@@ -1,11 +1,11 @@
-﻿using DN.WebApi.Application.Abstractions.Services.Identity;
+﻿using System;
+using System.Linq;
+using DN.WebApi.Application.Abstractions.Services.Identity;
 using Hangfire.Client;
 using Hangfire.Logging;
 using Hangfire.Server;
 using Hangfire.States;
 using Hangfire.Storage;
-using System;
-using System.Linq;
 
 namespace DN.WebApi.Infrastructure.Filters.HangFire
 {
@@ -21,18 +21,18 @@ namespace DN.WebApi.Infrastructure.Filters.HangFire
 
         public void OnCreating(CreatingContext context)
         {
-            Logger.InfoFormat("Set TenantId and UserId parameters to the job `{0}.{1}`...", context.Job.Method.ReflectedType.FullName, context.Job.Method.Name);
+            Logger.InfoFormat("Set TenantId and UserId parameters to the job {0}.{1}...", context.Job.Method.ReflectedType.FullName, context.Job.Method.Name);
 
             if (context == null) throw new ArgumentNullException(nameof(context));
 
-            context.SetJobParameter("tenantKey", _currentUser.GetTenantKey());
+            context.SetJobParameter("tenant", _currentUser.GetTenant());
             context.SetJobParameter("userId", _currentUser.GetUserId());
         }
 
         public void OnCreated(CreatedContext context)
         {
             Logger.InfoFormat(
-                "Job created with parameters `{0}`",
+                "Job created with parameters {0}",
                 context.Parameters.Select(x => x.Key + "=" + x.Value).Aggregate((s1, s2) => s1 + ";" + s2));
         }
     }

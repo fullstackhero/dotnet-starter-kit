@@ -1,6 +1,6 @@
 {
   "DatabaseSettings": {
     "DBProvider": "mssql",
-    "ConnectionString": "Data Source=(localdb)\\mssqllocaldb;Initial Catalog=backendDb;Integrated Security=True;MultipleActiveResultSets=True"
+    "ConnectionString": "Data Source=(localdb)\\mssqllocaldb;Initial Catalog=fullStackHeroDb;Integrated Security=True;MultipleActiveResultSets=True"
   }
 }

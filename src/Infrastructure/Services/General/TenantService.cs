@@ -53,18 +53,18 @@ namespace DN.WebApi.Infrastructure.Services.General
             {
                 if (_currentUser.IsAuthenticated())
                 {
-                    SetTenant(_currentUser.GetTenantKey());
+                    SetTenant(_currentUser.GetTenant());
                 }
                 else
                 {
-                    string tenantFromQueryString = System.Web.HttpUtility.ParseQueryString(_httpContext.Request.QueryString.Value).Get("tenantKey");
+                    string tenantFromQueryString = System.Web.HttpUtility.ParseQueryString(_httpContext.Request.QueryString.Value).Get("tenant");
                     if (!string.IsNullOrEmpty(tenantFromQueryString))
                     {
                         SetTenant(tenantFromQueryString);
                     }
-                    else if (_httpContext.Request.Headers.TryGetValue("tenantKey", out var tenantKey))
+                    else if (_httpContext.Request.Headers.TryGetValue("tenant", out var tenant))
                     {
-                        SetTenant(tenantKey);
+                        SetTenant(tenant);
                     }
                     else
                     {
@@ -74,10 +74,10 @@ namespace DN.WebApi.Infrastructure.Services.General
             }
             else if (performingContext != null)
             {
-                string tenantkey = performingContext.GetJobParameter<string>("tenantKey");
-                if (!string.IsNullOrEmpty(tenantkey))
+                string tenant = performingContext.GetJobParameter<string>("tenant");
+                if (!string.IsNullOrEmpty(tenant))
                 {
-                    SetTenant(tenantkey);
+                    SetTenant(tenant);
                 }
             }
         }
@@ -102,10 +102,10 @@ namespace DN.WebApi.Infrastructure.Services.General
             _currentTenant.ConnectionString = _options.ConnectionString;
         }
 
-        private void SetTenant(string tenantKey)
+        private void SetTenant(string tenant)
         {
             TenantDto tenantDto;
-            string cacheKey = CacheKeys.GetCacheKey("tenant", tenantKey);
+            string cacheKey = CacheKeys.GetCacheKey("tenant", tenant);
             byte[] cachedData = !string.IsNullOrWhiteSpace(cacheKey) ? _cache.GetAsync(cacheKey).Result : null;
             if (cachedData != null)
             {
@@ -114,8 +114,8 @@ namespace DN.WebApi.Infrastructure.Services.General
             }
             else
             {
-                var tenant = _context.Tenants.Where(a => a.Key == tenantKey).FirstOrDefaultAsync().Result;
-                tenantDto = tenant.Adapt<TenantDto>();
+                var tenantInfo = _context.Tenants.Where(a => a.Key == tenant).FirstOrDefaultAsync().Result;
+                tenantDto = tenantInfo.Adapt<TenantDto>();
                 if (tenantDto != null)
                 {
                     var options = new DistributedCacheEntryOptions();

@@ -22,13 +22,13 @@ namespace DN.WebApi.Infrastructure.Persistence
         private readonly ITenantService _tenantService;
         private readonly ICurrentUser _currentUserService;
         public DbSet<Trail> AuditTrails { get; set; }
-        public string TenantKey { get; set; }
+        public string Tenant { get; set; }
 
         protected BaseDbContext(DbContextOptions options, ITenantService tenantService, ICurrentUser currentUserService, ISerializerService serializer)
         : base(options)
         {
             _tenantService = tenantService;
-            TenantKey = _tenantService?.GetCurrentTenant()?.Key;
+            Tenant = _tenantService?.GetCurrentTenant()?.Key;
             _currentUserService = currentUserService;
             _serializer = serializer;
         }
@@ -38,8 +38,8 @@ namespace DN.WebApi.Infrastructure.Persistence
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
             modelBuilder.ApplyIdentityConfiguration(_tenantService);
-            modelBuilder.ApplyGlobalFilters<IMustHaveTenant>(b => EF.Property<string>(b, nameof(TenantKey)) == TenantKey);
-            modelBuilder.ApplyGlobalFilters<IIdentityTenant>(b => EF.Property<string>(b, nameof(TenantKey)) == TenantKey);
+            modelBuilder.ApplyGlobalFilters<IMustHaveTenant>(b => EF.Property<string>(b, nameof(Tenant)) == Tenant);
+            modelBuilder.ApplyGlobalFilters<IIdentityTenant>(b => EF.Property<string>(b, nameof(Tenant)) == Tenant);
             modelBuilder.ApplyGlobalFilters<ISoftDelete>(s => s.DeletedOn == null);
         }
 
@@ -76,7 +76,7 @@ namespace DN.WebApi.Infrastructure.Persistence
                 {
                     case EntityState.Added:
                     case EntityState.Modified:
-                        entry.Entity.TenantKey = TenantKey;
+                        entry.Entity.Tenant = Tenant;
                         break;
                 }
             }

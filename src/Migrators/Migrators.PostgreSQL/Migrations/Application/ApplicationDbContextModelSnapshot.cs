@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
+#nullable disable
+
 namespace Migrators.PostgreSQL.Migrations.Application
 {
     [DbContext(typeof(ApplicationDbContext))]
@@ -15,9 +17,10 @@ namespace Migrators.PostgreSQL.Migrations.Application
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("Relational:MaxIdentifierLength", 63)
-                .HasAnnotation("ProductVersion", "5.0.11")
-                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+                .HasAnnotation("ProductVersion", "6.0.0")
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("DN.WebApi.Domain.Entities.Catalog.Brand", b =>
                 {
@@ -29,13 +32,13 @@ namespace Migrators.PostgreSQL.Migrations.Application
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("DeletedBy")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime?>("DeletedOn")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
@@ -44,12 +47,12 @@ namespace Migrators.PostgreSQL.Migrations.Application
                         .HasColumnType("uuid");
 
                     b.Property<DateTime?>("LastModifiedOn")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
-                    b.Property<string>("TenantKey")
+                    b.Property<string>("Tenant")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -70,13 +73,13 @@ namespace Migrators.PostgreSQL.Migrations.Application
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("DeletedBy")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime?>("DeletedOn")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
@@ -88,7 +91,7 @@ namespace Migrators.PostgreSQL.Migrations.Application
                         .HasColumnType("uuid");
 
                     b.Property<DateTime?>("LastModifiedOn")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Name")
                         .HasColumnType("text");
@@ -96,7 +99,7 @@ namespace Migrators.PostgreSQL.Migrations.Application
                     b.Property<decimal>("Rate")
                         .HasColumnType("numeric");
 
-                    b.Property<string>("TenantKey")
+                    b.Property<string>("Tenant")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -116,7 +119,7 @@ namespace Migrators.PostgreSQL.Migrations.Application
                         .HasColumnType("text");
 
                     b.Property<DateTime>("DateTime")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("NewValues")
                         .HasColumnType("text");
@@ -161,12 +164,12 @@ namespace Migrators.PostgreSQL.Migrations.Application
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
-                    b.Property<string>("TenantKey")
+                    b.Property<string>("Tenant")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("NormalizedName", "TenantKey")
+                    b.HasIndex("NormalizedName", "Tenant")
                         .IsUnique()
                         .HasDatabaseName("RoleNameIndex");
 
@@ -177,8 +180,9 @@ namespace Migrators.PostgreSQL.Migrations.Application
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
                         .HasColumnType("text");
@@ -190,7 +194,7 @@ namespace Migrators.PostgreSQL.Migrations.Application
                         .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
@@ -202,7 +206,7 @@ namespace Migrators.PostgreSQL.Migrations.Application
                         .HasColumnType("text");
 
                     b.Property<DateTime?>("LastModifiedOn")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("RoleId")
                         .IsRequired()
@@ -211,7 +215,7 @@ namespace Migrators.PostgreSQL.Migrations.Application
                     b.Property<string>("RoleId1")
                         .HasColumnType("text");
 
-                    b.Property<string>("TenantKey")
+                    b.Property<string>("Tenant")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -281,12 +285,12 @@ namespace Migrators.PostgreSQL.Migrations.Application
                         .HasColumnType("text");
 
                     b.Property<DateTime>("RefreshTokenExpiryTime")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
 
-                    b.Property<string>("TenantKey")
+                    b.Property<string>("Tenant")
                         .HasColumnType("text");
 
                     b.Property<bool>("TwoFactorEnabled")
@@ -312,8 +316,9 @@ namespace Migrators.PostgreSQL.Migrations.Application
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
                         .HasColumnType("text");

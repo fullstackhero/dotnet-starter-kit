@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "fbd54d77-01ce-4d82-8138-e666c7cf054f",
+		"_postman_id": "571eff5b-6d92-442c-8547-9a2ea12d57e7",
 		"name": "dotnet.webapi.boilerplate",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -29,7 +29,7 @@
 						"method": "POST",
 						"header": [
 							{
-								"key": "tenantKey",
+								"key": "tenant",
 								"value": "root",
 								"type": "text"
 							},
@@ -238,7 +238,7 @@
 						"method": "POST",
 						"header": [
 							{
-								"key": "tenantKey",
+								"key": "tenant",
 								"value": "root",
 								"type": "text"
 							}
@@ -272,7 +272,7 @@
 						"method": "POST",
 						"header": [
 							{
-								"key": "tenantKey",
+								"key": "tenant",
 								"value": "root",
 								"type": "text"
 							}

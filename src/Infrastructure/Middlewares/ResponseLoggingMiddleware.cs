@@ -39,7 +39,7 @@ namespace DN.WebApi.Infrastructure.Middlewares
 
             string email = !string.IsNullOrEmpty(_currentUser.GetUserEmail()) ? _currentUser.GetUserEmail() : "Anonymous";
             var userId = _currentUser.GetUserId();
-            string tenant = _currentUser.GetTenantKey() ?? string.Empty;
+            string tenant = _currentUser.GetTenant() ?? string.Empty;
             if (userId != Guid.Empty) LogContext.PushProperty("UserId", userId);
             LogContext.PushProperty("UserEmail", email);
             if (!string.IsNullOrEmpty(tenant)) LogContext.PushProperty("Tenant", tenant);

@@ -1,9 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
-using System;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
 
 namespace Migrators.MSSQL.Migrations.Root
 {
-    public partial class Initial : Migration
+    public partial class InitialCommit : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -16,6 +18,8 @@ namespace Migrators.MSSQL.Migrations.Root
                     Key = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     AdminEmail = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ConnectionString = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    ValidUpto = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CreatedOn = table.Column<DateTime>(type: "datetime2", nullable: false),
                     LastModifiedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: false),

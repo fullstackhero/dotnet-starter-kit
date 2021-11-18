@@ -2,16 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Wrapper;
-using DN.WebApi.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Localization;
-using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Context;
 
@@ -43,7 +40,7 @@ namespace DN.WebApi.Infrastructure.Middlewares
             {
                 string email = !string.IsNullOrEmpty(_currentUser.GetUserEmail()) ? _currentUser.GetUserEmail() : "Anonymous";
                 var userId = _currentUser.GetUserId();
-                string tenant = _currentUser.GetTenantKey() ?? string.Empty;
+                string tenant = _currentUser.GetTenant() ?? string.Empty;
                 if (userId != Guid.Empty) LogContext.PushProperty("UserId", userId);
                 LogContext.PushProperty("UserEmail", email);
                 if (!string.IsNullOrEmpty(tenant)) LogContext.PushProperty("Tenant", tenant);
@@ -52,7 +49,7 @@ namespace DN.WebApi.Infrastructure.Middlewares
                 LogContext.PushProperty("StackTrace", exception.StackTrace);
                 var responseModel = await ErrorResult<string>.ReturnErrorAsync(exception.Message);
                 responseModel.Source = exception.TargetSite.DeclaringType.FullName;
-                responseModel.Exception = exception.Message;
+                responseModel.Exception = exception.Message.Trim();
                 responseModel.ErrorId = errorId;
                 responseModel.SupportMessage = _localizer["exceptionmiddleware.supportmessage"];
                 var response = context.Response;

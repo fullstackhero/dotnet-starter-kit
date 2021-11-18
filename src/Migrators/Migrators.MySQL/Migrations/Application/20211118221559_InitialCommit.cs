@@ -1,10 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
-using System;
+
+#nullable disable
 
 namespace Migrators.MySQL.Migrations.Application
 {
-    public partial class initial : Migration
+    public partial class InitialCommit : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -49,7 +51,7 @@ namespace Migrators.MySQL.Migrations.Application
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Description = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    TenantKey = table.Column<string>(type: "longtext", nullable: true)
+                    Tenant = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     CreatedBy = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     CreatedOn = table.Column<DateTime>(type: "datetime(6)", nullable: false),
@@ -73,7 +75,7 @@ namespace Migrators.MySQL.Migrations.Application
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Description = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    TenantKey = table.Column<string>(type: "varchar(255)", nullable: true)
+                    Tenant = table.Column<string>(type: "varchar(255)", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Name = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -105,7 +107,7 @@ namespace Migrators.MySQL.Migrations.Application
                     RefreshToken = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     RefreshTokenExpiryTime = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    TenantKey = table.Column<string>(type: "longtext", nullable: true)
+                    Tenant = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     UserName = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -146,7 +148,7 @@ namespace Migrators.MySQL.Migrations.Application
                     Description = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Rate = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
-                    TenantKey = table.Column<string>(type: "longtext", nullable: true)
+                    Tenant = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     ImagePath = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -179,7 +181,17 @@ namespace Migrators.MySQL.Migrations.Application
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     Description = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    TenantKey = table.Column<string>(type: "longtext", nullable: true)
+                    Tenant = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Group = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedBy = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedOn = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    LastModifiedBy = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    LastModifiedOn = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    RoleId1 = table.Column<string>(type: "varchar(255)", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     RoleId = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -198,6 +210,12 @@ namespace Migrators.MySQL.Migrations.Application
                         principalTable: "Roles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_RoleClaims_Roles_RoleId1",
+                        column: x => x.RoleId1,
+                        principalSchema: "Identity",
+                        principalTable: "Roles",
+                        principalColumn: "Id");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -324,10 +342,16 @@ namespace Migrators.MySQL.Migrations.Application
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_RoleClaims_RoleId1",
+                schema: "Identity",
+                table: "RoleClaims",
+                column: "RoleId1");
+
+            migrationBuilder.CreateIndex(
                 name: "RoleNameIndex",
                 schema: "Identity",
                 table: "Roles",
-                columns: new[] { "NormalizedName", "TenantKey" },
+                columns: new[] { "NormalizedName", "Tenant" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
