@@ -1,10 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using System;
+
+#nullable disable
 
 namespace Migrators.PostgreSQL.Migrations.Application
 {
-    public partial class initial : Migration
+    public partial class InitialCommit : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -19,7 +21,7 @@ namespace Migrators.PostgreSQL.Migrations.Application
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     Type = table.Column<string>(type: "text", nullable: true),
                     TableName = table.Column<string>(type: "text", nullable: true),
-                    DateTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    DateTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     OldValues = table.Column<string>(type: "text", nullable: true),
                     NewValues = table.Column<string>(type: "text", nullable: true),
                     AffectedColumns = table.Column<string>(type: "text", nullable: true),
@@ -37,12 +39,12 @@ namespace Migrators.PostgreSQL.Migrations.Application
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: true),
                     Description = table.Column<string>(type: "text", nullable: true),
-                    TenantKey = table.Column<string>(type: "text", nullable: true),
+                    Tenant = table.Column<string>(type: "text", nullable: true),
                     CreatedBy = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreatedOn = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     LastModifiedBy = table.Column<Guid>(type: "uuid", nullable: false),
-                    LastModifiedOn = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    DeletedOn = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    LastModifiedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DeletedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     DeletedBy = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
@@ -57,7 +59,7 @@ namespace Migrators.PostgreSQL.Migrations.Application
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: true),
-                    TenantKey = table.Column<string>(type: "text", nullable: true),
+                    Tenant = table.Column<string>(type: "text", nullable: true),
                     Name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     ConcurrencyStamp = table.Column<string>(type: "text", nullable: true)
@@ -78,8 +80,8 @@ namespace Migrators.PostgreSQL.Migrations.Application
                     ImageUrl = table.Column<string>(type: "text", nullable: true),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     RefreshToken = table.Column<string>(type: "text", nullable: true),
-                    RefreshTokenExpiryTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
-                    TenantKey = table.Column<string>(type: "text", nullable: true),
+                    RefreshTokenExpiryTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Tenant = table.Column<string>(type: "text", nullable: true),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -108,14 +110,14 @@ namespace Migrators.PostgreSQL.Migrations.Application
                     Name = table.Column<string>(type: "text", nullable: true),
                     Description = table.Column<string>(type: "text", nullable: true),
                     Rate = table.Column<decimal>(type: "numeric", nullable: false),
-                    TenantKey = table.Column<string>(type: "text", nullable: true),
+                    Tenant = table.Column<string>(type: "text", nullable: true),
                     ImagePath = table.Column<string>(type: "text", nullable: true),
                     BrandId = table.Column<Guid>(type: "uuid", nullable: false),
                     CreatedBy = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreatedOn = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     LastModifiedBy = table.Column<Guid>(type: "uuid", nullable: false),
-                    LastModifiedOn = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    DeletedOn = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    LastModifiedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DeletedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     DeletedBy = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
@@ -137,7 +139,13 @@ namespace Migrators.PostgreSQL.Migrations.Application
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Description = table.Column<string>(type: "text", nullable: true),
-                    TenantKey = table.Column<string>(type: "text", nullable: true),
+                    Tenant = table.Column<string>(type: "text", nullable: true),
+                    Group = table.Column<string>(type: "text", nullable: true),
+                    CreatedBy = table.Column<string>(type: "text", nullable: true),
+                    CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    LastModifiedBy = table.Column<string>(type: "text", nullable: true),
+                    LastModifiedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    RoleId1 = table.Column<string>(type: "text", nullable: true),
                     RoleId = table.Column<string>(type: "text", nullable: false),
                     ClaimType = table.Column<string>(type: "text", nullable: true),
                     ClaimValue = table.Column<string>(type: "text", nullable: true)
@@ -152,6 +160,12 @@ namespace Migrators.PostgreSQL.Migrations.Application
                         principalTable: "Roles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_RoleClaims_Roles_RoleId1",
+                        column: x => x.RoleId1,
+                        principalSchema: "Identity",
+                        principalTable: "Roles",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -260,10 +274,16 @@ namespace Migrators.PostgreSQL.Migrations.Application
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_RoleClaims_RoleId1",
+                schema: "Identity",
+                table: "RoleClaims",
+                column: "RoleId1");
+
+            migrationBuilder.CreateIndex(
                 name: "RoleNameIndex",
                 schema: "Identity",
                 table: "Roles",
-                columns: new[] { "NormalizedName", "TenantKey" },
+                columns: new[] { "NormalizedName", "Tenant" },
                 unique: true);
 
             migrationBuilder.CreateIndex(

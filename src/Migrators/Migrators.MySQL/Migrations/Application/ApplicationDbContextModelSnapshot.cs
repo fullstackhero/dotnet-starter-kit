@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
+#nullable disable
+
 namespace Migrators.MySQL.Migrations.Application
 {
     [DbContext(typeof(ApplicationDbContext))]
@@ -14,8 +16,8 @@ namespace Migrators.MySQL.Migrations.Application
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("Relational:MaxIdentifierLength", 64)
-                .HasAnnotation("ProductVersion", "5.0.11");
+                .HasAnnotation("ProductVersion", "6.0.0")
+                .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("DN.WebApi.Domain.Entities.Catalog.Brand", b =>
                 {
@@ -47,7 +49,7 @@ namespace Migrators.MySQL.Migrations.Application
                     b.Property<string>("Name")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("TenantKey")
+                    b.Property<string>("Tenant")
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
@@ -94,7 +96,7 @@ namespace Migrators.MySQL.Migrations.Application
                     b.Property<decimal>("Rate")
                         .HasColumnType("decimal(65,30)");
 
-                    b.Property<string>("TenantKey")
+                    b.Property<string>("Tenant")
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
@@ -159,12 +161,12 @@ namespace Migrators.MySQL.Migrations.Application
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)");
 
-                    b.Property<string>("TenantKey")
+                    b.Property<string>("Tenant")
                         .HasColumnType("varchar(255)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("NormalizedName", "TenantKey")
+                    b.HasIndex("NormalizedName", "Tenant")
                         .IsUnique()
                         .HasDatabaseName("RoleNameIndex");
 
@@ -208,7 +210,7 @@ namespace Migrators.MySQL.Migrations.Application
                     b.Property<string>("RoleId1")
                         .HasColumnType("varchar(255)");
 
-                    b.Property<string>("TenantKey")
+                    b.Property<string>("Tenant")
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
@@ -283,7 +285,7 @@ namespace Migrators.MySQL.Migrations.Application
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("TenantKey")
+                    b.Property<string>("Tenant")
                         .HasColumnType("longtext");
 
                     b.Property<bool>("TwoFactorEnabled")
