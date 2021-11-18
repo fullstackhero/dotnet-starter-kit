@@ -112,6 +112,20 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
             return await query.ToMappedPaginatedResultAsync<T, TDto>(pageNumber, pageSize);
         }
 
+        public async Task<PaginatedResult<TDto>> GetSearchResultsAsync<T, TDto>(int pageNumber, int pageSize = int.MaxValue, string[] orderBy = null, Filters<T> filters = null, Search advancedSearch = null, string keyword = null, CancellationToken cancellationToken = default)
+        where T : BaseEntity
+        where TDto : IDto
+        {
+            IQueryable<T> query = _dbContext.Set<T>();
+            query = query.ApplyFilter(filters);
+            if (advancedSearch?.Fields.Count > 0 && !string.IsNullOrEmpty(advancedSearch.Keyword))
+                query = query.AdvancedSearch(advancedSearch);
+            else if (!string.IsNullOrEmpty(keyword))
+                query = query.SearchByKeyword(keyword);
+            query = query.ApplySort(orderBy);
+            return await query.ToMappedPaginatedResultAsync<T, TDto>(pageNumber, pageSize);
+        }
+
         public async Task<Guid> CreateAsync<T>(T entity)
         where T : BaseEntity
         {

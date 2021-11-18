@@ -1,7 +1,9 @@
 using DN.WebApi.Application.Specifications;
 using DN.WebApi.Domain.Contracts;
+using DN.WebApi.Infrastructure.Persistence.Converters;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using System.Linq.Dynamic.Core;
 
 namespace DN.WebApi.Infrastructure.Extensions
 {
@@ -18,6 +20,23 @@ namespace DN.WebApi.Infrastructure.Extensions
                 return secondaryResult;
             else
                 return secondaryResult.Where(spec.Criteria);
+        }
+
+        public static IQueryable<T> ApplyFilter<T>(this IQueryable<T> query, Filters<T> filters)
+        where T : BaseEntity
+        {
+            if (filters != null && filters.IsValid())
+                query = filters.Get().Aggregate(query, (current, filter) => current.Where(filter.Expression));
+            return query;
+        }
+
+        public static IQueryable<T> ApplySort<T>(this IQueryable<T> query, string[] orderBy)
+        where T : BaseEntity
+        {
+            string ordering = new OrderByConverter().ConvertBack(orderBy);
+            query = !string.IsNullOrWhiteSpace(ordering) ? query.OrderBy(ordering) : query.OrderBy(a => a.Id);
+
+            return query;
         }
     }
 }
