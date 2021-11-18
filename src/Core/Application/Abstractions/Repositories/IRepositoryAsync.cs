@@ -32,6 +32,10 @@ namespace DN.WebApi.Application.Abstractions.Repositories
         where T : BaseEntity
         where TDto : IDto;
 
+        Task<PaginatedResult<TDto>> GetSearchResultsAsync<T, TDto>(int pageNumber, int pageSize, string[] orderBy = null, Filters<T> filters = null, Search advancedSearch = null, string keyword = null, CancellationToken cancellationToken = default)
+        where T : BaseEntity
+        where TDto : IDto;
+
         Task<Guid> CreateAsync<T>(T entity)
         where T : BaseEntity;
 
