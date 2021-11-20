@@ -612,25 +612,6 @@
 								}
 							},
 							"response": []
-						},
-						{
-							"name": "get-brand-by-id",
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{url}}/v1/products/b9e5ee3f-5f41-49d1-a519-871d48020194",
-									"host": [
-										"{{url}}"
-									],
-									"path": [
-										"v1",
-										"products",
-										"b9e5ee3f-5f41-49d1-a519-871d48020194"
-									]
-								}
-							},
-							"response": []
 						}
 					]
 				}
