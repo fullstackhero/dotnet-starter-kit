@@ -1,3 +1,4 @@
+using DN.WebApi.Infrastructure.Hubs;
 using Hangfire;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -62,6 +63,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             {
                 endpoints.MapControllers().RequireAuthorization();
                 endpoints.MapHealthChecks("/health").RequireAuthorization();
+                endpoints.MapHub<NotificationHub>("/notifications");
             });
             app.UseSwaggerDocumentation(config);
             return app;
