@@ -3,9 +3,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using DN.WebApi.Application.Abstractions.Jobs;
 using DN.WebApi.Application.Abstractions.Repositories;
+using DN.WebApi.Application.Abstractions.Services.General;
+using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Domain.Entities.Catalog;
+using DN.WebApi.Shared.DTOs.Notifications;
 using Hangfire;
 using Hangfire.Console.Extensions;
+using Hangfire.Console.Progress;
 using Hangfire.Server;
 using Microsoft.Extensions.Logging;
 
@@ -17,27 +21,52 @@ namespace DN.WebApi.Infrastructure.Tasks
         private readonly IRepositoryAsync _repository;
         private readonly IProgressBarFactory _progressBar;
         private readonly PerformingContext _performingContext;
+        private readonly INotificationService _notificationService;
+        private readonly ICurrentUser _currentUser;
+        private readonly IProgressBar _progress;
 
-        public BrandGeneratorJob(ILogger<BrandGeneratorJob> logger, IRepositoryAsync repository, IProgressBarFactory progressBar, PerformingContext performingContext)
+        public BrandGeneratorJob(
+            ILogger<BrandGeneratorJob> logger,
+            IRepositoryAsync repository,
+            IProgressBarFactory progressBar,
+            PerformingContext performingContext,
+            INotificationService notificationService,
+            ICurrentUser currentUser)
         {
             _logger = logger;
             _repository = repository;
             _progressBar = progressBar;
             _performingContext = performingContext;
+            _notificationService = notificationService;
+            _currentUser = currentUser;
+            _progress = _progressBar.Create();
+        }
+
+        private async Task Notify(string message, int progress = 0)
+        {
+            _progress.SetValue(progress);
+            await _notificationService.SendMessageToUserAsync(
+                _currentUser.GetUserId().ToString(),
+                new JobNotification()
+                {
+                    JobId = _performingContext.BackgroundJob.Id,
+                    Message = message,
+                    Progress = progress
+                });
         }
 
         [Queue("notdefault")]
         public async Task GenerateAsync(int nSeed)
         {
-            // Example ProgressBar Hangfire
-            var progress = _progressBar.Create();
+            await Notify("Your job processing has started");
             foreach (int index in Enumerable.Range(1, nSeed))
             {
                 await _repository.CreateAsync(new Brand(name: $"Brand Random - {Guid.NewGuid()}", "Funny description"));
-                progress.SetValue(index * 100 / nSeed);
+                await Notify("Progress: ", nSeed > 0 ? (index * 100 / nSeed) : 0);
             }
 
             await _repository.SaveChangesAsync();
+            await Notify("Job successfully completed");
         }
 
         [Queue("notdefault")]
