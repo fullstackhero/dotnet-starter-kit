@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DN.WebApi.Shared.DTOs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,14 +9,14 @@ namespace DN.WebApi.Application.Abstractions.Services.General
 {
     public interface INotificationService : ITransientService
     {
-        Task BroadcastExceptMessageAsync(object message, IEnumerable<string> excludedConnectionIds);
-        Task BroadcastMessageAsync(object message);
-        Task SendMessageAsync(object message);
-        Task SendMessageExceptAsync(object message, IEnumerable<string> excludedConnectionIds);
-        Task SendMessageToGroupAsync(object message, string group);
-        Task SendMessageToGroupExceptAsync(object message, string group, IEnumerable<string> excludedConnectionIds);
-        Task SendMessageToGroupsAsync(object message, IEnumerable<string> groupNames);
-        Task SendMessageToUserAsync(string user, object message);
-        Task SendMessageToUsersAsync(IEnumerable<string> userIds, object message);
+        Task BroadcastExceptMessageAsync(INotificationMessage notification, IEnumerable<string> excludedConnectionIds);
+        Task BroadcastMessageAsync(INotificationMessage notification);
+        Task SendMessageAsync(INotificationMessage notification);
+        Task SendMessageExceptAsync(INotificationMessage notification, IEnumerable<string> excludedConnectionIds);
+        Task SendMessageToGroupAsync(INotificationMessage notification, string group);
+        Task SendMessageToGroupExceptAsync(INotificationMessage notification, string group, IEnumerable<string> excludedConnectionIds);
+        Task SendMessageToGroupsAsync(INotificationMessage notification, IEnumerable<string> groupNames);
+        Task SendMessageToUserAsync(string user, INotificationMessage notification);
+        Task SendMessageToUsersAsync(IEnumerable<string> userIds, INotificationMessage notification);
     }
 }
