@@ -63,7 +63,10 @@ namespace DN.WebApi.Infrastructure.Extensions
             {
                 endpoints.MapControllers().RequireAuthorization();
                 endpoints.MapHealthChecks("/health").RequireAuthorization();
-                endpoints.MapHub<NotificationHub>("/notifications");
+                endpoints.MapHub<NotificationHub>("/notifications", options =>
+                {
+                    options.CloseOnAuthenticationExpiration = true;
+                });
             });
             app.UseSwaggerDocumentation(config);
             return app;

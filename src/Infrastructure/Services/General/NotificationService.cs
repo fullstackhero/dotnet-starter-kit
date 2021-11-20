@@ -36,13 +36,13 @@ namespace DN.WebApi.Infrastructure.Services.General
         public async Task SendMessageAsync(object message)
         {
             var tenant = _tenantService.GetCurrentTenant();
-            await _notificationHubContext.Clients.Group($"Group-{tenant.Key}").ReceiveMessage(message);
+            await _notificationHubContext.Clients.Group($"GroupTenant-{tenant.Key}").ReceiveMessage(message);
         }
 
         public async Task SendMessageExceptAsync(object message, IEnumerable<string> excludedConnectionIds)
         {
             var tenant = _tenantService.GetCurrentTenant();
-            await _notificationHubContext.Clients.GroupExcept($"Group-{tenant.Key}", excludedConnectionIds).ReceiveMessage(message);
+            await _notificationHubContext.Clients.GroupExcept($"GroupTenant-{tenant.Key}", excludedConnectionIds).ReceiveMessage(message);
         }
 
         public async Task SendMessageToGroupAsync(object message, string group)
@@ -60,9 +60,9 @@ namespace DN.WebApi.Infrastructure.Services.General
             await _notificationHubContext.Clients.GroupExcept(group, excludedConnectionIds).ReceiveMessage(message);
         }
 
-        public async Task SendMessageToUserAsync(string user, object message)
+        public async Task SendMessageToUserAsync(string userId, object message)
         {
-            await _notificationHubContext.Clients.User(user).ReceiveMessage(message);
+            await _notificationHubContext.Clients.User(userId).ReceiveMessage(message);
         }
 
         public async Task SendMessageToUsersAsync(IEnumerable<string> userIds, object message)
