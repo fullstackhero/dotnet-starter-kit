@@ -52,6 +52,9 @@ namespace DN.WebApi.Application.Services.Catalog
             string productImagePath = string.Empty;
             if (request.Image != null) productImagePath = await _file.UploadAsync<Product>(request.Image, FileType.Image);
             var updatedProduct = product.Update(request.Name, request.Description, request.Rate, request.BrandId, productImagePath);
+
+            // Add Domain Events to be raised after the commit
+            product.DomainEvents.Add(new ProductUpdatedEvent(product));
             await _repository.UpdateAsync(updatedProduct);
             await _repository.SaveChangesAsync();
             return await Result<Guid>.SuccessAsync(id);
