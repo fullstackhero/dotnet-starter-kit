@@ -62,7 +62,8 @@ namespace DN.WebApi.Application.Services.Catalog
 
         public async Task<Result<Guid>> DeleteProductAsync(Guid id)
         {
-            await _repository.RemoveByIdAsync<Product>(id);
+            var productToDelete = await _repository.RemoveByIdAsync<Product>(id);
+            productToDelete.DomainEvents.Add(new ProductDeletedEvent(productToDelete));
             await _repository.SaveChangesAsync();
             return await Result<Guid>.SuccessAsync(id);
         }

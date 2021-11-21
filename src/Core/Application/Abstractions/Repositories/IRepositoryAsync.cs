@@ -1,15 +1,15 @@
-using DN.WebApi.Application.Abstractions.Services;
-using DN.WebApi.Application.Specifications;
-using DN.WebApi.Application.Wrapper;
-using DN.WebApi.Domain.Contracts;
-using DN.WebApi.Shared.DTOs;
-using DN.WebApi.Shared.DTOs.Filters;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using DN.WebApi.Application.Abstractions.Services;
+using DN.WebApi.Application.Specifications;
+using DN.WebApi.Application.Wrapper;
+using DN.WebApi.Domain.Contracts;
+using DN.WebApi.Shared.DTOs;
+using DN.WebApi.Shared.DTOs.Filters;
 
 namespace DN.WebApi.Application.Abstractions.Repositories
 {
@@ -48,7 +48,7 @@ namespace DN.WebApi.Application.Abstractions.Repositories
         Task RemoveAsync<T>(T entity)
         where T : BaseEntity;
 
-        Task RemoveByIdAsync<T>(Guid id)
+        Task<T> RemoveByIdAsync<T>(Guid id)
         where T : BaseEntity;
 
         #region Dapper

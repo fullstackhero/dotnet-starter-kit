@@ -1,3 +1,12 @@
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using System.Linq.Dynamic.Core;
+using System.Linq.Expressions;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Dapper;
 using DN.WebApi.Application.Abstractions.Repositories;
 using DN.WebApi.Application.Abstractions.Services.General;
@@ -14,15 +23,6 @@ using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Localization;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Linq.Dynamic.Core;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace DN.WebApi.Infrastructure.Persistence.Repositories
 {
@@ -149,13 +149,14 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
             return Task.CompletedTask;
         }
 
-        public async Task RemoveByIdAsync<T>(Guid entityId)
+        public async Task<T> RemoveByIdAsync<T>(Guid entityId)
         where T : BaseEntity
         {
             var entity = await _dbContext.Set<T>().FindAsync(entityId);
             if (entity == null) throw new EntityNotFoundException(string.Format(_localizer["entity.notfound"], typeof(T).Name, entityId));
             _dbContext.Set<T>().Remove(entity);
             _cache.Remove(CacheKeys.GetCacheKey<T>(entityId));
+            return entity;
         }
 
         public Task UpdateAsync<T>(T entity)
