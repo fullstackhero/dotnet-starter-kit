@@ -2,7 +2,16 @@
 {
     public class BasicNotification : INotificationMessage
     {
-        public string TypeMessage { get; set; } = typeof(BasicNotification).Name;
+        public enum LabelType
+        {
+            Information,
+            Success,
+            Warning,
+            Error
+        }
+
+        public string MessageType { get; set; } = typeof(BasicNotification).Name;
         public string Message { get; set; }
+        public LabelType Label { get; set; }
     }
 }
