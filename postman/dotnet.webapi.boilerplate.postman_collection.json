@@ -790,6 +790,29 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "General",
+			"item": [
+				{
+					"name": "stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/v1/stats",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"v1",
+								"stats"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	],
 	"auth": {
