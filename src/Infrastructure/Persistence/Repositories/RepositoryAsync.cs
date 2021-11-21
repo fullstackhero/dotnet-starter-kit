@@ -218,7 +218,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
                 query = query.Where(expression);
             }
 
-            return await query.CountAsync(cancellationToken);
+            return await query.AsNoTracking().CountAsync(cancellationToken);
         }
 
         #endregion Dapper
