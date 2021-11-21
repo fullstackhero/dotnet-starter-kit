@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 namespace DN.WebApi.Infrastructure.Hubs
 {
     [Authorize]
-    public class NotificationHub : Hub<INotificationClient>, ITransientService
+    public class NotificationHub : Hub, ITransientService
     {
         private readonly ILogger<NotificationHub> _logger;
 
