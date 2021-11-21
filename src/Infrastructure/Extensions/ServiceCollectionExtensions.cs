@@ -70,7 +70,7 @@ namespace DN.WebApi.Infrastructure.Extensions
                 config.ReportApiVersions = true;
             });
             services.AddSingleton<IStringLocalizerFactory, JsonStringLocalizerFactory>();
-            services.AddSignalR();
+            services.AddNotifications(config);
             return services;
         }
 

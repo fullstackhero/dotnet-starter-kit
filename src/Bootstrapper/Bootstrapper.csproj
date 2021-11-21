@@ -46,6 +46,9 @@
     <AdditionalFiles Include="..\..\stylecop.json" />
   </ItemGroup>
   <ItemGroup>
+    <Content Update="Configurations\signalr.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Update="Configurations\cache.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
