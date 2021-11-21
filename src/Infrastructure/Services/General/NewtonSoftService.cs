@@ -1,7 +1,9 @@
 using DN.WebApi.Application.Abstractions.Services.General;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using System;
+using System.Collections.Generic;
 
 namespace DN.WebApi.Infrastructure.Services.General
 {
@@ -17,7 +19,11 @@ namespace DN.WebApi.Infrastructure.Services.General
             return JsonConvert.SerializeObject(obj, new JsonSerializerSettings
             {
                 ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                NullValueHandling = NullValueHandling.Ignore
+                NullValueHandling = NullValueHandling.Ignore,
+                Converters = new List<JsonConverter>
+                {
+                    new StringEnumConverter() { CamelCaseText = true }
+                }
             });
         }
 
