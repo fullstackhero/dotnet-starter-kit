@@ -26,7 +26,7 @@ namespace DN.WebApi.Application.Event.Handlers.Catalog
 
         public async Task Handle(EventNotification<ProductCreatedEvent> notification, CancellationToken cancellationToken)
         {
-            await _notificationService.SendMessageToGroupAsync(new StatsChangedNotification(), _tenantService.GetCurrentTenant().Key);
+            await _notificationService.SendMessageAsync(new StatsChangedNotification());
             _logger.LogInformation("Handling Event: {event}", notification.DomainEvent.GetType().Name);
         }
     }
