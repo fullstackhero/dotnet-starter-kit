@@ -16,7 +16,6 @@ try
     var builder = WebApplication.CreateBuilder(args);
     builder.Host.AddConfigurations();
     builder.Host.UseSerilog((_, lc) => lc.WriteTo.Console().ReadFrom.Configuration(builder.Configuration));
-
     builder.Services.AddControllers().AddFluentValidation();
     builder.Services.AddApplication().AddInfrastructure(builder.Configuration);
     var app = builder.Build();

@@ -1,11 +1,11 @@
-﻿using DN.WebApi.Application.Abstractions;
+﻿using System;
+using System.Threading.Tasks;
+using DN.WebApi.Application.Abstractions;
 using DN.WebApi.Application.Abstractions.Services;
 using DN.WebApi.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Threading.Tasks;
 
 namespace DN.WebApi.Infrastructure.Hubs
 {
@@ -29,7 +29,7 @@ namespace DN.WebApi.Infrastructure.Hubs
 
             await Groups.AddToGroupAsync(Context.ConnectionId, $"GroupTenant-{tenant}");
             await base.OnConnectedAsync();
-            _logger.LogInformation("A client connected to NotificationHub: " + Context.ConnectionId);
+            _logger.LogInformation($"A client connected to NotificationHub: {Context.ConnectionId}");
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
@@ -42,7 +42,7 @@ namespace DN.WebApi.Infrastructure.Hubs
 
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"GroupTenant-{tenant}");
             await base.OnDisconnectedAsync(exception);
-            _logger.LogInformation("A client disconnected from NotificationHub: " + Context.ConnectionId);
+            _logger.LogInformation($"A client disconnected from NotificationHub: {Context.ConnectionId}");
         }
     }
 }

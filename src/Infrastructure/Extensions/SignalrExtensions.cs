@@ -20,7 +20,7 @@ namespace DN.WebApi.Infrastructure.Extensions
 {
     public static class SignalrExtensions
     {
-        internal static IServiceCollection AddNotifications(this IServiceCollection services, IConfiguration config)
+        internal static IServiceCollection AddNotifications(this IServiceCollection services)
         {
             ILogger logger = Log.ForContext(typeof(SignalrExtensions));
 
