@@ -13,7 +13,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             {
                 opt.AddPolicy("CorsPolicy", policy =>
                 {
-                    policy.AllowAnyHeader().AllowAnyMethod().WithOrigins(new string[] { corsSettings.Angular, corsSettings.Blazor });
+                    policy.AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithOrigins(new string[] { corsSettings.Angular, corsSettings.Blazor });
                 });
             });
         }

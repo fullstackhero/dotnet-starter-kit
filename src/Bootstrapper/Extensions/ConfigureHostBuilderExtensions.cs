@@ -34,6 +34,8 @@ namespace DN.WebApi.Bootstrapper.Extensions
                     .AddJsonFile($"{configurationsDirectory}/security.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
                     .AddJsonFile($"{configurationsDirectory}/swagger.json", optional: false, reloadOnChange: true)
                     .AddJsonFile($"{configurationsDirectory}/swagger.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
+                    .AddJsonFile($"{configurationsDirectory}/signalr.json", optional: false, reloadOnChange: true)
+                    .AddJsonFile($"{configurationsDirectory}/signalr.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
                     .AddEnvironmentVariables();
             });
             return host;
