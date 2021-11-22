@@ -33,8 +33,8 @@
 - Fixed Password Reset / Forgot
 - Fixed Omnisharp Warnings / Code Cleanup
 - Fixed Repository Method
-- Log Hangfire to Serilog
-- Extras Hangfire extensions
-- Hangfire implementation examples
-- Separate JSON files for each Settings
-- Added Events and Handlers via MediatR
+- Log Hangfire to Serilog - Thanks [frankyjquintero](https://github.com/frankyjquintero) 
+- Extras Hangfire extensions - Thanks [frankyjquintero](https://github.com/frankyjquintero) 
+- Hangfire implementation examples - Thanks [frankyjquintero](https://github.com/frankyjquintero) 
+- Separate JSON files for each Settings - Thanks [unchase](https://github.com/unchase) 
+- Added Events and Handlers via MediatR - Thanks [frankyjquintero](https://github.com/frankyjquintero) 
