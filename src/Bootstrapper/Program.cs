@@ -8,7 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
-var configuration = new ConfigurationBuilder().AddJsonFile("Configurations/logger.json").Build();
+var configuration = new ConfigurationBuilder().AddJsonFile("configurations/logger.json").Build();
 Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 Log.Information("Server Booting Up...");
 try

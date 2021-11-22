@@ -12,7 +12,7 @@ namespace DN.WebApi.Bootstrapper.Extensions
         {
             host.ConfigureAppConfiguration((context, config) =>
             {
-                const string configurationsDirectory = "Configurations";
+                const string configurationsDirectory = "configurations";
                 var env = context.HostingEnvironment;
                 config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                     .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
