@@ -1,8 +1,8 @@
-[![GitHub](https://img.shields.io/github/license/fullstackhero/dotnet-webapi-boilerplate?color=%23594ae2&style=flat-square)](https://github.com/fullstackhero/dotnet-webapi-boilerplate/blob/master/LICENSE)
+[![GitHub](https://img.shields.io/github/license/fullstackhero/dotnet-webapi-boilerplate?color=2da44e&style=flat-square)](https://github.com/fullstackhero/dotnet-webapi-boilerplate/blob/master/LICENSE)
 [![Discord](https://img.shields.io/discord/878181478972928011?color=%237289da&label=Discord&logo=discord&logoColor=%237289da&style=flat-square)](https://discord.gg/yQWpShsKrf)
 [![Twitter](https://img.shields.io/twitter/follow/codewithmukesh?color=1DA1F2&label=Twitter&logo=Twitter&style=flat-square)](https://twitter.com/codewithmukesh)
-[![Nuget version](https://img.shields.io/nuget/v/FullStackHero.WebAPI.Boilerplate?color=ff4081&label=nuget%20version&logo=nuget&style=flat-square)](https://www.nuget.org/packages/FullStackHero.WebAPI.Boilerplate/)
-[![Nuget downloads](https://img.shields.io/nuget/dt/FullStackHero.WebAPI.Boilerplate?color=ff4081&label=nuget%20downloads&logo=nuget&style=flat-square)](https://www.nuget.org/packages/FullStackHero.WebAPI.Boilerplate/)
+[![Nuget version](https://img.shields.io/nuget/v/FullStackHero.WebAPI.Boilerplate?color=2da44e&label=nuget%20version&logo=nuget&style=flat-square)](https://www.nuget.org/packages/FullStackHero.WebAPI.Boilerplate/)
+[![Nuget downloads](https://img.shields.io/nuget/dt/FullStackHero.WebAPI.Boilerplate?color=2da44e&label=nuget%20downloads&logo=nuget&style=flat-square)](https://www.nuget.org/packages/FullStackHero.WebAPI.Boilerplate/)
 
 <p align="center">
     <img src="https://codewithmukesh.com/wp-content/uploads/2021/11/fullstackhero-webapi-banner-1.jpg" alt="fullstackhero">
@@ -22,17 +22,20 @@ This repository contains the WebApi Project of `fullstackhero`.
 
 ### 0.0.4 RC is available now!
 
-- Bug fix in Repository / Update method.
-- Endpoint changes for Update / Delete Methods. (Postman Collection Updated)
-- Fixed bug in Request Logging Middleware.
-- Adds default Role (Basic) to any new registered user.
-- Basic User has default View / Search Permissions
-- Code Cleanups
-- Templated Emails for User Registrations
+### 0.0.5 RC Coming Next
+
+- Fixed Password Reset / Forgot
+- Fixed Omnisharp Warnings / Code Cleanup
+- Fixed Repository Method
+- Log Hangfire to Serilog - Thanks [frankyjquintero](https://github.com/frankyjquintero) 
+- Extras Hangfire extensions - Thanks [frankyjquintero](https://github.com/frankyjquintero) 
+- Hangfire implementation examples - Thanks [frankyjquintero](https://github.com/frankyjquintero) 
+- Separate JSON files for each Settings - Thanks [unchase](https://github.com/unchase) 
+- Added Events and Handlers via MediatR - Thanks [frankyjquintero](https://github.com/frankyjquintero) 
 
 [View Complete Changelogs.](https://github.com/fullstackhero/dotnet-webapi-boilerplate/blob/main/Changelogs.md)
 
-This is the first pre-release version of the `fullstackhero .NET WebAPI Boilerplate` package. Newer versions will be available on a weekly basis with newer updates and patches. [Read the getting-started guide for more.](https://fullstackhero.net/dotnet-webapi-boilerplate/general/getting-started/)
+These are the first pre-release versions of the `fullstackhero .NET WebAPI Boilerplate` package. Newer versions will be available on a weekly basis with newer updates and patches. [Read the getting-started guide for more.](https://fullstackhero.net/dotnet-webapi-boilerplate/general/getting-started/)
 
 The Release Version is expected to be out by November 2021 as soon as .NET 6 LTS is launched by Microsoft. Preview versions of this project are available for Initial Developer Testing.
 
