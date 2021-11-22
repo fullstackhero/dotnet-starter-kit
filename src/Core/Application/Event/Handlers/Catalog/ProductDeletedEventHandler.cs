@@ -14,18 +14,16 @@ namespace DN.WebApi.Application.Event.Handlers.Catalog
     public class ProductDeletedEventHandler : INotificationHandler<EventNotification<ProductDeletedEvent>>
     {
         private readonly ILogger<ProductDeletedEventHandler> _logger;
-        private readonly INotificationService _notificationService;
 
-        public ProductDeletedEventHandler(ILogger<ProductDeletedEventHandler> logger, INotificationService notificationService)
+        public ProductDeletedEventHandler(ILogger<ProductDeletedEventHandler> logger)
         {
             _logger = logger;
-            _notificationService = notificationService;
         }
 
-        public async Task Handle(EventNotification<ProductDeletedEvent> notification, CancellationToken cancellationToken)
+        public Task Handle(EventNotification<ProductDeletedEvent> notification, CancellationToken cancellationToken)
         {
-            await _notificationService.SendMessageAsync(new StatsChangedNotification());
-            _logger.LogInformation("Handling Event: {event}", notification.DomainEvent.GetType().Name);
+            _logger.LogInformation("{event} Triggered", notification.DomainEvent.GetType().Name);
+            return Task.CompletedTask;
         }
     }
 }

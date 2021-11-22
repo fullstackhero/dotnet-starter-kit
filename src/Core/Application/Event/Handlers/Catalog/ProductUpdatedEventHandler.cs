@@ -20,7 +20,7 @@ namespace DN.WebApi.Application.Event.Handlers.Catalog
 
         public Task Handle(EventNotification<ProductUpdatedEvent> notification, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Handling Event: {event}", notification.DomainEvent.GetType().Name);
+            _logger.LogInformation("{event} Triggered", notification.DomainEvent.GetType().Name);
             return Task.CompletedTask;
         }
     }

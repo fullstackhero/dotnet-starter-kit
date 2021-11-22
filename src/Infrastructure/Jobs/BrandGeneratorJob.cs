@@ -6,6 +6,7 @@ using DN.WebApi.Application.Abstractions.Repositories;
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Domain.Entities.Catalog;
+using DN.WebApi.Domain.Entities.Shared.Events;
 using DN.WebApi.Shared.DTOs.Notifications;
 using Hangfire;
 using Hangfire.Console.Extensions;
@@ -17,6 +18,7 @@ namespace DN.WebApi.Infrastructure.Tasks
 {
     public class BrandGeneratorJob : IBrandGeneratorJob
     {
+        private readonly IEventService _eventService;
         private readonly ILogger<BrandGeneratorJob> _logger;
         private readonly IRepositoryAsync _repository;
         private readonly IProgressBarFactory _progressBar;
@@ -31,7 +33,8 @@ namespace DN.WebApi.Infrastructure.Tasks
             IProgressBarFactory progressBar,
             PerformingContext performingContext,
             INotificationService notificationService,
-            ICurrentUser currentUser)
+            ICurrentUser currentUser,
+            IEventService eventService)
         {
             _logger = logger;
             _repository = repository;
@@ -40,6 +43,7 @@ namespace DN.WebApi.Infrastructure.Tasks
             _notificationService = notificationService;
             _currentUser = currentUser;
             _progress = _progressBar.Create();
+            _eventService = eventService;
         }
 
         private async Task Notify(string message, int progress = 0)
@@ -66,6 +70,7 @@ namespace DN.WebApi.Infrastructure.Tasks
             }
 
             await _repository.SaveChangesAsync();
+            await _eventService.PublishAsync(new StatsChangedEvent());
             await Notify("Job successfully completed");
         }
 
@@ -83,6 +88,7 @@ namespace DN.WebApi.Infrastructure.Tasks
             }
 
             int rows = await _repository.SaveChangesAsync();
+            await _eventService.PublishAsync(new StatsChangedEvent());
             _logger.LogInformation("Rows affected: {rows} ", rows.ToString());
         }
     }

@@ -14,20 +14,16 @@ namespace DN.WebApi.Application.Event.Handlers.Catalog
     public class ProductCreatedEventHandler : INotificationHandler<EventNotification<ProductCreatedEvent>>
     {
         private readonly ILogger<ProductCreatedEventHandler> _logger;
-        private readonly INotificationService _notificationService;
-        private readonly ITenantService _tenantService;
 
-        public ProductCreatedEventHandler(ILogger<ProductCreatedEventHandler> logger, INotificationService notificationService, ITenantService tenantService)
+        public ProductCreatedEventHandler(ILogger<ProductCreatedEventHandler> logger)
         {
             _logger = logger;
-            _notificationService = notificationService;
-            _tenantService = tenantService;
         }
 
-        public async Task Handle(EventNotification<ProductCreatedEvent> notification, CancellationToken cancellationToken)
+        public Task Handle(EventNotification<ProductCreatedEvent> notification, CancellationToken cancellationToken)
         {
-            await _notificationService.SendMessageAsync(new StatsChangedNotification());
-            _logger.LogInformation("Handling Event: {event}", notification.DomainEvent.GetType().Name);
+            _logger.LogInformation("{event} Triggered", notification.DomainEvent.GetType().Name);
+            return Task.CompletedTask;
         }
     }
 }

@@ -9,6 +9,7 @@ using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Contracts;
 using DN.WebApi.Domain.Entities.Catalog;
 using DN.WebApi.Domain.Entities.Catalog.Events;
+using DN.WebApi.Domain.Entities.Shared.Events;
 using DN.WebApi.Domain.Enums;
 using DN.WebApi.Shared.DTOs.Catalog;
 using Mapster;
@@ -40,6 +41,8 @@ namespace DN.WebApi.Application.Services.Catalog
 
             // Add Domain Events to be raised after the commit
             product.DomainEvents.Add(new ProductCreatedEvent(product));
+            product.DomainEvents.Add(new StatsChangedEvent());
+
             var productId = await _repository.CreateAsync(product);
             await _repository.SaveChangesAsync();
             return await Result<Guid>.SuccessAsync(productId);
@@ -55,6 +58,8 @@ namespace DN.WebApi.Application.Services.Catalog
 
             // Add Domain Events to be raised after the commit
             product.DomainEvents.Add(new ProductUpdatedEvent(product));
+            product.DomainEvents.Add(new StatsChangedEvent());
+
             await _repository.UpdateAsync(updatedProduct);
             await _repository.SaveChangesAsync();
             return await Result<Guid>.SuccessAsync(id);
@@ -64,6 +69,7 @@ namespace DN.WebApi.Application.Services.Catalog
         {
             var productToDelete = await _repository.RemoveByIdAsync<Product>(id);
             productToDelete.DomainEvents.Add(new ProductDeletedEvent(productToDelete));
+            productToDelete.DomainEvents.Add(new StatsChangedEvent());
             await _repository.SaveChangesAsync();
             return await Result<Guid>.SuccessAsync(id);
         }

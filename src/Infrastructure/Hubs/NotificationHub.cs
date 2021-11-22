@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using DN.WebApi.Application.Abstractions;
 using DN.WebApi.Application.Abstractions.Services;
 using DN.WebApi.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Authorization;
