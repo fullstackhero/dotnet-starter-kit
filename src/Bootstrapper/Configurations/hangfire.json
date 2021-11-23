@@ -24,7 +24,7 @@
       "ConnectionString": "Data Source=(localdb)\\mssqllocaldb;Initial Catalog=fullStackHeroDb;Integrated Security=True;MultipleActiveResultSets=True",
       "Options": {
         "CommandBatchMaxTimeout": "00:05:00",
-        "QueuePollInterval": "00:00:00",
+        "QueuePollInterval": "00:00:05",
         "UseRecommendedIsolationLevel": true,
         "SlidingInvisibilityTimeout": "00:05:00",
         "DisableGlobalLocks": true
