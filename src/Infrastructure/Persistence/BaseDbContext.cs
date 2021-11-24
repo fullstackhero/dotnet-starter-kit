@@ -54,15 +54,15 @@ namespace DN.WebApi.Infrastructure.Persistence
                 switch (dbProvider.ToLower())
                 {
                     case "postgresql":
-                        optionsBuilder.UseNpgsql(_tenantService.GetConnectionString());
+                        optionsBuilder.UseNpgsql(tenantConnectionString);
                         break;
 
                     case "mssql":
-                        optionsBuilder.UseSqlServer(_tenantService.GetConnectionString());
+                        optionsBuilder.UseSqlServer(tenantConnectionString);
                         break;
 
                     case "mysql":
-                        optionsBuilder.UseMySql(_tenantService.GetConnectionString(), ServerVersion.AutoDetect(_tenantService.GetConnectionString()));
+                        optionsBuilder.UseMySql(tenantConnectionString, ServerVersion.AutoDetect(tenantConnectionString));
                         break;
                 }
             }
