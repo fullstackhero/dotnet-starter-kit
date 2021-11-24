@@ -10,11 +10,9 @@ using DN.WebApi.Application.Settings;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Shared.DTOs.Multitenancy;
-using Hangfire.Console.Extensions;
 using Hangfire.Server;
 using Mapster;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
@@ -24,6 +22,7 @@ namespace DN.WebApi.Infrastructure.Services.General
     public class TenantService : ITenantService
     {
         private readonly ISerializerService _serializer;
+
         private readonly ICacheService _cache;
 
         private readonly IStringLocalizer<TenantService> _localizer;
@@ -106,21 +105,21 @@ namespace DN.WebApi.Infrastructure.Services.General
         {
             TenantDto tenantDto;
             string cacheKey = CacheKeys.GetCacheKey("tenant", tenant);
-            byte[] cachedData = !string.IsNullOrWhiteSpace(cacheKey) ? _cache.GetAsync(cacheKey).Result : null;
+            byte[] cachedData = !string.IsNullOrWhiteSpace(cacheKey) ? _cache.Get(cacheKey) : null;
             if (cachedData != null)
             {
-                _cache.RefreshAsync(cacheKey).Wait();
+                _cache.Refresh(cacheKey);
                 tenantDto = _serializer.Deserialize<TenantDto>(Encoding.Default.GetString(cachedData));
             }
             else
             {
-                var tenantInfo = _context.Tenants.Where(a => a.Key == tenant).FirstOrDefaultAsync().Result;
+                var tenantInfo = _context.Tenants.Where(a => a.Key == tenant).FirstOrDefault();
                 tenantDto = tenantInfo.Adapt<TenantDto>();
                 if (tenantDto != null)
                 {
                     var options = new DistributedCacheEntryOptions();
                     byte[] serializedData = Encoding.Default.GetBytes(_serializer.Serialize(tenantDto));
-                    _cache.SetAsync(cacheKey, serializedData, options).Wait();
+                    _cache.Set(cacheKey, serializedData, options);
                 }
             }
 

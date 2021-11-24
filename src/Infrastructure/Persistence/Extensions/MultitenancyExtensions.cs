@@ -7,7 +7,6 @@ using DN.WebApi.Domain.Entities.Multitenancy;
 using DN.WebApi.Infrastructure.Filters.HangFire;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Persistence.Multitenancy;
-using DN.WebApi.Infrastructure.Services.General;
 using Hangfire;
 using Hangfire.Console;
 using Hangfire.MySql;
@@ -145,8 +144,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                     try
                     {
                         SeedRootTenant(dbContext, options);
-                        var availableTenants = dbContext.Tenants.ToListAsync().Result;
-                        foreach (var tenant in availableTenants)
+                        foreach (var tenant in dbContext.Tenants.ToList())
                         {
                             services.SetupTenantDatabase<TA>(options, tenant);
                         }
@@ -212,7 +210,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
                 var rootTenant = new Tenant(MultitenancyConstants.Root.Name, MultitenancyConstants.Root.Key, MultitenancyConstants.Root.EmailAddress, options.ConnectionString);
                 rootTenant.SetValidity(DateTime.UtcNow.AddYears(1));
                 dbContext.Tenants.Add(rootTenant);
-                dbContext.SaveChangesAsync().Wait();
+                dbContext.SaveChanges();
             }
         }
     }
