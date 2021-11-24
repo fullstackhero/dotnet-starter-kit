@@ -39,35 +39,37 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
                     if (appContext.Database.CanConnect())
                     {
                         _logger.Information($"Connection to {tenant.Key}'s Database Succeeded.");
-                        SeedRoles(tenant, roleManager, appContext);
-                        SeedTenantAdmin(tenant, userManager, roleManager, appContext);
+                        SeedRolesAsync(tenant, roleManager, appContext).GetAwaiter().GetResult();
+                        SeedTenantAdminAsync(tenant, userManager, roleManager, appContext).GetAwaiter().GetResult();
                     }
                 }
             }
         }
 
-        private static void SeedRoles(Tenant tenant, RoleManager<ApplicationRole> roleManager, ApplicationDbContext applicationDbContext)
+        private static async Task SeedRolesAsync(Tenant tenant, RoleManager<ApplicationRole> roleManager, ApplicationDbContext applicationDbContext)
         {
             foreach (string roleName in typeof(RoleConstants).GetAllPublicConstantValues<string>())
             {
                 var roleStore = new RoleStore<ApplicationRole>(applicationDbContext);
 
                 var role = new ApplicationRole(roleName, tenant.Key, $"{roleName} Role for {tenant.Key} Tenant");
-                if (!applicationDbContext.Roles.IgnoreQueryFilters().Any(r => r.Name == roleName && r.Tenant == tenant.Key))
+                if (!await applicationDbContext.Roles.IgnoreQueryFilters().AnyAsync(r => r.Name == roleName && r.Tenant == tenant.Key))
                 {
-                    roleStore.CreateAsync(role).Wait();
+                    await roleStore.CreateAsync(role);
                     _logger.Information($"Seeding {roleName} Role for '{tenant.Key}' Tenant.");
                 }
 
                 if (roleName == RoleConstants.Basic)
                 {
-                    var basicRole = roleManager.Roles.IgnoreQueryFilters().Where(a => a.NormalizedName == RoleConstants.Basic.ToUpper() && a.Tenant == tenant.Key).FirstOrDefaultAsync().Result;
-                    var basicClaims = roleManager.GetClaimsAsync(basicRole).Result;
+                    var basicRole = await roleManager.Roles.IgnoreQueryFilters()
+                        .Where(a => a.NormalizedName == RoleConstants.Basic.ToUpper() && a.Tenant == tenant.Key)
+                        .FirstOrDefaultAsync();
+                    var basicClaims = await roleManager.GetClaimsAsync(basicRole);
                     foreach (string permission in DefaultPermissions.Basics)
                     {
-                        if (!basicClaims.Any(a => a.Type == Domain.Constants.ClaimConstants.Permission && a.Value == permission))
+                        if (!basicClaims.Any(a => a.Type == ClaimConstants.Permission && a.Value == permission))
                         {
-                            roleManager.AddClaimAsync(basicRole, new Claim(Domain.Constants.ClaimConstants.Permission, permission)).Wait();
+                            await roleManager.AddClaimAsync(basicRole, new Claim(ClaimConstants.Permission, permission));
                             _logger.Information($"Seeding Basic Permission '{permission}' for '{tenant.Key}' Tenant.");
                         }
                     }
@@ -75,7 +77,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
             }
         }
 
-        private static void SeedTenantAdmin(Tenant tenant, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ApplicationDbContext applicationDbContext)
+        private static async Task SeedTenantAdminAsync(Tenant tenant, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ApplicationDbContext applicationDbContext)
         {
             string adminUserName = $"{tenant.Key.Trim()}.{RoleConstants.Admin}".ToLower();
             var superUser = new ApplicationUser
@@ -96,21 +98,23 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
                 var password = new PasswordHasher<ApplicationUser>();
                 superUser.PasswordHash = password.HashPassword(superUser, MultitenancyConstants.DefaultPassword);
                 var userStore = new UserStore<ApplicationUser>(applicationDbContext);
-                userStore.CreateAsync(superUser).Wait();
+                await userStore.CreateAsync(superUser);
                 _logger.Information($"Seeding Default Admin User for '{tenant.Key}' Tenant.");
             }
 
-            AssignAdminRoleAsync(superUser.Email, tenant.Key, applicationDbContext, userManager, roleManager).Wait();
+            await AssignAdminRoleAsync(superUser.Email, tenant.Key, applicationDbContext, userManager, roleManager);
         }
 
         public static async Task AssignAdminRoleAsync(string email, string tenant, ApplicationDbContext applicationDbContext, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager)
         {
-            const string adminRole = RoleConstants.Admin;
-            var user = await userManager.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Email.Equals(email));
+            var user = await userManager.Users.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(u => u.Email.Equals(email));
             if (user == null) return;
-            var roleRecord = roleManager.Roles.IgnoreQueryFilters().Where(a => a.NormalizedName == adminRole.ToUpper() && a.Tenant == tenant).FirstOrDefaultAsync().Result;
+            var roleRecord = await roleManager.Roles.IgnoreQueryFilters()
+                .Where(a => a.NormalizedName == RoleConstants.Admin.ToUpper() && a.Tenant == tenant)
+                .FirstOrDefaultAsync();
             if (roleRecord == null) return;
-            bool isUserInRole = applicationDbContext.UserRoles.Any(a => a.UserId == user.Id && a.RoleId == roleRecord.Id);
+            bool isUserInRole = await applicationDbContext.UserRoles.AnyAsync(a => a.UserId == user.Id && a.RoleId == roleRecord.Id);
             if (!isUserInRole)
             {
                 applicationDbContext.UserRoles.Add(new IdentityUserRole<string>() { RoleId = roleRecord.Id, UserId = user.Id });
@@ -121,9 +125,9 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
             var allClaims = await roleManager.GetClaimsAsync(roleRecord);
             foreach (string permission in typeof(PermissionConstants).GetNestedClassesStaticStringValues())
             {
-                if (!allClaims.Any(a => a.Type == Domain.Constants.ClaimConstants.Permission && a.Value == permission))
+                if (!allClaims.Any(a => a.Type == ClaimConstants.Permission && a.Value == permission))
                 {
-                    await roleManager.AddClaimAsync(roleRecord, new Claim(Domain.Constants.ClaimConstants.Permission, permission));
+                    await roleManager.AddClaimAsync(roleRecord, new Claim(ClaimConstants.Permission, permission));
                 }
             }
 
@@ -131,9 +135,9 @@ namespace DN.WebApi.Infrastructure.Persistence.Multitenancy
             {
                 foreach (string rootPermission in typeof(RootPermissions).GetNestedClassesStaticStringValues())
                 {
-                    if (!allClaims.Any(a => a.Type == Domain.Constants.ClaimConstants.Permission && a.Value == rootPermission))
+                    if (!allClaims.Any(a => a.Type == ClaimConstants.Permission && a.Value == rootPermission))
                     {
-                        await roleManager.AddClaimAsync(roleRecord, new Claim(Domain.Constants.ClaimConstants.Permission, rootPermission));
+                        await roleManager.AddClaimAsync(roleRecord, new Claim(ClaimConstants.Permission, rootPermission));
                     }
                 }
             }
