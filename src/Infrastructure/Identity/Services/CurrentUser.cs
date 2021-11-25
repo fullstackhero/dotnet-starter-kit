@@ -36,7 +36,7 @@ namespace DN.WebApi.Infrastructure.Identity.Services
 
         public bool IsInRole(string role)
         {
-            return _user.IsInRole(role);
+            return _user?.IsInRole(role);
         }
 
         public IEnumerable<Claim> GetUserClaims()
