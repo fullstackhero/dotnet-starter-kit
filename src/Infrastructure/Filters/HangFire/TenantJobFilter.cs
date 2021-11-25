@@ -24,12 +24,10 @@ namespace DN.WebApi.Infrastructure.Filters.HangFire
 
             if (context == null) throw new ArgumentNullException(nameof(context));
 
-            using (var scope = _services.CreateScope())
-            {
-                var contextAccessor = scope.ServiceProvider.GetService<IHttpContextAccessor>();
-                context.SetJobParameter("tenant", contextAccessor.HttpContext.User.GetTenant());
-                context.SetJobParameter("userId", contextAccessor.HttpContext.User.GetUserId());
-            }
+            using var scope = _services.CreateScope();
+            var contextAccessor = scope.ServiceProvider.GetService<IHttpContextAccessor>();
+            context.SetJobParameter("tenant", contextAccessor.HttpContext.User.GetTenant());
+            context.SetJobParameter("userId", contextAccessor.HttpContext.User.GetUserId());
         }
 
         public void OnCreated(CreatedContext context)
