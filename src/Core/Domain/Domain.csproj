@@ -1,24 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
-   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <RootNamespace>DN.WebApi.Domain</RootNamespace>
-    <AssemblyName>DN.WebApi.Domain</AssemblyName>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>Domain.xml</DocumentationFile>
-    <CodeAnalysisRuleSet>..\..\..\dotnet.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="NewId" Version="4.0.0-develop.44" />
-    <PackageReference Include="Roslynator.Analyzers" Version="3.2.2">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.354">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <AdditionalFiles Include="..\..\..\stylecop.json" />
-  </ItemGroup>
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <RootNamespace>DN.WebApi.Domain</RootNamespace>
+        <AssemblyName>DN.WebApi.Domain</AssemblyName>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="NewId" Version="4.0.0-develop.44" />
+    </ItemGroup>
 </Project>

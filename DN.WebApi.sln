@@ -27,6 +27,26 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Migrators.MSSQL", "src\Migr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Migrators.MySQL", "src\Migrators\Migrators.MySQL\Migrators.MySQL.csproj", "{3C50A473-F439-47B8-8FCB-7CA9C3367247}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{626CE5D3-A235-429B-9709-66007CD169A7}"
+	ProjectSection(SolutionItems) = preProject
+		.dockerignore = .dockerignore
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+		Changelogs.md = Changelogs.md
+		CODE_OF_CONDUCT.md = CODE_OF_CONDUCT.md
+		CONTRIBUTING.md = CONTRIBUTING.md
+		Directory.Build.props = Directory.Build.props
+		Directory.Build.targets = Directory.Build.targets
+		DN.WebApi.nuspec = DN.WebApi.nuspec
+		Dockerfile = Dockerfile
+		dotnet.ruleset = dotnet.ruleset
+		global.json = global.json
+		icon.png = icon.png
+		LICENSE = LICENSE
+		README.md = README.md
+		stylecop.json = stylecop.json
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

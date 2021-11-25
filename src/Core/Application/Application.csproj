@@ -1,34 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <RootNamespace>DN.WebApi.Application</RootNamespace>
-    <AssemblyName>DN.WebApi.Application</AssemblyName>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>Application.xml</DocumentationFile>
-    <CodeAnalysisRuleSet>..\..\..\dotnet.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Core\Domain\Domain.csproj" />
-    <ProjectReference Include="..\..\Shared\Shared.DTOs\Shared.DTOs.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Mapster" Version="7.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Localization" Version="6.0.0" />
-    <PackageReference Include="FluentValidation" Version="10.3.4" />
-    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="10.3.4" />
-    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Roslynator.Analyzers" Version="3.2.2">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.354">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <AdditionalFiles Include="..\..\..\stylecop.json" />
-  </ItemGroup>
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <RootNamespace>DN.WebApi.Application</RootNamespace>
+        <AssemblyName>DN.WebApi.Application</AssemblyName>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="10.3.4" />
+        <PackageReference Include="Mapster" Version="7.2.0" />
+        <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="6.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Localization" Version="6.0.0" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\Core\Domain\Domain.csproj" />
+        <ProjectReference Include="..\..\Shared\Shared.DTOs\Shared.DTOs.csproj" />
+    </ItemGroup>
 </Project>
