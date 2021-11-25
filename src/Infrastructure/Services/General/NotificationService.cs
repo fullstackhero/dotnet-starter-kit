@@ -66,6 +66,5 @@ namespace DN.WebApi.Infrastructure.Services.General
         {
             await _notificationHubContext.Clients.Users(userIds).SendAsync(notification.MessageType, notification);
         }
-
     }
 }

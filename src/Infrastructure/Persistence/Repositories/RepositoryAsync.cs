@@ -174,7 +174,6 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
         public async Task<IEnumerable<T>> FindByConditionAsync<T>(Expression<Func<T, bool>> expression, bool AsNoTracking = true, BaseSpecification<T> specification = null)
              where T : BaseEntity
         {
-
             var query = _dbContext.Set<T>().AsQueryable();
             if (AsNoTracking)
                 query = query.AsNoTracking();
@@ -192,7 +191,6 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
         public async Task<T> FirstByConditionAsync<T>(Expression<Func<T, bool>> expression, bool AsNoTracking = true, BaseSpecification<T> specification = null)
              where T : BaseEntity
         {
-
             var query = _dbContext.Set<T>().AsQueryable();
             if (AsNoTracking)
                 query = query.AsNoTracking();
@@ -210,7 +208,6 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
         public async Task<T> LastByConditionAsync<T>(Expression<Func<T, bool>> expression, bool AsNoTracking = true, BaseSpecification<T> specification = null)
              where T : BaseEntity
         {
-
             var query = _dbContext.Set<T>().AsQueryable();
             if (AsNoTracking)
                 query = query.AsNoTracking();

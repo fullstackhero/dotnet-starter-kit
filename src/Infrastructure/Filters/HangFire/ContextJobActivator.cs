@@ -43,7 +43,6 @@ namespace DN.WebApi.Infrastructure.Filters.HangFire
                 ICurrentUser currentUser = _scope.ServiceProvider.GetRequiredService<ICurrentUser>();
                 string userId = _context.GetJobParameter<string>("userId");
                 currentUser.SetUserJob(userId);
-
             }
 
             public override object Resolve(Type type)
@@ -59,5 +58,4 @@ namespace DN.WebApi.Infrastructure.Filters.HangFire
             }
         }
     }
-
 }
