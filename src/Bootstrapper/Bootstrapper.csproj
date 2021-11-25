@@ -30,8 +30,6 @@
         <Content Update="Configurations\*.json">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
-    </ItemGroup>
-    <ItemGroup>
         <None Update="Files\full-stack-hero-logo.png">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
