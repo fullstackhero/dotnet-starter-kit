@@ -33,7 +33,8 @@ namespace DN.WebApi.Infrastructure.Extensions
             app.UseRouting();
             app.UseCors("CorsPolicy");
             app.UseAuthentication();
-            app.UseMiddleware<TenantMiddleware>();
+            app.UseMiddlewareCurrentUser();
+            app.UseMiddlewareTenant();
             app.UseAuthorization();
 
             var configDashboard = config.GetSection("HangFireSettings:Dashboard").Get<DashboardOptions>();

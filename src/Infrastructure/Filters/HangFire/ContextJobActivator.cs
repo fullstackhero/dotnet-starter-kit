@@ -31,14 +31,14 @@ namespace DN.WebApi.Infrastructure.Filters.HangFire
                 _context = context ?? throw new ArgumentNullException(nameof(context));
                 _scope = scope ?? throw new ArgumentNullException(nameof(scope));
 
-                setParametersScope();
+                SetParametersScope();
             }
 
-            private void setParametersScope()
+            private void SetParametersScope()
             {
                 ITenantService tenantService = _scope.ServiceProvider.GetRequiredService<ITenantService>();
                 string tenant = _context.GetJobParameter<string>("tenant");
-                tenantService.SetTenant(tenant);
+                tenantService.SetCurrentTenant(tenant);
 
                 ICurrentUser currentUser = _scope.ServiceProvider.GetRequiredService<ICurrentUser>();
                 string userId = _context.GetJobParameter<string>("userId");
