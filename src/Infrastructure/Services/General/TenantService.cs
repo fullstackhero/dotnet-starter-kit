@@ -65,7 +65,7 @@ namespace DN.WebApi.Infrastructure.Services.General
             _currentTenant.ConnectionString = _options.ConnectionString;
         }
 
-        public void SetTenant(string tenant)
+        public void SetCurrentTenant(string tenant)
         {
             if (_currentTenant != null)
             {

@@ -1,15 +1,11 @@
 ﻿using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Exceptions;
-using DN.WebApi.Infrastructure.Identity.Services;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
-using System;
-using System.Globalization;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace DN.WebApi.Infrastructure.Middlewares
@@ -17,39 +13,74 @@ namespace DN.WebApi.Infrastructure.Middlewares
     public class TenantMiddleware : IMiddleware
     {
         private readonly IStringLocalizer<TenantMiddleware> _localizer;
+        private readonly ICurrentUser _currentUser;
+        private readonly ITenantService _tenantService;
 
-        public TenantMiddleware(IStringLocalizer<TenantMiddleware> localizer)
+        public TenantMiddleware(IStringLocalizer<TenantMiddleware> localizer, ICurrentUser currentUser, ITenantService tenantService)
         {
             _localizer = localizer;
+            _currentUser = currentUser;
+            _tenantService = tenantService;
         }
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
-            var userInfo = context.RequestServices.GetRequiredService<ICurrentUser>();
-            userInfo.SetUser(context.User);
-            var tenantInfo = context.RequestServices.GetRequiredService<ITenantService>();
-            if (userInfo.IsAuthenticated())
+            if (_currentUser.IsAuthenticated())
             {
-                tenantInfo.SetTenant(userInfo.GetTenant());
+                _tenantService.SetCurrentTenant(_currentUser.GetTenant());
             }
             else
             {
-                string tenantFromQueryString = context.Request.Query["tenant"].First();
-                if (!string.IsNullOrEmpty(tenantFromQueryString))
-                {
-                    tenantInfo.SetTenant(tenantFromQueryString);
-                }
-                else if (context.Request.Headers.TryGetValue("tenant", out var tenant))
-                {
-                    tenantInfo.SetTenant(tenant);
-                }
-                else
+                if (!ExcludePath(context) && !ResolveFromHeader(context) && !ResolveFromQuery(context))
                 {
                     throw new IdentityException(_localizer["auth.failed"], statusCode: HttpStatusCode.Unauthorized);
                 }
             }
 
             await next(context);
+        }
+
+        private bool ExcludePath(HttpContext context)
+        {
+            var listExclude = new List<string>()
+            {
+                "/swagger",
+                "/jobs"
+            };
+
+            foreach (string item in listExclude)
+            {
+                if (context.Request.Path.StartsWithSegments(item))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool ResolveFromHeader(HttpContext context)
+        {
+            context.Request.Headers.TryGetValue("tenant", out var tenantFromHeader);
+            if (!string.IsNullOrEmpty(tenantFromHeader))
+            {
+                _tenantService.SetCurrentTenant(tenantFromHeader);
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool ResolveFromQuery(HttpContext context)
+        {
+            context.Request.Query.TryGetValue("tenant", out var tenantFromQueryString);
+            if (!string.IsNullOrEmpty(tenantFromQueryString))
+            {
+                _tenantService.SetCurrentTenant(tenantFromQueryString);
+                return true;
+            }
+
+            return false;
         }
     }
 }
