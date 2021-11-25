@@ -1,17 +1,11 @@
 using System;
 using System.Linq;
-using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Domain.Entities.Multitenancy;
 using DN.WebApi.Infrastructure.Filters.HangFire;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Persistence.Multitenancy;
-using Hangfire;
-using Hangfire.Console;
-using Hangfire.MySql;
-using Hangfire.PostgreSql;
-using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -55,48 +49,6 @@ namespace DN.WebApi.Infrastructure.Persistence.Extensions
 
                 default:
                     throw new Exception($"DB Provider {dbProvider} is not supported.");
-            }
-
-            var storageSettings = services.GetOptions<HangFireStorageSettings>("HangFireSettings:Storage");
-
-            if (string.IsNullOrEmpty(storageSettings.StorageProvider)) throw new Exception("Storage HangFire Provider is not configured.");
-            _logger.Information($"Hangfire: Current Storage Provider : {storageSettings.StorageProvider}");
-            _logger.Information("For more HangFire storage, visit https://www.hangfire.io/extensions.html");
-
-            switch (storageSettings.StorageProvider.ToLower())
-            {
-                case "postgresql":
-                    services.AddHangfire((provider, config) =>
-                    {
-                        config.UsePostgreSqlStorage(storageSettings.ConnectionString, services.GetOptions<PostgreSqlStorageOptions>("HangFireSettings:Storage:Options"))
-                        .UseFilter(new TenantJobFilter(provider.GetService<ICurrentUser>()))
-                        .UseFilter(new LogJobFilter())
-                        .UseConsole();
-                    });
-                    break;
-
-                case "mssql":
-                    services.AddHangfire((provider, config) =>
-                    {
-                        config.UseSqlServerStorage(storageSettings.ConnectionString, services.GetOptions<SqlServerStorageOptions>("HangFireSettings:Storage:Options"))
-                        .UseFilter(new TenantJobFilter(provider.GetService<ICurrentUser>()))
-                        .UseFilter(new LogJobFilter())
-                        .UseConsole();
-                    });
-                    break;
-
-                case "mysql":
-                    services.AddHangfire((provider, config) =>
-                    {
-                        config.UseStorage(new MySqlStorage(storageSettings.ConnectionString, services.GetOptions<MySqlStorageOptions>("HangFireSettings:Storage:Options")))
-                        .UseFilter(new TenantJobFilter(provider.GetService<ICurrentUser>()))
-                        .UseFilter(new LogJobFilter())
-                        .UseConsole();
-                    });
-                    break;
-
-                default:
-                    throw new Exception($"HangFire Storage Provider {storageSettings.StorageProvider} is not supported.");
             }
 
             services.SetupDatabases<T, TA>(databaseSettings);

@@ -10,9 +10,7 @@ using DN.WebApi.Application.Settings;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Shared.DTOs.Multitenancy;
-using Hangfire.Server;
 using Mapster;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
@@ -27,56 +25,24 @@ namespace DN.WebApi.Infrastructure.Services.General
 
         private readonly IStringLocalizer<TenantService> _localizer;
 
-        private readonly ICurrentUser _currentUser;
-
         private readonly DatabaseSettings _options;
 
         private readonly TenantManagementDbContext _context;
 
-        private readonly HttpContext _httpContext;
-
         private TenantDto _currentTenant;
 
-        public TenantService(IOptions<DatabaseSettings> options, IHttpContextAccessor contextAccessor, ICurrentUser currentUser, IStringLocalizer<TenantService> localizer, TenantManagementDbContext context, ICacheService cache, ISerializerService serializer, PerformingContext performingContext)
+        public TenantService(
+            IOptions<DatabaseSettings> options,
+            IStringLocalizer<TenantService> localizer,
+            TenantManagementDbContext context,
+            ICacheService cache,
+            ISerializerService serializer)
         {
             _localizer = localizer;
             _options = options.Value;
-            _httpContext = contextAccessor.HttpContext;
-            _currentUser = currentUser;
             _context = context;
             _cache = cache;
             _serializer = serializer;
-            if (_httpContext != null)
-            {
-                if (_currentUser.IsAuthenticated())
-                {
-                    SetTenant(_currentUser.GetTenant());
-                }
-                else
-                {
-                    string tenantFromQueryString = System.Web.HttpUtility.ParseQueryString(_httpContext.Request.QueryString.Value).Get("tenant");
-                    if (!string.IsNullOrEmpty(tenantFromQueryString))
-                    {
-                        SetTenant(tenantFromQueryString);
-                    }
-                    else if (_httpContext.Request.Headers.TryGetValue("tenant", out var tenant))
-                    {
-                        SetTenant(tenant);
-                    }
-                    else
-                    {
-                        throw new IdentityException(_localizer["auth.failed"], statusCode: HttpStatusCode.Unauthorized);
-                    }
-                }
-            }
-            else if (performingContext != null)
-            {
-                string tenant = performingContext.GetJobParameter<string>("tenant");
-                if (!string.IsNullOrEmpty(tenant))
-                {
-                    SetTenant(tenant);
-                }
-            }
         }
 
         public string GetConnectionString()
@@ -99,8 +65,13 @@ namespace DN.WebApi.Infrastructure.Services.General
             _currentTenant.ConnectionString = _options.ConnectionString;
         }
 
-        private void SetTenant(string tenant)
+        public void SetTenant(string tenant)
         {
+            if (_currentTenant != null)
+            {
+                throw new Exception("Method reserved for in-scope initialization");
+            }
+
             TenantDto tenantDto;
             string cacheKey = CacheKeys.GetCacheKey("tenant", tenant);
             byte[] cachedData = !string.IsNullOrWhiteSpace(cacheKey) ? _cache.Get(cacheKey) : null;
