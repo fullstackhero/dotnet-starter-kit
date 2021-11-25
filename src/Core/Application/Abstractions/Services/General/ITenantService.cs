@@ -10,6 +10,6 @@ namespace DN.WebApi.Application.Abstractions.Services.General
 
         public TenantDto GetCurrentTenant();
 
-        public void SetTenant(string tenant);
+        public void SetCurrentTenant(string tenant);
     }
 }

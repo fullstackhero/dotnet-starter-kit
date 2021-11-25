@@ -39,8 +39,9 @@ namespace DN.WebApi.Infrastructure.Extensions
                 services.AddDistributedMemoryCache();
             }
 
-            services.AddScoped<TenantMiddleware>();
             services.TryAdd(ServiceDescriptor.Singleton<ICacheService, CacheService>());
+            services.AddMiddlewareCurrentUser();
+            services.AddMiddlewareTenant();
             services.AddHealthCheckExtension();
             services.AddLocalization();
             services.AddServices();
