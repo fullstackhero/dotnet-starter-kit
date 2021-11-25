@@ -28,27 +28,10 @@ namespace DN.WebApi.Application.Abstractions.Repositories
         Task<List<T>> GetListAsync<T>(Expression<Func<T, bool>> expression, bool noTracking = false, CancellationToken cancellationToken = default)
         where T : BaseEntity;
 
-        Task<PaginatedResult<TDto>> GetSearchResultsAsync<T, TDto>(int pageNumber, int pageSize, string[] orderBy = null, Search advancedSearch = null, string keyword = null, Expression<Func<T, bool>> expression = null, CancellationToken cancellationToken = default)
-        where T : BaseEntity
-        where TDto : IDto;
-
-        Task<PaginatedResult<TDto>> GetSearchResultsAsync<T, TDto>(int pageNumber, int pageSize, string[] orderBy = null, Filters<T> filters = null, Search advancedSearch = null, string keyword = null, CancellationToken cancellationToken = default)
-        where T : BaseEntity
-        where TDto : IDto;
-
-        Task<Guid> CreateAsync<T>(T entity)
-        where T : BaseEntity;
-
         Task<bool> ExistsAsync<T>(Expression<Func<T, bool>> expression, CancellationToken cancellationToken = default)
         where T : BaseEntity;
 
         Task UpdateAsync<T>(T entity)
-        where T : BaseEntity;
-
-        Task RemoveAsync<T>(T entity)
-        where T : BaseEntity;
-
-        Task<T> RemoveByIdAsync<T>(Guid id)
         where T : BaseEntity;
 
         #region Dapper
@@ -69,5 +52,53 @@ namespace DN.WebApi.Application.Abstractions.Repositories
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
         #endregion Save Changes
+
+        #region Find
+        Task<IEnumerable<T>> FindByConditionAsync<T>(Expression<Func<T, bool>> expression, bool AsNoTracking = true, BaseSpecification<T> specification = null)
+        where T : BaseEntity;
+        #endregion
+
+        #region FirstOrDefault
+        Task<T> FirstByConditionAsync<T>(Expression<Func<T, bool>> expression, bool AsNoTracking = true, BaseSpecification<T> specification = null)
+        where T : BaseEntity;
+        #endregion
+
+        #region LastOrDefault
+        Task<T> LastByConditionAsync<T>(Expression<Func<T, bool>> expression, bool AsNoTracking = true, BaseSpecification<T> specification = null)
+        where T : BaseEntity;
+        #endregion
+
+        #region Create
+        Task<Guid> CreateAsync<T>(T entity)
+        where T : BaseEntity;
+        Task<IList<Guid>> CreateRangeAsync<T>(IEnumerable<T> entity)
+        where T : BaseEntity;
+        #endregion
+
+        #region DeleteOrRemoveOrClear
+        Task RemoveAsync<T>(T entity)
+        where T : BaseEntity;
+
+        Task<T> RemoveByIdAsync<T>(Guid entityId)
+        where T : BaseEntity;
+
+        Task ClearAsync<T>(Expression<Func<T, bool>> expression = null, BaseSpecification<T> specification = null)
+        where T : BaseEntity;
+        #endregion
+
+        #region Paginate
+        Task<PaginatedResult<TDto>> GetSearchResultsAsync<T, TDto>(int pageNumber, int pageSize = int.MaxValue, string[] orderBy = null, Search advancedSearch = null, string keyword = null, Expression<Func<T, bool>> expression = null, CancellationToken cancellationToken = default)
+        where T : BaseEntity
+        where TDto : IDto;
+
+        Task<PaginatedResult<TDto>> GetSearchResultsAsync<T, TDto>(int pageNumber, int pageSize = int.MaxValue, string[] orderBy = null, Filters<T> filters = null, Search advancedSearch = null, string keyword = null, CancellationToken cancellationToken = default)
+        where T : BaseEntity
+        where TDto : IDto;
+        #endregion
+
+        #region Aggregations
+        Task<int> CountByConditionAsync<T>(Expression<Func<T, bool>> expression = null)
+        where T : BaseEntity;
+        #endregion
     }
 }

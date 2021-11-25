@@ -9,6 +9,7 @@ namespace DN.WebApi.Application.Abstractions.Services.Identity
 {
     public interface IUserService : ITransientService
     {
+        Task<PaginatedResult<UserDetailsDto>> SearchAsync(UserListFilter filter);
         Task<Result<List<UserDetailsDto>>> GetAllAsync();
         Task<int> GetCountAsync();
         Task<IResult<UserDetailsDto>> GetAsync(string userId);
