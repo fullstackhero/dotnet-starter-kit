@@ -44,8 +44,6 @@ namespace DN.WebApi.Infrastructure.Services.General
             _httpContext = contextAccessor.HttpContext;
             _currentUser = currentUser;
             _context = context;
-
-            // _mapper = mapper;
             _cache = cache;
             _serializer = serializer;
             if (_httpContext != null)

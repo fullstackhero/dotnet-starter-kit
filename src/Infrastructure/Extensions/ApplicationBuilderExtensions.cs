@@ -1,3 +1,6 @@
+using System.Globalization;
+using System.IO;
+using System.Runtime.CompilerServices;
 using DN.WebApi.Infrastructure.Hubs;
 using Hangfire;
 using Microsoft.AspNetCore.Builder;
@@ -5,9 +8,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.FileProviders;
-using System.Globalization;
-using System.IO;
-using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("DN.WebApi.Bootstrapper")]
 
@@ -62,7 +62,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers().RequireAuthorization();
-                endpoints.MapHealthChecks("/health").RequireAuthorization();
+                endpoints.MapHealthChecks("/api/health").RequireAuthorization();
                 endpoints.MapHub<NotificationHub>("/notifications", options =>
                 {
                     options.CloseOnAuthenticationExpiration = true;

@@ -23,7 +23,6 @@ namespace DN.WebApi.Infrastructure.Extensions
         }
 
         public static IQueryable<T> ApplyFilter<T>(this IQueryable<T> query, Filters<T> filters)
-        where T : BaseEntity
         {
             if (filters?.IsValid() == true)
                 query = filters.Get().Aggregate(query, (current, filter) => current.Where(filter.Expression));

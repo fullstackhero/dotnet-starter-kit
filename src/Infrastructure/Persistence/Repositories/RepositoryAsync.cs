@@ -97,66 +97,12 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
             }
         }
 
-        public async Task<PaginatedResult<TDto>> GetSearchResultsAsync<T, TDto>(int pageNumber, int pageSize = int.MaxValue, string[] orderBy = null, Search advancedSearch = null, string keyword = null, Expression<Func<T, bool>> expression = null, CancellationToken cancellationToken = default)
-        where T : BaseEntity
-        where TDto : IDto
-        {
-            IQueryable<T> query = _dbContext.Set<T>();
-            if (expression != null) query = query.Where(expression);
-            if (advancedSearch?.Fields.Count > 0 && !string.IsNullOrEmpty(advancedSearch.Keyword))
-                query = query.AdvancedSearch(advancedSearch);
-            else if (!string.IsNullOrEmpty(keyword))
-                query = query.SearchByKeyword(keyword);
-            string ordering = new OrderByConverter().ConvertBack(orderBy);
-            query = !string.IsNullOrWhiteSpace(ordering) ? query.OrderBy(ordering) : query.OrderBy(a => a.Id);
-            return await query.ToMappedPaginatedResultAsync<T, TDto>(pageNumber, pageSize);
-        }
-
-        public async Task<PaginatedResult<TDto>> GetSearchResultsAsync<T, TDto>(int pageNumber, int pageSize = int.MaxValue, string[] orderBy = null, Filters<T> filters = null, Search advancedSearch = null, string keyword = null, CancellationToken cancellationToken = default)
-        where T : BaseEntity
-        where TDto : IDto
-        {
-            IQueryable<T> query = _dbContext.Set<T>();
-            query = query.ApplyFilter(filters);
-            if (advancedSearch?.Fields.Count > 0 && !string.IsNullOrEmpty(advancedSearch.Keyword))
-                query = query.AdvancedSearch(advancedSearch);
-            else if (!string.IsNullOrEmpty(keyword))
-                query = query.SearchByKeyword(keyword);
-            query = query.ApplySort(orderBy);
-            return await query.ToMappedPaginatedResultAsync<T, TDto>(pageNumber, pageSize);
-        }
-
-        public async Task<Guid> CreateAsync<T>(T entity)
-        where T : BaseEntity
-        {
-            await _dbContext.Set<T>().AddAsync(entity);
-            return entity.Id;
-        }
-
         public async Task<bool> ExistsAsync<T>(Expression<Func<T, bool>> expression, CancellationToken cancellationToken = default)
         where T : BaseEntity
         {
             IQueryable<T> query = _dbContext.Set<T>();
             if (expression != null) return await query.AnyAsync(expression, cancellationToken);
             return await query.AnyAsync(cancellationToken);
-        }
-
-        public Task RemoveAsync<T>(T entity)
-        where T : BaseEntity
-        {
-            _dbContext.Set<T>().Remove(entity);
-            _cache.Remove(CacheKeys.GetCacheKey<T>(entity.Id));
-            return Task.CompletedTask;
-        }
-
-        public async Task<T> RemoveByIdAsync<T>(Guid entityId)
-        where T : BaseEntity
-        {
-            var entity = await _dbContext.Set<T>().FindAsync(entityId);
-            if (entity == null) throw new EntityNotFoundException(string.Format(_localizer["entity.notfound"], typeof(T).Name, entityId));
-            _dbContext.Set<T>().Remove(entity);
-            _cache.Remove(CacheKeys.GetCacheKey<T>(entityId));
-            return entity;
         }
 
         public Task UpdateAsync<T>(T entity)
@@ -223,5 +169,152 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
         }
 
         #endregion Dapper
+
+        #region Find
+        public async Task<IEnumerable<T>> FindByConditionAsync<T>(Expression<Func<T, bool>> expression, bool AsNoTracking = true, BaseSpecification<T> specification = null)
+             where T : BaseEntity
+        {
+
+            var query = _dbContext.Set<T>().AsQueryable();
+            if (AsNoTracking)
+                query = query.AsNoTracking();
+
+            if (specification != null)
+                query = query.Specify(specification);
+
+            if (expression != null)
+                query = query.Where(expression);
+            return await query.ToListAsync();
+        }
+        #endregion
+
+        #region FirstOrDefault
+        public async Task<T> FirstByConditionAsync<T>(Expression<Func<T, bool>> expression, bool AsNoTracking = true, BaseSpecification<T> specification = null)
+             where T : BaseEntity
+        {
+
+            var query = _dbContext.Set<T>().AsQueryable();
+            if (AsNoTracking)
+                query = query.AsNoTracking();
+
+            if (specification != null)
+                query = query.Specify(specification);
+
+            if (expression != null)
+                query = query.Where(expression);
+            return await query.FirstOrDefaultAsync();
+        }
+        #endregion
+
+        #region LastOrDefault
+        public async Task<T> LastByConditionAsync<T>(Expression<Func<T, bool>> expression, bool AsNoTracking = true, BaseSpecification<T> specification = null)
+             where T : BaseEntity
+        {
+
+            var query = _dbContext.Set<T>().AsQueryable();
+            if (AsNoTracking)
+                query = query.AsNoTracking();
+
+            if (specification != null)
+                query = query.Specify(specification);
+
+            if (expression != null)
+                query = query.Where(expression);
+            return await query.LastOrDefaultAsync();
+        }
+        #endregion
+
+        #region Create
+        public async Task<Guid> CreateAsync<T>(T entity)
+        where T : BaseEntity
+        {
+            await _dbContext.Set<T>().AddAsync(entity);
+            return entity.Id;
+        }
+
+        public async Task<IList<Guid>> CreateRangeAsync<T>(IEnumerable<T> entity)
+        where T : BaseEntity
+        {
+            await _dbContext.Set<T>().AddRangeAsync(entity);
+            return entity.Select(x => x.Id).ToList();
+        }
+        #endregion
+
+        #region DeleteOrRemoveOrClear
+        public Task RemoveAsync<T>(T entity)
+        where T : BaseEntity
+        {
+            _dbContext.Set<T>().Remove(entity);
+            _cache.Remove(CacheKeys.GetCacheKey<T>(entity.Id));
+            return Task.CompletedTask;
+        }
+
+        public async Task<T> RemoveByIdAsync<T>(Guid entityId)
+        where T : BaseEntity
+        {
+            var entity = await _dbContext.Set<T>().FindAsync(entityId);
+            if (entity == null) throw new EntityNotFoundException(string.Format(_localizer["entity.notfound"], typeof(T).Name, entityId));
+            _dbContext.Set<T>().Remove(entity);
+            _cache.Remove(CacheKeys.GetCacheKey<T>(entityId));
+            return entity;
+        }
+
+        public async Task ClearAsync<T>(Expression<Func<T, bool>> expression = null, BaseSpecification<T> specification = null)
+        where T : BaseEntity
+        {
+            var query = _dbContext.Set<T>().AsQueryable();
+            if (specification != null)
+                query.Specify(specification);
+            if (expression != null)
+                query = query.Where(expression);
+
+            await query.ForEachAsync(x =>
+            {
+                _dbContext.Entry(x).State = EntityState.Deleted;
+                _cache.Remove(CacheKeys.GetCacheKey<T>(x.Id));
+            });
+        }
+        #endregion
+
+        #region Paginate
+        public async Task<PaginatedResult<TDto>> GetSearchResultsAsync<T, TDto>(int pageNumber, int pageSize = int.MaxValue, string[] orderBy = null, Search advancedSearch = null, string keyword = null, Expression<Func<T, bool>> expression = null, CancellationToken cancellationToken = default)
+        where T : BaseEntity
+        where TDto : IDto
+        {
+            IQueryable<T> query = _dbContext.Set<T>();
+            if (expression != null) query = query.Where(expression);
+            if (advancedSearch?.Fields.Count > 0 && !string.IsNullOrEmpty(advancedSearch.Keyword))
+                query = query.AdvancedSearch(advancedSearch);
+            else if (!string.IsNullOrEmpty(keyword))
+                query = query.SearchByKeyword(keyword);
+            query = query.ApplySort(orderBy);
+            return await query.ToMappedPaginatedResultAsync<T, TDto>(pageNumber, pageSize);
+        }
+
+        public async Task<PaginatedResult<TDto>> GetSearchResultsAsync<T, TDto>(int pageNumber, int pageSize = int.MaxValue, string[] orderBy = null, Filters<T> filters = null, Search advancedSearch = null, string keyword = null, CancellationToken cancellationToken = default)
+        where T : BaseEntity
+        where TDto : IDto
+        {
+            IQueryable<T> query = _dbContext.Set<T>();
+            query = query.ApplyFilter(filters);
+            if (advancedSearch?.Fields.Count > 0 && !string.IsNullOrEmpty(advancedSearch.Keyword))
+                query = query.AdvancedSearch(advancedSearch);
+            else if (!string.IsNullOrEmpty(keyword))
+                query = query.SearchByKeyword(keyword);
+            query = query.ApplySort(orderBy);
+            return await query.ToMappedPaginatedResultAsync<T, TDto>(pageNumber, pageSize);
+        }
+        #endregion
+
+        #region Aggregations
+        public async Task<int> CountByConditionAsync<T>(Expression<Func<T, bool>> expression = null)
+              where T : BaseEntity
+        {
+            var query = _dbContext.Set<T>().AsQueryable();
+            if (expression != null)
+                query = query.Where(expression);
+            return await query.CountAsync();
+        }
+        #endregion
     }
 }
