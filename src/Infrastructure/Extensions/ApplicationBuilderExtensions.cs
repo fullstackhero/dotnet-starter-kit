@@ -2,6 +2,7 @@ using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
 using DN.WebApi.Infrastructure.Hubs;
+using DN.WebApi.Infrastructure.Middlewares;
 using Hangfire;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -32,6 +33,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             app.UseRouting();
             app.UseCors("CorsPolicy");
             app.UseAuthentication();
+            app.UseMiddleware<TenantMiddleware>();
             app.UseAuthorization();
 
             var configDashboard = config.GetSection("HangFireSettings:Dashboard").Get<DashboardOptions>();

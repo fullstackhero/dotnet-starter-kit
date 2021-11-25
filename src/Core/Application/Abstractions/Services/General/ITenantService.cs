@@ -9,5 +9,7 @@ namespace DN.WebApi.Application.Abstractions.Services.General
         public string GetConnectionString();
 
         public TenantDto GetCurrentTenant();
+
+        public void SetTenant(string tenant);
     }
 }

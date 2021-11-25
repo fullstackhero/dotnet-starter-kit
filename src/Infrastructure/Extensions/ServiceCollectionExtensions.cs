@@ -3,6 +3,7 @@ using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Infrastructure.Localizer;
 using DN.WebApi.Infrastructure.Mappings;
+using DN.WebApi.Infrastructure.Middlewares;
 using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Infrastructure.Persistence.Extensions;
 using DN.WebApi.Infrastructure.Services.General;
@@ -38,6 +39,7 @@ namespace DN.WebApi.Infrastructure.Extensions
                 services.AddDistributedMemoryCache();
             }
 
+            services.AddScoped<TenantMiddleware>();
             services.TryAdd(ServiceDescriptor.Singleton<ICacheService, CacheService>());
             services.AddHealthCheckExtension();
             services.AddLocalization();
@@ -58,6 +60,7 @@ namespace DN.WebApi.Infrastructure.Extensions
                 options.WorkerCount = optionsServer.WorkerCount;
             });
             services.AddHangfireConsoleExtensions();
+            services.AddHangFireService();
             services.AddMultitenancy<TenantManagementDbContext, ApplicationDbContext>(config);
             services.AddRouting(options => options.LowercaseUrls = true);
             services.AddMiddlewares();

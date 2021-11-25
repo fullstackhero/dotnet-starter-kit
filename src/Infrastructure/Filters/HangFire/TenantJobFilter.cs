@@ -1,22 +1,21 @@
 ﻿using System;
 using System.Linq;
-using DN.WebApi.Application.Abstractions.Services.Identity;
+using DN.WebApi.Infrastructure.Extensions;
 using Hangfire.Client;
 using Hangfire.Logging;
-using Hangfire.Server;
-using Hangfire.States;
-using Hangfire.Storage;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DN.WebApi.Infrastructure.Filters.HangFire
 {
     public class TenantJobFilter : IClientFilter
     {
         private static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
-        private readonly ICurrentUser _currentUser;
+        private readonly IServiceProvider _services;
 
-        public TenantJobFilter(ICurrentUser currentUser)
+        public TenantJobFilter(IServiceProvider services)
         {
-            _currentUser = currentUser;
+            _services = services;
         }
 
         public void OnCreating(CreatingContext context)
@@ -25,8 +24,12 @@ namespace DN.WebApi.Infrastructure.Filters.HangFire
 
             if (context == null) throw new ArgumentNullException(nameof(context));
 
-            context.SetJobParameter("tenant", _currentUser.GetTenant());
-            context.SetJobParameter("userId", _currentUser.GetUserId());
+            using (var scope = _services.CreateScope())
+            {
+                var contextAccessor = scope.ServiceProvider.GetService<IHttpContextAccessor>();
+                context.SetJobParameter("tenant", contextAccessor.HttpContext.User.GetTenant());
+                context.SetJobParameter("userId", contextAccessor.HttpContext.User.GetUserId());
+            }
         }
 
         public void OnCreated(CreatedContext context)

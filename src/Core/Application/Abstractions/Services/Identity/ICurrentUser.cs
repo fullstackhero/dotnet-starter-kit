@@ -4,7 +4,7 @@ using System.Security.Claims;
 
 namespace DN.WebApi.Application.Abstractions.Services.Identity
 {
-    public interface ICurrentUser : ITransientService
+    public interface ICurrentUser : IScopedService
     {
         string Name { get; }
 
@@ -19,5 +19,9 @@ namespace DN.WebApi.Application.Abstractions.Services.Identity
         bool IsInRole(string role);
 
         IEnumerable<Claim> GetUserClaims();
+
+        void SetUser(ClaimsPrincipal user);
+
+        void SetUserJob(string userId);
     }
 }

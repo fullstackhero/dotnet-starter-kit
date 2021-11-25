@@ -2,7 +2,6 @@ using DN.WebApi.Application.Settings;
 using DN.WebApi.Infrastructure.Middlewares;
 using DN.WebApi.Infrastructure.Persistence.Extensions;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,6 +15,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             if (config.GetValue<bool>("MiddlewareSettings:EnableHttpsLogging")) app.UseMiddleware<RequestLoggingMiddleware>();
             app.UseMiddleware<ExceptionMiddleware>();
             if (config.GetValue<bool>("MiddlewareSettings:EnableHttpsLogging")) app.UseMiddleware<ResponseLoggingMiddleware>();
+
             return app;
         }
 
@@ -25,7 +25,7 @@ namespace DN.WebApi.Infrastructure.Extensions
 
             if (middlewareSettings.EnableLocalization) services.AddSingleton<LocalizationMiddleware>();
             if (middlewareSettings.EnableHttpsLogging) services.AddSingleton<RequestLoggingMiddleware>();
-            services.AddSingleton<ExceptionMiddleware>();
+            services.AddScoped<ExceptionMiddleware>();
             if (middlewareSettings.EnableHttpsLogging) services.AddSingleton<ResponseLoggingMiddleware>();
             return services;
         }
