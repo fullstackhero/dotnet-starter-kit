@@ -4,8 +4,12 @@ using System.Threading.Tasks;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Constants;
+using DN.WebApi.Domain.Contracts;
+using DN.WebApi.Infrastructure.Extensions;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Persistence;
+using DN.WebApi.Infrastructure.Persistence.Converters;
+using DN.WebApi.Infrastructure.Persistence.Repositories;
 using DN.WebApi.Shared.DTOs.Identity;
 using DN.WebApi.Shared.DTOs.Identity.Requests;
 using DN.WebApi.Shared.DTOs.Identity.Responses;
@@ -13,6 +17,7 @@ using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
+using System.Linq.Dynamic.Core;
 
 namespace DN.WebApi.Infrastructure.Identity.Services
 {
@@ -34,6 +39,18 @@ namespace DN.WebApi.Infrastructure.Identity.Services
             _roleManager = roleManager;
             _localizer = localizer;
             _context = context;
+        }
+
+        public async Task<PaginatedResult<UserDetailsDto>> SearchAsync(UserListFilter filter)
+        {
+            var filters = new Filters<ApplicationUser>();
+            filters.Add(filter.IsActive.HasValue, x => x.IsActive == filter.IsActive);
+
+            var query = _userManager.Users.ApplyFilter(filters).AdvancedSearch(filter.AdvancedSearch);
+            string ordering = new OrderByConverter().ConvertBack(filter.OrderBy);
+            query = !string.IsNullOrWhiteSpace(ordering) ? query.OrderBy(ordering) : query.OrderBy(a => a.Id);
+
+            return await query.ToMappedPaginatedResultAsync<ApplicationUser, UserDetailsDto>(filter.PageNumber, filter.PageSize);
         }
 
         public async Task<Result<List<UserDetailsDto>>> GetAllAsync()

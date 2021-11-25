@@ -287,8 +287,7 @@ namespace DN.WebApi.Infrastructure.Persistence.Repositories
                 query = query.AdvancedSearch(advancedSearch);
             else if (!string.IsNullOrEmpty(keyword))
                 query = query.SearchByKeyword(keyword);
-            string ordering = new OrderByConverter().ConvertBack(orderBy);
-            query = !string.IsNullOrWhiteSpace(ordering) ? query.OrderBy(ordering) : query.OrderBy(a => a.Id);
+            query = query.ApplySort(orderBy);
             return await query.ToMappedPaginatedResultAsync<T, TDto>(pageNumber, pageSize);
         }
 
