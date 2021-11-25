@@ -40,3 +40,4 @@
 - Added Events and Handlers via MediatR - Thanks [frankyjquintero](https://github.com/frankyjquintero) 
 - Moved to Tenancy Middleware - Thanks [frankyjquintero](https://github.com/frankyjquintero) & [fretje](https://github.com/fretje)
 - Solution Cleanup - rulesets & analyzer - Thanks [fretje](https://github.com/fretje)
+- Added More Functions for RepositoryAsync - Thanks [ghaithprosoft](https://github.com/ghaithprosoft)
