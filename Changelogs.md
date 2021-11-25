@@ -38,3 +38,5 @@
 - Hangfire implementation examples - Thanks [frankyjquintero](https://github.com/frankyjquintero) 
 - Separate JSON files for each Settings - Thanks [unchase](https://github.com/unchase) 
 - Added Events and Handlers via MediatR - Thanks [frankyjquintero](https://github.com/frankyjquintero) 
+- Moved to Tenancy Middleware - Thanks [frankyjquintero](https://github.com/frankyjquintero) & [fretje](https://github.com/fretje)
+- Solution Cleanup - rulesets & analyzer - Thanks [fretje](https://github.com/fretje)
