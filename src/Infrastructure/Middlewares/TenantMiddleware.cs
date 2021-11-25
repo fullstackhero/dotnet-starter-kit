@@ -34,7 +34,7 @@ namespace DN.WebApi.Infrastructure.Middlewares
             }
             else
             {
-                string tenantFromQueryString = System.Web.HttpUtility.ParseQueryString(context.Request.QueryString.Value).Get("tenant");
+                string tenantFromQueryString = context.Request.Query["tenant"].First();
                 if (!string.IsNullOrEmpty(tenantFromQueryString))
                 {
                     tenantInfo.SetTenant(tenantFromQueryString);
