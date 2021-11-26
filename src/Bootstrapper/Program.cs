@@ -4,24 +4,29 @@ using DN.WebApi.Infrastructure.Extensions;
 using FluentValidation.AspNetCore;
 using Serilog;
 
-var configuration = new ConfigurationBuilder().AddJsonFile("configurations/logger.json").Build();
 Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 Log.Information("Server Booting Up...");
 try
 {
     var builder = WebApplication.CreateBuilder(args);
+
     builder.Host.AddConfigurations();
-    builder.Host.UseSerilog((_, lc) => lc.WriteTo.Console().ReadFrom.Configuration(builder.Configuration));
+    builder.Host.UseSerilog((_, config) => config.WriteTo.Console().ReadFrom.Configuration(builder.Configuration));
+
+    builder.Services.AddApplication();
+    builder.Services.AddInfrastructure(builder.Configuration);
     builder.Services.AddControllers().AddFluentValidation();
-    builder.Services.AddApplication().AddInfrastructure(builder.Configuration);
+
     var app = builder.Build();
+
     app.UseInfrastructure(builder.Configuration);
     app.Run();
 }
 catch (Exception ex)
 {
-    string type = ex.GetType().Name;
-    if (type.Equals("StopTheHostException", StringComparison.Ordinal))
+    // Don't catch StopTheHostException as otherwise EF Core Migrations don't work (amongst other things).
+    // See https://github.com/dotnet/runtime/issues/60600 for why this is handled this way.
+    if (ex.GetType().Name.Equals("StopTheHostException", StringComparison.Ordinal))
     {
         throw;
     }
