@@ -40,6 +40,7 @@ namespace DN.WebApi.Infrastructure.Extensions
             }
 
             services.TryAdd(ServiceDescriptor.Singleton<ICacheService, CacheService>());
+            services.AddSeeders();
             services.AddMiddlewareCurrentUser();
             services.AddMiddlewareTenant();
             services.AddHealthCheckExtension();

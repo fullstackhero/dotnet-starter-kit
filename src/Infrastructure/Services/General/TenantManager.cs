@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Exceptions;
@@ -11,17 +15,15 @@ using DN.WebApi.Shared.DTOs.Multitenancy;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace DN.WebApi.Infrastructure.Services.General
 {
     public class TenantManager : ITenantManager
     {
+        private readonly IServiceProvider _di;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly ApplicationDbContext _appContext;
@@ -32,7 +34,7 @@ namespace DN.WebApi.Infrastructure.Services.General
         private readonly TenantManagementDbContext _context;
         private readonly ICurrentUser _user;
 
-        public TenantManager(ApplicationDbContext appContext, IStringLocalizer<TenantService> localizer, IOptions<DatabaseSettings> options, TenantManagementDbContext context, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ICurrentUser user)
+        public TenantManager(ApplicationDbContext appContext, IStringLocalizer<TenantService> localizer, IOptions<DatabaseSettings> options, TenantManagementDbContext context, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ICurrentUser user, IServiceProvider di)
         {
             _appContext = appContext;
             _localizer = localizer;
@@ -41,6 +43,7 @@ namespace DN.WebApi.Infrastructure.Services.General
             _userManager = userManager;
             _roleManager = roleManager;
             _user = user;
+            _di = di;
         }
 
         public async Task<Result<TenantDto>> GetByKeyAsync(string key)
@@ -68,7 +71,8 @@ namespace DN.WebApi.Infrastructure.Services.General
             {
                 CreatedBy = _user.GetUserId()
             };
-            TenantBootstrapper.Initialize(_appContext, _options, tenant, _userManager, _roleManager);
+            var seeders = _di.GetServices<IDatabaseSeeder>().ToList();
+            TenantBootstrapper.Initialize(_appContext, _options, tenant, _userManager, _roleManager, seeders);
             _context.Tenants.Add(tenant);
             await _context.SaveChangesAsync();
             return await Result<object>.SuccessAsync(tenant.Id);

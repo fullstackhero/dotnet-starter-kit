@@ -36,7 +36,6 @@ namespace DN.WebApi.Infrastructure.Extensions
             app.UseMiddlewareCurrentUser();
             app.UseMiddlewareTenant();
             app.UseAuthorization();
-
             var configDashboard = config.GetSection("HangFireSettings:Dashboard").Get<DashboardOptions>();
             app.UseHangfireDashboard(config["HangFireSettings:Route"], new DashboardOptions
             {
