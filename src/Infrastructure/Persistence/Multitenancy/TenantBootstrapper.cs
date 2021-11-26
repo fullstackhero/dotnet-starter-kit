@@ -1,5 +1,6 @@
 using System.Data.SqlClient;
 using System.Security.Claims;
+using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Domain.Entities.Multitenancy;
@@ -18,7 +19,7 @@ public class TenantBootstrapper
 {
     private static readonly ILogger _logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 
-    public static void Initialize(ApplicationDbContext appContext, DatabaseSettings options, Tenant tenant, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager)
+    public static void Initialize(ApplicationDbContext appContext, DatabaseSettings options, Tenant tenant, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, IList<IDatabaseSeeder> seeders)
     {
         string connectionString = string.IsNullOrEmpty(tenant.ConnectionString) ? options.ConnectionString : tenant.ConnectionString;
         bool isValid = TryValidateConnectionString(options, connectionString, tenant.Key);
@@ -38,6 +39,11 @@ public class TenantBootstrapper
                     _logger.Information($"Connection to {tenant.Key}'s Database Succeeded.");
                     SeedRolesAsync(tenant, roleManager, appContext).GetAwaiter().GetResult();
                     SeedTenantAdminAsync(tenant, userManager, roleManager, appContext).GetAwaiter().GetResult();
+                }
+
+                foreach (var seeder in seeders)
+                {
+                    seeder.Initialize();
                 }
             }
         }

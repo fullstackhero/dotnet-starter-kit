@@ -1,3 +1,4 @@
+using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Domain.Entities.Multitenancy;
@@ -135,7 +136,8 @@ public static class MultitenancyExtensions
         var dbContext = scope.ServiceProvider.GetRequiredService<TA>();
         var userManager = scope.ServiceProvider.GetService<UserManager<ApplicationUser>>();
         var roleManager = scope.ServiceProvider.GetService<RoleManager<ApplicationRole>>();
-        TenantBootstrapper.Initialize(dbContext, options, tenant, userManager, roleManager);
+        var seeders = scope.ServiceProvider.GetServices<IDatabaseSeeder>().ToList();
+        TenantBootstrapper.Initialize(dbContext, options, tenant, userManager, roleManager, seeders);
         return services;
     }
 

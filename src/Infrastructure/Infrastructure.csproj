@@ -49,4 +49,7 @@
         <ProjectReference Include="..\Core\Domain\Domain.csproj" />
         <ProjectReference Include="..\Shared\Shared.DTOs\Shared.DTOs.csproj" />
     </ItemGroup>
+    <ItemGroup>
+        <None Include="Seeders\**" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
 </Project>
