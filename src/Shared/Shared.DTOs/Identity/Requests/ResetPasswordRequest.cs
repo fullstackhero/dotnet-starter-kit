@@ -1,11 +1,10 @@
-namespace DN.WebApi.Shared.DTOs.Identity.Requests
+namespace DN.WebApi.Shared.DTOs.Identity.Requests;
+
+public class ResetPasswordRequest
 {
-    public class ResetPasswordRequest
-    {
-        public string Email { get; set; }
+    public string Email { get; set; }
 
-        public string Password { get; set; }
+    public string Password { get; set; }
 
-        public string Token { get; set; }
-    }
+    public string Token { get; set; }
 }

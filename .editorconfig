@@ -15,6 +15,10 @@ trim_trailing_whitespace = false
 indent_size = 2
 
 [*.cs]
+dotnet_sort_system_directives_first = true:warning
+
+csharp_style_namespace_declarations = file_scoped:warning
+
 csharp_style_var_for_built_in_types = false:warning
 
 csharp_style_var_when_type_is_apparent = true:warning

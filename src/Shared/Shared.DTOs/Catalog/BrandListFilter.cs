@@ -1,8 +1,7 @@
 using DN.WebApi.Shared.DTOs.Filters;
 
-namespace DN.WebApi.Shared.DTOs.Catalog
+namespace DN.WebApi.Shared.DTOs.Catalog;
+
+public class BrandListFilter : PaginationFilter
 {
-    public class BrandListFilter : PaginationFilter
-    {
-    }
 }

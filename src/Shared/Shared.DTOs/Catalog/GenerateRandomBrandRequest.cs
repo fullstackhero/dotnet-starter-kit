@@ -1,7 +1,6 @@
-﻿namespace DN.WebApi.Shared.DTOs.Catalog
+﻿namespace DN.WebApi.Shared.DTOs.Catalog;
+
+public class GenerateRandomBrandRequest : IMustBeValid
 {
-    public class GenerateRandomBrandRequest : IMustBeValid
-    {
-        public int NSeed { get; set; }
-    }
+    public int NSeed { get; set; }
 }

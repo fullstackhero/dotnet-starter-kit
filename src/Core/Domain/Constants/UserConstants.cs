@@ -1,7 +1,6 @@
-namespace DN.WebApi.Domain.Constants
+namespace DN.WebApi.Domain.Constants;
+
+public static class UserConstants
 {
-    public static class UserConstants
-    {
-        public const string DefaultPassword = "123Pa$$word!";
-    }
+    public const string DefaultPassword = "123Pa$$word!";
 }

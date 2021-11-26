@@ -1,6 +1,5 @@
-namespace DN.WebApi.Application.Abstractions.Services
+namespace DN.WebApi.Application.Abstractions.Services;
+
+public interface IScopedService
 {
-    public interface IScopedService
-    {
-    }
 }

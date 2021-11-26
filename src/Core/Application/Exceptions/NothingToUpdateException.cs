@@ -1,12 +1,11 @@
 using System.Net;
 
-namespace DN.WebApi.Application.Exceptions
+namespace DN.WebApi.Application.Exceptions;
+
+public class NothingToUpdateException : CustomException
 {
-    public class NothingToUpdateException : CustomException
+    public NothingToUpdateException()
+    : base("There are no new changes to update for this Entity.", null, HttpStatusCode.NotAcceptable)
     {
-        public NothingToUpdateException()
-        : base("There are no new changes to update for this Entity.", null, HttpStatusCode.NotAcceptable)
-        {
-        }
     }
 }

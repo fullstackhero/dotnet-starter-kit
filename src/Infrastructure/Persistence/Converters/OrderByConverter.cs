@@ -1,27 +1,24 @@
 using DN.WebApi.Shared.DTOs;
-using System;
-using System.Linq;
 
-namespace DN.WebApi.Infrastructure.Persistence.Converters
+namespace DN.WebApi.Infrastructure.Persistence.Converters;
+
+public class OrderByConverter : IMapsterConverter<string, string[]>
 {
-    public class OrderByConverter : IMapsterConverter<string, string[]>
+    public string[] Convert(string item)
     {
-        public string[] Convert(string item)
+        if (!string.IsNullOrWhiteSpace(item))
         {
-            if (!string.IsNullOrWhiteSpace(item))
-            {
-                return item
-                    .Split(',')
-                    .Where(x => !string.IsNullOrWhiteSpace(x))
-                    .Select(x => x.Trim()).ToArray();
-            }
-
-            return Array.Empty<string>();
+            return item
+                .Split(',')
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(x => x.Trim()).ToArray();
         }
 
-        public string ConvertBack(string[] item)
-        {
-            return item?.Any() == true ? string.Join(",", item) : null;
-        }
+        return Array.Empty<string>();
+    }
+
+    public string ConvertBack(string[] item)
+    {
+        return item?.Any() == true ? string.Join(",", item) : null;
     }
 }

@@ -1,113 +1,110 @@
 using DN.WebApi.Application.Abstractions.Services.General;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace DN.WebApi.Infrastructure.Services.General
+namespace DN.WebApi.Infrastructure.Services.General;
+
+public class CacheService : ICacheService
 {
-    public class CacheService : ICacheService
+    private readonly ILogger<CacheService> _logger;
+    private readonly IDistributedCache _cache;
+
+    public CacheService(IDistributedCache cache, ILogger<CacheService> logger)
     {
-        private readonly ILogger<CacheService> _logger;
-        private readonly IDistributedCache _cache;
+        _cache = cache;
+        _logger = logger;
+    }
 
-        public CacheService(IDistributedCache cache, ILogger<CacheService> logger)
+    public byte[] Get(string key)
+    {
+        try
         {
-            _cache = cache;
-            _logger = logger;
+            return _cache.Get(key);
         }
-
-        public byte[] Get(string key)
+        catch
         {
-            try
-            {
-                return _cache.Get(key);
-            }
-            catch
-            {
-                return null;
-            }
+            return null;
         }
+    }
 
-        public async Task<byte[]> GetAsync(string key, CancellationToken token = default)
+    public async Task<byte[]> GetAsync(string key, CancellationToken token = default)
+    {
+        try
         {
-            try
-            {
-                return await _cache.GetAsync(key, token);
-            }
-            catch
-            {
-                return null;
-            }
+            return await _cache.GetAsync(key, token);
         }
-
-        public void Refresh(string key)
+        catch
         {
-            try
-            {
-                _cache.Refresh(key);
-            }
-            catch
-            {
-            }
+            return null;
         }
+    }
 
-        public async Task RefreshAsync(string key, CancellationToken token = default)
+    public void Refresh(string key)
+    {
+        try
         {
-            try
-            {
-                await _cache.RefreshAsync(key, token);
-                _logger.LogDebug(string.Format("Cache Refreshed : {0}", key));
-            }
-            catch
-            {
-            }
+            _cache.Refresh(key);
         }
-
-        public void Remove(string key)
+        catch
         {
-            try
-            {
-                _cache.Remove(key);
-            }
-            catch
-            {
-            }
         }
+    }
 
-        public async Task RemoveAsync(string key, CancellationToken token = default)
+    public async Task RefreshAsync(string key, CancellationToken token = default)
+    {
+        try
         {
-            try
-            {
-                await _cache.RemoveAsync(key, token);
-            }
-            catch
-            {
-            }
+            await _cache.RefreshAsync(key, token);
+            _logger.LogDebug(string.Format("Cache Refreshed : {0}", key));
         }
-
-        public void Set(string key, byte[] value, DistributedCacheEntryOptions options)
+        catch
         {
-            try
-            {
-                _cache.Set(key, value, options);
-                _logger.LogDebug($"Added to Cache : {key}");
-            }
-            catch
-            {
-            }
         }
+    }
 
-        public async Task SetAsync(string key, byte[] value, DistributedCacheEntryOptions options, CancellationToken token = default)
+    public void Remove(string key)
+    {
+        try
         {
-            try
-            {
-                await _cache.SetAsync(key, value, options, token);
-                _logger.LogDebug($"Added to Cache : {key}");
-            }
-            catch
-            {
-            }
+            _cache.Remove(key);
+        }
+        catch
+        {
+        }
+    }
+
+    public async Task RemoveAsync(string key, CancellationToken token = default)
+    {
+        try
+        {
+            await _cache.RemoveAsync(key, token);
+        }
+        catch
+        {
+        }
+    }
+
+    public void Set(string key, byte[] value, DistributedCacheEntryOptions options)
+    {
+        try
+        {
+            _cache.Set(key, value, options);
+            _logger.LogDebug($"Added to Cache : {key}");
+        }
+        catch
+        {
+        }
+    }
+
+    public async Task SetAsync(string key, byte[] value, DistributedCacheEntryOptions options, CancellationToken token = default)
+    {
+        try
+        {
+            await _cache.SetAsync(key, value, options, token);
+            _logger.LogDebug($"Added to Cache : {key}");
+        }
+        catch
+        {
         }
     }
 }
