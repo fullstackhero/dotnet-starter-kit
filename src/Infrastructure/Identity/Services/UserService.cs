@@ -1,6 +1,4 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Linq.Dynamic.Core;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Constants;
@@ -17,130 +15,128 @@ using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
-using System.Linq.Dynamic.Core;
 
-namespace DN.WebApi.Infrastructure.Identity.Services
+namespace DN.WebApi.Infrastructure.Identity.Services;
+
+public class UserService : IUserService
 {
-    public class UserService : IUserService
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly RoleManager<ApplicationRole> _roleManager;
+    private readonly IStringLocalizer<UserService> _localizer;
+
+    private readonly ApplicationDbContext _context;
+
+    public UserService(
+        UserManager<ApplicationUser> userManager,
+        RoleManager<ApplicationRole> roleManager,
+        IStringLocalizer<UserService> localizer,
+        ApplicationDbContext context)
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly RoleManager<ApplicationRole> _roleManager;
-        private readonly IStringLocalizer<UserService> _localizer;
+        _userManager = userManager;
+        _roleManager = roleManager;
+        _localizer = localizer;
+        _context = context;
+    }
 
-        private readonly ApplicationDbContext _context;
+    public async Task<PaginatedResult<UserDetailsDto>> SearchAsync(UserListFilter filter)
+    {
+        var filters = new Filters<ApplicationUser>();
+        filters.Add(filter.IsActive.HasValue, x => x.IsActive == filter.IsActive);
 
-        public UserService(
-            UserManager<ApplicationUser> userManager,
-            RoleManager<ApplicationRole> roleManager,
-            IStringLocalizer<UserService> localizer,
-            ApplicationDbContext context)
+        var query = _userManager.Users.ApplyFilter(filters).AdvancedSearch(filter.AdvancedSearch);
+        string ordering = new OrderByConverter().ConvertBack(filter.OrderBy);
+        query = !string.IsNullOrWhiteSpace(ordering) ? query.OrderBy(ordering) : query.OrderBy(a => a.Id);
+
+        return await query.ToMappedPaginatedResultAsync<ApplicationUser, UserDetailsDto>(filter.PageNumber, filter.PageSize);
+    }
+
+    public async Task<Result<List<UserDetailsDto>>> GetAllAsync()
+    {
+        var users = await _userManager.Users.AsNoTracking().ToListAsync();
+        var result = users.Adapt<List<UserDetailsDto>>();
+        return await Result<List<UserDetailsDto>>.SuccessAsync(result);
+    }
+
+    public async Task<IResult<UserDetailsDto>> GetAsync(string userId)
+    {
+        var user = await _userManager.Users.AsNoTracking().Where(u => u.Id == userId).FirstOrDefaultAsync();
+        var result = user.Adapt<UserDetailsDto>();
+        return await Result<UserDetailsDto>.SuccessAsync(result);
+    }
+
+    public async Task<IResult<UserRolesResponse>> GetRolesAsync(string userId)
+    {
+        var viewModel = new List<UserRoleDto>();
+        var user = await _userManager.FindByIdAsync(userId);
+        var roles = await _roleManager.Roles.AsNoTracking().ToListAsync();
+        foreach (var role in roles)
         {
-            _userManager = userManager;
-            _roleManager = roleManager;
-            _localizer = localizer;
-            _context = context;
-        }
-
-        public async Task<PaginatedResult<UserDetailsDto>> SearchAsync(UserListFilter filter)
-        {
-            var filters = new Filters<ApplicationUser>();
-            filters.Add(filter.IsActive.HasValue, x => x.IsActive == filter.IsActive);
-
-            var query = _userManager.Users.ApplyFilter(filters).AdvancedSearch(filter.AdvancedSearch);
-            string ordering = new OrderByConverter().ConvertBack(filter.OrderBy);
-            query = !string.IsNullOrWhiteSpace(ordering) ? query.OrderBy(ordering) : query.OrderBy(a => a.Id);
-
-            return await query.ToMappedPaginatedResultAsync<ApplicationUser, UserDetailsDto>(filter.PageNumber, filter.PageSize);
-        }
-
-        public async Task<Result<List<UserDetailsDto>>> GetAllAsync()
-        {
-            var users = await _userManager.Users.AsNoTracking().ToListAsync();
-            var result = users.Adapt<List<UserDetailsDto>>();
-            return await Result<List<UserDetailsDto>>.SuccessAsync(result);
-        }
-
-        public async Task<IResult<UserDetailsDto>> GetAsync(string userId)
-        {
-            var user = await _userManager.Users.AsNoTracking().Where(u => u.Id == userId).FirstOrDefaultAsync();
-            var result = user.Adapt<UserDetailsDto>();
-            return await Result<UserDetailsDto>.SuccessAsync(result);
-        }
-
-        public async Task<IResult<UserRolesResponse>> GetRolesAsync(string userId)
-        {
-            var viewModel = new List<UserRoleDto>();
-            var user = await _userManager.FindByIdAsync(userId);
-            var roles = await _roleManager.Roles.AsNoTracking().ToListAsync();
-            foreach (var role in roles)
+            var userRolesViewModel = new UserRoleDto
             {
-                var userRolesViewModel = new UserRoleDto
+                RoleId = role.Id,
+                RoleName = role.Name
+            };
+            userRolesViewModel.Enabled = await _userManager.IsInRoleAsync(user, role.Name);
+
+            viewModel.Add(userRolesViewModel);
+        }
+
+        var result = new UserRolesResponse { UserRoles = viewModel };
+        return await Result<UserRolesResponse>.SuccessAsync(result);
+    }
+
+    public async Task<IResult<string>> AssignRolesAsync(string userId, UserRolesRequest request)
+    {
+        var user = await _userManager.Users.Where(u => u.Id == userId).FirstOrDefaultAsync();
+        if (user == null)
+        {
+            return await Result<string>.FailAsync(_localizer["User Not Found."]);
+        }
+
+        if (await _userManager.IsInRoleAsync(user, RoleConstants.Admin))
+        {
+            return await Result<string>.FailAsync(_localizer["Not Allowed."]);
+        }
+
+        foreach (var userRole in request.UserRoles)
+        {
+            // Check if Role Exists
+            if (await _roleManager.FindByNameAsync(userRole.RoleName) != null)
+            {
+                if (userRole.Enabled)
                 {
-                    RoleId = role.Id,
-                    RoleName = role.Name
-                };
-                userRolesViewModel.Enabled = await _userManager.IsInRoleAsync(user, role.Name);
-
-                viewModel.Add(userRolesViewModel);
-            }
-
-            var result = new UserRolesResponse { UserRoles = viewModel };
-            return await Result<UserRolesResponse>.SuccessAsync(result);
-        }
-
-        public async Task<IResult<string>> AssignRolesAsync(string userId, UserRolesRequest request)
-        {
-            var user = await _userManager.Users.Where(u => u.Id == userId).FirstOrDefaultAsync();
-            if (user == null)
-            {
-                return await Result<string>.FailAsync(_localizer["User Not Found."]);
-            }
-
-            if (await _userManager.IsInRoleAsync(user, RoleConstants.Admin))
-            {
-                return await Result<string>.FailAsync(_localizer["Not Allowed."]);
-            }
-
-            foreach (var userRole in request.UserRoles)
-            {
-                // Check if Role Exists
-                if (await _roleManager.FindByNameAsync(userRole.RoleName) != null)
-                {
-                    if (userRole.Enabled)
+                    if (!await _userManager.IsInRoleAsync(user, userRole.RoleName))
                     {
-                        if (!await _userManager.IsInRoleAsync(user, userRole.RoleName))
-                        {
-                            await _userManager.AddToRoleAsync(user, userRole.RoleName);
-                        }
-                    }
-                    else
-                    {
-                        await _userManager.RemoveFromRoleAsync(user, userRole.RoleName);
+                        await _userManager.AddToRoleAsync(user, userRole.RoleName);
                     }
                 }
+                else
+                {
+                    await _userManager.RemoveFromRoleAsync(user, userRole.RoleName);
+                }
             }
-
-            return await Result<string>.SuccessAsync(userId, string.Format(_localizer["User Roles Updated Successfully."]));
         }
 
-        public async Task<Result<List<PermissionDto>>> GetPermissionsAsync(string userId)
+        return await Result<string>.SuccessAsync(userId, string.Format(_localizer["User Roles Updated Successfully."]));
+    }
+
+    public async Task<Result<List<PermissionDto>>> GetPermissionsAsync(string userId)
+    {
+        var userPermissions = new List<PermissionDto>();
+        var user = await _userManager.FindByIdAsync(userId);
+        var roles = await _roleManager.Roles.AsNoTracking().ToListAsync();
+        foreach (var role in roles)
         {
-            var userPermissions = new List<PermissionDto>();
-            var user = await _userManager.FindByIdAsync(userId);
-            var roles = await _roleManager.Roles.AsNoTracking().ToListAsync();
-            foreach (var role in roles)
-            {
-                var permissions = await _context.RoleClaims.Where(a => a.RoleId == role.Id && a.ClaimType == "Permission").ToListAsync();
-                var permissionResponse = permissions.Adapt<List<PermissionDto>>();
-                userPermissions.AddRange(permissionResponse);
-            }
-
-            return await Result<List<PermissionDto>>.SuccessAsync(userPermissions.Distinct().ToList());
+            var permissions = await _context.RoleClaims.Where(a => a.RoleId == role.Id && a.ClaimType == "Permission").ToListAsync();
+            var permissionResponse = permissions.Adapt<List<PermissionDto>>();
+            userPermissions.AddRange(permissionResponse);
         }
 
-        public async Task<int> GetCountAsync()
-        {
-            return await _userManager.Users.AsNoTracking().CountAsync();
-        }
+        return await Result<List<PermissionDto>>.SuccessAsync(userPermissions.Distinct().ToList());
+    }
+
+    public async Task<int> GetCountAsync()
+    {
+        return await _userManager.Users.AsNoTracking().CountAsync();
     }
 }

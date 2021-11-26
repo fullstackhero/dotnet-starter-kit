@@ -1,41 +1,39 @@
-using System;
 using System.Security.Claims;
 
-namespace DN.WebApi.Infrastructure.Extensions
+namespace DN.WebApi.Infrastructure.Extensions;
+
+public static class ClaimsPrincipalExtensions
 {
-    public static class ClaimsPrincipalExtensions
+    public static string GetUserId(this ClaimsPrincipal principal)
     {
-        public static string GetUserId(this ClaimsPrincipal principal)
+        if (principal == null)
         {
-            if (principal == null)
-            {
-                throw new ArgumentNullException(nameof(principal));
-            }
-
-            var claim = principal.FindFirst(ClaimTypes.NameIdentifier);
-            return claim?.Value;
+            throw new ArgumentNullException(nameof(principal));
         }
 
-        public static string GetUserEmail(this ClaimsPrincipal principal)
-        {
-            if (principal == null)
-            {
-                throw new ArgumentNullException(nameof(principal));
-            }
+        var claim = principal.FindFirst(ClaimTypes.NameIdentifier);
+        return claim?.Value;
+    }
 
-            var claim = principal.FindFirst(ClaimTypes.Email);
-            return claim?.Value;
+    public static string GetUserEmail(this ClaimsPrincipal principal)
+    {
+        if (principal == null)
+        {
+            throw new ArgumentNullException(nameof(principal));
         }
 
-        public static string GetTenant(this ClaimsPrincipal principal)
-        {
-            if (principal == null)
-            {
-                throw new ArgumentNullException(nameof(principal));
-            }
+        var claim = principal.FindFirst(ClaimTypes.Email);
+        return claim?.Value;
+    }
 
-            var claim = principal.FindFirst("tenant");
-            return claim?.Value;
+    public static string GetTenant(this ClaimsPrincipal principal)
+    {
+        if (principal == null)
+        {
+            throw new ArgumentNullException(nameof(principal));
         }
+
+        var claim = principal.FindFirst("tenant");
+        return claim?.Value;
     }
 }

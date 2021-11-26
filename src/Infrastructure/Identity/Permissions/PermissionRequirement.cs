@@ -1,14 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 
-namespace DN.WebApi.Infrastructure.Identity.Permissions
-{
-    internal class PermissionRequirement : IAuthorizationRequirement
-    {
-        public string Permission { get; private set; }
+namespace DN.WebApi.Infrastructure.Identity.Permissions;
 
-        public PermissionRequirement(string permission)
-        {
-            Permission = permission;
-        }
+internal class PermissionRequirement : IAuthorizationRequirement
+{
+    public string Permission { get; private set; }
+
+    public PermissionRequirement(string permission)
+    {
+        Permission = permission;
     }
 }

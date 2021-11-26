@@ -1,10 +1,7 @@
-using System;
+namespace DN.WebApi.Domain.Contracts;
 
-namespace DN.WebApi.Domain.Contracts
+public interface ISoftDelete
 {
-    public interface ISoftDelete
-    {
-        DateTime? DeletedOn { get; set; }
-        Guid? DeletedBy { get; set; }
-    }
+    DateTime? DeletedOn { get; set; }
+    Guid? DeletedBy { get; set; }
 }

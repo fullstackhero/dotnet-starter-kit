@@ -1,8 +1,7 @@
-namespace DN.WebApi.Shared.DTOs.Catalog
+namespace DN.WebApi.Shared.DTOs.Catalog;
+
+public class CreateBrandRequest : IMustBeValid
 {
-    public class CreateBrandRequest : IMustBeValid
-    {
-        public string Name { get; set; }
-        public string Description { get; set; }
-    }
+    public string Name { get; set; }
+    public string Description { get; set; }
 }

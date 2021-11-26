@@ -1,37 +1,34 @@
-using System;
+using System.Text;
 using DN.WebApi.Application.Abstractions.Services.General;
 using Microsoft.Extensions.Localization;
-using System.IO;
-using System.Text;
 
-namespace DN.WebApi.Infrastructure.Identity.Services
+namespace DN.WebApi.Infrastructure.Identity.Services;
+
+public class EmailTemplateService : IEmailTemplateService
 {
-    public class EmailTemplateService : IEmailTemplateService
+    private readonly IStringLocalizer<EmailTemplateService> _localizer;
+
+    public EmailTemplateService(IStringLocalizer<EmailTemplateService> localizer)
     {
-        private readonly IStringLocalizer<EmailTemplateService> _localizer;
+        _localizer = localizer;
+    }
 
-        public EmailTemplateService(IStringLocalizer<EmailTemplateService> localizer)
+    public string GenerateEmailConfirmationMail(string userName, string email, string emailVerificationUri)
+    {
+        string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+        string tmplFolder = Path.Combine(baseDirectory, "Email Templates");
+        string filePath = Path.Combine(tmplFolder, "email-confirmation.html");
+
+        using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        using var sr = new StreamReader(fs, Encoding.Default);
+        string mailText = sr.ReadToEnd();
+        sr.Close();
+
+        if (string.IsNullOrEmpty(mailText))
         {
-            _localizer = localizer;
+            return string.Format(_localizer["Please confirm your account by <a href='{0}'>clicking here</a>."], emailVerificationUri);
         }
 
-        public string GenerateEmailConfirmationMail(string userName, string email, string emailVerificationUri)
-        {
-            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            string tmplFolder = Path.Combine(baseDirectory, "Email Templates");
-            string filePath = Path.Combine(tmplFolder, "email-confirmation.html");
-
-            using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            using var sr = new StreamReader(fs, Encoding.Default);
-            string mailText = sr.ReadToEnd();
-            sr.Close();
-
-            if (string.IsNullOrEmpty(mailText))
-            {
-                return string.Format(_localizer["Please confirm your account by <a href='{0}'>clicking here</a>."], emailVerificationUri);
-            }
-
-            return mailText.Replace("[userName]", userName).Replace("[email]", email).Replace("[emailVerificationUri]", emailVerificationUri);
-        }
+        return mailText.Replace("[userName]", userName).Replace("[email]", email).Replace("[emailVerificationUri]", emailVerificationUri);
     }
 }

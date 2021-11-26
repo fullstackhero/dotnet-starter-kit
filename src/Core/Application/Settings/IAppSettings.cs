@@ -1,6 +1,5 @@
-namespace DN.WebApi.Application.Settings
+namespace DN.WebApi.Application.Settings;
+
+public interface IAppSettings
 {
-    public interface IAppSettings
-    {
-    }
 }

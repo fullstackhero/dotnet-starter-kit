@@ -1,12 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 
-namespace DN.WebApi.Infrastructure.Identity.Permissions
+namespace DN.WebApi.Infrastructure.Identity.Permissions;
+
+public class MustHavePermission : AuthorizeAttribute
 {
-    public class MustHavePermission : AuthorizeAttribute
+    public MustHavePermission(string permission)
     {
-        public MustHavePermission(string permission)
-        {
-            Policy = permission;
-        }
+        Policy = permission;
     }
 }

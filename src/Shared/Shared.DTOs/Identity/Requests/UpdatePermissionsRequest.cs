@@ -1,8 +1,7 @@
-namespace DN.WebApi.Shared.DTOs.Identity.Requests
+namespace DN.WebApi.Shared.DTOs.Identity.Requests;
+
+public class UpdatePermissionsRequest
 {
-    public class UpdatePermissionsRequest
-    {
-        public string Permission { get; set; }
-        public bool Enabled { get; set; }
-    }
+    public string Permission { get; set; }
+    public bool Enabled { get; set; }
 }

@@ -1,10 +1,7 @@
-using System;
+namespace DN.WebApi.Shared.DTOs.Multitenancy;
 
-namespace DN.WebApi.Shared.DTOs.Multitenancy
+public class UpgradeSubscriptionRequest
 {
-    public class UpgradeSubscriptionRequest
-    {
-        public string Tenant { get; set; }
-        public DateTime ExtendedExpiryDate { get; set; }
-    }
+    public string Tenant { get; set; }
+    public DateTime ExtendedExpiryDate { get; set; }
 }

@@ -1,10 +1,9 @@
 using System.ComponentModel;
 
-namespace DN.WebApi.Domain.Enums
+namespace DN.WebApi.Domain.Enums;
+
+public enum FileType
 {
-    public enum FileType
-    {
-        [Description(".jpg,.png,.jpeg")]
-        Image
-    }
+    [Description(".jpg,.png,.jpeg")]
+    Image
 }

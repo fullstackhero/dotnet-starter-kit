@@ -1,27 +1,24 @@
-using System;
-using System.Collections.Generic;
 using System.Security.Claims;
 
-namespace DN.WebApi.Application.Abstractions.Services.Identity
+namespace DN.WebApi.Application.Abstractions.Services.Identity;
+
+public interface ICurrentUser : IScopedService
 {
-    public interface ICurrentUser : IScopedService
-    {
-        string Name { get; }
+    string Name { get; }
 
-        Guid GetUserId();
+    Guid GetUserId();
 
-        string GetUserEmail();
+    string GetUserEmail();
 
-        string GetTenant();
+    string GetTenant();
 
-        bool IsAuthenticated();
+    bool IsAuthenticated();
 
-        bool IsInRole(string role);
+    bool IsInRole(string role);
 
-        IEnumerable<Claim> GetUserClaims();
+    IEnumerable<Claim> GetUserClaims();
 
-        void SetUser(ClaimsPrincipal user);
+    void SetUser(ClaimsPrincipal user);
 
-        void SetUserJob(string userId);
-    }
+    void SetUserJob(string userId);
 }
