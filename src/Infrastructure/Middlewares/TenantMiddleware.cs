@@ -1,34 +1,33 @@
-﻿using System.Net;
 using DN.WebApi.Application.Abstractions.Services.General;
-using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Exceptions;
+using DN.WebApi.Infrastructure.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Localization;
+using System.Net;
 
 namespace DN.WebApi.Infrastructure.Middlewares;
 
 public class TenantMiddleware : IMiddleware
 {
     private readonly IStringLocalizer<TenantMiddleware> _localizer;
-    private readonly ICurrentUser _currentUser;
     private readonly ITenantService _tenantService;
 
-    public TenantMiddleware(IStringLocalizer<TenantMiddleware> localizer, ICurrentUser currentUser, ITenantService tenantService)
+    public TenantMiddleware(IStringLocalizer<TenantMiddleware> localizer, ITenantService tenantService)
     {
         _localizer = localizer;
-        _currentUser = currentUser;
         _tenantService = tenantService;
     }
 
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
-        if (_currentUser.IsAuthenticated())
+        if (!ExcludePath(context))
         {
-            _tenantService.SetCurrentTenant(_currentUser.GetTenant());
-        }
-        else
-        {
-            if (!ExcludePath(context) && !ResolveFromHeader(context) && !ResolveFromQuery(context))
+            string tenantId = TenantResolver.Resolver(context);
+            if (!string.IsNullOrEmpty(tenantId))
+            {
+                _tenantService.SetCurrentTenant(tenantId);
+            }
+            else
             {
                 throw new IdentityException(_localizer["auth.failed"], statusCode: HttpStatusCode.Unauthorized);
             }
@@ -51,30 +50,6 @@ public class TenantMiddleware : IMiddleware
             {
                 return true;
             }
-        }
-
-        return false;
-    }
-
-    private bool ResolveFromHeader(HttpContext context)
-    {
-        context.Request.Headers.TryGetValue("tenant", out var tenantFromHeader);
-        if (!string.IsNullOrEmpty(tenantFromHeader))
-        {
-            _tenantService.SetCurrentTenant(tenantFromHeader);
-            return true;
-        }
-
-        return false;
-    }
-
-    private bool ResolveFromQuery(HttpContext context)
-    {
-        context.Request.Query.TryGetValue("tenant", out var tenantFromQueryString);
-        if (!string.IsNullOrEmpty(tenantFromQueryString))
-        {
-            _tenantService.SetCurrentTenant(tenantFromQueryString);
-            return true;
         }
 
         return false;

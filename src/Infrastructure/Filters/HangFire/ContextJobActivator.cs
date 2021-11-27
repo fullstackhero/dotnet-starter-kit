@@ -35,13 +35,19 @@ public class ContextJobActivator : JobActivator
 
         private void SetParametersScope()
         {
-            ITenantService tenantService = _scope.ServiceProvider.GetRequiredService<ITenantService>();
             string tenant = _context.GetJobParameter<string>("tenant");
-            tenantService.SetCurrentTenant(tenant);
+            if (!string.IsNullOrEmpty(tenant))
+            {
+                ITenantService tenantService = _scope.ServiceProvider.GetRequiredService<ITenantService>();
+                tenantService.SetCurrentTenant(tenant);
+            }
 
-            ICurrentUser currentUser = _scope.ServiceProvider.GetRequiredService<ICurrentUser>();
             string userId = _context.GetJobParameter<string>("userId");
-            currentUser.SetUserJob(userId);
+            if (!string.IsNullOrEmpty(userId))
+            {
+                ICurrentUser currentUser = _scope.ServiceProvider.GetRequiredService<ICurrentUser>();
+                currentUser.SetUserJob(userId);
+            }
         }
 
         public override object Resolve(Type type)
