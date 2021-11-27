@@ -20,14 +20,14 @@ using Microsoft.Extensions.Localization;
 
 namespace DN.WebApi.Infrastructure.Persistence.Repositories;
 
-public class RepositoryAsync : IRepositoryAsync
+public class EFCoreRepositoryAsync : IRepositoryAsync
 {
-    private readonly IStringLocalizer<RepositoryAsync> _localizer;
+    private readonly IStringLocalizer<EFCoreRepositoryAsync> _localizer;
     private readonly ICacheService _cache;
     private readonly ApplicationDbContext _dbContext;
     private readonly ISerializerService _serializer;
 
-    public RepositoryAsync(ApplicationDbContext dbContext, ISerializerService serializer, ICacheService cache, IStringLocalizer<RepositoryAsync> localizer)
+    public EFCoreRepositoryAsync(ApplicationDbContext dbContext, ISerializerService serializer, ICacheService cache, IStringLocalizer<EFCoreRepositoryAsync> localizer)
     {
         _dbContext = dbContext;
         _serializer = serializer;
