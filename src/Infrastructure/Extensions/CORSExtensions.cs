@@ -2,20 +2,19 @@ using DN.WebApi.Application.Settings;
 using DN.WebApi.Infrastructure.Persistence.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace DN.WebApi.Infrastructure.Extensions
+namespace DN.WebApi.Infrastructure.Extensions;
+
+public static class CorsExtensions
 {
-    public static class CorsExtensions
+    internal static IServiceCollection AddCorsPolicy(this IServiceCollection services)
     {
-        internal static IServiceCollection AddCorsPolicy(this IServiceCollection services)
+        var corsSettings = services.GetOptions<CorsSettings>(nameof(CorsSettings));
+        return services.AddCors(opt =>
         {
-            var corsSettings = services.GetOptions<CorsSettings>(nameof(CorsSettings));
-            return services.AddCors(opt =>
+            opt.AddPolicy("CorsPolicy", policy =>
             {
-                opt.AddPolicy("CorsPolicy", policy =>
-                {
-                    policy.AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithOrigins(new string[] { corsSettings.Angular, corsSettings.Blazor });
-                });
+                policy.AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithOrigins(new string[] { corsSettings.Angular, corsSettings.Blazor });
             });
-        }
+        });
     }
 }

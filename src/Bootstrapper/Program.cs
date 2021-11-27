@@ -1,11 +1,7 @@
-using System;
 using DN.WebApi.Application.Extensions;
 using DN.WebApi.Bootstrapper.Extensions;
 using DN.WebApi.Infrastructure.Extensions;
 using FluentValidation.AspNetCore;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
 var configuration = new ConfigurationBuilder().AddJsonFile("configurations/logger.json").Build();

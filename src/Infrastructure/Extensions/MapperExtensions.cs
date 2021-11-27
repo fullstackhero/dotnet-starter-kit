@@ -2,55 +2,50 @@ using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Shared.DTOs;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace DN.WebApi.Infrastructure.Extensions
+namespace DN.WebApi.Infrastructure.Extensions;
+
+public static class MapperExtensions
 {
-    public static class MapperExtensions
+    public static async Task<PaginatedResult<TDto>> ToMappedPaginatedResultAsync<T, TDto>(
+        this IQueryable<T> query, int pageNumber, int pageSize)
+        where T : class
     {
-        public static async Task<PaginatedResult<TDto>> ToMappedPaginatedResultAsync<T, TDto>(
-            this IQueryable<T> query, int pageNumber, int pageSize)
-            where T : class
+        var converter = new MappedPaginatedResultConverter<T, TDto>(pageNumber, pageSize);
+        return await converter.ConvertBackAsync(query);
+    }
+
+    public class MappedPaginatedResultConverter<T, TDto> : IMapsterConverterAsync<PaginatedResult<TDto>, IQueryable<T>>
+        where T : class
+    {
+        private int _pageNumber;
+        private int _pageSize;
+
+        public MappedPaginatedResultConverter(int pageNumber, int pageSize)
         {
-            var converter = new MappedPaginatedResultConverter<T, TDto>(pageNumber, pageSize);
-            return await converter.ConvertBackAsync(query);
+            _pageNumber = pageNumber;
+            _pageSize = pageSize;
         }
 
-        public class MappedPaginatedResultConverter<T, TDto> : IMapsterConverterAsync<PaginatedResult<TDto>, IQueryable<T>>
-            where T : class
+        public Task<IQueryable<T>> ConvertAsync(PaginatedResult<TDto> item)
         {
-            private int _pageNumber;
-            private int _pageSize;
+            throw new NotImplementedException();
+        }
 
-            public MappedPaginatedResultConverter(int pageNumber, int pageSize)
+        public async Task<PaginatedResult<TDto>> ConvertBackAsync(IQueryable<T> query)
+        {
+            if (query == null)
             {
-                _pageNumber = pageNumber;
-                _pageSize = pageSize;
+                throw new ArgumentNullException(nameof(query));
             }
 
-            public Task<IQueryable<T>> ConvertAsync(PaginatedResult<TDto> item)
-            {
-                throw new NotImplementedException();
-            }
-
-            public async Task<PaginatedResult<TDto>> ConvertBackAsync(IQueryable<T> query)
-            {
-                if (query == null)
-                {
-                    throw new ArgumentNullException(nameof(query));
-                }
-
-                _pageNumber = _pageNumber == 0 ? 1 : _pageNumber;
-                _pageSize = _pageSize == 0 ? 10 : _pageSize;
-                int count = await query.AsNoTracking().CountAsync();
-                _pageNumber = _pageNumber <= 0 ? 1 : _pageNumber;
-                var items = await query.Skip((_pageNumber - 1) * _pageSize).Take(_pageSize).ToListAsync();
-                var mappedItems = items.Adapt<List<TDto>>();
-                return await Task.FromResult(PaginatedResult<TDto>.Success(mappedItems, count, _pageNumber, _pageSize));
-            }
+            _pageNumber = _pageNumber == 0 ? 1 : _pageNumber;
+            _pageSize = _pageSize == 0 ? 10 : _pageSize;
+            int count = await query.AsNoTracking().CountAsync();
+            _pageNumber = _pageNumber <= 0 ? 1 : _pageNumber;
+            var items = await query.Skip((_pageNumber - 1) * _pageSize).Take(_pageSize).ToListAsync();
+            var mappedItems = items.Adapt<List<TDto>>();
+            return await Task.FromResult(PaginatedResult<TDto>.Success(mappedItems, count, _pageNumber, _pageSize));
         }
     }
 }

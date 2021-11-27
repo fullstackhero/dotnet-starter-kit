@@ -1,7 +1,6 @@
-namespace DN.WebApi.Application.Settings
+namespace DN.WebApi.Application.Settings;
+
+public class SwaggerSettings
 {
-    public class SwaggerSettings
-    {
-        public bool Enable { get; set; }
-    }
+    public bool Enable { get; set; }
 }

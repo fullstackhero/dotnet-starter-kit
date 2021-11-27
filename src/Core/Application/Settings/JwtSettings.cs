@@ -1,11 +1,10 @@
-namespace DN.WebApi.Application.Settings
+namespace DN.WebApi.Application.Settings;
+
+public class JwtSettings : IAppSettings
 {
-    public class JwtSettings : IAppSettings
-    {
-        public string Key { get; set; }
+    public string Key { get; set; }
 
-        public int TokenExpirationInMinutes { get; set; }
+    public int TokenExpirationInMinutes { get; set; }
 
-        public int RefreshTokenExpirationInDays { get; set; }
-    }
+    public int RefreshTokenExpirationInDays { get; set; }
 }

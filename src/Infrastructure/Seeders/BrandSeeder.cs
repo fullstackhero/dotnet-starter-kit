@@ -1,55 +1,49 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Domain.Entities.Catalog;
 using DN.WebApi.Infrastructure.Persistence;
 using Microsoft.Extensions.Logging;
 
-namespace DN.WebApi.Infrastructure.Seeders
+namespace DN.WebApi.Infrastructure.Seeders;
+
+public class BrandSeeder : IDatabaseSeeder
 {
-    public class BrandSeeder : IDatabaseSeeder
+    private readonly ISerializerService _serializerService;
+    private readonly ApplicationDbContext _db;
+    private readonly ILogger<BrandSeeder> _logger;
+
+    public BrandSeeder(ISerializerService serializerService, ILogger<BrandSeeder> logger, ApplicationDbContext db)
     {
-        private readonly ISerializerService _serializerService;
-        private readonly ApplicationDbContext _db;
-        private readonly ILogger<BrandSeeder> _logger;
+        _serializerService = serializerService;
+        _logger = logger;
+        _db = db;
+    }
 
-        public BrandSeeder(ISerializerService serializerService, ILogger<BrandSeeder> logger, ApplicationDbContext db)
+    public void Initialize()
+    {
+        Task.Run(async () =>
         {
-            _serializerService = serializerService;
-            _logger = logger;
-            _db = db;
-        }
-
-        public void Initialize()
-        {
-            Task.Run(async () =>
+            string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            if (!_db.Brands.Any())
             {
-                string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                if (!_db.Brands.Any())
+                _logger.LogInformation("Started to Seed Brands.");
+
+                // Here you can use your own logic to populate the database.
+                // As an example, I am using a JSON file to populate the database.
+                string brandData = await File.ReadAllTextAsync(path + "/seeders/brands.json");
+                var brands = _serializerService.Deserialize<List<Brand>>(brandData);
+
+                if (brands != null)
                 {
-                    _logger.LogInformation("Started to Seed Brands.");
-
-                    // Here you can use your own logic to populate the database.
-                    // As an example, I am using a JSON file to populate the database.
-                    string brandData = await File.ReadAllTextAsync(path + "/seeders/brands.json");
-                    var brands = _serializerService.Deserialize<List<Brand>>(brandData);
-
-                    if (brands != null)
+                    foreach (var brand in brands)
                     {
-                        foreach (var brand in brands)
-                        {
-                            await _db.Brands.AddAsync(brand);
-                        }
+                        await _db.Brands.AddAsync(brand);
                     }
-
-                    await _db.SaveChangesAsync();
-                    _logger.LogInformation("Seeded Brands.");
                 }
-            }).GetAwaiter().GetResult();
-        }
+
+                await _db.SaveChangesAsync();
+                _logger.LogInformation("Seeded Brands.");
+            }
+        }).GetAwaiter().GetResult();
     }
 }

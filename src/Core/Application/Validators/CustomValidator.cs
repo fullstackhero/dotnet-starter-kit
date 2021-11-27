@@ -1,22 +1,20 @@
 using FluentValidation;
 using FluentValidation.Results;
-using System.Linq;
 
-namespace DN.WebApi.Application.Validators
+namespace DN.WebApi.Application.Validators;
+
+public class CustomValidator<T> : AbstractValidator<T>
 {
-    public class CustomValidator<T> : AbstractValidator<T>
+    public override ValidationResult Validate(ValidationContext<T> context)
     {
-        public override ValidationResult Validate(ValidationContext<T> context)
+        var validationResult = base.Validate(context);
+        if (!validationResult.IsValid)
         {
-            var validationResult = base.Validate(context);
-            if (!validationResult.IsValid)
-            {
-                var failures = validationResult.Errors.ToList();
-                if (failures.Count != 0)
-                    throw new Exceptions.ValidationException(failures.ConvertAll(a => a.ErrorMessage));
-            }
-
-            return validationResult;
+            var failures = validationResult.Errors.ToList();
+            if (failures.Count != 0)
+                throw new Exceptions.ValidationException(failures.ConvertAll(a => a.ErrorMessage));
         }
+
+        return validationResult;
     }
 }

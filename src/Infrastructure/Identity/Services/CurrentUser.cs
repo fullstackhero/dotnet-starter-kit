@@ -1,80 +1,77 @@
-using System;
-using System.Collections.Generic;
 using System.Security.Claims;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Infrastructure.Extensions;
 
-namespace DN.WebApi.Infrastructure.Identity.Services
+namespace DN.WebApi.Infrastructure.Identity.Services;
+
+public class CurrentUser : ICurrentUser
 {
-    public class CurrentUser : ICurrentUser
+    private ClaimsPrincipal _user;
+
+    public string Name => _user?.Identity?.Name;
+
+    private Guid _userId = Guid.Empty;
+
+    public Guid GetUserId()
     {
-        private ClaimsPrincipal _user;
-
-        public string Name => _user?.Identity?.Name;
-
-        private Guid _userId = Guid.Empty;
-
-        public Guid GetUserId()
+        if (IsAuthenticated())
         {
-            if (IsAuthenticated())
-            {
-                return Guid.Parse(_user?.GetUserId() ?? Guid.Empty.ToString());
-            }
-
-            return _userId;
+            return Guid.Parse(_user?.GetUserId() ?? Guid.Empty.ToString());
         }
 
-        public string GetUserEmail()
+        return _userId;
+    }
+
+    public string GetUserEmail()
+    {
+        return IsAuthenticated() ? _user?.GetUserEmail() : string.Empty;
+    }
+
+    public bool IsAuthenticated()
+    {
+        return _user?.Identity?.IsAuthenticated ?? false;
+    }
+
+    public bool IsInRole(string role)
+    {
+        return _user.IsInRole(role);
+    }
+
+    public IEnumerable<Claim> GetUserClaims()
+    {
+        return _user?.Claims;
+    }
+
+    public string GetTenant()
+    {
+        if (IsAuthenticated())
         {
-            return IsAuthenticated() ? _user?.GetUserEmail() : string.Empty;
+            return _user?.GetTenant();
         }
 
-        public bool IsAuthenticated()
+        return string.Empty;
+    }
+
+    public void SetUser(ClaimsPrincipal user)
+    {
+        if (_user != null)
         {
-            return _user?.Identity?.IsAuthenticated ?? false;
+            throw new Exception("Method reserved for in-scope initialization");
         }
 
-        public bool IsInRole(string role)
+        _user = user;
+    }
+
+    public void SetUserJob(string userId)
+    {
+        if (_userId != Guid.Empty)
         {
-            return _user.IsInRole(role);
+            throw new Exception("Method reserved for in-scope initialization");
         }
 
-        public IEnumerable<Claim> GetUserClaims()
+        if (!string.IsNullOrEmpty(userId))
         {
-            return _user?.Claims;
-        }
-
-        public string GetTenant()
-        {
-            if (IsAuthenticated())
-            {
-                return _user?.GetTenant();
-            }
-
-            return string.Empty;
-        }
-
-        public void SetUser(ClaimsPrincipal user)
-        {
-            if (_user != null)
-            {
-                throw new Exception("Method reserved for in-scope initialization");
-            }
-
-            _user = user;
-        }
-
-        public void SetUserJob(string userId)
-        {
-            if (_userId != Guid.Empty)
-            {
-                throw new Exception("Method reserved for in-scope initialization");
-            }
-
-            if (!string.IsNullOrEmpty(userId))
-            {
-                _userId = Guid.Parse(userId);
-            }
+            _userId = Guid.Parse(userId);
         }
     }
 }

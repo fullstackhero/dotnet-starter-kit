@@ -1,9 +1,6 @@
-using System.Collections.Generic;
+namespace DN.WebApi.Shared.DTOs.Identity.Responses;
 
-namespace DN.WebApi.Shared.DTOs.Identity.Responses
+public class UserRolesResponse
 {
-    public class UserRolesResponse
-    {
-        public List<UserRoleDto> UserRoles { get; set; } = new();
-    }
+    public List<UserRoleDto> UserRoles { get; set; } = new();
 }

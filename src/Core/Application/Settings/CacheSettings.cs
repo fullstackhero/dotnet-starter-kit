@@ -1,7 +1,6 @@
-namespace DN.WebApi.Application.Settings
+namespace DN.WebApi.Application.Settings;
+
+public class CacheSettings
 {
-    public class CacheSettings
-    {
-        public string RedisURL { get; set; }
-    }
+    public string RedisURL { get; set; }
 }

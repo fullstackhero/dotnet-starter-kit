@@ -5,6 +5,7 @@
         <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <NoDefaultExcludes>true</NoDefaultExcludes>
+        <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Roslynator.Analyzers" Version="3.2.2">

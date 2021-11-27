@@ -2,20 +2,19 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace DN.WebApi.Infrastructure.Extensions
-{
-    public static class CurrentUserExtensions
-    {
-        internal static IApplicationBuilder UseMiddlewareCurrentUser(this IApplicationBuilder app)
-        {
-            app.UseMiddleware<CurrentUserMiddleware>();
-            return app;
-        }
+namespace DN.WebApi.Infrastructure.Extensions;
 
-        internal static IServiceCollection AddMiddlewareCurrentUser(this IServiceCollection services)
-        {
-            services.AddScoped<CurrentUserMiddleware>();
-            return services;
-        }
+public static class CurrentUserExtensions
+{
+    internal static IApplicationBuilder UseMiddlewareCurrentUser(this IApplicationBuilder app)
+    {
+        app.UseMiddleware<CurrentUserMiddleware>();
+        return app;
+    }
+
+    internal static IServiceCollection AddMiddlewareCurrentUser(this IServiceCollection services)
+    {
+        services.AddScoped<CurrentUserMiddleware>();
+        return services;
     }
 }

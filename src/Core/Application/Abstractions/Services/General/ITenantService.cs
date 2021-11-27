@@ -1,15 +1,14 @@
 using DN.WebApi.Shared.DTOs.Multitenancy;
 
-namespace DN.WebApi.Application.Abstractions.Services.General
+namespace DN.WebApi.Application.Abstractions.Services.General;
+
+public interface ITenantService : IScopedService
 {
-    public interface ITenantService : IScopedService
-    {
-        public string GetDatabaseProvider();
+    public string GetDatabaseProvider();
 
-        public string GetConnectionString();
+    public string GetConnectionString();
 
-        public TenantDto GetCurrentTenant();
+    public TenantDto GetCurrentTenant();
 
-        public void SetCurrentTenant(string tenant);
-    }
+    public void SetCurrentTenant(string tenant);
 }

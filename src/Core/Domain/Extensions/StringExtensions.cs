@@ -1,10 +1,9 @@
-namespace DN.WebApi.Domain.Extensions
+namespace DN.WebApi.Domain.Extensions;
+
+public static class StringExtensions
 {
-    public static class StringExtensions
+    public static string NullToString(this object Value)
     {
-        public static string NullToString(this object Value)
-        {
-            return Value == null ? string.Empty : Value.ToString();
-        }
+        return Value == null ? string.Empty : Value.ToString();
     }
 }
