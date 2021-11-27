@@ -1,4 +1,5 @@
 ﻿using DN.WebApi.Infrastructure.Extensions;
+using DN.WebApi.Infrastructure.Utilities;
 using Hangfire.Client;
 using Hangfire.Logging;
 using Microsoft.AspNetCore.Http;
@@ -24,8 +25,11 @@ public class TenantJobFilter : IClientFilter
 
         using var scope = _services.CreateScope();
         var contextAccessor = scope.ServiceProvider.GetService<IHttpContextAccessor>();
-        context.SetJobParameter("tenant", contextAccessor.HttpContext.User.GetTenant());
-        context.SetJobParameter("userId", contextAccessor.HttpContext.User.GetUserId());
+        var httpContext = contextAccessor.HttpContext;
+        string tenantId = TenantResolver.Resolver(httpContext);
+        string userId = httpContext.User.GetUserId();
+        context.SetJobParameter("tenant", tenantId);
+        context.SetJobParameter("userId", userId);
     }
 
     public void OnCreated(CreatedContext context)
