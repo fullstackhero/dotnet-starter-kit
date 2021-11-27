@@ -1,4 +1,4 @@
-﻿using DN.WebApi.Shared.DTOs;
+﻿using DN.WebApi.Shared.DTOs.Notifications;
 
 namespace DN.WebApi.Application.Abstractions.Services.General;
 

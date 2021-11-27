@@ -1,4 +1,4 @@
-﻿namespace DN.WebApi.Shared.DTOs;
+﻿namespace DN.WebApi.Shared.DTOs.Notifications;
 
 public interface INotificationMessage
 {

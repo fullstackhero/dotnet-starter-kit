@@ -1,6 +1,6 @@
 ﻿using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Infrastructure.Hubs;
-using DN.WebApi.Shared.DTOs;
+using DN.WebApi.Shared.DTOs.Notifications;
 using Microsoft.AspNetCore.SignalR;
 
 namespace DN.WebApi.Infrastructure.Services.General;
