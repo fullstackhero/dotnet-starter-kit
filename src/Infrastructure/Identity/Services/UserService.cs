@@ -122,8 +122,13 @@ public class UserService : IUserService
     {
         var userPermissions = new List<PermissionDto>();
         var user = await _userManager.FindByIdAsync(userId);
-        var roles = await _roleManager.Roles.AsNoTracking().ToListAsync();
-        foreach (var role in roles)
+        if (user == null)
+        {
+            return await Result<List<PermissionDto>>.FailAsync(_localizer["User Not Found."]);
+        }
+
+        var roleNames = await _userManager.GetRolesAsync(user);
+        foreach (var role in _roleManager.Roles.Where(r => roleNames.Contains(r.Name)).ToList())
         {
             var permissions = await _context.RoleClaims.Where(a => a.RoleId == role.Id && a.ClaimType == "Permission").ToListAsync();
             var permissionResponse = permissions.Adapt<List<PermissionDto>>();

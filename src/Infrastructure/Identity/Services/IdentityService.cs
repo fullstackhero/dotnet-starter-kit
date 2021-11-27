@@ -4,6 +4,7 @@ using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Application.Wrapper;
+using DN.WebApi.Domain.Constants;
 using DN.WebApi.Domain.Enums;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Shared.DTOs.General.Requests;
@@ -89,6 +90,14 @@ public class IdentityService : IIdentityService
             var result = await _userManager.CreateAsync(user, request.Password);
             if (result.Succeeded)
             {
+                try
+                {
+                    await _userManager.AddToRoleAsync(user, RoleConstants.Basic);
+                }
+                catch
+                {
+                }
+
                 var messages = new List<string> { string.Format(_localizer["User {0} Registered."], user.UserName) };
                 if (_mailSettings.EnableVerification)
                 {

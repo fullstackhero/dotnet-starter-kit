@@ -50,6 +50,6 @@
         <ProjectReference Include="..\Shared\Shared.DTOs\Shared.DTOs.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <None Include="Seeders\**" CopyToOutputDirectory="PreserveNewest" />
+        <None Include="Seeders\*.json" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 </Project>
