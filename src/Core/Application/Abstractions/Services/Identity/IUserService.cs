@@ -1,7 +1,5 @@
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Shared.DTOs.Identity;
-using DN.WebApi.Shared.DTOs.Identity.Requests;
-using DN.WebApi.Shared.DTOs.Identity.Responses;
 
 namespace DN.WebApi.Application.Abstractions.Services.Identity;
 

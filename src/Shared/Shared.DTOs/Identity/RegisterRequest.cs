@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace DN.WebApi.Shared.DTOs.Identity.Requests;
+namespace DN.WebApi.Shared.DTOs.Identity;
 
 public class RegisterRequest
 {

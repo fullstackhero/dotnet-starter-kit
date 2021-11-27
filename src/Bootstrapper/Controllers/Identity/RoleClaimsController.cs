@@ -1,6 +1,6 @@
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Domain.Constants;
-using DN.WebApi.Shared.DTOs.Identity.Requests;
+using DN.WebApi.Shared.DTOs.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

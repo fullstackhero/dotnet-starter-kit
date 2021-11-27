@@ -7,7 +7,7 @@ using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Enums;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Shared.DTOs.General.Requests;
-using DN.WebApi.Shared.DTOs.Identity.Requests;
+using DN.WebApi.Shared.DTOs.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;

@@ -1,4 +1,4 @@
-namespace DN.WebApi.Shared.DTOs.Identity.Responses;
+namespace DN.WebApi.Shared.DTOs.Identity;
 
 public class PermissionResponse
 {

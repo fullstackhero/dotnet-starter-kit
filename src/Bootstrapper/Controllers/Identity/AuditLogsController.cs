@@ -9,9 +9,9 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity;
 public class AuditLogsController : ControllerBase
 {
     private readonly ICurrentUser _user;
-    private readonly IAuditService _auditService;
+    private readonly IAuditLogsService _auditService;
 
-    public AuditLogsController(IAuditService auditService, ICurrentUser user)
+    public AuditLogsController(IAuditLogsService auditService, ICurrentUser user)
     {
         _auditService = auditService;
         _user = user;

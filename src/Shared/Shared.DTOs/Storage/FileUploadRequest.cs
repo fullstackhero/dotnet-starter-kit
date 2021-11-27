@@ -1,4 +1,4 @@
-namespace DN.WebApi.Shared.DTOs.General.Requests;
+namespace DN.WebApi.Shared.DTOs.Storage;
 
 public class FileUploadRequest
 {

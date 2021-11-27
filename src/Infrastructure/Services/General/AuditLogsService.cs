@@ -1,17 +1,17 @@
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Infrastructure.Persistence;
-using DN.WebApi.Shared.DTOs.General.Responses;
+using DN.WebApi.Shared.DTOs.AuditLogs;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 
 namespace DN.WebApi.Infrastructure.Services.General;
 
-public class AuditService : IAuditService
+public class AuditLogsService : IAuditLogsService
 {
     private readonly ApplicationDbContext _context;
 
-    public AuditService(ApplicationDbContext context)
+    public AuditLogsService(ApplicationDbContext context)
     {
         _context = context;
     }

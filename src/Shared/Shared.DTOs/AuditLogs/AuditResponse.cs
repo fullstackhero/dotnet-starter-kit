@@ -1,4 +1,4 @@
-namespace DN.WebApi.Shared.DTOs.General.Responses;
+namespace DN.WebApi.Shared.DTOs.AuditLogs;
 
 public class AuditResponse
 {

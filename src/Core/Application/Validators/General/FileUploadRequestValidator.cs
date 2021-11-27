@@ -1,4 +1,4 @@
-using DN.WebApi.Shared.DTOs.General.Requests;
+using DN.WebApi.Shared.DTOs.Storage;
 using FluentValidation;
 
 namespace DN.WebApi.Application.Validators.General;

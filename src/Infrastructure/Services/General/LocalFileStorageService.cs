@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Domain.Enums;
 using DN.WebApi.Infrastructure.Extensions;
-using DN.WebApi.Shared.DTOs.General.Requests;
+using DN.WebApi.Shared.DTOs.Storage;
 
 namespace DN.WebApi.Infrastructure.Services.General;
 

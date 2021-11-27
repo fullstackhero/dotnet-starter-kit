@@ -1,5 +1,5 @@
 using DN.WebApi.Application.Abstractions.Services.Identity;
-using DN.WebApi.Shared.DTOs.Identity.Requests;
+using DN.WebApi.Shared.DTOs.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DN.WebApi.Bootstrapper.Controllers.Identity;

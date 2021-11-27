@@ -1,5 +1,5 @@
 using DN.WebApi.Domain.Enums;
-using DN.WebApi.Shared.DTOs.General.Requests;
+using DN.WebApi.Shared.DTOs.Storage;
 
 namespace DN.WebApi.Application.Abstractions.Services.General;
 

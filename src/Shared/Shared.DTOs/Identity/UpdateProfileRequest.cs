@@ -1,6 +1,6 @@
-using DN.WebApi.Shared.DTOs.General.Requests;
+using DN.WebApi.Shared.DTOs.Storage;
 
-namespace DN.WebApi.Shared.DTOs.Identity.Requests;
+namespace DN.WebApi.Shared.DTOs.Identity;
 
 public class UpdateProfileRequest : IMustBeValid
 {

@@ -1,5 +1,5 @@
 using DN.WebApi.Application.Validators.General;
-using DN.WebApi.Shared.DTOs.Identity.Requests;
+using DN.WebApi.Shared.DTOs.Identity;
 using FluentValidation;
 
 namespace DN.WebApi.Application.Validators.Identity;

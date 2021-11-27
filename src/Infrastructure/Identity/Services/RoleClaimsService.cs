@@ -7,8 +7,6 @@ using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Shared.DTOs.Identity;
-using DN.WebApi.Shared.DTOs.Identity.Requests;
-using DN.WebApi.Shared.DTOs.Identity.Responses;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
