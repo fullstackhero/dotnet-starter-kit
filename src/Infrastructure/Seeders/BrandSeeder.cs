@@ -1,8 +1,8 @@
-using System.Reflection;
-using DN.WebApi.Application.Abstractions.Services.General;
-using DN.WebApi.Domain.Entities.Catalog;
-using DN.WebApi.Infrastructure.Persistence;
+using DN.WebApi.Application.Common.Interfaces;
+using DN.WebApi.Domain.Catalog;
+using DN.WebApi.Infrastructure.Persistence.Contexts;
 using Microsoft.Extensions.Logging;
+using System.Reflection;
 
 namespace DN.WebApi.Infrastructure.Seeders;
 

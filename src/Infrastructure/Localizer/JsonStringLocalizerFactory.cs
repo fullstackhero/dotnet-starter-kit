@@ -1,4 +1,4 @@
-﻿using DN.WebApi.Application.Abstractions.Services.General;
+﻿using DN.WebApi.Application.Common.Interfaces;
 using Microsoft.Extensions.Localization;
 
 namespace DN.WebApi.Infrastructure.Localizer;

@@ -1,6 +1,6 @@
-using System.Security.Claims;
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace DN.WebApi.Infrastructure.Identity.Permissions;
 

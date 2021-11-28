@@ -1,5 +1,5 @@
 using DN.WebApi.Application.Abstractions.Services.Identity;
-using DN.WebApi.Infrastructure.SwaggerFilters;
+using DN.WebApi.Infrastructure.Swagger;
 using DN.WebApi.Shared.DTOs.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

@@ -1,5 +1,3 @@
-using DN.WebApi.Application.Abstractions.Services;
-
 namespace DN.WebApi.Application.Common.Interfaces;
 
 public interface IEmailTemplateService : ITransientService

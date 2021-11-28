@@ -1,10 +1,10 @@
-using System.Data;
-using System.Linq.Expressions;
 using DN.WebApi.Application.Specifications;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Common.Contracts;
 using DN.WebApi.Shared.DTOs;
 using DN.WebApi.Shared.DTOs.Filters;
+using System.Data;
+using System.Linq.Expressions;
 
 namespace DN.WebApi.Application.Common.Interfaces;
 
@@ -49,28 +49,38 @@ public interface IRepositoryAsync : ITransientService
     #endregion Save Changes
 
     #region Find
+
     Task<IEnumerable<T>> FindByConditionAsync<T>(Expression<Func<T, bool>> expression, bool AsNoTracking = true, BaseSpecification<T> specification = null)
     where T : BaseEntity;
-    #endregion
+
+    #endregion Find
 
     #region FirstOrDefault
+
     Task<T> FirstByConditionAsync<T>(Expression<Func<T, bool>> expression, bool AsNoTracking = true, BaseSpecification<T> specification = null)
     where T : BaseEntity;
-    #endregion
+
+    #endregion FirstOrDefault
 
     #region LastOrDefault
+
     Task<T> LastByConditionAsync<T>(Expression<Func<T, bool>> expression, bool AsNoTracking = true, BaseSpecification<T> specification = null)
     where T : BaseEntity;
-    #endregion
+
+    #endregion LastOrDefault
 
     #region Create
+
     Task<Guid> CreateAsync<T>(T entity)
     where T : BaseEntity;
+
     Task<IList<Guid>> CreateRangeAsync<T>(IEnumerable<T> entity)
     where T : BaseEntity;
-    #endregion
+
+    #endregion Create
 
     #region DeleteOrRemoveOrClear
+
     Task RemoveAsync<T>(T entity)
     where T : BaseEntity;
 
@@ -79,9 +89,11 @@ public interface IRepositoryAsync : ITransientService
 
     Task ClearAsync<T>(Expression<Func<T, bool>> expression = null, BaseSpecification<T> specification = null)
     where T : BaseEntity;
-    #endregion
+
+    #endregion DeleteOrRemoveOrClear
 
     #region Paginate
+
     Task<PaginatedResult<TDto>> GetSearchResultsAsync<T, TDto>(int pageNumber, int pageSize = int.MaxValue, string[] orderBy = null, Search advancedSearch = null, string keyword = null, Expression<Func<T, bool>> expression = null, CancellationToken cancellationToken = default)
     where T : BaseEntity
     where TDto : IDto;
@@ -89,10 +101,13 @@ public interface IRepositoryAsync : ITransientService
     Task<PaginatedResult<TDto>> GetSearchResultsAsync<T, TDto>(int pageNumber, int pageSize = int.MaxValue, string[] orderBy = null, Filters<T> filters = null, Search advancedSearch = null, string keyword = null, CancellationToken cancellationToken = default)
     where T : BaseEntity
     where TDto : IDto;
-    #endregion
+
+    #endregion Paginate
 
     #region Aggregations
+
     Task<int> CountByConditionAsync<T>(Expression<Func<T, bool>> expression = null)
     where T : BaseEntity;
-    #endregion
+
+    #endregion Aggregations
 }

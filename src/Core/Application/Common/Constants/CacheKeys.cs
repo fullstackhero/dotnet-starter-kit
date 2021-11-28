@@ -1,5 +1,4 @@
 using DN.WebApi.Domain.Common.Contracts;
-using DN.WebApi.Domain.Contracts;
 
 namespace DN.WebApi.Application.Constants;
 

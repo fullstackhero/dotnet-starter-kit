@@ -1,7 +1,6 @@
 using DN.WebApi.Application.DependencyInjection;
-using DN.WebApi.Application.Extensions;
 using DN.WebApi.Bootstrapper.Extensions;
-using DN.WebApi.Infrastructure.Extensions;
+using DN.WebApi.Infrastructure.DependencyInjection;
 using FluentValidation.AspNetCore;
 using Serilog;
 

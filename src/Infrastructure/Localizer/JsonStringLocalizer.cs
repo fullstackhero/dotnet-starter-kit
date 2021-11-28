@@ -1,10 +1,10 @@
-﻿using System.Globalization;
-using DN.WebApi.Application.Abstractions.Services.General;
-using DN.WebApi.Infrastructure.Extensions;
+﻿using DN.WebApi.Application.Common.Interfaces;
+using DN.WebApi.Infrastructure.Common.Extensions;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Localization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Globalization;
 
 namespace DN.WebApi.Infrastructure.Localizer;
 

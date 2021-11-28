@@ -5,6 +5,7 @@ namespace DN.WebApi.Domain.Common.Contracts;
 public class Filters<T>
 {
     private readonly List<Filter<T>> _filterList;
+
     public Filters()
     {
         _filterList = new List<Filter<T>>();

@@ -1,10 +1,10 @@
 using DN.WebApi.Application.Abstractions.Services.Identity;
-using DN.WebApi.Application.Exceptions;
+using DN.WebApi.Application.Identity.Exceptions;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Constants;
-using DN.WebApi.Infrastructure.Extensions;
+using DN.WebApi.Infrastructure.Identity.Extensions;
 using DN.WebApi.Infrastructure.Identity.Models;
-using DN.WebApi.Infrastructure.Persistence;
+using DN.WebApi.Infrastructure.Persistence.Contexts;
 using DN.WebApi.Infrastructure.Utilities;
 using DN.WebApi.Shared.DTOs.Identity;
 using Mapster;

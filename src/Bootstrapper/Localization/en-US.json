@@ -12,5 +12,5 @@
   "identity.invalidtoken": "Invalid Token.",
   "entity.notfound": "{0} {1} Not Found.",
   "product.alreadyexists": "Product {0} already Exists.",
-  "exceptionmiddleware.supportmessage" : "Provide the ErrorId to the support team for further analysis."
+  "exceptionmiddleware.supportmessage": "Provide the ErrorId to the support team for further analysis."
 }

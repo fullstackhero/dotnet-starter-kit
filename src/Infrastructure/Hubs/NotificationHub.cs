@@ -1,5 +1,5 @@
-﻿using DN.WebApi.Application.Abstractions.Services;
-using DN.WebApi.Infrastructure.Extensions;
+﻿using DN.WebApi.Application.Common.Interfaces;
+using DN.WebApi.Infrastructure.Identity.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
@@ -16,7 +16,7 @@ public class NotificationHub : Hub, ITransientService
         _logger = logger;
     }
 
-    public async override Task OnConnectedAsync()
+    public override async Task OnConnectedAsync()
     {
         string tenant = Context.User.GetTenant();
         if (string.IsNullOrEmpty(tenant))

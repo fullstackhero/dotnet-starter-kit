@@ -1,5 +1,5 @@
-﻿using System.ComponentModel;
-using DN.WebApi.Application.Common.Interfaces;
+﻿using DN.WebApi.Application.Common.Interfaces;
+using System.ComponentModel;
 
 namespace DN.WebApi.Application.Catalog.Interfaces;
 

@@ -1,5 +1,5 @@
-using System.Net;
 using DN.WebApi.Application.Exceptions;
+using System.Net;
 
 namespace DN.WebApi.Application.Multitenancy;
 
