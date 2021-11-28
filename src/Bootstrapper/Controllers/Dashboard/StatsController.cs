@@ -1,7 +1,7 @@
 using DN.WebApi.Application.Dashboard;
 using Microsoft.AspNetCore.Mvc;
 
-namespace DN.WebApi.Bootstrapper.Controllers.v1;
+namespace DN.WebApi.Bootstrapper.Controllers.Dashboard;
 
 public class StatsController : BaseController
 {
