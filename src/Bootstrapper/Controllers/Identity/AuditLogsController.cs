@@ -1,5 +1,5 @@
-using DN.WebApi.Application.Abstractions.Services.General;
 using DN.WebApi.Application.Abstractions.Services.Identity;
+using DN.WebApi.Application.Auditing;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DN.WebApi.Bootstrapper.Controllers.Identity;
@@ -9,9 +9,9 @@ namespace DN.WebApi.Bootstrapper.Controllers.Identity;
 public class AuditLogsController : ControllerBase
 {
     private readonly ICurrentUser _user;
-    private readonly IAuditLogsService _auditService;
+    private readonly IAuditService _auditService;
 
-    public AuditLogsController(IAuditLogsService auditService, ICurrentUser user)
+    public AuditLogsController(IAuditService auditService, ICurrentUser user)
     {
         _auditService = auditService;
         _user = user;
