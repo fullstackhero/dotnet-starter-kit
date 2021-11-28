@@ -1,7 +1,7 @@
 <Project>
     <PropertyGroup>
         <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)dotnet.ruleset</CodeAnalysisRuleSet>
-        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
         <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <NoDefaultExcludes>true</NoDefaultExcludes>
