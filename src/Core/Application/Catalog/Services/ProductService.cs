@@ -50,8 +50,14 @@ public class ProductService : IProductService
     {
         var product = await _repository.GetByIdAsync<Product>(id, null);
         if (product == null) throw new EntityNotFoundException(string.Format(_localizer["product.notfound"], id));
-        string productImagePath = string.Empty;
+        string productImagePath = null;
         if (request.Image != null) productImagePath = await _file.UploadAsync<Product>(request.Image, FileType.Image);
+        if (request.BrandId != default)
+        {
+            var brand = await _repository.GetByIdAsync<Brand>(request.BrandId, null);
+            if (brand == null) throw new EntityNotFoundException(string.Format(_localizer["brand.notfound"], id));
+        }
+
         var updatedProduct = product.Update(request.Name, request.Description, request.Rate, request.BrandId, productImagePath);
 
         // Add Domain Events to be raised after the commit

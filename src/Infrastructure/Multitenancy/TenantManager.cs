@@ -92,7 +92,7 @@ public class TenantManager : ITenantManager
         tenantInfo.Deactivate();
         _context.Tenants.Update(tenantInfo);
         await _context.SaveChangesAsync();
-        return await Result<object>.SuccessAsync($"Tenant {tenantInfo} is now Deactivated.");
+        return await Result<object>.SuccessAsync($"Tenant {tenantInfo.Key} is now Deactivated.");
     }
 
     public async Task<Result<object>> ActivateTenantAsync(string tenant)

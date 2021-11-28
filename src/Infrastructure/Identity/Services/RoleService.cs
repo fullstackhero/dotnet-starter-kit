@@ -151,6 +151,11 @@ public class RoleService : IRoleService
         {
             var errors = new List<string>();
             var role = await _roleManager.FindByIdAsync(roleId);
+            if (role == null)
+            {
+                return await Result<string>.FailAsync(_localizer["Role does not exist."]);
+            }
+
             if (role.Name == RoleConstants.Admin)
             {
                 var currentUser = await _userManager.Users.SingleAsync(x => x.Id == _currentUser.GetUserId().ToString());
