@@ -1,6 +1,6 @@
-using DN.WebApi.Domain.Contracts;
+using DN.WebApi.Domain.Common.Contracts;
 
-namespace DN.WebApi.Domain.Entities.Catalog.Events;
+namespace DN.WebApi.Domain.Catalog.Events;
 
 public class ProductUpdatedEvent : DomainEvent
 {

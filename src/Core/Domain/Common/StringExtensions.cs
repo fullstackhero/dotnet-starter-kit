@@ -1,4 +1,4 @@
-namespace DN.WebApi.Domain.Extensions;
+namespace DN.WebApi.Domain.Common;
 
 public static class StringExtensions
 {

@@ -1,4 +1,4 @@
-using DN.WebApi.Application.Abstractions.Services.Catalog;
+using DN.WebApi.Application.Catalog.Interfaces;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Shared.DTOs.Catalog;

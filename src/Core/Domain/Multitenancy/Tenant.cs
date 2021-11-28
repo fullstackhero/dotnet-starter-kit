@@ -1,7 +1,7 @@
+using DN.WebApi.Domain.Common.Contracts;
 using DN.WebApi.Domain.Constants;
-using DN.WebApi.Domain.Contracts;
 
-namespace DN.WebApi.Domain.Entities.Multitenancy;
+namespace DN.WebApi.Domain.Multitenancy;
 
 public class Tenant : AuditableEntity
 {

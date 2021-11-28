@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 using DN.WebApi.Application.Extensions;
-using DN.WebApi.Domain.Contracts;
+using DN.WebApi.Domain.Common.Contracts;
 
 namespace DN.WebApi.Application.Specifications;
 

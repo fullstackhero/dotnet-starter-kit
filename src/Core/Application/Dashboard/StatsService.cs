@@ -1,7 +1,7 @@
 using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Wrapper;
-using DN.WebApi.Domain.Entities.Catalog;
+using DN.WebApi.Domain.Catalog;
 using DN.WebApi.Shared.DTOs;
 
 namespace DN.WebApi.Application.Dashboard;

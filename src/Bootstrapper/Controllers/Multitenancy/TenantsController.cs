@@ -1,4 +1,4 @@
-using DN.WebApi.Application.Abstractions.Services.General;
+using DN.WebApi.Application.Multitenancy;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Shared.DTOs.Multitenancy;

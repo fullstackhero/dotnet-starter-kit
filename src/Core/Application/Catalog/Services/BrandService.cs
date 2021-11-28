@@ -2,8 +2,8 @@ using DN.WebApi.Application.Catalog.Interfaces;
 using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Exceptions;
 using DN.WebApi.Application.Wrapper;
-using DN.WebApi.Domain.Entities.Catalog;
-using DN.WebApi.Domain.Entities.Shared.Events;
+using DN.WebApi.Domain.Catalog;
+using DN.WebApi.Domain.Dashboard;
 using DN.WebApi.Shared.DTOs.Catalog;
 using Microsoft.Extensions.Localization;
 

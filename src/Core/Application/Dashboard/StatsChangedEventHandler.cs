@@ -1,6 +1,6 @@
+using DN.WebApi.Application.Common.Event;
 using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Application.Event;
-using DN.WebApi.Domain.Entities.Shared.Events;
+using DN.WebApi.Domain.Dashboard;
 using DN.WebApi.Shared.DTOs.Notifications;
 using MediatR;
 using Microsoft.Extensions.Logging;

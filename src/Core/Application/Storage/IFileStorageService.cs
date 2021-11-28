@@ -1,5 +1,5 @@
 using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Domain.Enums;
+using DN.WebApi.Domain.Common;
 using DN.WebApi.Shared.DTOs.Storage;
 
 namespace DN.WebApi.Application.Storage;
