@@ -8,13 +8,6 @@ namespace DN.WebApi.Infrastructure.Middlewares;
 
 public class RequestLoggingMiddleware : IMiddleware
 {
-    private readonly ICurrentUser _currentUser;
-
-    public RequestLoggingMiddleware(ICurrentUser currentUser)
-    {
-        _currentUser = currentUser;
-    }
-
     public async Task InvokeAsync(HttpContext httpContext, RequestDelegate next)
     {
         LogContext.PushProperty("RequestTimeUTC", DateTime.UtcNow);

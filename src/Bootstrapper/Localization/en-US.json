@@ -12,5 +12,7 @@
   "identity.invalidtoken": "Invalid Token.",
   "entity.notfound": "{0} {1} Not Found.",
   "product.alreadyexists": "Product {0} already Exists.",
+  "product.notfound": "Product {0} Not Found.",
+  "brand.notfound": "Brand {0} Not Found.",
   "exceptionmiddleware.supportmessage": "Provide the ErrorId to the support team for further analysis."
 }

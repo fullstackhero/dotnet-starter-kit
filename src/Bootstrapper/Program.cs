@@ -22,15 +22,8 @@ try
     app.UseInfrastructure(builder.Configuration);
     app.Run();
 }
-catch (Exception ex)
+catch (Exception ex) when (!ex.GetType().Name.Equals("StopTheHostException", StringComparison.Ordinal))
 {
-    // Don't catch StopTheHostException as otherwise EF Core Migrations don't work (amongst other things).
-    // See https://github.com/dotnet/runtime/issues/60600 for why this is handled this way.
-    if (ex.GetType().Name.Equals("StopTheHostException", StringComparison.Ordinal))
-    {
-        throw;
-    }
-
     Log.Fatal(ex, "Unhandled exception");
 }
 finally
