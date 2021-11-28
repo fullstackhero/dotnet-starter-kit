@@ -1,4 +1,4 @@
-using DN.WebApi.Application.Abstractions.Services.Identity;
+using DN.WebApi.Application.Identity.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Serilog;
 using Serilog.Context;

@@ -1,6 +1,6 @@
-﻿using DN.WebApi.Application.Abstractions.Services.Identity;
-using DN.WebApi.Application.Catalog.Interfaces;
+﻿using DN.WebApi.Application.Catalog.Interfaces;
 using DN.WebApi.Application.Common.Interfaces;
+using DN.WebApi.Application.Identity.Interfaces;
 using DN.WebApi.Domain.Catalog;
 using DN.WebApi.Domain.Dashboard;
 using DN.WebApi.Shared.DTOs.Notifications;
