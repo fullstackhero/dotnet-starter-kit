@@ -108,6 +108,14 @@ Join our Discord - [fullstackhero @ Discord](https://discord.gg/gdgHRt4mMw)
 
 - Discord [@fullstackhero](https://discord.gg/gdgHRt4mMw)
 
+## Contributors
+
+Submit your PR and join the elite list!
+
+<a href="https://github.com/fullstackhero/dotnet-webapi-boilerplate/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=fullstackhero/dotnet-webapi-boilerplate" />
+</a>
+
 ## License
 
 This project is licensed with the [MIT license](LICENSE).
