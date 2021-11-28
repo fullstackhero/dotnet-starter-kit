@@ -5,7 +5,7 @@ using DN.WebApi.Shared.DTOs.Catalog;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
-namespace DN.WebApi.Bootstrapper.Controllers.Catalog;
+namespace DN.WebApi.Host.Controllers.Catalog;
 
 public class BrandsController : BaseController
 {

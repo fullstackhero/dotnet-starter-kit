@@ -4,7 +4,7 @@ using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Shared.DTOs.Catalog;
 using Microsoft.AspNetCore.Mvc;
 
-namespace DN.WebApi.Bootstrapper.Controllers.Catalog;
+namespace DN.WebApi.Host.Controllers.Catalog;
 
 public class ProductsController : BaseController
 {

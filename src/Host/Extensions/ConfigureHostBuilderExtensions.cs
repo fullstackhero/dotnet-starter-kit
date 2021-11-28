@@ -1,4 +1,4 @@
-namespace DN.WebApi.Bootstrapper.Extensions;
+namespace DN.WebApi.Host.Extensions;
 
 public static class ConfigureHostBuilderExtensions
 {

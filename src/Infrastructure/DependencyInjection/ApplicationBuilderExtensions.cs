@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Runtime.CompilerServices;
 using DN.WebApi.Infrastructure.Common.Extensions;
 using DN.WebApi.Infrastructure.Hubs;
 using DN.WebApi.Infrastructure.Identity.Extensions;
@@ -9,10 +11,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.FileProviders;
-using System.Globalization;
-using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("DN.WebApi.Bootstrapper")]
+[assembly: InternalsVisibleTo("DN.WebApi.Host")]
 
 namespace DN.WebApi.Infrastructure.DependencyInjection;
 

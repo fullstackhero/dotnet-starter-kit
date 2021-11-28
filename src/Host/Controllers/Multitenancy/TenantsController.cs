@@ -5,7 +5,7 @@ using DN.WebApi.Shared.DTOs.Multitenancy;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
-namespace DN.WebApi.Bootstrapper.Controllers.Multitenancy;
+namespace DN.WebApi.Host.Controllers.Multitenancy;
 
 [ApiController]
 [Route("api/[controller]")]

@@ -9,7 +9,7 @@
     }
   },
   "profiles": {
-    "Bootstrapper": {
+    "Host": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": false,

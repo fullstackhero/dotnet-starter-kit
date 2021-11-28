@@ -4,7 +4,7 @@ using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Shared.DTOs.Identity;
 using Microsoft.AspNetCore.Mvc;
 
-namespace DN.WebApi.Bootstrapper.Controllers.Identity;
+namespace DN.WebApi.Host.Controllers.Identity;
 
 [ApiController]
 [Route("api/[controller]")]

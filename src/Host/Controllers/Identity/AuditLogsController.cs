@@ -2,7 +2,7 @@ using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Auditing;
 using Microsoft.AspNetCore.Mvc;
 
-namespace DN.WebApi.Bootstrapper.Controllers.Identity;
+namespace DN.WebApi.Host.Controllers.Identity;
 
 [ApiController]
 [Route("api/audit-logs")]

@@ -25,12 +25,12 @@
             "dockerBuild": {
                 "tag": "dotnetwebapiboilerplate:dev",
                 "target": "base",
-                "dockerfile": "${workspaceFolder}/src/Bootstrapper/Dockerfile",
+                "dockerfile": "${workspaceFolder}/src/Host/Dockerfile",
                 "context": "${workspaceFolder}",
                 "pull": true
             },
             "netCore": {
-                "appProject": "${workspaceFolder}/src/Bootstrapper/Bootstrapper.csproj"
+                "appProject": "${workspaceFolder}/src/Host/Host.csproj"
             }
         },
         {
@@ -41,12 +41,12 @@
             ],
             "dockerBuild": {
                 "tag": "dotnetwebapiboilerplate:latest",
-                "dockerfile": "${workspaceFolder}/src/Bootstrapper/Dockerfile",
+                "dockerfile": "${workspaceFolder}/src/Host/Dockerfile",
                 "context": "${workspaceFolder}",
                 "pull": true
             },
             "netCore": {
-                "appProject": "${workspaceFolder}/src/Bootstrapper/Bootstrapper.csproj"
+                "appProject": "${workspaceFolder}/src/Host/Host.csproj"
             }
         },
         {
@@ -57,7 +57,7 @@
             ],
             "dockerRun": {},
             "netCore": {
-                "appProject": "${workspaceFolder}/src/Bootstrapper/Bootstrapper.csproj",
+                "appProject": "${workspaceFolder}/src/Host/Host.csproj",
                 "enableDebugging": true
             }
         },
@@ -69,7 +69,7 @@
             ],
             "dockerRun": {},
             "netCore": {
-                "appProject": "${workspaceFolder}/src/Bootstrapper/Bootstrapper.csproj"
+                "appProject": "${workspaceFolder}/src/Host/Host.csproj"
             }
         }
     ]

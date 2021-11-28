@@ -6,9 +6,9 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/src/Bootstrapper/bin/Debug/net6.0/DN.WebApi.Bootstrapper.dll",
+            "program": "${workspaceFolder}/src/Host/bin/Debug/net6.0/DN.WebApi.Host.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/src/Bootstrapper",
+            "cwd": "${workspaceFolder}/src/Host",
             "stopAtEntry": false,
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development"
@@ -28,7 +28,7 @@
             "request": "launch",
             "preLaunchTask": "docker-run: debug",
             "netCore": {
-                "appProject": "${workspaceFolder}/src/Bootstrapper/Bootstrapper.csproj"
+                "appProject": "${workspaceFolder}/src/Host/Host.csproj"
             }
         }
     ]

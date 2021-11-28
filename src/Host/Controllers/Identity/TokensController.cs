@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
-namespace DN.WebApi.Bootstrapper.Controllers.Identity;
+namespace DN.WebApi.Host.Controllers.Identity;
 
 [ApiController]
 [Route("api/[controller]")]
