@@ -33,13 +33,14 @@
 - Fixed Password Reset / Forgot
 - Fixed Omnisharp Warnings / Code Cleanup
 - Fixed Repository Method
-- Log Hangfire to Serilog - Thanks [frankyjquintero](https://github.com/frankyjquintero) 
-- Extras Hangfire extensions - Thanks [frankyjquintero](https://github.com/frankyjquintero) 
-- Hangfire implementation examples - Thanks [frankyjquintero](https://github.com/frankyjquintero) 
-- Separate JSON files for each Settings - Thanks [unchase](https://github.com/unchase) 
-- Added Events and Handlers via MediatR - Thanks [frankyjquintero](https://github.com/frankyjquintero) 
+- Log Hangfire to Serilog - Thanks [frankyjquintero](https://github.com/frankyjquintero)
+- Extras Hangfire extensions - Thanks [frankyjquintero](https://github.com/frankyjquintero)
+- Hangfire implementation examples - Thanks [frankyjquintero](https://github.com/frankyjquintero)
+- Separate JSON files for each Settings - Thanks [unchase](https://github.com/unchase)
+- Added Events and Handlers via MediatR - Thanks [frankyjquintero](https://github.com/frankyjquintero)
 - Moved to Tenancy Middleware - Thanks [frankyjquintero](https://github.com/frankyjquintero) & [fretje](https://github.com/fretje)
 - Solution Cleanup - rulesets & analyzer - Thanks [fretje](https://github.com/fretje)
 - Added More Functions for RepositoryAsync - Thanks [ghaithprosoft](https://github.com/ghaithprosoft)
 - Entity Database Seeding Simplified
 - File-Scoped namespaces and implicit usings
+- Better Folder Structure / Modular
