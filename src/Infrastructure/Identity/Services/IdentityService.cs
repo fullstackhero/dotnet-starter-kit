@@ -105,13 +105,10 @@ public class IdentityService : IIdentityService
                 {
                     // send verification email
                     string emailVerificationUri = await GetEmailVerificationUriAsync(user, origin);
-                    var mailRequest = new MailRequest
-                    {
-                        From = _mailSettings.From,
-                        To = user.Email,
-                        Body = _templateService.GenerateEmailConfirmationMail(user.UserName, user.Email, emailVerificationUri),
-                        Subject = _localizer["Confirm Registration"]
-                    };
+                    var mailRequest = new MailRequest(
+                        user.Email,
+                        _localizer["Confirm Registration"],
+                        _templateService.GenerateEmailConfirmationMail(user.UserName, user.Email, emailVerificationUri));
                     _jobService.Enqueue(() => _mailService.SendAsync(mailRequest));
                     messages.Add(_localizer[$"Please check {user.Email} to verify your account!"]);
                 }
@@ -190,12 +187,10 @@ public class IdentityService : IIdentityService
         const string route = "account/reset-password";
         var endpointUri = new Uri(string.Concat($"{origin}/", route));
         string passwordResetUrl = QueryHelpers.AddQueryString(endpointUri.ToString(), "Token", code);
-        var mailRequest = new MailRequest
-        {
-            Body = _localizer[$"Your Password Reset Token is '{code}'. You can reset your password using the {endpointUri} Endpoint."],
-            Subject = _localizer["Reset Password"],
-            To = request.Email
-        };
+        var mailRequest = new MailRequest(
+            request.Email,
+            _localizer["Reset Password"],
+            _localizer[$"Your Password Reset Token is '{code}'. You can reset your password using the {endpointUri} Endpoint."]);
         _jobService.Enqueue(() => _mailService.SendAsync(mailRequest));
         return await Result.SuccessAsync(_localizer["Password Reset Mail has been sent to your authorized Email."]);
     }
