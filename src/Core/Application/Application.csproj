@@ -3,6 +3,7 @@
         <TargetFramework>net6.0</TargetFramework>
         <RootNamespace>DN.WebApi.Application</RootNamespace>
         <AssemblyName>DN.WebApi.Application</AssemblyName>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="10.3.4" />

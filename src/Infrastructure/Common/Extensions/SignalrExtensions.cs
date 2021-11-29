@@ -5,13 +5,13 @@ using Serilog;
 
 namespace DN.WebApi.Infrastructure.Common.Extensions;
 
-public static class SignalrExtensions
+public static class SignalRExtensions
 {
     internal static IServiceCollection AddNotifications(this IServiceCollection services)
     {
-        ILogger logger = Log.ForContext(typeof(SignalrExtensions));
+        ILogger logger = Log.ForContext(typeof(SignalRExtensions));
 
-        var signalSettings = services.GetOptions<SignalSettings>("SignalRSettings");
+        var signalSettings = services.GetOptions<SignalRSettings>("SignalRSettings");
 
         if (!signalSettings.UseBackplane)
         {
@@ -19,7 +19,7 @@ public static class SignalrExtensions
         }
         else
         {
-            var backplaneSettings = services.GetOptions<SignalSettings.Backplane>("SignalRSettings:Backplane");
+            var backplaneSettings = services.GetOptions<SignalRSettings.Backplane>("SignalRSettings:Backplane");
             switch (backplaneSettings.Provider)
             {
                 case "redis":

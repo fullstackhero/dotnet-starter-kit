@@ -7,7 +7,7 @@ namespace DN.WebApi.Application.Specifications;
 public class BaseSpecification<T> : ISpecification<T>
 where T : BaseEntity
 {
-    public Expression<Func<T, bool>> Criteria { get; set; }
+    public Expression<Func<T, bool>>? Criteria { get; set; }
     public List<Expression<Func<T, object>>> Includes { get; } = new();
     public List<string> IncludeStrings { get; } = new();
 

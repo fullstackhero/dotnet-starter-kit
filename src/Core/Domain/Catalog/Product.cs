@@ -14,7 +14,7 @@ public class Product : AuditableEntity, IMustHaveTenant
     public Guid BrandId { get; set; }
     public virtual Brand Brand { get; set; } = default!;
 
-    public Product(string name, string description, decimal rate, in Guid brandId, string imagePath)
+    public Product(string? name, string? description, decimal rate, in Guid brandId, string? imagePath)
     {
         Name = name;
         Description = description;
@@ -27,7 +27,7 @@ public class Product : AuditableEntity, IMustHaveTenant
     {
     }
 
-    public Product Update(string name, string description, decimal rate, in Guid brandId, string imagePath)
+    public Product Update(string? name, string? description, decimal rate, in Guid brandId, string? imagePath)
     {
         if (name != null && !Name.NullToString().Equals(name)) Name = name;
         if (description != null && !Description.NullToString().Equals(description)) Description = description;

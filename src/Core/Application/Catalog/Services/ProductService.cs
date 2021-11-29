@@ -50,7 +50,7 @@ public class ProductService : IProductService
     {
         var product = await _repository.GetByIdAsync<Product>(id, null);
         if (product == null) throw new EntityNotFoundException(string.Format(_localizer["product.notfound"], id));
-        string productImagePath = null;
+        string? productImagePath = null;
         if (request.Image != null) productImagePath = await _file.UploadAsync<Product>(request.Image, FileType.Image);
         if (request.BrandId != default)
         {
@@ -96,9 +96,9 @@ public class ProductService : IProductService
     public async Task<PaginatedResult<ProductDto>> SearchAsync(ProductListFilter filter)
     {
         var filters = new Filters<Product>();
-        filters.Add(filter.BrandId.HasValue, x => x.BrandId.Equals(filter.BrandId.Value));
-        filters.Add(filter.MinimumRate.HasValue, x => x.Rate >= filter.MinimumRate.Value);
-        filters.Add(filter.MaximumRate.HasValue, x => x.Rate <= filter.MaximumRate.Value);
+        filters.Add(filter.BrandId.HasValue, x => x.BrandId.Equals(filter.BrandId!.Value));
+        filters.Add(filter.MinimumRate.HasValue, x => x.Rate >= filter.MinimumRate!.Value);
+        filters.Add(filter.MaximumRate.HasValue, x => x.Rate <= filter.MaximumRate!.Value);
 
         return await _repository.GetSearchResultsAsync<Product, ProductDto>(filter.PageNumber, filter.PageSize, filter.OrderBy, filters, filter.AdvancedSearch, filter.Keyword);
     }
