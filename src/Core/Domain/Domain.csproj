@@ -3,6 +3,7 @@
         <TargetFramework>net6.0</TargetFramework>
         <RootNamespace>DN.WebApi.Domain</RootNamespace>
         <AssemblyName>DN.WebApi.Domain</AssemblyName>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="NewId" Version="4.0.0-develop.44" />
