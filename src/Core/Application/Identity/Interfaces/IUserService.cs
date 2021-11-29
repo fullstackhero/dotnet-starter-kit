@@ -2,7 +2,7 @@ using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Shared.DTOs.Identity;
 
-namespace DN.WebApi.Application.Abstractions.Services.Identity;
+namespace DN.WebApi.Application.Identity.Interfaces;
 
 public interface IUserService : ITransientService
 {

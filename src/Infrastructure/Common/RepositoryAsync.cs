@@ -1,8 +1,5 @@
 using Dapper;
 using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Application.Constants;
-using DN.WebApi.Application.Exceptions;
-using DN.WebApi.Application.Specifications;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Common.Contracts;
 using DN.WebApi.Domain.Contracts;
@@ -18,6 +15,9 @@ using System.Data;
 using System.Linq.Dynamic.Core;
 using System.Linq.Expressions;
 using System.Text;
+using DN.WebApi.Application.Common.Constants;
+using DN.WebApi.Application.Common.Exceptions;
+using DN.WebApi.Application.Common.Specifications;
 
 namespace DN.WebApi.Infrastructure.Persistence.Repositories;
 

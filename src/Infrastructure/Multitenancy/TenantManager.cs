@@ -1,6 +1,6 @@
-using DN.WebApi.Application.Abstractions.Services.Identity;
+using DN.WebApi.Application.Common.Exceptions;
 using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Application.Exceptions;
+using DN.WebApi.Application.Identity.Interfaces;
 using DN.WebApi.Application.Multitenancy;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Application.Wrapper;

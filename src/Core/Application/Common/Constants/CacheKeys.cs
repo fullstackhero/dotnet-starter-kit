@@ -1,6 +1,6 @@
 using DN.WebApi.Domain.Common.Contracts;
 
-namespace DN.WebApi.Application.Constants;
+namespace DN.WebApi.Application.Common.Constants;
 
 public static class CacheKeys
 {

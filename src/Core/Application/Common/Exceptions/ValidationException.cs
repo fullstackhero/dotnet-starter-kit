@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace DN.WebApi.Application.Exceptions;
+namespace DN.WebApi.Application.Common.Exceptions;
 
 public class ValidationException : CustomException
 {
