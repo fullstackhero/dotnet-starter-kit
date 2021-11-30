@@ -1,4 +1,3 @@
-using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Identity.Exceptions;
 using DN.WebApi.Application.Multitenancy;
@@ -17,6 +16,7 @@ using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using System.Net;
 using System.Text;
+using DN.WebApi.Application.Identity.Interfaces;
 
 namespace DN.WebApi.Infrastructure.Identity.Services;
 

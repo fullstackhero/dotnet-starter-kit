@@ -1,8 +1,7 @@
-using DN.WebApi.Application.Extensions;
-using DN.WebApi.Domain.Common.Contracts;
 using System.Linq.Expressions;
+using DN.WebApi.Domain.Common.Contracts;
 
-namespace DN.WebApi.Application.Specifications;
+namespace DN.WebApi.Application.Common.Specifications;
 
 public class BaseSpecification<T> : ISpecification<T>
 where T : BaseEntity

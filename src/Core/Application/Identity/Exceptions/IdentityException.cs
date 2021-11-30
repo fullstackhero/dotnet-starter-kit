@@ -1,5 +1,5 @@
-using DN.WebApi.Application.Exceptions;
 using System.Net;
+using DN.WebApi.Application.Common.Exceptions;
 
 namespace DN.WebApi.Application.Identity.Exceptions;
 

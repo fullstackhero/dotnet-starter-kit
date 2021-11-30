@@ -1,7 +1,7 @@
-using DN.WebApi.Application.Common.Interfaces;
 using System.Security.Claims;
+using DN.WebApi.Application.Common.Interfaces;
 
-namespace DN.WebApi.Application.Abstractions.Services.Identity;
+namespace DN.WebApi.Application.Identity.Interfaces;
 
 public interface ICurrentUser : IScopedService
 {

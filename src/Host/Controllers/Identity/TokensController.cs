@@ -1,4 +1,4 @@
-using DN.WebApi.Application.Abstractions.Services.Identity;
+using DN.WebApi.Application.Identity.Interfaces;
 using DN.WebApi.Infrastructure.Swagger;
 using DN.WebApi.Shared.DTOs.Identity;
 using Microsoft.AspNetCore.Authorization;

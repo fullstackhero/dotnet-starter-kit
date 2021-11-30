@@ -1,6 +1,6 @@
-using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Infrastructure.Identity.Extensions;
 using System.Security.Claims;
+using DN.WebApi.Application.Identity.Interfaces;
 
 namespace DN.WebApi.Infrastructure.Identity.Services;
 

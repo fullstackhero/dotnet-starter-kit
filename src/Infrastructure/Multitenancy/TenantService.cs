@@ -1,5 +1,4 @@
 using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Application.Constants;
 using DN.WebApi.Application.Multitenancy;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Domain.Constants;
@@ -10,6 +9,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using System.Text;
+using DN.WebApi.Application.Common.Constants;
 
 namespace DN.WebApi.Infrastructure.Multitenancy;
 

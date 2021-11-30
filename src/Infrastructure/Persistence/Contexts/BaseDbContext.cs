@@ -1,5 +1,5 @@
-using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Common.Interfaces;
+using DN.WebApi.Application.Identity.Interfaces;
 using DN.WebApi.Application.Multitenancy;
 using DN.WebApi.Domain.Common.Contracts;
 using DN.WebApi.Domain.Contracts;
@@ -90,7 +90,9 @@ public abstract class BaseDbContext : IdentityDbContext<ApplicationUser, Applica
     {
         ChangeTracker.DetectChanges();
         var trailEntries = new List<AuditTrail>();
-        foreach (var entry in ChangeTracker.Entries<AuditableEntity>().ToList())
+        foreach (var entry in ChangeTracker.Entries<AuditableEntity>()
+            .Where(e => e.State is EntityState.Added or EntityState.Deleted or EntityState.Modified)
+            .ToList())
         {
             var trailEntry = new AuditTrail(entry, _serializer)
             {

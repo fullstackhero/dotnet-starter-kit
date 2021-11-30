@@ -1,4 +1,3 @@
-using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Common.Contracts;
 using DN.WebApi.Domain.Constants;
@@ -8,6 +7,7 @@ using DN.WebApi.Infrastructure.Persistence.Contexts;
 using DN.WebApi.Infrastructure.Persistence.Converters;
 using DN.WebApi.Infrastructure.Persistence.Repositories;
 using DN.WebApi.Shared.DTOs.Identity;
+using DN.WebApi.Application.Identity.Interfaces;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;

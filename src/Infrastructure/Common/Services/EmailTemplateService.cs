@@ -1,8 +1,8 @@
+using System.Text;
 using DN.WebApi.Application.Common.Interfaces;
 using Microsoft.Extensions.Localization;
-using System.Text;
 
-namespace DN.WebApi.Infrastructure.Identity.Services;
+namespace DN.WebApi.Infrastructure.Common.Services;
 
 public class EmailTemplateService : IEmailTemplateService
 {

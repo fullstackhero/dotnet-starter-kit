@@ -1,5 +1,5 @@
-using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Auditing;
+using DN.WebApi.Application.Identity.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DN.WebApi.Host.Controllers.Identity;

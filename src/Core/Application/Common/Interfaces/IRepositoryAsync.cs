@@ -1,4 +1,4 @@
-using DN.WebApi.Application.Specifications;
+using DN.WebApi.Application.Common.Specifications;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Common.Contracts;
 using DN.WebApi.Shared.DTOs;

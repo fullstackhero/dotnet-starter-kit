@@ -3,7 +3,7 @@ using DN.WebApi.Application.Storage;
 using DN.WebApi.Shared.DTOs.Identity;
 using FluentValidation;
 
-namespace DN.WebApi.Application.Validators.Identity;
+namespace DN.WebApi.Application.Identity.Validators;
 
 public class UpdateProfileRequestValidator : CustomValidator<UpdateProfileRequest>
 {

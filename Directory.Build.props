@@ -1,7 +1,7 @@
 <Project>
     <PropertyGroup>
         <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)dotnet.ruleset</CodeAnalysisRuleSet>
-        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
         <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <NoDefaultExcludes>true</NoDefaultExcludes>
@@ -9,7 +9,7 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Roslynator.Analyzers" Version="3.2.2">
+        <PackageReference Include="Roslynator.Analyzers" Version="3.3.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
