@@ -45,7 +45,7 @@ public sealed class TokensController : ControllerBase
         }
         else
         {
-            return HttpContext.Connection.RemoteIpAddress?.MapToIPv4().ToString();
+            return HttpContext.Connection.RemoteIpAddress?.MapToIPv4().ToString() ?? "N/A";
         }
     }
 }

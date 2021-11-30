@@ -3,6 +3,7 @@
         <TargetFramework>net6.0</TargetFramework>
         <RootNamespace>DN.WebApi.Host</RootNamespace>
         <AssemblyName>DN.WebApi.Host</AssemblyName>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="FluentValidation.AspNetCore" Version="10.3.4" />
