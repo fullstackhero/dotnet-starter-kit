@@ -9,6 +9,7 @@ using DN.WebApi.Infrastructure.Persistence.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace DN.WebApi.Infrastructure.Persistence.Contexts;
 
@@ -17,17 +18,18 @@ public abstract class BaseDbContext : IdentityDbContext<ApplicationUser, Applica
     private readonly ISerializerService _serializer;
     private readonly ITenantService _tenantService;
     private readonly ICurrentUser _currentUserService;
-    public DbSet<Trail> AuditTrails { get; set; }
-    public string Tenant { get; set; }
 
     protected BaseDbContext(DbContextOptions options, ITenantService tenantService, ICurrentUser currentUserService, ISerializerService serializer)
     : base(options)
     {
         _tenantService = tenantService;
-        Tenant = _tenantService?.GetCurrentTenant()?.Key;
+        Tenant = _tenantService.GetCurrentTenant()?.Key;
         _currentUserService = currentUserService;
         _serializer = serializer;
     }
+
+    public DbSet<Trail> AuditTrails => Set<Trail>();
+    public string? Tenant { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -43,11 +45,11 @@ public abstract class BaseDbContext : IdentityDbContext<ApplicationUser, Applica
     {
         optionsBuilder.EnableSensitiveDataLogging();
 
-        string tenantConnectionString = _tenantService.GetConnectionString();
+        string? tenantConnectionString = _tenantService.GetConnectionString();
         if (!string.IsNullOrEmpty(tenantConnectionString))
         {
-            string dbProvider = _tenantService.GetDatabaseProvider();
-            switch (dbProvider.ToLower())
+            string? dbProvider = _tenantService.GetDatabaseProvider();
+            switch (dbProvider?.ToLower())
             {
                 case "postgresql":
                     optionsBuilder.UseNpgsql(tenantConnectionString);

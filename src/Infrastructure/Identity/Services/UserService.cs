@@ -41,8 +41,10 @@ public class UserService : IUserService
         var filters = new Filters<ApplicationUser>();
         filters.Add(filter.IsActive.HasValue, x => x.IsActive == filter.IsActive);
 
-        var query = _userManager.Users.ApplyFilter(filters).AdvancedSearch(filter.AdvancedSearch);
-        string ordering = new OrderByConverter().ConvertBack(filter.OrderBy);
+        var query = _userManager.Users.ApplyFilter(filters);
+        if (filter.AdvancedSearch is not null)
+            query = query.AdvancedSearch(filter.AdvancedSearch);
+        string? ordering = new OrderByConverter().ConvertBack(filter.OrderBy);
         query = !string.IsNullOrWhiteSpace(ordering) ? query.OrderBy(ordering) : query.OrderBy(a => a.Id);
 
         return await query.ToMappedPaginatedResultAsync<ApplicationUser, UserDetailsDto>(filter.PageNumber, filter.PageSize);
@@ -58,6 +60,11 @@ public class UserService : IUserService
     public async Task<IResult<UserDetailsDto>> GetAsync(string userId)
     {
         var user = await _userManager.Users.AsNoTracking().Where(u => u.Id == userId).FirstOrDefaultAsync();
+        if (user is null)
+        {
+            return await Result<UserDetailsDto>.FailAsync(_localizer["User Not Found."]);
+        }
+
         var result = user.Adapt<UserDetailsDto>();
         return await Result<UserDetailsDto>.SuccessAsync(result);
     }

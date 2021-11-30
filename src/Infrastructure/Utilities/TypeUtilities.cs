@@ -9,7 +9,9 @@ public static class TypeUtilities
         return type
             .GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
             .Where(fi => fi.IsLiteral && !fi.IsInitOnly && fi.FieldType == typeof(T))
-            .Select(x => (T)x.GetRawConstantValue())
+            .Select(x => x.GetRawConstantValue())
+            .Where(x => x is not null)
+            .Cast<T>()
             .ToList();
     }
 
@@ -18,10 +20,10 @@ public static class TypeUtilities
         var values = new List<string>();
         foreach (var prop in type.GetNestedTypes().SelectMany(c => c.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)))
         {
-            object propertyValue = prop.GetValue(null);
-            if (propertyValue is not null)
+            object? propertyValue = prop.GetValue(null);
+            if (propertyValue is not null && propertyValue.ToString() is string propertyString)
             {
-                values.Add(propertyValue.ToString());
+                values.Add(propertyString);
             }
         }
 

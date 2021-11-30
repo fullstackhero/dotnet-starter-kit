@@ -3,6 +3,7 @@
         <TargetFramework>net6.0</TargetFramework>
         <RootNamespace>DN.WebApi.Infrastructure</RootNamespace>
         <AssemblyName>DN.WebApi.Infrastructure</AssemblyName>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
         <FrameworkReference Include="Microsoft.AspNetCore.App" />

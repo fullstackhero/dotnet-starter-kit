@@ -39,6 +39,8 @@ public static class IdentityExtensions
         this IServiceCollection services)
     {
         var jwtSettings = services.GetOptions<JwtSettings>(nameof(JwtSettings));
+        if (string.IsNullOrEmpty(jwtSettings.Key))
+            throw new InvalidOperationException("No Key defined in JwtSettings config.");
         byte[] key = Encoding.ASCII.GetBytes(jwtSettings.Key);
         _ = services
             .AddAuthentication(authentication =>

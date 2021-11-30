@@ -19,15 +19,16 @@ public class TenantJobFilter : IClientFilter
 
     public void OnCreating(CreatingContext context)
     {
-        Logger.InfoFormat("Set TenantId and UserId parameters to the job {0}.{1}...", context.Job.Method.ReflectedType.FullName, context.Job.Method.Name);
+        _ = context ?? throw new ArgumentNullException(nameof(context));
 
-        if (context == null) throw new ArgumentNullException(nameof(context));
+        Logger.InfoFormat("Set TenantId and UserId parameters to the job {0}.{1}...", context.Job.Method.ReflectedType?.FullName, context.Job.Method.Name);
 
         using var scope = _services.CreateScope();
-        var contextAccessor = scope.ServiceProvider.GetService<IHttpContextAccessor>();
-        var httpContext = contextAccessor.HttpContext;
-        string tenantId = TenantResolver.Resolver(httpContext);
-        string userId = httpContext.User.GetUserId();
+        var httpContext = scope.ServiceProvider.GetService<IHttpContextAccessor>()?.HttpContext;
+        if (httpContext is null) throw new InvalidOperationException("Can't to create a TenantJob without HttpContext.");
+
+        string? tenantId = TenantResolver.Resolver(httpContext);
+        string? userId = httpContext.User.GetUserId();
         context.SetJobParameter("tenant", tenantId);
         context.SetJobParameter("userId", userId);
     }

@@ -55,7 +55,7 @@ public class ContextJobActivator : JobActivator
             return ActivatorUtilities.GetServiceOrCreateInstance(this, type);
         }
 
-        object IServiceProvider.GetService(Type serviceType)
+        object? IServiceProvider.GetService(Type serviceType)
         {
             if (serviceType == typeof(PerformContext))
                 return _context;

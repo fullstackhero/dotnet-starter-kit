@@ -12,7 +12,7 @@ public class Tenant : AuditableEntity
     public bool IsActive { get; private set; }
     public DateTime ValidUpto { get; private set; }
 
-    public Tenant(string name, string key, string adminEmail, string connectionString)
+    public Tenant(string? name, string? key, string? adminEmail, string? connectionString)
     {
         Name = name;
         Key = key;

@@ -20,11 +20,13 @@ public class TenantBootstrapper
 {
     private static readonly ILogger _logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 
-    public static void Initialize(ApplicationDbContext appContext, DatabaseSettings options, Tenant tenant, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, IList<IDatabaseSeeder> seeders)
+    public static void Initialize(ApplicationDbContext appContext, string dbProvider, string rootConnectionString, Tenant tenant, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, IList<IDatabaseSeeder> seeders)
     {
-        string connectionString = string.IsNullOrEmpty(tenant.ConnectionString) ? options.ConnectionString : tenant.ConnectionString;
-        bool isValid = TryValidateConnectionString(options, connectionString, tenant.Key);
-        if (isValid)
+        string? connectionString = string.IsNullOrEmpty(tenant.ConnectionString) ? rootConnectionString : tenant.ConnectionString;
+        if (string.IsNullOrEmpty(connectionString))
+            return;
+
+        if (TryValidateConnectionString(dbProvider, connectionString, tenant.Key))
         {
             appContext.Database.SetConnectionString(connectionString);
             if (appContext.Database.GetMigrations().Any())
@@ -68,6 +70,8 @@ public class TenantBootstrapper
                 var basicRole = await roleManager.Roles.IgnoreQueryFilters()
                     .Where(a => a.NormalizedName == RoleConstants.Basic.ToUpper() && a.Tenant == tenant.Key)
                     .FirstOrDefaultAsync();
+                if (basicRole is null)
+                    continue;
                 var basicClaims = await roleManager.GetClaimsAsync(basicRole);
                 foreach (string permission in DefaultPermissions.Basics)
                 {
@@ -83,6 +87,11 @@ public class TenantBootstrapper
 
     private static async Task SeedTenantAdminAsync(Tenant tenant, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ApplicationDbContext applicationDbContext)
     {
+        if (string.IsNullOrEmpty(tenant.Key) || string.IsNullOrEmpty(tenant.AdminEmail))
+        {
+            return;
+        }
+
         string adminUserName = $"{tenant.Key.Trim()}.{RoleConstants.Admin}".ToLower();
         var superUser = new ApplicationUser
         {
@@ -92,7 +101,7 @@ public class TenantBootstrapper
             UserName = adminUserName,
             EmailConfirmed = true,
             PhoneNumberConfirmed = true,
-            NormalizedEmail = tenant.AdminEmail.ToUpper(),
+            NormalizedEmail = tenant.AdminEmail?.ToUpper(),
             NormalizedUserName = adminUserName.ToUpper(),
             IsActive = true,
             Tenant = tenant.Key.Trim().ToLower()
@@ -149,11 +158,11 @@ public class TenantBootstrapper
         await applicationDbContext.SaveChangesAsync();
     }
 
-    public static bool TryValidateConnectionString(DatabaseSettings options, string connectionString, string key)
+    public static bool TryValidateConnectionString(string dbProvider, string connectionString, string? key)
     {
         try
         {
-            switch (options.DBProvider)
+            switch (dbProvider.ToLower())
             {
                 case "postgresql":
                     var postgresqlcs = new NpgsqlConnectionStringBuilder(connectionString);

@@ -9,7 +9,7 @@ namespace DN.WebApi.Infrastructure.Storage;
 
 public class LocalFileStorageService : IFileStorageService
 {
-    public Task<string> UploadAsync<T>(FileUploadRequest request, FileType supportedFileType)
+    public Task<string> UploadAsync<T>(FileUploadRequest? request, FileType supportedFileType)
     where T : class
     {
         if (request == null || request.Data == null)
@@ -17,8 +17,10 @@ public class LocalFileStorageService : IFileStorageService
             return Task.FromResult(string.Empty);
         }
 
-        if (!supportedFileType.GetDescriptionList().Contains(request.Extension))
-            throw new Exception("File Format Not Supported.");
+        if (request.Extension is null || !supportedFileType.GetDescriptionList().Contains(request.Extension))
+            throw new InvalidOperationException("File Format Not Supported.");
+        if (request.Name is null)
+            throw new InvalidOperationException("Name is required.");
 
         string base64Data = Regex.Match(request.Data, "data:image/(?<type>.+?),(?<data>.+)").Groups["data"].Value;
 

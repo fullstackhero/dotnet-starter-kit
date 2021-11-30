@@ -5,19 +5,19 @@ namespace DN.WebApi.Application.Abstractions.Services.Identity;
 
 public interface ICurrentUser : IScopedService
 {
-    string Name { get; }
+    string? Name { get; }
 
     Guid GetUserId();
 
-    string GetUserEmail();
+    string? GetUserEmail();
 
-    string GetTenant();
+    string? GetTenant();
 
     bool IsAuthenticated();
 
     bool IsInRole(string role);
 
-    IEnumerable<Claim> GetUserClaims();
+    IEnumerable<Claim>? GetUserClaims();
 
     void SetUser(ClaimsPrincipal user);
 

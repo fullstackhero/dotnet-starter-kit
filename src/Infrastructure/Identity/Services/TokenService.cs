@@ -26,12 +26,12 @@ public class TokenService : ITokenService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IStringLocalizer<TokenService> _localizer;
     private readonly MailSettings _mailSettings;
-    private readonly JwtSettings _config;
+    private readonly JwtSettings _jwtSettings;
     private readonly ITenantService _tenantService;
 
     public TokenService(
         UserManager<ApplicationUser> userManager,
-        IOptions<JwtSettings> config,
+        IOptions<JwtSettings> jwtSettings,
         IStringLocalizer<TokenService> localizer,
         IOptions<MailSettings> mailSettings,
         ITenantService tenantService,
@@ -40,7 +40,7 @@ public class TokenService : ITokenService
         _userManager = userManager;
         _localizer = localizer;
         _mailSettings = mailSettings.Value;
-        _config = config.Value;
+        _jwtSettings = jwtSettings.Value;
         _tenantService = tenantService;
         _tenantContext = tenantContext;
     }
@@ -53,10 +53,15 @@ public class TokenService : ITokenService
             throw new IdentityException(_localizer["identity.usernotfound"], statusCode: HttpStatusCode.Unauthorized);
         }
 
-        string tenant = user.Tenant;
-        var tenantInfo = await _tenantContext.Tenants.Where(a => a.Key == tenant).FirstOrDefaultAsync();
+        string? tenant = user.Tenant;
         if (tenant != MultitenancyConstants.Root.Key)
         {
+            var tenantInfo = await _tenantContext.Tenants.Where(a => a.Key == tenant).FirstOrDefaultAsync();
+            if (tenantInfo is null)
+            {
+                throw new InvalidTenantException(_localizer["tenant.invalid"]);
+            }
+
             if (!tenantInfo.IsActive)
             {
                 throw new InvalidTenantException(_localizer["tenant.inactive"]);
@@ -85,7 +90,7 @@ public class TokenService : ITokenService
         }
 
         user.RefreshToken = GenerateRefreshToken();
-        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_config.RefreshTokenExpirationInDays);
+        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationInDays);
         await _userManager.UpdateAsync(user);
         string token = GenerateJwt(user, ipAddress);
         var response = new TokenResponse(token, user.RefreshToken, user.RefreshTokenExpiryTime);
@@ -114,7 +119,7 @@ public class TokenService : ITokenService
 
         string token = GenerateEncryptedToken(GetSigningCredentials(), GetClaims(user, ipAddress));
         user.RefreshToken = GenerateRefreshToken();
-        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_config.RefreshTokenExpirationInDays);
+        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationInDays);
         await _userManager.UpdateAsync(user);
         var response = new TokenResponse(token, user.RefreshToken, user.RefreshTokenExpiryTime);
         return await Result<TokenResponse>.SuccessAsync(response);
@@ -127,16 +132,16 @@ public class TokenService : ITokenService
 
     private IEnumerable<Claim> GetClaims(ApplicationUser user, string ipAddress)
     {
-        string tenant = _tenantService.GetCurrentTenant()?.Key;
+        string? tenant = _tenantService.GetCurrentTenant()?.Key;
         return new List<Claim>
             {
                 new(ClaimTypes.NameIdentifier, user.Id),
                 new(ClaimTypes.Email, user.Email),
                 new("fullName", $"{user.FirstName} {user.LastName}"),
-                new(ClaimTypes.Name, user.FirstName),
-                new(ClaimTypes.Surname, user.LastName),
+                new(ClaimTypes.Name, user.FirstName ?? string.Empty),
+                new(ClaimTypes.Surname, user.LastName ?? string.Empty),
                 new("ipAddress", ipAddress),
-                new("tenant", tenant)
+                new("tenant", tenant ?? string.Empty)
             };
     }
 
@@ -152,7 +157,7 @@ public class TokenService : ITokenService
     {
         var token = new JwtSecurityToken(
            claims: claims,
-           expires: DateTime.UtcNow.AddMinutes(_config.TokenExpirationInMinutes),
+           expires: DateTime.UtcNow.AddMinutes(_jwtSettings.TokenExpirationInMinutes),
            signingCredentials: signingCredentials);
         var tokenHandler = new JwtSecurityTokenHandler();
         return tokenHandler.WriteToken(token);
@@ -160,10 +165,15 @@ public class TokenService : ITokenService
 
     private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
     {
+        if (string.IsNullOrEmpty(_jwtSettings.Key))
+        {
+            throw new InvalidOperationException("No Key defined in JwtSettings config.");
+        }
+
         var tokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.Key)),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key)),
             ValidateIssuer = false,
             ValidateAudience = false,
             RoleClaimType = ClaimTypes.Role,
@@ -185,7 +195,12 @@ public class TokenService : ITokenService
 
     private SigningCredentials GetSigningCredentials()
     {
-        byte[] secret = Encoding.UTF8.GetBytes(_config.Key);
+        if (string.IsNullOrEmpty(_jwtSettings.Key))
+        {
+            throw new InvalidOperationException("No Key defined in JwtSettings config.");
+        }
+
+        byte[] secret = Encoding.UTF8.GetBytes(_jwtSettings.Key);
         return new SigningCredentials(new SymmetricSecurityKey(secret), SecurityAlgorithms.HmacSha256);
     }
 }

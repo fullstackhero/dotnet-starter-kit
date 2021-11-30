@@ -4,7 +4,7 @@ namespace DN.WebApi.Infrastructure.Identity.Extensions;
 
 public static class ClaimsPrincipalExtensions
 {
-    public static string GetUserId(this ClaimsPrincipal principal)
+    public static string? GetUserId(this ClaimsPrincipal principal)
     {
         if (principal == null)
         {
@@ -15,7 +15,7 @@ public static class ClaimsPrincipalExtensions
         return claim?.Value;
     }
 
-    public static string GetUserEmail(this ClaimsPrincipal principal)
+    public static string? GetUserEmail(this ClaimsPrincipal principal)
     {
         if (principal == null)
         {
@@ -26,7 +26,7 @@ public static class ClaimsPrincipalExtensions
         return claim?.Value;
     }
 
-    public static string GetTenant(this ClaimsPrincipal principal)
+    public static string? GetTenant(this ClaimsPrincipal principal)
     {
         if (principal == null)
         {

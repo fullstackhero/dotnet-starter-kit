@@ -23,9 +23,10 @@ public static class MultitenancyExtensions
     {
         services.Configure<DatabaseSettings>(config.GetSection(nameof(DatabaseSettings)));
         var databaseSettings = services.GetOptions<DatabaseSettings>(nameof(DatabaseSettings));
-        string rootConnectionString = databaseSettings.ConnectionString;
-        string dbProvider = databaseSettings.DBProvider;
-        if (string.IsNullOrEmpty(dbProvider)) throw new Exception("DB Provider is not configured.");
+        string? rootConnectionString = databaseSettings.ConnectionString;
+        if (string.IsNullOrEmpty(rootConnectionString)) throw new InvalidOperationException("DB ConnectionString is not configured.");
+        string? dbProvider = databaseSettings.DBProvider;
+        if (string.IsNullOrEmpty(dbProvider)) throw new InvalidOperationException("DB Provider is not configured.");
         _logger.Information($"Current DB Provider : {dbProvider}");
         switch (dbProvider.ToLower())
         {
@@ -49,20 +50,20 @@ public static class MultitenancyExtensions
                 throw new Exception($"DB Provider {dbProvider} is not supported.");
         }
 
-        services.SetupDatabases<T, TA>(databaseSettings);
+        services.SetupDatabases<T, TA>(dbProvider, rootConnectionString);
         _logger.Information("For documentations and guides, visit https://www.fullstackhero.net");
         _logger.Information("To Sponsor this project, visit https://opencollective.com/fullstackhero");
         return services;
     }
 
-    private static IServiceCollection SetupDatabases<T, TA>(this IServiceCollection services, DatabaseSettings options)
+    private static IServiceCollection SetupDatabases<T, TA>(this IServiceCollection services, string dbProvider, string rootConnectionString)
     where T : TenantManagementDbContext
     where TA : ApplicationDbContext
     {
         var scope = services.BuildServiceProvider().CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<T>();
-        dbContext.Database.SetConnectionString(options.ConnectionString);
-        switch (options.DBProvider.ToLower())
+        dbContext.Database.SetConnectionString(rootConnectionString);
+        switch (dbProvider.ToLower())
         {
             case "postgresql":
                 services.AddDbContext<TA>(m => m.UseNpgsql(e => e.MigrationsAssembly("Migrators.PostgreSQL")));
@@ -73,7 +74,7 @@ public static class MultitenancyExtensions
                 break;
 
             case "mysql":
-                services.AddDbContext<TA>(m => m.UseMySql(options.ConnectionString, ServerVersion.AutoDetect(options.ConnectionString), e =>
+                services.AddDbContext<TA>(m => m.UseMySql(rootConnectionString, ServerVersion.AutoDetect(rootConnectionString), e =>
                 {
                     e.MigrationsAssembly("Migrators.MySQL");
                     e.SchemaBehavior(MySqlSchemaBehavior.Ignore);
@@ -91,17 +92,10 @@ public static class MultitenancyExtensions
 
             if (dbContext.Database.CanConnect())
             {
-                try
+                SeedRootTenant(dbContext, rootConnectionString);
+                foreach (var tenant in dbContext.Tenants.ToList())
                 {
-                    SeedRootTenant(dbContext, options);
-                    foreach (var tenant in dbContext.Tenants.ToList())
-                    {
-                        services.SetupTenantDatabase<TA>(options, tenant);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
+                    services.SetupTenantDatabase<TA>(dbProvider, rootConnectionString, tenant);
                 }
             }
         }
@@ -109,11 +103,11 @@ public static class MultitenancyExtensions
         return services;
     }
 
-    private static IServiceCollection SetupTenantDatabase<TA>(this IServiceCollection services, DatabaseSettings options, Tenant tenant)
+    private static IServiceCollection SetupTenantDatabase<TA>(this IServiceCollection services, string dbProvider, string rootConnectionString, Tenant tenant)
     where TA : ApplicationDbContext
     {
-        string tenantConnectionString = string.IsNullOrEmpty(tenant.ConnectionString) ? options.ConnectionString : tenant.ConnectionString;
-        switch (options.DBProvider.ToLower())
+        string tenantConnectionString = string.IsNullOrEmpty(tenant.ConnectionString) ? rootConnectionString : tenant.ConnectionString;
+        switch (dbProvider.ToLower())
         {
             case "postgresql":
                 services.AddDbContext<TA>(m => m.UseNpgsql(e => e.MigrationsAssembly("Migrators.PostgreSQL")));
@@ -134,10 +128,10 @@ public static class MultitenancyExtensions
 
         var scope = services.BuildServiceProvider().CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<TA>();
-        var userManager = scope.ServiceProvider.GetService<UserManager<ApplicationUser>>();
-        var roleManager = scope.ServiceProvider.GetService<RoleManager<ApplicationRole>>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
         var seeders = scope.ServiceProvider.GetServices<IDatabaseSeeder>().ToList();
-        TenantBootstrapper.Initialize(dbContext, options, tenant, userManager, roleManager, seeders);
+        TenantBootstrapper.Initialize(dbContext, dbProvider, rootConnectionString, tenant, userManager, roleManager, seeders);
         return services;
     }
 
@@ -153,12 +147,16 @@ public static class MultitenancyExtensions
         return options;
     }
 
-    private static void SeedRootTenant<T>(T dbContext, DatabaseSettings options)
+    private static void SeedRootTenant<T>(T dbContext, string connectionString)
     where T : TenantManagementDbContext
     {
         if (!dbContext.Tenants.Any(t => t.Key == MultitenancyConstants.Root.Key))
         {
-            var rootTenant = new Tenant(MultitenancyConstants.Root.Name, MultitenancyConstants.Root.Key, MultitenancyConstants.Root.EmailAddress, options.ConnectionString);
+            var rootTenant = new Tenant(
+                MultitenancyConstants.Root.Name,
+                MultitenancyConstants.Root.Key,
+                MultitenancyConstants.Root.EmailAddress,
+                connectionString);
             rootTenant.SetValidity(DateTime.UtcNow.AddYears(1));
             dbContext.Tenants.Add(rootTenant);
             dbContext.SaveChanges();

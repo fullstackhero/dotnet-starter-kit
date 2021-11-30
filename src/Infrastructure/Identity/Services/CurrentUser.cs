@@ -6,51 +6,29 @@ namespace DN.WebApi.Infrastructure.Identity.Services;
 
 public class CurrentUser : ICurrentUser
 {
-    private ClaimsPrincipal _user;
+    private ClaimsPrincipal? _user;
 
-    public string Name => _user?.Identity?.Name;
+    public string? Name => _user?.Identity?.Name;
 
     private Guid _userId = Guid.Empty;
 
-    public Guid GetUserId()
-    {
-        if (IsAuthenticated())
-        {
-            return Guid.Parse(_user?.GetUserId() ?? Guid.Empty.ToString());
-        }
+    public Guid GetUserId() =>
+        IsAuthenticated() ? Guid.Parse(_user?.GetUserId() ?? Guid.Empty.ToString()) : _userId;
 
-        return _userId;
-    }
+    public string? GetUserEmail() =>
+        IsAuthenticated() ? _user?.GetUserEmail() : string.Empty;
 
-    public string GetUserEmail()
-    {
-        return IsAuthenticated() ? _user?.GetUserEmail() : string.Empty;
-    }
+    public bool IsAuthenticated() =>
+        _user?.Identity?.IsAuthenticated ?? false;
 
-    public bool IsAuthenticated()
-    {
-        return _user?.Identity?.IsAuthenticated ?? false;
-    }
+    public bool IsInRole(string role) =>
+        _user?.IsInRole(role) ?? false;
 
-    public bool IsInRole(string role)
-    {
-        return _user.IsInRole(role);
-    }
+    public IEnumerable<Claim>? GetUserClaims() =>
+        _user?.Claims;
 
-    public IEnumerable<Claim> GetUserClaims()
-    {
-        return _user?.Claims;
-    }
-
-    public string GetTenant()
-    {
-        if (IsAuthenticated())
-        {
-            return _user?.GetTenant();
-        }
-
-        return string.Empty;
-    }
+    public string? GetTenant() =>
+        IsAuthenticated() ? _user?.GetTenant() : string.Empty;
 
     public void SetUser(ClaimsPrincipal user)
     {

@@ -1,6 +1,6 @@
 using DN.WebApi.Application.Abstractions.Services.Identity;
+using DN.WebApi.Infrastructure.Identity.Extensions;
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
 
 namespace DN.WebApi.Infrastructure.Identity.Permissions;
 
@@ -15,16 +15,11 @@ internal class PermissionAuthorizationHandler : AuthorizationHandler<PermissionR
 
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, PermissionRequirement requirement)
     {
-        if (context.User == null)
-        {
-            await Task.CompletedTask;
-        }
-
-        string userId = context.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
-        if (await _permissionService.HasPermissionAsync(userId, requirement.Permission))
+        string? userId = context.User?.GetUserId();
+        if (userId is not null &&
+            await _permissionService.HasPermissionAsync(userId, requirement.Permission))
         {
             context.Succeed(requirement);
-            await Task.CompletedTask;
         }
     }
 }

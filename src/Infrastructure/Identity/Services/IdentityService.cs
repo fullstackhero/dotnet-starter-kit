@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
+using System.Net;
 using System.Text;
 
 namespace DN.WebApi.Infrastructure.Identity.Services;
@@ -54,10 +55,6 @@ public class IdentityService : IIdentityService
         _templateService = templateService;
     }
 
-    public IdentityService()
-    {
-    }
-
     public async Task<IResult> RegisterAsync(RegisterRequest request, string origin)
     {
         var users = await _userManager.Users.ToListAsync();
@@ -86,44 +83,34 @@ public class IdentityService : IIdentityService
             }
         }
 
-        var userWithSameEmail = await _userManager.FindByEmailAsync(request.Email);
-        if (userWithSameEmail == null)
-        {
-            var result = await _userManager.CreateAsync(user, request.Password);
-            if (result.Succeeded)
-            {
-                try
-                {
-                    await _userManager.AddToRoleAsync(user, RoleConstants.Basic);
-                }
-                catch
-                {
-                }
-
-                var messages = new List<string> { string.Format(_localizer["User {0} Registered."], user.UserName) };
-                if (_mailSettings.EnableVerification)
-                {
-                    // send verification email
-                    string emailVerificationUri = await GetEmailVerificationUriAsync(user, origin);
-                    var mailRequest = new MailRequest(
-                        user.Email,
-                        _localizer["Confirm Registration"],
-                        _templateService.GenerateEmailConfirmationMail(user.UserName, user.Email, emailVerificationUri));
-                    _jobService.Enqueue(() => _mailService.SendAsync(mailRequest));
-                    messages.Add(_localizer[$"Please check {user.Email} to verify your account!"]);
-                }
-
-                return await Result<string>.SuccessAsync(user.Id, messages: messages);
-            }
-            else
-            {
-                throw new IdentityException(_localizer["Validation Errors Occurred."], result.Errors.Select(a => _localizer[a.Description].ToString()).ToList());
-            }
-        }
-        else
+        if (await _userManager.FindByEmailAsync(request.Email) is not null)
         {
             throw new IdentityException(string.Format(_localizer["Email {0} is already registered."], request.Email));
         }
+
+        var result = await _userManager.CreateAsync(user, request.Password);
+        if (!result.Succeeded)
+        {
+            throw new IdentityException(_localizer["Validation Errors Occurred."], result.Errors.Select(a => _localizer[a.Description].ToString()).ToList());
+        }
+
+        await _userManager.AddToRoleAsync(user, RoleConstants.Basic);
+
+        var messages = new List<string> { string.Format(_localizer["User {0} Registered."], user.UserName) };
+
+        if (_mailSettings.EnableVerification && !string.IsNullOrEmpty(user.Email))
+        {
+            // send verification email
+            string emailVerificationUri = await GetEmailVerificationUriAsync(user, origin);
+            var mailRequest = new MailRequest(
+                user.Email,
+                _localizer["Confirm Registration"],
+                _templateService.GenerateEmailConfirmationMail(user.UserName ?? "User", user.Email, emailVerificationUri));
+            _jobService.Enqueue(() => _mailService.SendAsync(mailRequest));
+            messages.Add(_localizer[$"Please check {user.Email} to verify your account!"]);
+        }
+
+        return await Result<string>.SuccessAsync(user.Id, messages: messages);
     }
 
     public async Task<IResult<string>> ConfirmEmailAsync(string userId, string code, string tenant)
@@ -174,8 +161,13 @@ public class IdentityService : IIdentityService
 
     public async Task<IResult> ForgotPasswordAsync(ForgotPasswordRequest request, string origin)
     {
+        if (string.IsNullOrEmpty(request.Email))
+        {
+            throw new IdentityException(_localizer["Email is required."], statusCode: HttpStatusCode.BadRequest);
+        }
+
         var user = await _userManager.FindByEmailAsync(request.Email);
-        if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
+        if (user is null || !await _userManager.IsEmailConfirmedAsync(user))
         {
             // Don't reveal that the user does not exist or is not confirmed
             throw new IdentityException(_localizer["An Error has occurred!"]);
@@ -273,7 +265,8 @@ public class IdentityService : IIdentityService
         var endpointUri = new Uri(string.Concat($"{origin}/", route));
         string verificationUri = QueryHelpers.AddQueryString(endpointUri.ToString(), "userId", user.Id);
         verificationUri = QueryHelpers.AddQueryString(verificationUri, "code", code);
-        verificationUri = QueryHelpers.AddQueryString(verificationUri, "tenant", _tenantService.GetCurrentTenant()?.Key);
+        if (_tenantService.GetCurrentTenant()?.Key is string tenantKey)
+        verificationUri = QueryHelpers.AddQueryString(verificationUri, "tenant", tenantKey);
         return verificationUri;
     }
 }

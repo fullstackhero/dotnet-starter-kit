@@ -4,9 +4,9 @@ namespace DN.WebApi.Application.Common.Interfaces;
 
 public interface ICacheService
 {
-    byte[] Get(string key);
+    byte[]? Get(string key);
 
-    Task<byte[]> GetAsync(string key, CancellationToken token = default);
+    Task<byte[]?> GetAsync(string key, CancellationToken token = default);
 
     void Refresh(string key);
 

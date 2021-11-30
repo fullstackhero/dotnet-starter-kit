@@ -11,6 +11,7 @@ using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
+using System.Net;
 
 namespace DN.WebApi.Infrastructure.Identity.Services;
 
@@ -69,8 +70,13 @@ public class RoleService : IRoleService
 
     public async Task<Result<RoleDto>> GetByIdAsync(string id)
     {
-        var roles = await _roleManager.Roles.SingleOrDefaultAsync(x => x.Id == id);
-        var rolesResponse = roles.Adapt<RoleDto>();
+        var role = await _roleManager.Roles.SingleOrDefaultAsync(x => x.Id == id);
+        if (role is null)
+        {
+            throw new IdentityException("Role Not Found", statusCode: System.Net.HttpStatusCode.NotFound);
+        }
+
+        var rolesResponse = role.Adapt<RoleDto>();
         return await Result<RoleDto>.SuccessAsync(rolesResponse);
     }
 
@@ -104,6 +110,11 @@ public class RoleService : IRoleService
 
     public async Task<Result<string>> RegisterRoleAsync(RoleRequest request)
     {
+        if (string.IsNullOrEmpty(request.Name))
+        {
+            throw new IdentityException(_localizer["Name is required"], statusCode: HttpStatusCode.BadRequest);
+        }
+
         if (string.IsNullOrEmpty(request.Id))
         {
             var existingRole = await _roleManager.FindByNameAsync(request.Name);
@@ -188,10 +199,13 @@ public class RoleService : IRoleService
 
             foreach (var permission in selectedPermissions)
             {
-                var addResult = await _roleManager.AddPermissionClaimAsync(role, permission.Permission);
-                if (!addResult.Succeeded)
+                if (!string.IsNullOrEmpty(permission.Permission))
                 {
-                    errors.AddRange(addResult.Errors.Select(e => _localizer[e.Description].ToString()));
+                    var addResult = await _roleManager.AddPermissionClaimAsync(role, permission.Permission);
+                    if (!addResult.Succeeded)
+                    {
+                        errors.AddRange(addResult.Errors.Select(e => _localizer[e.Description].ToString()));
+                    }
                 }
             }
 
@@ -200,19 +214,19 @@ public class RoleService : IRoleService
             {
                 foreach (var permission in selectedPermissions)
                 {
-                    var addedPermission = addedPermissions.Data.SingleOrDefault(x => x.Type == ClaimConstants.Permission && x.Value == permission.Permission);
+                    var addedPermission = addedPermissions.Data?.SingleOrDefault(x => x.Type == ClaimConstants.Permission && x.Value == permission.Permission);
                     if (addedPermission != null)
                     {
                         var newPermission = addedPermission.Adapt<RoleClaimRequest>();
                         var saveResult = await _roleClaimService.SaveAsync(newPermission);
-                        if (!saveResult.Succeeded)
+                        if (!saveResult.Succeeded && saveResult.Messages is not null)
                         {
                             errors.AddRange(saveResult.Messages);
                         }
                     }
                 }
             }
-            else
+            else if (addedPermissions.Messages is not null)
             {
                 errors.AddRange(addedPermissions.Messages);
             }

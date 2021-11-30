@@ -7,7 +7,7 @@ public static class EnumExtensions
 {
     public static string GetDescription(this Enum enumValue)
     {
-        object[] attr = enumValue.GetType().GetField(enumValue.ToString())
+        object[] attr = enumValue.GetType().GetField(enumValue.ToString())!
             .GetCustomAttributes(typeof(DescriptionAttribute), false);
         if (attr.Length > 0)
             return ((DescriptionAttribute)attr[0]).Description;

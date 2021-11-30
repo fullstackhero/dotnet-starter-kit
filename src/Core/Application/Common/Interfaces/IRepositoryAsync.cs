@@ -10,7 +10,7 @@ namespace DN.WebApi.Application.Common.Interfaces;
 
 public interface IRepositoryAsync : ITransientService
 {
-    Task<T> GetByIdAsync<T>(Guid id, BaseSpecification<T>? specification = null, CancellationToken cancellationToken = default)
+    Task<T?> GetByIdAsync<T>(Guid id, BaseSpecification<T>? specification = null, CancellationToken cancellationToken = default)
     where T : BaseEntity;
 
     Task<TDto> GetByIdAsync<T, TDto>(Guid id, BaseSpecification<T>? specification = null, CancellationToken cancellationToken = default)
@@ -50,21 +50,21 @@ public interface IRepositoryAsync : ITransientService
 
     #region Find
 
-    Task<IEnumerable<T>> FindByConditionAsync<T>(Expression<Func<T, bool>> expression, bool AsNoTracking = true, BaseSpecification<T>? specification = null)
+    Task<List<T>> FindByConditionAsync<T>(Expression<Func<T, bool>>? expression, bool AsNoTracking = true, BaseSpecification<T>? specification = null)
     where T : BaseEntity;
 
     #endregion Find
 
     #region FirstOrDefault
 
-    Task<T> FirstByConditionAsync<T>(Expression<Func<T, bool>> expression, bool AsNoTracking = true, BaseSpecification<T>? specification = null)
+    Task<T?> FirstByConditionAsync<T>(Expression<Func<T, bool>>? expression, bool AsNoTracking = true, BaseSpecification<T>? specification = null)
     where T : BaseEntity;
 
     #endregion FirstOrDefault
 
     #region LastOrDefault
 
-    Task<T> LastByConditionAsync<T>(Expression<Func<T, bool>> expression, bool AsNoTracking = true, BaseSpecification<T>? specification = null)
+    Task<T?> LastByConditionAsync<T>(Expression<Func<T, bool>>? expression, bool AsNoTracking = true, BaseSpecification<T>? specification = null)
     where T : BaseEntity;
 
     #endregion LastOrDefault
