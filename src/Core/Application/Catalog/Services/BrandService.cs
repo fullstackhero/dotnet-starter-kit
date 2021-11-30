@@ -41,9 +41,9 @@ public class BrandService : IBrandService
         return await Result<Guid>.SuccessAsync(id);
     }
 
-    public async Task<PaginatedResult<BrandDto>> SearchAsync(BrandListFilter filter)
+    public Task<PaginatedResult<BrandDto>> SearchAsync(BrandListFilter filter)
     {
-        return await _repository.GetSearchResultsAsync<Brand, BrandDto>(filter.PageNumber, filter.PageSize, filter.OrderBy, filter.AdvancedSearch, filter.Keyword);
+        return _repository.GetSearchResultsAsync<Brand, BrandDto>(filter.PageNumber, filter.PageSize, filter.OrderBy, null, filter.AdvancedSearch, filter.Keyword);
     }
 
     public async Task<Result<Guid>> UpdateBrandAsync(UpdateBrandRequest request, Guid id)
@@ -57,15 +57,15 @@ public class BrandService : IBrandService
         return await Result<Guid>.SuccessAsync(id);
     }
 
-    public async Task<Result<string>> GenerateRandomBrandAsync(GenerateRandomBrandRequest request)
+    public Task<Result<string>> GenerateRandomBrandAsync(GenerateRandomBrandRequest request)
     {
         string jobId = _jobService.Enqueue<IBrandGeneratorJob>(x => x.GenerateAsync(request.NSeed));
-        return await Result<string>.SuccessAsync(jobId);
+        return Result<string>.SuccessAsync(jobId);
     }
 
-    public async Task<Result<string>> DeleteRandomBrandAsync()
+    public Task<Result<string>> DeleteRandomBrandAsync()
     {
         string jobId = _jobService.Schedule<IBrandGeneratorJob>(x => x.CleanAsync(), TimeSpan.FromSeconds(5));
-        return await Result<string>.SuccessAsync(jobId);
+        return Result<string>.SuccessAsync(jobId);
     }
 }
