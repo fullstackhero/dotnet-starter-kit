@@ -3,6 +3,5 @@
         <TargetFramework>net6.0</TargetFramework>
         <RootNamespace>DN.WebApi.Shared.DTOs</RootNamespace>
         <AssemblyName>DN.WebApi.Shared.DTOs</AssemblyName>
-        <Nullable>enable</Nullable>
     </PropertyGroup>
 </Project>
