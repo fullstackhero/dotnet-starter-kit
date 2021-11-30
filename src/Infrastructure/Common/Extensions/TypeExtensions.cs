@@ -1,8 +1,8 @@
 using System.Reflection;
 
-namespace DN.WebApi.Infrastructure.Utilities;
+namespace DN.WebApi.Infrastructure.Common.Extensions;
 
-public static class TypeUtilities
+public static class TypeExtensions
 {
     public static List<T> GetAllPublicConstantValues<T>(this Type type)
     {

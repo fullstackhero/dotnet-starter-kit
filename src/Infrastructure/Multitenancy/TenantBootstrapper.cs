@@ -2,9 +2,10 @@ using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Domain.Multitenancy;
+using DN.WebApi.Infrastructure.Common.Extensions;
 using DN.WebApi.Infrastructure.Identity.Models;
+using DN.WebApi.Infrastructure.Identity.Services;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
-using DN.WebApi.Infrastructure.Utilities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -52,9 +53,37 @@ public class TenantBootstrapper
         }
     }
 
+    public static bool TryValidateConnectionString(string dbProvider, string connectionString, string? key)
+    {
+        try
+        {
+            switch (dbProvider.ToLower())
+            {
+                case "postgresql":
+                    var postgresqlcs = new NpgsqlConnectionStringBuilder(connectionString);
+                    break;
+
+                case "mysql":
+                    var mysqlcs = new MySqlConnectionStringBuilder(connectionString);
+                    break;
+
+                case "mssql":
+                    var mssqlcs = new SqlConnectionStringBuilder(connectionString);
+                    break;
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"{key} Connection String Exception : {ex.Message}");
+            return false;
+        }
+    }
+
     private static async Task SeedRolesAsync(Tenant tenant, RoleManager<ApplicationRole> roleManager, ApplicationDbContext applicationDbContext)
     {
-        foreach (string roleName in typeof(RoleConstants).GetAllPublicConstantValues<string>())
+        foreach (string roleName in RoleService.DefaultRoles)
         {
             var roleStore = new RoleStore<ApplicationRole>(applicationDbContext);
 
@@ -118,7 +147,7 @@ public class TenantBootstrapper
         await AssignAdminRoleAsync(superUser.Email, tenant.Key, applicationDbContext, userManager, roleManager);
     }
 
-    public static async Task AssignAdminRoleAsync(string email, string tenant, ApplicationDbContext applicationDbContext, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager)
+    private static async Task AssignAdminRoleAsync(string email, string tenant, ApplicationDbContext applicationDbContext, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager)
     {
         var user = await userManager.Users.IgnoreQueryFilters()
             .FirstOrDefaultAsync(u => u.Email.Equals(email));
@@ -156,33 +185,5 @@ public class TenantBootstrapper
         }
 
         await applicationDbContext.SaveChangesAsync();
-    }
-
-    public static bool TryValidateConnectionString(string dbProvider, string connectionString, string? key)
-    {
-        try
-        {
-            switch (dbProvider.ToLower())
-            {
-                case "postgresql":
-                    var postgresqlcs = new NpgsqlConnectionStringBuilder(connectionString);
-                    break;
-
-                case "mysql":
-                    var mysqlcs = new MySqlConnectionStringBuilder(connectionString);
-                    break;
-
-                case "mssql":
-                    var mssqlcs = new SqlConnectionStringBuilder(connectionString);
-                    break;
-            }
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.Error($"{key} Connection String Exception : {ex.Message}");
-            return false;
-        }
     }
 }

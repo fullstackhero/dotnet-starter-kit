@@ -2,10 +2,10 @@ using DN.WebApi.Application.Abstractions.Services.Identity;
 using DN.WebApi.Application.Identity.Exceptions;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Constants;
+using DN.WebApi.Infrastructure.Common.Extensions;
 using DN.WebApi.Infrastructure.Identity.Extensions;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
-using DN.WebApi.Infrastructure.Utilities;
 using DN.WebApi.Shared.DTOs.Identity;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
@@ -42,7 +42,7 @@ public class RoleService : IRoleService
             throw new IdentityException("Role Not Found", statusCode: System.Net.HttpStatusCode.NotFound);
         }
 
-        if (DefaultRoles().Contains(existingRole.Name))
+        if (DefaultRoles.Contains(existingRole.Name))
         {
             return await Result<string>.FailAsync(string.Format(_localizer["Not allowed to delete {0} Role."], existingRole.Name));
         }
@@ -143,7 +143,7 @@ public class RoleService : IRoleService
                 return await Result<string>.FailAsync(_localizer["Role does not exist."]);
             }
 
-            if (DefaultRoles().Contains(existingRole.Name))
+            if (DefaultRoles.Contains(existingRole.Name))
             {
                 return await Result<string>.SuccessAsync(string.Format(_localizer["Not allowed to modify {0} Role."], existingRole.Name));
             }
@@ -244,8 +244,6 @@ public class RoleService : IRoleService
         }
     }
 
-    private static List<string> DefaultRoles()
-    {
-        return typeof(RoleConstants).GetAllPublicConstantValues<string>();
-    }
+    internal static List<string> DefaultRoles =>
+        typeof(RoleConstants).GetAllPublicConstantValues<string>();
 }
