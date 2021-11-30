@@ -38,19 +38,19 @@ public static class SwaggerExtensions
             {
                 options.SwaggerDoc("v1", new OpenApiInfo
                 {
-                    Title = ".NET 6.0 WebAPI - Clean Architecture",
-                    Version = "v1",
-                    Description = "Clean Architecture Template for .NET 6.0 WebApi built with Multitenancy Support.",
+                    Title = settings.Title,
+                    Version = settings.Version,
+                    Description = settings.Description,
                     Contact = new OpenApiContact
                     {
-                        Name = "Mukesh Murugan",
-                        Email = "hello@codewithmukesh.com",
-                        Url = new Uri("https://linkedin.com/in/iammukeshm"),
+                        Name = settings.ContactName,
+                        Email = settings.ContactEmail,
+                        Url = new Uri(settings.ContactUrl)
                     },
                     License = new OpenApiLicense
                     {
-                        Name = "MIT License",
-                        Url = new Uri("https://github.com/fullstackhero/dotnet-webapi-boilerplate/blob/main/LICENSE"),
+                        Name = settings.LicenceName,
+                        Url = new Uri(settings.LicenceUrl)
                     }
                 });
                 string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
