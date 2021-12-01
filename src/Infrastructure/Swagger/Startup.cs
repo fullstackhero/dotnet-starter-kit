@@ -1,5 +1,4 @@
 using DN.WebApi.Application.Settings;
-using DN.WebApi.Infrastructure.Multitenancy;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,29 +8,11 @@ using Swashbuckle.AspNetCore.SwaggerUI;
 
 namespace DN.WebApi.Infrastructure.Swagger;
 
-public static class SwaggerExtensions
+public static class Startup
 {
-    internal static IApplicationBuilder UseSwaggerDocumentation(this IApplicationBuilder app, IConfiguration config)
+    internal static IServiceCollection AddSwaggerDocumentation(this IServiceCollection services, IConfiguration config)
     {
-        if (config.GetValue<bool>("SwaggerSettings:Enable"))
-        {
-            app.UseSwagger();
-            app.UseSwaggerUI(options =>
-            {
-                options.DefaultModelsExpandDepth(-1);
-                options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-                options.RoutePrefix = "swagger";
-                options.DisplayRequestDuration();
-                options.DocExpansion(DocExpansion.None);
-            });
-        }
-
-        return app;
-    }
-
-    internal static IServiceCollection AddSwaggerDocumentation(this IServiceCollection services)
-    {
-        var settings = services.GetOptions<SwaggerSettings>(nameof(SwaggerSettings));
+        var settings = config.GetSection(nameof(SwaggerSettings)).Get<SwaggerSettings>();
         if (settings.Enable)
         {
             services.AddSwaggerGen(options =>
@@ -116,5 +97,23 @@ public static class SwaggerExtensions
         }
 
         return services;
+    }
+
+    internal static IApplicationBuilder UseSwaggerDocumentation(this IApplicationBuilder app, IConfiguration config)
+    {
+        if (config.GetValue<bool>("SwaggerSettings:Enable"))
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI(options =>
+            {
+                options.DefaultModelsExpandDepth(-1);
+                options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+                options.RoutePrefix = "swagger";
+                options.DisplayRequestDuration();
+                options.DocExpansion(DocExpansion.None);
+            });
+        }
+
+        return app;
     }
 }

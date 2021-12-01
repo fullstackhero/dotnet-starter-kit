@@ -5,7 +5,7 @@ using Hangfire.Logging;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace DN.WebApi.Infrastructure.HangFire;
+namespace DN.WebApi.Infrastructure.Hangfire;
 
 public class TenantJobFilter : IClientFilter
 {

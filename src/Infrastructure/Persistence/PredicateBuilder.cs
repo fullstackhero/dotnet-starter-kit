@@ -1,7 +1,7 @@
 using DN.WebApi.Shared.DTOs.Filters;
 using System.Linq.Expressions;
 
-namespace DN.WebApi.Infrastructure.Persistence.Repositories;
+namespace DN.WebApi.Infrastructure.Persistence;
 
 public static class PredicateBuilder
 {

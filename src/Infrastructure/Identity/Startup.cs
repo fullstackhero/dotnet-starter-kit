@@ -1,25 +1,37 @@
+using System.Net;
+using System.Security.Claims;
+using System.Text;
 using DN.WebApi.Application.Identity.Exceptions;
 using DN.WebApi.Application.Settings;
 using DN.WebApi.Infrastructure.Identity.Models;
-using DN.WebApi.Infrastructure.Multitenancy;
+using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using System.Net;
-using System.Security.Claims;
-using System.Text;
 
-namespace DN.WebApi.Infrastructure.Identity.Extensions;
+namespace DN.WebApi.Infrastructure.Identity;
 
-public static class IdentityExtensions
+public static class Startup
 {
+    internal static IServiceCollection AddCurrentUser(this IServiceCollection services) =>
+        services.AddScoped<CurrentUserMiddleware>();
+
+    internal static IApplicationBuilder UseCurrentUser(this IApplicationBuilder app) =>
+        app.UseMiddleware<CurrentUserMiddleware>();
+
+    internal static IServiceCollection AddPermissions(this IServiceCollection services) =>
+        services
+            .AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>()
+            .AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+
     internal static IServiceCollection AddIdentity(this IServiceCollection services, IConfiguration config)
     {
         services
-            .Configure<JwtSettings>(config.GetSection(nameof(JwtSettings)))
             .AddIdentity<ApplicationUser, ApplicationRole>(options =>
             {
                 options.Password.RequiredLength = 6;
@@ -31,14 +43,13 @@ public static class IdentityExtensions
             })
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
-        services.AddJwtAuthentication();
-        return services;
+        return services.AddJwtAuthentication(config);
     }
 
-    internal static IServiceCollection AddJwtAuthentication(
-        this IServiceCollection services)
+    private static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration config)
     {
-        var jwtSettings = services.GetOptions<JwtSettings>(nameof(JwtSettings));
+        services.Configure<JwtSettings>(config.GetSection(nameof(JwtSettings)));
+        var jwtSettings = config.GetSection(nameof(JwtSettings)).Get<JwtSettings>();
         if (string.IsNullOrEmpty(jwtSettings.Key))
             throw new InvalidOperationException("No Key defined in JwtSettings config.");
         byte[] key = Encoding.ASCII.GetBytes(jwtSettings.Key);

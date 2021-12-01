@@ -4,13 +4,13 @@ using Hangfire;
 using Hangfire.Server;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace DN.WebApi.Infrastructure.HangFire;
+namespace DN.WebApi.Infrastructure.Hangfire;
 
-public class ContextJobActivator : JobActivator
+public class FSHJobActivator : JobActivator
 {
     private readonly IServiceScopeFactory _scopeFactory;
 
-    public ContextJobActivator(IServiceScopeFactory scopeFactory)
+    public FSHJobActivator(IServiceScopeFactory scopeFactory)
     {
         _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
     }

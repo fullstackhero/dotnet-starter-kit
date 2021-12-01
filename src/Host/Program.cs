@@ -1,6 +1,6 @@
 using DN.WebApi.Application.DependencyInjection;
 using DN.WebApi.Host.Extensions;
-using DN.WebApi.Infrastructure.DependencyInjection;
+using DN.WebApi.Infrastructure;
 using FluentValidation.AspNetCore;
 using Serilog;
 

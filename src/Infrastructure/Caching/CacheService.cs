@@ -2,7 +2,7 @@ using DN.WebApi.Application.Common.Interfaces;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 
-namespace DN.WebApi.Infrastructure.Common.Services;
+namespace DN.WebApi.Infrastructure.Caching;
 
 public class CacheService : ICacheService
 {

@@ -1,7 +1,7 @@
 ﻿using DN.WebApi.Application.Common.Interfaces;
 using Microsoft.Extensions.Localization;
 
-namespace DN.WebApi.Infrastructure.Localizer;
+namespace DN.WebApi.Infrastructure.Localization;
 
 public class JsonStringLocalizerFactory : IStringLocalizerFactory
 {

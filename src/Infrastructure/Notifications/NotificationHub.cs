@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 
-namespace DN.WebApi.Infrastructure.Hubs;
+namespace DN.WebApi.Infrastructure.Notifications;
 
 [Authorize]
 public class NotificationHub : Hub, ITransientService

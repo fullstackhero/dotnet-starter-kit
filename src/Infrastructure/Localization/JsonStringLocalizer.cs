@@ -1,12 +1,12 @@
 ﻿using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Infrastructure.Common.Extensions;
+using DN.WebApi.Infrastructure.Caching;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Localization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Globalization;
 
-namespace DN.WebApi.Infrastructure.Localizer;
+namespace DN.WebApi.Infrastructure.Localization;
 
 public class JsonStringLocalizer : IStringLocalizer
 {

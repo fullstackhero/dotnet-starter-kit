@@ -5,7 +5,6 @@ using DN.WebApi.Domain.Common.Contracts;
 using DN.WebApi.Domain.Contracts;
 using DN.WebApi.Infrastructure.Auditing;
 using DN.WebApi.Infrastructure.Identity.Models;
-using DN.WebApi.Infrastructure.Persistence.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -41,30 +40,28 @@ public abstract class BaseDbContext : IdentityDbContext<ApplicationUser, Applica
         modelBuilder.ApplyGlobalFilters<ISoftDelete>(s => s.DeletedOn == null);
     }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        optionsBuilder.EnableSensitiveDataLogging();
-
-        string? tenantConnectionString = _tenantService.GetConnectionString();
-        if (!string.IsNullOrEmpty(tenantConnectionString))
-        {
-            string? dbProvider = _tenantService.GetDatabaseProvider();
-            switch (dbProvider?.ToLower())
-            {
-                case "postgresql":
-                    optionsBuilder.UseNpgsql(tenantConnectionString);
-                    break;
-
-                case "mssql":
-                    optionsBuilder.UseSqlServer(tenantConnectionString);
-                    break;
-
-                case "mysql":
-                    optionsBuilder.UseMySql(tenantConnectionString, ServerVersion.AutoDetect(tenantConnectionString));
-                    break;
-            }
-        }
-    }
+    // is this still necessary with how multitenancy is now implemented?
+    // protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    // {
+    //    optionsBuilder.EnableSensitiveDataLogging();
+    //    string? tenantConnectionString = _tenantService.GetConnectionString();
+    //    if (!string.IsNullOrEmpty(tenantConnectionString))
+    //    {
+    //        string? dbProvider = _tenantService.GetDatabaseProvider();
+    //        switch (dbProvider?.ToLower())
+    //        {
+    //            case "postgresql":
+    //                optionsBuilder.UseNpgsql(tenantConnectionString);
+    //                break;
+    //            case "mssql":
+    //                optionsBuilder.UseSqlServer(tenantConnectionString);
+    //                break;
+    //            case "mysql":
+    //                optionsBuilder.UseMySql(tenantConnectionString, ServerVersion.AutoDetect(tenantConnectionString));
+    //                break;
+    //        }
+    //    }
+    // }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
     {

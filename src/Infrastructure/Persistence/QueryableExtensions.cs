@@ -1,10 +1,9 @@
 using DN.WebApi.Domain.Common.Contracts;
-using DN.WebApi.Infrastructure.Persistence.Converters;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Dynamic.Core;
 using DN.WebApi.Application.Common.Specifications;
 
-namespace DN.WebApi.Infrastructure.Common.Extensions;
+namespace DN.WebApi.Infrastructure.Persistence;
 
 public static class QueryableExtensions
 {

@@ -2,7 +2,7 @@ using DN.WebApi.Application.Common.Interfaces;
 using Hangfire;
 using System.Linq.Expressions;
 
-namespace DN.WebApi.Infrastructure.HangFire;
+namespace DN.WebApi.Infrastructure.Hangfire;
 
 public class HangfireService : IJobService
 {

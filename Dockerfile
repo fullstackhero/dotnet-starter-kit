@@ -12,6 +12,7 @@ USER appuser
 FROM mcr.microsoft.com/dotnet/sdk:6.0-focal AS build
 WORKDIR /
 COPY ["Directory.Build.props", "/"]
+COPY ["Directory.Build.targets", "/"]
 COPY ["src/Host/Host.csproj", "src/Host/"]
 COPY ["src/Core/Domain/Domain.csproj", "src/Core/Domain/"]
 COPY ["src/Core/Application/Application.csproj", "src/Core/Application/"]
@@ -20,24 +21,6 @@ COPY ["src/Migrators/Migrators.MSSQL/Migrators.MSSQL.csproj", "src/Migrators/Mig
 COPY ["src/Migrators/Migrators.MySQL/Migrators.MySQL.csproj", "src/Migrators/Migrators.MySQL/"]
 COPY ["src/Migrators/Migrators.PostgreSQL/Migrators.PostgreSQL.csproj", "src/Migrators/Migrators.PostgreSQL/"]
 COPY ["src/Shared/Shared.DTOs/Shared.DTOs.csproj", "src/Shared/Shared.DTOs/"]
-
-COPY ["/dotnet.ruleset", "src/Host/"]
-COPY ["/dotnet.ruleset", "src/Core/Domain/"]
-COPY ["/dotnet.ruleset", "src/Core/Application/"]
-COPY ["/dotnet.ruleset", "src/Infrastructure/"]
-COPY ["/dotnet.ruleset", "src/Migrators/Migrators.MSSQL/"]
-COPY ["/dotnet.ruleset", "src/Migrators/Migrators.MySQL/"]
-COPY ["/dotnet.ruleset", "src/Migrators/Migrators.PostgreSQL/"]
-COPY ["/dotnet.ruleset", "src/Shared/Shared.DTOs/"]
-
-COPY ["/stylecop.json", "src/Host/"]
-COPY ["/stylecop.json", "src/Core/Domain/"]
-COPY ["/stylecop.json", "src/Core/Application/"]
-COPY ["/stylecop.json", "src/Infrastructure/"]
-COPY ["/stylecop.json", "src/Migrators/Migrators.MSSQL/"]
-COPY ["/stylecop.json", "src/Migrators/Migrators.MySQL/"]
-COPY ["/stylecop.json", "src/Migrators/Migrators.PostgreSQL/"]
-COPY ["/stylecop.json", "src/Shared/Shared.DTOs/"]
 
 RUN dotnet restore "src/Host/Host.csproj" --disable-parallel
 COPY . .

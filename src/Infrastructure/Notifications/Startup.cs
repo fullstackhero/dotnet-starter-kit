@@ -1,17 +1,19 @@
 using DN.WebApi.Application.Settings;
-using DN.WebApi.Infrastructure.Multitenancy;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
-namespace DN.WebApi.Infrastructure.Common.Extensions;
+namespace DN.WebApi.Infrastructure.Notifications;
 
-public static class SignalRExtensions
+public static class Startup
 {
-    internal static IServiceCollection AddNotifications(this IServiceCollection services)
+    internal static IServiceCollection AddNotifications(this IServiceCollection services, IConfiguration config)
     {
-        ILogger logger = Log.ForContext(typeof(SignalRExtensions));
+        ILogger logger = Log.ForContext(typeof(Startup));
 
-        var signalRSettings = services.GetOptions<SignalRSettings>("SignalRSettings");
+        var signalRSettings = config.GetSection(nameof(SignalRSettings)).Get<SignalRSettings>();
 
         if (!signalRSettings.UseBackplane)
         {
@@ -19,7 +21,7 @@ public static class SignalRExtensions
         }
         else
         {
-            var backplaneSettings = services.GetOptions<SignalRSettings.Backplane>("SignalRSettings:Backplane");
+            var backplaneSettings = config.GetSection("SignalRSettings:Backplane").Get<SignalRSettings.Backplane>();
             if (backplaneSettings is null) throw new InvalidOperationException("Backplane enabled, but no backplane settings in config.");
             switch (backplaneSettings.Provider)
             {
@@ -39,5 +41,14 @@ public static class SignalRExtensions
         }
 
         return services;
+    }
+
+    internal static IEndpointRouteBuilder MapNotifications(this IEndpointRouteBuilder endpoints)
+    {
+        endpoints.MapHub<NotificationHub>("/notifications", options =>
+        {
+            options.CloseOnAuthenticationExpiration = true;
+        });
+        return endpoints;
     }
 }

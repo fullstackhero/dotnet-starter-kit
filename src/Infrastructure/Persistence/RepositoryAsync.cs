@@ -270,5 +270,4 @@ public class RepositoryAsync : IRepositoryAsync
 
         return _dbContext.Connection.QuerySingleAsync<T>(sql, param, transaction);
     }
-
 }

@@ -1,10 +1,9 @@
 ﻿using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Multitenancy;
-using DN.WebApi.Infrastructure.Hubs;
 using DN.WebApi.Shared.DTOs.Notifications;
 using Microsoft.AspNetCore.SignalR;
 
-namespace DN.WebApi.Infrastructure.Common.Services;
+namespace DN.WebApi.Infrastructure.Notifications;
 
 public class NotificationService : INotificationService
 {

@@ -6,12 +6,12 @@ using System.Net;
 
 namespace DN.WebApi.Infrastructure.Multitenancy;
 
-public class TenantMiddleware : IMiddleware
+public class CurrentTenantMiddleware : IMiddleware
 {
-    private readonly IStringLocalizer<TenantMiddleware> _localizer;
+    private readonly IStringLocalizer<CurrentTenantMiddleware> _localizer;
     private readonly ITenantService _tenantService;
 
-    public TenantMiddleware(IStringLocalizer<TenantMiddleware> localizer, ITenantService tenantService)
+    public CurrentTenantMiddleware(IStringLocalizer<CurrentTenantMiddleware> localizer, ITenantService tenantService)
     {
         _localizer = localizer;
         _tenantService = tenantService;
