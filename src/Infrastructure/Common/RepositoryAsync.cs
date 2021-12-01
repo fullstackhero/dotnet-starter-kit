@@ -36,8 +36,6 @@ public class RepositoryAsync : IRepositoryAsync
         _localizer = localizer;
     }
 
-    #region Entity Framework Core : Get All
-
     public Task<List<T>> GetListAsync<T>(Expression<Func<T, bool>> expression, bool noTracking = false, CancellationToken cancellationToken = default)
     where T : BaseEntity
     {
@@ -47,7 +45,17 @@ public class RepositoryAsync : IRepositoryAsync
         return query.ToListAsync(cancellationToken);
     }
 
-    #endregion Entity Framework Core : Get All
+    public Task<int> GetCountAsync<T>(Expression<Func<T, bool>>? expression = null, CancellationToken cancellationToken = default)
+    where T : BaseEntity
+    {
+        IQueryable<T> query = _dbContext.Set<T>();
+        if (expression != null)
+        {
+            query = query.Where(expression);
+        }
+
+        return query.AsNoTracking().CountAsync(cancellationToken);
+    }
 
     public Task<T?> GetByIdAsync<T>(Guid entityId, BaseSpecification<T>? specification = null, CancellationToken cancellationToken = default)
     where T : BaseEntity
@@ -101,74 +109,7 @@ public class RepositoryAsync : IRepositoryAsync
         return query.AnyAsync(cancellationToken);
     }
 
-    public Task UpdateAsync<T>(T entity)
-    where T : BaseEntity
-    {
-        if (_dbContext.Entry(entity).State == EntityState.Unchanged) throw new NothingToUpdateException();
-
-        var existing = _dbContext.Set<T>().Find(entity.Id);
-
-        if (existing is null) throw new EntityNotFoundException(string.Format(_localizer["entity.notfound"], typeof(T).Name, entity.Id));
-
-        _dbContext.Entry(existing).CurrentValues.SetValues(entity);
-        _cache.Remove(CacheKeys.GetCacheKey<T>(entity.Id));
-        return Task.CompletedTask;
-    }
-
-    #region Dapper
-
-    public async Task<IReadOnlyList<T>> QueryAsync<T>(string sql, object? param = null, IDbTransaction? transaction = null, CancellationToken cancellationToken = default)
-    where T : BaseEntity
-    {
-        return (await _dbContext.Connection.QueryAsync<T>(sql, param, transaction)).AsList();
-    }
-
-    public async Task<T> QueryFirstOrDefaultAsync<T>(string sql, object? param = null, IDbTransaction? transaction = null, CancellationToken cancellationToken = default)
-    where T : BaseEntity
-    {
-        if (typeof(IMustHaveTenant).IsAssignableFrom(typeof(T)))
-        {
-            sql = sql.Replace("@tenant", _dbContext.Tenant);
-        }
-
-        var entity = await _dbContext.Connection.QueryFirstOrDefaultAsync<T>(sql, param, transaction);
-        if (entity == null) throw new EntityNotFoundException(string.Empty);
-        return entity;
-    }
-
-    public Task<T> QuerySingleAsync<T>(string sql, object? param = null, IDbTransaction? transaction = null, CancellationToken cancellationToken = default)
-    where T : BaseEntity
-    {
-        if (typeof(IMustHaveTenant).IsAssignableFrom(typeof(T)))
-        {
-            sql = sql.Replace("@tenant", _dbContext.Tenant);
-        }
-
-        return _dbContext.Connection.QuerySingleAsync<T>(sql, param, transaction);
-    }
-
-    public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        return _dbContext.SaveChangesAsync(cancellationToken);
-    }
-
-    public Task<int> GetCountAsync<T>(Expression<Func<T, bool>>? expression = null, CancellationToken cancellationToken = default)
-    where T : BaseEntity
-    {
-        IQueryable<T> query = _dbContext.Set<T>();
-        if (expression != null)
-        {
-            query = query.Where(expression);
-        }
-
-        return query.AsNoTracking().CountAsync(cancellationToken);
-    }
-
-    #endregion Dapper
-
-    #region Find
-
-    public Task<List<T>> FindByConditionAsync<T>(Expression<Func<T, bool>>? expression, bool AsNoTracking = true, BaseSpecification<T>? specification = null)
+    public Task<List<T>> FindAsync<T>(Expression<Func<T, bool>>? expression, bool AsNoTracking = true, BaseSpecification<T>? specification = null)
          where T : BaseEntity
     {
         var query = _dbContext.Set<T>().AsQueryable();
@@ -184,11 +125,7 @@ public class RepositoryAsync : IRepositoryAsync
         return query.ToListAsync();
     }
 
-    #endregion Find
-
-    #region FirstOrDefault
-
-    public Task<T?> FirstByConditionAsync<T>(Expression<Func<T, bool>>? expression, bool AsNoTracking = true, BaseSpecification<T>? specification = null)
+    public Task<T?> FirstAsync<T>(Expression<Func<T, bool>>? expression, bool AsNoTracking = true, BaseSpecification<T>? specification = null)
          where T : BaseEntity
     {
         var query = _dbContext.Set<T>().AsQueryable();
@@ -204,11 +141,7 @@ public class RepositoryAsync : IRepositoryAsync
         return query.FirstOrDefaultAsync();
     }
 
-    #endregion FirstOrDefault
-
-    #region LastOrDefault
-
-    public Task<T?> LastByConditionAsync<T>(Expression<Func<T, bool>>? expression, bool AsNoTracking = true, BaseSpecification<T>? specification = null)
+    public Task<T?> LastAsync<T>(Expression<Func<T, bool>>? expression, bool AsNoTracking = true, BaseSpecification<T>? specification = null)
          where T : BaseEntity
     {
         var query = _dbContext.Set<T>().AsQueryable();
@@ -224,9 +157,22 @@ public class RepositoryAsync : IRepositoryAsync
         return query.LastOrDefaultAsync();
     }
 
-    #endregion LastOrDefault
-
-    #region Create
+    public Task<PaginatedResult<TDto>> GetSearchResultsAsync<T, TDto>(int pageNumber, int pageSize = int.MaxValue, string[]? orderBy = null, Filters<T>? filters = null, Search? advancedSearch = null, string? keyword = null, Expression<Func<T, bool>>? expression = null, CancellationToken cancellationToken = default)
+    where T : BaseEntity
+    where TDto : IDto
+    {
+        IQueryable<T> query = _dbContext.Set<T>();
+        if (filters is not null)
+            query = query.ApplyFilter(filters);
+        if (advancedSearch?.Fields.Count > 0 && !string.IsNullOrEmpty(advancedSearch.Keyword))
+            query = query.AdvancedSearch(advancedSearch);
+        else if (!string.IsNullOrEmpty(keyword))
+            query = query.SearchByKeyword(keyword);
+        if (expression is not null)
+            query = query.Where(expression);
+        query = query.ApplySort(orderBy);
+        return query.ToMappedPaginatedResultAsync<T, TDto>(pageNumber, pageSize);
+    }
 
     public async Task<Guid> CreateAsync<T>(T entity)
     where T : BaseEntity
@@ -235,16 +181,26 @@ public class RepositoryAsync : IRepositoryAsync
         return entity.Id;
     }
 
+    public Task UpdateAsync<T>(T entity)
+    where T : BaseEntity
+    {
+        if (_dbContext.Entry(entity).State == EntityState.Unchanged) throw new NothingToUpdateException();
+
+        var existing = _dbContext.Set<T>().Find(entity.Id);
+
+        if (existing is null) throw new EntityNotFoundException(string.Format(_localizer["entity.notfound"], typeof(T).Name, entity.Id));
+
+        _dbContext.Entry(existing).CurrentValues.SetValues(entity);
+        _cache.Remove(CacheKeys.GetCacheKey<T>(entity.Id));
+        return Task.CompletedTask;
+    }
+
     public async Task<IList<Guid>> CreateRangeAsync<T>(IEnumerable<T> entity)
     where T : BaseEntity
     {
         await _dbContext.Set<T>().AddRangeAsync(entity);
         return entity.Select(x => x.Id).ToList();
     }
-
-    #endregion Create
-
-    #region DeleteOrRemoveOrClear
 
     public Task RemoveAsync<T>(T entity)
     where T : BaseEntity
@@ -280,51 +236,39 @@ public class RepositoryAsync : IRepositoryAsync
         });
     }
 
-    #endregion DeleteOrRemoveOrClear
+    public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        return _dbContext.SaveChangesAsync(cancellationToken);
+    }
 
-    #region Paginate
-
-    public Task<PaginatedResult<TDto>> GetSearchResultsAsync<T, TDto>(int pageNumber, int pageSize = int.MaxValue, string[]? orderBy = null, Search? advancedSearch = null, string? keyword = null, Expression<Func<T, bool>>? expression = null, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<T>> QueryAsync<T>(string sql, object? param = null, IDbTransaction? transaction = null, CancellationToken cancellationToken = default)
     where T : BaseEntity
-    where TDto : IDto
     {
-        IQueryable<T> query = _dbContext.Set<T>();
-        if (expression != null) query = query.Where(expression);
-        if (advancedSearch?.Fields.Count > 0 && !string.IsNullOrEmpty(advancedSearch.Keyword))
-            query = query.AdvancedSearch(advancedSearch);
-        else if (!string.IsNullOrEmpty(keyword))
-            query = query.SearchByKeyword(keyword);
-        query = query.ApplySort(orderBy);
-        return query.ToMappedPaginatedResultAsync<T, TDto>(pageNumber, pageSize);
+        return (await _dbContext.Connection.QueryAsync<T>(sql, param, transaction)).AsList();
     }
 
-    public Task<PaginatedResult<TDto>> GetSearchResultsAsync<T, TDto>(int pageNumber, int pageSize = int.MaxValue, string[]? orderBy = null, Filters<T>? filters = null, Search? advancedSearch = null, string? keyword = null, CancellationToken cancellationToken = default)
+    public async Task<T> QueryFirstOrDefaultAsync<T>(string sql, object? param = null, IDbTransaction? transaction = null, CancellationToken cancellationToken = default)
     where T : BaseEntity
-    where TDto : IDto
     {
-        IQueryable<T> query = _dbContext.Set<T>();
-        if (filters is not null)
-            query = query.ApplyFilter(filters);
-        if (advancedSearch?.Fields.Count > 0 && !string.IsNullOrEmpty(advancedSearch.Keyword))
-            query = query.AdvancedSearch(advancedSearch);
-        else if (!string.IsNullOrEmpty(keyword))
-            query = query.SearchByKeyword(keyword);
-        query = query.ApplySort(orderBy);
-        return query.ToMappedPaginatedResultAsync<T, TDto>(pageNumber, pageSize);
+        if (typeof(IMustHaveTenant).IsAssignableFrom(typeof(T)))
+        {
+            sql = sql.Replace("@tenant", _dbContext.Tenant);
+        }
+
+        var entity = await _dbContext.Connection.QueryFirstOrDefaultAsync<T>(sql, param, transaction);
+        if (entity == null) throw new EntityNotFoundException(string.Empty);
+        return entity;
     }
 
-    #endregion Paginate
-
-    #region Aggregations
-
-    public Task<int> CountByConditionAsync<T>(Expression<Func<T, bool>>? expression = null)
-          where T : BaseEntity
+    public Task<T> QuerySingleAsync<T>(string sql, object? param = null, IDbTransaction? transaction = null, CancellationToken cancellationToken = default)
+    where T : BaseEntity
     {
-        var query = _dbContext.Set<T>().AsQueryable();
-        if (expression != null)
-            query = query.Where(expression);
-        return query.CountAsync();
+        if (typeof(IMustHaveTenant).IsAssignableFrom(typeof(T)))
+        {
+            sql = sql.Replace("@tenant", _dbContext.Tenant);
+        }
+
+        return _dbContext.Connection.QuerySingleAsync<T>(sql, param, transaction);
     }
 
-    #endregion Aggregations
 }
