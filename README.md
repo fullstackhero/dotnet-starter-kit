@@ -96,7 +96,7 @@ Join our Discord - [fullstackhero @ Discord](https://discord.gg/gdgHRt4mMw)
 - [x] Response Caching - Distributed Caching
 - [x] Fluent Validations
 - [x] Audit Logging
-- [ ] Advanced User & Role Based Permission Management
+- [x] Advanced User & Role Based Permission Management
 - [x] Code Analysis & StyleCop Integration with Rulesets
 - [x] JSON Based Localization with Caching
 - [x] Hangfire Support
