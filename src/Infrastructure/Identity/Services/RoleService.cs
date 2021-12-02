@@ -1,3 +1,4 @@
+using System.Net;
 using DN.WebApi.Application.Identity.Exceptions;
 using DN.WebApi.Application.Identity.Interfaces;
 using DN.WebApi.Application.Wrapper;
@@ -11,7 +12,6 @@ using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
-using System.Net;
 
 namespace DN.WebApi.Infrastructure.Identity.Services;
 

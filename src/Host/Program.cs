@@ -1,4 +1,4 @@
-using DN.WebApi.Application.DependencyInjection;
+using DN.WebApi.Application;
 using DN.WebApi.Host.Extensions;
 using DN.WebApi.Infrastructure;
 using FluentValidation.AspNetCore;

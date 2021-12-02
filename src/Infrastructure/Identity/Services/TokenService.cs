@@ -1,10 +1,15 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Net;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 using DN.WebApi.Application.Identity.Exceptions;
 using DN.WebApi.Application.Identity.Interfaces;
 using DN.WebApi.Application.Multitenancy;
-using DN.WebApi.Application.Settings;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Models;
+using DN.WebApi.Infrastructure.Mailing;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
 using DN.WebApi.Shared.DTOs.Identity;
 using Microsoft.AspNetCore.Identity;
@@ -12,11 +17,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Net;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace DN.WebApi.Infrastructure.Identity.Services;
 

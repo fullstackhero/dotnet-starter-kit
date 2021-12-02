@@ -1,8 +1,8 @@
+using System.Net;
 using DN.WebApi.Application.Identity.Exceptions;
 using DN.WebApi.Application.Multitenancy;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Localization;
-using System.Net;
 
 namespace DN.WebApi.Infrastructure.Multitenancy;
 

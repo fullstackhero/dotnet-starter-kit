@@ -1,5 +1,4 @@
 ﻿using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Application.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 

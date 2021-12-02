@@ -1,6 +1,6 @@
+using System.Text;
 using DN.WebApi.Application.Common.Interfaces;
 using Microsoft.Extensions.Caching.Distributed;
-using System.Text;
 
 namespace DN.WebApi.Infrastructure.Caching;
 

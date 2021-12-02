@@ -1,10 +1,10 @@
+using System.Data;
+using System.Linq.Expressions;
 using DN.WebApi.Application.Common.Specifications;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Common.Contracts;
 using DN.WebApi.Shared.DTOs;
 using DN.WebApi.Shared.DTOs.Filters;
-using System.Data;
-using System.Linq.Expressions;
 
 namespace DN.WebApi.Application.Common.Interfaces;
 

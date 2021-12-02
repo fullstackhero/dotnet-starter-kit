@@ -1,5 +1,5 @@
 using DN.WebApi.Application.Common.Validation;
-using DN.WebApi.Application.Storage;
+using DN.WebApi.Application.FileStorage;
 using DN.WebApi.Shared.DTOs.Identity;
 using FluentValidation;
 

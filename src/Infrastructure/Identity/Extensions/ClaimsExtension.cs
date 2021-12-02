@@ -1,7 +1,7 @@
+using System.Security.Claims;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Models;
 using Microsoft.AspNetCore.Identity;
-using System.Security.Claims;
 
 namespace DN.WebApi.Infrastructure.Identity.Extensions;
 

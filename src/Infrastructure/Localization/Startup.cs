@@ -1,10 +1,10 @@
-﻿using DN.WebApi.Application.Settings;
+﻿using System.Globalization;
+using DN.WebApi.Infrastructure.Middleware;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
-using System.Globalization;
 
 namespace DN.WebApi.Infrastructure.Localization;
 

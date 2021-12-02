@@ -1,5 +1,4 @@
 using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Application.Settings;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Domain.Multitenancy;
 using DN.WebApi.Infrastructure.Identity.Models;

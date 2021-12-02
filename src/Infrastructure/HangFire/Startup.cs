@@ -1,5 +1,4 @@
-﻿using DN.WebApi.Application.Settings;
-using Hangfire;
+﻿using Hangfire;
 using Hangfire.Console;
 using Hangfire.Console.Extensions;
 using Hangfire.MySql;

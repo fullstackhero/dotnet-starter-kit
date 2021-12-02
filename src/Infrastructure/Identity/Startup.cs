@@ -2,7 +2,6 @@ using System.Net;
 using System.Security.Claims;
 using System.Text;
 using DN.WebApi.Application.Identity.Exceptions;
-using DN.WebApi.Application.Settings;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Infrastructure.Persistence.Contexts;

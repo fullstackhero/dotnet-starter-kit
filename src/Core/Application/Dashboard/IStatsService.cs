@@ -1,6 +1,6 @@
 using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Wrapper;
-using DN.WebApi.Shared.DTOs;
+using DN.WebApi.Shared.DTOs.Dashboard;
 
 namespace DN.WebApi.Application.Dashboard;
 

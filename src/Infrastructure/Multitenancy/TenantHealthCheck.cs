@@ -8,6 +8,6 @@ public class TenantHealthCheck : IHealthCheck
     {
         // Descoped
         var check = new HealthCheckResult(HealthStatus.Healthy);
-        return await Task.FromResult<HealthCheckResult>(check);
+        return await Task.FromResult(check);
     }
 }

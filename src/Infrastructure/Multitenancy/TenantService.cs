@@ -1,6 +1,7 @@
+using System.Text;
+using DN.WebApi.Application.Common.Constants;
 using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Multitenancy;
-using DN.WebApi.Application.Settings;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
 using DN.WebApi.Shared.DTOs.Multitenancy;
@@ -8,8 +9,6 @@ using Mapster;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
-using System.Text;
-using DN.WebApi.Application.Common.Constants;
 
 namespace DN.WebApi.Infrastructure.Multitenancy;
 
