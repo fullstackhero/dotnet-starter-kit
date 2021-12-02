@@ -11,11 +11,11 @@ using Serilog;
 
 namespace DN.WebApi.Infrastructure.Hangfire;
 
-public static class Startup
+internal static class Startup
 {
     private static readonly ILogger _logger = Log.ForContext(typeof(Startup));
 
-    public static IServiceCollection AddHangfire(this IServiceCollection services, IConfiguration appConfig)
+    internal static IServiceCollection AddHangfire(this IServiceCollection services, IConfiguration appConfig)
     {
         services.AddHangfireServer(options =>
         {

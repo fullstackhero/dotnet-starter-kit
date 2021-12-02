@@ -13,7 +13,7 @@ using Serilog;
 
 namespace DN.WebApi.Infrastructure.Multitenancy;
 
-public static class Startup
+internal static class Startup
 {
     private static readonly ILogger _logger = Log.ForContext(typeof(Startup));
 
@@ -23,7 +23,7 @@ public static class Startup
     internal static IApplicationBuilder UseCurrentTenant(this IApplicationBuilder app) =>
         app.UseMiddleware<CurrentTenantMiddleware>();
 
-    public static IServiceCollection AddMultitenancy(this IServiceCollection services, IConfiguration config)
+    internal static IServiceCollection AddMultitenancy(this IServiceCollection services, IConfiguration config)
     {
         services.Configure<DatabaseSettings>(config.GetSection(nameof(DatabaseSettings)));
         var databaseSettings = config.GetSection(nameof(DatabaseSettings)).Get<DatabaseSettings>();

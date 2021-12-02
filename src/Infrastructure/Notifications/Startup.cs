@@ -6,7 +6,7 @@ using Serilog;
 
 namespace DN.WebApi.Infrastructure.Notifications;
 
-public static class Startup
+internal static class Startup
 {
     internal static IServiceCollection AddNotifications(this IServiceCollection services, IConfiguration config)
     {

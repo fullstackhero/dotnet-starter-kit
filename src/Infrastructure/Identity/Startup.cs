@@ -15,7 +15,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace DN.WebApi.Infrastructure.Identity;
 
-public static class Startup
+internal static class Startup
 {
     internal static IServiceCollection AddCurrentUser(this IServiceCollection services) =>
         services.AddScoped<CurrentUserMiddleware>();

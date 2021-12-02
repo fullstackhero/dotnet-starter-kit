@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace DN.WebApi.Infrastructure.Seeding;
 
-public static class Startup
+internal static class Startup
 {
     public static IServiceCollection AddSeeders(this IServiceCollection services)
     {

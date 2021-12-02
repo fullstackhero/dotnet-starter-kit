@@ -7,7 +7,7 @@ using Swashbuckle.AspNetCore.SwaggerUI;
 
 namespace DN.WebApi.Infrastructure.Swagger;
 
-public static class Startup
+internal static class Startup
 {
     internal static IServiceCollection AddSwaggerDocumentation(this IServiceCollection services, IConfiguration config)
     {

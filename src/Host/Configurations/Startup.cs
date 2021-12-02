@@ -1,8 +1,8 @@
 namespace DN.WebApi.Host.Extensions;
 
-public static class Startup
+internal static class Startup
 {
-    public static ConfigureHostBuilder AddConfigurations(this ConfigureHostBuilder host)
+    internal static ConfigureHostBuilder AddConfigurations(this ConfigureHostBuilder host)
     {
         host.ConfigureAppConfiguration((context, config) =>
         {
