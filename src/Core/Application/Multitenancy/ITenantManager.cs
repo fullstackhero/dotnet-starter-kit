@@ -10,11 +10,15 @@ public interface ITenantManager : ITransientService
 
     public Task<Result<List<TenantDto>>> GetAllAsync();
 
-    public Task<Result<object>> CreateTenantAsync(CreateTenantRequest request);
+    public Task<Result<Guid>> CreateTenantAsync(CreateTenantRequest request);
 
-    Task<Result<object>> UpgradeSubscriptionAsync(UpgradeSubscriptionRequest request);
+    Task<Result<string>> UpgradeSubscriptionAsync(UpgradeSubscriptionRequest request);
 
-    Task<Result<object>> DeactivateTenantAsync(string tenant);
+    Task<Result<string>> DeactivateTenantAsync(string tenant);
 
-    Task<Result<object>> ActivateTenantAsync(string tenant);
+    Task<Result<string>> ActivateTenantAsync(string tenant);
+
+    Result<IEnumerable<string>> GetAllBannedIp();
+
+    Result<bool> UnBanIp(string ipAddress);
 }

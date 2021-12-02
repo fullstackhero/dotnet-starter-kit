@@ -57,7 +57,7 @@ public class UserService : IUserService
         return await Result<List<UserDetailsDto>>.SuccessAsync(result);
     }
 
-    public async Task<IResult<UserDetailsDto>> GetAsync(string userId)
+    public async Task<Result<UserDetailsDto>> GetAsync(string userId)
     {
         var user = await _userManager.Users.AsNoTracking().Where(u => u.Id == userId).FirstOrDefaultAsync();
         if (user is null)
@@ -69,7 +69,7 @@ public class UserService : IUserService
         return await Result<UserDetailsDto>.SuccessAsync(result);
     }
 
-    public async Task<IResult<UserRolesResponse>> GetRolesAsync(string userId)
+    public async Task<Result<UserRolesResponse>> GetRolesAsync(string userId)
     {
         var viewModel = new List<UserRoleDto>();
         var user = await _userManager.FindByIdAsync(userId);
@@ -90,7 +90,7 @@ public class UserService : IUserService
         return await Result<UserRolesResponse>.SuccessAsync(result);
     }
 
-    public async Task<IResult<string>> AssignRolesAsync(string userId, UserRolesRequest request)
+    public async Task<Result<string>> AssignRolesAsync(string userId, UserRolesRequest request)
     {
         var user = await _userManager.Users.Where(u => u.Id == userId).FirstOrDefaultAsync();
         if (user == null)

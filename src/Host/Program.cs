@@ -1,4 +1,8 @@
 using DN.WebApi.Application.DependencyInjection;
+using DN.WebApi.Host.Controllers.Catalog;
+using DN.WebApi.Host.Controllers.Dashboard;
+using DN.WebApi.Host.Controllers.Identity;
+using DN.WebApi.Host.Controllers.Multitenancy;
 using DN.WebApi.Host.Extensions;
 using DN.WebApi.Infrastructure.DependencyInjection;
 using FluentValidation.AspNetCore;
@@ -20,6 +24,19 @@ try
     var app = builder.Build();
 
     app.UseInfrastructure(builder.Configuration);
+    app.UseEndpoints(endpoints =>
+    {
+        endpoints.MapGrpcService<TokensControllerGrpc>();
+        endpoints.MapGrpcService<TenantsControllerGrpc>();
+        endpoints.MapGrpcService<UsersControllerGrpc>();
+        endpoints.MapGrpcService<RolesControllerGrpc>();
+        endpoints.MapGrpcService<RoleClaimsControllerGrpc>();
+        endpoints.MapGrpcService<IdentityControllerGrpc>();
+        endpoints.MapGrpcService<AuditLogsControllerGrpc>();
+        endpoints.MapGrpcService<StatsControllerGrpc>();
+        endpoints.MapGrpcService<ProductsControllerGrpc>();
+        endpoints.MapGrpcService<BrandsControllerGrpc>();
+    });
     app.Run();
 }
 catch (Exception ex) when (!ex.GetType().Name.Equals("StopTheHostException", StringComparison.Ordinal))

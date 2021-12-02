@@ -18,6 +18,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Localization;
+using ProtoBuf.Grpc.Server;
+using System.IO.Compression;
 
 namespace DN.WebApi.Infrastructure.DependencyInjection;
 
@@ -71,6 +73,8 @@ public static class ServiceCollectionExtensions
         services.AddMiddlewares();
         services.AddSwaggerDocumentation();
         services.AddCorsPolicy();
+        services.AddGrpc();
+        services.AddCodeFirstGrpc(config => { config.ResponseCompressionLevel = CompressionLevel.Optimal; });
         services.AddApiVersioning(config =>
         {
             config.DefaultApiVersion = new ApiVersion(1, 0);

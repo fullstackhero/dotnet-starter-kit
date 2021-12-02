@@ -1,6 +1,8 @@
 {
   "MiddlewareSettings": {
     "EnableHttpsLogging": false,
-    "EnableLocalization": true
+    "EnableLocalization": true,
+    "MaxAuthFailed": 6,
+    "BlackListMinutes": 30
   }
 }

@@ -68,4 +68,20 @@ public class TenantsController : ControllerBase
     {
         return Ok(await _tenantService.ActivateTenantAsync(id));
     }
+
+    [HttpGet("listbanned")]
+    [MustHavePermission(RootPermissions.Tenants.ListAll)]
+    [SwaggerOperation(Summary = "Get all Banned Ips")]
+    public IActionResult GetAllBannedIp()
+    {
+        return Ok(_tenantService.GetAllBannedIp());
+    }
+
+    [HttpPost("{id}/unban")]
+    [MustHavePermission(RootPermissions.Tenants.ListAll)]
+    [SwaggerOperation(Summary = "Unban specific Ip")]
+    public IActionResult UnBanIp(string id)
+    {
+        return Ok(_tenantService.UnBanIp(id));
+    }
 }

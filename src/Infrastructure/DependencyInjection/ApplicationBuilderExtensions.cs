@@ -62,6 +62,7 @@ internal static class ApplicationBuilderExtensions
             //    })
             // }
         });
+        app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers().RequireAuthorization();

@@ -1,3 +1,8 @@
+using ProtoBuf;
+
 namespace DN.WebApi.Shared.DTOs.Identity;
 
-public record RefreshTokenRequest(string Token, string RefreshToken);
+[ProtoContract(SkipConstructor = true)]
+public record RefreshTokenRequest(
+    [property: ProtoMember(1)] string Token,
+    [property: ProtoMember(2)] string RefreshToken);

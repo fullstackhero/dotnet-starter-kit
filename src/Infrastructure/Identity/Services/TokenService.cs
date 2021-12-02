@@ -5,6 +5,7 @@ using DN.WebApi.Application.Settings;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Models;
+using DN.WebApi.Infrastructure.Middlewares;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
 using DN.WebApi.Shared.DTOs.Identity;
 using Microsoft.AspNetCore.Identity;
@@ -28,6 +29,7 @@ public class TokenService : ITokenService
     private readonly MailSettings _mailSettings;
     private readonly JwtSettings _jwtSettings;
     private readonly ITenantService _tenantService;
+    private readonly SecurityMiddleware _securityMiddleware;
 
     public TokenService(
         UserManager<ApplicationUser> userManager,
@@ -35,7 +37,8 @@ public class TokenService : ITokenService
         IStringLocalizer<TokenService> localizer,
         IOptions<MailSettings> mailSettings,
         ITenantService tenantService,
-        TenantManagementDbContext tenantContext)
+        TenantManagementDbContext tenantContext,
+        SecurityMiddleware securityMiddleware)
     {
         _userManager = userManager;
         _localizer = localizer;
@@ -43,6 +46,7 @@ public class TokenService : ITokenService
         _jwtSettings = jwtSettings.Value;
         _tenantService = tenantService;
         _tenantContext = tenantContext;
+        _securityMiddleware = securityMiddleware;
     }
 
     public async Task<IResult<TokenResponse>> GetTokenAsync(TokenRequest request, string ipAddress)
@@ -59,6 +63,7 @@ public class TokenService : ITokenService
             var tenantInfo = await _tenantContext.Tenants.Where(a => a.Key == tenant).FirstOrDefaultAsync();
             if (tenantInfo is null)
             {
+                _securityMiddleware.UpdateBlockIp(ipAddress);
                 throw new InvalidTenantException(_localizer["tenant.invalid"]);
             }
 
@@ -75,17 +80,20 @@ public class TokenService : ITokenService
 
         if (!user.IsActive)
         {
+            _securityMiddleware.UpdateBlockIp(ipAddress);
             throw new IdentityException(_localizer["identity.usernotactive"], statusCode: HttpStatusCode.Unauthorized);
         }
 
         if (_mailSettings.EnableVerification && !user.EmailConfirmed)
         {
+            _securityMiddleware.UpdateBlockIp(ipAddress);
             throw new IdentityException(_localizer["identity.emailnotconfirmed"], statusCode: HttpStatusCode.Unauthorized);
         }
 
         bool passwordValid = await _userManager.CheckPasswordAsync(user, request.Password);
         if (!passwordValid)
         {
+            _securityMiddleware.UpdateBlockIp(ipAddress);
             throw new IdentityException(_localizer["identity.invalidcredentials"], statusCode: HttpStatusCode.Unauthorized);
         }
 
@@ -101,19 +109,22 @@ public class TokenService : ITokenService
     {
         if (request is null)
         {
+            _securityMiddleware.UpdateBlockIp(ipAddress);
             throw new IdentityException(_localizer["identity.invalidtoken"], statusCode: HttpStatusCode.Unauthorized);
         }
 
-        var userPrincipal = GetPrincipalFromExpiredToken(request.Token);
+        var userPrincipal = GetPrincipalFromExpiredToken(request.Token, ipAddress);
         string userEmail = userPrincipal.FindFirstValue(ClaimTypes.Email);
         var user = await _userManager.FindByEmailAsync(userEmail);
         if (user == null)
         {
+            _securityMiddleware.UpdateBlockIp(ipAddress);
             throw new IdentityException(_localizer["identity.usernotfound"], statusCode: HttpStatusCode.NotFound);
         }
 
         if (user.RefreshToken != request.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
         {
+            _securityMiddleware.UpdateBlockIp(ipAddress);
             throw new IdentityException(_localizer["identity.invalidtoken"], statusCode: HttpStatusCode.Unauthorized);
         }
 
@@ -163,7 +174,7 @@ public class TokenService : ITokenService
         return tokenHandler.WriteToken(token);
     }
 
-    private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+    private ClaimsPrincipal GetPrincipalFromExpiredToken(string token, string ipAddress)
     {
         if (string.IsNullOrEmpty(_jwtSettings.Key))
         {
@@ -187,6 +198,7 @@ public class TokenService : ITokenService
                 SecurityAlgorithms.HmacSha256,
                 StringComparison.InvariantCultureIgnoreCase))
         {
+            _securityMiddleware.UpdateBlockIp(ipAddress);
             throw new IdentityException(_localizer["identity.invalidtoken"], statusCode: HttpStatusCode.Unauthorized);
         }
 

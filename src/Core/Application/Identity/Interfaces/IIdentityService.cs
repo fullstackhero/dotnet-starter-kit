@@ -6,15 +6,15 @@ namespace DN.WebApi.Application.Identity.Interfaces;
 
 public interface IIdentityService : ITransientService
 {
-    Task<IResult> RegisterAsync(RegisterRequest request, string origin);
+    Task<Result<string>> RegisterAsync(RegisterRequest request, string origin);
 
-    Task<IResult<string>> ConfirmEmailAsync(string userId, string code, string tenant);
+    Task<Result<string>> ConfirmEmailAsync(string userId, string code, string tenant);
 
-    Task<IResult<string>> ConfirmPhoneNumberAsync(string userId, string code);
+    Task<Result<string>> ConfirmPhoneNumberAsync(string userId, string code);
 
-    Task<IResult> ForgotPasswordAsync(ForgotPasswordRequest request, string origin);
+    Task<Result<string>> ForgotPasswordAsync(ForgotPasswordRequest request, string origin);
 
-    Task<IResult> ResetPasswordAsync(ResetPasswordRequest request);
+    Task<Result<string>> ResetPasswordAsync(ResetPasswordRequest request);
 
-    Task<IResult> UpdateProfileAsync(UpdateProfileRequest request, string userId);
+    Task<Result<string>> UpdateProfileAsync(UpdateProfileRequest request, string userId);
 }

@@ -11,6 +11,7 @@ public static class MiddlewareExtensions
 {
     internal static IApplicationBuilder UseMiddlewares(this IApplicationBuilder app, IConfiguration config)
     {
+        app.UseMiddleware<SecurityMiddleware>();
         if (config.GetValue<bool>("MiddlewareSettings:EnableLocalization")) app.UseMiddleware<LocalizationMiddleware>();
         if (config.GetValue<bool>("MiddlewareSettings:EnableHttpsLogging")) app.UseMiddleware<RequestLoggingMiddleware>();
         app.UseMiddleware<ExceptionMiddleware>();
@@ -23,6 +24,7 @@ public static class MiddlewareExtensions
     {
         var middlewareSettings = services.GetOptions<MiddlewareSettings>(nameof(MiddlewareSettings));
 
+        services.AddScoped<SecurityMiddleware>();
         if (middlewareSettings.EnableLocalization) services.AddSingleton<LocalizationMiddleware>();
         if (middlewareSettings.EnableHttpsLogging) services.AddSingleton<RequestLoggingMiddleware>();
         services.AddScoped<ExceptionMiddleware>();

@@ -4,4 +4,7 @@
         <RootNamespace>DN.WebApi.Shared.DTOs</RootNamespace>
         <AssemblyName>DN.WebApi.Shared.DTOs</AssemblyName>
     </PropertyGroup>
+    <ItemGroup>
+      <PackageReference Include="protobuf-net.Grpc" Version="1.0.152" />
+    </ItemGroup>
 </Project>

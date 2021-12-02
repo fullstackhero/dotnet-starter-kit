@@ -1,86 +1,37 @@
-﻿namespace DN.WebApi.Application.Wrapper;
+﻿using ProtoBuf;
 
-public class Result : IResult
+namespace DN.WebApi.Application.Wrapper;
+
+[ProtoContract]
+public class ErrorResult<T> : Result<T> //need to be review for grpc
 {
-    public List<string>? Messages { get; set; } = new();
-
-    public bool Succeeded { get; set; }
-
-    public static IResult Fail()
-    {
-        return new Result { Succeeded = false };
-    }
-
-    public static IResult Fail(string message)
-    {
-        return new Result { Succeeded = false, Messages = new List<string> { message } };
-    }
-
-    public static IResult Fail(List<string> messages)
-    {
-        return new Result { Succeeded = false, Messages = messages };
-    }
-
-    public static Task<IResult> FailAsync()
-    {
-        return Task.FromResult(Fail());
-    }
-
-    public static Task<IResult> FailAsync(string message)
-    {
-        return Task.FromResult(Fail(message));
-    }
-
-    public static Task<IResult> FailAsync(List<string> messages)
-    {
-        return Task.FromResult(Fail(messages));
-    }
-
-    public static IResult Success()
-    {
-        return new Result { Succeeded = true };
-    }
-
-    public static IResult Success(string message)
-    {
-        return new Result { Succeeded = true, Messages = new List<string> { message } };
-    }
-
-    public static IResult Success(List<string> messages)
-    {
-        return new Result { Succeeded = true, Messages = messages };
-    }
-
-    public static Task<IResult> SuccessAsync()
-    {
-        return Task.FromResult(Success());
-    }
-
-    public static Task<IResult> SuccessAsync(string message)
-    {
-        return Task.FromResult(Success(message));
-    }
-
-    public static Task<IResult> SuccessAsync(List<string> messages)
-    {
-        return Task.FromResult(Success(messages));
-    }
-}
-
-public class ErrorResult<T> : Result<T>
-{
+    [ProtoMember(1)]
     public string? Source { get; set; }
 
+    [ProtoMember(2)]
     public string? Exception { get; set; }
 
+    [ProtoMember(3)]
     public string? ErrorId { get; set; }
+
+    [ProtoMember(4)]
     public string? SupportMessage { get; set; }
+
+    [ProtoMember(5)]
     public int StatusCode { get; set; }
 }
 
-public class Result<T> : Result, IResult<T>
+[ProtoContract]
+public class Result<T> : IResult<T>
 {
+    [ProtoMember(1)]
     public T? Data { get; set; }
+
+    [ProtoMember(2)]
+    public List<string>? Messages { get; set; } = new();
+
+    [ProtoMember(3)]
+    public bool Succeeded { get; set; }
 
     public new static Result<T> Fail()
     {

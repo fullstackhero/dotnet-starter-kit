@@ -5,6 +5,7 @@ using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Catalog;
 using DN.WebApi.Domain.Dashboard;
 using DN.WebApi.Shared.DTOs.Catalog;
+using DN.WebApi.Shared.DTOs.Filters;
 using Microsoft.Extensions.Localization;
 
 namespace DN.WebApi.Application.Catalog.Services;

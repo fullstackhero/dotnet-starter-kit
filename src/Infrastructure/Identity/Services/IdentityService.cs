@@ -55,7 +55,7 @@ public class IdentityService : IIdentityService
         _templateService = templateService;
     }
 
-    public async Task<IResult> RegisterAsync(RegisterRequest request, string origin)
+    public async Task<Result<string>> RegisterAsync(RegisterRequest request, string origin)
     {
         var users = await _userManager.Users.ToListAsync();
         var userWithSameUserName = await _userManager.FindByNameAsync(request.UserName);
@@ -113,7 +113,7 @@ public class IdentityService : IIdentityService
         return await Result<string>.SuccessAsync(user.Id, messages: messages);
     }
 
-    public async Task<IResult<string>> ConfirmEmailAsync(string userId, string code, string tenant)
+    public async Task<Result<string>> ConfirmEmailAsync(string userId, string code, string tenant)
     {
         var user = await _userManager.Users.IgnoreQueryFilters().Where(a => a.Id == userId && !a.EmailConfirmed && a.Tenant == tenant).FirstOrDefaultAsync();
         if (user == null)
@@ -133,7 +133,7 @@ public class IdentityService : IIdentityService
         }
     }
 
-    public async Task<IResult<string>> ConfirmPhoneNumberAsync(string userId, string code)
+    public async Task<Result<string>> ConfirmPhoneNumberAsync(string userId, string code)
     {
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
@@ -159,7 +159,7 @@ public class IdentityService : IIdentityService
         }
     }
 
-    public async Task<IResult> ForgotPasswordAsync(ForgotPasswordRequest request, string origin)
+    public async Task<Result<string>> ForgotPasswordAsync(ForgotPasswordRequest request, string origin)
     {
         if (string.IsNullOrEmpty(request.Email))
         {
@@ -184,10 +184,10 @@ public class IdentityService : IIdentityService
             _localizer["Reset Password"],
             _localizer[$"Your Password Reset Token is '{code}'. You can reset your password using the {endpointUri} Endpoint."]);
         _jobService.Enqueue(() => _mailService.SendAsync(mailRequest));
-        return await Result.SuccessAsync(_localizer["Password Reset Mail has been sent to your authorized Email."]);
+        return await Result<string>.SuccessAsync(_localizer["Password Reset Mail has been sent to your authorized Email."]);
     }
 
-    public async Task<IResult> ResetPasswordAsync(ResetPasswordRequest request)
+    public async Task<Result<string>> ResetPasswordAsync(ResetPasswordRequest request)
     {
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user == null)
@@ -199,7 +199,7 @@ public class IdentityService : IIdentityService
         var result = await _userManager.ResetPasswordAsync(user, request.Token, request.Password);
         if (result.Succeeded)
         {
-            return await Result.SuccessAsync(_localizer["Password Reset Successful!"]);
+            return await Result<string>.SuccessAsync(_localizer["Password Reset Successful!"]);
         }
         else
         {
@@ -207,14 +207,14 @@ public class IdentityService : IIdentityService
         }
     }
 
-    public async Task<IResult> UpdateProfileAsync(UpdateProfileRequest request, string userId)
+    public async Task<Result<string>> UpdateProfileAsync(UpdateProfileRequest request, string userId)
     {
         if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
         {
             var userWithSamePhoneNumber = await _userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == request.PhoneNumber);
             if (userWithSamePhoneNumber != null)
             {
-                return await Result.FailAsync(string.Format(_localizer["Phone number {0} is already used."], request.PhoneNumber));
+                return await Result<string>.FailAsync(string.Format(_localizer["Phone number {0} is already used."], request.PhoneNumber));
             }
         }
 
@@ -224,7 +224,7 @@ public class IdentityService : IIdentityService
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
-                return await Result.FailAsync(_localizer["User Not Found."]);
+                return await Result<string>.FailAsync(_localizer["User Not Found."]);
             }
 
             if (request.Image != null)
@@ -244,11 +244,11 @@ public class IdentityService : IIdentityService
             var identityResult = await _userManager.UpdateAsync(user);
             var errors = identityResult.Errors.Select(e => _localizer[e.Description].ToString()).ToList();
             await _signInManager.RefreshSignInAsync(user);
-            return identityResult.Succeeded ? await Result.SuccessAsync() : await Result.FailAsync(errors);
+            return identityResult.Succeeded ? await Result<string>.SuccessAsync() : await Result<string>.FailAsync(errors);
         }
         else
         {
-            return await Result.FailAsync(string.Format(_localizer["Email {0} is already used."], request.Email));
+            return await Result<string>.FailAsync(string.Format(_localizer["Email {0} is already used."], request.Email));
         }
     }
 

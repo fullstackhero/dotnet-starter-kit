@@ -6,6 +6,7 @@ using DN.WebApi.Application.Settings;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Multitenancy;
 using DN.WebApi.Infrastructure.Identity.Models;
+using DN.WebApi.Infrastructure.Middlewares;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
 using DN.WebApi.Shared.DTOs.Multitenancy;
 using Mapster;
@@ -29,8 +30,9 @@ public class TenantManager : ITenantManager
 
     private readonly TenantManagementDbContext _context;
     private readonly ICurrentUser _user;
+    private readonly SecurityMiddleware _securityMiddleware;
 
-    public TenantManager(ApplicationDbContext appContext, IStringLocalizer<TenantService> localizer, IOptions<DatabaseSettings> dbOptions, TenantManagementDbContext context, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ICurrentUser user, IServiceProvider di)
+    public TenantManager(ApplicationDbContext appContext, IStringLocalizer<TenantService> localizer, IOptions<DatabaseSettings> dbOptions, TenantManagementDbContext context, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ICurrentUser user, IServiceProvider di, SecurityMiddleware securityMiddleware)
     {
         _appContext = appContext;
         _localizer = localizer;
@@ -40,6 +42,7 @@ public class TenantManager : ITenantManager
         _roleManager = roleManager;
         _user = user;
         _di = di;
+        _securityMiddleware = securityMiddleware;
     }
 
     public async Task<Result<TenantDto>> GetByKeyAsync(string key)
@@ -57,7 +60,7 @@ public class TenantManager : ITenantManager
         return await Result<List<TenantDto>>.SuccessAsync(tenantDto);
     }
 
-    public async Task<Result<object>> CreateTenantAsync(CreateTenantRequest request)
+    public async Task<Result<Guid>> CreateTenantAsync(CreateTenantRequest request)
     {
         if (_context.Tenants.Any(a => a.Key == request.Key)) throw new InvalidOperationException("Tenant with same key exists.");
         if (string.IsNullOrEmpty(request.ConnectionString)) request.ConnectionString = _dbOptions.ConnectionString;
@@ -73,20 +76,20 @@ public class TenantManager : ITenantManager
         TenantBootstrapper.Initialize(_appContext, _dbOptions.DBProvider, _dbOptions.ConnectionString!, tenant, _userManager, _roleManager, seeders);
         _context.Tenants.Add(tenant);
         await _context.SaveChangesAsync();
-        return await Result<object>.SuccessAsync(tenant.Id);
+        return await Result<Guid>.SuccessAsync(tenant.Id);
     }
 
-    public async Task<Result<object>> UpgradeSubscriptionAsync(UpgradeSubscriptionRequest request)
+    public async Task<Result<string>> UpgradeSubscriptionAsync(UpgradeSubscriptionRequest request)
     {
         var tenant = await _context.Tenants.Where(a => a.Key == request.Tenant).FirstOrDefaultAsync();
         if (tenant == null) throw new Exception("Tenant Not Found.");
         tenant.SetValidity(request.ExtendedExpiryDate);
         _context.Tenants.Update(tenant);
         await _context.SaveChangesAsync();
-        return await Result<object>.SuccessAsync($"Tenant {request.Tenant}'s Subscription Upgraded. Now Valid till {tenant.ValidUpto}.");
+        return await Result<string>.SuccessAsync($"Tenant {request.Tenant}'s Subscription Upgraded. Now Valid till {tenant.ValidUpto}.");
     }
 
-    public async Task<Result<object>> DeactivateTenantAsync(string tenant)
+    public async Task<Result<string>> DeactivateTenantAsync(string tenant)
     {
         var tenantInfo = await _context.Tenants.Where(a => a.Key == tenant).FirstOrDefaultAsync();
         if (tenantInfo == null) throw new Exception("Tenant Not Found.");
@@ -94,10 +97,10 @@ public class TenantManager : ITenantManager
         tenantInfo.Deactivate();
         _context.Tenants.Update(tenantInfo);
         await _context.SaveChangesAsync();
-        return await Result<object>.SuccessAsync($"Tenant {tenantInfo.Key} is now Deactivated.");
+        return await Result<string>.SuccessAsync($"Tenant {tenantInfo.Key} is now Deactivated.");
     }
 
-    public async Task<Result<object>> ActivateTenantAsync(string tenant)
+    public async Task<Result<string>> ActivateTenantAsync(string tenant)
     {
         var tenantInfo = await _context.Tenants.Where(a => a.Key == tenant).FirstOrDefaultAsync();
         if (tenantInfo == null) throw new Exception("Tenant Not Found.");
@@ -105,6 +108,16 @@ public class TenantManager : ITenantManager
         tenantInfo.Activate();
         _context.Tenants.Update(tenantInfo);
         await _context.SaveChangesAsync();
-        return await Result<object>.SuccessAsync($"Tenant {tenant} is now Activated.");
+        return await Result<string>.SuccessAsync($"Tenant {tenant} is now Activated.");
+    }
+
+    public Result<IEnumerable<string>> GetAllBannedIp()
+    {
+        return Result<IEnumerable<string>>.Success(_securityMiddleware.GetBannedIps());
+    }
+
+    public Result<bool> UnBanIp(string ipAddress)
+    {
+        return Result<bool>.Success(_securityMiddleware.UnBanIp(ipAddress));
     }
 }
