@@ -6,6 +6,6 @@ namespace DN.WebApi.Application.Storage;
 
 public interface IFileStorageService : ITransientService
 {
-    public Task<string> UploadAsync<T>(FileUploadRequest request, FileType supportedFileType)
+    public Task<string> UploadAsync<T>(FileUploadRequest? request, FileType supportedFileType)
     where T : class;
 }

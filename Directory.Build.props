@@ -6,6 +6,7 @@
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <NoDefaultExcludes>true</NoDefaultExcludes>
         <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Roslynator.Analyzers" Version="3.3.0">

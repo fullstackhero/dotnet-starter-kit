@@ -11,7 +11,6 @@ public static class ModelBuilderExtensions
 {
     public static void ApplyIdentityConfiguration(this ModelBuilder builder, ITenantService tenantService)
     {
-        string dbProvider = tenantService.GetDatabaseProvider();
         builder.Entity<ApplicationUser>(entity =>
         {
             entity.ToTable("Users", "Identity");

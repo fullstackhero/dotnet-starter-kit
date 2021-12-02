@@ -11,5 +11,5 @@ public abstract class PaginationFilter : BaseFilter
 
     public int PageSize { get; set; }
 
-    public string[] OrderBy { get; set; }
+    public string[]? OrderBy { get; set; }
 }

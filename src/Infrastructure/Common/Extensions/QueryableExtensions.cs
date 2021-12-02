@@ -21,17 +21,17 @@ public static class QueryableExtensions
             return secondaryResult.Where(spec.Criteria);
     }
 
-    public static IQueryable<T> ApplyFilter<T>(this IQueryable<T> query, Filters<T> filters)
+    public static IQueryable<T> ApplyFilter<T>(this IQueryable<T> query, Filters<T>? filters)
     {
         if (filters?.IsValid() == true)
             query = filters.Get().Aggregate(query, (current, filter) => current.Where(filter.Expression));
         return query;
     }
 
-    public static IQueryable<T> ApplySort<T>(this IQueryable<T> query, string[] orderBy)
+    public static IQueryable<T> ApplySort<T>(this IQueryable<T> query, string[]? orderBy)
     where T : BaseEntity
     {
-        string ordering = new OrderByConverter().ConvertBack(orderBy);
+        string? ordering = new OrderByConverter().ConvertBack(orderBy);
         return !string.IsNullOrWhiteSpace(ordering) ? query.OrderBy(ordering) : query.OrderBy(a => a.Id);
     }
 }

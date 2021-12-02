@@ -75,7 +75,7 @@ public class BrandGeneratorJob : IBrandGeneratorJob
     public async Task CleanAsync()
     {
         _logger.LogInformation("Initializing Job with Id: {JobId}", _performingContext.BackgroundJob.Id);
-        var items = await _repository.GetListAsync<Brand>(x => x.Name.Contains("Brand Random"), true);
+        var items = await _repository.GetListAsync<Brand>(x => !string.IsNullOrEmpty(x.Name) && x.Name.Contains("Brand Random"), true);
         _logger.LogInformation("Brands Random: {BrandsCount} ", items.Count.ToString());
 
         foreach (var item in items)

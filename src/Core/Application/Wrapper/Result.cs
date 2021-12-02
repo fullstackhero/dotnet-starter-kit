@@ -2,11 +2,7 @@
 
 public class Result : IResult
 {
-    public Result()
-    {
-    }
-
-    public List<string> Messages { get; set; } = new();
+    public List<string>? Messages { get; set; } = new();
 
     public bool Succeeded { get; set; }
 
@@ -73,22 +69,18 @@ public class Result : IResult
 
 public class ErrorResult<T> : Result<T>
 {
-    public string Source { get; set; }
+    public string? Source { get; set; }
 
-    public string Exception { get; set; }
+    public string? Exception { get; set; }
 
-    public string ErrorId { get; set; }
-    public string SupportMessage { get; set; }
+    public string? ErrorId { get; set; }
+    public string? SupportMessage { get; set; }
     public int StatusCode { get; set; }
 }
 
 public class Result<T> : Result, IResult<T>
 {
-    public Result()
-    {
-    }
-
-    public T Data { get; set; }
+    public T? Data { get; set; }
 
     public new static Result<T> Fail()
     {

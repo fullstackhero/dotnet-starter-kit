@@ -2,9 +2,9 @@ using DN.WebApi.Shared.DTOs;
 
 namespace DN.WebApi.Infrastructure.Persistence.Converters;
 
-public class OrderByConverter : IMapsterConverter<string, string[]>
+public class OrderByConverter : IMapsterConverter<string?, string[]>
 {
-    public string[] Convert(string item)
+    public string[] Convert(string? item)
     {
         if (!string.IsNullOrWhiteSpace(item))
         {
@@ -17,7 +17,7 @@ public class OrderByConverter : IMapsterConverter<string, string[]>
         return Array.Empty<string>();
     }
 
-    public string ConvertBack(string[] item)
+    public string? ConvertBack(string[]? item)
     {
         return item?.Any() == true ? string.Join(",", item) : null;
     }

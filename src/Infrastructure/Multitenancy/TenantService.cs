@@ -25,7 +25,7 @@ public class TenantService : ITenantService
 
     private readonly TenantManagementDbContext _context;
 
-    private TenantDto _currentTenant;
+    private TenantDto? _currentTenant;
 
     public TenantService(
         IOptions<DatabaseSettings> options,
@@ -41,24 +41,19 @@ public class TenantService : ITenantService
         _serializer = serializer;
     }
 
-    public string GetConnectionString()
+    public string? GetConnectionString()
     {
         return _currentTenant?.ConnectionString;
     }
 
-    public string GetDatabaseProvider()
+    public string? GetDatabaseProvider()
     {
         return _options.DBProvider;
     }
 
-    public TenantDto GetCurrentTenant()
+    public TenantDto? GetCurrentTenant()
     {
         return _currentTenant;
-    }
-
-    private void SetDefaultConnectionStringToCurrentTenant()
-    {
-        _currentTenant.ConnectionString = _options.ConnectionString;
     }
 
     public void SetCurrentTenant(string tenant)
@@ -68,9 +63,9 @@ public class TenantService : ITenantService
             throw new Exception("Method reserved for in-scope initialization");
         }
 
-        TenantDto tenantDto;
+        TenantDto? tenantDto = default;
         string cacheKey = CacheKeys.GetCacheKey("tenant", tenant);
-        byte[] cachedData = !string.IsNullOrWhiteSpace(cacheKey) ? _cache.Get(cacheKey) : null;
+        byte[]? cachedData = !string.IsNullOrWhiteSpace(cacheKey) ? _cache.Get(cacheKey) : null;
         if (cachedData != null)
         {
             _cache.Refresh(cacheKey);
@@ -79,9 +74,10 @@ public class TenantService : ITenantService
         else
         {
             var tenantInfo = _context.Tenants.Where(a => a.Key == tenant).FirstOrDefault();
-            tenantDto = tenantInfo.Adapt<TenantDto>();
-            if (tenantDto != null)
+            if (tenantInfo is not null)
             {
+                tenantDto = tenantInfo.Adapt<TenantDto>();
+
                 var options = new DistributedCacheEntryOptions();
                 byte[] serializedData = Encoding.Default.GetBytes(_serializer.Serialize(tenantDto));
                 _cache.Set(cacheKey, serializedData, options);
@@ -109,7 +105,7 @@ public class TenantService : ITenantService
         _currentTenant = tenantDto;
         if (string.IsNullOrEmpty(_currentTenant.ConnectionString))
         {
-            SetDefaultConnectionStringToCurrentTenant();
+            _currentTenant.ConnectionString = _options.ConnectionString;
         }
     }
 }

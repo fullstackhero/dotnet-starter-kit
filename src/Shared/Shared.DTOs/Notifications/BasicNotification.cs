@@ -11,6 +11,6 @@ public class BasicNotification : INotificationMessage
     }
 
     public string MessageType { get; set; } = typeof(BasicNotification).Name;
-    public string Message { get; set; }
+    public string? Message { get; set; }
     public LabelType Label { get; set; }
 }

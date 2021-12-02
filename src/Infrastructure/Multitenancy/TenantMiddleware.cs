@@ -21,7 +21,7 @@ public class TenantMiddleware : IMiddleware
     {
         if (!ExcludePath(context))
         {
-            string tenantId = TenantResolver.Resolver(context);
+            string? tenantId = TenantResolver.Resolver(context);
             if (!string.IsNullOrEmpty(tenantId))
             {
                 _tenantService.SetCurrentTenant(tenantId);

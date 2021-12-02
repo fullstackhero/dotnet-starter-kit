@@ -5,14 +5,14 @@ namespace DN.WebApi.Domain.Multitenancy;
 
 public class Tenant : AuditableEntity
 {
-    public string Name { get; private set; }
-    public string Key { get; private set; }
-    public string AdminEmail { get; private set; }
-    public string ConnectionString { get; private set; }
+    public string? Name { get; private set; }
+    public string? Key { get; private set; }
+    public string? AdminEmail { get; private set; }
+    public string? ConnectionString { get; private set; }
     public bool IsActive { get; private set; }
     public DateTime ValidUpto { get; private set; }
 
-    public Tenant(string name, string key, string adminEmail, string connectionString)
+    public Tenant(string? name, string? key, string? adminEmail, string? connectionString)
     {
         Name = name;
         Key = key;

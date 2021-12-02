@@ -18,11 +18,10 @@ public static class PredicateBuilder
     public static IQueryable<T> AdvancedSearch<T>(this IQueryable<T> query, Search search)
     {
         var predicate = False<T>();
-        foreach (var propertyInfo in typeof(T).GetProperties().Where(p => search.Fields.Any(field => p.Name.ToLower() == field.ToLower())))
+        foreach (var propertyInfo in typeof(T).GetProperties()
+            .Where(p => p.GetGetMethod()?.IsVirtual is false &&
+                        search.Fields.Any(field => p.Name.Equals(field, StringComparison.OrdinalIgnoreCase))))
         {
-            if (propertyInfo.GetGetMethod().IsVirtual)
-                continue;
-
             var parameter = Expression.Parameter(typeof(T), "x");
             var property = Expression.Property(parameter, propertyInfo);
             var propertyAsObject = Expression.Convert(property, typeof(object));
@@ -41,11 +40,8 @@ public static class PredicateBuilder
     {
         var predicate = False<T>();
         var properties = typeof(T).GetProperties();
-        foreach (var propertyInfo in properties)
+        foreach (var propertyInfo in properties.Where(p => p.GetGetMethod()?.IsVirtual is false))
         {
-            if (propertyInfo.GetGetMethod().IsVirtual)
-                continue;
-
             var parameter = Expression.Parameter(typeof(T), "x");
             var property = Expression.Property(parameter, propertyInfo);
             var propertyAsObject = Expression.Convert(property, typeof(object));

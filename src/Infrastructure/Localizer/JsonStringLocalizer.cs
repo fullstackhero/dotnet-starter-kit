@@ -27,7 +27,7 @@ public class JsonStringLocalizer : IStringLocalizer
     {
         get
         {
-            string value = GetString(name);
+            string? value = GetString(name);
             return new LocalizedString(name, value ?? $"{name} [{Thread.CurrentThread.CurrentCulture.Name}]", value == null);
         }
     }
@@ -66,9 +66,9 @@ public class JsonStringLocalizer : IStringLocalizer
         return new JsonStringLocalizer(_cache);
     }
 
-    private string GetString(string key)
+    private string? GetString(string key)
     {
-        string stringCulture = GetSpecificCulture(key);
+        string? stringCulture = GetSpecificCulture(key);
         if (!string.IsNullOrEmpty(stringCulture)) return stringCulture;
         stringCulture = GetNaturalCulture(key);
         if (!string.IsNullOrEmpty(stringCulture)) return stringCulture;
@@ -78,16 +78,16 @@ public class JsonStringLocalizer : IStringLocalizer
         return default;
     }
 
-    private string ValidateCulture(string key, string culture)
+    private string? ValidateCulture(string key, string culture)
     {
         string relativeFilePath = $"{Localization}/{culture}.json";
         string fullFilePath = Path.GetFullPath(relativeFilePath);
         if (File.Exists(fullFilePath))
         {
             string cacheKey = $"locale_{culture}_{key}";
-            string cacheValue = _cache.GetString(cacheKey);
+            string? cacheValue = _cache.GetString(cacheKey);
             if (!string.IsNullOrEmpty(cacheValue)) return cacheValue;
-            string result = PullDeserialize<string>(key, Path.GetFullPath(relativeFilePath));
+            string? result = PullDeserialize<string>(key, Path.GetFullPath(relativeFilePath));
             if (!string.IsNullOrEmpty(result)) _cache.SetString(cacheKey, result);
             return result;
         }
@@ -96,20 +96,14 @@ public class JsonStringLocalizer : IStringLocalizer
         return default;
     }
 
-    private string GetSpecificCulture(string key)
-    {
-        return ValidateCulture(key, Thread.CurrentThread.CurrentCulture.Name);
-    }
+    private string? GetSpecificCulture(string key) =>
+        ValidateCulture(key, Thread.CurrentThread.CurrentCulture.Name);
 
-    private string GetNaturalCulture(string key)
-    {
-        return ValidateCulture(key, Thread.CurrentThread.CurrentCulture.Name.Split("-")[0]);
-    }
+    private string? GetNaturalCulture(string key) =>
+        ValidateCulture(key, Thread.CurrentThread.CurrentCulture.Name.Split("-")[0]);
 
-    private string GetDefaultCulture(string key)
-    {
-        return ValidateCulture(key, DefaultCulture);
-    }
+    private string? GetDefaultCulture(string key) =>
+        ValidateCulture(key, DefaultCulture);
 
     private void WriteEmptyKeys(CultureInfo sourceCulture, string fullFilePath)
     {
@@ -133,7 +127,7 @@ public class JsonStringLocalizer : IStringLocalizer
         writer.WriteEndObject();
     }
 
-    private T PullDeserialize<T>(string propertyName, string filePath)
+    private T? PullDeserialize<T>(string propertyName, string filePath)
     {
         if (propertyName == null) return default;
         if (filePath == null) return default;
