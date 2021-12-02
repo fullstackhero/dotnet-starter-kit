@@ -41,27 +41,27 @@ public abstract class BaseDbContext : IdentityDbContext<ApplicationUser, Applica
     }
 
     // is this still necessary with how multitenancy is now implemented?
-    // protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    // {
-    //    optionsBuilder.EnableSensitiveDataLogging();
-    //    string? tenantConnectionString = _tenantService.GetConnectionString();
-    //    if (!string.IsNullOrEmpty(tenantConnectionString))
-    //    {
-    //        string? dbProvider = _tenantService.GetDatabaseProvider();
-    //        switch (dbProvider?.ToLower())
-    //        {
-    //            case "postgresql":
-    //                optionsBuilder.UseNpgsql(tenantConnectionString);
-    //                break;
-    //            case "mssql":
-    //                optionsBuilder.UseSqlServer(tenantConnectionString);
-    //                break;
-    //            case "mysql":
-    //                optionsBuilder.UseMySql(tenantConnectionString, ServerVersion.AutoDetect(tenantConnectionString));
-    //                break;
-    //        }
-    //    }
-    // }
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        optionsBuilder.EnableSensitiveDataLogging();
+        string? tenantConnectionString = _tenantService.GetConnectionString();
+        if (!string.IsNullOrEmpty(tenantConnectionString))
+        {
+            string? dbProvider = _tenantService.GetDatabaseProvider();
+            switch (dbProvider?.ToLower())
+            {
+                case "postgresql":
+                    optionsBuilder.UseNpgsql(tenantConnectionString);
+                    break;
+                case "mssql":
+                    optionsBuilder.UseSqlServer(tenantConnectionString);
+                    break;
+                case "mysql":
+                    optionsBuilder.UseMySql(tenantConnectionString, ServerVersion.AutoDetect(tenantConnectionString));
+                    break;
+            }
+        }
+    }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
     {
