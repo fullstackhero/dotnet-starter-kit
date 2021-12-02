@@ -2,7 +2,7 @@ namespace DN.WebApi.Application.Settings;
 
 public class JwtSettings : IAppSettings
 {
-    public string Key { get; set; }
+    public string? Key { get; set; }
 
     public int TokenExpirationInMinutes { get; set; }
 

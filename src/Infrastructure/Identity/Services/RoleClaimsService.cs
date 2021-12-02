@@ -33,7 +33,7 @@ public class RoleClaimsService : IRoleClaimsService
     {
         var roles = new List<RoleDto>();
         string cacheKey = CacheKeys.GetCacheKey(ClaimConstants.Permission, userId);
-        byte[] cachedData = !string.IsNullOrWhiteSpace(cacheKey) ? await _cache.GetAsync(cacheKey) : null;
+        byte[]? cachedData = !string.IsNullOrWhiteSpace(cacheKey) ? await _cache.GetAsync(cacheKey) : null;
         if (cachedData != null)
         {
             await _cache.RefreshAsync(cacheKey);
@@ -80,6 +80,11 @@ public class RoleClaimsService : IRoleClaimsService
     {
         var roleClaim = await _db.RoleClaims
             .SingleOrDefaultAsync(x => x.Id == id);
+        if (roleClaim is null)
+        {
+            return await Result<RoleClaimResponse>.FailAsync(_localizer["Role not found."]);
+        }
+
         var roleClaimResponse = roleClaim.Adapt<RoleClaimResponse>();
         return await Result<RoleClaimResponse>.SuccessAsync(roleClaimResponse);
     }

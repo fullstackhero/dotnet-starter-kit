@@ -7,8 +7,8 @@
     "ContactName": "Mukesh Murugan",
     "ContactEmail": "hello@codewithmukesh.com",
     "ContactUrl": "https://linkedin.com/in/iammukeshm",
-    "Licence": true,
-    "LicenceName": "MIT License",
-    "LicenceUrl": "https://github.com/fullstackhero/dotnet-webapi-boilerplate/blob/main/LICENSE"
+    "License": true,
+    "LicenseName": "MIT License",
+    "LicenseUrl": "https://github.com/fullstackhero/dotnet-webapi-boilerplate/blob/main/LICENSE"
   }
 }

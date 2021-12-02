@@ -36,7 +36,7 @@ public static class SwaggerExtensions
         {
             services.AddSwaggerGen(options =>
             {
-                options.SwaggerDoc("v1", new OpenApiInfo
+                var info = new OpenApiInfo
                 {
                     Title = settings.Title,
                     Version = settings.Version,
@@ -45,14 +45,23 @@ public static class SwaggerExtensions
                     {
                         Name = settings.ContactName,
                         Email = settings.ContactEmail,
-                        Url = new Uri(settings.ContactUrl)
                     },
                     License = new OpenApiLicense
                     {
-                        Name = settings.LicenceName,
-                        Url = new Uri(settings.LicenceUrl)
+                        Name = settings.LicenseName,
                     }
-                });
+                };
+                if (!string.IsNullOrEmpty(settings.ContactUrl))
+                {
+                    info.Contact.Url = new Uri(settings.ContactUrl);
+                }
+
+                if (!string.IsNullOrEmpty(settings.LicenseUrl))
+                {
+                    info.License.Url = new Uri(settings.LicenseUrl);
+                }
+
+                options.SwaggerDoc("v1", info);
                 string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
                 foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
                 {

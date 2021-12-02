@@ -11,22 +11,18 @@ namespace DN.WebApi.Infrastructure.Persistence.Contexts;
 public class ApplicationDbContext : BaseDbContext
 {
     private readonly IEventService _eventService;
-    private readonly ISerializerService _serializer;
     public IDbConnection Connection => Database.GetDbConnection();
     private readonly ICurrentUser _currentUserService;
-    private readonly ITenantService _tenantService;
 
     public ApplicationDbContext(DbContextOptions options, ITenantService tenantService, ICurrentUser currentUserService, ISerializerService serializer, IEventService eventService)
     : base(options, tenantService, currentUserService, serializer)
     {
-        _tenantService = tenantService;
         _currentUserService = currentUserService;
-        _serializer = serializer;
         _eventService = eventService;
     }
 
-    public DbSet<Product> Products { get; set; }
-    public DbSet<Brand> Brands { get; set; }
+    public DbSet<Product> Products => Set<Product>();
+    public DbSet<Brand> Brands => Set<Brand>();
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
     {

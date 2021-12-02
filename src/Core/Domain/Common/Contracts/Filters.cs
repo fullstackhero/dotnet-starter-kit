@@ -13,11 +13,7 @@ public class Filters<T>
 
     public void Add(bool condition, Expression<Func<T, bool>> expression)
     {
-        _filterList.Add(new Filter<T>
-        {
-            Condition = condition,
-            Expression = expression
-        });
+        _filterList.Add(new Filter<T>(condition, expression));
     }
 
     public bool IsValid()

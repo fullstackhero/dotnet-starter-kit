@@ -31,7 +31,7 @@ public class ResponseLoggingMiddleware : IMiddleware
             responseBody = await new StreamReader(httpContext.Response.Body).ReadToEndAsync();
         }
 
-        string email = !string.IsNullOrEmpty(_currentUser.GetUserEmail()) ? _currentUser.GetUserEmail() : "Anonymous";
+        string email = _currentUser.GetUserEmail() is string userEmail ? userEmail : "Anonymous";
         var userId = _currentUser.GetUserId();
         string tenant = _currentUser.GetTenant() ?? string.Empty;
         if (userId != Guid.Empty) LogContext.PushProperty("UserId", userId);

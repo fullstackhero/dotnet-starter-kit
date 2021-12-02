@@ -1,4 +1,4 @@
-using DN.WebApi.Application.Common.Validators;
+using DN.WebApi.Application.Common.Validation;
 using DN.WebApi.Application.Storage;
 using DN.WebApi.Shared.DTOs.Catalog;
 using FluentValidation;
@@ -11,7 +11,7 @@ public class CreateProductRequestValidator : CustomValidator<CreateProductReques
     {
         RuleFor(p => p.Name).MaximumLength(75).NotEmpty();
         RuleFor(p => p.Rate).GreaterThanOrEqualTo(1).NotEqual(0);
-        RuleFor(p => p.Image).SetValidator(new FileUploadRequestValidator());
+        RuleFor(p => p.Image).SetNonNullableValidator(new FileUploadRequestValidator());
         RuleFor(p => p.BrandId).NotEmpty().NotNull();
     }
 }

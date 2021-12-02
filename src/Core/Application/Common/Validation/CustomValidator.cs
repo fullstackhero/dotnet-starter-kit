@@ -1,7 +1,7 @@
 using FluentValidation;
 using FluentValidation.Results;
 
-namespace DN.WebApi.Application.Common.Validators;
+namespace DN.WebApi.Application.Common.Validation;
 
 public class CustomValidator<T> : AbstractValidator<T>
 {

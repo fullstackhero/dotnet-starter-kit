@@ -15,7 +15,7 @@ public class CacheService : ICacheService
         _logger = logger;
     }
 
-    public byte[] Get(string key)
+    public byte[]? Get(string key)
     {
         try
         {
@@ -27,7 +27,7 @@ public class CacheService : ICacheService
         }
     }
 
-    public async Task<byte[]> GetAsync(string key, CancellationToken token = default)
+    public async Task<byte[]?> GetAsync(string key, CancellationToken token = default)
     {
         try
         {

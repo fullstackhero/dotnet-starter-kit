@@ -25,16 +25,16 @@ public class TenantManager : ITenantManager
     private readonly ApplicationDbContext _appContext;
     private readonly IStringLocalizer<TenantService> _localizer;
 
-    private readonly DatabaseSettings _options;
+    private readonly DatabaseSettings _dbOptions;
 
     private readonly TenantManagementDbContext _context;
     private readonly ICurrentUser _user;
 
-    public TenantManager(ApplicationDbContext appContext, IStringLocalizer<TenantService> localizer, IOptions<DatabaseSettings> options, TenantManagementDbContext context, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ICurrentUser user, IServiceProvider di)
+    public TenantManager(ApplicationDbContext appContext, IStringLocalizer<TenantService> localizer, IOptions<DatabaseSettings> dbOptions, TenantManagementDbContext context, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ICurrentUser user, IServiceProvider di)
     {
         _appContext = appContext;
         _localizer = localizer;
-        _options = options.Value;
+        _dbOptions = dbOptions.Value;
         _context = context;
         _userManager = userManager;
         _roleManager = roleManager;
@@ -59,16 +59,18 @@ public class TenantManager : ITenantManager
 
     public async Task<Result<object>> CreateTenantAsync(CreateTenantRequest request)
     {
-        if (_context.Tenants.Any(a => a.Key == request.Key)) throw new Exception("Tenant with same key exists.");
-        if (string.IsNullOrEmpty(request.ConnectionString)) request.ConnectionString = _options.ConnectionString;
-        bool isValidConnectionString = TenantBootstrapper.TryValidateConnectionString(_options, request.ConnectionString, request.Key);
+        if (_context.Tenants.Any(a => a.Key == request.Key)) throw new InvalidOperationException("Tenant with same key exists.");
+        if (string.IsNullOrEmpty(request.ConnectionString)) request.ConnectionString = _dbOptions.ConnectionString;
+        if (string.IsNullOrEmpty(request.ConnectionString)) throw new InvalidOperationException("No default connectionstring configured.");
+        if (string.IsNullOrEmpty(_dbOptions.DBProvider)) throw new InvalidOperationException("DB Provider is not configured.");
+        bool isValidConnectionString = TenantBootstrapper.TryValidateConnectionString(_dbOptions.DBProvider, request.ConnectionString, request.Key);
         if (!isValidConnectionString) throw new Exception("Failed to Establish Connection to Database. Please check your connection string.");
         var tenant = new Tenant(request.Name, request.Key, request.AdminEmail, request.ConnectionString)
         {
             CreatedBy = _user.GetUserId()
         };
         var seeders = _di.GetServices<IDatabaseSeeder>().ToList();
-        TenantBootstrapper.Initialize(_appContext, _options, tenant, _userManager, _roleManager, seeders);
+        TenantBootstrapper.Initialize(_appContext, _dbOptions.DBProvider, _dbOptions.ConnectionString!, tenant, _userManager, _roleManager, seeders);
         _context.Tenants.Add(tenant);
         await _context.SaveChangesAsync();
         return await Result<object>.SuccessAsync(tenant.Id);

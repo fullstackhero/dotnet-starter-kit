@@ -10,5 +10,5 @@ public class TenantManagementDbContext : DbContext
     {
     }
 
-    public DbSet<Tenant> Tenants { get; set; }
+    public DbSet<Tenant> Tenants => Set<Tenant>();
 }

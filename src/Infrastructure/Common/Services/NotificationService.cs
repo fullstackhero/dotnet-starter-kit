@@ -34,13 +34,13 @@ public class NotificationService : INotificationService
     public async Task SendMessageAsync(INotificationMessage notification)
     {
         var tenant = _tenantService.GetCurrentTenant();
-        await _notificationHubContext.Clients.Group($"GroupTenant-{tenant.Key}").SendAsync(notification.MessageType, notification);
+        await _notificationHubContext.Clients.Group($"GroupTenant-{tenant?.Key}").SendAsync(notification.MessageType, notification);
     }
 
     public async Task SendMessageExceptAsync(INotificationMessage notification, IEnumerable<string> excludedConnectionIds)
     {
         var tenant = _tenantService.GetCurrentTenant();
-        await _notificationHubContext.Clients.GroupExcept($"GroupTenant-{tenant.Key}", excludedConnectionIds).SendAsync(notification.MessageType, notification);
+        await _notificationHubContext.Clients.GroupExcept($"GroupTenant-{tenant?.Key}", excludedConnectionIds).SendAsync(notification.MessageType, notification);
     }
 
     public async Task SendMessageToGroupAsync(INotificationMessage notification, string group)

@@ -2,11 +2,14 @@ namespace DN.WebApi.Shared.DTOs.General.Requests;
 
 public class MailRequest
 {
-    public string To { get; set; }
+    public MailRequest(string to, string subject, string? body = null, string? from = null) =>
+        (To, Subject, Body, From) = (to, subject, body, from);
 
-    public string Subject { get; set; }
+    public string To { get; }
 
-    public string Body { get; set; }
+    public string Subject { get; }
 
-    public string From { get; set; }
+    public string? Body { get; }
+
+    public string? From { get; }
 }

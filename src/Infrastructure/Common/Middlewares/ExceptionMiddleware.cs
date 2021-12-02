@@ -34,7 +34,7 @@ internal class ExceptionMiddleware : IMiddleware
         }
         catch (Exception exception)
         {
-            string email = !string.IsNullOrEmpty(_currentUser.GetUserEmail()) ? _currentUser.GetUserEmail() : "Anonymous";
+            string email = _currentUser.GetUserEmail() is string userEmail ? userEmail : "Anonymous";
             var userId = _currentUser.GetUserId();
             string tenant = _currentUser.GetTenant() ?? string.Empty;
             if (userId != Guid.Empty) LogContext.PushProperty("UserId", userId);
@@ -44,7 +44,7 @@ internal class ExceptionMiddleware : IMiddleware
             LogContext.PushProperty("ErrorId", errorId);
             LogContext.PushProperty("StackTrace", exception.StackTrace);
             var responseModel = await ErrorResult<string>.ReturnErrorAsync(exception.Message);
-            responseModel.Source = exception.TargetSite.DeclaringType.FullName;
+            responseModel.Source = exception.TargetSite?.DeclaringType?.FullName;
             responseModel.Exception = exception.Message.Trim();
             responseModel.ErrorId = errorId;
             responseModel.SupportMessage = _localizer["exceptionmiddleware.supportmessage"];

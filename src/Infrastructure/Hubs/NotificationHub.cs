@@ -18,7 +18,7 @@ public class NotificationHub : Hub, ITransientService
 
     public override async Task OnConnectedAsync()
     {
-        string tenant = Context.User.GetTenant();
+        string? tenant = Context.User?.GetTenant();
         if (string.IsNullOrEmpty(tenant))
         {
             throw new Exception();
@@ -29,9 +29,9 @@ public class NotificationHub : Hub, ITransientService
         _logger.LogInformation($"A client connected to NotificationHub: {Context.ConnectionId}");
     }
 
-    public override async Task OnDisconnectedAsync(Exception exception)
+    public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        string tenant = Context.User.GetTenant();
+        string? tenant = Context.User?.GetTenant();
         if (string.IsNullOrEmpty(tenant))
         {
             throw new Exception();
