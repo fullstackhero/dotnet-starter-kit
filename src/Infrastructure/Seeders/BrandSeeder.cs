@@ -1,8 +1,9 @@
+using System.Reflection;
 using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Domain.Catalog;
+using DN.WebApi.Domain.Multitenancy;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
 using Microsoft.Extensions.Logging;
-using System.Reflection;
 
 namespace DN.WebApi.Infrastructure.Seeders;
 
@@ -19,7 +20,7 @@ public class BrandSeeder : IDatabaseSeeder
         _db = db;
     }
 
-    public void Initialize()
+    public void Initialize(Tenant tenant)
     {
         Task.Run(async () =>
         {
@@ -37,6 +38,7 @@ public class BrandSeeder : IDatabaseSeeder
                 {
                     foreach (var brand in brands)
                     {
+                        brand.Tenant = tenant.Key;
                         await _db.Brands.AddAsync(brand);
                     }
                 }

@@ -36,8 +36,8 @@ public abstract class BaseDbContext : IdentityDbContext<ApplicationUser, Applica
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
         modelBuilder.ApplyIdentityConfiguration(_tenantService);
-        modelBuilder.ApplyGlobalFilters<IMustHaveTenant>(b => EF.Property<string?>(b, nameof(Tenant)) == Tenant);
-        modelBuilder.ApplyGlobalFilters<IIdentityTenant>(b => EF.Property<string?>(b, nameof(Tenant)) == Tenant);
+        modelBuilder.ApplyGlobalFilters<IMustHaveTenant>(b => EF.Property<string>(b, nameof(Tenant)) == Tenant);
+        modelBuilder.ApplyGlobalFilters<IIdentityTenant>(b => EF.Property<string>(b, nameof(Tenant)) == Tenant);
         modelBuilder.ApplyGlobalFilters<ISoftDelete>(s => s.DeletedOn == null);
     }
 
@@ -74,7 +74,11 @@ public abstract class BaseDbContext : IdentityDbContext<ApplicationUser, Applica
             {
                 case EntityState.Added:
                 case EntityState.Modified:
-                    entry.Entity.Tenant = Tenant;
+                    if (entry.Entity.Tenant == null)
+                    {
+                        entry.Entity.Tenant = Tenant;
+                    }
+
                     break;
             }
         }
