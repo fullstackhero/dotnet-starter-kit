@@ -1,4 +1,7 @@
+using System.Text;
+using DN.WebApi.Application.Common.Constants;
 using DN.WebApi.Application.Common.Interfaces;
+using DN.WebApi.Application.Identity.Interfaces;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Models;
@@ -8,9 +11,6 @@ using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Localization;
-using System.Text;
-using DN.WebApi.Application.Common.Constants;
-using DN.WebApi.Application.Identity.Interfaces;
 
 namespace DN.WebApi.Infrastructure.Identity.Services;
 
@@ -92,7 +92,6 @@ public class RoleClaimsService : IRoleClaimsService
     public async Task<Result<List<RoleClaimResponse>>> GetAllByRoleIdAsync(string roleId)
     {
         var roleClaims = await _db.RoleClaims
-            .Include(x => x.Role)
             .Where(x => x.RoleId == roleId)
             .ToListAsync();
         var roleClaimsResponse = roleClaims.Adapt<List<RoleClaimResponse>>();
@@ -126,7 +125,6 @@ public class RoleClaimsService : IRoleClaimsService
         {
             var existingRoleClaim =
                 await _db.RoleClaims
-                    .Include(x => x.Role)
                     .SingleOrDefaultAsync(x => x.Id == request.Id);
             if (existingRoleClaim == null)
             {
@@ -141,7 +139,7 @@ public class RoleClaimsService : IRoleClaimsService
                 existingRoleClaim.RoleId = request.RoleId;
                 _db.RoleClaims.Update(existingRoleClaim);
                 await _db.SaveChangesAsync();
-                return await Result<string>.SuccessAsync(string.Format(_localizer["Role Claim {0} for Role {1} updated."], request.Value, existingRoleClaim.Role.Name));
+                return await Result<string>.SuccessAsync(string.Format(_localizer["Role Claim {0} for Role updated."], request.Value));
             }
         }
     }
@@ -149,13 +147,12 @@ public class RoleClaimsService : IRoleClaimsService
     public async Task<Result<string>> DeleteAsync(int id)
     {
         var existingRoleClaim = await _db.RoleClaims
-            .Include(x => x.Role)
             .FirstOrDefaultAsync(x => x.Id == id);
         if (existingRoleClaim != null)
         {
             _db.RoleClaims.Remove(existingRoleClaim);
             await _db.SaveChangesAsync();
-            return await Result<string>.SuccessAsync(string.Format(_localizer["Role Claim {0} for {1} Role deleted."], existingRoleClaim.ClaimValue, existingRoleClaim.Role.Name));
+            return await Result<string>.SuccessAsync(string.Format(_localizer["Role Claim {0} for Role deleted."], existingRoleClaim.ClaimValue));
         }
         else
         {
