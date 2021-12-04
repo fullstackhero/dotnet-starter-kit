@@ -46,7 +46,7 @@ public class TenantBootstrapper
 
                 foreach (var seeder in seeders)
                 {
-                    seeder.Initialize();
+                    seeder.Initialize(tenant);
                 }
             }
         }

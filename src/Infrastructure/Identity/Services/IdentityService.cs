@@ -103,7 +103,7 @@ public class IdentityService : IIdentityService
             // send verification email
             string emailVerificationUri = await GetEmailVerificationUriAsync(user, origin);
             var mailRequest = new MailRequest(
-                user.Email,
+                new List<string> { user.Email },
                 _localizer["Confirm Registration"],
                 _templateService.GenerateEmailConfirmationMail(user.UserName ?? "User", user.Email, emailVerificationUri));
             _jobService.Enqueue(() => _mailService.SendAsync(mailRequest));
@@ -180,7 +180,7 @@ public class IdentityService : IIdentityService
         var endpointUri = new Uri(string.Concat($"{origin}/", route));
         string passwordResetUrl = QueryHelpers.AddQueryString(endpointUri.ToString(), "Token", code);
         var mailRequest = new MailRequest(
-            request.Email,
+            new List<string> { request.Email },
             _localizer["Reset Password"],
             _localizer[$"Your Password Reset Token is '{code}'. You can reset your password using the {endpointUri} Endpoint."]);
         _jobService.Enqueue(() => _mailService.SendAsync(mailRequest));
