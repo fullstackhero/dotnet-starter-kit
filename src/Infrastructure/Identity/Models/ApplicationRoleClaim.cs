@@ -11,7 +11,6 @@ public class ApplicationRoleClaim : IdentityRoleClaim<string>
     public DateTime CreatedOn { get; set; }
     public string? LastModifiedBy { get; set; }
     public DateTime? LastModifiedOn { get; set; }
-    public virtual ApplicationRole Role { get; set; } = default!;
 
     public ApplicationRoleClaim()
     {

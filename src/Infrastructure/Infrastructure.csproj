@@ -32,7 +32,7 @@
         <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="6.0.0" />
         <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="6.0.0" />
         <PackageReference Include="MimeKit" Version="2.15.1" />
-        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.0" />
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.1" />
         <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.0" />
         <PackageReference Include="protobuf-net.Grpc.AspNetCore" Version="1.0.152" />
         <PackageReference Include="Serilog.Enrichers.Environment" Version="2.2.0" />

@@ -7,7 +7,6 @@ using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Common;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Models;
-using DN.WebApi.Shared.DTOs.General.Requests;
 using DN.WebApi.Shared.DTOs.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
@@ -17,6 +16,7 @@ using Microsoft.Extensions.Options;
 using System.Net;
 using System.Text;
 using DN.WebApi.Application.Identity.Interfaces;
+using DN.WebApi.Shared.DTOs.Mails;
 
 namespace DN.WebApi.Infrastructure.Identity.Services;
 
@@ -103,7 +103,7 @@ public class IdentityService : IIdentityService
             // send verification email
             string emailVerificationUri = await GetEmailVerificationUriAsync(user, origin);
             var mailRequest = new MailRequest(
-                user.Email,
+                new List<string> { user.Email },
                 _localizer["Confirm Registration"],
                 _templateService.GenerateEmailConfirmationMail(user.UserName ?? "User", user.Email, emailVerificationUri));
             _jobService.Enqueue(() => _mailService.SendAsync(mailRequest));
@@ -180,7 +180,7 @@ public class IdentityService : IIdentityService
         var endpointUri = new Uri(string.Concat($"{origin}/", route));
         string passwordResetUrl = QueryHelpers.AddQueryString(endpointUri.ToString(), "Token", code);
         var mailRequest = new MailRequest(
-            request.Email,
+            new List<string> { request.Email },
             _localizer["Reset Password"],
             _localizer[$"Your Password Reset Token is '{code}'. You can reset your password using the {endpointUri} Endpoint."]);
         _jobService.Enqueue(() => _mailService.SendAsync(mailRequest));

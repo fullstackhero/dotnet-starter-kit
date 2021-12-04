@@ -74,7 +74,11 @@ public abstract class BaseDbContext : IdentityDbContext<ApplicationUser, Applica
             {
                 case EntityState.Added:
                 case EntityState.Modified:
-                    entry.Entity.Tenant = Tenant;
+                    if (entry.Entity.Tenant == null)
+                    {
+                        entry.Entity.Tenant = Tenant;
+                    }
+
                     break;
             }
         }
