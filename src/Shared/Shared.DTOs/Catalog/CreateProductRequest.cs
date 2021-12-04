@@ -1,4 +1,4 @@
-using DN.WebApi.Shared.DTOs.Storage;
+using DN.WebApi.Shared.DTOs.FileStorage;
 using System.Runtime.Serialization;
 
 namespace DN.WebApi.Shared.DTOs.Catalog;

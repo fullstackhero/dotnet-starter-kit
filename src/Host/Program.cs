@@ -1,10 +1,10 @@
-using DN.WebApi.Application.DependencyInjection;
+using DN.WebApi.Application;
 using DN.WebApi.Host.Controllers.Catalog;
 using DN.WebApi.Host.Controllers.Dashboard;
 using DN.WebApi.Host.Controllers.Identity;
 using DN.WebApi.Host.Controllers.Multitenancy;
 using DN.WebApi.Host.Extensions;
-using DN.WebApi.Infrastructure.DependencyInjection;
+using DN.WebApi.Infrastructure;
 using FluentValidation.AspNetCore;
 using Serilog;
 

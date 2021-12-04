@@ -1,5 +1,5 @@
 ﻿using DN.WebApi.Application.Wrapper;
-using DN.WebApi.Shared.DTOs;
+using DN.WebApi.Shared.DTOs.Dashboard;
 using ProtoBuf.Grpc;
 using System.ServiceModel;
 

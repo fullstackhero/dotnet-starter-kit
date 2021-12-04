@@ -1,7 +1,6 @@
 using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Shared.DTOs.Catalog;
-using DN.WebApi.Shared.DTOs.Filters;
 
 namespace DN.WebApi.Application.Catalog.Interfaces;
 

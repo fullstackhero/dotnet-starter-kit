@@ -1,5 +1,5 @@
 {
-  "HangFireSettings": {
+  "HangfireSettings": {
     "Route": "/jobs",
     "Dashboard": {
       "AppPath": "/",

@@ -1,6 +1,6 @@
 ﻿using DN.WebApi.Application.Dashboard;
 using DN.WebApi.Application.Wrapper;
-using DN.WebApi.Shared.DTOs;
+using DN.WebApi.Shared.DTOs.Dashboard;
 using GrpcShared.Controllers;
 using ProtoBuf.Grpc;
 
