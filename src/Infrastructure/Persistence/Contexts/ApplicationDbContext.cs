@@ -1,10 +1,10 @@
+using System.Data;
 using DN.WebApi.Application.Common.Interfaces;
+using DN.WebApi.Application.Identity.Interfaces;
 using DN.WebApi.Application.Multitenancy;
 using DN.WebApi.Domain.Catalog;
 using DN.WebApi.Domain.Common.Contracts;
 using Microsoft.EntityFrameworkCore;
-using System.Data;
-using DN.WebApi.Application.Identity.Interfaces;
 
 namespace DN.WebApi.Infrastructure.Persistence.Contexts;
 

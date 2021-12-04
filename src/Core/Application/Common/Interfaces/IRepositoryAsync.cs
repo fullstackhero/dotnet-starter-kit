@@ -1,15 +1,23 @@
+using System.Data;
+using System.Linq.Expressions;
 using DN.WebApi.Application.Common.Specifications;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Common.Contracts;
 using DN.WebApi.Shared.DTOs;
 using DN.WebApi.Shared.DTOs.Filters;
-using System.Data;
-using System.Linq.Expressions;
 
 namespace DN.WebApi.Application.Common.Interfaces;
 
 public interface IRepositoryAsync : ITransientService
 {
+    // Read
+
+    Task<List<T>> GetListAsync<T>(Expression<Func<T, bool>> expression, bool noTracking = false, CancellationToken cancellationToken = default)
+    where T : BaseEntity;
+
+    Task<int> GetCountAsync<T>(Expression<Func<T, bool>>? expression = null, CancellationToken cancellationToken = default)
+    where T : BaseEntity;
+
     Task<T?> GetByIdAsync<T>(Guid id, BaseSpecification<T>? specification = null, CancellationToken cancellationToken = default)
     where T : BaseEntity;
 
@@ -17,59 +25,23 @@ public interface IRepositoryAsync : ITransientService
     where T : BaseEntity
     where TDto : IDto;
 
-    Task<int> GetCountAsync<T>(Expression<Func<T, bool>>? expression = null, CancellationToken cancellationToken = default)
-    where T : BaseEntity;
-
-    Task<List<T>> GetListAsync<T>(Expression<Func<T, bool>> expression, bool noTracking = false, CancellationToken cancellationToken = default)
-    where T : BaseEntity;
-
     Task<bool> ExistsAsync<T>(Expression<Func<T, bool>> expression, CancellationToken cancellationToken = default)
     where T : BaseEntity;
 
-    Task UpdateAsync<T>(T entity)
+    Task<List<T>> FindAsync<T>(Expression<Func<T, bool>>? expression, bool AsNoTracking = true, BaseSpecification<T>? specification = null)
     where T : BaseEntity;
 
-    #region Dapper
-
-    Task<IReadOnlyList<T>> QueryAsync<T>(string sql, object? param = null, IDbTransaction? transaction = null, CancellationToken cancellationToken = default)
+    Task<T?> FirstAsync<T>(Expression<Func<T, bool>>? expression, bool AsNoTracking = true, BaseSpecification<T>? specification = null)
     where T : BaseEntity;
 
-    Task<T> QueryFirstOrDefaultAsync<T>(string sql, object? param = null, IDbTransaction? transaction = null, CancellationToken cancellationToken = default)
+    Task<T?> LastAsync<T>(Expression<Func<T, bool>>? expression, bool AsNoTracking = true, BaseSpecification<T>? specification = null)
     where T : BaseEntity;
 
-    Task<T> QuerySingleAsync<T>(string sql, object? param = null, IDbTransaction? transaction = null, CancellationToken cancellationToken = default)
-    where T : BaseEntity;
+    Task<PaginatedResult<TDto>> GetSearchResultsAsync<T, TDto>(int pageNumber, int pageSize = int.MaxValue, string[]? orderBy = null, Filters<T>? filters = null, Search? advancedSearch = null, string? keyword = null, Expression<Func<T, bool>>? expression = null, CancellationToken cancellationToken = default)
+    where T : BaseEntity
+    where TDto : IDto;
 
-    #endregion Dapper
-
-    #region Save Changes
-
-    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
-
-    #endregion Save Changes
-
-    #region Find
-
-    Task<List<T>> FindByConditionAsync<T>(Expression<Func<T, bool>>? expression, bool AsNoTracking = true, BaseSpecification<T>? specification = null)
-    where T : BaseEntity;
-
-    #endregion Find
-
-    #region FirstOrDefault
-
-    Task<T?> FirstByConditionAsync<T>(Expression<Func<T, bool>>? expression, bool AsNoTracking = true, BaseSpecification<T>? specification = null)
-    where T : BaseEntity;
-
-    #endregion FirstOrDefault
-
-    #region LastOrDefault
-
-    Task<T?> LastByConditionAsync<T>(Expression<Func<T, bool>>? expression, bool AsNoTracking = true, BaseSpecification<T>? specification = null)
-    where T : BaseEntity;
-
-    #endregion LastOrDefault
-
-    #region Create
+    // Create / Update / Delete
 
     Task<Guid> CreateAsync<T>(T entity)
     where T : BaseEntity;
@@ -77,9 +49,8 @@ public interface IRepositoryAsync : ITransientService
     Task<IList<Guid>> CreateRangeAsync<T>(IEnumerable<T> entity)
     where T : BaseEntity;
 
-    #endregion Create
-
-    #region DeleteOrRemoveOrClear
+    Task UpdateAsync<T>(T entity)
+    where T : BaseEntity;
 
     Task RemoveAsync<T>(T entity)
     where T : BaseEntity;
@@ -90,24 +61,16 @@ public interface IRepositoryAsync : ITransientService
     Task ClearAsync<T>(Expression<Func<T, bool>>? expression = null, BaseSpecification<T>? specification = null)
     where T : BaseEntity;
 
-    #endregion DeleteOrRemoveOrClear
+    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
-    #region Paginate
+    // Dapper
 
-    Task<PaginatedResult<TDto>> GetSearchResultsAsync<T, TDto>(int pageNumber, int pageSize = int.MaxValue, string[]? orderBy = null, Search? advancedSearch = null, string? keyword = null, Expression<Func<T, bool>>? expression = null, CancellationToken cancellationToken = default)
-    where T : BaseEntity
-    where TDto : IDto;
-
-    Task<PaginatedResult<TDto>> GetSearchResultsAsync<T, TDto>(int pageNumber, int pageSize = int.MaxValue, string[]? orderBy = null, Filters<T>? filters = null, Search? advancedSearch = null, string? keyword = null, CancellationToken cancellationToken = default)
-    where T : BaseEntity
-    where TDto : IDto;
-
-    #endregion Paginate
-
-    #region Aggregations
-
-    Task<int> CountByConditionAsync<T>(Expression<Func<T, bool>>? expression = null)
+    Task<IReadOnlyList<T>> QueryAsync<T>(string sql, object? param = null, IDbTransaction? transaction = null, CancellationToken cancellationToken = default)
     where T : BaseEntity;
 
-    #endregion Aggregations
+    Task<T> QueryFirstOrDefaultAsync<T>(string sql, object? param = null, IDbTransaction? transaction = null, CancellationToken cancellationToken = default)
+    where T : BaseEntity;
+
+    Task<T> QuerySingleAsync<T>(string sql, object? param = null, IDbTransaction? transaction = null, CancellationToken cancellationToken = default)
+    where T : BaseEntity;
 }

@@ -2,7 +2,7 @@ using DN.WebApi.Application.Catalog.Interfaces;
 using DN.WebApi.Application.Common.Exceptions;
 using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Common.Specifications;
-using DN.WebApi.Application.Storage;
+using DN.WebApi.Application.FileStorage;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Catalog;
 using DN.WebApi.Domain.Catalog.Events;

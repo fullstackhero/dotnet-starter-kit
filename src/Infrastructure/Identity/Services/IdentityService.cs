@@ -1,22 +1,22 @@
+using System.Net;
+using System.Text;
 using DN.WebApi.Application.Common.Interfaces;
+using DN.WebApi.Application.FileStorage;
 using DN.WebApi.Application.Identity.Exceptions;
+using DN.WebApi.Application.Identity.Interfaces;
 using DN.WebApi.Application.Multitenancy;
-using DN.WebApi.Application.Settings;
-using DN.WebApi.Application.Storage;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Common;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Models;
+using DN.WebApi.Infrastructure.Mailing;
 using DN.WebApi.Shared.DTOs.Identity;
+using DN.WebApi.Shared.DTOs.Mailing;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
-using System.Net;
-using System.Text;
-using DN.WebApi.Application.Identity.Interfaces;
-using DN.WebApi.Shared.DTOs.Mails;
 
 namespace DN.WebApi.Infrastructure.Identity.Services;
 
@@ -266,7 +266,7 @@ public class IdentityService : IIdentityService
         string verificationUri = QueryHelpers.AddQueryString(endpointUri.ToString(), "userId", user.Id);
         verificationUri = QueryHelpers.AddQueryString(verificationUri, "code", code);
         if (_tenantService.GetCurrentTenant()?.Key is string tenantKey)
-        verificationUri = QueryHelpers.AddQueryString(verificationUri, "tenant", tenantKey);
+            verificationUri = QueryHelpers.AddQueryString(verificationUri, "tenant", tenantKey);
         return verificationUri;
     }
 }

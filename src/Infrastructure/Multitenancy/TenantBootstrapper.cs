@@ -1,5 +1,6 @@
+using System.Data.SqlClient;
+using System.Security.Claims;
 using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Application.Settings;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Domain.Multitenancy;
 using DN.WebApi.Infrastructure.Common.Extensions;
@@ -12,8 +13,6 @@ using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
 using Npgsql;
 using Serilog;
-using System.Data.SqlClient;
-using System.Security.Claims;
 
 namespace DN.WebApi.Infrastructure.Multitenancy;
 

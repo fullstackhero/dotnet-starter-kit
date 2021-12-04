@@ -1,4 +1,4 @@
-using DN.WebApi.Shared.DTOs.Storage;
+using DN.WebApi.Shared.DTOs.FileStorage;
 
 namespace DN.WebApi.Shared.DTOs.Catalog;
 
