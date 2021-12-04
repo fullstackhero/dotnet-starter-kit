@@ -1,4 +1,4 @@
-using DN.WebApi.Shared.DTOs.General.Requests;
+using DN.WebApi.Shared.DTOs.Mails;
 
 namespace DN.WebApi.Application.Common.Interfaces;
 
