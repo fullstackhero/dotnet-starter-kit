@@ -35,9 +35,11 @@ public abstract class BaseDbContext : IdentityDbContext<ApplicationUser, Applica
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
         modelBuilder.ApplyIdentityConfiguration(_tenantService);
-        modelBuilder.ApplyGlobalFilters<IMustHaveTenant>(b => EF.Property<string>(b, nameof(Tenant)) == Tenant);
         modelBuilder.ApplyGlobalFilters<IIdentityTenant>(b => EF.Property<string>(b, nameof(Tenant)) == Tenant);
         modelBuilder.ApplyGlobalFilters<ISoftDelete>(s => s.DeletedOn == null);
+
+        // important for global tenant filtering
+        modelBuilder.ApplyGlobalFilters<IMustHaveTenant>(b => EF.Property<string>(b, nameof(Tenant)) == Tenant);
     }
 
     // is this still necessary with how multitenancy is now implemented?
