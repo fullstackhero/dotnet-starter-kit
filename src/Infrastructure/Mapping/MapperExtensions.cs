@@ -9,11 +9,12 @@ public static class MapperExtensions
 {
     public static Task<PaginatedResult<TDto>> ToMappedPaginatedResultAsync<T, TDto>(
         this IQueryable<T> query, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
-        where T : class =>
-        new MappedPaginatedResultConverter<T, TDto>(pageNumber, pageSize).ConvertBackAsync(query, cancellationToken);
+    where T : class =>
+        new MappedPaginatedResultConverter<T, TDto>(pageNumber, pageSize)
+            .ConvertBackAsync(query, cancellationToken);
 
     private class MappedPaginatedResultConverter<T, TDto> : IMapsterConverterAsync<PaginatedResult<TDto>, IQueryable<T>>
-        where T : class
+    where T : class
     {
         private int _pageNumber;
         private int _pageSize;

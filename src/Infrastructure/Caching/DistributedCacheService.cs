@@ -6,14 +6,11 @@ namespace DN.WebApi.Infrastructure.Caching;
 
 public class DistributedCacheService : ICacheService
 {
-    private readonly ILogger<DistributedCacheService> _logger;
     private readonly IDistributedCache _cache;
+    private readonly ILogger<DistributedCacheService> _logger;
 
-    public DistributedCacheService(IDistributedCache cache, ILogger<DistributedCacheService> logger)
-    {
-        _cache = cache;
-        _logger = logger;
-    }
+    public DistributedCacheService(IDistributedCache cache, ILogger<DistributedCacheService> logger) =>
+        (_cache, _logger) = (cache, logger);
 
     public byte[]? Get(string key)
     {
