@@ -4,12 +4,12 @@ using Microsoft.Extensions.Logging;
 
 namespace DN.WebApi.Infrastructure.Caching;
 
-public class CacheService : ICacheService
+public class DistributedCacheService : ICacheService
 {
-    private readonly ILogger<CacheService> _logger;
+    private readonly ILogger<DistributedCacheService> _logger;
     private readonly IDistributedCache _cache;
 
-    public CacheService(IDistributedCache cache, ILogger<CacheService> logger)
+    public DistributedCacheService(IDistributedCache cache, ILogger<DistributedCacheService> logger)
     {
         _cache = cache;
         _logger = logger;
@@ -84,11 +84,11 @@ public class CacheService : ICacheService
         }
     }
 
-    public void Set(string key, byte[] value, DistributedCacheEntryOptions options)
+    public void Set(string key, byte[] value, TimeSpan? slidingExpiration = null)
     {
         try
         {
-            _cache.Set(key, value, options);
+            _cache.Set(key, value, GetOptions(slidingExpiration));
             _logger.LogDebug($"Added to Cache : {key}");
         }
         catch
@@ -96,15 +96,31 @@ public class CacheService : ICacheService
         }
     }
 
-    public async Task SetAsync(string key, byte[] value, DistributedCacheEntryOptions options, CancellationToken token = default)
+    public async Task SetAsync(string key, byte[] value, TimeSpan? slidingExpiration, CancellationToken token = default)
     {
         try
         {
-            await _cache.SetAsync(key, value, options, token);
+            await _cache.SetAsync(key, value, GetOptions(slidingExpiration), token);
             _logger.LogDebug($"Added to Cache : {key}");
         }
         catch
         {
         }
+    }
+
+    private static DistributedCacheEntryOptions GetOptions(TimeSpan? slidingExpiration)
+    {
+        var options = new DistributedCacheEntryOptions();
+        if (slidingExpiration.HasValue)
+        {
+            options.SetSlidingExpiration(slidingExpiration.Value);
+        }
+        else
+        {
+            // TODO: add to appsettings?
+            options.SetSlidingExpiration(TimeSpan.FromMinutes(10)); // Default expiration time of 10 minutes.
+        }
+
+        return options;
     }
 }

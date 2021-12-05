@@ -1,4 +1,3 @@
-using System.Text;
 using DN.WebApi.Application.Common.Constants;
 using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Multitenancy;
@@ -6,7 +5,7 @@ using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
 using DN.WebApi.Shared.DTOs.Multitenancy;
 using Mapster;
-using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 
@@ -14,9 +13,7 @@ namespace DN.WebApi.Infrastructure.Multitenancy;
 
 public class TenantService : ITenantService
 {
-    private readonly ISerializerService _serializer;
-
-    private readonly ICacheService _cache;
+    private readonly ISerializingCacheService _cache;
 
     private readonly IStringLocalizer<TenantService> _localizer;
 
@@ -30,30 +27,22 @@ public class TenantService : ITenantService
         IOptions<DatabaseSettings> options,
         IStringLocalizer<TenantService> localizer,
         TenantManagementDbContext context,
-        ICacheService cache,
-        ISerializerService serializer)
+        ISerializingCacheService cache)
     {
         _localizer = localizer;
         _options = options.Value;
         _context = context;
         _cache = cache;
-        _serializer = serializer;
     }
 
-    public string? GetConnectionString()
-    {
-        return _currentTenant?.ConnectionString;
-    }
+    public string? GetConnectionString() =>
+        _currentTenant?.ConnectionString;
 
-    public string? GetDatabaseProvider()
-    {
-        return _options.DBProvider;
-    }
+    public string? GetDatabaseProvider() =>
+        _options.DBProvider;
 
-    public TenantDto? GetCurrentTenant()
-    {
-        return _currentTenant;
-    }
+    public TenantDto? GetCurrentTenant() =>
+        _currentTenant;
 
     public void SetCurrentTenant(string tenant)
     {
@@ -62,28 +51,15 @@ public class TenantService : ITenantService
             throw new Exception("Method reserved for in-scope initialization");
         }
 
-        TenantDto? tenantDto = default;
-        string cacheKey = CacheKeys.GetCacheKey("tenant", tenant);
-        byte[]? cachedData = !string.IsNullOrWhiteSpace(cacheKey) ? _cache.Get(cacheKey) : null;
-        if (cachedData != null)
-        {
-            _cache.Refresh(cacheKey);
-            tenantDto = _serializer.Deserialize<TenantDto>(Encoding.Default.GetString(cachedData));
-        }
-        else
-        {
-            var tenantInfo = _context.Tenants.Where(a => a.Key == tenant).FirstOrDefault();
-            if (tenantInfo is not null)
+        var tenantDto = _cache.GetOrSetAsync(
+            CacheKeys.GetCacheKey("tenant", tenant),
+            async () =>
             {
-                tenantDto = tenantInfo.Adapt<TenantDto>();
+                var tenantInfo = await _context.Tenants.Where(a => a.Key == tenant).FirstOrDefaultAsync();
+                return tenantInfo is not null ? tenantInfo.Adapt<TenantDto>() : null;
+            }).GetAwaiter().GetResult();
 
-                var options = new DistributedCacheEntryOptions();
-                byte[] serializedData = Encoding.Default.GetBytes(_serializer.Serialize(tenantDto));
-                _cache.Set(cacheKey, serializedData, options);
-            }
-        }
-
-        if (tenantDto == null)
+        if (tenantDto is null)
         {
             throw new InvalidTenantException(_localizer["tenant.invalid"]);
         }

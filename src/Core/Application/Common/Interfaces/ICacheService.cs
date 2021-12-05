@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Caching.Distributed;
-
 namespace DN.WebApi.Application.Common.Interfaces;
 
 public interface ICacheService
@@ -16,7 +14,7 @@ public interface ICacheService
 
     Task RemoveAsync(string key, CancellationToken token = default);
 
-    void Set(string key, byte[] value, DistributedCacheEntryOptions options);
+    void Set(string key, byte[] value, TimeSpan? slidingExpiration = null);
 
-    Task SetAsync(string key, byte[] value, DistributedCacheEntryOptions options, CancellationToken token = default);
+    Task SetAsync(string key, byte[] value, TimeSpan? slidingExpiration = null, CancellationToken token = default);
 }
