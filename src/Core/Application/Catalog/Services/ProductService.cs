@@ -41,7 +41,7 @@ public class ProductService : IProductService
         product.DomainEvents.Add(new ProductCreatedEvent(product));
         product.DomainEvents.Add(new StatsChangedEvent());
 
-        var productId = await _repository.CreateAsync(product);
+        var productId = await _repository.CreateAsync<Product, Guid>(product);
         await _repository.SaveChangesAsync();
         return await Result<Guid>.SuccessAsync(productId);
     }
@@ -64,7 +64,7 @@ public class ProductService : IProductService
         product.DomainEvents.Add(new ProductUpdatedEvent(product));
         product.DomainEvents.Add(new StatsChangedEvent());
 
-        await _repository.UpdateAsync(updatedProduct);
+        await _repository.UpdateAsync<Product, Guid>(updatedProduct);
         await _repository.SaveChangesAsync();
         return await Result<Guid>.SuccessAsync(id);
     }
@@ -100,6 +100,6 @@ public class ProductService : IProductService
         filters.Add(filter.MinimumRate.HasValue, x => x.Rate >= filter.MinimumRate!.Value);
         filters.Add(filter.MaximumRate.HasValue, x => x.Rate <= filter.MaximumRate!.Value);
 
-        return await _repository.GetSearchResultsAsync<Product, ProductDto>(filter.PageNumber, filter.PageSize, filter.OrderBy, filters, filter.AdvancedSearch, filter.Keyword);
+        return await _repository.GetSearchResultsAsync<Product, ProductDto, Guid>(filter.PageNumber, filter.PageSize, filter.OrderBy, filters, filter.AdvancedSearch, filter.Keyword);
     }
 }

@@ -27,8 +27,8 @@ public static class QueryableExtensions
         return query;
     }
 
-    public static IQueryable<T> ApplySort<T>(this IQueryable<T> query, string[]? orderBy)
-    where T : BaseEntity
+    public static IQueryable<T> ApplySort<T, TKey>(this IQueryable<T> query, string[]? orderBy)
+    where T : BaseEntityWith<TKey>
     {
         string? ordering = new OrderByConverter().ConvertBack(orderBy);
         return !string.IsNullOrWhiteSpace(ordering) ? query.OrderBy(ordering) : query.OrderBy(a => a.Id);

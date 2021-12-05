@@ -19,10 +19,17 @@ public interface IRepositoryAsync : ITransientService
     where T : BaseEntity;
 
     Task<T?> GetByIdAsync<T>(Guid id, BaseSpecification<T>? specification = null, CancellationToken cancellationToken = default)
-    where T : BaseEntity;
+    where T : BaseEntityWith<Guid>;
+
+    Task<T?> GetByIdAsync<T>(int id, BaseSpecification<T>? specification = null, CancellationToken cancellationToken = default)
+    where T : BaseEntityWith<int>;
+
 
     Task<TDto> GetByIdAsync<T, TDto>(Guid id, BaseSpecification<T>? specification = null, CancellationToken cancellationToken = default)
-    where T : BaseEntity
+    where T : BaseEntityWith<Guid>
+    where TDto : IDto;
+    Task<TDto> GetByIdAsync<T, TDto>(int id, BaseSpecification<T>? specification = null, CancellationToken cancellationToken = default)
+    where T : BaseEntityWith<int>
     where TDto : IDto;
 
     Task<bool> ExistsAsync<T>(Expression<Func<T, bool>> expression, CancellationToken cancellationToken = default)
@@ -37,29 +44,29 @@ public interface IRepositoryAsync : ITransientService
     Task<T?> LastAsync<T>(Expression<Func<T, bool>>? expression, bool AsNoTracking = true, BaseSpecification<T>? specification = null)
     where T : BaseEntity;
 
-    Task<PaginatedResult<TDto>> GetSearchResultsAsync<T, TDto>(int pageNumber, int pageSize = int.MaxValue, string[]? orderBy = null, Filters<T>? filters = null, Search? advancedSearch = null, string? keyword = null, Expression<Func<T, bool>>? expression = null, CancellationToken cancellationToken = default)
-    where T : BaseEntity
+    Task<PaginatedResult<TDto>> GetSearchResultsAsync<T, TDto, TKey>(int pageNumber, int pageSize = int.MaxValue, string[]? orderBy = null, Filters<T>? filters = null, Search? advancedSearch = null, string? keyword = null, Expression<Func<T, bool>>? expression = null, CancellationToken cancellationToken = default)
+    where T : BaseEntityWith<TKey>
     where TDto : IDto;
 
     // Create / Update / Delete
 
-    Task<Guid> CreateAsync<T>(T entity)
-    where T : BaseEntity;
+    Task<TKey> CreateAsync<T, TKey>(T entity)
+    where T : BaseEntityWith<TKey>;
 
-    Task<IList<Guid>> CreateRangeAsync<T>(IEnumerable<T> entity)
-    where T : BaseEntity;
+    Task<IList<TKey>> CreateRangeAsync<T, TKey>(IEnumerable<T> entity)
+    where T : BaseEntityWith<TKey>;
 
-    Task UpdateAsync<T>(T entity)
-    where T : BaseEntity;
+    Task UpdateAsync<T, TKey>(T entity)
+    where T : BaseEntityWith<TKey>;
 
-    Task RemoveAsync<T>(T entity)
-    where T : BaseEntity;
+    Task RemoveAsync<T, TKey>(T entity)
+    where T : BaseEntityWith<TKey>;
 
     Task<T> RemoveByIdAsync<T>(Guid entityId)
     where T : BaseEntity;
 
-    Task ClearAsync<T>(Expression<Func<T, bool>>? expression = null, BaseSpecification<T>? specification = null)
-    where T : BaseEntity;
+    Task ClearAsync<T, TKey>(Expression<Func<T, bool>>? expression = null, BaseSpecification<T>? specification = null)
+    where T : BaseEntityWith<TKey>;
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 

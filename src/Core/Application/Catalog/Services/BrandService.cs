@@ -28,7 +28,7 @@ public class BrandService : IBrandService
         if (brandExists) throw new EntityAlreadyExistsException(string.Format(_localizer["brand.alreadyexists"], request.Name));
         var brand = new Brand(request.Name, request.Description);
         brand.DomainEvents.Add(new StatsChangedEvent());
-        var brandId = await _repository.CreateAsync(brand);
+        var brandId = await _repository.CreateAsync<Brand, Guid>(brand);
         await _repository.SaveChangesAsync();
         return await Result<Guid>.SuccessAsync(brandId);
     }
@@ -43,7 +43,7 @@ public class BrandService : IBrandService
 
     public Task<PaginatedResult<BrandDto>> SearchAsync(BrandListFilter filter)
     {
-        return _repository.GetSearchResultsAsync<Brand, BrandDto>(filter.PageNumber, filter.PageSize, filter.OrderBy, null, filter.AdvancedSearch, filter.Keyword);
+        return _repository.GetSearchResultsAsync<Brand, BrandDto, Guid>(filter.PageNumber, filter.PageSize, filter.OrderBy, null, filter.AdvancedSearch, filter.Keyword);
     }
 
     public async Task<Result<Guid>> UpdateBrandAsync(UpdateBrandRequest request, Guid id)
@@ -52,7 +52,7 @@ public class BrandService : IBrandService
         if (brand == null) throw new EntityNotFoundException(string.Format(_localizer["brand.notfound"], id));
         var updatedBrand = brand.Update(request.Name, request.Description);
         updatedBrand.DomainEvents.Add(new StatsChangedEvent());
-        await _repository.UpdateAsync(updatedBrand);
+        await _repository.UpdateAsync<Brand, Guid>(updatedBrand);
         await _repository.SaveChangesAsync();
         return await Result<Guid>.SuccessAsync(id);
     }

@@ -1,6 +1,6 @@
 namespace DN.WebApi.Domain.Common.Contracts;
 
-public abstract class AuditableEntity : BaseEntity, IAuditableEntity, ISoftDelete
+public abstract class AuditableEntity<T> : BaseEntityWith<T>, IAuditableEntity, ISoftDelete
 {
     public Guid CreatedBy { get; set; }
     public DateTime CreatedOn { get; private set; }

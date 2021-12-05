@@ -57,8 +57,17 @@ public class RepositoryAsync : IRepositoryAsync
         return query.AsNoTracking().CountAsync(cancellationToken);
     }
 
+    public Task<T?> GetByIdAsync<T>(int entityId, BaseSpecification<T>? specification = null, CancellationToken cancellationToken = default)
+    where T : BaseEntityWith<int>
+    {
+        IQueryable<T> query = _dbContext.Set<T>();
+        if (specification != null)
+            query = query.Specify(specification);
+        return query.Where(e => e.Id == entityId).FirstOrDefaultAsync(cancellationToken);
+    }
+
     public Task<T?> GetByIdAsync<T>(Guid entityId, BaseSpecification<T>? specification = null, CancellationToken cancellationToken = default)
-    where T : BaseEntity
+    where T : BaseEntityWith<Guid>
     {
         IQueryable<T> query = _dbContext.Set<T>();
         if (specification != null)
@@ -67,7 +76,21 @@ public class RepositoryAsync : IRepositoryAsync
     }
 
     public async Task<TDto> GetByIdAsync<T, TDto>(Guid entityId, BaseSpecification<T>? specification = null, CancellationToken cancellationToken = default)
-    where T : BaseEntity
+    where T : BaseEntityWith<Guid>
+    where TDto : IDto
+    {
+        return await GetByIdCommonAsync<T, TDto, Guid>(entityId, x => x.Id == entityId, specification, cancellationToken);
+    }
+
+    public async Task<TDto> GetByIdAsync<T, TDto>(int entityId, BaseSpecification<T>? specification = null, CancellationToken cancellationToken = default)
+    where T : BaseEntityWith<int>
+    where TDto : IDto
+    {
+        return await GetByIdCommonAsync<T, TDto, int>(entityId, x => x.Id == entityId, specification, cancellationToken);
+    }
+
+    private async Task<TDto> GetByIdCommonAsync<T, TDto, TKey>(TKey entityId, Expression<Func<T, bool>> predicate, BaseSpecification<T>? specification = null, CancellationToken cancellationToken = default)
+    where T : BaseEntityWith<TKey>
     where TDto : IDto
     {
         string cacheKey = CacheKeys.GetCacheKey<T>(entityId);
@@ -82,7 +105,7 @@ public class RepositoryAsync : IRepositoryAsync
             IQueryable<T> query = _dbContext.Set<T>();
             if (specification != null)
                 query = query.Specify(specification);
-            var entity = await query.Where(a => a.Id == entityId).FirstOrDefaultAsync(cancellationToken);
+            var entity = await query.Where(predicate).FirstOrDefaultAsync(cancellationToken);
             if (entity is not null)
             {
                 var dto = entity.Adapt<TDto>();
@@ -157,8 +180,8 @@ public class RepositoryAsync : IRepositoryAsync
         return query.LastOrDefaultAsync();
     }
 
-    public Task<PaginatedResult<TDto>> GetSearchResultsAsync<T, TDto>(int pageNumber, int pageSize = int.MaxValue, string[]? orderBy = null, Filters<T>? filters = null, Search? advancedSearch = null, string? keyword = null, Expression<Func<T, bool>>? expression = null, CancellationToken cancellationToken = default)
-    where T : BaseEntity
+    public Task<PaginatedResult<TDto>> GetSearchResultsAsync<T, TDto, TKey>(int pageNumber, int pageSize = int.MaxValue, string[]? orderBy = null, Filters<T>? filters = null, Search? advancedSearch = null, string? keyword = null, Expression<Func<T, bool>>? expression = null, CancellationToken cancellationToken = default)
+    where T : BaseEntityWith<TKey>
     where TDto : IDto
     {
         IQueryable<T> query = _dbContext.Set<T>();
@@ -170,19 +193,19 @@ public class RepositoryAsync : IRepositoryAsync
             query = query.SearchByKeyword(keyword);
         if (expression is not null)
             query = query.Where(expression);
-        query = query.ApplySort(orderBy);
+        query = query.ApplySort<T, TKey>(orderBy);
         return query.ToMappedPaginatedResultAsync<T, TDto>(pageNumber, pageSize);
     }
 
-    public async Task<Guid> CreateAsync<T>(T entity)
-    where T : BaseEntity
+    public async Task<TKey> CreateAsync<T, TKey>(T entity)
+    where T : BaseEntityWith<TKey>
     {
         await _dbContext.Set<T>().AddAsync(entity);
         return entity.Id;
     }
 
-    public Task UpdateAsync<T>(T entity)
-    where T : BaseEntity
+    public Task UpdateAsync<T, TKey>(T entity)
+    where T : BaseEntityWith<TKey>
     {
         if (_dbContext.Entry(entity).State == EntityState.Unchanged) throw new NothingToUpdateException();
 
@@ -195,15 +218,15 @@ public class RepositoryAsync : IRepositoryAsync
         return Task.CompletedTask;
     }
 
-    public async Task<IList<Guid>> CreateRangeAsync<T>(IEnumerable<T> entity)
-    where T : BaseEntity
+    public async Task<IList<TKey>> CreateRangeAsync<T, TKey>(IEnumerable<T> entity)
+    where T : BaseEntityWith<TKey>
     {
         await _dbContext.Set<T>().AddRangeAsync(entity);
         return entity.Select(x => x.Id).ToList();
     }
 
-    public Task RemoveAsync<T>(T entity)
-    where T : BaseEntity
+    public Task RemoveAsync<T, TKey>(T entity)
+    where T : BaseEntityWith<TKey>
     {
         _dbContext.Set<T>().Remove(entity);
         _cache.Remove(CacheKeys.GetCacheKey<T>(entity.Id));
@@ -220,8 +243,8 @@ public class RepositoryAsync : IRepositoryAsync
         return entity;
     }
 
-    public Task ClearAsync<T>(Expression<Func<T, bool>>? expression = null, BaseSpecification<T>? specification = null)
-    where T : BaseEntity
+    public Task ClearAsync<T, TKey>(Expression<Func<T, bool>>? expression = null, BaseSpecification<T>? specification = null)
+    where T : BaseEntityWith<TKey>
     {
         var query = _dbContext.Set<T>().AsQueryable();
         if (specification != null)
