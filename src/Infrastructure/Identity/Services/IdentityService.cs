@@ -1,3 +1,5 @@
+using System.Net;
+using System.Text;
 using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.FileStorage;
 using DN.WebApi.Application.Identity.Exceptions;
@@ -15,8 +17,6 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
-using System.Net;
-using System.Text;
 
 namespace DN.WebApi.Infrastructure.Identity.Services;
 
@@ -55,7 +55,7 @@ public class IdentityService : IIdentityService
         _templateService = templateService;
     }
 
-    public async Task<Result<string>> RegisterAsync(RegisterRequest request, string origin)
+    public async Task<IResult<string>> RegisterAsync(RegisterRequest request, string origin)
     {
         var users = await _userManager.Users.ToListAsync();
         var userWithSameUserName = await _userManager.FindByNameAsync(request.UserName);
@@ -113,7 +113,7 @@ public class IdentityService : IIdentityService
         return await Result<string>.SuccessAsync(user.Id, messages: messages);
     }
 
-    public async Task<Result<string>> ConfirmEmailAsync(string userId, string code, string tenant)
+    public async Task<IResult<string>> ConfirmEmailAsync(string userId, string code, string tenant)
     {
         var user = await _userManager.Users.IgnoreQueryFilters().Where(a => a.Id == userId && !a.EmailConfirmed && a.Tenant == tenant).FirstOrDefaultAsync();
         if (user == null)
@@ -133,7 +133,7 @@ public class IdentityService : IIdentityService
         }
     }
 
-    public async Task<Result<string>> ConfirmPhoneNumberAsync(string userId, string code)
+    public async Task<IResult<string>> ConfirmPhoneNumberAsync(string userId, string code)
     {
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
@@ -159,7 +159,7 @@ public class IdentityService : IIdentityService
         }
     }
 
-    public async Task<Result<string>> ForgotPasswordAsync(ForgotPasswordRequest request, string origin)
+    public async Task<IResult<string>> ForgotPasswordAsync(ForgotPasswordRequest request, string origin)
     {
         if (string.IsNullOrEmpty(request.Email))
         {
@@ -187,7 +187,7 @@ public class IdentityService : IIdentityService
         return await Result<string>.SuccessAsync(_localizer["Password Reset Mail has been sent to your authorized Email."]);
     }
 
-    public async Task<Result<string>> ResetPasswordAsync(ResetPasswordRequest request)
+    public async Task<IResult<string>> ResetPasswordAsync(ResetPasswordRequest request)
     {
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user == null)
@@ -207,7 +207,7 @@ public class IdentityService : IIdentityService
         }
     }
 
-    public async Task<Result<string>> UpdateProfileAsync(UpdateProfileRequest request, string userId)
+    public async Task<IResult<string>> UpdateProfileAsync(UpdateProfileRequest request, string userId)
     {
         if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
         {

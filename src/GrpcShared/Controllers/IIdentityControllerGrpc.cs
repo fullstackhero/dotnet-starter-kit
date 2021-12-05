@@ -10,23 +10,23 @@ namespace GrpcShared.Controllers;
 public interface IIdentityControllerGrpc
 {
     [OperationContract]
-    public Task<Result<string>> RegisterAsync(RegisterRequest request, CallContext context = default);
+    public Task<IResult<string>> RegisterAsync(RegisterRequest request, CallContext context = default);
 
     [OperationContract]
-    public Task<Result<string>> ConfirmEmailAsync(ConfirmEmailRequestGrpc request, CallContext context = default);
+    public Task<IResult<string>> ConfirmEmailAsync(ConfirmEmailRequestGrpc request, CallContext context = default);
 
     [OperationContract]
-    public Task<Result<string>> ConfirmPhoneNumberAsync(ConfirmPhoneNumberRequestGrpc request, CallContext context = default);
+    public Task<IResult<string>> ConfirmPhoneNumberAsync(ConfirmPhoneNumberRequestGrpc request, CallContext context = default);
 
     [OperationContract]
-    public Task<Result<string>> ForgotPasswordAsync(ForgotPasswordRequest request, CallContext context = default);
+    public Task<IResult<string>> ForgotPasswordAsync(ForgotPasswordRequest request, CallContext context = default);
 
     [OperationContract]
-    public Task<Result<string>> ResetPasswordAsync(ResetPasswordRequest request, CallContext context = default);
+    public Task<IResult<string>> ResetPasswordAsync(ResetPasswordRequest request, CallContext context = default);
 
     [OperationContract]
-    public Task<Result<string>> UpdateProfileAsync(UpdateProfileRequest request, CallContext context = default);
+    public Task<IResult<string>> UpdateProfileAsync(UpdateProfileRequest request, CallContext context = default);
 
     [OperationContract]
-    public Task<Result<UserDetailsDto>> GetProfileDetailsAsync(CallContext context = default);
+    public Task<IResult<UserDetailsDto>> GetProfileDetailsAsync(CallContext context = default);
 }

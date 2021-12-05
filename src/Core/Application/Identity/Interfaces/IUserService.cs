@@ -12,11 +12,11 @@ public interface IUserService : ITransientService
 
     Task<int> GetCountAsync();
 
-    Task<Result<UserDetailsDto>> GetAsync(string userId);
+    Task<IResult<UserDetailsDto>> GetAsync(string userId);
 
-    Task<Result<UserRolesResponse>> GetRolesAsync(string userId);
+    Task<IResult<UserRolesResponse>> GetRolesAsync(string userId);
 
-    Task<Result<string>> AssignRolesAsync(string userId, UserRolesRequest request);
+    Task<IResult<string>> AssignRolesAsync(string userId, UserRolesRequest request);
 
     Task<Result<List<PermissionDto>>> GetPermissionsAsync(string id);
 }

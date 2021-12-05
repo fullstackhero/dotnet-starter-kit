@@ -9,17 +9,17 @@ namespace GrpcShared.Controllers;
 public interface IUsersControllerGrpc
 {
     [OperationContract]
-    Task<Result<List<UserDetailsDto>>> GetAllAsync(CallContext context = default);
+    Task<IResult<List<UserDetailsDto>>> GetAllAsync(CallContext context = default);
 
     [OperationContract]
-    Task<Result<UserDetailsDto>> GetByIdAsync(string userId, CallContext context = default);
+    Task<IResult<UserDetailsDto>> GetByIdAsync(string userId, CallContext context = default);
 
     [OperationContract]
-    Task<Result<UserRolesResponse>> GetRolesAsync(string userId, CallContext context = default);
+    Task<IResult<UserRolesResponse>> GetRolesAsync(string userId, CallContext context = default);
 
     [OperationContract]
-    Task<Result<string>> AssignRolesAsync(UserRolesRequest request, CallContext context = default);
+    Task<IResult<string>> AssignRolesAsync(UserRolesRequest request, CallContext context = default);
 
     [OperationContract]
-    Task<Result<List<PermissionDto>>> GetPermissionsAsync(string id, CallContext context = default);
+    Task<IResult<List<PermissionDto>>> GetPermissionsAsync(string id, CallContext context = default);
 }

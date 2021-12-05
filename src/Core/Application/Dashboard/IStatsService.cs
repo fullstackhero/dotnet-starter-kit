@@ -6,5 +6,5 @@ namespace DN.WebApi.Application.Dashboard;
 
 public interface IStatsService : ITransientService
 {
-    Task<Result<StatsDto>> GetDataAsync();
+    Task<IResult<StatsDto>> GetDataAsync();
 }

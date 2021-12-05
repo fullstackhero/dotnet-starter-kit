@@ -15,7 +15,7 @@ public class StatsControllerGrpc : IStatsControllerGrpc
         _service = service;
     }
 
-    public async Task<Result<StatsDto>> GetAsync(CallContext context)
+    public async Task<IResult<StatsDto>> GetAsync(CallContext context)
     {
         var stats = await _service.GetDataAsync();
         return stats;

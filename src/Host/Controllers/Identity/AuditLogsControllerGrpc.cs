@@ -18,7 +18,7 @@ public class AuditLogsControllerGrpc : IAuditLogsControllerGrpc
         _user = user;
     }
 
-    public async Task<Result<IEnumerable<AuditResponse>>> GetMyLogsAsync(CallContext context)
+    public async Task<IResult<IEnumerable<AuditResponse>>> GetMyLogsAsync(CallContext context)
     {
         return await _auditService.GetUserTrailsAsync(_user.GetUserId());
     }

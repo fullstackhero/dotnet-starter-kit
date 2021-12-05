@@ -19,7 +19,7 @@ public class StatsService : IStatsService
         _userService = userService;
     }
 
-    public async Task<Result<StatsDto>> GetDataAsync()
+    public async Task<IResult<StatsDto>> GetDataAsync()
     {
         var stats = new StatsDto
         {

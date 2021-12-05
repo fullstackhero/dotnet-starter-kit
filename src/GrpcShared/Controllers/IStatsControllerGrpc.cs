@@ -9,5 +9,5 @@ namespace GrpcShared.Controllers;
 public interface IStatsControllerGrpc
 {
     [OperationContract]
-    public Task<Result<StatsDto>> GetAsync(CallContext context = default);
+    public Task<IResult<StatsDto>> GetAsync(CallContext context = default);
 }

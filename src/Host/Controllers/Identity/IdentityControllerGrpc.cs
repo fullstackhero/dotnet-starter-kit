@@ -24,43 +24,43 @@ public class IdentityControllerGrpc : IIdentityControllerGrpc
     }
 
     [MustHavePermission(PermissionConstants.Identity.Register)]
-    public async Task<Result<string>> RegisterAsync(RegisterRequest request, CallContext context = default)
+    public async Task<IResult<string>> RegisterAsync(RegisterRequest request, CallContext context = default)
     {
         string origin = GenerateOrigin(context);
         return await _identityService.RegisterAsync(request, origin);
     }
 
     [AllowAnonymous]
-    public async Task<Result<string>> ConfirmEmailAsync(ConfirmEmailRequestGrpc request, CallContext context = default)
+    public async Task<IResult<string>> ConfirmEmailAsync(ConfirmEmailRequestGrpc request, CallContext context = default)
     {
         return await _identityService.ConfirmEmailAsync(request.UserId, request.Code, request.Tenant);
     }
 
     [AllowAnonymous]
-    public async Task<Result<string>> ConfirmPhoneNumberAsync(ConfirmPhoneNumberRequestGrpc request, CallContext context = default)
+    public async Task<IResult<string>> ConfirmPhoneNumberAsync(ConfirmPhoneNumberRequestGrpc request, CallContext context = default)
     {
         return await _identityService.ConfirmPhoneNumberAsync(request.UserId, request.Code);
     }
 
     [AllowAnonymous]
-    public async Task<Result<string>> ForgotPasswordAsync(ForgotPasswordRequest request, CallContext context = default)
+    public async Task<IResult<string>> ForgotPasswordAsync(ForgotPasswordRequest request, CallContext context = default)
     {
         string origin = GenerateOrigin(context);
         return await _identityService.ForgotPasswordAsync(request, origin);
     }
 
     [AllowAnonymous]
-    public async Task<Result<string>> ResetPasswordAsync(ResetPasswordRequest request, CallContext context = default)
+    public async Task<IResult<string>> ResetPasswordAsync(ResetPasswordRequest request, CallContext context = default)
     {
         return await _identityService.ResetPasswordAsync(request);
     }
 
-    public async Task<Result<string>> UpdateProfileAsync(UpdateProfileRequest request, CallContext context = default)
+    public async Task<IResult<string>> UpdateProfileAsync(UpdateProfileRequest request, CallContext context = default)
     {
         return await _identityService.UpdateProfileAsync(request, _user.GetUserId().ToString());
     }
 
-    public async Task<Result<UserDetailsDto>> GetProfileDetailsAsync(CallContext context = default)
+    public async Task<IResult<UserDetailsDto>> GetProfileDetailsAsync(CallContext context = default)
     {
         return await _userService.GetAsync(_user.GetUserId().ToString());
     }

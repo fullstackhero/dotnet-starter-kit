@@ -6,5 +6,5 @@ namespace DN.WebApi.Application.Auditing;
 
 public interface IAuditService : ITransientService
 {
-    Task<Result<IEnumerable<AuditResponse>>> GetUserTrailsAsync(Guid userId);
+    Task<IResult<IEnumerable<AuditResponse>>> GetUserTrailsAsync(Guid userId);
 }

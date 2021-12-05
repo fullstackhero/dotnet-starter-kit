@@ -9,5 +9,5 @@ namespace GrpcShared.Controllers;
 public interface IAuditLogsControllerGrpc
 {
     [OperationContract]
-    public Task<Result<IEnumerable<AuditResponse>>> GetMyLogsAsync(CallContext context = default);
+    public Task<IResult<IEnumerable<AuditResponse>>> GetMyLogsAsync(CallContext context = default);
 }

@@ -25,7 +25,7 @@ public class BrandSeeder : IDatabaseSeeder
         Task.Run(async () =>
         {
             string? path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            if (!_db.Brands.Any())
+            if (!_db.Brands.Any() && !string.IsNullOrEmpty(_db.Tenant))
             {
                 _logger.LogInformation("Started to Seed Brands.");
 
