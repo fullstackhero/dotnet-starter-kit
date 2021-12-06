@@ -36,6 +36,6 @@ internal static class Startup
             services.AddTransient<ICacheService, LocalCacheService>();
         }
 
-        return services.AddTransient<ISerializingCacheService, SerializingCacheService>();
+        return services;
     }
 }

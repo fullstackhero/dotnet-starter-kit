@@ -1,3 +1,4 @@
+using DN.WebApi.Application.Common;
 using DN.WebApi.Application.Common.Constants;
 using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Multitenancy;
@@ -5,7 +6,6 @@ using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
 using DN.WebApi.Shared.DTOs.Multitenancy;
 using Mapster;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 
@@ -13,7 +13,7 @@ namespace DN.WebApi.Infrastructure.Multitenancy;
 
 public class TenantService : ITenantService
 {
-    private readonly ISerializingCacheService _cache;
+    private readonly ICacheService _cache;
 
     private readonly IStringLocalizer<TenantService> _localizer;
 
@@ -27,7 +27,7 @@ public class TenantService : ITenantService
         IOptions<DatabaseSettings> options,
         IStringLocalizer<TenantService> localizer,
         TenantManagementDbContext context,
-        ISerializingCacheService cache)
+        ICacheService cache)
     {
         _localizer = localizer;
         _options = options.Value;
@@ -46,18 +46,18 @@ public class TenantService : ITenantService
 
     public void SetCurrentTenant(string tenant)
     {
-        if (_currentTenant != null)
+        if (_currentTenant is not null)
         {
             throw new Exception("Method reserved for in-scope initialization");
         }
 
-        var tenantDto = _cache.GetOrSetAsync(
+        var tenantDto = _cache.GetOrSet(
             CacheKeys.GetCacheKey("tenant", tenant),
-            async () =>
+            () =>
             {
-                var tenantInfo = await _context.Tenants.Where(a => a.Key == tenant).FirstOrDefaultAsync();
+                var tenantInfo = _context.Tenants.Where(a => a.Key == tenant).FirstOrDefault();
                 return tenantInfo is not null ? tenantInfo.Adapt<TenantDto>() : null;
-            }).GetAwaiter().GetResult();
+            });
 
         if (tenantDto is null)
         {

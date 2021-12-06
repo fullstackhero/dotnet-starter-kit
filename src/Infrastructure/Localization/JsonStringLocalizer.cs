@@ -85,8 +85,9 @@ public class JsonStringLocalizer : IStringLocalizer
         string fullFilePath = Path.GetFullPath(relativeFilePath);
         if (File.Exists(fullFilePath))
         {
-            string cacheKey = $"locale_{culture}_{key}";
-            return _cache.GetOrSetString(cacheKey, () => PullDeserialize<string>(key, Path.GetFullPath(relativeFilePath)));
+            return _cache.GetOrSet(
+                $"locale_{culture}_{key}",
+                () => PullDeserialize<string>(key, Path.GetFullPath(relativeFilePath)));
         }
 
         WriteEmptyKeys(new CultureInfo("en-US"), fullFilePath);

@@ -2,6 +2,7 @@ using System.Data;
 using System.Linq.Dynamic.Core;
 using System.Linq.Expressions;
 using Dapper;
+using DN.WebApi.Application.Common;
 using DN.WebApi.Application.Common.Constants;
 using DN.WebApi.Application.Common.Exceptions;
 using DN.WebApi.Application.Common.Interfaces;
@@ -22,10 +23,10 @@ namespace DN.WebApi.Infrastructure.Persistence;
 public class RepositoryAsync : IRepositoryAsync
 {
     private readonly ApplicationDbContext _dbContext;
-    private readonly ISerializingCacheService _cache;
+    private readonly ICacheService _cache;
     private readonly IStringLocalizer<RepositoryAsync> _localizer;
 
-    public RepositoryAsync(ApplicationDbContext dbContext, ISerializingCacheService cache, IStringLocalizer<RepositoryAsync> localizer)
+    public RepositoryAsync(ApplicationDbContext dbContext, ICacheService cache, IStringLocalizer<RepositoryAsync> localizer)
     {
         _dbContext = dbContext;
         _cache = cache;
