@@ -37,10 +37,10 @@ public abstract class CacheServiceTests<TCacheService>
     public async Task GettingAnExpiredValueReturnsNull()
     {
         var sut = CreateCacheService();
-        sut.Set(_testKey, _testValue, TimeSpan.FromMilliseconds(100));
+        sut.Set(_testKey, _testValue, TimeSpan.FromMilliseconds(200));
         string? actual = sut.Get<string>(_testKey);
         Assert.Equal(_testValue, actual);
-        await Task.Delay(100);
+        await Task.Delay(200);
         actual = sut.Get<string>(_testKey);
         Assert.Null(actual);
     }
