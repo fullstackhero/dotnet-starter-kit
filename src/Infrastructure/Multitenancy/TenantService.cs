@@ -1,3 +1,4 @@
+using DN.WebApi.Application.Common;
 using DN.WebApi.Application.Common.Constants;
 using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Multitenancy;
@@ -13,7 +14,7 @@ namespace DN.WebApi.Infrastructure.Multitenancy;
 
 public class TenantService : ITenantService
 {
-    private readonly ISerializingCacheService _cache;
+    private readonly ICacheService _cache;
 
     private readonly IStringLocalizer<TenantService> _localizer;
 
@@ -27,7 +28,7 @@ public class TenantService : ITenantService
         IOptions<DatabaseSettings> options,
         IStringLocalizer<TenantService> localizer,
         TenantManagementDbContext context,
-        ISerializingCacheService cache)
+        ICacheService cache)
     {
         _localizer = localizer;
         _options = options.Value;

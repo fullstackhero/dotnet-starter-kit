@@ -1,3 +1,4 @@
+using DN.WebApi.Application.Common;
 using DN.WebApi.Application.Common.Constants;
 using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Identity.Interfaces;
@@ -15,10 +16,10 @@ namespace DN.WebApi.Infrastructure.Identity.Services;
 public class RoleClaimsService : IRoleClaimsService
 {
     private readonly ApplicationDbContext _db;
-    private readonly ISerializingCacheService _cache;
+    private readonly ICacheService _cache;
     private readonly IStringLocalizer<RoleClaimsService> _localizer;
 
-    public RoleClaimsService(ApplicationDbContext context, ISerializingCacheService cache, IStringLocalizer<RoleClaimsService> localizer)
+    public RoleClaimsService(ApplicationDbContext context, ICacheService cache, IStringLocalizer<RoleClaimsService> localizer)
     {
         _db = context;
         _cache = cache;
