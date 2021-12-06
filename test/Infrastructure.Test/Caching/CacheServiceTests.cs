@@ -1,19 +1,16 @@
 using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Infrastructure.Caching;
-using DN.WebApi.Infrastructure.Common.Services;
-using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using Xunit;
 
-namespace Infrastructure.Test;
+namespace Infrastructure.Test.Caching;
 
 public abstract class CacheServiceTests<TCacheService>
     where TCacheService : ICacheService
 {
+    private record TestRecord(Guid id, string stringValue, DateTime dateTimeValue);
+
     private static string _testKey = "testkey";
     private static string _testValue = "testvalue";
+
     protected abstract TCacheService CreateCacheService();
 
     [Fact]
@@ -54,18 +51,4 @@ public abstract class CacheServiceTests<TCacheService>
         var actual = sut.Get<TestRecord>(_testKey);
         Assert.Equal(expected, actual);
     }
-}
-
-internal record TestRecord(Guid id, string stringValue, DateTime dateTimeValue);
-
-public class LocalCacheServiceTests : CacheServiceTests<LocalCacheService>
-{
-    protected override LocalCacheService CreateCacheService() =>
-        new LocalCacheService(new MemoryCache(new MemoryCacheOptions()), NullLogger<LocalCacheService>.Instance);
-}
-
-public class DistributedCacheServiceTests : CacheServiceTests<DistributedCacheService>
-{
-    protected override DistributedCacheService CreateCacheService() =>
-        new DistributedCacheService(new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions())), new NewtonSoftService(), NullLogger<DistributedCacheService>.Instance);
 }
