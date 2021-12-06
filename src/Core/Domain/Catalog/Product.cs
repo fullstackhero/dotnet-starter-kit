@@ -4,7 +4,7 @@ using DN.WebApi.Domain.Contracts;
 
 namespace DN.WebApi.Domain.Catalog;
 
-public class Product : AuditableEntity<Guid>, IMustHaveTenant
+public class Product : AuditableEntity, IMustHaveTenant
 {
     public string? Name { get; private set; }
     public string? Description { get; private set; }

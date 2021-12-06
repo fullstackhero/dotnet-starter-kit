@@ -3,7 +3,7 @@ using DN.WebApi.Domain.Constants;
 
 namespace DN.WebApi.Domain.Multitenancy;
 
-public class Tenant : AuditableEntity<Guid>
+public class Tenant : AuditableEntity
 {
     public string? Name { get; private set; }
     public string? Key { get; private set; }

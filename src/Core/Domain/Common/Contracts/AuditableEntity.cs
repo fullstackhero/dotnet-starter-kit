@@ -15,3 +15,7 @@ public abstract class AuditableEntity<T> : BaseEntityWith<T>, IAuditableEntity, 
         LastModifiedOn = DateTime.UtcNow;
     }
 }
+
+public abstract class AuditableEntity : AuditableEntity<Guid>
+{
+}
