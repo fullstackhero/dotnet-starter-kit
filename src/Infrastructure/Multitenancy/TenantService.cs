@@ -56,7 +56,7 @@ public class TenantService : ITenantService
             () =>
             {
                 var tenantInfo = _context.Tenants.Where(a => a.Key == tenant).FirstOrDefault();
-                return tenantInfo is not null ? tenantInfo.Adapt<TenantDto>() : null;
+                return tenantInfo?.Adapt<TenantDto>();
             });
 
         if (tenantDto is null)

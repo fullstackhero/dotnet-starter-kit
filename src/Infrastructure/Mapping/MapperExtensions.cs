@@ -8,7 +8,7 @@ namespace DN.WebApi.Infrastructure.Mapping;
 public static class MapperExtensions
 {
     public static Task<PaginatedResult<TDto>> ToMappedPaginatedResultAsync<T, TDto>(
-        this IQueryable<T> query, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+        this IQueryable<T> query, int pageNumber, int pageSize, in CancellationToken cancellationToken = default)
     where T : class =>
         new MappedPaginatedResultConverter<T, TDto>(pageNumber, pageSize)
             .ConvertBackAsync(query, cancellationToken);

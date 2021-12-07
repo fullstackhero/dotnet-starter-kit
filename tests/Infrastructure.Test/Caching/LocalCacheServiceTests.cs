@@ -7,7 +7,7 @@ namespace Infrastructure.Test.Caching;
 public class LocalCacheServiceTests : CacheServiceTests<LocalCacheService>
 {
     protected override LocalCacheService CreateCacheService() =>
-        new LocalCacheService(
+        new(
             new MemoryCache(new MemoryCacheOptions()),
             NullLogger<LocalCacheService>.Instance);
 }

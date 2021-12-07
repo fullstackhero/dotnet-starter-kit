@@ -7,10 +7,10 @@ namespace Infrastructure.Test.Caching;
 public abstract class CacheServiceTests<TCacheService>
     where TCacheService : ICacheService
 {
-    private record TestRecord(Guid id, string stringValue, DateTime dateTimeValue);
+    private record TestRecord(Guid Id, string StringValue, DateTime DateTimeValue);
 
-    private static string _testKey = "testkey";
-    private static string _testValue = "testvalue";
+    private const string _testKey = "testkey";
+    private const string _testValue = "testvalue";
 
     protected abstract TCacheService CreateCacheService();
 

@@ -10,7 +10,7 @@ namespace Infrastructure.Test.Caching;
 public class DistributedCacheServiceTests : CacheServiceTests<DistributedCacheService>
 {
     protected override DistributedCacheService CreateCacheService() =>
-        new DistributedCacheService(
+        new(
             new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions())),
             new NewtonSoftService(),
             NullLogger<DistributedCacheService>.Instance);

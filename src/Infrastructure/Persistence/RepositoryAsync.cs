@@ -54,7 +54,7 @@ public class RepositoryAsync : IRepositoryAsync
     where T : BaseEntity
     where TDto : IDto
     {
-        Func<Task<TDto?>> getDto = async () =>
+        async Task<TDto?> getDto() =>
             await GetByIdAsync(entityId, specification, cancellationToken) is object entity
                 ? entity.Adapt<TDto?>()
                 : default;
