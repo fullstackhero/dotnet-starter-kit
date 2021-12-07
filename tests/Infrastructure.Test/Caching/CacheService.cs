@@ -78,7 +78,7 @@ public abstract class CacheService<TCacheService>
         string? result = sut.Get<string>(_testKey);
         Assert.Equal(_testValue, result);
 
-        await Task.Delay(200);
+        await Task.Delay(250);
         result = sut.Get<string>(_testKey);
 
         result.Should().BeNull();
