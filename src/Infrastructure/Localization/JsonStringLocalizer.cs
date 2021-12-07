@@ -1,7 +1,6 @@
 ﻿using System.Globalization;
+using DN.WebApi.Application.Common;
 using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Infrastructure.Caching;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Localization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -60,11 +59,13 @@ public class JsonStringLocalizer : IStringLocalizer
         }
     }
 
-    public IStringLocalizer WithCulture(CultureInfo culture)
-    {
-        CultureInfo.DefaultThreadCurrentCulture = culture;
-        return new JsonStringLocalizer(_cache);
-    }
+    // Dont know why this is here, but setting the defaultThreadCurrentCulture seems like a serious smell
+    // It's not used anywhere, so commenting out for now
+    // public IStringLocalizer WithCulture(CultureInfo culture)
+    // {
+    //    CultureInfo.DefaultThreadCurrentCulture = culture;
+    //    return new JsonStringLocalizer(_cache);
+    // }
 
     private string? GetString(string key)
     {
@@ -84,12 +85,9 @@ public class JsonStringLocalizer : IStringLocalizer
         string fullFilePath = Path.GetFullPath(relativeFilePath);
         if (File.Exists(fullFilePath))
         {
-            string cacheKey = $"locale_{culture}_{key}";
-            string? cacheValue = _cache.GetString(cacheKey);
-            if (!string.IsNullOrEmpty(cacheValue)) return cacheValue;
-            string? result = PullDeserialize<string>(key, Path.GetFullPath(relativeFilePath));
-            if (!string.IsNullOrEmpty(result)) _cache.SetString(cacheKey, result);
-            return result;
+            return _cache.GetOrSet(
+                $"locale_{culture}_{key}",
+                () => PullDeserialize<string>(key, Path.GetFullPath(relativeFilePath)));
         }
 
         WriteEmptyKeys(new CultureInfo("en-US"), fullFilePath);

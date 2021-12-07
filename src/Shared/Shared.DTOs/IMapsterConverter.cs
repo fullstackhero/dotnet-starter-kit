@@ -9,7 +9,7 @@ public interface IMapsterConverter<T, TD>
 
 public interface IMapsterConverterAsync<T, TD>
 {
-    public Task<TD> ConvertAsync(T item);
+    public Task<TD> ConvertAsync(T item, CancellationToken cancellationToken = default);
 
-    public Task<T> ConvertBackAsync(TD item);
+    public Task<T> ConvertBackAsync(TD item, CancellationToken cancellationToken = default);
 }

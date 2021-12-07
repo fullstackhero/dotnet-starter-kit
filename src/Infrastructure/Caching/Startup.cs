@@ -10,22 +10,32 @@ internal static class Startup
     {
         var settings = config.GetSection(nameof(CacheSettings)).Get<CacheSettings>();
 
-        if (settings.PreferRedis)
+        if (settings.UseDistributedCache)
         {
-            services.AddStackExchangeRedisCache(options =>
+            if (settings.PreferRedis)
             {
-                options.Configuration = settings.RedisURL;
-                options.ConfigurationOptions = new StackExchange.Redis.ConfigurationOptions()
+                services.AddStackExchangeRedisCache(options =>
                 {
-                    AbortOnConnectFail = true
-                };
-            });
+                    options.Configuration = settings.RedisURL;
+                    options.ConfigurationOptions = new StackExchange.Redis.ConfigurationOptions()
+                    {
+                        AbortOnConnectFail = true
+                    };
+                });
+            }
+            else
+            {
+                services.AddDistributedMemoryCache();
+            }
+
+            services.AddTransient<ICacheService, DistributedCacheService>();
         }
         else
         {
-            services.AddDistributedMemoryCache();
+            services.AddMemoryCache();
+            services.AddTransient<ICacheService, LocalCacheService>();
         }
 
-        return services.AddSingleton<ICacheService, CacheService>();
+        return services;
     }
 }

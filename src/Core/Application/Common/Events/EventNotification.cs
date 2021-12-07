@@ -1,7 +1,7 @@
 using DN.WebApi.Domain.Common.Contracts;
 using MediatR;
 
-namespace DN.WebApi.Application.Common.Event;
+namespace DN.WebApi.Application.Common.Events;
 
 public class EventNotification<T> : INotification
 where T : DomainEvent

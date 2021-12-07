@@ -1,4 +1,4 @@
-using System.Text;
+using DN.WebApi.Application.Common;
 using DN.WebApi.Application.Common.Constants;
 using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Identity.Interfaces;
@@ -9,7 +9,6 @@ using DN.WebApi.Infrastructure.Persistence.Contexts;
 using DN.WebApi.Shared.DTOs.Identity;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Localization;
 
 namespace DN.WebApi.Infrastructure.Identity.Services;
@@ -18,46 +17,34 @@ public class RoleClaimsService : IRoleClaimsService
 {
     private readonly ApplicationDbContext _db;
     private readonly ICacheService _cache;
-    private readonly ISerializerService _serializer;
     private readonly IStringLocalizer<RoleClaimsService> _localizer;
 
-    public RoleClaimsService(ApplicationDbContext context, ICacheService cache, ISerializerService serializer, IStringLocalizer<RoleClaimsService> localizer)
+    public RoleClaimsService(ApplicationDbContext context, ICacheService cache, IStringLocalizer<RoleClaimsService> localizer)
     {
         _db = context;
         _cache = cache;
-        _serializer = serializer;
         _localizer = localizer;
     }
 
     public async Task<bool> HasPermissionAsync(string userId, string permission)
     {
-        var roles = new List<RoleDto>();
-        string cacheKey = CacheKeys.GetCacheKey(ClaimConstants.Permission, userId);
-        byte[]? cachedData = !string.IsNullOrWhiteSpace(cacheKey) ? await _cache.GetAsync(cacheKey) : null;
-        if (cachedData != null)
-        {
-            await _cache.RefreshAsync(cacheKey);
-            roles = _serializer.Deserialize<List<RoleDto>>(Encoding.Default.GetString(cachedData));
-        }
-        else
-        {
-            var userRoles = await _db.UserRoles.Where(a => a.UserId == userId).Select(a => a.RoleId).ToListAsync();
-            var applicationRoles = await _db.Roles.Where(a => userRoles.Contains(a.Id)).ToListAsync();
-            roles = applicationRoles.Adapt<List<RoleDto>>();
-            if (roles != null)
+        var roles = await _cache.GetOrSetAsync(
+            CacheKeys.GetCacheKey(ClaimConstants.Permission, userId),
+            async () =>
             {
-                var options = new DistributedCacheEntryOptions();
-                byte[] serializedData = Encoding.Default.GetBytes(_serializer.Serialize(roles));
-                await _cache.SetAsync(cacheKey, serializedData, options);
-            }
-        }
+                var userRoles = await _db.UserRoles.Where(a => a.UserId == userId).Select(a => a.RoleId).ToListAsync();
+                var applicationRoles = await _db.Roles.Where(a => userRoles.Contains(a.Id)).ToListAsync();
+                return applicationRoles.Adapt<List<RoleDto>>();
+            });
 
-        if (roles == null) return false;
-        foreach (var role in roles)
+        if (roles is not null)
         {
-            if (_db.RoleClaims.Any(a => a.ClaimType == ClaimConstants.Permission && a.ClaimValue == permission && a.RoleId == role.Id))
+            foreach (var role in roles)
             {
-                return true;
+                if (_db.RoleClaims.Any(a => a.ClaimType == ClaimConstants.Permission && a.ClaimValue == permission && a.RoleId == role.Id))
+                {
+                    return true;
+                }
             }
         }
 
@@ -71,10 +58,8 @@ public class RoleClaimsService : IRoleClaimsService
         return await Result<List<RoleClaimResponse>>.SuccessAsync(roleClaimsResponse);
     }
 
-    public async Task<int> GetCountAsync()
-    {
-        return await _db.RoleClaims.CountAsync();
-    }
+    public Task<int> GetCountAsync() =>
+        _db.RoleClaims.CountAsync();
 
     public async Task<Result<RoleClaimResponse>> GetByIdAsync(int id)
     {
@@ -111,7 +96,7 @@ public class RoleClaimsService : IRoleClaimsService
                 await _db.RoleClaims
                     .SingleOrDefaultAsync(x =>
                         x.RoleId == request.RoleId && x.ClaimType == request.Type && x.ClaimValue == request.Value);
-            if (existingRoleClaim != null)
+            if (existingRoleClaim is not null)
             {
                 return await Result<string>.FailAsync(_localizer["Similar Role Claim already exists."]);
             }
@@ -126,7 +111,7 @@ public class RoleClaimsService : IRoleClaimsService
             var existingRoleClaim =
                 await _db.RoleClaims
                     .SingleOrDefaultAsync(x => x.Id == request.Id);
-            if (existingRoleClaim == null)
+            if (existingRoleClaim is null)
             {
                 return await Result<string>.SuccessAsync(_localizer["Role Claim does not exist."]);
             }
@@ -148,7 +133,7 @@ public class RoleClaimsService : IRoleClaimsService
     {
         var existingRoleClaim = await _db.RoleClaims
             .FirstOrDefaultAsync(x => x.Id == id);
-        if (existingRoleClaim != null)
+        if (existingRoleClaim is not null)
         {
             _db.RoleClaims.Remove(existingRoleClaim);
             await _db.SaveChangesAsync();
