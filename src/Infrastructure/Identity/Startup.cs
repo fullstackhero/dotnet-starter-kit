@@ -84,17 +84,13 @@ internal static class Startup
 
                         return Task.CompletedTask;
                     },
-                    OnForbidden = _ =>
-                    {
-                        throw new IdentityException("You are not authorized to access this resource.", statusCode: HttpStatusCode.Forbidden);
-                    },
+                    OnForbidden = _ => throw new IdentityException("You are not authorized to access this resource.", statusCode: HttpStatusCode.Forbidden),
                     OnMessageReceived = context =>
                     {
                         var accessToken = context.Request.Query["access_token"];
 
-                        var path = context.HttpContext.Request.Path;
                         if (!string.IsNullOrEmpty(accessToken) &&
-                            path.StartsWithSegments("/notifications"))
+                            context.HttpContext.Request.Path.StartsWithSegments("/notifications"))
                         {
                             // Read the token out of the query string
                             context.Token = accessToken;

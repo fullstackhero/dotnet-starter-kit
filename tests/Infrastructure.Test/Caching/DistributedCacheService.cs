@@ -7,11 +7,11 @@ using Microsoft.Extensions.Options;
 
 namespace Infrastructure.Test.Caching;
 
-public class DistributedCacheServiceTests : CacheServiceTests<DistributedCacheService>
+public class DistributedCacheService : CacheService<DN.WebApi.Infrastructure.Caching.DistributedCacheService>
 {
-    protected override DistributedCacheService CreateCacheService() =>
+    protected override DN.WebApi.Infrastructure.Caching.DistributedCacheService CreateCacheService() =>
         new(
             new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions())),
             new NewtonSoftService(),
-            NullLogger<DistributedCacheService>.Instance);
+            NullLogger<DN.WebApi.Infrastructure.Caching.DistributedCacheService>.Instance);
 }
