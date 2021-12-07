@@ -1,4 +1,5 @@
 using DN.WebApi.Application.Common.Interfaces;
+using FluentAssertions;
 using Xunit;
 
 namespace Infrastructure.Test.Caching;
@@ -21,13 +22,21 @@ public abstract class CacheServiceTests<TCacheService>
         Assert.Null(test);
     }
 
-    [Fact]
-    public void GettingAnExistingValueReturnsThatValue()
+    /// <summary>
+    /// Sample Test Case using Fluent Assertions.
+    /// </summary>
+    /// <param name="testKey"></param>
+    /// <param name="testValue"></param>
+    /// <param name="expectedCacheValue"></param>
+    [Theory]
+    [InlineData("testKey", "testValue", "testValue")]
+    [InlineData("someKey", "helloWorld", "helloWorld")]
+    public void GettingAnExistingValueReturnsThatValue(string testKey, string testValue, string expectedCacheValue)
     {
         var sut = CreateCacheService();
-        sut.Set(_testKey, _testValue);
-        string? actual = sut.Get<string>(_testKey);
-        Assert.Equal(_testValue, actual);
+        sut.Set(testKey, testValue);
+        string? result = sut.Get<string>(testKey);
+        result.Should().Be(expectedCacheValue);
     }
 
     [Fact]
