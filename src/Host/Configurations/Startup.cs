@@ -1,4 +1,4 @@
-namespace DN.WebApi.Host.Extensions;
+namespace DN.WebApi.Host.Configurations;
 
 internal static class Startup
 {

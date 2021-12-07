@@ -1,5 +1,5 @@
 using DN.WebApi.Application;
-using DN.WebApi.Host.Extensions;
+using DN.WebApi.Host.Configurations;
 using DN.WebApi.Infrastructure;
 using FluentValidation.AspNetCore;
 using Serilog;
