@@ -83,7 +83,7 @@ public class IdentityService : IIdentityService
             }
         }
 
-        if (await _userManager.FindByEmailAsync(request.Email.Normalize()) is not null)
+        if (await _userManager.FindByEmailAsync(request.Email?.Normalize()) is not null)
         {
             throw new IdentityException(string.Format(_localizer["Email {0} is already registered."], request.Email));
         }
@@ -189,7 +189,7 @@ public class IdentityService : IIdentityService
 
     public async Task<IResult> ResetPasswordAsync(ResetPasswordRequest request)
     {
-        var user = await _userManager.FindByEmailAsync(request.Email.Normalize());
+        var user = await _userManager.FindByEmailAsync(request.Email?.Normalize());
         if (user == null)
         {
             // Don't reveal that the user does not exist
@@ -218,7 +218,7 @@ public class IdentityService : IIdentityService
             }
         }
 
-        var userWithSameEmail = await _userManager.FindByEmailAsync(request.Email.Normalize());
+        var userWithSameEmail = await _userManager.FindByEmailAsync(request.Email?.Normalize());
         if (userWithSameEmail == null || userWithSameEmail.Id == userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
