@@ -47,7 +47,7 @@ public class TokenService : ITokenService
 
     public async Task<IResult<TokenResponse>> GetTokenAsync(TokenRequest request, string ipAddress)
     {
-        var user = await _userManager.FindByEmailAsync(request.Email.Trim());
+        var user = await _userManager.FindByEmailAsync(request.Email.Trim().Normalize());
         if (user == null)
         {
             throw new IdentityException(_localizer["identity.usernotfound"], statusCode: HttpStatusCode.Unauthorized);
