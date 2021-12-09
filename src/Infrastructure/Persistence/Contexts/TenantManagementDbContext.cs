@@ -11,4 +11,13 @@ public class TenantManagementDbContext : DbContext
     }
 
     public DbSet<Tenant> Tenants => Set<Tenant>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<Tenant>()
+            .Property(t => t.Issuer)
+            .HasMaxLength(256);
+    }
 }

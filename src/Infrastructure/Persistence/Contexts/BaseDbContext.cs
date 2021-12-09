@@ -34,7 +34,7 @@ public abstract class BaseDbContext : IdentityDbContext<ApplicationUser, Applica
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
-        modelBuilder.ApplyIdentityConfiguration(_tenantService);
+        modelBuilder.ApplyIdentityConfiguration();
         modelBuilder.AppendGlobalQueryFilter<IMustHaveTenant>(b => b.Tenant == Tenant)
                     .AppendGlobalQueryFilter<ISoftDelete>(s => s.DeletedOn == null)
                     .AppendGlobalQueryFilter<IIdentityTenant>(b => b.Tenant == Tenant);

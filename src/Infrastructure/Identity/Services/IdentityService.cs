@@ -1,4 +1,5 @@
 using System.Net;
+using System.Security.Claims;
 using System.Text;
 using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.FileStorage;
@@ -17,42 +18,127 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
+using Microsoft.Identity.Web;
 
 namespace DN.WebApi.Infrastructure.Identity.Services;
 
 public class IdentityService : IIdentityService
 {
-    private readonly IFileStorageService _fileStorage;
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly RoleManager<ApplicationRole> _roleManager;
     private readonly IJobService _jobService;
     private readonly IMailService _mailService;
     private readonly MailSettings _mailSettings;
     private readonly IStringLocalizer<IdentityService> _localizer;
     private readonly ITenantService _tenantService;
-
+    private readonly IFileStorageService _fileStorage;
     private readonly IEmailTemplateService _templateService;
 
     public IdentityService(
+        SignInManager<ApplicationUser> signInManager,
         UserManager<ApplicationUser> userManager,
+        RoleManager<ApplicationRole> roleManager,
         IJobService jobService,
         IMailService mailService,
         IOptions<MailSettings> mailSettings,
         IStringLocalizer<IdentityService> localizer,
         ITenantService tenantService,
-        SignInManager<ApplicationUser> signInManager,
         IFileStorageService fileStorage,
         IEmailTemplateService templateService)
     {
+        _signInManager = signInManager;
         _userManager = userManager;
+        _roleManager = roleManager;
         _jobService = jobService;
         _mailService = mailService;
         _mailSettings = mailSettings.Value;
         _localizer = localizer;
         _tenantService = tenantService;
-        _signInManager = signInManager;
         _fileStorage = fileStorage;
         _templateService = templateService;
+    }
+
+    public async Task<string> GetOrCreateFromPrincipalAsync(ClaimsPrincipal principal)
+    {
+        string? objectId = principal.GetObjectId();
+        if (string.IsNullOrWhiteSpace(objectId))
+        {
+            throw new IdentityException(_localizer["Invalid objectId"]);
+        }
+
+        var user = await _userManager.Users.Where(u => u.ObjectId == objectId).FirstOrDefaultAsync();
+        if (user is null)
+        {
+            user = await CreateOrUpdateFromPrincipalAsync(principal);
+        }
+
+        // Add user to incoming role if that isn't the case yet
+        if (principal.FindFirstValue(ClaimTypes.Role) is string role &&
+            await _roleManager.RoleExistsAsync(role) &&
+            !await _userManager.IsInRoleAsync(user, role))
+        {
+            await _userManager.AddToRoleAsync(user, role);
+        }
+
+        return user.Id;
+    }
+
+    private async Task<ApplicationUser> CreateOrUpdateFromPrincipalAsync(ClaimsPrincipal principal)
+    {
+        string? email = principal.FindFirstValue(ClaimTypes.Upn);
+        string? username = principal.GetDisplayName();
+        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(username))
+        {
+            throw new IdentityException(string.Format(_localizer["Username or Email not valid."]));
+        }
+
+        var user = await _userManager.FindByNameAsync(username);
+        if (user is not null && !string.IsNullOrWhiteSpace(user.ObjectId))
+        {
+            throw new IdentityException(string.Format(_localizer["Username {0} is already taken."], username));
+        }
+
+        if (user is null)
+        {
+            user = await _userManager.FindByEmailAsync(email);
+            if (user is not null && !string.IsNullOrWhiteSpace(user.ObjectId))
+            {
+                throw new IdentityException(string.Format(_localizer["Email {0} is already taken."], email));
+            }
+        }
+
+        IdentityResult? result;
+        if (user is not null)
+        {
+            user.ObjectId = principal.GetObjectId();
+            result = await _userManager.UpdateAsync(user);
+        }
+        else
+        {
+            user = new ApplicationUser
+            {
+                ObjectId = principal.GetObjectId(),
+                FirstName = principal.FindFirstValue(ClaimTypes.GivenName),
+                LastName = principal.FindFirstValue(ClaimTypes.Surname),
+                Email = email,
+                NormalizedEmail = email.ToUpper(),
+                UserName = username,
+                NormalizedUserName = username.ToUpper(),
+                EmailConfirmed = true,
+                PhoneNumberConfirmed = true,
+                IsActive = true,
+                Tenant = principal.FindFirstValue("tenant")
+            };
+            result = await _userManager.CreateAsync(user);
+        }
+
+        if (!result.Succeeded)
+        {
+            throw new IdentityException(_localizer["Validation Errors Occurred."], result.Errors.Select(a => _localizer[a.Description].ToString()).ToList());
+        }
+
+        return user;
     }
 
     public async Task<IResult> RegisterAsync(RegisterRequest request, string origin)

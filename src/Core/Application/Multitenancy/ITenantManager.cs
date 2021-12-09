@@ -8,6 +8,8 @@ public interface ITenantManager : ITransientService
 {
     public Task<Result<TenantDto>> GetByKeyAsync(string key);
 
+    public Task<Result<TenantDto>> GetByIssuerAsync(string issuer);
+
     public Task<Result<List<TenantDto>>> GetAllAsync();
 
     public Task<Result<object>> CreateTenantAsync(CreateTenantRequest request);
