@@ -49,6 +49,10 @@ namespace Migrators.PostgreSQL.Migrations.Root
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("Issuer")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
                     b.Property<string>("Key")
                         .HasColumnType("text");
 
