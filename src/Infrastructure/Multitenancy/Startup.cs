@@ -3,6 +3,8 @@ using DN.WebApi.Domain.Constants;
 using DN.WebApi.Domain.Multitenancy;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
+using DN.WebApi.Shared.DTOs.Multitenancy;
+using Mapster;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -46,9 +48,18 @@ internal static class Startup
 
         SeedRootTenant(dbContext, rootConnectionString);
 
-        foreach (var tenant in dbContext.Tenants.ToList())
+        foreach (var tenant in dbContext.Tenants.Select(x => new TenantDto
         {
-            services.SetupTenantDatabase(dbProvider, rootConnectionString, tenant);
+            Name = x.Name,
+            Key = x.Key,
+            AdminEmail = x.AdminEmail,
+            Id = x.Id,
+            ConnectionString = x.ConnectionString,
+            ValidUpto = x.ValidUpto,
+            IsActive = x.IsActive
+        }).ToList())
+        {
+            services.SetupTenantDatabase(dbProvider, rootConnectionString, tenant.Adapt<Tenant>());
         }
 
         _logger.Information("For documentations and guides, visit https://www.fullstackhero.net");
