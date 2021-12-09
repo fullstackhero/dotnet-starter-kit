@@ -49,6 +49,19 @@ public class TenantManager : ITenantManager
         return await Result<TenantDto>.SuccessAsync(tenantDto);
     }
 
+    public async Task<Result<TenantDto>> GetByIssuerAsync(string issuer)
+    {
+        var tenant = await _context.Tenants.Where(t => t.Issuer == issuer).FirstOrDefaultAsync();
+        var tenantDto = tenant!.Adapt<TenantDto>();
+
+        if (tenantDto is null)
+        {
+            return await Result<TenantDto>.FailAsync();
+        }
+
+        return await Result<TenantDto>.SuccessAsync(tenantDto);
+    }
+
     public async Task<Result<List<TenantDto>>> GetAllAsync()
     {
         var tenants = await _context.Tenants.ToListAsync();

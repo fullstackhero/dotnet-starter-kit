@@ -12,4 +12,6 @@ public class ApplicationUser : IdentityUser, IIdentityTenant
     public string? RefreshToken { get; set; }
     public DateTime RefreshTokenExpiryTime { get; set; }
     public string? Tenant { get; set; }
+
+    public string? ObjectId { get; set; }
 }

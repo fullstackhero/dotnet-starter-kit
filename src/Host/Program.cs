@@ -1,6 +1,7 @@
 using DN.WebApi.Application;
 using DN.WebApi.Host.Configurations;
 using DN.WebApi.Infrastructure;
+using DN.WebApi.Infrastructure.Multitenancy;
 using FluentValidation.AspNetCore;
 using Serilog;
 
@@ -19,7 +20,10 @@ try
 
     var app = builder.Build();
 
+    DatabaseInitializer.InitializeDatabases(app.Services);
+
     app.UseInfrastructure(builder.Configuration);
+
     app.Run();
 }
 catch (Exception ex) when (!ex.GetType().Name.Equals("StopTheHostException", StringComparison.Ordinal))

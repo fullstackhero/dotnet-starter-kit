@@ -2,6 +2,7 @@ using System.Net;
 using System.Security.Claims;
 using System.Text;
 using DN.WebApi.Application.Identity.Exceptions;
+using DN.WebApi.Infrastructure.Identity.AzureAd;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
@@ -11,7 +12,9 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Identity.Web;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 
 namespace DN.WebApi.Infrastructure.Identity;
 
@@ -42,13 +45,42 @@ internal static class Startup
             })
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
-        return services.AddJwtAuthentication(config);
+
+        if (config["SecuritySettings:Provider"].Equals("AzureAd", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddAzureAdAuthentication(config);
+        }
+        else
+        {
+            services.AddJwtAuthentication(config);
+        }
+
+        return services;
+    }
+
+    private static IServiceCollection AddAzureAdAuthentication(this IServiceCollection services, IConfiguration config)
+    {
+        var logger = Log.ForContext(typeof(AzureAdJwtBearerEvents));
+
+        services.AddAuthorization();
+
+        services
+            .AddAuthentication(authentication =>
+            {
+                authentication.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                authentication.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddMicrosoftIdentityWebApi(
+                jwtOptions => jwtOptions.Events = new AzureAdJwtBearerEvents(logger),
+                msIdentityOptions => config.GetSection("SecuritySettings:AzureAd").Bind(msIdentityOptions));
+
+        return services;
     }
 
     private static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration config)
     {
-        services.Configure<JwtSettings>(config.GetSection(nameof(JwtSettings)));
-        var jwtSettings = config.GetSection(nameof(JwtSettings)).Get<JwtSettings>();
+        services.Configure<JwtSettings>(config.GetSection($"SecuritySettings:{nameof(JwtSettings)}"));
+        var jwtSettings = config.GetSection($"SecuritySettings:{nameof(JwtSettings)}").Get<JwtSettings>();
         if (string.IsNullOrEmpty(jwtSettings.Key))
             throw new InvalidOperationException("No Key defined in JwtSettings config.");
         byte[] key = Encoding.ASCII.GetBytes(jwtSettings.Key);

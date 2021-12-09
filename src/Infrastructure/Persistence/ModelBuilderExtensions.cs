@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using DN.WebApi.Application.Multitenancy;
 using DN.WebApi.Infrastructure.Identity.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -10,11 +9,12 @@ namespace DN.WebApi.Infrastructure.Persistence;
 
 public static class ModelBuilderExtensions
 {
-    public static void ApplyIdentityConfiguration(this ModelBuilder builder, ITenantService tenantService)
+    public static void ApplyIdentityConfiguration(this ModelBuilder builder)
     {
         builder.Entity<ApplicationUser>(entity =>
         {
             entity.ToTable("Users", "Identity");
+            entity.Property(u => u.ObjectId).HasMaxLength(256);
         });
         builder.Entity<ApplicationRole>(entity =>
         {

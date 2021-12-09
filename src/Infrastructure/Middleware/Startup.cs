@@ -17,7 +17,7 @@ internal static class Startup
         if (GetMiddlewareSettings(config).EnableHttpsLogging)
         {
             services.AddSingleton<RequestLoggingMiddleware>();
-            services.AddSingleton<ResponseLoggingMiddleware>();
+            services.AddScoped<ResponseLoggingMiddleware>();
         }
 
         return services;

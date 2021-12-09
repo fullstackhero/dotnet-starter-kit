@@ -14,6 +14,7 @@ internal static class Startup
         var settings = config.GetSection(nameof(SwaggerSettings)).Get<SwaggerSettings>();
         if (settings.Enable)
         {
+            services.AddEndpointsApiExplorer();
             services.AddSwaggerGen(options =>
             {
                 var info = new OpenApiInfo
@@ -56,32 +57,65 @@ internal static class Startup
                     }
                 }
 
-                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                if (config["SecuritySettings:Provider"].Equals("AzureAd", StringComparison.OrdinalIgnoreCase))
                 {
-                    Name = "Authorization",
-                    In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.Http,
-                    Scheme = "Bearer",
-                    BearerFormat = "JWT",
-                    Description = "Input your Bearer token to access this API",
-                });
-
-                options.AddSecurityRequirement(new OpenApiSecurityRequirement
-                {
+                    options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
                     {
-                        new OpenApiSecurityScheme
+                        Name = "oauth2",
+                        Description = "OAuth2.0 Auth Code with PKCE",
+                        Type = SecuritySchemeType.OAuth2,
+                        Flows = new()
                         {
-                            Reference = new OpenApiReference
+                            AuthorizationCode = new()
                             {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer",
+                                AuthorizationUrl = new Uri(config["SecuritySettings:Swagger:AuthorizationUrl"]),
+                                TokenUrl = new Uri(config["SecuritySettings:Swagger:TokenUrl"]),
+                                Scopes = new Dictionary<string, string>
+                                {
+                                    { config["SecuritySettings:Swagger:ApiScope"], "access the api" }
+                                }
+                            }
+                        }
+                    });
+                    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                    {
+                        {
+                            new OpenApiSecurityScheme
+                            {
+                                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "oauth2" }
                             },
-                            Scheme = "Bearer",
-                            Name = "Bearer",
-                            In = ParameterLocation.Header,
-                        }, new List<string>()
-                    },
-                });
+                            new[] { config["SecuritySettings:Swagger:ApiScope"] }
+                        }
+                    });
+                }
+                else
+                {
+                    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                    {
+                        Name = "Authorization",
+                        Description = "Input your Bearer token to access this API",
+                        In = ParameterLocation.Header,
+                        Type = SecuritySchemeType.Http,
+                        Scheme = "Bearer",
+                        BearerFormat = "JWT",
+                    });
+                    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                    {
+                        {
+                            new OpenApiSecurityScheme
+                            {
+                                Reference = new OpenApiReference
+                                {
+                                    Type = ReferenceType.SecurityScheme,
+                                    Id = "Bearer",
+                                },
+                                Scheme = "Bearer",
+                                Name = "Bearer",
+                                In = ParameterLocation.Header,
+                            }, new List<string>()
+                        },
+                    });
+                }
 
                 options.MapType<TimeSpan>(() => new OpenApiSchema
                 {
@@ -110,6 +144,12 @@ internal static class Startup
                 options.RoutePrefix = "swagger";
                 options.DisplayRequestDuration();
                 options.DocExpansion(DocExpansion.None);
+                if (config["SecuritySettings:Provider"].Equals("AzureAd", StringComparison.OrdinalIgnoreCase))
+                {
+                    options.OAuthClientId(config["SecuritySettings:Swagger:OpenIdClientId"]);
+                    options.OAuthUsePkce();
+                    options.OAuthScopeSeparator(" ");
+                }
             });
         }
 
