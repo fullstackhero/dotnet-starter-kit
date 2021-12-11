@@ -4,7 +4,7 @@ using DN.WebApi.Application.Common.Specifications;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Common.Contracts;
 using DN.WebApi.Shared.DTOs;
-using DN.WebApi.Shared.DTOs.Filters;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace DN.WebApi.Application.Common.Interfaces;
 
@@ -12,7 +12,7 @@ public interface IRepositoryAsync : ITransientService
 {
     // Read
 
-    Task<List<T>> GetListAsync<T>(Expression<Func<T, bool>> expression, bool noTracking = false, CancellationToken cancellationToken = default)
+    /*Task<List<T>> GetListAsync<T>(Expression<Func<T, bool>> expression, bool noTracking = false, CancellationToken cancellationToken = default)
     where T : BaseEntity;
 
     Task<int> GetCountAsync<T>(Expression<Func<T, bool>>? expression = null, CancellationToken cancellationToken = default)
@@ -39,7 +39,51 @@ public interface IRepositoryAsync : ITransientService
 
     Task<PaginatedResult<TDto>> GetSearchResultsAsync<T, TDto>(int pageNumber, int pageSize = int.MaxValue, string[]? orderBy = null, Filters<T>? filters = null, Search? advancedSearch = null, string? keyword = null, Expression<Func<T, bool>>? expression = null, CancellationToken cancellationToken = default)
     where T : BaseEntity
+    where TDto : IDto;*/
+
+    Task<List<T>> GetListAsync<T>(Expression<Func<T, bool>>? condition = null, Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null, Func<IQueryable<T>, IIncludableQueryable<T, object>>? includes = null, bool asNoTracking = true, CancellationToken cancellationToken = default)
+    where T : BaseEntity;
+
+    Task<List<T>> GetListAsync<T>(BaseSpecification<T>? specification = null, bool asNoTracking = true, CancellationToken cancellationToken = default)
+    where T : BaseEntity;
+
+    Task<List<TProjectedType>> GetListAsync<T, TProjectedType>(Expression<Func<T, bool>>? condition = null, Expression<Func<T, TProjectedType>>? selectExpression = null, Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null, Func<IQueryable<T>, IIncludableQueryable<T, object>>? includes = null, CancellationToken cancellationToken = default)
+    where T : BaseEntity;
+
+    Task<List<TProjectedType>> GetListAsync<T, TProjectedType>(Expression<Func<T, TProjectedType>> selectExpression, BaseSpecification<T>? specification = null, CancellationToken cancellationToken = default)
+    where T : BaseEntity;
+
+    Task<PaginatedResult<TDto>> GetListAsync<T, TDto>(PaginationSpecification<T> specification, CancellationToken cancellationToken = default)
+    where T : BaseEntity
     where TDto : IDto;
+
+    Task<T?> GetByIdAsync<T>(Guid entityId, Func<IQueryable<T>, IIncludableQueryable<T, object>>? includes = null, bool asNoTracking = true, CancellationToken cancellationToken = default)
+    where T : BaseEntity;
+
+    Task<TProjectedType?> GetByIdAsync<T, TProjectedType>(Guid entityId, Expression<Func<T, TProjectedType>> selectExpression, Func<IQueryable<T>, IIncludableQueryable<T, object>>? includes = null, CancellationToken cancellationToken = default)
+    where T : BaseEntity;
+
+    Task<TDto> GetByIdAsync<T, TDto>(Guid entityId, Func<IQueryable<T>, IIncludableQueryable<T, object>>? includes = null, CancellationToken cancellationToken = default)
+    where T : BaseEntity
+    where TDto : IDto;
+
+    Task<T?> GetAsync<T>(Expression<Func<T, bool>>? condition = null, Func<IQueryable<T>, IIncludableQueryable<T, object>>? includes = null, bool asNoTracking = true, CancellationToken cancellationToken = default)
+    where T : BaseEntity;
+
+    Task<T?> GetAsync<T>(BaseSpecification<T>? specification = null, bool asNoTracking = true, CancellationToken cancellationToken = default)
+    where T : BaseEntity;
+
+    Task<TProjectedType?> GetAsync<T, TProjectedType>(Expression<Func<T, TProjectedType>> selectExpression, Expression<Func<T, bool>>? condition = null, Func<IQueryable<T>, IIncludableQueryable<T, object>>? includes = null, bool asNoTracking = true, CancellationToken cancellationToken = default)
+    where T : BaseEntity;
+
+    Task<TProjectedType?> GetAsync<T, TProjectedType>(Expression<Func<T, TProjectedType>> selectExpression, BaseSpecification<T>? specification = null, bool asNoTracking = true, CancellationToken cancellationToken = default)
+    where T : BaseEntity;
+
+    Task<int> GetCountAsync<T>(Expression<Func<T, bool>>? expression = null, CancellationToken cancellationToken = default)
+    where T : BaseEntity;
+
+    Task<bool> ExistsAsync<T>(Expression<Func<T, bool>> expression, CancellationToken cancellationToken = default)
+    where T : BaseEntity;
 
     // Create / Update / Delete
 

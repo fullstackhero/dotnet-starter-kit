@@ -10,9 +10,13 @@
         <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
         <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="6.0.0" />
         <PackageReference Include="Microsoft.Extensions.Localization" Version="6.0.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.0" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\Core\Domain\Domain.csproj" />
         <ProjectReference Include="..\..\Shared\Shared.DTOs\Shared.DTOs.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+      <None Remove="Microsoft.EntityFrameworkCore" />
     </ItemGroup>
 </Project>

@@ -11,6 +11,8 @@ using DN.WebApi.Domain.Common.Contracts;
 using DN.WebApi.Domain.Dashboard;
 using DN.WebApi.Shared.DTOs.Catalog;
 using Mapster;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.Extensions.Localization;
 
 namespace DN.WebApi.Application.Catalog.Services;
@@ -80,9 +82,9 @@ public class ProductService : IProductService
 
     public async Task<Result<ProductDetailsDto>> GetProductDetailsAsync(Guid id)
     {
-        var spec = new BaseSpecification<Product>();
-        spec.Includes.Add(a => a.Brand);
-        var product = await _repository.GetByIdAsync<Product, ProductDetailsDto>(id, spec);
+        static IIncludableQueryable<Product, object> includes(IQueryable<Product> x) => x.Include(x => x.Brand);
+
+        var product = await _repository.GetByIdAsync<Product, ProductDetailsDto>(id, includes);
         return await Result<ProductDetailsDto>.SuccessAsync(product);
     }
 
@@ -100,6 +102,18 @@ public class ProductService : IProductService
         filters.Add(filter.MinimumRate.HasValue, x => x.Rate >= filter.MinimumRate!.Value);
         filters.Add(filter.MaximumRate.HasValue, x => x.Rate <= filter.MaximumRate!.Value);
 
-        return await _repository.GetSearchResultsAsync<Product, ProductDto>(filter.PageNumber, filter.PageSize, filter.OrderBy, filters, filter.AdvancedSearch, filter.Keyword);
+        var specification = new PaginationSpecification<Product>
+        {
+            AdvancedSearch = filter.AdvancedSearch,
+            Filters = filters,
+            Includes = x => x.Include(p => p.Brand),
+            Keyword = filter.Keyword,
+            OrderBy = x => x.OrderBy(b => b.Name),
+            OrderByStrings = filter.OrderBy,
+            PageIndex = filter.PageNumber,
+            PageSize = filter.PageSize
+        };
+
+        return await _repository.GetListAsync<Product, ProductDto>(specification);
     }
 }

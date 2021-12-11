@@ -16,6 +16,7 @@ using DN.WebApi.Shared.DTOs;
 using DN.WebApi.Shared.DTOs.Filters;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.Extensions.Localization;
 
 namespace DN.WebApi.Infrastructure.Persistence;
@@ -35,7 +36,7 @@ public class RepositoryAsync : IRepositoryAsync
 
     // Read
 
-    public Task<List<T>> GetListAsync<T>(Expression<Func<T, bool>> expression, bool noTracking = false, CancellationToken cancellationToken = default)
+    /*public Task<List<T>> GetListAsync<T>(Expression<Func<T, bool>> expression, bool noTracking = false, CancellationToken cancellationToken = default)
     where T : BaseEntity =>
         GetQuery(expression, noTracking: noTracking)
             .ToListAsync(cancellationToken);
@@ -119,6 +120,254 @@ public class RepositoryAsync : IRepositoryAsync
         query = query.ApplySort(orderBy);
 
         return query.ToMappedPaginatedResultAsync<T, TDto>(pageNumber, pageSize, cancellationToken);
+    }*/
+
+    // Get List
+    public async Task<List<T>> GetListAsync<T>(
+        Expression<Func<T, bool>>? condition = null,
+        Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
+        Func<IQueryable<T>, IIncludableQueryable<T, object>>? includes = null,
+        bool asNoTracking = true,
+        CancellationToken cancellationToken = default)
+    where T : BaseEntity =>
+        await Filter<T>(condition, orderBy, includes, asNoTracking)
+            .ToListAsync(cancellationToken).ConfigureAwait(false);
+
+    public async Task<List<T>> GetListAsync<T>(
+        BaseSpecification<T>? specification = null,
+        bool asNoTracking = true,
+        CancellationToken cancellationToken = default)
+    where T : BaseEntity =>
+        await Filter<T>(specification, asNoTracking)
+            .ToListAsync(cancellationToken).ConfigureAwait(false);
+
+    public async Task<List<TProjectedType>> GetListAsync<T, TProjectedType>(
+        Expression<Func<T, bool>>? condition = null,
+        Expression<Func<T, TProjectedType>>? selectExpression = null,
+        Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
+        Func<IQueryable<T>, IIncludableQueryable<T, object>>? includes = null,
+        CancellationToken cancellationToken = default)
+    where T : BaseEntity
+    {
+        if (selectExpression == null)
+            throw new ArgumentNullException(nameof(selectExpression));
+
+        return await Filter(condition, orderBy, includes)
+            .Select(selectExpression)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    public async Task<List<TProjectedType>> GetListAsync<T, TProjectedType>(
+        Expression<Func<T, TProjectedType>> selectExpression,
+        BaseSpecification<T>? specification = null,
+        CancellationToken cancellationToken = default)
+    where T : BaseEntity
+    {
+        if (selectExpression == null)
+            throw new ArgumentNullException(nameof(selectExpression));
+
+        return await Filter(specification)
+            .Select(selectExpression)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    public Task<PaginatedResult<TDto>> GetListAsync<T, TDto>(PaginationSpecification<T> specification, CancellationToken cancellationToken = default)
+    where T : BaseEntity
+    where TDto : IDto
+    {
+        if (specification == null)
+        {
+            throw new ArgumentNullException(nameof(specification));
+        }
+
+        if (specification.PageIndex < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(specification.PageIndex), $"The value of {nameof(specification.PageIndex)} must be greater than 0.");
+        }
+
+        if (specification.PageSize < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(specification.PageSize), $"The value of {nameof(specification.PageSize)} must be greater than 0.");
+        }
+
+        IQueryable<T> query = _dbContext.Set<T>();
+
+        if (specification.Filters is not null)
+        {
+            query = query.ApplyFilter(specification.Filters);
+        }
+
+        if (specification.AdvancedSearch?.Fields.Count > 0 && !string.IsNullOrEmpty(specification.AdvancedSearch.Keyword))
+        {
+            query = query.AdvancedSearch(specification.AdvancedSearch);
+        }
+        else if (!string.IsNullOrEmpty(specification.Keyword))
+        {
+            query = query.SearchByKeyword(specification.Keyword);
+        }
+
+        query = query.Specify(specification);
+
+        return query.ToMappedPaginatedResultAsync<T, TDto>(specification.PageIndex, specification.PageSize, cancellationToken);
+    }
+
+    // Get One By Id
+    public async Task<T?> GetByIdAsync<T>(
+        Guid entityId,
+        Func<IQueryable<T>, IIncludableQueryable<T, object>>? includes = null,
+        bool asNoTracking = true,
+        CancellationToken cancellationToken = default)
+    where T : BaseEntity =>
+        await Filter(e => e.Id == entityId, includes: includes, asNoTracking: asNoTracking)
+            .FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+
+    public async Task<TProjectedType?> GetByIdAsync<T, TProjectedType>(
+        Guid entityId,
+        Expression<Func<T, TProjectedType>> selectExpression,
+        Func<IQueryable<T>, IIncludableQueryable<T, object>>? includes = null,
+        CancellationToken cancellationToken = default)
+    where T : BaseEntity
+    {
+        if (selectExpression == null)
+            throw new ArgumentNullException(nameof(selectExpression));
+
+        return await Filter(e => e.Id == entityId, includes: includes)
+            .Select(selectExpression)
+            .FirstOrDefaultAsync(cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    public async Task<TDto> GetByIdAsync<T, TDto>(
+        Guid entityId,
+        Func<IQueryable<T>, IIncludableQueryable<T, object>>? includes = null,
+        CancellationToken cancellationToken = default)
+    where T : BaseEntity
+    where TDto : IDto
+    {
+        async Task<TDto?> getDto() =>
+            await GetByIdAsync(entityId, includes, true, cancellationToken) is object entity
+                ? entity.Adapt<TDto?>()
+                : default;
+
+        // Only get from cache when no includes defined
+        var dto = includes == null
+            ? await _cache.GetOrSetAsync(CacheKeys.GetCacheKey<T>(entityId), getDto, cancellationToken: cancellationToken)
+            : await getDto();
+
+        if (dto is null)
+        {
+            throw new EntityNotFoundException(string.Format(_localizer["entity.notfound"], typeof(T).Name, entityId));
+        }
+
+        return dto;
+    }
+
+    // Get One By Condition
+    public async Task<T?> GetAsync<T>(
+        Expression<Func<T, bool>>? condition = null,
+        Func<IQueryable<T>, IIncludableQueryable<T, object>>? includes = null,
+        bool asNoTracking = true,
+        CancellationToken cancellationToken = default)
+    where T : BaseEntity =>
+        await Filter(condition, includes: includes, asNoTracking: asNoTracking)
+            .FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+
+    public async Task<T?> GetAsync<T>(
+       BaseSpecification<T>? specification = null,
+       bool asNoTracking = true,
+       CancellationToken cancellationToken = default)
+    where T : BaseEntity =>
+        await Filter(specification, asNoTracking)
+            .FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+
+    public async Task<TProjectedType?> GetAsync<T, TProjectedType>(
+        Expression<Func<T, TProjectedType>> selectExpression,
+        Expression<Func<T, bool>>? condition = null,
+        Func<IQueryable<T>, IIncludableQueryable<T, object>>? includes = null,
+        bool asNoTracking = true,
+        CancellationToken cancellationToken = default)
+    where T : BaseEntity
+    {
+        if (selectExpression == null)
+            throw new ArgumentNullException(nameof(selectExpression));
+
+        return await Filter(condition, includes: includes, asNoTracking: asNoTracking)
+                .Select(selectExpression)
+                .FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<TProjectedType?> GetAsync<T, TProjectedType>(
+        Expression<Func<T, TProjectedType>> selectExpression,
+        BaseSpecification<T>? specification = null,
+        bool asNoTracking = true,
+        CancellationToken cancellationToken = default)
+    where T : BaseEntity
+    {
+        if (selectExpression == null)
+            throw new ArgumentNullException(nameof(selectExpression));
+
+        return await Filter(specification, asNoTracking)
+                .Select(selectExpression)
+                .FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    // Get Count
+    public async Task<int> GetCountAsync<T>(
+        Expression<Func<T, bool>>? expression = null,
+        CancellationToken cancellationToken = default)
+    where T : BaseEntity =>
+        await Filter(expression)
+            .CountAsync(cancellationToken).ConfigureAwait(false);
+
+    // Check if Exists
+    public async Task<bool> ExistsAsync<T>(
+        Expression<Func<T, bool>> expression,
+        CancellationToken cancellationToken = default)
+    where T : BaseEntity =>
+        await Filter(expression)
+            .AnyAsync(cancellationToken).ConfigureAwait(false);
+
+    // Filter Methods
+    private IQueryable<T> Filter<T>(
+        Expression<Func<T, bool>>? condition = null,
+        Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
+        Func<IQueryable<T>, IIncludableQueryable<T, object>>? includes = null,
+        bool asNoTracking = true)
+    where T : BaseEntity
+    {
+        IQueryable<T> query = _dbContext.Set<T>();
+
+        if (condition != null)
+            query = query.Where(condition);
+
+        if (includes != null)
+            query = includes(query);
+
+        if (asNoTracking)
+            query = query.AsNoTracking();
+
+        if (orderBy != null)
+            query = orderBy(query);
+
+        return query;
+    }
+
+    private IQueryable<T> Filter<T>(
+        BaseSpecification<T>? specification = null,
+        bool asNoTracking = true)
+    where T : BaseEntity
+    {
+        IQueryable<T> query = _dbContext.Set<T>();
+
+        if (specification != null)
+            query = query.Specify(specification);
+
+        if (asNoTracking)
+            query = query.AsNoTracking();
+
+        return query;
     }
 
     // Create / Update / Delete
