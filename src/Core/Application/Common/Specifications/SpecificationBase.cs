@@ -6,7 +6,7 @@ namespace DN.WebApi.Application.Common.Specifications;
 public class BaseSpecification<T> : ISpecification<T>
 where T : BaseEntity
 {
-    public Expression<Func<T, bool>>? Criteria { get; set; }
+    /*public Expression<Func<T, bool>>? Criteria { get; set; }
     public List<Expression<Func<T, object>>> Includes { get; } = new();
     public List<string> IncludeStrings { get; } = new();
 
@@ -28,5 +28,13 @@ where T : BaseEntity
     protected virtual void AddInclude(string includeString)
     {
         IncludeStrings.Add(includeString);
-    }
+    }*/
+
+    public List<Expression<Func<T, bool>>> Conditions { get; set; } = new List<Expression<Func<T, bool>>>();
+
+    public Expression<Func<T, object>>[] Includes { get; set; } = default!;
+
+    public Func<IQueryable<T>, IOrderedQueryable<T>> OrderBy { get; set; } = default!;
+
+    public string[]? OrderByStrings { get; set; }
 }

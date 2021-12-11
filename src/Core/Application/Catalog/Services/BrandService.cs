@@ -1,6 +1,7 @@
 using DN.WebApi.Application.Catalog.Interfaces;
 using DN.WebApi.Application.Common.Exceptions;
 using DN.WebApi.Application.Common.Interfaces;
+using DN.WebApi.Application.Common.Specifications;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Catalog;
 using DN.WebApi.Domain.Dashboard;
@@ -43,7 +44,17 @@ public class BrandService : IBrandService
 
     public Task<PaginatedResult<BrandDto>> SearchAsync(BrandListFilter filter)
     {
-        return _repository.GetSearchResultsAsync<Brand, BrandDto>(filter.PageNumber, filter.PageSize, filter.OrderBy, null, filter.AdvancedSearch, filter.Keyword);
+        var specification = new PaginationSpecification<Brand>
+        {
+            AdvancedSearch = filter.AdvancedSearch,
+            Keyword = filter.Keyword,
+            OrderBy = x => x.OrderBy(b => b.Name),
+            OrderByStrings = filter.OrderBy,
+            PageIndex = filter.PageNumber,
+            PageSize = filter.PageSize
+        };
+
+        return _repository.GetListAsync<Brand, BrandDto>(specification);
     }
 
     public async Task<Result<Guid>> UpdateBrandAsync(UpdateBrandRequest request, Guid id)
