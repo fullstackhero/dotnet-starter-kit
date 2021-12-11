@@ -182,9 +182,9 @@ public class RepositoryAsync : IRepositoryAsync
             throw new ArgumentNullException(nameof(specification));
         }
 
-        if (specification.PageIndex < 1)
+        if (specification.PageIndex < 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(specification.PageIndex), $"The value of {nameof(specification.PageIndex)} must be greater than 0.");
+            throw new ArgumentOutOfRangeException(nameof(specification.PageIndex), $"The value of {nameof(specification.PageIndex)} must be greater than or equal to 0.");
         }
 
         if (specification.PageSize < 1)
