@@ -1,6 +1,5 @@
 using System.Linq.Expressions;
 using DN.WebApi.Domain.Common.Contracts;
-using Microsoft.EntityFrameworkCore.Query;
 
 namespace DN.WebApi.Application.Common.Specifications;
 
@@ -17,9 +16,7 @@ where T : BaseEntity
 
     List<Expression<Func<T, bool>>> Conditions { get; set; }
 
-    Func<IQueryable<T>, IIncludableQueryable<T, object>> Includes { get; set; }
-
-    // List<string> IncludeStrings { get; }
+    Expression<Func<T, object>>[] Includes { get; set; }
 
     Func<IQueryable<T>, IOrderedQueryable<T>> OrderBy { get; set; }
 

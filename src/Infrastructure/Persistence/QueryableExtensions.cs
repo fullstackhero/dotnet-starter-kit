@@ -1,4 +1,5 @@
 using System.Linq.Dynamic.Core;
+using System.Linq.Expressions;
 using DN.WebApi.Application.Common.Specifications;
 using DN.WebApi.Domain.Common.Contracts;
 using Microsoft.EntityFrameworkCore;
@@ -34,13 +35,8 @@ public static class QueryableExtensions
 
         if (specification.Includes != null)
         {
-            query = specification.Includes(query);
+            query = query.IncludeMultiple(specification.Includes);
         }
-
-        /*if (specification.IncludeStrings.Any())
-        {
-            query = specification.IncludeStrings.Aggregate(query, (current, include) => current.Include(include));
-        }*/
 
         if (specification.OrderByStrings is not null && specification.OrderByStrings.Any())
         {
@@ -66,5 +62,16 @@ public static class QueryableExtensions
     {
         string? ordering = new OrderByConverter().ConvertBack(orderBy);
         return !string.IsNullOrWhiteSpace(ordering) ? query.OrderBy(ordering) : query.OrderBy(a => a.Id);
+    }
+
+    public static IQueryable<T> IncludeMultiple<T>(this IQueryable<T> query, params Expression<Func<T, object>>[] includes)
+    where T : BaseEntity
+    {
+        if (includes != null)
+        {
+            query = includes.Aggregate(query, (current, include) => current.Include(include));
+        }
+
+        return query;
     }
 }

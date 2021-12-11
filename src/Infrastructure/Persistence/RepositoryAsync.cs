@@ -126,7 +126,7 @@ public class RepositoryAsync : IRepositoryAsync
     public async Task<List<T>> GetListAsync<T>(
         Expression<Func<T, bool>>? condition = null,
         Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
-        Func<IQueryable<T>, IIncludableQueryable<T, object>>? includes = null,
+        Expression<Func<T, object>>[]? includes = null,
         bool asNoTracking = true,
         CancellationToken cancellationToken = default)
     where T : BaseEntity =>
@@ -145,7 +145,7 @@ public class RepositoryAsync : IRepositoryAsync
         Expression<Func<T, bool>>? condition = null,
         Expression<Func<T, TProjectedType>>? selectExpression = null,
         Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
-        Func<IQueryable<T>, IIncludableQueryable<T, object>>? includes = null,
+        Expression<Func<T, object>>[]? includes = null,
         CancellationToken cancellationToken = default)
     where T : BaseEntity
     {
@@ -216,7 +216,7 @@ public class RepositoryAsync : IRepositoryAsync
     // Get One By Id
     public async Task<T?> GetByIdAsync<T>(
         Guid entityId,
-        Func<IQueryable<T>, IIncludableQueryable<T, object>>? includes = null,
+        Expression<Func<T, object>>[]? includes = null,
         bool asNoTracking = true,
         CancellationToken cancellationToken = default)
     where T : BaseEntity =>
@@ -226,7 +226,7 @@ public class RepositoryAsync : IRepositoryAsync
     public async Task<TProjectedType?> GetByIdAsync<T, TProjectedType>(
         Guid entityId,
         Expression<Func<T, TProjectedType>> selectExpression,
-        Func<IQueryable<T>, IIncludableQueryable<T, object>>? includes = null,
+        Expression<Func<T, object>>[]? includes = null,
         CancellationToken cancellationToken = default)
     where T : BaseEntity
     {
@@ -241,7 +241,7 @@ public class RepositoryAsync : IRepositoryAsync
 
     public async Task<TDto> GetByIdAsync<T, TDto>(
         Guid entityId,
-        Func<IQueryable<T>, IIncludableQueryable<T, object>>? includes = null,
+        Expression<Func<T, object>>[]? includes = null,
         CancellationToken cancellationToken = default)
     where T : BaseEntity
     where TDto : IDto
@@ -267,7 +267,7 @@ public class RepositoryAsync : IRepositoryAsync
     // Get One By Condition
     public async Task<T?> GetAsync<T>(
         Expression<Func<T, bool>>? condition = null,
-        Func<IQueryable<T>, IIncludableQueryable<T, object>>? includes = null,
+        Expression<Func<T, object>>[]? includes = null,
         bool asNoTracking = true,
         CancellationToken cancellationToken = default)
     where T : BaseEntity =>
@@ -285,7 +285,7 @@ public class RepositoryAsync : IRepositoryAsync
     public async Task<TProjectedType?> GetAsync<T, TProjectedType>(
         Expression<Func<T, TProjectedType>> selectExpression,
         Expression<Func<T, bool>>? condition = null,
-        Func<IQueryable<T>, IIncludableQueryable<T, object>>? includes = null,
+        Expression<Func<T, object>>[]? includes = null,
         bool asNoTracking = true,
         CancellationToken cancellationToken = default)
     where T : BaseEntity
@@ -333,7 +333,7 @@ public class RepositoryAsync : IRepositoryAsync
     private IQueryable<T> Filter<T>(
         Expression<Func<T, bool>>? condition = null,
         Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
-        Func<IQueryable<T>, IIncludableQueryable<T, object>>? includes = null,
+        Expression<Func<T, object>>[]? includes = null,
         bool asNoTracking = true)
     where T : BaseEntity
     {
@@ -343,7 +343,7 @@ public class RepositoryAsync : IRepositoryAsync
             query = query.Where(condition);
 
         if (includes != null)
-            query = includes(query);
+            query = query.IncludeMultiple(includes);
 
         if (asNoTracking)
             query = query.AsNoTracking();

@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using DN.WebApi.Application.Catalog.Interfaces;
 using DN.WebApi.Application.Common.Exceptions;
 using DN.WebApi.Application.Common.Interfaces;
@@ -11,8 +12,6 @@ using DN.WebApi.Domain.Common.Contracts;
 using DN.WebApi.Domain.Dashboard;
 using DN.WebApi.Shared.DTOs.Catalog;
 using Mapster;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.Extensions.Localization;
 
 namespace DN.WebApi.Application.Catalog.Services;
@@ -82,8 +81,7 @@ public class ProductService : IProductService
 
     public async Task<Result<ProductDetailsDto>> GetProductDetailsAsync(Guid id)
     {
-        static IIncludableQueryable<Product, object> includes(IQueryable<Product> x) => x.Include(x => x.Brand);
-
+        var includes = new Expression<Func<Product, object>>[] { x => x.Brand };
         var product = await _repository.GetByIdAsync<Product, ProductDetailsDto>(id, includes);
         return await Result<ProductDetailsDto>.SuccessAsync(product);
     }
@@ -106,12 +104,12 @@ public class ProductService : IProductService
         {
             AdvancedSearch = filter.AdvancedSearch,
             Filters = filters,
-            Includes = x => x.Include(p => p.Brand),
             Keyword = filter.Keyword,
             OrderBy = x => x.OrderBy(b => b.Name),
             OrderByStrings = filter.OrderBy,
             PageIndex = filter.PageNumber,
-            PageSize = filter.PageSize
+            PageSize = filter.PageSize,
+            Includes = new Expression<Func<Product, object>>[] { x => x.Brand }
         };
 
         return await _repository.GetListAsync<Product, ProductDto>(specification);
