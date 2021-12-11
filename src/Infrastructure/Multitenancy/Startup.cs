@@ -48,6 +48,8 @@ internal static class Startup
                         e.MigrationsAssembly("Migrators.MySQL");
                         e.SchemaBehavior(MySqlSchemaBehavior.Ignore);
                     }),
+            "oracle" =>
+                builder.UseOracle(connectionString, e => e.MigrationsAssembly("Migrators.Oracle")),
             _ => throw new Exception($"DB Provider {dbProvider} is not supported.")
         };
 }
