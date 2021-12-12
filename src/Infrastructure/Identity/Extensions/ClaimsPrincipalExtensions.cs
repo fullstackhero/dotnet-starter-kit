@@ -7,7 +7,7 @@ public static class ClaimsPrincipalExtensions
     public static string? GetUserId(this ClaimsPrincipal principal)
     {
         // throw exception if principle is null
-        ArgumentNullException.ThrowIfNull(nameof(principal));
+        ArgumentNullException.ThrowIfNull(principal);
 
         var claim = principal.FindFirst(ClaimTypes.NameIdentifier);
         return claim?.Value;
@@ -16,7 +16,7 @@ public static class ClaimsPrincipalExtensions
     public static string? GetUserEmail(this ClaimsPrincipal principal)
     {
         // throw exception if principle is null
-        ArgumentNullException.ThrowIfNull(nameof(principal));
+        ArgumentNullException.ThrowIfNull(principal);
 
         var claim = principal.FindFirst(ClaimTypes.Email);
         return claim?.Value;
@@ -25,7 +25,7 @@ public static class ClaimsPrincipalExtensions
     public static string? GetTenant(this ClaimsPrincipal principal)
     {
         // throw exception if principle is null
-        ArgumentNullException.ThrowIfNull(nameof(principal));
+        ArgumentNullException.ThrowIfNull(principal);
 
         var claim = principal.FindFirst("tenant");
         return claim?.Value;

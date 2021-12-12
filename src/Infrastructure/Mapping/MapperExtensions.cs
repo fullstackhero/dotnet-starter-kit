@@ -28,7 +28,7 @@ public static class MapperExtensions
         public async Task<PaginatedResult<TDto>> ConvertBackAsync(IQueryable<T> query, CancellationToken cancellationToken = default)
         {
             // throw exception if query is null
-            ArgumentNullException.ThrowIfNull(nameof(query));
+            ArgumentNullException.ThrowIfNull(query);
 
             _pageNumber = _pageNumber == 0 ? 1 : _pageNumber;
             _pageSize = _pageSize == 0 ? 10 : _pageSize;
