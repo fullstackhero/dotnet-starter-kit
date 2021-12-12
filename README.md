@@ -92,7 +92,7 @@ Join our Discord - [fullstackhero @ Discord](https://discord.gg/gdgHRt4mMw)
   - [x] Create Tenants with Multi Database / Shared Database Support
   - [x] Activate / Deactivate Tenants on Demand
   - [x] Upgrade Subscription of Tenants - Add More Validity Months to each tenant!
-- [x] Supports MySQL, MSSQL & PostgreSQL!
+- [x] Supports MySQL, MSSQL, Oracle & PostgreSQL!
 - [x] Uses Entity Framework Core as DB Abstraction
 - [x] Flexible Repository Pattern
 - [x] Dapper Integration for Optimal Performance
