@@ -46,6 +46,10 @@ namespace Migrators.MySQL.Migrations.Root
                     b.Property<bool>("IsActive")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<string>("Issuer")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
                     b.Property<string>("Key")
                         .HasColumnType("longtext");
 

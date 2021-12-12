@@ -49,6 +49,10 @@ namespace Migrators.MSSQL.Migrations.Root
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Issuer")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
                     b.Property<string>("Key")
                         .HasColumnType("nvarchar(max)");
 

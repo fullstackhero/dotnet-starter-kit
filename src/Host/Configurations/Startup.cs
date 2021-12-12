@@ -6,7 +6,7 @@ internal static class Startup
     {
         host.ConfigureAppConfiguration((context, config) =>
         {
-            const string configurationsDirectory = "configurations";
+            const string configurationsDirectory = "Configurations";
             var env = context.HostingEnvironment;
             config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)

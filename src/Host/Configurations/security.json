@@ -1,7 +1,23 @@
 {
-  "JwtSettings": {
-    "key": "S0M3RAN0MS3CR3T!1!MAG1C!1!",
-    "tokenExpirationInMinutes": 60,
-    "refreshTokenExpirationInDays": 7
+  "SecuritySettings": {
+    "Provider": "Jwt",
+    "JwtSettings": {
+      "key": "S0M3RAN0MS3CR3T!1!MAG1C!1!",
+      "tokenExpirationInMinutes": 60,
+      "refreshTokenExpirationInDays": 7
+    },
+    "AzureAd": {
+      "Instance": "https://login.microsoftonline.com/",
+      "Domain": "<YourDomain>.onmicrosoft.com",
+      "TenantId": "organizations",
+      "ClientId": "<YourClientIdOfTheApiAppRegistration>",
+      "Scopes": "access_as_user"
+    },
+    "Swagger": {
+      "AuthorizationUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize",
+      "TokenUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/token",
+      "ApiScope": "api://<YourClientIdOfTheApiAppRegistration>/access_as_user",
+      "OpenIdClientId": "<YourClientIdOfTheSwaggerAppRegistration>"
+    }
   }
 }

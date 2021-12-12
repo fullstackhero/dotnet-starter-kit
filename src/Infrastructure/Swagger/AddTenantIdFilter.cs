@@ -11,7 +11,7 @@ public class AddTenantIdFilter : IOperationFilter
     {
         operation.Parameters ??= new List<OpenApiParameter>();
 
-        if (context.MethodInfo.GetCustomAttribute(typeof(SwaggerHeaderAttribute)) is SwaggerHeaderAttribute attribute)
+        if (context.MethodInfo?.GetCustomAttribute(typeof(SwaggerHeaderAttribute)) is SwaggerHeaderAttribute attribute)
         {
             var existingParam = operation.Parameters.FirstOrDefault(p =>
                 p.In == ParameterLocation.Header && p.Name == attribute.HeaderName);

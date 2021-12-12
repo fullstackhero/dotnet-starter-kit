@@ -31,7 +31,7 @@ public class BrandSeeder : IDatabaseSeeder
 
                 // Here you can use your own logic to populate the database.
                 // As an example, I am using a JSON file to populate the database.
-                string brandData = await File.ReadAllTextAsync(path + "/seeders/brands.json");
+                string brandData = await File.ReadAllTextAsync(path + "/Seeding/brands.json");
                 var brands = _serializerService.Deserialize<List<Brand>>(brandData);
 
                 if (brands != null)

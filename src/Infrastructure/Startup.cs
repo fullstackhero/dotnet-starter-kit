@@ -53,7 +53,6 @@ public static class Startup
             .UseStaticFiles()
             .UseFileStorage()
             .UseExceptionMiddleware()
-            .UseRequestLogging(config)
             .UseLocalization(config)
             .UseRouting()
             .UseCorsPolicy()
@@ -61,6 +60,7 @@ public static class Startup
             .UseCurrentUser()
             .UseCurrentTenant()
             .UseAuthorization()
+            .UseRequestLogging(config)
             .UseHangfireDashboard(config)
             .UseEndpoints(endpoints =>
             {

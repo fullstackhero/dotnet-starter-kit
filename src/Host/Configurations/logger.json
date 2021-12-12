@@ -47,6 +47,16 @@
       },
       {
         "Name": "Hangfire"
+      },
+      {
+        "Name": "Elasticsearch",
+        "Args": {
+          "nodeUris": "http://localhost:9200;",
+          "indexFormat": "DN.WebApi-logs-{0:yyyy.MM}",
+          "numberOfShards": 2,
+          "numberOfReplicas": 1,
+          "restrictedToMinimumLevel": "Information"
+        }
       }
     ]
   }

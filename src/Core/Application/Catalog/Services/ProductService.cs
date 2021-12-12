@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using DN.WebApi.Application.Catalog.Interfaces;
 using DN.WebApi.Application.Common.Exceptions;
 using DN.WebApi.Application.Common.Interfaces;
@@ -80,9 +81,8 @@ public class ProductService : IProductService
 
     public async Task<Result<ProductDetailsDto>> GetProductDetailsAsync(Guid id)
     {
-        var spec = new BaseSpecification<Product>();
-        spec.Includes.Add(a => a.Brand);
-        var product = await _repository.GetByIdAsync<Product, ProductDetailsDto>(id, spec);
+        var includes = new Expression<Func<Product, object>>[] { x => x.Brand };
+        var product = await _repository.GetByIdAsync<Product, ProductDetailsDto>(id, includes);
         return await Result<ProductDetailsDto>.SuccessAsync(product);
     }
 
@@ -100,6 +100,18 @@ public class ProductService : IProductService
         filters.Add(filter.MinimumRate.HasValue, x => x.Rate >= filter.MinimumRate!.Value);
         filters.Add(filter.MaximumRate.HasValue, x => x.Rate <= filter.MaximumRate!.Value);
 
-        return await _repository.GetSearchResultsAsync<Product, ProductDto>(filter.PageNumber, filter.PageSize, filter.OrderBy, filters, filter.AdvancedSearch, filter.Keyword);
+        var specification = new PaginationSpecification<Product>
+        {
+            AdvancedSearch = filter.AdvancedSearch,
+            Filters = filters,
+            Keyword = filter.Keyword,
+            OrderBy = x => x.OrderBy(b => b.Name),
+            OrderByStrings = filter.OrderBy,
+            PageIndex = filter.PageNumber,
+            PageSize = filter.PageSize,
+            Includes = new Expression<Func<Product, object>>[] { x => x.Brand }
+        };
+
+        return await _repository.GetListAsync<Product, ProductDto>(specification);
     }
 }
