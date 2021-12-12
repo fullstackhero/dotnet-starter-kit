@@ -51,4 +51,5 @@
 - Oracle DB Provider for EFCore support
 - Refactored Repository Methods with better specifications
 - Code Refactors
-
+- Added ElasticSearch + Kibana for Logging
+- Added Docker Compose for ElasticSearch + Kibana Container
