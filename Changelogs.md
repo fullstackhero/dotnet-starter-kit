@@ -28,7 +28,7 @@
 - Code Cleanups
 - Templated Emails for User Registrations
 
-0.0.5-rc - Next Release
+0.0.5-rc - Current
 
 - Fixed Password Reset / Forgot
 - Fixed Omnisharp Warnings / Code Cleanup
@@ -44,3 +44,12 @@
 - Entity Database Seeding Simplified
 - File-Scoped namespaces and implicit usings
 - Better Folder Structure / Modular
+
+0.0.6-rc / (maybe 1.0) - Next Release
+
+- AD Authentication Support
+- Oracle DB Provider for EFCore support
+- Refactored Repository Methods with better specifications
+- Code Refactors
+- Added ElasticSearch + Kibana for Logging
+- Added Docker Compose for ElasticSearch + Kibana Container

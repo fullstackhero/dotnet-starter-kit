@@ -58,6 +58,9 @@ public abstract class BaseDbContext : IdentityDbContext<ApplicationUser, Applica
                 case "mysql":
                     optionsBuilder.UseMySql(tenantConnectionString, ServerVersion.AutoDetect(tenantConnectionString));
                     break;
+                case "oracle":
+                    optionsBuilder.UseOracle(tenantConnectionString);
+                    break;
             }
         }
     }

@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31612.314
@@ -51,6 +51,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{E63DB355
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.Test", "tests\Infrastructure.Test\Infrastructure.Test.csproj", "{56278085-6921-4F93-A64B-DE6BEBFB6F24}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Migrators.Oracle", "src\Migrators\Migrators.Oracle\Migrators.Oracle.csproj", "{E860D5C5-7E42-438D-AD3E-8CDCD80F49FC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -93,6 +95,10 @@ Global
 		{56278085-6921-4F93-A64B-DE6BEBFB6F24}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{56278085-6921-4F93-A64B-DE6BEBFB6F24}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{56278085-6921-4F93-A64B-DE6BEBFB6F24}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E860D5C5-7E42-438D-AD3E-8CDCD80F49FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E860D5C5-7E42-438D-AD3E-8CDCD80F49FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E860D5C5-7E42-438D-AD3E-8CDCD80F49FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E860D5C5-7E42-438D-AD3E-8CDCD80F49FC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -110,6 +116,7 @@ Global
 		{BF2C59A8-8288-4260-9A95-B07503A5A134} = {B778FB14-BDFD-454E-9FD7-5CE3572552B7}
 		{3C50A473-F439-47B8-8FCB-7CA9C3367247} = {B778FB14-BDFD-454E-9FD7-5CE3572552B7}
 		{56278085-6921-4F93-A64B-DE6BEBFB6F24} = {E63DB355-B283-460C-87E9-68A8E831ADCE}
+		{E860D5C5-7E42-438D-AD3E-8CDCD80F49FC} = {B778FB14-BDFD-454E-9FD7-5CE3572552B7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D0D80036-558A-4A3A-A0BE-00CED864A4DD}

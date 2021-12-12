@@ -37,6 +37,13 @@ This repository contains the WebApi Project of `fullstackhero`.
 - File-Scoped namespaces and implicit usings
 - Better Folder Structure / Modular
 
+### 0.0.6-rc / (maybe 1.0) - Next Release
+
+- AD Authentication Support
+- Oracle DB Provider for EFCore support
+- Refactored Repository Methods with better specifications
+- Code Refactors
+
 [View Complete Changelogs.](https://github.com/fullstackhero/dotnet-webapi-boilerplate/blob/main/Changelogs.md)
 
 These are the first pre-release versions of the `fullstackhero .NET WebAPI Boilerplate` package. Newer versions will be available on a weekly basis with newer updates and patches. [Read the getting-started guide for more.](https://fullstackhero.net/dotnet-webapi-boilerplate/general/getting-started/)
@@ -85,7 +92,7 @@ Join our Discord - [fullstackhero @ Discord](https://discord.gg/gdgHRt4mMw)
   - [x] Create Tenants with Multi Database / Shared Database Support
   - [x] Activate / Deactivate Tenants on Demand
   - [x] Upgrade Subscription of Tenants - Add More Validity Months to each tenant!
-- [x] Supports MySQL, MSSQL & PostgreSQL!
+- [x] Supports MySQL, MSSQL, Oracle & PostgreSQL!
 - [x] Uses Entity Framework Core as DB Abstraction
 - [x] Flexible Repository Pattern
 - [x] Dapper Integration for Optimal Performance
