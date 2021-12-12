@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Migrators.MSSQL.Migrations.Application
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20211208235008_UserAddObjectId")]
-    partial class UserAddObjectId
+    [Migration("20211212021306_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -176,7 +176,7 @@ namespace Migrators.MSSQL.Migrations.Application
                         .HasDatabaseName("RoleNameIndex")
                         .HasFilter("[NormalizedName] IS NOT NULL AND [Tenant] IS NOT NULL");
 
-                    b.ToTable("Roles", "Identity");
+                    b.ToTable("Roles", "IDENTITY");
                 });
 
             modelBuilder.Entity("DN.WebApi.Infrastructure.Identity.Models.ApplicationRoleClaim", b =>
@@ -222,7 +222,7 @@ namespace Migrators.MSSQL.Migrations.Application
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("RoleClaims", "Identity");
+                    b.ToTable("RoleClaims", "IDENTITY");
                 });
 
             modelBuilder.Entity("DN.WebApi.Infrastructure.Identity.Models.ApplicationUser", b =>
@@ -312,7 +312,7 @@ namespace Migrators.MSSQL.Migrations.Application
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
-                    b.ToTable("Users", "Identity");
+                    b.ToTable("Users", "IDENTITY");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
@@ -337,7 +337,7 @@ namespace Migrators.MSSQL.Migrations.Application
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserClaims", "Identity");
+                    b.ToTable("UserClaims", "IDENTITY");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
@@ -359,7 +359,7 @@ namespace Migrators.MSSQL.Migrations.Application
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserLogins", "Identity");
+                    b.ToTable("UserLogins", "IDENTITY");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
@@ -374,7 +374,7 @@ namespace Migrators.MSSQL.Migrations.Application
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("UserRoles", "Identity");
+                    b.ToTable("UserRoles", "IDENTITY");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
@@ -393,7 +393,7 @@ namespace Migrators.MSSQL.Migrations.Application
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("UserTokens", "Identity");
+                    b.ToTable("UserTokens", "IDENTITY");
                 });
 
             modelBuilder.Entity("DN.WebApi.Domain.Catalog.Product", b =>

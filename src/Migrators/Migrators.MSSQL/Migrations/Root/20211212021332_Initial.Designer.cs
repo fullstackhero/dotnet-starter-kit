@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Migrators.MSSQL.Migrations.Root
 {
     [DbContext(typeof(TenantManagementDbContext))]
-    [Migration("20211208234945_TenantAddIsuer")]
-    partial class TenantAddIsuer
+    [Migration("20211212021332_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
