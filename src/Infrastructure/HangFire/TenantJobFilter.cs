@@ -19,7 +19,8 @@ public class TenantJobFilter : IClientFilter
 
     public void OnCreating(CreatingContext context)
     {
-        _ = context ?? throw new ArgumentNullException(nameof(context));
+        // throw exception if context is null
+        ArgumentNullException.ThrowIfNull(context);
 
         Logger.InfoFormat("Set TenantId and UserId parameters to the job {0}.{1}...", context.Job.Method.ReflectedType?.FullName, context.Job.Method.Name);
 
