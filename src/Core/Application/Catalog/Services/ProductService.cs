@@ -42,20 +42,20 @@ public class ProductService : IProductService
         product.DomainEvents.Add(new ProductCreatedEvent(product));
         product.DomainEvents.Add(new StatsChangedEvent());
 
-        var productId = await _repository.CreateAsync(product);
+        var productId = await _repository.CreateAsync<Product, Guid>(product);
         await _repository.SaveChangesAsync();
         return await Result<Guid>.SuccessAsync(productId);
     }
 
     public async Task<Result<Guid>> UpdateProductAsync(UpdateProductRequest request, Guid id)
     {
-        var product = await _repository.GetByIdAsync<Product>(id, null);
+        var product = await _repository.GetByIdAsync<Product, Guid>(id, null);
         if (product == null) throw new EntityNotFoundException(string.Format(_localizer["product.notfound"], id));
         string? productImagePath = null;
         if (request.Image != null) productImagePath = await _file.UploadAsync<Product>(request.Image, FileType.Image);
         if (request.BrandId != default)
         {
-            var brand = await _repository.GetByIdAsync<Brand>(request.BrandId, null);
+            var brand = await _repository.GetByIdAsync<Brand, Guid>(request.BrandId, null);
             if (brand == null) throw new EntityNotFoundException(string.Format(_localizer["brand.notfound"], id));
         }
 
@@ -65,7 +65,7 @@ public class ProductService : IProductService
         product.DomainEvents.Add(new ProductUpdatedEvent(product));
         product.DomainEvents.Add(new StatsChangedEvent());
 
-        await _repository.UpdateAsync(updatedProduct);
+        await _repository.UpdateAsync<Product, Guid>(updatedProduct);
         await _repository.SaveChangesAsync();
         return await Result<Guid>.SuccessAsync(id);
     }
@@ -82,7 +82,7 @@ public class ProductService : IProductService
     public async Task<Result<ProductDetailsDto>> GetProductDetailsAsync(Guid id)
     {
         var includes = new Expression<Func<Product, object>>[] { x => x.Brand };
-        var product = await _repository.GetByIdAsync<Product, ProductDetailsDto>(id, includes);
+        var product = await _repository.GetByIdAsync<Product, Guid, ProductDetailsDto>(id, includes);
         return await Result<ProductDetailsDto>.SuccessAsync(product);
     }
 
@@ -112,6 +112,6 @@ public class ProductService : IProductService
             Includes = new Expression<Func<Product, object>>[] { x => x.Brand }
         };
 
-        return await _repository.GetListAsync<Product, ProductDto>(specification);
+        return await _repository.GetListAsync<Product, Guid, ProductDto>(specification);
     }
 }

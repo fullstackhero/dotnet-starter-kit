@@ -61,7 +61,7 @@ public class BrandGeneratorJob : IBrandGeneratorJob
         await Notify("Your job processing has started");
         foreach (int index in Enumerable.Range(1, nSeed))
         {
-            await _repository.CreateAsync(new Brand(name: $"Brand Random - {Guid.NewGuid()}", "Funny description"));
+            await _repository.CreateAsync<Brand, Guid>(new Brand(name: $"Brand Random - {Guid.NewGuid()}", "Funny description"));
             await Notify("Progress: ", nSeed > 0 ? (index * 100 / nSeed) : 0);
         }
 
@@ -80,7 +80,7 @@ public class BrandGeneratorJob : IBrandGeneratorJob
 
         foreach (var item in items)
         {
-            await _repository.RemoveAsync(item);
+            await _repository.RemoveAsync<Brand, Guid>(item);
         }
 
         int rows = await _repository.SaveChangesAsync();

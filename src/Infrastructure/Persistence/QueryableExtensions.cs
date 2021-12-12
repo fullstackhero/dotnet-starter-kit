@@ -8,8 +8,8 @@ namespace DN.WebApi.Infrastructure.Persistence;
 
 public static class QueryableExtensions
 {
-    public static IQueryable<T> Specify<T>(this IQueryable<T> query, ISpecification<T> specification)
-    where T : BaseEntity
+    public static IQueryable<T> Specify<T, TKey>(this IQueryable<T> query, ISpecification<T> specification)
+    where T : BaseEntityWith<TKey>
     {
         /*var queryableResultWithIncludes = spec.Includes
             .Aggregate(query, (current, include) => current.Include(include));
@@ -40,7 +40,7 @@ public static class QueryableExtensions
 
         if (specification.OrderByStrings is not null && specification.OrderByStrings.Any())
         {
-            query = query.ApplySort(specification.OrderByStrings);
+            query = query.ApplySort<T, TKey>(specification.OrderByStrings);
         }
         else if (specification.OrderBy != null)
         {
@@ -57,8 +57,8 @@ public static class QueryableExtensions
         return query;
     }
 
-    public static IQueryable<T> ApplySort<T>(this IQueryable<T> query, string[]? orderBy)
-    where T : BaseEntity
+    public static IQueryable<T> ApplySort<T, TKey>(this IQueryable<T> query, string[]? orderBy)
+    where T : BaseEntityWith<TKey>
     {
         string? ordering = new OrderByConverter().ConvertBack(orderBy);
         return !string.IsNullOrWhiteSpace(ordering) ? query.OrderBy(ordering) : query.OrderBy(a => a.Id);

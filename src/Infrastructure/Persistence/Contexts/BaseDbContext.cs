@@ -90,7 +90,7 @@ public abstract class BaseDbContext : IdentityDbContext<ApplicationUser, Applica
     {
         ChangeTracker.DetectChanges();
         var trailEntries = new List<AuditTrail>();
-        foreach (var entry in ChangeTracker.Entries<AuditableEntity>()
+        foreach (var entry in ChangeTracker.Entries<IAuditableEntity>()
             .Where(e => e.State is EntityState.Added or EntityState.Deleted or EntityState.Modified)
             .ToList())
         {
