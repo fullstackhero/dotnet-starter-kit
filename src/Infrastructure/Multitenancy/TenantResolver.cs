@@ -1,4 +1,5 @@
-﻿using DN.WebApi.Infrastructure.Identity.Extensions;
+﻿using DN.WebApi.Domain.Constants;
+using DN.WebApi.Infrastructure.Identity.Extensions;
 using Microsoft.AspNetCore.Http;
 
 namespace DN.WebApi.Infrastructure.Multitenancy;
@@ -32,8 +33,8 @@ public static class TenantResolver
         context.User.GetTenant();
 
     private static string? ResolveFromHeader(HttpContext context) =>
-        context.Request.Headers.TryGetValue("tenant", out var tenantFromHeader) ? (string)tenantFromHeader : default;
+        context.Request.Headers.TryGetValue(HeaderConstants.Tenant, out var tenantFromHeader) ? (string)tenantFromHeader : default;
 
     private static string? ResolveFromQuery(HttpContext context) =>
-        context.Request.Query.TryGetValue("tenant", out var tenantFromQueryString) ? (string)tenantFromQueryString : default;
+        context.Request.Query.TryGetValue(QueryConstants.Tenant, out var tenantFromQueryString) ? (string)tenantFromQueryString : default;
 }

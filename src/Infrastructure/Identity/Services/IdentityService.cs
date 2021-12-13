@@ -9,6 +9,7 @@ using DN.WebApi.Application.Multitenancy;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Common;
 using DN.WebApi.Domain.Constants;
+using DN.WebApi.Infrastructure.Identity.Extensions;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Mailing;
 using DN.WebApi.Shared.DTOs.Identity;
@@ -128,7 +129,7 @@ public class IdentityService : IIdentityService
                 EmailConfirmed = true,
                 PhoneNumberConfirmed = true,
                 IsActive = true,
-                Tenant = principal.FindFirstValue("tenant")
+                Tenant = principal.GetTenant()
             };
             result = await _userManager.CreateAsync(user);
         }
@@ -349,10 +350,10 @@ public class IdentityService : IIdentityService
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
         const string route = "api/identity/confirm-email/";
         var endpointUri = new Uri(string.Concat($"{origin}/", route));
-        string verificationUri = QueryHelpers.AddQueryString(endpointUri.ToString(), "userId", user.Id);
-        verificationUri = QueryHelpers.AddQueryString(verificationUri, "code", code);
+        string verificationUri = QueryHelpers.AddQueryString(endpointUri.ToString(), QueryConstants.UserId, user.Id);
+        verificationUri = QueryHelpers.AddQueryString(verificationUri, QueryConstants.Code, code);
         if (_tenantService.GetCurrentTenant()?.Key is string tenantKey)
-            verificationUri = QueryHelpers.AddQueryString(verificationUri, "tenant", tenantKey);
+            verificationUri = QueryHelpers.AddQueryString(verificationUri, QueryConstants.Tenant, tenantKey);
         return verificationUri;
     }
 }

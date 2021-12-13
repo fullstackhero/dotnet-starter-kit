@@ -4,19 +4,24 @@ using System.Security.Claims;
 using DN.WebApi.Application.Identity.Exceptions;
 using DN.WebApi.Application.Identity.Interfaces;
 using DN.WebApi.Application.Multitenancy;
+using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Identity.Web;
 using Serilog;
+using ClaimConstants = DN.WebApi.Domain.Constants.ClaimConstants;
 
 namespace DN.WebApi.Infrastructure.Identity.AzureAd;
 
 internal class AzureAdJwtBearerEvents : JwtBearerEvents
 {
     private readonly ILogger _logger;
+    private readonly IConfiguration _config;
 
-    public AzureAdJwtBearerEvents(ILogger logger) => _logger = logger;
+    public AzureAdJwtBearerEvents(ILogger logger, IConfiguration config) =>
+        (_logger, _config) = (logger, config);
 
     public override Task AuthenticationFailed(AuthenticationFailedContext context)
     {
@@ -46,7 +51,7 @@ internal class AzureAdJwtBearerEvents : JwtBearerEvents
         var identity = principal.Identities.First();
 
         // Adding tenant claim
-        identity.AddClaim(new Claim("tenant", tenantKey));
+        identity.AddClaim(new Claim(ClaimConstants.Tenant, tenantKey));
 
         // Creating a new scope and set the new tenant key so it gets picked up
         using var scope = context.HttpContext.RequestServices.CreateScope();
@@ -85,6 +90,12 @@ internal class AzureAdJwtBearerEvents : JwtBearerEvents
             throw new IdentityException("Authentication Failed.", statusCode: HttpStatusCode.Unauthorized);
         }
 
+        // shortcut when the issuer is the rootIssuer defined in appsettings
+        if (issuer == _config["SecuritySettings:AzureAd:RootIssuer"])
+        {
+            return (issuer, objectId, MultitenancyConstants.Root.Key);
+        }
+
         using var tenantScope = serviceProvider.CreateScope();
 
         // creating a scope otherwise the current scope gets polluted with an ApplicationDbContext without a tenant set
@@ -109,14 +120,14 @@ internal static class AzureAdJwtBearerEventsLoggingExtensions
         logger.Error("Authentication failed Exception: {e}", e);
 
     public static void TokenReceived(this ILogger logger) =>
-        logger.Information("Received a bearer token");
+        logger.Debug("Received a bearer token");
 
     public static void TokenValidationStarted(this ILogger logger, string userId, string issuer) =>
-        logger.Information("Token Validation Started for User: {userId} Issuer: {issuer}", userId, issuer);
+        logger.Debug("Token Validation Started for User: {userId} Issuer: {issuer}", userId, issuer);
 
     public static void TokenValidationFailed(this ILogger logger, string? userId, string? issuer) =>
         logger.Warning("Tenant is not registered User: {userId} Issuer: {issuer}", userId, issuer);
 
     public static void TokenValidationSucceeded(this ILogger logger, string userId, string issuer) =>
-        logger.Information("Token validation succeeded: User: {userId} Issuer: {issuer}", userId, issuer);
+        logger.Debug("Token validation succeeded: User: {userId} Issuer: {issuer}", userId, issuer);
 }

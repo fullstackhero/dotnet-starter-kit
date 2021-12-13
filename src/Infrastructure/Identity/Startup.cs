@@ -71,7 +71,7 @@ internal static class Startup
                 authentication.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             })
             .AddMicrosoftIdentityWebApi(
-                jwtOptions => jwtOptions.Events = new AzureAdJwtBearerEvents(logger),
+                jwtOptions => jwtOptions.Events = new AzureAdJwtBearerEvents(logger, config),
                 msIdentityOptions => config.GetSection("SecuritySettings:AzureAd").Bind(msIdentityOptions));
 
         return services;

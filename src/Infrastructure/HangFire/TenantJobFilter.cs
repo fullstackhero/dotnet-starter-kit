@@ -1,4 +1,5 @@
-﻿using DN.WebApi.Infrastructure.Identity.Extensions;
+﻿using DN.WebApi.Domain.Constants;
+using DN.WebApi.Infrastructure.Identity.Extensions;
 using DN.WebApi.Infrastructure.Multitenancy;
 using Hangfire.Client;
 using Hangfire.Logging;
@@ -30,8 +31,8 @@ public class TenantJobFilter : IClientFilter
 
         string? tenantId = TenantResolver.Resolver(httpContext);
         string? userId = httpContext.User.GetUserId();
-        context.SetJobParameter("tenant", tenantId);
-        context.SetJobParameter("userId", userId);
+        context.SetJobParameter(QueryConstants.Tenant, tenantId);
+        context.SetJobParameter(QueryConstants.UserId, userId);
     }
 
     public void OnCreated(CreatedContext context)
