@@ -68,10 +68,10 @@ internal class AzureAdJwtBearerEvents : JwtBearerEvents
         identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, userId));
 
         // and the email claim for the email
-        var emailClaim = principal.FindFirst(ClaimTypes.Email);
         var upnClaim = principal.FindFirst(ClaimTypes.Upn);
         if (upnClaim is not null)
         {
+            var emailClaim = principal.FindFirst(ClaimTypes.Email);
             identity.TryRemoveClaim(emailClaim);
             identity.AddClaim(new Claim(ClaimTypes.Email, upnClaim.Value));
         }
@@ -84,6 +84,8 @@ internal class AzureAdJwtBearerEvents : JwtBearerEvents
     {
         string? issuer = principal?.GetIssuer();
         string? objectId = principal?.GetObjectId();
+        _logger.TokenValidationStarted(objectId, issuer);
+
         if (principal is null || issuer is null || objectId is null)
         {
             _logger.TokenValidationFailed(objectId, issuer);
@@ -122,7 +124,7 @@ internal static class AzureAdJwtBearerEventsLoggingExtensions
     public static void TokenReceived(this ILogger logger) =>
         logger.Debug("Received a bearer token");
 
-    public static void TokenValidationStarted(this ILogger logger, string userId, string issuer) =>
+    public static void TokenValidationStarted(this ILogger logger, string? userId, string? issuer) =>
         logger.Debug("Token Validation Started for User: {userId} Issuer: {issuer}", userId, issuer);
 
     public static void TokenValidationFailed(this ILogger logger, string? userId, string? issuer) =>
