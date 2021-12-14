@@ -137,11 +137,11 @@ public class TokenService : ITokenService
             {
                 new(ClaimTypes.NameIdentifier, user.Id),
                 new(ClaimTypes.Email, user.Email),
-                new("fullName", $"{user.FirstName} {user.LastName}"),
+                new(ClaimConstants.Fullname, $"{user.FirstName} {user.LastName}"),
                 new(ClaimTypes.Name, user.FirstName ?? string.Empty),
                 new(ClaimTypes.Surname, user.LastName ?? string.Empty),
-                new("ipAddress", ipAddress),
-                new("tenant", tenant ?? string.Empty)
+                new(ClaimConstants.IpAddress, ipAddress),
+                new(ClaimConstants.Tenant, tenant ?? string.Empty)
             };
     }
 
