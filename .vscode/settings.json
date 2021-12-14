@@ -2,6 +2,7 @@
   "files.trimTrailingWhitespace": true,
   "files.trimFinalNewlines": true,
   "cSpell.words": [
+    "cref",
     "fshapidb",
     "Mediat",
     "mssqllocaldb",

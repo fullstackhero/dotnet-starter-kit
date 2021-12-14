@@ -25,7 +25,7 @@ public static class QueryableExtensions
             throw new ArgumentNullException(nameof(specification));
         }
 
-        if (specification.Conditions != null && specification.Conditions.Any())
+        if (specification.Conditions?.Any() == true)
         {
             foreach (var specificationCondition in specification.Conditions)
             {

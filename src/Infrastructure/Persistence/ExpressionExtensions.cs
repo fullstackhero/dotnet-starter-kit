@@ -61,7 +61,7 @@ public static class ExpressionExtensions
                             if (string.IsNullOrEmpty(parentPart))
                                 return false;
 
-                            if (!(callExpression.Arguments[1] is LambdaExpression subExpression))
+                            if (callExpression.Arguments[1] is not LambdaExpression subExpression)
                                 return false;
 
                             if (!TryParsePath(subExpression.Body, out string currentPart))
@@ -101,4 +101,3 @@ public static class ExpressionExtensions
         return expression;
     }
 }
-
