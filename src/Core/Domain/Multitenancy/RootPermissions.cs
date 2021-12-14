@@ -1,6 +1,6 @@
 namespace DN.WebApi.Domain.Constants;
 
-public class RootPermissions
+public partial class RootPermissions
 {
     public static class Tenants
     {

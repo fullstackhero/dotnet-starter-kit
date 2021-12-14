@@ -2,15 +2,8 @@ using System.ComponentModel;
 
 namespace DN.WebApi.Domain.Constants;
 
-public class PermissionConstants
+public partial class PermissionConstants
 {
-    [DisplayName("Dashboard")]
-    [Description("Dashboard Permissions")]
-    public static class Dashboard
-    {
-        public const string View = "Permissions.Dashboard.View";
-    }
-
     [DisplayName("Identity")]
     [Description("Identity Permissions")]
     public static class Identity
@@ -27,30 +20,6 @@ public class PermissionConstants
         public const string Register = "Permissions.Roles.Register";
         public const string Update = "Permissions.Roles.Update";
         public const string Remove = "Permissions.Roles.Remove";
-    }
-
-    [DisplayName("Products")]
-    [Description("Products Permissions")]
-    public static class Products
-    {
-        public const string View = "Permissions.Products.View";
-        public const string Search = "Permissions.Products.Search";
-        public const string Register = "Permissions.Products.Register";
-        public const string Update = "Permissions.Products.Update";
-        public const string Remove = "Permissions.Products.Remove";
-    }
-
-    [DisplayName("Brands")]
-    [Description("Brands Permissions")]
-    public static class Brands
-    {
-        public const string View = "Permissions.Brands.View";
-        public const string Search = "Permissions.Brands.Search";
-        public const string Register = "Permissions.Brands.Register";
-        public const string Update = "Permissions.Brands.Update";
-        public const string Remove = "Permissions.Brands.Remove";
-        public const string Generate = "Permissions.Brands.Generate";
-        public const string Clean = "Permissions.Brands.Clean";
     }
 
     [DisplayName("Role Claims")]
