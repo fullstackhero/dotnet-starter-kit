@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/aspnet:6.0-focal AS base
+FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
 ENV ASPNETCORE_URLS=https://+:5050;http://+:5060
 WORKDIR /app
 EXPOSE 5050
@@ -9,7 +9,7 @@ EXPOSE 5060
 RUN adduser -u 5678 --disabled-password --gecos "" appuser && chown -R appuser /app
 USER appuser
 
-FROM mcr.microsoft.com/dotnet/sdk:6.0-focal AS build
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /
 COPY ["Directory.Build.props", "/"]
 COPY ["src/Host/Host.csproj", "src/Host/"]
@@ -19,6 +19,7 @@ COPY ["src/Infrastructure/Infrastructure.csproj", "src/Infrastructure/"]
 COPY ["src/Migrators/Migrators.MSSQL/Migrators.MSSQL.csproj", "src/Migrators/Migrators.MSSQL/"]
 COPY ["src/Migrators/Migrators.MySQL/Migrators.MySQL.csproj", "src/Migrators/Migrators.MySQL/"]
 COPY ["src/Migrators/Migrators.PostgreSQL/Migrators.PostgreSQL.csproj", "src/Migrators/Migrators.PostgreSQL/"]
+COPY ["src/Migrators/Migrators.Oracle/Migrators.Oracle.csproj", "src/Migrators/Migrators.Oracle/"]
 COPY ["src/Shared/Shared.DTOs/Shared.DTOs.csproj", "src/Shared/Shared.DTOs/"]
 
 COPY ["/dotnet.ruleset", "src/Host/"]
@@ -28,6 +29,7 @@ COPY ["/dotnet.ruleset", "src/Infrastructure/"]
 COPY ["/dotnet.ruleset", "src/Migrators/Migrators.MSSQL/"]
 COPY ["/dotnet.ruleset", "src/Migrators/Migrators.MySQL/"]
 COPY ["/dotnet.ruleset", "src/Migrators/Migrators.PostgreSQL/"]
+COPY ["/dotnet.ruleset", "src/Migrators/Migrators.Oracle/"]
 COPY ["/dotnet.ruleset", "src/Shared/Shared.DTOs/"]
 
 COPY ["/stylecop.json", "src/Host/"]
@@ -37,6 +39,7 @@ COPY ["/stylecop.json", "src/Infrastructure/"]
 COPY ["/stylecop.json", "src/Migrators/Migrators.MSSQL/"]
 COPY ["/stylecop.json", "src/Migrators/Migrators.MySQL/"]
 COPY ["/stylecop.json", "src/Migrators/Migrators.PostgreSQL/"]
+COPY ["/stylecop.json", "src/Migrators/Migrators.Oracle/"]
 COPY ["/stylecop.json", "src/Shared/Shared.DTOs/"]
 
 RUN dotnet restore "src/Host/Host.csproj" --disable-parallel
