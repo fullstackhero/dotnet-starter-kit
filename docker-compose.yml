@@ -5,22 +5,17 @@ services:
       dockerfile: Dockerfile
     container_name: api
     environment:
-      - "DatabaseSettings__ConnectionString=Server=db;Database=rootTenantDb;Use\
-        r=sa;Password=SuperSecurePassword123!;MultipleActiveResultSets=true"
+      - "DatabaseSettings__ConnectionString=Server=db;Database=fullStackHeroDb;User=sa;Password=SuperSecurePassword123!;MultipleActiveResultSets=true"
       - "DatabaseSettings__DBProvider=mssql"
-      - "HangfireSettings__Storage__ConnectionString=Server=db;Database=rootTen\
-        antDb;User=sa;Password=SuperSecurePassword123!;MultipleActiveResultSets\
-        =true"
+      - "HangfireSettings__Storage__ConnectionString=Server=db;Database=fullStackHeroDb;User=sa;Password=SuperSecurePassword123!;MultipleActiveResultSets=true"
       - "HangfireSettings__Storage__StorageProvider=mssql"
-      - "CacheSettings__RedisURL=redis"
-      - "ASPNETCORE_Kestrel__Certificates__Default__Password=securePassword123"
-      - "ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx"
-      - "ASPNETCORE_URLS=https://+:5051;http://+:5061"
+      - "ASPNETCORE_Kestrel__Certificates__Default__Password=SuperSecurePassword123!"
+      - "ASPNETCORE_Kestrel__Certificates__Default__Path=/https/DN.Host.pfx"
     volumes:
       - ~/.aspnet/https:/https:ro
     ports:
-      - "5051:5051"
-      - "5061:5061"
+      - "5050:5050"
+      - "5060:5060"
     depends_on:
       - db
     restart: on-failure
