@@ -395,6 +395,27 @@ public class RepositoryAsync : IRepositoryAsync
         return _cache.RemoveAsync(CacheKeys.GetCacheKey<T>(entity.Id), cancellationToken);
     }
 
+    public Task UpdateRangeAsync<T>(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+    where T : BaseEntity
+    {
+        foreach (var entity in entities)
+        {
+            if (_dbContext.Entry(entity).State == EntityState.Unchanged)
+            {
+                throw new NothingToUpdateException();
+            }
+
+            var existing = _dbContext.Set<T>().Find(entity.Id);
+
+            _ = existing ?? throw new EntityNotFoundException(string.Format(_localizer["entity.notfound"], typeof(T).Name, entity.Id));
+
+            _dbContext.Entry(existing).CurrentValues.SetValues(entity);
+            _cache.RemoveAsync(CacheKeys.GetCacheKey<T>(entity.Id), cancellationToken);
+        }
+
+        return Task.FromResult(true);
+    }
+
     public async Task<IList<Guid>> CreateRangeAsync<T>(IEnumerable<T> entities, CancellationToken cancellationToken = default)
     where T : BaseEntity
     {
@@ -407,6 +428,18 @@ public class RepositoryAsync : IRepositoryAsync
     {
         _dbContext.Set<T>().Remove(entity);
         return _cache.RemoveAsync(CacheKeys.GetCacheKey<T>(entity.Id), cancellationToken);
+    }
+
+    public Task RemoveRangeAsync<T>(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+    where T : BaseEntity
+    {
+        foreach (var entity in entities)
+        {
+            _dbContext.Set<T>().Remove(entity);
+            _cache.RemoveAsync(CacheKeys.GetCacheKey<T>(entity.Id), cancellationToken);
+        }
+
+        return Task.FromResult(true);
     }
 
     public async Task<T> RemoveByIdAsync<T>(Guid entityId, CancellationToken cancellationToken = default)
