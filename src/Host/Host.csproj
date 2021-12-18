@@ -33,4 +33,8 @@
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
     </ItemGroup>
+    <ItemGroup>
+        <Content Remove="Logs\*" />
+        <None Include="Logs\*" />
+    </ItemGroup>
 </Project>
