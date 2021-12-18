@@ -9,17 +9,16 @@ namespace DN.WebApi.Application.Common.Interfaces;
 
 public interface IRepositoryAsync : ITransientService
 {
-    // Read
 
     /// <summary>
     /// Get a <see cref="List{T}"/> based on the criteria specified in the parameters.
     /// </summary>
     /// <typeparam name="T">The type of the entity.</typeparam>
     /// <param name="condition">The condition on which the returned <see cref="List{T}"/> will be filtered.</param>
-    /// <param name="orderBy">The <see cref="Func{IQueryable{T}, IOrderedQueryable{T}}"/> to order the returned <see cref="List{T}"/> by.</param>
+    /// <param name="orderBy">The <see cref="Func{Q,OQ}"/> of <see cref="IQueryable{T}"/>, <see cref="IOrderedQueryable{T}"/> to order the returned <see cref="List{T}"/> by.</param>
     /// <param name="includes">The <see cref="Expression{Func}"/> for navigation properties to be included.</param>
     /// <param name="asNoTracking">The <see cref="bool"/> value which determines whether the returned entity will be tracked by
-    /// EF Core context or not. Defualt value is true i.e tracking is disabled by default.</param>
+    /// EF Core context or not. Default value is true i.e tracking is disabled by default.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>Returns <see cref="Task"/> of <see cref="List{T}"/>.</returns>
     Task<List<T>> GetListAsync<T>(Expression<Func<T, bool>>? condition = null, Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null, Expression<Func<T, object>>[]? includes = null, bool asNoTracking = true, CancellationToken cancellationToken = default)
@@ -32,7 +31,7 @@ public interface IRepositoryAsync : ITransientService
     /// <param name="specification">The <see cref="BaseSpecification{T}"/> <see cref="object"/> which contains all the criteria
     /// on which data will be returned.</param>
     /// <param name="asNoTracking">The <see cref="bool"/> value which determines whether the returned entity will be tracked by
-    /// EF Core context or not. Defualt value is true i.e tracking is disabled by default.</param>
+    /// EF Core context or not. Default value is true i.e tracking is disabled by default.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>Returns <see cref="Task"/> of <see cref="List{T}"/>.</returns>
     Task<List<T>> GetListAsync<T>(BaseSpecification<T>? specification = null, bool asNoTracking = true, CancellationToken cancellationToken = default)
@@ -45,8 +44,8 @@ public interface IRepositoryAsync : ITransientService
     /// <typeparam name="TProjectedType">The type to which <typeparamref name="T"/> will be projected.</typeparam>
     /// <param name="condition">The condition on which the returned <see cref="List{TProjectedType}"/> will be filtered.</param>
     /// <param name="selectExpression">The <see cref="Expression{Func}"/> to select properties for projection.</param>
-    /// <param name="orderBy">The <see cref="Func{IQueryable{T}, IOrderedQueryable{T}}"/> to order the returned <see cref="List{TProjectedType}"/> by.</param>
-    /// <param name="includes">The <see cref="Expression{Func}"/> for navigation properties to be included.</param>
+    /// <param name="orderBy">The <see cref="Func{Q,OQ}"/> of <see cref="IQueryable{T}"/>, <see cref="IOrderedQueryable{T}"/> to order the returned <see cref="List{T}"/> by.</param>
+    /// <param name="includes">The <see cref="Expression{Func}"/>s for navigation properties to be included.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>Returns <see cref="Task"/> of <see cref="List{TProjectedType}"/>.</returns>
     Task<List<TProjectedType>> GetListAsync<T, TProjectedType>(Expression<Func<T, bool>>? condition = null, Expression<Func<T, TProjectedType>>? selectExpression = null, Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null, Expression<Func<T, object>>[]? includes = null, CancellationToken cancellationToken = default)
@@ -86,10 +85,10 @@ public interface IRepositoryAsync : ITransientService
     /// <param name="entityId">The primary key value of the entity to be returned.</param>
     /// <param name="includes">The <see cref="Expression{Func}"/> for navigation properties to be included.</param>
     /// <param name="asNoTracking">The <see cref="bool"/> value which determines whether the returned entity will be tracked by
-    /// EF Core context or not. Defualt value is true i.e tracking is disabled by default.</param>
+    /// EF Core context or not. Default value is false i.e tracking is enabled by default.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>Returns <see cref="Task"/> of <typeparamref name="T"/>.</returns>
-    Task<T?> GetByIdAsync<T>(Guid entityId, Expression<Func<T, object>>[]? includes = null, bool asNoTracking = true, CancellationToken cancellationToken = default)
+    Task<T?> GetByIdAsync<T>(Guid entityId, Expression<Func<T, object>>[]? includes = null, bool asNoTracking = false, CancellationToken cancellationToken = default)
     where T : BaseEntity;
 
     /// <summary>
@@ -128,10 +127,10 @@ public interface IRepositoryAsync : ITransientService
     /// <param name="condition">The condition on which the returned <typeparamref name="T"/> will be filtered.</param>
     /// <param name="includes">The <see cref="Expression{Func}"/> for navigation properties to be included.</param>
     /// <param name="asNoTracking">The <see cref="bool"/> value which determines whether the returned entity will be tracked by
-    /// EF Core context or not. Defualt value is true i.e tracking is disabled by default.</param>
+    /// EF Core context or not. Default value is false i.e tracking is enabled by default.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>Returns <see cref="Task"/> of <typeparamref name="T"/>.</returns>
-    Task<T?> GetAsync<T>(Expression<Func<T, bool>>? condition = null, Expression<Func<T, object>>[]? includes = null, bool asNoTracking = true, CancellationToken cancellationToken = default)
+    Task<T?> GetAsync<T>(Expression<Func<T, bool>>? condition = null, Expression<Func<T, object>>[]? includes = null, bool asNoTracking = false, CancellationToken cancellationToken = default)
     where T : BaseEntity;
 
     /// <summary>
@@ -142,10 +141,10 @@ public interface IRepositoryAsync : ITransientService
     /// <param name="specification">The <see cref="BaseSpecification{T}"/> <see cref="object"/> which contains all the criteria
     /// on which data will be returned.</param>
     /// <param name="asNoTracking">The <see cref="bool"/> value which determines whether the returned entity will be tracked by
-    /// EF Core context or not. Defualt value is true i.e tracking is disabled by default.</param>
+    /// EF Core context or not. Default value is false i.e tracking is enabled by default.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>Returns <see cref="Task"/> of <typeparamref name="T"/>.</returns>
-    Task<T?> GetAsync<T>(BaseSpecification<T>? specification = null, bool asNoTracking = true, CancellationToken cancellationToken = default)
+    Task<T?> GetAsync<T>(BaseSpecification<T>? specification = null, bool asNoTracking = false, CancellationToken cancellationToken = default)
     where T : BaseEntity;
 
     /// <summary>
@@ -158,7 +157,7 @@ public interface IRepositoryAsync : ITransientService
     /// <param name="condition">The condition on which the returned <typeparamref name="TProjectedType"/> will be filtered.</param>
     /// <param name="includes">The <see cref="Expression{Func}"/> for navigation properties to be included.</param>
     /// <param name="asNoTracking">The <see cref="bool"/> value which determines whether the returned entity will be tracked by
-    /// EF Core context or not. Defualt value is true i.e tracking is disabled by default.</param>
+    /// EF Core context or not. Default value is true i.e tracking is disabled by default.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>Returns <see cref="Task"/> of <typeparamref name="TProjectedType"/>.</returns>
     Task<TProjectedType?> GetAsync<T, TProjectedType>(Expression<Func<T, TProjectedType>> selectExpression, Expression<Func<T, bool>>? condition = null, Expression<Func<T, object>>[]? includes = null, bool asNoTracking = true, CancellationToken cancellationToken = default)
@@ -174,7 +173,7 @@ public interface IRepositoryAsync : ITransientService
     /// <param name="specification">The <see cref="BaseSpecification{T}"/> <see cref="object"/> which contains all the criteria
     /// on which data will be returned.</param>
     /// <param name="asNoTracking">The <see cref="bool"/> value which determines whether the returned entity will be tracked by
-    /// EF Core context or not. Defualt value is true i.e tracking is disabled by default.</param>
+    /// EF Core context or not. Default value is true i.e tracking is disabled by default.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>Returns <see cref="Task"/> of <typeparamref name="TProjectedType"/>.</returns>
     Task<TProjectedType?> GetAsync<T, TProjectedType>(Expression<Func<T, TProjectedType>> selectExpression, BaseSpecification<T>? specification = null, bool asNoTracking = true, CancellationToken cancellationToken = default)
@@ -199,37 +198,6 @@ public interface IRepositoryAsync : ITransientService
     /// <returns>Returns <see cref="Task"/> of <see cref="bool"/>.</returns>
     Task<bool> ExistsAsync<T>(Expression<Func<T, bool>> condition, CancellationToken cancellationToken = default)
     where T : BaseEntity;
-
-    //Task<List<T>> GetListAsync<T>(Expression<Func<T, bool>> expression, bool noTracking = false, CancellationToken cancellationToken = default)
-    //where T : BaseEntity;
-
-    //Task<int> GetCountAsync<T>(Expression<Func<T, bool>>? expression = null, CancellationToken cancellationToken = default)
-    //where T : BaseEntity;
-
-    //Task<T?> GetByIdAsync<T>(Guid id, BaseSpecification<T>? specification = null, CancellationToken cancellationToken = default)
-    //where T : BaseEntity;
-
-    //Task<TDto> GetByIdAsync<T, TDto>(Guid id, BaseSpecification<T>? specification = null, CancellationToken cancellationToken = default)
-    //where T : BaseEntity
-    //where TDto : IDto;
-
-    //Task<bool> ExistsAsync<T>(Expression<Func<T, bool>> expression, CancellationToken cancellationToken = default)
-    //where T : BaseEntity;
-
-    //Task<List<T>> FindAsync<T>(Expression<Func<T, bool>>? expression, bool AsNoTracking = true, BaseSpecification<T>? specification = null, CancellationToken cancellationToken = default)
-    //where T : BaseEntity;
-
-    //Task<T?> FirstAsync<T>(Expression<Func<T, bool>>? expression, bool AsNoTracking = true, BaseSpecification<T>? specification = null, CancellationToken cancellationToken = default)
-    //where T : BaseEntity;
-
-    //Task<T?> LastAsync<T>(Expression<Func<T, bool>>? expression, bool AsNoTracking = true, BaseSpecification<T>? specification = null, CancellationToken cancellationToken = default)
-    //where T : BaseEntity;
-
-    //Task<PaginatedResult<TDto>> GetSearchResultsAsync<T, TDto>(int pageNumber, int pageSize = int.MaxValue, string[]? orderBy = null, Filters<T>? filters = null, Search? advancedSearch = null, string? keyword = null, Expression<Func<T, bool>>? expression = null, CancellationToken cancellationToken = default)
-    //where T : BaseEntity
-    //where TDto : IDto;
-
-    // Create / Update / Delete
 
     /// <summary>
     /// Add a single <typeparamref name="T"/> to the EF Core context to be persisted in the database.
@@ -311,8 +279,6 @@ public interface IRepositoryAsync : ITransientService
     /// <returns>Returns <see cref="Task"/> of <see cref="int"/>.</returns>
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
-    // Dapper
-
     /// <summary>
     /// Get an <see cref="IReadOnlyList{T}"/> using raw sql string with parameters.
     /// </summary>
@@ -348,5 +314,4 @@ public interface IRepositoryAsync : ITransientService
     /// <returns>Returns <see cref="Task"/> of <typeparamref name="T"/>.</returns>
     Task<T> QuerySingleAsync<T>(string sql, object? param = null, IDbTransaction? transaction = null, CancellationToken cancellationToken = default)
     where T : BaseEntity;
-
 }
