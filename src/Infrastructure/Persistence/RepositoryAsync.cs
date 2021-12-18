@@ -186,7 +186,7 @@ public class RepositoryAsync : IRepositoryAsync
         Expression<Func<T, TProjectedType>> selectExpression,
         Expression<Func<T, bool>>? condition = null,
         Expression<Func<T, object>>[]? includes = null,
-        bool asNoTracking = false,
+        bool asNoTracking = true,
         CancellationToken cancellationToken = default)
     where T : BaseEntity =>
         selectExpression == null
