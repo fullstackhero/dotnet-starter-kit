@@ -3,7 +3,7 @@ using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Shared.DTOs.Multitenancy;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
+using NSwag.Annotations;
 
 namespace DN.WebApi.Host.Controllers.Multitenancy;
 
@@ -20,7 +20,7 @@ public class TenantsController : ControllerBase
 
     [HttpGet("{key}")]
     [MustHavePermission(RootPermissions.Tenants.View)]
-    [SwaggerOperation(Summary = "Get Tenant Details.")]
+    [OpenApiOperation("Get Tenant Details.", "")]
     public async Task<IActionResult> GetAsync(string key)
     {
         var tenant = await _tenantService.GetByKeyAsync(key);
@@ -29,7 +29,7 @@ public class TenantsController : ControllerBase
 
     [HttpGet]
     [MustHavePermission(RootPermissions.Tenants.ListAll)]
-    [SwaggerOperation(Summary = "Get all the available Tenants.")]
+    [OpenApiOperation("Get all the available Tenants.", "")]
     public async Task<IActionResult> GetAllAsync()
     {
         var tenants = await _tenantService.GetAllAsync();
@@ -38,7 +38,7 @@ public class TenantsController : ControllerBase
 
     [HttpPost]
     [MustHavePermission(RootPermissions.Tenants.Create)]
-    [SwaggerOperation(Summary = "Create a new Tenant.")]
+    [OpenApiOperation("Create a new Tenant.", "")]
     public async Task<IActionResult> CreateAsync(CreateTenantRequest request)
     {
         var tenantId = await _tenantService.CreateTenantAsync(request);
@@ -47,7 +47,7 @@ public class TenantsController : ControllerBase
 
     [HttpPost("upgrade")]
     [MustHavePermission(RootPermissions.Tenants.UpgradeSubscription)]
-    [SwaggerOperation(Summary = "Upgrade Subscription of Tenant.")]
+    [OpenApiOperation("Upgrade Subscription of Tenant.", "")]
     public async Task<IActionResult> UpgradeSubscriptionAsync(UpgradeSubscriptionRequest request)
     {
         return Ok(await _tenantService.UpgradeSubscriptionAsync(request));
@@ -55,7 +55,7 @@ public class TenantsController : ControllerBase
 
     [HttpPost("{id}/deactivate")]
     [MustHavePermission(RootPermissions.Tenants.Update)]
-    [SwaggerOperation(Summary = "Deactivate Tenant.")]
+    [OpenApiOperation("Deactivate Tenant.", "")]
     public async Task<IActionResult> DeactivateTenantAsync(string id)
     {
         return Ok(await _tenantService.DeactivateTenantAsync(id));
@@ -63,7 +63,7 @@ public class TenantsController : ControllerBase
 
     [HttpPost("{id}/activate")]
     [MustHavePermission(RootPermissions.Tenants.Update)]
-    [SwaggerOperation(Summary = "Activate Tenant.")]
+    [OpenApiOperation("Activate Tenant.", "")]
     public async Task<IActionResult> ActivateTenantAsync(string id)
     {
         return Ok(await _tenantService.ActivateTenantAsync(id));

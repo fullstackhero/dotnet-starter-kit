@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace DN.WebApi.Host.Controllers.Identity;
 
 [ApiController]
+[ApiVersionNeutral]
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
