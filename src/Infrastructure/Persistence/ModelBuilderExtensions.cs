@@ -13,37 +13,37 @@ public static class ModelBuilderExtensions
     {
         builder.Entity<ApplicationUser>(entity =>
         {
-            entity.ToTable("Users", "IDENTITY");
+            entity.ToTable("Users", "Identity");
             entity.Property(u => u.ObjectId).HasMaxLength(256);
         });
         builder.Entity<ApplicationRole>(entity =>
         {
-            entity.ToTable("Roles", "IDENTITY");
+            entity.ToTable("Roles", "Identity");
             entity.Metadata.RemoveIndex(new[] { entity.Property(r => r.NormalizedName).Metadata });
             entity.HasIndex(r => new { r.NormalizedName, r.Tenant }).HasDatabaseName("RoleNameIndex").IsUnique();
         });
         builder.Entity<ApplicationRoleClaim>(entity =>
         {
-            entity.ToTable("RoleClaims", "IDENTITY");
+            entity.ToTable("RoleClaims", "Identity");
         });
 
         builder.Entity<IdentityUserRole<string>>(entity =>
         {
-            entity.ToTable("UserRoles", "IDENTITY");
+            entity.ToTable("UserRoles", "Identity");
         });
 
         builder.Entity<IdentityUserClaim<string>>(entity =>
         {
-            entity.ToTable("UserClaims", "IDENTITY");
+            entity.ToTable("UserClaims", "Identity");
         });
 
         builder.Entity<IdentityUserLogin<string>>(entity =>
         {
-            entity.ToTable("UserLogins", "IDENTITY");
+            entity.ToTable("UserLogins", "Identity");
         });
         builder.Entity<IdentityUserToken<string>>(entity =>
         {
-            entity.ToTable("UserTokens", "IDENTITY");
+            entity.ToTable("UserTokens", "Identity");
         });
     }
 
