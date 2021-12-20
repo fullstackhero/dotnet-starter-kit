@@ -69,7 +69,7 @@ public class TenantManager : ITenantManager
         return await Result<List<TenantDto>>.SuccessAsync(tenantDto);
     }
 
-    public async Task<Result<object>> CreateTenantAsync(CreateTenantRequest request)
+    public async Task<Result<Guid>> CreateTenantAsync(CreateTenantRequest request)
     {
         if (_context.Tenants.Any(a => a.Key == request.Key)) throw new InvalidOperationException("Tenant with same key exists.");
         if (string.IsNullOrEmpty(request.ConnectionString)) request.ConnectionString = _dbOptions.ConnectionString;
@@ -85,20 +85,20 @@ public class TenantManager : ITenantManager
         TenantBootstrapper.Initialize(_appContext, _dbOptions.DBProvider, _dbOptions.ConnectionString!, tenant, _userManager, _roleManager, seeders);
         _context.Tenants.Add(tenant);
         await _context.SaveChangesAsync();
-        return await Result<object>.SuccessAsync(tenant.Id);
+        return await Result<Guid>.SuccessAsync(tenant.Id);
     }
 
-    public async Task<Result<object>> UpgradeSubscriptionAsync(UpgradeSubscriptionRequest request)
+    public async Task<IResult> UpgradeSubscriptionAsync(UpgradeSubscriptionRequest request)
     {
         var tenant = await _context.Tenants.Where(a => a.Key == request.Tenant).FirstOrDefaultAsync();
         if (tenant == null) throw new Exception("Tenant Not Found.");
         tenant.SetValidity(request.ExtendedExpiryDate);
         _context.Tenants.Update(tenant);
         await _context.SaveChangesAsync();
-        return await Result<object>.SuccessAsync($"Tenant {request.Tenant}'s Subscription Upgraded. Now Valid till {tenant.ValidUpto}.");
+        return await Result.SuccessAsync($"Tenant {request.Tenant}'s Subscription Upgraded. Now Valid till {tenant.ValidUpto}.");
     }
 
-    public async Task<Result<object>> DeactivateTenantAsync(string tenant)
+    public async Task<IResult> DeactivateTenantAsync(string tenant)
     {
         var tenantInfo = await _context.Tenants.Where(a => a.Key == tenant).FirstOrDefaultAsync();
         if (tenantInfo == null) throw new Exception("Tenant Not Found.");
@@ -106,10 +106,10 @@ public class TenantManager : ITenantManager
         tenantInfo.Deactivate();
         _context.Tenants.Update(tenantInfo);
         await _context.SaveChangesAsync();
-        return await Result<object>.SuccessAsync($"Tenant {tenantInfo.Key} is now Deactivated.");
+        return await Result.SuccessAsync($"Tenant {tenantInfo.Key} is now Deactivated.");
     }
 
-    public async Task<Result<object>> ActivateTenantAsync(string tenant)
+    public async Task<IResult> ActivateTenantAsync(string tenant)
     {
         var tenantInfo = await _context.Tenants.Where(a => a.Key == tenant).FirstOrDefaultAsync();
         if (tenantInfo == null) throw new Exception("Tenant Not Found.");
@@ -117,6 +117,6 @@ public class TenantManager : ITenantManager
         tenantInfo.Activate();
         _context.Tenants.Update(tenantInfo);
         await _context.SaveChangesAsync();
-        return await Result<object>.SuccessAsync($"Tenant {tenant} is now Activated.");
+        return await Result.SuccessAsync($"Tenant {tenant} is now Activated.");
     }
 }

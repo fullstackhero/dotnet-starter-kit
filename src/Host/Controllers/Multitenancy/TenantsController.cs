@@ -42,7 +42,7 @@ public class TenantsController : ControllerBase
     [HttpPost]
     [MustHavePermission(RootPermissions.Tenants.Create)]
     [OpenApiOperation("Create a new Tenant.", "")]
-    public async Task<ActionResult<Result<object>>> CreateAsync(CreateTenantRequest request)
+    public async Task<ActionResult<Result<Guid>>> CreateAsync(CreateTenantRequest request)
     {
         var tenantId = await _tenantService.CreateTenantAsync(request);
         return Ok(tenantId);
@@ -53,7 +53,7 @@ public class TenantsController : ControllerBase
     [OpenApiOperation("Upgrade Subscription of Tenant.", "")]
     [ProducesResponseType(200)]
     [ProducesDefaultResponseType(typeof(ErrorResult<string>))]
-    public async Task<ActionResult<Result<object>>> UpgradeSubscriptionAsync(UpgradeSubscriptionRequest request)
+    public async Task<ActionResult<Result>> UpgradeSubscriptionAsync(UpgradeSubscriptionRequest request)
     {
         return Ok(await _tenantService.UpgradeSubscriptionAsync(request));
     }
@@ -63,7 +63,7 @@ public class TenantsController : ControllerBase
     [OpenApiOperation("Deactivate Tenant.", "")]
     [ProducesResponseType(200)]
     [ProducesDefaultResponseType(typeof(ErrorResult<string>))]
-    public async Task<ActionResult<Result<object>>> DeactivateTenantAsync(string id)
+    public async Task<ActionResult<Result>> DeactivateTenantAsync(string id)
     {
         return Ok(await _tenantService.DeactivateTenantAsync(id));
     }
@@ -73,7 +73,7 @@ public class TenantsController : ControllerBase
     [OpenApiOperation("Activate Tenant.", "")]
     [ProducesResponseType(200)]
     [ProducesDefaultResponseType(typeof(ErrorResult<string>))]
-    public async Task<ActionResult<Result<object>>> ActivateTenantAsync(string id)
+    public async Task<ActionResult<Result>> ActivateTenantAsync(string id)
     {
         return Ok(await _tenantService.ActivateTenantAsync(id));
     }
