@@ -14,7 +14,44 @@ public static class FSHApiConventions
     public static void Search(
         [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Any)]
         [ApiConventionTypeMatch(ApiConventionTypeMatchBehavior.Any)]
-        object model)
+        object request)
+    {
+    }
+
+    [ProducesResponseType(200)]
+    [ProducesDefaultResponseType(typeof(ErrorResult<string>))]
+    [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Prefix)]
+    public static void Get()
+    {
+    }
+
+    [ProducesResponseType(200)]
+    [ProducesDefaultResponseType(typeof(ErrorResult<string>))]
+    [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Prefix)]
+    public static void Get(
+        [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Any)]
+        [ApiConventionTypeMatch(ApiConventionTypeMatchBehavior.Any)]
+        object id)
+    {
+    }
+
+    [ProducesResponseType(200)]
+    [ProducesDefaultResponseType(typeof(ErrorResult<string>))]
+    [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Prefix)]
+    public static void Post(
+        [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Any)]
+        [ApiConventionTypeMatch(ApiConventionTypeMatchBehavior.Any)]
+        object request)
+    {
+    }
+
+    [ProducesResponseType(200)]
+    [ProducesDefaultResponseType(typeof(ErrorResult<string>))]
+    [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Prefix)]
+    public static void Register(
+        [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Any)]
+        [ApiConventionTypeMatch(ApiConventionTypeMatchBehavior.Any)]
+        object request)
     {
     }
 
@@ -24,7 +61,7 @@ public static class FSHApiConventions
     public static void Create(
         [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Any)]
         [ApiConventionTypeMatch(ApiConventionTypeMatchBehavior.Any)]
-        object model)
+        object request)
     {
     }
 
@@ -34,7 +71,17 @@ public static class FSHApiConventions
     public static void Update(
         [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Any)]
         [ApiConventionTypeMatch(ApiConventionTypeMatchBehavior.Any)]
-        object model,
+        object request)
+    {
+    }
+
+    [ProducesResponseType(200)]
+    [ProducesDefaultResponseType(typeof(ErrorResult<string>))]
+    [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Prefix)]
+    public static void Update(
+        [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Any)]
+        [ApiConventionTypeMatch(ApiConventionTypeMatchBehavior.Any)]
+        object request,
         [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Any)]
         [ApiConventionTypeMatch(ApiConventionTypeMatchBehavior.Any)]
         object id)
@@ -57,7 +104,7 @@ public static class FSHApiConventions
     public static void Generate(
         [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Any)]
         [ApiConventionTypeMatch(ApiConventionTypeMatchBehavior.Any)]
-        object model)
+        object request)
     {
     }
 }

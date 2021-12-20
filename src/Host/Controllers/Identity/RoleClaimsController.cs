@@ -1,4 +1,5 @@
 using DN.WebApi.Application.Identity.Interfaces;
+using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Shared.DTOs.Identity;
 using Microsoft.AspNetCore.Authorization;
@@ -7,8 +8,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace DN.WebApi.Host.Controllers.Identity;
 
 [ApiController]
-[ApiVersionNeutral]
 [Route("api/[controller]")]
+[ApiVersionNeutral]
+[ApiConventionType(typeof(FSHApiConventions))]
 public class RoleClaimsController : ControllerBase
 {
     private readonly IRoleClaimsService _roleClaimService;
@@ -20,7 +22,7 @@ public class RoleClaimsController : ControllerBase
 
     [Authorize(Policy = PermissionConstants.RoleClaims.View)]
     [HttpGet]
-    public async Task<IActionResult> GetAllAsync()
+    public async Task<ActionResult<Result<List<RoleClaimResponse>>>> GetAllAsync()
     {
         var roleClaims = await _roleClaimService.GetAllAsync();
         return Ok(roleClaims);
@@ -28,7 +30,7 @@ public class RoleClaimsController : ControllerBase
 
     [Authorize(Policy = PermissionConstants.RoleClaims.View)]
     [HttpGet("{roleId}")]
-    public async Task<IActionResult> GetAllByRoleIdAsync([FromRoute] string roleId)
+    public async Task<ActionResult<Result<List<RoleClaimResponse>>>> GetAllByRoleIdAsync([FromRoute] string roleId)
     {
         var response = await _roleClaimService.GetAllByRoleIdAsync(roleId);
         return Ok(response);
@@ -36,7 +38,7 @@ public class RoleClaimsController : ControllerBase
 
     [Authorize(Policy = PermissionConstants.RoleClaims.Create)]
     [HttpPost]
-    public async Task<IActionResult> PostAsync(RoleClaimRequest request)
+    public async Task<ActionResult<Result<string>>> PostAsync(RoleClaimRequest request)
     {
         var response = await _roleClaimService.SaveAsync(request);
         return Ok(response);
@@ -44,7 +46,7 @@ public class RoleClaimsController : ControllerBase
 
     [Authorize(Policy = PermissionConstants.RoleClaims.Delete)]
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteAsync(int id)
+    public async Task<ActionResult<Result<string>>> DeleteAsync(int id)
     {
         var response = await _roleClaimService.DeleteAsync(id);
         return Ok(response);

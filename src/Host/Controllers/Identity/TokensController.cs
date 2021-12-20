@@ -1,4 +1,5 @@
 using DN.WebApi.Application.Identity.Interfaces;
+using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Swagger;
 using DN.WebApi.Shared.DTOs.Identity;
@@ -9,8 +10,9 @@ using NSwag.Annotations;
 namespace DN.WebApi.Host.Controllers.Identity;
 
 [ApiController]
-[ApiVersionNeutral]
 [Route("api/[controller]")]
+[ApiVersionNeutral]
+[ApiConventionType(typeof(FSHApiConventions))]
 public sealed class TokensController : ControllerBase
 {
     private readonly ITokenService _tokenService;
@@ -24,7 +26,7 @@ public sealed class TokensController : ControllerBase
     [AllowAnonymous]
     [SwaggerHeader(HeaderConstants.Tenant, "Input your tenant Id to access this API", "", true)]
     [OpenApiOperation("Submit Credentials with Tenant Key to generate valid Access Token.", "")]
-    public async Task<IActionResult> GetTokenAsync(TokenRequest request)
+    public async Task<ActionResult<Result<TokenResponse>>> GetTokenAsync(TokenRequest request)
     {
         var token = await _tokenService.GetTokenAsync(request, GenerateIPAddress());
         return Ok(token);
@@ -33,7 +35,9 @@ public sealed class TokensController : ControllerBase
     [HttpPost("refresh")]
     [AllowAnonymous]
     [SwaggerHeader(HeaderConstants.Tenant, "Input your tenant Id to access this API", "", true)]
-    public async Task<ActionResult> RefreshAsync(RefreshTokenRequest request)
+    [ProducesResponseType(200)]
+    [ProducesDefaultResponseType(typeof(ErrorResult<string>))]
+    public async Task<ActionResult<Result<TokenResponse>>> RefreshAsync(RefreshTokenRequest request)
     {
         var response = await _tokenService.RefreshTokenAsync(request, GenerateIPAddress());
         return Ok(response);

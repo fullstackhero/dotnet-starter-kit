@@ -1,4 +1,5 @@
 using DN.WebApi.Application.Multitenancy;
+using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Shared.DTOs.Multitenancy;
@@ -9,6 +10,8 @@ namespace DN.WebApi.Host.Controllers.Multitenancy;
 
 [ApiController]
 [Route("api/[controller]")]
+[ApiVersionNeutral]
+[ApiConventionType(typeof(FSHApiConventions))]
 public class TenantsController : ControllerBase
 {
     private readonly ITenantManager _tenantService;
@@ -21,7 +24,7 @@ public class TenantsController : ControllerBase
     [HttpGet("{key}")]
     [MustHavePermission(RootPermissions.Tenants.View)]
     [OpenApiOperation("Get Tenant Details.", "")]
-    public async Task<IActionResult> GetAsync(string key)
+    public async Task<ActionResult<Result<TenantDto>>> GetAsync(string key)
     {
         var tenant = await _tenantService.GetByKeyAsync(key);
         return Ok(tenant);
@@ -30,7 +33,7 @@ public class TenantsController : ControllerBase
     [HttpGet]
     [MustHavePermission(RootPermissions.Tenants.ListAll)]
     [OpenApiOperation("Get all the available Tenants.", "")]
-    public async Task<IActionResult> GetAllAsync()
+    public async Task<ActionResult<Result<List<TenantDto>>>> GetAllAsync()
     {
         var tenants = await _tenantService.GetAllAsync();
         return Ok(tenants);
@@ -39,7 +42,7 @@ public class TenantsController : ControllerBase
     [HttpPost]
     [MustHavePermission(RootPermissions.Tenants.Create)]
     [OpenApiOperation("Create a new Tenant.", "")]
-    public async Task<IActionResult> CreateAsync(CreateTenantRequest request)
+    public async Task<ActionResult<Result<object>>> CreateAsync(CreateTenantRequest request)
     {
         var tenantId = await _tenantService.CreateTenantAsync(request);
         return Ok(tenantId);
@@ -48,7 +51,9 @@ public class TenantsController : ControllerBase
     [HttpPost("upgrade")]
     [MustHavePermission(RootPermissions.Tenants.UpgradeSubscription)]
     [OpenApiOperation("Upgrade Subscription of Tenant.", "")]
-    public async Task<IActionResult> UpgradeSubscriptionAsync(UpgradeSubscriptionRequest request)
+    [ProducesResponseType(200)]
+    [ProducesDefaultResponseType(typeof(ErrorResult<string>))]
+    public async Task<ActionResult<Result<object>>> UpgradeSubscriptionAsync(UpgradeSubscriptionRequest request)
     {
         return Ok(await _tenantService.UpgradeSubscriptionAsync(request));
     }
@@ -56,7 +61,9 @@ public class TenantsController : ControllerBase
     [HttpPost("{id}/deactivate")]
     [MustHavePermission(RootPermissions.Tenants.Update)]
     [OpenApiOperation("Deactivate Tenant.", "")]
-    public async Task<IActionResult> DeactivateTenantAsync(string id)
+    [ProducesResponseType(200)]
+    [ProducesDefaultResponseType(typeof(ErrorResult<string>))]
+    public async Task<ActionResult<Result<object>>> DeactivateTenantAsync(string id)
     {
         return Ok(await _tenantService.DeactivateTenantAsync(id));
     }
@@ -64,7 +71,9 @@ public class TenantsController : ControllerBase
     [HttpPost("{id}/activate")]
     [MustHavePermission(RootPermissions.Tenants.Update)]
     [OpenApiOperation("Activate Tenant.", "")]
-    public async Task<IActionResult> ActivateTenantAsync(string id)
+    [ProducesResponseType(200)]
+    [ProducesDefaultResponseType(typeof(ErrorResult<string>))]
+    public async Task<ActionResult<Result<object>>> ActivateTenantAsync(string id)
     {
         return Ok(await _tenantService.ActivateTenantAsync(id));
     }
