@@ -50,7 +50,7 @@
         <PackageReference Include="Serilog.Sinks.Seq" Version="5.1.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
         <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.2.3" />
-        <PackageReference Include="System.Linq.Dynamic.Core" Version="1.2.14" />
+        <PackageReference Include="System.Linq.Dynamic.Core" Version="1.2.15" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Core\Application\Application.csproj" />
