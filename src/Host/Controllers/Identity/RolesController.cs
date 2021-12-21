@@ -1,4 +1,5 @@
 using DN.WebApi.Application.Identity.Interfaces;
+using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Shared.DTOs.Identity;
@@ -8,6 +9,8 @@ namespace DN.WebApi.Host.Controllers.Identity;
 
 [ApiController]
 [Route("api/[controller]")]
+[ApiVersionNeutral]
+[ApiConventionType(typeof(FSHApiConventions))]
 public class RolesController : ControllerBase
 {
     private readonly IRoleService _roleService;
@@ -19,7 +22,7 @@ public class RolesController : ControllerBase
 
     [HttpGet("all")]
     [MustHavePermission(PermissionConstants.Roles.ListAll)]
-    public async Task<IActionResult> GetListAsync()
+    public async Task<ActionResult<Result<List<RoleDto>>>> GetListAsync()
     {
         var roles = await _roleService.GetListAsync();
         return Ok(roles);
@@ -27,21 +30,21 @@ public class RolesController : ControllerBase
 
     [HttpGet("{id}")]
     [MustHavePermission(PermissionConstants.Roles.View)]
-    public async Task<IActionResult> GetByIdAsync(string id)
+    public async Task<ActionResult<Result<RoleDto>>> GetByIdAsync(string id)
     {
         var roles = await _roleService.GetByIdAsync(id);
         return Ok(roles);
     }
 
     [HttpGet("{id}/permissions")]
-    public async Task<IActionResult> GetPermissionsAsync(string id)
+    public async Task<ActionResult<Result<List<PermissionDto>>>> GetPermissionsAsync(string id)
     {
         var roles = await _roleService.GetPermissionsAsync(id);
         return Ok(roles);
     }
 
     [HttpPut("{id}/permissions")]
-    public async Task<IActionResult> UpdatePermissionsAsync(string id, List<UpdatePermissionsRequest> request)
+    public async Task<ActionResult<Result<string>>> UpdatePermissionsAsync(string id, List<UpdatePermissionsRequest> request)
     {
         var roles = await _roleService.UpdatePermissionsAsync(id, request);
         return Ok(roles);
@@ -49,7 +52,7 @@ public class RolesController : ControllerBase
 
     [HttpPost]
     [MustHavePermission(PermissionConstants.Roles.Register)]
-    public async Task<IActionResult> RegisterRoleAsync(RoleRequest request)
+    public async Task<ActionResult<Result<string>>> RegisterRoleAsync(RoleRequest request)
     {
         var response = await _roleService.RegisterRoleAsync(request);
         return Ok(response);
@@ -57,7 +60,7 @@ public class RolesController : ControllerBase
 
     [HttpDelete("{id}")]
     [MustHavePermission(PermissionConstants.Roles.Remove)]
-    public async Task<IActionResult> DeleteAsync(string id)
+    public async Task<ActionResult<Result<string>>> DeleteAsync(string id)
     {
         var response = await _roleService.DeleteAsync(id);
         return Ok(response);

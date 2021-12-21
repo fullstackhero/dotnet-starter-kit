@@ -10,7 +10,7 @@ public interface IIdentityService : ITransientService
     // Returns the UserId
     Task<string> GetOrCreateFromPrincipalAsync(ClaimsPrincipal principal);
 
-    Task<IResult> RegisterAsync(RegisterRequest request, string origin);
+    Task<IResult<string>> RegisterAsync(RegisterRequest request, string origin);
 
     Task<IResult<string>> ConfirmEmailAsync(string userId, string code, string tenant);
 
