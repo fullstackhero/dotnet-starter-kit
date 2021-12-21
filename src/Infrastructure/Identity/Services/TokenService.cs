@@ -114,7 +114,7 @@ public class TokenService : ITokenService
 
         if (user.RefreshToken != request.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
         {
-            throw new IdentityException(_localizer["identity.invalidtoken"], statusCode: HttpStatusCode.Unauthorized);
+            throw new IdentityException(_localizer["identity.invalidrefreshtoken"], statusCode: HttpStatusCode.Unauthorized);
         }
 
         string token = GenerateEncryptedToken(GetSigningCredentials(), GetClaims(user, ipAddress));

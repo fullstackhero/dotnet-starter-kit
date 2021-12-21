@@ -10,6 +10,7 @@
   "identity.emailnotconfirmed": "E-Mail not confirmed.",
   "identity.invalidcredentials": "Provided Credentials are invalid.",
   "identity.invalidtoken": "Invalid Token.",
+  "identity.invalidrefreshtoken": "Invalid Refresh Token.",
   "entity.notfound": "{0} {1} Not Found.",
   "product.alreadyexists": "Product {0} already Exists.",
   "product.notfound": "Product {0} Not Found.",
