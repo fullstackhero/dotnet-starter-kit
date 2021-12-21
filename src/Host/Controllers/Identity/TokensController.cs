@@ -12,7 +12,6 @@ namespace DN.WebApi.Host.Controllers.Identity;
 [ApiController]
 [Route("api/[controller]")]
 [ApiVersionNeutral]
-[ApiConventionType(typeof(FSHApiConventions))]
 public sealed class TokensController : ControllerBase
 {
     private readonly ITokenService _tokenService;
@@ -26,6 +25,9 @@ public sealed class TokensController : ControllerBase
     [AllowAnonymous]
     [SwaggerHeader(HeaderConstants.Tenant, "Input your tenant Id to access this API", "", true)]
     [OpenApiOperation("Submit Credentials with Tenant Key to generate valid Access Token.", "")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
+    [ProducesDefaultResponseType(typeof(ErrorResult<string>))]
     public async Task<ActionResult<Result<TokenResponse>>> GetTokenAsync(TokenRequest request)
     {
         var token = await _tokenService.GetTokenAsync(request, GenerateIPAddress());
