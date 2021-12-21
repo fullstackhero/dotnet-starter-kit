@@ -9,7 +9,7 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Dapper" Version="2.0.123" />
-        <PackageReference Include="Hangfire" Version="1.7.27" />
+        <PackageReference Include="Hangfire" Version="1.7.28" />
         <PackageReference Include="Hangfire.Console" Version="1.4.2" />
         <PackageReference Include="Hangfire.Console.Extensions" Version="1.0.5" />
         <PackageReference Include="Hangfire.MySqlStorage" Version="2.0.3" />
@@ -33,6 +33,7 @@
         <PackageReference Include="Microsoft.Identity.Web" Version="1.21.1" />
         <PackageReference Include="MimeKit" Version="3.0.0" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.1" />
+        <PackageReference Include="NSwag.AspNetCore" Version="13.15.5" />
         <PackageReference Include="Oracle.EntityFrameworkCore" Version="6.21.4" />
         <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.0" />
         <PackageReference Include="Serilog.Enrichers.Process" Version="2.0.2" />
@@ -50,7 +51,7 @@
         <PackageReference Include="Serilog.Sinks.Seq" Version="5.1.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
         <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.2.3" />
-        <PackageReference Include="System.Linq.Dynamic.Core" Version="1.2.14" />
+        <PackageReference Include="System.Linq.Dynamic.Core" Version="1.2.15" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Core\Application\Application.csproj" />
