@@ -9,7 +9,6 @@ namespace DN.WebApi.Application.Common.Interfaces;
 
 public interface IRepositoryAsync : ITransientService
 {
-
     /// <summary>
     /// Get a <see cref="List{T}"/> based on the criteria specified in the parameters.
     /// </summary>

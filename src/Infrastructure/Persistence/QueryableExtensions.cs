@@ -38,13 +38,13 @@ public static class QueryableExtensions
             query = query.IncludeMultiple(specification.Includes);
         }
 
-        if (specification.OrderByStrings is not null && specification.OrderByStrings.Any())
+        if (specification.OrderByStrings?.Length > 0)
         {
-            query = query.ApplySort(specification.OrderByStrings);
+            return query.ApplySort(specification.OrderByStrings);
         }
         else if (specification.OrderBy != null)
         {
-            query = specification.OrderBy(query);
+            return specification.OrderBy(query);
         }
 
         return query;

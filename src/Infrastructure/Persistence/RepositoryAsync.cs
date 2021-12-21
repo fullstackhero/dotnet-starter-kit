@@ -330,7 +330,7 @@ public class RepositoryAsync : IRepositoryAsync
     public async Task<T> RemoveByIdAsync<T>(Guid entityId, CancellationToken cancellationToken = default)
     where T : BaseEntity
     {
-        var entity = await _dbContext.Set<T>().FindAsync(entityId);
+        var entity = await _dbContext.Set<T>().FindAsync(new object?[] { entityId }, cancellationToken: cancellationToken);
         _ = entity ?? throw new EntityNotFoundException(string.Format(_localizer["entity.notfound"], typeof(T).Name, entityId));
 
         _dbContext.Set<T>().Remove(entity);
@@ -354,11 +354,13 @@ public class RepositoryAsync : IRepositoryAsync
         CancellationToken cancellationToken = default)
     where T : BaseEntity =>
         Filter(condition, specification: specification)
-            .ForEachAsync(x =>
+            .ForEachAsync(
+                x =>
             {
                 _dbContext.Entry(x).State = EntityState.Deleted;
                 _cache.RemoveAsync(CacheKeys.GetCacheKey<T>(x.Id), cancellationToken).GetAwaiter().GetResult();
-            });
+            },
+                cancellationToken: cancellationToken);
 
     // SaveChanges
 
