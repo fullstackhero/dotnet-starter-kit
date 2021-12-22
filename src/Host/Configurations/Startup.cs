@@ -30,6 +30,8 @@ internal static class Startup
                 .AddJsonFile($"{configurationsDirectory}/swagger.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
                 .AddJsonFile($"{configurationsDirectory}/signalr.json", optional: false, reloadOnChange: true)
                 .AddJsonFile($"{configurationsDirectory}/signalr.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
+                .AddJsonFile($"{configurationsDirectory}/headers.json", optional: false, reloadOnChange: true)
+                .AddJsonFile($"{configurationsDirectory}/headers.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
                 .AddEnvironmentVariables();
         });
         return host;
