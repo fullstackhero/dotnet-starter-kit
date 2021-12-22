@@ -141,7 +141,9 @@ public class TokenService : ITokenService
                 new(ClaimTypes.Name, user.FirstName ?? string.Empty),
                 new(ClaimTypes.Surname, user.LastName ?? string.Empty),
                 new(ClaimConstants.IpAddress, ipAddress),
-                new(ClaimConstants.Tenant, tenant ?? string.Empty)
+                new(ClaimConstants.Tenant, tenant ?? string.Empty),
+                new(ClaimConstants.ImageUrl, user.ImageUrl ?? string.Empty),
+                new(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty)
             };
     }
 

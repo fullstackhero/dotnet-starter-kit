@@ -298,7 +298,7 @@ public class IdentityService : IIdentityService
     {
         if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
         {
-            var userWithSamePhoneNumber = await _userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == request.PhoneNumber);
+            var userWithSamePhoneNumber = await _userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == request.PhoneNumber && x.Id != userId);
             if (userWithSamePhoneNumber != null)
             {
                 return await Result.FailAsync(string.Format(_localizer["Phone number {0} is already used."], request.PhoneNumber));
