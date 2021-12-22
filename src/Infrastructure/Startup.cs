@@ -10,6 +10,7 @@ using DN.WebApi.Infrastructure.Mapping;
 using DN.WebApi.Infrastructure.Middleware;
 using DN.WebApi.Infrastructure.Multitenancy;
 using DN.WebApi.Infrastructure.Notifications;
+using DN.WebApi.Infrastructure.SecurityHeaders;
 using DN.WebApi.Infrastructure.Seeding;
 using DN.WebApi.Infrastructure.Swagger;
 using Microsoft.AspNetCore.Builder;
@@ -51,6 +52,7 @@ public static class Startup
         appBuilder
             .UseLocalization(config)
             .UseStaticFiles()
+            .UseSecurityHeaders(config)
             .UseFileStorage()
             .UseExceptionMiddleware()
             .UseLocalization(config)
