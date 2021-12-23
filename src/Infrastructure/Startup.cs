@@ -3,7 +3,6 @@ using DN.WebApi.Infrastructure.Common;
 using DN.WebApi.Infrastructure.Cors;
 using DN.WebApi.Infrastructure.FileStorage;
 using DN.WebApi.Infrastructure.Hangfire;
-using DN.WebApi.Infrastructure.Headers;
 using DN.WebApi.Infrastructure.Identity;
 using DN.WebApi.Infrastructure.Localization;
 using DN.WebApi.Infrastructure.Mailing;
@@ -19,7 +18,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
 
 namespace DN.WebApi.Infrastructure;
 
