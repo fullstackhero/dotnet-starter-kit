@@ -1,7 +1,6 @@
 {
   "SecuritySettings": {
-    "Provider": "AzureAd",
-    //"Provider": "jwt",
+    "Provider": "Jwt",
     "JwtSettings": {
       "key": "S0M3RAN0MS3CR3T!1!MAG1C!1!",
       "tokenExpirationInMinutes": 60,
@@ -9,17 +8,17 @@
     },
     "AzureAd": {
       "Instance": "https://login.microsoftonline.com/",
-      "Domain": "curtin.onmicrosoft.com",
-      "TenantId": "5a740cd7-5768-4d09-ae13-f706b09fa22c",
-      "ClientId": "0c3eeee3-de71-4790-ae81-7414fe692477",
+      "Domain": "<Your Domain>.onmicrosoft.com",
+      "TenantId": "organizations",
+      "ClientId": "<Your ClientId of the AzureAd Server App Registration>",
       "Scopes": "access_as_user",
-      "RootIssuer": "https://sts.windows.net/5a740cd7-5768-4d09-ae13-f706b09fa22c/"
+      "RootIssuer": "https://sts.windows.net/<Your AzureAd TenantId>/"
     },
     "Swagger": {
       "AuthorizationUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize",
       "TokenUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/token",
-      "ApiScope": "api://0c3eeee3-de71-4790-ae81-7414fe692477/access_as_user",
-      "OpenIdClientId": "457a0c52-72a9-4929-86e0-ac5214df1843"
+      "ApiScope": "api://<Your ClientId of the AzureAd Server App Registration>/access_as_user",
+      "OpenIdClientId": "<Your ClientId of the AzureAd Client App Registration>"
     }
   }
 }
