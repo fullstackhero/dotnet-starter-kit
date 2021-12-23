@@ -339,6 +339,22 @@ public class IdentityService : IIdentityService
         }
     }
 
+    public async Task<IResult> ChangePasswordAsync(ChangePasswordRequest model, string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            return await Result.FailAsync(_localizer["User Not Found."]);
+        }
+
+        var identityResult = await _userManager.ChangePasswordAsync(
+            user,
+            model.Password,
+            model.NewPassword);
+        var errors = identityResult.Errors.Select(e => _localizer[e.Description].ToString()).ToList();
+        return identityResult.Succeeded ? await Result.SuccessAsync() : await Result.FailAsync(errors);
+    }
+
     private async Task<string> GetMobilePhoneVerificationCodeAsync(ApplicationUser user)
     {
         return await _userManager.GenerateChangePhoneNumberTokenAsync(user, user.PhoneNumber);

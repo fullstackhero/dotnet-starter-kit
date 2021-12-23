@@ -82,6 +82,16 @@ public sealed class IdentityController : ControllerBase
         return Ok(await _userService.GetAsync(_user.GetUserId().ToString()));
     }
 
+    [HttpPut("change-password")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
+    [ProducesDefaultResponseType(typeof(ErrorResult<string>))]
+    public async Task<ActionResult<Result>> ChangePasswordAsync(ChangePasswordRequest model)
+    {
+        var response = await _identityService.ChangePasswordAsync(model, _user.GetUserId().ToString());
+        return Ok(response);
+    }
+
     private string GenerateOrigin()
     {
         string baseUrl = $"{Request.Scheme}://{Request.Host.Value}{Request.PathBase.Value}";
