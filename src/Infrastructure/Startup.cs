@@ -20,7 +20,6 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-
 namespace DN.WebApi.Infrastructure;
 
 public static class Startup

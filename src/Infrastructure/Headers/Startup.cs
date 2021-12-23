@@ -45,8 +45,6 @@ internal static class Startup
 
                 await next();
             });
-
-
         }
 
         return app;
