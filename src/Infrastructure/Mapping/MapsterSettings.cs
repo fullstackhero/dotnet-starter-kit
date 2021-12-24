@@ -1,6 +1,4 @@
-﻿using DN.WebApi.Domain.Catalog;
-using DN.WebApi.Infrastructure.Identity.Models;
-using DN.WebApi.Shared.DTOs.Catalog;
+﻿using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Shared.DTOs.Identity;
 using Mapster;
 
@@ -12,8 +10,11 @@ public class MapsterSettings
     {
         // here we will define the type conversion / Custom-mapping
         // More details at https://github.com/MapsterMapper/Mapster/wiki/Custom-mapping
+
+        // This is used in UserService.GetPermissionsAsync
         TypeAdapterConfig<ApplicationRoleClaim, PermissionDto>.NewConfig().Map(dest => dest.Permission, src => src.ClaimValue);
 
-        TypeAdapterConfig<Product, ProductDto>.NewConfig().Map(dest => dest.BrandName, src => src.Brand.Name);
+        // This one is actually not necessary as it's mapped by convention
+        // TypeAdapterConfig<Product, ProductDto>.NewConfig().Map(dest => dest.BrandName, src => src.Brand.Name);
     }
 }
