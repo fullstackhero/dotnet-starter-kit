@@ -1,7 +1,7 @@
-﻿using NSwag;
+﻿using System.Reflection;
+using NSwag;
 using NSwag.Generation.Processors;
 using NSwag.Generation.Processors.Contexts;
-using System.Reflection;
 
 namespace DN.WebApi.Infrastructure.Swagger;
 
@@ -30,10 +30,10 @@ public class AddTenantIdProcessor : IOperationProcessor
                 Schema = string.IsNullOrEmpty(attribute.DefaultValue)
                     ? null
                     : new NJsonSchema.JsonSchema
-                      {
-                          Type = NJsonSchema.JsonObjectType.String,
-                          Default = attribute.DefaultValue
-                      }
+                    {
+                        Type = NJsonSchema.JsonObjectType.String,
+                        Default = attribute.DefaultValue
+                    }
             });
         }
 

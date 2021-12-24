@@ -4,7 +4,8 @@ services:
   dotnet-webapi:
     image: "iammukeshm/dotnet-webapi"
     environment:
-      - "MultitenancySettings__ConnectionString=Host=db;Database=rootTenantDb;Username=postgres;Password=root;Include Error Detail=true"
+      - "MultitenancySettings__ConnectionString=Host=db;Database=rootTenantDb;U\
+        sername=postgres;Password=root;Include Error Detail=true"
       - "MultitenancySettings__DBProvider=postgresql"
       - "ASPNETCORE_Kestrel__Certificates__Default__Password=securePassword123"
       - "ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx"
@@ -25,7 +26,7 @@ services:
       - "POSTGRES_PASSWORD=root"
     container_name: postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready"]
+      test: [ "CMD-SHELL", "pg_isready" ]
       interval: 10s
       timeout: 5s
       retries: 5

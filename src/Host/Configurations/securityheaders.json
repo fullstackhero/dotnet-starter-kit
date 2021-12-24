@@ -7,7 +7,7 @@
       "ReferrerPolicy": "same-origin",
       "PermissionsPolicy": "geolocation=(), camera=()",
       "SameSite": "",
-      "XXSS-Protection": "1; mode=block"      
+      "XXSS-Protection": "1; mode=block"
     }
   }
 }
