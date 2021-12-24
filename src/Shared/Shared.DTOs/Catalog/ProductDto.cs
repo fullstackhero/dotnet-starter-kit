@@ -8,4 +8,5 @@ public class ProductDto : IDto
     public decimal Rate { get; set; }
     public string? ImagePath { get; set; }
     public Guid BrandId { get; set; }
+    public string? BrandName { get; set; }
 }
