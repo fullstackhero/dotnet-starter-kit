@@ -94,7 +94,6 @@ public sealed class IdentityController : ControllerBase
 
     private string GenerateOrigin()
     {
-        string baseUrl = $"{Request.Scheme}://{Request.Host.Value}{Request.PathBase.Value}";
-        return string.IsNullOrEmpty(Request.Headers["origin"].ToString()) ? baseUrl : Request.Headers["origin"].ToString();
+        return $"{Request.Scheme}://{Request.Host.Value}{Request.PathBase.Value}";
     }
 }
