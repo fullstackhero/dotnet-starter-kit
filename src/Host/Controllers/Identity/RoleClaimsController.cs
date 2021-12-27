@@ -45,7 +45,7 @@ public class RoleClaimsController : ControllerBase
     }
 
     [Authorize(Policy = PermissionConstants.RoleClaims.Delete)]
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:int}")]
     public async Task<ActionResult<Result<string>>> DeleteAsync(int id)
     {
         var response = await _roleClaimService.DeleteAsync(id);

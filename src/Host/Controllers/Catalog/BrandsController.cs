@@ -34,14 +34,14 @@ public class BrandsController : BaseController
         return Ok(await _service.CreateBrandAsync(request));
     }
 
-    [HttpPut("{id}")]
+    [HttpPut("{id:guid}")]
     [MustHavePermission(PermissionConstants.Brands.Update)]
     public async Task<ActionResult<Result<Guid>>> UpdateAsync(UpdateBrandRequest request, Guid id)
     {
         return Ok(await _service.UpdateBrandAsync(request, id));
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:guid}")]
     [MustHavePermission(PermissionConstants.Brands.Remove)]
     public async Task<ActionResult<Result<Guid>>> DeleteAsync(Guid id)
     {

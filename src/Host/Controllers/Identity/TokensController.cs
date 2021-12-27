@@ -30,7 +30,7 @@ public sealed class TokensController : ControllerBase
     [ProducesDefaultResponseType(typeof(ErrorResult<string>))]
     public async Task<ActionResult<Result<TokenResponse>>> GetTokenAsync(TokenRequest request)
     {
-        var token = await _tokenService.GetTokenAsync(request, GenerateIPAddress());
+        var token = await _tokenService.GetTokenAsync(request, GenerateIpAddress());
         return Ok(token);
     }
 
@@ -41,11 +41,11 @@ public sealed class TokensController : ControllerBase
     [ProducesDefaultResponseType(typeof(ErrorResult<string>))]
     public async Task<ActionResult<Result<TokenResponse>>> RefreshAsync(RefreshTokenRequest request)
     {
-        var response = await _tokenService.RefreshTokenAsync(request, GenerateIPAddress());
+        var response = await _tokenService.RefreshTokenAsync(request, GenerateIpAddress());
         return Ok(response);
     }
 
-    private string GenerateIPAddress()
+    private string GenerateIpAddress()
     {
         if (Request.Headers.ContainsKey("X-Forwarded-For"))
         {

@@ -17,7 +17,7 @@ public class ProductsController : BaseController
         _service = service;
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id:guid}")]
     [MustHavePermission(PermissionConstants.Products.View)]
     public async Task<ActionResult<Result<ProductDetailsDto>>> GetAsync(Guid id)
     {
@@ -48,14 +48,14 @@ public class ProductsController : BaseController
         return Ok(await _service.CreateProductAsync(request));
     }
 
-    [HttpPut("{id}")]
+    [HttpPut("{id:guid}")]
     [MustHavePermission(PermissionConstants.Products.Update)]
     public async Task<ActionResult<Result<Guid>>> UpdateAsync(UpdateProductRequest request, Guid id)
     {
         return Ok(await _service.UpdateProductAsync(request, id));
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:guid}")]
     [MustHavePermission(PermissionConstants.Products.Remove)]
     public async Task<ActionResult<Result<Guid>>> DeleteAsync(Guid id)
     {
