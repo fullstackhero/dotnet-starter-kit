@@ -25,6 +25,9 @@ public class SmtpMailService : IMailService
         {
             var email = new MimeMessage();
 
+            // From
+            email.From.Add(new MailboxAddress(_settings.DisplayName, request.From ?? _settings.From));
+
             // To
             foreach (string address in request.To)
                 email.To.Add(MailboxAddress.Parse(address));
