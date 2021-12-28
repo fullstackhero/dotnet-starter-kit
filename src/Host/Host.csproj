@@ -5,9 +5,9 @@
         <AssemblyName>DN.WebApi.Host</AssemblyName>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="FluentValidation.AspNetCore" Version="10.3.5" />
+        <PackageReference Include="FluentValidation.AspNetCore" Version="10.3.6" />
         <PackageReference Include="Hangfire.Console.Extensions.Serilog" Version="1.0.2" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.0">
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.1">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
@@ -32,5 +32,9 @@
         <None Include="Email Templates\*.html">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
+    </ItemGroup>
+    <ItemGroup>
+        <Content Remove="Logs\*" />
+        <None Include="Logs\*" />
     </ItemGroup>
 </Project>

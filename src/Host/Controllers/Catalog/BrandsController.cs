@@ -1,12 +1,14 @@
 using DN.WebApi.Application.Catalog.Interfaces;
+using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Shared.DTOs.Catalog;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
+using NSwag.Annotations;
 
 namespace DN.WebApi.Host.Controllers.Catalog;
 
+[ApiConventionType(typeof(FSHApiConventions))]
 public class BrandsController : BaseController
 {
     private readonly IBrandService _service;
@@ -18,8 +20,8 @@ public class BrandsController : BaseController
 
     [HttpPost("search")]
     [MustHavePermission(PermissionConstants.Brands.Search)]
-    [SwaggerOperation(Summary = "Search Brands using available Filters.")]
-    public async Task<IActionResult> SearchAsync(BrandListFilter filter)
+    [OpenApiOperation("Search Brands using available Filters.", "")]
+    public async Task<ActionResult<PaginatedResult<BrandDto>>> SearchAsync(BrandListFilter filter)
     {
         var brands = await _service.SearchAsync(filter);
         return Ok(brands);
@@ -27,35 +29,37 @@ public class BrandsController : BaseController
 
     [HttpPost]
     [MustHavePermission(PermissionConstants.Brands.Register)]
-    public async Task<IActionResult> CreateAsync(CreateBrandRequest request)
+    public async Task<ActionResult<Result<Guid>>> CreateAsync(CreateBrandRequest request)
     {
         return Ok(await _service.CreateBrandAsync(request));
     }
 
-    [HttpPut("{id}")]
+    [HttpPut("{id:guid}")]
     [MustHavePermission(PermissionConstants.Brands.Update)]
-    public async Task<IActionResult> UpdateAsync(UpdateBrandRequest request, Guid id)
+    public async Task<ActionResult<Result<Guid>>> UpdateAsync(UpdateBrandRequest request, Guid id)
     {
         return Ok(await _service.UpdateBrandAsync(request, id));
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:guid}")]
     [MustHavePermission(PermissionConstants.Brands.Remove)]
-    public async Task<IActionResult> DeleteAsync(Guid id)
+    public async Task<ActionResult<Result<Guid>>> DeleteAsync(Guid id)
     {
         var brandId = await _service.DeleteBrandAsync(id);
         return Ok(brandId);
     }
 
     [HttpPost("generate-random")]
-    public async Task<IActionResult> GenerateRandomAsync(GenerateRandomBrandRequest request)
+    public async Task<ActionResult<Result<string>>> GenerateRandomAsync(GenerateRandomBrandRequest request)
     {
         var jobId = await _service.GenerateRandomBrandAsync(request);
         return Ok(jobId);
     }
 
     [HttpDelete("delete-random")]
-    public async Task<IActionResult> DeleteRandomAsync()
+    [ProducesResponseType(200)]
+    [ProducesDefaultResponseType(typeof(ErrorResult<string>))]
+    public async Task<ActionResult<Result<string>>> DeleteRandomAsync()
     {
         var jobId = await _service.DeleteRandomBrandAsync();
         return Ok(jobId);

@@ -9,8 +9,12 @@ services:
   dotnet-webapi:
     image: "iammukeshm/dotnet-webapi:latest"
     environment:
-      - "MultitenancySettings__ConnectionString=Server=db;Database=rootTenantDb;User=sa;Password=securePassword123;MultipleActiveResultSets=true"
-      - "MultitenancySettings__DBProvider=mssql"
+      - "DatabaseSettings__ConnectionString=Server=db;Database=rootTenantDb;Use\
+        r=sa;Password=securePassword123;MultipleActiveResultSets=true"
+      - "DatabaseSettings__DBProvider=mssql"
+      - "HangfireSettings__Storage__ConnectionString=Server=db;Database=rootTen\
+        antDb;User=sa;Password=securePassword123;MultipleActiveResultSets=true"
+      - "HangfireSettings__Storage__StorageProvider=mssql"
       - "CacheSettings__RedisURL=redis"
       - "ASPNETCORE_Kestrel__Certificates__Default__Password=securePassword123"
       - "ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx"
@@ -32,8 +36,9 @@ services:
       - "ACCEPT_EULA=Y"
     container_name: mssql
     healthcheck:
-            test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$$SA_PASSWORD" -Q "SELECT 1" || exit 1
-            interval: 10s
-            timeout: 3s
-            retries: 10
-            start_period: 10s
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$$SA_PASSWORD" -Q
+        "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s

@@ -2,7 +2,7 @@ using System.ComponentModel;
 
 namespace DN.WebApi.Domain.Constants;
 
-public class PermissionConstants
+public partial class PermissionConstants
 {
     [DisplayName("Identity")]
     [Description("Identity Permissions")]
@@ -22,30 +22,6 @@ public class PermissionConstants
         public const string Remove = "Permissions.Roles.Remove";
     }
 
-    [DisplayName("Products")]
-    [Description("Products Permissions")]
-    public static class Products
-    {
-        public const string View = "Permissions.Products.View";
-        public const string Search = "Permissions.Products.Search";
-        public const string Register = "Permissions.Products.Register";
-        public const string Update = "Permissions.Products.Update";
-        public const string Remove = "Permissions.Products.Remove";
-    }
-
-    [DisplayName("Brands")]
-    [Description("Brands Permissions")]
-    public static class Brands
-    {
-        public const string View = "Permissions.Brands.View";
-        public const string Search = "Permissions.Brands.Search";
-        public const string Register = "Permissions.Brands.Register";
-        public const string Update = "Permissions.Brands.Update";
-        public const string Remove = "Permissions.Brands.Remove";
-        public const string Generate = "Permissions.Brands.Generate";
-        public const string Clean = "Permissions.Brands.Clean";
-    }
-
     [DisplayName("Role Claims")]
     [Description("Role Claims Permissions")]
     public static class RoleClaims
@@ -55,5 +31,17 @@ public class PermissionConstants
         public const string Edit = "Permissions.RoleClaims.Edit";
         public const string Delete = "Permissions.RoleClaims.Delete";
         public const string Search = "Permissions.RoleClaims.Search";
+    }
+
+    [DisplayName("Users")]
+    [Description("Users Permissions")]
+    public static class Users
+    {
+        public const string View = "Permissions.Users.View";
+        public const string Create = "Permissions.Users.Create";
+        public const string Edit = "Permissions.Users.Edit";
+        public const string Delete = "Permissions.Users.Delete";
+        public const string Export = "Permissions.Users.Export";
+        public const string Search = "Permissions.Users.Search";
     }
 }

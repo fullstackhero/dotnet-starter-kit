@@ -25,7 +25,7 @@ public static class QueryableExtensions
             throw new ArgumentNullException(nameof(specification));
         }
 
-        if (specification.Conditions != null && specification.Conditions.Any())
+        if (specification.Conditions?.Any() == true)
         {
             foreach (var specificationCondition in specification.Conditions)
             {
@@ -38,13 +38,13 @@ public static class QueryableExtensions
             query = query.IncludeMultiple(specification.Includes);
         }
 
-        if (specification.OrderByStrings is not null && specification.OrderByStrings.Any())
+        if (specification.OrderByStrings?.Length > 0)
         {
-            query = query.ApplySort<T, TKey>(specification.OrderByStrings);
+            return query.ApplySort<T, TKey>(specification.OrderByStrings);
         }
         else if (specification.OrderBy != null)
         {
-            query = specification.OrderBy(query);
+            return specification.OrderBy(query);
         }
 
         return query;

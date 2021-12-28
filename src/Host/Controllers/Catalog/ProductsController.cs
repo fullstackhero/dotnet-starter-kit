@@ -1,4 +1,5 @@
 using DN.WebApi.Application.Catalog.Interfaces;
+using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Shared.DTOs.Catalog;
@@ -6,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DN.WebApi.Host.Controllers.Catalog;
 
+[ApiConventionType(typeof(FSHApiConventions))]
 public class ProductsController : BaseController
 {
     private readonly IProductService _service;
@@ -15,9 +17,9 @@ public class ProductsController : BaseController
         _service = service;
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id:guid}")]
     [MustHavePermission(PermissionConstants.Products.View)]
-    public async Task<IActionResult> GetAsync(Guid id)
+    public async Task<ActionResult<Result<ProductDetailsDto>>> GetAsync(Guid id)
     {
         var product = await _service.GetProductDetailsAsync(id);
         return Ok(product);
@@ -25,7 +27,7 @@ public class ProductsController : BaseController
 
     [HttpPost("search")]
     [MustHavePermission(PermissionConstants.Products.Search)]
-    public async Task<IActionResult> SearchAsync(ProductListFilter filter)
+    public async Task<ActionResult<PaginatedResult<ProductDto>>> SearchAsync(ProductListFilter filter)
     {
         var products = await _service.SearchAsync(filter);
         return Ok(products);
@@ -33,7 +35,7 @@ public class ProductsController : BaseController
 
     [HttpGet("dapper")]
     [MustHavePermission(PermissionConstants.Products.View)]
-    public async Task<IActionResult> GetDapperAsync(Guid id)
+    public async Task<ActionResult<Result<ProductDto>>> GetDapperAsync(Guid id)
     {
         var products = await _service.GetByIdUsingDapperAsync(id);
         return Ok(products);
@@ -41,21 +43,21 @@ public class ProductsController : BaseController
 
     [HttpPost]
     [MustHavePermission(PermissionConstants.Products.Register)]
-    public async Task<IActionResult> CreateAsync(CreateProductRequest request)
+    public async Task<ActionResult<Result<Guid>>> CreateAsync(CreateProductRequest request)
     {
         return Ok(await _service.CreateProductAsync(request));
     }
 
-    [HttpPut("{id}")]
+    [HttpPut("{id:guid}")]
     [MustHavePermission(PermissionConstants.Products.Update)]
-    public async Task<IActionResult> UpdateAsync(UpdateProductRequest request, Guid id)
+    public async Task<ActionResult<Result<Guid>>> UpdateAsync(UpdateProductRequest request, Guid id)
     {
         return Ok(await _service.UpdateProductAsync(request, id));
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:guid}")]
     [MustHavePermission(PermissionConstants.Products.Remove)]
-    public async Task<IActionResult> DeleteAsync(Guid id)
+    public async Task<ActionResult<Result<Guid>>> DeleteAsync(Guid id)
     {
         var productId = await _service.DeleteProductAsync(id);
         return Ok(productId);

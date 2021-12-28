@@ -1,5 +1,6 @@
-using DN.WebApi.Infrastructure.Identity.AzureAd;
 using System.Security.Claims;
+using DN.WebApi.Domain.Constants;
+using DN.WebApi.Infrastructure.Identity.AzureAd;
 
 namespace DN.WebApi.Infrastructure.Identity.Extensions;
 
@@ -12,7 +13,7 @@ public static class ClaimsPrincipalExtensions
         principal.FindFirstValue(ClaimTypes.Email);
 
     public static string? GetTenant(this ClaimsPrincipal principal) =>
-        principal.FindFirstValue("tenant");
+        principal.FindFirstValue(ClaimConstants.Tenant);
 
     public static string? GetIssuer(this ClaimsPrincipal principal)
     {

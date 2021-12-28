@@ -136,7 +136,7 @@ public class UserService : IUserService
         var roleNames = await _userManager.GetRolesAsync(user);
         foreach (var role in _roleManager.Roles.Where(r => roleNames.Contains(r.Name)).ToList())
         {
-            var permissions = await _context.RoleClaims.Where(a => a.RoleId == role.Id && a.ClaimType == "Permission").ToListAsync();
+            var permissions = await _context.RoleClaims.Where(a => a.RoleId == role.Id && a.ClaimType == ClaimConstants.Permission).ToListAsync();
             var permissionResponse = permissions.Adapt<List<PermissionDto>>();
             userPermissions.AddRange(permissionResponse);
         }

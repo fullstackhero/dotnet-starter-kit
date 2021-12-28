@@ -36,6 +36,8 @@ public class BrandService : IBrandService
 
     public async Task<Result<Guid>> DeleteBrandAsync(Guid id)
     {
+        bool isBrandUsed = await _repository.ExistsAsync<Product>(a => a.BrandId == id);
+        if (isBrandUsed) throw new EntityCannotBeDeleted(_localizer["brand.cannotbedeleted"]);
         var brandToDelete = await _repository.RemoveByIdAsync<Brand>(id);
         brandToDelete.DomainEvents.Add(new StatsChangedEvent());
         await _repository.SaveChangesAsync();

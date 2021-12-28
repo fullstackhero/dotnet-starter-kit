@@ -1,0 +1,33 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: api
+    environment:
+      - "DatabaseSettings__ConnectionString=Server=db;Database=fullStackHeroDb;\
+        User=sa;Password=SuperSecurePassword123!;MultipleActiveResultSets=true"
+      - "DatabaseSettings__DBProvider=mssql"
+      - "HangfireSettings__Storage__ConnectionString=Server=db;Database=fullSta\
+        ckHeroDb;User=sa;Password=SuperSecurePassword123!;MultipleActiveResultS\
+        ets=true"
+      - "HangfireSettings__Storage__StorageProvider=mssql"
+      - "ASPNETCORE_Kestrel__Certificates__Default__Password=SuperSecurePasswor\
+        d123!"
+      - "ASPNETCORE_Kestrel__Certificates__Default__Path=/https/DN.Host.pfx"
+    volumes:
+      - ~/.aspnet/https:/https:ro
+    ports:
+      - "5050:5050"
+      - "5060:5060"
+    depends_on:
+      - db
+    restart: on-failure
+  db:
+    image: "mcr.microsoft.com/mssql/server"
+    container_name: db
+    restart: always
+    environment:
+      MSSQL_SA_PASSWORD: "SuperSecurePassword123!"
+      SA_PASSWORD: "SuperSecurePassword123!"
+      ACCEPT_EULA: "Y"

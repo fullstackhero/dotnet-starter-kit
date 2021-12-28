@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi.Any;
-using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.SwaggerUI;
+using NJsonSchema.Generation.TypeMappers;
+using NSwag;
+using NSwag.AspNetCore;
+using NSwag.Generation.Processors.Security;
 
 namespace DN.WebApi.Infrastructure.Swagger;
 
@@ -14,62 +15,40 @@ internal static class Startup
         var settings = config.GetSection(nameof(SwaggerSettings)).Get<SwaggerSettings>();
         if (settings.Enable)
         {
+            services.AddVersionedApiExplorer(o => o.SubstituteApiVersionInUrl = true);
             services.AddEndpointsApiExplorer();
-            services.AddSwaggerGen(options =>
+            services.AddOpenApiDocument(document =>
             {
-                var info = new OpenApiInfo
+                document.PostProcess = doc =>
                 {
-                    Title = settings.Title,
-                    Version = settings.Version,
-                    Description = settings.Description,
-                    Contact = new OpenApiContact
+                    doc.Info.Title = settings.Title;
+                    doc.Info.Version = settings.Version;
+                    doc.Info.Description = settings.Description;
+                    doc.Info.Contact = new()
                     {
                         Name = settings.ContactName,
                         Email = settings.ContactEmail,
-                    },
-                    License = new OpenApiLicense
+                        Url = settings.ContactUrl
+                    };
+                    doc.Info.License = new()
                     {
                         Name = settings.LicenseName,
-                    }
+                        Url = settings.LicenseUrl
+                    };
                 };
-                if (!string.IsNullOrEmpty(settings.ContactUrl))
-                {
-                    info.Contact.Url = new Uri(settings.ContactUrl);
-                }
-
-                if (!string.IsNullOrEmpty(settings.LicenseUrl))
-                {
-                    info.License.Url = new Uri(settings.LicenseUrl);
-                }
-
-                options.SwaggerDoc("v1", info);
-                string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-                {
-                    if (!assembly.IsDynamic)
-                    {
-                        string xmlFile = $"{assembly.GetName().Name}.xml";
-                        string xmlPath = Path.Combine(baseDirectory, xmlFile);
-                        if (File.Exists(xmlPath))
-                        {
-                            options.IncludeXmlComments(xmlPath);
-                        }
-                    }
-                }
-
                 if (config["SecuritySettings:Provider"].Equals("AzureAd", StringComparison.OrdinalIgnoreCase))
                 {
-                    options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+                    document.AddSecurity("oauth2", new OpenApiSecurityScheme
                     {
-                        Name = "oauth2",
+                        Type = OpenApiSecuritySchemeType.OAuth2,
+                        Flow = OpenApiOAuth2Flow.AccessCode,
                         Description = "OAuth2.0 Auth Code with PKCE",
-                        Type = SecuritySchemeType.OAuth2,
                         Flows = new()
                         {
                             AuthorizationCode = new()
                             {
-                                AuthorizationUrl = new Uri(config["SecuritySettings:Swagger:AuthorizationUrl"]),
-                                TokenUrl = new Uri(config["SecuritySettings:Swagger:TokenUrl"]),
+                                AuthorizationUrl = config["SecuritySettings:Swagger:AuthorizationUrl"],
+                                TokenUrl = config["SecuritySettings:Swagger:TokenUrl"],
                                 Scopes = new Dictionary<string, string>
                                 {
                                     { config["SecuritySettings:Swagger:ApiScope"], "access the api" }
@@ -77,55 +56,31 @@ internal static class Startup
                             }
                         }
                     });
-                    options.AddSecurityRequirement(new OpenApiSecurityRequirement
-                    {
-                        {
-                            new OpenApiSecurityScheme
-                            {
-                                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "oauth2" }
-                            },
-                            new[] { config["SecuritySettings:Swagger:ApiScope"] }
-                        }
-                    });
+                    document.OperationProcessors.Add(new AspNetCoreOperationSecurityScopeProcessor("oauth2"));
                 }
                 else
                 {
-                    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                    document.AddSecurity("bearer", new OpenApiSecurityScheme
                     {
                         Name = "Authorization",
                         Description = "Input your Bearer token to access this API",
-                        In = ParameterLocation.Header,
-                        Type = SecuritySchemeType.Http,
+                        In = OpenApiSecurityApiKeyLocation.Header,
+                        Type = OpenApiSecuritySchemeType.Http,
                         Scheme = "Bearer",
                         BearerFormat = "JWT",
                     });
-                    options.AddSecurityRequirement(new OpenApiSecurityRequirement
-                    {
-                        {
-                            new OpenApiSecurityScheme
-                            {
-                                Reference = new OpenApiReference
-                                {
-                                    Type = ReferenceType.SecurityScheme,
-                                    Id = "Bearer",
-                                },
-                                Scheme = "Bearer",
-                                Name = "Bearer",
-                                In = ParameterLocation.Header,
-                            }, new List<string>()
-                        },
-                    });
+                    document.OperationProcessors.Add(new AspNetCoreOperationSecurityScopeProcessor("bearer"));
                 }
 
-                options.MapType<TimeSpan>(() => new OpenApiSchema
+                document.TypeMappers.Add(new PrimitiveTypeMapper(typeof(TimeSpan), schema =>
                 {
-                    Type = "string",
-                    Nullable = true,
-                    Pattern = @"^([0-9]{1}|(?:0[0-9]|1[0-9]|2[0-3])+):([0-5]?[0-9])(?::([0-5]?[0-9])(?:.(\d{1,9}))?)?$",
-                    Example = new OpenApiString("02:00:00")
-                });
-                options.EnableAnnotations();
-                options.OperationFilter<AddTenantIdFilter>();
+                    schema.Type = NJsonSchema.JsonObjectType.String;
+                    schema.IsNullableRaw = true;
+                    schema.Pattern = @"^([0-9]{1}|(?:0[0-9]|1[0-9]|2[0-3])+):([0-5]?[0-9])(?::([0-5]?[0-9])(?:.(\d{1,9}))?)?$";
+                    schema.Example = "02:00:00";
+                }));
+
+                document.OperationProcessors.Add(new AddTenantIdProcessor());
             });
         }
 
@@ -136,19 +91,22 @@ internal static class Startup
     {
         if (config.GetValue<bool>("SwaggerSettings:Enable"))
         {
-            app.UseSwagger();
-            app.UseSwaggerUI(options =>
+            app.UseOpenApi();
+            app.UseSwaggerUi3(options =>
             {
-                options.DefaultModelsExpandDepth(-1);
-                options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-                options.RoutePrefix = "swagger";
-                options.DisplayRequestDuration();
-                options.DocExpansion(DocExpansion.None);
+                options.DefaultModelsExpandDepth = -1;
+                options.DocExpansion = "none";
+                options.TagsSorter = "alpha";
                 if (config["SecuritySettings:Provider"].Equals("AzureAd", StringComparison.OrdinalIgnoreCase))
                 {
-                    options.OAuthClientId(config["SecuritySettings:Swagger:OpenIdClientId"]);
-                    options.OAuthUsePkce();
-                    options.OAuthScopeSeparator(" ");
+                    options.OAuth2Client = new OAuth2ClientSettings
+                    {
+                        AppName = "Full Stack Hero Api Client",
+                        ClientId = config["SecuritySettings:Swagger:OpenIdClientId"],
+                        UsePkceWithAuthorizationCodeGrant = true,
+                        ScopeSeparator = " "
+                    };
+                    options.OAuth2Client.Scopes.Add(config["SecuritySettings:Swagger:ApiScope"]);
                 }
             });
         }

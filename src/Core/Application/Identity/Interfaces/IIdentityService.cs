@@ -1,16 +1,15 @@
+using System.Security.Claims;
 using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Shared.DTOs.Identity;
-using System.Security.Claims;
 
 namespace DN.WebApi.Application.Identity.Interfaces;
 
 public interface IIdentityService : ITransientService
 {
-    // Returns the UserId
     Task<string> GetOrCreateFromPrincipalAsync(ClaimsPrincipal principal);
 
-    Task<IResult> RegisterAsync(RegisterRequest request, string origin);
+    Task<IResult<string>> RegisterAsync(RegisterRequest request, string origin);
 
     Task<IResult<string>> ConfirmEmailAsync(string userId, string code, string tenant);
 
@@ -21,4 +20,5 @@ public interface IIdentityService : ITransientService
     Task<IResult> ResetPasswordAsync(ResetPasswordRequest request);
 
     Task<IResult> UpdateProfileAsync(UpdateProfileRequest request, string userId);
+    Task<IResult> ChangePasswordAsync(ChangePasswordRequest request, string userId);
 }

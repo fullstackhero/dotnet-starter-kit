@@ -9,6 +9,7 @@ using DN.WebApi.Application.Multitenancy;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Common;
 using DN.WebApi.Domain.Constants;
+using DN.WebApi.Infrastructure.Identity.Extensions;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Mailing;
 using DN.WebApi.Shared.DTOs.Identity;
@@ -128,7 +129,7 @@ public class IdentityService : IIdentityService
                 EmailConfirmed = true,
                 PhoneNumberConfirmed = true,
                 IsActive = true,
-                Tenant = principal.FindFirstValue("tenant")
+                Tenant = principal.GetTenant()
             };
             result = await _userManager.CreateAsync(user);
         }
@@ -141,7 +142,7 @@ public class IdentityService : IIdentityService
         return user;
     }
 
-    public async Task<IResult> RegisterAsync(RegisterRequest request, string origin)
+    public async Task<IResult<string>> RegisterAsync(RegisterRequest request, string origin)
     {
         var users = await _userManager.Users.ToListAsync();
         var userWithSameUserName = await _userManager.FindByNameAsync(request.UserName);
@@ -297,7 +298,7 @@ public class IdentityService : IIdentityService
     {
         if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
         {
-            var userWithSamePhoneNumber = await _userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == request.PhoneNumber);
+            var userWithSamePhoneNumber = await _userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == request.PhoneNumber && x.Id != userId);
             if (userWithSamePhoneNumber != null)
             {
                 return await Result.FailAsync(string.Format(_localizer["Phone number {0} is already used."], request.PhoneNumber));
@@ -338,6 +339,22 @@ public class IdentityService : IIdentityService
         }
     }
 
+    public async Task<IResult> ChangePasswordAsync(ChangePasswordRequest model, string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            return await Result.FailAsync(_localizer["User Not Found."]);
+        }
+
+        var identityResult = await _userManager.ChangePasswordAsync(
+            user,
+            model.Password,
+            model.NewPassword);
+        var errors = identityResult.Errors.Select(e => _localizer[e.Description].ToString()).ToList();
+        return identityResult.Succeeded ? await Result.SuccessAsync() : await Result.FailAsync(errors);
+    }
+
     private async Task<string> GetMobilePhoneVerificationCodeAsync(ApplicationUser user)
     {
         return await _userManager.GenerateChangePhoneNumberTokenAsync(user, user.PhoneNumber);
@@ -349,10 +366,10 @@ public class IdentityService : IIdentityService
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
         const string route = "api/identity/confirm-email/";
         var endpointUri = new Uri(string.Concat($"{origin}/", route));
-        string verificationUri = QueryHelpers.AddQueryString(endpointUri.ToString(), "userId", user.Id);
-        verificationUri = QueryHelpers.AddQueryString(verificationUri, "code", code);
+        string verificationUri = QueryHelpers.AddQueryString(endpointUri.ToString(), QueryConstants.UserId, user.Id);
+        verificationUri = QueryHelpers.AddQueryString(verificationUri, QueryConstants.Code, code);
         if (_tenantService.GetCurrentTenant()?.Key is string tenantKey)
-            verificationUri = QueryHelpers.AddQueryString(verificationUri, "tenant", tenantKey);
+            verificationUri = QueryHelpers.AddQueryString(verificationUri, QueryConstants.Tenant, tenantKey);
         return verificationUri;
     }
 }
