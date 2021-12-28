@@ -1,13 +1,15 @@
 namespace DN.WebApi.Host.Configurations;
-
+using Serilog;
 internal static class Startup
 {
+    private static readonly ILogger _logger = Log.ForContext(typeof(Startup));
     internal static ConfigureHostBuilder AddConfigurations(this ConfigureHostBuilder host)
     {
         host.ConfigureAppConfiguration((context, config) =>
         {
             const string configurationsDirectory = "Configurations";
             var env = context.HostingEnvironment;
+            _logger.Information($"Enviroment Mode: {env.EnvironmentName}");
             config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
                 .AddJsonFile($"{configurationsDirectory}/logger.json", optional: false, reloadOnChange: true)
