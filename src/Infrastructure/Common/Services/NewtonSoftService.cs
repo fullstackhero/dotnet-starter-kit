@@ -16,7 +16,9 @@ public class NewtonSoftService : ISerializerService
     {
         return JsonConvert.SerializeObject(obj, new JsonSerializerSettings
         {
-            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            // Not sure how necessary this actually is? I've commented it out now to let the
+            // validationErrors work, but we probably should look for a better solution
+            // ContractResolver = new CamelCasePropertyNamesContractResolver(),
             NullValueHandling = NullValueHandling.Ignore,
             Converters = new List<JsonConverter>
                 {
