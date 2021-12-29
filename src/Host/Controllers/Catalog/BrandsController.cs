@@ -58,7 +58,7 @@ public class BrandsController : BaseController
 
     [HttpDelete("delete-random")]
     [ProducesResponseType(200)]
-    [ProducesDefaultResponseType(typeof(ErrorResult<string>))]
+    [ProducesDefaultResponseType(typeof(ErrorResult))]
     public async Task<ActionResult<Result<string>>> DeleteRandomAsync()
     {
         var jobId = await _service.DeleteRandomBrandAsync();
