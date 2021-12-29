@@ -39,7 +39,7 @@ public class RoleService : IRoleService
         var existingRole = await _roleManager.FindByIdAsync(id);
         if (existingRole == null)
         {
-            throw new IdentityException("Role Not Found", statusCode: System.Net.HttpStatusCode.NotFound);
+            throw new IdentityException("Role Not Found", statusCode: HttpStatusCode.NotFound);
         }
 
         if (DefaultRoles.Contains(existingRole.Name))
@@ -73,7 +73,7 @@ public class RoleService : IRoleService
         var role = await _roleManager.Roles.SingleOrDefaultAsync(x => x.Id == id);
         if (role is null)
         {
-            throw new IdentityException("Role Not Found", statusCode: System.Net.HttpStatusCode.NotFound);
+            throw new IdentityException("Role Not Found", statusCode: HttpStatusCode.NotFound);
         }
 
         var rolesResponse = role.Adapt<RoleDto>();
@@ -110,17 +110,12 @@ public class RoleService : IRoleService
 
     public async Task<Result<string>> RegisterRoleAsync(RoleRequest request)
     {
-        if (string.IsNullOrEmpty(request.Name))
-        {
-            throw new IdentityException(_localizer["Name is required"], statusCode: HttpStatusCode.BadRequest);
-        }
-
         if (string.IsNullOrEmpty(request.Id))
         {
             var existingRole = await _roleManager.FindByNameAsync(request.Name);
             if (existingRole != null)
             {
-                throw new IdentityException(_localizer["Similar Role already exists."], statusCode: System.Net.HttpStatusCode.BadRequest);
+                throw new IdentityException(_localizer["Similar Role already exists."], statusCode: HttpStatusCode.Conflict);
             }
 
             var newRole = new ApplicationRole(request.Name, _context.Tenant, request.Description);
@@ -151,8 +146,15 @@ public class RoleService : IRoleService
             existingRole.Name = request.Name;
             existingRole.NormalizedName = request.Name.ToUpper();
             existingRole.Description = request.Description;
-            await _roleManager.UpdateAsync(existingRole);
-            return await Result<string>.SuccessAsync(existingRole.Id, string.Format(_localizer["Role {0} Updated."], existingRole.Name));
+            var result = await _roleManager.UpdateAsync(existingRole);
+            if (result.Succeeded)
+            {
+                return await Result<string>.SuccessAsync(existingRole.Id, string.Format(_localizer["Role {0} Updated."], existingRole.Name));
+            }
+            else
+            {
+                return await Result<string>.FailAsync(result.Errors.Select(e => _localizer[e.Description].ToString()).ToList());
+            }
         }
     }
 

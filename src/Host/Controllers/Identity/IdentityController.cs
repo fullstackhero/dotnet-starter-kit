@@ -27,9 +27,6 @@ public sealed class IdentityController : ControllerBase
 
     [HttpPost("register")]
     [MustHavePermission(PermissionConstants.Identity.Register)]
-    [ProducesResponseType(200)]
-    [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
-    [ProducesDefaultResponseType(typeof(ErrorResult))]
     public async Task<ActionResult<Result<string>>> RegisterAsync(RegisterUserRequest request)
     {
         string origin = GenerateOrigin();
