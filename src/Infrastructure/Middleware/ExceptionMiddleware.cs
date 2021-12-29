@@ -50,7 +50,7 @@ internal class ExceptionMiddleware : IMiddleware
                 ErrorId = errorId,
                 SupportMessage = _localizer["exceptionmiddleware.supportmessage"]
             };
-            errorResult.Messages.Add(exception.Message);
+            errorResult.Messages!.Add(exception.Message);
             var response = context.Response;
             response.ContentType = "application/json";
             if (exception is not CustomException && exception.InnerException != null)
@@ -68,11 +68,6 @@ internal class ExceptionMiddleware : IMiddleware
                     if (e.ErrorMessages is not null)
                     {
                         errorResult.Messages = e.ErrorMessages;
-                    }
-
-                    if (e is ValidationException v && v.ValidationErrors is not null)
-                    {
-                        errorResult.ValidationErrors = v.ValidationErrors;
                     }
 
                     break;

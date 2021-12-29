@@ -1,4 +1,3 @@
-using System.Net;
 using System.Security.Claims;
 using System.Text;
 using DN.WebApi.Application.Common.Interfaces;
@@ -248,11 +247,6 @@ public class IdentityService : IIdentityService
 
     public async Task<IResult> ForgotPasswordAsync(ForgotPasswordRequest request, string origin)
     {
-        if (string.IsNullOrEmpty(request.Email))
-        {
-            throw new IdentityException(_localizer["Email is required."], statusCode: HttpStatusCode.BadRequest);
-        }
-
         var user = await _userManager.FindByEmailAsync(request.Email.Normalize());
         if (user is null || !await _userManager.IsEmailConfirmedAsync(user))
         {
