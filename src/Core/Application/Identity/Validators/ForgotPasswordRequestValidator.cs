@@ -4,11 +4,10 @@ using FluentValidation;
 
 namespace DN.WebApi.Application.Identity.Validators;
 
-public class TokenRequestValidator : CustomValidator<TokenRequest>
+public class ForgotPasswordRequestValidator : CustomValidator<ForgotPasswordRequest>
 {
-    public TokenRequestValidator()
+    public ForgotPasswordRequestValidator()
     {
         RuleFor(p => p.Email).Cascade(CascadeMode.Stop).NotEmpty().EmailAddress().WithMessage("Invalid Email Address.");
-        RuleFor(p => p.Password).Cascade(CascadeMode.Stop).NotEmpty();
     }
 }

@@ -142,7 +142,7 @@ public class IdentityService : IIdentityService
         return user;
     }
 
-    public async Task<IResult<string>> RegisterAsync(RegisterRequest request, string origin)
+    public async Task<IResult<string>> RegisterAsync(RegisterUserRequest request, string origin)
     {
         var users = await _userManager.Users.ToListAsync();
         var userWithSameUserName = await _userManager.FindByNameAsync(request.UserName);
