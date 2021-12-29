@@ -12,7 +12,14 @@ public class CustomValidator<T> : AbstractValidator<T>
         {
             var failures = validationResult.Errors.ToList();
             if (failures.Count != 0)
-                throw new Exceptions.ValidationException(failures.ConvertAll(a => a.ErrorMessage));
+            {
+                var validationErrors = validationResult.Errors
+                    .ToLookup(e => e.PropertyName, e => e.ErrorMessage)
+                    .ToDictionary(l => l.Key, l => l.ToList());
+                throw new Exceptions.ValidationException(
+                    failures.ConvertAll(a => a.ErrorMessage),
+                    validationErrors);
+            }
         }
 
         return validationResult;

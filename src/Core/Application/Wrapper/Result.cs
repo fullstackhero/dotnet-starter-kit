@@ -67,7 +67,7 @@ public class Result : IResult
     }
 }
 
-public class ErrorResult<T> : Result<T>
+public class ErrorResult : Result
 {
     public string? Source { get; set; }
 
@@ -76,6 +76,7 @@ public class ErrorResult<T> : Result<T>
     public string? ErrorId { get; set; }
     public string? SupportMessage { get; set; }
     public int StatusCode { get; set; }
+    public Dictionary<string, List<string>>? ValidationErrors { get; set; }
 }
 
 public class Result<T> : Result, IResult<T>
@@ -92,19 +93,9 @@ public class Result<T> : Result, IResult<T>
         return new() { Succeeded = false, Messages = new List<string> { message } };
     }
 
-    public static ErrorResult<T> ReturnError(string message)
-    {
-        return new() { Succeeded = false, Messages = new List<string> { message }, StatusCode = 500 };
-    }
-
     public static new Result<T> Fail(List<string> messages)
     {
         return new() { Succeeded = false, Messages = messages };
-    }
-
-    public static ErrorResult<T> ReturnError(List<string> messages)
-    {
-        return new() { Succeeded = false, Messages = messages, StatusCode = 500 };
     }
 
     public static new Task<Result<T>> FailAsync()
@@ -117,19 +108,9 @@ public class Result<T> : Result, IResult<T>
         return Task.FromResult(Fail(message));
     }
 
-    public static Task<ErrorResult<T>> ReturnErrorAsync(string message)
-    {
-        return Task.FromResult(ReturnError(message));
-    }
-
     public static new Task<Result<T>> FailAsync(List<string> messages)
     {
         return Task.FromResult(Fail(messages));
-    }
-
-    public static Task<ErrorResult<T>> ReturnErrorAsync(List<string> messages)
-    {
-        return Task.FromResult(ReturnError(messages));
     }
 
     public static new Result<T> Success()
