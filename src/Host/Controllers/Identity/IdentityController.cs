@@ -30,7 +30,7 @@ public sealed class IdentityController : ControllerBase
     [ProducesResponseType(200)]
     [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
     [ProducesDefaultResponseType(typeof(ErrorResult<string>))]
-    public async Task<ActionResult<Result<string>>> RegisterAsync(RegisterRequest request)
+    public async Task<ActionResult<Result<string>>> RegisterAsync(RegisterUserRequest request)
     {
         string origin = GenerateOrigin();
         return Ok(await _identityService.RegisterAsync(request, origin));
