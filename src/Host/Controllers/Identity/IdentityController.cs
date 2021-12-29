@@ -29,7 +29,7 @@ public sealed class IdentityController : ControllerBase
     [MustHavePermission(PermissionConstants.Identity.Register)]
     [ProducesResponseType(200)]
     [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
-    [ProducesDefaultResponseType(typeof(ErrorResult<string>))]
+    [ProducesDefaultResponseType(typeof(ErrorResult))]
     public async Task<ActionResult<Result<string>>> RegisterAsync(RegisterUserRequest request)
     {
         string origin = GenerateOrigin();
@@ -39,7 +39,7 @@ public sealed class IdentityController : ControllerBase
     [HttpGet("confirm-email")]
     [AllowAnonymous]
     [ProducesResponseType(200)]
-    [ProducesDefaultResponseType(typeof(ErrorResult<string>))]
+    [ProducesDefaultResponseType(typeof(ErrorResult))]
     public async Task<ActionResult<Result<string>>> ConfirmEmailAsync([FromQuery] string userId, [FromQuery] string code, [FromQuery] string tenant)
     {
         return Ok(await _identityService.ConfirmEmailAsync(userId, code, tenant));
@@ -48,7 +48,7 @@ public sealed class IdentityController : ControllerBase
     [HttpGet("confirm-phone-number")]
     [AllowAnonymous]
     [ProducesResponseType(200)]
-    [ProducesDefaultResponseType(typeof(ErrorResult<string>))]
+    [ProducesDefaultResponseType(typeof(ErrorResult))]
     public async Task<ActionResult<Result<string>>> ConfirmPhoneNumberAsync([FromQuery] string userId, [FromQuery] string code)
     {
         return Ok(await _identityService.ConfirmPhoneNumberAsync(userId, code));
@@ -57,7 +57,8 @@ public sealed class IdentityController : ControllerBase
     [HttpPost("forgot-password")]
     [AllowAnonymous]
     [ProducesResponseType(200)]
-    [ProducesDefaultResponseType(typeof(ErrorResult<string>))]
+    [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
+    [ProducesDefaultResponseType(typeof(ErrorResult))]
     public async Task<ActionResult<Result>> ForgotPasswordAsync(ForgotPasswordRequest request)
     {
         string origin = GenerateOrigin();
@@ -67,7 +68,7 @@ public sealed class IdentityController : ControllerBase
     [HttpPost("reset-password")]
     [AllowAnonymous]
     [ProducesResponseType(200)]
-    [ProducesDefaultResponseType(typeof(ErrorResult<string>))]
+    [ProducesDefaultResponseType(typeof(ErrorResult))]
     public async Task<ActionResult<Result>> ResetPasswordAsync(ResetPasswordRequest request)
     {
         return Ok(await _identityService.ResetPasswordAsync(request));
@@ -88,7 +89,7 @@ public sealed class IdentityController : ControllerBase
     [HttpPut("change-password")]
     [ProducesResponseType(200)]
     [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
-    [ProducesDefaultResponseType(typeof(ErrorResult<string>))]
+    [ProducesDefaultResponseType(typeof(ErrorResult))]
     public async Task<ActionResult<Result>> ChangePasswordAsync(ChangePasswordRequest model)
     {
         var response = await _identityService.ChangePasswordAsync(model, _user.GetUserId().ToString());

@@ -48,7 +48,7 @@ public class UsersController : ControllerBase
 
     [HttpPost("{id}/roles")]
     [ProducesResponseType(200)]
-    [ProducesDefaultResponseType(typeof(ErrorResult<string>))]
+    [ProducesDefaultResponseType(typeof(ErrorResult))]
     public async Task<ActionResult<Result<string>>> AssignRolesAsync(string id, UserRolesRequest request)
     {
         var result = await _userService.AssignRolesAsync(id, request);
