@@ -76,7 +76,6 @@ public class ErrorResult : Result
     public string? ErrorId { get; set; }
     public string? SupportMessage { get; set; }
     public int StatusCode { get; set; }
-    public Dictionary<string, List<string>>? ValidationErrors { get; set; }
 }
 
 public class Result<T> : Result, IResult<T>

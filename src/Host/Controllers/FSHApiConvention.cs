@@ -9,8 +9,8 @@ namespace DN.WebApi.Host.Controllers;
 public static class FSHApiConventions
 {
     [ProducesResponseType(200)]
-    [ProducesDefaultResponseType(typeof(ErrorResult))]
     [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
+    [ProducesDefaultResponseType(typeof(ErrorResult))]
     [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Prefix)]
     public static void Search(
         [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Any)]
@@ -20,16 +20,16 @@ public static class FSHApiConventions
     }
 
     [ProducesResponseType(200)]
-    [ProducesDefaultResponseType(typeof(ErrorResult))]
     [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
+    [ProducesDefaultResponseType(typeof(ErrorResult))]
     [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Prefix)]
     public static void Get()
     {
     }
 
     [ProducesResponseType(200)]
-    [ProducesDefaultResponseType(typeof(ErrorResult))]
     [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
+    [ProducesDefaultResponseType(typeof(ErrorResult))]
     [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Prefix)]
     public static void Get(
         [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Any)]
@@ -39,8 +39,8 @@ public static class FSHApiConventions
     }
 
     [ProducesResponseType(200)]
-    [ProducesDefaultResponseType(typeof(ErrorResult))]
     [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
+    [ProducesDefaultResponseType(typeof(ErrorResult))]
     [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Prefix)]
     public static void Post(
         [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Any)]
@@ -50,8 +50,8 @@ public static class FSHApiConventions
     }
 
     [ProducesResponseType(200)]
-    [ProducesDefaultResponseType(typeof(ErrorResult))]
     [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
+    [ProducesDefaultResponseType(typeof(ErrorResult))]
     [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Prefix)]
     public static void Register(
         [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Any)]
@@ -61,8 +61,8 @@ public static class FSHApiConventions
     }
 
     [ProducesResponseType(200)]
-    [ProducesDefaultResponseType(typeof(ErrorResult))]
     [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
+    [ProducesDefaultResponseType(typeof(ErrorResult))]
     [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Prefix)]
     public static void Create(
         [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Any)]
@@ -72,8 +72,8 @@ public static class FSHApiConventions
     }
 
     [ProducesResponseType(200)]
-    [ProducesDefaultResponseType(typeof(ErrorResult))]
     [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
+    [ProducesDefaultResponseType(typeof(ErrorResult))]
     [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Prefix)]
     public static void Update(
         [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Any)]
@@ -83,8 +83,8 @@ public static class FSHApiConventions
     }
 
     [ProducesResponseType(200)]
-    [ProducesDefaultResponseType(typeof(ErrorResult))]
     [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
+    [ProducesDefaultResponseType(typeof(ErrorResult))]
     [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Prefix)]
     public static void Update(
         [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Any)]
@@ -97,8 +97,8 @@ public static class FSHApiConventions
     }
 
     [ProducesResponseType(200)]
-    [ProducesDefaultResponseType(typeof(ErrorResult))]
     [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
+    [ProducesDefaultResponseType(typeof(ErrorResult))]
     [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Prefix)]
     public static void Delete(
         [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Any)]
@@ -108,8 +108,8 @@ public static class FSHApiConventions
     }
 
     [ProducesResponseType(200)]
-    [ProducesDefaultResponseType(typeof(ErrorResult))]
     [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
+    [ProducesDefaultResponseType(typeof(ErrorResult))]
     [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Prefix)]
     public static void Generate(
         [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Any)]
