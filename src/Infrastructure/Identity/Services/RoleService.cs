@@ -108,16 +108,15 @@ public class RoleService : IRoleService
         return await Result<List<RoleDto>>.SuccessAsync(rolesResponse);
     }
 
+    public async Task<bool> ExistsAsync(string roleName, string? excludeId) =>
+        await _roleManager.FindByNameAsync(roleName)
+            is ApplicationRole existingRole
+            && existingRole.Id != excludeId;
+
     public async Task<Result<string>> RegisterRoleAsync(RoleRequest request)
     {
         if (string.IsNullOrEmpty(request.Id))
         {
-            var existingRole = await _roleManager.FindByNameAsync(request.Name);
-            if (existingRole != null)
-            {
-                throw new IdentityException(_localizer["Similar Role already exists."], statusCode: HttpStatusCode.Conflict);
-            }
-
             var newRole = new ApplicationRole(request.Name, _context.Tenant, request.Description);
             var response = await _roleManager.CreateAsync(newRole);
             await _context.SaveChangesAsync();
