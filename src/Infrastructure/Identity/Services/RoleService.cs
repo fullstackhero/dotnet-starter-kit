@@ -77,6 +77,7 @@ public class RoleService : IRoleService
         }
 
         var rolesResponse = role.Adapt<RoleDto>();
+        rolesResponse.IsDefault = DefaultRoles.Contains(role.Name);
         return await Result<RoleDto>.SuccessAsync(rolesResponse);
     }
 
@@ -89,6 +90,11 @@ public class RoleService : IRoleService
     {
         var roles = await _roleManager.Roles.ToListAsync();
         var rolesResponse = roles.Adapt<List<RoleDto>>();
+        foreach (var role in rolesResponse)
+        {
+            role.IsDefault = DefaultRoles.Contains(role.Name);
+        }
+
         return await Result<List<RoleDto>>.SuccessAsync(rolesResponse);
     }
 
@@ -105,6 +111,11 @@ public class RoleService : IRoleService
         var roles = await _roleManager.Roles.Where(a => userRoles.Contains(a.Id)).ToListAsync();
 
         var rolesResponse = roles.Adapt<List<RoleDto>>();
+        foreach (var role in rolesResponse)
+        {
+            role.IsDefault = DefaultRoles.Contains(role.Name);
+        }
+
         return await Result<List<RoleDto>>.SuccessAsync(rolesResponse);
     }
 
