@@ -27,9 +27,7 @@ public class AddTenantIdProcessor : IOperationProcessor
                 Kind = OpenApiParameterKind.Header,
                 Description = attribute.Description,
                 IsRequired = attribute.IsRequired,
-                Schema = string.IsNullOrEmpty(attribute.DefaultValue)
-                    ? null
-                    : new NJsonSchema.JsonSchema
+                Schema = new NJsonSchema.JsonSchema
                     {
                         Type = NJsonSchema.JsonObjectType.String,
                         Default = attribute.DefaultValue

@@ -2,6 +2,7 @@ using DN.WebApi.Application.Identity.Interfaces;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Permissions;
+using DN.WebApi.Infrastructure.Swagger;
 using DN.WebApi.Shared.DTOs.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -53,6 +54,7 @@ public sealed class IdentityController : ControllerBase
 
     [HttpPost("forgot-password")]
     [AllowAnonymous]
+    [SwaggerHeader(HeaderConstants.Tenant, "Input your tenant Id to access this API", "", true)]
     [ProducesResponseType(200)]
     [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
     [ProducesDefaultResponseType(typeof(ErrorResult))]
