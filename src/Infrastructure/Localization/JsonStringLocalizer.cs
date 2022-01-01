@@ -27,7 +27,7 @@ public class JsonStringLocalizer : IStringLocalizer
         get
         {
             string? value = GetString(name);
-            return new LocalizedString(name, value ?? $"{name} [{Thread.CurrentThread.CurrentCulture.Name}]", value == null);
+            return new LocalizedString(name, value ?? $"{name}", value == null);
         }
     }
 
