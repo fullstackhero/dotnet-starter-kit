@@ -54,4 +54,13 @@ public class UsersController : ControllerBase
         var result = await _userService.AssignRolesAsync(id, request);
         return Ok(result);
     }
+
+    [HttpPost("toggle-status")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
+    [ProducesDefaultResponseType(typeof(ErrorResult))]
+    public async Task<IActionResult> ToggleUserStatusAsync(ToggleUserStatusRequest request)
+    {
+        return Ok(await _userService.ToggleUserStatusAsync(request));
+    }
 }

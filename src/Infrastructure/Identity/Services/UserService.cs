@@ -148,4 +148,23 @@ public class UserService : IUserService
     {
         return await _userManager.Users.AsNoTracking().CountAsync();
     }
+
+    public async Task<IResult> ToggleUserStatusAsync(ToggleUserStatusRequest request)
+    {
+        var user = await _userManager.Users.Where(u => u.Id == request.UserId).FirstOrDefaultAsync();
+        if(user == null) return await Result<List<PermissionDto>>.FailAsync(_localizer["User Not Found."]);
+        bool isAdmin = await _userManager.IsInRoleAsync(user, RoleConstants.Admin);
+        if (isAdmin)
+        {
+            return await Result.FailAsync(_localizer["Administrators Profile's Status cannot be toggled"]);
+        }
+
+        if (user != null)
+        {
+            user.IsActive = request.ActivateUser;
+            var identityResult = await _userManager.UpdateAsync(user);
+        }
+
+        return await Result.SuccessAsync();
+    }
 }
