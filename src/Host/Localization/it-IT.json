@@ -1,8 +1,8 @@
 {
   "auth.failed": "Autenticazione fallita.",
   "tenant.invalid": "Tenant non valido",
-  "tenant.expired": "La validit‡ del Tenant Ë scaduta. Si prega di contattare l'amministratore dell'applicazione.",
-  "tenant.inactive": "Il Tenant non Ë attivo. Si prega di contattare l'amministratore dell'applicazione.",
+  "tenant.expired": "La validit√† del Tenant √® scaduta. Si prega di contattare l'amministratore dell'applicazione.",
+  "tenant.inactive": "Il Tenant non √® attivo. Si prega di contattare l'amministratore dell'applicazione.",
   "caching.added": "Aggiunto in Cache: {0}",
   "caching.refreshed": "Cache aggiornata : {0}",
   "identity.usernotfound": "Utente non trovato.",
@@ -11,10 +11,10 @@
   "identity.invalidcredentials": "Le credenziali fornite non sono valide.",
   "identity.invalidtoken": "Token non valido",
   "entity.notfound": "{0} {1} non trovato.",
-  "product.alreadyexists": "Il prodotto {0} esiste gi‡.",
+  "product.alreadyexists": "Il prodotto {0} esiste gi√†.",
   "identity.invalidrefreshtoken": "Token di aggiornamento non valido.",
   "product.notfound": "Prodotto {0} non trovato.",
   "brand.notfound": "Brand {0} non trovato.",
-  "brand.cannotbedeleted": "Il marchio non puÚ essere cancellato in quanto viene utilizzato.",
+  "brand.cannotbedeleted": "Il marchio non pu√≤ essere cancellato in quanto viene utilizzato.",
   "exceptionmiddleware.supportmessage": "Fornisci il codice errore al team di supporto per ulteriori analisi"
 }
