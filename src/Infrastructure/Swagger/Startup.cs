@@ -82,6 +82,9 @@ internal static class Startup
                 }));
 
                 document.OperationProcessors.Add(new AddTenantIdProcessor());
+
+                document.UseApiEndpoints();
+
                 var fluentValidationSchemaProcessor = serviceProvider.CreateScope().ServiceProvider.GetService<FluentValidationSchemaProcessor>();
                 document.SchemaProcessors.Add(fluentValidationSchemaProcessor);
             });

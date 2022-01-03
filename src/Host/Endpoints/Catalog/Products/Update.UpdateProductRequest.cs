@@ -1,8 +1,8 @@
 using DN.WebApi.Shared.DTOs.FileStorage;
 
-namespace DN.WebApi.Shared.DTOs.Catalog;
+namespace DN.WebApi.Host.Endpoints.Catalog.Products;
 
-public class CreateProductRequest : IMustBeValid
+public class UpdateProductRequest
 {
     public string? Name { get; set; }
     public string? Description { get; set; }

@@ -1,6 +1,6 @@
 using DN.WebApi.Shared.DTOs.Filters;
 
-namespace DN.WebApi.Shared.DTOs.Catalog;
+namespace DN.WebApi.Host.Endpoints.Catalog.Products;
 
 public class ProductListFilter : PaginationFilter
 {

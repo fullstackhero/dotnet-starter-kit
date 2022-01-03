@@ -1,8 +1,7 @@
 using DN.WebApi.Application.Common.Validation;
-using DN.WebApi.Shared.DTOs.Catalog;
 using FluentValidation;
 
-namespace DN.WebApi.Application.Catalog.Validators;
+namespace DN.WebApi.Host.Endpoints.Catalog.Brands;
 
 public class CreateBrandRequestValidator : CustomValidator<CreateBrandRequest>
 {

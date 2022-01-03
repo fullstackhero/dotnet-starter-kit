@@ -2,7 +2,6 @@ using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Identity.Interfaces;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Catalog;
-using DN.WebApi.Shared.DTOs.Catalog;
 using DN.WebApi.Shared.DTOs.Dashboard;
 using Microsoft.Extensions.Localization;
 

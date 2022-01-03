@@ -1,13 +1,12 @@
 using DN.WebApi.Application.Common.Validation;
 using DN.WebApi.Application.FileStorage;
-using DN.WebApi.Shared.DTOs.Catalog;
 using FluentValidation;
 
-namespace DN.WebApi.Application.Catalog.Validators;
+namespace DN.WebApi.Host.Endpoints.Catalog.Products;
 
-public class UpdateProductRequestValidator : CustomValidator<UpdateProductRequest>
+public class CreateProductRequestValidator : CustomValidator<CreateProductRequest>
 {
-    public UpdateProductRequestValidator()
+    public CreateProductRequestValidator()
     {
         RuleFor(p => p.Name).MaximumLength(75).NotEmpty();
         RuleFor(p => p.Rate).GreaterThanOrEqualTo(1).NotEqual(0);

@@ -1,5 +1,6 @@
 using DN.WebApi.Application;
 using DN.WebApi.Host.Configurations;
+using DN.WebApi.Host.Endpoints;
 using DN.WebApi.Infrastructure;
 using DN.WebApi.Infrastructure.Multitenancy;
 using FluentValidation.AspNetCore;
@@ -20,7 +21,13 @@ try
 
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
-    builder.Services.AddControllers().AddFluentValidation();
+    builder.Services
+        .AddControllers(config =>
+            {
+                config.UseEndpointsConvention();
+                config.UseNamespaceRouteToken();
+            })
+            .AddFluentValidation();
 
     var app = builder.Build();
 
