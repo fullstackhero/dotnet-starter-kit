@@ -62,10 +62,27 @@ public class TenantManager : ITenantManager
         return await Result<TenantDto>.SuccessAsync(tenantDto);
     }
 
+    private string GetSecureConnectionString(string? connectionString){
+        string result = string.Empty;
+        if(!string.IsNullOrWhiteSpace(connectionString)){
+            var stringParts = connectionString.Split(new char[]{';'});
+            var newConnectionString = stringParts
+                .Where(s=>s.Contains("password", StringComparison.InvariantCultureIgnoreCase)==false)//password=....s
+                .Where(s=>s.Contains("User ID", StringComparison.InvariantCultureIgnoreCase)==false)//User ID=sa
+                .ToArray();
+            result = string.Join(";", newConnectionString);
+
+        }
+        return result;
+    }
     public async Task<Result<List<TenantDto>>> GetAllAsync()
     {
         var tenants = await _context.Tenants.ToListAsync();
         var tenantDto = tenants.Adapt<List<TenantDto>>();
+        tenantDto.ForEach(action: t =>
+        {
+            t.ConnectionString = GetSecureConnectionString(t.ConnectionString);
+        });
         return await Result<List<TenantDto>>.SuccessAsync(tenantDto);
     }
 
