@@ -453,4 +453,3 @@ $RECYCLE.BIN/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-/src/Host/Configurations/mail.Development.json

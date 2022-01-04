@@ -78,7 +78,8 @@ public class UserService : IUserService
             var userRolesViewModel = new UserRoleDto
             {
                 RoleId = role.Id,
-                RoleName = role.Name
+                RoleName = role.Name,
+                Description = role.Description
             };
             userRolesViewModel.Enabled = await _userManager.IsInRoleAsync(user, role.Name);
 
@@ -97,9 +98,15 @@ public class UserService : IUserService
             return await Result<string>.FailAsync(_localizer["User Not Found."]);
         }
 
-        if (await _userManager.IsInRoleAsync(user, RoleConstants.Admin))
+        if (request == null)
         {
-            return await Result<string>.FailAsync(_localizer["Not Allowed."]);
+            return await Result<string>.FailAsync(_localizer["Invalid Request."]);
+        }
+
+        var adminRole = request.UserRoles.Find(a => !a.Enabled && a.RoleName == RoleConstants.Admin);
+        if (adminRole != null)
+        {
+            request.UserRoles.Remove(adminRole);
         }
 
         foreach (var userRole in request.UserRoles)
@@ -152,7 +159,7 @@ public class UserService : IUserService
     public async Task<IResult> ToggleUserStatusAsync(ToggleUserStatusRequest request)
     {
         var user = await _userManager.Users.Where(u => u.Id == request.UserId).FirstOrDefaultAsync();
-        if(user == null) return await Result<List<PermissionDto>>.FailAsync(_localizer["User Not Found."]);
+        if (user == null) return await Result<List<PermissionDto>>.FailAsync(_localizer["User Not Found."]);
         bool isAdmin = await _userManager.IsInRoleAsync(user, RoleConstants.Admin);
         if (isAdmin)
         {
