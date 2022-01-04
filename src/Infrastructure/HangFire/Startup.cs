@@ -1,4 +1,5 @@
-﻿using Hangfire;
+﻿using DN.WebApi.Infrastructure.Common;
+using Hangfire;
 using Hangfire.Console;
 using Hangfire.Console.Extensions;
 using Hangfire.MySql;
@@ -42,7 +43,7 @@ internal static class Startup
 
         switch (storageSettings.StorageProvider.ToLower())
         {
-            case "postgresql":
+            case DbProviderConstants.Npgsql:
                 services.AddHangfire((provider, config) =>
                 {
                     config.UsePostgreSqlStorage(storageSettings.ConnectionString, appConfig.GetSection("HangfireSettings:Storage:Options").Get<PostgreSqlStorageOptions>())
@@ -52,7 +53,7 @@ internal static class Startup
                 });
                 break;
 
-            case "mssql":
+            case DbProviderConstants.SqlServer:
                 services.AddHangfire((provider, config) =>
                 {
                     config.UseSqlServerStorage(storageSettings.ConnectionString, appConfig.GetSection("HangfireSettings:Storage:Options").Get<SqlServerStorageOptions>())
@@ -62,7 +63,7 @@ internal static class Startup
                 });
                 break;
 
-            case "mysql":
+            case DbProviderConstants.MySql:
                 services.AddHangfire((provider, config) =>
                 {
                     config.UseStorage(new MySqlStorage(storageSettings.ConnectionString, appConfig.GetSection("HangfireSettings:Storage:Options").Get<MySqlStorageOptions>()))

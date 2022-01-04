@@ -3,6 +3,7 @@ using System.Security.Claims;
 using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Domain.Multitenancy;
+using DN.WebApi.Infrastructure.Common;
 using DN.WebApi.Infrastructure.Common.Extensions;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Identity.Services;
@@ -58,15 +59,15 @@ public class TenantBootstrapper
         {
             switch (dbProvider.ToLower())
             {
-                case "postgresql":
+                case DbProviderConstants.Npgsql:
                     var postgresqlcs = new NpgsqlConnectionStringBuilder(connectionString);
                     break;
 
-                case "mysql":
+                case DbProviderConstants.MySql:
                     var mysqlcs = new MySqlConnectionStringBuilder(connectionString);
                     break;
 
-                case "mssql":
+                case DbProviderConstants.SqlServer:
                     var mssqlcs = new SqlConnectionStringBuilder(connectionString);
                     break;
             }
