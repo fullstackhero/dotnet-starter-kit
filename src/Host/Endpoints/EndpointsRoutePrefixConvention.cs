@@ -6,19 +6,22 @@ namespace DN.WebApi.Host.Endpoints;
 
 public static class MvcOptionsExtensions
 {
-    public static void UseEndpointsConvention(this MvcOptions opts, string? routePrefix = null) =>
-        opts.Conventions.Add(new EndpointsRoutePrefixConvention(routePrefix));
+    private const string DefaultRoutePrefix = "api/v{version:apiVersion}/[namespace]";
+
+    public static MvcOptions UseEndpointsRoutePrefixConvention(this MvcOptions options, string? routePrefix = null)
+    {
+        options.Conventions.Add(new EndpointsRoutePrefixConvention(routePrefix ?? DefaultRoutePrefix));
+        return options;
+    }
 }
 
 public class EndpointsRoutePrefixConvention : IApplicationModelConvention
 {
-    private const string DefaultRoutePrefix = "api/v{version:apiVersion}/[namespace]";
 
     private readonly AttributeRouteModel _routeModel;
 
-    public EndpointsRoutePrefixConvention(string? routePrefix = null) =>
-        _routeModel = new AttributeRouteModel(
-            new RouteAttribute(routePrefix ?? DefaultRoutePrefix));
+    public EndpointsRoutePrefixConvention(string routePrefix) =>
+        _routeModel = new AttributeRouteModel(new RouteAttribute(routePrefix));
 
     public void Apply(ApplicationModel application)
     {

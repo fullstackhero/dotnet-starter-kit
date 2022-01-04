@@ -9,7 +9,6 @@ namespace DN.WebApi.Host.Controllers.Identity;
 [ApiController]
 [Route("api/audit-logs")]
 [ApiVersionNeutral]
-[ApiConventionType(typeof(FSHApiConventions))]
 public class AuditLogsController : ControllerBase
 {
     private readonly ICurrentUser _user;

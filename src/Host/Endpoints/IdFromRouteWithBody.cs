@@ -2,11 +2,8 @@
 
 namespace DN.WebApi.Host.Endpoints;
 
-public class IdFromRouteWithBody<TRequest>
+public class IdFromRouteWithBody<TRequest> : IdFromRoute
 {
-    [FromRoute]
-    public Guid Id { get; set; }
-
     [FromBody]
     public TRequest Body { get; set; } = default!;
 }

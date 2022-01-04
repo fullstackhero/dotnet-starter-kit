@@ -2,12 +2,11 @@
 using DN.WebApi.Application.Catalog.Interfaces;
 using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Wrapper;
-using DN.WebApi.Host.Controllers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DN.WebApi.Host.Endpoints.Catalog.Brands;
 
-public class DeleteRandom : EndpointBaseAsync
+public class DeleteRandom : EndpointBaseSync
     .WithoutRequest
     .WithResult<Result<string>>
 {
@@ -16,10 +15,9 @@ public class DeleteRandom : EndpointBaseAsync
     public DeleteRandom(IJobService jobService) => _jobService = jobService;
 
     [HttpDelete("delete-random")]
-    [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Delete))]
-    public override Task<Result<string>> HandleAsync(CancellationToken cancellationToken = default)
+    public override Result<string> Handle()
     {
         string jobId = _jobService.Schedule<IBrandGeneratorJob>(x => x.CleanAsync(), TimeSpan.FromSeconds(5));
-        return Result<string>.SuccessAsync(jobId);
+        return Result<string>.Success(jobId);
     }
 }

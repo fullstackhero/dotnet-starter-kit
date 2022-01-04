@@ -5,7 +5,6 @@ using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Catalog;
 using DN.WebApi.Domain.Common.Contracts;
 using DN.WebApi.Domain.Constants;
-using DN.WebApi.Host.Controllers;
 using DN.WebApi.Infrastructure.Identity.Permissions;
 using Microsoft.AspNetCore.Mvc;
 using NSwag.Annotations;
@@ -13,7 +12,6 @@ using System.Linq.Expressions;
 
 namespace DN.WebApi.Host.Endpoints.Catalog.Products;
 
-[ApiConventionType(typeof(FSHApiConventions))]
 public class Search : EndpointBaseAsync
     .WithRequest<ProductListFilter>
     .WithResult<PaginatedResult<ProductDto>>
@@ -44,6 +42,6 @@ public class Search : EndpointBaseAsync
             Includes = new Expression<Func<Product, object>>[] { x => x.Brand }
         };
 
-        return _repository.GetListAsync<Product, ProductDto>(specification);
+        return _repository.GetListAsync<Product, ProductDto>(specification, cancellationToken);
     }
 }

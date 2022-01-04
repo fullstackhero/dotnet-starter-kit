@@ -2,25 +2,22 @@
 using DN.WebApi.Application.Catalog.Interfaces;
 using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Wrapper;
-using DN.WebApi.Host.Controllers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DN.WebApi.Host.Endpoints.Catalog.Brands;
 
-[ApiConventionType(typeof(FSHApiConventions))]
-public class GenerateRandom : EndpointBaseAsync
+public class GenerateRandom : EndpointBaseSync
     .WithRequest<GenerateRandomBrandRequest>
     .WithResult<Result<string>>
 {
     private readonly IJobService _jobService;
 
-    public GenerateRandom(IJobService jobService) =>
-        _jobService = jobService;
+    public GenerateRandom(IJobService jobService) => _jobService = jobService;
 
     [HttpPost("generate-random")]
-    public override Task<Result<string>> HandleAsync(GenerateRandomBrandRequest request, CancellationToken cancellationToken = default)
+    public override Result<string> Handle(GenerateRandomBrandRequest request)
     {
         string jobId = _jobService.Enqueue<IBrandGeneratorJob>(x => x.GenerateAsync(request.NSeed));
-        return Result<string>.SuccessAsync(jobId);
+        return Result<string>.Success(jobId);
     }
 }

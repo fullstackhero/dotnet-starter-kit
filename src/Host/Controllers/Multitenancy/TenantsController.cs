@@ -11,7 +11,6 @@ namespace DN.WebApi.Host.Controllers.Multitenancy;
 [ApiController]
 [Route("api/[controller]")]
 [ApiVersionNeutral]
-[ApiConventionType(typeof(FSHApiConventions))]
 public class TenantsController : ControllerBase
 {
     private readonly ITenantManager _tenantService;

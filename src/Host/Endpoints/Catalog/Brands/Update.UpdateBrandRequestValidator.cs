@@ -7,6 +7,8 @@ public class UpdateBrandRequestValidator : CustomValidator<UpdateBrandRequest>
 {
     public UpdateBrandRequestValidator()
     {
-        RuleFor(p => p.Name).MaximumLength(75).NotEmpty();
+        RuleFor(p => p.Name)
+            .NotEmpty()
+            .MaximumLength(75);
     }
 }

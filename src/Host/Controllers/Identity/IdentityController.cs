@@ -12,7 +12,6 @@ namespace DN.WebApi.Host.Controllers.Identity;
 [ApiController]
 [Route("api/[controller]")]
 [ApiVersionNeutral]
-[ApiConventionType(typeof(FSHApiConventions))]
 public sealed class IdentityController : ControllerBase
 {
     private readonly ICurrentUser _user;

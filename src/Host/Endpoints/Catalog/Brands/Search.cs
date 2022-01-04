@@ -4,14 +4,12 @@ using DN.WebApi.Application.Common.Specifications;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Catalog;
 using DN.WebApi.Domain.Constants;
-using DN.WebApi.Host.Controllers;
 using DN.WebApi.Infrastructure.Identity.Permissions;
 using Microsoft.AspNetCore.Mvc;
 using NSwag.Annotations;
 
 namespace DN.WebApi.Host.Endpoints.Catalog.Brands;
 
-[ApiConventionType(typeof(FSHApiConventions))]
 public class Search : EndpointBaseAsync
     .WithRequest<BrandListFilter>
     .WithResult<PaginatedResult<BrandDto>>
@@ -35,6 +33,6 @@ public class Search : EndpointBaseAsync
             PageSize = filter.PageSize
         };
 
-        return _repository.GetListAsync<Brand, BrandDto>(specification);
+        return _repository.GetListAsync<Brand, BrandDto>(specification, cancellationToken);
     }
 }

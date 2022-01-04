@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DN.WebApi.Host.Controllers.Dashboard;
 
-[ApiConventionType(typeof(FSHApiConventions))]
 public class StatsController : BaseController
 {
     private readonly IStatsService _service;
