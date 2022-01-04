@@ -13,7 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
-
+using System.Collections.Generic;
 namespace DN.WebApi.Infrastructure.Multitenancy;
 
 public class TenantManager : ITenantManager
@@ -46,6 +46,7 @@ public class TenantManager : ITenantManager
         var tenant = await _context.Tenants.Where(a => a.Key == key).FirstOrDefaultAsync();
         if (tenant == null) throw new EntityNotFoundException(string.Format(_localizer["entity.notfound"], typeof(Tenant).Name, key));
         var tenantDto = tenant.Adapt<TenantDto>();
+
         return await Result<TenantDto>.SuccessAsync(tenantDto);
     }
 
@@ -66,6 +67,10 @@ public class TenantManager : ITenantManager
     {
         var tenants = await _context.Tenants.ToListAsync();
         var tenantDto = tenants.Adapt<List<TenantDto>>();
+        tenantDto.ForEach(action: t =>
+        {
+            t.ConnectionString = HideSecureConnectionString.GetSecureConnectionString(_dbOptions.DBProvider, t.ConnectionString);
+        });
         return await Result<List<TenantDto>>.SuccessAsync(tenantDto);
     }
 
