@@ -1,4 +1,4 @@
-﻿using DN.WebApi.Application.Catalog.Interfaces;
+﻿using DN.WebApi.Application.Catalog.Brands;
 using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Identity.Interfaces;
 using DN.WebApi.Domain.Catalog;

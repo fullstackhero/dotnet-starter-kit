@@ -20,5 +20,5 @@ public interface IUserService : ITransientService
 
     Task<Result<List<PermissionDto>>> GetPermissionsAsync(string id);
 
-    Task<IResult> ToggleUserStatusAsync(ToggleUserStatusRequest request);
+    Task<Wrapper.IResult> ToggleUserStatusAsync(ToggleUserStatusRequest request);
 }

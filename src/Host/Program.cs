@@ -1,6 +1,6 @@
 using DN.WebApi.Application;
+using DN.WebApi.Application.Common.Endpoints;
 using DN.WebApi.Host.Configurations;
-using DN.WebApi.Host.Endpoints;
 using DN.WebApi.Infrastructure;
 using DN.WebApi.Infrastructure.Multitenancy;
 using FluentValidation.AspNetCore;
@@ -13,20 +13,16 @@ try
     var builder = WebApplication.CreateBuilder(args);
 
     builder.Host.AddConfigurations();
-    builder.Host.UseSerilog((_, config) =>
-    {
-        config.WriteTo.Console()
-        .ReadFrom.Configuration(builder.Configuration);
-    });
+    builder.Host.UseSerilog((_, config) => config
+        .WriteTo.Console()
+        .ReadFrom.Configuration(builder.Configuration));
 
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
     builder.Services
-        .AddControllers(config =>
-            {
-                config.UseEndpointsConvention();
-                config.UseNamespaceRouteToken();
-            })
+        .AddControllers(config => config
+                .UseEndpointsRoutePrefixConvention()
+                .UseNamespaceRouteToken())
             .AddFluentValidation();
 
     var app = builder.Build();

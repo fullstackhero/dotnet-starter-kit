@@ -14,9 +14,9 @@ public interface ITenantManager : ITransientService
 
     public Task<Result<Guid>> CreateTenantAsync(CreateTenantRequest request);
 
-    Task<IResult> UpgradeSubscriptionAsync(UpgradeSubscriptionRequest request);
+    Task<Wrapper.IResult> UpgradeSubscriptionAsync(UpgradeSubscriptionRequest request);
 
-    Task<IResult> DeactivateTenantAsync(string tenant);
+    Task<Wrapper.IResult> DeactivateTenantAsync(string tenant);
 
-    Task<IResult> ActivateTenantAsync(string tenant);
+    Task<Wrapper.IResult> ActivateTenantAsync(string tenant);
 }

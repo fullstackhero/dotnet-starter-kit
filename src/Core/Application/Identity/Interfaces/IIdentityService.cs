@@ -15,10 +15,10 @@ public interface IIdentityService : ITransientService
 
     Task<IResult<string>> ConfirmPhoneNumberAsync(string userId, string code);
 
-    Task<IResult> ForgotPasswordAsync(ForgotPasswordRequest request, string origin);
+    Task<Wrapper.IResult> ForgotPasswordAsync(ForgotPasswordRequest request, string origin);
 
-    Task<IResult> ResetPasswordAsync(ResetPasswordRequest request);
+    Task<Wrapper.IResult> ResetPasswordAsync(ResetPasswordRequest request);
 
-    Task<IResult> UpdateProfileAsync(UpdateProfileRequest request, string userId);
-    Task<IResult> ChangePasswordAsync(ChangePasswordRequest request, string userId);
+    Task<Wrapper.IResult> UpdateProfileAsync(UpdateProfileRequest request, string userId);
+    Task<Wrapper.IResult> ChangePasswordAsync(ChangePasswordRequest request, string userId);
 }
