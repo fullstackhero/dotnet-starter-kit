@@ -10,21 +10,24 @@ namespace DN.WebApi.Infrastructure.Multitenancy.Tests
 {
     public class HideSecureConnectionStringTests
     {
-        [Fact()]
+        [Fact]
         public void GetSecureConnectionStringTest()
         {
-            var mssql1 =
-                "Data Source=(localdb)\\mssqllocaldb;Initial Catalog=fullStackHeroDb;Integrated Security=True;MultipleActiveResultSets=True";
-            Assert.Equal(HideSecureConnectionString.GetSecureConnectionString("mssql", mssql1), mssql1);
+            string mssql1 = "Data Source=(localdb)\\mssqllocaldb;Initial Catalog=fullStackHeroDb;Integrated Security=True;" +
+                         "MultipleActiveResultSets=True";
 
-            var mssql2 =
-                "Data Source=(localdb)\\mssqllocaldb;Initial Catalog=fullStackHeroDb;user id=sa;password=pass;MultipleActiveResultSets=True";
-            var mssql3 =
-                "Data Source=(localdb)\\mssqllocaldb;Initial Catalog=fullStackHeroDb;user id=*******;password=*******;MultipleActiveResultSets=True";
-            var msql4 = HideSecureConnectionString.GetSecureConnectionString("mssql", mssql2);
-            Assert.True(mssql3.Equals(msql4,StringComparison.InvariantCultureIgnoreCase));
+            string? res1 = HideSecureConnectionString.GetSecureConnectionString("mssql", mssql1);
+            Assert.Equal(res1, mssql1); // case 1
 
-            //Assert.True(false, "This test needs an implementation");
+            string mssql2 = "Data Source=(localdb)\\mssqllocaldb;Initial Catalog=fullStackHeroDb;user id=sa;password=pass;" +
+                         "MultipleActiveResultSets=True";
+            string mssql3 = "Data Source=(localdb)\\mssqllocaldb;Initial Catalog=fullStackHeroDb;user id=*******;password=*******;" +
+                         "MultipleActiveResultSets=True";
+
+            string? res2 = HideSecureConnectionString.GetSecureConnectionString("mssql", mssql2);
+            Assert.True(mssql3.Equals(res2, StringComparison.InvariantCultureIgnoreCase)); // case 2
+
+            // Assert.True(false, "This test needs an implementation");
         }
     }
 }

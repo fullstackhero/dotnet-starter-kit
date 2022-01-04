@@ -63,7 +63,7 @@ public class TenantManager : ITenantManager
         return await Result<TenantDto>.SuccessAsync(tenantDto);
     }
 
-    //private string GetSecureConnectionString(string? connectionString){
+    // private string GetSecureConnectionString(string? connectionString){
     //    string result = string.Empty;
     //    if(!string.IsNullOrWhiteSpace(connectionString)){
     //        var stringParts = connectionString.Split(new char[]{';'});
@@ -72,10 +72,10 @@ public class TenantManager : ITenantManager
     //            .Where(s=>s.Contains("User ID", StringComparison.InvariantCultureIgnoreCase)==false)//User ID=sa
     //            .ToArray();
     //        result = string.Join(";", newConnectionString);
-
     //    }
     //    return result;
-    //}
+    // }
+
     public async Task<Result<List<TenantDto>>> GetAllAsync()
     {
         var tenants = await _context.Tenants.ToListAsync();
