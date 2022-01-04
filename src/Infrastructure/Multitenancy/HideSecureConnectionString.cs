@@ -1,58 +1,89 @@
+using MySqlConnector;
+using Npgsql;
+using Oracle.ManagedDataAccess.Client;
+using System.Data.SqlClient;
+
 namespace DN.WebApi.Infrastructure.Multitenancy
 {
     public class HideSecureConnectionString
     {
-        internal static string? GetSecureConnectionString(string? dbProvider, string? connectionString)
+        private const string HIDED_STRING = "*******";
+
+
+
+        public static string? GetSecureConnectionString(string? dbProvider, string? connectionString)
         {
-            string[] postgresql_userStrings = new string[] { "user id", "userID", "username", "uid", "user name", "user" };
-            string[] postgresql_passwordStrings = new[] { "password", "pwd" };
-            string[] mssql_userStrings = new string[] { "user id", "userID", "username", "uid", "user name", "user" };
-            string[] mssql_passwordStrings = new[] { "password", "pwd" };
-            string[] mysql_userStrings = new string[] { "user id", "userID", "username", "uid", "user name", "user" };
-            string[] mysql_passwordStrings = new[] { "password", "pwd" };
-            string[] oracle_userStrings = new string[] { "user id", "userID", "username", "uid", "user name", "user" };
-            string[] oracle_passwordStrings = new[] { "password", "pwd" };
+            if (connectionString == null)
+            {
+                return connectionString;
+            }
 
             string? result = connectionString;
+
             switch (dbProvider?.ToLower())
             {
                 case "postgresql":
-                    result = HideSecureConnectionStringByProvider(connectionString, postgresql_userStrings, postgresql_passwordStrings);
+                    var npgsqlConnectionStringBuilder = new NpgsqlConnectionStringBuilder(connectionString);
+
+                    if (!string.IsNullOrEmpty(npgsqlConnectionStringBuilder.Password) || !npgsqlConnectionStringBuilder.IntegratedSecurity)
+                    {
+                        npgsqlConnectionStringBuilder.Password = HIDED_STRING;
+                    }
+
+                    if (!string.IsNullOrEmpty(npgsqlConnectionStringBuilder.Username) || !npgsqlConnectionStringBuilder.IntegratedSecurity)
+                    {
+                        npgsqlConnectionStringBuilder.Username = HIDED_STRING;
+                    }
+
+                    result = npgsqlConnectionStringBuilder.ToString();
                     break;
                 case "mssql":
-                    result = HideSecureConnectionStringByProvider(connectionString, mssql_userStrings, mssql_passwordStrings);
+                    var sqlConnectionStringBuilder = new SqlConnectionStringBuilder(connectionString);
+
+                    if (!string.IsNullOrEmpty(sqlConnectionStringBuilder.Password) || !sqlConnectionStringBuilder.IntegratedSecurity)
+                    {
+                        sqlConnectionStringBuilder.Password = HIDED_STRING;
+                    }
+
+                    if (!string.IsNullOrEmpty(sqlConnectionStringBuilder.UserID) || !sqlConnectionStringBuilder.IntegratedSecurity)
+                    {
+                        sqlConnectionStringBuilder.UserID = HIDED_STRING;
+                    }
+
+                    result = sqlConnectionStringBuilder.ToString();
                     break;
                 case "mysql":
-                    result = HideSecureConnectionStringByProvider(connectionString, mysql_userStrings, mysql_passwordStrings);
+                    var mySqlConnectionStringBuilder = new MySqlConnectionStringBuilder(connectionString);
+
+                    if (!string.IsNullOrEmpty(mySqlConnectionStringBuilder.Password))
+                    {
+                        mySqlConnectionStringBuilder.Password = HIDED_STRING;
+                    }
+
+                    if (!string.IsNullOrEmpty(mySqlConnectionStringBuilder.UserID))
+                    {
+                        mySqlConnectionStringBuilder.UserID = HIDED_STRING;
+                    }
+
+                    result = mySqlConnectionStringBuilder.ToString();
                     break;
                 case "oracle":
-                    result = HideSecureConnectionStringByProvider(connectionString, oracle_userStrings, oracle_passwordStrings);
+                    var oracleConnectionStringBuilder = new OracleConnectionStringBuilder(connectionString);
+
+                    if (!string.IsNullOrEmpty(oracleConnectionStringBuilder.Password))
+                    {
+                        oracleConnectionStringBuilder.Password = HIDED_STRING;
+                    }
+
+                    if (!string.IsNullOrEmpty(oracleConnectionStringBuilder.UserID))
+                    {
+                        oracleConnectionStringBuilder.UserID = HIDED_STRING;
+                    }
+
+                    result = oracleConnectionStringBuilder.ToString();
                     break;
             }
 
-            return result;
-        }
-        private static string? HideSecureConnectionStringByProvider(string? connectionString, string[] userStrings, string[] passwordStrings)
-        {
-            string? result = connectionString;
-
-            if (!string.IsNullOrWhiteSpace(connectionString))
-            {
-                var stringParts = connectionString.Split(new char[] { ';' });
-                var query = stringParts.AsQueryable();
-                foreach (string userString in userStrings)
-                {
-                    query = query.Where(s =>
-                        s.Contains(userString, StringComparison.InvariantCultureIgnoreCase) == false);
-                }
-                foreach (string passwordString in passwordStrings)
-                {
-                    query = query.Where(s =>
-                        s.Contains(passwordString, StringComparison.InvariantCultureIgnoreCase) == false);
-                }
-                var newConnectionString = query.ToArray();
-                result = string.Join(";", newConnectionString);
-            }
             return result;
         }
     }
