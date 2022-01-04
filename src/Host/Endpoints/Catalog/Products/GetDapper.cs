@@ -11,7 +11,7 @@ using NSwag.Annotations;
 namespace DN.WebApi.Host.Endpoints.Catalog.Products;
 
 public class GetDapper : EndpointBaseAsync
-    .WithRequest<GetProductRequest>
+    .WithRequest<IdFromRoute>
     .WithResult<Result<ProductDto>>
 {
     private readonly IRepositoryAsync _repository;
@@ -21,7 +21,7 @@ public class GetDapper : EndpointBaseAsync
     [HttpGet("dapper/{id:guid}")]
     [MustHavePermission(PermissionConstants.Products.View)]
     [OpenApiOperation("Get product details via dapper.", "")]
-    public override async Task<Result<ProductDto>> HandleAsync([FromRoute] GetProductRequest request, CancellationToken cancellationToken = default)
+    public override async Task<Result<ProductDto>> HandleAsync([FromRoute] IdFromRoute request, CancellationToken cancellationToken = default)
     {
         var product = await _repository.QueryFirstOrDefaultAsync<Product>(
             $"SELECT * FROM public.\"Products\" WHERE \"Id\"  = '{request.Id}' AND \"Tenant\" = '@tenant'", cancellationToken: cancellationToken);

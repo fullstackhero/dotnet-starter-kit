@@ -11,7 +11,7 @@ using Microsoft.Extensions.Localization;
 namespace DN.WebApi.Host.Endpoints.Catalog.Brands;
 
 public class Delete : EndpointBaseAsync
-    .WithRequest<DeleteBrandRequest>
+    .WithRequest<IdFromRoute>
     .WithActionResult<Result<Guid>>
 {
     private readonly IRepositoryAsync _repository;
@@ -22,7 +22,7 @@ public class Delete : EndpointBaseAsync
 
     [HttpDelete("{id:guid}")]
     [MustHavePermission(PermissionConstants.Brands.Remove)]
-    public override async Task<ActionResult<Result<Guid>>> HandleAsync([FromRoute] DeleteBrandRequest request, CancellationToken cancellationToken = default)
+    public override async Task<ActionResult<Result<Guid>>> HandleAsync([FromRoute] IdFromRoute request, CancellationToken cancellationToken = default)
     {
         if (await _repository.ExistsAsync<Product>(a => a.BrandId == request.Id))
         {

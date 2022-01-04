@@ -11,7 +11,7 @@ using System.Linq.Expressions;
 namespace DN.WebApi.Host.Endpoints.Catalog.Products;
 
 public class Get : EndpointBaseAsync
-    .WithRequest<GetProductRequest>
+    .WithRequest<IdFromRoute>
     .WithResult<Result<ProductDetailsDto>>
 {
     private readonly IRepositoryAsync _repository;
@@ -21,7 +21,7 @@ public class Get : EndpointBaseAsync
     [HttpGet("{id:guid}")]
     [MustHavePermission(PermissionConstants.Products.View)]
     [OpenApiOperation("Get product details.", "")]
-    public override async Task<Result<ProductDetailsDto>> HandleAsync([FromRoute] GetProductRequest request, CancellationToken cancellationToken = default)
+    public override async Task<Result<ProductDetailsDto>> HandleAsync([FromRoute] IdFromRoute request, CancellationToken cancellationToken = default)
     {
         var includes = new Expression<Func<Product, object>>[] { x => x.Brand };
         var product = await _repository.GetByIdAsync<Product, ProductDetailsDto>(request.Id, includes, cancellationToken);

@@ -12,7 +12,7 @@ using NSwag.Annotations;
 namespace DN.WebApi.Host.Endpoints.Catalog.Products;
 
 public class Delete : EndpointBaseAsync
-    .WithRequest<DeleteProductRequest>
+    .WithRequest<IdFromRoute>
     .WithResult<Result<Guid>>
 {
     private readonly IRepositoryAsync _repository;
@@ -22,7 +22,7 @@ public class Delete : EndpointBaseAsync
     [HttpDelete("{id:guid}")]
     [MustHavePermission(PermissionConstants.Products.Remove)]
     [OpenApiOperation("Delete a product.", "")]
-    public override async Task<Result<Guid>> HandleAsync([FromRoute] DeleteProductRequest request, CancellationToken cancellationToken = default)
+    public override async Task<Result<Guid>> HandleAsync([FromRoute] IdFromRoute request, CancellationToken cancellationToken = default)
     {
         var productToDelete = await _repository.RemoveByIdAsync<Product>(request.Id, cancellationToken);
 
