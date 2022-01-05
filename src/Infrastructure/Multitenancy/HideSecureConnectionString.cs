@@ -17,73 +17,82 @@ namespace DN.WebApi.Infrastructure.Multitenancy
                 return connectionString;
             }
 
-            string? result = connectionString;
-
-            switch (dbProvider?.ToLower())
+            return dbProvider?.ToLower() switch
             {
-                case DbProviderConstants.Npgsql:
-                    var npgsqlConnectionStringBuilder = new NpgsqlConnectionStringBuilder(connectionString);
+                DbProviderConstants.Npgsql => SecureNpgsqlConnectionString(connectionString),
+                DbProviderConstants.SqlServer => SecureSqlConnectionString(connectionString),
+                DbProviderConstants.MySql => SecureMySqlConnectionString(connectionString),
+                DbProviderConstants.Oracle => SecureOracleConnectionString(connectionString),
+                _ => connectionString
+            };
+        }
 
-                    if (!string.IsNullOrEmpty(npgsqlConnectionStringBuilder.Password) || !npgsqlConnectionStringBuilder.IntegratedSecurity)
-                    {
-                        npgsqlConnectionStringBuilder.Password = HiddenValueDefault;
-                    }
+        private static string SecureOracleConnectionString(string connectionString)
+        {
+            var builder = new OracleConnectionStringBuilder(connectionString);
 
-                    if (!string.IsNullOrEmpty(npgsqlConnectionStringBuilder.Username) || !npgsqlConnectionStringBuilder.IntegratedSecurity)
-                    {
-                        npgsqlConnectionStringBuilder.Username = HiddenValueDefault;
-                    }
-
-                    result = npgsqlConnectionStringBuilder.ToString();
-                    break;
-                case DbProviderConstants.SqlServer:
-                    var sqlConnectionStringBuilder = new SqlConnectionStringBuilder(connectionString);
-
-                    if (!string.IsNullOrEmpty(sqlConnectionStringBuilder.Password) || !sqlConnectionStringBuilder.IntegratedSecurity)
-                    {
-                        sqlConnectionStringBuilder.Password = HiddenValueDefault;
-                    }
-
-                    if (!string.IsNullOrEmpty(sqlConnectionStringBuilder.UserID) || !sqlConnectionStringBuilder.IntegratedSecurity)
-                    {
-                        sqlConnectionStringBuilder.UserID = HiddenValueDefault;
-                    }
-
-                    result = sqlConnectionStringBuilder.ToString();
-                    break;
-                case DbProviderConstants.MySql:
-                    var mySqlConnectionStringBuilder = new MySqlConnectionStringBuilder(connectionString);
-
-                    if (!string.IsNullOrEmpty(mySqlConnectionStringBuilder.Password))
-                    {
-                        mySqlConnectionStringBuilder.Password = HiddenValueDefault;
-                    }
-
-                    if (!string.IsNullOrEmpty(mySqlConnectionStringBuilder.UserID))
-                    {
-                        mySqlConnectionStringBuilder.UserID = HiddenValueDefault;
-                    }
-
-                    result = mySqlConnectionStringBuilder.ToString();
-                    break;
-                case DbProviderConstants.Oracle:
-                    var oracleConnectionStringBuilder = new OracleConnectionStringBuilder(connectionString);
-
-                    if (!string.IsNullOrEmpty(oracleConnectionStringBuilder.Password))
-                    {
-                        oracleConnectionStringBuilder.Password = HiddenValueDefault;
-                    }
-
-                    if (!string.IsNullOrEmpty(oracleConnectionStringBuilder.UserID))
-                    {
-                        oracleConnectionStringBuilder.UserID = HiddenValueDefault;
-                    }
-
-                    result = oracleConnectionStringBuilder.ToString();
-                    break;
+            if (!string.IsNullOrEmpty(builder.Password))
+            {
+                builder.Password = HiddenValueDefault;
             }
 
-            return result;
+            if (!string.IsNullOrEmpty(builder.UserID))
+            {
+                builder.UserID = HiddenValueDefault;
+            }
+
+            return builder.ToString();
+        }
+
+        private static string SecureMySqlConnectionString(string connectionString)
+        {
+            var builder = new MySqlConnectionStringBuilder(connectionString);
+
+            if (!string.IsNullOrEmpty(builder.Password))
+            {
+                builder.Password = HiddenValueDefault;
+            }
+
+            if (!string.IsNullOrEmpty(builder.UserID))
+            {
+                builder.UserID = HiddenValueDefault;
+            }
+
+            return builder.ToString();
+        }
+
+        private static string SecureSqlConnectionString(string connectionString)
+        {
+            var builder = new SqlConnectionStringBuilder(connectionString);
+
+            if (!string.IsNullOrEmpty(builder.Password) || !builder.IntegratedSecurity)
+            {
+                builder.Password = HiddenValueDefault;
+            }
+
+            if (!string.IsNullOrEmpty(builder.UserID) || !builder.IntegratedSecurity)
+            {
+                builder.UserID = HiddenValueDefault;
+            }
+
+            return builder.ToString();
+        }
+
+        private static string SecureNpgsqlConnectionString(string connectionString)
+        {
+            var builder = new NpgsqlConnectionStringBuilder(connectionString);
+
+            if (!string.IsNullOrEmpty(builder.Password) || !builder.IntegratedSecurity)
+            {
+                builder.Password = HiddenValueDefault;
+            }
+
+            if (!string.IsNullOrEmpty(builder.Username) || !builder.IntegratedSecurity)
+            {
+                builder.Username = HiddenValueDefault;
+            }
+
+            return builder.ToString();
         }
     }
 }
