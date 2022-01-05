@@ -56,16 +56,16 @@ public class BrandService : IBrandService
             PageSize = filter.PageSize
         };
 
-        return _repository.GetListAsync<Brand, Guid, BrandDto>(specification);
+        return _repository.GetListAsync<Brand, BrandDto>(specification);
     }
 
     public async Task<Result<Guid>> UpdateBrandAsync(UpdateBrandRequest request, Guid id)
     {
-        var brand = await _repository.GetByIdAsync<Brand, Guid>(id);
+        var brand = await _repository.GetByIdAsync<Brand>(id);
         if (brand == null) throw new EntityNotFoundException(string.Format(_localizer["brand.notfound"], id));
         var updatedBrand = brand.Update(request.Name, request.Description);
         updatedBrand.DomainEvents.Add(new StatsChangedEvent());
-        await _repository.UpdateAsync<Brand, Guid>(updatedBrand);
+        await _repository.UpdateAsync<Brand>(updatedBrand);
         await _repository.SaveChangesAsync();
         return await Result<Guid>.SuccessAsync(id);
     }

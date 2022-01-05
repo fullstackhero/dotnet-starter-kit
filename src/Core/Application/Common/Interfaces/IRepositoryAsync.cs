@@ -202,21 +202,43 @@ public interface IRepositoryAsync : ITransientService
     /// Add a single <typeparamref name="T"/> to the EF Core context to be persisted in the database.
     /// </summary>
     /// <typeparam name="T">The type of the entity.</typeparam>
+    /// <typeparam name="TKey">The type of the entity id.</typeparam>
     /// <param name="entity">The entity to be inserted.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
-    /// <returns>Returns <see cref="Task"/> of <see cref="Guid"/>.</returns>
-    Task<Guid> CreateAsync<T>(T entity, CancellationToken cancellationToken = default)
-    where T : BaseEntity;
+    /// <returns>Returns <see cref="Task"/> of <see cref="TKey"/>.</returns>
+    Task<TKey> CreateAsync<T, TKey>(T entity, CancellationToken cancellationToken = default)
+    where T : BaseEntityWith<TKey>;
+
+    /// <summary>
+    /// Add a single <typeparamref name="T"/> to the EF Core context to be persisted in the database.
+    /// </summary>
+    /// <typeparam name="T">The type of the entity with id of type int.</typeparam>
+    /// <param name="entity">The entity to be inserted.</param>
+    /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
+    /// <returns>Returns <see cref="Task"/> of <see cref="int"/>.</returns>
+    Task<int> CreateAsync<T>(T entity, CancellationToken cancellationToken = default)
+    where T : BaseEntityWith<int>;
 
     /// <summary>
     /// Add an <see cref="IEnumerable{T}"/> to the EF Core context to be persisted in the database.
     /// </summary>
     /// <typeparam name="T">The type of the entities.</typeparam>
+    /// /// <typeparam name="TKey">The type of the entity id.</typeparam>
     /// <param name="entities">The entities to be inserted.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>Returns <see cref="Task"/> of <see cref="IList{Guid}"/>.</returns>
-    Task<IList<Guid>> CreateRangeAsync<T>(IEnumerable<T> entities, CancellationToken cancellationToken = default)
-    where T : BaseEntity;
+    Task<IList<TKey>> CreateRangeAsync<T, TKey>(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+    where T : BaseEntityWith<TKey>;
+
+    /// <summary>
+    /// Add an <see cref="IEnumerable{T}"/> to the EF Core context to be persisted in the database.
+    /// </summary>
+    /// <typeparam name="T">The type of the entities with id of type int.</typeparam>
+    /// <param name="entities">The entities to be inserted.</param>
+    /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
+    /// <returns>Returns <see cref="Task"/> of <see cref="IList{TKey}"/>.</returns>
+    Task<IList<int>> CreateRangeAsync<T>(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+    where T : BaseEntityWith<int>;
 
     /// <summary>
     /// Update a single <typeparamref name="T"/> in the EF Core context to be persisted in the database.

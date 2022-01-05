@@ -126,7 +126,7 @@ public class RepositoryAsync : IRepositoryAsync
         bool asNoTracking = false,
         CancellationToken cancellationToken = default)
     where T : BaseEntity =>
-        Filter(e => e.Id == entityId, includes: includes, asNoTracking: asNoTracking)
+        Filter(e => e.Id.Equals(entityId) , includes: includes, asNoTracking: asNoTracking)
             .FirstOrDefaultAsync(cancellationToken);
 
     public Task<TProjectedType?> GetByIdAsync<T, TProjectedType>(
@@ -137,7 +137,7 @@ public class RepositoryAsync : IRepositoryAsync
     where T : BaseEntity =>
         selectExpression == null
             ? throw new ArgumentNullException(nameof(selectExpression))
-            : Filter(e => e.Id == entityId, includes: includes, asNoTracking: true)
+            : Filter(e => e.Id.Equals(entityId), includes: includes, asNoTracking: true)
                 .Select(selectExpression)
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -267,18 +267,30 @@ public class RepositoryAsync : IRepositoryAsync
 
     // Create (these won't work with database generated id's if we were to suport that...)
 
-    public async Task<Guid> CreateAsync<T>(T entity, CancellationToken cancellationToken = default)
-    where T : BaseEntity
+    public async Task<TKey> CreateAsync<T, TKey>(T entity, CancellationToken cancellationToken = default)
+    where T : BaseEntityWith<TKey>
     {
         await _dbContext.Set<T>().AddAsync(entity, cancellationToken);
         return entity.Id;
     }
 
-    public async Task<IList<Guid>> CreateRangeAsync<T>(IEnumerable<T> entities, CancellationToken cancellationToken = default)
-    where T : BaseEntity
+    public async Task<int> CreateAsync<T>(T entity, CancellationToken cancellationToken = default)
+    where T : BaseEntityWith<int>
+    {
+        return await CreateAsync<T, int>(entity, cancellationToken);
+    }
+
+    public async Task<IList<TKey>> CreateRangeAsync<T, TKey>(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+    where T : BaseEntityWith<TKey>
     {
         await _dbContext.Set<T>().AddRangeAsync(entities, cancellationToken);
         return entities.Select(x => x.Id).ToList();
+    }
+
+    public async Task<IList<int>> CreateRangeAsync<T>(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+    where T : BaseEntityWith<int>
+    {
+        return await CreateRangeAsync<T, int>(entities, cancellationToken);
     }
 
     // Update

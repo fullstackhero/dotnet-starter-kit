@@ -80,7 +80,7 @@ public class BrandGeneratorJob : IBrandGeneratorJob
 
         foreach (var item in items)
         {
-            await _repository.RemoveAsync<Brand, Guid>(item);
+            await _repository.RemoveAsync<Brand>(item);
         }
 
         int rows = await _repository.SaveChangesAsync();
