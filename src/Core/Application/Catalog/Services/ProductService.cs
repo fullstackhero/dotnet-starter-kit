@@ -55,7 +55,7 @@ public class ProductService : IProductService
         if (request.Image != null) productImagePath = await _file.UploadAsync<Product>(request.Image, FileType.Image);
         if (request.BrandId != default)
         {
-            var brand = await _repository.GetByIdAsync<Brand, Guid>(request.BrandId, null);
+            var brand = await _repository.GetByIdAsync<Brand>(request.BrandId, null);
             if (brand == null) throw new EntityNotFoundException(string.Format(_localizer["brand.notfound"], id));
         }
 

@@ -7,4 +7,7 @@
     <ItemGroup>
         <PackageReference Include="NewId" Version="4.0.0-develop.44" />
     </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\GlobalUsings.cs"/>
+  </ItemGroup>
 </Project>

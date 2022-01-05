@@ -40,7 +40,7 @@ public class RepositoryAsync : IRepositoryAsync
         Expression<Func<T, object>>[]? includes = null,
         bool asNoTracking = true,
         CancellationToken cancellationToken = default)
-    where T : BaseEntity =>
+    where T : class, IEntity =>
         Filter(condition, orderBy, includes, asNoTracking: asNoTracking)
             .ToListAsync(cancellationToken);
 
@@ -48,7 +48,7 @@ public class RepositoryAsync : IRepositoryAsync
         BaseSpecification<T>? specification = null,
         bool asNoTracking = true,
         CancellationToken cancellationToken = default)
-    where T : BaseEntity =>
+    where T : class, IEntity =>
         Filter(specification: specification, asNoTracking: asNoTracking)
             .ToListAsync(cancellationToken);
 
@@ -58,7 +58,7 @@ public class RepositoryAsync : IRepositoryAsync
         Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
         Expression<Func<T, object>>[]? includes = null,
         CancellationToken cancellationToken = default)
-    where T : BaseEntity =>
+    where T : class, IEntity =>
         selectExpression == null
             ? throw new ArgumentNullException(nameof(selectExpression))
             : Filter(condition, orderBy, includes, asNoTracking: true)
@@ -69,7 +69,7 @@ public class RepositoryAsync : IRepositoryAsync
         Expression<Func<T, TProjectedType>> selectExpression,
         BaseSpecification<T>? specification = null,
         CancellationToken cancellationToken = default)
-    where T : BaseEntity =>
+    where T : class, IEntity =>
         selectExpression == null
             ? throw new ArgumentNullException(nameof(selectExpression))
             : Filter(specification: specification, asNoTracking: true)
@@ -79,7 +79,7 @@ public class RepositoryAsync : IRepositoryAsync
     public Task<PaginatedResult<TDto>> GetListAsync<T, TDto>(
         PaginationSpecification<T> specification,
         CancellationToken cancellationToken = default)
-    where T : BaseEntity
+    where T : class, IEntity
     where TDto : IDto
     {
         if (specification == null)
@@ -120,36 +120,49 @@ public class RepositoryAsync : IRepositoryAsync
 
     // Get One By Id
 
+    public Task<T?> GetByIdAsync<T, TKey>(
+        DefaultIdType entityId,
+        Expression<Func<T, object>>[]? includes = null,
+        bool asNoTracking = false,
+        CancellationToken cancellationToken = default)
+    where T : class, IEntity<TKey> =>
+        Filter(e => e.Id.Equals(entityId), includes: includes, asNoTracking: asNoTracking)
+            .FirstOrDefaultAsync(cancellationToken);
+
     public Task<T?> GetByIdAsync<T>(
         DefaultIdType entityId,
         Expression<Func<T, object>>[]? includes = null,
         bool asNoTracking = false,
         CancellationToken cancellationToken = default)
-    where T : BaseEntity =>
-        Filter(e => e.Id.Equals(entityId) , includes: includes, asNoTracking: asNoTracking)
-            .FirstOrDefaultAsync(cancellationToken);
+    where T : class, IEntity<DefaultIdType> => GetByIdAsync<T, DefaultIdType>(entityId, includes, asNoTracking, cancellationToken);
 
-    public Task<TProjectedType?> GetByIdAsync<T, TProjectedType>(
+    public Task<TProjectedType?> GetByIdAsync<T, TKey, TProjectedType>(
         DefaultIdType entityId,
         Expression<Func<T, TProjectedType>> selectExpression,
         Expression<Func<T, object>>[]? includes = null,
         CancellationToken cancellationToken = default)
-    where T : BaseEntity =>
+    where T : class, IEntity<TKey> =>
         selectExpression == null
             ? throw new ArgumentNullException(nameof(selectExpression))
             : Filter(e => e.Id.Equals(entityId), includes: includes, asNoTracking: true)
                 .Select(selectExpression)
                 .FirstOrDefaultAsync(cancellationToken);
+    public Task<TProjectedType?> GetByIdAsync<T, TProjectedType>(
+        DefaultIdType entityId,
+        Expression<Func<T, TProjectedType>> selectExpression,
+        Expression<Func<T, object>>[]? includes = null,
+        CancellationToken cancellationToken = default)
+    where T : class, IEntity<DefaultIdType> => GetByIdAsync<T, DefaultIdType, TProjectedType>(entityId, selectExpression, includes, cancellationToken);
 
-    public async Task<TDto> GetByIdAsync<T, TDto>(
+    public async Task<TDto> GetByIdAsync<T, TKey, TDto>(
         DefaultIdType entityId,
         Expression<Func<T, object>>[]? includes = null,
         CancellationToken cancellationToken = default)
-    where T : BaseEntity
+    where T : class, IEntity<TKey>
     where TDto : IDto
     {
         async Task<TDto?> getDto() =>
-            await GetByIdAsync(entityId, includes, true, cancellationToken) is object entity
+            await GetByIdAsync<T, TKey>(entityId, includes, true, cancellationToken) is object entity
                 ? entity.Adapt<TDto?>()
                 : default;
 
@@ -163,6 +176,13 @@ public class RepositoryAsync : IRepositoryAsync
             : dto;
     }
 
+    public async Task<TDto> GetByIdAsync<T, TDto>(
+        DefaultIdType entityId,
+        Expression<Func<T, object>>[]? includes = null,
+        CancellationToken cancellationToken = default)
+    where T : class, IEntity<DefaultIdType>
+    where TDto : IDto => await GetByIdAsync<T, DefaultIdType, TDto>(entityId, includes, cancellationToken);
+
     // Get One By Condition
 
     public Task<T?> GetAsync<T>(
@@ -170,7 +190,7 @@ public class RepositoryAsync : IRepositoryAsync
         Expression<Func<T, object>>[]? includes = null,
         bool asNoTracking = false,
         CancellationToken cancellationToken = default)
-    where T : BaseEntity =>
+    where T : class, IEntity =>
         Filter(condition, includes: includes, asNoTracking: asNoTracking)
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -178,7 +198,7 @@ public class RepositoryAsync : IRepositoryAsync
        BaseSpecification<T>? specification = null,
        bool asNoTracking = false,
        CancellationToken cancellationToken = default)
-    where T : BaseEntity =>
+    where T : class, IEntity =>
         Filter(specification: specification, asNoTracking: asNoTracking)
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -188,7 +208,7 @@ public class RepositoryAsync : IRepositoryAsync
         Expression<Func<T, object>>[]? includes = null,
         bool asNoTracking = true,
         CancellationToken cancellationToken = default)
-    where T : BaseEntity =>
+    where T : class, IEntity =>
         selectExpression == null
             ? throw new ArgumentNullException(nameof(selectExpression))
             : Filter(condition, includes: includes, asNoTracking: asNoTracking)
@@ -200,7 +220,7 @@ public class RepositoryAsync : IRepositoryAsync
         BaseSpecification<T>? specification = null,
         bool asNoTracking = true,
         CancellationToken cancellationToken = default)
-    where T : BaseEntity =>
+    where T : class, IEntity =>
         selectExpression == null
             ? throw new ArgumentNullException(nameof(selectExpression))
             : Filter(specification: specification, asNoTracking: asNoTracking)
@@ -212,7 +232,7 @@ public class RepositoryAsync : IRepositoryAsync
     public Task<int> GetCountAsync<T>(
         Expression<Func<T, bool>>? condition = null,
         CancellationToken cancellationToken = default)
-    where T : BaseEntity =>
+    where T : class, IEntity =>
         Filter(condition)
             .CountAsync(cancellationToken);
 
@@ -221,7 +241,7 @@ public class RepositoryAsync : IRepositoryAsync
     public Task<bool> ExistsAsync<T>(
         Expression<Func<T, bool>> condition,
         CancellationToken cancellationToken = default)
-    where T : BaseEntity =>
+    where T : class, IEntity =>
         Filter(condition)
             .AnyAsync(cancellationToken);
 
@@ -233,7 +253,7 @@ public class RepositoryAsync : IRepositoryAsync
         Expression<Func<T, object>>[]? includes = null,
         BaseSpecification<T>? specification = null,
         bool asNoTracking = false)
-    where T : BaseEntity
+    where T : class, IEntity
     {
         IQueryable<T> query = _dbContext.Set<T>();
 
@@ -268,29 +288,29 @@ public class RepositoryAsync : IRepositoryAsync
     // Create (these won't work with database generated id's if we were to suport that...)
 
     public async Task<TKey> CreateAsync<T, TKey>(T entity, CancellationToken cancellationToken = default)
-    where T : BaseEntityWith<TKey>
+    where T : class, IEntity<TKey>
     {
         await _dbContext.Set<T>().AddAsync(entity, cancellationToken);
         return entity.Id;
     }
 
     public async Task<DefaultIdType> CreateAsync<T>(T entity, CancellationToken cancellationToken = default)
-    where T : BaseEntityWith<DefaultIdType> => await CreateAsync<T, DefaultIdType>(entity, cancellationToken);
+    where T : class, IEntity<DefaultIdType> => await CreateAsync<T, DefaultIdType>(entity, cancellationToken);
 
     public async Task<IList<TKey>> CreateRangeAsync<T, TKey>(IEnumerable<T> entities, CancellationToken cancellationToken = default)
-    where T : BaseEntityWith<TKey>
+    where T : class, IEntity<TKey>
     {
         await _dbContext.Set<T>().AddRangeAsync(entities, cancellationToken);
         return entities.Select(x => x.Id).ToList();
     }
 
     public async Task<IList<DefaultIdType>> CreateRangeAsync<T>(IEnumerable<T> entities, CancellationToken cancellationToken = default)
-    where T : BaseEntityWith<DefaultIdType> => await CreateRangeAsync<T, DefaultIdType>(entities, cancellationToken);
+    where T : class, IEntity<DefaultIdType> => await CreateRangeAsync<T, DefaultIdType>(entities, cancellationToken);
 
     // Update
 
-    public Task UpdateAsync<T>(T entity, CancellationToken cancellationToken = default)
-    where T : BaseEntity
+    public Task UpdateAsync<T, TKey>(T entity, CancellationToken cancellationToken = default)
+    where T : class, IEntity<TKey>
     {
         if (_dbContext.Entry(entity).State == EntityState.Unchanged)
         {
@@ -305,8 +325,14 @@ public class RepositoryAsync : IRepositoryAsync
         return _cache.RemoveAsync(CacheKeys.GetCacheKey<T>(entity.Id), cancellationToken);
     }
 
-    public async Task UpdateRangeAsync<T>(IEnumerable<T> entities, CancellationToken cancellationToken = default)
-    where T : BaseEntity
+    public Task UpdateAsync<T>(T entity, CancellationToken cancellationToken = default)
+    where T : class, IEntity<DefaultIdType>
+    {
+        return UpdateAsync<T, DefaultIdType>(entity, cancellationToken);
+    }
+
+    public async Task UpdateRangeAsync<T, TKey>(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+    where T : class, IEntity<TKey>
     {
         foreach (var entity in entities)
         {
@@ -324,17 +350,23 @@ public class RepositoryAsync : IRepositoryAsync
         }
     }
 
+    public async Task UpdateRangeAsync<T>(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+    where T : class, IEntity<DefaultIdType> => await UpdateRangeAsync<T, DefaultIdType>(entities, cancellationToken);
+
     // Delete
 
-    public Task RemoveAsync<T>(T entity, CancellationToken cancellationToken = default)
-    where T : BaseEntity
+    public Task RemoveAsync<T, TKey>(T entity, CancellationToken cancellationToken = default)
+    where T : class, IEntity<TKey>
     {
         _dbContext.Set<T>().Remove(entity);
         return _cache.RemoveAsync(CacheKeys.GetCacheKey<T>(entity.Id), cancellationToken);
     }
 
+    public Task RemoveAsync<T>(T entity, CancellationToken cancellationToken = default)
+    where T : class, IEntity<DefaultIdType> => RemoveAsync<T, DefaultIdType>(entity, cancellationToken);
+
     public async Task<T> RemoveByIdAsync<T>(DefaultIdType entityId, CancellationToken cancellationToken = default)
-    where T : BaseEntity
+    where T : class, IEntity
     {
         var entity = await _dbContext.Set<T>().FindAsync(new object?[] { entityId }, cancellationToken: cancellationToken);
         _ = entity ?? throw new EntityNotFoundException(string.Format(_localizer["entity.notfound"], typeof(T).Name, entityId));
@@ -344,8 +376,8 @@ public class RepositoryAsync : IRepositoryAsync
         return entity;
     }
 
-    public async Task RemoveRangeAsync<T>(IEnumerable<T> entities, CancellationToken cancellationToken = default)
-    where T : BaseEntity
+    public async Task RemoveRangeAsync<T, TKey>(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+    where T : class, IEntity<TKey>
     {
         foreach (var entity in entities)
         {
@@ -354,11 +386,14 @@ public class RepositoryAsync : IRepositoryAsync
         }
     }
 
-    public Task ClearAsync<T>(
+    public async Task RemoveRangeAsync<T>(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+    where T : class, IEntity<DefaultIdType> => await RemoveRangeAsync<T, DefaultIdType>(entities, cancellationToken);
+
+    public Task ClearAsync<T, TKey>(
         Expression<Func<T, bool>>? condition = null,
         BaseSpecification<T>? specification = null,
         CancellationToken cancellationToken = default)
-    where T : BaseEntity =>
+    where T : class, IEntity<TKey> =>
         Filter(condition, specification: specification)
             .ForEachAsync(
                 x =>
@@ -368,6 +403,12 @@ public class RepositoryAsync : IRepositoryAsync
             },
                 cancellationToken: cancellationToken);
 
+    public Task ClearAsync<T>(
+        Expression<Func<T, bool>>? condition = null,
+        BaseSpecification<T>? specification = null,
+        CancellationToken cancellationToken = default)
+    where T : class, IEntity<DefaultIdType> => ClearAsync<T, DefaultIdType>(condition, specification, cancellationToken);
+
     // SaveChanges
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) =>
@@ -376,12 +417,12 @@ public class RepositoryAsync : IRepositoryAsync
     // Dapper
 
     public async Task<IReadOnlyList<T>> QueryAsync<T>(string sql, object? param = null, IDbTransaction? transaction = null, CancellationToken cancellationToken = default)
-    where T : BaseEntity =>
+    where T : class, IEntity =>
         (await _dbContext.Connection.QueryAsync<T>(sql, param, transaction))
             .AsList();
 
     public async Task<T> QueryFirstOrDefaultAsync<T>(string sql, object? param = null, IDbTransaction? transaction = null, CancellationToken cancellationToken = default)
-    where T : BaseEntity
+    where T : class, IEntity
     {
         if (typeof(IMustHaveTenant).IsAssignableFrom(typeof(T)))
         {
@@ -394,7 +435,7 @@ public class RepositoryAsync : IRepositoryAsync
     }
 
     public Task<T> QuerySingleAsync<T>(string sql, object? param = null, IDbTransaction? transaction = null, CancellationToken cancellationToken = default)
-    where T : BaseEntity
+    where T : class, IEntity
     {
         if (typeof(IMustHaveTenant).IsAssignableFrom(typeof(T)))
         {

@@ -5,7 +5,7 @@ namespace DN.WebApi.Application.Common.Constants;
 public static class CacheKeys
 {
     public static string GetCacheKey<T>(object id)
-    where T : BaseEntity
+    where T : IEntity
     {
         return $"{typeof(T).Name}-{id}";
     }

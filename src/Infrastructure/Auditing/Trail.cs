@@ -2,7 +2,7 @@ using DN.WebApi.Domain.Common.Contracts;
 
 namespace DN.WebApi.Infrastructure.Auditing;
 
-public class Trail : BaseEntityWith<Guid>
+public class Trail : BaseEntity<Guid>
 {
     public Guid UserId { get; set; }
     public string? Type { get; set; }
