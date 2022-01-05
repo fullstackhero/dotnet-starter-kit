@@ -47,7 +47,7 @@ public abstract class BaseDbContext : IdentityDbContext<ApplicationUser, Applica
         if (!string.IsNullOrEmpty(tenantConnectionString))
         {
             string? dbProvider = _tenantService.GetDatabaseProvider();
-            switch (dbProvider?.ToLower())
+            switch (dbProvider?.ToLowerInvariant())
             {
                 case "postgresql":
                     optionsBuilder.UseNpgsql(tenantConnectionString);

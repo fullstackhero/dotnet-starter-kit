@@ -154,7 +154,7 @@ public class RoleService : IRoleService
             }
 
             existingRole.Name = request.Name;
-            existingRole.NormalizedName = request.Name.ToUpper();
+            existingRole.NormalizedName = request.Name.ToUpperInvariant();
             existingRole.Description = request.Description;
             var result = await _roleManager.UpdateAsync(existingRole);
             if (result.Succeeded)
