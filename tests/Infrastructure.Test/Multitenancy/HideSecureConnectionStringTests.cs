@@ -20,7 +20,7 @@ namespace DN.WebApi.Infrastructure.Multitenancy.Tests
             string? check2 = HideSecureConnectionString.GetSecureConnectionString("mssql", res2);
 
             Assert.True(check2?.Equals(res2, StringComparison.InvariantCultureIgnoreCase), "MSSQL: CASE 2 - Credentials"); // CASE 2
-            
+
         }
     }
 }
