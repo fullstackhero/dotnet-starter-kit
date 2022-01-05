@@ -121,7 +121,7 @@ public class RepositoryAsync : IRepositoryAsync
     // Get One By Id
 
     public Task<T?> GetByIdAsync<T>(
-        Guid entityId,
+        DefaultIdType entityId,
         Expression<Func<T, object>>[]? includes = null,
         bool asNoTracking = false,
         CancellationToken cancellationToken = default)
@@ -130,7 +130,7 @@ public class RepositoryAsync : IRepositoryAsync
             .FirstOrDefaultAsync(cancellationToken);
 
     public Task<TProjectedType?> GetByIdAsync<T, TProjectedType>(
-        Guid entityId,
+        DefaultIdType entityId,
         Expression<Func<T, TProjectedType>> selectExpression,
         Expression<Func<T, object>>[]? includes = null,
         CancellationToken cancellationToken = default)
@@ -142,7 +142,7 @@ public class RepositoryAsync : IRepositoryAsync
                 .FirstOrDefaultAsync(cancellationToken);
 
     public async Task<TDto> GetByIdAsync<T, TDto>(
-        Guid entityId,
+        DefaultIdType entityId,
         Expression<Func<T, object>>[]? includes = null,
         CancellationToken cancellationToken = default)
     where T : BaseEntity
@@ -274,11 +274,8 @@ public class RepositoryAsync : IRepositoryAsync
         return entity.Id;
     }
 
-    public async Task<int> CreateAsync<T>(T entity, CancellationToken cancellationToken = default)
-    where T : BaseEntityWith<int>
-    {
-        return await CreateAsync<T, int>(entity, cancellationToken);
-    }
+    public async Task<DefaultIdType> CreateAsync<T>(T entity, CancellationToken cancellationToken = default)
+    where T : BaseEntityWith<DefaultIdType> => await CreateAsync<T, DefaultIdType>(entity, cancellationToken);
 
     public async Task<IList<TKey>> CreateRangeAsync<T, TKey>(IEnumerable<T> entities, CancellationToken cancellationToken = default)
     where T : BaseEntityWith<TKey>
@@ -287,11 +284,8 @@ public class RepositoryAsync : IRepositoryAsync
         return entities.Select(x => x.Id).ToList();
     }
 
-    public async Task<IList<int>> CreateRangeAsync<T>(IEnumerable<T> entities, CancellationToken cancellationToken = default)
-    where T : BaseEntityWith<int>
-    {
-        return await CreateRangeAsync<T, int>(entities, cancellationToken);
-    }
+    public async Task<IList<DefaultIdType>> CreateRangeAsync<T>(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+    where T : BaseEntityWith<DefaultIdType> => await CreateRangeAsync<T, DefaultIdType>(entities, cancellationToken);
 
     // Update
 
@@ -339,7 +333,7 @@ public class RepositoryAsync : IRepositoryAsync
         return _cache.RemoveAsync(CacheKeys.GetCacheKey<T>(entity.Id), cancellationToken);
     }
 
-    public async Task<T> RemoveByIdAsync<T>(Guid entityId, CancellationToken cancellationToken = default)
+    public async Task<T> RemoveByIdAsync<T>(DefaultIdType entityId, CancellationToken cancellationToken = default)
     where T : BaseEntity
     {
         var entity = await _dbContext.Set<T>().FindAsync(new object?[] { entityId }, cancellationToken: cancellationToken);

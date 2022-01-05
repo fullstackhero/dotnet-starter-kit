@@ -6,7 +6,7 @@
     </PropertyGroup>
     <ItemGroup>
         <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    </ItemGroup>
+    </ItemGroup>  
     <ItemGroup>
         <PackageReference Include="Dapper" Version="2.0.123" />
         <PackageReference Include="Hangfire" Version="1.7.28" />
@@ -62,4 +62,7 @@
     <ItemGroup>
         <None Include="Seeding\*.json" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\GlobalUsings.cs"/>
+  </ItemGroup>
 </Project>

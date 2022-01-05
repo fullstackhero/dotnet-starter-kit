@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <RootNamespace>DN.WebApi.Application</RootNamespace>
@@ -15,4 +15,7 @@
         <ProjectReference Include="..\..\Core\Domain\Domain.csproj" />
         <ProjectReference Include="..\..\Shared\Shared.DTOs\Shared.DTOs.csproj" />
     </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\GlobalUsings.cs"/>
+  </ItemGroup>
 </Project>
