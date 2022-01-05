@@ -35,7 +35,7 @@ internal static class Startup
     }
 
     private static DbContextOptionsBuilder UseDatabase(this DbContextOptionsBuilder builder, string dbProvider, string connectionString) =>
-        dbProvider.ToLower() switch
+        dbProvider.ToLowerInvariant() switch
         {
             DbProviderConstants.Npgsql =>
                 builder.UseNpgsql(connectionString, e => e.MigrationsAssembly("Migrators.PostgreSQL")),

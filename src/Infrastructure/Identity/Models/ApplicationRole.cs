@@ -16,7 +16,7 @@ public class ApplicationRole : IdentityRole, IIdentityTenant
     : base(roleName)
     {
         Description = description;
-        NormalizedName = roleName.ToUpper();
+        NormalizedName = roleName.ToUpperInvariant();
         Tenant = tenant;
     }
 }
