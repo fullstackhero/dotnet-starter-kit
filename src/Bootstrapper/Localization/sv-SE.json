@@ -1,0 +1,16 @@
+{
+    "auth.failed": "Autentisering misslyckades.",
+    "tenant.invalid": "Ogiltligt konto.",
+    "tenant.expired": "Kontogitligheten har löpt ut. Kontakta vänligen administratorn för applikationen. ",
+    "tenant.inactive": "Kontot är inte aktivt. Kontakta vänligan administratorn för applikationen.",
+    "caching.added": "Cache tillagt : {0}",
+    "caching.refreshed": "Cache uppdaterad : {0}",
+    "identity.usernotfound": "Användaren kunde inte hittas.",
+    "identity.usernotactive": "Användaren är inte aktiv. Kontakta vänligen administratören.",
+    "identity.emailnotconfirmed": "E-Mail adressen har inte bekräftats.",
+    "identity.invalidcredentials": "Användarnamn eller lösenord är felaktigt.",
+    "identity.invalidtoken": "Felaktig Token.",
+    "entity.notfound": "{0} {1} kunde inte hittas.",
+    "product.alreadyexists": "Produkten {0} existerar redan.",
+    "exceptionmiddleware.supportmessage" : "Förse supportteamet med felkoden för vidare felsökning."
+  }

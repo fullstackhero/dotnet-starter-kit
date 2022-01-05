@@ -73,6 +73,14 @@ public class LocalFileStorageService : IFileStorageService
         return Regex.Replace(str, "[^a-zA-Z0-9_.]+", string.Empty, RegexOptions.Compiled);
     }
 
+    public void Remove(string? path)
+    {
+        if (File.Exists(path))
+        {
+            File.Delete(path);
+        }
+    }
+
     private const string NumberPattern = "-{0}";
 
     private static string NextAvailableFilename(string path)
@@ -122,4 +130,5 @@ public class LocalFileStorageService : IFileStorageService
 
         return string.Format(pattern, max);
     }
+
 }

@@ -43,11 +43,14 @@ internal class ExceptionMiddleware : IMiddleware
             string errorId = Guid.NewGuid().ToString();
             LogContext.PushProperty("ErrorId", errorId);
             LogContext.PushProperty("StackTrace", exception.StackTrace);
-            var responseModel = await ErrorResult<string>.ReturnErrorAsync(exception.Message);
-            responseModel.Source = exception.TargetSite?.DeclaringType?.FullName;
-            responseModel.Exception = exception.Message.Trim();
-            responseModel.ErrorId = errorId;
-            responseModel.SupportMessage = _localizer["exceptionmiddleware.supportmessage"];
+            var errorResult = new ErrorResult
+            {
+                Source = exception.TargetSite?.DeclaringType?.FullName,
+                Exception = exception.Message.Trim(),
+                ErrorId = errorId,
+                SupportMessage = _localizer["exceptionmiddleware.supportmessage"]
+            };
+            errorResult.Messages!.Add(exception.Message);
             var response = context.Response;
             response.ContentType = "application/json";
             if (exception is not CustomException && exception.InnerException != null)
@@ -61,21 +64,25 @@ internal class ExceptionMiddleware : IMiddleware
             switch (exception)
             {
                 case CustomException e:
-                    response.StatusCode = responseModel.StatusCode = (int)e.StatusCode;
-                    responseModel.Messages = e.ErrorMessages;
+                    response.StatusCode = errorResult.StatusCode = (int)e.StatusCode;
+                    if (e.ErrorMessages is not null)
+                    {
+                        errorResult.Messages = e.ErrorMessages;
+                    }
+
                     break;
 
                 case KeyNotFoundException:
-                    response.StatusCode = responseModel.StatusCode = (int)HttpStatusCode.NotFound;
+                    response.StatusCode = errorResult.StatusCode = (int)HttpStatusCode.NotFound;
                     break;
 
                 default:
-                    response.StatusCode = responseModel.StatusCode = (int)HttpStatusCode.InternalServerError;
+                    response.StatusCode = errorResult.StatusCode = (int)HttpStatusCode.InternalServerError;
                     break;
             }
 
-            Log.Error($"{responseModel.Exception} Request failed with Status Code {context.Response.StatusCode} and Error Id {errorId}.");
-            await response.WriteAsync(_jsonSerializer.Serialize(responseModel));
+            Log.Error($"{errorResult.Exception} Request failed with Status Code {context.Response.StatusCode} and Error Id {errorId}.");
+            await response.WriteAsync(_jsonSerializer.Serialize(errorResult));
         }
     }
 }

@@ -1,4 +1,3 @@
-using System.Net;
 using System.Security.Claims;
 using System.Text;
 using DN.WebApi.Application.Common.Interfaces;
@@ -142,9 +141,8 @@ public class IdentityService : IIdentityService
         return user;
     }
 
-    public async Task<IResult<string>> RegisterAsync(RegisterRequest request, string origin)
+    public async Task<IResult<string>> RegisterAsync(RegisterUserRequest request, string origin)
     {
-        var users = await _userManager.Users.ToListAsync();
         var userWithSameUserName = await _userManager.FindByNameAsync(request.UserName);
         if (userWithSameUserName != null)
         {
@@ -248,11 +246,6 @@ public class IdentityService : IIdentityService
 
     public async Task<IResult> ForgotPasswordAsync(ForgotPasswordRequest request, string origin)
     {
-        if (string.IsNullOrEmpty(request.Email))
-        {
-            throw new IdentityException(_localizer["Email is required."], statusCode: HttpStatusCode.BadRequest);
-        }
-
         var user = await _userManager.FindByEmailAsync(request.Email.Normalize());
         if (user is null || !await _userManager.IsEmailConfirmedAsync(user))
         {
@@ -314,9 +307,16 @@ public class IdentityService : IIdentityService
                 return await Result.FailAsync(_localizer["User Not Found."]);
             }
 
+            string currentImage = user.ImageUrl ?? string.Empty;
             if (request.Image != null)
             {
                 user.ImageUrl = await _fileStorage.UploadAsync<ApplicationUser>(request.Image, FileType.Image);
+                if (!string.IsNullOrEmpty(currentImage))
+                {
+                    string root = Directory.GetCurrentDirectory();
+                    string filePath = currentImage.Replace("{server_url}/", string.Empty);
+                    _fileStorage.Remove(Path.Combine(root, filePath));
+                }
             }
 
             user.FirstName = request.FirstName;

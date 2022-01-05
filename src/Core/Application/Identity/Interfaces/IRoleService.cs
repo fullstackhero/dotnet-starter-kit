@@ -14,6 +14,8 @@ public interface IRoleService : ITransientService
 
     Task<Result<RoleDto>> GetByIdAsync(string id);
 
+    Task<bool> ExistsAsync(string roleName, string? excludeId);
+
     Task<Result<string>> RegisterRoleAsync(RoleRequest request);
 
     Task<Result<string>> DeleteAsync(string id);

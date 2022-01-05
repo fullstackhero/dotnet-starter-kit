@@ -8,4 +8,6 @@ public interface IFileStorageService : ITransientService
 {
     public Task<string> UploadAsync<T>(FileUploadRequest? request, FileType supportedFileType)
     where T : class;
+
+    public void Remove(string? path);
 }
