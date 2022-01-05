@@ -4,12 +4,12 @@ namespace DN.WebApi.Infrastructure.Multitenancy.Tests
 {
     public class HideSecureConnectionStringTests
     {
-        private const string mssql = "Data Source=(localdb)\\mssqllocaldb;Initial Catalog=fullStackHeroDb;MultipleActiveResultSets=True;";
+        private const string Mssql = "Data Source=(localdb)\\mssqllocaldb;Initial Catalog=fullStackHeroDb;MultipleActiveResultSets=True;";
         [Fact]
         public void GetSecureConnectionStringTest()
         {
-            string mssql1 = mssql + ";Integrated Security=True;";
-            string mssql2 = mssql + ";user id=sa;password=pass;";
+            string mssql1 = Mssql + ";Integrated Security=True;";
+            string mssql2 = Mssql + ";user id=sa;password=pass;";
 
             string? res1 = HideSecureConnectionString.GetSecureConnectionString("mssql", mssql1);
             string? check1 = HideSecureConnectionString.GetSecureConnectionString("mssql", res1);
