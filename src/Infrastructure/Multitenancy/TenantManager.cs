@@ -55,7 +55,7 @@ public class TenantManager : ITenantManager
         var tenant = await _context.Tenants.Where(t => t.Issuer == issuer).FirstOrDefaultAsync();
         var tenantDto = tenant!.Adapt<TenantDto>();
 
-        if (tenantDto is null)
+        if (tenant is null)
         {
             return await Result<TenantDto>.FailAsync();
         }
