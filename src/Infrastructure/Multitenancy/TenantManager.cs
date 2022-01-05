@@ -13,7 +13,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
-using System.Collections.Generic;
 namespace DN.WebApi.Infrastructure.Multitenancy;
 
 public class TenantManager : ITenantManager

@@ -1,5 +1,4 @@
 using DN.WebApi.Infrastructure.Common;
-using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
