@@ -40,7 +40,7 @@ internal static class Startup
 
         services.AddSingleton<JobActivator, FSHJobActivator>();
 
-        switch (storageSettings.StorageProvider.ToLower())
+        switch (storageSettings.StorageProvider.ToLowerInvariant())
         {
             case "postgresql":
                 services.AddHangfire((provider, config) =>
