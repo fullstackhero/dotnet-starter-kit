@@ -10,7 +10,7 @@ namespace DN.WebApi.Infrastructure.Multitenancy.Tests
     {
         private const string Mssql = "Data Source=(localdb)\\mssqllocaldb;Initial Catalog=fullStackHeroDb;MultipleActiveResultSets=True;";
         private const string Mysql = "server=127.0.0.1;database=test";
-        private readonly IMakeSecureConnectionString _makeSecureConnectionString;
+        private readonly IMakeSecureConnectionString? _makeSecureConnectionString;
 
         public MakeSecureConnectionStringTests(ITestOutputHelper testOutputHelper, TestFixture fixture)
             : base(testOutputHelper, fixture)
@@ -24,8 +24,8 @@ namespace DN.WebApi.Infrastructure.Multitenancy.Tests
         [InlineData(Mysql + ";uid=root;pwd=12345;", "mysql", "MYSQL: CASE 3 - Credentials")]
         public void MakeSecureTest(string connectionString, string dbProvider, string name)
         {
-            string? res1 = _makeSecureConnectionString.MakeSecure(connectionString, dbProvider);
-            string? check1 = _makeSecureConnectionString.MakeSecure(res1, dbProvider);
+            string? res1 = _makeSecureConnectionString?.MakeSecure(connectionString, dbProvider);
+            string? check1 = _makeSecureConnectionString?.MakeSecure(res1, dbProvider);
 
             Assert.True(check1?.Equals(res1, StringComparison.InvariantCultureIgnoreCase), name);
         }
