@@ -4,6 +4,7 @@ using DN.WebApi.Application.Multitenancy;
 using DN.WebApi.Domain.Common.Contracts;
 using DN.WebApi.Domain.Contracts;
 using DN.WebApi.Infrastructure.Auditing;
+using DN.WebApi.Infrastructure.Common;
 using DN.WebApi.Infrastructure.Identity.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -47,18 +48,18 @@ public abstract class BaseDbContext : IdentityDbContext<ApplicationUser, Applica
         if (!string.IsNullOrEmpty(tenantConnectionString))
         {
             string? dbProvider = _tenantService.GetDatabaseProvider();
-            switch (dbProvider?.ToLower())
+            switch (dbProvider?.ToLowerInvariant())
             {
-                case "postgresql":
+                case DbProviderConstants.Npgsql:
                     optionsBuilder.UseNpgsql(tenantConnectionString);
                     break;
-                case "mssql":
+                case DbProviderConstants.SqlServer:
                     optionsBuilder.UseSqlServer(tenantConnectionString);
                     break;
-                case "mysql":
+                case DbProviderConstants.MySql:
                     optionsBuilder.UseMySql(tenantConnectionString, ServerVersion.AutoDetect(tenantConnectionString));
                     break;
-                case "oracle":
+                case DbProviderConstants.Oracle:
                     optionsBuilder.UseOracle(tenantConnectionString);
                     break;
             }

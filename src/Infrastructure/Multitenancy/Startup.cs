@@ -1,3 +1,5 @@
+using DN.WebApi.Application.Multitenancy;
+using DN.WebApi.Infrastructure.Common;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
@@ -28,25 +30,27 @@ internal static class Startup
         if (string.IsNullOrEmpty(dbProvider)) throw new InvalidOperationException("DB Provider is not configured.");
         _logger.Information($"Current DB Provider : {dbProvider}");
 
+        services.AddTransient<IMakeSecureConnectionString, MakeSecureConnectionString>();
+
         return services
             .AddDbContext<TenantManagementDbContext>(m => m.UseDatabase(dbProvider, rootConnectionString))
             .AddDbContext<ApplicationDbContext>(m => m.UseDatabase(dbProvider, rootConnectionString));
     }
 
     private static DbContextOptionsBuilder UseDatabase(this DbContextOptionsBuilder builder, string dbProvider, string connectionString) =>
-        dbProvider.ToLower() switch
+        dbProvider.ToLowerInvariant() switch
         {
-            "postgresql" =>
+            DbProviderConstants.Npgsql =>
                 builder.UseNpgsql(connectionString, e => e.MigrationsAssembly("Migrators.PostgreSQL")),
-            "mssql" =>
+            DbProviderConstants.SqlServer =>
                 builder.UseSqlServer(connectionString, e => e.MigrationsAssembly("Migrators.MSSQL")),
-            "mysql" =>
+            DbProviderConstants.MySql =>
                 builder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), e =>
                     {
                         e.MigrationsAssembly("Migrators.MySQL");
                         e.SchemaBehavior(MySqlSchemaBehavior.Ignore);
                     }),
-            "oracle" =>
+            DbProviderConstants.Oracle =>
                 builder.UseOracle(connectionString, e => e.MigrationsAssembly("Migrators.Oracle")),
             _ => throw new Exception($"DB Provider {dbProvider} is not supported.")
         };

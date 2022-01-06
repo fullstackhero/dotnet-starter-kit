@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -67,7 +68,7 @@ internal static class Startup
                         Description = "Input your Bearer token to access this API",
                         In = OpenApiSecurityApiKeyLocation.Header,
                         Type = OpenApiSecuritySchemeType.Http,
-                        Scheme = "Bearer",
+                        Scheme = JwtBearerDefaults.AuthenticationScheme,
                         BearerFormat = "JWT",
                     });
                     document.OperationProcessors.Add(new AspNetCoreOperationSecurityScopeProcessor("bearer"));
@@ -82,8 +83,6 @@ internal static class Startup
                 }));
 
                 document.OperationProcessors.Add(new AddTenantIdProcessor());
-
-                document.UseApiEndpoints();
 
                 var fluentValidationSchemaProcessor = serviceProvider.CreateScope().ServiceProvider.GetService<FluentValidationSchemaProcessor>();
                 document.SchemaProcessors.Add(fluentValidationSchemaProcessor);
