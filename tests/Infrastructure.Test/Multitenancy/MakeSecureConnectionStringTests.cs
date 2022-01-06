@@ -6,9 +6,10 @@ using Xunit.Microsoft.DependencyInjection.Abstracts;
 
 namespace DN.WebApi.Infrastructure.Multitenancy.Tests
 {
-    public class MakeSecureConnectionStringTests : TestBed<TestFixture> //TestBedFixture
+    public class MakeSecureConnectionStringTests : TestBed<TestFixture>
     {
         private const string Mssql = "Data Source=(localdb)\\mssqllocaldb;Initial Catalog=fullStackHeroDb;MultipleActiveResultSets=True;";
+
         private readonly IMakeSecureConnectionString _makeSecureConnectionString;
 
         public MakeSecureConnectionStringTests(ITestOutputHelper testOutputHelper, TestFixture fixture)
@@ -17,26 +18,20 @@ namespace DN.WebApi.Infrastructure.Multitenancy.Tests
             _makeSecureConnectionString = _fixture.GetService<IMakeSecureConnectionString>(_testOutputHelper);
         }
 
-        [Fact]
-        public void GetSecureConnectionStringTest()
+        [Theory]
+        [InlineData(Mssql + ";Integrated Security=True;", "MSSQL: CASE 1 - Integrated Security")]
+        [InlineData(Mssql + ";user id=sa;password=pass;", "MSSQL: CASE 2 - Credentials")]
+        public void MakeSecureTest(string mssql, string name)
         {
-            string mssql1 = Mssql + ";Integrated Security=True;";
-            string mssql2 = Mssql + ";user id=sa;password=pass;";
-
-            string? res1 = _makeSecureConnectionString.MakeSecure("mssql", mssql1);
+            string? res1 = _makeSecureConnectionString.MakeSecure("mssql", mssql);
             string? check1 = _makeSecureConnectionString.MakeSecure("mssql", res1);
 
-            Assert.True(check1?.Equals(res1, StringComparison.InvariantCultureIgnoreCase), "MSSQL: CASE 1 - Integrated Security"); // CASE 1
-
-            string? res2 = _makeSecureConnectionString.MakeSecure("mssql", mssql2);
-            string? check2 = _makeSecureConnectionString.MakeSecure("mssql", res2);
-
-            Assert.True(check2?.Equals(res2, StringComparison.InvariantCultureIgnoreCase), "MSSQL: CASE 2 - Credentials"); // CASE 2
-
+            Assert.True(check1?.Equals(res1, StringComparison.InvariantCultureIgnoreCase), name);
         }
 
-
-        protected override void Clear() { }
+        protected override void Clear()
+        {
+        }
 
         protected override ValueTask DisposeAsyncCore()
             => new();
