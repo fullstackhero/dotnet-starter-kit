@@ -1,10 +1,8 @@
 using DN.WebApi.Application;
 using DN.WebApi.Host.Configurations;
 using DN.WebApi.Host.Controllers;
-using DN.WebApi.Host.Endpoints;
 using DN.WebApi.Infrastructure;
 using DN.WebApi.Infrastructure.Multitenancy;
-using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
@@ -26,14 +24,7 @@ try
 
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
-    builder.Services
-        .AddControllers(config => config
-                .UseEndpointsRoutePrefixConvention()
-                .UseNamespaceRouteToken())
-            .AddFluentValidation();
-
-    // Add the validators in this project (in the endpoints folder)
-    builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+    builder.Services.AddControllers().AddFluentValidation();
 
     var app = builder.Build();
 
