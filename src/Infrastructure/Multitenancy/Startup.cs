@@ -1,3 +1,4 @@
+using DN.WebApi.Application.Multitenancy;
 using DN.WebApi.Infrastructure.Common;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
 using Microsoft.AspNetCore.Builder;
@@ -28,6 +29,8 @@ internal static class Startup
         string? dbProvider = databaseSettings.DBProvider;
         if (string.IsNullOrEmpty(dbProvider)) throw new InvalidOperationException("DB Provider is not configured.");
         _logger.Information($"Current DB Provider : {dbProvider}");
+
+        services.AddTransient<IMakeSecureConnectionString, MakeSecureConnectionString>();
 
         return services
             .AddDbContext<TenantManagementDbContext>(m => m.UseDatabase(dbProvider, rootConnectionString))
