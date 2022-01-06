@@ -88,7 +88,7 @@ public interface IRepositoryAsync : ITransientService
     /// EF Core context or not. Default value is false i.e tracking is enabled by default.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>Returns <see cref="Task"/> of <typeparamref name="T"/>.</returns>
-    Task<T?> GetByIdAsync<T, TKey>(DefaultIdType entityId, Expression<Func<T, object>>[]? includes = null, bool asNoTracking = false, CancellationToken cancellationToken = default)
+    Task<T?> GetByIdAsync<T, TKey>(TKey entityId, Expression<Func<T, object>>[]? includes = null, bool asNoTracking = false, CancellationToken cancellationToken = default)
     where T : class, IEntity<TKey>;
 
     /// <summary>
@@ -117,7 +117,7 @@ public interface IRepositoryAsync : ITransientService
     /// <param name="includes">The <see cref="Expression{Func}"/> for navigation properties to be included.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>Returns <see cref="Task"/> of <typeparamref name="TProjectedType"/>.</returns>
-    Task<TProjectedType?> GetByIdAsync<T, TKey, TProjectedType>(DefaultIdType entityId, Expression<Func<T, TProjectedType>> selectExpression, Expression<Func<T, object>>[]? includes = null, CancellationToken cancellationToken = default)
+    Task<TProjectedType?> GetByIdAsync<T, TKey, TProjectedType>(TKey entityId, Expression<Func<T, TProjectedType>> selectExpression, Expression<Func<T, object>>[]? includes = null, CancellationToken cancellationToken = default)
     where T : class, IEntity<TKey>;
 
     /// <summary>
@@ -145,7 +145,7 @@ public interface IRepositoryAsync : ITransientService
     /// <param name="includes">The <see cref="Expression{Func}"/> for navigation properties to be included.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>Returns <see cref="Task"/> of <typeparamref name="TDto"/>.</returns>
-    Task<TDto> GetByIdAsync<T, TKey, TDto>(DefaultIdType entityId, Expression<Func<T, object>>[]? includes = null, CancellationToken cancellationToken = default)
+    Task<TDto> GetByIdAsync<T, TKey, TDto>(TKey entityId, Expression<Func<T, object>>[]? includes = null, CancellationToken cancellationToken = default)
     where T : class, IEntity<TKey>
     where TDto : IDto;
 

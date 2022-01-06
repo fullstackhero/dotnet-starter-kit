@@ -121,7 +121,7 @@ public class RepositoryAsync : IRepositoryAsync
     // Get One By Id
 
     public Task<T?> GetByIdAsync<T, TKey>(
-        DefaultIdType entityId,
+        TKey entityId,
         Expression<Func<T, object>>[]? includes = null,
         bool asNoTracking = false,
         CancellationToken cancellationToken = default)
@@ -137,7 +137,7 @@ public class RepositoryAsync : IRepositoryAsync
     where T : class, IEntity<DefaultIdType> => GetByIdAsync<T, DefaultIdType>(entityId, includes, asNoTracking, cancellationToken);
 
     public Task<TProjectedType?> GetByIdAsync<T, TKey, TProjectedType>(
-        DefaultIdType entityId,
+        TKey entityId,
         Expression<Func<T, TProjectedType>> selectExpression,
         Expression<Func<T, object>>[]? includes = null,
         CancellationToken cancellationToken = default)
@@ -155,7 +155,7 @@ public class RepositoryAsync : IRepositoryAsync
     where T : class, IEntity<DefaultIdType> => GetByIdAsync<T, DefaultIdType, TProjectedType>(entityId, selectExpression, includes, cancellationToken);
 
     public async Task<TDto> GetByIdAsync<T, TKey, TDto>(
-        DefaultIdType entityId,
+        TKey entityId,
         Expression<Func<T, object>>[]? includes = null,
         CancellationToken cancellationToken = default)
     where T : class, IEntity<TKey>
