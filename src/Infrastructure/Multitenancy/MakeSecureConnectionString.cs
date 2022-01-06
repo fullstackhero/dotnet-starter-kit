@@ -11,7 +11,7 @@ namespace DN.WebApi.Infrastructure.Multitenancy
     {
         private const string HiddenValueDefault = "*******";
 
-        public string? MakeSecure(string? dbProvider, string? connectionString)
+        public string? MakeSecure(string? connectionString, string? dbProvider)
         {
             if (connectionString == null)
             {
