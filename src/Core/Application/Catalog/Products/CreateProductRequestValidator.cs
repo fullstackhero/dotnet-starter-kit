@@ -9,19 +9,13 @@ namespace DN.WebApi.Application.Catalog.Products;
 
 public class CreateProductRequestValidator : CustomValidator<CreateProductRequest>
 {
-    private readonly IRepositoryAsync _repository;
-    private readonly IStringLocalizer<CreateProductRequestValidator> _localizer;
-
     public CreateProductRequestValidator(IRepositoryAsync repository, IStringLocalizer<CreateProductRequestValidator> localizer)
     {
-        _repository = repository;
-        _localizer = localizer;
-
         RuleFor(p => p.Name)
             .NotEmpty()
             .MaximumLength(75)
-            .MustAsync(async (name, ct) => !await _repository.ExistsAsync<Product>(p => p.Name == name, ct))
-                .WithMessage((_, name) => string.Format(_localizer["product.alreadyexists"], name));
+            .MustAsync(async (name, ct) => !await repository.ExistsAsync<Product>(p => p.Name == name, ct))
+                .WithMessage((_, name) => string.Format(localizer["product.alreadyexists"], name));
 
         RuleFor(p => p.Rate)
             .GreaterThanOrEqualTo(1);
@@ -31,7 +25,7 @@ public class CreateProductRequestValidator : CustomValidator<CreateProductReques
 
         RuleFor(p => p.BrandId)
             .NotEmpty()
-            .MustAsync((id, ct) => _repository.ExistsAsync<Brand>(a => a.Id == id, ct))
-                .WithMessage((_, id) => string.Format(_localizer["brand.notfound"], id));
+            .MustAsync((id, ct) => repository.ExistsAsync<Brand>(a => a.Id == id, ct))
+                .WithMessage((_, id) => string.Format(localizer["brand.notfound"], id));
     }
 }

@@ -1,7 +1,6 @@
 using DN.WebApi.Application.Common.Exceptions;
 using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.FileStorage;
-using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Catalog;
 using DN.WebApi.Domain.Catalog.Events;
 using DN.WebApi.Domain.Common;
@@ -12,7 +11,7 @@ using Microsoft.Extensions.Localization;
 
 namespace DN.WebApi.Application.Catalog.Products;
 
-public class UpdateProductRequest : IRequest<Result<Guid>>
+public class UpdateProductRequest : IRequest<Guid>
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = default!;
@@ -22,7 +21,7 @@ public class UpdateProductRequest : IRequest<Result<Guid>>
     public FileUploadRequest? Image { get; set; }
 }
 
-public class UpdateProductRequestHandler : IRequestHandler<UpdateProductRequest, Result<Guid>>
+public class UpdateProductRequestHandler : IRequestHandler<UpdateProductRequest, Guid>
 {
     private readonly IRepositoryAsync _repository;
     private readonly IStringLocalizer<UpdateProductRequestHandler> _localizer;
@@ -31,7 +30,7 @@ public class UpdateProductRequestHandler : IRequestHandler<UpdateProductRequest,
     public UpdateProductRequestHandler(IRepositoryAsync repository, IStringLocalizer<UpdateProductRequestHandler> localizer, IFileStorageService file) =>
         (_repository, _localizer, _file) = (repository, localizer, file);
 
-    public async Task<Result<Guid>> Handle(UpdateProductRequest request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(UpdateProductRequest request, CancellationToken cancellationToken)
     {
         var product = await _repository.GetByIdAsync<Product>(request.Id, cancellationToken: cancellationToken);
         if (product is null)
@@ -53,6 +52,6 @@ public class UpdateProductRequestHandler : IRequestHandler<UpdateProductRequest,
 
         await _repository.SaveChangesAsync(cancellationToken);
 
-        return Result<Guid>.Success(request.Id);
+        return request.Id;
     }
 }

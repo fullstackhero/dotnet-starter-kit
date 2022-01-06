@@ -21,7 +21,7 @@ public class ProductsController : BaseController
     [HttpGet("{id:guid}")]
     [MustHavePermission(PermissionConstants.Products.View)]
     [OpenApiOperation("Get product details.", "")]
-    public Task<Result<ProductDetailsDto>> GetAsync(Guid id)
+    public Task<ProductDetailsDto> GetAsync(Guid id)
     {
         return Mediator.Send(new GetProductRequest(id));
     }
@@ -29,7 +29,7 @@ public class ProductsController : BaseController
     [HttpGet("dapper")]
     [MustHavePermission(PermissionConstants.Products.View)]
     [OpenApiOperation("Get product details via dapper.", "")]
-    public Task<Result<ProductDto>> GetDapperAsync(Guid id)
+    public Task<ProductDto> GetDapperAsync(Guid id)
     {
         return Mediator.Send(new GetProductViaDapperRequest(id));
     }
@@ -37,7 +37,7 @@ public class ProductsController : BaseController
     [HttpPost]
     [MustHavePermission(PermissionConstants.Products.Register)]
     [OpenApiOperation("Create a new product.", "")]
-    public Task<Result<Guid>> CreateAsync(CreateProductRequest request)
+    public Task<Guid> CreateAsync(CreateProductRequest request)
     {
         return Mediator.Send(request);
     }
@@ -45,7 +45,7 @@ public class ProductsController : BaseController
     [HttpPut("{id:guid}")]
     [MustHavePermission(PermissionConstants.Products.Update)]
     [OpenApiOperation("Update a product.", "")]
-    public async Task<ActionResult<Result<Guid>>> UpdateAsync(UpdateProductRequest request, Guid id)
+    public async Task<ActionResult<Guid>> UpdateAsync(UpdateProductRequest request, Guid id)
     {
         if (id != request.Id)
         {
@@ -58,7 +58,7 @@ public class ProductsController : BaseController
     [HttpDelete("{id:guid}")]
     [MustHavePermission(PermissionConstants.Products.Remove)]
     [OpenApiOperation("Delete a product.", "")]
-    public Task<Result<Guid>> DeleteAsync(Guid id)
+    public Task<Guid> DeleteAsync(Guid id)
     {
         return Mediator.Send(new DeleteProductRequest(id));
     }

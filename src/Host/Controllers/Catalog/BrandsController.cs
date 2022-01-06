@@ -20,14 +20,14 @@ public class BrandsController : BaseController
 
     [HttpPost]
     [MustHavePermission(PermissionConstants.Brands.Register)]
-    public Task<Result<Guid>> CreateAsync(CreateBrandRequest request)
+    public Task<Guid> CreateAsync(CreateBrandRequest request)
     {
         return Mediator.Send(request);
     }
 
     [HttpPut("{id:guid}")]
     [MustHavePermission(PermissionConstants.Brands.Update)]
-    public async Task<ActionResult<Result<Guid>>> UpdateAsync(UpdateBrandRequest request, Guid id)
+    public async Task<ActionResult<Guid>> UpdateAsync(UpdateBrandRequest request, Guid id)
     {
         if (id != request.Id)
         {
@@ -39,13 +39,13 @@ public class BrandsController : BaseController
 
     [HttpDelete("{id:guid}")]
     [MustHavePermission(PermissionConstants.Brands.Remove)]
-    public Task<Result<Guid>> DeleteAsync(Guid id)
+    public Task<Guid> DeleteAsync(Guid id)
     {
         return Mediator.Send(new DeleteBrandRequest(id));
     }
 
     [HttpPost("generate-random")]
-    public Task<Result<string>> GenerateRandomAsync(GenerateRandomBrandRequest request)
+    public Task<string> GenerateRandomAsync(GenerateRandomBrandRequest request)
     {
         return Mediator.Send(request);
     }
@@ -53,7 +53,7 @@ public class BrandsController : BaseController
     [HttpDelete("delete-random")]
     [ProducesResponseType(200)]
     [ProducesDefaultResponseType(typeof(ErrorResult))]
-    public Task<Result<string>> DeleteRandomAsync()
+    public Task<string> DeleteRandomAsync()
     {
         return Mediator.Send(new DeleteRandomBrandRequest());
     }

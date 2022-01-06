@@ -1,6 +1,5 @@
 ﻿using DN.WebApi.Application.Common.Exceptions;
 using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Catalog;
 using DN.WebApi.Domain.Dashboard;
 using MediatR;
@@ -8,14 +7,14 @@ using Microsoft.Extensions.Localization;
 
 namespace DN.WebApi.Application.Catalog.Brands;
 
-public class DeleteBrandRequest : IRequest<Result<Guid>>
+public class DeleteBrandRequest : IRequest<Guid>
 {
     public Guid Id { get; set; }
 
     public DeleteBrandRequest(Guid id) => Id = id;
 }
 
-public class DeleteBrandRequestHandler : IRequestHandler<DeleteBrandRequest, Result<Guid>>
+public class DeleteBrandRequestHandler : IRequestHandler<DeleteBrandRequest, Guid>
 {
     private readonly IRepositoryAsync _repository;
     private readonly IStringLocalizer<DeleteBrandRequestHandler> _localizer;
@@ -23,7 +22,7 @@ public class DeleteBrandRequestHandler : IRequestHandler<DeleteBrandRequest, Res
     public DeleteBrandRequestHandler(IRepositoryAsync repository, IStringLocalizer<DeleteBrandRequestHandler> localizer) =>
         (_repository, _localizer) = (repository, localizer);
 
-    public async Task<Result<Guid>> Handle(DeleteBrandRequest request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(DeleteBrandRequest request, CancellationToken cancellationToken)
     {
         if (await _repository.ExistsAsync<Product>(a => a.BrandId == request.Id))
         {
@@ -35,6 +34,6 @@ public class DeleteBrandRequestHandler : IRequestHandler<DeleteBrandRequest, Res
 
         await _repository.SaveChangesAsync(cancellationToken);
 
-        return Result<Guid>.Success(request.Id);
+        return request.Id;
     }
 }
