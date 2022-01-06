@@ -27,8 +27,8 @@ public class TenantManager : ITenantManager
 
     private readonly TenantManagementDbContext _context;
     private readonly ICurrentUser _user;
-
-    public TenantManager(ApplicationDbContext appContext, IStringLocalizer<TenantService> localizer, IOptions<DatabaseSettings> dbOptions, TenantManagementDbContext context, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ICurrentUser user, IServiceProvider di)
+    private readonly IMakeSecureConnectionString _makeSecureConnectionString;
+    public TenantManager(ApplicationDbContext appContext, IStringLocalizer<TenantService> localizer, IOptions<DatabaseSettings> dbOptions, TenantManagementDbContext context, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ICurrentUser user, IServiceProvider di, IMakeSecureConnectionString makeSecureConnectionString)
     {
         _appContext = appContext;
         _localizer = localizer;
@@ -38,6 +38,7 @@ public class TenantManager : ITenantManager
         _roleManager = roleManager;
         _user = user;
         _di = di;
+        _makeSecureConnectionString = makeSecureConnectionString;
     }
 
     public async Task<Result<TenantDto>> GetByKeyAsync(string key)
@@ -68,7 +69,7 @@ public class TenantManager : ITenantManager
         var tenantDto = tenants.Adapt<List<TenantDto>>();
         tenantDto.ForEach(action: t =>
         {
-            t.ConnectionString = HideSecureConnectionString.GetSecureConnectionString(_dbOptions.DBProvider, t.ConnectionString);
+            t.ConnectionString = _makeSecureConnectionString.MakeSecure(t.ConnectionString, _dbOptions.DBProvider);
         });
         return await Result<List<TenantDto>>.SuccessAsync(tenantDto);
     }

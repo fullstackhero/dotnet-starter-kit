@@ -2,15 +2,16 @@ using MySqlConnector;
 using Npgsql;
 using Oracle.ManagedDataAccess.Client;
 using System.Data.SqlClient;
+using DN.WebApi.Application.Multitenancy;
 using DN.WebApi.Infrastructure.Common;
 
 namespace DN.WebApi.Infrastructure.Multitenancy
 {
-    public class HideSecureConnectionString
+    public class MakeSecureConnectionString : IMakeSecureConnectionString
     {
         private const string HiddenValueDefault = "*******";
 
-        public static string? GetSecureConnectionString(string? dbProvider, string? connectionString)
+        public string? MakeSecure(string? dbProvider, string? connectionString)
         {
             if (connectionString == null)
             {
@@ -19,15 +20,15 @@ namespace DN.WebApi.Infrastructure.Multitenancy
 
             return dbProvider?.ToLower() switch
             {
-                DbProviderConstants.Npgsql => SecureNpgsqlConnectionString(connectionString),
-                DbProviderConstants.SqlServer => SecureSqlConnectionString(connectionString),
-                DbProviderConstants.MySql => SecureMySqlConnectionString(connectionString),
-                DbProviderConstants.Oracle => SecureOracleConnectionString(connectionString),
+                DbProviderConstants.Npgsql => MakeSecureNpgsqlConnectionString(connectionString),
+                DbProviderConstants.SqlServer => MakeSecureSqlConnectionString(connectionString),
+                DbProviderConstants.MySql => MakeSecureMySqlConnectionString(connectionString),
+                DbProviderConstants.Oracle => MakeSecureOracleConnectionString(connectionString),
                 _ => connectionString
             };
         }
 
-        private static string SecureOracleConnectionString(string connectionString)
+        private string MakeSecureOracleConnectionString(string connectionString)
         {
             var builder = new OracleConnectionStringBuilder(connectionString);
 
@@ -44,7 +45,7 @@ namespace DN.WebApi.Infrastructure.Multitenancy
             return builder.ToString();
         }
 
-        private static string SecureMySqlConnectionString(string connectionString)
+        private string MakeSecureMySqlConnectionString(string connectionString)
         {
             var builder = new MySqlConnectionStringBuilder(connectionString);
 
@@ -61,7 +62,7 @@ namespace DN.WebApi.Infrastructure.Multitenancy
             return builder.ToString();
         }
 
-        private static string SecureSqlConnectionString(string connectionString)
+        private string MakeSecureSqlConnectionString(string connectionString)
         {
             var builder = new SqlConnectionStringBuilder(connectionString);
 
@@ -78,7 +79,7 @@ namespace DN.WebApi.Infrastructure.Multitenancy
             return builder.ToString();
         }
 
-        private static string SecureNpgsqlConnectionString(string connectionString)
+        private string MakeSecureNpgsqlConnectionString(string connectionString)
         {
             var builder = new NpgsqlConnectionStringBuilder(connectionString);
 
