@@ -42,7 +42,7 @@ public class ProductService : IProductService
         product.DomainEvents.Add(new ProductCreatedEvent(product));
         product.DomainEvents.Add(new StatsChangedEvent());
 
-        var productId = await _repository.CreateAsync<Product, Guid>(product);
+        var productId = await _repository.CreateAsync(product);
         await _repository.SaveChangesAsync();
         return await Result<Guid>.SuccessAsync(productId);
     }
@@ -65,7 +65,7 @@ public class ProductService : IProductService
         product.DomainEvents.Add(new ProductUpdatedEvent(product));
         product.DomainEvents.Add(new StatsChangedEvent());
 
-        await _repository.UpdateAsync<Product>(updatedProduct);
+        await _repository.UpdateAsync(updatedProduct);
         await _repository.SaveChangesAsync();
         return await Result<Guid>.SuccessAsync(id);
     }
