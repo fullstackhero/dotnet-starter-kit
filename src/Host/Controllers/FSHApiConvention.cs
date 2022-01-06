@@ -12,39 +12,6 @@ public static class FSHApiConventions
     [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
     [ProducesDefaultResponseType(typeof(ErrorResult))]
     [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Prefix)]
-    public static void Handle()
-    {
-    }
-
-    [ProducesResponseType(200)]
-    [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
-    [ProducesDefaultResponseType(typeof(ErrorResult))]
-    [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Prefix)]
-    public static void Handle(
-        [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Any)]
-        [ApiConventionTypeMatch(ApiConventionTypeMatchBehavior.Any)]
-        object requestOrCancellationToken)
-    {
-    }
-
-    [ProducesResponseType(200)]
-    [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
-    [ProducesDefaultResponseType(typeof(ErrorResult))]
-    [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Prefix)]
-    public static void Handle(
-        [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Any)]
-        [ApiConventionTypeMatch(ApiConventionTypeMatchBehavior.Any)]
-        object request,
-        [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Any)]
-        [ApiConventionTypeMatch(ApiConventionTypeMatchBehavior.Any)]
-        object cancellationToken)
-    {
-    }
-
-    [ProducesResponseType(200)]
-    [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
-    [ProducesDefaultResponseType(typeof(ErrorResult))]
-    [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Prefix)]
     public static void Search(
         [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Any)]
         [ApiConventionTypeMatch(ApiConventionTypeMatchBehavior.Any)]
