@@ -13,7 +13,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
-
 namespace DN.WebApi.Infrastructure.Multitenancy;
 
 public class TenantManager : ITenantManager
@@ -28,8 +27,8 @@ public class TenantManager : ITenantManager
 
     private readonly TenantManagementDbContext _context;
     private readonly ICurrentUser _user;
-
-    public TenantManager(ApplicationDbContext appContext, IStringLocalizer<TenantService> localizer, IOptions<DatabaseSettings> dbOptions, TenantManagementDbContext context, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ICurrentUser user, IServiceProvider di)
+    private readonly IMakeSecureConnectionString _makeSecureConnectionString;
+    public TenantManager(ApplicationDbContext appContext, IStringLocalizer<TenantService> localizer, IOptions<DatabaseSettings> dbOptions, TenantManagementDbContext context, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ICurrentUser user, IServiceProvider di, IMakeSecureConnectionString makeSecureConnectionString)
     {
         _appContext = appContext;
         _localizer = localizer;
@@ -39,6 +38,7 @@ public class TenantManager : ITenantManager
         _roleManager = roleManager;
         _user = user;
         _di = di;
+        _makeSecureConnectionString = makeSecureConnectionString;
     }
 
     public async Task<Result<TenantDto>> GetByKeyAsync(string key)
@@ -46,6 +46,7 @@ public class TenantManager : ITenantManager
         var tenant = await _context.Tenants.Where(a => a.Key == key).FirstOrDefaultAsync();
         if (tenant == null) throw new EntityNotFoundException(string.Format(_localizer["entity.notfound"], typeof(Tenant).Name, key));
         var tenantDto = tenant.Adapt<TenantDto>();
+
         return await Result<TenantDto>.SuccessAsync(tenantDto);
     }
 
@@ -54,7 +55,7 @@ public class TenantManager : ITenantManager
         var tenant = await _context.Tenants.Where(t => t.Issuer == issuer).FirstOrDefaultAsync();
         var tenantDto = tenant!.Adapt<TenantDto>();
 
-        if (tenantDto is null)
+        if (tenant is null)
         {
             return await Result<TenantDto>.FailAsync();
         }
@@ -66,6 +67,10 @@ public class TenantManager : ITenantManager
     {
         var tenants = await _context.Tenants.ToListAsync();
         var tenantDto = tenants.Adapt<List<TenantDto>>();
+        tenantDto.ForEach(action: t =>
+        {
+            t.ConnectionString = _makeSecureConnectionString.MakeSecure(t.ConnectionString, _dbOptions.DBProvider);
+        });
         return await Result<List<TenantDto>>.SuccessAsync(tenantDto);
     }
 

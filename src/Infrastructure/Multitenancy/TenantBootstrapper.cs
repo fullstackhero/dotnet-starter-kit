@@ -3,6 +3,7 @@ using System.Security.Claims;
 using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Domain.Multitenancy;
+using DN.WebApi.Infrastructure.Common;
 using DN.WebApi.Infrastructure.Common.Extensions;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Identity.Services;
@@ -56,17 +57,17 @@ public class TenantBootstrapper
     {
         try
         {
-            switch (dbProvider.ToLower())
+            switch (dbProvider.ToLowerInvariant())
             {
-                case "postgresql":
+                case DbProviderConstants.Npgsql:
                     var postgresqlcs = new NpgsqlConnectionStringBuilder(connectionString);
                     break;
 
-                case "mysql":
+                case DbProviderConstants.MySql:
                     var mysqlcs = new MySqlConnectionStringBuilder(connectionString);
                     break;
 
-                case "mssql":
+                case DbProviderConstants.SqlServer:
                     var mssqlcs = new SqlConnectionStringBuilder(connectionString);
                     break;
             }
@@ -96,7 +97,7 @@ public class TenantBootstrapper
             if (roleName == RoleConstants.Basic)
             {
                 var basicRole = await roleManager.Roles.IgnoreQueryFilters()
-                    .Where(a => a.NormalizedName == RoleConstants.Basic.ToUpper() && a.Tenant == tenant.Key)
+                    .Where(a => a.NormalizedName == RoleConstants.Basic.ToUpperInvariant() && a.Tenant == tenant.Key)
                     .FirstOrDefaultAsync();
                 if (basicRole is null)
                     continue;
@@ -120,19 +121,19 @@ public class TenantBootstrapper
             return;
         }
 
-        string adminUserName = $"{tenant.Key.Trim()}.{RoleConstants.Admin}".ToLower();
+        string adminUserName = $"{tenant.Key.Trim()}.{RoleConstants.Admin}".ToLowerInvariant();
         var superUser = new ApplicationUser
         {
-            FirstName = tenant.Key.Trim().ToLower(),
+            FirstName = tenant.Key.Trim().ToLowerInvariant(),
             LastName = RoleConstants.Admin,
             Email = tenant.AdminEmail,
             UserName = adminUserName,
             EmailConfirmed = true,
             PhoneNumberConfirmed = true,
-            NormalizedEmail = tenant.AdminEmail?.ToUpper(),
-            NormalizedUserName = adminUserName.ToUpper(),
+            NormalizedEmail = tenant.AdminEmail?.ToUpperInvariant(),
+            NormalizedUserName = adminUserName.ToUpperInvariant(),
             IsActive = true,
-            Tenant = tenant.Key.Trim().ToLower()
+            Tenant = tenant.Key.Trim().ToLowerInvariant()
         };
         if (!applicationDbContext.Users.IgnoreQueryFilters().Any(u => u.Email == tenant.AdminEmail))
         {
@@ -152,7 +153,7 @@ public class TenantBootstrapper
             .FirstOrDefaultAsync(u => u.Email.Equals(email));
         if (user == null) return;
         var roleRecord = await roleManager.Roles.IgnoreQueryFilters()
-            .Where(a => a.NormalizedName == RoleConstants.Admin.ToUpper() && a.Tenant == tenant)
+            .Where(a => a.NormalizedName == RoleConstants.Admin.ToUpperInvariant() && a.Tenant == tenant)
             .FirstOrDefaultAsync();
         if (roleRecord == null) return;
         bool isUserInRole = await applicationDbContext.UserRoles.AnyAsync(a => a.UserId == user.Id && a.RoleId == roleRecord.Id);
