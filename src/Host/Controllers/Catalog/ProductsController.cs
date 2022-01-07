@@ -1,65 +1,65 @@
-using DN.WebApi.Application.Catalog.Interfaces;
+﻿using DN.WebApi.Application.Catalog.Products;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Permissions;
-using DN.WebApi.Shared.DTOs.Catalog;
 using Microsoft.AspNetCore.Mvc;
+using NSwag.Annotations;
 
 namespace DN.WebApi.Host.Controllers.Catalog;
 
 [ApiConventionType(typeof(FSHApiConventions))]
 public class ProductsController : BaseController
 {
-    private readonly IProductService _service;
-
-    public ProductsController(IProductService service)
+    [HttpPost("search")]
+    [MustHavePermission(PermissionConstants.Products.Search)]
+    [OpenApiOperation("Search products using available filters.", "")]
+    public Task<PaginatedResult<ProductDto>> SearchAsync(SearchProductsRequest request)
     {
-        _service = service;
+        return Mediator.Send(request);
     }
 
     [HttpGet("{id:guid}")]
     [MustHavePermission(PermissionConstants.Products.View)]
-    public async Task<ActionResult<Result<ProductDetailsDto>>> GetAsync(Guid id)
+    [OpenApiOperation("Get product details.", "")]
+    public Task<ProductDetailsDto> GetAsync(Guid id)
     {
-        var product = await _service.GetProductDetailsAsync(id);
-        return Ok(product);
-    }
-
-    [HttpPost("search")]
-    [MustHavePermission(PermissionConstants.Products.Search)]
-    public async Task<ActionResult<PaginatedResult<ProductDto>>> SearchAsync(ProductListFilter filter)
-    {
-        var products = await _service.SearchAsync(filter);
-        return Ok(products);
+        return Mediator.Send(new GetProductRequest(id));
     }
 
     [HttpGet("dapper")]
     [MustHavePermission(PermissionConstants.Products.View)]
-    public async Task<ActionResult<Result<ProductDto>>> GetDapperAsync(Guid id)
+    [OpenApiOperation("Get product details via dapper.", "")]
+    public Task<ProductDto> GetDapperAsync(Guid id)
     {
-        var products = await _service.GetByIdUsingDapperAsync(id);
-        return Ok(products);
+        return Mediator.Send(new GetProductViaDapperRequest(id));
     }
 
     [HttpPost]
     [MustHavePermission(PermissionConstants.Products.Register)]
-    public async Task<ActionResult<Result<Guid>>> CreateAsync(CreateProductRequest request)
+    [OpenApiOperation("Create a new product.", "")]
+    public Task<Guid> CreateAsync(CreateProductRequest request)
     {
-        return Ok(await _service.CreateProductAsync(request));
+        return Mediator.Send(request);
     }
 
     [HttpPut("{id:guid}")]
     [MustHavePermission(PermissionConstants.Products.Update)]
-    public async Task<ActionResult<Result<Guid>>> UpdateAsync(UpdateProductRequest request, Guid id)
+    [OpenApiOperation("Update a product.", "")]
+    public async Task<ActionResult<Guid>> UpdateAsync(UpdateProductRequest request, Guid id)
     {
-        return Ok(await _service.UpdateProductAsync(request, id));
+        if (id != request.Id)
+        {
+            return BadRequest();
+        }
+
+        return Ok(await Mediator.Send(request));
     }
 
     [HttpDelete("{id:guid}")]
     [MustHavePermission(PermissionConstants.Products.Remove)]
-    public async Task<ActionResult<Result<Guid>>> DeleteAsync(Guid id)
+    [OpenApiOperation("Delete a product.", "")]
+    public Task<Guid> DeleteAsync(Guid id)
     {
-        var productId = await _service.DeleteProductAsync(id);
-        return Ok(productId);
+        return Mediator.Send(new DeleteProductRequest(id));
     }
 }

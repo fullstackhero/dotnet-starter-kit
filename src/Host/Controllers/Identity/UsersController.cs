@@ -8,7 +8,6 @@ namespace DN.WebApi.Host.Controllers.Identity;
 [ApiController]
 [Route("api/[controller]")]
 [ApiVersionNeutral]
-[ApiConventionType(typeof(FSHApiConventions))]
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;

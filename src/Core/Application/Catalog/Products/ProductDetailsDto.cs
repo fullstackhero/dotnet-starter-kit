@@ -1,4 +1,7 @@
-namespace DN.WebApi.Shared.DTOs.Catalog;
+using DN.WebApi.Application.Catalog.Brands;
+using DN.WebApi.Shared.DTOs;
+
+namespace DN.WebApi.Application.Catalog.Products;
 
 public class ProductDetailsDto : IDto
 {

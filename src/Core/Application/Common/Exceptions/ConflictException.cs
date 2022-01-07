@@ -2,9 +2,9 @@ using System.Net;
 
 namespace DN.WebApi.Application.Common.Exceptions;
 
-public class EntityAlreadyExistsException : CustomException
+public class ConflictException : CustomException
 {
-    public EntityAlreadyExistsException(string message)
+    public ConflictException(string message)
     : base(message, null, HttpStatusCode.Conflict)
     {
     }
