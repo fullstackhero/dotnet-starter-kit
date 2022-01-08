@@ -8,6 +8,6 @@
         <PackageReference Include="NewId" Version="4.0.0-develop.44" />
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\..\Shared\Shared.csproj" />
+      <ProjectReference Include="..\Shared\Shared.csproj" />
     </ItemGroup>
 </Project>
