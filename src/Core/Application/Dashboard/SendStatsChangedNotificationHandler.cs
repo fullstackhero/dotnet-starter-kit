@@ -23,18 +23,18 @@ public class SendStatsChangedNotificationHandler :
         (_logger, _notificationService) = (logger, notificationService);
 
     public Task Handle(EventNotification<BrandCreatedEvent> notification, CancellationToken cancellationToken) =>
-        InternalHandle(notification.DomainEvent, cancellationToken);
+        SendStatsChangedNotification(notification.DomainEvent, cancellationToken);
 
     public Task Handle(EventNotification<BrandDeletedEvent> notification, CancellationToken cancellationToken) =>
-        InternalHandle(notification.DomainEvent, cancellationToken);
+        SendStatsChangedNotification(notification.DomainEvent, cancellationToken);
 
     public Task Handle(EventNotification<ProductCreatedEvent> notification, CancellationToken cancellationToken) =>
-        InternalHandle(notification.DomainEvent, cancellationToken);
+        SendStatsChangedNotification(notification.DomainEvent, cancellationToken);
 
     public Task Handle(EventNotification<ProductDeletedEvent> notification, CancellationToken cancellationToken) =>
-        InternalHandle(notification.DomainEvent, cancellationToken);
+        SendStatsChangedNotification(notification.DomainEvent, cancellationToken);
 
-    private Task InternalHandle(DomainEvent domainEvent, CancellationToken cancellationToken)
+    private Task SendStatsChangedNotification(DomainEvent domainEvent, CancellationToken cancellationToken)
     {
         _logger.LogInformation("{event} Triggered", domainEvent.GetType().Name);
 
