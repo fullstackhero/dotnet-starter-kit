@@ -16,5 +16,6 @@
   "product.notfound": "Produto {0} não encontrado.",
   "brand.notfound": "Marca {0} não encontrada.",
   "brand.cannotbedeleted": "Esta marca não pode ser excluída pois está em uso.",
+  "brand.alreadyexists": "Marca {0} já existe.",
   "exceptionmiddleware.supportmessage": "Forneça o ErrorId ao time de suporte para análise posterior."
 }
