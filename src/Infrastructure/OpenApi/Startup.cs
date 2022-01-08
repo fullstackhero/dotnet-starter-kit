@@ -8,11 +8,11 @@ using NSwag.AspNetCore;
 using NSwag.Generation.Processors.Security;
 using ZymLabs.NSwag.FluentValidation;
 
-namespace DN.WebApi.Infrastructure.Swagger;
+namespace DN.WebApi.Infrastructure.OpenApi;
 
 internal static class Startup
 {
-    internal static IServiceCollection AddSwaggerDocumentation(this IServiceCollection services, IConfiguration config)
+    internal static IServiceCollection AddOpenApiDocumentation(this IServiceCollection services, IConfiguration config)
     {
         var settings = config.GetSection(nameof(SwaggerSettings)).Get<SwaggerSettings>();
         if (settings.Enable)
@@ -82,7 +82,7 @@ internal static class Startup
                     schema.Example = "02:00:00";
                 }));
 
-                document.OperationProcessors.Add(new AddTenantIdProcessor());
+                document.OperationProcessors.Add(new SwaggerHeaderAttributeProcessor());
 
                 var fluentValidationSchemaProcessor = serviceProvider.CreateScope().ServiceProvider.GetService<FluentValidationSchemaProcessor>();
                 document.SchemaProcessors.Add(fluentValidationSchemaProcessor);
@@ -93,7 +93,7 @@ internal static class Startup
         return services;
     }
 
-    internal static IApplicationBuilder UseSwaggerDocumentation(this IApplicationBuilder app, IConfiguration config)
+    internal static IApplicationBuilder UseOpenApiDocumentation(this IApplicationBuilder app, IConfiguration config)
     {
         if (config.GetValue<bool>("SwaggerSettings:Enable"))
         {

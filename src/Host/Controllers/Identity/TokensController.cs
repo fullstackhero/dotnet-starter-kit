@@ -1,6 +1,6 @@
 using DN.WebApi.Application.Identity.Tokens;
 using DN.WebApi.Application.Wrapper;
-using DN.WebApi.Infrastructure.Swagger;
+using DN.WebApi.Infrastructure.OpenApi;
 using DN.WebApi.Shared.Multitenancy;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +19,7 @@ public sealed class TokensController : VersionNeutralApiController
 
     [HttpPost]
     [AllowAnonymous]
-    [SwaggerHeader(MultitenancyConstants.TenantHeaderKey, "Input your tenant Id to access this API", "", true)]
+    [TenantKeyHeader]
     [OpenApiOperation("Submit Credentials with Tenant Key to generate valid Access Token.", "")]
     [ProducesResponseType(200)]
     [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
@@ -32,7 +32,7 @@ public sealed class TokensController : VersionNeutralApiController
 
     [HttpPost("refresh")]
     [AllowAnonymous]
-    [SwaggerHeader(MultitenancyConstants.TenantHeaderKey, "Input your tenant Id to access this API", "", true)]
+    [TenantKeyHeader]
     [ProducesResponseType(200)]
     [ProducesDefaultResponseType(typeof(ErrorResult))]
     public async Task<ActionResult<Result<TokenResponse>>> RefreshAsync(RefreshTokenRequest request)

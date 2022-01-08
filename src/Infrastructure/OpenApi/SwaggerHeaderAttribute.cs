@@ -1,4 +1,4 @@
-﻿namespace DN.WebApi.Infrastructure.Swagger;
+﻿namespace DN.WebApi.Infrastructure.OpenApi;
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
 public class SwaggerHeaderAttribute : Attribute

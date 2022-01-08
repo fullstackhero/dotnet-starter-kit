@@ -12,7 +12,7 @@ using DN.WebApi.Infrastructure.Multitenancy;
 using DN.WebApi.Infrastructure.Notifications;
 using DN.WebApi.Infrastructure.SecurityHeaders;
 using DN.WebApi.Infrastructure.Seeding;
-using DN.WebApi.Infrastructure.Swagger;
+using DN.WebApi.Infrastructure.OpenApi;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
@@ -44,7 +44,7 @@ public static class Startup
             .AddRouting(options => options.LowercaseUrls = true)
             .AddSeeders()
             .AddServices()
-            .AddSwaggerDocumentation(config)
+            .AddOpenApiDocumentation(config)
             .AddMultitenancy(config); // Multitency needs to be last as this one also creates and/or migrates the database(s).
     }
 
@@ -70,7 +70,7 @@ public static class Startup
                 endpoints.MapHealthCheck();
                 endpoints.MapNotifications();
             })
-            .UseSwaggerDocumentation(config);
+            .UseOpenApiDocumentation(config);
 
     private static IServiceCollection AddApiVersioning(this IServiceCollection services) =>
         services.AddApiVersioning(config =>

@@ -3,19 +3,18 @@ using NSwag;
 using NSwag.Generation.Processors;
 using NSwag.Generation.Processors.Contexts;
 
-namespace DN.WebApi.Infrastructure.Swagger;
+namespace DN.WebApi.Infrastructure.OpenApi;
 
-public class AddTenantIdProcessor : IOperationProcessor
+public class SwaggerHeaderAttributeProcessor : IOperationProcessor
 {
     public bool Process(OperationProcessorContext context)
     {
         if (context.MethodInfo?.GetCustomAttribute(typeof(SwaggerHeaderAttribute)) is SwaggerHeaderAttribute attribute)
         {
             var parameters = context.OperationDescription.Operation.Parameters;
+
             var existingParam = parameters.FirstOrDefault(p =>
                 p.Kind == OpenApiParameterKind.Header && p.Name == attribute.HeaderName);
-
-            // remove description from [FromHeader] argument attribute
             if (existingParam is not null)
             {
                 parameters.Remove(existingParam);
@@ -28,10 +27,10 @@ public class AddTenantIdProcessor : IOperationProcessor
                 Description = attribute.Description,
                 IsRequired = attribute.IsRequired,
                 Schema = new NJsonSchema.JsonSchema
-                    {
-                        Type = NJsonSchema.JsonObjectType.String,
-                        Default = attribute.DefaultValue
-                    }
+                {
+                    Type = NJsonSchema.JsonObjectType.String,
+                    Default = attribute.DefaultValue
+                }
             });
         }
 
