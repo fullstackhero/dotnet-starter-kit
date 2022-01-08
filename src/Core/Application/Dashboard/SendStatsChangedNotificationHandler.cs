@@ -38,6 +38,6 @@ public class SendStatsChangedNotificationHandler :
     {
         _logger.LogInformation("{event} Triggered", domainEvent.GetType().Name);
 
-        return _notificationService.SendMessageAsync(new StatsChangedNotification());
+        return _notificationService.SendMessageAsync(new StatsChangedNotification(), cancellationToken);
     }
 }

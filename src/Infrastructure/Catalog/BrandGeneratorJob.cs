@@ -38,7 +38,7 @@ public class BrandGeneratorJob : IBrandGeneratorJob
         _progress = _progressBar.Create();
     }
 
-    private async Task Notify(string message, int progress = 0)
+    private async Task NotifyAsync(string message, int progress, CancellationToken cancellationToken)
     {
         _progress.SetValue(progress);
         await _notificationService.SendMessageToUserAsync(
@@ -48,40 +48,41 @@ public class BrandGeneratorJob : IBrandGeneratorJob
                 JobId = _performingContext.BackgroundJob.Id,
                 Message = message,
                 Progress = progress
-            });
+            },
+            cancellationToken);
     }
 
     [Queue("notdefault")]
-    public async Task GenerateAsync(int nSeed)
+    public async Task GenerateAsync(int nSeed, CancellationToken cancellationToken)
     {
-        await Notify("Your job processing has started");
+        await NotifyAsync("Your job processing has started", 0, cancellationToken);
         foreach (int index in Enumerable.Range(1, nSeed))
         {
             var brand = new Brand(name: $"Brand Random - {Guid.NewGuid()}", "Funny description");
             brand.DomainEvents.Add(new BrandCreatedEvent(brand));
-            await _repository.CreateAsync(brand);
-            await Notify("Progress: ", nSeed > 0 ? (index * 100 / nSeed) : 0);
+            await _repository.CreateAsync(brand, cancellationToken);
+            await NotifyAsync("Progress: ", nSeed > 0 ? (index * 100 / nSeed) : 0, cancellationToken);
         }
 
-        await _repository.SaveChangesAsync();
-        await Notify("Job successfully completed");
+        await _repository.SaveChangesAsync(cancellationToken);
+        await NotifyAsync("Job successfully completed", 0, cancellationToken);
     }
 
     [Queue("notdefault")]
     [AutomaticRetry(Attempts = 5)]
-    public async Task CleanAsync()
+    public async Task CleanAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Initializing Job with Id: {JobId}", _performingContext.BackgroundJob.Id);
-        var items = await _repository.GetListAsync<Brand>(x => !string.IsNullOrEmpty(x.Name) && x.Name.Contains("Brand Random"));
+        var items = await _repository.GetListAsync<Brand>(x => !string.IsNullOrEmpty(x.Name) && x.Name.Contains("Brand Random"), cancellationToken: cancellationToken);
         _logger.LogInformation("Brands Random: {BrandsCount} ", items.Count.ToString());
 
         foreach (var item in items)
         {
             item.DomainEvents.Add(new BrandDeletedEvent(item));
-            await _repository.RemoveAsync(item);
+            await _repository.RemoveAsync(item, cancellationToken);
         }
 
-        int rows = await _repository.SaveChangesAsync();
+        int rows = await _repository.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Rows affected: {rows} ", rows.ToString());
     }
 }
