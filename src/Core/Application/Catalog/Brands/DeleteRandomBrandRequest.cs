@@ -15,7 +15,7 @@ public class DeleteRandomBrandRequestHandler : IRequestHandler<DeleteRandomBrand
 
     public Task<string> Handle(DeleteRandomBrandRequest request, CancellationToken cancellationToken)
     {
-        string jobId = _jobService.Schedule<IBrandGeneratorJob>(x => x.CleanAsync(), TimeSpan.FromSeconds(5));
+        string jobId = _jobService.Schedule<IBrandGeneratorJob>(x => x.CleanAsync(default), TimeSpan.FromSeconds(5));
         return Task.FromResult(jobId);
     }
 }

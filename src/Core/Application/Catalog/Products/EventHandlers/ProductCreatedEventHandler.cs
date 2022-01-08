@@ -1,5 +1,5 @@
 using DN.WebApi.Application.Common.Events;
-using DN.WebApi.Domain.Catalog.Events;
+using DN.WebApi.Domain.Catalog.Products;
 using MediatR;
 using Microsoft.Extensions.Logging;
 

@@ -1,6 +1,6 @@
 using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Common.Validation;
-using DN.WebApi.Domain.Catalog;
+using DN.WebApi.Domain.Catalog.Brands;
 using FluentValidation;
 using Microsoft.Extensions.Localization;
 

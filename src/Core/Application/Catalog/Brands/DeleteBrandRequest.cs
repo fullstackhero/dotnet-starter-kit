@@ -1,7 +1,7 @@
 ﻿using DN.WebApi.Application.Common.Exceptions;
 using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Domain.Catalog;
-using DN.WebApi.Domain.Dashboard;
+using DN.WebApi.Domain.Catalog.Brands;
+using DN.WebApi.Domain.Catalog.Products;
 using MediatR;
 using Microsoft.Extensions.Localization;
 
@@ -24,13 +24,14 @@ public class DeleteBrandRequestHandler : IRequestHandler<DeleteBrandRequest, Gui
 
     public async Task<Guid> Handle(DeleteBrandRequest request, CancellationToken cancellationToken)
     {
-        if (await _repository.ExistsAsync<Product>(a => a.BrandId == request.Id))
+        if (await _repository.ExistsAsync<Product>(p => p.BrandId == request.Id, cancellationToken))
         {
             throw new ConflictException(_localizer["brand.cannotbedeleted"]);
         }
 
         var brandToDelete = await _repository.RemoveByIdAsync<Brand>(request.Id, cancellationToken);
-        brandToDelete.DomainEvents.Add(new StatsChangedEvent());
+
+        brandToDelete.DomainEvents.Add(new BrandDeletedEvent(brandToDelete));
 
         await _repository.SaveChangesAsync(cancellationToken);
 

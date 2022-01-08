@@ -1,6 +1,5 @@
 using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Domain.Catalog;
-using DN.WebApi.Domain.Dashboard;
+using DN.WebApi.Domain.Catalog.Brands;
 using MediatR;
 
 namespace DN.WebApi.Application.Catalog.Brands;
@@ -21,7 +20,7 @@ public class CreateBrandRequestHandler : IRequestHandler<CreateBrandRequest, Gui
     {
         var brand = new Brand(request.Name, request.Description);
 
-        brand.DomainEvents.Add(new StatsChangedEvent());
+        brand.DomainEvents.Add(new BrandCreatedEvent(brand));
 
         await _repository.CreateAsync(brand, cancellationToken);
 
