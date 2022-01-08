@@ -2,7 +2,7 @@ using DN.WebApi.Domain.Common;
 using DN.WebApi.Domain.Common.Contracts;
 using DN.WebApi.Domain.Contracts;
 
-namespace DN.WebApi.Domain.Catalog;
+namespace DN.WebApi.Domain.Catalog.Brands;
 
 public class Brand : AuditableEntity, IMustHaveTenant
 {

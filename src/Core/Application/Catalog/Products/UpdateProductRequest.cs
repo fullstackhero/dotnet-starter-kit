@@ -1,10 +1,8 @@
 using DN.WebApi.Application.Common.Exceptions;
 using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.FileStorage;
-using DN.WebApi.Domain.Catalog;
-using DN.WebApi.Domain.Catalog.Events;
+using DN.WebApi.Domain.Catalog.Products;
 using DN.WebApi.Domain.Common;
-using DN.WebApi.Domain.Dashboard;
 using DN.WebApi.Shared.DTOs.FileStorage;
 using MediatR;
 using Microsoft.Extensions.Localization;
@@ -46,7 +44,6 @@ public class UpdateProductRequestHandler : IRequestHandler<UpdateProductRequest,
 
         // Add Domain Events to be raised after the commit
         product.DomainEvents.Add(new ProductUpdatedEvent(product));
-        product.DomainEvents.Add(new StatsChangedEvent());
 
         await _repository.UpdateAsync(updatedProduct, cancellationToken);
 

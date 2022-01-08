@@ -1,7 +1,5 @@
 ﻿using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Domain.Catalog;
-using DN.WebApi.Domain.Catalog.Events;
-using DN.WebApi.Domain.Dashboard;
+using DN.WebApi.Domain.Catalog.Products;
 using MediatR;
 
 namespace DN.WebApi.Application.Catalog.Products;
@@ -24,7 +22,6 @@ public class DeleteProductRequestHandler : IRequestHandler<DeleteProductRequest,
         var productToDelete = await _repository.RemoveByIdAsync<Product>(request.Id, cancellationToken);
 
         productToDelete.DomainEvents.Add(new ProductDeletedEvent(productToDelete));
-        productToDelete.DomainEvents.Add(new StatsChangedEvent());
 
         await _repository.SaveChangesAsync(cancellationToken);
 

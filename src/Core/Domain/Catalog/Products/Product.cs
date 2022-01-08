@@ -1,8 +1,9 @@
+using DN.WebApi.Domain.Catalog.Brands;
 using DN.WebApi.Domain.Common;
 using DN.WebApi.Domain.Common.Contracts;
 using DN.WebApi.Domain.Contracts;
 
-namespace DN.WebApi.Domain.Catalog;
+namespace DN.WebApi.Domain.Catalog.Products;
 
 public class Product : AuditableEntity, IMustHaveTenant
 {

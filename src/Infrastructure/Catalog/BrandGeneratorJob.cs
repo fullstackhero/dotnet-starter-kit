@@ -1,8 +1,7 @@
 ﻿using DN.WebApi.Application.Catalog.Brands;
 using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Identity.Interfaces;
-using DN.WebApi.Domain.Catalog;
-using DN.WebApi.Domain.Dashboard;
+using DN.WebApi.Domain.Catalog.Brands;
 using DN.WebApi.Shared.DTOs.Notifications;
 using Hangfire;
 using Hangfire.Console.Extensions;
@@ -14,7 +13,6 @@ namespace DN.WebApi.Infrastructure.Catalog;
 
 public class BrandGeneratorJob : IBrandGeneratorJob
 {
-    private readonly IEventService _eventService;
     private readonly ILogger<BrandGeneratorJob> _logger;
     private readonly IRepositoryAsync _repository;
     private readonly IProgressBarFactory _progressBar;
@@ -29,8 +27,7 @@ public class BrandGeneratorJob : IBrandGeneratorJob
         IProgressBarFactory progressBar,
         PerformingContext performingContext,
         INotificationService notificationService,
-        ICurrentUser currentUser,
-        IEventService eventService)
+        ICurrentUser currentUser)
     {
         _logger = logger;
         _repository = repository;
@@ -39,7 +36,6 @@ public class BrandGeneratorJob : IBrandGeneratorJob
         _notificationService = notificationService;
         _currentUser = currentUser;
         _progress = _progressBar.Create();
-        _eventService = eventService;
     }
 
     private async Task Notify(string message, int progress = 0)
@@ -61,12 +57,13 @@ public class BrandGeneratorJob : IBrandGeneratorJob
         await Notify("Your job processing has started");
         foreach (int index in Enumerable.Range(1, nSeed))
         {
-            await _repository.CreateAsync(new Brand(name: $"Brand Random - {Guid.NewGuid()}", "Funny description"));
+            var brand = new Brand(name: $"Brand Random - {Guid.NewGuid()}", "Funny description");
+            brand.DomainEvents.Add(new BrandCreatedEvent(brand));
+            await _repository.CreateAsync(brand);
             await Notify("Progress: ", nSeed > 0 ? (index * 100 / nSeed) : 0);
         }
 
         await _repository.SaveChangesAsync();
-        await _eventService.PublishAsync(new StatsChangedEvent());
         await Notify("Job successfully completed");
     }
 
@@ -80,11 +77,11 @@ public class BrandGeneratorJob : IBrandGeneratorJob
 
         foreach (var item in items)
         {
+            item.DomainEvents.Add(new BrandDeletedEvent(item));
             await _repository.RemoveAsync(item);
         }
 
         int rows = await _repository.SaveChangesAsync();
-        await _eventService.PublishAsync(new StatsChangedEvent());
         _logger.LogInformation("Rows affected: {rows} ", rows.ToString());
     }
 }

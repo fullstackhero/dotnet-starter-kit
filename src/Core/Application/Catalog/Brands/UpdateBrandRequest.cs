@@ -1,7 +1,6 @@
 using DN.WebApi.Application.Common.Exceptions;
 using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Domain.Catalog;
-using DN.WebApi.Domain.Dashboard;
+using DN.WebApi.Domain.Catalog.Brands;
 using MediatR;
 using Microsoft.Extensions.Localization;
 
@@ -31,7 +30,9 @@ public class UpdateBrandRequestHandler : IRequestHandler<UpdateBrandRequest, Gui
         }
 
         var updatedBrand = brand.Update(request.Name, request.Description);
-        updatedBrand.DomainEvents.Add(new StatsChangedEvent());
+
+        updatedBrand.DomainEvents.Add(new BrandUpdatedEvent(updatedBrand));
+
         await _repository.UpdateAsync(updatedBrand, cancellationToken);
 
         await _repository.SaveChangesAsync(cancellationToken);

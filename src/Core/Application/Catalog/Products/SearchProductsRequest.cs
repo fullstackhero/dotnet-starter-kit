@@ -1,7 +1,7 @@
 using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Common.Specifications;
 using DN.WebApi.Application.Wrapper;
-using DN.WebApi.Domain.Catalog;
+using DN.WebApi.Domain.Catalog.Products;
 using DN.WebApi.Domain.Common.Contracts;
 using DN.WebApi.Shared.DTOs.Filters;
 using MediatR;
