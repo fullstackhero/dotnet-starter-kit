@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DN.WebApi.Host.Controllers.Dashboard;
 
-public class StatsController : BaseController
+public class StatsController : VersionedApiController
 {
     private readonly IStatsService _service;
 

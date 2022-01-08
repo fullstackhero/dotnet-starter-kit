@@ -7,10 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DN.WebApi.Host.Controllers.Identity;
 
-[ApiController]
-[Route("api/[controller]")]
-[ApiVersionNeutral]
-public class RoleClaimsController : ControllerBase
+public class RoleClaimsController : VersionNeutralApiController
 {
     private readonly IRoleClaimsService _roleClaimService;
 

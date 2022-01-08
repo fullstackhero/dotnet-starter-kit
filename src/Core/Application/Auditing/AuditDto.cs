@@ -1,6 +1,6 @@
-namespace DN.WebApi.Shared.DTOs.Auditing;
+namespace DN.WebApi.Application.Auditing;
 
-public class AuditResponse
+public class AuditDto
 {
     public Guid Id { get; set; }
     public Guid UserId { get; set; }
