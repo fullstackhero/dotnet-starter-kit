@@ -1,6 +1,8 @@
 using DN.WebApi.Application.Auditing;
 using DN.WebApi.Application.Identity.Interfaces;
 using DN.WebApi.Application.Wrapper;
+using DN.WebApi.Domain.Constants;
+using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Shared.DTOs.Auditing;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,6 +23,7 @@ public class AuditLogsController : ControllerBase
     }
 
     [HttpGet]
+    [MustHavePermission(PermissionConstants.AuditLogs.View)]
     public async Task<ActionResult<Result<List<AuditResponse>>>> GetMyLogsAsync()
     {
         return Ok(await _auditService.GetUserTrailsAsync(_user.GetUserId()));

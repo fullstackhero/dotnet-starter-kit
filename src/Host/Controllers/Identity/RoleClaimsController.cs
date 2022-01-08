@@ -19,32 +19,32 @@ public class RoleClaimsController : ControllerBase
         _roleClaimService = roleClaimService;
     }
 
-    [Authorize(Policy = PermissionConstants.RoleClaims.View)]
     [HttpGet]
+    [Authorize(Policy = PermissionConstants.RoleClaims.View)]
     public async Task<ActionResult<Result<List<RoleClaimResponse>>>> GetAllAsync()
     {
         var roleClaims = await _roleClaimService.GetAllAsync();
         return Ok(roleClaims);
     }
 
-    [Authorize(Policy = PermissionConstants.RoleClaims.View)]
     [HttpGet("{roleId}")]
+    [Authorize(Policy = PermissionConstants.RoleClaims.View)]
     public async Task<ActionResult<Result<List<RoleClaimResponse>>>> GetAllByRoleIdAsync([FromRoute] string roleId)
     {
         var response = await _roleClaimService.GetAllByRoleIdAsync(roleId);
         return Ok(response);
     }
 
-    [Authorize(Policy = PermissionConstants.RoleClaims.Create)]
     [HttpPost]
+    [Authorize(Policy = PermissionConstants.RoleClaims.Create)]
     public async Task<ActionResult<Result<string>>> PostAsync(RoleClaimRequest request)
     {
         var response = await _roleClaimService.SaveAsync(request);
         return Ok(response);
     }
 
-    [Authorize(Policy = PermissionConstants.RoleClaims.Delete)]
     [HttpDelete("{id:int}")]
+    [Authorize(Policy = PermissionConstants.RoleClaims.Delete)]
     public async Task<ActionResult<Result<string>>> DeleteAsync(int id)
     {
         var response = await _roleClaimService.DeleteAsync(id);

@@ -16,5 +16,6 @@
   "product.notfound": "Product {0} Not Found.",
   "brand.notfound": "Brand {0} Not Found.",
   "brand.cannotbedeleted": "Brand cannot be deleted as it's being used.",
+  "brand.alreadyexists": "Brand {0} already Exists.",
   "exceptionmiddleware.supportmessage": "Provide the ErrorId to the support team for further analysis."
 }
