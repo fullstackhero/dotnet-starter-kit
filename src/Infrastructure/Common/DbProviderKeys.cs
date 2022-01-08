@@ -1,6 +1,6 @@
 ﻿namespace DN.WebApi.Infrastructure.Common;
 
-internal class DbProviderConstants
+internal class DbProviderKeys
 {
     public const string Npgsql = "postgresql";
     public const string SqlServer = "mssql";

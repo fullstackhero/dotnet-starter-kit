@@ -43,7 +43,7 @@ internal static class Startup
 
         switch (storageSettings.StorageProvider.ToLowerInvariant())
         {
-            case DbProviderConstants.Npgsql:
+            case DbProviderKeys.Npgsql:
                 services.AddHangfire((provider, config) =>
                 {
                     config.UsePostgreSqlStorage(storageSettings.ConnectionString, appConfig.GetSection("HangfireSettings:Storage:Options").Get<PostgreSqlStorageOptions>())
@@ -53,7 +53,7 @@ internal static class Startup
                 });
                 break;
 
-            case DbProviderConstants.SqlServer:
+            case DbProviderKeys.SqlServer:
                 services.AddHangfire((provider, config) =>
                 {
                     config.UseSqlServerStorage(storageSettings.ConnectionString, appConfig.GetSection("HangfireSettings:Storage:Options").Get<SqlServerStorageOptions>())
@@ -63,7 +63,7 @@ internal static class Startup
                 });
                 break;
 
-            case DbProviderConstants.MySql:
+            case DbProviderKeys.MySql:
                 services.AddHangfire((provider, config) =>
                 {
                     config.UseStorage(new MySqlStorage(storageSettings.ConnectionString, appConfig.GetSection("HangfireSettings:Storage:Options").Get<MySqlStorageOptions>()))

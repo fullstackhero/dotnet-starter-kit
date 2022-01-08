@@ -1,6 +1,7 @@
 ﻿using DN.WebApi.Application.Multitenancy;
 using DN.WebApi.Domain.Multitenancy;
 using DN.WebApi.Infrastructure.Identity.Models;
+using DN.WebApi.Infrastructure.Multitenancy;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
 using DN.WebApi.Infrastructure.Seeding;
 using DN.WebApi.Shared.Multitenancy;
@@ -10,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Serilog;
 
-namespace DN.WebApi.Infrastructure.Multitenancy;
+namespace DN.WebApi.Infrastructure.Persistence;
 
 public static class DatabaseInitializer
 {

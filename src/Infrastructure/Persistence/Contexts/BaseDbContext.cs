@@ -50,16 +50,16 @@ public abstract class BaseDbContext : IdentityDbContext<ApplicationUser, Applica
             string? dbProvider = _tenantService.GetDatabaseProvider();
             switch (dbProvider?.ToLowerInvariant())
             {
-                case DbProviderConstants.Npgsql:
+                case DbProviderKeys.Npgsql:
                     optionsBuilder.UseNpgsql(tenantConnectionString);
                     break;
-                case DbProviderConstants.SqlServer:
+                case DbProviderKeys.SqlServer:
                     optionsBuilder.UseSqlServer(tenantConnectionString);
                     break;
-                case DbProviderConstants.MySql:
+                case DbProviderKeys.MySql:
                     optionsBuilder.UseMySql(tenantConnectionString, ServerVersion.AutoDetect(tenantConnectionString));
                     break;
-                case DbProviderConstants.Oracle:
+                case DbProviderKeys.Oracle:
                     optionsBuilder.UseOracle(tenantConnectionString);
                     break;
             }

@@ -10,9 +10,10 @@ using DN.WebApi.Infrastructure.Mapping;
 using DN.WebApi.Infrastructure.Middleware;
 using DN.WebApi.Infrastructure.Multitenancy;
 using DN.WebApi.Infrastructure.Notifications;
+using DN.WebApi.Infrastructure.OpenApi;
+using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Infrastructure.SecurityHeaders;
 using DN.WebApi.Infrastructure.Seeding;
-using DN.WebApi.Infrastructure.OpenApi;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
@@ -31,21 +32,21 @@ public static class Startup
             .AddCaching(config)
             .AddCorsPolicy(config)
             .AddCurrentUser()
-            .AddCurrentTenant()
             .AddExceptionMiddleware()
             .AddHangfire(config)
             .AddHealthCheck()
             .AddIdentity(config)
             .AddLocalization(config)
             .AddMailing(config)
+            .AddMultitenancy()
             .AddNotifications(config)
+            .AddOpenApiDocumentation(config)
             .AddPermissions()
+            .AddPersistence(config)
             .AddRequestLogging(config)
             .AddRouting(options => options.LowercaseUrls = true)
             .AddSeeders()
-            .AddServices()
-            .AddOpenApiDocumentation(config)
-            .AddMultitenancy(config); // Multitency needs to be last as this one also creates and/or migrates the database(s).
+            .AddServices();
     }
 
     public static IApplicationBuilder UseInfrastructure(this IApplicationBuilder appBuilder, IConfiguration config) =>

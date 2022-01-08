@@ -46,8 +46,7 @@ public class TenantsController : VersionNeutralApiController
     [HttpPost("upgrade")]
     [MustHavePermission(FSHRootPermissions.Tenants.UpgradeSubscription)]
     [OpenApiOperation("Upgrade Subscription of Tenant.", "")]
-    [ProducesResponseType(200)]
-    [ProducesDefaultResponseType(typeof(ErrorResult))]
+    [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Post))]
     public async Task<ActionResult<Result>> UpgradeSubscriptionAsync(UpgradeSubscriptionRequest request)
     {
         return Ok(await _tenantService.UpgradeSubscriptionAsync(request));
@@ -56,8 +55,7 @@ public class TenantsController : VersionNeutralApiController
     [HttpPost("{id}/deactivate")]
     [MustHavePermission(FSHRootPermissions.Tenants.Update)]
     [OpenApiOperation("Deactivate Tenant.", "")]
-    [ProducesResponseType(200)]
-    [ProducesDefaultResponseType(typeof(ErrorResult))]
+    [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Post))]
     public async Task<ActionResult<Result>> DeactivateTenantAsync(string id)
     {
         return Ok(await _tenantService.DeactivateTenantAsync(id));
@@ -66,8 +64,7 @@ public class TenantsController : VersionNeutralApiController
     [HttpPost("{id}/activate")]
     [MustHavePermission(FSHRootPermissions.Tenants.Update)]
     [OpenApiOperation("Activate Tenant.", "")]
-    [ProducesResponseType(200)]
-    [ProducesDefaultResponseType(typeof(ErrorResult))]
+    [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Post))]
     public async Task<ActionResult<Result>> ActivateTenantAsync(string id)
     {
         return Ok(await _tenantService.ActivateTenantAsync(id));

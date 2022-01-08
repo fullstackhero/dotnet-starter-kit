@@ -50,8 +50,7 @@ public class BrandsController : VersionedApiController
     }
 
     [HttpDelete("delete-random")]
-    [ProducesResponseType(200)]
-    [ProducesDefaultResponseType(typeof(ErrorResult))]
+    [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Delete))]
     public Task<string> DeleteRandomAsync()
     {
         return Mediator.Send(new DeleteRandomBrandRequest());

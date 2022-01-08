@@ -62,15 +62,15 @@ public class TenantBootstrapper
         {
             switch (dbProvider.ToLowerInvariant())
             {
-                case DbProviderConstants.Npgsql:
+                case DbProviderKeys.Npgsql:
                     var postgresqlcs = new NpgsqlConnectionStringBuilder(connectionString);
                     break;
 
-                case DbProviderConstants.MySql:
+                case DbProviderKeys.MySql:
                     var mysqlcs = new MySqlConnectionStringBuilder(connectionString);
                     break;
 
-                case DbProviderConstants.SqlServer:
+                case DbProviderKeys.SqlServer:
                     var mssqlcs = new SqlConnectionStringBuilder(connectionString);
                     break;
             }

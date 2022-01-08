@@ -1,7 +1,6 @@
 using DN.WebApi.Application.Identity.Tokens;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Infrastructure.OpenApi;
-using DN.WebApi.Shared.Multitenancy;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NSwag.Annotations;
@@ -21,9 +20,6 @@ public sealed class TokensController : VersionNeutralApiController
     [AllowAnonymous]
     [TenantKeyHeader]
     [OpenApiOperation("Submit Credentials with Tenant Key to generate valid Access Token.", "")]
-    [ProducesResponseType(200)]
-    [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
-    [ProducesDefaultResponseType(typeof(ErrorResult))]
     public async Task<ActionResult<Result<TokenResponse>>> GetTokenAsync(TokenRequest request)
     {
         var token = await _tokenService.GetTokenAsync(request, GenerateIpAddress());
@@ -33,8 +29,7 @@ public sealed class TokensController : VersionNeutralApiController
     [HttpPost("refresh")]
     [AllowAnonymous]
     [TenantKeyHeader]
-    [ProducesResponseType(200)]
-    [ProducesDefaultResponseType(typeof(ErrorResult))]
+    [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Search))]
     public async Task<ActionResult<Result<TokenResponse>>> RefreshAsync(RefreshTokenRequest request)
     {
         var response = await _tokenService.RefreshTokenAsync(request, GenerateIpAddress());

@@ -20,10 +20,10 @@ namespace DN.WebApi.Infrastructure.Multitenancy
 
             return dbProvider?.ToLower() switch
             {
-                DbProviderConstants.Npgsql => MakeSecureNpgsqlConnectionString(connectionString),
-                DbProviderConstants.SqlServer => MakeSecureSqlConnectionString(connectionString),
-                DbProviderConstants.MySql => MakeSecureMySqlConnectionString(connectionString),
-                DbProviderConstants.Oracle => MakeSecureOracleConnectionString(connectionString),
+                DbProviderKeys.Npgsql => MakeSecureNpgsqlConnectionString(connectionString),
+                DbProviderKeys.SqlServer => MakeSecureSqlConnectionString(connectionString),
+                DbProviderKeys.MySql => MakeSecureMySqlConnectionString(connectionString),
+                DbProviderKeys.Oracle => MakeSecureOracleConnectionString(connectionString),
                 _ => connectionString
             };
         }

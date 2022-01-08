@@ -49,9 +49,7 @@ public class UsersController : VersionNeutralApiController
     }
 
     [HttpPost("{id}/roles")]
-    [ProducesResponseType(200)]
-    [ProducesDefaultResponseType(typeof(ErrorResult))]
-    [MustHavePermission(FSHPermissions.RoleClaims.Edit)]
+    [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Post))]
     public async Task<ActionResult<Result<string>>> AssignRolesAsync(string id, UserRolesRequest request)
     {
         var result = await _userService.AssignRolesAsync(id, request);
@@ -59,10 +57,8 @@ public class UsersController : VersionNeutralApiController
     }
 
     [HttpPost("toggle-status")]
-    [ProducesResponseType(200)]
-    [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
-    [ProducesDefaultResponseType(typeof(ErrorResult))]
     [MustHavePermission(FSHPermissions.Users.Edit)]
+    [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Post))]
     public async Task<IActionResult> ToggleUserStatusAsync(ToggleUserStatusRequest request)
     {
         return Ok(await _userService.ToggleUserStatusAsync(request));

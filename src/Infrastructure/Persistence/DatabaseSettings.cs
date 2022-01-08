@@ -1,4 +1,4 @@
-namespace DN.WebApi.Infrastructure.Multitenancy;
+namespace DN.WebApi.Infrastructure.Persistence;
 
 public class DatabaseSettings
 {

@@ -4,6 +4,7 @@ using DN.WebApi.Application.Multitenancy;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Multitenancy;
 using DN.WebApi.Infrastructure.Identity.Models;
+using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
 using DN.WebApi.Infrastructure.Seeding;
 using Mapster;
