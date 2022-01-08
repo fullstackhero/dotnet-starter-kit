@@ -7,10 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DN.WebApi.Host.Controllers.Identity;
 
-[ApiController]
-[Route("api/[controller]")]
-[ApiVersionNeutral]
-public class UsersController : ControllerBase
+public class UsersController : VersionNeutralApiController
 {
     private readonly IUserService _userService;
 

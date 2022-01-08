@@ -7,8 +7,7 @@ using NSwag.Annotations;
 
 namespace DN.WebApi.Host.Controllers.Catalog;
 
-[ApiConventionType(typeof(FSHApiConventions))]
-public class BrandsController : BaseController
+public class BrandsController : VersionedApiController
 {
     [HttpPost("search")]
     [MustHavePermission(PermissionConstants.Brands.Search)]

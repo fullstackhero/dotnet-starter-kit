@@ -9,10 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DN.WebApi.Host.Controllers.Identity;
 
-[ApiController]
-[Route("api/[controller]")]
-[ApiVersionNeutral]
-public sealed class IdentityController : ControllerBase
+public sealed class IdentityController : VersionNeutralApiController
 {
     private readonly ICurrentUser _user;
     private readonly IIdentityService _identityService;

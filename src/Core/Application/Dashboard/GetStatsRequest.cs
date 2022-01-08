@@ -1,28 +1,31 @@
-using DN.WebApi.Application.Common.Interfaces;
+﻿using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Identity.Interfaces;
-using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Catalog;
-using DN.WebApi.Shared.DTOs.Dashboard;
+using MediatR;
 using Microsoft.Extensions.Localization;
 
 namespace DN.WebApi.Application.Dashboard;
 
-public class StatsService : IStatsService
+public class GetStatsRequest : IRequest<StatsDto>
+{
+}
+
+public class GetStatsRequestHandler : IRequestHandler<GetStatsRequest, StatsDto>
 {
     private readonly IUserService _userService;
     private readonly IRoleService _roleService;
     private readonly IRepositoryAsync _repository;
-    private readonly IStringLocalizer<StatsService> _localizer;
+    private readonly IStringLocalizer<GetStatsRequestHandler> _localizer;
 
-    public StatsService(IRepositoryAsync repository, IRoleService roleService, IUserService userService, IStringLocalizer<StatsService> localizer)
+    public GetStatsRequestHandler(IUserService userService, IRoleService roleService, IRepositoryAsync repository, IStringLocalizer<GetStatsRequestHandler> localizer)
     {
-        _repository = repository;
-        _roleService = roleService;
         _userService = userService;
+        _roleService = roleService;
+        _repository = repository;
         _localizer = localizer;
     }
 
-    public async Task<IResult<StatsDto>> GetDataAsync()
+    public async Task<StatsDto> Handle(GetStatsRequest request, CancellationToken cancellationToken)
     {
         var stats = new StatsDto
         {
@@ -48,6 +51,6 @@ public class StatsService : IStatsService
         stats.DataEnterBarChart.Add(new ChartSeries { Name = _localizer["Products"], Data = productsFigure });
         stats.DataEnterBarChart.Add(new ChartSeries { Name = _localizer["Brands"], Data = brandsFigure });
 
-        return await Result<StatsDto>.SuccessAsync(stats);
+        return stats;
     }
 }

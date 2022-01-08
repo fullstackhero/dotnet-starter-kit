@@ -1,4 +1,4 @@
-namespace DN.WebApi.Shared.DTOs.Dashboard;
+namespace DN.WebApi.Application.Dashboard;
 
 public class StatsDto
 {
