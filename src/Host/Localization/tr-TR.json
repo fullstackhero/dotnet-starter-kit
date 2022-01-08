@@ -12,9 +12,10 @@
   "identity.invalidtoken": "Geçersiz Bilet.",
   "identity.invalidrefreshtoken": "Geçersiz Yenileme Bileti.",
   "entity.notfound": "{0} {1} Bulunamadı.",
-  "product.alreadyexists": "{0} Ürünü zaten Mevcut.",
+  "product.alreadyexists": "{0} Ürünü zaten mevcut.",
   "product.notfound": "{0} Ürünü Bulunamadı.",
   "brand.notfound": "{0} Markası Bulunamadı.",
   "brand.cannotbedeleted": "Marka, kullanıldığı için silinemez.",
+  "brand.alreadyexists": "{0} Markası zaten mevcut.",
   "exceptionmiddleware.supportmessage": "Daha fazla analiz için ErrorId'yi destek ekibine sağlayın."
 }
