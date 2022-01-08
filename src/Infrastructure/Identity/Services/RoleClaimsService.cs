@@ -1,12 +1,10 @@
-using DN.WebApi.Application.Common;
-using DN.WebApi.Application.Common.Constants;
-using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Application.Identity.Interfaces;
+using DN.WebApi.Application.Common.Caching;
+using DN.WebApi.Application.Identity.RoleClaims;
+using DN.WebApi.Application.Identity.Roles;
 using DN.WebApi.Application.Wrapper;
-using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
-using DN.WebApi.Shared.DTOs.Identity;
+using DN.WebApi.Shared.Authorization;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
@@ -29,7 +27,7 @@ public class RoleClaimsService : IRoleClaimsService
     public async Task<bool> HasPermissionAsync(string userId, string permission)
     {
         var roles = await _cache.GetOrSetAsync(
-            CacheKeys.GetCacheKey(ClaimConstants.Permission, userId),
+            CacheKeys.GetCacheKey(FSHClaims.Permission, userId),
             async () =>
             {
                 var userRoles = await _db.UserRoles.Where(a => a.UserId == userId).Select(a => a.RoleId).ToListAsync();
@@ -41,7 +39,7 @@ public class RoleClaimsService : IRoleClaimsService
         {
             foreach (var role in roles)
             {
-                if (_db.RoleClaims.Any(a => a.ClaimType == ClaimConstants.Permission && a.ClaimValue == permission && a.RoleId == role.Id))
+                if (_db.RoleClaims.Any(a => a.ClaimType == FSHClaims.Permission && a.ClaimValue == permission && a.RoleId == role.Id))
                 {
                     return true;
                 }

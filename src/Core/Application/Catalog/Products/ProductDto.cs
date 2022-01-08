@@ -1,4 +1,4 @@
-using DN.WebApi.Shared.DTOs;
+using DN.WebApi.Application.Common;
 
 namespace DN.WebApi.Application.Catalog.Products;
 

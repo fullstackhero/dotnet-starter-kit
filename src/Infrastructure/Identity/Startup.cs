@@ -1,7 +1,7 @@
 using System.Net;
 using System.Security.Claims;
 using System.Text;
-using DN.WebApi.Application.Identity.Exceptions;
+using DN.WebApi.Application.Identity;
 using DN.WebApi.Infrastructure.Identity.AzureAd;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Identity.Permissions;

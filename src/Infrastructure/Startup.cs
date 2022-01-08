@@ -1,8 +1,8 @@
+using DN.WebApi.Infrastructure.BackgroundJobs;
 using DN.WebApi.Infrastructure.Caching;
 using DN.WebApi.Infrastructure.Common;
 using DN.WebApi.Infrastructure.Cors;
 using DN.WebApi.Infrastructure.FileStorage;
-using DN.WebApi.Infrastructure.Hangfire;
 using DN.WebApi.Infrastructure.Identity;
 using DN.WebApi.Infrastructure.Localization;
 using DN.WebApi.Infrastructure.Mailing;

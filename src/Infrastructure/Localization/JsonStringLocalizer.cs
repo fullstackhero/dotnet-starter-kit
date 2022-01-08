@@ -1,6 +1,5 @@
 ﻿using System.Globalization;
-using DN.WebApi.Application.Common;
-using DN.WebApi.Application.Common.Interfaces;
+using DN.WebApi.Application.Common.Caching;
 using Microsoft.Extensions.Localization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;

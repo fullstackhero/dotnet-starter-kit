@@ -1,5 +1,5 @@
 using DN.WebApi.Application.Common.Exceptions;
-using DN.WebApi.Application.Common.Interfaces;
+using DN.WebApi.Application.Common.Persistance;
 using DN.WebApi.Domain.Catalog.Brands;
 using MediatR;
 using Microsoft.Extensions.Localization;

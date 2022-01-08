@@ -3,15 +3,15 @@ using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using DN.WebApi.Application.Identity.Exceptions;
-using DN.WebApi.Application.Identity.Interfaces;
+using DN.WebApi.Application.Identity;
+using DN.WebApi.Application.Identity.Tokens;
 using DN.WebApi.Application.Multitenancy;
 using DN.WebApi.Application.Wrapper;
-using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Mailing;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
-using DN.WebApi.Shared.DTOs.Identity;
+using DN.WebApi.Shared.Authorization;
+using DN.WebApi.Shared.Multitenancy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
@@ -137,12 +137,12 @@ public class TokenService : ITokenService
             {
                 new(ClaimTypes.NameIdentifier, user.Id),
                 new(ClaimTypes.Email, user.Email),
-                new(ClaimConstants.Fullname, $"{user.FirstName} {user.LastName}"),
+                new(FSHClaims.Fullname, $"{user.FirstName} {user.LastName}"),
                 new(ClaimTypes.Name, user.FirstName ?? string.Empty),
                 new(ClaimTypes.Surname, user.LastName ?? string.Empty),
-                new(ClaimConstants.IpAddress, ipAddress),
-                new(ClaimConstants.Tenant, tenant ?? string.Empty),
-                new(ClaimConstants.ImageUrl, user.ImageUrl ?? string.Empty),
+                new(FSHClaims.IpAddress, ipAddress),
+                new(FSHClaims.Tenant, tenant ?? string.Empty),
+                new(FSHClaims.ImageUrl, user.ImageUrl ?? string.Empty),
                 new(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty)
             };
     }

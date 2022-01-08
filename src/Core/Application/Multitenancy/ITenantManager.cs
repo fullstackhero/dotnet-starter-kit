@@ -1,6 +1,5 @@
-using DN.WebApi.Application.Common.Interfaces;
+using DN.WebApi.Application.Common;
 using DN.WebApi.Application.Wrapper;
-using DN.WebApi.Shared.DTOs.Multitenancy;
 
 namespace DN.WebApi.Application.Multitenancy;
 

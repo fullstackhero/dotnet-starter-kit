@@ -1,8 +1,7 @@
 using DN.WebApi.Application.Multitenancy;
 using DN.WebApi.Application.Wrapper;
-using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Permissions;
-using DN.WebApi.Shared.DTOs.Multitenancy;
+using DN.WebApi.Shared.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NSwag.Annotations;
 
@@ -18,7 +17,7 @@ public class TenantsController : VersionNeutralApiController
     }
 
     [HttpGet("{key}")]
-    [MustHavePermission(RootPermissions.Tenants.View)]
+    [MustHavePermission(FSHRootPermissions.Tenants.View)]
     [OpenApiOperation("Get Tenant Details.", "")]
     public async Task<ActionResult<Result<TenantDto>>> GetAsync(string key)
     {
@@ -27,7 +26,7 @@ public class TenantsController : VersionNeutralApiController
     }
 
     [HttpGet]
-    [MustHavePermission(RootPermissions.Tenants.ListAll)]
+    [MustHavePermission(FSHRootPermissions.Tenants.ListAll)]
     [OpenApiOperation("Get all the available Tenants.", "")]
     public async Task<ActionResult<Result<List<TenantDto>>>> GetAllAsync()
     {
@@ -36,7 +35,7 @@ public class TenantsController : VersionNeutralApiController
     }
 
     [HttpPost]
-    [MustHavePermission(RootPermissions.Tenants.Create)]
+    [MustHavePermission(FSHRootPermissions.Tenants.Create)]
     [OpenApiOperation("Create a new Tenant.", "")]
     public async Task<ActionResult<Result<Guid>>> CreateAsync(CreateTenantRequest request)
     {
@@ -45,7 +44,7 @@ public class TenantsController : VersionNeutralApiController
     }
 
     [HttpPost("upgrade")]
-    [MustHavePermission(RootPermissions.Tenants.UpgradeSubscription)]
+    [MustHavePermission(FSHRootPermissions.Tenants.UpgradeSubscription)]
     [OpenApiOperation("Upgrade Subscription of Tenant.", "")]
     [ProducesResponseType(200)]
     [ProducesDefaultResponseType(typeof(ErrorResult))]
@@ -55,7 +54,7 @@ public class TenantsController : VersionNeutralApiController
     }
 
     [HttpPost("{id}/deactivate")]
-    [MustHavePermission(RootPermissions.Tenants.Update)]
+    [MustHavePermission(FSHRootPermissions.Tenants.Update)]
     [OpenApiOperation("Deactivate Tenant.", "")]
     [ProducesResponseType(200)]
     [ProducesDefaultResponseType(typeof(ErrorResult))]
@@ -65,7 +64,7 @@ public class TenantsController : VersionNeutralApiController
     }
 
     [HttpPost("{id}/activate")]
-    [MustHavePermission(RootPermissions.Tenants.Update)]
+    [MustHavePermission(FSHRootPermissions.Tenants.Update)]
     [OpenApiOperation("Activate Tenant.", "")]
     [ProducesResponseType(200)]
     [ProducesDefaultResponseType(typeof(ErrorResult))]

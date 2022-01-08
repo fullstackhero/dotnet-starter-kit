@@ -1,4 +1,4 @@
-using DN.WebApi.Application.Common.Interfaces;
+using DN.WebApi.Application.Common.Caching;
 using FluentAssertions;
 using Xunit;
 

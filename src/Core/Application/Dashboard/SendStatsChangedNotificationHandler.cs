@@ -1,9 +1,9 @@
 using DN.WebApi.Application.Common.Events;
-using DN.WebApi.Application.Common.Interfaces;
+using DN.WebApi.Application.Common.Notifications;
 using DN.WebApi.Domain.Catalog.Brands;
 using DN.WebApi.Domain.Catalog.Products;
 using DN.WebApi.Domain.Common.Contracts;
-using DN.WebApi.Shared.DTOs.Notifications;
+using DN.WebApi.Shared.Notifications;
 using MediatR;
 using Microsoft.Extensions.Logging;
 

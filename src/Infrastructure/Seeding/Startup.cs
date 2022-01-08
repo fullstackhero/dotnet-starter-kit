@@ -1,4 +1,3 @@
-using DN.WebApi.Application.Common.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DN.WebApi.Infrastructure.Seeding;

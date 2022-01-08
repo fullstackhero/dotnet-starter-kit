@@ -1,7 +1,6 @@
 using DN.WebApi.Domain.Catalog.Brands;
-using DN.WebApi.Domain.Common;
 using DN.WebApi.Domain.Common.Contracts;
-using DN.WebApi.Domain.Contracts;
+using DN.WebApi.Domain.Multitenancy;
 
 namespace DN.WebApi.Domain.Catalog.Products;
 
@@ -30,11 +29,11 @@ public class Product : AuditableEntity, IMustHaveTenant
 
     public Product Update(string? name, string? description, decimal rate, in Guid brandId, string? imagePath)
     {
-        if (name != null && !Name.NullToString().Equals(name)) Name = name;
-        if (description != null && !Description.NullToString().Equals(description)) Description = description;
+        if (name is not null && Name?.Equals(name) is not true) Name = name;
+        if (description is not null && Description?.Equals(description) is not true) Description = description;
         if (Rate != rate) Rate = rate;
-        if (brandId != Guid.Empty && !BrandId.NullToString().Equals(brandId)) BrandId = brandId;
-        if (imagePath != null && !ImagePath.NullToString().Equals(imagePath)) ImagePath = imagePath;
+        if (brandId != Guid.Empty && !BrandId.Equals(brandId)) BrandId = brandId;
+        if (imagePath is not null && ImagePath?.Equals(imagePath) is not true) ImagePath = imagePath;
         return this;
     }
 }

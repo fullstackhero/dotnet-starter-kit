@@ -1,6 +1,5 @@
 using System.Security.Claims;
-using DN.WebApi.Application.Identity.Interfaces;
-using DN.WebApi.Infrastructure.Identity.Extensions;
+using DN.WebApi.Application.Identity.Users;
 
 namespace DN.WebApi.Infrastructure.Identity.Services;
 
@@ -16,7 +15,7 @@ public class CurrentUser : ICurrentUser
         IsAuthenticated() ? Guid.Parse(_user?.GetUserId() ?? Guid.Empty.ToString()) : _userId;
 
     public string? GetUserEmail() =>
-        IsAuthenticated() ? _user?.GetUserEmail() : string.Empty;
+        IsAuthenticated() ? _user?.GetEmail() : string.Empty;
 
     public bool IsAuthenticated() =>
         _user?.Identity?.IsAuthenticated ?? false;

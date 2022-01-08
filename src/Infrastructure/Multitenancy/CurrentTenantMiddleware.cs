@@ -1,5 +1,5 @@
 using System.Net;
-using DN.WebApi.Application.Identity.Exceptions;
+using DN.WebApi.Application.Identity;
 using DN.WebApi.Application.Multitenancy;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Localization;

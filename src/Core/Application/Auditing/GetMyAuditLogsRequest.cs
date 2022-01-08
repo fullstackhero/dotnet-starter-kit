@@ -1,4 +1,4 @@
-using DN.WebApi.Application.Identity.Interfaces;
+using DN.WebApi.Application.Identity.Users;
 using MediatR;
 
 namespace DN.WebApi.Application.Auditing;

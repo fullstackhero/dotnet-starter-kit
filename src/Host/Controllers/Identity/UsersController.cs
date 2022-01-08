@@ -1,9 +1,9 @@
-using DN.WebApi.Application.Identity.Interfaces;
 using DN.WebApi.Application.Wrapper;
-using DN.WebApi.Domain.Constants;
+using DN.WebApi.Shared.Authorization;
 using DN.WebApi.Infrastructure.Identity.Permissions;
-using DN.WebApi.Shared.DTOs.Identity;
 using Microsoft.AspNetCore.Mvc;
+using DN.WebApi.Application.Identity.Users;
+using DN.WebApi.Application.Identity;
 
 namespace DN.WebApi.Host.Controllers.Identity;
 
@@ -17,7 +17,7 @@ public class UsersController : VersionNeutralApiController
     }
 
     [HttpGet]
-    [MustHavePermission(PermissionConstants.Users.View)]
+    [MustHavePermission(FSHPermissions.Users.View)]
     public async Task<ActionResult<Result<List<UserDetailsDto>>>> GetAllAsync()
     {
         var users = await _userService.GetAllAsync();
@@ -25,7 +25,7 @@ public class UsersController : VersionNeutralApiController
     }
 
     [HttpGet("{id}")]
-    [MustHavePermission(PermissionConstants.Users.View)]
+    [MustHavePermission(FSHPermissions.Users.View)]
     public async Task<ActionResult<Result<UserDetailsDto>>> GetByIdAsync(string id)
     {
         var user = await _userService.GetAsync(id);
@@ -33,7 +33,7 @@ public class UsersController : VersionNeutralApiController
     }
 
     [HttpGet("{id}/roles")]
-    [MustHavePermission(PermissionConstants.Roles.View)]
+    [MustHavePermission(FSHPermissions.Roles.View)]
     public async Task<ActionResult<Result<UserRolesResponse>>> GetRolesAsync(string id)
     {
         var userRoles = await _userService.GetRolesAsync(id);
@@ -41,7 +41,7 @@ public class UsersController : VersionNeutralApiController
     }
 
     [HttpGet("{id}/permissions")]
-    [MustHavePermission(PermissionConstants.RoleClaims.View)]
+    [MustHavePermission(FSHPermissions.RoleClaims.View)]
     public async Task<ActionResult<Result<List<PermissionDto>>>> GetPermissionsAsync(string id)
     {
         var userPermissions = await _userService.GetPermissionsAsync(id);
@@ -51,7 +51,7 @@ public class UsersController : VersionNeutralApiController
     [HttpPost("{id}/roles")]
     [ProducesResponseType(200)]
     [ProducesDefaultResponseType(typeof(ErrorResult))]
-    [MustHavePermission(PermissionConstants.RoleClaims.Edit)]
+    [MustHavePermission(FSHPermissions.RoleClaims.Edit)]
     public async Task<ActionResult<Result<string>>> AssignRolesAsync(string id, UserRolesRequest request)
     {
         var result = await _userService.AssignRolesAsync(id, request);
@@ -62,7 +62,7 @@ public class UsersController : VersionNeutralApiController
     [ProducesResponseType(200)]
     [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
     [ProducesDefaultResponseType(typeof(ErrorResult))]
-    [MustHavePermission(PermissionConstants.Users.Edit)]
+    [MustHavePermission(FSHPermissions.Users.Edit)]
     public async Task<IActionResult> ToggleUserStatusAsync(ToggleUserStatusRequest request)
     {
         return Ok(await _userService.ToggleUserStatusAsync(request));

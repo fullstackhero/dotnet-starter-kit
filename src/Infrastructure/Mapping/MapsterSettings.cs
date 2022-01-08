@@ -1,5 +1,5 @@
-﻿using DN.WebApi.Infrastructure.Identity.Models;
-using DN.WebApi.Shared.DTOs.Identity;
+﻿using DN.WebApi.Application.Identity;
+using DN.WebApi.Infrastructure.Identity.Models;
 using Mapster;
 
 namespace DN.WebApi.Infrastructure.Mapping;

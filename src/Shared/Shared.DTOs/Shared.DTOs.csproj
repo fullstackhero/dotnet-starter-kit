@@ -1,7 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-    <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
-        <RootNamespace>DN.WebApi.Shared.DTOs</RootNamespace>
-        <AssemblyName>DN.WebApi.Shared.DTOs</AssemblyName>
-    </PropertyGroup>
-</Project>

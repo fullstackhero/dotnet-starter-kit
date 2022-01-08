@@ -1,4 +1,4 @@
-﻿using DN.WebApi.Application.Common.Interfaces;
+﻿using DN.WebApi.Application.Common;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DN.WebApi.Infrastructure.Common;

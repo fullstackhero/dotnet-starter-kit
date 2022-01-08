@@ -1,5 +1,4 @@
-using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Shared.DTOs.Mailing;
+using DN.WebApi.Application.Common.Mailing;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Logging;

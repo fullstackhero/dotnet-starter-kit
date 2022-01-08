@@ -1,9 +1,9 @@
-﻿using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Application.Multitenancy;
-using DN.WebApi.Domain.Constants;
+﻿using DN.WebApi.Application.Multitenancy;
 using DN.WebApi.Domain.Multitenancy;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
+using DN.WebApi.Infrastructure.Seeding;
+using DN.WebApi.Shared.Multitenancy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

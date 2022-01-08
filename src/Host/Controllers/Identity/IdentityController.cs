@@ -1,9 +1,10 @@
-using DN.WebApi.Application.Identity.Interfaces;
+using DN.WebApi.Application.Identity.Users;
+using DN.WebApi.Application.Identity.Users.Password;
 using DN.WebApi.Application.Wrapper;
-using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Infrastructure.Swagger;
-using DN.WebApi.Shared.DTOs.Identity;
+using DN.WebApi.Shared.Authorization;
+using DN.WebApi.Shared.Multitenancy;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,7 +24,7 @@ public sealed class IdentityController : VersionNeutralApiController
     }
 
     [HttpPost("register")]
-    [MustHavePermission(PermissionConstants.Identity.Register)]
+    [MustHavePermission(FSHPermissions.Identity.Register)]
     public async Task<ActionResult<Result<string>>> RegisterAsync(RegisterUserRequest request)
     {
         string origin = GenerateOrigin();
@@ -50,7 +51,7 @@ public sealed class IdentityController : VersionNeutralApiController
 
     [HttpPost("forgot-password")]
     [AllowAnonymous]
-    [SwaggerHeader(HeaderConstants.Tenant, "Input your tenant Id to access this API", "", true)]
+    [SwaggerHeader(MultitenancyConstants.TenantHeaderKey, "Input your tenant Id to access this API", "", true)]
     [ProducesResponseType(200)]
     [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
     [ProducesDefaultResponseType(typeof(ErrorResult))]

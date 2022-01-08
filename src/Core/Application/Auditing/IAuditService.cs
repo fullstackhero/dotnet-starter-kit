@@ -1,4 +1,4 @@
-using DN.WebApi.Application.Common.Interfaces;
+using DN.WebApi.Application.Common;
 
 namespace DN.WebApi.Application.Auditing;
 

@@ -1,13 +1,13 @@
 using System.Linq.Dynamic.Core;
-using DN.WebApi.Application.Identity.Interfaces;
+using DN.WebApi.Application.Identity;
+using DN.WebApi.Application.Identity.Users;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Common.Contracts;
-using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Mapping;
 using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
-using DN.WebApi.Shared.DTOs.Identity;
+using DN.WebApi.Shared.Authorization;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -103,7 +103,7 @@ public class UserService : IUserService
             return await Result<string>.FailAsync(_localizer["Invalid Request."]);
         }
 
-        var adminRole = request.UserRoles.Find(a => !a.Enabled && a.RoleName == RoleConstants.Admin);
+        var adminRole = request.UserRoles.Find(a => !a.Enabled && a.RoleName == FSHRoles.Admin);
         if (adminRole != null)
         {
             request.UserRoles.Remove(adminRole);
@@ -143,7 +143,7 @@ public class UserService : IUserService
         var roleNames = await _userManager.GetRolesAsync(user);
         foreach (var role in _roleManager.Roles.Where(r => roleNames.Contains(r.Name)).ToList())
         {
-            var permissions = await _context.RoleClaims.Where(a => a.RoleId == role.Id && a.ClaimType == ClaimConstants.Permission).ToListAsync();
+            var permissions = await _context.RoleClaims.Where(a => a.RoleId == role.Id && a.ClaimType == FSHClaims.Permission).ToListAsync();
             var permissionResponse = permissions.Adapt<List<PermissionDto>>();
             userPermissions.AddRange(permissionResponse);
         }
@@ -160,7 +160,7 @@ public class UserService : IUserService
     {
         var user = await _userManager.Users.Where(u => u.Id == request.UserId).FirstOrDefaultAsync();
         if (user == null) return await Result<List<PermissionDto>>.FailAsync(_localizer["User Not Found."]);
-        bool isAdmin = await _userManager.IsInRoleAsync(user, RoleConstants.Admin);
+        bool isAdmin = await _userManager.IsInRoleAsync(user, FSHRoles.Admin);
         if (isAdmin)
         {
             return await Result.FailAsync(_localizer["Administrators Profile's Status cannot be toggled"]);

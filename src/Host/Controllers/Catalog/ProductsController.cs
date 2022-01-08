@@ -1,6 +1,6 @@
 ﻿using DN.WebApi.Application.Catalog.Products;
 using DN.WebApi.Application.Wrapper;
-using DN.WebApi.Domain.Constants;
+using DN.WebApi.Shared.Authorization;
 using DN.WebApi.Infrastructure.Identity.Permissions;
 using Microsoft.AspNetCore.Mvc;
 using NSwag.Annotations;
@@ -10,7 +10,7 @@ namespace DN.WebApi.Host.Controllers.Catalog;
 public class ProductsController : VersionedApiController
 {
     [HttpPost("search")]
-    [MustHavePermission(PermissionConstants.Products.Search)]
+    [MustHavePermission(FSHPermissions.Products.Search)]
     [OpenApiOperation("Search products using available filters.", "")]
     public Task<PaginatedResult<ProductDto>> SearchAsync(SearchProductsRequest request)
     {
@@ -18,7 +18,7 @@ public class ProductsController : VersionedApiController
     }
 
     [HttpGet("{id:guid}")]
-    [MustHavePermission(PermissionConstants.Products.View)]
+    [MustHavePermission(FSHPermissions.Products.View)]
     [OpenApiOperation("Get product details.", "")]
     public Task<ProductDetailsDto> GetAsync(Guid id)
     {
@@ -26,7 +26,7 @@ public class ProductsController : VersionedApiController
     }
 
     [HttpGet("dapper")]
-    [MustHavePermission(PermissionConstants.Products.View)]
+    [MustHavePermission(FSHPermissions.Products.View)]
     [OpenApiOperation("Get product details via dapper.", "")]
     public Task<ProductDto> GetDapperAsync(Guid id)
     {
@@ -34,7 +34,7 @@ public class ProductsController : VersionedApiController
     }
 
     [HttpPost]
-    [MustHavePermission(PermissionConstants.Products.Register)]
+    [MustHavePermission(FSHPermissions.Products.Register)]
     [OpenApiOperation("Create a new product.", "")]
     public Task<Guid> CreateAsync(CreateProductRequest request)
     {
@@ -42,7 +42,7 @@ public class ProductsController : VersionedApiController
     }
 
     [HttpPut("{id:guid}")]
-    [MustHavePermission(PermissionConstants.Products.Update)]
+    [MustHavePermission(FSHPermissions.Products.Update)]
     [OpenApiOperation("Update a product.", "")]
     public async Task<ActionResult<Guid>> UpdateAsync(UpdateProductRequest request, Guid id)
     {
@@ -55,7 +55,7 @@ public class ProductsController : VersionedApiController
     }
 
     [HttpDelete("{id:guid}")]
-    [MustHavePermission(PermissionConstants.Products.Remove)]
+    [MustHavePermission(FSHPermissions.Products.Remove)]
     [OpenApiOperation("Delete a product.", "")]
     public Task<Guid> DeleteAsync(Guid id)
     {

@@ -1,13 +1,14 @@
 using System.Net;
-using DN.WebApi.Application.Identity.Exceptions;
-using DN.WebApi.Application.Identity.Interfaces;
+using DN.WebApi.Application.Identity;
+using DN.WebApi.Application.Identity.RoleClaims;
+using DN.WebApi.Application.Identity.Roles;
+using DN.WebApi.Application.Identity.Users;
 using DN.WebApi.Application.Wrapper;
-using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Common.Extensions;
 using DN.WebApi.Infrastructure.Identity.Extensions;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
-using DN.WebApi.Shared.DTOs.Identity;
+using DN.WebApi.Shared.Authorization;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -100,7 +101,7 @@ public class RoleService : IRoleService
 
     public async Task<Result<List<PermissionDto>>> GetPermissionsAsync(string id)
     {
-        var permissions = await _context.RoleClaims.Where(a => a.RoleId == id && a.ClaimType == ClaimConstants.Permission).ToListAsync();
+        var permissions = await _context.RoleClaims.Where(a => a.RoleId == id && a.ClaimType == FSHClaims.Permission).ToListAsync();
         var permissionResponse = permissions.Adapt<List<PermissionDto>>();
         return await Result<List<PermissionDto>>.SuccessAsync(permissionResponse);
     }
@@ -179,27 +180,27 @@ public class RoleService : IRoleService
                 return await Result<string>.FailAsync(_localizer["Role does not exist."]);
             }
 
-            if (role.Name == RoleConstants.Admin)
+            if (role.Name == FSHRoles.Admin)
             {
                 var currentUser = await _userManager.Users.SingleAsync(x => x.Id == _currentUser.GetUserId().ToString());
-                if (await _userManager.IsInRoleAsync(currentUser, RoleConstants.Admin))
+                if (await _userManager.IsInRoleAsync(currentUser, FSHRoles.Admin))
                 {
                     return await Result<string>.FailAsync(_localizer["Not allowed to modify Permissions for this Role."]);
                 }
             }
 
             var selectedPermissions = request.Where(a => a.Enabled).ToList();
-            if (role.Name == RoleConstants.Admin)
+            if (role.Name == FSHRoles.Admin)
             {
-                if (!selectedPermissions.Any(x => x.Permission == PermissionConstants.Roles.View)
-                   || !selectedPermissions.Any(x => x.Permission == PermissionConstants.RoleClaims.View)
-                   || !selectedPermissions.Any(x => x.Permission == PermissionConstants.RoleClaims.Edit))
+                if (!selectedPermissions.Any(x => x.Permission == FSHPermissions.Roles.View)
+                   || !selectedPermissions.Any(x => x.Permission == FSHPermissions.RoleClaims.View)
+                   || !selectedPermissions.Any(x => x.Permission == FSHPermissions.RoleClaims.Edit))
                 {
                     return await Result<string>.FailAsync(string.Format(
                         _localizer["Not allowed to deselect {0} or {1} or {2} for this Role."],
-                        PermissionConstants.Roles.View,
-                        PermissionConstants.RoleClaims.View,
-                        PermissionConstants.RoleClaims.Edit));
+                        FSHPermissions.Roles.View,
+                        FSHPermissions.RoleClaims.View,
+                        FSHPermissions.RoleClaims.Edit));
                 }
             }
 
@@ -226,7 +227,7 @@ public class RoleService : IRoleService
             {
                 foreach (var permission in selectedPermissions)
                 {
-                    var addedPermission = addedPermissions.Data?.SingleOrDefault(x => x.Type == ClaimConstants.Permission && x.Value == permission.Permission);
+                    var addedPermission = addedPermissions.Data?.SingleOrDefault(x => x.Type == FSHClaims.Permission && x.Value == permission.Permission);
                     if (addedPermission != null)
                     {
                         var newPermission = addedPermission.Adapt<RoleClaimRequest>();
@@ -257,5 +258,5 @@ public class RoleService : IRoleService
     }
 
     internal static List<string> DefaultRoles =>
-        typeof(RoleConstants).GetAllPublicConstantValues<string>();
+        typeof(FSHRoles).GetAllPublicConstantValues<string>();
 }

@@ -1,5 +1,4 @@
 using DN.WebApi.Application.Common.Events;
-using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Domain.Common.Contracts;
 using MediatR;
 using Microsoft.Extensions.Logging;
