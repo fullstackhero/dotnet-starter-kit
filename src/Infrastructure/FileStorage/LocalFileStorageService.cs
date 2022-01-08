@@ -9,12 +9,12 @@ namespace DN.WebApi.Infrastructure.FileStorage;
 
 public class LocalFileStorageService : IFileStorageService
 {
-    public Task<string> UploadAsync<T>(FileUploadRequest? request, FileType supportedFileType)
+    public async Task<string> UploadAsync<T>(FileUploadRequest? request, FileType supportedFileType, CancellationToken cancellationToken = default)
     where T : class
     {
         if (request == null || request.Data == null)
         {
-            return Task.FromResult(string.Empty);
+            return string.Empty;
         }
 
         if (request.Extension is null || !supportedFileType.GetDescriptionList().Contains(request.Extension))
@@ -39,11 +39,7 @@ public class LocalFileStorageService : IFileStorageService
                 _ => Path.Combine("Files", "Others", folder),
             };
             string pathToSave = Path.Combine(Directory.GetCurrentDirectory(), folderName);
-            bool exists = Directory.Exists(pathToSave);
-            if (!exists)
-            {
-                Directory.CreateDirectory(pathToSave);
-            }
+            Directory.CreateDirectory(pathToSave);
 
             string fileName = request.Name.Trim('"');
             fileName = RemoveSpecialCharacters(fileName);
@@ -58,13 +54,13 @@ public class LocalFileStorageService : IFileStorageService
             }
 
             using var stream = new FileStream(fullPath, FileMode.Create);
-            streamData.CopyTo(stream);
+            await streamData.CopyToAsync(stream, cancellationToken);
             dbPath = dbPath.Replace("\\", "/");
-            return Task.FromResult("{server_url}/" + dbPath);
+            return "{server_url}/" + dbPath;
         }
         else
         {
-            return Task.FromResult(string.Empty);
+            return string.Empty;
         }
     }
 
@@ -130,5 +126,4 @@ public class LocalFileStorageService : IFileStorageService
 
         return string.Format(pattern, max);
     }
-
 }

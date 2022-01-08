@@ -9,10 +9,7 @@ using NSwag.Annotations;
 
 namespace DN.WebApi.Host.Controllers.Identity;
 
-[ApiController]
-[Route("api/[controller]")]
-[ApiVersionNeutral]
-public sealed class TokensController : ControllerBase
+public sealed class TokensController : VersionNeutralApiController
 {
     private readonly ITokenService _tokenService;
 

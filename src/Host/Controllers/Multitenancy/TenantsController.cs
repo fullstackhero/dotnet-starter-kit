@@ -8,11 +8,7 @@ using NSwag.Annotations;
 
 namespace DN.WebApi.Host.Controllers.Multitenancy;
 
-[ApiController]
-[Route("api/[controller]")]
-[ApiVersionNeutral]
-[ApiConventionType(typeof(FSHApiConventions))]
-public class TenantsController : ControllerBase
+public class TenantsController : VersionNeutralApiController
 {
     private readonly ITenantManager _tenantService;
 
