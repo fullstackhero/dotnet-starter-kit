@@ -1,4 +1,5 @@
 using DN.WebApi.Application.Multitenancy;
+using System.Diagnostics.CodeAnalysis;
 
 namespace DN.WebApi.Infrastructure.Multitenancy;
 
@@ -8,7 +9,7 @@ public interface ICurrentTenant
 
     string Key { get; }
     string DbProvider { get; }
-    string ConnectionString { get; }
 
-    public bool TryGetKey(out string? tenantKey);
+    public bool TryGetKey([NotNullWhen(true)] out string? tenantKey);
+    public bool TryGetConnectionString([NotNullWhen(true)] out string? connectionString);
 }

@@ -23,6 +23,8 @@ public abstract class BaseDbContext : IdentityDbContext<ApplicationUser, Applica
         : base(options)
     {
         _currentTenant = currentTenant;
+
+        // Can't have exceptions thrown here so we use TryGetKey
         if (_currentTenant.TryGetKey(out string? key))
         {
             TenantKey = key;
@@ -38,31 +40,35 @@ public abstract class BaseDbContext : IdentityDbContext<ApplicationUser, Applica
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
-        modelBuilder.ApplyIdentityConfiguration();
-        modelBuilder.AppendGlobalQueryFilter<IMustHaveTenant>(b => b.Tenant == TenantKey)
-                    .AppendGlobalQueryFilter<ISoftDelete>(s => s.DeletedOn == null)
-                    .AppendGlobalQueryFilter<IIdentityTenant>(b => b.Tenant == TenantKey);
+
+        modelBuilder
+            .ApplyConfigurationsFromAssembly(GetType().Assembly)
+            .ApplyIdentityConfiguration()
+            .AppendGlobalQueryFilter<IMustHaveTenant>(b => b.Tenant == TenantKey)
+            .AppendGlobalQueryFilter<ISoftDelete>(s => s.DeletedOn == null)
+            .AppendGlobalQueryFilter<IIdentityTenant>(b => b.Tenant == TenantKey);
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.EnableSensitiveDataLogging();
-        string tenantConnectionString = _currentTenant.ConnectionString;
-        switch (_currentTenant.DbProvider.ToLowerInvariant())
+        if (_currentTenant.TryGetConnectionString(out string? tenantConnectionString))
         {
-            case DbProviderKeys.Npgsql:
-                optionsBuilder.UseNpgsql(tenantConnectionString);
-                break;
-            case DbProviderKeys.SqlServer:
-                optionsBuilder.UseSqlServer(tenantConnectionString);
-                break;
-            case DbProviderKeys.MySql:
-                optionsBuilder.UseMySql(tenantConnectionString, ServerVersion.AutoDetect(tenantConnectionString));
-                break;
-            case DbProviderKeys.Oracle:
-                optionsBuilder.UseOracle(tenantConnectionString);
-                break;
+            switch (_currentTenant.DbProvider.ToLowerInvariant())
+            {
+                case DbProviderKeys.Npgsql:
+                    optionsBuilder.UseNpgsql(tenantConnectionString);
+                    break;
+                case DbProviderKeys.SqlServer:
+                    optionsBuilder.UseSqlServer(tenantConnectionString);
+                    break;
+                case DbProviderKeys.MySql:
+                    optionsBuilder.UseMySql(tenantConnectionString, ServerVersion.AutoDetect(tenantConnectionString));
+                    break;
+                case DbProviderKeys.Oracle:
+                    optionsBuilder.UseOracle(tenantConnectionString);
+                    break;
+            }
         }
     }
 

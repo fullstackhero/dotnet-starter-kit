@@ -6,6 +6,7 @@ using DN.WebApi.Shared.Multitenancy;
 using Mapster;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
+using System.Diagnostics.CodeAnalysis;
 
 namespace DN.WebApi.Infrastructure.Multitenancy;
 
@@ -32,10 +33,9 @@ public class CurrentTenant : ICurrentTenant, ICurrentTenantInitializer
 
     public TenantDto Tenant => _currentTenant ?? throw new InvalidOperationException("Current Tenant not set.");
     public string Key => Tenant.Key ?? throw new InvalidOperationException("Current Tenant Key not set.");
-    public string ConnectionString => Tenant.ConnectionString ?? throw new InvalidOperationException("Current Tenant ConnectionString not set.");
     public string DbProvider => _options.DBProvider ?? throw new InvalidOperationException("Current Tenant DbProvider not set.");
 
-    public bool TryGetKey(out string? tenantKey)
+    public bool TryGetKey([NotNullWhen(true)] out string? tenantKey)
     {
         if (_currentTenant?.Key is string key)
         {
@@ -44,6 +44,18 @@ public class CurrentTenant : ICurrentTenant, ICurrentTenantInitializer
         }
 
         tenantKey = null;
+        return false;
+    }
+
+    public bool TryGetConnectionString([NotNullWhen(true)] out string? tennantConnectionString)
+    {
+        if (_currentTenant?.ConnectionString is string connecctionString)
+        {
+            tennantConnectionString = connecctionString;
+            return true;
+        }
+
+        tennantConnectionString = null;
         return false;
     }
 
