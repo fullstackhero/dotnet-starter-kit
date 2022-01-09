@@ -125,7 +125,8 @@ public class RepositoryAsync : IRepositoryAsync
         Expression<Func<T, object>>[]? includes = null,
         bool asNoTracking = false,
         CancellationToken cancellationToken = default)
-    where T : class, IEntity<TKey> =>
+    where T : class, IEntity<TKey>
+    where TKey : notnull =>
         Filter(e => e.Id.Equals(entityId), includes: includes, asNoTracking: asNoTracking)
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -141,7 +142,8 @@ public class RepositoryAsync : IRepositoryAsync
         Expression<Func<T, TProjectedType>> selectExpression,
         Expression<Func<T, object>>[]? includes = null,
         CancellationToken cancellationToken = default)
-    where T : class, IEntity<TKey> =>
+    where T : class, IEntity<TKey>
+    where TKey : notnull =>
         selectExpression == null
             ? throw new ArgumentNullException(nameof(selectExpression))
             : Filter(e => e.Id.Equals(entityId), includes: includes, asNoTracking: true)
@@ -159,6 +161,7 @@ public class RepositoryAsync : IRepositoryAsync
         Expression<Func<T, object>>[]? includes = null,
         CancellationToken cancellationToken = default)
     where T : class, IEntity<TKey>
+    where TKey : notnull
     where TDto : IDto
     {
         async Task<TDto?> getDto() =>
@@ -311,6 +314,7 @@ public class RepositoryAsync : IRepositoryAsync
 
     public Task UpdateAsync<T, TKey>(T entity, CancellationToken cancellationToken = default)
     where T : class, IEntity<TKey>
+    where TKey : notnull
     {
         if (_dbContext.Entry(entity).State == EntityState.Unchanged)
         {
@@ -333,6 +337,7 @@ public class RepositoryAsync : IRepositoryAsync
 
     public async Task UpdateRangeAsync<T, TKey>(IEnumerable<T> entities, CancellationToken cancellationToken = default)
     where T : class, IEntity<TKey>
+    where TKey : notnull
     {
         foreach (var entity in entities)
         {
@@ -357,6 +362,7 @@ public class RepositoryAsync : IRepositoryAsync
 
     public Task RemoveAsync<T, TKey>(T entity, CancellationToken cancellationToken = default)
     where T : class, IEntity<TKey>
+    where TKey : notnull
     {
         _dbContext.Set<T>().Remove(entity);
         return _cache.RemoveAsync(CacheKeys.GetCacheKey<T>(entity.Id), cancellationToken);
@@ -378,6 +384,7 @@ public class RepositoryAsync : IRepositoryAsync
 
     public async Task RemoveRangeAsync<T, TKey>(IEnumerable<T> entities, CancellationToken cancellationToken = default)
     where T : class, IEntity<TKey>
+    where TKey : notnull
     {
         foreach (var entity in entities)
         {
@@ -393,7 +400,8 @@ public class RepositoryAsync : IRepositoryAsync
         Expression<Func<T, bool>>? condition = null,
         BaseSpecification<T>? specification = null,
         CancellationToken cancellationToken = default)
-    where T : class, IEntity<TKey> =>
+    where T : class, IEntity<TKey>
+    where TKey : notnull =>
         Filter(condition, specification: specification)
             .ForEachAsync(
                 x =>
