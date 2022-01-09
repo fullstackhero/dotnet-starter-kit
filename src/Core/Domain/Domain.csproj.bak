@@ -7,10 +7,7 @@
     <ItemGroup>
         <PackageReference Include="NewId" Version="4.0.0-develop.44" />
     </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\..\GlobalTypeDefs.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Shared\Shared.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\Shared\Shared.csproj" />
+    </ItemGroup>
 </Project>

@@ -2,13 +2,13 @@ using MassTransit;
 
 namespace DN.WebApi.Domain.Common.Contracts;
 
-public abstract class BaseEntity
+public abstract class BaseEntity<TKey> : IEntity<TKey>
 {
-    public Guid Id { get; private set; }
+    public TKey Id { get; protected set; } = default!;
     public List<DomainEvent> DomainEvents = new();
+}
 
-    protected BaseEntity()
-    {
-        Id = NewId.Next().ToGuid();
-    }
+public abstract class BaseEntity : BaseEntity<DefaultIdType>
+{
+    protected BaseEntity() => Id = NewId.Next().ToGuid();
 }

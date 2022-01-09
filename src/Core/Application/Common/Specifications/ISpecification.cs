@@ -4,7 +4,7 @@ using DN.WebApi.Domain.Common.Contracts;
 namespace DN.WebApi.Application.Common.Specifications;
 
 public interface ISpecification<T>
-where T : BaseEntity
+where T : IEntity
 {
     /*Expression<Func<T, bool>>? Criteria { get; }
     List<Expression<Func<T, object>>> Includes { get; }
