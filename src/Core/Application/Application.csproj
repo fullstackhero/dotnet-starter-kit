@@ -12,7 +12,7 @@
         <PackageReference Include="Microsoft.Extensions.Localization" Version="6.0.1" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\Core\Domain\Domain.csproj" />
-        <ProjectReference Include="..\..\Shared\Shared.DTOs\Shared.DTOs.csproj" />
+        <ProjectReference Include="..\Domain\Domain.csproj" />
+        <ProjectReference Include="..\Shared\Shared.csproj" />
     </ItemGroup>
 </Project>

@@ -1,4 +1,4 @@
-namespace DN.WebApi.Domain.Contracts;
+namespace DN.WebApi.Domain.Multitenancy;
 
 public interface IIdentityTenant
 {

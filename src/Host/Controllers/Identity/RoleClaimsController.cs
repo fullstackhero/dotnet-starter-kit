@@ -1,7 +1,6 @@
-using DN.WebApi.Application.Identity.Interfaces;
+using DN.WebApi.Application.Identity.RoleClaims;
 using DN.WebApi.Application.Wrapper;
-using DN.WebApi.Domain.Constants;
-using DN.WebApi.Shared.DTOs.Identity;
+using DN.WebApi.Shared.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,7 +16,7 @@ public class RoleClaimsController : VersionNeutralApiController
     }
 
     [HttpGet]
-    [Authorize(Policy = PermissionConstants.RoleClaims.View)]
+    [Authorize(Policy = FSHPermissions.RoleClaims.View)]
     public async Task<ActionResult<Result<List<RoleClaimResponse>>>> GetAllAsync()
     {
         var roleClaims = await _roleClaimService.GetAllAsync();
@@ -25,7 +24,7 @@ public class RoleClaimsController : VersionNeutralApiController
     }
 
     [HttpGet("{roleId}")]
-    [Authorize(Policy = PermissionConstants.RoleClaims.View)]
+    [Authorize(Policy = FSHPermissions.RoleClaims.View)]
     public async Task<ActionResult<Result<List<RoleClaimResponse>>>> GetAllByRoleIdAsync([FromRoute] string roleId)
     {
         var response = await _roleClaimService.GetAllByRoleIdAsync(roleId);
@@ -33,7 +32,7 @@ public class RoleClaimsController : VersionNeutralApiController
     }
 
     [HttpPost]
-    [Authorize(Policy = PermissionConstants.RoleClaims.Create)]
+    [Authorize(Policy = FSHPermissions.RoleClaims.Create)]
     public async Task<ActionResult<Result<string>>> PostAsync(RoleClaimRequest request)
     {
         var response = await _roleClaimService.SaveAsync(request);
@@ -41,7 +40,7 @@ public class RoleClaimsController : VersionNeutralApiController
     }
 
     [HttpDelete("{id:int}")]
-    [Authorize(Policy = PermissionConstants.RoleClaims.Delete)]
+    [Authorize(Policy = FSHPermissions.RoleClaims.Delete)]
     public async Task<ActionResult<Result<string>>> DeleteAsync(int id)
     {
         var response = await _roleClaimService.DeleteAsync(id);

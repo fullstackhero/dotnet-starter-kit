@@ -1,9 +1,8 @@
 using DN.WebApi.Application.Common.Exceptions;
-using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Application.FileStorage;
+using DN.WebApi.Application.Common.FileStorage;
+using DN.WebApi.Application.Common.Persistance;
 using DN.WebApi.Domain.Catalog.Products;
 using DN.WebApi.Domain.Common;
-using DN.WebApi.Shared.DTOs.FileStorage;
 using MediatR;
 using Microsoft.Extensions.Localization;
 

@@ -57,9 +57,8 @@
     <ItemGroup>
         <ProjectReference Include="..\Core\Application\Application.csproj" />
         <ProjectReference Include="..\Core\Domain\Domain.csproj" />
-        <ProjectReference Include="..\Shared\Shared.DTOs\Shared.DTOs.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <None Include="Seeding\*.json" CopyToOutputDirectory="PreserveNewest" />
+        <None Update="Catalog\*.json" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 </Project>

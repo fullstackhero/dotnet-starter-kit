@@ -1,9 +1,8 @@
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using DN.WebApi.Application.FileStorage;
+using DN.WebApi.Application.Common.FileStorage;
 using DN.WebApi.Domain.Common;
 using DN.WebApi.Infrastructure.Common.Extensions;
-using DN.WebApi.Shared.DTOs.FileStorage;
 
 namespace DN.WebApi.Infrastructure.FileStorage;
 

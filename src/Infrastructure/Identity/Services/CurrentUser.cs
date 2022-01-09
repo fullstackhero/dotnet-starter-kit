@@ -1,10 +1,9 @@
 using System.Security.Claims;
-using DN.WebApi.Application.Identity.Interfaces;
-using DN.WebApi.Infrastructure.Identity.Extensions;
+using DN.WebApi.Application.Identity.Users;
 
 namespace DN.WebApi.Infrastructure.Identity.Services;
 
-public class CurrentUser : ICurrentUser
+public class CurrentUser : ICurrentUser, ICurrentUserInitializer
 {
     private ClaimsPrincipal? _user;
 
@@ -13,16 +12,20 @@ public class CurrentUser : ICurrentUser
     private Guid _userId = Guid.Empty;
 
     public Guid GetUserId() =>
-        IsAuthenticated() ? Guid.Parse(_user?.GetUserId() ?? Guid.Empty.ToString()) : _userId;
+        IsAuthenticated()
+            ? Guid.Parse(_user?.GetUserId() ?? Guid.Empty.ToString())
+            : _userId;
 
     public string? GetUserEmail() =>
-        IsAuthenticated() ? _user?.GetUserEmail() : string.Empty;
+        IsAuthenticated()
+            ? _user!.GetEmail()
+            : string.Empty;
 
     public bool IsAuthenticated() =>
-        _user?.Identity?.IsAuthenticated ?? false;
+        _user?.Identity?.IsAuthenticated is true;
 
     public bool IsInRole(string role) =>
-        _user?.IsInRole(role) ?? false;
+        _user?.IsInRole(role) is true;
 
     public IEnumerable<Claim>? GetUserClaims() =>
         _user?.Claims;
@@ -30,7 +33,7 @@ public class CurrentUser : ICurrentUser
     public string? GetTenant() =>
         IsAuthenticated() ? _user?.GetTenant() : string.Empty;
 
-    public void SetUser(ClaimsPrincipal user)
+    public void SetCurrentUser(ClaimsPrincipal user)
     {
         if (_user != null)
         {
@@ -40,7 +43,7 @@ public class CurrentUser : ICurrentUser
         _user = user;
     }
 
-    public void SetUserJob(string userId)
+    public void SetCurrentUserId(string userId)
     {
         if (_userId != Guid.Empty)
         {

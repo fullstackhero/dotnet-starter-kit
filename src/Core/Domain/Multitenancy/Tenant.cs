@@ -1,5 +1,5 @@
 using DN.WebApi.Domain.Common.Contracts;
-using DN.WebApi.Domain.Constants;
+using DN.WebApi.Shared.Multitenancy;
 
 namespace DN.WebApi.Domain.Multitenancy;
 

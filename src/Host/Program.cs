@@ -2,7 +2,7 @@ using DN.WebApi.Application;
 using DN.WebApi.Host.Configurations;
 using DN.WebApi.Host.Controllers;
 using DN.WebApi.Infrastructure;
-using DN.WebApi.Infrastructure.Multitenancy;
+using DN.WebApi.Infrastructure.Persistence;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;

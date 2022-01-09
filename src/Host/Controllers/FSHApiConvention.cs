@@ -100,6 +100,20 @@ public static class FSHApiConventions
     [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
     [ProducesDefaultResponseType(typeof(ErrorResult))]
     [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Prefix)]
+    public static void Put(
+        [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Any)]
+        [ApiConventionTypeMatch(ApiConventionTypeMatchBehavior.Any)]
+        object request,
+        [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Any)]
+        [ApiConventionTypeMatch(ApiConventionTypeMatchBehavior.Any)]
+        object id)
+    {
+    }
+
+    [ProducesResponseType(200)]
+    [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
+    [ProducesDefaultResponseType(typeof(ErrorResult))]
+    [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Prefix)]
     public static void Delete(
         [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Any)]
         [ApiConventionTypeMatch(ApiConventionTypeMatchBehavior.Any)]

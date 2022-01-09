@@ -3,16 +3,15 @@ using System.Linq.Dynamic.Core;
 using System.Linq.Expressions;
 using Dapper;
 using DN.WebApi.Application.Common;
-using DN.WebApi.Application.Common.Constants;
+using DN.WebApi.Application.Common.Caching;
 using DN.WebApi.Application.Common.Exceptions;
-using DN.WebApi.Application.Common.Interfaces;
+using DN.WebApi.Application.Common.Persistance;
 using DN.WebApi.Application.Common.Specifications;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Common.Contracts;
-using DN.WebApi.Domain.Contracts;
+using DN.WebApi.Domain.Multitenancy;
 using DN.WebApi.Infrastructure.Mapping;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
-using DN.WebApi.Shared.DTOs;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
@@ -379,7 +378,7 @@ public class RepositoryAsync : IRepositoryAsync
     {
         if (typeof(IMustHaveTenant).IsAssignableFrom(typeof(T)))
         {
-            sql = sql.Replace("@tenant", _dbContext.Tenant);
+            sql = sql.Replace("@tenant", _dbContext.TenantKey);
         }
 
         var entity = await _dbContext.Connection.QueryFirstOrDefaultAsync<T>(sql, param, transaction);
@@ -392,7 +391,7 @@ public class RepositoryAsync : IRepositoryAsync
     {
         if (typeof(IMustHaveTenant).IsAssignableFrom(typeof(T)))
         {
-            sql = sql.Replace("@tenant", _dbContext.Tenant);
+            sql = sql.Replace("@tenant", _dbContext.TenantKey);
         }
 
         return _dbContext.Connection.QuerySingleAsync<T>(sql, param, transaction);

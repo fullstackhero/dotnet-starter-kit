@@ -1,18 +1,19 @@
 using DN.WebApi.Application.Common.Exceptions;
-using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Application.Identity.Interfaces;
+using DN.WebApi.Application.Identity.Users;
 using DN.WebApi.Application.Multitenancy;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Multitenancy;
 using DN.WebApi.Infrastructure.Identity.Models;
+using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
-using DN.WebApi.Shared.DTOs.Multitenancy;
+using DN.WebApi.Infrastructure.Seeding;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
+
 namespace DN.WebApi.Infrastructure.Multitenancy;
 
 public class TenantManager : ITenantManager
@@ -21,14 +22,15 @@ public class TenantManager : ITenantManager
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<ApplicationRole> _roleManager;
     private readonly ApplicationDbContext _appContext;
-    private readonly IStringLocalizer<TenantService> _localizer;
+    private readonly IStringLocalizer<TenantManager> _localizer;
 
     private readonly DatabaseSettings _dbOptions;
 
     private readonly TenantManagementDbContext _context;
-    private readonly ICurrentUser _user;
+    private readonly ICurrentUser _currentUser;
     private readonly IMakeSecureConnectionString _makeSecureConnectionString;
-    public TenantManager(ApplicationDbContext appContext, IStringLocalizer<TenantService> localizer, IOptions<DatabaseSettings> dbOptions, TenantManagementDbContext context, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ICurrentUser user, IServiceProvider di, IMakeSecureConnectionString makeSecureConnectionString)
+
+    public TenantManager(ApplicationDbContext appContext, IStringLocalizer<TenantManager> localizer, IOptions<DatabaseSettings> dbOptions, TenantManagementDbContext context, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ICurrentUser currentUser, IServiceProvider di, IMakeSecureConnectionString makeSecureConnectionString)
     {
         _appContext = appContext;
         _localizer = localizer;
@@ -36,7 +38,7 @@ public class TenantManager : ITenantManager
         _context = context;
         _userManager = userManager;
         _roleManager = roleManager;
-        _user = user;
+        _currentUser = currentUser;
         _di = di;
         _makeSecureConnectionString = makeSecureConnectionString;
     }
@@ -84,7 +86,7 @@ public class TenantManager : ITenantManager
         if (!isValidConnectionString) throw new Exception("Failed to Establish Connection to Database. Please check your connection string.");
         var tenant = new Tenant(request.Name, request.Key, request.AdminEmail, request.ConnectionString)
         {
-            CreatedBy = _user.GetUserId()
+            CreatedBy = _currentUser.GetUserId()
         };
         var seeders = _di.GetServices<IDatabaseSeeder>().ToList();
         TenantBootstrapper.Initialize(_appContext, _dbOptions.DBProvider, _dbOptions.ConnectionString!, tenant, _userManager, _roleManager, seeders);

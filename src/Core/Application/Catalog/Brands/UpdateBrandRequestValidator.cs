@@ -1,4 +1,4 @@
-using DN.WebApi.Application.Common.Interfaces;
+using DN.WebApi.Application.Common.Persistance;
 using DN.WebApi.Application.Common.Validation;
 using DN.WebApi.Domain.Catalog.Brands;
 using FluentValidation;

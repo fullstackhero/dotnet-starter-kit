@@ -1,5 +1,5 @@
 using System.Text;
-using DN.WebApi.Application.Common.Interfaces;
+using DN.WebApi.Application.Common.Mailing;
 using Microsoft.Extensions.Localization;
 
 namespace DN.WebApi.Infrastructure.Mailing;

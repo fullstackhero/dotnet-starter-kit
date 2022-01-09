@@ -1,4 +1,4 @@
-using DN.WebApi.Shared.DTOs;
+using DN.WebApi.Infrastructure.Mapping;
 
 namespace DN.WebApi.Infrastructure.Persistence;
 

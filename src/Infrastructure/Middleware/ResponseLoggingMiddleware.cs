@@ -1,4 +1,4 @@
-using DN.WebApi.Application.Identity.Interfaces;
+using DN.WebApi.Application.Identity.Users;
 using Microsoft.AspNetCore.Http;
 using Serilog;
 using Serilog.Context;
@@ -9,10 +9,7 @@ public class ResponseLoggingMiddleware : IMiddleware
 {
     private readonly ICurrentUser _currentUser;
 
-    public ResponseLoggingMiddleware(ICurrentUser currentUser)
-    {
-        _currentUser = currentUser;
-    }
+    public ResponseLoggingMiddleware(ICurrentUser currentUser) => _currentUser = currentUser;
 
     public async Task InvokeAsync(HttpContext httpContext, RequestDelegate next)
     {

@@ -1,10 +1,12 @@
 using System.Net;
 using System.Security.Claims;
 using System.Text;
-using DN.WebApi.Application.Identity.Exceptions;
+using DN.WebApi.Application.Identity;
+using DN.WebApi.Application.Identity.Users;
 using DN.WebApi.Infrastructure.Identity.AzureAd;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Identity.Permissions;
+using DN.WebApi.Infrastructure.Identity.Services;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -21,7 +23,10 @@ namespace DN.WebApi.Infrastructure.Identity;
 internal static class Startup
 {
     internal static IServiceCollection AddCurrentUser(this IServiceCollection services) =>
-        services.AddScoped<CurrentUserMiddleware>();
+        services
+            .AddScoped<CurrentUserMiddleware>()
+            .AddScoped<ICurrentUser, CurrentUser>()
+            .AddScoped(sp => (ICurrentUserInitializer)sp.GetRequiredService<ICurrentUser>());
 
     internal static IApplicationBuilder UseCurrentUser(this IApplicationBuilder app) =>
         app.UseMiddleware<CurrentUserMiddleware>();

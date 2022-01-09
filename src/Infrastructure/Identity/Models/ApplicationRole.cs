@@ -1,4 +1,4 @@
-using DN.WebApi.Domain.Contracts;
+using DN.WebApi.Domain.Multitenancy;
 using Microsoft.AspNetCore.Identity;
 
 namespace DN.WebApi.Infrastructure.Identity.Models;

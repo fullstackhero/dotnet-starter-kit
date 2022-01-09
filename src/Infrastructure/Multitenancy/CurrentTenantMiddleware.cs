@@ -1,6 +1,5 @@
 using System.Net;
-using DN.WebApi.Application.Identity.Exceptions;
-using DN.WebApi.Application.Multitenancy;
+using DN.WebApi.Application.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Localization;
 
@@ -9,22 +8,22 @@ namespace DN.WebApi.Infrastructure.Multitenancy;
 public class CurrentTenantMiddleware : IMiddleware
 {
     private readonly IStringLocalizer<CurrentTenantMiddleware> _localizer;
-    private readonly ITenantService _tenantService;
+    private readonly ICurrentTenantInitializer _currentTenantInitializer;
 
-    public CurrentTenantMiddleware(IStringLocalizer<CurrentTenantMiddleware> localizer, ITenantService tenantService)
+    public CurrentTenantMiddleware(IStringLocalizer<CurrentTenantMiddleware> localizer, ICurrentTenantInitializer currentTenantInitializer)
     {
         _localizer = localizer;
-        _tenantService = tenantService;
+        _currentTenantInitializer = currentTenantInitializer;
     }
 
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
         if (!ExcludePath(context))
         {
-            string? tenantId = TenantResolver.Resolver(context);
-            if (!string.IsNullOrEmpty(tenantId))
+            string? tenantKey = TenantKeyResolver.ResolveFrom(context);
+            if (!string.IsNullOrEmpty(tenantKey))
             {
-                _tenantService.SetCurrentTenant(tenantId);
+                _currentTenantInitializer.SetCurrentTenant(tenantKey);
             }
             else
             {

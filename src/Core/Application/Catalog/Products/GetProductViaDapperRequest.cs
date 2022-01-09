@@ -1,4 +1,4 @@
-﻿using DN.WebApi.Application.Common.Interfaces;
+﻿using DN.WebApi.Application.Common.Persistance;
 using DN.WebApi.Domain.Catalog.Products;
 using Mapster;
 using MediatR;
