@@ -32,10 +32,10 @@ public class FSHJobActivator : JobActivator
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _scope = scope ?? throw new ArgumentNullException(nameof(scope));
 
-            SetParametersScope();
+            SetParameters();
         }
 
-        private void SetParametersScope()
+        private void SetParameters()
         {
             string tenant = _context.GetJobParameter<string>(MultitenancyConstants.TenantHeaderKey);
             if (!string.IsNullOrEmpty(tenant))
@@ -52,16 +52,12 @@ public class FSHJobActivator : JobActivator
             }
         }
 
-        public override object Resolve(Type type)
-        {
-            return ActivatorUtilities.GetServiceOrCreateInstance(this, type);
-        }
+        public override object Resolve(Type type) =>
+            ActivatorUtilities.GetServiceOrCreateInstance(this, type);
 
-        object? IServiceProvider.GetService(Type serviceType)
-        {
-            if (serviceType == typeof(PerformContext))
-                return _context;
-            return _scope.ServiceProvider.GetService(serviceType);
-        }
+        object? IServiceProvider.GetService(Type serviceType) =>
+            serviceType == typeof(PerformContext)
+                ? _context
+                : _scope.ServiceProvider.GetService(serviceType);
     }
 }

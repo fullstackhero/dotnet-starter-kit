@@ -33,7 +33,7 @@ public static class Startup
             .AddCorsPolicy(config)
             .AddCurrentUser()
             .AddExceptionMiddleware()
-            .AddHangfire(config)
+            .AddBackgroundJobs(config)
             .AddHealthCheck()
             .AddIdentity(config)
             .AddLocalization(config)

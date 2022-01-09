@@ -29,6 +29,7 @@ public class TenantManager : ITenantManager
     private readonly TenantManagementDbContext _context;
     private readonly ICurrentUser _user;
     private readonly IMakeSecureConnectionString _makeSecureConnectionString;
+
     public TenantManager(ApplicationDbContext appContext, IStringLocalizer<TenantService> localizer, IOptions<DatabaseSettings> dbOptions, TenantManagementDbContext context, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ICurrentUser user, IServiceProvider di, IMakeSecureConnectionString makeSecureConnectionString)
     {
         _appContext = appContext;

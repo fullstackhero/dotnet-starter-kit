@@ -1,4 +1,3 @@
-using DN.WebApi.Application.Multitenancy;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 

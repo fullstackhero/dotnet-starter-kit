@@ -1,4 +1,4 @@
-﻿namespace DN.WebApi.Application.Multitenancy;
+﻿namespace DN.WebApi.Infrastructure.Multitenancy;
 
 public interface IMakeSecureConnectionString
 {
