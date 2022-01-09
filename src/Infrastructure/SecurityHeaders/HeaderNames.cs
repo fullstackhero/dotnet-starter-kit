@@ -1,6 +1,6 @@
 ﻿namespace DN.WebApi.Infrastructure.SecurityHeaders;
 
-internal class Consts
+internal class HeaderNames
 {
     public const string XFRAMEOPTIONS = "X-FrameOptions";
     public const string XCONTENTTYPEOPTIONS = "X-Content-Type-Options";
