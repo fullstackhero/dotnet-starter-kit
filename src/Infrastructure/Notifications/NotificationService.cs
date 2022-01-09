@@ -1,5 +1,5 @@
 ﻿using DN.WebApi.Application.Common.Notifications;
-using DN.WebApi.Application.Multitenancy;
+using DN.WebApi.Infrastructure.Multitenancy;
 using DN.WebApi.Shared.Notifications;
 using Microsoft.AspNetCore.SignalR;
 
@@ -8,10 +8,10 @@ namespace DN.WebApi.Infrastructure.Notifications;
 public class NotificationService : INotificationService
 {
     private readonly IHubContext<NotificationHub> _notificationHubContext;
-    private readonly ITenantService _tenantService;
+    private readonly ICurrentTenant _currentTenant;
 
-    public NotificationService(IHubContext<NotificationHub> notificationHubContext, ITenantService tenantService) =>
-        (_notificationHubContext, _tenantService) = (notificationHubContext, tenantService);
+    public NotificationService(IHubContext<NotificationHub> notificationHubContext, ICurrentTenant currentTenant) =>
+        (_notificationHubContext, _currentTenant) = (notificationHubContext, currentTenant);
 
     #region RootTenantMethods
 
@@ -26,14 +26,12 @@ public class NotificationService : INotificationService
     #endregion RootTenantMethods
 
     public Task SendMessageAsync(INotificationMessage notification, CancellationToken cancellationToken) =>
-        _notificationHubContext.Clients.Group($"GroupTenant-{CurrentTenantKey}")
+        _notificationHubContext.Clients.Group($"GroupTenant-{_currentTenant.Key}")
             .SendAsync(notification.MessageType, notification, cancellationToken);
 
     public Task SendMessageExceptAsync(INotificationMessage notification, IEnumerable<string> excludedConnectionIds, CancellationToken cancellationToken) =>
-        _notificationHubContext.Clients.GroupExcept($"GroupTenant-{CurrentTenantKey}", excludedConnectionIds)
+        _notificationHubContext.Clients.GroupExcept($"GroupTenant-{_currentTenant.Key}", excludedConnectionIds)
             .SendAsync(notification.MessageType, notification, cancellationToken);
-    private string? CurrentTenantKey => _tenantService.GetCurrentTenant()?.Key;
-
     public Task SendMessageToGroupAsync(INotificationMessage notification, string group, CancellationToken cancellationToken) =>
         _notificationHubContext.Clients.Group(group)
             .SendAsync(notification.MessageType, notification, cancellationToken);

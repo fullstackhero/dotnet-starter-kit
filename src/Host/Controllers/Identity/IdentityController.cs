@@ -11,14 +11,14 @@ namespace DN.WebApi.Host.Controllers.Identity;
 
 public sealed class IdentityController : VersionNeutralApiController
 {
-    private readonly ICurrentUser _user;
     private readonly IIdentityService _identityService;
+    private readonly ICurrentUser _currentUser;
     private readonly IUserService _userService;
 
-    public IdentityController(IIdentityService identityService, ICurrentUser user, IUserService userService)
+    public IdentityController(IIdentityService identityService, ICurrentUser currentUser, IUserService userService)
     {
         _identityService = identityService;
-        _user = user;
+        _currentUser = currentUser;
         _userService = userService;
     }
 
@@ -66,20 +66,20 @@ public sealed class IdentityController : VersionNeutralApiController
     [HttpPut("profile")]
     public async Task<ActionResult<Result>> UpdateProfileAsync(UpdateProfileRequest request)
     {
-        return Ok(await _identityService.UpdateProfileAsync(request, _user.GetUserId().ToString()));
+        return Ok(await _identityService.UpdateProfileAsync(request, _currentUser.GetUserId().ToString()));
     }
 
     [HttpGet("profile")]
     public async Task<ActionResult<Result<UserDetailsDto>>> GetProfileDetailsAsync()
     {
-        return Ok(await _userService.GetAsync(_user.GetUserId().ToString()));
+        return Ok(await _userService.GetAsync(_currentUser.GetUserId().ToString()));
     }
 
     [HttpPut("change-password")]
     [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Put))]
     public async Task<ActionResult<Result>> ChangePasswordAsync(ChangePasswordRequest model)
     {
-        var response = await _identityService.ChangePasswordAsync(model, _user.GetUserId().ToString());
+        var response = await _identityService.ChangePasswordAsync(model, _currentUser.GetUserId().ToString());
         return Ok(response);
     }
 

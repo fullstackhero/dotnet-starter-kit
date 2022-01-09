@@ -1,20 +1,18 @@
-﻿using DN.WebApi.Application.Identity.Users;
+﻿using DN.WebApi.Infrastructure.Identity.Services;
 using Microsoft.AspNetCore.Http;
 
 namespace DN.WebApi.Infrastructure.Identity;
 
 public class CurrentUserMiddleware : IMiddleware
 {
-    private readonly ICurrentUser _currentUser;
+    private readonly ICurrentUserInitializer _currentUserInitializer;
 
-    public CurrentUserMiddleware(ICurrentUser currentUser)
-    {
-        _currentUser = currentUser;
-    }
+    public CurrentUserMiddleware(ICurrentUserInitializer currentUserInitializer) =>
+        _currentUserInitializer = currentUserInitializer;
 
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
-        _currentUser.SetUser(context.User);
+        _currentUserInitializer.SetCurrentUser(context.User);
 
         await next(context);
     }

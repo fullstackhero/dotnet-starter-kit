@@ -1,6 +1,7 @@
 ﻿using DN.WebApi.Application.Identity.Users;
-using DN.WebApi.Application.Multitenancy;
 using DN.WebApi.Infrastructure.Common;
+using DN.WebApi.Infrastructure.Identity.Services;
+using DN.WebApi.Infrastructure.Multitenancy;
 using DN.WebApi.Shared.Multitenancy;
 using Hangfire;
 using Hangfire.Server;
@@ -33,18 +34,18 @@ public class FSHJobActivator : JobActivator
 
         private void SetParameters()
         {
-            string tenant = _context.GetJobParameter<string>(MultitenancyConstants.TenantKeyName);
-            if (!string.IsNullOrEmpty(tenant))
+            string tenantKey = _context.GetJobParameter<string>(MultitenancyConstants.TenantKeyName);
+            if (!string.IsNullOrEmpty(tenantKey))
             {
-                ITenantService tenantService = _scope.ServiceProvider.GetRequiredService<ITenantService>();
-                tenantService.SetCurrentTenant(tenant);
+                _scope.ServiceProvider.GetRequiredService<ICurrentTenantInitializer>()
+                    .SetCurrentTenant(tenantKey);
             }
 
             string userId = _context.GetJobParameter<string>(QueryStringKeys.UserId);
             if (!string.IsNullOrEmpty(userId))
             {
-                ICurrentUser currentUser = _scope.ServiceProvider.GetRequiredService<ICurrentUser>();
-                currentUser.SetUserJob(userId);
+                _scope.ServiceProvider.GetRequiredService<ICurrentUserInitializer>()
+                    .SetCurrentUserId(userId);
             }
         }
 

@@ -3,7 +3,7 @@ using DN.WebApi.Application.Identity.Users;
 
 namespace DN.WebApi.Infrastructure.Identity.Services;
 
-public class CurrentUser : ICurrentUser
+public class CurrentUser : ICurrentUser, ICurrentUserInitializer
 {
     private ClaimsPrincipal? _user;
 
@@ -33,7 +33,7 @@ public class CurrentUser : ICurrentUser
     public string? GetTenant() =>
         IsAuthenticated() ? _user?.GetTenant() : string.Empty;
 
-    public void SetUser(ClaimsPrincipal user)
+    public void SetCurrentUser(ClaimsPrincipal user)
     {
         if (_user != null)
         {
@@ -43,7 +43,7 @@ public class CurrentUser : ICurrentUser
         _user = user;
     }
 
-    public void SetUserJob(string userId)
+    public void SetCurrentUserId(string userId)
     {
         if (_userId != Guid.Empty)
         {

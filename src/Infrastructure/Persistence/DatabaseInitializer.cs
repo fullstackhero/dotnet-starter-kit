@@ -1,5 +1,4 @@
-﻿using DN.WebApi.Application.Multitenancy;
-using DN.WebApi.Domain.Multitenancy;
+﻿using DN.WebApi.Domain.Multitenancy;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Multitenancy;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
@@ -52,8 +51,8 @@ public static class DatabaseInitializer
         using var scope = serviceProvider.CreateScope();
 
         // First set current tenant so the right connectionstring is used
-        var tenantService = scope.ServiceProvider.GetRequiredService<ITenantService>();
-        tenantService.SetCurrentTenant(tenant.Key);
+        scope.ServiceProvider.GetRequiredService<ICurrentTenantInitializer>()
+            .SetCurrentTenant(tenant.Key);
 
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();

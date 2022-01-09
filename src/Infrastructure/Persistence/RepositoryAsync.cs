@@ -378,7 +378,7 @@ public class RepositoryAsync : IRepositoryAsync
     {
         if (typeof(IMustHaveTenant).IsAssignableFrom(typeof(T)))
         {
-            sql = sql.Replace("@tenant", _dbContext.Tenant);
+            sql = sql.Replace("@tenant", _dbContext.TenantKey);
         }
 
         var entity = await _dbContext.Connection.QueryFirstOrDefaultAsync<T>(sql, param, transaction);
@@ -391,7 +391,7 @@ public class RepositoryAsync : IRepositoryAsync
     {
         if (typeof(IMustHaveTenant).IsAssignableFrom(typeof(T)))
         {
-            sql = sql.Replace("@tenant", _dbContext.Tenant);
+            sql = sql.Replace("@tenant", _dbContext.TenantKey);
         }
 
         return _dbContext.Connection.QuerySingleAsync<T>(sql, param, transaction);

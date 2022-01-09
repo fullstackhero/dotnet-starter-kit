@@ -27,7 +27,7 @@ public class TenantJobFilter : IClientFilter
         var httpContext = scope.ServiceProvider.GetService<IHttpContextAccessor>()?.HttpContext;
         _ = httpContext ?? throw new InvalidOperationException("Can't create a TenantJob without HttpContext.");
 
-        string? tenantKey = TenantResolver.Resolver(httpContext);
+        string? tenantKey = TenantKeyResolver.ResolveFrom(httpContext);
         context.SetJobParameter(MultitenancyConstants.TenantKeyName, tenantKey);
 
         string? userId = httpContext.User.GetUserId();

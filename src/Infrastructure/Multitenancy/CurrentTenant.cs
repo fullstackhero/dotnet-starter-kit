@@ -9,40 +9,45 @@ using Microsoft.Extensions.Options;
 
 namespace DN.WebApi.Infrastructure.Multitenancy;
 
-public class TenantService : ITenantService
+public class CurrentTenant : ICurrentTenant, ICurrentTenantInitializer
 {
-    private readonly ICacheService _cache;
-
-    private readonly IStringLocalizer<TenantService> _localizer;
-
     private readonly DatabaseSettings _options;
-
+    private readonly IStringLocalizer<CurrentTenant> _localizer;
     private readonly TenantManagementDbContext _context;
+    private readonly ICacheService _cache;
 
     private TenantDto? _currentTenant;
 
-    public TenantService(
+    public CurrentTenant(
         IOptions<DatabaseSettings> options,
-        IStringLocalizer<TenantService> localizer,
+        IStringLocalizer<CurrentTenant> localizer,
         TenantManagementDbContext context,
         ICacheService cache)
     {
-        _localizer = localizer;
         _options = options.Value;
+        _localizer = localizer;
         _context = context;
         _cache = cache;
     }
 
-    public string? GetConnectionString() =>
-        _currentTenant?.ConnectionString;
+    public TenantDto Tenant => _currentTenant ?? throw new InvalidOperationException("Current Tenant not set.");
+    public string Key => Tenant.Key ?? throw new InvalidOperationException("Current Tenant Key not set.");
+    public string ConnectionString => Tenant.ConnectionString ?? throw new InvalidOperationException("Current Tenant ConnectionString not set.");
+    public string DbProvider => _options.DBProvider ?? throw new InvalidOperationException("Current Tenant DbProvider not set.");
 
-    public string? GetDatabaseProvider() =>
-        _options.DBProvider;
+    public bool TryGetKey(out string? tenantKey)
+    {
+        if (_currentTenant?.Key is string key)
+        {
+            tenantKey = key;
+            return true;
+        }
 
-    public TenantDto? GetCurrentTenant() =>
-        _currentTenant;
+        tenantKey = null;
+        return false;
+    }
 
-    public void SetCurrentTenant(string tenant)
+    public void SetCurrentTenant(string tenantKey)
     {
         if (_currentTenant is not null)
         {
@@ -50,12 +55,11 @@ public class TenantService : ITenantService
         }
 
         var tenantDto = _cache.GetOrSet(
-            CacheKeys.GetCacheKey("tenant", tenant),
-            () =>
-            {
-                var tenantInfo = _context.Tenants.Where(a => a.Key == tenant).FirstOrDefault();
-                return tenantInfo?.Adapt<TenantDto>();
-            });
+            CacheKeys.GetCacheKey("tenant", tenantKey),
+            () => _context.Tenants
+                .Where(a => a.Key == tenantKey)
+                .FirstOrDefault()?
+                .Adapt<TenantDto>());
 
         if (tenantDto is null)
         {

@@ -3,7 +3,7 @@ using System.Security.Claims;
 
 namespace DN.WebApi.Application.Identity.Users;
 
-public interface ICurrentUser : IScopedService
+public interface ICurrentUser
 {
     string? Name { get; }
 
@@ -18,8 +18,4 @@ public interface ICurrentUser : IScopedService
     bool IsInRole(string role);
 
     IEnumerable<Claim>? GetUserClaims();
-
-    void SetUser(ClaimsPrincipal user);
-
-    void SetUserJob(string userId);
 }

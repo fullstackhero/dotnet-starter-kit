@@ -4,6 +4,7 @@ using System.Security.Claims;
 using DN.WebApi.Application.Identity;
 using DN.WebApi.Application.Identity.Users;
 using DN.WebApi.Application.Multitenancy;
+using DN.WebApi.Infrastructure.Multitenancy;
 using DN.WebApi.Shared.Authorization;
 using DN.WebApi.Shared.Multitenancy;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -55,7 +56,7 @@ internal class AzureAdJwtBearerEvents : JwtBearerEvents
         // Creating a new scope and set the new tenant key so it gets picked up
         using var scope = context.HttpContext.RequestServices.CreateScope();
 
-        scope.ServiceProvider.GetRequiredService<ITenantService>().SetCurrentTenant(tenantKey);
+        scope.ServiceProvider.GetRequiredService<ICurrentTenantInitializer>().SetCurrentTenant(tenantKey);
 
         // Lookup local user or create one if none exist.
         var identityService = scope.ServiceProvider.GetRequiredService<IIdentityService>();
