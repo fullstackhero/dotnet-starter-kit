@@ -2,6 +2,7 @@
 using DN.WebApi.Infrastructure.Multitenancy;
 using Microsoft.Extensions.Configuration;
 using Xunit.Microsoft.DependencyInjection.Abstracts;
+using DN.WebApi.Application.Multitenancy;
 
 namespace Infrastructure.Test.Multitenancy.Fixtures;
 

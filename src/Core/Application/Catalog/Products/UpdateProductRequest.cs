@@ -32,7 +32,7 @@ public class UpdateProductRequestHandler : IRequestHandler<UpdateProductRequest,
         var product = await _repository.GetByIdAsync<Product>(request.Id, cancellationToken: cancellationToken);
         if (product is null)
         {
-            throw new EntityNotFoundException(string.Format(_localizer["product.notfound"], request.Id));
+            throw new NotFoundException(string.Format(_localizer["product.notfound"], request.Id));
         }
 
         string? productImagePath = request.Image is not null

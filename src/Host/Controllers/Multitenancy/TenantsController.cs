@@ -1,5 +1,4 @@
 using DN.WebApi.Application.Multitenancy;
-using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Shared.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,64 +8,54 @@ namespace DN.WebApi.Host.Controllers.Multitenancy;
 
 public class TenantsController : VersionNeutralApiController
 {
-    private readonly ITenantManager _tenantService;
-
-    public TenantsController(ITenantManager tenantService)
-    {
-        _tenantService = tenantService;
-    }
-
-    [HttpGet("{key}")]
+    [HttpGet("{tenantKey}")]
     [MustHavePermission(FSHRootPermissions.Tenants.View)]
     [OpenApiOperation("Get Tenant Details.", "")]
-    public async Task<ActionResult<Result<TenantDto>>> GetAsync(string key)
+    public Task<TenantDto> GetAsync(string tenantKey)
     {
-        var tenant = await _tenantService.GetByKeyAsync(key);
-        return Ok(tenant);
+        return Mediator.Send(new GetTenantByKeyRequest(tenantKey));
     }
 
     [HttpGet]
     [MustHavePermission(FSHRootPermissions.Tenants.ListAll)]
     [OpenApiOperation("Get all the available Tenants.", "")]
-    public async Task<ActionResult<Result<List<TenantDto>>>> GetAllAsync()
+    public Task<List<TenantDto>> GetAllAsync()
     {
-        var tenants = await _tenantService.GetAllAsync();
-        return Ok(tenants);
+        return Mediator.Send(new GetAllTenantsRequest());
     }
 
     [HttpPost]
     [MustHavePermission(FSHRootPermissions.Tenants.Create)]
     [OpenApiOperation("Create a new Tenant.", "")]
-    public async Task<ActionResult<Result<Guid>>> CreateAsync(CreateTenantRequest request)
+    public Task<Guid> CreateAsync(CreateTenantRequest request)
     {
-        var tenantId = await _tenantService.CreateTenantAsync(request);
-        return Ok(tenantId);
+        return Mediator.Send(request);
     }
 
     [HttpPost("upgrade")]
     [MustHavePermission(FSHRootPermissions.Tenants.UpgradeSubscription)]
     [OpenApiOperation("Upgrade Subscription of Tenant.", "")]
     [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Post))]
-    public async Task<ActionResult<Result>> UpgradeSubscriptionAsync(UpgradeSubscriptionRequest request)
+    public Task<string> UpgradeSubscriptionAsync(UpgradeSubscriptionRequest request)
     {
-        return Ok(await _tenantService.UpgradeSubscriptionAsync(request));
+        return Mediator.Send(request);
     }
 
-    [HttpPost("{id}/deactivate")]
+    [HttpPost("{tenantKey}/deactivate")]
     [MustHavePermission(FSHRootPermissions.Tenants.Update)]
     [OpenApiOperation("Deactivate Tenant.", "")]
     [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Post))]
-    public async Task<ActionResult<Result>> DeactivateTenantAsync(string id)
+    public Task<string> DeactivateTenantAsync(string tenantKey)
     {
-        return Ok(await _tenantService.DeactivateTenantAsync(id));
+        return Mediator.Send(new DeactivateTenantRequest(tenantKey));
     }
 
-    [HttpPost("{id}/activate")]
+    [HttpPost("{tenantKey}/activate")]
     [MustHavePermission(FSHRootPermissions.Tenants.Update)]
     [OpenApiOperation("Activate Tenant.", "")]
     [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Post))]
-    public async Task<ActionResult<Result>> ActivateTenantAsync(string id)
+    public Task<string> ActivateTenantAsync(string tenantKey)
     {
-        return Ok(await _tenantService.ActivateTenantAsync(id));
+        return Mediator.Send(new ActivateTenantRequest(tenantKey));
     }
 }

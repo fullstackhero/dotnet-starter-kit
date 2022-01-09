@@ -158,7 +158,7 @@ public class RepositoryAsync : IRepositoryAsync
             : await getDto();
 
         return dto is null
-            ? throw new EntityNotFoundException(string.Format(_localizer["entity.notfound"], typeof(T).Name, entityId))
+            ? throw new NotFoundException(string.Format(_localizer["entity.notfound"], typeof(T).Name, entityId))
             : dto;
     }
 
@@ -287,12 +287,12 @@ public class RepositoryAsync : IRepositoryAsync
     {
         if (_dbContext.Entry(entity).State == EntityState.Unchanged)
         {
-            throw new NothingToUpdateException();
+            throw new NotAcceptableException();
         }
 
         var existing = _dbContext.Set<T>().Find(entity.Id);
 
-        _ = existing ?? throw new EntityNotFoundException(string.Format(_localizer["entity.notfound"], typeof(T).Name, entity.Id));
+        _ = existing ?? throw new NotFoundException(string.Format(_localizer["entity.notfound"], typeof(T).Name, entity.Id));
 
         _dbContext.Entry(existing).CurrentValues.SetValues(entity);
         return _cache.RemoveAsync(CacheKeys.GetCacheKey<T>(entity.Id), cancellationToken);
@@ -305,12 +305,12 @@ public class RepositoryAsync : IRepositoryAsync
         {
             if (_dbContext.Entry(entity).State == EntityState.Unchanged)
             {
-                throw new NothingToUpdateException();
+                throw new NotAcceptableException();
             }
 
             var existing = _dbContext.Set<T>().Find(entity.Id);
 
-            _ = existing ?? throw new EntityNotFoundException(string.Format(_localizer["entity.notfound"], typeof(T).Name, entity.Id));
+            _ = existing ?? throw new NotFoundException(string.Format(_localizer["entity.notfound"], typeof(T).Name, entity.Id));
 
             _dbContext.Entry(existing).CurrentValues.SetValues(entity);
             await _cache.RemoveAsync(CacheKeys.GetCacheKey<T>(entity.Id), cancellationToken);
@@ -330,7 +330,7 @@ public class RepositoryAsync : IRepositoryAsync
     where T : BaseEntity
     {
         var entity = await _dbContext.Set<T>().FindAsync(new object?[] { entityId }, cancellationToken: cancellationToken);
-        _ = entity ?? throw new EntityNotFoundException(string.Format(_localizer["entity.notfound"], typeof(T).Name, entityId));
+        _ = entity ?? throw new NotFoundException(string.Format(_localizer["entity.notfound"], typeof(T).Name, entityId));
 
         _dbContext.Set<T>().Remove(entity);
         await _cache.RemoveAsync(CacheKeys.GetCacheKey<T>(entityId), cancellationToken);
@@ -383,7 +383,7 @@ public class RepositoryAsync : IRepositoryAsync
 
         var entity = await _dbContext.Connection.QueryFirstOrDefaultAsync<T>(sql, param, transaction);
 
-        return entity ?? throw new EntityNotFoundException(string.Empty);
+        return entity ?? throw new NotFoundException(string.Empty);
     }
 
     public Task<T> QuerySingleAsync<T>(string sql, object? param = null, IDbTransaction? transaction = null, CancellationToken cancellationToken = default)

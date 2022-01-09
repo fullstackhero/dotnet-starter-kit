@@ -3,9 +3,9 @@ using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using DN.WebApi.Application.Common.Exceptions;
 using DN.WebApi.Application.Identity;
 using DN.WebApi.Application.Identity.Tokens;
-using DN.WebApi.Application.Multitenancy;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Mailing;
@@ -60,17 +60,17 @@ public class TokenService : ITokenService
             var tenantInfo = await _tenantContext.Tenants.Where(a => a.Key == tenant).FirstOrDefaultAsync();
             if (tenantInfo is null)
             {
-                throw new InvalidTenantException(_localizer["tenant.invalid"]);
+                throw new UnauthorizedException(_localizer["tenant.invalid"]);
             }
 
             if (!tenantInfo.IsActive)
             {
-                throw new InvalidTenantException(_localizer["tenant.inactive"]);
+                throw new UnauthorizedException(_localizer["tenant.inactive"]);
             }
 
             if (DateTime.UtcNow > tenantInfo.ValidUpto)
             {
-                throw new InvalidTenantException(_localizer["tenant.expired"]);
+                throw new UnauthorizedException(_localizer["tenant.expired"]);
             }
         }
 

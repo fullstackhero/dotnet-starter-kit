@@ -26,7 +26,7 @@ public class UpdateBrandRequestHandler : IRequestHandler<UpdateBrandRequest, Gui
         var brand = await _repository.GetByIdAsync<Brand>(request.Id, cancellationToken: cancellationToken);
         if (brand is null)
         {
-            throw new EntityNotFoundException(string.Format(_localizer["brand.notfound"], request.Id));
+            throw new NotFoundException(string.Format(_localizer["brand.notfound"], request.Id));
         }
 
         var updatedBrand = brand.Update(request.Name, request.Description);

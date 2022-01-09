@@ -1,4 +1,3 @@
-using DN.WebApi.Application.Common;
 using System.Security.Claims;
 
 namespace DN.WebApi.Application.Identity.Users;
