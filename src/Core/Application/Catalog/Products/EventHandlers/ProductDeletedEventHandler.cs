@@ -3,7 +3,7 @@ using DN.WebApi.Domain.Catalog.Products;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace DN.WebApi.Application.Catalog.Products;
+namespace DN.WebApi.Application.Catalog.Products.EventHandlers;
 
 public class ProductDeletedEventHandler : INotificationHandler<EventNotification<ProductDeletedEvent>>
 {

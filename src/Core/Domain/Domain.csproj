@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <RootNamespace>DN.WebApi.Domain</RootNamespace>
@@ -6,6 +6,9 @@
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="NewId" Version="4.0.0-develop.44" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\Shared\Shared.csproj" />
     </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\GlobalTypeDefs.cs"/>

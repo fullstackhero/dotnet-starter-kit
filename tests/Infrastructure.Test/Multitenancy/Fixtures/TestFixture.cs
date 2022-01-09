@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using DN.WebApi.Application.Multitenancy;
 using DN.WebApi.Infrastructure.Multitenancy;
 using Microsoft.Extensions.Configuration;
 using Xunit.Microsoft.DependencyInjection.Abstracts;

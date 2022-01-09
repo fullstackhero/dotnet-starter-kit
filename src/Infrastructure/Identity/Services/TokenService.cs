@@ -3,15 +3,16 @@ using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using DN.WebApi.Application.Identity.Exceptions;
-using DN.WebApi.Application.Identity.Interfaces;
+using DN.WebApi.Application.Identity;
+using DN.WebApi.Application.Identity.Tokens;
 using DN.WebApi.Application.Multitenancy;
 using DN.WebApi.Application.Wrapper;
-using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Mailing;
+using DN.WebApi.Infrastructure.Multitenancy;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
-using DN.WebApi.Shared.DTOs.Identity;
+using DN.WebApi.Shared.Authorization;
+using DN.WebApi.Shared.Multitenancy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
@@ -27,21 +28,21 @@ public class TokenService : ITokenService
     private readonly IStringLocalizer<TokenService> _localizer;
     private readonly MailSettings _mailSettings;
     private readonly JwtSettings _jwtSettings;
-    private readonly ITenantService _tenantService;
+    private readonly ICurrentTenant _currentTenant;
 
     public TokenService(
         UserManager<ApplicationUser> userManager,
         IOptions<JwtSettings> jwtSettings,
         IStringLocalizer<TokenService> localizer,
         IOptions<MailSettings> mailSettings,
-        ITenantService tenantService,
+        ICurrentTenant currentTenant,
         TenantManagementDbContext tenantContext)
     {
         _userManager = userManager;
         _localizer = localizer;
         _mailSettings = mailSettings.Value;
         _jwtSettings = jwtSettings.Value;
-        _tenantService = tenantService;
+        _currentTenant = currentTenant;
         _tenantContext = tenantContext;
     }
 
@@ -130,22 +131,19 @@ public class TokenService : ITokenService
         return GenerateEncryptedToken(GetSigningCredentials(), GetClaims(user, ipAddress));
     }
 
-    private IEnumerable<Claim> GetClaims(ApplicationUser user, string ipAddress)
-    {
-        string? tenant = _tenantService.GetCurrentTenant()?.Key;
-        return new List<Claim>
-            {
-                new(ClaimTypes.NameIdentifier, user.Id),
-                new(ClaimTypes.Email, user.Email),
-                new(ClaimConstants.Fullname, $"{user.FirstName} {user.LastName}"),
-                new(ClaimTypes.Name, user.FirstName ?? string.Empty),
-                new(ClaimTypes.Surname, user.LastName ?? string.Empty),
-                new(ClaimConstants.IpAddress, ipAddress),
-                new(ClaimConstants.Tenant, tenant ?? string.Empty),
-                new(ClaimConstants.ImageUrl, user.ImageUrl ?? string.Empty),
-                new(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty)
-            };
-    }
+    private IEnumerable<Claim> GetClaims(ApplicationUser user, string ipAddress) =>
+        new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, user.Id),
+            new(ClaimTypes.Email, user.Email),
+            new(FSHClaims.Fullname, $"{user.FirstName} {user.LastName}"),
+            new(ClaimTypes.Name, user.FirstName ?? string.Empty),
+            new(ClaimTypes.Surname, user.LastName ?? string.Empty),
+            new(FSHClaims.IpAddress, ipAddress),
+            new(FSHClaims.Tenant, _currentTenant.Key),
+            new(FSHClaims.ImageUrl, user.ImageUrl ?? string.Empty),
+            new(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty)
+        };
 
     private string GenerateRefreshToken()
     {

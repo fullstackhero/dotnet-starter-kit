@@ -1,5 +1,5 @@
+using DN.WebApi.Application.Common.Filters;
 using System.Linq.Expressions;
-using DN.WebApi.Shared.DTOs.Filters;
 
 namespace DN.WebApi.Infrastructure.Persistence;
 

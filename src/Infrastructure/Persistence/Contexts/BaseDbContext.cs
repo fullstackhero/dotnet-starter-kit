@@ -1,11 +1,11 @@
-using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Application.Identity.Interfaces;
-using DN.WebApi.Application.Multitenancy;
+using DN.WebApi.Application.Common;
+using DN.WebApi.Application.Identity.Users;
 using DN.WebApi.Domain.Common.Contracts;
-using DN.WebApi.Domain.Contracts;
+using DN.WebApi.Domain.Multitenancy;
 using DN.WebApi.Infrastructure.Auditing;
 using DN.WebApi.Infrastructure.Common;
 using DN.WebApi.Infrastructure.Identity.Models;
+using DN.WebApi.Infrastructure.Multitenancy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -15,51 +15,57 @@ namespace DN.WebApi.Infrastructure.Persistence.Contexts;
 
 public abstract class BaseDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string, IdentityUserClaim<string>, IdentityUserRole<string>, IdentityUserLogin<string>, ApplicationRoleClaim, IdentityUserToken<string>>
 {
+    private readonly ICurrentTenant _currentTenant;
+    protected readonly ICurrentUser _currentUser;
     private readonly ISerializerService _serializer;
-    private readonly ITenantService _tenantService;
-    private readonly ICurrentUser _currentUserService;
 
-    protected BaseDbContext(DbContextOptions options, ITenantService tenantService, ICurrentUser currentUserService, ISerializerService serializer)
-    : base(options)
+    protected BaseDbContext(DbContextOptions options, ICurrentTenant currentTenant, ICurrentUser currentUser, ISerializerService serializer)
+        : base(options)
     {
-        _tenantService = tenantService;
-        Tenant = _tenantService.GetCurrentTenant()?.Key;
-        _currentUserService = currentUserService;
+        _currentTenant = currentTenant;
+
+        // Can't have exceptions thrown here so we use TryGetKey
+        if (_currentTenant.TryGetKey(out string? key))
+        {
+            TenantKey = key;
+        }
+
+        _currentUser = currentUser;
         _serializer = serializer;
     }
 
     public DbSet<Trail> AuditTrails => Set<Trail>();
-    public string? Tenant { get; set; }
+    public string? TenantKey { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
-        modelBuilder.ApplyIdentityConfiguration();
-        modelBuilder.AppendGlobalQueryFilter<IMustHaveTenant>(b => b.Tenant == Tenant)
-                    .AppendGlobalQueryFilter<ISoftDelete>(s => s.DeletedOn == null)
-                    .AppendGlobalQueryFilter<IIdentityTenant>(b => b.Tenant == Tenant);
+
+        modelBuilder
+            .ApplyConfigurationsFromAssembly(GetType().Assembly)
+            .ApplyIdentityConfiguration()
+            .AppendGlobalQueryFilter<IMustHaveTenant>(b => b.Tenant == TenantKey)
+            .AppendGlobalQueryFilter<ISoftDelete>(s => s.DeletedOn == null)
+            .AppendGlobalQueryFilter<IIdentityTenant>(b => b.Tenant == TenantKey);
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.EnableSensitiveDataLogging();
-        string? tenantConnectionString = _tenantService.GetConnectionString();
-        if (!string.IsNullOrEmpty(tenantConnectionString))
+        if (_currentTenant.TryGetConnectionString(out string? tenantConnectionString))
         {
-            string? dbProvider = _tenantService.GetDatabaseProvider();
-            switch (dbProvider?.ToLowerInvariant())
+            switch (_currentTenant.DbProvider.ToLowerInvariant())
             {
-                case DbProviderConstants.Npgsql:
+                case DbProviderKeys.Npgsql:
                     optionsBuilder.UseNpgsql(tenantConnectionString);
                     break;
-                case DbProviderConstants.SqlServer:
+                case DbProviderKeys.SqlServer:
                     optionsBuilder.UseSqlServer(tenantConnectionString);
                     break;
-                case DbProviderConstants.MySql:
+                case DbProviderKeys.MySql:
                     optionsBuilder.UseMySql(tenantConnectionString, ServerVersion.AutoDetect(tenantConnectionString));
                     break;
-                case DbProviderConstants.Oracle:
+                case DbProviderKeys.Oracle:
                     optionsBuilder.UseOracle(tenantConnectionString);
                     break;
             }
@@ -76,14 +82,14 @@ public abstract class BaseDbContext : IdentityDbContext<ApplicationUser, Applica
                 case EntityState.Modified:
                     if (entry.Entity.Tenant == null)
                     {
-                        entry.Entity.Tenant = Tenant;
+                        entry.Entity.Tenant = TenantKey;
                     }
 
                     break;
             }
         }
 
-        var currentUserId = _currentUserService.GetUserId();
+        var currentUserId = _currentUser.GetUserId();
         var auditEntries = OnBeforeSaveChanges(currentUserId);
         int result = await base.SaveChangesAsync(cancellationToken);
         await OnAfterSaveChangesAsync(auditEntries, cancellationToken);

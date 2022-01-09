@@ -1,18 +1,18 @@
 using System.Security.Claims;
 using System.Text;
-using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Application.FileStorage;
-using DN.WebApi.Application.Identity.Exceptions;
-using DN.WebApi.Application.Identity.Interfaces;
-using DN.WebApi.Application.Multitenancy;
+using DN.WebApi.Application.Common.BackgroundJobs;
+using DN.WebApi.Application.Common.FileStorage;
+using DN.WebApi.Application.Common.Mailing;
+using DN.WebApi.Application.Identity;
+using DN.WebApi.Application.Identity.Users;
+using DN.WebApi.Application.Identity.Users.Password;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Common;
-using DN.WebApi.Domain.Constants;
-using DN.WebApi.Infrastructure.Identity.Extensions;
+using DN.WebApi.Infrastructure.Common;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Mailing;
-using DN.WebApi.Shared.DTOs.Identity;
-using DN.WebApi.Shared.DTOs.Mailing;
+using DN.WebApi.Infrastructure.Multitenancy;
+using DN.WebApi.Shared.Multitenancy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
@@ -31,7 +31,7 @@ public class IdentityService : IIdentityService
     private readonly IMailService _mailService;
     private readonly MailSettings _mailSettings;
     private readonly IStringLocalizer<IdentityService> _localizer;
-    private readonly ITenantService _tenantService;
+    private readonly ICurrentTenant _currentTenant;
     private readonly IFileStorageService _fileStorage;
     private readonly IEmailTemplateService _templateService;
 
@@ -43,7 +43,7 @@ public class IdentityService : IIdentityService
         IMailService mailService,
         IOptions<MailSettings> mailSettings,
         IStringLocalizer<IdentityService> localizer,
-        ITenantService tenantService,
+        ICurrentTenant currentTenant,
         IFileStorageService fileStorage,
         IEmailTemplateService templateService)
     {
@@ -54,7 +54,7 @@ public class IdentityService : IIdentityService
         _mailService = mailService;
         _mailSettings = mailSettings.Value;
         _localizer = localizer;
-        _tenantService = tenantService;
+        _currentTenant = currentTenant;
         _fileStorage = fileStorage;
         _templateService = templateService;
     }
@@ -157,7 +157,7 @@ public class IdentityService : IIdentityService
             UserName = request.UserName,
             PhoneNumber = request.PhoneNumber,
             IsActive = true,
-            Tenant = _tenantService.GetCurrentTenant()?.Key
+            Tenant = _currentTenant.Key
         };
         if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
         {
@@ -179,7 +179,7 @@ public class IdentityService : IIdentityService
             throw new IdentityException(_localizer["Validation Errors Occurred."], result.Errors.Select(a => _localizer[a.Description].ToString()).ToList());
         }
 
-        await _userManager.AddToRoleAsync(user, RoleConstants.Basic);
+        await _userManager.AddToRoleAsync(user, FSHRoles.Basic);
 
         var messages = new List<string> { string.Format(_localizer["User {0} Registered."], user.UserName) };
 
@@ -366,10 +366,9 @@ public class IdentityService : IIdentityService
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
         const string route = "api/identity/confirm-email/";
         var endpointUri = new Uri(string.Concat($"{origin}/", route));
-        string verificationUri = QueryHelpers.AddQueryString(endpointUri.ToString(), QueryConstants.UserId, user.Id);
-        verificationUri = QueryHelpers.AddQueryString(verificationUri, QueryConstants.Code, code);
-        if (_tenantService.GetCurrentTenant()?.Key is string tenantKey)
-            verificationUri = QueryHelpers.AddQueryString(verificationUri, QueryConstants.Tenant, tenantKey);
+        string verificationUri = QueryHelpers.AddQueryString(endpointUri.ToString(), QueryStringKeys.UserId, user.Id);
+        verificationUri = QueryHelpers.AddQueryString(verificationUri, QueryStringKeys.Code, code);
+        verificationUri = QueryHelpers.AddQueryString(verificationUri, MultitenancyConstants.TenantKeyName, _currentTenant.Key);
         return verificationUri;
     }
 }

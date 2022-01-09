@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <RootNamespace>DN.WebApi.Infrastructure</RootNamespace>
@@ -6,7 +6,7 @@
     </PropertyGroup>
     <ItemGroup>
         <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    </ItemGroup>  
+    </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Dapper" Version="2.0.123" />
         <PackageReference Include="Hangfire" Version="1.7.28" />
@@ -57,10 +57,9 @@
     <ItemGroup>
         <ProjectReference Include="..\Core\Application\Application.csproj" />
         <ProjectReference Include="..\Core\Domain\Domain.csproj" />
-        <ProjectReference Include="..\Shared\Shared.DTOs\Shared.DTOs.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <None Include="Seeding\*.json" CopyToOutputDirectory="PreserveNewest" />
+        <None Update="Catalog\*.json" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
   <ItemGroup>
     <Compile Include="..\GlobalTypeDefs.cs"/>

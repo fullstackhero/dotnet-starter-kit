@@ -1,4 +1,4 @@
-using DN.WebApi.Application.Common.Interfaces;
+using DN.WebApi.Application.Common;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;

@@ -1,13 +1,16 @@
 using System.Data.SqlClient;
 using System.Security.Claims;
-using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Domain.Constants;
 using DN.WebApi.Domain.Multitenancy;
 using DN.WebApi.Infrastructure.Common;
 using DN.WebApi.Infrastructure.Common.Extensions;
+using DN.WebApi.Infrastructure.Identity;
 using DN.WebApi.Infrastructure.Identity.Models;
+using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Infrastructure.Identity.Services;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
+using DN.WebApi.Infrastructure.Seeding;
+using DN.WebApi.Shared.Authorization;
+using DN.WebApi.Shared.Multitenancy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -59,15 +62,15 @@ public class TenantBootstrapper
         {
             switch (dbProvider.ToLowerInvariant())
             {
-                case DbProviderConstants.Npgsql:
+                case DbProviderKeys.Npgsql:
                     var postgresqlcs = new NpgsqlConnectionStringBuilder(connectionString);
                     break;
 
-                case DbProviderConstants.MySql:
+                case DbProviderKeys.MySql:
                     var mysqlcs = new MySqlConnectionStringBuilder(connectionString);
                     break;
 
-                case DbProviderConstants.SqlServer:
+                case DbProviderKeys.SqlServer:
                     var mssqlcs = new SqlConnectionStringBuilder(connectionString);
                     break;
             }
@@ -94,19 +97,19 @@ public class TenantBootstrapper
                 _logger.Information($"Seeding {roleName} Role for '{tenant.Key}' Tenant.");
             }
 
-            if (roleName == RoleConstants.Basic)
+            if (roleName == FSHRoles.Basic)
             {
                 var basicRole = await roleManager.Roles.IgnoreQueryFilters()
-                    .Where(a => a.NormalizedName == RoleConstants.Basic.ToUpperInvariant() && a.Tenant == tenant.Key)
+                    .Where(a => a.NormalizedName == FSHRoles.Basic.ToUpperInvariant() && a.Tenant == tenant.Key)
                     .FirstOrDefaultAsync();
                 if (basicRole is null)
                     continue;
                 var basicClaims = await roleManager.GetClaimsAsync(basicRole);
                 foreach (string permission in DefaultPermissions.Basics)
                 {
-                    if (!basicClaims.Any(a => a.Type == ClaimConstants.Permission && a.Value == permission))
+                    if (!basicClaims.Any(a => a.Type == FSHClaims.Permission && a.Value == permission))
                     {
-                        await roleManager.AddClaimAsync(basicRole, new Claim(ClaimConstants.Permission, permission));
+                        await roleManager.AddClaimAsync(basicRole, new Claim(FSHClaims.Permission, permission));
                         _logger.Information($"Seeding Basic Permission '{permission}' for '{tenant.Key}' Tenant.");
                     }
                 }
@@ -121,11 +124,11 @@ public class TenantBootstrapper
             return;
         }
 
-        string adminUserName = $"{tenant.Key.Trim()}.{RoleConstants.Admin}".ToLowerInvariant();
+        string adminUserName = $"{tenant.Key.Trim()}.{FSHRoles.Admin}".ToLowerInvariant();
         var superUser = new ApplicationUser
         {
             FirstName = tenant.Key.Trim().ToLowerInvariant(),
-            LastName = RoleConstants.Admin,
+            LastName = FSHRoles.Admin,
             Email = tenant.AdminEmail,
             UserName = adminUserName,
             EmailConfirmed = true,
@@ -153,7 +156,7 @@ public class TenantBootstrapper
             .FirstOrDefaultAsync(u => u.Email.Equals(email));
         if (user == null) return;
         var roleRecord = await roleManager.Roles.IgnoreQueryFilters()
-            .Where(a => a.NormalizedName == RoleConstants.Admin.ToUpperInvariant() && a.Tenant == tenant)
+            .Where(a => a.NormalizedName == FSHRoles.Admin.ToUpperInvariant() && a.Tenant == tenant)
             .FirstOrDefaultAsync();
         if (roleRecord == null) return;
         bool isUserInRole = await applicationDbContext.UserRoles.AnyAsync(a => a.UserId == user.Id && a.RoleId == roleRecord.Id);
@@ -165,21 +168,21 @@ public class TenantBootstrapper
         }
 
         var allClaims = await roleManager.GetClaimsAsync(roleRecord);
-        foreach (string permission in typeof(PermissionConstants).GetNestedClassesStaticStringValues())
+        foreach (string permission in typeof(FSHPermissions).GetNestedClassesStaticStringValues())
         {
-            if (!allClaims.Any(a => a.Type == ClaimConstants.Permission && a.Value == permission))
+            if (!allClaims.Any(a => a.Type == FSHClaims.Permission && a.Value == permission))
             {
-                await roleManager.AddClaimAsync(roleRecord, new Claim(ClaimConstants.Permission, permission));
+                await roleManager.AddClaimAsync(roleRecord, new Claim(FSHClaims.Permission, permission));
             }
         }
 
         if (tenant == MultitenancyConstants.Root.Key && email == MultitenancyConstants.Root.EmailAddress)
         {
-            foreach (string rootPermission in typeof(RootPermissions).GetNestedClassesStaticStringValues())
+            foreach (string rootPermission in typeof(FSHRootPermissions).GetNestedClassesStaticStringValues())
             {
-                if (!allClaims.Any(a => a.Type == ClaimConstants.Permission && a.Value == rootPermission))
+                if (!allClaims.Any(a => a.Type == FSHClaims.Permission && a.Value == rootPermission))
                 {
-                    await roleManager.AddClaimAsync(roleRecord, new Claim(ClaimConstants.Permission, rootPermission));
+                    await roleManager.AddClaimAsync(roleRecord, new Claim(FSHClaims.Permission, rootPermission));
                 }
             }
         }

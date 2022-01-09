@@ -1,7 +1,7 @@
 using System.Net;
+using DN.WebApi.Application.Common;
 using DN.WebApi.Application.Common.Exceptions;
-using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Application.Identity.Interfaces;
+using DN.WebApi.Application.Identity.Users;
 using DN.WebApi.Application.Wrapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Localization;

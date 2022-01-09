@@ -1,9 +1,9 @@
-using DN.WebApi.Application.Identity.Interfaces;
+using DN.WebApi.Application.Identity.Users;
+using DN.WebApi.Application.Identity.Users.Password;
 using DN.WebApi.Application.Wrapper;
-using DN.WebApi.Domain.Constants;
 using DN.WebApi.Infrastructure.Identity.Permissions;
-using DN.WebApi.Infrastructure.Swagger;
-using DN.WebApi.Shared.DTOs.Identity;
+using DN.WebApi.Infrastructure.OpenApi;
+using DN.WebApi.Shared.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,19 +11,19 @@ namespace DN.WebApi.Host.Controllers.Identity;
 
 public sealed class IdentityController : VersionNeutralApiController
 {
-    private readonly ICurrentUser _user;
     private readonly IIdentityService _identityService;
+    private readonly ICurrentUser _currentUser;
     private readonly IUserService _userService;
 
-    public IdentityController(IIdentityService identityService, ICurrentUser user, IUserService userService)
+    public IdentityController(IIdentityService identityService, ICurrentUser currentUser, IUserService userService)
     {
         _identityService = identityService;
-        _user = user;
+        _currentUser = currentUser;
         _userService = userService;
     }
 
     [HttpPost("register")]
-    [MustHavePermission(PermissionConstants.Identity.Register)]
+    [MustHavePermission(FSHPermissions.Identity.Register)]
     public async Task<ActionResult<Result<string>>> RegisterAsync(RegisterUserRequest request)
     {
         string origin = GenerateOrigin();
@@ -32,8 +32,7 @@ public sealed class IdentityController : VersionNeutralApiController
 
     [HttpGet("confirm-email")]
     [AllowAnonymous]
-    [ProducesResponseType(200)]
-    [ProducesDefaultResponseType(typeof(ErrorResult))]
+    [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Search))]
     public async Task<ActionResult<Result<string>>> ConfirmEmailAsync([FromQuery] string userId, [FromQuery] string code, [FromQuery] string tenant)
     {
         return Ok(await _identityService.ConfirmEmailAsync(userId, code, tenant));
@@ -41,8 +40,7 @@ public sealed class IdentityController : VersionNeutralApiController
 
     [HttpGet("confirm-phone-number")]
     [AllowAnonymous]
-    [ProducesResponseType(200)]
-    [ProducesDefaultResponseType(typeof(ErrorResult))]
+    [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Search))]
     public async Task<ActionResult<Result<string>>> ConfirmPhoneNumberAsync([FromQuery] string userId, [FromQuery] string code)
     {
         return Ok(await _identityService.ConfirmPhoneNumberAsync(userId, code));
@@ -50,10 +48,8 @@ public sealed class IdentityController : VersionNeutralApiController
 
     [HttpPost("forgot-password")]
     [AllowAnonymous]
-    [SwaggerHeader(HeaderConstants.Tenant, "Input your tenant Id to access this API", "", true)]
-    [ProducesResponseType(200)]
-    [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
-    [ProducesDefaultResponseType(typeof(ErrorResult))]
+    [TenantKeyHeader]
+    [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Post))]
     public async Task<ActionResult<Result>> ForgotPasswordAsync(ForgotPasswordRequest request)
     {
         string origin = GenerateOrigin();
@@ -61,9 +57,7 @@ public sealed class IdentityController : VersionNeutralApiController
     }
 
     [HttpPost("reset-password")]
-    [AllowAnonymous]
-    [ProducesResponseType(200)]
-    [ProducesDefaultResponseType(typeof(ErrorResult))]
+    [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Post))]
     public async Task<ActionResult<Result>> ResetPasswordAsync(ResetPasswordRequest request)
     {
         return Ok(await _identityService.ResetPasswordAsync(request));
@@ -72,22 +66,20 @@ public sealed class IdentityController : VersionNeutralApiController
     [HttpPut("profile")]
     public async Task<ActionResult<Result>> UpdateProfileAsync(UpdateProfileRequest request)
     {
-        return Ok(await _identityService.UpdateProfileAsync(request, _user.GetUserId().ToString()));
+        return Ok(await _identityService.UpdateProfileAsync(request, _currentUser.GetUserId().ToString()));
     }
 
     [HttpGet("profile")]
     public async Task<ActionResult<Result<UserDetailsDto>>> GetProfileDetailsAsync()
     {
-        return Ok(await _userService.GetAsync(_user.GetUserId().ToString()));
+        return Ok(await _userService.GetAsync(_currentUser.GetUserId().ToString()));
     }
 
     [HttpPut("change-password")]
-    [ProducesResponseType(200)]
-    [ProducesResponseType(400, Type = typeof(HttpValidationProblemDetails))]
-    [ProducesDefaultResponseType(typeof(ErrorResult))]
+    [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Put))]
     public async Task<ActionResult<Result>> ChangePasswordAsync(ChangePasswordRequest model)
     {
-        var response = await _identityService.ChangePasswordAsync(model, _user.GetUserId().ToString());
+        var response = await _identityService.ChangePasswordAsync(model, _currentUser.GetUserId().ToString());
         return Ok(response);
     }
 

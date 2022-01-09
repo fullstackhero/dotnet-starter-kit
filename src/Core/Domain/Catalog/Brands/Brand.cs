@@ -1,6 +1,5 @@
-using DN.WebApi.Domain.Common;
 using DN.WebApi.Domain.Common.Contracts;
-using DN.WebApi.Domain.Contracts;
+using DN.WebApi.Domain.Multitenancy;
 
 namespace DN.WebApi.Domain.Catalog.Brands;
 
@@ -18,8 +17,8 @@ public class Brand : AuditableEntity, IMustHaveTenant
 
     public Brand Update(string? name, string? description)
     {
-        if (name != null && !Name.NullToString().Equals(name)) Name = name;
-        if (description != null && !Description.NullToString().Equals(description)) Description = description;
+        if (name is not null && Name?.Equals(name) is not true) Name = name;
+        if (description is not null && Description?.Equals(description) is not true) Description = description;
         return this;
     }
 }

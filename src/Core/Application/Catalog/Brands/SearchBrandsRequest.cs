@@ -1,8 +1,8 @@
-using DN.WebApi.Application.Common.Interfaces;
+using DN.WebApi.Application.Common.Filters;
+using DN.WebApi.Application.Common.Persistance;
 using DN.WebApi.Application.Common.Specifications;
 using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Catalog.Brands;
-using DN.WebApi.Shared.DTOs.Filters;
 using MediatR;
 
 namespace DN.WebApi.Application.Catalog.Brands;

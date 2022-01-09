@@ -1,5 +1,5 @@
-﻿using DN.WebApi.Domain.Common.Contracts;
-using DN.WebApi.Shared.DTOs.Filters;
+﻿using DN.WebApi.Application.Common.Filters;
+using DN.WebApi.Domain.Common.Contracts;
 
 namespace DN.WebApi.Application.Common.Specifications;
 

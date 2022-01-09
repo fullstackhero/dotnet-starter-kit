@@ -1,8 +1,9 @@
 ﻿using DN.WebApi.Application.Catalog.Brands;
-using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Application.Identity.Interfaces;
+using DN.WebApi.Application.Common.Notifications;
+using DN.WebApi.Application.Common.Persistance;
+using DN.WebApi.Application.Identity.Users;
 using DN.WebApi.Domain.Catalog.Brands;
-using DN.WebApi.Shared.DTOs.Notifications;
+using DN.WebApi.Shared.Notifications;
 using Hangfire;
 using Hangfire.Console.Extensions;
 using Hangfire.Console.Progress;

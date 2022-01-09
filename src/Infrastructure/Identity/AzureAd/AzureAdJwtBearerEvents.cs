@@ -1,17 +1,17 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Security.Claims;
-using DN.WebApi.Application.Identity.Exceptions;
-using DN.WebApi.Application.Identity.Interfaces;
+using DN.WebApi.Application.Identity;
+using DN.WebApi.Application.Identity.Users;
 using DN.WebApi.Application.Multitenancy;
-using DN.WebApi.Domain.Constants;
-using DN.WebApi.Infrastructure.Identity.Extensions;
+using DN.WebApi.Infrastructure.Multitenancy;
+using DN.WebApi.Shared.Authorization;
+using DN.WebApi.Shared.Multitenancy;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Identity.Web;
 using Serilog;
-using ClaimConstants = DN.WebApi.Domain.Constants.ClaimConstants;
 
 namespace DN.WebApi.Infrastructure.Identity.AzureAd;
 
@@ -51,12 +51,12 @@ internal class AzureAdJwtBearerEvents : JwtBearerEvents
         var identity = principal.Identities.First();
 
         // Adding tenant claim
-        identity.AddClaim(new Claim(ClaimConstants.Tenant, tenantKey));
+        identity.AddClaim(new Claim(FSHClaims.Tenant, tenantKey));
 
         // Creating a new scope and set the new tenant key so it gets picked up
         using var scope = context.HttpContext.RequestServices.CreateScope();
 
-        scope.ServiceProvider.GetRequiredService<ITenantService>().SetCurrentTenant(tenantKey);
+        scope.ServiceProvider.GetRequiredService<ICurrentTenantInitializer>().SetCurrentTenant(tenantKey);
 
         // Lookup local user or create one if none exist.
         var identityService = scope.ServiceProvider.GetRequiredService<IIdentityService>();

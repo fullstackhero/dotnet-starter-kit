@@ -1,8 +1,8 @@
+using DN.WebApi.Infrastructure.BackgroundJobs;
 using DN.WebApi.Infrastructure.Caching;
 using DN.WebApi.Infrastructure.Common;
 using DN.WebApi.Infrastructure.Cors;
 using DN.WebApi.Infrastructure.FileStorage;
-using DN.WebApi.Infrastructure.Hangfire;
 using DN.WebApi.Infrastructure.Identity;
 using DN.WebApi.Infrastructure.Localization;
 using DN.WebApi.Infrastructure.Mailing;
@@ -10,9 +10,10 @@ using DN.WebApi.Infrastructure.Mapping;
 using DN.WebApi.Infrastructure.Middleware;
 using DN.WebApi.Infrastructure.Multitenancy;
 using DN.WebApi.Infrastructure.Notifications;
+using DN.WebApi.Infrastructure.OpenApi;
+using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Infrastructure.SecurityHeaders;
 using DN.WebApi.Infrastructure.Seeding;
-using DN.WebApi.Infrastructure.Swagger;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
@@ -31,21 +32,21 @@ public static class Startup
             .AddCaching(config)
             .AddCorsPolicy(config)
             .AddCurrentUser()
-            .AddCurrentTenant()
             .AddExceptionMiddleware()
-            .AddHangfire(config)
+            .AddBackgroundJobs(config)
             .AddHealthCheck()
             .AddIdentity(config)
             .AddLocalization(config)
             .AddMailing(config)
+            .AddMultitenancy()
             .AddNotifications(config)
+            .AddOpenApiDocumentation(config)
             .AddPermissions()
+            .AddPersistence(config)
             .AddRequestLogging(config)
             .AddRouting(options => options.LowercaseUrls = true)
             .AddSeeders()
-            .AddServices()
-            .AddSwaggerDocumentation(config)
-            .AddMultitenancy(config); // Multitency needs to be last as this one also creates and/or migrates the database(s).
+            .AddServices();
     }
 
     public static IApplicationBuilder UseInfrastructure(this IApplicationBuilder appBuilder, IConfiguration config) =>
@@ -70,7 +71,7 @@ public static class Startup
                 endpoints.MapHealthCheck();
                 endpoints.MapNotifications();
             })
-            .UseSwaggerDocumentation(config);
+            .UseOpenApiDocumentation(config);
 
     private static IServiceCollection AddApiVersioning(this IServiceCollection services) =>
         services.AddApiVersioning(config =>
