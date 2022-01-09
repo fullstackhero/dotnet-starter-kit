@@ -2,7 +2,6 @@
 
 public interface IEntity
 {
-
 }
 
 public interface IEntity<T> : IEntity
