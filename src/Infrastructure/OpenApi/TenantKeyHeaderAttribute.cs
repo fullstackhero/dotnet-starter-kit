@@ -6,7 +6,7 @@ public class TenantKeyHeaderAttribute : SwaggerHeaderAttribute
 {
     public TenantKeyHeaderAttribute()
         : base(
-            MultitenancyConstants.TenantHeaderKey,
+            MultitenancyConstants.TenantKeyName,
             "Input your tenant Id to access this API",
             string.Empty,
             true)

@@ -33,12 +33,12 @@ public static class TenantResolver
         context.User.GetTenant();
 
     private static string? ResolveFromHeader(HttpContext context) =>
-        context.Request.Headers.TryGetValue(MultitenancyConstants.TenantHeaderKey, out var tenantFromHeader)
+        context.Request.Headers.TryGetValue(MultitenancyConstants.TenantKeyName, out var tenantFromHeader)
             ? (string)tenantFromHeader
             : default;
 
     private static string? ResolveFromQuery(HttpContext context) =>
-        context.Request.Query.TryGetValue(MultitenancyConstants.TenantQueryStringKey, out var tenantFromQueryString)
+        context.Request.Query.TryGetValue(MultitenancyConstants.TenantKeyName, out var tenantFromQueryString)
             ? (string)tenantFromQueryString
             : default;
 }

@@ -369,7 +369,7 @@ public class IdentityService : IIdentityService
         string verificationUri = QueryHelpers.AddQueryString(endpointUri.ToString(), QueryStringKeys.UserId, user.Id);
         verificationUri = QueryHelpers.AddQueryString(verificationUri, QueryStringKeys.Code, code);
         if (_tenantService.GetCurrentTenant()?.Key is string tenantKey)
-            verificationUri = QueryHelpers.AddQueryString(verificationUri, MultitenancyConstants.TenantQueryStringKey, tenantKey);
+            verificationUri = QueryHelpers.AddQueryString(verificationUri, MultitenancyConstants.TenantKeyName, tenantKey);
         return verificationUri;
     }
 }

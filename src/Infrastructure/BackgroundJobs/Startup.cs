@@ -18,8 +18,7 @@ internal static class Startup
 
     internal static IServiceCollection AddBackgroundJobs(this IServiceCollection services, IConfiguration config)
     {
-        services.AddHangfireServer(options =>
-            config.GetSection("HangfireSettings:Server").Bind(options));
+        services.AddHangfireServer(options => config.GetSection("HangfireSettings:Server").Bind(options));
 
         services.AddHangfireConsoleExtensions();
 

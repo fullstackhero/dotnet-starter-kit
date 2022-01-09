@@ -11,6 +11,5 @@ public class MultitenancyConstants
 
     public const string DefaultPassword = "123Pa$$word!";
 
-    public const string TenantHeaderKey = "tenant";
-    public const string TenantQueryStringKey = "tenant";
+    public const string TenantKeyName = "tenant";
 }

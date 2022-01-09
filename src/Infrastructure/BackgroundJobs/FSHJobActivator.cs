@@ -12,15 +12,11 @@ public class FSHJobActivator : JobActivator
 {
     private readonly IServiceScopeFactory _scopeFactory;
 
-    public FSHJobActivator(IServiceScopeFactory scopeFactory)
-    {
+    public FSHJobActivator(IServiceScopeFactory scopeFactory) =>
         _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
-    }
 
-    public override JobActivatorScope BeginScope(PerformContext context)
-    {
-        return new Scope(context, _scopeFactory.CreateScope());
-    }
+    public override JobActivatorScope BeginScope(PerformContext context) =>
+        new Scope(context, _scopeFactory.CreateScope());
 
     private class Scope : JobActivatorScope, IServiceProvider
     {
@@ -37,7 +33,7 @@ public class FSHJobActivator : JobActivator
 
         private void SetParameters()
         {
-            string tenant = _context.GetJobParameter<string>(MultitenancyConstants.TenantHeaderKey);
+            string tenant = _context.GetJobParameter<string>(MultitenancyConstants.TenantKeyName);
             if (!string.IsNullOrEmpty(tenant))
             {
                 ITenantService tenantService = _scope.ServiceProvider.GetRequiredService<ITenantService>();
