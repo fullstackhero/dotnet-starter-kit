@@ -20,4 +20,8 @@
         <AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json" Link="Properties\stylecop.json" />
         <AdditionalFiles Include="$(MSBuildThisFileDirectory).editorconfig" Link="Properties\.editorconfig" />
     </ItemGroup>
+    <ItemGroup>
+        <!-- Define the global DefaultIdType here. -->
+        <Using Include="System.Guid" Alias="DefaultIdType" />
+    </ItemGroup>
 </Project>
