@@ -1,6 +1,4 @@
-using System.Net;
 using DN.WebApi.Application.Common.Exceptions;
-using DN.WebApi.Application.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Localization;
 

@@ -1,5 +1,5 @@
 using DN.WebApi.Application.Multitenancy;
-using DN.WebApi.Infrastructure.Identity.Permissions;
+using DN.WebApi.Infrastructure.Auth.Permissions;
 using DN.WebApi.Shared.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NSwag.Annotations;

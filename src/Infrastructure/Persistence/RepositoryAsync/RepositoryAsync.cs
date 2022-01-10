@@ -11,7 +11,7 @@ using DN.WebApi.Application.Common.Specifications;
 using DN.WebApi.Domain.Common.Contracts;
 using DN.WebApi.Domain.Multitenancy;
 using DN.WebApi.Infrastructure.Mapping;
-using DN.WebApi.Infrastructure.Persistence.Contexts;
+using DN.WebApi.Infrastructure.Persistence.Context;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;

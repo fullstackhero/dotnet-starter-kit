@@ -1,7 +1,7 @@
 ﻿using DN.WebApi.Domain.Multitenancy;
-using DN.WebApi.Infrastructure.Identity.Models;
+using DN.WebApi.Infrastructure.Identity;
 using DN.WebApi.Infrastructure.Multitenancy;
-using DN.WebApi.Infrastructure.Persistence.Contexts;
+using DN.WebApi.Infrastructure.Persistence.Context;
 using DN.WebApi.Infrastructure.Seeding;
 using DN.WebApi.Shared.Multitenancy;
 using Microsoft.AspNetCore.Identity;

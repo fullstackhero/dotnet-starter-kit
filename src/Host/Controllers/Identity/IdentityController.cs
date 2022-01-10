@@ -1,6 +1,6 @@
 using DN.WebApi.Application.Identity.Users;
 using DN.WebApi.Application.Identity.Users.Password;
-using DN.WebApi.Infrastructure.Identity.Permissions;
+using DN.WebApi.Infrastructure.Auth.Permissions;
 using DN.WebApi.Infrastructure.OpenApi;
 using DN.WebApi.Shared.Authorization;
 using Microsoft.AspNetCore.Authorization;
