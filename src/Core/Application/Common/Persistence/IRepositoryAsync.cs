@@ -73,7 +73,7 @@ public interface IRepositoryAsync : ITransientService
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>Returns <see cref="Task"/> of <see cref="PaginationResponse{TDto}"/>.</returns>
     Task<PaginationResponse<TDto>> GetListAsync<T, TDto>(PaginationSpecification<T> specification, CancellationToken cancellationToken = default)
-    where T : BaseEntity
+    where T : class, IEntity
     where TDto : IDto;
 
     /// <summary>
