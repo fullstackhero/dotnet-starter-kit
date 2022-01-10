@@ -38,9 +38,10 @@ internal static class Startup
                         Url = settings.LicenseUrl
                     };
                 };
+
                 if (config["SecuritySettings:Provider"].Equals("AzureAd", StringComparison.OrdinalIgnoreCase))
                 {
-                    document.AddSecurity("oauth2", new OpenApiSecurityScheme
+                    document.AddSecurity(JwtBearerDefaults.AuthenticationScheme, new OpenApiSecurityScheme
                     {
                         Type = OpenApiSecuritySchemeType.OAuth2,
                         Flow = OpenApiOAuth2Flow.AccessCode,
@@ -58,11 +59,10 @@ internal static class Startup
                             }
                         }
                     });
-                    document.OperationProcessors.Add(new AspNetCoreOperationSecurityScopeProcessor("oauth2"));
                 }
                 else
                 {
-                    document.AddSecurity("bearer", new OpenApiSecurityScheme
+                    document.AddSecurity(JwtBearerDefaults.AuthenticationScheme, new OpenApiSecurityScheme
                     {
                         Name = "Authorization",
                         Description = "Input your Bearer token to access this API",
@@ -71,8 +71,10 @@ internal static class Startup
                         Scheme = JwtBearerDefaults.AuthenticationScheme,
                         BearerFormat = "JWT",
                     });
-                    document.OperationProcessors.Add(new AspNetCoreOperationSecurityScopeProcessor("bearer"));
                 }
+
+                document.OperationProcessors.Add(new AspNetCoreOperationSecurityScopeProcessor());
+                document.OperationProcessors.Add(new SwaggerGlobalAuthProcessor());
 
                 document.TypeMappers.Add(new PrimitiveTypeMapper(typeof(TimeSpan), schema =>
                 {
