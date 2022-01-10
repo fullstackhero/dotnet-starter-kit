@@ -1,4 +1,4 @@
-﻿using DN.WebApi.Application.Wrapper;
+﻿using DN.WebApi.Infrastructure.Middleware;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 

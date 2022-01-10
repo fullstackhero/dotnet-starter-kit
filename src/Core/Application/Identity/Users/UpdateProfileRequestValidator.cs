@@ -1,16 +1,38 @@
 using DN.WebApi.Application.Common.FileStorage;
 using DN.WebApi.Application.Common.Validation;
 using FluentValidation;
+using Microsoft.Extensions.Localization;
 
 namespace DN.WebApi.Application.Identity.Users;
 
 public class UpdateProfileRequestValidator : CustomValidator<UpdateProfileRequest>
 {
-    public UpdateProfileRequestValidator()
+    public UpdateProfileRequestValidator(IUserService userService, IStringLocalizer<UpdateProfileRequestValidator> localizer)
     {
-        RuleFor(p => p.FirstName).MaximumLength(75).NotEmpty();
-        RuleFor(p => p.LastName).MaximumLength(75).NotEmpty();
-        RuleFor(p => p.Email).NotEmpty();
-        RuleFor(p => p.Image).SetNonNullableValidator(new FileUploadRequestValidator());
+        RuleFor(p => p.Id)
+            .NotEmpty();
+
+        RuleFor(p => p.FirstName)
+            .NotEmpty()
+            .MaximumLength(75);
+
+        RuleFor(p => p.LastName)
+            .NotEmpty()
+            .MaximumLength(75);
+
+        RuleFor(p => p.Email)
+            .NotEmpty()
+            .EmailAddress()
+                .WithMessage(localizer["Invalid Email Address."])
+            .MustAsync(async (user, email, _) => !await userService.ExistsWithEmailAsync(email, user.Id))
+                .WithMessage((_, email) => string.Format(localizer["Email {0} is already registered."], email));
+
+        RuleFor(p => p.Image)
+            .SetNonNullableValidator(new FileUploadRequestValidator());
+
+        RuleFor(u => u.PhoneNumber).Cascade(CascadeMode.Stop)
+            .MustAsync(async (user, phone, _) => !await userService.ExistsWithPhoneNumberAsync(phone!, user.Id))
+                .WithMessage((_, phone) => string.Format(localizer["Phone number {0} is already registered."], phone))
+                .Unless(u => string.IsNullOrWhiteSpace(u.PhoneNumber));
     }
 }

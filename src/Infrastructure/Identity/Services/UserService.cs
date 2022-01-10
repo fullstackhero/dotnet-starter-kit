@@ -1,7 +1,8 @@
 using System.Linq.Dynamic.Core;
+using DN.WebApi.Application.Common.Exceptions;
+using DN.WebApi.Application.Common.Models;
 using DN.WebApi.Application.Identity;
 using DN.WebApi.Application.Identity.Users;
-using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Common.Contracts;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Mapping;
@@ -35,7 +36,7 @@ public class UserService : IUserService
         _context = context;
     }
 
-    public async Task<PaginatedResult<UserDetailsDto>> SearchAsync(UserListFilter filter)
+    public async Task<PaginationResponse<UserDetailsDto>> SearchAsync(UserListFilter filter, CancellationToken cancellationToken)
     {
         var filters = new Filters<ApplicationUser>();
         filters.Add(filter.IsActive.HasValue, x => x.IsActive == filter.IsActive);
@@ -44,67 +45,70 @@ public class UserService : IUserService
         if (filter.AdvancedSearch is not null)
             query = query.AdvancedSearch(filter.AdvancedSearch);
         string? ordering = new OrderByConverter().ConvertBack(filter.OrderBy);
-        query = !string.IsNullOrWhiteSpace(ordering) ? query.OrderBy(ordering) : query.OrderBy(a => a.Id);
+        query = !string.IsNullOrWhiteSpace(ordering)
+            ? query.OrderBy(ordering)
+            : query.OrderBy(a => a.Id);
 
-        return await query.ToMappedPaginatedResultAsync<ApplicationUser, UserDetailsDto>(filter.PageNumber, filter.PageSize);
+        return await query.ToMappedPaginatedResultAsync<ApplicationUser, UserDetailsDto>(filter.PageNumber, filter.PageSize, cancellationToken: cancellationToken);
     }
 
-    public async Task<Result<List<UserDetailsDto>>> GetAllAsync()
+    public async Task<bool> ExistsWithNameAsync(string name) =>
+        await _userManager.FindByNameAsync(name) is not null;
+
+    public async Task<bool> ExistsWithEmailAsync(string email, string? exceptId = null) =>
+        await _userManager.FindByEmailAsync(email.Normalize()) is ApplicationUser user && user.Id != exceptId;
+
+    public async Task<bool> ExistsWithPhoneNumberAsync(string phoneNumber, string? exceptId = null) =>
+        await _userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == phoneNumber) is ApplicationUser user && user.Id != exceptId;
+
+    public async Task<List<UserDetailsDto>> GetAllAsync(CancellationToken cancellationToken) =>
+        (await _userManager.Users
+                .AsNoTracking()
+                .ToListAsync(cancellationToken))
+            .Adapt<List<UserDetailsDto>>();
+
+    public async Task<UserDetailsDto> GetAsync(string userId, CancellationToken cancellationToken)
     {
-        var users = await _userManager.Users.AsNoTracking().ToListAsync();
-        var result = users.Adapt<List<UserDetailsDto>>();
-        return await Result<List<UserDetailsDto>>.SuccessAsync(result);
+        var user = await _userManager.Users
+            .AsNoTracking()
+            .Where(u => u.Id == userId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        _ = user ?? throw new NotFoundException(_localizer["User Not Found."]);
+
+        return user.Adapt<UserDetailsDto>();
     }
 
-    public async Task<IResult<UserDetailsDto>> GetAsync(string userId)
+    public async Task<List<UserRoleDto>> GetRolesAsync(string userId, CancellationToken cancellationToken)
     {
-        var user = await _userManager.Users.AsNoTracking().Where(u => u.Id == userId).FirstOrDefaultAsync();
-        if (user is null)
-        {
-            return await Result<UserDetailsDto>.FailAsync(_localizer["User Not Found."]);
-        }
+        var userRoles = new List<UserRoleDto>();
 
-        var result = user.Adapt<UserDetailsDto>();
-        return await Result<UserDetailsDto>.SuccessAsync(result);
-    }
-
-    public async Task<IResult<UserRolesResponse>> GetRolesAsync(string userId)
-    {
-        var viewModel = new List<UserRoleDto>();
         var user = await _userManager.FindByIdAsync(userId);
-        var roles = await _roleManager.Roles.AsNoTracking().ToListAsync();
+        var roles = await _roleManager.Roles.AsNoTracking().ToListAsync(cancellationToken);
         foreach (var role in roles)
         {
-            var userRolesViewModel = new UserRoleDto
+            userRoles.Add(new UserRoleDto
             {
                 RoleId = role.Id,
                 RoleName = role.Name,
-                Description = role.Description
-            };
-            userRolesViewModel.Enabled = await _userManager.IsInRoleAsync(user, role.Name);
-
-            viewModel.Add(userRolesViewModel);
+                Description = role.Description,
+                Enabled = await _userManager.IsInRoleAsync(user, role.Name)
+            });
         }
 
-        var result = new UserRolesResponse { UserRoles = viewModel };
-        return await Result<UserRolesResponse>.SuccessAsync(result);
+        return userRoles;
     }
 
-    public async Task<IResult<string>> AssignRolesAsync(string userId, UserRolesRequest request)
+    public async Task<string> AssignRolesAsync(string userId, UserRolesRequest request, CancellationToken cancellationToken)
     {
-        var user = await _userManager.Users.Where(u => u.Id == userId).FirstOrDefaultAsync();
-        if (user == null)
-        {
-            return await Result<string>.FailAsync(_localizer["User Not Found."]);
-        }
+        ArgumentNullException.ThrowIfNull(request, nameof(request));
 
-        if (request == null)
-        {
-            return await Result<string>.FailAsync(_localizer["Invalid Request."]);
-        }
+        var user = await _userManager.Users.Where(u => u.Id == userId).FirstOrDefaultAsync(cancellationToken);
+
+        _ = user ?? throw new NotFoundException(_localizer["User Not Found."]);
 
         var adminRole = request.UserRoles.Find(a => !a.Enabled && a.RoleName == FSHRoles.Admin);
-        if (adminRole != null)
+        if (adminRole is not null)
         {
             request.UserRoles.Remove(adminRole);
         }
@@ -112,7 +116,7 @@ public class UserService : IUserService
         foreach (var userRole in request.UserRoles)
         {
             // Check if Role Exists
-            if (await _roleManager.FindByNameAsync(userRole.RoleName) != null)
+            if (await _roleManager.FindByNameAsync(userRole.RoleName) is not null)
             {
                 if (userRole.Enabled)
                 {
@@ -128,50 +132,46 @@ public class UserService : IUserService
             }
         }
 
-        return await Result<string>.SuccessAsync(userId, string.Format(_localizer["User Roles Updated Successfully."]));
+        return _localizer["User Roles Updated Successfully."];
     }
 
-    public async Task<Result<List<PermissionDto>>> GetPermissionsAsync(string userId)
+    public async Task<List<PermissionDto>> GetPermissionsAsync(string userId, CancellationToken cancellationToken)
     {
-        var userPermissions = new List<PermissionDto>();
         var user = await _userManager.FindByIdAsync(userId);
-        if (user == null)
+
+        _ = user ?? throw new NotFoundException(_localizer["User Not Found."]);
+
+        var permissions = new List<PermissionDto>();
+        var roles = await _userManager.GetRolesAsync(user);
+        foreach (var role in await _roleManager.Roles
+            .Where(r => roles.Contains(r.Name))
+            .ToListAsync(cancellationToken))
         {
-            return await Result<List<PermissionDto>>.FailAsync(_localizer["User Not Found."]);
+            var roleClaims = await _context.RoleClaims
+                .Where(rc => rc.RoleId == role.Id && rc.ClaimType == FSHClaims.Permission)
+                .ToListAsync(cancellationToken);
+            permissions.AddRange(roleClaims.Adapt<List<PermissionDto>>());
         }
 
-        var roleNames = await _userManager.GetRolesAsync(user);
-        foreach (var role in _roleManager.Roles.Where(r => roleNames.Contains(r.Name)).ToList())
-        {
-            var permissions = await _context.RoleClaims.Where(a => a.RoleId == role.Id && a.ClaimType == FSHClaims.Permission).ToListAsync();
-            var permissionResponse = permissions.Adapt<List<PermissionDto>>();
-            userPermissions.AddRange(permissionResponse);
-        }
-
-        return await Result<List<PermissionDto>>.SuccessAsync(userPermissions.Distinct().ToList());
+        return permissions.Distinct().ToList();
     }
 
-    public async Task<int> GetCountAsync()
-    {
-        return await _userManager.Users.AsNoTracking().CountAsync();
-    }
+    public Task<int> GetCountAsync(CancellationToken cancellationToken) =>
+        _userManager.Users.AsNoTracking().CountAsync(cancellationToken);
 
-    public async Task<IResult> ToggleUserStatusAsync(ToggleUserStatusRequest request)
+    public async Task ToggleUserStatusAsync(ToggleUserStatusRequest request, CancellationToken cancellationToken)
     {
-        var user = await _userManager.Users.Where(u => u.Id == request.UserId).FirstOrDefaultAsync();
-        if (user == null) return await Result<List<PermissionDto>>.FailAsync(_localizer["User Not Found."]);
+        var user = await _userManager.Users.Where(u => u.Id == request.UserId).FirstOrDefaultAsync(cancellationToken);
+
+        _ = user ?? throw new NotFoundException(_localizer["User Not Found."]);
+
         bool isAdmin = await _userManager.IsInRoleAsync(user, FSHRoles.Admin);
         if (isAdmin)
         {
-            return await Result.FailAsync(_localizer["Administrators Profile's Status cannot be toggled"]);
+            throw new ConflictException(_localizer["Administrators Profile's Status cannot be toggled"]);
         }
 
-        if (user != null)
-        {
-            user.IsActive = request.ActivateUser;
-            var identityResult = await _userManager.UpdateAsync(user);
-        }
-
-        return await Result.SuccessAsync();
+        user.IsActive = request.ActivateUser;
+        var identityResult = await _userManager.UpdateAsync(user);
     }
 }

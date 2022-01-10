@@ -1,5 +1,5 @@
 ﻿using System.Security.Claims;
-using DN.WebApi.Application.Common;
+using DN.WebApi.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;

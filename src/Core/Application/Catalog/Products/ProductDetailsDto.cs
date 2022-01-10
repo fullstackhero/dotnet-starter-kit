@@ -1,5 +1,5 @@
 using DN.WebApi.Application.Catalog.Brands;
-using DN.WebApi.Application.Common;
+using DN.WebApi.Application.Common.Interfaces;
 
 namespace DN.WebApi.Application.Catalog.Products;
 

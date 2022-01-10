@@ -1,4 +1,4 @@
-using DN.WebApi.Application.Common.Filters;
+using DN.WebApi.Application.Common.Models;
 
 namespace DN.WebApi.Application.Identity.Users;
 

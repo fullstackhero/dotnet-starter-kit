@@ -1,7 +1,6 @@
 using System.Security.Claims;
-using DN.WebApi.Application.Common;
+using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Identity.Users.Password;
-using DN.WebApi.Application.Wrapper;
 
 namespace DN.WebApi.Application.Identity.Users;
 
@@ -9,16 +8,17 @@ public interface IIdentityService : ITransientService
 {
     Task<string> GetOrCreateFromPrincipalAsync(ClaimsPrincipal principal);
 
-    Task<IResult<string>> RegisterAsync(RegisterUserRequest request, string origin);
+    Task<string> RegisterAsync(RegisterUserRequest request, string origin);
 
-    Task<IResult<string>> ConfirmEmailAsync(string userId, string code, string tenant);
+    Task<string> ConfirmEmailAsync(string userId, string code, string tenant, CancellationToken cancellationToken);
 
-    Task<IResult<string>> ConfirmPhoneNumberAsync(string userId, string code);
+    Task<string> ConfirmPhoneNumberAsync(string userId, string code);
 
-    Task<IResult> ForgotPasswordAsync(ForgotPasswordRequest request, string origin);
+    Task<string> ForgotPasswordAsync(ForgotPasswordRequest request, string origin);
 
-    Task<IResult> ResetPasswordAsync(ResetPasswordRequest request);
+    Task<string> ResetPasswordAsync(ResetPasswordRequest request);
 
-    Task<IResult> UpdateProfileAsync(UpdateProfileRequest request, string userId);
-    Task<IResult> ChangePasswordAsync(ChangePasswordRequest request, string userId);
+    Task UpdateProfileAsync(UpdateProfileRequest request, string userId);
+
+    Task ChangePasswordAsync(ChangePasswordRequest request, string userId);
 }

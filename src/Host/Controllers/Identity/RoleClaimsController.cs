@@ -1,5 +1,4 @@
 using DN.WebApi.Application.Identity.RoleClaims;
-using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Shared.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,40 +9,33 @@ public class RoleClaimsController : VersionNeutralApiController
 {
     private readonly IRoleClaimsService _roleClaimService;
 
-    public RoleClaimsController(IRoleClaimsService roleClaimService)
-    {
-        _roleClaimService = roleClaimService;
-    }
+    public RoleClaimsController(IRoleClaimsService roleClaimService) => _roleClaimService = roleClaimService;
 
     [HttpGet]
     [Authorize(Policy = FSHPermissions.RoleClaims.View)]
-    public async Task<ActionResult<Result<List<RoleClaimResponse>>>> GetAllAsync()
+    public Task<List<RoleClaimDto>> GetAllAsync(CancellationToken cancellationToken)
     {
-        var roleClaims = await _roleClaimService.GetAllAsync();
-        return Ok(roleClaims);
+        return _roleClaimService.GetAllAsync(cancellationToken);
     }
 
     [HttpGet("{roleId}")]
     [Authorize(Policy = FSHPermissions.RoleClaims.View)]
-    public async Task<ActionResult<Result<List<RoleClaimResponse>>>> GetAllByRoleIdAsync([FromRoute] string roleId)
+    public Task<List<RoleClaimDto>> GetAllByRoleIdAsync([FromRoute] string roleId, CancellationToken cancellationToken)
     {
-        var response = await _roleClaimService.GetAllByRoleIdAsync(roleId);
-        return Ok(response);
+        return _roleClaimService.GetAllByRoleIdAsync(roleId, cancellationToken);
     }
 
     [HttpPost]
     [Authorize(Policy = FSHPermissions.RoleClaims.Create)]
-    public async Task<ActionResult<Result<string>>> PostAsync(RoleClaimRequest request)
+    public Task<string> PostAsync(RoleClaimRequest request, CancellationToken cancellationToken)
     {
-        var response = await _roleClaimService.SaveAsync(request);
-        return Ok(response);
+        return _roleClaimService.SaveAsync(request, cancellationToken);
     }
 
     [HttpDelete("{id:int}")]
     [Authorize(Policy = FSHPermissions.RoleClaims.Delete)]
-    public async Task<ActionResult<Result<string>>> DeleteAsync(int id)
+    public Task<string> DeleteAsync(int id, CancellationToken cancellationToken)
     {
-        var response = await _roleClaimService.DeleteAsync(id);
-        return Ok(response);
+        return _roleClaimService.DeleteAsync(id, cancellationToken);
     }
 }

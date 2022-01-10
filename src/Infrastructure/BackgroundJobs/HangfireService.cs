@@ -1,5 +1,5 @@
 using System.Linq.Expressions;
-using DN.WebApi.Application.Common.BackgroundJobs;
+using DN.WebApi.Application.Common.Interfaces;
 using Hangfire;
 
 namespace DN.WebApi.Infrastructure.BackgroundJobs;

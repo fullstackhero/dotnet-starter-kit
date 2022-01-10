@@ -1,4 +1,4 @@
-﻿using DN.WebApi.Application.Common.BackgroundJobs;
+﻿using DN.WebApi.Application.Common.Interfaces;
 using MediatR;
 
 namespace DN.WebApi.Application.Catalog.Brands;

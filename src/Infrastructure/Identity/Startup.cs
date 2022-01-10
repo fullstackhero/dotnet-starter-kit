@@ -1,6 +1,7 @@
 using System.Net;
 using System.Security.Claims;
 using System.Text;
+using DN.WebApi.Application.Common.Exceptions;
 using DN.WebApi.Application.Identity;
 using DN.WebApi.Application.Identity.Users;
 using DN.WebApi.Infrastructure.Identity.AzureAd;
@@ -116,12 +117,12 @@ internal static class Startup
                         context.HandleResponse();
                         if (!context.Response.HasStarted)
                         {
-                            throw new IdentityException("Authentication Failed.", statusCode: HttpStatusCode.Unauthorized);
+                            throw new UnauthorizedException("Authentication Failed.");
                         }
 
                         return Task.CompletedTask;
                     },
-                    OnForbidden = _ => throw new IdentityException("You are not authorized to access this resource.", statusCode: HttpStatusCode.Forbidden),
+                    OnForbidden = _ => throw new ForbiddenException("You are not authorized to access this resource."),
                     OnMessageReceived = context =>
                     {
                         var accessToken = context.Request.Query["access_token"];

@@ -1,7 +1,7 @@
 using DN.WebApi.Application.Common.Caching;
+using DN.WebApi.Application.Common.Exceptions;
 using DN.WebApi.Application.Identity.RoleClaims;
 using DN.WebApi.Application.Identity.Roles;
-using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
 using DN.WebApi.Shared.Authorization;
@@ -24,7 +24,7 @@ public class RoleClaimsService : IRoleClaimsService
         _localizer = localizer;
     }
 
-    public async Task<bool> HasPermissionAsync(string userId, string permission)
+    public async Task<bool> HasPermissionAsync(string userId, string permission, CancellationToken cancellationToken)
     {
         var roles = await _cache.GetOrSetAsync(
             CacheKeys.GetCacheKey(FSHClaims.Permission, userId),
@@ -33,13 +33,18 @@ public class RoleClaimsService : IRoleClaimsService
                 var userRoles = await _db.UserRoles.Where(a => a.UserId == userId).Select(a => a.RoleId).ToListAsync();
                 var applicationRoles = await _db.Roles.Where(a => userRoles.Contains(a.Id)).ToListAsync();
                 return applicationRoles.Adapt<List<RoleDto>>();
-            });
+            },
+            cancellationToken: cancellationToken);
 
         if (roles is not null)
         {
             foreach (var role in roles)
             {
-                if (_db.RoleClaims.Any(a => a.ClaimType == FSHClaims.Permission && a.ClaimValue == permission && a.RoleId == role.Id))
+                if (await _db.RoleClaims.AnyAsync(
+                    c => c.ClaimType == FSHClaims.Permission &&
+                         c.ClaimValue == permission &&
+                         c.RoleId == role.Id,
+                    cancellationToken))
                 {
                     return true;
                 }
@@ -49,45 +54,34 @@ public class RoleClaimsService : IRoleClaimsService
         return false;
     }
 
-    public async Task<Result<List<RoleClaimResponse>>> GetAllAsync()
-    {
-        var roleClaims = await _db.RoleClaims.ToListAsync();
-        var roleClaimsResponse = roleClaims.Adapt<List<RoleClaimResponse>>();
-        return await Result<List<RoleClaimResponse>>.SuccessAsync(roleClaimsResponse);
-    }
+    public async Task<List<RoleClaimDto>> GetAllAsync(CancellationToken cancellationToken) =>
+        (await _db.RoleClaims.ToListAsync(cancellationToken))
+            .Adapt<List<RoleClaimDto>>();
 
-    public Task<int> GetCountAsync() =>
-        _db.RoleClaims.CountAsync();
+    public Task<int> GetCountAsync(CancellationToken cancellationToken) =>
+        _db.RoleClaims.CountAsync(cancellationToken);
 
-    public async Task<Result<RoleClaimResponse>> GetByIdAsync(int id)
+    public async Task<RoleClaimDto> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
         var roleClaim = await _db.RoleClaims
-            .SingleOrDefaultAsync(x => x.Id == id);
-        if (roleClaim is null)
-        {
-            return await Result<RoleClaimResponse>.FailAsync(_localizer["Role not found."]);
-        }
+            .SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
 
-        var roleClaimResponse = roleClaim.Adapt<RoleClaimResponse>();
-        return await Result<RoleClaimResponse>.SuccessAsync(roleClaimResponse);
+        _ = roleClaim ?? throw new NotFoundException(_localizer["RoleClaim Not Found"]);
+
+        return roleClaim.Adapt<RoleClaimDto>();
     }
 
-    public async Task<Result<List<RoleClaimResponse>>> GetAllByRoleIdAsync(string roleId)
+    public async Task<List<RoleClaimDto>> GetAllByRoleIdAsync(string roleId, CancellationToken cancellationToken)
     {
         var roleClaims = await _db.RoleClaims
             .Where(x => x.RoleId == roleId)
-            .ToListAsync();
-        var roleClaimsResponse = roleClaims.Adapt<List<RoleClaimResponse>>();
-        return await Result<List<RoleClaimResponse>>.SuccessAsync(roleClaimsResponse);
+            .ToListAsync(cancellationToken);
+
+        return roleClaims.Adapt<List<RoleClaimDto>>();
     }
 
-    public async Task<Result<string>> SaveAsync(RoleClaimRequest request)
+    public async Task<string> SaveAsync(RoleClaimRequest request, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(request.RoleId))
-        {
-            return await Result<string>.FailAsync(_localizer["Role is required."]);
-        }
-
         if (request.Id == 0)
         {
             var existingRoleClaim =
@@ -96,50 +90,50 @@ public class RoleClaimsService : IRoleClaimsService
                         x.RoleId == request.RoleId && x.ClaimType == request.Type && x.ClaimValue == request.Value);
             if (existingRoleClaim is not null)
             {
-                return await Result<string>.FailAsync(_localizer["Similar Role Claim already exists."]);
+                throw new ConflictException(_localizer["Similar Role Claim already exists."]);
             }
 
             var roleClaim = request.Adapt<ApplicationRoleClaim>();
-            await _db.RoleClaims.AddAsync(roleClaim);
-            await _db.SaveChangesAsync();
-            return await Result<string>.SuccessAsync(string.Format(_localizer["Role Claim {0} created."], request.Value));
+            await _db.RoleClaims.AddAsync(roleClaim, cancellationToken);
+            await _db.SaveChangesAsync(cancellationToken);
+
+            return string.Format(_localizer["Role Claim {0} created."], request.Value);
         }
         else
         {
             var existingRoleClaim =
                 await _db.RoleClaims
-                    .SingleOrDefaultAsync(x => x.Id == request.Id);
+                    .SingleOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
+
             if (existingRoleClaim is null)
             {
-                return await Result<string>.SuccessAsync(_localizer["Role Claim does not exist."]);
+                throw new NotFoundException(_localizer["RoleClaim Not Found"]);
             }
-            else
-            {
-                existingRoleClaim.ClaimType = request.Type;
-                existingRoleClaim.ClaimValue = request.Value;
-                existingRoleClaim.Group = request.Group;
-                existingRoleClaim.Description = request.Description;
-                existingRoleClaim.RoleId = request.RoleId;
-                _db.RoleClaims.Update(existingRoleClaim);
-                await _db.SaveChangesAsync();
-                return await Result<string>.SuccessAsync(string.Format(_localizer["Role Claim {0} for Role updated."], request.Value));
-            }
+
+            existingRoleClaim.ClaimType = request.Type;
+            existingRoleClaim.ClaimValue = request.Value;
+            existingRoleClaim.Group = request.Group;
+            existingRoleClaim.Description = request.Description;
+            existingRoleClaim.RoleId = request.RoleId;
+            _db.RoleClaims.Update(existingRoleClaim);
+            await _db.SaveChangesAsync(cancellationToken);
+
+            return string.Format(_localizer["Role Claim {0} for Role updated."], request.Value);
         }
     }
 
-    public async Task<Result<string>> DeleteAsync(int id)
+    public async Task<string> DeleteAsync(int id, CancellationToken cancellationToken)
     {
         var existingRoleClaim = await _db.RoleClaims
-            .FirstOrDefaultAsync(x => x.Id == id);
-        if (existingRoleClaim is not null)
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (existingRoleClaim is null)
         {
-            _db.RoleClaims.Remove(existingRoleClaim);
-            await _db.SaveChangesAsync();
-            return await Result<string>.SuccessAsync(string.Format(_localizer["Role Claim {0} for Role deleted."], existingRoleClaim.ClaimValue));
+            throw new NotFoundException(_localizer["RoleClaim Not Found"]);
         }
-        else
-        {
-            return await Result<string>.FailAsync(_localizer["Role Claim does not exist."]);
-        }
+
+        _db.RoleClaims.Remove(existingRoleClaim);
+        await _db.SaveChangesAsync(cancellationToken);
+
+        return string.Format(_localizer["Role Claim {0} for Role deleted."], existingRoleClaim.ClaimValue);
     }
 }

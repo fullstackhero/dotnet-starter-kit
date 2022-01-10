@@ -1,5 +1,4 @@
 using DN.WebApi.Application.Identity.Tokens;
-using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Infrastructure.OpenApi;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,31 +19,22 @@ public sealed class TokensController : VersionNeutralApiController
     [AllowAnonymous]
     [TenantKeyHeader]
     [OpenApiOperation("Submit Credentials with Tenant Key to generate valid Access Token.", "")]
-    public async Task<ActionResult<Result<TokenResponse>>> GetTokenAsync(TokenRequest request)
+    public Task<TokenResponse> GetTokenAsync(TokenRequest request, CancellationToken cancellationToken)
     {
-        var token = await _tokenService.GetTokenAsync(request, GenerateIpAddress());
-        return Ok(token);
+        return _tokenService.GetTokenAsync(request, GetIpAddress(), cancellationToken);
     }
 
     [HttpPost("refresh")]
     [AllowAnonymous]
     [TenantKeyHeader]
     [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Search))]
-    public async Task<ActionResult<Result<TokenResponse>>> RefreshAsync(RefreshTokenRequest request)
+    public Task<TokenResponse> RefreshAsync(RefreshTokenRequest request)
     {
-        var response = await _tokenService.RefreshTokenAsync(request, GenerateIpAddress());
-        return Ok(response);
+        return _tokenService.RefreshTokenAsync(request, GetIpAddress());
     }
 
-    private string GenerateIpAddress()
-    {
-        if (Request.Headers.ContainsKey("X-Forwarded-For"))
-        {
-            return Request.Headers["X-Forwarded-For"];
-        }
-        else
-        {
-            return HttpContext.Connection.RemoteIpAddress?.MapToIPv4().ToString() ?? "N/A";
-        }
-    }
+    private string GetIpAddress() =>
+        Request.Headers.ContainsKey("X-Forwarded-For")
+            ? Request.Headers["X-Forwarded-For"]
+            : HttpContext.Connection.RemoteIpAddress?.MapToIPv4().ToString() ?? "N/A";
 }

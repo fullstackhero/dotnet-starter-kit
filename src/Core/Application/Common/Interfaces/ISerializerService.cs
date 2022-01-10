@@ -1,4 +1,4 @@
-namespace DN.WebApi.Application.Common;
+namespace DN.WebApi.Application.Common.Interfaces;
 
 public interface ISerializerService : ITransientService
 {

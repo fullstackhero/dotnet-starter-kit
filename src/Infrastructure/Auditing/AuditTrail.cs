@@ -1,4 +1,4 @@
-using DN.WebApi.Application.Common;
+using DN.WebApi.Application.Common.Interfaces;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace DN.WebApi.Infrastructure.Auditing;

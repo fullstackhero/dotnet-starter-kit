@@ -1,23 +1,27 @@
-using DN.WebApi.Application.Common;
-using DN.WebApi.Application.Wrapper;
+using DN.WebApi.Application.Common.Interfaces;
+using DN.WebApi.Application.Common.Models;
 
 namespace DN.WebApi.Application.Identity.Users;
 
 public interface IUserService : ITransientService
 {
-    Task<PaginatedResult<UserDetailsDto>> SearchAsync(UserListFilter filter);
+    Task<PaginationResponse<UserDetailsDto>> SearchAsync(UserListFilter filter, CancellationToken cancellationToken);
 
-    Task<Result<List<UserDetailsDto>>> GetAllAsync();
+    Task<bool> ExistsWithNameAsync(string name);
+    Task<bool> ExistsWithEmailAsync(string email, string? exceptId = null);
+    Task<bool> ExistsWithPhoneNumberAsync(string phoneNumber, string? exceptId = null);
 
-    Task<int> GetCountAsync();
+    Task<List<UserDetailsDto>> GetAllAsync(CancellationToken cancellationToken);
 
-    Task<IResult<UserDetailsDto>> GetAsync(string userId);
+    Task<int> GetCountAsync(CancellationToken cancellationToken);
 
-    Task<IResult<UserRolesResponse>> GetRolesAsync(string userId);
+    Task<UserDetailsDto> GetAsync(string userId, CancellationToken cancellationToken);
 
-    Task<IResult<string>> AssignRolesAsync(string userId, UserRolesRequest request);
+    Task<List<UserRoleDto>> GetRolesAsync(string userId, CancellationToken cancellationToken);
 
-    Task<Result<List<PermissionDto>>> GetPermissionsAsync(string id);
+    Task<string> AssignRolesAsync(string userId, UserRolesRequest request, CancellationToken cancellationToken);
 
-    Task<IResult> ToggleUserStatusAsync(ToggleUserStatusRequest request);
+    Task<List<PermissionDto>> GetPermissionsAsync(string id, CancellationToken cancellationToken);
+
+    Task ToggleUserStatusAsync(ToggleUserStatusRequest request, CancellationToken cancellationToken);
 }

@@ -1,21 +1,20 @@
-using DN.WebApi.Application.Common;
-using DN.WebApi.Application.Wrapper;
+using DN.WebApi.Application.Common.Interfaces;
 
 namespace DN.WebApi.Application.Identity.RoleClaims;
 
 public interface IRoleClaimsService : ITransientService
 {
-    public Task<bool> HasPermissionAsync(string userId, string permission);
+    public Task<bool> HasPermissionAsync(string userId, string permission, CancellationToken cancellationToken = default);
 
-    Task<Result<List<RoleClaimResponse>>> GetAllAsync();
+    Task<List<RoleClaimDto>> GetAllAsync(CancellationToken cancellationToken);
 
-    Task<int> GetCountAsync();
+    Task<int> GetCountAsync(CancellationToken cancellationToken);
 
-    Task<Result<RoleClaimResponse>> GetByIdAsync(int id);
+    Task<RoleClaimDto> GetByIdAsync(int id, CancellationToken cancellationToken);
 
-    Task<Result<List<RoleClaimResponse>>> GetAllByRoleIdAsync(string roleId);
+    Task<List<RoleClaimDto>> GetAllByRoleIdAsync(string roleId, CancellationToken cancellationToken);
 
-    Task<Result<string>> SaveAsync(RoleClaimRequest request);
+    Task<string> SaveAsync(RoleClaimRequest request, CancellationToken cancellationToken);
 
-    Task<Result<string>> DeleteAsync(int id);
+    Task<string> DeleteAsync(int id, CancellationToken cancellationToken);
 }
