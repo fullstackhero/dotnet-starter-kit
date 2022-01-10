@@ -1,7 +1,7 @@
 ﻿using Ardalis.Specification.EntityFrameworkCore;
 using DN.WebApi.Application.Common.Persistence;
 using DN.WebApi.Domain.Common.Contracts;
-using DN.WebApi.Infrastructure.Persistence.Contexts;
+using DN.WebApi.Infrastructure.Persistence.Context;
 
 namespace DN.WebApi.Infrastructure.Persistence.Repository;
 

@@ -1,13 +1,11 @@
 using System.Data.SqlClient;
 using System.Security.Claims;
 using DN.WebApi.Domain.Multitenancy;
+using DN.WebApi.Infrastructure.Auth.Permissions;
 using DN.WebApi.Infrastructure.Common;
 using DN.WebApi.Infrastructure.Common.Extensions;
 using DN.WebApi.Infrastructure.Identity;
-using DN.WebApi.Infrastructure.Identity.Models;
-using DN.WebApi.Infrastructure.Identity.Permissions;
-using DN.WebApi.Infrastructure.Identity.Services;
-using DN.WebApi.Infrastructure.Persistence.Contexts;
+using DN.WebApi.Infrastructure.Persistence.Context;
 using DN.WebApi.Infrastructure.Seeding;
 using DN.WebApi.Shared.Authorization;
 using DN.WebApi.Shared.Multitenancy;

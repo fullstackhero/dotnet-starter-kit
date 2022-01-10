@@ -2,7 +2,7 @@ using DN.WebApi.Application.Common.Caching;
 using DN.WebApi.Application.Common.Exceptions;
 using DN.WebApi.Application.Multitenancy;
 using DN.WebApi.Infrastructure.Persistence;
-using DN.WebApi.Infrastructure.Persistence.Contexts;
+using DN.WebApi.Infrastructure.Persistence.Context;
 using DN.WebApi.Shared.Multitenancy;
 using Mapster;
 using Microsoft.Extensions.Localization;

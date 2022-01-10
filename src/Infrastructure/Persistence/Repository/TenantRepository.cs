@@ -1,6 +1,6 @@
 ﻿using DN.WebApi.Application.Common.Persistence;
 using DN.WebApi.Domain.Multitenancy;
-using DN.WebApi.Infrastructure.Persistence.Contexts;
+using DN.WebApi.Infrastructure.Persistence.Context;
 
 namespace DN.WebApi.Infrastructure.Persistence.Repository;
 

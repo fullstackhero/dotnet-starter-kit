@@ -1,5 +1,5 @@
 using System.Linq.Expressions;
-using DN.WebApi.Infrastructure.Identity.Models;
+using DN.WebApi.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;

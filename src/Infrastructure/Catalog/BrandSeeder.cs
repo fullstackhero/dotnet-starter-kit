@@ -2,7 +2,7 @@ using System.Reflection;
 using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Domain.Catalog.Brands;
 using DN.WebApi.Domain.Multitenancy;
-using DN.WebApi.Infrastructure.Persistence.Contexts;
+using DN.WebApi.Infrastructure.Persistence.Context;
 using DN.WebApi.Infrastructure.Seeding;
 using Microsoft.Extensions.Logging;
 

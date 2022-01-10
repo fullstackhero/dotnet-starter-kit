@@ -1,6 +1,6 @@
 using DN.WebApi.Application.Common.Persistence;
 using DN.WebApi.Infrastructure.Common;
-using DN.WebApi.Infrastructure.Persistence.Contexts;
+using DN.WebApi.Infrastructure.Persistence.Context;
 using DN.WebApi.Infrastructure.Persistence.Repository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

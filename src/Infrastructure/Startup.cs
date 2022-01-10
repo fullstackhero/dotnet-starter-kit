@@ -1,9 +1,9 @@
+using DN.WebApi.Infrastructure.Auth;
 using DN.WebApi.Infrastructure.BackgroundJobs;
 using DN.WebApi.Infrastructure.Caching;
 using DN.WebApi.Infrastructure.Common;
 using DN.WebApi.Infrastructure.Cors;
 using DN.WebApi.Infrastructure.FileStorage;
-using DN.WebApi.Infrastructure.Identity;
 using DN.WebApi.Infrastructure.Localization;
 using DN.WebApi.Infrastructure.Mailing;
 using DN.WebApi.Infrastructure.Mapping;
@@ -29,19 +29,17 @@ public static class Startup
         MapsterSettings.Configure();
         return services
             .AddApiVersioning()
+            .AddAuth(config)
+            .AddBackgroundJobs(config)
             .AddCaching(config)
             .AddCorsPolicy(config)
-            .AddCurrentUser()
             .AddExceptionMiddleware()
-            .AddBackgroundJobs(config)
             .AddHealthCheck()
-            .AddIdentity(config)
             .AddLocalization(config)
             .AddMailing(config)
             .AddMultitenancy()
             .AddNotifications(config)
             .AddOpenApiDocumentation(config)
-            .AddPermissions()
             .AddPersistence(config)
             .AddRequestLogging(config)
             .AddRouting(options => options.LowercaseUrls = true)
