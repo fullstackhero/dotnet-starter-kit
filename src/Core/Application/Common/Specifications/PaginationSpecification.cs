@@ -3,7 +3,7 @@
 namespace DN.WebApi.Application.Common.Specifications;
 
 public class PaginationSpecification<T> : Specification<T>
-where T : BaseEntity
+where T : IEntity
 {
     public int PageIndex { get; set; } = 0;
     public int PageSize { get; set; } = int.MaxValue;

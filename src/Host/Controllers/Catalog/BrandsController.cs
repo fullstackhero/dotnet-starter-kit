@@ -1,7 +1,7 @@
 ﻿using DN.WebApi.Application.Catalog.Brands;
 using DN.WebApi.Application.Wrapper;
-using DN.WebApi.Shared.Authorization;
 using DN.WebApi.Infrastructure.Identity.Permissions;
+using DN.WebApi.Shared.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NSwag.Annotations;
 
