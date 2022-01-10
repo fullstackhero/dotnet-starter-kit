@@ -62,7 +62,4 @@
     <ItemGroup>
         <None Update="Catalog\*.json" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\GlobalTypeDefs.cs"/>
-  </ItemGroup>
 </Project>
