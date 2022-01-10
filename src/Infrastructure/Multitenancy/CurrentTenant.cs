@@ -1,4 +1,5 @@
 using DN.WebApi.Application.Common.Caching;
+using DN.WebApi.Application.Common.Exceptions;
 using DN.WebApi.Application.Multitenancy;
 using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Infrastructure.Persistence.Contexts;
@@ -75,19 +76,19 @@ public class CurrentTenant : ICurrentTenant, ICurrentTenantInitializer
 
         if (tenantDto is null)
         {
-            throw new InvalidTenantException(_localizer["tenant.invalid"]);
+            throw new UnauthorizedException(_localizer["tenant.invalid"]);
         }
 
         if (tenantDto.Key != MultitenancyConstants.Root.Key)
         {
             if (!tenantDto.IsActive)
             {
-                throw new InvalidTenantException(_localizer["tenant.inactive"]);
+                throw new UnauthorizedException(_localizer["tenant.inactive"]);
             }
 
             if (DateTime.UtcNow > tenantDto.ValidUpto)
             {
-                throw new InvalidTenantException(_localizer["tenant.expired"]);
+                throw new UnauthorizedException(_localizer["tenant.expired"]);
             }
         }
 

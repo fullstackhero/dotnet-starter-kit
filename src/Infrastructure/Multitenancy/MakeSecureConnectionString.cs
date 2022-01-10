@@ -3,18 +3,30 @@ using Npgsql;
 using Oracle.ManagedDataAccess.Client;
 using System.Data.SqlClient;
 using DN.WebApi.Infrastructure.Common;
+using DN.WebApi.Application.Multitenancy;
+using DN.WebApi.Infrastructure.Persistence;
+using Microsoft.Extensions.Options;
 
 namespace DN.WebApi.Infrastructure.Multitenancy;
 
 public class MakeSecureConnectionString : IMakeSecureConnectionString
 {
     private const string HiddenValueDefault = "*******";
+    private readonly DatabaseSettings _dbSettings;
+
+    public MakeSecureConnectionString(IOptions<DatabaseSettings> dbSettings) =>
+        _dbSettings = dbSettings.Value;
 
     public string? MakeSecure(string? connectionString, string? dbProvider)
     {
         if (connectionString == null)
         {
             return connectionString;
+        }
+
+        if (string.IsNullOrWhiteSpace(dbProvider))
+        {
+            dbProvider = _dbSettings.DBProvider;
         }
 
         return dbProvider?.ToLower() switch

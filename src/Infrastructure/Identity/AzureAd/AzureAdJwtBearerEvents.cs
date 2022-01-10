@@ -1,9 +1,11 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Security.Claims;
+using DN.WebApi.Application.Common.Persistence;
 using DN.WebApi.Application.Identity;
 using DN.WebApi.Application.Identity.Users;
 using DN.WebApi.Application.Multitenancy;
+using DN.WebApi.Domain.Multitenancy;
 using DN.WebApi.Infrastructure.Multitenancy;
 using DN.WebApi.Shared.Authorization;
 using DN.WebApi.Shared.Multitenancy;
@@ -98,13 +100,12 @@ internal class AzureAdJwtBearerEvents : JwtBearerEvents
             return (issuer, objectId, MultitenancyConstants.Root.Key);
         }
 
+        // creating a scope otherwise the current scope gets polluted with an ApplicationDbContext without a tenant set
         using var tenantScope = serviceProvider.CreateScope();
 
-        // creating a scope otherwise the current scope gets polluted with an ApplicationDbContext without a tenant set
-        var tenantManager = tenantScope.ServiceProvider.GetRequiredService<ITenantManager>();
-
-        var tenantResult = await tenantManager.GetByIssuerAsync(issuer);
-        if (!tenantResult.Succeeded || tenantResult.Data is null || tenantResult.Data.Key is null)
+        var tenantRepository = tenantScope.ServiceProvider.GetRequiredService<ITenantReadRepository>();
+        if (await tenantRepository.GetBySpecAsync(new TenantByIssuerSpec(issuer))
+            is not Tenant tenant || tenant.Key is null)
         {
             _logger.TokenValidationFailed(objectId, issuer);
 
@@ -112,7 +113,7 @@ internal class AzureAdJwtBearerEvents : JwtBearerEvents
             throw new IdentityException("Authentication Failed.", statusCode: HttpStatusCode.Unauthorized);
         }
 
-        return (issuer, objectId, tenantResult.Data.Key);
+        return (issuer, objectId, tenant.Key);
     }
 }
 

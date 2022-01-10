@@ -41,7 +41,7 @@ public static class DatabaseInitializer
         _logger.Information("To Sponsor this project, visit https://opencollective.com/fullstackhero");
     }
 
-    private static void InitializeTenantDatabase(IServiceProvider serviceProvider, string dbProvider, string rootConnectionString, Tenant tenant)
+    internal static void InitializeTenantDatabase(IServiceProvider serviceProvider, string dbProvider, string rootConnectionString, Tenant tenant)
     {
         if (tenant.Key is null)
         {
@@ -58,6 +58,7 @@ public static class DatabaseInitializer
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
         var seeders = scope.ServiceProvider.GetServices<IDatabaseSeeder>().ToList();
+
         TenantBootstrapper.Initialize(dbContext, dbProvider, rootConnectionString, tenant, userManager, roleManager, seeders);
     }
 

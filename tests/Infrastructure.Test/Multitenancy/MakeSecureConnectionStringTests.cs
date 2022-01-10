@@ -1,4 +1,5 @@
-﻿using Infrastructure.Test.Multitenancy.Fixtures;
+﻿using DN.WebApi.Application.Multitenancy;
+using Infrastructure.Test.Multitenancy.Fixtures;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Microsoft.DependencyInjection.Abstracts;
