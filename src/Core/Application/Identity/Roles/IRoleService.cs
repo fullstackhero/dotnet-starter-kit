@@ -1,25 +1,24 @@
-using DN.WebApi.Application.Common;
-using DN.WebApi.Application.Wrapper;
+using DN.WebApi.Application.Common.Interfaces;
 
 namespace DN.WebApi.Application.Identity.Roles;
 
 public interface IRoleService : ITransientService
 {
-    Task<Result<List<RoleDto>>> GetListAsync();
+    Task<List<RoleDto>> GetListAsync();
 
-    Task<Result<List<PermissionDto>>> GetPermissionsAsync(string id);
+    Task<List<PermissionDto>> GetPermissionsAsync(string id, CancellationToken cancellationToken);
 
     Task<int> GetCountAsync();
 
-    Task<Result<RoleDto>> GetByIdAsync(string id);
+    Task<RoleDto> GetByIdAsync(string id);
 
     Task<bool> ExistsAsync(string roleName, string? excludeId);
 
-    Task<Result<string>> RegisterRoleAsync(RoleRequest request);
+    Task<string> RegisterRoleAsync(RoleRequest request);
 
-    Task<Result<string>> DeleteAsync(string id);
+    Task<string> DeleteAsync(string id);
 
-    Task<Result<List<RoleDto>>> GetUserRolesAsync(string userId);
+    Task<List<RoleDto>> GetUserRolesAsync(string userId);
 
-    Task<Result<string>> UpdatePermissionsAsync(string id, List<UpdatePermissionsRequest> request);
+    Task<string> UpdatePermissionsAsync(string id, List<UpdatePermissionsRequest> request, CancellationToken cancellationToken);
 }

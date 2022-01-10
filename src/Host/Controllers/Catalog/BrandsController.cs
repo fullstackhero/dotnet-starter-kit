@@ -1,9 +1,9 @@
 ﻿using DN.WebApi.Application.Catalog.Brands;
-using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Shared.Authorization;
 using DN.WebApi.Infrastructure.Identity.Permissions;
 using Microsoft.AspNetCore.Mvc;
 using NSwag.Annotations;
+using DN.WebApi.Application.Common.Models;
 
 namespace DN.WebApi.Host.Controllers.Catalog;
 
@@ -12,7 +12,7 @@ public class BrandsController : VersionedApiController
     [HttpPost("search")]
     [MustHavePermission(FSHPermissions.Brands.Search)]
     [OpenApiOperation("Search Brands using available Filters.", "")]
-    public Task<PaginatedResult<BrandDto>> SearchAsync(SearchBrandsRequest request)
+    public Task<PaginationResponse<BrandDto>> SearchAsync(SearchBrandsRequest request)
     {
         return Mediator.Send(request);
     }

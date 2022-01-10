@@ -1,4 +1,4 @@
-﻿using DN.WebApi.Application.Common.Notifications;
+﻿using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Infrastructure.Multitenancy;
 using DN.WebApi.Shared.Notifications;
 using Microsoft.AspNetCore.SignalR;

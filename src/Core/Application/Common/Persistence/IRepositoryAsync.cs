@@ -1,7 +1,8 @@
 using System.Data;
 using System.Linq.Expressions;
+using DN.WebApi.Application.Common.Interfaces;
+using DN.WebApi.Application.Common.Models;
 using DN.WebApi.Application.Common.Specifications;
-using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Common.Contracts;
 
 namespace DN.WebApi.Application.Common.Persistance;
@@ -63,15 +64,15 @@ public interface IRepositoryAsync : ITransientService
     where T : BaseEntity;
 
     /// <summary>
-    /// Get a <see cref="PaginatedResult{TDto}"/> based on the criteria specified in <see cref="PaginationSpecification{T}"/>.
+    /// Get a <see cref="PaginationResponse{TDto}"/> based on the criteria specified in <see cref="PaginationSpecification{T}"/>.
     /// </summary>
     /// <typeparam name="T">The type of the entity.</typeparam>
     /// <typeparam name="TDto">The type to which <typeparamref name="T"/> will be mapped.</typeparam>
     /// <param name="specification">The <see cref="PaginationSpecification{T}"/> <see cref="object"/> which contains all the criteria
     /// on which data will be returned.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
-    /// <returns>Returns <see cref="Task"/> of <see cref="PaginatedResult{TDto}"/>.</returns>
-    Task<PaginatedResult<TDto>> GetListAsync<T, TDto>(PaginationSpecification<T> specification, CancellationToken cancellationToken = default)
+    /// <returns>Returns <see cref="Task"/> of <see cref="PaginationResponse{TDto}"/>.</returns>
+    Task<PaginationResponse<TDto>> GetListAsync<T, TDto>(PaginationSpecification<T> specification, CancellationToken cancellationToken = default)
     where T : BaseEntity
     where TDto : IDto;
 

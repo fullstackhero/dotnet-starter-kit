@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace DN.WebApi.Application.Common.BackgroundJobs;
+namespace DN.WebApi.Application.Common.Interfaces;
 
 public interface IJobService : ITransientService
 {

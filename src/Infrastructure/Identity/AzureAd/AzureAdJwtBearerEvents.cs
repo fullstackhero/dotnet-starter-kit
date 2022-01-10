@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Security.Claims;
+using DN.WebApi.Application.Common.Exceptions;
 using DN.WebApi.Application.Common.Persistence;
 using DN.WebApi.Application.Identity;
 using DN.WebApi.Application.Identity.Users;
@@ -91,7 +92,7 @@ internal class AzureAdJwtBearerEvents : JwtBearerEvents
         if (principal is null || issuer is null || objectId is null)
         {
             _logger.TokenValidationFailed(objectId, issuer);
-            throw new IdentityException("Authentication Failed.", statusCode: HttpStatusCode.Unauthorized);
+            throw new UnauthorizedException("Authentication Failed.");
         }
 
         // shortcut when the issuer is the rootIssuer defined in appsettings
@@ -110,7 +111,7 @@ internal class AzureAdJwtBearerEvents : JwtBearerEvents
             _logger.TokenValidationFailed(objectId, issuer);
 
             // the caller was not from a trusted issuer - throw to block the authentication flow
-            throw new IdentityException("Authentication Failed.", statusCode: HttpStatusCode.Unauthorized);
+            throw new UnauthorizedException("Authentication Failed.");
         }
 
         return (issuer, objectId, tenant.Key);

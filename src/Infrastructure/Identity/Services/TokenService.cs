@@ -1,12 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
-using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using DN.WebApi.Application.Common.Exceptions;
-using DN.WebApi.Application.Identity;
 using DN.WebApi.Application.Identity.Tokens;
-using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Infrastructure.Identity.Models;
 using DN.WebApi.Infrastructure.Mailing;
 using DN.WebApi.Infrastructure.Multitenancy;
@@ -46,90 +43,84 @@ public class TokenService : ITokenService
         _tenantContext = tenantContext;
     }
 
-    public async Task<IResult<TokenResponse>> GetTokenAsync(TokenRequest request, string ipAddress)
+    public async Task<TokenResponse> GetTokenAsync(TokenRequest request, string ipAddress, CancellationToken cancellationToken)
     {
         var user = await _userManager.FindByEmailAsync(request.Email.Trim().Normalize());
-        if (user == null)
+        if (user is null)
         {
-            throw new IdentityException(_localizer["identity.usernotfound"], statusCode: HttpStatusCode.Unauthorized);
+            throw new UnauthorizedException(_localizer["auth.failed"]);
         }
 
-        string? tenant = user.Tenant;
-        if (tenant != MultitenancyConstants.Root.Key)
+        if (!user.IsActive)
         {
-            var tenantInfo = await _tenantContext.Tenants.Where(a => a.Key == tenant).FirstOrDefaultAsync();
-            if (tenantInfo is null)
+            throw new UnauthorizedException(_localizer["identity.usernotactive"]);
+        }
+
+        if (_mailSettings.EnableVerification && !user.EmailConfirmed)
+        {
+            throw new UnauthorizedException(_localizer["identity.emailnotconfirmed"]);
+        }
+
+        string? tenantKey = user.Tenant;
+        if (tenantKey != MultitenancyConstants.Root.Key)
+        {
+            var tenant = await _tenantContext.Tenants.Where(a => a.Key == tenantKey).FirstOrDefaultAsync(cancellationToken);
+            if (tenant is null)
             {
                 throw new UnauthorizedException(_localizer["tenant.invalid"]);
             }
 
-            if (!tenantInfo.IsActive)
+            if (!tenant.IsActive)
             {
                 throw new UnauthorizedException(_localizer["tenant.inactive"]);
             }
 
-            if (DateTime.UtcNow > tenantInfo.ValidUpto)
+            if (DateTime.UtcNow > tenant.ValidUpto)
             {
                 throw new UnauthorizedException(_localizer["tenant.expired"]);
             }
         }
 
-        if (!user.IsActive)
+        if (!await _userManager.CheckPasswordAsync(user, request.Password))
         {
-            throw new IdentityException(_localizer["identity.usernotactive"], statusCode: HttpStatusCode.Unauthorized);
+            throw new UnauthorizedException(_localizer["identity.invalidcredentials"]);
         }
 
-        if (_mailSettings.EnableVerification && !user.EmailConfirmed)
-        {
-            throw new IdentityException(_localizer["identity.emailnotconfirmed"], statusCode: HttpStatusCode.Unauthorized);
-        }
-
-        bool passwordValid = await _userManager.CheckPasswordAsync(user, request.Password);
-        if (!passwordValid)
-        {
-            throw new IdentityException(_localizer["identity.invalidcredentials"], statusCode: HttpStatusCode.Unauthorized);
-        }
-
-        user.RefreshToken = GenerateRefreshToken();
-        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationInDays);
-        await _userManager.UpdateAsync(user);
-        string token = GenerateJwt(user, ipAddress);
-        var response = new TokenResponse(token, user.RefreshToken, user.RefreshTokenExpiryTime);
-        return await Result<TokenResponse>.SuccessAsync(response);
+        return await GenerateTokensAndUpdateUser(user, ipAddress);
     }
 
-    public async Task<IResult<TokenResponse>> RefreshTokenAsync(RefreshTokenRequest request, string ipAddress)
+    public async Task<TokenResponse> RefreshTokenAsync(RefreshTokenRequest request, string ipAddress)
     {
-        if (request is null)
-        {
-            throw new IdentityException(_localizer["identity.invalidtoken"], statusCode: HttpStatusCode.Unauthorized);
-        }
-
         var userPrincipal = GetPrincipalFromExpiredToken(request.Token);
-        string userEmail = userPrincipal.FindFirstValue(ClaimTypes.Email);
+        string? userEmail = userPrincipal.GetEmail();
         var user = await _userManager.FindByEmailAsync(userEmail);
-        if (user == null)
+        if (user is null)
         {
-            throw new IdentityException(_localizer["identity.usernotfound"], statusCode: HttpStatusCode.NotFound);
+            throw new UnauthorizedException(_localizer["auth.failed"]);
         }
 
         if (user.RefreshToken != request.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
         {
-            throw new IdentityException(_localizer["identity.invalidrefreshtoken"], statusCode: HttpStatusCode.Unauthorized);
+            throw new UnauthorizedException(_localizer["identity.invalidrefreshtoken"]);
         }
 
-        string token = GenerateEncryptedToken(GetSigningCredentials(), GetClaims(user, ipAddress));
-        user.RefreshToken = GenerateRefreshToken();
-        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationInDays);
-        await _userManager.UpdateAsync(user);
-        var response = new TokenResponse(token, user.RefreshToken, user.RefreshTokenExpiryTime);
-        return await Result<TokenResponse>.SuccessAsync(response);
+        return await GenerateTokensAndUpdateUser(user, ipAddress);
     }
 
-    private string GenerateJwt(ApplicationUser user, string ipAddress)
+    private async Task<TokenResponse> GenerateTokensAndUpdateUser(ApplicationUser user, string ipAddress)
     {
-        return GenerateEncryptedToken(GetSigningCredentials(), GetClaims(user, ipAddress));
+        string token = GenerateJwt(user, ipAddress);
+
+        user.RefreshToken = GenerateRefreshToken();
+        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationInDays);
+
+        await _userManager.UpdateAsync(user);
+
+        return new TokenResponse(token, user.RefreshToken, user.RefreshTokenExpiryTime);
     }
+
+    private string GenerateJwt(ApplicationUser user, string ipAddress) =>
+        GenerateEncryptedToken(GetSigningCredentials(), GetClaims(user, ipAddress));
 
     private IEnumerable<Claim> GetClaims(ApplicationUser user, string ipAddress) =>
         new List<Claim>
@@ -187,7 +178,7 @@ public class TokenService : ITokenService
                 SecurityAlgorithms.HmacSha256,
                 StringComparison.InvariantCultureIgnoreCase))
         {
-            throw new IdentityException(_localizer["identity.invalidtoken"], statusCode: HttpStatusCode.Unauthorized);
+            throw new UnauthorizedException(_localizer["identity.invalidtoken"]);
         }
 
         return principal;

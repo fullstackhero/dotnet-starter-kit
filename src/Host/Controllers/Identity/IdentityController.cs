@@ -1,6 +1,5 @@
 using DN.WebApi.Application.Identity.Users;
 using DN.WebApi.Application.Identity.Users.Password;
-using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Infrastructure.Identity.Permissions;
 using DN.WebApi.Infrastructure.OpenApi;
 using DN.WebApi.Shared.Authorization;
@@ -15,6 +14,8 @@ public sealed class IdentityController : VersionNeutralApiController
     private readonly ICurrentUser _currentUser;
     private readonly IUserService _userService;
 
+    private string OriginFromRequest => $"{Request.Scheme}://{Request.Host.Value}{Request.PathBase.Value}";
+
     public IdentityController(IIdentityService identityService, ICurrentUser currentUser, IUserService userService)
     {
         _identityService = identityService;
@@ -24,67 +25,59 @@ public sealed class IdentityController : VersionNeutralApiController
 
     [HttpPost("register")]
     [MustHavePermission(FSHPermissions.Identity.Register)]
-    public async Task<ActionResult<Result<string>>> RegisterAsync(RegisterUserRequest request)
+    public Task<string> RegisterAsync(RegisterUserRequest request)
     {
-        string origin = GenerateOrigin();
-        return Ok(await _identityService.RegisterAsync(request, origin));
+        return _identityService.RegisterAsync(request, OriginFromRequest);
     }
 
     [HttpGet("confirm-email")]
     [AllowAnonymous]
     [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Search))]
-    public async Task<ActionResult<Result<string>>> ConfirmEmailAsync([FromQuery] string userId, [FromQuery] string code, [FromQuery] string tenant)
+    public Task<string> ConfirmEmailAsync([FromQuery] string userId, [FromQuery] string code, [FromQuery] string tenant, CancellationToken cancellationToken)
     {
-        return Ok(await _identityService.ConfirmEmailAsync(userId, code, tenant));
+        return _identityService.ConfirmEmailAsync(userId, code, tenant, cancellationToken);
     }
 
     [HttpGet("confirm-phone-number")]
     [AllowAnonymous]
     [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Search))]
-    public async Task<ActionResult<Result<string>>> ConfirmPhoneNumberAsync([FromQuery] string userId, [FromQuery] string code)
+    public Task<string> ConfirmPhoneNumberAsync([FromQuery] string userId, [FromQuery] string code)
     {
-        return Ok(await _identityService.ConfirmPhoneNumberAsync(userId, code));
+        return _identityService.ConfirmPhoneNumberAsync(userId, code);
     }
 
     [HttpPost("forgot-password")]
     [AllowAnonymous]
     [TenantKeyHeader]
     [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Post))]
-    public async Task<ActionResult<Result>> ForgotPasswordAsync(ForgotPasswordRequest request)
+    public Task<string> ForgotPasswordAsync(ForgotPasswordRequest request)
     {
-        string origin = GenerateOrigin();
-        return Ok(await _identityService.ForgotPasswordAsync(request, origin));
+        return _identityService.ForgotPasswordAsync(request, OriginFromRequest);
     }
 
     [HttpPost("reset-password")]
     [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Post))]
-    public async Task<ActionResult<Result>> ResetPasswordAsync(ResetPasswordRequest request)
+    public Task<string> ResetPasswordAsync(ResetPasswordRequest request)
     {
-        return Ok(await _identityService.ResetPasswordAsync(request));
+        return _identityService.ResetPasswordAsync(request);
     }
 
     [HttpPut("profile")]
-    public async Task<ActionResult<Result>> UpdateProfileAsync(UpdateProfileRequest request)
+    public Task UpdateProfileAsync(UpdateProfileRequest request)
     {
-        return Ok(await _identityService.UpdateProfileAsync(request, _currentUser.GetUserId().ToString()));
+        return _identityService.UpdateProfileAsync(request, _currentUser.GetUserId().ToString());
     }
 
     [HttpGet("profile")]
-    public async Task<ActionResult<Result<UserDetailsDto>>> GetProfileDetailsAsync()
+    public async Task<UserDetailsDto> GetProfileDetailsAsync(CancellationToken cancellationToken)
     {
-        return Ok(await _userService.GetAsync(_currentUser.GetUserId().ToString()));
+        return await _userService.GetAsync(_currentUser.GetUserId().ToString(), cancellationToken);
     }
 
     [HttpPut("change-password")]
     [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Put))]
-    public async Task<ActionResult<Result>> ChangePasswordAsync(ChangePasswordRequest model)
+    public Task ChangePasswordAsync(ChangePasswordRequest model)
     {
-        var response = await _identityService.ChangePasswordAsync(model, _currentUser.GetUserId().ToString());
-        return Ok(response);
-    }
-
-    private string GenerateOrigin()
-    {
-        return $"{Request.Scheme}://{Request.Host.Value}{Request.PathBase.Value}";
+        return _identityService.ChangePasswordAsync(model, _currentUser.GetUserId().ToString());
     }
 }

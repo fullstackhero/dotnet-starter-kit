@@ -2,12 +2,12 @@ using System.Data;
 using System.Linq.Dynamic.Core;
 using System.Linq.Expressions;
 using Dapper;
-using DN.WebApi.Application.Common;
 using DN.WebApi.Application.Common.Caching;
 using DN.WebApi.Application.Common.Exceptions;
+using DN.WebApi.Application.Common.Interfaces;
+using DN.WebApi.Application.Common.Models;
 using DN.WebApi.Application.Common.Persistance;
 using DN.WebApi.Application.Common.Specifications;
-using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Common.Contracts;
 using DN.WebApi.Domain.Multitenancy;
 using DN.WebApi.Infrastructure.Mapping;
@@ -75,7 +75,7 @@ public class RepositoryAsync : IRepositoryAsync
                 .Select(selectExpression)
                 .ToListAsync(cancellationToken);
 
-    public Task<PaginatedResult<TDto>> GetListAsync<T, TDto>(
+    public Task<PaginationResponse<TDto>> GetListAsync<T, TDto>(
         PaginationSpecification<T> specification,
         CancellationToken cancellationToken = default)
     where T : BaseEntity
@@ -287,7 +287,7 @@ public class RepositoryAsync : IRepositoryAsync
     {
         if (_dbContext.Entry(entity).State == EntityState.Unchanged)
         {
-            throw new NotAcceptableException();
+            throw new ConflictException(_localizer["There are no new changes to update for this Entity."]);
         }
 
         var existing = _dbContext.Set<T>().Find(entity.Id);
@@ -305,7 +305,7 @@ public class RepositoryAsync : IRepositoryAsync
         {
             if (_dbContext.Entry(entity).State == EntityState.Unchanged)
             {
-                throw new NotAcceptableException();
+                throw new ConflictException(_localizer["There are no new changes to update for this Entity."]);
             }
 
             var existing = _dbContext.Set<T>().Find(entity.Id);

@@ -1,4 +1,5 @@
 using System.Net;
+using DN.WebApi.Application.Common.Exceptions;
 using DN.WebApi.Application.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Localization;
@@ -27,7 +28,7 @@ public class CurrentTenantMiddleware : IMiddleware
             }
             else
             {
-                throw new IdentityException(_localizer["auth.failed"], statusCode: HttpStatusCode.Unauthorized);
+                throw new UnauthorizedException(_localizer["auth.failed"]);
             }
         }
 

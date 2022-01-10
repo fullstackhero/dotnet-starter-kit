@@ -33,7 +33,7 @@ public class GetStatsRequestHandler : IRequestHandler<GetStatsRequest, StatsDto>
         {
             ProductCount = await _repository.GetCountAsync<Product>(),
             BrandCount = await _repository.GetCountAsync<Brand>(),
-            UserCount = await _userService.GetCountAsync(),
+            UserCount = await _userService.GetCountAsync(cancellationToken),
             RoleCount = await _roleService.GetCountAsync()
         };
 

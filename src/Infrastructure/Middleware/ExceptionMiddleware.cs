@@ -1,8 +1,7 @@
 using System.Net;
-using DN.WebApi.Application.Common;
 using DN.WebApi.Application.Common.Exceptions;
+using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Identity.Users;
-using DN.WebApi.Application.Wrapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Localization;
 using Serilog;
@@ -13,17 +12,17 @@ namespace DN.WebApi.Infrastructure.Middleware;
 internal class ExceptionMiddleware : IMiddleware
 {
     private readonly ICurrentUser _currentUser;
-    private readonly ISerializerService _jsonSerializer;
     private readonly IStringLocalizer<ExceptionMiddleware> _localizer;
+    private readonly ISerializerService _jsonSerializer;
 
     public ExceptionMiddleware(
-        ISerializerService jsonSerializer,
         ICurrentUser currentUser,
-        IStringLocalizer<ExceptionMiddleware> localizer)
+        IStringLocalizer<ExceptionMiddleware> localizer,
+        ISerializerService jsonSerializer)
     {
-        _jsonSerializer = jsonSerializer;
         _currentUser = currentUser;
         _localizer = localizer;
+        _jsonSerializer = jsonSerializer;
     }
 
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)

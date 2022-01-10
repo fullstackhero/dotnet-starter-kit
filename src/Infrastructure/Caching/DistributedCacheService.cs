@@ -1,6 +1,6 @@
 using System.Text;
-using DN.WebApi.Application.Common;
 using DN.WebApi.Application.Common.Caching;
+using DN.WebApi.Application.Common.Interfaces;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 

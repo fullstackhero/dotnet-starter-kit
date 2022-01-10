@@ -1,4 +1,4 @@
-﻿using DN.WebApi.Application.Common.Filters;
+﻿using DN.WebApi.Application.Common.Models;
 using DN.WebApi.Domain.Common.Contracts;
 
 namespace DN.WebApi.Application.Common.Specifications;

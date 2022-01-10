@@ -27,7 +27,7 @@ public class UpgradeSubscriptionRequestHandler : IRequestHandler<UpgradeSubscrip
 
     public async Task<string> Handle(UpgradeSubscriptionRequest request, CancellationToken cancellationToken)
     {
-        var tenant = await _repository.GetBySpecAsync(new TenantByKeySpec(request.TenantKey));
+        var tenant = await _repository.GetBySpecAsync(new TenantByKeySpec(request.TenantKey), cancellationToken);
         if (tenant is null)
         {
             throw new NotFoundException("Tenant Not Found.");

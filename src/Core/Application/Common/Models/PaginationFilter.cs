@@ -1,4 +1,4 @@
-namespace DN.WebApi.Application.Common.Filters;
+namespace DN.WebApi.Application.Common.Models;
 
 public abstract class PaginationFilter : BaseFilter
 {

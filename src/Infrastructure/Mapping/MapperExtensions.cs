@@ -1,4 +1,4 @@
-using DN.WebApi.Application.Wrapper;
+using DN.WebApi.Application.Common.Models;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,13 +6,13 @@ namespace DN.WebApi.Infrastructure.Mapping;
 
 public static class MapperExtensions
 {
-    public static Task<PaginatedResult<TDto>> ToMappedPaginatedResultAsync<T, TDto>(
+    public static Task<PaginationResponse<TDto>> ToMappedPaginatedResultAsync<T, TDto>(
         this IQueryable<T> query, int pageNumber, int pageSize, in CancellationToken cancellationToken = default)
     where T : class =>
         new MappedPaginatedResultConverter<T, TDto>(pageNumber, pageSize)
             .ConvertBackAsync(query, cancellationToken);
 
-    private class MappedPaginatedResultConverter<T, TDto> : IMapsterConverterAsync<PaginatedResult<TDto>, IQueryable<T>>
+    private class MappedPaginatedResultConverter<T, TDto> : IMapsterConverterAsync<PaginationResponse<TDto>, IQueryable<T>>
     where T : class
     {
         private int _pageNumber;
@@ -21,10 +21,10 @@ public static class MapperExtensions
         public MappedPaginatedResultConverter(int pageNumber, int pageSize) =>
             (_pageNumber, _pageSize) = (pageNumber, pageSize);
 
-        public Task<IQueryable<T>> ConvertAsync(PaginatedResult<TDto> item, CancellationToken cancellationToken = default) =>
+        public Task<IQueryable<T>> ConvertAsync(PaginationResponse<TDto> item, CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();
 
-        public async Task<PaginatedResult<TDto>> ConvertBackAsync(IQueryable<T> query, CancellationToken cancellationToken = default)
+        public async Task<PaginationResponse<TDto>> ConvertBackAsync(IQueryable<T> query, CancellationToken cancellationToken = default)
         {
             // throw exception if query is null
             ArgumentNullException.ThrowIfNull(query);
@@ -35,7 +35,7 @@ public static class MapperExtensions
             _pageNumber = _pageNumber <= 0 ? 1 : _pageNumber;
             var items = await query.Skip((_pageNumber - 1) * _pageSize).Take(_pageSize).ToListAsync(cancellationToken);
             var mappedItems = items.Adapt<List<TDto>>();
-            return PaginatedResult<TDto>.Success(mappedItems, count, _pageNumber, _pageSize);
+            return PaginationResponse<TDto>.Create(mappedItems, count, _pageNumber, _pageSize);
         }
     }
 }

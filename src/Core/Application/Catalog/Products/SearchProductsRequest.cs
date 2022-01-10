@@ -1,7 +1,6 @@
-using DN.WebApi.Application.Common.Filters;
+using DN.WebApi.Application.Common.Models;
 using DN.WebApi.Application.Common.Persistance;
 using DN.WebApi.Application.Common.Specifications;
-using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Domain.Catalog.Products;
 using DN.WebApi.Domain.Common.Contracts;
 using MediatR;
@@ -9,20 +8,20 @@ using System.Linq.Expressions;
 
 namespace DN.WebApi.Application.Catalog.Products;
 
-public class SearchProductsRequest : PaginationFilter, IRequest<PaginatedResult<ProductDto>>
+public class SearchProductsRequest : PaginationFilter, IRequest<PaginationResponse<ProductDto>>
 {
     public Guid? BrandId { get; set; }
     public decimal? MinimumRate { get; set; }
     public decimal? MaximumRate { get; set; }
 }
 
-public class SearchProductsRequestHandler : IRequestHandler<SearchProductsRequest, PaginatedResult<ProductDto>>
+public class SearchProductsRequestHandler : IRequestHandler<SearchProductsRequest, PaginationResponse<ProductDto>>
 {
     private readonly IRepositoryAsync _repository;
 
     public SearchProductsRequestHandler(IRepositoryAsync repository) => _repository = repository;
 
-    public Task<PaginatedResult<ProductDto>> Handle(SearchProductsRequest request, CancellationToken cancellationToken)
+    public Task<PaginationResponse<ProductDto>> Handle(SearchProductsRequest request, CancellationToken cancellationToken)
     {
         var filters = new Filters<Product>();
         filters.Add(request.BrandId.HasValue, x => x.BrandId.Equals(request.BrandId!.Value));

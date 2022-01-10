@@ -1,9 +1,8 @@
-using DN.WebApi.Application.Wrapper;
-using DN.WebApi.Shared.Authorization;
-using DN.WebApi.Infrastructure.Identity.Permissions;
-using Microsoft.AspNetCore.Mvc;
-using DN.WebApi.Application.Identity.Roles;
 using DN.WebApi.Application.Identity;
+using DN.WebApi.Application.Identity.Roles;
+using DN.WebApi.Infrastructure.Identity.Permissions;
+using DN.WebApi.Shared.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace DN.WebApi.Host.Controllers.Identity;
 
@@ -11,56 +10,47 @@ public class RolesController : VersionNeutralApiController
 {
     private readonly IRoleService _roleService;
 
-    public RolesController(IRoleService roleService)
-    {
-        _roleService = roleService;
-    }
+    public RolesController(IRoleService roleService) => _roleService = roleService;
 
     [HttpGet("all")]
     [MustHavePermission(FSHPermissions.Roles.ListAll)]
-    public async Task<ActionResult<Result<List<RoleDto>>>> GetListAsync()
+    public Task<List<RoleDto>> GetListAsync()
     {
-        var roles = await _roleService.GetListAsync();
-        return Ok(roles);
+        return _roleService.GetListAsync();
     }
 
     [HttpGet("{id}")]
     [MustHavePermission(FSHPermissions.Roles.View)]
-    public async Task<ActionResult<Result<RoleDto>>> GetByIdAsync(string id)
+    public Task<RoleDto> GetByIdAsync(string id)
     {
-        var roles = await _roleService.GetByIdAsync(id);
-        return Ok(roles);
+        return _roleService.GetByIdAsync(id);
     }
 
     [HttpGet("{id}/permissions")]
     [MustHavePermission(FSHPermissions.RoleClaims.View)]
-    public async Task<ActionResult<Result<List<PermissionDto>>>> GetPermissionsAsync(string id)
+    public Task<List<PermissionDto>> GetPermissionsAsync(string id, CancellationToken cancellationToken)
     {
-        var roles = await _roleService.GetPermissionsAsync(id);
-        return Ok(roles);
+        return _roleService.GetPermissionsAsync(id, cancellationToken);
     }
 
     [HttpPut("{id}/permissions")]
     [MustHavePermission(FSHPermissions.RoleClaims.Edit)]
-    public async Task<ActionResult<Result<string>>> UpdatePermissionsAsync(string id, List<UpdatePermissionsRequest> request)
+    public Task<string> UpdatePermissionsAsync(string id, List<UpdatePermissionsRequest> request, CancellationToken cancellationToken)
     {
-        var roles = await _roleService.UpdatePermissionsAsync(id, request);
-        return Ok(roles);
+        return _roleService.UpdatePermissionsAsync(id, request, cancellationToken);
     }
 
     [HttpPost]
     [MustHavePermission(FSHPermissions.Roles.Register)]
-    public async Task<ActionResult<Result<string>>> RegisterRoleAsync(RoleRequest request)
+    public Task<string> RegisterRoleAsync(RoleRequest request)
     {
-        var response = await _roleService.RegisterRoleAsync(request);
-        return Ok(response);
+        return _roleService.RegisterRoleAsync(request);
     }
 
     [HttpDelete("{id}")]
     [MustHavePermission(FSHPermissions.Roles.Remove)]
-    public async Task<ActionResult<Result<string>>> DeleteAsync(string id)
+    public Task<string> DeleteAsync(string id)
     {
-        var response = await _roleService.DeleteAsync(id);
-        return Ok(response);
+        return _roleService.DeleteAsync(id);
     }
 }

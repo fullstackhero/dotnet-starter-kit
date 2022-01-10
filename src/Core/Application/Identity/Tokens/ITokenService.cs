@@ -1,11 +1,10 @@
-using DN.WebApi.Application.Common;
-using DN.WebApi.Application.Wrapper;
+using DN.WebApi.Application.Common.Interfaces;
 
 namespace DN.WebApi.Application.Identity.Tokens;
 
 public interface ITokenService : ITransientService
 {
-    Task<IResult<TokenResponse>> GetTokenAsync(TokenRequest request, string ipAddress);
+    Task<TokenResponse> GetTokenAsync(TokenRequest request, string ipAddress, CancellationToken cancellationToken);
 
-    Task<IResult<TokenResponse>> RefreshTokenAsync(RefreshTokenRequest request, string ipAddress);
+    Task<TokenResponse> RefreshTokenAsync(RefreshTokenRequest request, string ipAddress);
 }

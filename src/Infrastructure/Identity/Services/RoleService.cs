@@ -1,9 +1,8 @@
-using System.Net;
+using DN.WebApi.Application.Common.Exceptions;
 using DN.WebApi.Application.Identity;
 using DN.WebApi.Application.Identity.RoleClaims;
 using DN.WebApi.Application.Identity.Roles;
 using DN.WebApi.Application.Identity.Users;
-using DN.WebApi.Application.Wrapper;
 using DN.WebApi.Infrastructure.Common.Extensions;
 using DN.WebApi.Infrastructure.Identity.Extensions;
 using DN.WebApi.Infrastructure.Identity.Models;
@@ -18,14 +17,20 @@ namespace DN.WebApi.Infrastructure.Identity.Services;
 
 public class RoleService : IRoleService
 {
-    private readonly ICurrentUser _currentUser;
     private readonly RoleManager<ApplicationRole> _roleManager;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ApplicationDbContext _context;
     private readonly IStringLocalizer<RoleService> _localizer;
+    private readonly ICurrentUser _currentUser;
     private readonly IRoleClaimsService _roleClaimService;
 
-    public RoleService(RoleManager<ApplicationRole> roleManager, UserManager<ApplicationUser> userManager, ApplicationDbContext context, IStringLocalizer<RoleService> localizer, ICurrentUser currentUser, IRoleClaimsService roleClaimService)
+    public RoleService(
+        RoleManager<ApplicationRole> roleManager,
+        UserManager<ApplicationUser> userManager,
+        ApplicationDbContext context,
+        IStringLocalizer<RoleService> localizer,
+        ICurrentUser currentUser,
+        IRoleClaimsService roleClaimService)
     {
         _roleManager = roleManager;
         _userManager = userManager;
@@ -35,24 +40,22 @@ public class RoleService : IRoleService
         _roleClaimService = roleClaimService;
     }
 
-    public async Task<Result<string>> DeleteAsync(string id)
+    public async Task<string> DeleteAsync(string id)
     {
-        var existingRole = await _roleManager.FindByIdAsync(id);
-        if (existingRole == null)
-        {
-            throw new IdentityException("Role Not Found", statusCode: HttpStatusCode.NotFound);
-        }
+        var role = await _roleManager.FindByIdAsync(id);
 
-        if (DefaultRoles.Contains(existingRole.Name))
+        _ = role ?? throw new NotFoundException(_localizer["Role Not Found"]);
+
+        if (DefaultRoles.Contains(role.Name))
         {
-            return await Result<string>.FailAsync(string.Format(_localizer["Not allowed to delete {0} Role."], existingRole.Name));
+            throw new ConflictException(string.Format(_localizer["Not allowed to delete {0} Role."], role.Name));
         }
 
         bool roleIsNotUsed = true;
         var allUsers = await _userManager.Users.ToListAsync();
         foreach (var user in allUsers)
         {
-            if (await _userManager.IsInRoleAsync(user, existingRole.Name))
+            if (await _userManager.IsInRoleAsync(user, role.Name))
             {
                 roleIsNotUsed = false;
             }
@@ -60,64 +63,58 @@ public class RoleService : IRoleService
 
         if (roleIsNotUsed)
         {
-            await _roleManager.DeleteAsync(existingRole);
-            return await Result<string>.SuccessAsync(existingRole.Id, string.Format(_localizer["Role {0} Deleted."], existingRole.Name));
+            await _roleManager.DeleteAsync(role);
+            return string.Format(_localizer["Role {0} Deleted."], role.Name);
         }
         else
         {
-            return await Result<string>.FailAsync(string.Format(_localizer["Not allowed to delete {0} Role as it is being used."], existingRole.Name));
+            throw new ConflictException(string.Format(_localizer["Not allowed to delete {0} Role as it is being used."], role.Name));
         }
     }
 
-    public async Task<Result<RoleDto>> GetByIdAsync(string id)
+    public async Task<RoleDto> GetByIdAsync(string id)
     {
         var role = await _roleManager.Roles.SingleOrDefaultAsync(x => x.Id == id);
-        if (role is null)
-        {
-            throw new IdentityException("Role Not Found", statusCode: HttpStatusCode.NotFound);
-        }
 
-        var rolesResponse = role.Adapt<RoleDto>();
-        rolesResponse.IsDefault = DefaultRoles.Contains(role.Name);
-        return await Result<RoleDto>.SuccessAsync(rolesResponse);
+        _ = role ?? throw new NotFoundException(_localizer["Role Not Found"]);
+
+        var roleDto = role.Adapt<RoleDto>();
+        roleDto.IsDefault = DefaultRoles.Contains(role.Name);
+
+        return roleDto;
     }
 
-    public async Task<int> GetCountAsync()
-    {
-        return await _roleManager.Roles.CountAsync();
-    }
+    public async Task<int> GetCountAsync() =>
+        await _roleManager.Roles.CountAsync();
 
-    public async Task<Result<List<RoleDto>>> GetListAsync()
+    public async Task<List<RoleDto>> GetListAsync()
     {
         var roles = await _roleManager.Roles.ToListAsync();
-        var rolesResponse = roles.Adapt<List<RoleDto>>();
-        foreach (var role in rolesResponse)
-        {
-            role.IsDefault = DefaultRoles.Contains(role.Name);
-        }
 
-        return await Result<List<RoleDto>>.SuccessAsync(rolesResponse);
+        var roleDtos = roles.Adapt<List<RoleDto>>();
+        roleDtos.ForEach(role => role.IsDefault = DefaultRoles.Contains(role.Name));
+
+        return roleDtos;
     }
 
-    public async Task<Result<List<PermissionDto>>> GetPermissionsAsync(string id)
+    public async Task<List<PermissionDto>> GetPermissionsAsync(string id, CancellationToken cancellationToken)
     {
-        var permissions = await _context.RoleClaims.Where(a => a.RoleId == id && a.ClaimType == FSHClaims.Permission).ToListAsync();
-        var permissionResponse = permissions.Adapt<List<PermissionDto>>();
-        return await Result<List<PermissionDto>>.SuccessAsync(permissionResponse);
+        var permissions = await _context.RoleClaims
+            .Where(a => a.RoleId == id && a.ClaimType == FSHClaims.Permission)
+            .ToListAsync(cancellationToken);
+
+        return permissions.Adapt<List<PermissionDto>>();
     }
 
-    public async Task<Result<List<RoleDto>>> GetUserRolesAsync(string userId)
+    public async Task<List<RoleDto>> GetUserRolesAsync(string userId)
     {
         var userRoles = await _context.UserRoles.Where(a => a.UserId == userId).Select(a => a.RoleId).ToListAsync();
         var roles = await _roleManager.Roles.Where(a => userRoles.Contains(a.Id)).ToListAsync();
 
-        var rolesResponse = roles.Adapt<List<RoleDto>>();
-        foreach (var role in rolesResponse)
-        {
-            role.IsDefault = DefaultRoles.Contains(role.Name);
-        }
+        var roleDtos = roles.Adapt<List<RoleDto>>();
+        roleDtos.ForEach(role => role.IsDefault = DefaultRoles.Contains(role.Name));
 
-        return await Result<List<RoleDto>>.SuccessAsync(rolesResponse);
+        return roleDtos;
     }
 
     public async Task<bool> ExistsAsync(string roleName, string? excludeId) =>
@@ -125,136 +122,103 @@ public class RoleService : IRoleService
             is ApplicationRole existingRole
             && existingRole.Id != excludeId;
 
-    public async Task<Result<string>> RegisterRoleAsync(RoleRequest request)
+    public async Task<string> RegisterRoleAsync(RoleRequest request)
     {
         if (string.IsNullOrEmpty(request.Id))
         {
             var newRole = new ApplicationRole(request.Name, _context.TenantKey, request.Description);
-            var response = await _roleManager.CreateAsync(newRole);
-            await _context.SaveChangesAsync();
-            if (response.Succeeded)
-            {
-                return await Result<string>.SuccessAsync(newRole.Id, string.Format(_localizer["Role {0} Created."], request.Name));
-            }
-            else
-            {
-                return await Result<string>.FailAsync(response.Errors.Select(e => _localizer[e.Description].ToString()).ToList());
-            }
+            var result = await _roleManager.CreateAsync(newRole);
+
+            return result.Succeeded
+                ? string.Format(_localizer["Role {0} Created."], request.Name)
+                : throw new InternalServerException(_localizer["Register role failed"], result.Errors.Select(e => _localizer[e.Description].ToString()).ToList());
         }
         else
         {
-            var existingRole = await _roleManager.FindByIdAsync(request.Id);
-            if (existingRole == null)
+            var role = await _roleManager.FindByIdAsync(request.Id);
+
+            _ = role ?? throw new NotFoundException(_localizer["Role Not Found"]);
+
+            if (DefaultRoles.Contains(role.Name))
             {
-                return await Result<string>.FailAsync(_localizer["Role does not exist."]);
+                throw new ConflictException(string.Format(_localizer["Not allowed to modify {0} Role."], role.Name));
             }
 
-            if (DefaultRoles.Contains(existingRole.Name))
-            {
-                return await Result<string>.SuccessAsync(string.Format(_localizer["Not allowed to modify {0} Role."], existingRole.Name));
-            }
+            role.Name = request.Name;
+            role.NormalizedName = request.Name.ToUpperInvariant();
+            role.Description = request.Description;
+            var result = await _roleManager.UpdateAsync(role);
 
-            existingRole.Name = request.Name;
-            existingRole.NormalizedName = request.Name.ToUpperInvariant();
-            existingRole.Description = request.Description;
-            var result = await _roleManager.UpdateAsync(existingRole);
-            if (result.Succeeded)
-            {
-                return await Result<string>.SuccessAsync(existingRole.Id, string.Format(_localizer["Role {0} Updated."], existingRole.Name));
-            }
-            else
-            {
-                return await Result<string>.FailAsync(result.Errors.Select(e => _localizer[e.Description].ToString()).ToList());
-            }
+            return result.Succeeded
+                ? string.Format(_localizer["Role {0} Updated."], role.Name)
+                : throw new InternalServerException(_localizer["Update role failed"], result.Errors.Select(e => _localizer[e.Description].ToString()).ToList());
         }
     }
 
-    public async Task<Result<string>> UpdatePermissionsAsync(string roleId, List<UpdatePermissionsRequest> request)
+    public async Task<string> UpdatePermissionsAsync(string roleId, List<UpdatePermissionsRequest> permissions, CancellationToken cancellationToken)
     {
-        try
+        var errors = new List<string>();
+        var role = await _roleManager.FindByIdAsync(roleId);
+        _ = role ?? throw new NotFoundException(_localizer["Role Not Found"]);
+
+        if (role.Name == FSHRoles.Admin)
         {
-            var errors = new List<string>();
-            var role = await _roleManager.FindByIdAsync(roleId);
-            if (role == null)
+            var currentUser = await _userManager.Users.SingleAsync(x => x.Id == _currentUser.GetUserId().ToString());
+            if (!await _userManager.IsInRoleAsync(currentUser, FSHRoles.Admin))
             {
-                return await Result<string>.FailAsync(_localizer["Role does not exist."]);
+                throw new ConflictException(_localizer["Not allowed to modify Permissions for this Role."]);
             }
-
-            if (role.Name == FSHRoles.Admin)
-            {
-                var currentUser = await _userManager.Users.SingleAsync(x => x.Id == _currentUser.GetUserId().ToString());
-                if (await _userManager.IsInRoleAsync(currentUser, FSHRoles.Admin))
-                {
-                    return await Result<string>.FailAsync(_localizer["Not allowed to modify Permissions for this Role."]);
-                }
-            }
-
-            var selectedPermissions = request.Where(a => a.Enabled).ToList();
-            if (role.Name == FSHRoles.Admin)
-            {
-                if (!selectedPermissions.Any(x => x.Permission == FSHPermissions.Roles.View)
-                   || !selectedPermissions.Any(x => x.Permission == FSHPermissions.RoleClaims.View)
-                   || !selectedPermissions.Any(x => x.Permission == FSHPermissions.RoleClaims.Edit))
-                {
-                    return await Result<string>.FailAsync(string.Format(
-                        _localizer["Not allowed to deselect {0} or {1} or {2} for this Role."],
-                        FSHPermissions.Roles.View,
-                        FSHPermissions.RoleClaims.View,
-                        FSHPermissions.RoleClaims.Edit));
-                }
-            }
-
-            var permissions = await _roleManager.GetClaimsAsync(role);
-            foreach (var claim in permissions.Where(p => request.Any(a => a.Permission == p.Value)))
-            {
-                await _roleManager.RemoveClaimAsync(role, claim);
-            }
-
-            foreach (var permission in selectedPermissions)
-            {
-                if (!string.IsNullOrEmpty(permission.Permission))
-                {
-                    var addResult = await _roleManager.AddPermissionClaimAsync(role, permission.Permission);
-                    if (!addResult.Succeeded)
-                    {
-                        errors.AddRange(addResult.Errors.Select(e => _localizer[e.Description].ToString()));
-                    }
-                }
-            }
-
-            var addedPermissions = await _roleClaimService.GetAllByRoleIdAsync(role.Id);
-            if (addedPermissions.Succeeded)
-            {
-                foreach (var permission in selectedPermissions)
-                {
-                    var addedPermission = addedPermissions.Data?.SingleOrDefault(x => x.Type == FSHClaims.Permission && x.Value == permission.Permission);
-                    if (addedPermission != null)
-                    {
-                        var newPermission = addedPermission.Adapt<RoleClaimRequest>();
-                        var saveResult = await _roleClaimService.SaveAsync(newPermission);
-                        if (!saveResult.Succeeded && saveResult.Messages is not null)
-                        {
-                            errors.AddRange(saveResult.Messages);
-                        }
-                    }
-                }
-            }
-            else if (addedPermissions.Messages is not null)
-            {
-                errors.AddRange(addedPermissions.Messages);
-            }
-
-            if (errors.Count > 0)
-            {
-                return await Result<string>.FailAsync(errors);
-            }
-
-            return await Result<string>.SuccessAsync(_localizer["Permissions Updated."]);
         }
-        catch (Exception ex)
+
+        var selectedPermissions = permissions.Where(p => p.Enabled).ToList();
+        if (role.Name == FSHRoles.Admin)
         {
-            return await Result<string>.FailAsync(ex.Message);
+            if (!selectedPermissions.Any(x => x.Permission == FSHPermissions.Roles.View)
+                || !selectedPermissions.Any(x => x.Permission == FSHPermissions.RoleClaims.View)
+                || !selectedPermissions.Any(x => x.Permission == FSHPermissions.RoleClaims.Edit))
+            {
+                throw new ConflictException(string.Format(
+                    _localizer["Not allowed to deselect {0} or {1} or {2} for this Role."],
+                    FSHPermissions.Roles.View,
+                    FSHPermissions.RoleClaims.View,
+                    FSHPermissions.RoleClaims.Edit));
+            }
         }
+
+        var claims = await _roleManager.GetClaimsAsync(role);
+        foreach (var claim in claims.Where(c => permissions.Any(p => p.Permission == c.Value)))
+        {
+            await _roleManager.RemoveClaimAsync(role, claim);
+        }
+
+        foreach (var permission in selectedPermissions)
+        {
+            if (!string.IsNullOrEmpty(permission.Permission))
+            {
+                var addResult = await _roleManager.AddPermissionClaimAsync(role, permission.Permission);
+                if (!addResult.Succeeded)
+                {
+                    errors.AddRange(addResult.Errors.Select(e => _localizer[e.Description].ToString()));
+                }
+            }
+        }
+
+        var allPermissions = await _roleClaimService.GetAllByRoleIdAsync(role.Id, cancellationToken);
+        foreach (var permission in selectedPermissions)
+        {
+            if (allPermissions.SingleOrDefault(x => x.Type == FSHClaims.Permission && x.Value == permission.Permission)
+                is RoleClaimDto addedPermission)
+            {
+                await _roleClaimService.SaveAsync(addedPermission.Adapt<RoleClaimRequest>(), cancellationToken);
+            }
+        }
+
+        if (errors.Count > 0)
+        {
+            throw new InternalServerException(_localizer["Update permissions failed."], errors);
+        }
+
+        return _localizer["Permissions Updated."];
     }
 
     internal static List<string> DefaultRoles =>
