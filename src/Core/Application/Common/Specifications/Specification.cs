@@ -4,7 +4,7 @@ using DN.WebApi.Domain.Common.Contracts;
 namespace DN.WebApi.Application.Common.Specifications;
 
 public class Specification<T> : BaseSpecification<T>
-where T : BaseEntity
+where T : IEntity
 {
     public string? Keyword { get; set; }
     public Search? AdvancedSearch { get; set; }

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <RootNamespace>DN.WebApi.Infrastructure</RootNamespace>
@@ -62,4 +62,7 @@
     <ItemGroup>
         <None Update="Catalog\*.json" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\GlobalTypeDefs.cs"/>
+  </ItemGroup>
 </Project>
