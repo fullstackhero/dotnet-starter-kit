@@ -10,7 +10,4 @@
     <ItemGroup>
       <ProjectReference Include="..\Shared\Shared.csproj" />
     </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\..\GlobalTypeDefs.cs"/>
-  </ItemGroup>
 </Project>
