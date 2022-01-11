@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 
-namespace DN.WebApi.Infrastructure.Persistence;
+namespace DN.WebApi.Infrastructure.Persistence.Context;
 
 public static class ModelBuilderExtensions
 {

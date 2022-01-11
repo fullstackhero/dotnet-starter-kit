@@ -9,8 +9,8 @@ public class EntitiesByBaseFilterSpec<T, TResult> : EntitiesMappedByMapsterSpec<
         Query.SearchBy(filter);
 }
 
-public class ItemsByBaseFilterSpec<T> : Specification<T>
+public class EntitiesByBaseFilterSpec<T> : Specification<T>
 {
-    public ItemsByBaseFilterSpec(BaseFilter filter) =>
+    public EntitiesByBaseFilterSpec(BaseFilter filter) =>
         Query.SearchBy(filter);
 }

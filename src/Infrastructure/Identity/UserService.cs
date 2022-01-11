@@ -1,11 +1,10 @@
-using System.Linq.Dynamic.Core;
+using Ardalis.Specification;
+using Ardalis.Specification.EntityFrameworkCore;
 using DN.WebApi.Application.Common.Exceptions;
 using DN.WebApi.Application.Common.Models;
+using DN.WebApi.Application.Common.Specification;
 using DN.WebApi.Application.Identity.Roles;
 using DN.WebApi.Application.Identity.Users;
-using DN.WebApi.Domain.Common.Contracts;
-using DN.WebApi.Infrastructure.Mapping;
-using DN.WebApi.Infrastructure.Persistence;
 using DN.WebApi.Infrastructure.Persistence.Context;
 using DN.WebApi.Shared.Authorization;
 using Mapster;
@@ -37,18 +36,16 @@ public class UserService : IUserService
 
     public async Task<PaginationResponse<UserDetailsDto>> SearchAsync(UserListFilter filter, CancellationToken cancellationToken)
     {
-        var filters = new Filters<ApplicationUser>();
-        filters.Add(filter.IsActive.HasValue, x => x.IsActive == filter.IsActive);
+        var spec = new EntitiesByPaginationFilterSpec<ApplicationUser>(filter);
 
-        var query = _userManager.Users.ApplyFilter(filters);
-        if (filter.AdvancedSearch is not null)
-            query = query.AdvancedSearch(filter.AdvancedSearch);
-        string? ordering = new OrderByConverter().ConvertBack(filter.OrderBy);
-        query = !string.IsNullOrWhiteSpace(ordering)
-            ? query.OrderBy(ordering)
-            : query.OrderBy(a => a.Id);
+        var users = await _userManager.Users
+            .WithSpecification(spec)
+            .ProjectToType<UserDetailsDto>()
+            .ToListAsync(cancellationToken);
+        int count = await _userManager.Users
+            .CountAsync(cancellationToken);
 
-        return await query.ToMappedPaginatedResultAsync<ApplicationUser, UserDetailsDto>(filter.PageNumber, filter.PageSize, cancellationToken: cancellationToken);
+        return new PaginationResponse<UserDetailsDto>(users, count, filter.PageNumber, filter.PageSize);
     }
 
     public async Task<bool> ExistsWithNameAsync(string name) =>

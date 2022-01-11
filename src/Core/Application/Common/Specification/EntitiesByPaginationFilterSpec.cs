@@ -9,9 +9,9 @@ public class EntitiesByPaginationFilterSpec<T, TResult> : EntitiesByBaseFilterSp
         Query.PaginateBy(filter);
 }
 
-public class ItemsByPaginationFilterSpec<T> : ItemsByBaseFilterSpec<T>
+public class EntitiesByPaginationFilterSpec<T> : EntitiesByBaseFilterSpec<T>
 {
-    public ItemsByPaginationFilterSpec(PaginationFilter filter)
+    public EntitiesByPaginationFilterSpec(PaginationFilter filter)
         : base(filter) =>
         Query.PaginateBy(filter);
 }
