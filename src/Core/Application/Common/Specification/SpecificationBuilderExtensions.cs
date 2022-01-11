@@ -8,6 +8,45 @@ namespace DN.WebApi.Application.Common.Specification;
 // See https://github.com/ardalis/Specification/issues/53
 public static class SpecificationBuilderExtensions
 {
+    public static IOrderedSpecificationBuilder<T> SearchByKeyword<T>(
+        this ISpecificationBuilder<T> specificationBuilder,
+        string keyword) =>
+        specificationBuilder.AdvancedSearch(new Search { Keyword = keyword });
+
+    public static IOrderedSpecificationBuilder<T> AdvancedSearch<T>(
+        this ISpecificationBuilder<T> specificationBuilder,
+        Search search)
+    {
+        if (!string.IsNullOrEmpty(search.Keyword))
+        {
+            foreach (var property in typeof(T).GetProperties()
+                        .Where(prop => prop.GetGetMethod()?.IsVirtual is not true &&
+                                    (!search.Fields.Any() || search.Fields.Any(
+                                        field => prop.Name.Equals(field, StringComparison.OrdinalIgnoreCase)))))
+            {
+                var paramExpr = Expression.Parameter(typeof(T));
+                var propertyExpr = Expression.Property(paramExpr, property);
+
+                Expression selectorExpr =
+                    property.PropertyType == typeof(string)
+                        ? propertyExpr
+                        : Expression.Condition(
+                            Expression.Equal(
+                                Expression.Convert(propertyExpr, typeof(object)),
+                                Expression.Constant(null, typeof(object))),
+                            Expression.Constant(null, typeof(string)),
+                            Expression.Call(propertyExpr, "ToString", null, null));
+
+                var selector = Expression.Lambda<Func<T, string>>(selectorExpr, paramExpr);
+
+                ((List<(Expression<Func<T, string>> Selector, string SearchTerm, int SearchGroup)>)specificationBuilder.Specification.SearchCriterias)
+                    .Add((selector, $"%{search.Keyword}%", 1));
+            }
+        }
+
+        return new OrderedSpecificationBuilder<T>(specificationBuilder.Specification);
+    }
+
     public static IOrderedSpecificationBuilder<T> OrderBy<T>(
         this ISpecificationBuilder<T> specificationBuilder,
         string[] orderByFields)
@@ -52,43 +91,4 @@ public static class SpecificationBuilderExtensions
 
                     return new KeyValuePair<string, OrderTypeEnum>(field, orderBy);
                 }));
-
-    public static IOrderedSpecificationBuilder<T> SearchByKeyword<T>(
-        this ISpecificationBuilder<T> specificationBuilder,
-        string keyword) =>
-        specificationBuilder.AdvancedSearch(new Search { Keyword = keyword });
-
-    public static IOrderedSpecificationBuilder<T> AdvancedSearch<T>(
-        this ISpecificationBuilder<T> specificationBuilder,
-        Search search)
-    {
-        if (!string.IsNullOrEmpty(search.Keyword))
-        {
-            foreach (var property in typeof(T).GetProperties()
-                        .Where(prop => prop.GetGetMethod()?.IsVirtual is not true &&
-                                    (!search.Fields.Any() || search.Fields.Any(
-                                        field => prop.Name.Equals(field, StringComparison.OrdinalIgnoreCase)))))
-            {
-                var paramExpr = Expression.Parameter(typeof(T));
-                var propertyExpr = Expression.Property(paramExpr, property);
-
-                Expression selectorExpr =
-                    property.PropertyType == typeof(string)
-                        ? propertyExpr
-                        : Expression.Condition(
-                            Expression.Equal(
-                                Expression.Convert(propertyExpr, typeof(object)),
-                                Expression.Constant(null, typeof(object))),
-                            Expression.Constant(null, typeof(string)),
-                            Expression.Call(propertyExpr, "ToString", null, null));
-
-                var selector = Expression.Lambda<Func<T, string>>(selectorExpr, paramExpr);
-
-                ((List<(Expression<Func<T, string>> Selector, string SearchTerm, int SearchGroup)>)specificationBuilder.Specification.SearchCriterias)
-                    .Add((selector, $"%{search.Keyword}%", 1));
-            }
-        }
-
-        return new OrderedSpecificationBuilder<T>(specificationBuilder.Specification);
-    }
 }
