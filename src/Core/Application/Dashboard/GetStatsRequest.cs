@@ -1,4 +1,5 @@
-﻿using DN.WebApi.Application.Common.Persistance;
+﻿using DN.WebApi.Application.Common.Persistence;
+using DN.WebApi.Application.Common.Specification;
 using DN.WebApi.Application.Identity.Roles;
 using DN.WebApi.Application.Identity.Users;
 using DN.WebApi.Domain.Catalog.Brands;
@@ -16,14 +17,16 @@ public class GetStatsRequestHandler : IRequestHandler<GetStatsRequest, StatsDto>
 {
     private readonly IUserService _userService;
     private readonly IRoleService _roleService;
-    private readonly IRepositoryAsync _repository;
+    private readonly IReadRepository<Brand> _brandRepo;
+    private readonly IReadRepository<Product> _productRepo;
     private readonly IStringLocalizer<GetStatsRequestHandler> _localizer;
 
-    public GetStatsRequestHandler(IUserService userService, IRoleService roleService, IRepositoryAsync repository, IStringLocalizer<GetStatsRequestHandler> localizer)
+    public GetStatsRequestHandler(IUserService userService, IRoleService roleService, IReadRepository<Brand> brandRepo, IReadRepository<Product> productRepo, IStringLocalizer<GetStatsRequestHandler> localizer)
     {
         _userService = userService;
         _roleService = roleService;
-        _repository = repository;
+        _brandRepo = brandRepo;
+        _productRepo = productRepo;
         _localizer = localizer;
     }
 
@@ -31,10 +34,10 @@ public class GetStatsRequestHandler : IRequestHandler<GetStatsRequest, StatsDto>
     {
         var stats = new StatsDto
         {
-            ProductCount = await _repository.GetCountAsync<Product>(),
-            BrandCount = await _repository.GetCountAsync<Brand>(),
+            ProductCount = await _productRepo.CountAsync(cancellationToken),
+            BrandCount = await _brandRepo.CountAsync(cancellationToken),
             UserCount = await _userService.GetCountAsync(cancellationToken),
-            RoleCount = await _roleService.GetCountAsync()
+            RoleCount = await _roleService.GetCountAsync(cancellationToken)
         };
 
         int selectedYear = DateTime.Now.Year;
@@ -46,8 +49,11 @@ public class GetStatsRequestHandler : IRequestHandler<GetStatsRequest, StatsDto>
             var filterStartDate = new DateTime(selectedYear, month, 01);
             var filterEndDate = new DateTime(selectedYear, month, DateTime.DaysInMonth(selectedYear, month), 23, 59, 59); // Monthly Based
 
-            productsFigure[i - 1] = await _repository.GetCountAsync<Product>(x => x.CreatedOn >= filterStartDate && x.CreatedOn <= filterEndDate);
-            brandsFigure[i - 1] = await _repository.GetCountAsync<Brand>(x => x.CreatedOn >= filterStartDate && x.CreatedOn <= filterEndDate);
+            var brandSpec = new AuditableEntitiesByCreatedOnBetweenSpec<Brand>(filterStartDate, filterEndDate);
+            var productSpec = new AuditableEntitiesByCreatedOnBetweenSpec<Product>(filterStartDate, filterEndDate);
+
+            productsFigure[i - 1] = await _brandRepo.CountAsync(brandSpec);
+            brandsFigure[i - 1] = await _productRepo.CountAsync(productSpec);
         }
 
         stats.DataEnterBarChart.Add(new ChartSeries { Name = _localizer["Products"], Data = productsFigure });

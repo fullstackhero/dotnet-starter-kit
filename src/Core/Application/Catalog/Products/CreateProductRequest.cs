@@ -1,5 +1,5 @@
 using DN.WebApi.Application.Common.FileStorage;
-using DN.WebApi.Application.Common.Persistance;
+using DN.WebApi.Application.Common.Persistence;
 using DN.WebApi.Domain.Catalog.Products;
 using DN.WebApi.Domain.Common;
 using MediatR;
@@ -17,10 +17,10 @@ public class CreateProductRequest : IRequest<Guid>
 
 public class CreateProductRequestHandler : IRequestHandler<CreateProductRequest, Guid>
 {
-    private readonly IRepositoryAsync _repository;
+    private readonly IRepository<Product> _repository;
     private readonly IFileStorageService _file;
 
-    public CreateProductRequestHandler(IRepositoryAsync repository, IFileStorageService file) =>
+    public CreateProductRequestHandler(IRepository<Product> repository, IFileStorageService file) =>
         (_repository, _file) = (repository, file);
 
     public async Task<Guid> Handle(CreateProductRequest request, CancellationToken cancellationToken)
@@ -32,9 +32,7 @@ public class CreateProductRequestHandler : IRequestHandler<CreateProductRequest,
         // Add Domain Events to be raised after the commit
         product.DomainEvents.Add(new ProductCreatedEvent(product));
 
-        await _repository.CreateAsync(product, cancellationToken);
-
-        await _repository.SaveChangesAsync(cancellationToken);
+        await _repository.AddAsync(product, cancellationToken);
 
         return product.Id;
     }

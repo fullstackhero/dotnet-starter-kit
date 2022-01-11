@@ -4,9 +4,9 @@ using DN.WebApi.Domain.Catalog.Products;
 
 namespace DN.WebApi.Application.Catalog.Products;
 
-public class ProductsWithBrandsBySearchRequestSpec : ItemsByPaginationFilterSpec<Product>
+public class ProductsBySearchRequestWithBrandsSpec : EntitiesByPaginationFilterSpec<Product, ProductDto>
 {
-    public ProductsWithBrandsBySearchRequestSpec(SearchProductsRequest request)
+    public ProductsBySearchRequestWithBrandsSpec(SearchProductsRequest request)
         : base(request)
     {
         Query.Include(p => p.Brand);

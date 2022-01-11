@@ -8,6 +8,48 @@ namespace DN.WebApi.Application.Common.Specification;
 // See https://github.com/ardalis/Specification/issues/53
 public static class SpecificationBuilderExtensions
 {
+    public static ISpecificationBuilder<T> SearchBy<T>(this ISpecificationBuilder<T> query, BaseFilter filter)
+    {
+        if (!string.IsNullOrWhiteSpace(filter.Keyword))
+        {
+            query.SearchByKeyword(filter.Keyword);
+        }
+
+        if (filter.AdvancedSearch?.Keyword is not null)
+        {
+            query.AdvancedSearch(filter.AdvancedSearch);
+        }
+
+        return query;
+    }
+
+    public static ISpecificationBuilder<T> PaginateBy<T>(this ISpecificationBuilder<T> query, PaginationFilter filter)
+    {
+        if (filter.OrderBy?.Any() is true)
+        {
+            query.OrderBy(filter.OrderBy);
+        }
+
+        if (filter.PageNumber <= 0)
+        {
+            filter.PageNumber = 1;
+        }
+
+        if (filter.PageSize <= 0)
+        {
+            filter.PageSize = 10;
+        }
+
+        if (filter.PageNumber > 1)
+        {
+            query.Skip((filter.PageNumber - 1) * filter.PageSize);
+        }
+
+        query.Take(filter.PageSize);
+
+        return query;
+    }
+
     public static IOrderedSpecificationBuilder<T> SearchByKeyword<T>(
         this ISpecificationBuilder<T> specificationBuilder,
         string keyword) =>

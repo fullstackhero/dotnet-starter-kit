@@ -1,4 +1,4 @@
-using DN.WebApi.Application.Common.Persistance;
+using DN.WebApi.Application.Common.Persistence;
 using DN.WebApi.Application.Common.Validation;
 using DN.WebApi.Domain.Catalog.Brands;
 using FluentValidation;
@@ -8,12 +8,12 @@ namespace DN.WebApi.Application.Catalog.Brands;
 
 public class CreateBrandRequestValidator : CustomValidator<CreateBrandRequest>
 {
-    public CreateBrandRequestValidator(IRepositoryAsync repository, IStringLocalizer<CreateBrandRequestValidator> localizer)
+    public CreateBrandRequestValidator(IReadRepository<Brand> repository, IStringLocalizer<CreateBrandRequestValidator> localizer)
     {
         RuleFor(p => p.Name)
             .NotEmpty()
             .MaximumLength(75)
-            .MustAsync(async (name, ct) => !await repository.ExistsAsync<Brand>(b => b.Name == name, ct))
+            .MustAsync(async (name, ct) => await repository.GetBySpecAsync(new BrandByNameSpec(name), ct) is null)
                 .WithMessage((_, name) => string.Format(localizer["brand.alreadyexists"], name));
     }
 }

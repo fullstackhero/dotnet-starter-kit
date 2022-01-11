@@ -6,7 +6,7 @@ using DN.WebApi.Application.Common.Caching;
 using DN.WebApi.Application.Common.Exceptions;
 using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Common.Models;
-using DN.WebApi.Application.Common.Persistance;
+using DN.WebApi.Application.Common.Persistence;
 using DN.WebApi.Application.Common.Specifications;
 using DN.WebApi.Domain.Common.Contracts;
 using DN.WebApi.Domain.Multitenancy;

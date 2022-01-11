@@ -29,10 +29,8 @@ public class DeactivateTenantRequestHandler : IRequestHandler<DeactivateTenantRe
     public async Task<string> Handle(DeactivateTenantRequest request, CancellationToken cancellationToken)
     {
         var tenant = await _repository.GetBySpecAsync(new TenantByKeySpec(request.TenantKey), cancellationToken);
-        if (tenant is null)
-        {
-            throw new NotFoundException("Tenant not Found.");
-        }
+
+        _ = tenant ?? throw new NotFoundException("Tenant not Found.");
 
         if (!tenant.IsActive)
         {
@@ -42,7 +40,6 @@ public class DeactivateTenantRequestHandler : IRequestHandler<DeactivateTenantRe
         tenant.Deactivate();
 
         await _repository.UpdateAsync(tenant, cancellationToken);
-        await _repository.SaveChangesAsync(cancellationToken);
 
         return $"Tenant {tenant.Key} is now Deactivated.";
     }

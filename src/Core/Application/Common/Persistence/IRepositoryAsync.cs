@@ -5,7 +5,7 @@ using DN.WebApi.Application.Common.Models;
 using DN.WebApi.Application.Common.Specifications;
 using DN.WebApi.Domain.Common.Contracts;
 
-namespace DN.WebApi.Application.Common.Persistance;
+namespace DN.WebApi.Application.Common.Persistence;
 
 public interface IRepositoryAsync : ITransientService
 {

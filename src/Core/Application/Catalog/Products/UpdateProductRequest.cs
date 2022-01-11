@@ -1,6 +1,6 @@
 using DN.WebApi.Application.Common.Exceptions;
 using DN.WebApi.Application.Common.FileStorage;
-using DN.WebApi.Application.Common.Persistance;
+using DN.WebApi.Application.Common.Persistence;
 using DN.WebApi.Domain.Catalog.Products;
 using DN.WebApi.Domain.Common;
 using MediatR;
@@ -20,20 +20,18 @@ public class UpdateProductRequest : IRequest<Guid>
 
 public class UpdateProductRequestHandler : IRequestHandler<UpdateProductRequest, Guid>
 {
-    private readonly IRepositoryAsync _repository;
+    private readonly IRepository<Product> _repository;
     private readonly IStringLocalizer<UpdateProductRequestHandler> _localizer;
     private readonly IFileStorageService _file;
 
-    public UpdateProductRequestHandler(IRepositoryAsync repository, IStringLocalizer<UpdateProductRequestHandler> localizer, IFileStorageService file) =>
+    public UpdateProductRequestHandler(IRepository<Product> repository, IStringLocalizer<UpdateProductRequestHandler> localizer, IFileStorageService file) =>
         (_repository, _localizer, _file) = (repository, localizer, file);
 
     public async Task<Guid> Handle(UpdateProductRequest request, CancellationToken cancellationToken)
     {
-        var product = await _repository.GetByIdAsync<Product>(request.Id, cancellationToken: cancellationToken);
-        if (product is null)
-        {
-            throw new NotFoundException(string.Format(_localizer["product.notfound"], request.Id));
-        }
+        var product = await _repository.GetByIdAsync(request.Id, cancellationToken);
+
+        _ = product ?? throw new NotFoundException(string.Format(_localizer["product.notfound"], request.Id));
 
         string? productImagePath = request.Image is not null
             ? await _file.UploadAsync<Product>(request.Image, FileType.Image)
@@ -45,8 +43,6 @@ public class UpdateProductRequestHandler : IRequestHandler<UpdateProductRequest,
         product.DomainEvents.Add(new ProductUpdatedEvent(product));
 
         await _repository.UpdateAsync(updatedProduct, cancellationToken);
-
-        await _repository.SaveChangesAsync(cancellationToken);
 
         return request.Id;
     }

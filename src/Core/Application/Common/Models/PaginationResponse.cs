@@ -2,10 +2,7 @@
 
 public class PaginationResponse<T>
 {
-    public static PaginationResponse<T> Create(List<T> data, int count, int page, int pageSize) =>
-        new(data, count, page, pageSize);
-
-    private PaginationResponse(List<T> data, int count, int page, int pageSize)
+    public PaginationResponse(List<T> data, int count, int page, int pageSize)
     {
         Data = data;
         CurrentPage = page;

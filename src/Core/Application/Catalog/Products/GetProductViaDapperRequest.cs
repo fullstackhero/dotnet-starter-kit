@@ -1,7 +1,9 @@
-﻿using DN.WebApi.Application.Common.Persistance;
+﻿using DN.WebApi.Application.Common.Exceptions;
+using DN.WebApi.Application.Common.Persistence;
 using DN.WebApi.Domain.Catalog.Products;
 using Mapster;
 using MediatR;
+using Microsoft.Extensions.Localization;
 
 namespace DN.WebApi.Application.Catalog.Products;
 
@@ -15,13 +17,17 @@ public class GetProductViaDapperRequest : IRequest<ProductDto>
 public class GetProductViaDapperRequestHandler : IRequestHandler<GetProductViaDapperRequest, ProductDto>
 {
     private readonly IRepositoryAsync _repository;
+    private readonly IStringLocalizer<GetProductViaDapperRequestHandler> _localizer;
 
-    public GetProductViaDapperRequestHandler(IRepositoryAsync repository) => _repository = repository;
+    public GetProductViaDapperRequestHandler(IRepositoryAsync repository, IStringLocalizer<GetProductViaDapperRequestHandler> localizer) =>
+        (_repository, _localizer) = (repository, localizer);
 
     public async Task<ProductDto> Handle(GetProductViaDapperRequest request, CancellationToken cancellationToken)
     {
         var product = await _repository.QueryFirstOrDefaultAsync<Product>(
             $"SELECT * FROM public.\"Products\" WHERE \"Id\"  = '{request.Id}' AND \"Tenant\" = '@tenant'", cancellationToken: cancellationToken);
+
+        _ = product ?? throw new NotFoundException(string.Format(_localizer["product.notfound"], request.Id));
 
         return product.Adapt<ProductDto>();
     }

@@ -1,7 +1,6 @@
 using DN.WebApi.Application.Common.Models;
 using DN.WebApi.Application.Common.Persistence;
 using DN.WebApi.Domain.Catalog.Products;
-using Mapster;
 using MediatR;
 
 namespace DN.WebApi.Application.Catalog.Products;
@@ -21,13 +20,11 @@ public class SearchProductsRequestHandler : IRequestHandler<SearchProductsReques
 
     public async Task<PaginationResponse<ProductDto>> Handle(SearchProductsRequest request, CancellationToken cancellationToken)
     {
-        var spec = new ProductsWithBrandsBySearchRequestSpec(request);
+        var spec = new ProductsBySearchRequestWithBrandsSpec(request);
 
         var list = await _repository.ListAsync(spec, cancellationToken);
         int count = await _repository.CountAsync(spec, cancellationToken);
 
-        var dtoList = list.Adapt<List<ProductDto>>();
-
-        return PaginationResponse<ProductDto>.Create(dtoList, count, request.PageNumber, request.PageSize);
+        return new PaginationResponse<ProductDto>(list, count, request.PageNumber, request.PageSize);
     }
 }

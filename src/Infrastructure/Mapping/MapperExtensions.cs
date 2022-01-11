@@ -35,7 +35,7 @@ public static class MapperExtensions
             _pageNumber = _pageNumber <= 0 ? 1 : _pageNumber;
             var items = await query.Skip((_pageNumber - 1) * _pageSize).Take(_pageSize).ToListAsync(cancellationToken);
             var mappedItems = items.Adapt<List<TDto>>();
-            return PaginationResponse<TDto>.Create(mappedItems, count, _pageNumber, _pageSize);
+            return new PaginationResponse<TDto>(mappedItems, count, _pageNumber, _pageSize);
         }
     }
 }

@@ -82,8 +82,8 @@ public class RoleService : IRoleService
         return roleDto;
     }
 
-    public async Task<int> GetCountAsync() =>
-        await _roleManager.Roles.CountAsync();
+    public async Task<int> GetCountAsync(CancellationToken cancellationToken) =>
+        await _roleManager.Roles.CountAsync(cancellationToken);
 
     public async Task<List<RoleDto>> GetListAsync()
     {
