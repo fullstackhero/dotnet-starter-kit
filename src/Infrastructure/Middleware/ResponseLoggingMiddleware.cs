@@ -1,4 +1,4 @@
-using DN.WebApi.Application.Identity.Users;
+using DN.WebApi.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Serilog;
 using Serilog.Context;

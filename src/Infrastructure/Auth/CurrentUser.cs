@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using DN.WebApi.Application.Identity.Users;
+using DN.WebApi.Application.Common.Interfaces;
 
 namespace DN.WebApi.Infrastructure.Auth;
 

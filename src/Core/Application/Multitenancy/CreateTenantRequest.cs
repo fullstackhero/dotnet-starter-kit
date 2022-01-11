@@ -1,5 +1,5 @@
+using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Common.Persistence;
-using DN.WebApi.Application.Identity.Users;
 using DN.WebApi.Domain.Multitenancy;
 using MediatR;
 

@@ -1,8 +1,8 @@
 using DN.WebApi.Application.Common.Exceptions;
+using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Identity;
 using DN.WebApi.Application.Identity.RoleClaims;
 using DN.WebApi.Application.Identity.Roles;
-using DN.WebApi.Application.Identity.Users;
 using DN.WebApi.Infrastructure.Common.Extensions;
 using DN.WebApi.Infrastructure.Persistence.Context;
 using DN.WebApi.Shared.Authorization;
