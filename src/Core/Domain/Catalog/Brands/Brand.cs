@@ -3,7 +3,7 @@ using DN.WebApi.Domain.Multitenancy;
 
 namespace DN.WebApi.Domain.Catalog.Brands;
 
-public class Brand : AuditableEntity, IMustHaveTenant
+public class Brand : AuditableEntity, IMustHaveTenant, IAggregateRoot
 {
     public string? Name { get; private set; }
     public string? Description { get; private set; }
