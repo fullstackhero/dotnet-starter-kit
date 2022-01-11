@@ -38,6 +38,6 @@ public class RegisterUserRequestValidator : CustomValidator<RegisterUserRequest>
 
         RuleFor(p => p.ConfirmPassword).Cascade(CascadeMode.Stop)
             .NotEmpty()
-            .Matches(p => p.Password);
+            .Equal(p => p.Password);
     }
 }
