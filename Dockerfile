@@ -7,14 +7,14 @@ COPY ["Directory.Build.targets", "/"]
 COPY ["dotnet.ruleset", "/"]
 COPY ["stylecop.json", "/"]
 COPY ["src/Host/Host.csproj", "src/Host/"]
-COPY ["src/Core/Domain/Domain.csproj", "src/Core/Domain/"]
 COPY ["src/Core/Application/Application.csproj", "src/Core/Application/"]
+COPY ["src/Core/Domain/Domain.csproj", "src/Core/Domain/"]
+COPY ["src/Core/Shared/Shared.csproj", "src/Core/Shared/"]
 COPY ["src/Infrastructure/Infrastructure.csproj", "src/Infrastructure/"]
 COPY ["src/Migrators/Migrators.MSSQL/Migrators.MSSQL.csproj", "src/Migrators/Migrators.MSSQL/"]
 COPY ["src/Migrators/Migrators.MySQL/Migrators.MySQL.csproj", "src/Migrators/Migrators.MySQL/"]
 COPY ["src/Migrators/Migrators.PostgreSQL/Migrators.PostgreSQL.csproj", "src/Migrators/Migrators.PostgreSQL/"]
 COPY ["src/Migrators/Migrators.Oracle/Migrators.Oracle.csproj", "src/Migrators/Migrators.Oracle/"]
-COPY ["src/Shared/Shared.csproj", "src/Shared/"]
 
 RUN dotnet restore "src/Host/Host.csproj" --disable-parallel
 
