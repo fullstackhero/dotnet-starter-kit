@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DN.WebApi.Infrastructure.Persistence.Repository;
 
-// inherit from Ardalis.Specification type
+// Inherit from Ardalis.Specification RepositoryBase<T>
 public class ApplicationDbRepository<T> : RepositoryBase<T>, IReadRepository<T>, IRepository<T>
     where T : class, IAggregateRoot
 {
