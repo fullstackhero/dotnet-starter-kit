@@ -1,4 +1,6 @@
-﻿namespace DN.WebApi.Application.Catalog.Brands;
+﻿using DN.WebApi.Application.Catalog.Products;
+
+namespace DN.WebApi.Application.Catalog.Brands;
 
 public class DeleteBrandRequest : IRequest<Guid>
 {

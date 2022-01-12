@@ -1,4 +1,7 @@
-﻿namespace DN.WebApi.Application.Dashboard;
+﻿using DN.WebApi.Application.Identity.Roles;
+using DN.WebApi.Application.Identity.Users;
+
+namespace DN.WebApi.Application.Dashboard;
 
 public class GetStatsRequest : IRequest<StatsDto>
 {

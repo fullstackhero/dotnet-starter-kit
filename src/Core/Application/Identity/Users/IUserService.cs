@@ -1,3 +1,5 @@
+using DN.WebApi.Application.Identity.Roles;
+
 namespace DN.WebApi.Application.Identity.Users;
 
 public interface IUserService : ITransientService

@@ -1,3 +1,5 @@
+using DN.WebApi.Application.Catalog.Brands;
+
 namespace DN.WebApi.Application.Catalog.Products;
 
 public class ProductDetailsDto : IDto
