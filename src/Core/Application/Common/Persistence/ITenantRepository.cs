@@ -1,4 +1,4 @@
-﻿namespace DN.WebApi.Application.Common.Persistence;
+﻿namespace FSH.WebApi.Application.Common.Persistence;
 
 // The Repository for the TenantManagement Db
 // I(Read)RepositoryBase<T> is from Ardalis.Specification
