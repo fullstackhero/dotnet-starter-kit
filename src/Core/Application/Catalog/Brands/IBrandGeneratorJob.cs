@@ -1,5 +1,4 @@
-﻿using DN.WebApi.Application.Common.Interfaces;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 
 namespace DN.WebApi.Application.Catalog.Brands;
 

@@ -1,6 +1,5 @@
 using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Identity.Users;
-using DN.WebApi.Application.Identity.Users.Password;
 using DN.WebApi.Infrastructure.Auth.Permissions;
 using DN.WebApi.Infrastructure.OpenApi;
 using DN.WebApi.Shared.Authorization;

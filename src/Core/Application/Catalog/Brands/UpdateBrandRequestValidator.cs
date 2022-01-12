@@ -1,9 +1,3 @@
-using DN.WebApi.Application.Common.Persistence;
-using DN.WebApi.Application.Common.Validation;
-using DN.WebApi.Domain.Catalog.Brands;
-using FluentValidation;
-using Microsoft.Extensions.Localization;
-
 namespace DN.WebApi.Application.Catalog.Brands;
 
 public class UpdateBrandRequestValidator : CustomValidator<UpdateBrandRequest>

@@ -1,12 +1,3 @@
-using DN.WebApi.Application.Common.Events;
-using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Domain.Catalog.Brands;
-using DN.WebApi.Domain.Catalog.Products;
-using DN.WebApi.Domain.Common.Contracts;
-using DN.WebApi.Shared.Notifications;
-using MediatR;
-using Microsoft.Extensions.Logging;
-
 namespace DN.WebApi.Application.Dashboard;
 
 // TODO: handle registerd users and registered roles create/delete

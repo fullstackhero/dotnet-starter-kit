@@ -1,5 +1,3 @@
-using DN.WebApi.Domain.Common.Contracts;
-
 namespace DN.WebApi.Application.Common.Caching;
 
 public static class CacheKeys

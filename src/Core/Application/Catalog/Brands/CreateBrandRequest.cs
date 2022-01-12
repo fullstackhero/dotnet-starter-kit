@@ -1,7 +1,3 @@
-using DN.WebApi.Application.Common.Persistence;
-using DN.WebApi.Domain.Catalog.Brands;
-using MediatR;
-
 namespace DN.WebApi.Application.Catalog.Brands;
 
 public class CreateBrandRequest : IRequest<Guid>

@@ -1,5 +1,3 @@
-using DN.WebApi.Application.Common.Interfaces;
-
 namespace DN.WebApi.Application.Catalog.Brands;
 
 public class BrandDto : IDto

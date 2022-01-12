@@ -1,8 +1,4 @@
-﻿using Ardalis.Specification;
-using DN.WebApi.Domain.Common.Contracts;
-using DN.WebApi.Domain.Multitenancy;
-
-namespace DN.WebApi.Application.Common.Persistence;
+﻿namespace DN.WebApi.Application.Common.Persistence;
 
 // The Repository for the TenantManagement Db
 // I(Read)RepositoryBase<T> is from Ardalis.Specification

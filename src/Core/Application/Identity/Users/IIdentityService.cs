@@ -1,6 +1,4 @@
 using System.Security.Claims;
-using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Application.Identity.Users.Password;
 
 namespace DN.WebApi.Application.Identity.Users;
 

@@ -1,5 +1,3 @@
-using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Domain.Common.Contracts;
 using System.Data;
 
 namespace DN.WebApi.Application.Common.Persistence;

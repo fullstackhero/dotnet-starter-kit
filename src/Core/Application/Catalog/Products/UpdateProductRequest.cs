@@ -1,11 +1,3 @@
-using DN.WebApi.Application.Common.Exceptions;
-using DN.WebApi.Application.Common.FileStorage;
-using DN.WebApi.Application.Common.Persistence;
-using DN.WebApi.Domain.Catalog.Products;
-using DN.WebApi.Domain.Common;
-using MediatR;
-using Microsoft.Extensions.Localization;
-
 namespace DN.WebApi.Application.Catalog.Products;
 
 public class UpdateProductRequest : IRequest<Guid>

@@ -1,8 +1,3 @@
-using DN.WebApi.Application.Common.Persistence;
-using DN.WebApi.Application.Common.Validation;
-using FluentValidation;
-using Microsoft.Extensions.Localization;
-
 namespace DN.WebApi.Application.Multitenancy;
 
 public class CreateTenantRequestValidator : CustomValidator<CreateTenantRequest>

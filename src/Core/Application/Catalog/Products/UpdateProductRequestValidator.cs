@@ -1,11 +1,3 @@
-using DN.WebApi.Application.Common.FileStorage;
-using DN.WebApi.Application.Common.Persistence;
-using DN.WebApi.Application.Common.Validation;
-using DN.WebApi.Domain.Catalog.Brands;
-using DN.WebApi.Domain.Catalog.Products;
-using FluentValidation;
-using Microsoft.Extensions.Localization;
-
 namespace DN.WebApi.Application.Catalog.Products;
 
 public class UpdateProductRequestValidator : CustomValidator<UpdateProductRequest>

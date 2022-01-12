@@ -1,9 +1,3 @@
-using DN.WebApi.Application.Common.Exceptions;
-using DN.WebApi.Application.Common.Persistence;
-using DN.WebApi.Application.Common.Validation;
-using FluentValidation;
-using MediatR;
-
 namespace DN.WebApi.Application.Multitenancy;
 
 public class DeactivateTenantRequest : IRequest<string>

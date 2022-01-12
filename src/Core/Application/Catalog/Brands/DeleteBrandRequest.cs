@@ -1,12 +1,4 @@
-﻿using DN.WebApi.Application.Catalog.Products;
-using DN.WebApi.Application.Common.Exceptions;
-using DN.WebApi.Application.Common.Persistence;
-using DN.WebApi.Domain.Catalog.Brands;
-using DN.WebApi.Domain.Catalog.Products;
-using MediatR;
-using Microsoft.Extensions.Localization;
-
-namespace DN.WebApi.Application.Catalog.Brands;
+﻿namespace DN.WebApi.Application.Catalog.Brands;
 
 public class DeleteBrandRequest : IRequest<Guid>
 {

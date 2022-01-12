@@ -1,8 +1,3 @@
-using DN.WebApi.Application.Common.Models;
-using DN.WebApi.Application.Common.Persistence;
-using DN.WebApi.Domain.Catalog.Products;
-using MediatR;
-
 namespace DN.WebApi.Application.Catalog.Products;
 
 public class SearchProductsRequest : PaginationFilter, IRequest<PaginationResponse<ProductDto>>

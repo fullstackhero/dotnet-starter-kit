@@ -1,8 +1,3 @@
-using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Application.Common.Persistence;
-using DN.WebApi.Domain.Multitenancy;
-using MediatR;
-
 namespace DN.WebApi.Application.Multitenancy;
 
 public class CreateTenantRequest : IRequest<Guid>

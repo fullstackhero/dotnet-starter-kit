@@ -1,7 +1,4 @@
-﻿using Ardalis.Specification;
-using DN.WebApi.Domain.Common.Contracts;
-
-namespace DN.WebApi.Application.Common.Specification;
+﻿namespace DN.WebApi.Application.Common.Specification;
 
 public class AuditableEntitiesByCreatedOnBetweenSpec<T> : Specification<T>
     where T : AuditableEntity

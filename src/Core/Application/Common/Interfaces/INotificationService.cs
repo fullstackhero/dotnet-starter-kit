@@ -1,6 +1,4 @@
-﻿using DN.WebApi.Shared.Notifications;
-
-namespace DN.WebApi.Application.Common.Interfaces;
+﻿namespace DN.WebApi.Application.Common.Interfaces;
 
 public interface INotificationService : ITransientService
 {

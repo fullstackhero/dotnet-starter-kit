@@ -1,9 +1,4 @@
-﻿using DN.WebApi.Application.Common.Exceptions;
-using DN.WebApi.Application.Common.Persistence;
-using DN.WebApi.Domain.Multitenancy;
-using Mapster;
-using MediatR;
-using Microsoft.Extensions.Localization;
+﻿using Mapster;
 
 namespace DN.WebApi.Application.Multitenancy;
 

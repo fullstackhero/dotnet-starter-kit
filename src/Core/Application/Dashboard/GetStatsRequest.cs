@@ -1,13 +1,4 @@
-﻿using DN.WebApi.Application.Common.Persistence;
-using DN.WebApi.Application.Common.Specification;
-using DN.WebApi.Application.Identity.Roles;
-using DN.WebApi.Application.Identity.Users;
-using DN.WebApi.Domain.Catalog.Brands;
-using DN.WebApi.Domain.Catalog.Products;
-using MediatR;
-using Microsoft.Extensions.Localization;
-
-namespace DN.WebApi.Application.Dashboard;
+﻿namespace DN.WebApi.Application.Dashboard;
 
 public class GetStatsRequest : IRequest<StatsDto>
 {

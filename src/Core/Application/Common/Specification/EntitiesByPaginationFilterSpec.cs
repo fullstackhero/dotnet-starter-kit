@@ -1,6 +1,4 @@
-﻿using DN.WebApi.Application.Common.Models;
-
-namespace DN.WebApi.Application.Common.Specification;
+﻿namespace DN.WebApi.Application.Common.Specification;
 
 public class EntitiesByPaginationFilterSpec<T, TResult> : EntitiesByBaseFilterSpec<T, TResult>
 {

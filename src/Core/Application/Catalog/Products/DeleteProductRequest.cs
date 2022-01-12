@@ -1,10 +1,4 @@
-﻿using DN.WebApi.Application.Common.Exceptions;
-using DN.WebApi.Application.Common.Persistence;
-using DN.WebApi.Domain.Catalog.Products;
-using MediatR;
-using Microsoft.Extensions.Localization;
-
-namespace DN.WebApi.Application.Catalog.Products;
+﻿namespace DN.WebApi.Application.Catalog.Products;
 
 public class DeleteProductRequest : IRequest<Guid>
 {

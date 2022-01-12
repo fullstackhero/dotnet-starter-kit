@@ -1,7 +1,4 @@
-﻿using DN.WebApi.Application.Common.Interfaces;
-using MediatR;
-
-namespace DN.WebApi.Application.Catalog.Brands;
+﻿namespace DN.WebApi.Application.Catalog.Brands;
 
 public class GenerateRandomBrandRequest : IRequest<string>
 {

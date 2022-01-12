@@ -1,9 +1,3 @@
-using DN.WebApi.Application.Common.Models;
-using DN.WebApi.Application.Common.Persistence;
-using DN.WebApi.Application.Common.Specification;
-using DN.WebApi.Domain.Catalog.Brands;
-using MediatR;
-
 namespace DN.WebApi.Application.Catalog.Brands;
 
 public class SearchBrandsRequest : PaginationFilter, IRequest<PaginationResponse<BrandDto>>

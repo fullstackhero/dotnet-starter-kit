@@ -1,7 +1,4 @@
-﻿using Ardalis.Specification;
-using DN.WebApi.Domain.Common.Contracts;
-
-namespace DN.WebApi.Application.Common.Persistence;
+﻿namespace DN.WebApi.Application.Common.Persistence;
 
 // The Repository for the Application Db
 // IRepositoryBase<T> is from Ardalis.Specification

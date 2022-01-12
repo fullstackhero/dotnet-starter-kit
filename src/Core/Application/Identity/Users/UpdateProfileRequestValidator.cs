@@ -1,8 +1,3 @@
-using DN.WebApi.Application.Common.FileStorage;
-using DN.WebApi.Application.Common.Validation;
-using FluentValidation;
-using Microsoft.Extensions.Localization;
-
 namespace DN.WebApi.Application.Identity.Users;
 
 public class UpdateProfileRequestValidator : CustomValidator<UpdateProfileRequest>

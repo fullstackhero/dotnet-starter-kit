@@ -1,7 +1,4 @@
-﻿using Ardalis.Specification;
-using DN.WebApi.Domain.Multitenancy;
-
-namespace DN.WebApi.Application.Multitenancy;
+﻿namespace DN.WebApi.Application.Multitenancy;
 
 public class TenantByIssuerSpec : Specification<Tenant>, ISingleResultSpecification
 {
