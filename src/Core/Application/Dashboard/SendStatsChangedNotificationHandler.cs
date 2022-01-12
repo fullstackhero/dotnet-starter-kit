@@ -1,4 +1,4 @@
-namespace DN.WebApi.Application.Dashboard;
+namespace FSH.WebApi.Application.Dashboard;
 
 // TODO: handle registerd users and registered roles create/delete
 public class SendStatsChangedNotificationHandler :

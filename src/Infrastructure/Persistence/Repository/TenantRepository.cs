@@ -1,9 +1,9 @@
 ﻿using Ardalis.Specification.EntityFrameworkCore;
-using DN.WebApi.Application.Common.Persistence;
-using DN.WebApi.Domain.Multitenancy;
-using DN.WebApi.Infrastructure.Persistence.Context;
+using FSH.WebApi.Application.Common.Persistence;
+using FSH.WebApi.Domain.Multitenancy;
+using FSH.WebApi.Infrastructure.Persistence.Context;
 
-namespace DN.WebApi.Infrastructure.Persistence.Repository;
+namespace FSH.WebApi.Infrastructure.Persistence.Repository;
 
 // Inherited from Ardalis.Specification's RepositoryBase<T>
 public class TenantRepository : RepositoryBase<Tenant>, ITenantReadRepository, ITenantRepository

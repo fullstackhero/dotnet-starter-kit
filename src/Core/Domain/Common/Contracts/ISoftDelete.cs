@@ -1,4 +1,4 @@
-namespace DN.WebApi.Domain.Common.Contracts;
+namespace FSH.WebApi.Domain.Common.Contracts;
 
 public interface ISoftDelete
 {

@@ -1,6 +1,6 @@
-using DN.WebApi.Shared.Authorization;
+using FSH.WebApi.Shared.Authorization;
 
-namespace DN.WebApi.Infrastructure.Auth.Permissions;
+namespace FSH.WebApi.Infrastructure.Auth.Permissions;
 
 public static class DefaultPermissions
 {

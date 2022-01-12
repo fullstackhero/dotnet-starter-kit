@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
-        <RootNamespace>DN.WebApi.Infrastructure</RootNamespace>
-        <AssemblyName>DN.WebApi.Infrastructure</AssemblyName>
+        <RootNamespace>FSH.WebApi.Infrastructure</RootNamespace>
+        <AssemblyName>FSH.WebApi.Infrastructure</AssemblyName>
     </PropertyGroup>
     <ItemGroup>
         <FrameworkReference Include="Microsoft.AspNetCore.App" />

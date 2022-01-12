@@ -16,7 +16,7 @@
               "script": {
                 "exec": [
                   "var jsonData = pm.response.json();\r",
-                  "pm.collectionVariables.set(\"token\", jsonData.data.token);"
+                  "pm.collectionVariables.set(\"token\", jsonData.token);"
                 ],
                 "type": "text/javascript"
               }

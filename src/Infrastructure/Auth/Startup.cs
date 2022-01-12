@@ -1,14 +1,14 @@
-using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Infrastructure.Auth.AzureAd;
-using DN.WebApi.Infrastructure.Auth.Jwt;
-using DN.WebApi.Infrastructure.Auth.Permissions;
-using DN.WebApi.Infrastructure.Identity;
+using FSH.WebApi.Application.Common.Interfaces;
+using FSH.WebApi.Infrastructure.Auth.AzureAd;
+using FSH.WebApi.Infrastructure.Auth.Jwt;
+using FSH.WebApi.Infrastructure.Auth.Permissions;
+using FSH.WebApi.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace DN.WebApi.Infrastructure.Auth;
+namespace FSH.WebApi.Infrastructure.Auth;
 
 internal static class Startup
 {

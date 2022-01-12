@@ -1,4 +1,4 @@
-namespace DN.WebApi.Application.Common.Caching;
+namespace FSH.WebApi.Application.Common.Caching;
 
 public interface ICacheService
 {

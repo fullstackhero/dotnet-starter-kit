@@ -1,4 +1,4 @@
-namespace DN.WebApi.Domain.Catalog.Products;
+namespace FSH.WebApi.Domain.Catalog.Products;
 
 public class ProductUpdatedEvent : DomainEvent
 {

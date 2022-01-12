@@ -1,8 +1,8 @@
-﻿using DN.WebApi.Shared.Multitenancy;
+﻿using System.Security.Claims;
+using FSH.WebApi.Shared.Multitenancy;
 using Microsoft.AspNetCore.Http;
-using System.Security.Claims;
 
-namespace DN.WebApi.Infrastructure.Multitenancy;
+namespace FSH.WebApi.Infrastructure.Multitenancy;
 
 public static class TenantKeyResolver
 {

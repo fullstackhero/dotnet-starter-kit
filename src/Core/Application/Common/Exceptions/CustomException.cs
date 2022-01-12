@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace DN.WebApi.Application.Common.Exceptions;
+namespace FSH.WebApi.Application.Common.Exceptions;
 
 public class CustomException : Exception
 {

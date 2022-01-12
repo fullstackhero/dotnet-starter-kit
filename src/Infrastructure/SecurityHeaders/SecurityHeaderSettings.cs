@@ -1,4 +1,4 @@
-namespace DN.WebApi.Infrastructure.SecurityHeaders;
+namespace FSH.WebApi.Infrastructure.SecurityHeaders;
 
 public class SecurityHeaderSettings
 {

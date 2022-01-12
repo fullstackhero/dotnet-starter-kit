@@ -1,4 +1,4 @@
-namespace DN.WebApi.Application.Identity.Users;
+namespace FSH.WebApi.Application.Identity.Users;
 
 public class UserDetailsDto
 {

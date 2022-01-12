@@ -1,4 +1,4 @@
-namespace DN.WebApi.Application.Multitenancy;
+namespace FSH.WebApi.Application.Multitenancy;
 
 public class UpgradeSubscriptionRequest : IRequest<string>
 {

@@ -1,6 +1,6 @@
-﻿using DN.WebApi.Application.Catalog.Products;
+﻿using FSH.WebApi.Application.Catalog.Products;
 
-namespace DN.WebApi.Application.Catalog.Brands;
+namespace FSH.WebApi.Application.Catalog.Brands;
 
 public class DeleteBrandRequest : IRequest<Guid>
 {

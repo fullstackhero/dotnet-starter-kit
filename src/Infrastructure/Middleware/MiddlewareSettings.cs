@@ -1,4 +1,4 @@
-namespace DN.WebApi.Infrastructure.Middleware;
+namespace FSH.WebApi.Infrastructure.Middleware;
 
 public class MiddlewareSettings
 {

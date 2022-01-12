@@ -1,6 +1,6 @@
-using DN.WebApi.Application.Identity.Roles;
+using FSH.WebApi.Application.Identity.Roles;
 
-namespace DN.WebApi.Application.Identity.Users;
+namespace FSH.WebApi.Application.Identity.Users;
 
 public interface IUserService : ITransientService
 {

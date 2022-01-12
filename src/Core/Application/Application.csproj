@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
-        <RootNamespace>DN.WebApi.Application</RootNamespace>
-        <AssemblyName>DN.WebApi.Application</AssemblyName>
+        <RootNamespace>FSH.WebApi.Application</RootNamespace>
+        <AssemblyName>FSH.WebApi.Application</AssemblyName>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Ardalis.Specification" Version="5.2.0" />

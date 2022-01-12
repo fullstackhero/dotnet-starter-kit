@@ -1,8 +1,8 @@
 using System.Security.Claims;
-using DN.WebApi.Application.Identity.RoleClaims;
+using FSH.WebApi.Application.Identity.RoleClaims;
 using Microsoft.AspNetCore.Authorization;
 
-namespace DN.WebApi.Infrastructure.Auth.Permissions;
+namespace FSH.WebApi.Infrastructure.Auth.Permissions;
 
 internal class PermissionAuthorizationHandler : AuthorizationHandler<PermissionRequirement>
 {

@@ -1,7 +1,7 @@
-﻿using DN.WebApi.Application.Common.Interfaces;
+﻿using FSH.WebApi.Application.Common.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace DN.WebApi.Infrastructure.Common;
+namespace FSH.WebApi.Infrastructure.Common;
 
 internal static class Startup
 {

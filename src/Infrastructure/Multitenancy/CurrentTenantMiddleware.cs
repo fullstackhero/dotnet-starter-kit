@@ -1,8 +1,8 @@
-using DN.WebApi.Application.Common.Exceptions;
+using FSH.WebApi.Application.Common.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Localization;
 
-namespace DN.WebApi.Infrastructure.Multitenancy;
+namespace FSH.WebApi.Infrastructure.Multitenancy;
 
 public class CurrentTenantMiddleware : IMiddleware
 {

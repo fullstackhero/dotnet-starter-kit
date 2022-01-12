@@ -1,7 +1,7 @@
-using DN.WebApi.Application.Multitenancy;
 using System.Diagnostics.CodeAnalysis;
+using FSH.WebApi.Application.Multitenancy;
 
-namespace DN.WebApi.Infrastructure.Multitenancy;
+namespace FSH.WebApi.Infrastructure.Multitenancy;
 
 public interface ICurrentTenant
 {

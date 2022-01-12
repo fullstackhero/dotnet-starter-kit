@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-namespace DN.WebApi.Infrastructure.Seeding;
+namespace FSH.WebApi.Infrastructure.Seeding;
 
 internal static class Startup
 {

@@ -1,12 +1,12 @@
 using System.Net;
-using DN.WebApi.Application.Common.Exceptions;
-using DN.WebApi.Application.Common.Interfaces;
+using FSH.WebApi.Application.Common.Exceptions;
+using FSH.WebApi.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Localization;
 using Serilog;
 using Serilog.Context;
 
-namespace DN.WebApi.Infrastructure.Middleware;
+namespace FSH.WebApi.Infrastructure.Middleware;
 
 internal class ExceptionMiddleware : IMiddleware
 {

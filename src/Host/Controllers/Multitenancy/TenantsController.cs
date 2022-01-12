@@ -1,6 +1,6 @@
-using DN.WebApi.Application.Multitenancy;
+using FSH.WebApi.Application.Multitenancy;
 
-namespace DN.WebApi.Host.Controllers.Multitenancy;
+namespace FSH.WebApi.Host.Controllers.Multitenancy;
 
 public class TenantsController : VersionNeutralApiController
 {

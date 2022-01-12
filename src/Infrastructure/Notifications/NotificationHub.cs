@@ -1,10 +1,10 @@
 ﻿using System.Security.Claims;
-using DN.WebApi.Application.Common.Interfaces;
+using FSH.WebApi.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 
-namespace DN.WebApi.Infrastructure.Notifications;
+namespace FSH.WebApi.Infrastructure.Notifications;
 
 [Authorize]
 public class NotificationHub : Hub, ITransientService

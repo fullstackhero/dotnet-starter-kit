@@ -1,4 +1,4 @@
-namespace DN.WebApi.Application.Common.Mailing;
+namespace FSH.WebApi.Application.Common.Mailing;
 
 public interface IMailService : ITransientService
 {

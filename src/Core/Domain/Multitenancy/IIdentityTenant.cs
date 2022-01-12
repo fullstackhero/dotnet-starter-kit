@@ -1,4 +1,4 @@
-namespace DN.WebApi.Domain.Multitenancy;
+namespace FSH.WebApi.Domain.Multitenancy;
 
 public interface IIdentityTenant
 {

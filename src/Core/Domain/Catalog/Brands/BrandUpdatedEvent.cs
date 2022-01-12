@@ -1,4 +1,4 @@
-namespace DN.WebApi.Domain.Catalog.Brands;
+namespace FSH.WebApi.Domain.Catalog.Brands;
 
 public class BrandUpdatedEvent : DomainEvent
 {

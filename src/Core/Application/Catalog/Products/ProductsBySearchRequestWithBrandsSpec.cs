@@ -1,4 +1,4 @@
-﻿namespace DN.WebApi.Application.Catalog.Products;
+﻿namespace FSH.WebApi.Application.Catalog.Products;
 
 public class ProductsBySearchRequestWithBrandsSpec : EntitiesByPaginationFilterSpec<Product, ProductDto>
 {

@@ -1,9 +1,9 @@
-using DN.WebApi.Application.Common.Events;
-using DN.WebApi.Domain.Common.Contracts;
+using FSH.WebApi.Application.Common.Events;
+using FSH.WebApi.Domain.Common.Contracts;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace DN.WebApi.Infrastructure.Common.Services;
+namespace FSH.WebApi.Infrastructure.Common.Services;
 
 public class EventService : IEventService
 {

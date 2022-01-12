@@ -1,12 +1,12 @@
 ﻿using Ardalis.Specification;
 using Ardalis.Specification.EntityFrameworkCore;
-using DN.WebApi.Application.Common.Persistence;
-using DN.WebApi.Domain.Common.Contracts;
-using DN.WebApi.Infrastructure.Persistence.Context;
+using FSH.WebApi.Application.Common.Persistence;
+using FSH.WebApi.Domain.Common.Contracts;
+using FSH.WebApi.Infrastructure.Persistence.Context;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 
-namespace DN.WebApi.Infrastructure.Persistence.Repository;
+namespace FSH.WebApi.Infrastructure.Persistence.Repository;
 
 // Inherited from Ardalis.Specification's RepositoryBase<T>
 public class ApplicationDbRepository<T> : RepositoryBase<T>, IReadRepository<T>, IRepository<T>
