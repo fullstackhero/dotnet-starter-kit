@@ -54,7 +54,7 @@ public class ApplicationDbContext : BaseDbContext
         }
 
         int results = await base.SaveChangesAsync(cancellationToken);
-        if (_eventService == null) return results;
+
         var entitiesWithEvents = ChangeTracker.Entries<IEntity>()
             .Select(e => e.Entity)
             .Where(e => e.DomainEvents.Count > 0)
@@ -62,11 +62,11 @@ public class ApplicationDbContext : BaseDbContext
 
         foreach (var entity in entitiesWithEvents)
         {
-            var events = entity.DomainEvents.ToArray();
+            var domainEvents = entity.DomainEvents.ToArray();
             entity.DomainEvents.Clear();
-            foreach (var @event in events)
+            foreach (var domainEvent in domainEvents)
             {
-                await _eventService.PublishAsync(@event);
+                await _eventService.PublishAsync(domainEvent);
             }
         }
 

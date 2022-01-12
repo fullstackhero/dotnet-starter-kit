@@ -5,7 +5,7 @@ public interface IEntity
     List<DomainEvent> DomainEvents { get; }
 }
 
-public interface IEntity<T> : IEntity
+public interface IEntity<TId> : IEntity
 {
-    T Id { get; }
+    TId Id { get; }
 }

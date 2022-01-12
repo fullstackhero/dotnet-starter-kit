@@ -8,9 +8,9 @@ public abstract class BaseEntity : BaseEntity<DefaultIdType>
     protected BaseEntity() => Id = NewId.Next().ToGuid();
 }
 
-public abstract class BaseEntity<T> : IEntity<T>
+public abstract class BaseEntity<TId> : IEntity<TId>
 {
-    public T Id { get; protected set; } = default!;
+    public TId Id { get; protected set; } = default!;
 
     [NotMapped]
     public List<DomainEvent> DomainEvents { get; } = new();
