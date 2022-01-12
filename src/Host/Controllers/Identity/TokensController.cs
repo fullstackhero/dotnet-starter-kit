@@ -1,8 +1,4 @@
 using DN.WebApi.Application.Identity.Tokens;
-using DN.WebApi.Infrastructure.OpenApi;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using NSwag.Annotations;
 
 namespace DN.WebApi.Host.Controllers.Identity;
 

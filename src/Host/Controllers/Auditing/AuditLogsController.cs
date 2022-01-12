@@ -1,7 +1,4 @@
 using DN.WebApi.Application.Auditing;
-using DN.WebApi.Infrastructure.Auth.Permissions;
-using DN.WebApi.Shared.Authorization;
-using Microsoft.AspNetCore.Mvc;
 
 namespace DN.WebApi.Host.Controllers.Identity;
 

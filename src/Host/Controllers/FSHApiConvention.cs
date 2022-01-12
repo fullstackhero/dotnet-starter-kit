@@ -1,5 +1,4 @@
 ﻿using DN.WebApi.Infrastructure.Middleware;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 
 namespace DN.WebApi.Host.Controllers;

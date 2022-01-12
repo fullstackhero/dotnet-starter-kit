@@ -1,8 +1,4 @@
 using DN.WebApi.Application.Multitenancy;
-using DN.WebApi.Infrastructure.Auth.Permissions;
-using DN.WebApi.Shared.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using NSwag.Annotations;
 
 namespace DN.WebApi.Host.Controllers.Multitenancy;
 
