@@ -1,6 +1,3 @@
-using DN.WebApi.Application.Identity.Users;
-using MediatR;
-
 namespace DN.WebApi.Application.Auditing;
 
 public class GetMyAuditLogsRequest : IRequest<List<AuditDto>>

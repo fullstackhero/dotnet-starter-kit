@@ -1,7 +1,3 @@
-using DN.WebApi.Application.Common.Validation;
-using FluentValidation;
-using Microsoft.Extensions.Localization;
-
 namespace DN.WebApi.Application.Identity.Users;
 
 public class RegisterUserRequestValidator : CustomValidator<RegisterUserRequest>
@@ -38,6 +34,6 @@ public class RegisterUserRequestValidator : CustomValidator<RegisterUserRequest>
 
         RuleFor(p => p.ConfirmPassword).Cascade(CascadeMode.Stop)
             .NotEmpty()
-            .Matches(p => p.Password);
+            .Equal(p => p.Password);
     }
 }

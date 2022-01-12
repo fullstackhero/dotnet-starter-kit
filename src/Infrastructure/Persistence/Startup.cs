@@ -1,4 +1,6 @@
 using DN.WebApi.Application.Common.Persistence;
+using DN.WebApi.Domain.Catalog.Brands;
+using DN.WebApi.Domain.Catalog.Products;
 using DN.WebApi.Infrastructure.Common;
 using DN.WebApi.Infrastructure.Persistence.Context;
 using DN.WebApi.Infrastructure.Persistence.Repository;
@@ -28,9 +30,17 @@ internal static class Startup
             .AddDbContext<TenantManagementDbContext>(m => m.UseDatabase(dbProvider, rootConnectionString))
             .AddDbContext<ApplicationDbContext>(m => m.UseDatabase(dbProvider, rootConnectionString))
 
-            // Add TenantRepository
+            // Add TenantManagementDb TenantRepository
             .AddScoped<ITenantRepository, TenantRepository>()
-            .AddScoped(sp => (ITenantReadRepository)sp.GetRequiredService<ITenantRepository>());
+            .AddScoped(sp => (ITenantReadRepository)sp.GetRequiredService<ITenantRepository>())
+
+            // Add ApplicationDb Repositories
+            .AddScoped(typeof(IRepository<>), typeof(ApplicationDbRepository<>))
+
+            // Add ReadRepositories
+            // TODO: do this automatically for all repository types
+            .AddScoped(sp => (IReadRepository<Brand>)sp.GetRequiredService<IRepository<Brand>>())
+            .AddScoped(sp => (IReadRepository<Product>)sp.GetRequiredService<IRepository<Product>>());
     }
 
     private static DbContextOptionsBuilder UseDatabase(this DbContextOptionsBuilder builder, string dbProvider, string connectionString) =>

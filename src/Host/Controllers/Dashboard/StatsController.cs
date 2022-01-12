@@ -1,5 +1,4 @@
 using DN.WebApi.Application.Dashboard;
-using Microsoft.AspNetCore.Mvc;
 
 namespace DN.WebApi.Host.Controllers.Dashboard;
 

@@ -1,9 +1,4 @@
 ﻿using DN.WebApi.Application.Catalog.Products;
-using DN.WebApi.Application.Common.Models;
-using DN.WebApi.Infrastructure.Auth.Permissions;
-using DN.WebApi.Shared.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using NSwag.Annotations;
 
 namespace DN.WebApi.Host.Controllers.Catalog;
 

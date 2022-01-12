@@ -1,5 +1,3 @@
-using DN.WebApi.Application.Common.Interfaces;
-
 namespace DN.WebApi.Application.Identity.RoleClaims;
 
 public interface IRoleClaimsService : ITransientService

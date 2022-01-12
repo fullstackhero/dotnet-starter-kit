@@ -1,13 +1,14 @@
-﻿using DN.WebApi.Application.Catalog.Brands;
+﻿using Ardalis.Specification;
+using DN.WebApi.Application.Catalog.Brands;
 using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Application.Common.Persistance;
-using DN.WebApi.Application.Identity.Users;
+using DN.WebApi.Application.Common.Persistence;
 using DN.WebApi.Domain.Catalog.Brands;
 using DN.WebApi.Shared.Notifications;
 using Hangfire;
 using Hangfire.Console.Extensions;
 using Hangfire.Console.Progress;
 using Hangfire.Server;
+using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace DN.WebApi.Infrastructure.Catalog;
@@ -15,7 +16,8 @@ namespace DN.WebApi.Infrastructure.Catalog;
 public class BrandGeneratorJob : IBrandGeneratorJob
 {
     private readonly ILogger<BrandGeneratorJob> _logger;
-    private readonly IRepositoryAsync _repository;
+    private readonly ISender _mediator;
+    private readonly IReadRepository<Brand> _repository;
     private readonly IProgressBarFactory _progressBar;
     private readonly PerformingContext _performingContext;
     private readonly INotificationService _notificationService;
@@ -24,13 +26,15 @@ public class BrandGeneratorJob : IBrandGeneratorJob
 
     public BrandGeneratorJob(
         ILogger<BrandGeneratorJob> logger,
-        IRepositoryAsync repository,
+        ISender mediator,
+        IReadRepository<Brand> repository,
         IProgressBarFactory progressBar,
         PerformingContext performingContext,
         INotificationService notificationService,
         ICurrentUser currentUser)
     {
         _logger = logger;
+        _mediator = mediator;
         _repository = repository;
         _progressBar = progressBar;
         _performingContext = performingContext;
@@ -57,15 +61,20 @@ public class BrandGeneratorJob : IBrandGeneratorJob
     public async Task GenerateAsync(int nSeed, CancellationToken cancellationToken)
     {
         await NotifyAsync("Your job processing has started", 0, cancellationToken);
+
         foreach (int index in Enumerable.Range(1, nSeed))
         {
-            var brand = new Brand(name: $"Brand Random - {Guid.NewGuid()}", "Funny description");
-            brand.DomainEvents.Add(new BrandCreatedEvent(brand));
-            await _repository.CreateAsync(brand, cancellationToken);
+            await _mediator.Send(
+                new CreateBrandRequest
+                {
+                    Name = $"Brand Random - {Guid.NewGuid()}",
+                    Description = "Funny description"
+                },
+                cancellationToken);
+
             await NotifyAsync("Progress: ", nSeed > 0 ? (index * 100 / nSeed) : 0, cancellationToken);
         }
 
-        await _repository.SaveChangesAsync(cancellationToken);
         await NotifyAsync("Job successfully completed", 0, cancellationToken);
     }
 
@@ -74,16 +83,22 @@ public class BrandGeneratorJob : IBrandGeneratorJob
     public async Task CleanAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Initializing Job with Id: {JobId}", _performingContext.BackgroundJob.Id);
-        var items = await _repository.GetListAsync<Brand>(x => !string.IsNullOrEmpty(x.Name) && x.Name.Contains("Brand Random"), cancellationToken: cancellationToken);
+
+        var items = await _repository.ListAsync(new RandomBrandsSpec(), cancellationToken);
+
         _logger.LogInformation("Brands Random: {BrandsCount} ", items.Count.ToString());
 
         foreach (var item in items)
         {
-            item.DomainEvents.Add(new BrandDeletedEvent(item));
-            await _repository.RemoveAsync(item, cancellationToken);
+            await _mediator.Send(new DeleteBrandRequest(item.Id));
         }
 
-        int rows = await _repository.SaveChangesAsync(cancellationToken);
-        _logger.LogInformation("Rows affected: {rows} ", rows.ToString());
+        _logger.LogInformation("All random brands deleted.");
     }
+}
+
+public class RandomBrandsSpec : Specification<Brand>
+{
+    public RandomBrandsSpec() =>
+        Query.Where(b => !string.IsNullOrEmpty(b.Name) && b.Name.Contains("Brand Random"));
 }

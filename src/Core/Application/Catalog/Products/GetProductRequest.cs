@@ -1,9 +1,4 @@
-﻿using DN.WebApi.Application.Common.Persistance;
-using DN.WebApi.Domain.Catalog.Products;
-using MediatR;
-using System.Linq.Expressions;
-
-namespace DN.WebApi.Application.Catalog.Products;
+﻿namespace DN.WebApi.Application.Catalog.Products;
 
 public class GetProductRequest : IRequest<ProductDetailsDto>
 {
@@ -14,13 +9,14 @@ public class GetProductRequest : IRequest<ProductDetailsDto>
 
 public class GetProductRequestHandler : IRequestHandler<GetProductRequest, ProductDetailsDto>
 {
-    private readonly IRepositoryAsync _repository;
+    private readonly IRepository<Product> _repository;
+    private readonly IStringLocalizer<GetProductRequestHandler> _localizer;
 
-    public GetProductRequestHandler(IRepositoryAsync repository) => _repository = repository;
+    public GetProductRequestHandler(IRepository<Product> repository, IStringLocalizer<GetProductRequestHandler> localizer) =>
+        (_repository, _localizer) = (repository, localizer);
 
-    public async Task<ProductDetailsDto> Handle(GetProductRequest request, CancellationToken cancellationToken)
-    {
-        var includes = new Expression<Func<Product, object>>[] { x => x.Brand };
-        return await _repository.GetByIdAsync<Product, ProductDetailsDto>(request.Id, includes, cancellationToken);
-    }
+    public Task<ProductDetailsDto> Handle(GetProductRequest request, CancellationToken cancellationToken) =>
+        _repository.GetBySpecAsync(
+            (ISpecification<Product, ProductDetailsDto>)new ProductByIdWithBrandSpec(request.Id), cancellationToken)
+        ?? throw new NotFoundException(string.Format(_localizer["product.notfound"], request.Id));
 }

@@ -1,11 +1,7 @@
-﻿using Ardalis.Specification;
-using DN.WebApi.Domain.Common.Contracts;
+﻿namespace DN.WebApi.Application.Common.Persistence;
 
-namespace DN.WebApi.Application.Common.Persistence;
-
-// from Ardalis.Specification
-
-// Application Db
+// The Repository for the Application Db
+// IRepositoryBase<T> is from Ardalis.Specification
 
 public interface IRepository<T> : IRepositoryBase<T>
     where T : class, IAggregateRoot
@@ -15,4 +11,5 @@ public interface IRepository<T> : IRepositoryBase<T>
 public interface IReadRepository<T> : IReadRepositoryBase<T>
     where T : class, IAggregateRoot
 {
+    Task<bool> AnyAsync(ISpecification<T> specification, CancellationToken cancellationToken = default);
 }

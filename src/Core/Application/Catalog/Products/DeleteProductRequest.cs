@@ -1,8 +1,4 @@
-﻿using DN.WebApi.Application.Common.Persistance;
-using DN.WebApi.Domain.Catalog.Products;
-using MediatR;
-
-namespace DN.WebApi.Application.Catalog.Products;
+﻿namespace DN.WebApi.Application.Catalog.Products;
 
 public class DeleteProductRequest : IRequest<Guid>
 {
@@ -13,17 +9,21 @@ public class DeleteProductRequest : IRequest<Guid>
 
 public class DeleteProductRequestHandler : IRequestHandler<DeleteProductRequest, Guid>
 {
-    private readonly IRepositoryAsync _repository;
+    private readonly IRepository<Product> _repository;
+    private readonly IStringLocalizer<DeleteProductRequestHandler> _localizer;
 
-    public DeleteProductRequestHandler(IRepositoryAsync repository) => _repository = repository;
+    public DeleteProductRequestHandler(IRepository<Product> repository, IStringLocalizer<DeleteProductRequestHandler> localizer) =>
+        (_repository, _localizer) = (repository, localizer);
 
     public async Task<Guid> Handle(DeleteProductRequest request, CancellationToken cancellationToken)
     {
-        var productToDelete = await _repository.RemoveByIdAsync<Product>(request.Id, cancellationToken);
+        var product = await _repository.GetByIdAsync(request.Id, cancellationToken);
 
-        productToDelete.DomainEvents.Add(new ProductDeletedEvent(productToDelete));
+        _ = product ?? throw new NotFoundException(_localizer["product.notfound"]);
 
-        await _repository.SaveChangesAsync(cancellationToken);
+        product.DomainEvents.Add(new ProductDeletedEvent(product));
+
+        await _repository.DeleteAsync(product, cancellationToken);
 
         return request.Id;
     }

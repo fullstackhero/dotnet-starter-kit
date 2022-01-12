@@ -1,10 +1,8 @@
 using DN.WebApi.Domain.Catalog.Brands;
-using DN.WebApi.Domain.Common.Contracts;
-using DN.WebApi.Domain.Multitenancy;
 
 namespace DN.WebApi.Domain.Catalog.Products;
 
-public class Product : AuditableEntity, IMustHaveTenant
+public class Product : AuditableEntity, IMustHaveTenant, IAggregateRoot
 {
     public string? Name { get; private set; }
     public string? Description { get; private set; }

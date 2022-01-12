@@ -1,7 +1,4 @@
 using DN.WebApi.Application.Identity.RoleClaims;
-using DN.WebApi.Shared.Authorization;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 
 namespace DN.WebApi.Host.Controllers.Identity;
 

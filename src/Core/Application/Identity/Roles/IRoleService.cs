@@ -1,5 +1,3 @@
-using DN.WebApi.Application.Common.Interfaces;
-
 namespace DN.WebApi.Application.Identity.Roles;
 
 public interface IRoleService : ITransientService
@@ -8,7 +6,7 @@ public interface IRoleService : ITransientService
 
     Task<List<PermissionDto>> GetPermissionsAsync(string id, CancellationToken cancellationToken);
 
-    Task<int> GetCountAsync();
+    Task<int> GetCountAsync(CancellationToken cancellationToken);
 
     Task<RoleDto> GetByIdAsync(string id);
 

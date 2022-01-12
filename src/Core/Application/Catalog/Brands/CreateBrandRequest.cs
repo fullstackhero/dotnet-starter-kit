@@ -1,7 +1,3 @@
-using DN.WebApi.Application.Common.Persistance;
-using DN.WebApi.Domain.Catalog.Brands;
-using MediatR;
-
 namespace DN.WebApi.Application.Catalog.Brands;
 
 public class CreateBrandRequest : IRequest<Guid>
@@ -12,9 +8,9 @@ public class CreateBrandRequest : IRequest<Guid>
 
 public class CreateBrandRequestHandler : IRequestHandler<CreateBrandRequest, Guid>
 {
-    private readonly IRepositoryAsync _repository;
+    private readonly IRepository<Brand> _repository;
 
-    public CreateBrandRequestHandler(IRepositoryAsync repository) => _repository = repository;
+    public CreateBrandRequestHandler(IRepository<Brand> repository) => _repository = repository;
 
     public async Task<Guid> Handle(CreateBrandRequest request, CancellationToken cancellationToken)
     {
@@ -22,9 +18,7 @@ public class CreateBrandRequestHandler : IRequestHandler<CreateBrandRequest, Gui
 
         brand.DomainEvents.Add(new BrandCreatedEvent(brand));
 
-        await _repository.CreateAsync(brand, cancellationToken);
-
-        await _repository.SaveChangesAsync(cancellationToken);
+        await _repository.AddAsync(brand, cancellationToken);
 
         return brand.Id;
     }

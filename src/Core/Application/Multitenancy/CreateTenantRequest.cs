@@ -1,8 +1,3 @@
-using DN.WebApi.Application.Common.Persistence;
-using DN.WebApi.Application.Identity.Users;
-using DN.WebApi.Domain.Multitenancy;
-using MediatR;
-
 namespace DN.WebApi.Application.Multitenancy;
 
 public class CreateTenantRequest : IRequest<Guid>
@@ -35,7 +30,6 @@ public class CreateTenantRequestHandler : IRequestHandler<CreateTenantRequest, G
         };
 
         await _repository.AddAsync(tenant, cancellationToken);
-        await _repository.SaveChangesAsync(cancellationToken);
 
         try
         {
@@ -44,7 +38,6 @@ public class CreateTenantRequestHandler : IRequestHandler<CreateTenantRequest, G
         catch
         {
             await _repository.DeleteAsync(tenant, cancellationToken);
-            await _repository.SaveChangesAsync(cancellationToken);
             throw;
         }
 

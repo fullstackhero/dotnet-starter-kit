@@ -6,7 +6,6 @@ using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Application.Common.Mailing;
 using DN.WebApi.Application.Identity;
 using DN.WebApi.Application.Identity.Users;
-using DN.WebApi.Application.Identity.Users.Password;
 using DN.WebApi.Domain.Common;
 using DN.WebApi.Infrastructure.Common;
 using DN.WebApi.Infrastructure.Mailing;

@@ -1,9 +1,4 @@
-﻿using DN.WebApi.Application.Common.Exceptions;
-using DN.WebApi.Application.Common.Persistence;
-using DN.WebApi.Domain.Multitenancy;
-using Mapster;
-using MediatR;
-using Microsoft.Extensions.Localization;
+﻿using Mapster;
 
 namespace DN.WebApi.Application.Multitenancy;
 
@@ -25,10 +20,8 @@ public class GetTenantByKeyRequestHandler : IRequestHandler<GetTenantByKeyReques
     public async Task<TenantDto> Handle(GetTenantByKeyRequest request, CancellationToken cancellationToken)
     {
         var tenant = await _repository.GetBySpecAsync(new TenantByKeySpec(request.Key), cancellationToken);
-        if (tenant is null)
-        {
-            throw new NotFoundException(string.Format(_localizer["entity.notfound"], typeof(Tenant).Name, request.Key));
-        }
+
+        _ = tenant ?? throw new NotFoundException(string.Format(_localizer["entity.notfound"], typeof(Tenant).Name, request.Key));
 
         return tenant.Adapt<TenantDto>();
     }

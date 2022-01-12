@@ -1,6 +1,4 @@
-﻿using DN.WebApi.Application.Common.Persistence;
-using Mapster;
-using MediatR;
+﻿using Mapster;
 
 namespace DN.WebApi.Application.Multitenancy;
 

@@ -1,8 +1,3 @@
-using DN.WebApi.Application.Common.Events;
-using DN.WebApi.Domain.Catalog.Products;
-using MediatR;
-using Microsoft.Extensions.Logging;
-
 namespace DN.WebApi.Application.Catalog.Products.EventHandlers;
 
 public class ProductCreatedEventHandler : INotificationHandler<EventNotification<ProductCreatedEvent>>

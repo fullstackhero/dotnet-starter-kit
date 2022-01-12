@@ -1,4 +1,4 @@
-using DN.WebApi.Application.Identity.Users;
+using DN.WebApi.Application.Common.Interfaces;
 using DN.WebApi.Infrastructure.Auth.AzureAd;
 using DN.WebApi.Infrastructure.Auth.Jwt;
 using DN.WebApi.Infrastructure.Auth.Permissions;

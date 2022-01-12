@@ -1,7 +1,4 @@
-using DN.WebApi.Application.Common.Validation;
-using FluentValidation;
-
-namespace DN.WebApi.Application.Identity.Users.Password;
+namespace DN.WebApi.Application.Identity.Users;
 
 public class ChangePasswordRequest
 {

@@ -1,5 +1,4 @@
-﻿using FluentValidation;
-using FluentValidation.Validators;
+﻿using FluentValidation.Validators;
 
 namespace DN.WebApi.Application.Common.Validation;
 

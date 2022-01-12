@@ -1,9 +1,3 @@
-using DN.WebApi.Application.Common.Exceptions;
-using DN.WebApi.Application.Common.Persistence;
-using DN.WebApi.Application.Common.Validation;
-using FluentValidation;
-using MediatR;
-
 namespace DN.WebApi.Application.Multitenancy;
 
 public class UpgradeSubscriptionRequest : IRequest<string>
@@ -28,15 +22,12 @@ public class UpgradeSubscriptionRequestHandler : IRequestHandler<UpgradeSubscrip
     public async Task<string> Handle(UpgradeSubscriptionRequest request, CancellationToken cancellationToken)
     {
         var tenant = await _repository.GetBySpecAsync(new TenantByKeySpec(request.TenantKey), cancellationToken);
-        if (tenant is null)
-        {
-            throw new NotFoundException("Tenant Not Found.");
-        }
+
+        _ = tenant ?? throw new NotFoundException("Tenant Not Found.");
 
         tenant.SetValidity(request.ExtendedExpiryDate);
 
         await _repository.UpdateAsync(tenant, cancellationToken);
-        await _repository.SaveChangesAsync(cancellationToken);
 
         return $"Tenant {request.TenantKey}'s Subscription Upgraded. Now Valid till {tenant.ValidUpto}.";
     }

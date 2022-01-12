@@ -1,5 +1,3 @@
-using DN.WebApi.Application.Common.FileStorage;
-
 namespace DN.WebApi.Application.Identity.Users;
 
 public class UpdateProfileRequest

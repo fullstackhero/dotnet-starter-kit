@@ -1,6 +1,3 @@
-using DN.WebApi.Application.Common.Validation;
-using FluentValidation;
-
 namespace DN.WebApi.Application.Identity.Tokens;
 
 public record TokenRequest(string Email, string Password);

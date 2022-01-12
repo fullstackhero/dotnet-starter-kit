@@ -1,4 +1,4 @@
-namespace DN.WebApi.Application.Identity.Users.Password;
+namespace DN.WebApi.Application.Identity.Users;
 
 public class ResetPasswordRequest
 {
