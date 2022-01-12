@@ -157,12 +157,12 @@ public abstract class BaseDbContext : IdentityDbContext<ApplicationUser, Applica
             }
         }
 
-        foreach (var auditEntry in trailEntries.Where(_ => !_.HasTemporaryProperties))
+        foreach (var auditEntry in trailEntries.Where(e => !e.HasTemporaryProperties))
         {
             AuditTrails.Add(auditEntry.ToAuditTrail());
         }
 
-        return trailEntries.Where(_ => _.HasTemporaryProperties).ToList();
+        return trailEntries.Where(e => e.HasTemporaryProperties).ToList();
     }
 
     private Task OnAfterSaveChangesAsync(List<AuditTrail> trailEntries, in CancellationToken cancellationToken = new())

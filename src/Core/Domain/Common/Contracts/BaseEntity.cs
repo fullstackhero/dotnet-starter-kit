@@ -1,4 +1,5 @@
 using MassTransit;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FSH.WebApi.Domain.Common.Contracts;
 
@@ -7,9 +8,10 @@ public abstract class BaseEntity : BaseEntity<DefaultIdType>
     protected BaseEntity() => Id = NewId.Next().ToGuid();
 }
 
-public abstract class BaseEntity<T> : IEntity<T>
+public abstract class BaseEntity<TId> : IEntity<TId>
 {
-    public T Id { get; protected set; } = default!;
+    public TId Id { get; protected set; } = default!;
 
-    public List<DomainEvent> DomainEvents = new();
+    [NotMapped]
+    public List<DomainEvent> DomainEvents { get; } = new();
 }
