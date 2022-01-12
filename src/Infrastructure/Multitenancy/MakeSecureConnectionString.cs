@@ -1,13 +1,13 @@
 using System.Data.SqlClient;
-using FSH.WebAPI.Application.Multitenancy;
-using FSH.WebAPI.Infrastructure.Common;
-using FSH.WebAPI.Infrastructure.Persistence;
+using FSH.WebApi.Application.Multitenancy;
+using FSH.WebApi.Infrastructure.Common;
+using FSH.WebApi.Infrastructure.Persistence;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
 using Npgsql;
 using Oracle.ManagedDataAccess.Client;
 
-namespace FSH.WebAPI.Infrastructure.Multitenancy;
+namespace FSH.WebApi.Infrastructure.Multitenancy;
 
 public class MakeSecureConnectionString : IMakeSecureConnectionString
 {

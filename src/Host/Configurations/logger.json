@@ -26,7 +26,7 @@
       }
     },
     "Properties": {
-      "Application": "FSH.WebAPI"
+      "Application": "FSH.WebApi"
     },
     "WriteTo": [
       {
@@ -52,7 +52,7 @@
         "Name": "Elasticsearch",
         "Args": {
           "nodeUris": "http://localhost:9200;",
-          "indexFormat": "FSH.WebAPI-logs-{0:yyyy.MM}",
+          "indexFormat": "FSH.WebApi-logs-{0:yyyy.MM}",
           "numberOfShards": 2,
           "numberOfReplicas": 1,
           "restrictedToMinimumLevel": "Information"

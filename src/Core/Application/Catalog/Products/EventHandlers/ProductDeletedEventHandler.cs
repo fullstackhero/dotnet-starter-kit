@@ -1,4 +1,4 @@
-namespace FSH.WebAPI.Application.Catalog.Products.EventHandlers;
+namespace FSH.WebApi.Application.Catalog.Products.EventHandlers;
 
 public class ProductDeletedEventHandler : INotificationHandler<EventNotification<ProductDeletedEvent>>
 {

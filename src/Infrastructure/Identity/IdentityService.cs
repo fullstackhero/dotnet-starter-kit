@@ -1,16 +1,16 @@
 using System.Security.Claims;
 using System.Text;
-using FSH.WebAPI.Application.Common.Exceptions;
-using FSH.WebAPI.Application.Common.FileStorage;
-using FSH.WebAPI.Application.Common.Interfaces;
-using FSH.WebAPI.Application.Common.Mailing;
-using FSH.WebAPI.Application.Identity;
-using FSH.WebAPI.Application.Identity.Users;
-using FSH.WebAPI.Domain.Common;
-using FSH.WebAPI.Infrastructure.Common;
-using FSH.WebAPI.Infrastructure.Mailing;
-using FSH.WebAPI.Infrastructure.Multitenancy;
-using FSH.WebAPI.Shared.Multitenancy;
+using FSH.WebApi.Application.Common.Exceptions;
+using FSH.WebApi.Application.Common.FileStorage;
+using FSH.WebApi.Application.Common.Interfaces;
+using FSH.WebApi.Application.Common.Mailing;
+using FSH.WebApi.Application.Identity;
+using FSH.WebApi.Application.Identity.Users;
+using FSH.WebApi.Domain.Common;
+using FSH.WebApi.Infrastructure.Common;
+using FSH.WebApi.Infrastructure.Mailing;
+using FSH.WebApi.Infrastructure.Multitenancy;
+using FSH.WebApi.Shared.Multitenancy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +18,7 @@ using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
 
-namespace FSH.WebAPI.Infrastructure.Identity;
+namespace FSH.WebApi.Infrastructure.Identity;
 
 public class IdentityService : IIdentityService
 {

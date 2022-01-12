@@ -1,6 +1,6 @@
-using FSH.WebAPI.Application.Identity.Users;
+using FSH.WebApi.Application.Identity.Users;
 
-namespace FSH.WebAPI.Host.Controllers.Identity;
+namespace FSH.WebApi.Host.Controllers.Identity;
 
 public sealed class IdentityController : VersionNeutralApiController
 {

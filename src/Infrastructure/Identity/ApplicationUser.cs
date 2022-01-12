@@ -1,7 +1,7 @@
-using FSH.WebAPI.Domain.Multitenancy;
+using FSH.WebApi.Domain.Multitenancy;
 using Microsoft.AspNetCore.Identity;
 
-namespace FSH.WebAPI.Infrastructure.Identity;
+namespace FSH.WebApi.Infrastructure.Identity;
 
 public class ApplicationUser : IdentityUser, IIdentityTenant
 {

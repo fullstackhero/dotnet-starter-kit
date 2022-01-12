@@ -1,4 +1,4 @@
-﻿namespace FSH.WebAPI.Application.Catalog.Products;
+﻿namespace FSH.WebApi.Application.Catalog.Products;
 
 public class ProductByIdWithBrandSpec : Specification<Product, ProductDto>, ISingleResultSpecification
 {

@@ -1,5 +1,5 @@
-﻿using FSH.WebAPI.Application.Multitenancy;
-using FSH.WebAPI.Infrastructure.Multitenancy;
+﻿using FSH.WebApi.Application.Multitenancy;
+using FSH.WebApi.Infrastructure.Multitenancy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Microsoft.DependencyInjection.Abstracts;

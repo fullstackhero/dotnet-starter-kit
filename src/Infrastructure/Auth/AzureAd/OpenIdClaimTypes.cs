@@ -1,4 +1,4 @@
-﻿namespace FSH.WebAPI.Infrastructure.Auth.AzureAd;
+﻿namespace FSH.WebApi.Infrastructure.Auth.AzureAd;
 
 internal static class OpenIdConnectClaimTypes
 {

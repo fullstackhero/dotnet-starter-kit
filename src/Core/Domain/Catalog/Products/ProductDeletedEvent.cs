@@ -1,4 +1,4 @@
-namespace FSH.WebAPI.Domain.Catalog.Products;
+namespace FSH.WebApi.Domain.Catalog.Products;
 
 public class ProductDeletedEvent : DomainEvent
 {

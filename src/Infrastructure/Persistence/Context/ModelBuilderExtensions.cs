@@ -1,10 +1,10 @@
 using System.Linq.Expressions;
-using FSH.WebAPI.Infrastructure.Identity;
+using FSH.WebApi.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 
-namespace FSH.WebAPI.Infrastructure.Persistence.Context;
+namespace FSH.WebApi.Infrastructure.Persistence.Context;
 
 public static class ModelBuilderExtensions
 {

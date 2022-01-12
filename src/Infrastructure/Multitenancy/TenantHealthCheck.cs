@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
-namespace FSH.WebAPI.Infrastructure.Multitenancy;
+namespace FSH.WebApi.Infrastructure.Multitenancy;
 
 public class TenantHealthCheck : IHealthCheck
 {

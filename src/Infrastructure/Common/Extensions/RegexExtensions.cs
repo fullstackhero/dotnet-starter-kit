@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace FSH.WebAPI.Infrastructure.Common.Extensions;
+namespace FSH.WebApi.Infrastructure.Common.Extensions;
 
 public static class RegexExtensions
 {

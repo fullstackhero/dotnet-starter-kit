@@ -1,4 +1,4 @@
-namespace FSH.WebAPI.Application.Common.Validation;
+namespace FSH.WebApi.Application.Common.Validation;
 
 public class CustomValidator<T> : AbstractValidator<T>
 {

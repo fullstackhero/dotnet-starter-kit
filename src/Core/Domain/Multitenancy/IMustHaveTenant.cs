@@ -1,4 +1,4 @@
-namespace FSH.WebAPI.Domain.Multitenancy;
+namespace FSH.WebApi.Domain.Multitenancy;
 
 public interface IMustHaveTenant
 {

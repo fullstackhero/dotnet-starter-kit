@@ -1,6 +1,6 @@
-using FSH.WebAPI.Shared.Multitenancy;
+using FSH.WebApi.Shared.Multitenancy;
 
-namespace FSH.WebAPI.Domain.Multitenancy;
+namespace FSH.WebApi.Domain.Multitenancy;
 
 public class Tenant : AuditableEntity, IAggregateRoot
 {

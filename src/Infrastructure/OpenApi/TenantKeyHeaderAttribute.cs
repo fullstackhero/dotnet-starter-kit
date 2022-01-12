@@ -1,6 +1,6 @@
-﻿using FSH.WebAPI.Shared.Multitenancy;
+﻿using FSH.WebApi.Shared.Multitenancy;
 
-namespace FSH.WebAPI.Infrastructure.OpenApi;
+namespace FSH.WebApi.Infrastructure.OpenApi;
 
 public class TenantKeyHeaderAttribute : SwaggerHeaderAttribute
 {

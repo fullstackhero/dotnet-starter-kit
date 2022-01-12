@@ -1,4 +1,4 @@
-namespace FSH.WebAPI.Infrastructure.SecurityHeaders;
+namespace FSH.WebApi.Infrastructure.SecurityHeaders;
 
 public class SecurityHeaderSettings
 {

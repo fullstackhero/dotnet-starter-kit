@@ -1,4 +1,4 @@
-namespace FSH.WebAPI.Application.Identity.Tokens;
+namespace FSH.WebApi.Application.Identity.Tokens;
 
 public interface ITokenService : ITransientService
 {

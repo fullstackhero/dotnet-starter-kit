@@ -1,18 +1,18 @@
 using Ardalis.Specification;
 using Ardalis.Specification.EntityFrameworkCore;
-using FSH.WebAPI.Application.Common.Exceptions;
-using FSH.WebAPI.Application.Common.Models;
-using FSH.WebAPI.Application.Common.Specification;
-using FSH.WebAPI.Application.Identity.Roles;
-using FSH.WebAPI.Application.Identity.Users;
-using FSH.WebAPI.Infrastructure.Persistence.Context;
-using FSH.WebAPI.Shared.Authorization;
+using FSH.WebApi.Application.Common.Exceptions;
+using FSH.WebApi.Application.Common.Models;
+using FSH.WebApi.Application.Common.Specification;
+using FSH.WebApi.Application.Identity.Roles;
+using FSH.WebApi.Application.Identity.Users;
+using FSH.WebApi.Infrastructure.Persistence.Context;
+using FSH.WebApi.Shared.Authorization;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 
-namespace FSH.WebAPI.Infrastructure.Identity;
+namespace FSH.WebApi.Infrastructure.Identity;
 
 public class UserService : IUserService
 {

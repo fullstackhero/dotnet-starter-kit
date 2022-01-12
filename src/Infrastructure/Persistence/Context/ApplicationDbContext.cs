@@ -1,13 +1,13 @@
 using System.Data;
-using FSH.WebAPI.Application.Common.Events;
-using FSH.WebAPI.Application.Common.Interfaces;
-using FSH.WebAPI.Domain.Catalog.Brands;
-using FSH.WebAPI.Domain.Catalog.Products;
-using FSH.WebAPI.Domain.Common.Contracts;
-using FSH.WebAPI.Infrastructure.Multitenancy;
+using FSH.WebApi.Application.Common.Events;
+using FSH.WebApi.Application.Common.Interfaces;
+using FSH.WebApi.Domain.Catalog.Brands;
+using FSH.WebApi.Domain.Catalog.Products;
+using FSH.WebApi.Domain.Common.Contracts;
+using FSH.WebApi.Infrastructure.Multitenancy;
 using Microsoft.EntityFrameworkCore;
 
-namespace FSH.WebAPI.Infrastructure.Persistence.Context;
+namespace FSH.WebApi.Infrastructure.Persistence.Context;
 
 public class ApplicationDbContext : BaseDbContext
 {

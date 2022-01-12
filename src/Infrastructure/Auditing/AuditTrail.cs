@@ -1,7 +1,7 @@
-using FSH.WebAPI.Application.Common.Interfaces;
+using FSH.WebApi.Application.Common.Interfaces;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
-namespace FSH.WebAPI.Infrastructure.Auditing;
+namespace FSH.WebApi.Infrastructure.Auditing;
 
 public class AuditTrail
 {

@@ -1,4 +1,4 @@
-﻿namespace FSH.WebAPI.Infrastructure.SecurityHeaders;
+﻿namespace FSH.WebApi.Infrastructure.SecurityHeaders;
 
 internal class HeaderNames
 {

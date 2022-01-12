@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 
-namespace FSH.WebAPI.Infrastructure.SecurityHeaders;
+namespace FSH.WebApi.Infrastructure.SecurityHeaders;
 
 internal static class Startup
 {

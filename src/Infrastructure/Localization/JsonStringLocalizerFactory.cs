@@ -1,7 +1,7 @@
-﻿using FSH.WebAPI.Application.Common.Caching;
+﻿using FSH.WebApi.Application.Common.Caching;
 using Microsoft.Extensions.Localization;
 
-namespace FSH.WebAPI.Infrastructure.Localization;
+namespace FSH.WebApi.Infrastructure.Localization;
 
 public class JsonStringLocalizerFactory : IStringLocalizerFactory
 {

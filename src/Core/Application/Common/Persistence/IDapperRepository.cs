@@ -1,6 +1,6 @@
 using System.Data;
 
-namespace FSH.WebAPI.Application.Common.Persistence;
+namespace FSH.WebApi.Application.Common.Persistence;
 
 public interface IDapperRepository : ITransientService
 {

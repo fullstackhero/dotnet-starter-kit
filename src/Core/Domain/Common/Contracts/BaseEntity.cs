@@ -1,6 +1,6 @@
 using MassTransit;
 
-namespace FSH.WebAPI.Domain.Common.Contracts;
+namespace FSH.WebApi.Domain.Common.Contracts;
 
 public abstract class BaseEntity : BaseEntity<DefaultIdType>
 {

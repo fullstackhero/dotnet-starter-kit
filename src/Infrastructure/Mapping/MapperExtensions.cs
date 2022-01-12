@@ -1,8 +1,8 @@
-using FSH.WebAPI.Application.Common.Models;
+using FSH.WebApi.Application.Common.Models;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 
-namespace FSH.WebAPI.Infrastructure.Mapping;
+namespace FSH.WebApi.Infrastructure.Mapping;
 
 public static class MapperExtensions
 {

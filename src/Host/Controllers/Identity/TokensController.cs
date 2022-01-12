@@ -1,6 +1,6 @@
-using FSH.WebAPI.Application.Identity.Tokens;
+using FSH.WebApi.Application.Identity.Tokens;
 
-namespace FSH.WebAPI.Host.Controllers.Identity;
+namespace FSH.WebApi.Host.Controllers.Identity;
 
 public sealed class TokensController : VersionNeutralApiController
 {

@@ -1,7 +1,7 @@
-﻿using FSH.WebAPI.Infrastructure.Middleware;
+﻿using FSH.WebApi.Infrastructure.Middleware;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 
-namespace FSH.WebAPI.Host.Controllers;
+namespace FSH.WebApi.Host.Controllers;
 
 #nullable disable
 

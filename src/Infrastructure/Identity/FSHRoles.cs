@@ -1,4 +1,4 @@
-namespace FSH.WebAPI.Infrastructure.Identity;
+namespace FSH.WebApi.Infrastructure.Identity;
 
 public static class FSHRoles
 {

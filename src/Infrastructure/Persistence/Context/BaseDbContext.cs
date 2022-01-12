@@ -1,16 +1,16 @@
-using FSH.WebAPI.Application.Common.Interfaces;
-using FSH.WebAPI.Domain.Common.Contracts;
-using FSH.WebAPI.Domain.Multitenancy;
-using FSH.WebAPI.Infrastructure.Auditing;
-using FSH.WebAPI.Infrastructure.Common;
-using FSH.WebAPI.Infrastructure.Identity;
-using FSH.WebAPI.Infrastructure.Multitenancy;
+using FSH.WebApi.Application.Common.Interfaces;
+using FSH.WebApi.Domain.Common.Contracts;
+using FSH.WebApi.Domain.Multitenancy;
+using FSH.WebApi.Infrastructure.Auditing;
+using FSH.WebApi.Infrastructure.Common;
+using FSH.WebApi.Infrastructure.Identity;
+using FSH.WebApi.Infrastructure.Multitenancy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
-namespace FSH.WebAPI.Infrastructure.Persistence.Context;
+namespace FSH.WebApi.Infrastructure.Persistence.Context;
 
 public abstract class BaseDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string, IdentityUserClaim<string>, IdentityUserRole<string>, IdentityUserLogin<string>, ApplicationRoleClaim, IdentityUserToken<string>>
 {

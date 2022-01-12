@@ -1,4 +1,4 @@
-namespace FSH.WebAPI.Application.Dashboard;
+namespace FSH.WebApi.Application.Dashboard;
 
 public class StatsDto
 {

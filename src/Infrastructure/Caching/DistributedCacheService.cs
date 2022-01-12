@@ -1,10 +1,10 @@
 using System.Text;
-using FSH.WebAPI.Application.Common.Caching;
-using FSH.WebAPI.Application.Common.Interfaces;
+using FSH.WebApi.Application.Common.Caching;
+using FSH.WebApi.Application.Common.Interfaces;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 
-namespace FSH.WebAPI.Infrastructure.Caching;
+namespace FSH.WebApi.Infrastructure.Caching;
 
 public class DistributedCacheService : ICacheService
 {

@@ -1,4 +1,4 @@
-namespace FSH.WebAPI.Application.Auditing;
+namespace FSH.WebApi.Application.Auditing;
 
 public class AuditDto
 {

@@ -1,6 +1,6 @@
 ﻿using Mapster;
 
-namespace FSH.WebAPI.Application.Multitenancy;
+namespace FSH.WebApi.Application.Multitenancy;
 
 public class GetAllTenantsRequest : IRequest<List<TenantDto>>
 {

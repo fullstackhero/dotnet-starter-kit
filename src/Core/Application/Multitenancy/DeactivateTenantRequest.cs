@@ -1,4 +1,4 @@
-namespace FSH.WebAPI.Application.Multitenancy;
+namespace FSH.WebApi.Application.Multitenancy;
 
 public class DeactivateTenantRequest : IRequest<string>
 {

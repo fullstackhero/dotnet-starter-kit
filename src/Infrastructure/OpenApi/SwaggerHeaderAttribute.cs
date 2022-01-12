@@ -1,4 +1,4 @@
-﻿namespace FSH.WebAPI.Infrastructure.OpenApi;
+﻿namespace FSH.WebApi.Infrastructure.OpenApi;
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
 public class SwaggerHeaderAttribute : Attribute

@@ -1,4 +1,4 @@
-namespace FSH.WebAPI.Application.Common.Caching;
+namespace FSH.WebApi.Application.Common.Caching;
 
 public static class CacheKeys
 {

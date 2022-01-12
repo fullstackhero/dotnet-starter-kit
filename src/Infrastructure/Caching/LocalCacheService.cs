@@ -1,8 +1,8 @@
-using FSH.WebAPI.Application.Common.Caching;
+using FSH.WebApi.Application.Common.Caching;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
-namespace FSH.WebAPI.Infrastructure.Caching;
+namespace FSH.WebApi.Infrastructure.Caching;
 
 public class LocalCacheService : ICacheService
 {

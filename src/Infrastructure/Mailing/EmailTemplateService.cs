@@ -1,8 +1,8 @@
 using System.Text;
-using FSH.WebAPI.Application.Common.Mailing;
+using FSH.WebApi.Application.Common.Mailing;
 using Microsoft.Extensions.Localization;
 
-namespace FSH.WebAPI.Infrastructure.Mailing;
+namespace FSH.WebApi.Infrastructure.Mailing;
 
 public class EmailTemplateService : IEmailTemplateService
 {

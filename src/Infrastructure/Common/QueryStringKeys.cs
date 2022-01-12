@@ -1,4 +1,4 @@
-﻿namespace FSH.WebAPI.Infrastructure.Common;
+﻿namespace FSH.WebApi.Infrastructure.Common;
 
 public static class QueryStringKeys
 {

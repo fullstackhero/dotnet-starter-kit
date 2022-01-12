@@ -1,16 +1,16 @@
-﻿using FSH.WebAPI.Domain.Multitenancy;
-using FSH.WebAPI.Infrastructure.Identity;
-using FSH.WebAPI.Infrastructure.Multitenancy;
-using FSH.WebAPI.Infrastructure.Persistence.Context;
-using FSH.WebAPI.Infrastructure.Seeding;
-using FSH.WebAPI.Shared.Multitenancy;
+﻿using FSH.WebApi.Domain.Multitenancy;
+using FSH.WebApi.Infrastructure.Identity;
+using FSH.WebApi.Infrastructure.Multitenancy;
+using FSH.WebApi.Infrastructure.Persistence.Context;
+using FSH.WebApi.Infrastructure.Seeding;
+using FSH.WebApi.Shared.Multitenancy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Serilog;
 
-namespace FSH.WebAPI.Infrastructure.Persistence;
+namespace FSH.WebApi.Infrastructure.Persistence;
 
 public static class DatabaseInitializer
 {

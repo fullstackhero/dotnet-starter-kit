@@ -1,15 +1,15 @@
 using System.Diagnostics.CodeAnalysis;
-using FSH.WebAPI.Application.Common.Caching;
-using FSH.WebAPI.Application.Common.Exceptions;
-using FSH.WebAPI.Application.Multitenancy;
-using FSH.WebAPI.Infrastructure.Persistence;
-using FSH.WebAPI.Infrastructure.Persistence.Context;
-using FSH.WebAPI.Shared.Multitenancy;
+using FSH.WebApi.Application.Common.Caching;
+using FSH.WebApi.Application.Common.Exceptions;
+using FSH.WebApi.Application.Multitenancy;
+using FSH.WebApi.Infrastructure.Persistence;
+using FSH.WebApi.Infrastructure.Persistence.Context;
+using FSH.WebApi.Shared.Multitenancy;
 using Mapster;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 
-namespace FSH.WebAPI.Infrastructure.Multitenancy;
+namespace FSH.WebApi.Infrastructure.Multitenancy;
 
 public class CurrentTenant : ICurrentTenant, ICurrentTenantInitializer
 {

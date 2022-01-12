@@ -1,12 +1,12 @@
 using System.Reflection;
-using FSH.WebAPI.Application.Common.Interfaces;
-using FSH.WebAPI.Domain.Catalog.Brands;
-using FSH.WebAPI.Domain.Multitenancy;
-using FSH.WebAPI.Infrastructure.Persistence.Context;
-using FSH.WebAPI.Infrastructure.Seeding;
+using FSH.WebApi.Application.Common.Interfaces;
+using FSH.WebApi.Domain.Catalog.Brands;
+using FSH.WebApi.Domain.Multitenancy;
+using FSH.WebApi.Infrastructure.Persistence.Context;
+using FSH.WebApi.Infrastructure.Seeding;
 using Microsoft.Extensions.Logging;
 
-namespace FSH.WebAPI.Infrastructure.Catalog;
+namespace FSH.WebApi.Infrastructure.Catalog;
 
 public class BrandSeeder : IDatabaseSeeder
 {

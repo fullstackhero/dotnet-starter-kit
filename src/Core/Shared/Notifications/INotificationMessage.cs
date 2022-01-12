@@ -1,4 +1,4 @@
-﻿namespace FSH.WebAPI.Shared.Notifications;
+﻿namespace FSH.WebApi.Shared.Notifications;
 
 public interface INotificationMessage
 {

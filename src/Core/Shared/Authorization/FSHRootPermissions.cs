@@ -1,4 +1,4 @@
-namespace FSH.WebAPI.Shared.Authorization;
+namespace FSH.WebApi.Shared.Authorization;
 
 public class FSHRootPermissions
 {

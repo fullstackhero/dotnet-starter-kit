@@ -1,6 +1,6 @@
-using FSH.WebAPI.Domain.Multitenancy;
+using FSH.WebApi.Domain.Multitenancy;
 
-namespace FSH.WebAPI.Infrastructure.Seeding;
+namespace FSH.WebApi.Infrastructure.Seeding;
 
 public interface IDatabaseSeeder
 {

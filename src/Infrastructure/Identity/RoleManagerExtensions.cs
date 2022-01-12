@@ -1,8 +1,8 @@
 using System.Security.Claims;
-using FSH.WebAPI.Shared.Authorization;
+using FSH.WebApi.Shared.Authorization;
 using Microsoft.AspNetCore.Identity;
 
-namespace FSH.WebAPI.Infrastructure.Identity;
+namespace FSH.WebApi.Infrastructure.Identity;
 
 public static class RoleManagerExtensions
 {

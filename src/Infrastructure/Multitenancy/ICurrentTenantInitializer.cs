@@ -1,4 +1,4 @@
-﻿namespace FSH.WebAPI.Infrastructure.Multitenancy;
+﻿namespace FSH.WebApi.Infrastructure.Multitenancy;
 
 public interface ICurrentTenantInitializer
 {

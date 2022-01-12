@@ -1,8 +1,8 @@
-﻿using FSH.WebAPI.Application.Common.Persistence;
-using FSH.WebAPI.Domain.Multitenancy;
-using FSH.WebAPI.Infrastructure.Persistence.Context;
+﻿using FSH.WebApi.Application.Common.Persistence;
+using FSH.WebApi.Domain.Multitenancy;
+using FSH.WebApi.Infrastructure.Persistence.Context;
 
-namespace FSH.WebAPI.Infrastructure.Persistence.Repository;
+namespace FSH.WebApi.Infrastructure.Persistence.Repository;
 
 public class TenantRepository : TenantManagementRepository<Tenant>, ITenantReadRepository, ITenantRepository
 {

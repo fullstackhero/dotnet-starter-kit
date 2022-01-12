@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 
-namespace FSH.WebAPI.Infrastructure.Auth.Permissions;
+namespace FSH.WebApi.Infrastructure.Auth.Permissions;
 
 internal class PermissionRequirement : IAuthorizationRequirement
 {

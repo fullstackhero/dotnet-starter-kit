@@ -6,7 +6,7 @@ using NSwag.Generation.AspNetCore;
 using NSwag.Generation.Processors;
 using NSwag.Generation.Processors.Contexts;
 
-namespace FSH.WebAPI.Infrastructure.OpenApi;
+namespace FSH.WebApi.Infrastructure.OpenApi;
 
 internal static class ObjectExtensions
 {

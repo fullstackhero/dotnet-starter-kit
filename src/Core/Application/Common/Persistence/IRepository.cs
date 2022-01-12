@@ -1,4 +1,4 @@
-﻿namespace FSH.WebAPI.Application.Common.Persistence;
+﻿namespace FSH.WebApi.Application.Common.Persistence;
 
 // The Repository for the Application Db
 // IRepositoryBase<T> is from Ardalis.Specification

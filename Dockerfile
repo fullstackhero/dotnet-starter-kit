@@ -38,4 +38,4 @@ ENV ASPNETCORE_URLS=https://+:5050;http://+:5060
 EXPOSE 5050
 EXPOSE 5060
 
-ENTRYPOINT ["dotnet", "FSH.WebAPI.Host.dll"]
+ENTRYPOINT ["dotnet", "FSH.WebApi.Host.dll"]

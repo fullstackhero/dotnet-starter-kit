@@ -1,26 +1,26 @@
-using FSH.WebAPI.Infrastructure.Auth;
-using FSH.WebAPI.Infrastructure.BackgroundJobs;
-using FSH.WebAPI.Infrastructure.Caching;
-using FSH.WebAPI.Infrastructure.Common;
-using FSH.WebAPI.Infrastructure.Cors;
-using FSH.WebAPI.Infrastructure.FileStorage;
-using FSH.WebAPI.Infrastructure.Localization;
-using FSH.WebAPI.Infrastructure.Mailing;
-using FSH.WebAPI.Infrastructure.Mapping;
-using FSH.WebAPI.Infrastructure.Middleware;
-using FSH.WebAPI.Infrastructure.Multitenancy;
-using FSH.WebAPI.Infrastructure.Notifications;
-using FSH.WebAPI.Infrastructure.OpenApi;
-using FSH.WebAPI.Infrastructure.Persistence;
-using FSH.WebAPI.Infrastructure.SecurityHeaders;
-using FSH.WebAPI.Infrastructure.Seeding;
+using FSH.WebApi.Infrastructure.Auth;
+using FSH.WebApi.Infrastructure.BackgroundJobs;
+using FSH.WebApi.Infrastructure.Caching;
+using FSH.WebApi.Infrastructure.Common;
+using FSH.WebApi.Infrastructure.Cors;
+using FSH.WebApi.Infrastructure.FileStorage;
+using FSH.WebApi.Infrastructure.Localization;
+using FSH.WebApi.Infrastructure.Mailing;
+using FSH.WebApi.Infrastructure.Mapping;
+using FSH.WebApi.Infrastructure.Middleware;
+using FSH.WebApi.Infrastructure.Multitenancy;
+using FSH.WebApi.Infrastructure.Notifications;
+using FSH.WebApi.Infrastructure.OpenApi;
+using FSH.WebApi.Infrastructure.Persistence;
+using FSH.WebApi.Infrastructure.SecurityHeaders;
+using FSH.WebApi.Infrastructure.Seeding;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace FSH.WebAPI.Infrastructure;
+namespace FSH.WebApi.Infrastructure;
 
 public static class Startup
 {

@@ -1,4 +1,4 @@
-using FSH.WebAPI.Infrastructure.Common;
+using FSH.WebApi.Infrastructure.Common;
 using Hangfire;
 using Hangfire.Console;
 using Hangfire.Console.Extensions;
@@ -10,7 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
-namespace FSH.WebAPI.Infrastructure.BackgroundJobs;
+namespace FSH.WebApi.Infrastructure.BackgroundJobs;
 
 internal static class Startup
 {

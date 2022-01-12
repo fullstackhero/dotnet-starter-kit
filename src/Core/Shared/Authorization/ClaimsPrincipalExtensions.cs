@@ -1,4 +1,4 @@
-using FSH.WebAPI.Shared.Authorization;
+using FSH.WebApi.Shared.Authorization;
 
 namespace System.Security.Claims;
 

@@ -1,6 +1,6 @@
-﻿using FSH.WebAPI.Application.Catalog.Brands;
+﻿using FSH.WebApi.Application.Catalog.Brands;
 
-namespace FSH.WebAPI.Host.Controllers.Catalog;
+namespace FSH.WebApi.Host.Controllers.Catalog;
 
 public class BrandsController : VersionedApiController
 {

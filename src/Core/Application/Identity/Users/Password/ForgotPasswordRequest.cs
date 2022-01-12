@@ -1,4 +1,4 @@
-namespace FSH.WebAPI.Application.Identity.Users;
+namespace FSH.WebApi.Application.Identity.Users;
 
 public class ForgotPasswordRequest
 {

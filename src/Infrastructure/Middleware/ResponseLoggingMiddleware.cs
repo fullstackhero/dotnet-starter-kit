@@ -1,9 +1,9 @@
-using FSH.WebAPI.Application.Common.Interfaces;
+using FSH.WebApi.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Serilog;
 using Serilog.Context;
 
-namespace FSH.WebAPI.Infrastructure.Middleware;
+namespace FSH.WebApi.Infrastructure.Middleware;
 
 public class ResponseLoggingMiddleware : IMiddleware
 {

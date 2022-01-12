@@ -1,8 +1,8 @@
-using FSH.WebAPI.Application.Multitenancy;
+using FSH.WebApi.Application.Multitenancy;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace FSH.WebAPI.Infrastructure.Multitenancy;
+namespace FSH.WebApi.Infrastructure.Multitenancy;
 
 internal static class Startup
 {

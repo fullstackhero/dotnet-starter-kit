@@ -1,13 +1,13 @@
 ﻿using System.Security.Claims;
-using FSH.WebAPI.Infrastructure.Common;
-using FSH.WebAPI.Infrastructure.Multitenancy;
-using FSH.WebAPI.Shared.Multitenancy;
+using FSH.WebApi.Infrastructure.Common;
+using FSH.WebApi.Infrastructure.Multitenancy;
+using FSH.WebApi.Shared.Multitenancy;
 using Hangfire.Client;
 using Hangfire.Logging;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace FSH.WebAPI.Infrastructure.BackgroundJobs;
+namespace FSH.WebApi.Infrastructure.BackgroundJobs;
 
 public class TenantJobFilter : IClientFilter
 {

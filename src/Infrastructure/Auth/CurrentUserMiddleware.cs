@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 
-namespace FSH.WebAPI.Infrastructure.Auth;
+namespace FSH.WebApi.Infrastructure.Auth;
 
 public class CurrentUserMiddleware : IMiddleware
 {

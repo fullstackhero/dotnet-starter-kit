@@ -1,6 +1,6 @@
-using FSH.WebAPI.Shared.Authorization;
+using FSH.WebApi.Shared.Authorization;
 
-namespace FSH.WebAPI.Infrastructure.Auth.Permissions;
+namespace FSH.WebApi.Infrastructure.Auth.Permissions;
 
 public static class DefaultPermissions
 {

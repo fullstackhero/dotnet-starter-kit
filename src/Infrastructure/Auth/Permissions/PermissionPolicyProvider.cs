@@ -1,8 +1,8 @@
-using FSH.WebAPI.Shared.Authorization;
+using FSH.WebApi.Shared.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 
-namespace FSH.WebAPI.Infrastructure.Auth.Permissions;
+namespace FSH.WebApi.Infrastructure.Auth.Permissions;
 
 internal class PermissionPolicyProvider : IAuthorizationPolicyProvider
 {

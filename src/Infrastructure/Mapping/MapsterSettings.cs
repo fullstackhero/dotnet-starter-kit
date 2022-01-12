@@ -1,8 +1,8 @@
-﻿using FSH.WebAPI.Application.Identity.Roles;
-using FSH.WebAPI.Infrastructure.Identity;
+﻿using FSH.WebApi.Application.Identity.Roles;
+using FSH.WebApi.Infrastructure.Identity;
 using Mapster;
 
-namespace FSH.WebAPI.Infrastructure.Mapping;
+namespace FSH.WebApi.Infrastructure.Mapping;
 
 public class MapsterSettings
 {
