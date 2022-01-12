@@ -2,6 +2,7 @@
 
 public interface IEntity
 {
+    List<DomainEvent> DomainEvents { get; }
 }
 
 public interface IEntity<T> : IEntity

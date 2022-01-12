@@ -55,7 +55,7 @@ public class ApplicationDbContext : BaseDbContext
 
         int results = await base.SaveChangesAsync(cancellationToken);
         if (_eventService == null) return results;
-        var entitiesWithEvents = ChangeTracker.Entries<BaseEntity>()
+        var entitiesWithEvents = ChangeTracker.Entries<IEntity>()
             .Select(e => e.Entity)
             .Where(e => e.DomainEvents.Count > 0)
             .ToArray();
