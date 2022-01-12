@@ -1,16 +1,16 @@
-using DN.WebApi.Application.Common.Persistence;
-using DN.WebApi.Domain.Catalog.Brands;
-using DN.WebApi.Domain.Catalog.Products;
-using DN.WebApi.Infrastructure.Common;
-using DN.WebApi.Infrastructure.Persistence.Context;
-using DN.WebApi.Infrastructure.Persistence.Repository;
+using FSH.WebAPI.Application.Common.Persistence;
+using FSH.WebAPI.Domain.Catalog.Brands;
+using FSH.WebAPI.Domain.Catalog.Products;
+using FSH.WebAPI.Infrastructure.Common;
+using FSH.WebAPI.Infrastructure.Persistence.Context;
+using FSH.WebAPI.Infrastructure.Persistence.Repository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Serilog;
 
-namespace DN.WebApi.Infrastructure.Persistence;
+namespace FSH.WebAPI.Infrastructure.Persistence;
 
 internal static class Startup
 {

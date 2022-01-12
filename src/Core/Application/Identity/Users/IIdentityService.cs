@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace DN.WebApi.Application.Identity.Users;
+namespace FSH.WebAPI.Application.Identity.Users;
 
 public interface IIdentityService : ITransientService
 {

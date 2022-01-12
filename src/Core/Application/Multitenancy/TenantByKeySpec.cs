@@ -1,4 +1,4 @@
-﻿namespace DN.WebApi.Application.Multitenancy;
+﻿namespace FSH.WebAPI.Application.Multitenancy;
 
 public class TenantByKeySpec : Specification<Tenant>, ISingleResultSpecification
 {

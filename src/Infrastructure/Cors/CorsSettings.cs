@@ -1,4 +1,4 @@
-namespace DN.WebApi.Infrastructure.Common.Settings;
+namespace FSH.WebAPI.Infrastructure.Common.Settings;
 
 public class CorsSettings
 {

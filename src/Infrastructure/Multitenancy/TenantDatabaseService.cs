@@ -1,9 +1,9 @@
-﻿using DN.WebApi.Application.Multitenancy;
-using DN.WebApi.Domain.Multitenancy;
-using DN.WebApi.Infrastructure.Persistence;
+﻿using FSH.WebAPI.Application.Multitenancy;
+using FSH.WebAPI.Domain.Multitenancy;
+using FSH.WebAPI.Infrastructure.Persistence;
 using Microsoft.Extensions.Options;
 
-namespace DN.WebApi.Infrastructure.Multitenancy;
+namespace FSH.WebAPI.Infrastructure.Multitenancy;
 
 internal class TenantDatabaseService : ITenantDatabaseService
 {

@@ -1,10 +1,10 @@
-﻿using DN.WebApi.Application.Multitenancy;
+﻿using FSH.WebAPI.Application.Multitenancy;
 using Infrastructure.Test.Multitenancy.Fixtures;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Microsoft.DependencyInjection.Abstracts;
 
-namespace DN.WebApi.Infrastructure.Multitenancy.Tests;
+namespace FSH.WebAPI.Infrastructure.Multitenancy.Tests;
 
 public class MakeSecureConnectionStringTests : TestBed<TestFixture>
 {

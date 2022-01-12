@@ -1,2 +1,2 @@
-﻿global using DN.WebApi.Domain.Common.Contracts;
-global using DN.WebApi.Domain.Multitenancy;
+﻿global using FSH.WebAPI.Domain.Common.Contracts;
+global using FSH.WebAPI.Domain.Multitenancy;

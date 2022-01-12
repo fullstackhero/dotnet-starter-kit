@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
-        <RootNamespace>DN.WebApi.Shared</RootNamespace>
-        <AssemblyName>DN.WebApi.Shared</AssemblyName>
+        <RootNamespace>FSH.WebAPI.Shared</RootNamespace>
+        <AssemblyName>FSH.WebAPI.Shared</AssemblyName>
     </PropertyGroup>
 </Project>

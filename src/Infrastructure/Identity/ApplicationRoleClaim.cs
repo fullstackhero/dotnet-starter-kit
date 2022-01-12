@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace DN.WebApi.Infrastructure.Identity;
+namespace FSH.WebAPI.Infrastructure.Identity;
 
 public class ApplicationRoleClaim : IdentityRoleClaim<string>
 {

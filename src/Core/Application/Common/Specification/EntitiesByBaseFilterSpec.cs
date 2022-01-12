@@ -1,4 +1,4 @@
-﻿namespace DN.WebApi.Application.Common.Specification;
+﻿namespace FSH.WebAPI.Application.Common.Specification;
 
 public class EntitiesByBaseFilterSpec<T, TResult> : Specification<T, TResult>
 {

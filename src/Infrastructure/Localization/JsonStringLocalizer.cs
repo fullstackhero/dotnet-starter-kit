@@ -1,10 +1,10 @@
 ﻿using System.Globalization;
-using DN.WebApi.Application.Common.Caching;
+using FSH.WebAPI.Application.Common.Caching;
 using Microsoft.Extensions.Localization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace DN.WebApi.Infrastructure.Localization;
+namespace FSH.WebAPI.Infrastructure.Localization;
 
 public class JsonStringLocalizer : IStringLocalizer
 {

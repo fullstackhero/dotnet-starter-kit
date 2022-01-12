@@ -1,7 +1,7 @@
-using DN.WebApi.Domain.Multitenancy;
+using FSH.WebAPI.Domain.Multitenancy;
 using Microsoft.EntityFrameworkCore;
 
-namespace DN.WebApi.Infrastructure.Persistence.Context;
+namespace FSH.WebAPI.Infrastructure.Persistence.Context;
 
 public class TenantManagementDbContext : DbContext
 {

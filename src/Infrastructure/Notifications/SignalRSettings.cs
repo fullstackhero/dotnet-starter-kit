@@ -1,4 +1,4 @@
-﻿namespace DN.WebApi.Infrastructure.Notifications;
+﻿namespace FSH.WebAPI.Infrastructure.Notifications;
 
 public class SignalRSettings
 {

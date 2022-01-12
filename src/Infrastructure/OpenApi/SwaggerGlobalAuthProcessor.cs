@@ -1,12 +1,12 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using System.Reflection;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using NSwag;
 using NSwag.Generation.AspNetCore;
 using NSwag.Generation.Processors;
 using NSwag.Generation.Processors.Contexts;
-using System.Reflection;
 
-namespace DN.WebApi.Infrastructure.OpenApi;
+namespace FSH.WebAPI.Infrastructure.OpenApi;
 
 internal static class ObjectExtensions
 {

@@ -1,4 +1,4 @@
-namespace DN.WebApi.Infrastructure.Caching;
+namespace FSH.WebAPI.Infrastructure.Caching;
 
 public class CacheSettings
 {

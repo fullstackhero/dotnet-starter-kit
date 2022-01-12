@@ -1,9 +1,9 @@
-using DN.WebApi.Application.Common.Interfaces;
+using FSH.WebAPI.Application.Common.Interfaces;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 
-namespace DN.WebApi.Infrastructure.Common.Services;
+namespace FSH.WebAPI.Infrastructure.Common.Services;
 
 public class NewtonSoftService : ISerializerService
 {

@@ -1,4 +1,4 @@
-namespace DN.WebApi.Application.Identity.RoleClaims;
+namespace FSH.WebAPI.Application.Identity.RoleClaims;
 
 public interface IRoleClaimsService : ITransientService
 {

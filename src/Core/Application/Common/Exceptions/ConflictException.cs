@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace DN.WebApi.Application.Common.Exceptions;
+namespace FSH.WebAPI.Application.Common.Exceptions;
 
 public class ConflictException : CustomException
 {

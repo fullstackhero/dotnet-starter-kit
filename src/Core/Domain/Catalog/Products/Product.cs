@@ -1,6 +1,6 @@
-using DN.WebApi.Domain.Catalog.Brands;
+using FSH.WebAPI.Domain.Catalog.Brands;
 
-namespace DN.WebApi.Domain.Catalog.Products;
+namespace FSH.WebAPI.Domain.Catalog.Products;
 
 public class Product : AuditableEntity, IMustHaveTenant, IAggregateRoot
 {

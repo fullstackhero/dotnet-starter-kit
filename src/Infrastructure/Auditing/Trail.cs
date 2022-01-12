@@ -1,6 +1,6 @@
-using DN.WebApi.Domain.Common.Contracts;
+using FSH.WebAPI.Domain.Common.Contracts;
 
-namespace DN.WebApi.Infrastructure.Auditing;
+namespace FSH.WebAPI.Infrastructure.Auditing;
 
 public class Trail : BaseEntity<Guid>
 {

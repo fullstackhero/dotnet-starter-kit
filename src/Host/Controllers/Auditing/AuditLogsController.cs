@@ -1,6 +1,6 @@
-using DN.WebApi.Application.Auditing;
+using FSH.WebAPI.Application.Auditing;
 
-namespace DN.WebApi.Host.Controllers.Identity;
+namespace FSH.WebAPI.Host.Controllers.Identity;
 
 [Route("api/audit-logs")]
 public class AuditLogsController : VersionNeutralApiController

@@ -2,21 +2,21 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using DN.WebApi.Application.Common.Exceptions;
-using DN.WebApi.Application.Identity.Tokens;
-using DN.WebApi.Infrastructure.Auth.Jwt;
-using DN.WebApi.Infrastructure.Mailing;
-using DN.WebApi.Infrastructure.Multitenancy;
-using DN.WebApi.Infrastructure.Persistence.Context;
-using DN.WebApi.Shared.Authorization;
-using DN.WebApi.Shared.Multitenancy;
+using FSH.WebAPI.Application.Common.Exceptions;
+using FSH.WebAPI.Application.Identity.Tokens;
+using FSH.WebAPI.Infrastructure.Auth.Jwt;
+using FSH.WebAPI.Infrastructure.Mailing;
+using FSH.WebAPI.Infrastructure.Multitenancy;
+using FSH.WebAPI.Infrastructure.Persistence.Context;
+using FSH.WebAPI.Shared.Authorization;
+using FSH.WebAPI.Shared.Multitenancy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
-namespace DN.WebApi.Infrastructure.Identity;
+namespace FSH.WebAPI.Infrastructure.Identity;
 
 public class TokenService : ITokenService
 {

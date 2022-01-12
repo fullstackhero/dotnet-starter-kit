@@ -1,17 +1,17 @@
-global using DN.WebApi.Application.Common.Interfaces;
-global using DN.WebApi.Application.Common.Models;
-global using DN.WebApi.Infrastructure.Auth.Permissions;
-global using DN.WebApi.Infrastructure.OpenApi;
-global using DN.WebApi.Shared.Authorization;
+global using FSH.WebAPI.Application.Common.Interfaces;
+global using FSH.WebAPI.Application.Common.Models;
+global using FSH.WebAPI.Infrastructure.Auth.Permissions;
+global using FSH.WebAPI.Infrastructure.OpenApi;
+global using FSH.WebAPI.Shared.Authorization;
 global using Microsoft.AspNetCore.Authorization;
 global using Microsoft.AspNetCore.Mvc;
 global using NSwag.Annotations;
-using DN.WebApi.Application;
-using DN.WebApi.Host.Configurations;
-using DN.WebApi.Host.Controllers;
-using DN.WebApi.Infrastructure;
-using DN.WebApi.Infrastructure.Persistence;
 using FluentValidation.AspNetCore;
+using FSH.WebAPI.Application;
+using FSH.WebAPI.Host.Configurations;
+using FSH.WebAPI.Host.Controllers;
+using FSH.WebAPI.Infrastructure;
+using FSH.WebAPI.Infrastructure.Persistence;
 using Serilog;
 
 [assembly: ApiConventionType(typeof(FSHApiConventions))]

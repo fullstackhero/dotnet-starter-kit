@@ -1,14 +1,14 @@
 using System.Data.SqlClient;
 using System.Security.Claims;
-using DN.WebApi.Domain.Multitenancy;
-using DN.WebApi.Infrastructure.Auth.Permissions;
-using DN.WebApi.Infrastructure.Common;
-using DN.WebApi.Infrastructure.Common.Extensions;
-using DN.WebApi.Infrastructure.Identity;
-using DN.WebApi.Infrastructure.Persistence.Context;
-using DN.WebApi.Infrastructure.Seeding;
-using DN.WebApi.Shared.Authorization;
-using DN.WebApi.Shared.Multitenancy;
+using FSH.WebAPI.Domain.Multitenancy;
+using FSH.WebAPI.Infrastructure.Auth.Permissions;
+using FSH.WebAPI.Infrastructure.Common;
+using FSH.WebAPI.Infrastructure.Common.Extensions;
+using FSH.WebAPI.Infrastructure.Identity;
+using FSH.WebAPI.Infrastructure.Persistence.Context;
+using FSH.WebAPI.Infrastructure.Seeding;
+using FSH.WebAPI.Shared.Authorization;
+using FSH.WebAPI.Shared.Multitenancy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +16,7 @@ using MySqlConnector;
 using Npgsql;
 using Serilog;
 
-namespace DN.WebApi.Infrastructure.Multitenancy;
+namespace FSH.WebAPI.Infrastructure.Multitenancy;
 
 public class TenantBootstrapper
 {

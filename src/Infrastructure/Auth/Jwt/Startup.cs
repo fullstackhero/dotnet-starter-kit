@@ -1,12 +1,12 @@
-﻿using DN.WebApi.Application.Common.Exceptions;
+﻿using System.Security.Claims;
+using System.Text;
+using FSH.WebAPI.Application.Common.Exceptions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using System.Security.Claims;
-using System.Text;
 
-namespace DN.WebApi.Infrastructure.Auth.Jwt;
+namespace FSH.WebAPI.Infrastructure.Auth.Jwt;
 
 internal static class Startup
 {

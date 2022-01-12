@@ -3,7 +3,7 @@ using NSwag;
 using NSwag.Generation.Processors;
 using NSwag.Generation.Processors.Contexts;
 
-namespace DN.WebApi.Infrastructure.OpenApi;
+namespace FSH.WebAPI.Infrastructure.OpenApi;
 
 public class SwaggerHeaderAttributeProcessor : IOperationProcessor
 {

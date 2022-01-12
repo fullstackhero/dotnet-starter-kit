@@ -1,4 +1,4 @@
-namespace DN.WebApi.Application.Common.Interfaces;
+namespace FSH.WebAPI.Application.Common.Interfaces;
 
 public interface ITransientService
 {

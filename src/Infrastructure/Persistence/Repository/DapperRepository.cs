@@ -1,12 +1,12 @@
-using Dapper;
-using DN.WebApi.Application.Common.Exceptions;
-using DN.WebApi.Application.Common.Persistence;
-using DN.WebApi.Domain.Common.Contracts;
-using DN.WebApi.Domain.Multitenancy;
-using DN.WebApi.Infrastructure.Persistence.Context;
 using System.Data;
+using Dapper;
+using FSH.WebAPI.Application.Common.Exceptions;
+using FSH.WebAPI.Application.Common.Persistence;
+using FSH.WebAPI.Domain.Common.Contracts;
+using FSH.WebAPI.Domain.Multitenancy;
+using FSH.WebAPI.Infrastructure.Persistence.Context;
 
-namespace DN.WebApi.Infrastructure.Persistence.Repository;
+namespace FSH.WebAPI.Infrastructure.Persistence.Repository;
 
 public class DapperRepository : IDapperRepository
 {

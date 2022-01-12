@@ -1,4 +1,4 @@
-namespace DN.WebApi.Application.Auditing;
+namespace FSH.WebAPI.Application.Auditing;
 
 public class GetMyAuditLogsRequest : IRequest<List<AuditDto>>
 {

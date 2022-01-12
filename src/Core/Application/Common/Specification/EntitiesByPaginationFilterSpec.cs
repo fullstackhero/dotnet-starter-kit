@@ -1,4 +1,4 @@
-﻿namespace DN.WebApi.Application.Common.Specification;
+﻿namespace FSH.WebAPI.Application.Common.Specification;
 
 public class EntitiesByPaginationFilterSpec<T, TResult> : EntitiesByBaseFilterSpec<T, TResult>
 {

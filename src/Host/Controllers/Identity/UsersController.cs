@@ -1,7 +1,7 @@
-using DN.WebApi.Application.Identity.Roles;
-using DN.WebApi.Application.Identity.Users;
+using FSH.WebAPI.Application.Identity.Roles;
+using FSH.WebAPI.Application.Identity.Users;
 
-namespace DN.WebApi.Host.Controllers.Identity;
+namespace FSH.WebAPI.Host.Controllers.Identity;
 
 public class UsersController : VersionNeutralApiController
 {

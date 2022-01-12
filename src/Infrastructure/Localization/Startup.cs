@@ -1,12 +1,12 @@
 ﻿using System.Globalization;
-using DN.WebApi.Infrastructure.Middleware;
+using FSH.WebAPI.Infrastructure.Middleware;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 
-namespace DN.WebApi.Infrastructure.Localization;
+namespace FSH.WebAPI.Infrastructure.Localization;
 
 internal static class Startup
 {

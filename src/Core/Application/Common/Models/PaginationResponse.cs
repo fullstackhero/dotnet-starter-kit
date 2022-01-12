@@ -1,4 +1,4 @@
-﻿namespace DN.WebApi.Application.Common.Models;
+﻿namespace FSH.WebAPI.Application.Common.Models;
 
 public class PaginationResponse<T>
 {

@@ -1,4 +1,4 @@
-namespace DN.WebApi.Application.Common.FileStorage;
+namespace FSH.WebAPI.Application.Common.FileStorage;
 
 public interface IFileStorageService : ITransientService
 {

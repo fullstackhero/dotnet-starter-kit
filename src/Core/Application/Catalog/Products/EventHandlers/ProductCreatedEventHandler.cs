@@ -1,4 +1,4 @@
-namespace DN.WebApi.Application.Catalog.Products.EventHandlers;
+namespace FSH.WebAPI.Application.Catalog.Products.EventHandlers;
 
 public class ProductCreatedEventHandler : INotificationHandler<EventNotification<ProductCreatedEvent>>
 {

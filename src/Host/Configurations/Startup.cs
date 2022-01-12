@@ -1,4 +1,4 @@
-namespace DN.WebApi.Host.Configurations;
+namespace FSH.WebAPI.Host.Configurations;
 
 internal static class Startup
 {

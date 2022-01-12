@@ -1,4 +1,4 @@
-namespace DN.WebApi.Infrastructure.OpenApi;
+namespace FSH.WebAPI.Infrastructure.OpenApi;
 
 public class SwaggerSettings
 {

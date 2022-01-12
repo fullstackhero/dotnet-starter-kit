@@ -1,4 +1,4 @@
-﻿namespace DN.WebApi.Infrastructure.Common;
+﻿namespace FSH.WebAPI.Infrastructure.Common;
 
 internal class DbProviderKeys
 {

@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace DN.WebApi.Shared.Authorization;
+namespace FSH.WebAPI.Shared.Authorization;
 
 public partial class FSHPermissions
 {

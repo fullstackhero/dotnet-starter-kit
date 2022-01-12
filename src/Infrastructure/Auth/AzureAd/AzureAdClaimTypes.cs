@@ -1,4 +1,4 @@
-﻿namespace DN.WebApi.Infrastructure.Auth.AzureAd;
+﻿namespace FSH.WebAPI.Infrastructure.Auth.AzureAd;
 
 internal static class AzureADClaimTypes
 {

@@ -1,4 +1,4 @@
-﻿namespace DN.WebApi.Host.Controllers;
+﻿namespace FSH.WebAPI.Host.Controllers;
 
 [Route("api/[controller]")]
 [ApiVersionNeutral]

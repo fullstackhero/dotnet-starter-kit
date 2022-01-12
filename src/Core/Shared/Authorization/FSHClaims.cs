@@ -1,4 +1,4 @@
-﻿namespace DN.WebApi.Shared.Authorization;
+﻿namespace FSH.WebAPI.Shared.Authorization;
 
 public static class FSHClaims
 {

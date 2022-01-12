@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 
-namespace DN.WebApi.Infrastructure.Auth.Permissions;
+namespace FSH.WebAPI.Infrastructure.Auth.Permissions;
 
 public class MustHavePermission : AuthorizeAttribute
 {

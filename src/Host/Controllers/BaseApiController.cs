@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace DN.WebApi.Host.Controllers;
+namespace FSH.WebAPI.Host.Controllers;
 
 [ApiController]
 public class BaseApiController : ControllerBase

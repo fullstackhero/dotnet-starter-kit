@@ -1,20 +1,20 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
-using DN.WebApi.Application.Common.Exceptions;
-using DN.WebApi.Application.Common.Persistence;
-using DN.WebApi.Application.Identity.Users;
-using DN.WebApi.Application.Multitenancy;
-using DN.WebApi.Domain.Multitenancy;
-using DN.WebApi.Infrastructure.Multitenancy;
-using DN.WebApi.Shared.Authorization;
-using DN.WebApi.Shared.Multitenancy;
+using FSH.WebAPI.Application.Common.Exceptions;
+using FSH.WebAPI.Application.Common.Persistence;
+using FSH.WebAPI.Application.Identity.Users;
+using FSH.WebAPI.Application.Multitenancy;
+using FSH.WebAPI.Domain.Multitenancy;
+using FSH.WebAPI.Infrastructure.Multitenancy;
+using FSH.WebAPI.Shared.Authorization;
+using FSH.WebAPI.Shared.Multitenancy;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Identity.Web;
 using Serilog;
 
-namespace DN.WebApi.Infrastructure.Auth.AzureAd;
+namespace FSH.WebAPI.Infrastructure.Auth.AzureAd;
 
 internal class AzureAdJwtBearerEvents : JwtBearerEvents
 {

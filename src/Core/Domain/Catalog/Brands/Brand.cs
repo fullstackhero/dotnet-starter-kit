@@ -1,4 +1,4 @@
-namespace DN.WebApi.Domain.Catalog.Brands;
+namespace FSH.WebAPI.Domain.Catalog.Brands;
 
 public class Brand : AuditableEntity, IMustHaveTenant, IAggregateRoot
 {

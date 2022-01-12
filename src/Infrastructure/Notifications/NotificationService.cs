@@ -1,9 +1,9 @@
-﻿using DN.WebApi.Application.Common.Interfaces;
-using DN.WebApi.Infrastructure.Multitenancy;
-using DN.WebApi.Shared.Notifications;
+﻿using FSH.WebAPI.Application.Common.Interfaces;
+using FSH.WebAPI.Infrastructure.Multitenancy;
+using FSH.WebAPI.Shared.Notifications;
 using Microsoft.AspNetCore.SignalR;
 
-namespace DN.WebApi.Infrastructure.Notifications;
+namespace FSH.WebAPI.Infrastructure.Notifications;
 
 public class NotificationService : INotificationService
 {

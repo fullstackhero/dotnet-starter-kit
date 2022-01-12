@@ -1,6 +1,6 @@
 ﻿using Mapster;
 
-namespace DN.WebApi.Application.Catalog.Products;
+namespace FSH.WebAPI.Application.Catalog.Products;
 
 public class GetProductViaDapperRequest : IRequest<ProductDto>
 {

@@ -1,4 +1,4 @@
-namespace DN.WebApi.Application.Common.Events;
+namespace FSH.WebAPI.Application.Common.Events;
 
 public interface IEventService : ITransientService
 {

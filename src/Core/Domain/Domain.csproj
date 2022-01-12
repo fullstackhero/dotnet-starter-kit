@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
-        <RootNamespace>DN.WebApi.Domain</RootNamespace>
-        <AssemblyName>DN.WebApi.Domain</AssemblyName>
+        <RootNamespace>FSH.WebAPI.Domain</RootNamespace>
+        <AssemblyName>FSH.WebAPI.Domain</AssemblyName>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="NewId" Version="4.0.0-develop.44" />

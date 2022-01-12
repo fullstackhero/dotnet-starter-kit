@@ -1,8 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using DN.WebApi.Infrastructure.Multitenancy;
+﻿using FSH.WebAPI.Application.Multitenancy;
+using FSH.WebAPI.Infrastructure.Multitenancy;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit.Microsoft.DependencyInjection.Abstracts;
-using DN.WebApi.Application.Multitenancy;
 
 namespace Infrastructure.Test.Multitenancy.Fixtures;
 

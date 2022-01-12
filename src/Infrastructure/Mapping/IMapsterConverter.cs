@@ -1,4 +1,4 @@
-﻿namespace DN.WebApi.Infrastructure.Mapping;
+﻿namespace FSH.WebAPI.Infrastructure.Mapping;
 
 public interface IMapsterConverter<T, TD>
 {

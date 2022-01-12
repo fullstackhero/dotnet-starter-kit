@@ -1,4 +1,4 @@
-namespace DN.WebApi.Application.Identity.RoleClaims;
+namespace FSH.WebAPI.Application.Identity.RoleClaims;
 
 public class RoleClaimRequest
 {
