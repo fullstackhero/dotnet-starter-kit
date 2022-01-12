@@ -1,6 +1,3 @@
-using DN.WebApi.Domain.Common.Contracts;
-using DN.WebApi.Domain.Multitenancy;
-
 namespace DN.WebApi.Domain.Catalog.Brands;
 
 public class Brand : AuditableEntity, IMustHaveTenant, IAggregateRoot

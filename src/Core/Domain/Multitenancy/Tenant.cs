@@ -1,4 +1,3 @@
-using DN.WebApi.Domain.Common.Contracts;
 using DN.WebApi.Shared.Multitenancy;
 
 namespace DN.WebApi.Domain.Multitenancy;
@@ -32,13 +31,13 @@ public class Tenant : AuditableEntity, IAggregateRoot
 
     public void AddValidity(int months)
     {
-        this.ValidUpto = this.ValidUpto.AddMonths(months);
+        ValidUpto = ValidUpto.AddMonths(months);
     }
 
     public void SetValidity(in DateTime validTill)
     {
-        if (this.ValidUpto < validTill)
-            this.ValidUpto = validTill;
+        if (ValidUpto < validTill)
+            ValidUpto = validTill;
         else
             throw new Exception("Subscription cannot be backdated.");
     }
@@ -46,12 +45,12 @@ public class Tenant : AuditableEntity, IAggregateRoot
     public void Activate()
     {
         if (Key == MultitenancyConstants.Root.Key) throw new Exception("Invalid Tenant");
-        this.IsActive = true;
+        IsActive = true;
     }
 
     public void Deactivate()
     {
         if (Key == MultitenancyConstants.Root.Key) throw new Exception("Invalid Tenant");
-        this.IsActive = false;
+        IsActive = false;
     }
 }

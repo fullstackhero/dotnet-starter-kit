@@ -1,6 +1,4 @@
 using DN.WebApi.Domain.Catalog.Brands;
-using DN.WebApi.Domain.Common.Contracts;
-using DN.WebApi.Domain.Multitenancy;
 
 namespace DN.WebApi.Domain.Catalog.Products;
 
