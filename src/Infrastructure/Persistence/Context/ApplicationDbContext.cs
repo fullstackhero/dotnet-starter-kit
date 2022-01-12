@@ -12,13 +12,14 @@ namespace FSH.WebApi.Infrastructure.Persistence.Context;
 public class ApplicationDbContext : BaseDbContext
 {
     private readonly IEventService _eventService;
-    public IDbConnection Connection => Database.GetDbConnection();
 
     public ApplicationDbContext(DbContextOptions options, ICurrentTenant currentTenant, ICurrentUser currentUser, ISerializerService serializer, IEventService eventService)
         : base(options, currentTenant, currentUser, serializer)
     {
         _eventService = eventService;
     }
+
+    public IDbConnection Connection => Database.GetDbConnection();
 
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Brand> Brands => Set<Brand>();
