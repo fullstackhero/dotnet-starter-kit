@@ -4,6 +4,7 @@ public interface ITenantService
 {
     Task<List<TenantDto>> GetAllAsync();
     Task<bool> ExistsWithIdAsync(string id);
+    Task<bool> ExistsWithNameAsync(string name);
     Task<TenantDto> GetByIdAsync(string id);
     Task<string> CreateAsync(string id, string name, string? connectionString, string adminEmail, CancellationToken cancellationToken);
     Task<string> ActivateAsync(string id);

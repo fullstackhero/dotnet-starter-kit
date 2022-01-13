@@ -35,6 +35,9 @@ internal class TenantService : ITenantService
     public async Task<bool> ExistsWithIdAsync(string id) =>
         await _tenantStore.TryGetAsync(id) is not null;
 
+    public async Task<bool> ExistsWithNameAsync(string name) =>
+        (await _tenantStore.GetAllAsync()).Any(t => t.Name == name);
+
     public async Task<TenantDto> GetByIdAsync(string id) =>
         (await GetTenantInfoAsync(id))
             .Adapt<TenantDto>();

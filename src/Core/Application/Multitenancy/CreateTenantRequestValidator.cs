@@ -13,9 +13,11 @@ public class CreateTenantRequestValidator : CustomValidator<CreateTenantRequest>
                 .WithMessage((_, id) => string.Format(localizer["tenant.alreadyexists"], id));
 
         RuleFor(t => t.Name).Cascade(CascadeMode.Stop)
-            .NotEmpty();
+            .NotEmpty()
+            .MustAsync(async (name, _) => !await tenantService.ExistsWithNameAsync(name!))
+                .WithMessage((_, name) => string.Format(localizer["tenant.alreadyexists"], name));
 
-        RuleFor(t => t.ConnectionString)
+        RuleFor(t => t.ConnectionString).Cascade(CascadeMode.Stop)
             .Must((_, cs) => string.IsNullOrWhiteSpace(cs) || connectionStringValidator.TryValidate(cs))
                 .WithMessage(localizer["invalid.connectionstring"]);
 
