@@ -1,103 +1,99 @@
+using Finbuckle.MultiTenant;
+using FSH.WebApi.Application.Common.Events;
 using FSH.WebApi.Application.Common.Interfaces;
 using FSH.WebApi.Domain.Common.Contracts;
-using FSH.WebApi.Domain.Multitenancy;
 using FSH.WebApi.Infrastructure.Auditing;
-using FSH.WebApi.Infrastructure.Common;
 using FSH.WebApi.Infrastructure.Identity;
-using FSH.WebApi.Infrastructure.Multitenancy;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.Extensions.Options;
 
 namespace FSH.WebApi.Infrastructure.Persistence.Context;
 
-public abstract class BaseDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string, IdentityUserClaim<string>, IdentityUserRole<string>, IdentityUserLogin<string>, ApplicationRoleClaim, IdentityUserToken<string>>
+public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUser, ApplicationRole, string, IdentityUserClaim<string>, IdentityUserRole<string>, IdentityUserLogin<string>, ApplicationRoleClaim, IdentityUserToken<string>>
 {
-    private readonly ICurrentTenant _currentTenant;
     protected readonly ICurrentUser _currentUser;
     private readonly ISerializerService _serializer;
+    private readonly DatabaseSettings _dbSettings;
+    private readonly IEventService _eventService;
 
-    protected BaseDbContext(DbContextOptions options, ICurrentTenant currentTenant, ICurrentUser currentUser, ISerializerService serializer)
-        : base(options)
+    protected BaseDbContext(ITenantInfo currentTenant, DbContextOptions options, ICurrentUser currentUser, ISerializerService serializer, IOptions<DatabaseSettings> dbSettings, IEventService eventService)
+        : base(currentTenant, options)
     {
-        _currentTenant = currentTenant;
-
-        // Can't have exceptions thrown here so we use TryGetKey
-        if (_currentTenant.TryGetKey(out string? key))
-        {
-            TenantKey = key;
-        }
-
         _currentUser = currentUser;
         _serializer = serializer;
+        _dbSettings = dbSettings.Value;
+        _eventService = eventService;
     }
 
     public DbSet<Trail> AuditTrails => Set<Trail>();
-    public string? TenantKey { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // QueryFilters need to be applied before base.OnModelCreating
+        modelBuilder.AppendGlobalQueryFilter<ISoftDelete>(s => s.DeletedOn == null);
+
         base.OnModelCreating(modelBuilder);
 
         modelBuilder
             .ApplyConfigurationsFromAssembly(GetType().Assembly)
-            .ApplyIdentityConfiguration()
-            .AppendGlobalQueryFilter<IMustHaveTenant>(b => b.Tenant == TenantKey)
-            .AppendGlobalQueryFilter<ISoftDelete>(s => s.DeletedOn == null)
-            .AppendGlobalQueryFilter<IIdentityTenant>(b => b.Tenant == TenantKey);
+            .ApplyIdentityConfiguration();
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.EnableSensitiveDataLogging();
-        if (_currentTenant.TryGetConnectionString(out string? tenantConnectionString))
+
+        if (!string.IsNullOrWhiteSpace(TenantInfo?.ConnectionString))
         {
-            switch (_currentTenant.DbProvider.ToLowerInvariant())
-            {
-                case DbProviderKeys.Npgsql:
-                    optionsBuilder.UseNpgsql(tenantConnectionString);
-                    break;
-                case DbProviderKeys.SqlServer:
-                    optionsBuilder.UseSqlServer(tenantConnectionString);
-                    break;
-                case DbProviderKeys.MySql:
-                    optionsBuilder.UseMySql(tenantConnectionString, ServerVersion.AutoDetect(tenantConnectionString));
-                    break;
-                case DbProviderKeys.Oracle:
-                    optionsBuilder.UseOracle(tenantConnectionString);
-                    break;
-            }
+            optionsBuilder.UseDatabase(_dbSettings.DBProvider!, TenantInfo.ConnectionString);
         }
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
     {
-        foreach (var entry in ChangeTracker.Entries<IMustHaveTenant>().ToList())
+        var auditEntries = HandleAuditingBeforeSaveChanges(_currentUser.GetUserId());
+
+        int result = await base.SaveChangesAsync(cancellationToken);
+
+        await HandleAuditingAfterSaveChangesAsync(auditEntries, cancellationToken);
+
+        await SendDomainEventsAsync();
+
+        return result;
+    }
+
+    private List<AuditTrail> HandleAuditingBeforeSaveChanges(in Guid userId)
+    {
+        foreach (var entry in ChangeTracker.Entries<IAuditableEntity>().ToList())
         {
             switch (entry.State)
             {
                 case EntityState.Added:
+                    entry.Entity.CreatedBy = userId;
+                    entry.Entity.LastModifiedBy = userId;
+                    break;
+
                 case EntityState.Modified:
-                    if (entry.Entity.Tenant == null)
+                    entry.Entity.LastModifiedOn = DateTime.UtcNow;
+                    entry.Entity.LastModifiedBy = userId;
+                    break;
+
+                case EntityState.Deleted:
+                    if (entry.Entity is ISoftDelete softDelete)
                     {
-                        entry.Entity.Tenant = TenantKey;
+                        softDelete.DeletedBy = userId;
+                        softDelete.DeletedOn = DateTime.UtcNow;
+                        entry.State = EntityState.Modified;
                     }
 
                     break;
             }
         }
 
-        var currentUserId = _currentUser.GetUserId();
-        var auditEntries = OnBeforeSaveChanges(currentUserId);
-        int result = await base.SaveChangesAsync(cancellationToken);
-        await OnAfterSaveChangesAsync(auditEntries, cancellationToken);
-        return result;
-    }
-
-    private List<AuditTrail> OnBeforeSaveChanges(in Guid userId)
-    {
         ChangeTracker.DetectChanges();
+
         var trailEntries = new List<AuditTrail>();
         foreach (var entry in ChangeTracker.Entries<IAuditableEntity>()
             .Where(e => e.State is EntityState.Added or EntityState.Deleted or EntityState.Modified)
@@ -165,7 +161,7 @@ public abstract class BaseDbContext : IdentityDbContext<ApplicationUser, Applica
         return trailEntries.Where(e => e.HasTemporaryProperties).ToList();
     }
 
-    private Task OnAfterSaveChangesAsync(List<AuditTrail> trailEntries, in CancellationToken cancellationToken = new())
+    private Task HandleAuditingAfterSaveChangesAsync(List<AuditTrail> trailEntries, in CancellationToken cancellationToken = new())
     {
         if (trailEntries == null || trailEntries.Count == 0)
             return Task.CompletedTask;
@@ -188,5 +184,23 @@ public abstract class BaseDbContext : IdentityDbContext<ApplicationUser, Applica
         }
 
         return SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task SendDomainEventsAsync()
+    {
+        var entitiesWithEvents = ChangeTracker.Entries<IEntity>()
+            .Select(e => e.Entity)
+            .Where(e => e.DomainEvents.Count > 0)
+            .ToArray();
+
+        foreach (var entity in entitiesWithEvents)
+        {
+            var domainEvents = entity.DomainEvents.ToArray();
+            entity.DomainEvents.Clear();
+            foreach (var domainEvent in domainEvents)
+            {
+                await _eventService.PublishAsync(domainEvent);
+            }
+        }
     }
 }

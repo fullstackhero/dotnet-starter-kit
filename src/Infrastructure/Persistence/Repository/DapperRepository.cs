@@ -1,18 +1,21 @@
 using System.Data;
 using Dapper;
+using Finbuckle.MultiTenant;
+using Finbuckle.MultiTenant.EntityFrameworkCore;
 using FSH.WebApi.Application.Common.Exceptions;
 using FSH.WebApi.Application.Common.Persistence;
 using FSH.WebApi.Domain.Common.Contracts;
-using FSH.WebApi.Domain.Multitenancy;
 using FSH.WebApi.Infrastructure.Persistence.Context;
 
-namespace FSH.WebApi.Infrastructure.Persistence.Repository;
+namespace FSH.WebApi.Infrastructure.Persistence;
 
 public class DapperRepository : IDapperRepository
 {
     private readonly ApplicationDbContext _dbContext;
+    private readonly ITenantInfo _tenantInfo;
 
-    public DapperRepository(ApplicationDbContext dbContext) => _dbContext = dbContext;
+    public DapperRepository(ApplicationDbContext dbContext, ITenantInfo tenantInfo) =>
+        (_dbContext, _tenantInfo) = (dbContext, tenantInfo);
 
     public async Task<IReadOnlyList<T>> QueryAsync<T>(string sql, object? param = null, IDbTransaction? transaction = null, CancellationToken cancellationToken = default)
     where T : class, IEntity =>
@@ -22,9 +25,9 @@ public class DapperRepository : IDapperRepository
     public async Task<T?> QueryFirstOrDefaultAsync<T>(string sql, object? param = null, IDbTransaction? transaction = null, CancellationToken cancellationToken = default)
     where T : class, IEntity
     {
-        if (typeof(IMustHaveTenant).IsAssignableFrom(typeof(T)))
+        if (_dbContext.Model.GetMultiTenantEntityTypes().FirstOrDefault(t => t.ClrType == typeof(T)) is not null)
         {
-            sql = sql.Replace("@tenant", _dbContext.TenantKey);
+            sql = sql.Replace("@tenant", _tenantInfo.Identifier);
         }
 
         var entity = await _dbContext.Connection.QueryFirstOrDefaultAsync<T>(sql, param, transaction);
@@ -35,9 +38,9 @@ public class DapperRepository : IDapperRepository
     public Task<T> QuerySingleAsync<T>(string sql, object? param = null, IDbTransaction? transaction = null, CancellationToken cancellationToken = default)
     where T : class, IEntity
     {
-        if (typeof(IMustHaveTenant).IsAssignableFrom(typeof(T)))
+        if (_dbContext.Model.GetMultiTenantEntityTypes().FirstOrDefault(t => t.ClrType == typeof(T)) is not null)
         {
-            sql = sql.Replace("@tenant", _dbContext.TenantKey);
+            sql = sql.Replace("@tenant", _tenantInfo.Identifier);
         }
 
         return _dbContext.Connection.QuerySingleAsync<T>(sql, param, transaction);

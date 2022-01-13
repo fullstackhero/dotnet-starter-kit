@@ -2,12 +2,11 @@ using FSH.WebApi.Domain.Catalog.Brands;
 
 namespace FSH.WebApi.Domain.Catalog.Products;
 
-public class Product : AuditableEntity, IMustHaveTenant, IAggregateRoot
+public class Product : AuditableEntity, IAggregateRoot
 {
     public string? Name { get; private set; }
     public string? Description { get; private set; }
     public decimal Rate { get; private set; }
-    public string? Tenant { get; set; }
     public string? ImagePath { get; set; }
     public Guid BrandId { get; set; }
     public virtual Brand Brand { get; set; } = default!;

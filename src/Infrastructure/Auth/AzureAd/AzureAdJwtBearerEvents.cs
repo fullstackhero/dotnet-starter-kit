@@ -1,11 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Security.Claims;
+﻿using Finbuckle.MultiTenant;
 using FSH.WebApi.Application.Common.Exceptions;
-using FSH.WebApi.Application.Common.Persistence;
 using FSH.WebApi.Application.Identity.Users;
-using FSH.WebApi.Application.Multitenancy;
-using FSH.WebApi.Domain.Multitenancy;
-using FSH.WebApi.Infrastructure.Multitenancy;
 using FSH.WebApi.Shared.Authorization;
 using FSH.WebApi.Shared.Multitenancy;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -13,6 +8,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Identity.Web;
 using Serilog;
+using System.Diagnostics.CodeAnalysis;
+using System.Security.Claims;
 
 namespace FSH.WebApi.Infrastructure.Auth.AzureAd;
 
@@ -45,23 +42,23 @@ internal class AzureAdJwtBearerEvents : JwtBearerEvents
     {
         var principal = context.Principal;
 
-        (string issuer, string objectId, string tenantKey) =
+        (string issuer, string objectId, string tenantId) =
             await GetValuesFromPrincipal(principal, context.HttpContext.RequestServices);
 
         // the caller comes from an admin-consented, recorded issuer
         var identity = principal.Identities.First();
 
         // Adding tenant claim
-        identity.AddClaim(new Claim(FSHClaims.Tenant, tenantKey));
+        identity.AddClaim(new Claim(FSHClaims.Tenant, tenantId));
 
-        // Creating a new scope and set the new tenant key so it gets picked up
+        // Creating a new scope so the new tenant id gets picked up via the tenant claim
+        // Todo: check if this is still necessary or can be replaced with
+        // _httpContextAccessor.HttpContext.TrySetTenantInfo(tenant, true)
         using var scope = context.HttpContext.RequestServices.CreateScope();
 
-        scope.ServiceProvider.GetRequiredService<ICurrentTenantInitializer>().SetCurrentTenant(tenantKey);
-
         // Lookup local user or create one if none exist.
-        var identityService = scope.ServiceProvider.GetRequiredService<IIdentityService>();
-        string userId = await identityService.GetOrCreateFromPrincipalAsync(principal);
+        string userId = await scope.ServiceProvider.GetRequiredService<IIdentityService>()
+            .GetOrCreateFromPrincipalAsync(principal);
 
         // we use the nameidentifier claim to store the user id
         var idClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
@@ -80,7 +77,7 @@ internal class AzureAdJwtBearerEvents : JwtBearerEvents
         _logger.TokenValidationSucceeded(objectId, issuer);
     }
 
-    private async Task<(string Issuer, string ObjectId, string TenantKey)> GetValuesFromPrincipal(
+    private async Task<(string Issuer, string ObjectId, string TenantId)> GetValuesFromPrincipal(
         [NotNull] ClaimsPrincipal? principal, IServiceProvider serviceProvider)
     {
         string? issuer = principal?.GetIssuer();
@@ -96,15 +93,16 @@ internal class AzureAdJwtBearerEvents : JwtBearerEvents
         // shortcut when the issuer is the rootIssuer defined in appsettings
         if (issuer == _config["SecuritySettings:AzureAd:RootIssuer"])
         {
-            return (issuer, objectId, MultitenancyConstants.Root.Key);
+            return (issuer, objectId, MultitenancyConstants.Root.Id);
         }
 
+        // Todo: check if this is still necessary
         // creating a scope otherwise the current scope gets polluted with an ApplicationDbContext without a tenant set
-        using var tenantScope = serviceProvider.CreateScope();
+        // using var scope = serviceProvider.CreateScope();
 
-        var tenantRepository = tenantScope.ServiceProvider.GetRequiredService<ITenantReadRepository>();
-        if (await tenantRepository.GetBySpecAsync(new TenantByIssuerSpec(issuer))
-            is not Tenant tenant || tenant.Key is null)
+        if (await serviceProvider.GetRequiredService<IMultiTenantStore<TenantInfo>>()
+                .TryGetByIdentifierAsync(issuer)
+            is not TenantInfo tenant)
         {
             _logger.TokenValidationFailed(objectId, issuer);
 
@@ -112,7 +110,7 @@ internal class AzureAdJwtBearerEvents : JwtBearerEvents
             throw new UnauthorizedException("Authentication Failed.");
         }
 
-        return (issuer, objectId, tenant.Key);
+        return (issuer, objectId, tenant.Id);
     }
 }
 

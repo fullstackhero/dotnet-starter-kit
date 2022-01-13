@@ -1,5 +1,5 @@
-﻿using FSH.WebApi.Application.Common.Interfaces;
-using FSH.WebApi.Infrastructure.Multitenancy;
+﻿using Finbuckle.MultiTenant;
+using FSH.WebApi.Application.Common.Interfaces;
 using FSH.WebApi.Shared.Notifications;
 using Microsoft.AspNetCore.SignalR;
 
@@ -8,9 +8,9 @@ namespace FSH.WebApi.Infrastructure.Notifications;
 public class NotificationService : INotificationService
 {
     private readonly IHubContext<NotificationHub> _notificationHubContext;
-    private readonly ICurrentTenant _currentTenant;
+    private readonly ITenantInfo _currentTenant;
 
-    public NotificationService(IHubContext<NotificationHub> notificationHubContext, ICurrentTenant currentTenant) =>
+    public NotificationService(IHubContext<NotificationHub> notificationHubContext, ITenantInfo currentTenant) =>
         (_notificationHubContext, _currentTenant) = (notificationHubContext, currentTenant);
 
     #region RootTenantMethods
@@ -26,11 +26,11 @@ public class NotificationService : INotificationService
     #endregion RootTenantMethods
 
     public Task SendMessageAsync(INotificationMessage notification, CancellationToken cancellationToken) =>
-        _notificationHubContext.Clients.Group($"GroupTenant-{_currentTenant.Key}")
+        _notificationHubContext.Clients.Group($"GroupTenant-{_currentTenant.Id}")
             .SendAsync(notification.MessageType, notification, cancellationToken);
 
     public Task SendMessageExceptAsync(INotificationMessage notification, IEnumerable<string> excludedConnectionIds, CancellationToken cancellationToken) =>
-        _notificationHubContext.Clients.GroupExcept($"GroupTenant-{_currentTenant.Key}", excludedConnectionIds)
+        _notificationHubContext.Clients.GroupExcept($"GroupTenant-{_currentTenant.Id}", excludedConnectionIds)
             .SendAsync(notification.MessageType, notification, cancellationToken);
     public Task SendMessageToGroupAsync(INotificationMessage notification, string group, CancellationToken cancellationToken) =>
         _notificationHubContext.Clients.Group(group)

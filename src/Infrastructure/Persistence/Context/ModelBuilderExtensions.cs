@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using Finbuckle.MultiTenant.EntityFrameworkCore;
 using FSH.WebApi.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -10,40 +11,38 @@ public static class ModelBuilderExtensions
 {
     public static ModelBuilder ApplyIdentityConfiguration(this ModelBuilder builder)
     {
-        builder.Entity<ApplicationUser>(entity =>
-        {
-            entity.ToTable("Users", "IDENTITY");
-            entity.Property(u => u.ObjectId).HasMaxLength(256);
-        });
-        builder.Entity<ApplicationRole>(entity =>
-        {
-            entity.ToTable("Roles", "IDENTITY");
-            entity.Metadata.RemoveIndex(new[] { entity.Property(r => r.NormalizedName).Metadata });
-            entity.HasIndex(r => new { r.NormalizedName, r.Tenant }).HasDatabaseName("RoleNameIndex").IsUnique();
-        });
-        builder.Entity<ApplicationRoleClaim>(entity =>
-        {
-            entity.ToTable("RoleClaims", "IDENTITY");
-        });
+        builder.Entity<ApplicationUser>()
+            .ToTable("Users", "IDENTITY")
+            .Property(u => u.ObjectId)
+                .HasMaxLength(256);
 
-        builder.Entity<IdentityUserRole<string>>(entity =>
-        {
-            entity.ToTable("UserRoles", "IDENTITY");
-        });
+        builder.Entity<ApplicationRole>()
+            .ToTable("Roles", "IDENTITY");
 
-        builder.Entity<IdentityUserClaim<string>>(entity =>
-        {
-            entity.ToTable("UserClaims", "IDENTITY");
-        });
+        builder.Entity<ApplicationRoleClaim>()
+            .ToTable("RoleClaims", "IDENTITY");
 
-        builder.Entity<IdentityUserLogin<string>>(entity =>
-        {
-            entity.ToTable("UserLogins", "IDENTITY");
-        });
-        builder.Entity<IdentityUserToken<string>>(entity =>
-        {
-            entity.ToTable("UserTokens", "IDENTITY");
-        });
+        builder.Entity<IdentityUserRole<string>>()
+            .ToTable("UserRoles", "IDENTITY");
+
+        builder.Entity<IdentityUserClaim<string>>()
+            .ToTable("UserClaims", "IDENTITY");
+
+        builder.Entity<IdentityUserLogin<string>>()
+            .ToTable("UserLogins", "IDENTITY");
+
+        builder.Entity<IdentityUserToken<string>>()
+            .ToTable("UserTokens", "IDENTITY");
+
+        // Make identity tables multi-tenant
+        builder.Entity<ApplicationUser>().IsMultiTenant();
+        builder.Entity<ApplicationRole>().IsMultiTenant().AdjustUniqueIndexes();
+        builder.Entity<ApplicationRoleClaim>().IsMultiTenant();
+        builder.Entity<IdentityUserRole<string>>().IsMultiTenant();
+        builder.Entity<IdentityUserClaim<string>>().IsMultiTenant();
+        builder.Entity<IdentityUserLogin<string>>().IsMultiTenant();
+        builder.Entity<IdentityUserToken<string>>().IsMultiTenant();
+
         return builder;
     }
 

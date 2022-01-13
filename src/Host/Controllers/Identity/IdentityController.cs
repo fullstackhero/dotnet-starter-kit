@@ -42,7 +42,7 @@ public sealed class IdentityController : VersionNeutralApiController
 
     [HttpPost("forgot-password")]
     [AllowAnonymous]
-    [TenantKeyHeader]
+    [TenantIdHeader]
     [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Post))]
     public Task<string> ForgotPasswordAsync(ForgotPasswordRequest request)
     {

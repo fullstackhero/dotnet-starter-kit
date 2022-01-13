@@ -2,39 +2,24 @@ namespace FSH.WebApi.Application.Multitenancy;
 
 public class DeactivateTenantRequest : IRequest<string>
 {
-    public string TenantKey { get; set; } = default!;
+    public string TenantId { get; set; } = default!;
 
-    public DeactivateTenantRequest(string tenantKey) => TenantKey = tenantKey;
+    public DeactivateTenantRequest(string tenantId) => TenantId = tenantId;
 }
 
 public class DeactivateTenantRequestValidator : CustomValidator<DeactivateTenantRequest>
 {
     public DeactivateTenantRequestValidator() =>
-        RuleFor(t => t.TenantKey)
+        RuleFor(t => t.TenantId)
             .NotEmpty();
 }
 
 public class DeactivateTenantRequestHandler : IRequestHandler<DeactivateTenantRequest, string>
 {
-    private readonly ITenantRepository _repository;
+    private readonly ITenantService _tenantService;
 
-    public DeactivateTenantRequestHandler(ITenantRepository repository) => _repository = repository;
+    public DeactivateTenantRequestHandler(ITenantService tenantService) => _tenantService = tenantService;
 
-    public async Task<string> Handle(DeactivateTenantRequest request, CancellationToken cancellationToken)
-    {
-        var tenant = await _repository.GetBySpecAsync(new TenantByKeySpec(request.TenantKey), cancellationToken);
-
-        _ = tenant ?? throw new NotFoundException("Tenant not Found.");
-
-        if (!tenant.IsActive)
-        {
-            throw new ConflictException("Tenant is already Deactivated.");
-        }
-
-        tenant.Deactivate();
-
-        await _repository.UpdateAsync(tenant, cancellationToken);
-
-        return $"Tenant {tenant.Key} is now Deactivated.";
-    }
+    public Task<string> Handle(DeactivateTenantRequest request, CancellationToken cancellationToken) =>
+        _tenantService.DeactivateAsync(request.TenantId);
 }

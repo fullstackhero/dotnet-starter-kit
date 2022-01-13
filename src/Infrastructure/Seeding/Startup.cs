@@ -6,7 +6,7 @@ internal static class Startup
 {
     public static IServiceCollection AddSeeders(this IServiceCollection services)
     {
-        var dbSeederType = typeof(IDatabaseSeeder);
+        var dbSeederType = typeof(ICustomSeeder);
         var dbSeeders = AppDomain.CurrentDomain.GetAssemblies()
             .SelectMany(s => s.GetTypes())
             .Where(p => dbSeederType.IsAssignableFrom(p))
@@ -25,6 +25,8 @@ internal static class Startup
                 services.AddTransient(dbSeeder.Service, dbSeeder.Implementation);
             }
         }
+
+        services.AddTransient<CustomSeederRunner>();
 
         return services;
     }

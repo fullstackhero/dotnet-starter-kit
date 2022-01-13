@@ -82,11 +82,11 @@ public class BrandGeneratorJob : IBrandGeneratorJob
     [AutomaticRetry(Attempts = 5)]
     public async Task CleanAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Initializing Job with Id: {JobId}", _performingContext.BackgroundJob.Id);
+        _logger.LogInformation("Initializing Job with Id: {jobId}", _performingContext.BackgroundJob.Id);
 
         var items = await _repository.ListAsync(new RandomBrandsSpec(), cancellationToken);
 
-        _logger.LogInformation("Brands Random: {BrandsCount} ", items.Count.ToString());
+        _logger.LogInformation("Brands Random: {brandsCount} ", items.Count.ToString());
 
         foreach (var item in items)
         {

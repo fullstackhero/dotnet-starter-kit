@@ -1,10 +1,9 @@
 namespace FSH.WebApi.Domain.Catalog.Brands;
 
-public class Brand : AuditableEntity, IMustHaveTenant, IAggregateRoot
+public class Brand : AuditableEntity, IAggregateRoot
 {
     public string? Name { get; private set; }
     public string? Description { get; private set; }
-    public string? Tenant { get; set; }
 
     public Brand(string? name, string? description)
     {
