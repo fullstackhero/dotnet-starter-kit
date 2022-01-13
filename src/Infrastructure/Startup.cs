@@ -55,7 +55,7 @@ public static class Startup
             .UseFileStorage()
             .UseExceptionMiddleware()
             .UseLocalization(config)
-            .UseRouting()    
+            .UseRouting()
             .UseCorsPolicy()
             .UseAuthentication()
             .UseCurrentUser()

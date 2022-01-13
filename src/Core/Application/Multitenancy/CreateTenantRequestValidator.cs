@@ -10,10 +10,19 @@ public class CreateTenantRequestValidator : CustomValidator<CreateTenantRequest>
         RuleFor(t => t.Key).Cascade(CascadeMode.Stop)
             .NotEmpty()
             .MustAsync(async (key, ct) => await repository.GetBySpecAsync(new TenantByKeySpec(key!), ct) is null)
-                .WithMessage((_, key) => string.Format(localizer["tenant.alreadyexists"], key));
+            .WithMessage((_, key) => string.Format(localizer["tenant.alreadyexists"], key));
 
         RuleFor(t => t.ConnectionString)
+            .NotEmpty()
             .Must((t, cs) => string.IsNullOrWhiteSpace(cs) || tenantDbService.TryValidateConnectionString(cs, t.Key))
-                .WithMessage(localizer["invalid.connectionstring"]);
+            .WithMessage(localizer["invalid.connectionstring"]);
+
+        RuleFor(t => t.Name)
+            .NotEmpty()
+            .MustAsync(async (name, ct) => await repository.GetBySpecAsync(new TenantByNameSpec(name!), ct) is null)
+            .WithMessage((_, name) => string.Format(localizer["tenant.alreadyexists"], name));
+
+        RuleFor(t => t.AdminEmail)
+            .NotEmpty().EmailAddress();
     }
 }
