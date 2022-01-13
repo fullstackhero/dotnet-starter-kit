@@ -5,48 +5,40 @@ namespace FSH.WebApi.Infrastructure.Common;
 
 internal static class Startup
 {
-    internal static IServiceCollection AddServices(this IServiceCollection services)
+    internal static IServiceCollection AddServices(this IServiceCollection services) =>
+        services
+            .AddServices(typeof(ITransientService), ServiceLifetime.Transient)
+            .AddServices(typeof(IScopedService), ServiceLifetime.Scoped);
+
+    internal static IServiceCollection AddServices(this IServiceCollection services, Type interfaceType, ServiceLifetime lifetime)
     {
-        var transientServiceType = typeof(ITransientService);
-        var transientServices = AppDomain.CurrentDomain.GetAssemblies()
-            .SelectMany(s => s.GetTypes())
-            .Where(p => transientServiceType.IsAssignableFrom(p))
-            .Where(t => t.IsClass && !t.IsAbstract)
-            .Select(t => new
-            {
-                Service = t.GetInterfaces().FirstOrDefault(),
-                Implementation = t
-            })
-            .Where(t => t.Service != null);
+        var interfaceTypes =
+            AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(s => s.GetTypes())
+                .Where(t => interfaceType.IsAssignableFrom(t)
+                            && t.IsClass && !t.IsAbstract)
+                .Select(t => new
+                {
+                    Service = t.GetInterfaces().FirstOrDefault(),
+                    Implementation = t
+                })
+                .Where(t => t.Service is not null
+                            && interfaceType.IsAssignableFrom(t.Service));
 
-        foreach (var transientService in transientServices)
+        foreach (var type in interfaceTypes)
         {
-            if (transientServiceType.IsAssignableFrom(transientService.Service))
-            {
-                services.AddTransient(transientService.Service, transientService.Implementation);
-            }
-        }
-
-        var scopedServiceType = typeof(IScopedService);
-        var scopedServices = AppDomain.CurrentDomain.GetAssemblies()
-            .SelectMany(s => s.GetTypes())
-            .Where(p => scopedServiceType.IsAssignableFrom(p))
-            .Where(t => t.IsClass && !t.IsAbstract)
-            .Select(t => new
-            {
-                Service = t.GetInterfaces().FirstOrDefault(),
-                Implementation = t
-            })
-            .Where(t => t.Service != null);
-
-        foreach (var scopedService in scopedServices)
-        {
-            if (scopedServiceType.IsAssignableFrom(scopedService.Service))
-            {
-                services.AddScoped(scopedService.Service, scopedService.Implementation);
-            }
+            services.AddService(type.Service!, type.Implementation, lifetime);
         }
 
         return services;
     }
+
+    internal static IServiceCollection AddService(this IServiceCollection services, Type serviceType, Type implementationType, ServiceLifetime lifetime) =>
+        lifetime switch
+        {
+            ServiceLifetime.Transient => services.AddTransient(serviceType, implementationType),
+            ServiceLifetime.Scoped => services.AddScoped(serviceType, implementationType),
+            ServiceLifetime.Singleton => services.AddSingleton(serviceType, implementationType),
+            _ => throw new ArgumentException("Invalid lifeTime", nameof(lifetime))
+        };
 }

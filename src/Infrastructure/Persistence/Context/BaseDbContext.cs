@@ -1,3 +1,4 @@
+using System.Data;
 using Finbuckle.MultiTenant;
 using FSH.WebApi.Application.Common.Events;
 using FSH.WebApi.Application.Common.Interfaces;
@@ -27,6 +28,9 @@ public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUs
         _eventService = eventService;
     }
 
+    // Used by Dapper
+    public IDbConnection Connection => Database.GetDbConnection();
+
     public DbSet<Trail> AuditTrails => Set<Trail>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -36,9 +40,7 @@ public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUs
 
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder
-            .ApplyConfigurationsFromAssembly(GetType().Assembly)
-            .ApplyIdentityConfiguration();
+        modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

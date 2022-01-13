@@ -2,7 +2,7 @@ using System.Reflection;
 using FSH.WebApi.Application.Common.Interfaces;
 using FSH.WebApi.Domain.Catalog.Brands;
 using FSH.WebApi.Infrastructure.Persistence.Context;
-using FSH.WebApi.Infrastructure.Seeding;
+using FSH.WebApi.Infrastructure.Persistence.Initialization;
 using Microsoft.Extensions.Logging;
 
 namespace FSH.WebApi.Infrastructure.Catalog;

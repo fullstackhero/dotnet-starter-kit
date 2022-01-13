@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
-namespace FSH.WebApi.Infrastructure.Seeding;
+namespace FSH.WebApi.Infrastructure.Persistence.Initialization;
 
-public class CustomSeederRunner
+internal class CustomSeederRunner
 {
     private readonly ICustomSeeder[] _seeders;
 

@@ -4,14 +4,14 @@ namespace FSH.WebApi.Domain.Catalog.Products;
 
 public class Product : AuditableEntity, IAggregateRoot
 {
-    public string? Name { get; private set; }
+    public string Name { get; private set; } = default!;
     public string? Description { get; private set; }
     public decimal Rate { get; private set; }
     public string? ImagePath { get; set; }
     public Guid BrandId { get; set; }
     public virtual Brand Brand { get; set; } = default!;
 
-    public Product(string? name, string? description, decimal rate, in Guid brandId, string? imagePath)
+    public Product(string name, string? description, decimal rate, in Guid brandId, string? imagePath)
     {
         Name = name;
         Description = description;
@@ -24,7 +24,7 @@ public class Product : AuditableEntity, IAggregateRoot
     {
     }
 
-    public Product Update(string? name, string? description, decimal rate, in Guid brandId, string? imagePath)
+    public Product Update(string name, string? description, decimal rate, in Guid brandId, string? imagePath)
     {
         if (name is not null && Name?.Equals(name) is not true) Name = name;
         if (description is not null && Description?.Equals(description) is not true) Description = description;
