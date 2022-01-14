@@ -1,6 +1,5 @@
 using System.Data;
 using Dapper;
-using Finbuckle.MultiTenant;
 using Finbuckle.MultiTenant.EntityFrameworkCore;
 using FSH.WebApi.Application.Common.Exceptions;
 using FSH.WebApi.Application.Common.Persistence;
@@ -12,10 +11,8 @@ namespace FSH.WebApi.Infrastructure.Persistence.Repository;
 public class DapperRepository : IDapperRepository
 {
     private readonly ApplicationDbContext _dbContext;
-    private readonly ITenantInfo _tenantInfo;
 
-    public DapperRepository(ApplicationDbContext dbContext, ITenantInfo tenantInfo) =>
-        (_dbContext, _tenantInfo) = (dbContext, tenantInfo);
+    public DapperRepository(ApplicationDbContext dbContext) => _dbContext = dbContext;
 
     public async Task<IReadOnlyList<T>> QueryAsync<T>(string sql, object? param = null, IDbTransaction? transaction = null, CancellationToken cancellationToken = default)
     where T : class, IEntity =>
@@ -27,7 +24,7 @@ public class DapperRepository : IDapperRepository
     {
         if (_dbContext.Model.GetMultiTenantEntityTypes().FirstOrDefault(t => t.ClrType == typeof(T)) is not null)
         {
-            sql = sql.Replace("@tenant", _tenantInfo.Id);
+            sql = sql.Replace("@tenant", _dbContext.TenantInfo.Id);
         }
 
         var entity = await _dbContext.Connection.QueryFirstOrDefaultAsync<T>(sql, param, transaction);
@@ -40,7 +37,7 @@ public class DapperRepository : IDapperRepository
     {
         if (_dbContext.Model.GetMultiTenantEntityTypes().FirstOrDefault(t => t.ClrType == typeof(T)) is not null)
         {
-            sql = sql.Replace("@tenant", _tenantInfo.Id);
+            sql = sql.Replace("@tenant", _dbContext.TenantInfo.Id);
         }
 
         return _dbContext.Connection.QuerySingleAsync<T>(sql, param, transaction);
