@@ -13,9 +13,9 @@ public class NotificationHub : Hub, ITransientService
     private readonly ITenantInfo? _currentTenant;
     private readonly ILogger<NotificationHub> _logger;
 
-    public NotificationHub(ITenantInfo? currenTenant, ILogger<NotificationHub> logger)
+    public NotificationHub(ITenantInfo? currentTenant, ILogger<NotificationHub> logger)
     {
-        _currentTenant = currenTenant;
+        _currentTenant = currentTenant;
         _logger = logger;
     }
 
