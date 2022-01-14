@@ -61,7 +61,7 @@ public static class Startup
     {
         using var scope = services.CreateScope();
 
-        await scope.ServiceProvider.GetRequiredService<DatabaseInitializer>()
+        await scope.ServiceProvider.GetRequiredService<IDatabaseInitializer>()
             .InitializeDatabasesAsync(default);
     }
 
