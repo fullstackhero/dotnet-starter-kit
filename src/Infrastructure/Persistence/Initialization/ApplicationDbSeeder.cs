@@ -30,6 +30,9 @@ internal class ApplicationDbSeeder
 
     public async Task SeedDatabaseAsync(CancellationToken cancellationToken)
     {
+        // TODO: we should probably convert these 2 to ICustomSeeder's as well... (which would go into identity in stead?)
+        //       so it's only RunSeedersAsync that's left,
+        //       then we can elliminate this class...
         await SeedRolesAsync();
         await SeedAdminUserAsync();
         await _seederRunner.RunSeedersAsync(cancellationToken);

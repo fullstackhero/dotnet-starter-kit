@@ -14,6 +14,7 @@ internal static class Startup
 {
     internal static IServiceCollection AddMultitenancy(this IServiceCollection services, IConfiguration config)
     {
+        // TODO: we should probably add the possibility to have separate settings for the tenants db and the application db
         var databaseSettings = config.GetSection(nameof(DatabaseSettings)).Get<DatabaseSettings>();
         string? rootConnectionString = databaseSettings.ConnectionString;
         if (string.IsNullOrEmpty(rootConnectionString)) throw new InvalidOperationException("DB ConnectionString is not configured.");
