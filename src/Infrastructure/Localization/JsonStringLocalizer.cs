@@ -61,14 +61,6 @@ public class JsonStringLocalizer : IStringLocalizer
         }
     }
 
-    // Dont know why this is here, but setting the defaultThreadCurrentCulture seems like a serious smell
-    // It's not used anywhere, so commenting out for now
-    // public IStringLocalizer WithCulture(CultureInfo culture)
-    // {
-    //    CultureInfo.DefaultThreadCurrentCulture = culture;
-    //    return new JsonStringLocalizer(_cache);
-    // }
-
     private string? GetString(string key)
     {
         string? stringCulture = GetSpecificCulture(key);

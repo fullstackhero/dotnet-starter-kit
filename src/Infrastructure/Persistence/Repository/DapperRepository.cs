@@ -7,7 +7,7 @@ using FSH.WebApi.Application.Common.Persistence;
 using FSH.WebApi.Domain.Common.Contracts;
 using FSH.WebApi.Infrastructure.Persistence.Context;
 
-namespace FSH.WebApi.Infrastructure.Persistence;
+namespace FSH.WebApi.Infrastructure.Persistence.Repository;
 
 public class DapperRepository : IDapperRepository
 {

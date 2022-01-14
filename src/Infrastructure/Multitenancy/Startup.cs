@@ -25,17 +25,7 @@ internal static class Startup
             .AddMultiTenant<FSHTenantInfo>()
                 .WithClaimStrategy(FSHClaims.Tenant)
                 .WithHeaderStrategy(MultitenancyConstants.TenantIdName)
-                .WithDelegateStrategy(context =>
-                {
-                    if (context is not HttpContext httpContext)
-                    {
-                        return Task.FromResult((string?)null);
-                    }
-
-                    httpContext.Request.Query.TryGetValue(MultitenancyConstants.TenantIdName, out StringValues tenantIdParam);
-
-                    return Task.FromResult(tenantIdParam.ToString());
-                })
+                .WithQueryStringStrategy(MultitenancyConstants.TenantIdName)
                 .WithEFCoreStore<TenantDbContext, FSHTenantInfo>()
                 .Services
             .AddScoped<ITenantService, TenantService>();
@@ -43,4 +33,17 @@ internal static class Startup
 
     internal static IApplicationBuilder UseMultiTenancy(this IApplicationBuilder app) =>
         app.UseMultiTenant();
+
+    private static FinbuckleMultiTenantBuilder<FSHTenantInfo> WithQueryStringStrategy(this FinbuckleMultiTenantBuilder<FSHTenantInfo> builder, string queryStringKey) =>
+        builder.WithDelegateStrategy(context =>
+        {
+            if (context is not HttpContext httpContext)
+            {
+                return Task.FromResult((string?)null);
+            }
+
+            httpContext.Request.Query.TryGetValue(queryStringKey, out StringValues tenantIdParam);
+
+            return Task.FromResult(tenantIdParam.ToString());
+        });
 }

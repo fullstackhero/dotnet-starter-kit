@@ -6,7 +6,7 @@ using FSH.WebApi.Infrastructure.Persistence.Context;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 
-namespace FSH.WebApi.Infrastructure.Persistence;
+namespace FSH.WebApi.Infrastructure.Persistence.Repository;
 
 // Inherited from Ardalis.Specification's RepositoryBase<T>
 public class ApplicationDbRepository<T> : RepositoryBase<T>, IReadRepository<T>, IRepository<T>
