@@ -27,7 +27,7 @@ public class DapperRepository : IDapperRepository
     {
         if (_dbContext.Model.GetMultiTenantEntityTypes().FirstOrDefault(t => t.ClrType == typeof(T)) is not null)
         {
-            sql = sql.Replace("@tenant", _tenantInfo.Identifier);
+            sql = sql.Replace("@tenant", _tenantInfo.Id);
         }
 
         var entity = await _dbContext.Connection.QueryFirstOrDefaultAsync<T>(sql, param, transaction);
@@ -40,7 +40,7 @@ public class DapperRepository : IDapperRepository
     {
         if (_dbContext.Model.GetMultiTenantEntityTypes().FirstOrDefault(t => t.ClrType == typeof(T)) is not null)
         {
-            sql = sql.Replace("@tenant", _tenantInfo.Identifier);
+            sql = sql.Replace("@tenant", _tenantInfo.Id);
         }
 
         return _dbContext.Connection.QuerySingleAsync<T>(sql, param, transaction);

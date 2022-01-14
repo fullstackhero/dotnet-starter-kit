@@ -6,6 +6,7 @@ public class CreateTenantRequest : IRequest<string>
     public string Name { get; set; } = default!;
     public string? ConnectionString { get; set; }
     public string AdminEmail { get; set; } = default!;
+    public string? Identifier { get; set; }
 }
 
 public class CreateTenantRequestHandler : IRequestHandler<CreateTenantRequest, string>
@@ -15,5 +16,5 @@ public class CreateTenantRequestHandler : IRequestHandler<CreateTenantRequest, s
     public CreateTenantRequestHandler(ITenantService tenantService) => _tenantService = tenantService;
 
     public Task<string> Handle(CreateTenantRequest request, CancellationToken cancellationToken) =>
-        _tenantService.CreateAsync(request.TenantId, request.Name, request.ConnectionString, request.AdminEmail, cancellationToken);
+        _tenantService.CreateAsync(request, cancellationToken);
 }

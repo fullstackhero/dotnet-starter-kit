@@ -42,9 +42,9 @@ internal class TenantService : ITenantService
         (await GetTenantInfoAsync(id))
             .Adapt<TenantDto>();
 
-    public async Task<string> CreateAsync(string id, string name, string? connectionString, string adminEmail, CancellationToken cancellationToken)
+    public async Task<string> CreateAsync(CreateTenantRequest request, CancellationToken cancellationToken)
     {
-        var tenant = new FSHTenantInfo(id, name, connectionString ?? string.Empty, adminEmail);
+        var tenant = new FSHTenantInfo(request.TenantId, request.Name, request.ConnectionString, request.AdminEmail, request.Identifier);
 
         await _tenantStore.TryAddAsync(tenant);
 
@@ -55,7 +55,7 @@ internal class TenantService : ITenantService
         }
         catch
         {
-            await _tenantStore.TryRemoveAsync(id);
+            await _tenantStore.TryRemoveAsync(request.TenantId);
             throw;
         }
 

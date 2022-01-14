@@ -9,12 +9,12 @@ public class FSHTenantInfo : ITenantInfo
     {
     }
 
-    public FSHTenantInfo(string id, string name, string connectionString, string adminEmail)
+    public FSHTenantInfo(string id, string name, string? connectionString, string adminEmail, string? identifier = null)
     {
         Id = id;
-        Identifier = id;
         Name = name;
-        ConnectionString = connectionString;
+        ConnectionString = connectionString ?? string.Empty;
+        Identifier = identifier ?? string.Empty;
         AdminEmail = adminEmail;
         IsActive = true;
 
@@ -22,10 +22,17 @@ public class FSHTenantInfo : ITenantInfo
         ValidUpto = DateTime.UtcNow.AddMonths(1);
     }
 
+    /// <summary>
+    /// The actual TenantId, which is also used in the TenantId shadow property on the multitenant entities.
+    /// </summary>
     public string Id { get; set; } = default!;
-    public string Identifier { get; set; } = default!;
     public string Name { get; set; } = default!;
     public string ConnectionString { get; set; } = default!;
+
+    /// <summary>
+    /// A custom identifier, is used now by AzureAd Authorization to store the AzureAd Tenant Issuer to map against.
+    /// </summary>
+    public string Identifier { get; set; } = default!;
 
     public string AdminEmail { get; private set; } = default!;
     public bool IsActive { get; private set; }
@@ -43,7 +50,7 @@ public class FSHTenantInfo : ITenantInfo
 
     public void Activate()
     {
-        if (Identifier == MultitenancyConstants.Root.Id)
+        if (Id == MultitenancyConstants.Root.Id)
         {
             throw new InvalidOperationException("Invalid Tenant");
         }
@@ -53,7 +60,7 @@ public class FSHTenantInfo : ITenantInfo
 
     public void Deactivate()
     {
-        if (Identifier == MultitenancyConstants.Root.Id)
+        if (Id == MultitenancyConstants.Root.Id)
         {
             throw new InvalidOperationException("Invalid Tenant");
         }
