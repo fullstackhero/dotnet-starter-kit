@@ -2,7 +2,7 @@ using FSH.WebApi.Domain.Common.Contracts;
 
 namespace FSH.WebApi.Infrastructure.Auditing;
 
-public class Trail : BaseEntity<Guid>
+public class Trail : BaseEntity
 {
     public Guid UserId { get; set; }
     public string? Type { get; set; }

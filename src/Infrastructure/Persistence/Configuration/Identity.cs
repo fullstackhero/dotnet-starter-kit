@@ -11,7 +11,7 @@ public class ApplicationUserConfig : IEntityTypeConfiguration<ApplicationUser>
     public void Configure(EntityTypeBuilder<ApplicationUser> builder)
     {
         builder
-            .ToTable("Users", "IDENTITY")
+            .ToTable("Users", SchemaNames.Identity)
             .IsMultiTenant();
 
         builder
@@ -24,7 +24,7 @@ public class ApplicationRoleConfig : IEntityTypeConfiguration<ApplicationRole>
 {
     public void Configure(EntityTypeBuilder<ApplicationRole> builder) =>
         builder
-            .ToTable("Roles", "IDENTITY")
+            .ToTable("Roles", SchemaNames.Identity)
             .IsMultiTenant()
                 .AdjustUniqueIndexes();
 }
@@ -33,7 +33,7 @@ public class ApplicationRoleClaimConfig : IEntityTypeConfiguration<ApplicationRo
 {
     public void Configure(EntityTypeBuilder<ApplicationRoleClaim> builder) =>
         builder
-            .ToTable("RoleClaims", "IDENTITY")
+            .ToTable("RoleClaims", SchemaNames.Identity)
             .IsMultiTenant();
 }
 
@@ -41,7 +41,7 @@ public class IdentityUserRoleConfig : IEntityTypeConfiguration<IdentityUserRole<
 {
     public void Configure(EntityTypeBuilder<IdentityUserRole<string>> builder) =>
         builder
-            .ToTable("UserRoles", "IDENTITY")
+            .ToTable("UserRoles", SchemaNames.Identity)
             .IsMultiTenant();
 }
 
@@ -49,7 +49,7 @@ public class IdentityUserClaimConfig : IEntityTypeConfiguration<IdentityUserClai
 {
     public void Configure(EntityTypeBuilder<IdentityUserClaim<string>> builder) =>
         builder
-            .ToTable("UserClaims", "IDENTITY")
+            .ToTable("UserClaims", SchemaNames.Identity)
             .IsMultiTenant();
 }
 
@@ -57,7 +57,7 @@ public class IdentityUserLoginConfig : IEntityTypeConfiguration<IdentityUserLogi
 {
     public void Configure(EntityTypeBuilder<IdentityUserLogin<string>> builder) =>
         builder
-            .ToTable("UserLogins", "IDENTITY")
+            .ToTable("UserLogins", SchemaNames.Identity)
             .IsMultiTenant();
 }
 
@@ -65,6 +65,6 @@ public class IdentityUserTokenConfig : IEntityTypeConfiguration<IdentityUserToke
 {
     public void Configure(EntityTypeBuilder<IdentityUserToken<string>> builder) =>
         builder
-            .ToTable("UserTokens", "IDENTITY")
+            .ToTable("UserTokens", SchemaNames.Identity)
             .IsMultiTenant();
 }

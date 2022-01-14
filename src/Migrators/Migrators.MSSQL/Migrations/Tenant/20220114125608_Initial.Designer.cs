@@ -4,16 +4,18 @@ using FSH.WebApi.Infrastructure.Multitenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Migrators.MSSQL.Migrations.Tenants
+namespace Migrators.MSSQL.Migrations.Tenant
 {
     [DbContext(typeof(TenantDbContext))]
-    partial class TenantDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220114125608_Initial")]
+    partial class Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -58,7 +60,7 @@ namespace Migrators.MSSQL.Migrations.Tenants
                     b.HasIndex("Identifier")
                         .IsUnique();
 
-                    b.ToTable("TenantInfo");
+                    b.ToTable("Tenants", "MultiTenancy");
                 });
 #pragma warning restore 612, 618
         }
