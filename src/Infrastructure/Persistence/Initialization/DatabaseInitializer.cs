@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 
 namespace FSH.WebApi.Infrastructure.Persistence.Initialization;
 
-internal class DatabaseInitializer
+internal class DatabaseInitializer : IDatabaseInitializer
 {
     private readonly TenantDbContext _tenantDbContext;
     private readonly IMultiTenantStore<FSHTenantInfo> _tenantStore;
@@ -46,23 +46,7 @@ internal class DatabaseInitializer
         _logger.LogInformation("To Sponsor this project, visit https://opencollective.com/fullstackhero");
     }
 
-    private async Task SeedRootTenantAsync()
-    {
-        if (await _tenantStore.TryGetAsync(MultitenancyConstants.Root.Id) is null)
-        {
-            var rootTenant = new FSHTenantInfo(
-                MultitenancyConstants.Root.Id,
-                MultitenancyConstants.Root.Name,
-                _dbSettings.ConnectionString!,
-                MultitenancyConstants.Root.EmailAddress);
-
-            rootTenant.SetValidity(DateTime.UtcNow.AddYears(1));
-
-            await _tenantStore.TryAddAsync(rootTenant);
-        }
-    }
-
-    private async Task InitializeApplicationDbForTenantAsync(FSHTenantInfo tenant, CancellationToken cancellationToken)
+    public async Task InitializeApplicationDbForTenantAsync(FSHTenantInfo tenant, CancellationToken cancellationToken)
     {
         // First create a new scope
         using var scope = _serviceProvider.CreateScope();
@@ -77,5 +61,21 @@ internal class DatabaseInitializer
         // Then run the initialization in the new scope
         await scope.ServiceProvider.GetRequiredService<ApplicationDbInitializer>()
             .InitializeAsync(cancellationToken);
+    }
+
+    private async Task SeedRootTenantAsync()
+    {
+        if (await _tenantStore.TryGetAsync(MultitenancyConstants.Root.Id) is null)
+        {
+            var rootTenant = new FSHTenantInfo(
+                MultitenancyConstants.Root.Id,
+                MultitenancyConstants.Root.Name,
+                _dbSettings.ConnectionString!,
+                MultitenancyConstants.Root.EmailAddress);
+
+            rootTenant.SetValidity(DateTime.UtcNow.AddYears(1));
+
+            await _tenantStore.TryAddAsync(rootTenant);
+        }
     }
 }

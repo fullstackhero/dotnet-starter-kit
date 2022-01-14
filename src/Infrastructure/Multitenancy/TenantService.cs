@@ -12,10 +12,10 @@ internal class TenantService : ITenantService
 {
     private readonly IMultiTenantStore<FSHTenantInfo> _tenantStore;
     private readonly IConnectionStringSecurer _csSecurer;
-    private readonly ApplicationDbInitializer _dbInitializer;
+    private readonly IDatabaseInitializer _dbInitializer;
     private readonly IStringLocalizer<TenantService> _localizer;
 
-    public TenantService(IMultiTenantStore<FSHTenantInfo> tenantStore, IConnectionStringSecurer csSecurer, ApplicationDbInitializer dbInitializer, IStringLocalizer<TenantService> localizer)
+    public TenantService(IMultiTenantStore<FSHTenantInfo> tenantStore, IConnectionStringSecurer csSecurer, IDatabaseInitializer dbInitializer, IStringLocalizer<TenantService> localizer)
     {
         _tenantStore = tenantStore;
         _csSecurer = csSecurer;
@@ -50,7 +50,8 @@ internal class TenantService : ITenantService
 
         try
         {
-            await _dbInitializer.InitializeAsync(cancellationToken);
+            // TODO: we should probably run this in a hangfire job?
+            await _dbInitializer.InitializeApplicationDbForTenantAsync(tenant, cancellationToken);
         }
         catch
         {
