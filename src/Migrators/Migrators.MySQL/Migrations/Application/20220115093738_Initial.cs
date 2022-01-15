@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -10,13 +11,20 @@ public partial class Initial : Migration
     protected override void Up(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.EnsureSchema(
-            name: "IDENTITY");
+            name: "Auditing");
+
+        migrationBuilder.EnsureSchema(
+            name: "Catalog");
+
+        migrationBuilder.EnsureSchema(
+            name: "Identity");
 
         migrationBuilder.AlterDatabase()
             .Annotation("MySql:CharSet", "utf8mb4");
 
         migrationBuilder.CreateTable(
             name: "AuditTrails",
+            schema: "Auditing",
             columns: table => new
             {
                 Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -43,14 +51,15 @@ public partial class Initial : Migration
 
         migrationBuilder.CreateTable(
             name: "Brands",
+            schema: "Catalog",
             columns: table => new
             {
                 Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                Name = table.Column<string>(type: "longtext", nullable: true)
+                Name = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: false)
                     .Annotation("MySql:CharSet", "utf8mb4"),
                 Description = table.Column<string>(type: "longtext", nullable: true)
                     .Annotation("MySql:CharSet", "utf8mb4"),
-                Tenant = table.Column<string>(type: "longtext", nullable: true)
+                TenantId = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false)
                     .Annotation("MySql:CharSet", "utf8mb4"),
                 CreatedBy = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                 CreatedOn = table.Column<DateTime>(type: "datetime(6)", nullable: false),
@@ -67,14 +76,14 @@ public partial class Initial : Migration
 
         migrationBuilder.CreateTable(
             name: "Roles",
-            schema: "IDENTITY",
+            schema: "Identity",
             columns: table => new
             {
                 Id = table.Column<string>(type: "varchar(255)", nullable: false)
                     .Annotation("MySql:CharSet", "utf8mb4"),
                 Description = table.Column<string>(type: "longtext", nullable: true)
                     .Annotation("MySql:CharSet", "utf8mb4"),
-                Tenant = table.Column<string>(type: "varchar(255)", nullable: true)
+                TenantId = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false)
                     .Annotation("MySql:CharSet", "utf8mb4"),
                 Name = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
                     .Annotation("MySql:CharSet", "utf8mb4"),
@@ -91,7 +100,7 @@ public partial class Initial : Migration
 
         migrationBuilder.CreateTable(
             name: "Users",
-            schema: "IDENTITY",
+            schema: "Identity",
             columns: table => new
             {
                 Id = table.Column<string>(type: "varchar(255)", nullable: false)
@@ -106,9 +115,9 @@ public partial class Initial : Migration
                 RefreshToken = table.Column<string>(type: "longtext", nullable: true)
                     .Annotation("MySql:CharSet", "utf8mb4"),
                 RefreshTokenExpiryTime = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                Tenant = table.Column<string>(type: "longtext", nullable: true)
-                    .Annotation("MySql:CharSet", "utf8mb4"),
                 ObjectId = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
+                    .Annotation("MySql:CharSet", "utf8mb4"),
+                TenantId = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false)
                     .Annotation("MySql:CharSet", "utf8mb4"),
                 UserName = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
                     .Annotation("MySql:CharSet", "utf8mb4"),
@@ -141,19 +150,20 @@ public partial class Initial : Migration
 
         migrationBuilder.CreateTable(
             name: "Products",
+            schema: "Catalog",
             columns: table => new
             {
                 Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                Name = table.Column<string>(type: "longtext", nullable: true)
+                Name = table.Column<string>(type: "varchar(1024)", maxLength: 1024, nullable: false)
                     .Annotation("MySql:CharSet", "utf8mb4"),
                 Description = table.Column<string>(type: "longtext", nullable: true)
                     .Annotation("MySql:CharSet", "utf8mb4"),
                 Rate = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
-                Tenant = table.Column<string>(type: "longtext", nullable: true)
-                    .Annotation("MySql:CharSet", "utf8mb4"),
-                ImagePath = table.Column<string>(type: "longtext", nullable: true)
+                ImagePath = table.Column<string>(type: "varchar(2048)", maxLength: 2048, nullable: true)
                     .Annotation("MySql:CharSet", "utf8mb4"),
                 BrandId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                TenantId = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false)
+                    .Annotation("MySql:CharSet", "utf8mb4"),
                 CreatedBy = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                 CreatedOn = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                 LastModifiedBy = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -167,6 +177,7 @@ public partial class Initial : Migration
                 table.ForeignKey(
                     name: "FK_Products_Brands_BrandId",
                     column: x => x.BrandId,
+                    principalSchema: "Catalog",
                     principalTable: "Brands",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Cascade);
@@ -175,14 +186,12 @@ public partial class Initial : Migration
 
         migrationBuilder.CreateTable(
             name: "RoleClaims",
-            schema: "IDENTITY",
+            schema: "Identity",
             columns: table => new
             {
                 Id = table.Column<int>(type: "int", nullable: false)
                     .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                 Description = table.Column<string>(type: "longtext", nullable: true)
-                    .Annotation("MySql:CharSet", "utf8mb4"),
-                Tenant = table.Column<string>(type: "longtext", nullable: true)
                     .Annotation("MySql:CharSet", "utf8mb4"),
                 Group = table.Column<string>(type: "longtext", nullable: true)
                     .Annotation("MySql:CharSet", "utf8mb4"),
@@ -192,6 +201,8 @@ public partial class Initial : Migration
                 LastModifiedBy = table.Column<string>(type: "longtext", nullable: true)
                     .Annotation("MySql:CharSet", "utf8mb4"),
                 LastModifiedOn = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                TenantId = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false)
+                    .Annotation("MySql:CharSet", "utf8mb4"),
                 RoleId = table.Column<string>(type: "varchar(255)", nullable: false)
                     .Annotation("MySql:CharSet", "utf8mb4"),
                 ClaimType = table.Column<string>(type: "longtext", nullable: true)
@@ -205,7 +216,7 @@ public partial class Initial : Migration
                 table.ForeignKey(
                     name: "FK_RoleClaims_Roles_RoleId",
                     column: x => x.RoleId,
-                    principalSchema: "IDENTITY",
+                    principalSchema: "Identity",
                     principalTable: "Roles",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Cascade);
@@ -214,7 +225,7 @@ public partial class Initial : Migration
 
         migrationBuilder.CreateTable(
             name: "UserClaims",
-            schema: "IDENTITY",
+            schema: "Identity",
             columns: table => new
             {
                 Id = table.Column<int>(type: "int", nullable: false)
@@ -224,6 +235,8 @@ public partial class Initial : Migration
                 ClaimType = table.Column<string>(type: "longtext", nullable: true)
                     .Annotation("MySql:CharSet", "utf8mb4"),
                 ClaimValue = table.Column<string>(type: "longtext", nullable: true)
+                    .Annotation("MySql:CharSet", "utf8mb4"),
+                TenantId = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false)
                     .Annotation("MySql:CharSet", "utf8mb4")
             },
             constraints: table =>
@@ -232,7 +245,7 @@ public partial class Initial : Migration
                 table.ForeignKey(
                     name: "FK_UserClaims_Users_UserId",
                     column: x => x.UserId,
-                    principalSchema: "IDENTITY",
+                    principalSchema: "Identity",
                     principalTable: "Users",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Cascade);
@@ -241,9 +254,11 @@ public partial class Initial : Migration
 
         migrationBuilder.CreateTable(
             name: "UserLogins",
-            schema: "IDENTITY",
+            schema: "Identity",
             columns: table => new
             {
+                Id = table.Column<string>(type: "varchar(255)", nullable: false)
+                    .Annotation("MySql:CharSet", "utf8mb4"),
                 LoginProvider = table.Column<string>(type: "varchar(255)", nullable: false)
                     .Annotation("MySql:CharSet", "utf8mb4"),
                 ProviderKey = table.Column<string>(type: "varchar(255)", nullable: false)
@@ -251,15 +266,17 @@ public partial class Initial : Migration
                 ProviderDisplayName = table.Column<string>(type: "longtext", nullable: true)
                     .Annotation("MySql:CharSet", "utf8mb4"),
                 UserId = table.Column<string>(type: "varchar(255)", nullable: false)
+                    .Annotation("MySql:CharSet", "utf8mb4"),
+                TenantId = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false)
                     .Annotation("MySql:CharSet", "utf8mb4")
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_UserLogins", x => new { x.LoginProvider, x.ProviderKey });
+                table.PrimaryKey("PK_UserLogins", x => x.Id);
                 table.ForeignKey(
                     name: "FK_UserLogins_Users_UserId",
                     column: x => x.UserId,
-                    principalSchema: "IDENTITY",
+                    principalSchema: "Identity",
                     principalTable: "Users",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Cascade);
@@ -268,12 +285,14 @@ public partial class Initial : Migration
 
         migrationBuilder.CreateTable(
             name: "UserRoles",
-            schema: "IDENTITY",
+            schema: "Identity",
             columns: table => new
             {
                 UserId = table.Column<string>(type: "varchar(255)", nullable: false)
                     .Annotation("MySql:CharSet", "utf8mb4"),
                 RoleId = table.Column<string>(type: "varchar(255)", nullable: false)
+                    .Annotation("MySql:CharSet", "utf8mb4"),
+                TenantId = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false)
                     .Annotation("MySql:CharSet", "utf8mb4")
             },
             constraints: table =>
@@ -282,14 +301,14 @@ public partial class Initial : Migration
                 table.ForeignKey(
                     name: "FK_UserRoles_Roles_RoleId",
                     column: x => x.RoleId,
-                    principalSchema: "IDENTITY",
+                    principalSchema: "Identity",
                     principalTable: "Roles",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Cascade);
                 table.ForeignKey(
                     name: "FK_UserRoles_Users_UserId",
                     column: x => x.UserId,
-                    principalSchema: "IDENTITY",
+                    principalSchema: "Identity",
                     principalTable: "Users",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Cascade);
@@ -298,7 +317,7 @@ public partial class Initial : Migration
 
         migrationBuilder.CreateTable(
             name: "UserTokens",
-            schema: "IDENTITY",
+            schema: "Identity",
             columns: table => new
             {
                 UserId = table.Column<string>(type: "varchar(255)", nullable: false)
@@ -308,6 +327,8 @@ public partial class Initial : Migration
                 Name = table.Column<string>(type: "varchar(255)", nullable: false)
                     .Annotation("MySql:CharSet", "utf8mb4"),
                 Value = table.Column<string>(type: "longtext", nullable: true)
+                    .Annotation("MySql:CharSet", "utf8mb4"),
+                TenantId = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false)
                     .Annotation("MySql:CharSet", "utf8mb4")
             },
             constraints: table =>
@@ -316,7 +337,7 @@ public partial class Initial : Migration
                 table.ForeignKey(
                     name: "FK_UserTokens_Users_UserId",
                     column: x => x.UserId,
-                    principalSchema: "IDENTITY",
+                    principalSchema: "Identity",
                     principalTable: "Users",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Cascade);
@@ -325,91 +346,102 @@ public partial class Initial : Migration
 
         migrationBuilder.CreateIndex(
             name: "IX_Products_BrandId",
+            schema: "Catalog",
             table: "Products",
             column: "BrandId");
 
         migrationBuilder.CreateIndex(
             name: "IX_RoleClaims_RoleId",
-            schema: "IDENTITY",
+            schema: "Identity",
             table: "RoleClaims",
             column: "RoleId");
 
         migrationBuilder.CreateIndex(
             name: "RoleNameIndex",
-            schema: "IDENTITY",
+            schema: "Identity",
             table: "Roles",
-            columns: new[] { "NormalizedName", "Tenant" },
+            columns: new[] { "NormalizedName", "TenantId" },
             unique: true);
 
         migrationBuilder.CreateIndex(
             name: "IX_UserClaims_UserId",
-            schema: "IDENTITY",
+            schema: "Identity",
             table: "UserClaims",
             column: "UserId");
 
         migrationBuilder.CreateIndex(
+            name: "IX_UserLogins_LoginProvider_ProviderKey_TenantId",
+            schema: "Identity",
+            table: "UserLogins",
+            columns: new[] { "LoginProvider", "ProviderKey", "TenantId" },
+            unique: true);
+
+        migrationBuilder.CreateIndex(
             name: "IX_UserLogins_UserId",
-            schema: "IDENTITY",
+            schema: "Identity",
             table: "UserLogins",
             column: "UserId");
 
         migrationBuilder.CreateIndex(
             name: "IX_UserRoles_RoleId",
-            schema: "IDENTITY",
+            schema: "Identity",
             table: "UserRoles",
             column: "RoleId");
 
         migrationBuilder.CreateIndex(
             name: "EmailIndex",
-            schema: "IDENTITY",
+            schema: "Identity",
             table: "Users",
             column: "NormalizedEmail");
 
         migrationBuilder.CreateIndex(
             name: "UserNameIndex",
-            schema: "IDENTITY",
+            schema: "Identity",
             table: "Users",
-            column: "NormalizedUserName",
+            columns: new[] { "NormalizedUserName", "TenantId" },
             unique: true);
     }
 
     protected override void Down(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.DropTable(
-            name: "AuditTrails");
+            name: "AuditTrails",
+            schema: "Auditing");
 
         migrationBuilder.DropTable(
-            name: "Products");
+            name: "Products",
+            schema: "Catalog");
 
         migrationBuilder.DropTable(
             name: "RoleClaims",
-            schema: "IDENTITY");
+            schema: "Identity");
 
         migrationBuilder.DropTable(
             name: "UserClaims",
-            schema: "IDENTITY");
+            schema: "Identity");
 
         migrationBuilder.DropTable(
             name: "UserLogins",
-            schema: "IDENTITY");
+            schema: "Identity");
 
         migrationBuilder.DropTable(
             name: "UserRoles",
-            schema: "IDENTITY");
+            schema: "Identity");
 
         migrationBuilder.DropTable(
             name: "UserTokens",
-            schema: "IDENTITY");
+            schema: "Identity");
 
         migrationBuilder.DropTable(
-            name: "Brands");
+            name: "Brands",
+            schema: "Catalog");
 
         migrationBuilder.DropTable(
             name: "Roles",
-            schema: "IDENTITY");
+            schema: "Identity");
 
         migrationBuilder.DropTable(
             name: "Users",
-            schema: "IDENTITY");
+            schema: "Identity");
     }
 }
