@@ -48,9 +48,9 @@ internal class TenantService : ITenantService
 
         await _tenantStore.TryAddAsync(tenant);
 
+        // TODO: run this in a hangfire job? will then have to send mail when it's ready or not
         try
         {
-            // TODO: we should probably run this in a hangfire job?
             await _dbInitializer.InitializeApplicationDbForTenantAsync(tenant, cancellationToken);
         }
         catch
