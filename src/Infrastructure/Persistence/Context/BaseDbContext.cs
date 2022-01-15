@@ -45,6 +45,7 @@ public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUs
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
+        // TODO: We want this only for development probably... maybe better make it a configurable in logger.json config?
         optionsBuilder.EnableSensitiveDataLogging();
 
         if (!string.IsNullOrWhiteSpace(TenantInfo?.ConnectionString))
@@ -166,7 +167,9 @@ public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUs
     private Task HandleAuditingAfterSaveChangesAsync(List<AuditTrail> trailEntries, in CancellationToken cancellationToken = new())
     {
         if (trailEntries == null || trailEntries.Count == 0)
+        {
             return Task.CompletedTask;
+        }
 
         foreach (var entry in trailEntries)
         {
