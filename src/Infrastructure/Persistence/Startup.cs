@@ -20,7 +20,7 @@ internal static class Startup
 
     internal static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration config)
     {
-        services.Configure<DatabaseSettings>(config.GetSection(nameof(DatabaseSettings)));
+        // TODO: there must be a cleaner way to do IOptions validation...
         var databaseSettings = config.GetSection(nameof(DatabaseSettings)).Get<DatabaseSettings>();
         string? rootConnectionString = databaseSettings.ConnectionString;
         if (string.IsNullOrEmpty(rootConnectionString)) throw new InvalidOperationException("DB ConnectionString is not configured.");
@@ -29,6 +29,8 @@ internal static class Startup
         _logger.Information($"Current DB Provider : {dbProvider}");
 
         return services
+            .Configure<DatabaseSettings>(config.GetSection(nameof(DatabaseSettings)))
+
             .AddDbContext<ApplicationDbContext>(m => m.UseDatabase(dbProvider, rootConnectionString))
 
             .AddTransient<IDatabaseInitializer, DatabaseInitializer>()
@@ -40,7 +42,7 @@ internal static class Startup
             .AddTransient<IConnectionStringSecurer, ConnectionStringSecurer>()
             .AddTransient<IConnectionStringValidator, ConnectionStringValidator>()
 
-            // Add ApplicationDb Repositories
+            // Add Repositories
             .AddScoped(typeof(IRepository<>), typeof(ApplicationDbRepository<>))
 
             // Add ReadRepositories
@@ -57,16 +59,20 @@ internal static class Startup
                 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
                 return builder.UseNpgsql(connectionString, e =>
                      e.MigrationsAssembly("Migrators.PostgreSQL"));
+
             case DbProviderKeys.SqlServer:
                 return builder.UseSqlServer(connectionString, e =>
                      e.MigrationsAssembly("Migrators.MSSQL"));
+
             case DbProviderKeys.MySql:
                 return builder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), e =>
                      e.MigrationsAssembly("Migrators.MySQL")
                       .SchemaBehavior(MySqlSchemaBehavior.Ignore));
+
             case DbProviderKeys.Oracle:
                 return builder.UseOracle(connectionString, e =>
                      e.MigrationsAssembly("Migrators.Oracle"));
+
             default:
                 throw new InvalidOperationException($"DB Provider {dbProvider} is not supported.");
         }

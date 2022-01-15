@@ -11,15 +11,13 @@ namespace FSH.WebApi.Infrastructure.Persistence.Initialization;
 internal class DatabaseInitializer : IDatabaseInitializer
 {
     private readonly TenantDbContext _tenantDbContext;
-    private readonly IMultiTenantStore<FSHTenantInfo> _tenantStore;
     private readonly DatabaseSettings _dbSettings;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<DatabaseInitializer> _logger;
 
-    public DatabaseInitializer(TenantDbContext tenantDbContext, IMultiTenantStore<FSHTenantInfo> tenantStore, IOptions<DatabaseSettings> dbSettings, IServiceProvider serviceProvider, ILogger<DatabaseInitializer> logger)
+    public DatabaseInitializer(TenantDbContext tenantDbContext, IOptions<DatabaseSettings> dbSettings, IServiceProvider serviceProvider, ILogger<DatabaseInitializer> logger)
     {
         _tenantDbContext = tenantDbContext;
-        _tenantStore = tenantStore;
         _dbSettings = dbSettings.Value;
         _serviceProvider = serviceProvider;
         _logger = logger;
@@ -27,17 +25,9 @@ internal class DatabaseInitializer : IDatabaseInitializer
 
     public async Task InitializeDatabasesAsync(CancellationToken cancellationToken)
     {
-        // First initialize the tenant db context
-        if (_tenantDbContext.Database.GetPendingMigrations().Any())
-        {
-            _logger.LogInformation("Applying Root Migrations.");
-            await _tenantDbContext.Database.MigrateAsync(cancellationToken);
-        }
+        await InitializeTenantDbAsync(cancellationToken);
 
-        await SeedRootTenantAsync();
-
-        // Then initialize the application db's for each tenant
-        foreach (var tenant in (await _tenantStore.GetAllAsync()).ToList())
+        foreach (var tenant in await _tenantDbContext.TenantInfo.ToListAsync(cancellationToken))
         {
             await InitializeApplicationDbForTenantAsync(tenant, cancellationToken);
         }
@@ -63,9 +53,20 @@ internal class DatabaseInitializer : IDatabaseInitializer
             .InitializeAsync(cancellationToken);
     }
 
-    private async Task SeedRootTenantAsync()
+    private async Task InitializeTenantDbAsync(CancellationToken cancellationToken)
     {
-        if (await _tenantStore.TryGetAsync(MultitenancyConstants.Root.Id) is null)
+        if (_tenantDbContext.Database.GetPendingMigrations().Any())
+        {
+            _logger.LogInformation("Applying Root Migrations.");
+            await _tenantDbContext.Database.MigrateAsync(cancellationToken);
+        }
+
+        await SeedRootTenantAsync(cancellationToken);
+    }
+
+    private async Task SeedRootTenantAsync(CancellationToken cancellationToken)
+    {
+        if (await _tenantDbContext.TenantInfo.FindAsync(MultitenancyConstants.Root.Id) is null)
         {
             var rootTenant = new FSHTenantInfo(
                 MultitenancyConstants.Root.Id,
@@ -75,7 +76,9 @@ internal class DatabaseInitializer : IDatabaseInitializer
 
             rootTenant.SetValidity(DateTime.UtcNow.AddYears(1));
 
-            await _tenantStore.TryAddAsync(rootTenant);
+            _tenantDbContext.TenantInfo.Add(rootTenant);
+
+            await _tenantDbContext.SaveChangesAsync(cancellationToken);
         }
     }
 }

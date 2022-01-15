@@ -23,6 +23,7 @@ public class ProductConfig : IEntityTypeConfiguration<Product>
     public void Configure(EntityTypeBuilder<Product> builder)
     {
         builder.IsMultiTenant();
+
         builder
             .Property(b => b.Name)
                 .HasMaxLength(1024);
