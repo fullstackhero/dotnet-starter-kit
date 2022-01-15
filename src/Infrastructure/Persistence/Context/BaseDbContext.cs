@@ -45,7 +45,7 @@ public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUs
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        // TODO: We want this only for development probably... maybe better make it a configurable in logger.json config?
+        // TODO: We want this only for development probably... maybe better make it configurable in logger.json config?
         optionsBuilder.EnableSensitiveDataLogging();
 
         if (!string.IsNullOrWhiteSpace(TenantInfo?.ConnectionString))
