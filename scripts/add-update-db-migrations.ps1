@@ -1,9 +1,9 @@
 $hostDirectory = 'D:\Projects\fullstackhero\dotnet-webapi-boilerplate\src\Host'
 Set-Location -Path $hostDirectory
-Write-Host "Host Directory is $hostDirectory"
+Write-Host "Host Directory is $hostDirectory `n"
 
 $commitMessage = 'UpdateREADME'
-Write-Host "Commit Message is $commitMessage"
+Write-Host "Commit Message is $commitMessage `n"
 
 <# Declaring Connection String #>
 Write-Host "Setting Connection Strings..."
@@ -12,12 +12,12 @@ $postgresqlConnectionString = "Host=localhost;Database=rootTenantDb;Username=pos
 $mysqlConnectionString = "server=localhost;uid=root;pwd=root;database=defaultRootDb;Allow User Variables=True"
 
 <# Defining JSON Paths #>
-Write-Host "Defining JSON Paths..."
+Write-Host "Defining JSON Paths... `n"
 $databaseJsonPath = 'Configurations\database.json'
 $hangfireJsonPath = 'Configurations\hangfire.json'
 
 <# Get Current Config #>
-Write-Host "Getting Current Config..."
+Write-Host "Getting Current Config...`n"
 $databaseJsonContent = Get-Content $databaseJsonPath -raw | ConvertFrom-Json
 $currentDbProvider = $databaseJsonContent.DatabaseSettings.DBProvider
 $currentConnectionString = $databaseJsonContent.DatabaseSettings.ConnectionString
@@ -38,7 +38,7 @@ $hangfireJsonContent | ConvertTo-Json -Depth 4  | set-content $hangfireJsonPath
 
 Write-Host "Adding Migrations for MSSQL Provider..."
 dotnet ef migrations add $commitMessage --project .././Migrators/Migrators.MSSQL/ --context ApplicationDbContext -o Migrations/Application
-Write-Host "Adding Migrations for MSSQL Provider...Done"
+Write-Host "Adding Migrations for MSSQL Provider...Done`n"
 
 <# MySQL #>
 Write-Host "Updating Configurations for MySQL Provider..."
@@ -52,7 +52,7 @@ $hangfireJsonContent | ConvertTo-Json -Depth 4  | set-content $hangfireJsonPath
 
 Write-Host "Adding Migrations for MySQL Provider..."
 dotnet ef migrations add $commitMessage --project .././Migrators/Migrators.MySQL/ --context ApplicationDbContext -o Migrations/Application
-Write-Host "Adding Migrations for MySQL Provider...Done"
+Write-Host "Adding Migrations for MySQL Provider...Done`n"
 
 <# PostgreSQL #>
 Write-Host "Updating Configurations for PostgreSQL Provider..."
@@ -66,10 +66,10 @@ $hangfireJsonContent | ConvertTo-Json -Depth 4  | set-content $hangfireJsonPath
 
 Write-Host "Adding Migrations for PostgreSQL Provider..."
 dotnet ef migrations add $commitMessage --project .././Migrators/Migrators.PostgreSQL/ --context ApplicationDbContext -o Migrations/Application
-Write-Host "Adding Migrations for PostgreSQL Provider...Done"
+Write-Host "Adding Migrations for PostgreSQL Provider...Done`n"
 
 <# Reset Configurations - Switch Back to Original Configurations #>
-Write-Host "Resetting Configurations to Orginal..."
+Write-Host "Resetting Configurations to Orginal...`n"
 $databaseJsonContent.DatabaseSettings.DBProvider = $currentDbProvider
 $databaseJsonContent.DatabaseSettings.ConnectionString = $currentConnectionString
 $databaseJsonContent | ConvertTo-Json -Depth 4  | set-content $databaseJsonPath
