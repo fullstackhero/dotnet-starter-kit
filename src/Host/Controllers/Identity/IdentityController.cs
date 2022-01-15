@@ -63,9 +63,9 @@ public sealed class IdentityController : VersionNeutralApiController
     }
 
     [HttpGet("profile")]
-    public async Task<UserDetailsDto> GetProfileDetailsAsync(CancellationToken cancellationToken)
+    public Task<UserDetailsDto> GetProfileDetailsAsync(CancellationToken cancellationToken)
     {
-        return await _userService.GetAsync(_currentUser.GetUserId().ToString(), cancellationToken);
+        return _userService.GetAsync(_currentUser.GetUserId().ToString(), cancellationToken);
     }
 
     [HttpPut("change-password")]
