@@ -49,22 +49,26 @@ internal static class Startup
             .AddScoped(sp => (IReadRepository<Product>)sp.GetRequiredService<IRepository<Product>>());
     }
 
-    internal static DbContextOptionsBuilder UseDatabase(this DbContextOptionsBuilder builder, string dbProvider, string connectionString) =>
-        dbProvider.ToLowerInvariant() switch
+    internal static DbContextOptionsBuilder UseDatabase(this DbContextOptionsBuilder builder, string dbProvider, string connectionString)
+    {
+        switch (dbProvider.ToLowerInvariant())
         {
-            DbProviderKeys.Npgsql =>
-                builder.UseNpgsql(connectionString, e =>
-                    e.MigrationsAssembly("Migrators.PostgreSQL")),
-            DbProviderKeys.SqlServer =>
-                builder.UseSqlServer(connectionString, e =>
-                    e.MigrationsAssembly("Migrators.MSSQL")),
-            DbProviderKeys.MySql =>
-                builder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), e =>
-                    e.MigrationsAssembly("Migrators.MySQL")
-                     .SchemaBehavior(MySqlSchemaBehavior.Ignore)),
-            DbProviderKeys.Oracle =>
-                builder.UseOracle(connectionString, e =>
-                    e.MigrationsAssembly("Migrators.Oracle")),
-            _ => throw new InvalidOperationException($"DB Provider {dbProvider} is not supported.")
-        };
+            case DbProviderKeys.Npgsql:
+                AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+                return builder.UseNpgsql(connectionString, e =>
+                     e.MigrationsAssembly("Migrators.PostgreSQL"));
+            case DbProviderKeys.SqlServer:
+                return builder.UseSqlServer(connectionString, e =>
+                     e.MigrationsAssembly("Migrators.MSSQL"));
+            case DbProviderKeys.MySql:
+                return builder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), e =>
+                     e.MigrationsAssembly("Migrators.MySQL")
+                      .SchemaBehavior(MySqlSchemaBehavior.Ignore));
+            case DbProviderKeys.Oracle:
+                return builder.UseOracle(connectionString, e =>
+                     e.MigrationsAssembly("Migrators.Oracle"));
+            default:
+                throw new InvalidOperationException($"DB Provider {dbProvider} is not supported.");
+        }
+    }
 }
