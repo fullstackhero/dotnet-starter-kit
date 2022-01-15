@@ -1,4 +1,5 @@
-$hostDirectory = 'D:\Projects\fullstackhero\dotnet-webapi-boilerplate\src\Host'
+$rootDirectory = git rev-parse --show-toplevel
+$hostDirectory = $rootDirectory + '/src/Host'
 Set-Location -Path $hostDirectory
 Write-Host "Host Directory is $hostDirectory `n"
 
@@ -13,8 +14,8 @@ $mysqlConnectionString = "server=localhost;uid=root;pwd=root;database=defaultRoo
 
 <# Defining JSON Paths #>
 Write-Host "Defining JSON Paths... `n"
-$databaseJsonPath = 'Configurations\database.json'
-$hangfireJsonPath = 'Configurations\hangfire.json'
+$databaseJsonPath = 'Configurations/database.json'
+$hangfireJsonPath = 'Configurations/hangfire.json'
 
 <# Get Current Config #>
 Write-Host "Getting Current Config...`n"
