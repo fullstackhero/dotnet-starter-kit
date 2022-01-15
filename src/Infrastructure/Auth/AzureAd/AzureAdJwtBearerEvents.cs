@@ -1,18 +1,16 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Security.Claims;
+﻿using Finbuckle.MultiTenant;
 using FSH.WebApi.Application.Common.Exceptions;
-using FSH.WebApi.Application.Common.Persistence;
 using FSH.WebApi.Application.Identity.Users;
-using FSH.WebApi.Application.Multitenancy;
-using FSH.WebApi.Domain.Multitenancy;
 using FSH.WebApi.Infrastructure.Multitenancy;
 using FSH.WebApi.Shared.Authorization;
 using FSH.WebApi.Shared.Multitenancy;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Identity.Web;
 using Serilog;
+using System.Security.Claims;
 
 namespace FSH.WebApi.Infrastructure.Auth.AzureAd;
 
@@ -44,45 +42,6 @@ internal class AzureAdJwtBearerEvents : JwtBearerEvents
     public override async Task TokenValidated(TokenValidatedContext context)
     {
         var principal = context.Principal;
-
-        (string issuer, string objectId, string tenantKey) =
-            await GetValuesFromPrincipal(principal, context.HttpContext.RequestServices);
-
-        // the caller comes from an admin-consented, recorded issuer
-        var identity = principal.Identities.First();
-
-        // Adding tenant claim
-        identity.AddClaim(new Claim(FSHClaims.Tenant, tenantKey));
-
-        // Creating a new scope and set the new tenant key so it gets picked up
-        using var scope = context.HttpContext.RequestServices.CreateScope();
-
-        scope.ServiceProvider.GetRequiredService<ICurrentTenantInitializer>().SetCurrentTenant(tenantKey);
-
-        // Lookup local user or create one if none exist.
-        var identityService = scope.ServiceProvider.GetRequiredService<IIdentityService>();
-        string userId = await identityService.GetOrCreateFromPrincipalAsync(principal);
-
-        // we use the nameidentifier claim to store the user id
-        var idClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
-        identity.TryRemoveClaim(idClaim);
-        identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, userId));
-
-        // and the email claim for the email
-        var upnClaim = principal.FindFirst(ClaimTypes.Upn);
-        if (upnClaim is not null)
-        {
-            var emailClaim = principal.FindFirst(ClaimTypes.Email);
-            identity.TryRemoveClaim(emailClaim);
-            identity.AddClaim(new Claim(ClaimTypes.Email, upnClaim.Value));
-        }
-
-        _logger.TokenValidationSucceeded(objectId, issuer);
-    }
-
-    private async Task<(string Issuer, string ObjectId, string TenantKey)> GetValuesFromPrincipal(
-        [NotNull] ClaimsPrincipal? principal, IServiceProvider serviceProvider)
-    {
         string? issuer = principal?.GetIssuer();
         string? objectId = principal?.GetObjectId();
         _logger.TokenValidationStarted(objectId, issuer);
@@ -93,26 +52,49 @@ internal class AzureAdJwtBearerEvents : JwtBearerEvents
             throw new UnauthorizedException("Authentication Failed.");
         }
 
-        // shortcut when the issuer is the rootIssuer defined in appsettings
-        if (issuer == _config["SecuritySettings:AzureAd:RootIssuer"])
-        {
-            return (issuer, objectId, MultitenancyConstants.Root.Key);
-        }
+        // Lookup the tenant using the issuer.
+        // TODO: we should probably cache this (root tenant and tenant per issuer)
+        var tenantDb = context.HttpContext.RequestServices.GetRequiredService<TenantDbContext>();
+        var tenant = issuer == _config["SecuritySettings:AzureAd:RootIssuer"]
+            ? await tenantDb.TenantInfo.FindAsync(MultitenancyConstants.Root.Id)
+            : await tenantDb.TenantInfo.FirstOrDefaultAsync(t => t.Issuer == issuer);
 
-        // creating a scope otherwise the current scope gets polluted with an ApplicationDbContext without a tenant set
-        using var tenantScope = serviceProvider.CreateScope();
-
-        var tenantRepository = tenantScope.ServiceProvider.GetRequiredService<ITenantReadRepository>();
-        if (await tenantRepository.GetBySpecAsync(new TenantByIssuerSpec(issuer))
-            is not Tenant tenant || tenant.Key is null)
+        if (tenant is null)
         {
             _logger.TokenValidationFailed(objectId, issuer);
 
-            // the caller was not from a trusted issuer - throw to block the authentication flow
+            // The caller was not from a trusted issuer - throw to block the authentication flow.
             throw new UnauthorizedException("Authentication Failed.");
         }
 
-        return (issuer, objectId, tenant.Key);
+        // The caller comes from an admin-consented, recorded issuer.
+        var identity = principal.Identities.First();
+
+        // Adding tenant claim.
+        identity.AddClaim(new Claim(FSHClaims.Tenant, tenant.Id));
+
+        // Set new tenant info to the HttpContext so the right connectionstring is used.
+        context.HttpContext.TrySetTenantInfo(tenant, false);
+
+        // Lookup local user or create one if none exist.
+        string userId = await context.HttpContext.RequestServices.GetRequiredService<IIdentityService>()
+            .GetOrCreateFromPrincipalAsync(principal);
+
+        // We use the nameidentifier claim to store the user id.
+        var idClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
+        identity.TryRemoveClaim(idClaim);
+        identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, userId));
+
+        // And the email claim for the email.
+        var upnClaim = principal.FindFirst(ClaimTypes.Upn);
+        if (upnClaim is not null)
+        {
+            var emailClaim = principal.FindFirst(ClaimTypes.Email);
+            identity.TryRemoveClaim(emailClaim);
+            identity.AddClaim(new Claim(ClaimTypes.Email, upnClaim.Value));
+        }
+
+        _logger.TokenValidationSucceeded(objectId, issuer);
     }
 }
 

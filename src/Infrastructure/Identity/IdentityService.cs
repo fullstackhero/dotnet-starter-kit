@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text;
+using Finbuckle.MultiTenant;
 using FSH.WebApi.Application.Common.Exceptions;
 using FSH.WebApi.Application.Common.FileStorage;
 using FSH.WebApi.Application.Common.Interfaces;
@@ -9,7 +10,6 @@ using FSH.WebApi.Application.Identity.Users;
 using FSH.WebApi.Domain.Common;
 using FSH.WebApi.Infrastructure.Common;
 using FSH.WebApi.Infrastructure.Mailing;
-using FSH.WebApi.Infrastructure.Multitenancy;
 using FSH.WebApi.Shared.Multitenancy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
@@ -29,7 +29,7 @@ public class IdentityService : IIdentityService
     private readonly IMailService _mailService;
     private readonly MailSettings _mailSettings;
     private readonly IStringLocalizer<IdentityService> _localizer;
-    private readonly ICurrentTenant _currentTenant;
+    private readonly ITenantInfo _currentTenant;
     private readonly IFileStorageService _fileStorage;
     private readonly IEmailTemplateService _templateService;
 
@@ -41,7 +41,7 @@ public class IdentityService : IIdentityService
         IMailService mailService,
         IOptions<MailSettings> mailSettings,
         IStringLocalizer<IdentityService> localizer,
-        ICurrentTenant currentTenant,
+        ITenantInfo currentTenant,
         IFileStorageService fileStorage,
         IEmailTemplateService templateService)
     {
@@ -125,8 +125,7 @@ public class IdentityService : IIdentityService
                 NormalizedUserName = username.ToUpperInvariant(),
                 EmailConfirmed = true,
                 PhoneNumberConfirmed = true,
-                IsActive = true,
-                Tenant = principal.GetTenant()
+                IsActive = true
             };
             result = await _userManager.CreateAsync(user);
         }
@@ -148,8 +147,7 @@ public class IdentityService : IIdentityService
             LastName = request.LastName,
             UserName = request.UserName,
             PhoneNumber = request.PhoneNumber,
-            IsActive = true,
-            Tenant = _currentTenant.Key
+            IsActive = true
         };
 
         var result = await _userManager.CreateAsync(user, request.Password);
@@ -185,14 +183,14 @@ public class IdentityService : IIdentityService
         var endpointUri = new Uri(string.Concat($"{origin}/", route));
         string verificationUri = QueryHelpers.AddQueryString(endpointUri.ToString(), QueryStringKeys.UserId, user.Id);
         verificationUri = QueryHelpers.AddQueryString(verificationUri, QueryStringKeys.Code, code);
-        verificationUri = QueryHelpers.AddQueryString(verificationUri, MultitenancyConstants.TenantKeyName, _currentTenant.Key);
+        verificationUri = QueryHelpers.AddQueryString(verificationUri, MultitenancyConstants.TenantIdName, _currentTenant.Id);
         return verificationUri;
     }
 
     public async Task<string> ConfirmEmailAsync(string userId, string code, string tenant, CancellationToken cancellationToken)
     {
-        var user = await _userManager.Users.IgnoreQueryFilters()
-            .Where(u => u.Id == userId && u.Tenant == tenant && !u.EmailConfirmed)
+        var user = await _userManager.Users
+            .Where(u => u.Id == userId && !u.EmailConfirmed)
             .FirstOrDefaultAsync(cancellationToken);
 
         _ = user ?? throw new InternalServerException(_localizer["An error occurred while confirming E-Mail."]);

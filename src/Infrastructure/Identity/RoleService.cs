@@ -124,7 +124,7 @@ public class RoleService : IRoleService
     {
         if (string.IsNullOrEmpty(request.Id))
         {
-            var newRole = new ApplicationRole(request.Name, _context.TenantKey, request.Description);
+            var newRole = new ApplicationRole(request.Name, request.Description);
             var result = await _roleManager.CreateAsync(newRole);
 
             return result.Succeeded

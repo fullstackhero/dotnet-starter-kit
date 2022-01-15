@@ -49,22 +49,17 @@ public class JsonStringLocalizer : IStringLocalizer
         using var reader = new JsonTextReader(sReader);
         while (reader.Read())
         {
-            if (reader.TokenType != JsonToken.PropertyName)
+            if (reader.TokenType != JsonToken.PropertyName || reader.Value is null)
                 continue;
             string key = (string)reader.Value;
             reader.Read();
-            string value = _serializer.Deserialize<string>(reader);
-            yield return new LocalizedString(key, value, false);
+            string? value = _serializer.Deserialize<string>(reader);
+            if (value is not null)
+            {
+                yield return new LocalizedString(key, value, false);
+            }
         }
     }
-
-    // Dont know why this is here, but setting the defaultThreadCurrentCulture seems like a serious smell
-    // It's not used anywhere, so commenting out for now
-    // public IStringLocalizer WithCulture(CultureInfo culture)
-    // {
-    //    CultureInfo.DefaultThreadCurrentCulture = culture;
-    //    return new JsonStringLocalizer(_cache);
-    // }
 
     private string? GetString(string key)
     {
@@ -133,7 +128,7 @@ public class JsonStringLocalizer : IStringLocalizer
         using var reader = new JsonTextReader(sReader);
         while (reader.Read())
         {
-            if (reader.TokenType == JsonToken.PropertyName && (string)reader.Value == propertyName)
+            if (reader.TokenType == JsonToken.PropertyName && (string?)reader.Value == propertyName)
             {
                 reader.Read();
                 return _serializer.Deserialize<T>(reader);

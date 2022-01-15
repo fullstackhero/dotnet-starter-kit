@@ -42,7 +42,7 @@ public sealed class IdentityController : VersionNeutralApiController
 
     [HttpPost("forgot-password")]
     [AllowAnonymous]
-    [TenantKeyHeader]
+    [TenantIdHeader]
     [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Post))]
     public Task<string> ForgotPasswordAsync(ForgotPasswordRequest request)
     {
@@ -63,9 +63,9 @@ public sealed class IdentityController : VersionNeutralApiController
     }
 
     [HttpGet("profile")]
-    public async Task<UserDetailsDto> GetProfileDetailsAsync(CancellationToken cancellationToken)
+    public Task<UserDetailsDto> GetProfileDetailsAsync(CancellationToken cancellationToken)
     {
-        return await _userService.GetAsync(_currentUser.GetUserId().ToString(), cancellationToken);
+        return _userService.GetAsync(_currentUser.GetUserId().ToString(), cancellationToken);
     }
 
     [HttpPut("change-password")]

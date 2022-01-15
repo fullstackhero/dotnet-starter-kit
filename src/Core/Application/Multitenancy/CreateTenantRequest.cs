@@ -1,46 +1,20 @@
 namespace FSH.WebApi.Application.Multitenancy;
 
-public class CreateTenantRequest : IRequest<Guid>
+public class CreateTenantRequest : IRequest<string>
 {
-    public string? Name { get; set; }
-    public string Key { get; set; } = default!;
-    public string? AdminEmail { get; set; }
+    public string Id { get; set; } = default!;
+    public string Name { get; set; } = default!;
     public string? ConnectionString { get; set; }
+    public string AdminEmail { get; set; } = default!;
+    public string? Issuer { get; set; }
 }
 
-public class CreateTenantRequestHandler : IRequestHandler<CreateTenantRequest, Guid>
+public class CreateTenantRequestHandler : IRequestHandler<CreateTenantRequest, string>
 {
-    private readonly ITenantRepository _repository;
-    private readonly ICurrentUser _currentUser;
-    private readonly ITenantDatabaseService _tenantDbService;
+    private readonly ITenantService _tenantService;
 
-    public CreateTenantRequestHandler(ITenantRepository repository, ICurrentUser currentUser, ITenantDatabaseService tenantDbService) =>
-        (_repository, _currentUser, _tenantDbService) = (repository, currentUser, tenantDbService);
+    public CreateTenantRequestHandler(ITenantService tenantService) => _tenantService = tenantService;
 
-    public async Task<Guid> Handle(CreateTenantRequest request, CancellationToken cancellationToken)
-    {
-        if (string.IsNullOrEmpty(request.ConnectionString))
-        {
-            request.ConnectionString = _tenantDbService.DefaultConnectionString;
-        }
-
-        var tenant = new Tenant(request.Name, request.Key, request.AdminEmail, request.ConnectionString)
-        {
-            CreatedBy = _currentUser.GetUserId()
-        };
-
-        await _repository.AddAsync(tenant, cancellationToken);
-
-        try
-        {
-            _tenantDbService.InitializeDatabase(tenant);
-        }
-        catch
-        {
-            await _repository.DeleteAsync(tenant, cancellationToken);
-            throw;
-        }
-
-        return tenant.Id;
-    }
+    public Task<string> Handle(CreateTenantRequest request, CancellationToken cancellationToken) =>
+        _tenantService.CreateAsync(request, cancellationToken);
 }

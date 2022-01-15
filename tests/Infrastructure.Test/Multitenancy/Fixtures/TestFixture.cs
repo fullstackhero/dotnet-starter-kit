@@ -1,5 +1,5 @@
-﻿using FSH.WebApi.Application.Multitenancy;
-using FSH.WebApi.Infrastructure.Multitenancy;
+﻿using FSH.WebApi.Application.Common.Persistence;
+using FSH.WebApi.Infrastructure.Persistence.ConnectionString;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Microsoft.DependencyInjection.Abstracts;
@@ -10,7 +10,7 @@ public class TestFixture : TestBedFixture
 {
     protected override void AddServices(IServiceCollection services, IConfiguration? configuration)
         => services
-            .AddTransient<IMakeSecureConnectionString, MakeSecureConnectionString>();
+            .AddTransient<IConnectionStringSecurer, ConnectionStringSecurer>();
 
     protected override ValueTask DisposeAsyncCore()
         => new();
