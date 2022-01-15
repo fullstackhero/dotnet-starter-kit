@@ -7,7 +7,7 @@ public class CreateTenantRequestValidator : CustomValidator<CreateTenantRequest>
         IStringLocalizer<CreateTenantRequestValidator> localizer,
         IConnectionStringValidator connectionStringValidator)
     {
-        RuleFor(t => t.TenantId).Cascade(CascadeMode.Stop)
+        RuleFor(t => t.Id).Cascade(CascadeMode.Stop)
             .NotEmpty()
             .MustAsync(async (id, _) => !await tenantService.ExistsWithIdAsync(id))
                 .WithMessage((_, id) => string.Format(localizer["tenant.alreadyexists"], id));

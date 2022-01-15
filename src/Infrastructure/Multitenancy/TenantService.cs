@@ -44,7 +44,7 @@ internal class TenantService : ITenantService
 
     public async Task<string> CreateAsync(CreateTenantRequest request, CancellationToken cancellationToken)
     {
-        var tenant = new FSHTenantInfo(request.TenantId, request.Name, request.ConnectionString, request.AdminEmail, request.Identifier);
+        var tenant = new FSHTenantInfo(request.Id, request.Name, request.ConnectionString, request.AdminEmail, request.Issuer);
 
         await _tenantStore.TryAddAsync(tenant);
 
@@ -55,7 +55,7 @@ internal class TenantService : ITenantService
         }
         catch
         {
-            await _tenantStore.TryRemoveAsync(request.TenantId);
+            await _tenantStore.TryRemoveAsync(request.Id);
             throw;
         }
 

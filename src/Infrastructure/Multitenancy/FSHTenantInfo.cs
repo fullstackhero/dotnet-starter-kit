@@ -9,14 +9,15 @@ public class FSHTenantInfo : ITenantInfo
     {
     }
 
-    public FSHTenantInfo(string id, string name, string? connectionString, string adminEmail, string? identifier = null)
+    public FSHTenantInfo(string id, string name, string? connectionString, string adminEmail, string? issuer = null)
     {
         Id = id;
+        Identifier = id;
         Name = name;
         ConnectionString = connectionString ?? string.Empty;
-        Identifier = identifier ?? string.Empty;
         AdminEmail = adminEmail;
         IsActive = true;
+        Issuer = issuer;
 
         // Add Default 1 Month Validity for all new tenants. Something like a DEMO period for tenants.
         ValidUpto = DateTime.UtcNow.AddMonths(1);
@@ -26,18 +27,22 @@ public class FSHTenantInfo : ITenantInfo
     /// The actual TenantId, which is also used in the TenantId shadow property on the multitenant entities.
     /// </summary>
     public string Id { get; set; } = default!;
-    public string Name { get; set; } = default!;
-    public string ConnectionString { get; set; } = default!;
 
     /// <summary>
-    /// A custom identifier, is used now by AzureAd Authorization to store the AzureAd Tenant Issuer to map against.
+    /// The identifier that is used in headers/routes/querystrings. This is set to the same as Id to avoid confusion.
     /// </summary>
     public string Identifier { get; set; } = default!;
+
+    public string Name { get; set; } = default!;
+    public string ConnectionString { get; set; } = default!;
 
     public string AdminEmail { get; private set; } = default!;
     public bool IsActive { get; private set; }
     public DateTime ValidUpto { get; private set; }
 
+    /// <summary>
+    /// Used by AzureAd Authorization to store the AzureAd Tenant Issuer to map against.
+    /// </summary>
     public string? Issuer { get; set; }
 
     public void AddValidity(int months) =>

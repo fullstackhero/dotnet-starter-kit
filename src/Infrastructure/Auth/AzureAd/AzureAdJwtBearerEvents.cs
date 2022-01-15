@@ -5,6 +5,7 @@ using FSH.WebApi.Infrastructure.Multitenancy;
 using FSH.WebApi.Shared.Authorization;
 using FSH.WebApi.Shared.Multitenancy;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Identity.Web;
@@ -52,10 +53,11 @@ internal class AzureAdJwtBearerEvents : JwtBearerEvents
         }
 
         // Lookup the tenant using the issuer.
-        var tenantStore = context.HttpContext.RequestServices.GetRequiredService<IMultiTenantStore<FSHTenantInfo>>();
+        // TODO: we should probably cache this (root tenant and tenant per issuer)
+        var tenantDb = context.HttpContext.RequestServices.GetRequiredService<TenantDbContext>();
         var tenant = issuer == _config["SecuritySettings:AzureAd:RootIssuer"]
-            ? await tenantStore.TryGetAsync(MultitenancyConstants.Root.Id)
-            : await tenantStore.TryGetByIdentifierAsync(issuer);
+            ? await tenantDb.TenantInfo.FindAsync(MultitenancyConstants.Root.Id)
+            : await tenantDb.TenantInfo.FirstOrDefaultAsync(t => t.Issuer == issuer);
 
         if (tenant is null)
         {
