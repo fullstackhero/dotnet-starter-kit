@@ -3,6 +3,7 @@ using FSH.WebApi.Application.Common.Interfaces;
 using FSH.WebApi.Application.Identity;
 using FSH.WebApi.Application.Identity.RoleClaims;
 using FSH.WebApi.Application.Identity.Roles;
+using FSH.WebApi.Infrastructure.Auth.Permissions;
 using FSH.WebApi.Infrastructure.Common.Extensions;
 using FSH.WebApi.Infrastructure.Persistence.Context;
 using FSH.WebApi.Shared.Authorization;
@@ -105,8 +106,8 @@ public class RoleService : IRoleService
         if (retrieveOnlyFromRole)
             return rolePermissions;
 
-        var allPermissions = typeof(FSHPermissions).GetNestedClassesStaticStringValues();
-        allPermissions.AddRange(typeof(FSHRootPermissions).GetNestedClassesStaticStringValues());
+        var allPermissions = DefaultPermissions.Admin;
+        allPermissions.AddRange(DefaultPermissions.Root);
 
         var result = allPermissions.Select(x => new PermissionDto()
         {
