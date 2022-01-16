@@ -1,3 +1,4 @@
+$currentDirectory = Get-Location 
 $rootDirectory = git rev-parse --show-toplevel
 $hostDirectory = $rootDirectory + '/src/Host'
 Set-Location -Path $hostDirectory
@@ -19,13 +20,11 @@ $hangfireJsonPath = 'Configurations/hangfire.json'
 
 <# Get Current Config #>
 Write-Host "Getting Current Config...`n"
-$databaseJsonContent = Get-Content $databaseJsonPath -raw | ConvertFrom-Json
-$currentDbProvider = $databaseJsonContent.DatabaseSettings.DBProvider
-$currentConnectionString = $databaseJsonContent.DatabaseSettings.ConnectionString
+$databaseFileContent = Get-Content $databaseJsonPath -raw
+$databaseJsonContent = $databaseFileContent | ConvertFrom-Json
 
-$hangfireJsonContent = Get-Content $hangfireJsonPath -raw | ConvertFrom-Json
-$currentConnectionStringForHangfire = $hangfireJsonContent.HangfireSettings.Storage.ConnectionString
-$currentDbProviderForHangfire = $hangfireJsonContent.HangfireSettings.Storage.StorageProvider
+$hangfireFileContent = Get-Content $hangfireJsonPath -raw | ConvertFrom-Json
+$hangfireJsonContent = $hangfireFileContent | ConvertFrom-Json
 
 <# MSSQL #>
 Write-Host "Updating Configurations for MSSQL Provider..."
@@ -71,13 +70,9 @@ Write-Host "Adding Migrations for PostgreSQL Provider...Done`n"
 
 <# Reset Configurations - Switch Back to Original Configurations #>
 Write-Host "Resetting Configurations to Orginal...`n"
-$databaseJsonContent.DatabaseSettings.DBProvider = $currentDbProvider
-$databaseJsonContent.DatabaseSettings.ConnectionString = $currentConnectionString
-$databaseJsonContent | ConvertTo-Json -Depth 4  | set-content $databaseJsonPath
-
-$hangfireJsonContent.HangfireSettings.Storage.StorageProvider = $currentDbProviderForHangfire
-$hangfireJsonContent.HangfireSettings.Storage.ConnectionString = $currentConnectionStringForHangfire
-$hangfireJsonContent | ConvertTo-Json -Depth 4  | set-content $hangfireJsonPath
+$databaseFileContent | set-content $databaseJsonPath
+$hangfireFileContent | set-content $hangfireJsonPath
+Set-Location -Path $currentDirectory
 
 Write-Host -NoNewLine 'Migrations Added. Press any key to continue...';
 $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
