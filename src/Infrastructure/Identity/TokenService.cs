@@ -40,6 +40,11 @@ public class TokenService : ITokenService
 
     public async Task<TokenResponse> GetTokenAsync(TokenRequest request, string ipAddress, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(_currentTenant?.Id))
+        {
+            throw new UnauthorizedException(_localizer["tenant.invalid"]);
+        }
+
         var user = await _userManager.FindByEmailAsync(request.Email.Trim().Normalize());
         if (user is null)
         {
@@ -54,11 +59,6 @@ public class TokenService : ITokenService
         if (_mailSettings.EnableVerification && !user.EmailConfirmed)
         {
             throw new UnauthorizedException(_localizer["identity.emailnotconfirmed"]);
-        }
-
-        if (string.IsNullOrWhiteSpace(_currentTenant?.Id))
-        {
-            throw new UnauthorizedException(_localizer["tenant.invalid"]);
         }
 
         if (_currentTenant.Id != MultitenancyConstants.Root.Id)
