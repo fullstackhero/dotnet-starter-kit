@@ -95,13 +95,31 @@ public class RoleService : IRoleService
         return roleDtos;
     }
 
-    public async Task<List<PermissionDto>> GetPermissionsAsync(string id, CancellationToken cancellationToken)
+    public async Task<List<PermissionDto>> GetPermissionsAsync(string id, CancellationToken cancellationToken, bool retrieveOnlyFromRole = true)
     {
-        var permissions = await _context.RoleClaims
-            .Where(a => a.RoleId == id && a.ClaimType == FSHClaims.Permission)
+        var permissions = await _context.RoleClaims.Where(a => a.RoleId == id && a.ClaimType == FSHClaims.Permission)
             .ToListAsync(cancellationToken);
+        var rolePermissions = permissions.Adapt<List<PermissionDto>>();
+        rolePermissions.ForEach(x => x.Enabled = true);
 
-        return permissions.Adapt<List<PermissionDto>>();
+        if (retrieveOnlyFromRole)
+            return rolePermissions;
+
+        var allPermissions = typeof(FSHPermissions).GetNestedClassesStaticStringValues();
+        allPermissions.AddRange(typeof(FSHRootPermissions).GetNestedClassesStaticStringValues());
+
+        var result = allPermissions.Select(x => new PermissionDto()
+        {
+            Permission = x
+        }).ToList();
+
+        foreach (var permission in result)
+        {
+            if (rolePermissions.Select(z => z.Permission).Contains(permission.Permission))
+                permission.Enabled = true;
+        }
+
+        return result;
     }
 
     public async Task<List<RoleDto>> GetUserRolesAsync(string userId)
@@ -184,7 +202,7 @@ public class RoleService : IRoleService
         }
 
         var claims = await _roleManager.GetClaimsAsync(role);
-        foreach (var claim in claims.Where(c => permissions.Any(p => p.Permission == c.Value)))
+        foreach (var claim in claims.Where(c => permissions.Any(p => p.Permission == c.Value && p.Enabled == false)))
         {
             await _roleManager.RemoveClaimAsync(role, claim);
         }
