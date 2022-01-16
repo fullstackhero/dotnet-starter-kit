@@ -53,11 +53,11 @@ internal class ApplicationDbSeeder
             // Assign permissions
             if (roleName == FSHRoles.Basic)
             {
-                await AssignPermissionsToRoleAsync(role, DefaultPermissions.Basics);
+                await AssignPermissionsToRoleAsync(role, DefaultPermissions.Basic);
             }
             else if (roleName == FSHRoles.Admin)
             {
-                await AssignPermissionsToRoleAsync(role, DefaultPermissions.All);
+                await AssignPermissionsToRoleAsync(role, DefaultPermissions.Admin);
 
                 if (_currentTenant.Id == MultitenancyConstants.Root.Id)
                 {

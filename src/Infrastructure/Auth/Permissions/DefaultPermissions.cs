@@ -5,7 +5,7 @@ namespace FSH.WebApi.Infrastructure.Auth.Permissions;
 
 public static class DefaultPermissions
 {
-    public static List<string> Basics => new()
+    public static List<string> Basic => new()
     {
         FSHPermissions.Products.Search,
         FSHPermissions.Products.View,
@@ -13,7 +13,7 @@ public static class DefaultPermissions
         FSHPermissions.Brands.View
     };
 
-    public static List<string> All => typeof(FSHPermissions).GetNestedClassesStaticStringValues();
+    public static List<string> Admin => typeof(FSHPermissions).GetNestedClassesStaticStringValues();
 
     public static List<string> Root => typeof(FSHRootPermissions).GetNestedClassesStaticStringValues();
 }
