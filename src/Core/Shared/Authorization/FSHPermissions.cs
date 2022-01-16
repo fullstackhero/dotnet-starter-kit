@@ -2,7 +2,7 @@ using System.ComponentModel;
 
 namespace FSH.WebApi.Shared.Authorization;
 
-public partial class FSHPermissions
+public class FSHPermissions
 {
     [DisplayName("Dashboard")]
     [Description("Dashboard Permissions")]

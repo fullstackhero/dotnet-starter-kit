@@ -58,11 +58,11 @@ internal class ApplicationDbSeeder
             }
             else if (roleName == FSHRoles.Admin)
             {
-                await AssignPermissionsToRoleAsync(role, typeof(FSHPermissions).GetNestedClassesStaticStringValues());
+                await AssignPermissionsToRoleAsync(role, DefaultPermissions.All);
 
                 if (_currentTenant.Id == MultitenancyConstants.Root.Id)
                 {
-                    await AssignPermissionsToRoleAsync(role, typeof(FSHRootPermissions).GetNestedClassesStaticStringValues());
+                    await AssignPermissionsToRoleAsync(role, DefaultPermissions.Root);
                 }
             }
         }

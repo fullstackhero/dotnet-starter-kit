@@ -1,3 +1,4 @@
+using FSH.WebApi.Infrastructure.Common.Extensions;
 using FSH.WebApi.Shared.Authorization;
 
 namespace FSH.WebApi.Infrastructure.Auth.Permissions;
@@ -11,4 +12,8 @@ public static class DefaultPermissions
         FSHPermissions.Brands.Search,
         FSHPermissions.Brands.View
     };
+
+    public static List<string> All => typeof(FSHPermissions).GetNestedClassesStaticStringValues();
+
+    public static List<string> Root => typeof(FSHRootPermissions).GetNestedClassesStaticStringValues();
 }
