@@ -38,7 +38,7 @@ public class UsersController : VersionNeutralApiController
     }
 
     [HttpPost("{id}/roles")]
-    [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Post))]
+    [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Register))]
     public Task<string> AssignRolesAsync(string id, UserRolesRequest request, CancellationToken cancellationToken)
     {
         return _userService.AssignRolesAsync(id, request, cancellationToken);
@@ -46,7 +46,7 @@ public class UsersController : VersionNeutralApiController
 
     [HttpPost("toggle-status")]
     [MustHavePermission(FSHPermissions.Users.Edit)]
-    [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Post))]
+    [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Register))]
     public Task ToggleUserStatusAsync(ToggleUserStatusRequest request, CancellationToken cancellationToken)
     {
         return _userService.ToggleUserStatusAsync(request, cancellationToken);
