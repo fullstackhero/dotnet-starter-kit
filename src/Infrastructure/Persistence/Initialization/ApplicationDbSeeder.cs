@@ -1,5 +1,4 @@
 ﻿using FSH.WebApi.Infrastructure.Auth.Permissions;
-using FSH.WebApi.Infrastructure.Common.Extensions;
 using FSH.WebApi.Infrastructure.Identity;
 using FSH.WebApi.Infrastructure.Multitenancy;
 using FSH.WebApi.Shared.Authorization;
@@ -51,15 +50,15 @@ internal class ApplicationDbSeeder
             // Assign permissions
             if (roleName == FSHRoles.Basic)
             {
-                await AssignPermissionsToRoleAsync(role, DefaultPermissions.Basics);
+                await AssignPermissionsToRoleAsync(role, DefaultPermissions.Basic);
             }
             else if (roleName == FSHRoles.Admin)
             {
-                await AssignPermissionsToRoleAsync(role, typeof(FSHPermissions).GetNestedClassesStaticStringValues());
+                await AssignPermissionsToRoleAsync(role, DefaultPermissions.Admin);
 
                 if (_currentTenant.Id == MultitenancyConstants.Root.Id)
                 {
-                    await AssignPermissionsToRoleAsync(role, typeof(FSHRootPermissions).GetNestedClassesStaticStringValues());
+                    await AssignPermissionsToRoleAsync(role, DefaultPermissions.Root);
                 }
             }
         }
