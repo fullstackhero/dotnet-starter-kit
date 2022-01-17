@@ -7,6 +7,18 @@ public class UpdateBrandRequest : IRequest<Guid>
     public string? Description { get; set; }
 }
 
+public class UpdateBrandRequestValidator : CustomValidator<UpdateBrandRequest>
+{
+    public UpdateBrandRequestValidator(IRepository<Brand> repository, IStringLocalizer<UpdateBrandRequestValidator> localizer) =>
+        RuleFor(p => p.Name)
+            .NotEmpty()
+            .MaximumLength(75)
+            .MustAsync(async (brand, name, ct) =>
+                    await repository.GetBySpecAsync(new BrandByNameSpec(name), ct)
+                        is not Brand existingBrand || existingBrand.Id == brand.Id)
+                .WithMessage((_, name) => string.Format(localizer["brand.alreadyexists"], name));
+}
+
 public class UpdateBrandRequestHandler : IRequestHandler<UpdateBrandRequest, Guid>
 {
     private readonly IRepository<Brand> _repository;

@@ -4,6 +4,18 @@ public class SearchBrandsRequest : PaginationFilter, IRequest<PaginationResponse
 {
 }
 
+public class BrandsBySearchRequestSpec : EntitiesByPaginationFilterSpec<Brand, BrandDto>
+{
+    public BrandsBySearchRequestSpec(SearchBrandsRequest request)
+        : base(request)
+    {
+        if (!request.HasOrderBy())
+        {
+            Query.OrderBy(c => c.Name);
+        }
+    }
+}
+
 public class SearchBrandsRequestHandler : IRequestHandler<SearchBrandsRequest, PaginationResponse<BrandDto>>
 {
     private readonly IReadRepository<Brand> _repository;
@@ -12,7 +24,7 @@ public class SearchBrandsRequestHandler : IRequestHandler<SearchBrandsRequest, P
 
     public async Task<PaginationResponse<BrandDto>> Handle(SearchBrandsRequest request, CancellationToken cancellationToken)
     {
-        var spec = new EntitiesByPaginationFilterSpec<Brand, BrandDto>(request);
+        var spec = new BrandsBySearchRequestSpec(request);
 
         var list = await _repository.ListAsync(spec, cancellationToken);
         int count = await _repository.CountAsync(spec, cancellationToken);
