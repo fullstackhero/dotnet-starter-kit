@@ -96,31 +96,17 @@ public class RoleService : IRoleService
         return roleDtos;
     }
 
-    public async Task<List<PermissionDto>> GetPermissionsAsync(string id, CancellationToken cancellationToken, bool retrieveOnlyFromRole = true)
+    /// <summary>
+    /// Get Permissions By Role Async.
+    /// </summary>
+    /// <param name="roleId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<List<PermissionDto>> GetPermissionsByRoleAsync(string roleId, CancellationToken cancellationToken)
     {
-        var permissions = await _context.RoleClaims.Where(a => a.RoleId == id && a.ClaimType == FSHClaims.Permission)
+        var permissions = await _context.RoleClaims.Where(a => a.RoleId == roleId && a.ClaimType == FSHClaims.Permission)
             .ToListAsync(cancellationToken);
-        var rolePermissions = permissions.Adapt<List<PermissionDto>>();
-        rolePermissions.ForEach(x => x.Enabled = true);
-
-        if (retrieveOnlyFromRole)
-            return rolePermissions;
-
-        var allPermissions = DefaultPermissions.Admin;
-        allPermissions.AddRange(DefaultPermissions.Root);
-
-        var result = allPermissions.Select(x => new PermissionDto()
-        {
-            Permission = x
-        }).ToList();
-
-        foreach (var permission in result)
-        {
-            if (rolePermissions.Select(z => z.Permission).Contains(permission.Permission))
-                permission.Enabled = true;
-        }
-
-        return result;
+        return permissions.Adapt<List<PermissionDto>>();
     }
 
     public async Task<List<RoleDto>> GetUserRolesAsync(string userId)
@@ -172,7 +158,14 @@ public class RoleService : IRoleService
         }
     }
 
-    public async Task<string> UpdatePermissionsAsync(string roleId, List<UpdatePermissionsRequest> permissions, CancellationToken cancellationToken)
+    /// <summary>
+    /// Update Permissions by Role Async.
+    /// </summary>
+    /// <param name="roleId"></param>
+    /// <param name="selectedPermissions"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<string> UpdatePermissionsByRoleAsync(string roleId, List<UpdatePermissionsRequest> selectedPermissions, CancellationToken cancellationToken)
     {
         var errors = new List<string>();
         var role = await _roleManager.FindByIdAsync(roleId);
@@ -187,7 +180,6 @@ public class RoleService : IRoleService
             }
         }
 
-        var selectedPermissions = permissions.Where(p => p.Enabled).ToList();
         if (role.Name == FSHRoles.Admin)
         {
             if (!selectedPermissions.Any(x => x.Permission == FSHPermissions.Roles.View)
@@ -202,13 +194,17 @@ public class RoleService : IRoleService
             }
         }
 
-        var claims = await _roleManager.GetClaimsAsync(role);
-        foreach (var claim in claims.Where(c => permissions.Any(p => p.Permission == c.Value && p.Enabled == false)))
+        var currentPermissions = await _roleManager.GetClaimsAsync(role);
+
+        // Remove permissions that were previously enabled
+        foreach (var claim in currentPermissions.Where(c => !selectedPermissions.Any(p => p.Permission == c.Value)))
         {
             await _roleManager.RemoveClaimAsync(role, claim);
         }
 
-        foreach (var permission in selectedPermissions)
+
+        // Add all permissions that were not previously enabled
+        foreach (var permission in selectedPermissions.Where(c => !currentPermissions.Any(p => p.Value == c.Permission)))
         {
             if (!string.IsNullOrEmpty(permission.Permission))
             {
@@ -217,16 +213,6 @@ public class RoleService : IRoleService
                 {
                     errors.AddRange(addResult.Errors.Select(e => _localizer[e.Description].ToString()));
                 }
-            }
-        }
-
-        var allPermissions = await _roleClaimService.GetAllByRoleIdAsync(role.Id, cancellationToken);
-        foreach (var permission in selectedPermissions)
-        {
-            if (allPermissions.SingleOrDefault(x => x.Type == FSHClaims.Permission && x.Value == permission.Permission)
-                is RoleClaimDto addedPermission)
-            {
-                await _roleClaimService.SaveAsync(addedPermission.Adapt<RoleClaimRequest>(), cancellationToken);
             }
         }
 

@@ -22,18 +22,18 @@ public class RolesController : VersionNeutralApiController
         return _roleService.GetByIdAsync(id);
     }
 
-    [HttpGet("{id}/permissions/{retrieveOnlyFromRole?}")]
+    [HttpGet("{id}/permissions")]
     [MustHavePermission(FSHPermissions.RoleClaims.View)]
-    public Task<List<PermissionDto>> GetPermissionsAsync(string id, CancellationToken cancellationToken, bool retrieveOnlyFromRole = true)
+    public Task<List<PermissionDto>> GetPermissionsAsync(string id, CancellationToken cancellationToken)
     {
-        return _roleService.GetPermissionsAsync(id, cancellationToken, retrieveOnlyFromRole);
+        return _roleService.GetPermissionsByRoleAsync(id, cancellationToken);
     }
 
     [HttpPut("{id}/permissions")]
     [MustHavePermission(FSHPermissions.RoleClaims.Edit)]
     public Task<string> UpdatePermissionsAsync(string id, List<UpdatePermissionsRequest> request, CancellationToken cancellationToken)
     {
-        return _roleService.UpdatePermissionsAsync(id, request, cancellationToken);
+        return _roleService.UpdatePermissionsByRoleAsync(id, request, cancellationToken);
     }
 
     [HttpPost]
