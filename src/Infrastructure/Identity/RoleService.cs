@@ -206,6 +206,7 @@ public class RoleService : IRoleService
             var removeResult = await _roleManager.RemoveClaimAsync(role, claim);
             if (!removeResult.Succeeded)
             {
+                errors.AddRange(removeResult.Errors.Select(e => _localizer[e.Description].ToString()));
                 throw new InternalServerException(_localizer["Update permissions failed."], errors);
             }
         }
@@ -218,6 +219,7 @@ public class RoleService : IRoleService
                 var addResult = await _roleManager.AddClaimAsync(role, new Claim(FSHClaims.Permission, permission.Permission));
                 if (!addResult.Succeeded)
                 {
+                    errors.AddRange(addResult.Errors.Select(e => _localizer[e.Description].ToString()));
                     throw new InternalServerException(_localizer["Update permissions failed."], errors);
                 }
             }
