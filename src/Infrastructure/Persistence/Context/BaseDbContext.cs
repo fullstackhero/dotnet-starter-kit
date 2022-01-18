@@ -48,6 +48,14 @@ public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUs
         // TODO: We want this only for development probably... maybe better make it configurable in logger.json config?
         optionsBuilder.EnableSensitiveDataLogging();
 
+        // If you want to see the sql queries that efcore executes:
+
+        // Uncomment the next line to see them in the output window of visual studio
+        // optionsBuilder.LogTo(m => Debug.WriteLine(m), LogLevel.Information)
+
+        // Or uncomment the next line if you want to see them in the console
+        // optionsBuilder.LogTo(Console.WriteLine, LogLevel.Information);
+
         if (!string.IsNullOrWhiteSpace(TenantInfo?.ConnectionString))
         {
             optionsBuilder.UseDatabase(_dbSettings.DBProvider!, TenantInfo.ConnectionString);

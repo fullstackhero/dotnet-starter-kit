@@ -6,6 +6,16 @@ public class CreateBrandRequest : IRequest<Guid>
     public string? Description { get; set; }
 }
 
+public class CreateBrandRequestValidator : CustomValidator<CreateBrandRequest>
+{
+    public CreateBrandRequestValidator(IReadRepository<Brand> repository, IStringLocalizer<CreateBrandRequestValidator> localizer) =>
+        RuleFor(p => p.Name)
+            .NotEmpty()
+            .MaximumLength(75)
+            .MustAsync(async (name, ct) => await repository.GetBySpecAsync(new BrandByNameSpec(name), ct) is null)
+                .WithMessage((_, name) => string.Format(localizer["brand.alreadyexists"], name));
+}
+
 public class CreateBrandRequestHandler : IRequestHandler<CreateBrandRequest, Guid>
 {
     private readonly IRepository<Brand> _repository;

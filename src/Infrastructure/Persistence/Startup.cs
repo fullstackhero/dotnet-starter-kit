@@ -1,6 +1,5 @@
 using FSH.WebApi.Application.Common.Persistence;
-using FSH.WebApi.Domain.Catalog.Brands;
-using FSH.WebApi.Domain.Catalog.Products;
+using FSH.WebApi.Domain.Common.Contracts;
 using FSH.WebApi.Infrastructure.Common;
 using FSH.WebApi.Infrastructure.Persistence.ConnectionString;
 using FSH.WebApi.Infrastructure.Persistence.Context;
@@ -23,9 +22,17 @@ internal static class Startup
         // TODO: there must be a cleaner way to do IOptions validation...
         var databaseSettings = config.GetSection(nameof(DatabaseSettings)).Get<DatabaseSettings>();
         string? rootConnectionString = databaseSettings.ConnectionString;
-        if (string.IsNullOrEmpty(rootConnectionString)) throw new InvalidOperationException("DB ConnectionString is not configured.");
+        if (string.IsNullOrEmpty(rootConnectionString))
+        {
+            throw new InvalidOperationException("DB ConnectionString is not configured.");
+        }
+
         string? dbProvider = databaseSettings.DBProvider;
-        if (string.IsNullOrEmpty(dbProvider)) throw new InvalidOperationException("DB Provider is not configured.");
+        if (string.IsNullOrEmpty(dbProvider))
+        {
+            throw new InvalidOperationException("DB Provider is not configured.");
+        }
+
         _logger.Information($"Current DB Provider : {dbProvider}");
 
         return services
@@ -42,13 +49,7 @@ internal static class Startup
             .AddTransient<IConnectionStringSecurer, ConnectionStringSecurer>()
             .AddTransient<IConnectionStringValidator, ConnectionStringValidator>()
 
-            // Add Repositories
-            .AddScoped(typeof(IRepository<>), typeof(ApplicationDbRepository<>))
-
-            // Add ReadRepositories
-            // TODO: figure out how to do this automatically for all IAgregateRoots
-            .AddScoped(sp => (IReadRepository<Brand>)sp.GetRequiredService<IRepository<Brand>>())
-            .AddScoped(sp => (IReadRepository<Product>)sp.GetRequiredService<IRepository<Product>>());
+            .AddRepositories();
     }
 
     internal static DbContextOptionsBuilder UseDatabase(this DbContextOptionsBuilder builder, string dbProvider, string connectionString)
@@ -76,5 +77,23 @@ internal static class Startup
             default:
                 throw new InvalidOperationException($"DB Provider {dbProvider} is not supported.");
         }
+    }
+
+    private static IServiceCollection AddRepositories(this IServiceCollection services)
+    {
+        // Add Repositories
+        services.AddScoped(typeof(IRepository<>), typeof(ApplicationDbRepository<>));
+
+        // Add ReadRepositories
+        foreach (var aggregateRootType in
+            typeof(IAggregateRoot).Assembly.GetExportedTypes()
+                .Where(t => typeof(IAggregateRoot).IsAssignableFrom(t) && t.IsClass)
+                .ToList())
+        {
+            services.AddScoped(typeof(IReadRepository<>).MakeGenericType(aggregateRootType), sp =>
+                sp.GetRequiredService(typeof(IRepository<>).MakeGenericType(aggregateRootType)));
+        }
+
+        return services;
     }
 }
