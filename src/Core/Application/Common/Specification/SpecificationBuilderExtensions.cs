@@ -1,5 +1,4 @@
 ﻿using System.Linq.Expressions;
-using System.Reflection;
 
 namespace FSH.WebApi.Application.Common.Specification;
 
@@ -96,15 +95,17 @@ public static class SpecificationBuilderExtensions
         {
             foreach (var field in fields)
             {
-                var matchedProperty = typeof(T).GetProperty(field.Key, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
-                if (matchedProperty is null)
-                    throw new ArgumentException($"OrderBy field '{field.Key}' doesn't have a corresponding property in type '{typeof(T).Name}'", nameof(orderByFields));
+                var param = Expression.Parameter(typeof(T), "x");
 
-                var paramExpr = Expression.Parameter(typeof(T));
-                var propertyExpr = Expression.Convert(
-                    Expression.PropertyOrField(paramExpr, matchedProperty.Name), typeof(object));
+                Expression propertyExpr = param;
+                foreach (string member in field.Key.Split('.'))
+                {
+                    propertyExpr = Expression.PropertyOrField(propertyExpr, member);
+                }
 
-                var keySelector = Expression.Lambda<Func<T, object?>>(propertyExpr, paramExpr);
+                var keySelector = Expression.Lambda<Func<T, object?>>(
+                    Expression.Convert(propertyExpr, typeof(object)),
+                    param);
 
                 ((List<(Expression<Func<T, object?>> KeySelector, OrderTypeEnum OrderType)>)specificationBuilder.Specification.OrderExpressions)
                     .Add((keySelector, field.Value));
