@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using System.Reflection;
 
 namespace FSH.WebApi.Application.Common.Specification;
 
@@ -43,32 +44,62 @@ public static class SpecificationBuilderExtensions
     {
         if (!string.IsNullOrEmpty(search?.Keyword))
         {
-            foreach (var property in typeof(T).GetProperties()
-                        .Where(prop => prop.GetGetMethod()?.IsVirtual is not true &&
-                                    (!search.Fields.Any() || search.Fields.Any(
-                                        field => prop.Name.Equals(field, StringComparison.OrdinalIgnoreCase)))))
+            if (search.Fields?.Any() is true)
             {
-                var paramExpr = Expression.Parameter(typeof(T));
-                var propertyExpr = Expression.Property(paramExpr, property);
+                // search seleted fields (can contain deeper nested fields)
+                foreach (string field in search.Fields)
+                {
+                    var paramExpr = Expression.Parameter(typeof(T));
 
-                Expression selectorExpr =
-                    property.PropertyType == typeof(string)
-                        ? propertyExpr
-                        : Expression.Condition(
-                            Expression.Equal(
-                                Expression.Convert(propertyExpr, typeof(object)),
-                                Expression.Constant(null, typeof(object))),
-                            Expression.Constant(null, typeof(string)),
-                            Expression.Call(propertyExpr, "ToString", null, null));
+                    Expression propertyExpr = paramExpr;
+                    foreach (string member in field.Split('.'))
+                    {
+                        propertyExpr = Expression.PropertyOrField(propertyExpr, member);
+                    }
 
-                var selector = Expression.Lambda<Func<T, string>>(selectorExpr, paramExpr);
+                    specificationBuilder.AddSearchPropertyByKeyword(propertyExpr, paramExpr, search.Keyword);
+                }
+            }
+            else
+            {
+                // search all fields (only first level)
+                foreach (var property in typeof(T).GetProperties()
+                    .Where(prop => prop.GetGetMethod()?.IsVirtual is not true))
+                {
+                    var paramExpr = Expression.Parameter(typeof(T));
+                    var propertyExpr = Expression.Property(paramExpr, property);
 
-                ((List<(Expression<Func<T, string>> Selector, string SearchTerm, int SearchGroup)>)specificationBuilder.Specification.SearchCriterias)
-                    .Add((selector, $"%{search.Keyword}%", 1));
+                    specificationBuilder.AddSearchPropertyByKeyword(propertyExpr, paramExpr, search.Keyword);
+                }
             }
         }
 
         return new OrderedSpecificationBuilder<T>(specificationBuilder.Specification);
+    }
+
+    private static void AddSearchPropertyByKeyword<T>(this ISpecificationBuilder<T> specificationBuilder, Expression propertyExpr, ParameterExpression paramExpr, string keyword)
+    {
+        if (propertyExpr is not MemberExpression memberExpr || memberExpr.Member is not PropertyInfo property)
+        {
+            throw new ArgumentException("propertyExpr must be a property expression.", nameof(propertyExpr));
+        }
+
+        // Generate lambda [ x => x.Property ] for string properties
+        // or [ x => ((object)x.Property)?.ToString() ] for other properties
+        Expression selectorExpr =
+            property.PropertyType == typeof(string)
+                ? propertyExpr
+                : Expression.Condition(
+                    Expression.Equal(
+                        Expression.Convert(propertyExpr, typeof(object)),
+                        Expression.Constant(null, typeof(object))),
+                    Expression.Constant(null, typeof(string)),
+                    Expression.Call(propertyExpr, "ToString", null, null));
+
+        var selector = Expression.Lambda<Func<T, string>>(selectorExpr, paramExpr);
+
+        ((List<(Expression<Func<T, string>> Selector, string SearchTerm, int SearchGroup)>)specificationBuilder.Specification.SearchCriterias)
+            .Add((selector, $"%{keyword}%", 1));
     }
 
     public static IOrderedSpecificationBuilder<T> OrderBy<T>(
@@ -79,7 +110,7 @@ public static class SpecificationBuilderExtensions
         {
             foreach (var field in ParseOrderBy(orderByFields))
             {
-                var paramExpr = Expression.Parameter(typeof(T), "x");
+                var paramExpr = Expression.Parameter(typeof(T));
 
                 Expression propertyExpr = paramExpr;
                 foreach (string member in field.Key.Split('.'))
