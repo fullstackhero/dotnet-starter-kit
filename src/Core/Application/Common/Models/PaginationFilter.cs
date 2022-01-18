@@ -1,6 +1,6 @@
 namespace FSH.WebApi.Application.Common.Models;
 
-public abstract class PaginationFilter : BaseFilter
+public class PaginationFilter : BaseFilter
 {
     public int PageNumber { get; set; }
 
