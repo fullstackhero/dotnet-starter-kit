@@ -169,9 +169,10 @@ public class RoleService : IRoleService
     /// <param name="selectedPermissions"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async Task<string> UpdatePermissionsAsync(string roleId, List<UpdatePermissionsRequest> selectedPermissions, CancellationToken cancellationToken)
+    public async Task<string> UpdatePermissionsAsync(UpdatePermissionsRequest request, CancellationToken cancellationToken)
     {
-        var role = await _roleManager.FindByIdAsync(roleId);
+        var selectedPermissions = request.Permissions;
+        var role = await _roleManager.FindByIdAsync(request.RoleId);
         _ = role ?? throw new NotFoundException(_localizer["Role Not Found"]);
 
         if (role.Name == FSHRoles.Admin)
@@ -185,9 +186,9 @@ public class RoleService : IRoleService
 
         if (role.Name == FSHRoles.Admin)
         {
-            if (!selectedPermissions.Any(x => x.Permission == FSHPermissions.Roles.View)
-                || !selectedPermissions.Any(x => x.Permission == FSHPermissions.RoleClaims.View)
-                || !selectedPermissions.Any(x => x.Permission == FSHPermissions.RoleClaims.Edit))
+            if (!selectedPermissions.Any(x => x == FSHPermissions.Roles.View)
+                || !selectedPermissions.Any(x => x == FSHPermissions.RoleClaims.View)
+                || !selectedPermissions.Any(x => x == FSHPermissions.RoleClaims.Edit))
             {
                 throw new ConflictException(string.Format(
                     _localizer["Not allowed to deselect {0} or {1} or {2} for this Role."],
@@ -200,7 +201,7 @@ public class RoleService : IRoleService
         var currentPermissions = await _roleManager.GetClaimsAsync(role);
 
         // Remove permissions that were previously selected
-        foreach (var claim in currentPermissions.Where(c => !selectedPermissions.Any(p => p.Permission == c.Value)))
+        foreach (var claim in currentPermissions.Where(c => !selectedPermissions.Any(p => p == c.Value)))
         {
             var removeResult = await _roleManager.RemoveClaimAsync(role, claim);
             if (!removeResult.Succeeded)
@@ -210,11 +211,11 @@ public class RoleService : IRoleService
         }
 
         // Add all permissions that were not previously selected
-        foreach (var permission in selectedPermissions.Where(c => !currentPermissions.Any(p => p.Value == c.Permission)))
+        foreach (var permission in selectedPermissions.Where(c => !currentPermissions.Any(p => p.Value == c)))
         {
-            if (!string.IsNullOrEmpty(permission.Permission))
+            if (!string.IsNullOrEmpty(permission))
             {
-                var addResult = await _roleManager.AddClaimAsync(role, new Claim(FSHClaims.Permission, permission.Permission));
+                var addResult = await _roleManager.AddClaimAsync(role, new Claim(FSHClaims.Permission, permission));
                 if (!addResult.Succeeded)
                 {
                     throw new InternalServerException(_localizer["Update permissions failed."], addResult.Errors.Select(e => _localizer[e.Description].ToString()).ToList());

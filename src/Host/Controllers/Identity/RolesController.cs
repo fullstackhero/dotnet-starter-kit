@@ -29,11 +29,11 @@ public class RolesController : VersionNeutralApiController
         return _roleService.GetByIdWithPermissionsAsync(id, cancellationToken);
     }
 
-    [HttpPut("{id}/permissions")]
+    [HttpPut("permissions")]
     [MustHavePermission(FSHPermissions.RoleClaims.Edit)]
-    public Task<string> UpdatePermissionsAsync(string id, List<UpdatePermissionsRequest> request, CancellationToken cancellationToken)
+    public Task<string> UpdatePermissionsAsync(UpdatePermissionsRequest request, CancellationToken cancellationToken)
     {
-        return _roleService.UpdatePermissionsAsync(id, request, cancellationToken);
+        return _roleService.UpdatePermissionsAsync(request, cancellationToken);
     }
 
     [HttpPost]
