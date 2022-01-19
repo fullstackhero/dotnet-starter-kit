@@ -171,7 +171,6 @@ public class RoleService : IRoleService
     /// <returns></returns>
     public async Task<string> UpdatePermissionsAsync(string roleId, List<UpdatePermissionsRequest> selectedPermissions, CancellationToken cancellationToken)
     {
-        var errors = new List<string>();
         var role = await _roleManager.FindByIdAsync(roleId);
         _ = role ?? throw new NotFoundException(_localizer["Role Not Found"]);
 
@@ -206,8 +205,7 @@ public class RoleService : IRoleService
             var removeResult = await _roleManager.RemoveClaimAsync(role, claim);
             if (!removeResult.Succeeded)
             {
-                errors.AddRange(removeResult.Errors.Select(e => _localizer[e.Description].ToString()));
-                throw new InternalServerException(_localizer["Update permissions failed."], errors);
+                throw new InternalServerException(_localizer["Update permissions failed."], removeResult.Errors.Select(e => _localizer[e.Description].ToString()).ToList());
             }
         }
 
@@ -219,8 +217,7 @@ public class RoleService : IRoleService
                 var addResult = await _roleManager.AddClaimAsync(role, new Claim(FSHClaims.Permission, permission.Permission));
                 if (!addResult.Succeeded)
                 {
-                    errors.AddRange(addResult.Errors.Select(e => _localizer[e.Description].ToString()));
-                    throw new InternalServerException(_localizer["Update permissions failed."], errors);
+                    throw new InternalServerException(_localizer["Update permissions failed."], addResult.Errors.Select(e => _localizer[e.Description].ToString()).ToList());
                 }
             }
         }
