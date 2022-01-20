@@ -7,6 +7,12 @@ public class GetBrandRequest : IRequest<BrandDto>
     public GetBrandRequest(in Guid id) => Id = id;
 }
 
+public class BrandByIdSpec : Specification<Brand, BrandDto>, ISingleResultSpecification
+{
+    public BrandByIdSpec(Guid id) =>
+        Query.Where(p => p.Id == id);
+}
+
 public class GetBrandRequestHandler : IRequestHandler<GetBrandRequest, BrandDto>
 {
     private readonly IRepository<Brand> _repository;
