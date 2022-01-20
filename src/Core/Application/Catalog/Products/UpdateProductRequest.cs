@@ -1,3 +1,5 @@
+using FSH.WebApi.Domain.Common.Events;
+
 namespace FSH.WebApi.Application.Catalog.Products;
 
 public class UpdateProductRequest : IRequest<Guid>
@@ -32,7 +34,7 @@ public class UpdateProductRequestHandler : IRequestHandler<UpdateProductRequest,
         var updatedProduct = product.Update(request.Name, request.Description, request.Rate, request.BrandId, productImagePath);
 
         // Add Domain Events to be raised after the commit
-        product.DomainEvents.Add(new ProductUpdatedEvent(product));
+        product.DomainEvents.Add(new EntityUpdatedEvent<Product>(product));
 
         await _repository.UpdateAsync(updatedProduct, cancellationToken);
 

@@ -1,4 +1,6 @@
-﻿namespace FSH.WebApi.Application.Catalog.Products;
+﻿using FSH.WebApi.Domain.Common.Events;
+
+namespace FSH.WebApi.Application.Catalog.Products;
 
 public class DeleteProductRequest : IRequest<Guid>
 {
@@ -21,7 +23,7 @@ public class DeleteProductRequestHandler : IRequestHandler<DeleteProductRequest,
 
         _ = product ?? throw new NotFoundException(_localizer["product.notfound"]);
 
-        product.DomainEvents.Add(new ProductDeletedEvent(product));
+        product.DomainEvents.Add(new EntityDeletedEvent<Product>(product));
 
         await _repository.DeleteAsync(product, cancellationToken);
 

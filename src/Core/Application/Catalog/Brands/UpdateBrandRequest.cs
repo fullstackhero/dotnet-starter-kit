@@ -1,3 +1,5 @@
+using FSH.WebApi.Domain.Common.Events;
+
 namespace FSH.WebApi.Application.Catalog.Brands;
 
 public class UpdateBrandRequest : IRequest<Guid>
@@ -35,7 +37,7 @@ public class UpdateBrandRequestHandler : IRequestHandler<UpdateBrandRequest, Gui
 
         brand.Update(request.Name, request.Description);
 
-        brand.DomainEvents.Add(new BrandUpdatedEvent(brand));
+        brand.DomainEvents.Add(new EntityUpdatedEvent<Brand>(brand));
 
         await _repository.UpdateAsync(brand, cancellationToken);
 
