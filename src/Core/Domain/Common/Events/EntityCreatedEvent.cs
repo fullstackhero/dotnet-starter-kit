@@ -1,7 +1,7 @@
 namespace FSH.WebApi.Domain.Common.Events;
 
 public class EntityCreatedEvent<T> : DomainEvent
-    where T : class
+    where T : IEntity
 {
     public EntityCreatedEvent(T entity) => Entity = entity;
 
