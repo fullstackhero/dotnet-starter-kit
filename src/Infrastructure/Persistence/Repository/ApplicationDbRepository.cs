@@ -4,7 +4,6 @@ using FSH.WebApi.Application.Common.Persistence;
 using FSH.WebApi.Domain.Common.Contracts;
 using FSH.WebApi.Infrastructure.Persistence.Context;
 using Mapster;
-using Microsoft.EntityFrameworkCore;
 
 namespace FSH.WebApi.Infrastructure.Persistence.Repository;
 
@@ -16,11 +15,6 @@ public class ApplicationDbRepository<T> : RepositoryBase<T>, IReadRepository<T>,
         : base(dbContext)
     {
     }
-
-    // AnyAsync is in the pipeline in Ardalis.Specifications... so this is temporary...
-    public virtual async Task<bool> AnyAsync(ISpecification<T> specification, CancellationToken cancellationToken) =>
-        await ApplySpecification(specification, true)
-            .AnyAsync(cancellationToken);
 
     // We override the default behavior when mapping to a dto.
     // We're using Mapster's ProjectToType here to immediately map the result from the database.
