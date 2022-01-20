@@ -1,8 +1,9 @@
 using FSH.WebApi.Application.Common.Persistence;
-using FSH.WebApi.Domain.Catalog.Brands;
-using FSH.WebApi.Domain.Catalog.Products;
+using FSH.WebApi.Domain.Common.Contracts;
 using FSH.WebApi.Infrastructure.Common;
+using FSH.WebApi.Infrastructure.Persistence.ConnectionString;
 using FSH.WebApi.Infrastructure.Persistence.Context;
+using FSH.WebApi.Infrastructure.Persistence.Initialization;
 using FSH.WebApi.Infrastructure.Persistence.Repository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -18,46 +19,81 @@ internal static class Startup
 
     internal static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration config)
     {
-        services.Configure<DatabaseSettings>(config.GetSection(nameof(DatabaseSettings)));
+        // TODO: there must be a cleaner way to do IOptions validation...
         var databaseSettings = config.GetSection(nameof(DatabaseSettings)).Get<DatabaseSettings>();
         string? rootConnectionString = databaseSettings.ConnectionString;
-        if (string.IsNullOrEmpty(rootConnectionString)) throw new InvalidOperationException("DB ConnectionString is not configured.");
+        if (string.IsNullOrEmpty(rootConnectionString))
+        {
+            throw new InvalidOperationException("DB ConnectionString is not configured.");
+        }
+
         string? dbProvider = databaseSettings.DBProvider;
-        if (string.IsNullOrEmpty(dbProvider)) throw new InvalidOperationException("DB Provider is not configured.");
+        if (string.IsNullOrEmpty(dbProvider))
+        {
+            throw new InvalidOperationException("DB Provider is not configured.");
+        }
+
         _logger.Information($"Current DB Provider : {dbProvider}");
 
         return services
-            .AddDbContext<TenantManagementDbContext>(m => m.UseDatabase(dbProvider, rootConnectionString))
+            .Configure<DatabaseSettings>(config.GetSection(nameof(DatabaseSettings)))
+
             .AddDbContext<ApplicationDbContext>(m => m.UseDatabase(dbProvider, rootConnectionString))
 
-            // Add TenantManagementDb TenantRepository
-            .AddScoped<ITenantRepository, TenantRepository>()
-            .AddScoped(sp => (ITenantReadRepository)sp.GetRequiredService<ITenantRepository>())
+            .AddTransient<IDatabaseInitializer, DatabaseInitializer>()
+            .AddTransient<ApplicationDbInitializer>()
+            .AddTransient<ApplicationDbSeeder>()
+            .AddServices(typeof(ICustomSeeder), ServiceLifetime.Transient)
+            .AddTransient<CustomSeederRunner>()
 
-            // Add ApplicationDb Repositories
-            .AddScoped(typeof(IRepository<>), typeof(ApplicationDbRepository<>))
+            .AddTransient<IConnectionStringSecurer, ConnectionStringSecurer>()
+            .AddTransient<IConnectionStringValidator, ConnectionStringValidator>()
 
-            // Add ReadRepositories
-            // TODO: do this automatically for all repository types
-            .AddScoped(sp => (IReadRepository<Brand>)sp.GetRequiredService<IRepository<Brand>>())
-            .AddScoped(sp => (IReadRepository<Product>)sp.GetRequiredService<IRepository<Product>>());
+            .AddRepositories();
     }
 
-    private static DbContextOptionsBuilder UseDatabase(this DbContextOptionsBuilder builder, string dbProvider, string connectionString) =>
-        dbProvider.ToLowerInvariant() switch
+    internal static DbContextOptionsBuilder UseDatabase(this DbContextOptionsBuilder builder, string dbProvider, string connectionString)
+    {
+        switch (dbProvider.ToLowerInvariant())
         {
-            DbProviderKeys.Npgsql =>
-                builder.UseNpgsql(connectionString, e => e.MigrationsAssembly("Migrators.PostgreSQL")),
-            DbProviderKeys.SqlServer =>
-                builder.UseSqlServer(connectionString, e => e.MigrationsAssembly("Migrators.MSSQL")),
-            DbProviderKeys.MySql =>
-                builder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), e =>
-                    {
-                        e.MigrationsAssembly("Migrators.MySQL");
-                        e.SchemaBehavior(MySqlSchemaBehavior.Ignore);
-                    }),
-            DbProviderKeys.Oracle =>
-                builder.UseOracle(connectionString, e => e.MigrationsAssembly("Migrators.Oracle")),
-            _ => throw new Exception($"DB Provider {dbProvider} is not supported.")
-        };
+            case DbProviderKeys.Npgsql:
+                AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+                return builder.UseNpgsql(connectionString, e =>
+                     e.MigrationsAssembly("Migrators.PostgreSQL"));
+
+            case DbProviderKeys.SqlServer:
+                return builder.UseSqlServer(connectionString, e =>
+                     e.MigrationsAssembly("Migrators.MSSQL"));
+
+            case DbProviderKeys.MySql:
+                return builder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), e =>
+                     e.MigrationsAssembly("Migrators.MySQL")
+                      .SchemaBehavior(MySqlSchemaBehavior.Ignore));
+
+            case DbProviderKeys.Oracle:
+                return builder.UseOracle(connectionString, e =>
+                     e.MigrationsAssembly("Migrators.Oracle"));
+
+            default:
+                throw new InvalidOperationException($"DB Provider {dbProvider} is not supported.");
+        }
+    }
+
+    private static IServiceCollection AddRepositories(this IServiceCollection services)
+    {
+        // Add Repositories
+        services.AddScoped(typeof(IRepository<>), typeof(ApplicationDbRepository<>));
+
+        // Add ReadRepositories
+        foreach (var aggregateRootType in
+            typeof(IAggregateRoot).Assembly.GetExportedTypes()
+                .Where(t => typeof(IAggregateRoot).IsAssignableFrom(t) && t.IsClass)
+                .ToList())
+        {
+            services.AddScoped(typeof(IReadRepository<>).MakeGenericType(aggregateRootType), sp =>
+                sp.GetRequiredService(typeof(IRepository<>).MakeGenericType(aggregateRootType)));
+        }
+
+        return services;
+    }
 }

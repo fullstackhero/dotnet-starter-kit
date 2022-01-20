@@ -5,7 +5,6 @@ namespace FSH.WebApi.Infrastructure.Identity;
 public class ApplicationRoleClaim : IdentityRoleClaim<string>
 {
     public string? Description { get; set; }
-    public string? Tenant { get; set; }
     public string? Group { get; set; }
     public string? CreatedBy { get; set; }
     public DateTime CreatedOn { get; set; }

@@ -42,15 +42,15 @@ public sealed class IdentityController : VersionNeutralApiController
 
     [HttpPost("forgot-password")]
     [AllowAnonymous]
-    [TenantKeyHeader]
-    [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Post))]
+    [TenantIdHeader]
+    [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Register))]
     public Task<string> ForgotPasswordAsync(ForgotPasswordRequest request)
     {
         return _identityService.ForgotPasswordAsync(request, OriginFromRequest);
     }
 
     [HttpPost("reset-password")]
-    [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Post))]
+    [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Register))]
     public Task<string> ResetPasswordAsync(ResetPasswordRequest request)
     {
         return _identityService.ResetPasswordAsync(request);
@@ -63,13 +63,13 @@ public sealed class IdentityController : VersionNeutralApiController
     }
 
     [HttpGet("profile")]
-    public async Task<UserDetailsDto> GetProfileDetailsAsync(CancellationToken cancellationToken)
+    public Task<UserDetailsDto> GetProfileDetailsAsync(CancellationToken cancellationToken)
     {
-        return await _userService.GetAsync(_currentUser.GetUserId().ToString(), cancellationToken);
+        return _userService.GetAsync(_currentUser.GetUserId().ToString(), cancellationToken);
     }
 
     [HttpPut("change-password")]
-    [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Put))]
+    [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Register))]
     public Task ChangePasswordAsync(ChangePasswordRequest model)
     {
         return _identityService.ChangePasswordAsync(model, _currentUser.GetUserId().ToString());

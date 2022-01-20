@@ -11,5 +11,4 @@ public interface IRepository<T> : IRepositoryBase<T>
 public interface IReadRepository<T> : IReadRepositoryBase<T>
     where T : class, IAggregateRoot
 {
-    Task<bool> AnyAsync(ISpecification<T> specification, CancellationToken cancellationToken = default);
 }

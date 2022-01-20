@@ -1,4 +1,5 @@
-﻿using FSH.WebApi.Infrastructure.Auth;
+﻿using Finbuckle.MultiTenant;
+using FSH.WebApi.Infrastructure.Auth;
 using FSH.WebApi.Infrastructure.Common;
 using FSH.WebApi.Infrastructure.Multitenancy;
 using FSH.WebApi.Shared.Multitenancy;
@@ -28,16 +29,19 @@ public class FSHJobActivator : JobActivator
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _scope = scope ?? throw new ArgumentNullException(nameof(scope));
 
-            SetParameters();
+            ReceiveParameters();
         }
 
-        private void SetParameters()
+        private void ReceiveParameters()
         {
-            string tenantKey = _context.GetJobParameter<string>(MultitenancyConstants.TenantKeyName);
-            if (!string.IsNullOrEmpty(tenantKey))
+            var tenantInfo = _context.GetJobParameter<FSHTenantInfo>(MultitenancyConstants.TenantIdName);
+            if (tenantInfo is not null)
             {
-                _scope.ServiceProvider.GetRequiredService<ICurrentTenantInitializer>()
-                    .SetCurrentTenant(tenantKey);
+                _scope.ServiceProvider.GetRequiredService<IMultiTenantContextAccessor>()
+                    .MultiTenantContext = new MultiTenantContext<FSHTenantInfo>
+                    {
+                        TenantInfo = tenantInfo
+                    };
             }
 
             string userId = _context.GetJobParameter<string>(QueryStringKeys.UserId);

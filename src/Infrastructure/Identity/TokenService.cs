@@ -7,11 +7,9 @@ using FSH.WebApi.Application.Identity.Tokens;
 using FSH.WebApi.Infrastructure.Auth.Jwt;
 using FSH.WebApi.Infrastructure.Mailing;
 using FSH.WebApi.Infrastructure.Multitenancy;
-using FSH.WebApi.Infrastructure.Persistence.Context;
 using FSH.WebApi.Shared.Authorization;
 using FSH.WebApi.Shared.Multitenancy;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -20,31 +18,33 @@ namespace FSH.WebApi.Infrastructure.Identity;
 
 public class TokenService : ITokenService
 {
-    private readonly TenantManagementDbContext _tenantContext;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IStringLocalizer<TokenService> _localizer;
     private readonly MailSettings _mailSettings;
     private readonly JwtSettings _jwtSettings;
-    private readonly ICurrentTenant _currentTenant;
+    private readonly FSHTenantInfo? _currentTenant;
 
     public TokenService(
         UserManager<ApplicationUser> userManager,
         IOptions<JwtSettings> jwtSettings,
         IStringLocalizer<TokenService> localizer,
         IOptions<MailSettings> mailSettings,
-        ICurrentTenant currentTenant,
-        TenantManagementDbContext tenantContext)
+        FSHTenantInfo? currentTenant)
     {
         _userManager = userManager;
         _localizer = localizer;
         _mailSettings = mailSettings.Value;
         _jwtSettings = jwtSettings.Value;
         _currentTenant = currentTenant;
-        _tenantContext = tenantContext;
     }
 
     public async Task<TokenResponse> GetTokenAsync(TokenRequest request, string ipAddress, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(_currentTenant?.Id))
+        {
+            throw new UnauthorizedException(_localizer["tenant.invalid"]);
+        }
+
         var user = await _userManager.FindByEmailAsync(request.Email.Trim().Normalize());
         if (user is null)
         {
@@ -61,21 +61,14 @@ public class TokenService : ITokenService
             throw new UnauthorizedException(_localizer["identity.emailnotconfirmed"]);
         }
 
-        string? tenantKey = user.Tenant;
-        if (tenantKey != MultitenancyConstants.Root.Key)
+        if (_currentTenant.Id != MultitenancyConstants.Root.Id)
         {
-            var tenant = await _tenantContext.Tenants.Where(a => a.Key == tenantKey).FirstOrDefaultAsync(cancellationToken);
-            if (tenant is null)
-            {
-                throw new UnauthorizedException(_localizer["tenant.invalid"]);
-            }
-
-            if (!tenant.IsActive)
+            if (!_currentTenant.IsActive)
             {
                 throw new UnauthorizedException(_localizer["tenant.inactive"]);
             }
 
-            if (DateTime.UtcNow > tenant.ValidUpto)
+            if (DateTime.UtcNow > _currentTenant.ValidUpto)
             {
                 throw new UnauthorizedException(_localizer["tenant.expired"]);
             }
@@ -131,7 +124,7 @@ public class TokenService : ITokenService
             new(ClaimTypes.Name, user.FirstName ?? string.Empty),
             new(ClaimTypes.Surname, user.LastName ?? string.Empty),
             new(FSHClaims.IpAddress, ipAddress),
-            new(FSHClaims.Tenant, _currentTenant.Key),
+            new(FSHClaims.Tenant, _currentTenant!.Id),
             new(FSHClaims.ImageUrl, user.ImageUrl ?? string.Empty),
             new(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty)
         };

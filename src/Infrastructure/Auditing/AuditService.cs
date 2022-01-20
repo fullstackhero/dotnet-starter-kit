@@ -15,7 +15,7 @@ public class AuditService : IAuditService
     {
         var trails = await _context.AuditTrails
             .Where(a => a.UserId == userId)
-            .OrderByDescending(a => a.Id)
+            .OrderByDescending(a => a.DateTime)
             .Take(250)
             .ToListAsync();
 

@@ -7,6 +7,11 @@ public class ProductsBySearchRequestWithBrandsSpec : EntitiesByPaginationFilterS
     {
         Query.Include(p => p.Brand);
 
+        if (!request.HasOrderBy())
+        {
+            Query.OrderBy(c => c.Name);
+        }
+
         if (request.BrandId.HasValue)
         {
             Query.Where(p => p.BrandId.Equals(request.BrandId.Value));

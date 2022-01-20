@@ -11,7 +11,6 @@ using FSH.WebApi.Application;
 using FSH.WebApi.Host.Configurations;
 using FSH.WebApi.Host.Controllers;
 using FSH.WebApi.Infrastructure;
-using FSH.WebApi.Infrastructure.Persistence;
 using Serilog;
 
 [assembly: ApiConventionType(typeof(FSHApiConventions))]
@@ -29,15 +28,16 @@ try
         .ReadFrom.Configuration(builder.Configuration);
     });
 
-    builder.Services.AddControllers().AddFluentValidation();
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
+    builder.Services.AddControllers().AddFluentValidation();
 
     var app = builder.Build();
 
-    DatabaseInitializer.InitializeDatabases(app.Services);
+    await app.Services.InitializeDatabasesAsync();
 
     app.UseInfrastructure(builder.Configuration);
+    app.MapEndpoints();
 
     app.Run();
 }

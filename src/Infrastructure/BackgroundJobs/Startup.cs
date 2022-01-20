@@ -5,6 +5,7 @@ using Hangfire.Console.Extensions;
 using Hangfire.MySql;
 using Hangfire.PostgreSql;
 using Hangfire.SqlServer;
+using HangfireBasicAuthenticationFilter;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,7 +34,7 @@ internal static class Startup
 
         services.AddHangfire((provider, hangfireConfig) => hangfireConfig
             .UseDatabase(storageSettings.StorageProvider, storageSettings.ConnectionString, config)
-            .UseFilter(new TenantJobFilter(provider))
+            .UseFilter(new FSHJobFilter(provider))
             .UseFilter(new LogJobFilter())
             .UseConsole());
 
@@ -56,25 +57,14 @@ internal static class Startup
     {
         var dashboardOptions = config.GetSection("HangfireSettings:Dashboard").Get<DashboardOptions>();
 
-        // **OPtional BasicAuthAuthorizationFilter**
-        // dashboardOptions.Authorization = new[]
-        // {
-        //    new BasicAuthAuthorizationFilter(
-        //        new BasicAuthAuthorizationFilterOptions
-        //        {
-        //            RequireSsl = false,
-        //            SslRedirect = false,
-        //            LoginCaseSensitive = true,
-        //            Users = new[]
-        //            {
-        //                new BasicAuthAuthorizationUser
-        //                {
-        //                    Login = config["HangfireSettings:Credentiales:User"],
-        //                    PasswordClear = config["HangfireSettings:Credentiales:Password"]
-        //                }
-        //            }
-        //        })
-        // };
+        dashboardOptions.Authorization = new[]
+        {
+           new HangfireCustomBasicAuthenticationFilter
+           {
+                User = config.GetSection("HangfireSettings:Credentials:User").Value,
+                Pass = config.GetSection("HangfireSettings:Credentials:Password").Value
+           }
+        };
 
         return app.UseHangfireDashboard(config["HangfireSettings:Route"], dashboardOptions);
     }

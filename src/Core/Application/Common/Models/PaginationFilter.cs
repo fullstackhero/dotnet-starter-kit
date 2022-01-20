@@ -1,15 +1,16 @@
 namespace FSH.WebApi.Application.Common.Models;
 
-public abstract class PaginationFilter : BaseFilter
+public class PaginationFilter : BaseFilter
 {
-    protected PaginationFilter()
-    {
-        PageSize = int.MaxValue;
-    }
-
     public int PageNumber { get; set; }
 
-    public int PageSize { get; set; }
+    public int PageSize { get; set; } = int.MaxValue;
 
     public string[]? OrderBy { get; set; }
+}
+
+public static class PaginationFilterExtensions
+{
+    public static bool HasOrderBy(this PaginationFilter filter) =>
+        filter.OrderBy?.Any() is true;
 }

@@ -3,6 +3,7 @@ using FSH.WebApi.Application.Common.Interfaces;
 using FSH.WebApi.Application.Identity;
 using FSH.WebApi.Application.Identity.RoleClaims;
 using FSH.WebApi.Application.Identity.Roles;
+using FSH.WebApi.Infrastructure.Auth.Permissions;
 using FSH.WebApi.Infrastructure.Common.Extensions;
 using FSH.WebApi.Infrastructure.Persistence.Context;
 using FSH.WebApi.Shared.Authorization;
@@ -10,6 +11,7 @@ using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
+using System.Security.Claims;
 
 namespace FSH.WebApi.Infrastructure.Identity;
 
@@ -95,13 +97,20 @@ public class RoleService : IRoleService
         return roleDtos;
     }
 
-    public async Task<List<PermissionDto>> GetPermissionsAsync(string id, CancellationToken cancellationToken)
+    /// <summary>
+    /// Get Permissions By Role Async.
+    /// </summary>
+    /// <param name="roleId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<RoleDto> GetByIdWithPermissionsAsync(string roleId, CancellationToken cancellationToken)
     {
-        var permissions = await _context.RoleClaims
-            .Where(a => a.RoleId == id && a.ClaimType == FSHClaims.Permission)
+        var role = await this.GetByIdAsync(roleId);
+        var permissions = await _context.RoleClaims.Where(a => a.RoleId == roleId && a.ClaimType == FSHClaims.Permission)
             .ToListAsync(cancellationToken);
+        role.Permissions = permissions.Adapt<List<PermissionDto>>();
 
-        return permissions.Adapt<List<PermissionDto>>();
+        return role;
     }
 
     public async Task<List<RoleDto>> GetUserRolesAsync(string userId)
@@ -124,7 +133,7 @@ public class RoleService : IRoleService
     {
         if (string.IsNullOrEmpty(request.Id))
         {
-            var newRole = new ApplicationRole(request.Name, _context.TenantKey, request.Description);
+            var newRole = new ApplicationRole(request.Name, request.Description);
             var result = await _roleManager.CreateAsync(newRole);
 
             return result.Succeeded
@@ -153,10 +162,17 @@ public class RoleService : IRoleService
         }
     }
 
-    public async Task<string> UpdatePermissionsAsync(string roleId, List<UpdatePermissionsRequest> permissions, CancellationToken cancellationToken)
+    /// <summary>
+    /// Update Permissions by Role Async.
+    /// </summary>
+    /// <param name="roleId"></param>
+    /// <param name="selectedPermissions"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<string> UpdatePermissionsAsync(UpdatePermissionsRequest request, CancellationToken cancellationToken)
     {
-        var errors = new List<string>();
-        var role = await _roleManager.FindByIdAsync(roleId);
+        var selectedPermissions = request.Permissions;
+        var role = await _roleManager.FindByIdAsync(request.RoleId);
         _ = role ?? throw new NotFoundException(_localizer["Role Not Found"]);
 
         if (role.Name == FSHRoles.Admin)
@@ -168,12 +184,11 @@ public class RoleService : IRoleService
             }
         }
 
-        var selectedPermissions = permissions.Where(p => p.Enabled).ToList();
         if (role.Name == FSHRoles.Admin)
         {
-            if (!selectedPermissions.Any(x => x.Permission == FSHPermissions.Roles.View)
-                || !selectedPermissions.Any(x => x.Permission == FSHPermissions.RoleClaims.View)
-                || !selectedPermissions.Any(x => x.Permission == FSHPermissions.RoleClaims.Edit))
+            if (!selectedPermissions.Any(x => x == FSHPermissions.Roles.View)
+                || !selectedPermissions.Any(x => x == FSHPermissions.RoleClaims.View)
+                || !selectedPermissions.Any(x => x == FSHPermissions.RoleClaims.Edit))
             {
                 throw new ConflictException(string.Format(
                     _localizer["Not allowed to deselect {0} or {1} or {2} for this Role."],
@@ -183,37 +198,29 @@ public class RoleService : IRoleService
             }
         }
 
-        var claims = await _roleManager.GetClaimsAsync(role);
-        foreach (var claim in claims.Where(c => permissions.Any(p => p.Permission == c.Value)))
+        var currentPermissions = await _roleManager.GetClaimsAsync(role);
+
+        // Remove permissions that were previously selected
+        foreach (var claim in currentPermissions.Where(c => !selectedPermissions.Any(p => p == c.Value)))
         {
-            await _roleManager.RemoveClaimAsync(role, claim);
+            var removeResult = await _roleManager.RemoveClaimAsync(role, claim);
+            if (!removeResult.Succeeded)
+            {
+                throw new InternalServerException(_localizer["Update permissions failed."], removeResult.Errors.Select(e => _localizer[e.Description].ToString()).ToList());
+            }
         }
 
-        foreach (var permission in selectedPermissions)
+        // Add all permissions that were not previously selected
+        foreach (var permission in selectedPermissions.Where(c => !currentPermissions.Any(p => p.Value == c)))
         {
-            if (!string.IsNullOrEmpty(permission.Permission))
+            if (!string.IsNullOrEmpty(permission))
             {
-                var addResult = await _roleManager.AddPermissionClaimAsync(role, permission.Permission);
+                var addResult = await _roleManager.AddClaimAsync(role, new Claim(FSHClaims.Permission, permission));
                 if (!addResult.Succeeded)
                 {
-                    errors.AddRange(addResult.Errors.Select(e => _localizer[e.Description].ToString()));
+                    throw new InternalServerException(_localizer["Update permissions failed."], addResult.Errors.Select(e => _localizer[e.Description].ToString()).ToList());
                 }
             }
-        }
-
-        var allPermissions = await _roleClaimService.GetAllByRoleIdAsync(role.Id, cancellationToken);
-        foreach (var permission in selectedPermissions)
-        {
-            if (allPermissions.SingleOrDefault(x => x.Type == FSHClaims.Permission && x.Value == permission.Permission)
-                is RoleClaimDto addedPermission)
-            {
-                await _roleClaimService.SaveAsync(addedPermission.Adapt<RoleClaimRequest>(), cancellationToken);
-            }
-        }
-
-        if (errors.Count > 0)
-        {
-            throw new InternalServerException(_localizer["Update permissions failed."], errors);
         }
 
         return _localizer["Permissions Updated."];

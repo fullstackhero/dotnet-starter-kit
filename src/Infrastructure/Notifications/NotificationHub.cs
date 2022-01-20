@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using Finbuckle.MultiTenant;
+using FSH.WebApi.Application.Common.Exceptions;
 using FSH.WebApi.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
@@ -9,36 +10,35 @@ namespace FSH.WebApi.Infrastructure.Notifications;
 [Authorize]
 public class NotificationHub : Hub, ITransientService
 {
+    private readonly ITenantInfo? _currentTenant;
     private readonly ILogger<NotificationHub> _logger;
 
-    public NotificationHub(ILogger<NotificationHub> logger)
+    public NotificationHub(ITenantInfo? currentTenant, ILogger<NotificationHub> logger)
     {
+        _currentTenant = currentTenant;
         _logger = logger;
     }
 
     public override async Task OnConnectedAsync()
     {
-        string? tenant = Context.User?.GetTenant();
-        if (string.IsNullOrEmpty(tenant))
+        if (_currentTenant is null)
         {
-            throw new Exception();
+            throw new UnauthorizedException("Authentication Failed.");
         }
 
-        await Groups.AddToGroupAsync(Context.ConnectionId, $"GroupTenant-{tenant}");
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"GroupTenant-{_currentTenant.Id}");
+
         await base.OnConnectedAsync();
-        _logger.LogInformation($"A client connected to NotificationHub: {Context.ConnectionId}");
+
+        _logger.LogInformation("A client connected to NotificationHub: {connectionId}", Context.ConnectionId);
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        string? tenant = Context.User?.GetTenant();
-        if (string.IsNullOrEmpty(tenant))
-        {
-            throw new Exception();
-        }
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"GroupTenant-{_currentTenant!.Id}");
 
-        await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"GroupTenant-{tenant}");
         await base.OnDisconnectedAsync(exception);
-        _logger.LogInformation($"A client disconnected from NotificationHub: {Context.ConnectionId}");
+
+        _logger.LogInformation("A client disconnected from NotificationHub: {connectionId}", Context.ConnectionId);
     }
 }
