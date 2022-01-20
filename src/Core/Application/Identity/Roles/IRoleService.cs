@@ -4,7 +4,7 @@ public interface IRoleService : ITransientService
 {
     Task<List<RoleDto>> GetListAsync();
 
-    Task<List<PermissionDto>> GetPermissionsAsync(string id, CancellationToken cancellationToken);
+    Task<RoleDto> GetByIdWithPermissionsAsync(string roleId, CancellationToken cancellationToken);
 
     Task<int> GetCountAsync(CancellationToken cancellationToken);
 
@@ -18,5 +18,5 @@ public interface IRoleService : ITransientService
 
     Task<List<RoleDto>> GetUserRolesAsync(string userId);
 
-    Task<string> UpdatePermissionsAsync(string id, List<UpdatePermissionsRequest> request, CancellationToken cancellationToken);
+    Task<string> UpdatePermissionsAsync(UpdatePermissionsRequest request, CancellationToken cancellationToken);
 }
