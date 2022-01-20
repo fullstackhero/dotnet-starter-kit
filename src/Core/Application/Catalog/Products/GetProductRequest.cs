@@ -15,8 +15,8 @@ public class GetProductRequestHandler : IRequestHandler<GetProductRequest, Produ
     public GetProductRequestHandler(IRepository<Product> repository, IStringLocalizer<GetProductRequestHandler> localizer) =>
         (_repository, _localizer) = (repository, localizer);
 
-    public Task<ProductDetailsDto> Handle(GetProductRequest request, CancellationToken cancellationToken) =>
-        _repository.GetBySpecAsync(
+    public async Task<ProductDetailsDto> Handle(GetProductRequest request, CancellationToken cancellationToken) =>
+        await _repository.GetBySpecAsync(
             (ISpecification<Product, ProductDetailsDto>)new ProductByIdWithBrandSpec(request.Id), cancellationToken)
         ?? throw new NotFoundException(string.Format(_localizer["product.notfound"], request.Id));
 }

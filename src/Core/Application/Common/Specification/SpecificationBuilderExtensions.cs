@@ -98,8 +98,8 @@ public static class SpecificationBuilderExtensions
 
         var selector = Expression.Lambda<Func<T, string>>(selectorExpr, paramExpr);
 
-        ((List<(Expression<Func<T, string>> Selector, string SearchTerm, int SearchGroup)>)specificationBuilder.Specification.SearchCriterias)
-            .Add((selector, $"%{keyword}%", 1));
+        ((List<SearchExpressionInfo<T>>)specificationBuilder.Specification.SearchCriterias)
+            .Add(new SearchExpressionInfo<T>(selector, $"%{keyword}%", 1));
     }
 
     public static IOrderedSpecificationBuilder<T> OrderBy<T>(
@@ -122,8 +122,8 @@ public static class SpecificationBuilderExtensions
                     Expression.Convert(propertyExpr, typeof(object)),
                     paramExpr);
 
-                ((List<(Expression<Func<T, object?>> KeySelector, OrderTypeEnum OrderType)>)specificationBuilder.Specification.OrderExpressions)
-                    .Add((keySelector, field.Value));
+                ((List<OrderExpressionInfo<T>>)specificationBuilder.Specification.OrderExpressions)
+                    .Add(new OrderExpressionInfo<T>(keySelector, field.Value));
             }
         }
 

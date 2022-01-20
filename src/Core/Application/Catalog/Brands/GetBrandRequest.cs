@@ -14,8 +14,8 @@ public class GetBrandRequestHandler : IRequestHandler<GetBrandRequest, BrandDto>
 
     public GetBrandRequestHandler(IRepository<Brand> repository, IStringLocalizer<GetBrandRequestHandler> localizer) => (_repository, _localizer) = (repository, localizer);
 
-    public Task<BrandDto> Handle(GetBrandRequest request, CancellationToken cancellationToken) =>
-        _repository.GetBySpecAsync(
+    public async Task<BrandDto> Handle(GetBrandRequest request, CancellationToken cancellationToken) =>
+        await _repository.GetBySpecAsync(
             (ISpecification<Brand, BrandDto>)new BrandByIdSpec(request.Id), cancellationToken)
         ?? throw new NotFoundException(string.Format(_localizer["brand.notfound"], request.Id));
 }
