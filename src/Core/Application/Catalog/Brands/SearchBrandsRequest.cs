@@ -7,13 +7,8 @@ public class SearchBrandsRequest : PaginationFilter, IRequest<PaginationResponse
 public class BrandsBySearchRequestSpec : EntitiesByPaginationFilterSpec<Brand, BrandDto>
 {
     public BrandsBySearchRequestSpec(SearchBrandsRequest request)
-        : base(request)
-    {
-        if (!request.HasOrderBy())
-        {
-            Query.OrderBy(c => c.Name);
-        }
-    }
+        : base(request) =>
+        Query.OrderBy(c => c.Name, !request.HasOrderBy());
 }
 
 public class SearchBrandsRequestHandler : IRequestHandler<SearchBrandsRequest, PaginationResponse<BrandDto>>
