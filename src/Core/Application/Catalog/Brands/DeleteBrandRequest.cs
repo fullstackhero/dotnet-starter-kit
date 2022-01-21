@@ -1,4 +1,5 @@
 ﻿using FSH.WebApi.Application.Catalog.Products;
+using FSH.WebApi.Domain.Common.Events;
 
 namespace FSH.WebApi.Application.Catalog.Brands;
 
@@ -29,7 +30,7 @@ public class DeleteBrandRequestHandler : IRequestHandler<DeleteBrandRequest, Gui
 
         _ = brand ?? throw new NotFoundException(_localizer["brand.notfound"]);
 
-        brand.DomainEvents.Add(new BrandDeletedEvent(brand));
+        brand.DomainEvents.Add(new EntityDeletedEvent<Brand>(brand));
 
         await _brandRepo.DeleteAsync(brand, cancellationToken);
 

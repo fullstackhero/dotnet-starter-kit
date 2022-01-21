@@ -1,6 +1,8 @@
+using FSH.WebApi.Domain.Common.Events;
+
 namespace FSH.WebApi.Application.Catalog.Products.EventHandlers;
 
-public class ProductCreatedEventHandler : INotificationHandler<EventNotification<ProductCreatedEvent>>
+public class ProductCreatedEventHandler : INotificationHandler<EventNotification<EntityCreatedEvent<Product>>>
 {
     private readonly ILogger<ProductCreatedEventHandler> _logger;
 
@@ -9,7 +11,7 @@ public class ProductCreatedEventHandler : INotificationHandler<EventNotification
         _logger = logger;
     }
 
-    public Task Handle(EventNotification<ProductCreatedEvent> notification, CancellationToken cancellationToken)
+    public Task Handle(EventNotification<EntityCreatedEvent<Product>> notification, CancellationToken cancellationToken)
     {
         _logger.LogInformation("{event} Triggered", notification.DomainEvent.GetType().Name);
         return Task.CompletedTask;
