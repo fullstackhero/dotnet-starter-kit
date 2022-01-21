@@ -85,7 +85,7 @@ public static class SpecificationBuilderExtensions
         }
 
         // Generate lambda [ x => x.Property ] for string properties
-        // or [ x => ((object)x.Property)?.ToString() ] for other properties
+        // or [ x => ((object)x.Property) == null ? null : x.Property.ToString() ] for other properties
         Expression selectorExpr =
             property.PropertyType == typeof(string)
                 ? propertyExpr

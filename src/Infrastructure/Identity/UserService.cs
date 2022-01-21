@@ -138,9 +138,9 @@ public class UserService : IUserService
         _ = user ?? throw new NotFoundException(_localizer["User Not Found."]);
 
         var permissions = new List<PermissionDto>();
-        var roles = await _userManager.GetRolesAsync(user);
+        var userRoles = await _userManager.GetRolesAsync(user);
         foreach (var role in await _roleManager.Roles
-            .Where(r => roles.Contains(r.Name))
+            .Where(r => userRoles.Contains(r.Name))
             .ToListAsync(cancellationToken))
         {
             var roleClaims = await _context.RoleClaims
