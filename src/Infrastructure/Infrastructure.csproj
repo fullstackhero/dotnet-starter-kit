@@ -8,7 +8,7 @@
         <FrameworkReference Include="Microsoft.AspNetCore.App" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Ardalis.Specification.EntityFrameworkCore" Version="6.0.0" />
+        <PackageReference Include="Ardalis.Specification.EntityFrameworkCore" Version="6.0.1" />
         <PackageReference Include="Dapper" Version="2.0.123" />
         <PackageReference Include="Finbuckle.MultiTenant.AspNetCore" Version="6.5.1" />
         <PackageReference Include="Finbuckle.MultiTenant.EntityFrameworkCore" Version="6.5.1" />
