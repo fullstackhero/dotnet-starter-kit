@@ -1,5 +1,3 @@
-using FSH.WebApi.Domain.Common.Events;
-
 namespace FSH.WebApi.Application.Catalog.Brands;
 
 public class UpdateBrandRequest : IRequest<Guid>
@@ -23,10 +21,11 @@ public class UpdateBrandRequestValidator : CustomValidator<UpdateBrandRequest>
 
 public class UpdateBrandRequestHandler : IRequestHandler<UpdateBrandRequest, Guid>
 {
-    private readonly IRepository<Brand> _repository;
+    // Add Domain Events automatically by using IRepositoryWithEvents
+    private readonly IRepositoryWithEvents<Brand> _repository;
     private readonly IStringLocalizer<UpdateBrandRequestHandler> _localizer;
 
-    public UpdateBrandRequestHandler(IRepository<Brand> repository, IStringLocalizer<UpdateBrandRequestHandler> localizer) =>
+    public UpdateBrandRequestHandler(IRepositoryWithEvents<Brand> repository, IStringLocalizer<UpdateBrandRequestHandler> localizer) =>
         (_repository, _localizer) = (repository, localizer);
 
     public async Task<Guid> Handle(UpdateBrandRequest request, CancellationToken cancellationToken)
@@ -36,8 +35,6 @@ public class UpdateBrandRequestHandler : IRequestHandler<UpdateBrandRequest, Gui
         _ = brand ?? throw new NotFoundException(string.Format(_localizer["brand.notfound"], request.Id));
 
         brand.Update(request.Name, request.Description);
-
-        brand.DomainEvents.Add(new EntityUpdatedEvent<Brand>(brand));
 
         await _repository.UpdateAsync(brand, cancellationToken);
 

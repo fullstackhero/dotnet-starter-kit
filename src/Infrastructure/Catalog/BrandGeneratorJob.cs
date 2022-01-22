@@ -2,7 +2,7 @@
 using FSH.WebApi.Application.Catalog.Brands;
 using FSH.WebApi.Application.Common.Interfaces;
 using FSH.WebApi.Application.Common.Persistence;
-using FSH.WebApi.Domain.Catalog.Brands;
+using FSH.WebApi.Domain.Catalog;
 using FSH.WebApi.Shared.Notifications;
 using Hangfire;
 using Hangfire.Console.Extensions;

@@ -1,9 +1,16 @@
 namespace FSH.WebApi.Domain.Common.Events;
 
-public class EntityDeletedEvent<T> : DomainEvent
-    where T : IEntity
+public static class EntityDeletedEvent
 {
-    public EntityDeletedEvent(T entity) => Entity = entity;
+    public static EntityDeletedEvent<TEntity> WithEntity<TEntity>(TEntity entity)
+        where TEntity : IEntity
+        => new(entity);
+}
 
-    public T Entity { get; }
+public class EntityDeletedEvent<TEntity> : DomainEvent
+    where TEntity : IEntity
+{
+    internal EntityDeletedEvent(TEntity entity) => Entity = entity;
+
+    public TEntity Entity { get; }
 }

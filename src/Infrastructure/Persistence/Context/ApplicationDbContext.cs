@@ -1,8 +1,7 @@
 using Finbuckle.MultiTenant;
 using FSH.WebApi.Application.Common.Events;
 using FSH.WebApi.Application.Common.Interfaces;
-using FSH.WebApi.Domain.Catalog.Brands;
-using FSH.WebApi.Domain.Catalog.Products;
+using FSH.WebApi.Domain.Catalog;
 using FSH.WebApi.Infrastructure.Persistence.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;

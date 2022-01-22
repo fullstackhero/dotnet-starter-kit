@@ -1,6 +1,5 @@
 ﻿using Finbuckle.MultiTenant.EntityFrameworkCore;
-using FSH.WebApi.Domain.Catalog.Brands;
-using FSH.WebApi.Domain.Catalog.Products;
+using FSH.WebApi.Domain.Catalog;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
