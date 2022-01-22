@@ -21,7 +21,7 @@ public interface IReadRepository<T> : IReadRepositoryBase<T>
 
 /// <summary>
 /// A special (read/write) repository, that also adds events to the
-/// entities domain events before adding, updating or deleting entities.
+/// entities domain events before adding, updating or deleting them.
 /// </summary>
 public interface IRepositoryWithEvents<T> : IRepositoryBase<T>
     where T : class, IAggregateRoot
