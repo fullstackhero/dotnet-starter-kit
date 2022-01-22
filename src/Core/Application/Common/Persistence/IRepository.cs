@@ -1,7 +1,7 @@
 ﻿namespace FSH.WebApi.Application.Common.Persistence;
 
 // The Repository for the Application Db
-// IRepositoryBase<T> is from Ardalis.Specification
+// I(Read)RepositoryBase<T> is from Ardalis.Specification
 
 /// <summary>
 /// The regular read/write repository for an aggregate root.
