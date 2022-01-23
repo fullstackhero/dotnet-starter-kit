@@ -1,3 +1,4 @@
+using FSH.WebApi.Domain.Common.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using System.Linq.Expressions;
@@ -12,6 +13,7 @@ internal static class ModelBuilderExtensions
         var entities = modelBuilder.Model
             .GetEntityTypes()
             .Where(e => e.ClrType.GetInterface(typeof(TInterface).Name) is not null)
+            .Where(e => e.ClrType.GetInterface(nameof(ISkipGlobalQueryFilter)) is null) // used for apply manual filter
             .Select(e => e.ClrType);
 
         foreach (var entity in entities)
