@@ -1,5 +1,3 @@
-using FSH.WebApi.Domain.Common.Events;
-
 namespace FSH.WebApi.Application.Catalog.Brands;
 
 public class CreateBrandRequest : IRequest<Guid>
@@ -20,15 +18,14 @@ public class CreateBrandRequestValidator : CustomValidator<CreateBrandRequest>
 
 public class CreateBrandRequestHandler : IRequestHandler<CreateBrandRequest, Guid>
 {
-    private readonly IRepository<Brand> _repository;
+    // Add Domain Events automatically by using IRepositoryWithEvents
+    private readonly IRepositoryWithEvents<Brand> _repository;
 
-    public CreateBrandRequestHandler(IRepository<Brand> repository) => _repository = repository;
+    public CreateBrandRequestHandler(IRepositoryWithEvents<Brand> repository) => _repository = repository;
 
     public async Task<Guid> Handle(CreateBrandRequest request, CancellationToken cancellationToken)
     {
         var brand = new Brand(request.Name, request.Description);
-
-        brand.DomainEvents.Add(new EntityCreatedEvent<Brand>(brand));
 
         await _repository.AddAsync(brand, cancellationToken);
 

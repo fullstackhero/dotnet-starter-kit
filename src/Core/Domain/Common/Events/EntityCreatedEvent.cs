@@ -1,9 +1,16 @@
 namespace FSH.WebApi.Domain.Common.Events;
 
-public class EntityCreatedEvent<T> : DomainEvent
-    where T : IEntity
+public static class EntityCreatedEvent
 {
-    public EntityCreatedEvent(T entity) => Entity = entity;
+    public static EntityCreatedEvent<TEntity> WithEntity<TEntity>(TEntity entity)
+        where TEntity : IEntity
+        => new(entity);
+}
 
-    public T Entity { get; }
+public class EntityCreatedEvent<TEntity> : DomainEvent
+    where TEntity : IEntity
+{
+    internal EntityCreatedEvent(TEntity entity) => Entity = entity;
+
+    public TEntity Entity { get; }
 }

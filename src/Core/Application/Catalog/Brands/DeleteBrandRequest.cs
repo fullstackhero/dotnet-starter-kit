@@ -1,5 +1,4 @@
 ﻿using FSH.WebApi.Application.Catalog.Products;
-using FSH.WebApi.Domain.Common.Events;
 
 namespace FSH.WebApi.Application.Catalog.Brands;
 
@@ -12,11 +11,12 @@ public class DeleteBrandRequest : IRequest<Guid>
 
 public class DeleteBrandRequestHandler : IRequestHandler<DeleteBrandRequest, Guid>
 {
-    private readonly IRepository<Brand> _brandRepo;
+    // Add Domain Events automatically by using IRepositoryWithEvents
+    private readonly IRepositoryWithEvents<Brand> _brandRepo;
     private readonly IReadRepository<Product> _productRepo;
     private readonly IStringLocalizer<DeleteBrandRequestHandler> _localizer;
 
-    public DeleteBrandRequestHandler(IRepository<Brand> brandRepo, IReadRepository<Product> productRepo, IStringLocalizer<DeleteBrandRequestHandler> localizer) =>
+    public DeleteBrandRequestHandler(IRepositoryWithEvents<Brand> brandRepo, IReadRepository<Product> productRepo, IStringLocalizer<DeleteBrandRequestHandler> localizer) =>
         (_brandRepo, _productRepo, _localizer) = (brandRepo, productRepo, localizer);
 
     public async Task<Guid> Handle(DeleteBrandRequest request, CancellationToken cancellationToken)
@@ -29,8 +29,6 @@ public class DeleteBrandRequestHandler : IRequestHandler<DeleteBrandRequest, Gui
         var brand = await _brandRepo.GetByIdAsync(request.Id);
 
         _ = brand ?? throw new NotFoundException(_localizer["brand.notfound"]);
-
-        brand.DomainEvents.Add(new EntityDeletedEvent<Brand>(brand));
 
         await _brandRepo.DeleteAsync(brand, cancellationToken);
 

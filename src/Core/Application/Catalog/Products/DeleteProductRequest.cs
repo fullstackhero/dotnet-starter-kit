@@ -23,7 +23,8 @@ public class DeleteProductRequestHandler : IRequestHandler<DeleteProductRequest,
 
         _ = product ?? throw new NotFoundException(_localizer["product.notfound"]);
 
-        product.DomainEvents.Add(new EntityDeletedEvent<Product>(product));
+        // Add Domain Events to be raised after the commit
+        product.DomainEvents.Add(EntityDeletedEvent.WithEntity(product));
 
         await _repository.DeleteAsync(product, cancellationToken);
 
