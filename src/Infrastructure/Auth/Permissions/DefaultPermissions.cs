@@ -10,7 +10,8 @@ public static class DefaultPermissions
         FSHPermissions.Products.Search,
         FSHPermissions.Products.View,
         FSHPermissions.Brands.Search,
-        FSHPermissions.Brands.View
+        FSHPermissions.Brands.View,
+        FSHPermissions.RoleClaims.View
     };
 
     public static List<string> Admin => typeof(FSHPermissions).GetNestedClassesStaticStringValues();
