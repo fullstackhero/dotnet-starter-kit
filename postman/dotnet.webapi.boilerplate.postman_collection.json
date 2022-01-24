@@ -375,7 +375,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\r\n    \"name\":\"Product Test to max name length to be exactly or around 75 which is the max\",\r\n    \"description\":\"Something more Cool!\",\r\n    \"rate\":5,\r\n    \"brandId\":\"623e0000-3f5a-3c7c-e077-08d9b24e1641\"\r\n}",
+                  "raw": "{\r\n    \"id\": \"623e0000-3f5a-3c7c-0502-08d9b2523534\",\r\n    \"name\":\"Product Test to max name length to be exactly or around 75 which is the max\",\r\n    \"description\":\"Something more Cool!\",\r\n    \"rate\":5,\r\n    \"brandId\":\"623e0000-3f5a-3c7c-e077-08d9b24e1641\"\r\n}",
                   "options": {
                     "raw": {
                       "language": "json"
