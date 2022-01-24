@@ -12,8 +12,8 @@ internal static class ModelBuilderExtensions
         // gets a list of entities that implement the interface TInterface
         var entities = modelBuilder.Model
             .GetEntityTypes()
+            .Where(e => e.BaseType is null)
             .Where(e => e.ClrType.GetInterface(typeof(TInterface).Name) is not null)
-            .Where(e => e.ClrType.GetInterface(nameof(ISkipGlobalQueryFilter)) is null) // used for apply manual filter
             .Select(e => e.ClrType);
 
         foreach (var entity in entities)
