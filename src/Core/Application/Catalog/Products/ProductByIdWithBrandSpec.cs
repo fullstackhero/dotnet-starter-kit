@@ -1,6 +1,6 @@
 ﻿namespace FSH.WebApi.Application.Catalog.Products;
 
-public class ProductByIdWithBrandSpec : Specification<Product, ProductDto>, ISingleResultSpecification
+public class ProductByIdWithBrandSpec : Specification<Product, ProductDetailsDto>, ISingleResultSpecification
 {
     public ProductByIdWithBrandSpec(Guid id) =>
         Query
