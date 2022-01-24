@@ -32,10 +32,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		CONTRIBUTING.md = CONTRIBUTING.md
 		Directory.Build.props = Directory.Build.props
 		Directory.Build.targets = Directory.Build.targets
-		FSH.WebApi.nuspec = FSH.WebApi.nuspec
 		docker-compose.yml = docker-compose.yml
 		Dockerfile = Dockerfile
 		dotnet.ruleset = dotnet.ruleset
+		FSH.WebApi.nuspec = FSH.WebApi.nuspec
 		global.json = global.json
 		icon.png = icon.png
 		LICENSE = LICENSE
@@ -51,6 +51,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Migrators.Oracle", "src\Migrators\Migrators.Oracle\Migrators.Oracle.csproj", "{E860D5C5-7E42-438D-AD3E-8CDCD80F49FC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared", "src\Core\Shared\Shared.csproj", "{5B986063-2160-4F86-AF1D-7F97671146C5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{C17E5590-86B2-4B64-A92B-CF5A679F5D51}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -115,6 +117,7 @@ Global
 		{56278085-6921-4F93-A64B-DE6BEBFB6F24} = {E63DB355-B283-460C-87E9-68A8E831ADCE}
 		{E860D5C5-7E42-438D-AD3E-8CDCD80F49FC} = {B778FB14-BDFD-454E-9FD7-5CE3572552B7}
 		{5B986063-2160-4F86-AF1D-7F97671146C5} = {225C0FD8-B796-4E9E-B1E7-0E4CD13F2E45}
+		{C17E5590-86B2-4B64-A92B-CF5A679F5D51} = {56B4195C-A86F-45DB-BAA5-8F974D17112D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D0D80036-558A-4A3A-A0BE-00CED864A4DD}

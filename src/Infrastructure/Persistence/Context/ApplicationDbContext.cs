@@ -14,7 +14,7 @@ public class ApplicationDbContext : BaseDbContext
         : base(currentTenant, options, currentUser, serializer, dbSettings, eventService)
     {
     }
-
+    public DbSet<ProductCategory> ProductCategories => Set<ProductCategory>("Category");
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Brand> Brands => Set<Brand>();
 
