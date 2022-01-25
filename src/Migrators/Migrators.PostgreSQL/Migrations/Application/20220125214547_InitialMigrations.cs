@@ -1,11 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace Migrators.PostgreSQL.Migrations.Application;
 
-public partial class Initial : Migration
+public partial class InitialMigrations : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
     {
@@ -27,11 +28,12 @@ public partial class Initial : Migration
                 UserId = table.Column<Guid>(type: "uuid", nullable: false),
                 Type = table.Column<string>(type: "text", nullable: true),
                 TableName = table.Column<string>(type: "text", nullable: true),
-                DateTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                DateTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                 OldValues = table.Column<string>(type: "text", nullable: true),
                 NewValues = table.Column<string>(type: "text", nullable: true),
                 AffectedColumns = table.Column<string>(type: "text", nullable: true),
-                PrimaryKey = table.Column<string>(type: "text", nullable: true)
+                PrimaryKey = table.Column<string>(type: "text", nullable: true),
+                TenantId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false)
             },
             constraints: table =>
             {
@@ -48,10 +50,10 @@ public partial class Initial : Migration
                 Description = table.Column<string>(type: "text", nullable: true),
                 TenantId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                 CreatedBy = table.Column<Guid>(type: "uuid", nullable: false),
-                CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                CreatedOn = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                 LastModifiedBy = table.Column<Guid>(type: "uuid", nullable: false),
-                LastModifiedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                DeletedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                LastModifiedOn = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                DeletedOn = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                 DeletedBy = table.Column<Guid>(type: "uuid", nullable: true)
             },
             constraints: table =>
@@ -87,7 +89,7 @@ public partial class Initial : Migration
                 ImageUrl = table.Column<string>(type: "text", nullable: true),
                 IsActive = table.Column<bool>(type: "boolean", nullable: false),
                 RefreshToken = table.Column<string>(type: "text", nullable: true),
-                RefreshTokenExpiryTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                RefreshTokenExpiryTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                 ObjectId = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                 TenantId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                 UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -123,10 +125,10 @@ public partial class Initial : Migration
                 BrandId = table.Column<Guid>(type: "uuid", nullable: false),
                 TenantId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                 CreatedBy = table.Column<Guid>(type: "uuid", nullable: false),
-                CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                CreatedOn = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                 LastModifiedBy = table.Column<Guid>(type: "uuid", nullable: false),
-                LastModifiedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                DeletedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                LastModifiedOn = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                DeletedOn = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                 DeletedBy = table.Column<Guid>(type: "uuid", nullable: true)
             },
             constraints: table =>
@@ -151,9 +153,9 @@ public partial class Initial : Migration
                 Description = table.Column<string>(type: "text", nullable: true),
                 Group = table.Column<string>(type: "text", nullable: true),
                 CreatedBy = table.Column<string>(type: "text", nullable: true),
-                CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                CreatedOn = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                 LastModifiedBy = table.Column<string>(type: "text", nullable: true),
-                LastModifiedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                LastModifiedOn = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                 TenantId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                 RoleId = table.Column<string>(type: "text", nullable: false),
                 ClaimType = table.Column<string>(type: "text", nullable: true),

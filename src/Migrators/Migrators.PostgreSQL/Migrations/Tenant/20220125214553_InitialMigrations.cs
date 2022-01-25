@@ -1,10 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Migrators.PostgreSQL.Migrations.Tenant;
 
-public partial class Initial : Migration
+public partial class InitialMigrations : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
     {
@@ -22,7 +23,7 @@ public partial class Initial : Migration
                 ConnectionString = table.Column<string>(type: "text", nullable: false),
                 AdminEmail = table.Column<string>(type: "text", nullable: false),
                 IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                ValidUpto = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                ValidUpto = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                 Issuer = table.Column<string>(type: "text", nullable: true)
             },
             constraints: table =>

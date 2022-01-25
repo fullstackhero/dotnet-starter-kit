@@ -1,11 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Migrators.MySQL.Migrations.Application;
 
-public partial class Initial : Migration
+public partial class InitialMigrations : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
     {
@@ -40,6 +41,8 @@ public partial class Initial : Migration
                 AffectedColumns = table.Column<string>(type: "longtext", nullable: true)
                     .Annotation("MySql:CharSet", "utf8mb4"),
                 PrimaryKey = table.Column<string>(type: "longtext", nullable: true)
+                    .Annotation("MySql:CharSet", "utf8mb4"),
+                TenantId = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false)
                     .Annotation("MySql:CharSet", "utf8mb4")
             },
             constraints: table =>

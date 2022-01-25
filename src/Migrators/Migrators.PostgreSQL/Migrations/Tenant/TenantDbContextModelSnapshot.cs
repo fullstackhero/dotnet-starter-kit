@@ -51,7 +51,7 @@ namespace Migrators.PostgreSQL.Migrations.Tenant
                         .HasColumnType("text");
 
                     b.Property<DateTime>("ValidUpto")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.HasKey("Id");
 
