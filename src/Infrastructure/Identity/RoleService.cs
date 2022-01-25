@@ -124,25 +124,7 @@ public class RoleService : IRoleService
 
         if (role.Name == FSHRoles.Admin)
         {
-            var currentUser = await _userManager.Users.SingleAsync(x => x.Id == _currentUser.GetUserId().ToString());
-            if (!await _userManager.IsInRoleAsync(currentUser, FSHRoles.Admin))
-            {
-                throw new ConflictException(_localizer["Not allowed to modify Permissions for this Role."]);
-            }
-        }
-
-        if (role.Name == FSHRoles.Admin)
-        {
-            if (!selectedPermissions.Any(x => x == FSHPermissions.Roles.View)
-                || !selectedPermissions.Any(x => x == FSHPermissions.RoleClaims.View)
-                || !selectedPermissions.Any(x => x == FSHPermissions.RoleClaims.Edit))
-            {
-                throw new ConflictException(string.Format(
-                    _localizer["Not allowed to deselect {0} or {1} or {2} for this Role."],
-                    FSHPermissions.Roles.View,
-                    FSHPermissions.RoleClaims.View,
-                    FSHPermissions.RoleClaims.Edit));
-            }
+            throw new ConflictException(_localizer["Not allowed to modify Permissions for this Role."]);
         }
 
         var currentPermissions = await _roleManager.GetClaimsAsync(role);
