@@ -45,15 +45,9 @@ public class SwaggerGlobalAuthProcessor : IOperationProcessor
                 return true;
             }
 
-            if (context.OperationDescription.Operation.Security is null ||
-                !context.OperationDescription.Operation.Security.Any())
+            if (context.OperationDescription.Operation.Security?.Any() != true)
             {
-                if (context.OperationDescription.Operation.Security is null)
-                {
-                    context.OperationDescription.Operation.Security = new List<OpenApiSecurityRequirement>();
-                }
-
-                context.OperationDescription.Operation.Security.Add(new OpenApiSecurityRequirement
+                (context.OperationDescription.Operation.Security ??= new List<OpenApiSecurityRequirement>()).Add(new OpenApiSecurityRequirement
                 {
                     {
                         _name,

@@ -85,8 +85,7 @@ public class RoleClaimsService : IRoleClaimsService
         {
             var existingRoleClaim =
                 await _db.RoleClaims
-                    .SingleOrDefaultAsync(x =>
-                        x.RoleId == request.RoleId && x.ClaimType == request.Type && x.ClaimValue == request.Value);
+                    .SingleOrDefaultAsync(x => x.RoleId == request.RoleId && x.ClaimType == request.Type && x.ClaimValue == request.Value, cancellationToken: cancellationToken);
             if (existingRoleClaim is not null)
             {
                 throw new ConflictException(_localizer["Similar Role Claim already exists."]);

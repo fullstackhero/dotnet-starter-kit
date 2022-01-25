@@ -90,7 +90,7 @@ public class BrandGeneratorJob : IBrandGeneratorJob
 
         foreach (var item in items)
         {
-            await _mediator.Send(new DeleteBrandRequest(item.Id));
+            await _mediator.Send(new DeleteBrandRequest(item.Id), cancellationToken);
         }
 
         _logger.LogInformation("All random brands deleted.");

@@ -26,7 +26,7 @@ public class DeleteBrandRequestHandler : IRequestHandler<DeleteBrandRequest, Gui
             throw new ConflictException(_localizer["brand.cannotbedeleted"]);
         }
 
-        var brand = await _brandRepo.GetByIdAsync(request.Id);
+        var brand = await _brandRepo.GetByIdAsync(request.Id, cancellationToken);
 
         _ = brand ?? throw new NotFoundException(_localizer["brand.notfound"]);
 

@@ -65,11 +65,7 @@ public class IdentityService : IIdentityService
             throw new InternalServerException(_localizer["Invalid objectId"]);
         }
 
-        var user = await _userManager.Users.Where(u => u.ObjectId == objectId).FirstOrDefaultAsync();
-        if (user is null)
-        {
-            user = await CreateOrUpdateFromPrincipalAsync(principal);
-        }
+        var user = await _userManager.Users.Where(u => u.ObjectId == objectId).FirstOrDefaultAsync() ?? await CreateOrUpdateFromPrincipalAsync(principal);
 
         // Add user to incoming role if that isn't the case yet
         if (principal.FindFirstValue(ClaimTypes.Role) is string role &&

@@ -66,12 +66,12 @@ internal class DatabaseInitializer : IDatabaseInitializer
 
     private async Task SeedRootTenantAsync(CancellationToken cancellationToken)
     {
-        if (await _tenantDbContext.TenantInfo.FindAsync(MultitenancyConstants.Root.Id) is null)
+        if (await _tenantDbContext.TenantInfo.FindAsync(new object?[] { MultitenancyConstants.Root.Id }, cancellationToken: cancellationToken) is null)
         {
             var rootTenant = new FSHTenantInfo(
                 MultitenancyConstants.Root.Id,
                 MultitenancyConstants.Root.Name,
-                _dbSettings.ConnectionString!,
+                _dbSettings.ConnectionString,
                 MultitenancyConstants.Root.EmailAddress);
 
             rootTenant.SetValidity(DateTime.UtcNow.AddYears(1));
