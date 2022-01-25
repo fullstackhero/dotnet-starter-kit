@@ -61,7 +61,6 @@ public static class Startup
     {
         // Create a new scope to retrieve scoped services
         using var scope = services.CreateScope();
-
         await scope.ServiceProvider.GetRequiredService<IDatabaseInitializer>()
             .InitializeDatabasesAsync(cancellationToken);
     }
