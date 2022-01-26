@@ -27,7 +27,7 @@ public sealed class IdentityController : VersionNeutralApiController
     [HttpGet("confirm-email")]
     [AllowAnonymous]
     [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Search))]
-    public Task<string> ConfirmEmailAsync([FromQuery] string userId, [FromQuery] string code, [FromQuery] string tenant, in CancellationToken cancellationToken)
+    public Task<string> ConfirmEmailAsync([FromQuery] string userId, [FromQuery] string code, [FromQuery] string tenant, CancellationToken cancellationToken)
     {
         return _identityService.ConfirmEmailAsync(userId, code, tenant, cancellationToken);
     }
@@ -63,7 +63,7 @@ public sealed class IdentityController : VersionNeutralApiController
     }
 
     [HttpGet("profile")]
-    public Task<UserDetailsDto> GetProfileDetailsAsync(in CancellationToken cancellationToken)
+    public Task<UserDetailsDto> GetProfileDetailsAsync(CancellationToken cancellationToken)
     {
         return _userService.GetAsync(_currentUser.GetUserId().ToString(), cancellationToken);
     }

@@ -24,14 +24,14 @@ public class RolesController : VersionNeutralApiController
 
     [HttpGet("{id}/permissions")]
     [MustHavePermission(FSHPermissions.RoleClaims.View)]
-    public Task<RoleDto> GetByIdWithPermissionsAsync(string id, in CancellationToken cancellationToken)
+    public Task<RoleDto> GetByIdWithPermissionsAsync(string id, CancellationToken cancellationToken)
     {
         return _roleService.GetByIdWithPermissionsAsync(id, cancellationToken);
     }
 
     [HttpPut("permissions")]
     [MustHavePermission(FSHPermissions.RoleClaims.Edit)]
-    public Task<string> UpdatePermissionsAsync(UpdatePermissionsRequest request, in CancellationToken cancellationToken)
+    public Task<string> UpdatePermissionsAsync(UpdatePermissionsRequest request, CancellationToken cancellationToken)
     {
         return _roleService.UpdatePermissionsAsync(request, cancellationToken);
     }
