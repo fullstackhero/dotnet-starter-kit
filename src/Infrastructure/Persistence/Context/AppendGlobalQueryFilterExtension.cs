@@ -14,7 +14,6 @@ internal static class ModelBuilderExtensions
             .GetEntityTypes()
             .Where(e => e.BaseType is null)
             .Where(e => e.ClrType.GetInterface(typeof(TInterface).Name) is not null)
-            .Where(e => e.ClrType.GetInterface(nameof(ISkipGlobalQueryFilter)) is null) // used for block propagation and apply manual filter
             .Select(e => e.ClrType);
 
         foreach (var entity in entities)
