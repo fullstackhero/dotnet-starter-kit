@@ -19,20 +19,17 @@ public class RoleService : IRoleService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ApplicationDbContext _context;
     private readonly IStringLocalizer<RoleService> _localizer;
-    private readonly ICurrentUser _currentUser;
 
     public RoleService(
         RoleManager<ApplicationRole> roleManager,
         UserManager<ApplicationUser> userManager,
         ApplicationDbContext context,
-        IStringLocalizer<RoleService> localizer,
-        ICurrentUser currentUser)
+        IStringLocalizer<RoleService> localizer)
     {
         _roleManager = roleManager;
         _userManager = userManager;
         _context = context;
         _localizer = localizer;
-        _currentUser = currentUser;
     }
 
     public async Task<List<RoleDto>> GetListAsync()

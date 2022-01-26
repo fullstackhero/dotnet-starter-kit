@@ -33,17 +33,16 @@ public abstract class CacheService<TCacheService>
 
         result.Should().BeNull();
     }
-
-    public static IEnumerable<object[]> ValueData =>
-        new List<object[]>
-        {
-            new object[] { _testKey, _testValue },
-            new object[] { "integer", 1 },
-            new object[] { "long", 1L },
-            new object[] { "double", 1.0 },
-            new object[] { "bool", true },
-            new object[] { "date", new DateTime(2022, 1, 1) },
-        };
+#pragma warning disable RCS1158 // Use static member.
+    public static IEnumerable<object[]> ValueData => new List<object[]>
+                {
+                    new object[] { _testKey, _testValue },
+                    new object[] { "integer", 1 },
+                    new object[] { "long", 1L },
+                    new object[] { "double", 1.0 },
+                    new object[] { "bool", true },
+                    new object[] { "date", new DateTime(2022, 1, 1) },
+                };
 
     [Theory]
     [MemberData(nameof(ValueData))]
