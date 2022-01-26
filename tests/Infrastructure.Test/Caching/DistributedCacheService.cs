@@ -9,7 +9,8 @@ namespace Infrastructure.Test.Caching;
 public class DistributedCacheService : CacheService<FSH.WebApi.Infrastructure.Caching.DistributedCacheService>
 {
     protected override FSH.WebApi.Infrastructure.Caching.DistributedCacheService CreateCacheService() =>
-        new(new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions())),
+        new(
+            new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions())),
             new NewtonSoftService(),
             NullLogger<FSH.WebApi.Infrastructure.Caching.DistributedCacheService>.Instance);
 }

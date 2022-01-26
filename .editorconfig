@@ -152,3 +152,8 @@ dotnet_diagnostic.CA1711.severity = none
 
 # CA1307: Specify StringComparison for clarity
 dotnet_diagnostic.CA1307.severity = none
+
+roslynator_accessibility_modifiers = none
+roslynator_use_anonymous_function_or_method_group = none
+roslynator_enum_has_flag_style = none
+roslynator_object_creation_type_style = none
