@@ -14,19 +14,21 @@ public class RoleClaimsService : IRoleClaimsService
 {
     private readonly ApplicationDbContext _db;
     private readonly ICacheService _cache;
+    private readonly ICacheKeyService _cacheKeys;
     private readonly IStringLocalizer<RoleClaimsService> _localizer;
 
-    public RoleClaimsService(ApplicationDbContext context, ICacheService cache, IStringLocalizer<RoleClaimsService> localizer)
+    public RoleClaimsService(ApplicationDbContext context, ICacheService cache, ICacheKeyService cacheKeys, IStringLocalizer<RoleClaimsService> localizer)
     {
         _db = context;
         _cache = cache;
+        _cacheKeys = cacheKeys;
         _localizer = localizer;
     }
 
     public async Task<bool> HasPermissionAsync(string userId, string permission, CancellationToken cancellationToken)
     {
         var roles = await _cache.GetOrSetAsync(
-            CacheKeys.GetCacheKey(FSHClaims.Permission, userId),
+            _cacheKeys.GetCacheKey(FSHClaims.Permission, userId),
             async () =>
             {
                 var userRoles = await _db.UserRoles.Where(a => a.UserId == userId).Select(a => a.RoleId).ToListAsync();
