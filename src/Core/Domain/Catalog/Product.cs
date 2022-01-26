@@ -9,7 +9,7 @@ public class Product : AuditableEntity, IAggregateRoot
     public Guid BrandId { get; private set; }
     public virtual Brand Brand { get; private set; } = default!;
 
-    public Product(string name, string? description, decimal rate, Guid brandId, string? imagePath)
+    public Product(string name, string? description, decimal rate, in Guid brandId, string? imagePath)
     {
         Name = name;
         Description = description;

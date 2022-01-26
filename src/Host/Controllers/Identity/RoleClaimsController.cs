@@ -10,28 +10,28 @@ public class RoleClaimsController : VersionNeutralApiController
 
     [HttpGet]
     [Authorize(Policy = FSHPermissions.RoleClaims.View)]
-    public Task<List<RoleClaimDto>> GetAllAsync(CancellationToken cancellationToken)
+    public Task<List<RoleClaimDto>> GetAllAsync(in CancellationToken cancellationToken)
     {
         return _roleClaimService.GetAllAsync(cancellationToken);
     }
 
     [HttpGet("{roleId}")]
     [Authorize(Policy = FSHPermissions.RoleClaims.View)]
-    public Task<List<RoleClaimDto>> GetAllByRoleIdAsync([FromRoute] string roleId, CancellationToken cancellationToken)
+    public Task<List<RoleClaimDto>> GetAllByRoleIdAsync([FromRoute] string roleId, in CancellationToken cancellationToken)
     {
         return _roleClaimService.GetAllByRoleIdAsync(roleId, cancellationToken);
     }
 
     [HttpPost]
     [Authorize(Policy = FSHPermissions.RoleClaims.Create)]
-    public Task<string> PostAsync(RoleClaimRequest request, CancellationToken cancellationToken)
+    public Task<string> PostAsync(RoleClaimRequest request, in CancellationToken cancellationToken)
     {
         return _roleClaimService.SaveAsync(request, cancellationToken);
     }
 
     [HttpDelete("{id:int}")]
     [Authorize(Policy = FSHPermissions.RoleClaims.Delete)]
-    public Task<string> DeleteAsync(int id, CancellationToken cancellationToken)
+    public Task<string> DeleteAsync(int id, in CancellationToken cancellationToken)
     {
         return _roleClaimService.DeleteAsync(id, cancellationToken);
     }

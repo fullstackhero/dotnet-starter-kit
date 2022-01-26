@@ -15,7 +15,7 @@ public sealed class TokensController : VersionNeutralApiController
     [AllowAnonymous]
     [TenantIdHeader]
     [OpenApiOperation("Submit Credentials with Tenant Id to generate valid Access Token.", "")]
-    public Task<TokenResponse> GetTokenAsync(TokenRequest request, CancellationToken cancellationToken)
+    public Task<TokenResponse> GetTokenAsync(TokenRequest request, in CancellationToken cancellationToken)
     {
         return _tokenService.GetTokenAsync(request, GetIpAddress(), cancellationToken);
     }

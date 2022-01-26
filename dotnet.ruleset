@@ -131,7 +131,6 @@
     <Rule Id="SA1009" Action="None" />
     <Rule Id="SA1013" Action="None" />
     <Rule Id="SA1201" Action="None" />
-    <Rule Id="SA1202" Action="Info" />
     <Rule Id="SA1204" Action="None" />
     <Rule Id="SA1210" Action="None" />
     <Rule Id="SA1300" Action="None" />
@@ -160,5 +159,6 @@
     <Rule Id="SX1309" Action="Warning" />
     <Rule Id="SA1503" Action="None" />
     <Rule Id="SA1501" Action="None" />
+    <Rule Id="SA1202" Action="None" />
   </Rules>
 </RuleSet>

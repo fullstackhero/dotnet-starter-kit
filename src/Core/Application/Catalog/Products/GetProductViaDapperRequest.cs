@@ -6,7 +6,7 @@ public class GetProductViaDapperRequest : IRequest<ProductDto>
 {
     public Guid Id { get; set; }
 
-    public GetProductViaDapperRequest(Guid id) => Id = id;
+    public GetProductViaDapperRequest(in Guid id) => Id = id;
 }
 
 public class GetProductViaDapperRequestHandler : IRequestHandler<GetProductViaDapperRequest, ProductDto>
