@@ -6,16 +6,13 @@ public sealed class TokensController : VersionNeutralApiController
 {
     private readonly ITokenService _tokenService;
 
-    public TokensController(ITokenService tokenService)
-    {
-        _tokenService = tokenService;
-    }
+    public TokensController(ITokenService tokenService) => _tokenService = tokenService;
 
     [HttpPost]
     [AllowAnonymous]
     [TenantIdHeader]
     [OpenApiOperation("Submit Credentials with Tenant Id to generate valid Access Token.", "")]
-    public Task<TokenResponse> GetTokenAsync(TokenRequest request, in CancellationToken cancellationToken)
+    public Task<TokenResponse> GetTokenAsync(TokenRequest request, CancellationToken cancellationToken)
     {
         return _tokenService.GetTokenAsync(request, GetIpAddress(), cancellationToken);
     }
