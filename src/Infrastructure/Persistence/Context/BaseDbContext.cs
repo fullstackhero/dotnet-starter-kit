@@ -40,7 +40,7 @@ public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUs
 
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
+        modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly, type => modelBuilder.Model.FindEntityType(type) != null);
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
