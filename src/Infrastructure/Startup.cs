@@ -73,7 +73,6 @@ public static class Startup
             .UseSecurityHeaders(config)
             .UseFileStorage()
             .UseExceptionMiddleware()
-            .UseLocalization(config)
             .UseRouting()
             .UseCorsPolicy()
             .UseAuthentication()

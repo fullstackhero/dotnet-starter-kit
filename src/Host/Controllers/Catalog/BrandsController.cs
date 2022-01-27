@@ -15,7 +15,7 @@ public class BrandsController : VersionedApiController
     [HttpGet("{id:guid}")]
     [MustHavePermission(FSHPermissions.Brands.View)]
     [OpenApiOperation("Get brand details.", "")]
-    public Task<BrandDto> GetAsync(Guid id)
+    public Task<BrandDto> GetAsync(in Guid id)
     {
         return Mediator.Send(new GetBrandRequest(id));
     }
@@ -44,7 +44,7 @@ public class BrandsController : VersionedApiController
     [HttpDelete("{id:guid}")]
     [MustHavePermission(FSHPermissions.Brands.Remove)]
     [OpenApiOperation("Delete a brand.", "")]
-    public Task<Guid> DeleteAsync(Guid id)
+    public Task<Guid> DeleteAsync(in Guid id)
     {
         return Mediator.Send(new DeleteBrandRequest(id));
     }

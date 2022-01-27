@@ -25,7 +25,7 @@ public class AuditTrail
     public bool HasTemporaryProperties => TemporaryProperties.Count > 0;
 
     public Trail ToAuditTrail() =>
-        new Trail
+        new()
         {
             UserId = UserId,
             Type = TrailType.ToString(),

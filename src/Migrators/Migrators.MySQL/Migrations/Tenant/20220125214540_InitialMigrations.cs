@@ -1,10 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Migrators.MySQL.Migrations.Tenant;
 
-public partial class Initial : Migration
+public partial class InitialMigrations : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
     {

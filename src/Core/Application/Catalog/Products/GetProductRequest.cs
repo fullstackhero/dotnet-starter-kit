@@ -4,7 +4,7 @@ public class GetProductRequest : IRequest<ProductDetailsDto>
 {
     public Guid Id { get; set; }
 
-    public GetProductRequest(Guid id) => Id = id;
+    public GetProductRequest(in Guid id) => Id = id;
 }
 
 public class GetProductRequestHandler : IRequestHandler<GetProductRequest, ProductDetailsDto>

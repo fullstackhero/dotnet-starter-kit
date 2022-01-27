@@ -28,7 +28,7 @@ public class UpdateProductRequestHandler : IRequestHandler<UpdateProductRequest,
         _ = product ?? throw new NotFoundException(string.Format(_localizer["product.notfound"], request.Id));
 
         string? productImagePath = request.Image is not null
-            ? await _file.UploadAsync<Product>(request.Image, FileType.Image)
+            ? await _file.UploadAsync<Product>(request.Image, FileType.Image, cancellationToken)
             : null;
 
         var updatedProduct = product.Update(request.Name, request.Description, request.Rate, request.BrandId, productImagePath);

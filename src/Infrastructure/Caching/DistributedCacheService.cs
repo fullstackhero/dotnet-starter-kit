@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace FSH.WebApi.Infrastructure.Caching;
 
+#pragma warning disable CA2254
 public class DistributedCacheService : ICacheService
 {
     private readonly IDistributedCache _cache;

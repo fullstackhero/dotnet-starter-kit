@@ -2,8 +2,10 @@
   "files.trimTrailingWhitespace": true,
   "files.trimFinalNewlines": true,
   "cSpell.words": [
+    "Ardalis",
     "cannotbedeleted",
     "cref",
+    "Dtos",
     "fshapidb",
     "Mediat",
     "mssqllocaldb",
