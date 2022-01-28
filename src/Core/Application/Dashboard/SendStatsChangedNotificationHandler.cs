@@ -2,7 +2,7 @@ using FSH.WebApi.Domain.Common.Events;
 
 namespace FSH.WebApi.Application.Dashboard;
 
-// TODO: handle registerd users and registered roles create/delete
+// TODO: handle registered users and registered roles create/delete
 public class SendStatsChangedNotificationHandler :
     INotificationHandler<EventNotification<EntityCreatedEvent<Brand>>>,
     INotificationHandler<EventNotification<EntityDeletedEvent<Brand>>>,

@@ -1,10 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Migrators.MSSQL.Migrations.Tenant;
 
-public partial class Initial : Migration
+public partial class InitialMigrations : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
     {
@@ -17,9 +18,9 @@ public partial class Initial : Migration
             columns: table => new
             {
                 Id = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
+                Identifier = table.Column<string>(type: "nvarchar(450)", nullable: false),
                 Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                 ConnectionString = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                Identifier = table.Column<string>(type: "nvarchar(450)", nullable: false),
                 AdminEmail = table.Column<string>(type: "nvarchar(max)", nullable: false),
                 IsActive = table.Column<bool>(type: "bit", nullable: false),
                 ValidUpto = table.Column<DateTime>(type: "datetime2", nullable: false),

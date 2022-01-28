@@ -3,62 +3,64 @@ using System;
 using FSH.WebApi.Infrastructure.Multitenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using Oracle.EntityFrameworkCore.Metadata;
 
 #nullable disable
 
-namespace Migrators.PostgreSQL.Migrations.Tenant
+namespace Migrators.Oracle.Migrations.Tenant
 {
     [DbContext(typeof(TenantDbContext))]
-    partial class TenantDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220125224121_Initial")]
+    partial class Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "6.0.1")
-                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+                .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
-            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+            OracleModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
             modelBuilder.Entity("FSH.WebApi.Infrastructure.Multitenancy.FSHTenantInfo", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
+                        .HasColumnType("NVARCHAR2(64)");
 
                     b.Property<string>("AdminEmail")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<string>("ConnectionString")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<string>("Identifier")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(450)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("NUMBER(1)");
 
                     b.Property<string>("Issuer")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<DateTime>("ValidUpto")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("TIMESTAMP(7)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Identifier")
                         .IsUnique();
 
-                    b.ToTable("Tenants", "MultiTenancy");
+                    b.ToTable("Tenants", "MULTITENANCY");
                 });
 #pragma warning restore 612, 618
         }

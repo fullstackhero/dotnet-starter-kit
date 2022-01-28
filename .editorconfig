@@ -1,6 +1,10 @@
 root = true
 
 [*]
+roslynator_accessibility_modifiers = explicit
+roslynator_use_anonymous_function_or_method_group = anonymous_function|method_group
+roslynator_enum_has_flag_style = method
+roslynator_object_creation_type_style = explicit|implicit|implicit_when_type_is_obvious
 
 indent_style = space
 

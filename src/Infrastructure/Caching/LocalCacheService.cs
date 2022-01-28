@@ -45,7 +45,7 @@ public class LocalCacheService : ICacheService
         }
 
         _cache.Set(key, value, new MemoryCacheEntryOptions { SlidingExpiration = slidingExpiration });
-        _logger.LogDebug($"Added to Cache : {key}");
+        _logger.LogDebug($"Added to Cache : {key}", key);
     }
 
     public Task SetAsync<T>(string key, T value, TimeSpan? slidingExpiration = null, CancellationToken token = default)

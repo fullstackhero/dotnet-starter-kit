@@ -40,7 +40,7 @@ public class BrandSeeder : ICustomSeeder
                 }
             }
 
-            await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync(cancellationToken);
             _logger.LogInformation("Seeded Brands.");
         }
     }

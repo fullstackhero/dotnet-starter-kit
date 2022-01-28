@@ -23,7 +23,7 @@ public static class SetNonNullableValidatorExtension
             : base(validator, validatorType)
         {
         }
-
+#pragma warning disable RCS1132
         public override bool IsValid(ValidationContext<T> context, TProperty? value)
         {
             return base.IsValid(context, value!);

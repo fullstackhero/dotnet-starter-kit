@@ -8,5 +8,5 @@ public class TenantDto
     public string AdminEmail { get; set; } = default!;
     public bool IsActive { get; set; }
     public DateTime ValidUpto { get; set; }
-    public string? Issuer { get; set; } = default!;
+    public string? Issuer { get; set; }
 }

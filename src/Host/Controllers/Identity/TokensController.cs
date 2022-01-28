@@ -6,10 +6,7 @@ public sealed class TokensController : VersionNeutralApiController
 {
     private readonly ITokenService _tokenService;
 
-    public TokensController(ITokenService tokenService)
-    {
-        _tokenService = tokenService;
-    }
+    public TokensController(ITokenService tokenService) => _tokenService = tokenService;
 
     [HttpPost]
     [AllowAnonymous]

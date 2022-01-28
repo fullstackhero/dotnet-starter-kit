@@ -32,6 +32,7 @@
     <Rule Id="CA1725" Action="Info" />
     <Rule Id="CA1726" Action="Warning" />
     <Rule Id="CA2204" Action="Warning" />
+    <Rule Id="CA2254" Action="None" />
   </Rules>
   <Rules AnalyzerId="Microsoft.CodeAnalysis.CSharp" RuleNamespace="Microsoft.CodeAnalysis.CSharp">
     <Rule Id="AD0001" Action="Info" />
@@ -112,7 +113,7 @@
     <Rule Id="RCS1207" Action="Hidden" />
     <Rule Id="RCS1210" Action="None" />
     <Rule Id="RCS1219" Action="None" />
-    <Rule Id="RCS1231" Action="Info" />
+    <Rule Id="RCS1231" Action="None" />
   </Rules>
   <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
     <Rule Id="SA1649" Action="None"/>
@@ -131,7 +132,6 @@
     <Rule Id="SA1009" Action="None" />
     <Rule Id="SA1013" Action="None" />
     <Rule Id="SA1201" Action="None" />
-    <Rule Id="SA1202" Action="Info" />
     <Rule Id="SA1204" Action="None" />
     <Rule Id="SA1210" Action="None" />
     <Rule Id="SA1300" Action="None" />
@@ -160,5 +160,6 @@
     <Rule Id="SX1309" Action="Warning" />
     <Rule Id="SA1503" Action="None" />
     <Rule Id="SA1501" Action="None" />
+    <Rule Id="SA1202" Action="None" />
   </Rules>
 </RuleSet>

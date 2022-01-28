@@ -4,7 +4,7 @@ public class GetBrandRequest : IRequest<BrandDto>
 {
     public Guid Id { get; set; }
 
-    public GetBrandRequest(in Guid id) => Id = id;
+    public GetBrandRequest(Guid id) => Id = id;
 }
 
 public class BrandByIdSpec : Specification<Brand, BrandDto>, ISingleResultSpecification

@@ -3,124 +3,122 @@ using System;
 using FSH.WebApi.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using Oracle.EntityFrameworkCore.Metadata;
 
 #nullable disable
 
-namespace Migrators.PostgreSQL.Migrations.Application
+namespace Migrators.Oracle.Migrations.Application
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20220115093904_Initial")]
-    partial class Initial
+    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
     {
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasDefaultSchema("Catalog")
+                .HasDefaultSchema("CATALOG")
                 .HasAnnotation("ProductVersion", "6.0.1")
-                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+                .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
-            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+            OracleModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
-            modelBuilder.Entity("FSH.WebApi.Domain.Catalog.Brands.Brand", b =>
+            modelBuilder.Entity("FSH.WebApi.Domain.Catalog.Brand", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("RAW(16)");
 
                     b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uuid");
+                        .HasColumnType("RAW(16)");
 
                     b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("TIMESTAMP(7)");
 
                     b.Property<Guid?>("DeletedBy")
-                        .HasColumnType("uuid");
+                        .HasColumnType("RAW(16)");
 
                     b.Property<DateTime?>("DeletedOn")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("TIMESTAMP(7)");
 
                     b.Property<string>("Description")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<Guid>("LastModifiedBy")
-                        .HasColumnType("uuid");
+                        .HasColumnType("RAW(16)");
 
                     b.Property<DateTime?>("LastModifiedOn")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("TIMESTAMP(7)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("NVARCHAR2(256)");
 
                     b.Property<string>("TenantId")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
+                        .HasColumnType("NVARCHAR2(64)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Brands", "Catalog");
+                    b.ToTable("Brands", "CATALOG");
 
                     b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
-            modelBuilder.Entity("FSH.WebApi.Domain.Catalog.Products.Product", b =>
+            modelBuilder.Entity("FSH.WebApi.Domain.Catalog.Product", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("RAW(16)");
 
                     b.Property<Guid>("BrandId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("RAW(16)");
 
                     b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uuid");
+                        .HasColumnType("RAW(16)");
 
                     b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("TIMESTAMP(7)");
 
                     b.Property<Guid?>("DeletedBy")
-                        .HasColumnType("uuid");
+                        .HasColumnType("RAW(16)");
 
                     b.Property<DateTime?>("DeletedOn")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("TIMESTAMP(7)");
 
                     b.Property<string>("Description")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<string>("ImagePath")
                         .HasMaxLength(2048)
-                        .HasColumnType("character varying(2048)");
+                        .HasColumnType("NCLOB");
 
                     b.Property<Guid>("LastModifiedBy")
-                        .HasColumnType("uuid");
+                        .HasColumnType("RAW(16)");
 
                     b.Property<DateTime?>("LastModifiedOn")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("TIMESTAMP(7)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(1024)
-                        .HasColumnType("character varying(1024)");
+                        .HasColumnType("NVARCHAR2(1024)");
 
                     b.Property<decimal>("Rate")
-                        .HasColumnType("numeric");
+                        .HasColumnType("DECIMAL(18, 2)");
 
                     b.Property<string>("TenantId")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
+                        .HasColumnType("NVARCHAR2(64)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("BrandId");
 
-                    b.ToTable("Products", "Catalog");
+                    b.ToTable("Products", "CATALOG");
 
                     b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
@@ -129,69 +127,77 @@ namespace Migrators.PostgreSQL.Migrations.Application
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("RAW(16)");
 
                     b.Property<string>("AffectedColumns")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<DateTime>("DateTime")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("TIMESTAMP(7)");
 
                     b.Property<string>("NewValues")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<string>("OldValues")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<string>("PrimaryKey")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<string>("TableName")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("NVARCHAR2(64)");
 
                     b.Property<string>("Type")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("RAW(16)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("AuditTrails", "Auditing");
+                    b.ToTable("AuditTrails", "AUDITING");
+
+                    b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
             modelBuilder.Entity("FSH.WebApi.Infrastructure.Identity.ApplicationRole", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(450)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<string>("Description")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<string>("Name")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("NVARCHAR2(256)");
 
                     b.Property<string>("NormalizedName")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("NVARCHAR2(256)");
 
                     b.Property<string>("TenantId")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
+                        .HasColumnType("NVARCHAR2(64)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedName", "TenantId")
                         .IsUnique()
-                        .HasDatabaseName("RoleNameIndex");
+                        .HasDatabaseName("RoleNameIndex")
+                        .HasFilter("\"NormalizedName\" IS NOT NULL");
 
-                    b.ToTable("Roles", "Identity");
+                    b.ToTable("Roles", "IDENTITY");
 
                     b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
@@ -200,48 +206,48 @@ namespace Migrators.PostgreSQL.Migrations.Application
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("NUMBER(10)");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    OraclePropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("ClaimType")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<string>("ClaimValue")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("TIMESTAMP(7)");
 
                     b.Property<string>("Description")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<string>("Group")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<string>("LastModifiedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<DateTime?>("LastModifiedOn")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("TIMESTAMP(7)");
 
                     b.Property<string>("RoleId")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(450)");
 
                     b.Property<string>("TenantId")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
+                        .HasColumnType("NVARCHAR2(64)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("RoleClaims", "Identity");
+                    b.ToTable("RoleClaims", "IDENTITY");
 
                     b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
@@ -249,81 +255,81 @@ namespace Migrators.PostgreSQL.Migrations.Application
             modelBuilder.Entity("FSH.WebApi.Infrastructure.Identity.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(450)");
 
                     b.Property<int>("AccessFailedCount")
-                        .HasColumnType("integer");
+                        .HasColumnType("NUMBER(10)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("NVARCHAR2(256)");
 
                     b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("boolean");
+                        .HasColumnType("NUMBER(1)");
 
                     b.Property<string>("FirstName")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<string>("ImageUrl")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("NUMBER(1)");
 
                     b.Property<string>("LastName")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<bool>("LockoutEnabled")
-                        .HasColumnType("boolean");
+                        .HasColumnType("NUMBER(1)");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("TIMESTAMP(7) WITH TIME ZONE");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("NVARCHAR2(256)");
 
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("NVARCHAR2(256)");
 
                     b.Property<string>("ObjectId")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("NVARCHAR2(256)");
 
                     b.Property<string>("PasswordHash")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<string>("PhoneNumber")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("boolean");
+                        .HasColumnType("NUMBER(1)");
 
                     b.Property<string>("RefreshToken")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<DateTime>("RefreshTokenExpiryTime")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("TIMESTAMP(7)");
 
                     b.Property<string>("SecurityStamp")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<string>("TenantId")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
+                        .HasColumnType("NVARCHAR2(64)");
 
                     b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("boolean");
+                        .HasColumnType("NUMBER(1)");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("NVARCHAR2(256)");
 
                     b.HasKey("Id");
 
@@ -332,9 +338,10 @@ namespace Migrators.PostgreSQL.Migrations.Application
 
                     b.HasIndex("NormalizedUserName", "TenantId")
                         .IsUnique()
-                        .HasDatabaseName("UserNameIndex");
+                        .HasDatabaseName("UserNameIndex")
+                        .HasFilter("\"NormalizedUserName\" IS NOT NULL");
 
-                    b.ToTable("Users", "Identity");
+                    b.ToTable("Users", "IDENTITY");
 
                     b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
@@ -343,30 +350,30 @@ namespace Migrators.PostgreSQL.Migrations.Application
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("NUMBER(10)");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    OraclePropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("ClaimType")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<string>("ClaimValue")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<string>("TenantId")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
+                        .HasColumnType("NVARCHAR2(64)");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(450)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserClaims", "Identity");
+                    b.ToTable("UserClaims", "IDENTITY");
 
                     b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
@@ -375,27 +382,27 @@ namespace Migrators.PostgreSQL.Migrations.Application
                 {
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(450)");
 
                     b.Property<string>("LoginProvider")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(450)");
 
                     b.Property<string>("ProviderDisplayName")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<string>("ProviderKey")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(450)");
 
                     b.Property<string>("TenantId")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
+                        .HasColumnType("NVARCHAR2(64)");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(450)");
 
                     b.HasKey("Id");
 
@@ -404,7 +411,7 @@ namespace Migrators.PostgreSQL.Migrations.Application
                     b.HasIndex("LoginProvider", "ProviderKey", "TenantId")
                         .IsUnique();
 
-                    b.ToTable("UserLogins", "Identity");
+                    b.ToTable("UserLogins", "IDENTITY");
 
                     b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
@@ -412,21 +419,21 @@ namespace Migrators.PostgreSQL.Migrations.Application
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
                 {
                     b.Property<string>("UserId")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(450)");
 
                     b.Property<string>("RoleId")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(450)");
 
                     b.Property<string>("TenantId")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
+                        .HasColumnType("NVARCHAR2(64)");
 
                     b.HasKey("UserId", "RoleId");
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("UserRoles", "Identity");
+                    b.ToTable("UserRoles", "IDENTITY");
 
                     b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
@@ -434,32 +441,32 @@ namespace Migrators.PostgreSQL.Migrations.Application
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
                     b.Property<string>("UserId")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(450)");
 
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(450)");
 
                     b.Property<string>("Name")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(450)");
 
                     b.Property<string>("TenantId")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
+                        .HasColumnType("NVARCHAR2(64)");
 
                     b.Property<string>("Value")
-                        .HasColumnType("text");
+                        .HasColumnType("NVARCHAR2(2000)");
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("UserTokens", "Identity");
+                    b.ToTable("UserTokens", "IDENTITY");
 
                     b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
-            modelBuilder.Entity("FSH.WebApi.Domain.Catalog.Products.Product", b =>
+            modelBuilder.Entity("FSH.WebApi.Domain.Catalog.Product", b =>
                 {
-                    b.HasOne("FSH.WebApi.Domain.Catalog.Brands.Brand", "Brand")
+                    b.HasOne("FSH.WebApi.Domain.Catalog.Brand", "Brand")
                         .WithMany()
                         .HasForeignKey("BrandId")
                         .OnDelete(DeleteBehavior.Cascade)
