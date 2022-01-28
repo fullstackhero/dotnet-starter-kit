@@ -6,7 +6,7 @@ public class DeleteBrandRequest : IRequest<Guid>
 {
     public Guid Id { get; set; }
 
-    public DeleteBrandRequest(in Guid id) => Id = id;
+    public DeleteBrandRequest(Guid id) => Id = id;
 }
 
 public class DeleteBrandRequestHandler : IRequestHandler<DeleteBrandRequest, Guid>

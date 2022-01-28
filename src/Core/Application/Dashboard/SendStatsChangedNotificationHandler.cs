@@ -27,7 +27,7 @@ public class SendStatsChangedNotificationHandler :
     public Task Handle(EventNotification<EntityDeletedEvent<Product>> notification, CancellationToken cancellationToken) =>
         SendStatsChangedNotification(notification.DomainEvent, cancellationToken);
 
-    private Task SendStatsChangedNotification(DomainEvent domainEvent, in CancellationToken cancellationToken)
+    private Task SendStatsChangedNotification(DomainEvent domainEvent, CancellationToken cancellationToken)
     {
         _logger.LogInformation("{event} Triggered", domainEvent.GetType().Name);
 
