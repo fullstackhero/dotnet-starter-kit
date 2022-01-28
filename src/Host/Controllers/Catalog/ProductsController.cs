@@ -15,7 +15,7 @@ public class ProductsController : VersionedApiController
     [HttpGet("{id:guid}")]
     [MustHavePermission(FSHPermissions.Products.View)]
     [OpenApiOperation("Get product details.", "")]
-    public Task<ProductDetailsDto> GetAsync(in Guid id)
+    public Task<ProductDetailsDto> GetAsync(Guid id)
     {
         return Mediator.Send(new GetProductRequest(id));
     }
@@ -23,7 +23,7 @@ public class ProductsController : VersionedApiController
     [HttpGet("dapper")]
     [MustHavePermission(FSHPermissions.Products.View)]
     [OpenApiOperation("Get product details via dapper.", "")]
-    public Task<ProductDto> GetDapperAsync(in Guid id)
+    public Task<ProductDto> GetDapperAsync(Guid id)
     {
         return Mediator.Send(new GetProductViaDapperRequest(id));
     }
@@ -52,7 +52,7 @@ public class ProductsController : VersionedApiController
     [HttpDelete("{id:guid}")]
     [MustHavePermission(FSHPermissions.Products.Remove)]
     [OpenApiOperation("Delete a product.", "")]
-    public Task<Guid> DeleteAsync(in Guid id)
+    public Task<Guid> DeleteAsync(Guid id)
     {
         return Mediator.Send(new DeleteProductRequest(id));
     }

@@ -75,7 +75,7 @@ public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUs
         return result;
     }
 
-    private List<AuditTrail> HandleAuditingBeforeSaveChanges(in Guid userId)
+    private List<AuditTrail> HandleAuditingBeforeSaveChanges(Guid userId)
     {
         foreach (var entry in ChangeTracker.Entries<IAuditableEntity>().ToList())
         {
@@ -172,7 +172,7 @@ public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUs
         return trailEntries.Where(e => e.HasTemporaryProperties).ToList();
     }
 
-    private Task HandleAuditingAfterSaveChangesAsync(List<AuditTrail> trailEntries, in CancellationToken cancellationToken = new())
+    private Task HandleAuditingAfterSaveChangesAsync(List<AuditTrail> trailEntries, CancellationToken cancellationToken = new())
     {
         if (trailEntries == null || trailEntries.Count == 0)
         {
