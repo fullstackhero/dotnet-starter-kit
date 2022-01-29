@@ -13,7 +13,7 @@ public class TenantsController : VersionNeutralApiController
     }
 
     [HttpGet]
-    [MustHavePermission(FSHRootPermissions.Tenants.ListAll)]
+    [MustHavePermission(FSHRootPermissions.Tenants.View)]
     [OpenApiOperation("Get all the available Tenants.", "")]
     public Task<List<TenantDto>> GetAllAsync()
     {

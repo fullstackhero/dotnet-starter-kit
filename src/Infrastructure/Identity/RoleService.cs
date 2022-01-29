@@ -6,6 +6,7 @@ using FSH.WebApi.Application.Identity.Roles;
 using FSH.WebApi.Infrastructure.Common.Extensions;
 using FSH.WebApi.Infrastructure.Persistence.Context;
 using FSH.WebApi.Shared.Authorization;
+using FSH.WebApi.Shared.Multitenancy;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -52,13 +53,10 @@ public class RoleService : IRoleService
 
     public async Task<RoleDto> GetByIdAsync(string id)
     {
-        var role = await _roleManager.Roles.SingleOrDefaultAsync(x => x.Id == id);
-
+        var role = await _context.Roles.SingleOrDefaultAsync(x => x.Id == id);
         _ = role ?? throw new NotFoundException(_localizer["Role Not Found"]);
-
         var roleDto = role.Adapt<RoleDto>();
         roleDto.IsDefault = DefaultRoles.Contains(role.Name);
-
         return roleDto;
     }
 
@@ -73,6 +71,9 @@ public class RoleService : IRoleService
             .Where(a => a.RoleId == roleId && a.ClaimType == FSHClaims.Permission)
             .ToListAsync(cancellationToken))
             .Adapt<List<PermissionDto>>();
+
+        string? tenantOfRole = await _context.Roles.Where(a => a.Id == roleId).Select(x => EF.Property<string>(x, "TenantId")).FirstOrDefaultAsync(cancellationToken: cancellationToken);
+        if (tenantOfRole == MultitenancyConstants.Root.Id) role.IsRootRole = true;
 
         return role;
     }
@@ -118,10 +119,16 @@ public class RoleService : IRoleService
         var selectedPermissions = request.Permissions;
         var role = await _roleManager.FindByIdAsync(request.RoleId);
         _ = role ?? throw new NotFoundException(_localizer["Role Not Found"]);
-
         if (role.Name == FSHRoles.Admin)
         {
             throw new ConflictException(_localizer["Not allowed to modify Permissions for this Role."]);
+        }
+
+        string? tenantOfRole = await _context.Roles.Where(a => a.Id == request.RoleId).Select(x => EF.Property<string>(x, "TenantId")).FirstOrDefaultAsync(cancellationToken: cancellationToken);
+        if (tenantOfRole != MultitenancyConstants.Root.Id)
+        {
+            // Remove Root Permissions if the Role is not created for Root Tenant.
+            request.Permissions.RemoveAll(u => u.StartsWith("Permissions.Root."));
         }
 
         var currentPermissions = await _roleManager.GetClaimsAsync(role);
