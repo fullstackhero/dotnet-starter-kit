@@ -45,7 +45,7 @@ public class UsersController : VersionNeutralApiController
     }
 
     [HttpPost("toggle-status")]
-    [MustHavePermission(FSHPermissions.Users.Edit)]
+    [MustHavePermission(FSHPermissions.Users.Update)]
     [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Register))]
     public Task ToggleUserStatusAsync(ToggleUserStatusRequest request, CancellationToken cancellationToken)
     {

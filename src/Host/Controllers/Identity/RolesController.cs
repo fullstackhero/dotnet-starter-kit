@@ -9,7 +9,7 @@ public class RolesController : VersionNeutralApiController
     public RolesController(IRoleService roleService) => _roleService = roleService;
 
     [HttpGet("all")]
-    [MustHavePermission(FSHPermissions.Roles.ListAll)]
+    [MustHavePermission(FSHPermissions.Roles.View)]
     public Task<List<RoleDto>> GetListAsync()
     {
         return _roleService.GetListAsync();
@@ -30,21 +30,21 @@ public class RolesController : VersionNeutralApiController
     }
 
     [HttpPut("permissions")]
-    [MustHavePermission(FSHPermissions.RoleClaims.Edit)]
+    [MustHavePermission(FSHPermissions.RoleClaims.Update)]
     public Task<string> UpdatePermissionsAsync(UpdatePermissionsRequest request, CancellationToken cancellationToken)
     {
         return _roleService.UpdatePermissionsAsync(request, cancellationToken);
     }
 
     [HttpPost]
-    [MustHavePermission(FSHPermissions.Roles.Register)]
+    [MustHavePermission(FSHPermissions.Roles.Create)]
     public Task<string> RegisterRoleAsync(RoleRequest request)
     {
         return _roleService.RegisterRoleAsync(request);
     }
 
     [HttpDelete("{id}")]
-    [MustHavePermission(FSHPermissions.Roles.Remove)]
+    [MustHavePermission(FSHPermissions.Roles.Delete)]
     public Task<string> DeleteAsync(string id)
     {
         return _roleService.DeleteAsync(id);

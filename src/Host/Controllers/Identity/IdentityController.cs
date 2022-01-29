@@ -18,7 +18,7 @@ public sealed class IdentityController : VersionNeutralApiController
     }
 
     [HttpPost("register")]
-    [MustHavePermission(FSHPermissions.Identity.Register)]
+    [MustHavePermission(FSHPermissions.Identity.Create)]
     public Task<string> RegisterAsync(RegisterUserRequest request)
     {
         return _identityService.RegisterAsync(request, OriginFromRequest);

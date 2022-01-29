@@ -27,6 +27,18 @@ public class UpdateProductRequestHandler : IRequestHandler<UpdateProductRequest,
 
         _ = product ?? throw new NotFoundException(string.Format(_localizer["product.notfound"], request.Id));
 
+        // Remove old image if there is a new image uploaded
+        if (request.Image != null)
+        {
+            string? currentProductImagePath = product.ImagePath;
+            if (!string.IsNullOrEmpty(currentProductImagePath))
+            {
+                string root = Directory.GetCurrentDirectory();
+                string filePath = currentProductImagePath.Replace("{server_url}/", string.Empty);
+                _file.Remove(Path.Combine(root, filePath));
+            }
+        }
+
         string? productImagePath = request.Image is not null
             ? await _file.UploadAsync<Product>(request.Image, FileType.Image, cancellationToken)
             : null;
