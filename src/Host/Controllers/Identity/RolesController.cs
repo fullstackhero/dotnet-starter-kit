@@ -9,7 +9,7 @@ public class RolesController : VersionNeutralApiController
     public RolesController(IRoleService roleService) => _roleService = roleService;
 
     [HttpGet("all")]
-    [MustHavePermission(FSHPermissions.Roles.ListAll)]
+    [MustHavePermission(FSHPermissions.Roles.View)]
     public Task<List<RoleDto>> GetListAsync()
     {
         return _roleService.GetListAsync();
