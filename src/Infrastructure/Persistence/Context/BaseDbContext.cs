@@ -1,4 +1,5 @@
 using System.Data;
+using System.Reflection;
 using Finbuckle.MultiTenant;
 using FSH.WebApi.Application.Common.Events;
 using FSH.WebApi.Application.Common.Interfaces;
@@ -40,7 +41,17 @@ public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUs
 
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
+        var types = modelBuilder.Model
+            .GetEntityTypes()
+            .Select(t => t.ClrType)
+            .ToHashSet();
+
+        modelBuilder.ApplyConfigurationsFromAssembly(
+            Assembly.GetExecutingAssembly(),
+            t => t.GetInterfaces()
+                .Any(i => i.IsGenericType
+                          && i.GetGenericTypeDefinition() == typeof(IEntityTypeConfiguration<>)
+                          && types.Contains(i.GenericTypeArguments[0])));
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
