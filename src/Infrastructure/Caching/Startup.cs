@@ -19,7 +19,8 @@ internal static class Startup
                     options.Configuration = settings.RedisURL;
                     options.ConfigurationOptions = new StackExchange.Redis.ConfigurationOptions()
                     {
-                        AbortOnConnectFail = true
+                        AbortOnConnectFail = true,
+                        EndPoints = { settings.RedisURL }
                     };
                 });
             }
