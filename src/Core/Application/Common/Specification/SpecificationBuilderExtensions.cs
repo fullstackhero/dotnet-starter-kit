@@ -25,7 +25,7 @@ public static class SpecificationBuilderExtensions
 
         if (filter.PageNumber > 1)
         {
-            query.Skip((filter.PageNumber - 1) * filter.PageSize);
+            query = query.Skip((filter.PageNumber - 1) * filter.PageSize);
         }
 
         return query
