@@ -1,12 +1,15 @@
-﻿using FSH.WebApi.Infrastructure.Auth.Permissions;
+﻿using System.ComponentModel;
+using System.Reflection;
+using System.Security.Claims;
+using FSH.WebApi.Infrastructure.Auth.Permissions;
 using FSH.WebApi.Infrastructure.Identity;
 using FSH.WebApi.Infrastructure.Multitenancy;
+using FSH.WebApi.Infrastructure.Persistence.Context;
 using FSH.WebApi.Shared.Authorization;
 using FSH.WebApi.Shared.Multitenancy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 
 namespace FSH.WebApi.Infrastructure.Persistence.Initialization;
 
@@ -27,14 +30,14 @@ internal class ApplicationDbSeeder
         _logger = logger;
     }
 
-    public async Task SeedDatabaseAsync(CancellationToken cancellationToken)
+    public async Task SeedDatabaseAsync(ApplicationDbContext _dbContext, CancellationToken cancellationToken)
     {
-        await SeedRolesAsync();
+        await SeedRolesAsync(_dbContext);
         await SeedAdminUserAsync();
         await _seederRunner.RunSeedersAsync(cancellationToken);
     }
 
-    private async Task SeedRolesAsync()
+    private async Task SeedRolesAsync(ApplicationDbContext _dbContext)
     {
         foreach (string roleName in RoleService.DefaultRoles)
         {
@@ -50,29 +53,63 @@ internal class ApplicationDbSeeder
             // Assign permissions
             if (roleName == FSHRoles.Basic)
             {
-                await AssignPermissionsToRoleAsync(role, DefaultPermissions.Basic);
+                var basicPermissions = DefaultPermissions.BasicPermissionTypes;
+                await AssignPermissionsToRoleAsync(_dbContext, role, basicPermissions);
             }
             else if (roleName == FSHRoles.Admin)
             {
-                await AssignPermissionsToRoleAsync(role, DefaultPermissions.Admin);
+                var adminPermissions = DefaultPermissions.AdminPermissionTypes;
+                await AssignPermissionsToRoleAsync(_dbContext, role, adminPermissions);
 
                 if (_currentTenant.Id == MultitenancyConstants.Root.Id)
                 {
-                    await AssignPermissionsToRoleAsync(role, DefaultPermissions.Root);
+                    var rootPermissions = DefaultPermissions.RootPermissionTypes;
+                    await AssignPermissionsToRoleAsync(_dbContext, role, rootPermissions);
                 }
             }
         }
     }
 
-    private async Task AssignPermissionsToRoleAsync(ApplicationRole role, List<string> permissions)
+    private async Task AssignPermissionsToRoleAsync(ApplicationDbContext _dbContext, ApplicationRole role, Type[] modules)
     {
         var currentClaims = await _roleManager.GetClaimsAsync(role);
-        foreach (string permission in permissions)
+        foreach (var module in modules)
         {
-            if (!currentClaims.Any(a => a.Type == FSHClaims.Permission && a.Value == permission))
+            string? moduleName = string.Empty;
+            string? moduleDescription = string.Empty;
+
+            if (module.GetCustomAttributes(typeof(DisplayNameAttribute), true)
+                .FirstOrDefault() is DisplayNameAttribute displayNameAttribute)
             {
-                _logger.LogInformation("Seeding {role} Permission '{permission}' for '{tenantId}' Tenant.", role.Name, permission, _currentTenant.Id);
-                await _roleManager.AddClaimAsync(role, new Claim(FSHClaims.Permission, permission));
+                moduleName = displayNameAttribute.DisplayName;
+            }
+
+            if (module.GetCustomAttributes(typeof(DescriptionAttribute), true)
+                .FirstOrDefault() is DescriptionAttribute descriptionAttribute)
+            {
+                moduleDescription = descriptionAttribute.Description;
+            }
+
+            var fields = module.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+
+            foreach (var fi in fields)
+            {
+                object? propertyValue = fi.GetValue(null);
+
+                if (propertyValue?.ToString() != null && !currentClaims.Any(a => a.Type == FSHClaims.Permission && a.Value == propertyValue.ToString()))
+                {
+                    _logger.LogInformation("Seeding {role} Permission '{permission}' for '{tenantId}' Tenant.", role.Name, propertyValue.ToString(), _currentTenant.Id);
+                    await _dbContext.RoleClaims.AddAsync(new ApplicationRoleClaim()
+                    {
+                        RoleId = role.Id,
+                        ClaimType = FSHClaims.Permission,
+                        ClaimValue = propertyValue.ToString(),
+                        Description = moduleDescription,
+                        Group = moduleName,
+                        CreatedOn = DateTime.UtcNow,
+                        LastModifiedOn = DateTime.UtcNow
+                    });
+                }
             }
         }
     }

@@ -1,7 +1,11 @@
+using System.ComponentModel;
+
 namespace FSH.WebApi.Shared.Authorization;
 
 public class FSHRootPermissions
 {
+    [DisplayName("Tenant")]
+    [Description("Tenant Permissions")]
     public static class Tenants
     {
         public const string View = "Permissions.Root.Tenants.View";
