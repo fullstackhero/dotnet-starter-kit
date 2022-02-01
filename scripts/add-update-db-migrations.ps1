@@ -74,8 +74,8 @@ Write-Host "**************************`n"
 
 <# Reset Configurations - Switch Back to Original Configurations #>
 Write-Host "Resetting Configurations to Orginal...`n"
-$databaseFileContent | set-content $databaseJsonPath
-$hangfireFileContent | set-content $hangfireJsonPath
+$databaseFileContent | set-content -NoNewline -Force $databaseJsonPath
+$hangfireFileContent | set-content -NoNewline -Force $hangfireJsonPath
 Write-Host "**************************`n"
 
 Set-Location -Path $currentDirectory
