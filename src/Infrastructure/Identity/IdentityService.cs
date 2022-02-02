@@ -265,8 +265,7 @@ public class IdentityService : IIdentityService
             if (!string.IsNullOrEmpty(currentImage))
             {
                 string root = Directory.GetCurrentDirectory();
-                string filePath = currentImage.Replace("{server_url}/", string.Empty);
-                _fileStorage.Remove(Path.Combine(root, filePath));
+                _fileStorage.Remove(Path.Combine(root, currentImage));
             }
         }
 

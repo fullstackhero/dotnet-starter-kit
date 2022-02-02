@@ -34,8 +34,7 @@ public class UpdateProductRequestHandler : IRequestHandler<UpdateProductRequest,
             if (!string.IsNullOrEmpty(currentProductImagePath))
             {
                 string root = Directory.GetCurrentDirectory();
-                string filePath = currentProductImagePath.Replace("{server_url}/", string.Empty);
-                _file.Remove(Path.Combine(root, filePath));
+                _file.Remove(Path.Combine(root, currentProductImagePath));
             }
         }
 

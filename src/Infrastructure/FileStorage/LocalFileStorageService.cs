@@ -54,8 +54,7 @@ public class LocalFileStorageService : IFileStorageService
 
             using var stream = new FileStream(fullPath, FileMode.Create);
             await streamData.CopyToAsync(stream, cancellationToken);
-            dbPath = dbPath.Replace("\\", "/");
-            return "{server_url}/" + dbPath;
+            return dbPath.Replace("\\", "/");
         }
         else
         {
