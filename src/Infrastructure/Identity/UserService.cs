@@ -187,6 +187,6 @@ public class UserService : IUserService
 
         _ = user ?? throw new NotFoundException(_localizer["User Not Found."]);
 
-        return await IsRootTenant(user);
+        return IsRootTenant(user);
     }
 }
