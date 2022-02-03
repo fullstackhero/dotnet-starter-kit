@@ -105,7 +105,8 @@ public class UserService : IUserService
 
         _ = user ?? throw new NotFoundException(_localizer["User Not Found."]);
 
-        if(IsRootTenant(user)){
+        if(IsRootTenant(user))
+        {
             var adminRole = request.UserRoles.Find(a => !a.Enabled && a.RoleName == FSHRoles.Admin);
             if (adminRole is not null)
             {
