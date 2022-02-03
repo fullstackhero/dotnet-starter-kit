@@ -27,4 +27,10 @@ public class Product : AuditableEntity, IAggregateRoot
         if (imagePath is not null && ImagePath?.Equals(imagePath) is not true) ImagePath = imagePath;
         return this;
     }
+
+    public Product ClearImagePath()
+    {
+        ImagePath = string.Empty;
+        return this;
+    }
 }
