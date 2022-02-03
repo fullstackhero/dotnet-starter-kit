@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel;
 using System.Reflection;
-using System.Security.Claims;
 using FSH.WebApi.Infrastructure.Auth.Permissions;
 using FSH.WebApi.Infrastructure.Identity;
 using FSH.WebApi.Infrastructure.Multitenancy;
@@ -99,7 +98,7 @@ internal class ApplicationDbSeeder
                 if (propertyValue?.ToString() != null && !currentClaims.Any(a => a.Type == FSHClaims.Permission && a.Value == propertyValue.ToString()))
                 {
                     _logger.LogInformation("Seeding {role} Permission '{permission}' for '{tenantId}' Tenant.", role.Name, propertyValue.ToString(), _currentTenant.Id);
-                    await _dbContext.RoleClaims.AddAsync(new ApplicationRoleClaim()
+                    _dbContext.RoleClaims.Add(new ApplicationRoleClaim()
                     {
                         RoleId = role.Id,
                         ClaimType = FSHClaims.Permission,
@@ -109,6 +108,7 @@ internal class ApplicationDbSeeder
                         CreatedOn = DateTime.UtcNow,
                         LastModifiedOn = DateTime.UtcNow
                     });
+                    await _dbContext.SaveChangesAsync();
                 }
             }
         }
