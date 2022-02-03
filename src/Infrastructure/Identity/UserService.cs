@@ -105,7 +105,7 @@ public class UserService : IUserService
 
         _ = user ?? throw new NotFoundException(_localizer["User Not Found."]);
 
-        if(await IsRootTenantAsync(userId, cancellationToken)){
+        if(IsRootTenant(user)){
             var adminRole = request.UserRoles.Find(a => !a.Enabled && a.RoleName == FSHRoles.Admin);
             if (adminRole is not null)
             {
@@ -175,13 +175,18 @@ public class UserService : IUserService
         var identityResult = await _userManager.UpdateAsync(user);
     }
 
+    private bool IsRootTenant(ApplicationUser user)
+    {
+        bool isRoot = user.Email == MultitenancyConstants.Root.EmailAddress;
+        return isRoot;
+    }
+
     public async Task<bool> IsRootTenantAsync(string userId, CancellationToken cancellationToken)
     {
         var user = await _userManager.Users.Where(u => u.Id == userId).FirstOrDefaultAsync(cancellationToken);
 
         _ = user ?? throw new NotFoundException(_localizer["User Not Found."]);
 
-        bool isRoot = user.Email == MultitenancyConstants.Root.EmailAddress;
-        return isRoot;
+        return await IsRootTenant(user);
     }
 }
