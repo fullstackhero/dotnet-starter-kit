@@ -17,6 +17,7 @@ namespace FSH.WebApi.Infrastructure.Identity;
 
 public class UserService : IUserService
 {
+
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<ApplicationRole> _roleManager;
     private readonly IStringLocalizer<UserService> _localizer;
