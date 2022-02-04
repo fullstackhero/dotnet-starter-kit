@@ -16,6 +16,7 @@ namespace FSH.WebApi.Infrastructure.Identity;
 
 public class UserService : IUserService
 {
+    private const int MINIMUM_ADMINS = 1;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<ApplicationRole> _roleManager;
     private readonly IStringLocalizer<UserService> _localizer;
@@ -107,7 +108,7 @@ public class UserService : IUserService
         if (adminRole is not null && (user.IsRootUser || user.IsTenantUser))
         {
             var adminUsers = await _userManager.GetUsersInRoleAsync(FSHRoles.Admin);
-            if (adminUsers.Count() == 1 || user.IsRootUser)
+            if (adminUsers.Count() <= MINIMUM_ADMINS || user.IsRootUser)
             {
                 // skip remove admin role
                 request.UserRoles.Remove(adminRole);
