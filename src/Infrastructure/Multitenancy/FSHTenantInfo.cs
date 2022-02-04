@@ -9,7 +9,7 @@ public class FSHTenantInfo : ITenantInfo
     {
     }
 
-    public FSHTenantInfo(string id, string name, string? connectionString, string adminEmail, string? issuer = null)
+    public FSHTenantInfo(string id, string name, string? connectionString, string adminEmail, string? issuer = null, bool isRoot = false)
     {
         Id = id;
         Identifier = id;
@@ -18,6 +18,7 @@ public class FSHTenantInfo : ITenantInfo
         AdminEmail = adminEmail;
         IsActive = true;
         Issuer = issuer;
+        IsRoot = isRoot;
 
         // Add Default 1 Month Validity for all new tenants. Something like a DEMO period for tenants.
         ValidUpto = DateTime.UtcNow.AddMonths(1);
@@ -39,6 +40,7 @@ public class FSHTenantInfo : ITenantInfo
     public string AdminEmail { get; private set; } = default!;
     public bool IsActive { get; private set; }
     public DateTime ValidUpto { get; private set; }
+    public bool IsRoot { get; private set; }
 
     /// <summary>
     /// Used by AzureAd Authorization to store the AzureAd Tenant Issuer to map against.

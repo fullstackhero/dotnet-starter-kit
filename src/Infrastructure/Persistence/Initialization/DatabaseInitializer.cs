@@ -72,7 +72,8 @@ internal class DatabaseInitializer : IDatabaseInitializer
                 MultitenancyConstants.Root.Id,
                 MultitenancyConstants.Root.Name,
                 _dbSettings.ConnectionString,
-                MultitenancyConstants.Root.EmailAddress);
+                MultitenancyConstants.Root.EmailAddress,
+                isRoot: true);
 
             rootTenant.SetValidity(DateTime.UtcNow.AddYears(1));
 

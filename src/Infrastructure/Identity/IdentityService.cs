@@ -259,10 +259,10 @@ public class IdentityService : IIdentityService
         _ = user ?? throw new NotFoundException(_localizer["User Not Found."]);
 
         string currentImage = user.ImageUrl ?? string.Empty;
-        if (request.Image != null)
+        if (request.Image != null || request.DeleteCurrentImage)
         {
             user.ImageUrl = await _fileStorage.UploadAsync<ApplicationUser>(request.Image, FileType.Image);
-            if (!string.IsNullOrEmpty(currentImage))
+            if(request.DeleteCurrentImage && !string.IsNullOrEmpty(currentImage))
             {
                 string root = Directory.GetCurrentDirectory();
                 _fileStorage.Remove(Path.Combine(root, currentImage));

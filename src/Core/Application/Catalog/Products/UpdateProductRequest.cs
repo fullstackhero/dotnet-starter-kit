@@ -9,6 +9,7 @@ public class UpdateProductRequest : IRequest<Guid>
     public string? Description { get; set; }
     public decimal Rate { get; set; }
     public Guid BrandId { get; set; }
+    public bool DeleteCurrentImage { get; set; } = false;
     public FileUploadRequest? Image { get; set; }
 }
 
@@ -27,8 +28,8 @@ public class UpdateProductRequestHandler : IRequestHandler<UpdateProductRequest,
 
         _ = product ?? throw new NotFoundException(string.Format(_localizer["product.notfound"], request.Id));
 
-        // Remove old image if there is a new image uploaded
-        if (request.Image != null)
+        // Remove old image if flag is set
+        if (request.DeleteCurrentImage)
         {
             string? currentProductImagePath = product.ImagePath;
             if (!string.IsNullOrEmpty(currentProductImagePath))
@@ -36,6 +37,8 @@ public class UpdateProductRequestHandler : IRequestHandler<UpdateProductRequest,
                 string root = Directory.GetCurrentDirectory();
                 _file.Remove(Path.Combine(root, currentProductImagePath));
             }
+
+            product = product.ClearImagePath();
         }
 
         string? productImagePath = request.Image is not null

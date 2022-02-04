@@ -7,7 +7,6 @@ using FSH.WebApi.Application.Identity.Roles;
 using FSH.WebApi.Application.Identity.Users;
 using FSH.WebApi.Infrastructure.Persistence.Context;
 using FSH.WebApi.Shared.Authorization;
-using FSH.WebApi.Shared.Multitenancy;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +16,6 @@ namespace FSH.WebApi.Infrastructure.Identity;
 
 public class UserService : IUserService
 {
-
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<ApplicationRole> _roleManager;
     private readonly IStringLocalizer<UserService> _localizer;
@@ -105,13 +103,11 @@ public class UserService : IUserService
 
         _ = user ?? throw new NotFoundException(_localizer["User Not Found."]);
 
-        if(IsRootTenant(user))
+        var adminRole = request.UserRoles.Find(a => !a.Enabled && a.RoleName == FSHRoles.Admin);
+        if (adminRole is not null && (user.IsRootUser || user.IsTenantUser))
         {
-            var adminRole = request.UserRoles.Find(a => !a.Enabled && a.RoleName == FSHRoles.Admin);
-            if (adminRole is not null)
-            {
-                request.UserRoles.Remove(adminRole);
-            }
+            // skip remove admin role
+            request.UserRoles.Remove(adminRole);
         }
 
         foreach (var userRole in request.UserRoles)
@@ -174,20 +170,5 @@ public class UserService : IUserService
 
         user.IsActive = request.ActivateUser;
         var identityResult = await _userManager.UpdateAsync(user);
-    }
-
-    private bool IsRootTenant(ApplicationUser user)
-    {
-        bool isRoot = user.Email == MultitenancyConstants.Root.EmailAddress;
-        return isRoot;
-    }
-
-    public async Task<bool> IsRootTenantAsync(string userId, CancellationToken cancellationToken)
-    {
-        var user = await _userManager.Users.Where(u => u.Id == userId).FirstOrDefaultAsync(cancellationToken);
-
-        _ = user ?? throw new NotFoundException(_localizer["User Not Found."]);
-
-        return IsRootTenant(user);
     }
 }

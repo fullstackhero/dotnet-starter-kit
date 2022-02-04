@@ -12,4 +12,7 @@ public class ApplicationUser : IdentityUser
     public DateTime RefreshTokenExpiryTime { get; set; }
 
     public string? ObjectId { get; set; }
+
+    public bool IsRootUser { get; set; }
+    public bool IsTenantUser { get; set; }
 }
