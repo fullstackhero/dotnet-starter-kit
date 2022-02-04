@@ -25,9 +25,9 @@ internal class DatabaseInitializer : IDatabaseInitializer
 
     public async Task InitializeDatabasesAsync(CancellationToken cancellationToken)
     {
-        await InitializeTenantDbAsync(cancellationToken);
+        await InitializeRootTenantDbAsync(cancellationToken);
 
-        foreach (var tenant in await _tenantDbContext.TenantInfo.ToListAsync(cancellationToken))
+        foreach (var tenant in await _tenantDbContext.TenantInfo.Where(t => !t.IsRoot).ToListAsync(cancellationToken))
         {
             await InitializeApplicationDbForTenantAsync(tenant, cancellationToken);
         }
@@ -53,7 +53,7 @@ internal class DatabaseInitializer : IDatabaseInitializer
             .InitializeAsync(cancellationToken);
     }
 
-    private async Task InitializeTenantDbAsync(CancellationToken cancellationToken)
+    private async Task InitializeRootTenantDbAsync(CancellationToken cancellationToken)
     {
         if (_tenantDbContext.Database.GetPendingMigrations().Any())
         {
@@ -80,6 +80,7 @@ internal class DatabaseInitializer : IDatabaseInitializer
             _tenantDbContext.TenantInfo.Add(rootTenant);
 
             await _tenantDbContext.SaveChangesAsync(cancellationToken);
+            await InitializeApplicationDbForTenantAsync(rootTenant, cancellationToken);
         }
     }
 }
