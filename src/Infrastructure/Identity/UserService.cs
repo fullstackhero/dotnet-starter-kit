@@ -106,8 +106,12 @@ public class UserService : IUserService
         var adminRole = request.UserRoles.Find(a => !a.Enabled && a.RoleName == FSHRoles.Admin);
         if (adminRole is not null && (user.IsRootUser || user.IsTenantUser))
         {
-            // skip remove admin role
-            request.UserRoles.Remove(adminRole);
+            var adminUsers = await _userManager.GetUsersInRoleAsync(FSHRoles.Admin);
+            if (adminUsers.Count() == 1 || user.IsRootUser)
+            {
+                // skip remove admin role
+                request.UserRoles.Remove(adminRole);
+            }
         }
 
         foreach (var userRole in request.UserRoles)
