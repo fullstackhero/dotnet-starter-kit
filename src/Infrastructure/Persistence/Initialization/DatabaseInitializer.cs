@@ -27,7 +27,7 @@ internal class DatabaseInitializer : IDatabaseInitializer
     {
         await InitializeTenantDbAsync(cancellationToken);
 
-        foreach (var tenant in await _tenantDbContext.TenantInfo.Where(t => !t.IsRoot).ToListAsync(cancellationToken))
+        foreach (var tenant in await _tenantDbContext.TenantInfo.ToListAsync(cancellationToken))
         {
             await InitializeApplicationDbForTenantAsync(tenant, cancellationToken);
         }
@@ -79,7 +79,6 @@ internal class DatabaseInitializer : IDatabaseInitializer
             _tenantDbContext.TenantInfo.Add(rootTenant);
 
             await _tenantDbContext.SaveChangesAsync(cancellationToken);
-            await InitializeApplicationDbForTenantAsync(rootTenant, cancellationToken);
         }
     }
 }
