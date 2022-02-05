@@ -25,7 +25,7 @@ internal class DatabaseInitializer : IDatabaseInitializer
 
     public async Task InitializeDatabasesAsync(CancellationToken cancellationToken)
     {
-        await InitializeRootTenantDbAsync(cancellationToken);
+        await InitializeTenantDbAsync(cancellationToken);
 
         foreach (var tenant in await _tenantDbContext.TenantInfo.Where(t => !t.IsRoot).ToListAsync(cancellationToken))
         {
@@ -53,7 +53,7 @@ internal class DatabaseInitializer : IDatabaseInitializer
             .InitializeAsync(cancellationToken);
     }
 
-    private async Task InitializeRootTenantDbAsync(CancellationToken cancellationToken)
+    private async Task InitializeTenantDbAsync(CancellationToken cancellationToken)
     {
         if (_tenantDbContext.Database.GetPendingMigrations().Any())
         {
@@ -72,8 +72,7 @@ internal class DatabaseInitializer : IDatabaseInitializer
                 MultitenancyConstants.Root.Id,
                 MultitenancyConstants.Root.Name,
                 _dbSettings.ConnectionString,
-                MultitenancyConstants.Root.EmailAddress,
-                isRoot: true);
+                MultitenancyConstants.Root.EmailAddress);
 
             rootTenant.SetValidity(DateTime.UtcNow.AddYears(1));
 

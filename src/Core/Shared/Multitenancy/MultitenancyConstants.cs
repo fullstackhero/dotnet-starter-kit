@@ -14,5 +14,5 @@ public class MultitenancyConstants
     public const string TenantIdName = "tenant";
 
     // Configurable and could be loaded from config file
-    public static int MinimumAdmins = 1;
+    public static int MinimumAdmins = 2;
 }

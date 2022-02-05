@@ -121,7 +121,7 @@ internal class ApplicationDbSeeder
             return;
         }
 
-        if (await _userManager.Users.FirstOrDefaultAsync(u => u.Email == _currentTenant.AdminEmail && u.IsRootUser && u.IsTenantUser)
+        if (await _userManager.Users.FirstOrDefaultAsync(u => u.Email == _currentTenant.AdminEmail)
             is not ApplicationUser adminUser)
         {
             string adminUserName = $"{_currentTenant.Id.Trim()}.{FSHRoles.Admin}".ToLowerInvariant();
@@ -135,9 +135,7 @@ internal class ApplicationDbSeeder
                 PhoneNumberConfirmed = true,
                 NormalizedEmail = _currentTenant.AdminEmail?.ToUpperInvariant(),
                 NormalizedUserName = adminUserName.ToUpperInvariant(),
-                IsActive = true,
-                IsRootUser = true,
-                IsTenantUser = true
+                IsActive = true
             };
 
             _logger.LogInformation("Seeding Default Admin User for '{tenantId}' Tenant.", _currentTenant.Id);

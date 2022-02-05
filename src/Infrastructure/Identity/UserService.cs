@@ -1,3 +1,4 @@
+using Ardalis.Specification;
 using Ardalis.Specification.EntityFrameworkCore;
 using FSH.WebApi.Application.Common.Exceptions;
 using FSH.WebApi.Application.Common.Models;
@@ -103,20 +104,36 @@ public class UserService : IUserService
 
         _ = user ?? throw new NotFoundException(_localizer["User Not Found."]);
 
-        bool isAdminRoleSkipped = false;
-        var adminRole = request.UserRoles.Find(a => !a.Enabled && a.RoleName == FSHRoles.Admin);
-        if (adminRole is not null)
+        // Criteria : Check if Current Tenant has atleast 2 Admins and current user is not Root Tenant Admin
+
+        // Check is there is a Disable flag for Admin in the request
+
+        var adminRoleInRequest = request.UserRoles.Find(a => !a.Enabled && a.RoleName == FSHRoles.Admin);
+
+        // Get count of users in Admin Role
+        var adminRole = await _roleManager.Roles.Where(r => r.Name == FSHRoles.Admin).FirstOrDefaultAsync(cancellationToken);
+        if (adminRole is not null && adminRoleInRequest is not null)
         {
-            var adminUsers = await _userManager.GetUsersInRoleAsync(FSHRoles.Admin);
-            if (adminUsers.Count() <= MultitenancyConstants.MinimumAdmins || user.IsRootUser || user.IsTenantUser)
+            // Guarantees Admin Role is available and the request has Disable flag for Admin Role
+
+            // Now get count of Users with Admin Role
+
+            int adminCount = await _context.UserRoles.Where(a => a.RoleId == adminRole.Id).CountAsync(cancellationToken);
+
+            // Check if user is not Root Tenant Admin
+
+            bool isRootTenantAdmin = user.Email == MultitenancyConstants.Root.EmailAddress;
+
+            if (isRootTenantAdmin)
             {
-                // skip remove admin role
-                request.UserRoles.Remove(adminRole);
-                isAdminRoleSkipped = true;
+                throw new NotFoundException(_localizer["Cannot Remove Admin Role From Root Tenant Admin."]);
+            }
+            else if (adminCount <= 2)
+            {
+                throw new NotFoundException(_localizer["Tenant should have atleast 2 Admins."]);
             }
         }
 
-        bool isUserRoleUpdated = false;
         foreach (var userRole in request.UserRoles)
         {
             // Check if Role Exists
@@ -127,24 +144,16 @@ public class UserService : IUserService
                     if (!await _userManager.IsInRoleAsync(user, userRole.RoleName))
                     {
                         await _userManager.AddToRoleAsync(user, userRole.RoleName);
-                        isUserRoleUpdated = true;
                     }
                 }
                 else
                 {
                     await _userManager.RemoveFromRoleAsync(user, userRole.RoleName);
-                    isUserRoleUpdated = true;
                 }
             }
         }
 
-        string message = isUserRoleUpdated ? "User Roles Updated Successfully." : "Non-updated user roles.";
-        if (isAdminRoleSkipped)
-        {
-            message += $" Warning: Minimim admin is {MultitenancyConstants.MinimumAdmins}.";
-        }
-
-        return _localizer[message];
+        return _localizer["User Roles Updated Successfully."];
     }
 
     public async Task<List<PermissionDto>> GetPermissionsAsync(string userId, CancellationToken cancellationToken)

@@ -280,12 +280,6 @@ namespace Migrators.MSSQL.Migrations.Application
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsRootUser")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsTenantUser")
-                        .HasColumnType("bit");
-
                     b.Property<string>("LastName")
                         .HasColumnType("nvarchar(max)");
 
