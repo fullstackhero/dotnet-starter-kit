@@ -105,10 +105,10 @@ public class UserService : IUserService
         _ = user ?? throw new NotFoundException(_localizer["User Not Found."]);
 
         var adminRole = request.UserRoles.Find(a => !a.Enabled && a.RoleName == FSHRoles.Admin);
-        if (adminRole is not null && (user.IsRootUser || user.IsTenantUser))
+        if (adminRole is not null)
         {
             var adminUsers = await _userManager.GetUsersInRoleAsync(FSHRoles.Admin);
-            if (adminUsers.Count() <= MINIMUM_ADMINS || user.IsRootUser)
+            if (adminUsers.Count() <= MINIMUM_ADMINS || user.IsRootUser || user.IsTenantUser)
             {
                 // skip remove admin role
                 request.UserRoles.Remove(adminRole);
