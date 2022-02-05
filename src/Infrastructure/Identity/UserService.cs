@@ -126,11 +126,11 @@ public class UserService : IUserService
 
             if (isRootTenantAdmin)
             {
-                throw new NotFoundException(_localizer["Cannot Remove Admin Role From Root Tenant Admin."]);
+                throw new ConflictException(_localizer["Cannot Remove Admin Role From Root Tenant Admin."]);
             }
             else if (adminCount <= 2)
             {
-                throw new NotFoundException(_localizer["Tenant should have atleast 2 Admins."]);
+                throw new ConflictException(_localizer["Tenant should have atleast 2 Admins."]);
             }
         }
 
