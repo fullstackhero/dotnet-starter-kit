@@ -108,29 +108,37 @@ public class UserService : IUserService
 
         // Check is there is a Disable flag for Admin in the request
 
-        var adminRoleInRequest = request.UserRoles.Find(a => !a.Enabled && a.RoleName == FSHRoles.Admin);
-
-        // Get count of users in Admin Role
-        var adminRole = await _roleManager.Roles.Where(r => r.Name == FSHRoles.Admin).FirstOrDefaultAsync(cancellationToken);
-        if (adminRole is not null && adminRoleInRequest is not null)
+        var disabledAdminRoleInRequest = request.UserRoles.Find(a => !a.Enabled && a.RoleName == FSHRoles.Admin);
+        if (disabledAdminRoleInRequest is not null)
         {
-            // Guarantees Admin Role is available and the request has Disable flag for Admin Role
-
-            // Now get count of Users with Admin Role
-
-            int adminCount = await _context.UserRoles.Where(a => a.RoleId == adminRole.Id).CountAsync(cancellationToken);
-
-            // Check if user is not Root Tenant Admin
-
-            bool isRootTenantAdmin = user.Email == MultitenancyConstants.Root.EmailAddress;
-
-            if (isRootTenantAdmin)
+            // Get count of users in Admin Role
+            var adminRole = await _roleManager.Roles.Where(r => r.Name == FSHRoles.Admin).FirstOrDefaultAsync(cancellationToken);
+            if (adminRole is not null)
             {
-                throw new ConflictException(_localizer["Cannot Remove Admin Role From Root Tenant Admin."]);
-            }
-            else if (adminCount <= 2)
-            {
-                throw new ConflictException(_localizer["Tenant should have atleast 2 Admins."]);
+                // Guarantees Admin Role is available and the request has Disable flag for Admin Role
+
+                // Now get count of Users with Admin Role
+
+                int adminCount = await _context.UserRoles.Where(a => a.RoleId == adminRole.Id).CountAsync(cancellationToken);
+
+                // Check if user is not Root Tenant Admin
+
+                // Edge Case : there are chances for other tenants to have users with the same email as that of Root Tenant Admin. Probably can add a check while User Registration
+
+                bool hasRootEmailAddress = user.Email == MultitenancyConstants.Root.EmailAddress;
+
+                if (hasRootEmailAddress)
+                {
+                    string? tenantOfUser = await _context.Users.Where(a => a.Id == userId).Select(x => EF.Property<string>(x, "TenantId")).FirstOrDefaultAsync(cancellationToken: cancellationToken);
+                    if (!string.IsNullOrEmpty(tenantOfUser) && tenantOfUser == MultitenancyConstants.Root.Id)
+                    {
+                        throw new ConflictException(_localizer["Cannot Remove Admin Role From Root Tenant Admin."]);
+                    }
+                }
+                else if (adminCount <= 2)
+                {
+                    throw new ConflictException(_localizer["Tenant should have atleast 2 Admins."]);
+                }
             }
         }
 
