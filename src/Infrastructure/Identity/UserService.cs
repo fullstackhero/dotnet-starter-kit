@@ -1,4 +1,3 @@
-using Ardalis.Specification;
 using Ardalis.Specification.EntityFrameworkCore;
 using FSH.WebApi.Application.Common.Exceptions;
 using FSH.WebApi.Application.Common.Models;
@@ -7,6 +6,7 @@ using FSH.WebApi.Application.Identity.Roles;
 using FSH.WebApi.Application.Identity.Users;
 using FSH.WebApi.Infrastructure.Persistence.Context;
 using FSH.WebApi.Shared.Authorization;
+using FSH.WebApi.Shared.Multitenancy;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +16,6 @@ namespace FSH.WebApi.Infrastructure.Identity;
 
 public class UserService : IUserService
 {
-    private const int MINIMUM_ADMINS = 1;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<ApplicationRole> _roleManager;
     private readonly IStringLocalizer<UserService> _localizer;
@@ -108,7 +107,7 @@ public class UserService : IUserService
         if (adminRole is not null)
         {
             var adminUsers = await _userManager.GetUsersInRoleAsync(FSHRoles.Admin);
-            if (adminUsers.Count() <= MINIMUM_ADMINS || user.IsRootUser || user.IsTenantUser)
+            if (adminUsers.Count() <= MultitenancyConstants.MinimumAdmins || user.IsRootUser || user.IsTenantUser)
             {
                 // skip remove admin role
                 request.UserRoles.Remove(adminRole);

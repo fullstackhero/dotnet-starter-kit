@@ -12,4 +12,7 @@ public class MultitenancyConstants
     public const string DefaultPassword = "123Pa$$word!";
 
     public const string TenantIdName = "tenant";
+
+    // Configurable and could be loaded from config file
+    public static int MinimumAdmins = 1;
 }
