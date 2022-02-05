@@ -1,4 +1,5 @@
-﻿using Finbuckle.MultiTenant;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Finbuckle.MultiTenant;
 using FSH.WebApi.Shared.Multitenancy;
 
 namespace FSH.WebApi.Infrastructure.Multitenancy;
@@ -40,6 +41,7 @@ public class FSHTenantInfo : ITenantInfo
     public bool IsActive { get; private set; }
     public DateTime ValidUpto { get; private set; }
 
+    [NotMapped]
     public bool IsRoot => Id == MultitenancyConstants.Root.Id;
 
     /// <summary>

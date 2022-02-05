@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using FSH.WebApi.Shared.Multitenancy;
 using Microsoft.AspNetCore.Identity;
 
@@ -14,5 +15,6 @@ public class ApplicationUser : IdentityUser
 
     public string? ObjectId { get; set; }
 
+    [NotMapped]
     public bool HasRootEmailAddress => Email == MultitenancyConstants.Root.EmailAddress;
 }
