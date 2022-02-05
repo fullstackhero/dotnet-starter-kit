@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Finbuckle.MultiTenant;
 using FSH.WebApi.Application.Common.Exceptions;
 using FSH.WebApi.Application.Common.Interfaces;
 using FSH.WebApi.Application.Identity;
@@ -20,17 +21,20 @@ public class RoleService : IRoleService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ApplicationDbContext _context;
     private readonly IStringLocalizer<RoleService> _localizer;
+    private readonly ITenantInfo _tenantInfo;
 
     public RoleService(
         RoleManager<ApplicationRole> roleManager,
         UserManager<ApplicationUser> userManager,
         ApplicationDbContext context,
-        IStringLocalizer<RoleService> localizer)
+        IStringLocalizer<RoleService> localizer,
+        ITenantInfo tenantInfo)
     {
         _roleManager = roleManager;
         _userManager = userManager;
         _context = context;
         _localizer = localizer;
+        _tenantInfo = tenantInfo;
     }
 
     public async Task<List<RoleDto>> GetListAsync()
@@ -72,8 +76,7 @@ public class RoleService : IRoleService
             .ToListAsync(cancellationToken))
             .Adapt<List<PermissionDto>>();
 
-        string? tenantOfRole = await _context.Roles.Where(a => a.Id == roleId).Select(x => EF.Property<string>(x, "TenantId")).FirstOrDefaultAsync(cancellationToken: cancellationToken);
-        if (tenantOfRole == MultitenancyConstants.Root.Id) role.IsRootRole = true;
+        if (_tenantInfo.Id == MultitenancyConstants.Root.Id) role.IsRootRole = true;
 
         return role;
     }
@@ -124,8 +127,7 @@ public class RoleService : IRoleService
             throw new ConflictException(_localizer["Not allowed to modify Permissions for this Role."]);
         }
 
-        string? tenantOfRole = await _context.Roles.Where(a => a.Id == request.RoleId).Select(x => EF.Property<string>(x, "TenantId")).FirstOrDefaultAsync(cancellationToken: cancellationToken);
-        if (tenantOfRole != MultitenancyConstants.Root.Id)
+        if (_tenantInfo.Id != MultitenancyConstants.Root.Id)
         {
             // Remove Root Permissions if the Role is not created for Root Tenant.
             request.Permissions.RemoveAll(u => u.StartsWith("Permissions.Root."));
