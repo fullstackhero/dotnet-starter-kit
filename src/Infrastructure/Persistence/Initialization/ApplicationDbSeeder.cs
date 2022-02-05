@@ -60,7 +60,7 @@ internal class ApplicationDbSeeder
                 var adminPermissions = DefaultPermissions.AdminPermissionTypes;
                 await AssignPermissionsToRoleAsync(_dbContext, role, adminPermissions);
 
-                if (_currentTenant.IsRoot)
+                if (_currentTenant.IsRootTenant)
                 {
                     var rootPermissions = DefaultPermissions.RootPermissionTypes;
                     await AssignPermissionsToRoleAsync(_dbContext, role, rootPermissions);

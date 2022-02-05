@@ -41,8 +41,7 @@ public class FSHTenantInfo : ITenantInfo
     public bool IsActive { get; private set; }
     public DateTime ValidUpto { get; private set; }
 
-    [NotMapped]
-    public bool IsRoot => Id == MultitenancyConstants.Root.Id;
+    public bool IsRootTenant => Id == MultitenancyConstants.Root.Id;
 
     /// <summary>
     /// Used by AzureAd Authorization to store the AzureAd Tenant Issuer to map against.
@@ -59,7 +58,7 @@ public class FSHTenantInfo : ITenantInfo
 
     public void Activate()
     {
-        if (IsRoot)
+        if (IsRootTenant)
         {
             throw new InvalidOperationException("Invalid Tenant");
         }
@@ -69,7 +68,7 @@ public class FSHTenantInfo : ITenantInfo
 
     public void Deactivate()
     {
-        if (IsRoot)
+        if (IsRootTenant)
         {
             throw new InvalidOperationException("Invalid Tenant");
         }
