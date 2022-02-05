@@ -15,6 +15,5 @@ public class ApplicationUser : IdentityUser
 
     public string? ObjectId { get; set; }
 
-    [NotMapped]
-    public bool HasRootEmailAddress => Email == MultitenancyConstants.Root.EmailAddress;
+    public bool IsRootAdmin => Email == MultitenancyConstants.Root.EmailAddress;
 }
