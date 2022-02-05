@@ -103,6 +103,7 @@ public class UserService : IUserService
 
         _ = user ?? throw new NotFoundException(_localizer["User Not Found."]);
 
+        bool isAdminRoleSkipped = false;
         var adminRole = request.UserRoles.Find(a => !a.Enabled && a.RoleName == FSHRoles.Admin);
         if (adminRole is not null)
         {
@@ -111,9 +112,11 @@ public class UserService : IUserService
             {
                 // skip remove admin role
                 request.UserRoles.Remove(adminRole);
+                isAdminRoleSkipped = true;
             }
         }
 
+        bool isUserRoleUpdated = false;
         foreach (var userRole in request.UserRoles)
         {
             // Check if Role Exists
@@ -124,16 +127,24 @@ public class UserService : IUserService
                     if (!await _userManager.IsInRoleAsync(user, userRole.RoleName))
                     {
                         await _userManager.AddToRoleAsync(user, userRole.RoleName);
+                        isUserRoleUpdated = true;
                     }
                 }
                 else
                 {
                     await _userManager.RemoveFromRoleAsync(user, userRole.RoleName);
+                    isUserRoleUpdated = true;
                 }
             }
         }
 
-        return _localizer["User Roles Updated Successfully."];
+        string message = isUserRoleUpdated ? "User Roles Updated Successfully." : "Non-updated user roles.";
+        if (isAdminRoleSkipped)
+        {
+            message += $" Warning: Minimim admin is {MultitenancyConstants.MinimumAdmins}.";
+        }
+
+        return _localizer[message];
     }
 
     public async Task<List<PermissionDto>> GetPermissionsAsync(string userId, CancellationToken cancellationToken)
