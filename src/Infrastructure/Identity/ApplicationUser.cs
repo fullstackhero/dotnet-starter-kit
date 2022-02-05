@@ -1,3 +1,4 @@
+using FSH.WebApi.Shared.Multitenancy;
 using Microsoft.AspNetCore.Identity;
 
 namespace FSH.WebApi.Infrastructure.Identity;
@@ -12,4 +13,6 @@ public class ApplicationUser : IdentityUser
     public DateTime RefreshTokenExpiryTime { get; set; }
 
     public string? ObjectId { get; set; }
+
+    public bool HasRootEmailAddress => Email == MultitenancyConstants.Root.EmailAddress;
 }

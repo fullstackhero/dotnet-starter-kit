@@ -125,9 +125,7 @@ public class UserService : IUserService
 
                 // Edge Case : there are chances for other tenants to have users with the same email as that of Root Tenant Admin. Probably can add a check while User Registration
 
-                bool hasRootEmailAddress = user.Email == MultitenancyConstants.Root.EmailAddress;
-
-                if (hasRootEmailAddress)
+                if (user.HasRootEmailAddress)
                 {
                     string? tenantOfUser = await _context.Users.Where(a => a.Id == userId).Select(x => EF.Property<string>(x, "TenantId")).FirstOrDefaultAsync(cancellationToken: cancellationToken);
                     if (!string.IsNullOrEmpty(tenantOfUser) && tenantOfUser == MultitenancyConstants.Root.Id)
