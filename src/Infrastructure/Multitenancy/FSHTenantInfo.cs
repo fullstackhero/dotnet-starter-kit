@@ -57,7 +57,7 @@ public class FSHTenantInfo : ITenantInfo
 
     public void Activate()
     {
-        if (Id == MultitenancyConstants.Root.Id)
+        if (IsRoot)
         {
             throw new InvalidOperationException("Invalid Tenant");
         }
@@ -67,7 +67,7 @@ public class FSHTenantInfo : ITenantInfo
 
     public void Deactivate()
     {
-        if (Id == MultitenancyConstants.Root.Id)
+        if (IsRoot)
         {
             throw new InvalidOperationException("Invalid Tenant");
         }
