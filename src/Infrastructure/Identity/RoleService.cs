@@ -1,9 +1,9 @@
-using System.Security.Claims;
 using Finbuckle.MultiTenant;
+using FSH.WebApi.Application.Common.Caching;
 using FSH.WebApi.Application.Common.Exceptions;
+using FSH.WebApi.Application.Common.Interfaces;
 using FSH.WebApi.Application.Identity;
 using FSH.WebApi.Application.Identity.Roles;
-using FSH.WebApi.Infrastructure.Common.Extensions;
 using FSH.WebApi.Infrastructure.Persistence.Context;
 using FSH.WebApi.Shared.Authorization;
 using FSH.WebApi.Shared.Multitenancy;
@@ -18,22 +18,31 @@ public class RoleService : IRoleService
 {
     private readonly RoleManager<ApplicationRole> _roleManager;
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly ApplicationDbContext _context;
+    private readonly ApplicationDbContext _db;
     private readonly IStringLocalizer<RoleService> _localizer;
+    private readonly ICurrentUser _currentUser;
     private readonly ITenantInfo _tenantInfo;
+    private readonly ICacheService _cache;
+    private readonly ICacheKeyService _cacheKeys;
 
     public RoleService(
         RoleManager<ApplicationRole> roleManager,
         UserManager<ApplicationUser> userManager,
-        ApplicationDbContext context,
+        ApplicationDbContext db,
         IStringLocalizer<RoleService> localizer,
-        ITenantInfo tenantInfo)
+        ICurrentUser currentUser,
+        ITenantInfo tenantInfo,
+        ICacheService cache,
+        ICacheKeyService cacheKeys)
     {
         _roleManager = roleManager;
         _userManager = userManager;
-        _context = context;
+        _db = db;
         _localizer = localizer;
+        _currentUser = currentUser;
         _tenantInfo = tenantInfo;
+        _cache = cache;
+        _cacheKeys = cacheKeys;
     }
 
     public async Task<List<RoleDto>> GetListAsync(CancellationToken cancellationToken) =>
@@ -49,7 +58,7 @@ public class RoleService : IRoleService
             && existingRole.Id != excludeId;
 
     public async Task<RoleDto> GetByIdAsync(string id) =>
-        await _context.Roles.SingleOrDefaultAsync(x => x.Id == id) is { } role
+        await _db.Roles.SingleOrDefaultAsync(x => x.Id == id) is { } role
             ? role.Adapt<RoleDto>()
             : throw new NotFoundException(_localizer["Role Not Found"]);
 
@@ -57,7 +66,7 @@ public class RoleService : IRoleService
     {
         var role = await GetByIdAsync(roleId);
 
-        role.Permissions = await _context.RoleClaims
+        role.Permissions = await _db.RoleClaims
             .Where(c => c.RoleId == roleId && c.ClaimType == FSHClaims.Permission)
             .Select(c => c.ClaimValue)
             .ToListAsync(cancellationToken);
@@ -82,7 +91,7 @@ public class RoleService : IRoleService
 
             _ = role ?? throw new NotFoundException(_localizer["Role Not Found"]);
 
-            if (DefaultRoles.Contains(role.Name))
+            if (FSHRoles.IsDefault(role.Name))
             {
                 throw new ConflictException(string.Format(_localizer["Not allowed to modify {0} Role."], role.Name));
             }
@@ -100,7 +109,6 @@ public class RoleService : IRoleService
 
     public async Task<string> UpdatePermissionsAsync(UpdateRolePermissionsRequest request, CancellationToken cancellationToken)
     {
-        var selectedPermissions = request.Permissions;
         var role = await _roleManager.FindByIdAsync(request.RoleId);
         _ = role ?? throw new NotFoundException(_localizer["Role Not Found"]);
         if (role.Name == FSHRoles.Admin)
@@ -114,10 +122,16 @@ public class RoleService : IRoleService
             request.Permissions.RemoveAll(u => u.StartsWith("Permissions.Root."));
         }
 
-        var currentPermissions = await _roleManager.GetClaimsAsync(role);
+        // Clear the permission cache
+        foreach (var user in await _userManager.GetUsersInRoleAsync(role.Name))
+        {
+            await _cache.RemoveAsync(_cacheKeys.GetCacheKey(FSHClaims.Permission, user.Id));
+        }
+
+        var currentClaims = await _roleManager.GetClaimsAsync(role);
 
         // Remove permissions that were previously selected
-        foreach (var claim in currentPermissions.Where(c => !selectedPermissions.Any(p => p == c.Value)))
+        foreach (var claim in currentClaims.Where(c => !request.Permissions.Any(p => p == c.Value)))
         {
             var removeResult = await _roleManager.RemoveClaimAsync(role, claim);
             if (!removeResult.Succeeded)
@@ -127,15 +141,18 @@ public class RoleService : IRoleService
         }
 
         // Add all permissions that were not previously selected
-        foreach (string permission in selectedPermissions.Where(c => !currentPermissions.Any(p => p.Value == c)))
+        foreach (string permission in request.Permissions.Where(c => !currentClaims.Any(p => p.Value == c)))
         {
             if (!string.IsNullOrEmpty(permission))
             {
-                var addResult = await _roleManager.AddClaimAsync(role, new Claim(FSHClaims.Permission, permission));
-                if (!addResult.Succeeded)
+                _db.RoleClaims.Add(new ApplicationRoleClaim
                 {
-                    throw new InternalServerException(_localizer["Update permissions failed."], addResult.Errors.Select(e => _localizer[e.Description].ToString()).ToList());
-                }
+                    RoleId = role.Id,
+                    ClaimType = FSHClaims.Permission,
+                    ClaimValue = permission,
+                    CreatedBy = _currentUser.GetUserId().ToString()
+                });
+                await _db.SaveChangesAsync(cancellationToken);
             }
         }
 
@@ -148,7 +165,7 @@ public class RoleService : IRoleService
 
         _ = role ?? throw new NotFoundException(_localizer["Role Not Found"]);
 
-        if (DefaultRoles.Contains(role.Name))
+        if (FSHRoles.IsDefault(role.Name))
         {
             throw new ConflictException(string.Format(_localizer["Not allowed to delete {0} Role."], role.Name));
         }
@@ -173,7 +190,4 @@ public class RoleService : IRoleService
             throw new ConflictException(string.Format(_localizer["Not allowed to delete {0} Role as it is being used."], role.Name));
         }
     }
-
-    internal static List<string> DefaultRoles =>
-        typeof(FSHRoles).GetAllPublicConstantValues<string>();
 }

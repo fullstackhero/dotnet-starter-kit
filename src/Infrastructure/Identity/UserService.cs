@@ -1,5 +1,7 @@
 using Ardalis.Specification;
 using Ardalis.Specification.EntityFrameworkCore;
+using Finbuckle.MultiTenant;
+using FSH.WebApi.Application.Common.Caching;
 using FSH.WebApi.Application.Common.Exceptions;
 using FSH.WebApi.Application.Common.Models;
 using FSH.WebApi.Application.Common.Specification;
@@ -19,19 +21,27 @@ public class UserService : IUserService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<ApplicationRole> _roleManager;
     private readonly IStringLocalizer<UserService> _localizer;
-
-    private readonly ApplicationDbContext _context;
+    private readonly ApplicationDbContext _db;
+    private readonly ICacheService _cache;
+    private readonly ICacheKeyService _cacheKeys;
+    private readonly ITenantInfo _currentTenant;
 
     public UserService(
         UserManager<ApplicationUser> userManager,
         RoleManager<ApplicationRole> roleManager,
         IStringLocalizer<UserService> localizer,
-        ApplicationDbContext context)
+        ApplicationDbContext db,
+        ICacheService cache,
+        ICacheKeyService cacheKeys,
+        ITenantInfo currentTenant)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _localizer = localizer;
-        _context = context;
+        _db = db;
+        _cache = cache;
+        _cacheKeys = cacheKeys;
+        _currentTenant = currentTenant;
     }
 
     public async Task<PaginationResponse<UserDetailsDto>> SearchAsync(UserListFilter filter, CancellationToken cancellationToken)
@@ -104,40 +114,24 @@ public class UserService : IUserService
         _ = user ?? throw new NotFoundException(_localizer["User Not Found."]);
 
         // Criteria : Check if Current Tenant has atleast 2 Admins and current user is not Root Tenant Admin
-
-        // Check is there is a Disable flag for Admin in the request
-
-        var disabledAdminRoleInRequest = request.UserRoles.Find(a => !a.Enabled && a.RoleName == FSHRoles.Admin);
-        if (disabledAdminRoleInRequest is not null)
+        // Check if there is a Disable flag for Admin in the request
+        if (request.UserRoles.Find(a => !a.Enabled && a.RoleName == FSHRoles.Admin) is not null)
         {
             // Get count of users in Admin Role
-            var adminRole = await _roleManager.Roles.Where(r => r.Name == FSHRoles.Admin).FirstOrDefaultAsync(cancellationToken);
-            if (adminRole is not null)
+            int adminCount = (await _userManager.GetUsersInRoleAsync(FSHRoles.Admin)).Count();
+
+            // Check if user is not Root Tenant Admin
+            // Edge Case : there are chances for other tenants to have users with the same email as that of Root Tenant Admin. Probably can add a check while User Registration
+            if (user.Email == MultitenancyConstants.Root.EmailAddress)
             {
-                // Guarantees Admin Role is available and the request has Disable flag for Admin Role
-
-                // Now get count of Users with Admin Role
-
-                int adminCount = await _context.UserRoles.Where(a => a.RoleId == adminRole.Id).CountAsync(cancellationToken);
-
-                // Check if user is not Root Tenant Admin
-
-                // Edge Case : there are chances for other tenants to have users with the same email as that of Root Tenant Admin. Probably can add a check while User Registration
-
-                bool hasRootEmailAddress = user.Email == MultitenancyConstants.Root.EmailAddress;
-
-                if (hasRootEmailAddress)
+                if (_currentTenant.Id == MultitenancyConstants.Root.Id)
                 {
-                    string? tenantOfUser = await _context.Users.Where(a => a.Id == userId).Select(x => EF.Property<string>(x, "TenantId")).FirstOrDefaultAsync(cancellationToken: cancellationToken);
-                    if (!string.IsNullOrEmpty(tenantOfUser) && tenantOfUser == MultitenancyConstants.Root.Id)
-                    {
-                        throw new ConflictException(_localizer["Cannot Remove Admin Role From Root Tenant Admin."]);
-                    }
+                    throw new ConflictException(_localizer["Cannot Remove Admin Role From Root Tenant Admin."]);
                 }
-                else if (adminCount <= 2)
-                {
-                    throw new ConflictException(_localizer["Tenant should have atleast 2 Admins."]);
-                }
+            }
+            else if (adminCount <= 2)
+            {
+                throw new ConflictException(_localizer["Tenant should have at least 2 Admins."]);
             }
         }
 
@@ -175,13 +169,23 @@ public class UserService : IUserService
             .Where(r => userRoles.Contains(r.Name))
             .ToListAsync(cancellationToken))
         {
-            permissions.AddRange(await _context.RoleClaims
+            permissions.AddRange(await _db.RoleClaims
                 .Where(rc => rc.RoleId == role.Id && rc.ClaimType == FSHClaims.Permission)
                 .Select(rc => rc.ClaimValue)
                 .ToListAsync(cancellationToken));
         }
 
         return permissions.Distinct().ToList();
+    }
+
+    public async Task<bool> HasPermissionAsync(string userId, string permission, CancellationToken cancellationToken)
+    {
+        var permissions = await _cache.GetOrSetAsync(
+            _cacheKeys.GetCacheKey(FSHClaims.Permission, userId),
+            () => GetPermissionsAsync(userId, cancellationToken),
+            cancellationToken: cancellationToken);
+
+        return permissions?.Contains(permission) ?? false;
     }
 
     public Task<int> GetCountAsync(CancellationToken cancellationToken) =>

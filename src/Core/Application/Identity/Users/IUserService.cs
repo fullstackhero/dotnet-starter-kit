@@ -19,6 +19,7 @@ public interface IUserService : ITransientService
     Task<string> AssignRolesAsync(string userId, UserRolesRequest request, CancellationToken cancellationToken);
 
     Task<List<string>> GetPermissionsAsync(string userId, CancellationToken cancellationToken);
+    public Task<bool> HasPermissionAsync(string userId, string permission, CancellationToken cancellationToken = default);
 
     Task ToggleUserStatusAsync(ToggleUserStatusRequest request, CancellationToken cancellationToken);
 }
