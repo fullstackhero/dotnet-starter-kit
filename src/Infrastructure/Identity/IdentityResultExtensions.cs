@@ -3,7 +3,7 @@ using Microsoft.Extensions.Localization;
 
 namespace FSH.WebApi.Infrastructure.Identity;
 
-public static class IdentityResultExtensions
+internal static class IdentityResultExtensions
 {
     public static List<string> GetErrors(this IdentityResult result, IStringLocalizer localizer) =>
         result.Errors.Select(e => localizer[e.Description].ToString()).ToList();

@@ -1,9 +1,10 @@
 using Finbuckle.MultiTenant;
+using FSH.WebApi.Application.Common.Events;
 using FSH.WebApi.Application.Common.Exceptions;
 using FSH.WebApi.Application.Common.Interfaces;
 using FSH.WebApi.Application.Identity;
 using FSH.WebApi.Application.Identity.Roles;
-using FSH.WebApi.Application.Identity.Users;
+using FSH.WebApi.Infrastructure.Identity.Events;
 using FSH.WebApi.Infrastructure.Persistence.Context;
 using FSH.WebApi.Shared.Authorization;
 using FSH.WebApi.Shared.Multitenancy;
@@ -14,7 +15,7 @@ using Microsoft.Extensions.Localization;
 
 namespace FSH.WebApi.Infrastructure.Identity;
 
-public class RoleService : IRoleService
+internal class RoleService : IRoleService
 {
     private readonly RoleManager<ApplicationRole> _roleManager;
     private readonly UserManager<ApplicationUser> _userManager;
@@ -22,7 +23,7 @@ public class RoleService : IRoleService
     private readonly IStringLocalizer<RoleService> _localizer;
     private readonly ICurrentUser _currentUser;
     private readonly ITenantInfo _tenantInfo;
-    private readonly IUserService _userService;
+    private readonly IEventService _eventService;
 
     public RoleService(
         RoleManager<ApplicationRole> roleManager,
@@ -31,7 +32,7 @@ public class RoleService : IRoleService
         IStringLocalizer<RoleService> localizer,
         ICurrentUser currentUser,
         ITenantInfo tenantInfo,
-        IUserService userService)
+        IEventService eventService)
     {
         _roleManager = roleManager;
         _userManager = userManager;
@@ -39,7 +40,7 @@ public class RoleService : IRoleService
         _localizer = localizer;
         _currentUser = currentUser;
         _tenantInfo = tenantInfo;
-        _userService = userService;
+        _eventService = eventService;
     }
 
     public async Task<List<RoleDto>> GetListAsync(CancellationToken cancellationToken) =>
@@ -98,9 +99,14 @@ public class RoleService : IRoleService
             role.Description = request.Description;
             var result = await _roleManager.UpdateAsync(role);
 
-            return result.Succeeded
-                ? string.Format(_localizer["Role {0} Updated."], role.Name)
-                : throw new InternalServerException(_localizer["Update role failed"], result.GetErrors(_localizer));
+            if (!result.Succeeded)
+            {
+                throw new InternalServerException(_localizer["Update role failed"], result.GetErrors(_localizer));
+            }
+
+            await _eventService.PublishAsync(new ApplicationRoleUpdatedEvent(role.Id, role.Name));
+
+            return string.Format(_localizer["Role {0} Updated."], role.Name);
         }
     }
 
@@ -117,12 +123,6 @@ public class RoleService : IRoleService
         {
             // Remove Root Permissions if the Role is not created for Root Tenant.
             request.Permissions.RemoveAll(u => u.StartsWith("Permissions.Root."));
-        }
-
-        // Clear the permission cache ==> TODO: we should probably fire an event here and do this in a handler for that event
-        foreach (var user in await _userManager.GetUsersInRoleAsync(role.Name))
-        {
-            await _userService.ClearPermissionCacheAsync(user.Id, cancellationToken);
         }
 
         var currentClaims = await _roleManager.GetClaimsAsync(role);
@@ -152,6 +152,8 @@ public class RoleService : IRoleService
                 await _db.SaveChangesAsync(cancellationToken);
             }
         }
+
+        await _eventService.PublishAsync(new ApplicationRoleUpdatedEvent(role.Id, role.Name, true));
 
         return _localizer["Permissions Updated."];
     }

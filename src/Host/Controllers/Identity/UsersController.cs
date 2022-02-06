@@ -42,6 +42,6 @@ public class UsersController : VersionNeutralApiController
     [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Register))]
     public Task ToggleUserStatusAsync(ToggleUserStatusRequest request, CancellationToken cancellationToken)
     {
-        return _userService.ToggleUserStatusAsync(request, cancellationToken);
+        return _userService.ToggleStatusAsync(request, cancellationToken);
     }
 }

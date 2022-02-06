@@ -2,10 +2,12 @@ using Ardalis.Specification;
 using Ardalis.Specification.EntityFrameworkCore;
 using Finbuckle.MultiTenant;
 using FSH.WebApi.Application.Common.Caching;
+using FSH.WebApi.Application.Common.Events;
 using FSH.WebApi.Application.Common.Exceptions;
 using FSH.WebApi.Application.Common.Models;
 using FSH.WebApi.Application.Common.Specification;
 using FSH.WebApi.Application.Identity.Users;
+using FSH.WebApi.Infrastructure.Identity.Events;
 using FSH.WebApi.Infrastructure.Persistence.Context;
 using FSH.WebApi.Shared.Authorization;
 using FSH.WebApi.Shared.Multitenancy;
@@ -16,32 +18,35 @@ using Microsoft.Extensions.Localization;
 
 namespace FSH.WebApi.Infrastructure.Identity;
 
-public class UserService : IUserService
+internal class UserService : IUserService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<ApplicationRole> _roleManager;
     private readonly ApplicationDbContext _db;
     private readonly IStringLocalizer<UserService> _localizer;
+    private readonly ITenantInfo _currentTenant;
+    private readonly IEventService _eventService;
     private readonly ICacheService _cache;
     private readonly ICacheKeyService _cacheKeys;
-    private readonly ITenantInfo _currentTenant;
 
     public UserService(
         UserManager<ApplicationUser> userManager,
         RoleManager<ApplicationRole> roleManager,
         ApplicationDbContext db,
         IStringLocalizer<UserService> localizer,
+        ITenantInfo currentTenant,
+        IEventService eventService,
         ICacheService cache,
-        ICacheKeyService cacheKeys,
-        ITenantInfo currentTenant)
+        ICacheKeyService cacheKeys)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _db = db;
         _localizer = localizer;
+        _currentTenant = currentTenant;
+        _eventService = eventService;
         _cache = cache;
         _cacheKeys = cacheKeys;
-        _currentTenant = currentTenant;
     }
 
     public async Task<PaginationResponse<UserDetailsDto>> SearchAsync(UserListFilter filter, CancellationToken cancellationToken)
@@ -116,7 +121,7 @@ public class UserService : IUserService
 
         _ = user ?? throw new NotFoundException(_localizer["User Not Found."]);
 
-        // Check if the user is an admin for which the admin role is getting disabled 
+        // Check if the user is an admin for which the admin role is getting disabled
         if (await _userManager.IsInRoleAsync(user, FSHRoles.Admin)
             && request.UserRoles.Any(a => !a.Enabled && a.RoleName == FSHRoles.Admin))
         {
@@ -157,7 +162,7 @@ public class UserService : IUserService
             }
         }
 
-        await ClearPermissionCacheAsync(user.Id, cancellationToken);
+        await _eventService.PublishAsync(new ApplicationUserUpdatedEvent(user.Id, true));
 
         return _localizer["User Roles Updated Successfully."];
     }
@@ -196,7 +201,7 @@ public class UserService : IUserService
     public Task ClearPermissionCacheAsync(string userId, CancellationToken cancellationToken) =>
         _cache.RemoveAsync(_cacheKeys.GetCacheKey(FSHClaims.Permission, userId), cancellationToken);
 
-    public async Task ToggleUserStatusAsync(ToggleUserStatusRequest request, CancellationToken cancellationToken)
+    public async Task ToggleStatusAsync(ToggleUserStatusRequest request, CancellationToken cancellationToken)
     {
         var user = await _userManager.Users.Where(u => u.Id == request.UserId).FirstOrDefaultAsync(cancellationToken);
 
@@ -209,6 +214,6 @@ public class UserService : IUserService
         }
 
         user.IsActive = request.ActivateUser;
-        var identityResult = await _userManager.UpdateAsync(user);
+        await _userManager.UpdateAsync(user);
     }
 }
