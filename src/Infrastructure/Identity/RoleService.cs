@@ -4,7 +4,7 @@ using FSH.WebApi.Application.Common.Exceptions;
 using FSH.WebApi.Application.Common.Interfaces;
 using FSH.WebApi.Application.Identity;
 using FSH.WebApi.Application.Identity.Roles;
-using FSH.WebApi.Infrastructure.Identity.Events;
+using FSH.WebApi.Domain.Identity;
 using FSH.WebApi.Infrastructure.Persistence.Context;
 using FSH.WebApi.Shared.Authorization;
 using FSH.WebApi.Shared.Multitenancy;

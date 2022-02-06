@@ -16,16 +16,16 @@ public class SendStatsChangedNotificationHandler :
         (_logger, _notificationService) = (logger, notificationService);
 
     public Task Handle(EventNotification<EntityCreatedEvent<Brand>> notification, CancellationToken cancellationToken) =>
-        SendStatsChangedNotification(notification.DomainEvent, cancellationToken);
+        SendStatsChangedNotification(notification.Event, cancellationToken);
 
     public Task Handle(EventNotification<EntityDeletedEvent<Brand>> notification, CancellationToken cancellationToken) =>
-        SendStatsChangedNotification(notification.DomainEvent, cancellationToken);
+        SendStatsChangedNotification(notification.Event, cancellationToken);
 
     public Task Handle(EventNotification<EntityCreatedEvent<Product>> notification, CancellationToken cancellationToken) =>
-        SendStatsChangedNotification(notification.DomainEvent, cancellationToken);
+        SendStatsChangedNotification(notification.Event, cancellationToken);
 
     public Task Handle(EventNotification<EntityDeletedEvent<Product>> notification, CancellationToken cancellationToken) =>
-        SendStatsChangedNotification(notification.DomainEvent, cancellationToken);
+        SendStatsChangedNotification(notification.Event, cancellationToken);
 
     private Task SendStatsChangedNotification(DomainEvent domainEvent, CancellationToken cancellationToken)
     {

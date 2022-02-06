@@ -1,8 +1,6 @@
-﻿using FSH.WebApi.Domain.Common.Contracts;
+﻿namespace FSH.WebApi.Domain.Identity;
 
-namespace FSH.WebApi.Infrastructure.Identity.Events;
-
-internal class ApplicationRoleUpdatedEvent : DomainEvent
+public class ApplicationRoleUpdatedEvent : DomainEvent
 {
     public string RoleId { get; set; } = default!;
     public string RoleName { get; set; } = default!;

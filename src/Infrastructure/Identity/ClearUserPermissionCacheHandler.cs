@@ -1,6 +1,6 @@
 ﻿using FSH.WebApi.Application.Common.Events;
 using FSH.WebApi.Application.Identity.Users;
-using FSH.WebApi.Infrastructure.Identity.Events;
+using FSH.WebApi.Domain.Identity;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 
@@ -18,17 +18,17 @@ internal class ClearUserPermissionCacheHandler :
 
     public async Task Handle(EventNotification<ApplicationUserUpdatedEvent> notification, CancellationToken cancellationToken)
     {
-        if (notification.DomainEvent.RolesUpdated)
+        if (notification.Event.RolesUpdated)
         {
-            await _userService.ClearPermissionCacheAsync(notification.DomainEvent.UserId, cancellationToken);
+            await _userService.ClearPermissionCacheAsync(notification.Event.UserId, cancellationToken);
         }
     }
 
     public async Task Handle(EventNotification<ApplicationRoleUpdatedEvent> notification, CancellationToken cancellationToken)
     {
-        if (notification.DomainEvent.PermissionsUpdated)
+        if (notification.Event.PermissionsUpdated)
         {
-            foreach (var user in await _userManager.GetUsersInRoleAsync(notification.DomainEvent.RoleName))
+            foreach (var user in await _userManager.GetUsersInRoleAsync(notification.Event.RoleName))
             {
                 await _userService.ClearPermissionCacheAsync(user.Id, cancellationToken);
             }
