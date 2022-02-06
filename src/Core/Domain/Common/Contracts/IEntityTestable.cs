@@ -1,7 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 
 namespace FSH.WebApi.Domain.Common.Contracts;
-
+/// <summary>
+/// Interface used only test case.
+/// </summary>
 public interface IEntityTestable
 {
     [StringLength(20)]
