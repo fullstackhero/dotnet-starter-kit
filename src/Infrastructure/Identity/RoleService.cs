@@ -76,15 +76,22 @@ internal class RoleService : IRoleService
     {
         if (string.IsNullOrEmpty(request.Id))
         {
-            var newRole = new ApplicationRole(request.Name, request.Description);
-            var result = await _roleManager.CreateAsync(newRole);
+            // Create a new role.
+            var role = new ApplicationRole(request.Name, request.Description);
+            var result = await _roleManager.CreateAsync(role);
 
-            return result.Succeeded
-                ? string.Format(_localizer["Role {0} Created."], request.Name)
-                : throw new InternalServerException(_localizer["Register role failed"], result.GetErrors(_localizer));
+            if (!result.Succeeded)
+            {
+                throw new InternalServerException(_localizer["Register role failed"], result.GetErrors(_localizer));
+            }
+
+            await _eventService.PublishAsync(new ApplicationRoleCreatedEvent(role.Id, role.Name));
+
+            return string.Format(_localizer["Role {0} Created."], request.Name);
         }
         else
         {
+            // Update an existing role.
             var role = await _roleManager.FindByIdAsync(request.Id);
 
             _ = role ?? throw new NotFoundException(_localizer["Role Not Found"]);
@@ -175,6 +182,9 @@ internal class RoleService : IRoleService
         }
 
         await _roleManager.DeleteAsync(role);
+
+        await _eventService.PublishAsync(new ApplicationRoleDeletedEvent(role.Id, role.Name));
+
         return string.Format(_localizer["Role {0} Deleted."], role.Name);
     }
 }

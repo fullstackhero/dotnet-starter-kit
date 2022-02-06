@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using System.Text;
 using Finbuckle.MultiTenant;
+using FSH.WebApi.Application.Common.Events;
 using FSH.WebApi.Application.Common.Exceptions;
 using FSH.WebApi.Application.Common.FileStorage;
 using FSH.WebApi.Application.Common.Interfaces;
@@ -8,6 +9,7 @@ using FSH.WebApi.Application.Common.Mailing;
 using FSH.WebApi.Application.Identity;
 using FSH.WebApi.Application.Identity.Users.Profile;
 using FSH.WebApi.Domain.Common;
+using FSH.WebApi.Domain.Identity;
 using FSH.WebApi.Infrastructure.Common;
 using FSH.WebApi.Infrastructure.Mailing;
 using FSH.WebApi.Shared.Authorization;
@@ -32,6 +34,7 @@ internal class ProfileService : IProfileService
     private readonly MailSettings _mailSettings;
     private readonly IEmailTemplateService _templateService;
     private readonly IFileStorageService _fileStorage;
+    private readonly IEventService _eventService;
     private readonly ITenantInfo _currentTenant;
 
     public ProfileService(
@@ -44,6 +47,7 @@ internal class ProfileService : IProfileService
         IOptions<MailSettings> mailSettings,
         IEmailTemplateService templateService,
         IFileStorageService fileStorage,
+        IEventService eventService,
         ITenantInfo currentTenant)
     {
         _signInManager = signInManager;
@@ -56,6 +60,7 @@ internal class ProfileService : IProfileService
         _templateService = templateService;
         _fileStorage = fileStorage;
         _currentTenant = currentTenant;
+        _eventService = eventService;
     }
 
     /// <summary>
@@ -115,6 +120,8 @@ internal class ProfileService : IProfileService
         {
             user.ObjectId = principal.GetObjectId();
             result = await _userManager.UpdateAsync(user);
+
+            await _eventService.PublishAsync(new ApplicationUserUpdatedEvent(user.Id));
         }
         else
         {
@@ -132,6 +139,8 @@ internal class ProfileService : IProfileService
                 IsActive = true
             };
             result = await _userManager.CreateAsync(user);
+
+            await _eventService.PublishAsync(new ApplicationUserCreatedEvent(user.Id));
         }
 
         if (!result.Succeeded)
@@ -176,6 +185,8 @@ internal class ProfileService : IProfileService
             messages.Add(_localizer[$"Please check {user.Email} to verify your account!"]);
         }
 
+        await _eventService.PublishAsync(new ApplicationUserCreatedEvent(user.Id));
+
         return string.Join(Environment.NewLine, messages);
     }
 
@@ -208,6 +219,8 @@ internal class ProfileService : IProfileService
         var result = await _userManager.UpdateAsync(user);
 
         await _signInManager.RefreshSignInAsync(user);
+
+        await _eventService.PublishAsync(new ApplicationUserUpdatedEvent(user.Id));
 
         if (!result.Succeeded)
         {

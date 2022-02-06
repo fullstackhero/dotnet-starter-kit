@@ -214,6 +214,9 @@ internal class UserService : IUserService
         }
 
         user.IsActive = request.ActivateUser;
+
         await _userManager.UpdateAsync(user);
+
+        await _eventService.PublishAsync(new ApplicationUserUpdatedEvent(user.Id));
     }
 }
