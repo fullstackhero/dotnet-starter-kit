@@ -6,7 +6,7 @@ using FSH.WebApi.Application.Common.FileStorage;
 using FSH.WebApi.Application.Common.Interfaces;
 using FSH.WebApi.Application.Common.Mailing;
 using FSH.WebApi.Application.Identity;
-using FSH.WebApi.Application.Identity.Users;
+using FSH.WebApi.Application.Identity.Users.Profile;
 using FSH.WebApi.Domain.Common;
 using FSH.WebApi.Infrastructure.Common;
 using FSH.WebApi.Infrastructure.Mailing;

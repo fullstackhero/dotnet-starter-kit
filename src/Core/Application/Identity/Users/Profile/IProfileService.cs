@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace FSH.WebApi.Application.Identity.Users;
+namespace FSH.WebApi.Application.Identity.Users.Profile;
 
 public interface IProfileService : ITransientService
 {

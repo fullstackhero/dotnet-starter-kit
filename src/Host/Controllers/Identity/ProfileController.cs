@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using FSH.WebApi.Application.Identity.Users;
+using FSH.WebApi.Application.Identity.Users.Profile;
 
 namespace FSH.WebApi.Host.Controllers.Identity;
 

@@ -1,7 +1,7 @@
 ﻿using System.Security.Claims;
 using Finbuckle.MultiTenant;
 using FSH.WebApi.Application.Common.Exceptions;
-using FSH.WebApi.Application.Identity.Users;
+using FSH.WebApi.Application.Identity.Users.Profile;
 using FSH.WebApi.Infrastructure.Multitenancy;
 using FSH.WebApi.Shared.Authorization;
 using FSH.WebApi.Shared.Multitenancy;
