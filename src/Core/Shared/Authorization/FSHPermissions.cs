@@ -74,6 +74,6 @@ public static class FSHPermissions
 
 public record FSHPermission(string Description, string Action, string Resource, bool IsBasic = false, bool IsRoot = false)
 {
-    public string Name => GetName(Action, Resource);
-    public static string GetName(string action, string resource) => $"Permissions.{resource}.{action}";
+    public string Name => NameFor(Action, Resource);
+    public static string NameFor(string action, string resource) => $"Permissions.{resource}.{action}";
 }
