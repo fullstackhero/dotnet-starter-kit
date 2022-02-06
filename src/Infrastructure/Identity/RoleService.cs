@@ -1,9 +1,9 @@
 using Finbuckle.MultiTenant;
-using FSH.WebApi.Application.Common.Caching;
 using FSH.WebApi.Application.Common.Exceptions;
 using FSH.WebApi.Application.Common.Interfaces;
 using FSH.WebApi.Application.Identity;
 using FSH.WebApi.Application.Identity.Roles;
+using FSH.WebApi.Application.Identity.Users;
 using FSH.WebApi.Infrastructure.Persistence.Context;
 using FSH.WebApi.Shared.Authorization;
 using FSH.WebApi.Shared.Multitenancy;
@@ -22,8 +22,7 @@ public class RoleService : IRoleService
     private readonly IStringLocalizer<RoleService> _localizer;
     private readonly ICurrentUser _currentUser;
     private readonly ITenantInfo _tenantInfo;
-    private readonly ICacheService _cache;
-    private readonly ICacheKeyService _cacheKeys;
+    private readonly IUserService _userService;
 
     public RoleService(
         RoleManager<ApplicationRole> roleManager,
@@ -32,8 +31,7 @@ public class RoleService : IRoleService
         IStringLocalizer<RoleService> localizer,
         ICurrentUser currentUser,
         ITenantInfo tenantInfo,
-        ICacheService cache,
-        ICacheKeyService cacheKeys)
+        IUserService userService)
     {
         _roleManager = roleManager;
         _userManager = userManager;
@@ -41,8 +39,7 @@ public class RoleService : IRoleService
         _localizer = localizer;
         _currentUser = currentUser;
         _tenantInfo = tenantInfo;
-        _cache = cache;
-        _cacheKeys = cacheKeys;
+        _userService = userService;
     }
 
     public async Task<List<RoleDto>> GetListAsync(CancellationToken cancellationToken) =>
@@ -122,10 +119,10 @@ public class RoleService : IRoleService
             request.Permissions.RemoveAll(u => u.StartsWith("Permissions.Root."));
         }
 
-        // Clear the permission cache
+        // Clear the permission cache ==> TODO: we should probably fire an event here and do this in a handler for that event
         foreach (var user in await _userManager.GetUsersInRoleAsync(role.Name))
         {
-            await _cache.RemoveAsync(_cacheKeys.GetCacheKey(FSHClaims.Permission, user.Id));
+            await _userService.ClearPermissionCacheAsync(user.Id, cancellationToken);
         }
 
         var currentClaims = await _roleManager.GetClaimsAsync(role);
@@ -170,24 +167,12 @@ public class RoleService : IRoleService
             throw new ConflictException(string.Format(_localizer["Not allowed to delete {0} Role."], role.Name));
         }
 
-        bool roleIsNotUsed = true;
-        var allUsers = await _userManager.Users.ToListAsync();
-        foreach (var user in allUsers)
-        {
-            if (await _userManager.IsInRoleAsync(user, role.Name))
-            {
-                roleIsNotUsed = false;
-            }
-        }
-
-        if (roleIsNotUsed)
-        {
-            await _roleManager.DeleteAsync(role);
-            return string.Format(_localizer["Role {0} Deleted."], role.Name);
-        }
-        else
+        if ((await _userManager.GetUsersInRoleAsync(role.Name)).Any())
         {
             throw new ConflictException(string.Format(_localizer["Not allowed to delete {0} Role as it is being used."], role.Name));
         }
+
+        await _roleManager.DeleteAsync(role);
+        return string.Format(_localizer["Role {0} Deleted."], role.Name);
     }
 }

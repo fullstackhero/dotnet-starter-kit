@@ -20,8 +20,8 @@ public class UserService : IUserService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<ApplicationRole> _roleManager;
-    private readonly IStringLocalizer<UserService> _localizer;
     private readonly ApplicationDbContext _db;
+    private readonly IStringLocalizer<UserService> _localizer;
     private readonly ICacheService _cache;
     private readonly ICacheKeyService _cacheKeys;
     private readonly ITenantInfo _currentTenant;
@@ -29,16 +29,16 @@ public class UserService : IUserService
     public UserService(
         UserManager<ApplicationUser> userManager,
         RoleManager<ApplicationRole> roleManager,
-        IStringLocalizer<UserService> localizer,
         ApplicationDbContext db,
+        IStringLocalizer<UserService> localizer,
         ICacheService cache,
         ICacheKeyService cacheKeys,
         ITenantInfo currentTenant)
     {
         _userManager = userManager;
         _roleManager = roleManager;
-        _localizer = localizer;
         _db = db;
+        _localizer = localizer;
         _cache = cache;
         _cacheKeys = cacheKeys;
         _currentTenant = currentTenant;
@@ -67,11 +67,14 @@ public class UserService : IUserService
     public async Task<bool> ExistsWithPhoneNumberAsync(string phoneNumber, string? exceptId = null) =>
         await _userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == phoneNumber) is ApplicationUser user && user.Id != exceptId;
 
-    public async Task<List<UserDetailsDto>> GetAllAsync(CancellationToken cancellationToken) =>
+    public async Task<List<UserDetailsDto>> GetListAsync(CancellationToken cancellationToken) =>
         (await _userManager.Users
                 .AsNoTracking()
                 .ToListAsync(cancellationToken))
             .Adapt<List<UserDetailsDto>>();
+
+    public Task<int> GetCountAsync(CancellationToken cancellationToken) =>
+        _userManager.Users.AsNoTracking().CountAsync(cancellationToken);
 
     public async Task<UserDetailsDto> GetAsync(string userId, CancellationToken cancellationToken)
     {
@@ -113,9 +116,9 @@ public class UserService : IUserService
 
         _ = user ?? throw new NotFoundException(_localizer["User Not Found."]);
 
-        // Criteria : Check if Current Tenant has atleast 2 Admins and current user is not Root Tenant Admin
-        // Check if there is a Disable flag for Admin in the request
-        if (request.UserRoles.Find(a => !a.Enabled && a.RoleName == FSHRoles.Admin) is not null)
+        // Check if the user is an admin for which the admin role is getting disabled 
+        if (await _userManager.IsInRoleAsync(user, FSHRoles.Admin)
+            && request.UserRoles.Any(a => !a.Enabled && a.RoleName == FSHRoles.Admin))
         {
             // Get count of users in Admin Role
             int adminCount = (await _userManager.GetUsersInRoleAsync(FSHRoles.Admin)).Count();
@@ -154,6 +157,8 @@ public class UserService : IUserService
             }
         }
 
+        await ClearPermissionCacheAsync(user.Id, cancellationToken);
+
         return _localizer["User Roles Updated Successfully."];
     }
 
@@ -188,8 +193,8 @@ public class UserService : IUserService
         return permissions?.Contains(permission) ?? false;
     }
 
-    public Task<int> GetCountAsync(CancellationToken cancellationToken) =>
-        _userManager.Users.AsNoTracking().CountAsync(cancellationToken);
+    public Task ClearPermissionCacheAsync(string userId, CancellationToken cancellationToken) =>
+        _cache.RemoveAsync(_cacheKeys.GetCacheKey(FSHClaims.Permission, userId), cancellationToken);
 
     public async Task ToggleUserStatusAsync(ToggleUserStatusRequest request, CancellationToken cancellationToken)
     {

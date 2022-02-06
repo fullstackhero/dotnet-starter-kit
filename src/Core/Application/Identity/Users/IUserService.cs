@@ -8,7 +8,7 @@ public interface IUserService : ITransientService
     Task<bool> ExistsWithEmailAsync(string email, string? exceptId = null);
     Task<bool> ExistsWithPhoneNumberAsync(string phoneNumber, string? exceptId = null);
 
-    Task<List<UserDetailsDto>> GetAllAsync(CancellationToken cancellationToken);
+    Task<List<UserDetailsDto>> GetListAsync(CancellationToken cancellationToken);
 
     Task<int> GetCountAsync(CancellationToken cancellationToken);
 
@@ -20,6 +20,7 @@ public interface IUserService : ITransientService
 
     Task<List<string>> GetPermissionsAsync(string userId, CancellationToken cancellationToken);
     public Task<bool> HasPermissionAsync(string userId, string permission, CancellationToken cancellationToken = default);
+    public Task ClearPermissionCacheAsync(string userId, CancellationToken cancellationToken);
 
     Task ToggleUserStatusAsync(ToggleUserStatusRequest request, CancellationToken cancellationToken);
 }

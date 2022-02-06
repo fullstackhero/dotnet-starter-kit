@@ -12,7 +12,7 @@ public class UsersController : VersionNeutralApiController
     [MustHavePermission(FSHAction.View, FSHResource.Users)]
     public Task<List<UserDetailsDto>> GetListAsync(CancellationToken cancellationToken)
     {
-        return _userService.GetAllAsync(cancellationToken);
+        return _userService.GetListAsync(cancellationToken);
     }
 
     [HttpGet("{id}")]
