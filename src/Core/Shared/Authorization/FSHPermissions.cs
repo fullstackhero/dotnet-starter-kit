@@ -1,91 +1,79 @@
-using System.ComponentModel;
+using System.Collections.ObjectModel;
 
 namespace FSH.WebApi.Shared.Authorization;
 
-public class FSHPermissions
+public static class FSHAction
 {
-    [DisplayName("Dashboard")]
-    [Description("Dashboard Permissions")]
-    public static class Dashboard
-    {
-        public const string View = "Permissions.Dashboard.View";
-    }
+    public const string View = nameof(View);
+    public const string Search = nameof(Search);
+    public const string Create = nameof(Create);
+    public const string Update = nameof(Update);
+    public const string Delete = nameof(Delete);
+    public const string Export = nameof(Export);
+    public const string Generate = nameof(Generate);
+    public const string Clean = nameof(Clean);
+    public const string UpgradeSubscription = nameof(UpgradeSubscription);
+}
 
-    [DisplayName("AuditLogs")]
-    [Description("AuditLogs Permissions")]
-    public static class AuditLogs
-    {
-        public const string View = "Permissions.AuditLogs.View";
-    }
+public static class FSHResource
+{
+    public const string Tenants = nameof(Tenants);
+    public const string Dashboard = nameof(Dashboard);
+    public const string Hangfire = nameof(Hangfire);
+    public const string Users = nameof(Users);
+    public const string UserRoles = nameof(UserRoles);
+    public const string Roles = nameof(Roles);
+    public const string RoleClaims = nameof(RoleClaims);
+    public const string Products = nameof(Products);
+    public const string Brands = nameof(Brands);
+}
 
-    [DisplayName("Hangfire")]
-    [Description("Hangfire Permissions")]
-    public static class Hangfire
+public static class FSHPermissions
+{
+    private static readonly FSHPermission[] _all = new FSHPermission[]
     {
-        public const string View = "Permissions.Hangfire.View";
-    }
+        new("View Dashboard", FSHAction.View, FSHResource.Dashboard),
+        new("View Hangfire", FSHAction.View, FSHResource.Hangfire),
+        new("View Users", FSHAction.View, FSHResource.Users),
+        new("Search Users", FSHAction.Search, FSHResource.Users),
+        new("Create Users", FSHAction.Create, FSHResource.Users),
+        new("Update Users", FSHAction.Update, FSHResource.Users),
+        new("Delete Users", FSHAction.Delete, FSHResource.Users),
+        new("Export Users", FSHAction.Export, FSHResource.Users),
+        new("View UserRoles", FSHAction.View, FSHResource.UserRoles),
+        new("Update UserRoles", FSHAction.Update, FSHResource.UserRoles),
+        new("View Roles", FSHAction.View, FSHResource.Roles),
+        new("Create Roles", FSHAction.Create, FSHResource.Roles),
+        new("Update Roles", FSHAction.Update, FSHResource.Roles),
+        new("Delete Roles", FSHAction.Delete, FSHResource.Roles),
+        new("View RoleClaims", FSHAction.View, FSHResource.RoleClaims),
+        new("Update RoleClaims", FSHAction.Update, FSHResource.RoleClaims),
+        new("View Products", FSHAction.View, FSHResource.Products, IsBasic: true),
+        new("Search Products", FSHAction.Search, FSHResource.Products, IsBasic: true),
+        new("Create Products", FSHAction.Create, FSHResource.Products),
+        new("Update Products", FSHAction.Update, FSHResource.Products),
+        new("Delete Products", FSHAction.Delete, FSHResource.Products),
+        new("View Brands", FSHAction.View, FSHResource.Brands, IsBasic: true),
+        new("Search Brands", FSHAction.Search, FSHResource.Brands, IsBasic: true),
+        new("Create Brands", FSHAction.Create, FSHResource.Brands),
+        new("Update Brands", FSHAction.Update, FSHResource.Brands),
+        new("Delete Brands", FSHAction.Delete, FSHResource.Brands),
+        new("Generate Brands", FSHAction.Generate, FSHResource.Brands),
+        new("Clean Brands", FSHAction.Clean, FSHResource.Brands),
+        new("View Tenants", FSHAction.View, FSHResource.Tenants, IsRoot: true),
+        new("Create Tenants", FSHAction.Create, FSHResource.Tenants, IsRoot: true),
+        new("Update Tenants", FSHAction.Update, FSHResource.Tenants, IsRoot: true),
+        new("Upgrade Tenant Subscription", FSHAction.UpgradeSubscription, FSHResource.Tenants, IsRoot: true)
+    };
 
-    [DisplayName("Identity")]
-    [Description("Identity Permissions")]
-    public static class Identity
-    {
-        public const string Create = "Permissions.Identity.Create";
-    }
+    public static IReadOnlyList<FSHPermission> All { get; } = new ReadOnlyCollection<FSHPermission>(_all);
+    public static IReadOnlyList<FSHPermission> Root { get; } = new ReadOnlyCollection<FSHPermission>(_all.Where(p => p.IsRoot).ToArray());
+    public static IReadOnlyList<FSHPermission> Admin { get; } = new ReadOnlyCollection<FSHPermission>(_all.Where(p => !p.IsRoot).ToArray());
+    public static IReadOnlyList<FSHPermission> Basic { get; } = new ReadOnlyCollection<FSHPermission>(_all.Where(p => p.IsBasic).ToArray());
+}
 
-    [DisplayName("Users")]
-    [Description("Users Permissions")]
-    public static class Users
-    {
-        public const string View = "Permissions.Users.View";
-        public const string Create = "Permissions.Users.Create";
-        public const string Update = "Permissions.Users.Update";
-        public const string Delete = "Permissions.Users.Delete";
-        public const string Export = "Permissions.Users.Export";
-        public const string Search = "Permissions.Users.Search";
-    }
-
-    [DisplayName("Roles")]
-    [Description("Roles Permissions")]
-    public static class Roles
-    {
-        public const string View = "Permissions.Roles.View";
-        public const string Create = "Permissions.Roles.Create";
-        public const string Update = "Permissions.Roles.Update";
-        public const string Delete = "Permissions.Roles.Delete";
-    }
-
-    [DisplayName("Role Claims")]
-    [Description("Role Claims Permissions")]
-    public static class RoleClaims
-    {
-        public const string View = "Permissions.RoleClaims.View";
-        public const string Create = "Permissions.RoleClaims.Create";
-        public const string Update = "Permissions.RoleClaims.Update";
-        public const string Delete = "Permissions.RoleClaims.Delete";
-        public const string Search = "Permissions.RoleClaims.Search";
-    }
-
-    [DisplayName("Products")]
-    [Description("Products Permissions")]
-    public static class Products
-    {
-        public const string View = "Permissions.Products.View";
-        public const string Search = "Permissions.Products.Search";
-        public const string Create = "Permissions.Products.Create";
-        public const string Update = "Permissions.Products.Update";
-        public const string Delete = "Permissions.Products.Delete";
-    }
-
-    [DisplayName("Brands")]
-    [Description("Brands Permissions")]
-    public static class Brands
-    {
-        public const string View = "Permissions.Brands.View";
-        public const string Search = "Permissions.Brands.Search";
-        public const string Create = "Permissions.Brands.Create";
-        public const string Update = "Permissions.Brands.Update";
-        public const string Delete = "Permissions.Brands.Delete";
-        public const string Generate = "Permissions.Brands.Generate";
-        public const string Clean = "Permissions.Brands.Clean";
-    }
+public record FSHPermission(string Description, string Action, string Resource, bool IsBasic = false, bool IsRoot = false)
+{
+    public string Name => GetName(Action, Resource);
+    public static string GetName(string action, string resource) => $"Permissions.{resource}.{action}";
 }

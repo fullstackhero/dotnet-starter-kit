@@ -2,11 +2,13 @@ using System.Security.Claims;
 
 namespace FSH.WebApi.Application.Identity.Users;
 
-public interface IIdentityService : ITransientService
+public interface IProfileService : ITransientService
 {
     Task<string> GetOrCreateFromPrincipalAsync(ClaimsPrincipal principal);
 
-    Task<string> RegisterAsync(RegisterUserRequest request, string origin);
+    Task<string> CreateAsync(CreateProfileRequest request, string origin);
+
+    Task UpdateAsync(UpdateProfileRequest request, string userId);
 
     Task<string> ConfirmEmailAsync(string userId, string code, string tenant, CancellationToken cancellationToken);
 
@@ -15,8 +17,6 @@ public interface IIdentityService : ITransientService
     Task<string> ForgotPasswordAsync(ForgotPasswordRequest request, string origin);
 
     Task<string> ResetPasswordAsync(ResetPasswordRequest request);
-
-    Task UpdateProfileAsync(UpdateProfileRequest request, string userId);
 
     Task ChangePasswordAsync(ChangePasswordRequest request, string userId);
 }

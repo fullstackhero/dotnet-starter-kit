@@ -1,5 +1,3 @@
-using FSH.WebApi.Application.Identity.Roles;
-
 namespace FSH.WebApi.Application.Identity.Users;
 
 public interface IUserService : ITransientService
@@ -20,7 +18,7 @@ public interface IUserService : ITransientService
 
     Task<string> AssignRolesAsync(string userId, UserRolesRequest request, CancellationToken cancellationToken);
 
-    Task<List<PermissionDto>> GetPermissionsAsync(string id, CancellationToken cancellationToken);
+    Task<List<string>> GetPermissionsAsync(string userId, CancellationToken cancellationToken);
 
     Task ToggleUserStatusAsync(ToggleUserStatusRequest request, CancellationToken cancellationToken);
 }

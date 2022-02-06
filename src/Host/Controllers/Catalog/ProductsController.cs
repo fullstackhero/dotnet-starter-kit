@@ -5,7 +5,7 @@ namespace FSH.WebApi.Host.Controllers.Catalog;
 public class ProductsController : VersionedApiController
 {
     [HttpPost("search")]
-    [MustHavePermission(FSHPermissions.Products.Search)]
+    [MustHavePermission(FSHAction.Search, FSHResource.Products)]
     [OpenApiOperation("Search products using available filters.", "")]
     public Task<PaginationResponse<ProductDto>> SearchAsync(SearchProductsRequest request)
     {
@@ -13,7 +13,7 @@ public class ProductsController : VersionedApiController
     }
 
     [HttpGet("{id:guid}")]
-    [MustHavePermission(FSHPermissions.Products.View)]
+    [MustHavePermission(FSHAction.View, FSHResource.Products)]
     [OpenApiOperation("Get product details.", "")]
     public Task<ProductDetailsDto> GetAsync(Guid id)
     {
@@ -21,7 +21,7 @@ public class ProductsController : VersionedApiController
     }
 
     [HttpGet("dapper")]
-    [MustHavePermission(FSHPermissions.Products.View)]
+    [MustHavePermission(FSHAction.View, FSHResource.Products)]
     [OpenApiOperation("Get product details via dapper.", "")]
     public Task<ProductDto> GetDapperAsync(Guid id)
     {
@@ -29,7 +29,7 @@ public class ProductsController : VersionedApiController
     }
 
     [HttpPost]
-    [MustHavePermission(FSHPermissions.Products.Create)]
+    [MustHavePermission(FSHAction.Create, FSHResource.Products)]
     [OpenApiOperation("Create a new product.", "")]
     public Task<Guid> CreateAsync(CreateProductRequest request)
     {
@@ -37,20 +37,17 @@ public class ProductsController : VersionedApiController
     }
 
     [HttpPut("{id:guid}")]
-    [MustHavePermission(FSHPermissions.Products.Update)]
+    [MustHavePermission(FSHAction.Update, FSHResource.Products)]
     [OpenApiOperation("Update a product.", "")]
     public async Task<ActionResult<Guid>> UpdateAsync(UpdateProductRequest request, Guid id)
     {
-        if (id != request.Id)
-        {
-            return BadRequest();
-        }
-
-        return Ok(await Mediator.Send(request));
+        return id != request.Id
+            ? BadRequest()
+            : Ok(await Mediator.Send(request));
     }
 
     [HttpDelete("{id:guid}")]
-    [MustHavePermission(FSHPermissions.Products.Delete)]
+    [MustHavePermission(FSHAction.Delete, FSHResource.Products)]
     [OpenApiOperation("Delete a product.", "")]
     public Task<Guid> DeleteAsync(Guid id)
     {

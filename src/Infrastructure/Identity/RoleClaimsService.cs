@@ -112,8 +112,6 @@ public class RoleClaimsService : IRoleClaimsService
 
             existingRoleClaim.ClaimType = request.Type;
             existingRoleClaim.ClaimValue = request.Value;
-            existingRoleClaim.Group = request.Group;
-            existingRoleClaim.Description = request.Description;
             existingRoleClaim.RoleId = request.RoleId;
             _db.RoleClaims.Update(existingRoleClaim);
             await _db.SaveChangesAsync(cancellationToken);

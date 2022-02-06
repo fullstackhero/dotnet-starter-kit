@@ -8,43 +8,48 @@ public class RolesController : VersionNeutralApiController
 
     public RolesController(IRoleService roleService) => _roleService = roleService;
 
-    [HttpGet("all")]
-    [MustHavePermission(FSHPermissions.Roles.View)]
-    public Task<List<RoleDto>> GetListAsync()
+    [HttpGet]
+    [MustHavePermission(FSHAction.View, FSHResource.Roles)]
+    public Task<List<RoleDto>> GetListAsync(CancellationToken cancellationToken)
     {
-        return _roleService.GetListAsync();
+        return _roleService.GetListAsync(cancellationToken);
     }
 
     [HttpGet("{id}")]
-    [MustHavePermission(FSHPermissions.Roles.View)]
+    [MustHavePermission(FSHAction.View, FSHResource.Roles)]
     public Task<RoleDto> GetByIdAsync(string id)
     {
         return _roleService.GetByIdAsync(id);
     }
 
     [HttpGet("{id}/permissions")]
-    [MustHavePermission(FSHPermissions.RoleClaims.View)]
+    [MustHavePermission(FSHAction.View, FSHResource.RoleClaims)]
     public Task<RoleDto> GetByIdWithPermissionsAsync(string id, CancellationToken cancellationToken)
     {
         return _roleService.GetByIdWithPermissionsAsync(id, cancellationToken);
     }
 
-    [HttpPut("permissions")]
-    [MustHavePermission(FSHPermissions.RoleClaims.Update)]
-    public Task<string> UpdatePermissionsAsync(UpdatePermissionsRequest request, CancellationToken cancellationToken)
+    [HttpPut("{id}/permissions")]
+    [MustHavePermission(FSHAction.Update, FSHResource.RoleClaims)]
+    public async Task<ActionResult<string>> UpdatePermissionsAsync(string id, UpdateRolePermissionsRequest request, CancellationToken cancellationToken)
     {
-        return _roleService.UpdatePermissionsAsync(request, cancellationToken);
+        if (id != request.RoleId)
+        {
+            return BadRequest();
+        }
+
+        return Ok(await _roleService.UpdatePermissionsAsync(request, cancellationToken));
     }
 
     [HttpPost]
-    [MustHavePermission(FSHPermissions.Roles.Create)]
-    public Task<string> RegisterRoleAsync(RoleRequest request)
+    [MustHavePermission(FSHAction.Create, FSHResource.Roles)]
+    public Task<string> RegisterRoleAsync(CreateOrUpdateRoleRequest request)
     {
-        return _roleService.RegisterRoleAsync(request);
+        return _roleService.CreateOrUpdateAsync(request);
     }
 
     [HttpDelete("{id}")]
-    [MustHavePermission(FSHPermissions.Roles.Delete)]
+    [MustHavePermission(FSHAction.Delete, FSHResource.Roles)]
     public Task<string> DeleteAsync(string id)
     {
         return _roleService.DeleteAsync(id);

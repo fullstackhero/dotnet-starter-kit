@@ -10,6 +10,7 @@ using FSH.WebApi.Application.Identity.Users;
 using FSH.WebApi.Domain.Common;
 using FSH.WebApi.Infrastructure.Common;
 using FSH.WebApi.Infrastructure.Mailing;
+using FSH.WebApi.Shared.Authorization;
 using FSH.WebApi.Shared.Multitenancy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
@@ -20,7 +21,7 @@ using Microsoft.Identity.Web;
 
 namespace FSH.WebApi.Infrastructure.Identity;
 
-public class IdentityService : IIdentityService
+public class ProfileService : IProfileService
 {
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly UserManager<ApplicationUser> _userManager;
@@ -28,19 +29,19 @@ public class IdentityService : IIdentityService
     private readonly IJobService _jobService;
     private readonly IMailService _mailService;
     private readonly MailSettings _mailSettings;
-    private readonly IStringLocalizer<IdentityService> _localizer;
+    private readonly IStringLocalizer<ProfileService> _localizer;
     private readonly ITenantInfo _currentTenant;
     private readonly IFileStorageService _fileStorage;
     private readonly IEmailTemplateService _templateService;
 
-    public IdentityService(
+    public ProfileService(
         SignInManager<ApplicationUser> signInManager,
         UserManager<ApplicationUser> userManager,
         RoleManager<ApplicationRole> roleManager,
         IJobService jobService,
         IMailService mailService,
         IOptions<MailSettings> mailSettings,
-        IStringLocalizer<IdentityService> localizer,
+        IStringLocalizer<ProfileService> localizer,
         ITenantInfo currentTenant,
         IFileStorageService fileStorage,
         IEmailTemplateService templateService)
@@ -65,7 +66,8 @@ public class IdentityService : IIdentityService
             throw new InternalServerException(_localizer["Invalid objectId"]);
         }
 
-        var user = await _userManager.Users.Where(u => u.ObjectId == objectId).FirstOrDefaultAsync() ?? await CreateOrUpdateFromPrincipalAsync(principal);
+        var user = await _userManager.Users.Where(u => u.ObjectId == objectId).FirstOrDefaultAsync()
+            ?? await CreateOrUpdateFromPrincipalAsync(principal);
 
         // Add user to incoming role if that isn't the case yet
         if (principal.FindFirstValue(ClaimTypes.Role) is string role &&
@@ -134,7 +136,7 @@ public class IdentityService : IIdentityService
         return user;
     }
 
-    public async Task<string> RegisterAsync(RegisterUserRequest request, string origin)
+    public async Task<string> CreateAsync(CreateProfileRequest request, string origin)
     {
         var user = new ApplicationUser
         {
@@ -169,6 +171,43 @@ public class IdentityService : IIdentityService
         }
 
         return string.Join(Environment.NewLine, messages);
+    }
+
+    public async Task UpdateAsync(UpdateProfileRequest request, string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+
+        _ = user ?? throw new NotFoundException(_localizer["User Not Found."]);
+
+        string currentImage = user.ImageUrl ?? string.Empty;
+        if (request.Image != null || request.DeleteCurrentImage)
+        {
+            user.ImageUrl = await _fileStorage.UploadAsync<ApplicationUser>(request.Image, FileType.Image);
+            if (request.DeleteCurrentImage && !string.IsNullOrEmpty(currentImage))
+            {
+                string root = Directory.GetCurrentDirectory();
+                _fileStorage.Remove(Path.Combine(root, currentImage));
+            }
+        }
+
+        user.FirstName = request.FirstName;
+        user.LastName = request.LastName;
+        user.PhoneNumber = request.PhoneNumber;
+        string phoneNumber = await _userManager.GetPhoneNumberAsync(user);
+        if (request.PhoneNumber != phoneNumber)
+        {
+            var setPhoneResult = await _userManager.SetPhoneNumberAsync(user, request.PhoneNumber);
+        }
+
+        var identityResult = await _userManager.UpdateAsync(user);
+
+        await _signInManager.RefreshSignInAsync(user);
+
+        if (!identityResult.Succeeded)
+        {
+            var errors = identityResult.Errors.Select(e => _localizer[e.Description].ToString()).ToList();
+            throw new InternalServerException(_localizer["Update profile failed"], errors);
+        }
     }
 
     private async Task<string> GetEmailVerificationUriAsync(ApplicationUser user, string origin)
@@ -250,43 +289,6 @@ public class IdentityService : IIdentityService
         return result.Succeeded
             ? _localizer["Password Reset Successful!"]
             : throw new InternalServerException(_localizer["An Error has occurred!"]);
-    }
-
-    public async Task UpdateProfileAsync(UpdateProfileRequest request, string userId)
-    {
-        var user = await _userManager.FindByIdAsync(userId);
-
-        _ = user ?? throw new NotFoundException(_localizer["User Not Found."]);
-
-        string currentImage = user.ImageUrl ?? string.Empty;
-        if (request.Image != null || request.DeleteCurrentImage)
-        {
-            user.ImageUrl = await _fileStorage.UploadAsync<ApplicationUser>(request.Image, FileType.Image);
-            if(request.DeleteCurrentImage && !string.IsNullOrEmpty(currentImage))
-            {
-                string root = Directory.GetCurrentDirectory();
-                _fileStorage.Remove(Path.Combine(root, currentImage));
-            }
-        }
-
-        user.FirstName = request.FirstName;
-        user.LastName = request.LastName;
-        user.PhoneNumber = request.PhoneNumber;
-        string phoneNumber = await _userManager.GetPhoneNumberAsync(user);
-        if (request.PhoneNumber != phoneNumber)
-        {
-            var setPhoneResult = await _userManager.SetPhoneNumberAsync(user, request.PhoneNumber);
-        }
-
-        var identityResult = await _userManager.UpdateAsync(user);
-
-        await _signInManager.RefreshSignInAsync(user);
-
-        if (!identityResult.Succeeded)
-        {
-            var errors = identityResult.Errors.Select(e => _localizer[e.Description].ToString()).ToList();
-            throw new InternalServerException(_localizer["Update profile failed"], errors);
-        }
     }
 
     public async Task ChangePasswordAsync(ChangePasswordRequest model, string userId)

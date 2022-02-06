@@ -3,7 +3,6 @@ using Ardalis.Specification.EntityFrameworkCore;
 using FSH.WebApi.Application.Common.Exceptions;
 using FSH.WebApi.Application.Common.Models;
 using FSH.WebApi.Application.Common.Specification;
-using FSH.WebApi.Application.Identity.Roles;
 using FSH.WebApi.Application.Identity.Users;
 using FSH.WebApi.Infrastructure.Persistence.Context;
 using FSH.WebApi.Shared.Authorization;
@@ -164,22 +163,22 @@ public class UserService : IUserService
         return _localizer["User Roles Updated Successfully."];
     }
 
-    public async Task<List<PermissionDto>> GetPermissionsAsync(string userId, CancellationToken cancellationToken)
+    public async Task<List<string>> GetPermissionsAsync(string userId, CancellationToken cancellationToken)
     {
         var user = await _userManager.FindByIdAsync(userId);
 
         _ = user ?? throw new NotFoundException(_localizer["User Not Found."]);
 
-        var permissions = new List<PermissionDto>();
         var userRoles = await _userManager.GetRolesAsync(user);
+        var permissions = new List<string>();
         foreach (var role in await _roleManager.Roles
             .Where(r => userRoles.Contains(r.Name))
             .ToListAsync(cancellationToken))
         {
-            var roleClaims = await _context.RoleClaims
+            permissions.AddRange(await _context.RoleClaims
                 .Where(rc => rc.RoleId == role.Id && rc.ClaimType == FSHClaims.Permission)
-                .ToListAsync(cancellationToken);
-            permissions.AddRange(roleClaims.Adapt<List<PermissionDto>>());
+                .Select(rc => rc.ClaimValue)
+                .ToListAsync(cancellationToken));
         }
 
         return permissions.Distinct().ToList();

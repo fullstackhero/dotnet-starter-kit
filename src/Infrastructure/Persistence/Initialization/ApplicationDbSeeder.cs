@@ -1,7 +1,4 @@
-﻿using System.ComponentModel;
-using System.Reflection;
-using FSH.WebApi.Infrastructure.Auth.Permissions;
-using FSH.WebApi.Infrastructure.Identity;
+﻿using FSH.WebApi.Infrastructure.Identity;
 using FSH.WebApi.Infrastructure.Multitenancy;
 using FSH.WebApi.Infrastructure.Persistence.Context;
 using FSH.WebApi.Shared.Authorization;
@@ -44,72 +41,43 @@ internal class ApplicationDbSeeder
                 is not ApplicationRole role)
             {
                 // Create the role
-                role = new ApplicationRole(roleName, $"{roleName} Role for {_currentTenant.Id} Tenant");
                 _logger.LogInformation("Seeding {role} Role for '{tenantId}' Tenant.", roleName, _currentTenant.Id);
+                role = new ApplicationRole(roleName, $"{roleName} Role for {_currentTenant.Id} Tenant");
                 await _roleManager.CreateAsync(role);
             }
 
             // Assign permissions
             if (roleName == FSHRoles.Basic)
             {
-                var basicPermissions = DefaultPermissions.BasicPermissionTypes;
-                await AssignPermissionsToRoleAsync(_dbContext, role, basicPermissions);
+                await AssignPermissionsToRoleAsync(_dbContext, role, FSHPermissions.Basic);
             }
             else if (roleName == FSHRoles.Admin)
             {
-                var adminPermissions = DefaultPermissions.AdminPermissionTypes;
-                await AssignPermissionsToRoleAsync(_dbContext, role, adminPermissions);
+                await AssignPermissionsToRoleAsync(_dbContext, role, FSHPermissions.Admin);
 
                 if (_currentTenant.Id == MultitenancyConstants.Root.Id)
                 {
-                    var rootPermissions = DefaultPermissions.RootPermissionTypes;
-                    await AssignPermissionsToRoleAsync(_dbContext, role, rootPermissions);
+                    await AssignPermissionsToRoleAsync(_dbContext, role, FSHPermissions.Root);
                 }
             }
         }
     }
 
-    private async Task AssignPermissionsToRoleAsync(ApplicationDbContext _dbContext, ApplicationRole role, Type[] modules)
+    private async Task AssignPermissionsToRoleAsync(ApplicationDbContext _dbContext, ApplicationRole role, IReadOnlyList<FSHPermission> permissions)
     {
         var currentClaims = await _roleManager.GetClaimsAsync(role);
-        foreach (var module in modules)
+        foreach (var permission in permissions)
         {
-            string? moduleName = string.Empty;
-            string? moduleDescription = string.Empty;
-
-            if (module.GetCustomAttributes(typeof(DisplayNameAttribute), true)
-                .FirstOrDefault() is DisplayNameAttribute displayNameAttribute)
+            if (!currentClaims.Any(c => c.Type == FSHClaims.Permission && c.Value == permission.Name))
             {
-                moduleName = displayNameAttribute.DisplayName;
-            }
-
-            if (module.GetCustomAttributes(typeof(DescriptionAttribute), true)
-                .FirstOrDefault() is DescriptionAttribute descriptionAttribute)
-            {
-                moduleDescription = descriptionAttribute.Description;
-            }
-
-            var fields = module.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
-
-            foreach (var fi in fields)
-            {
-                object? propertyValue = fi.GetValue(null);
-
-                if (propertyValue?.ToString() != null && !currentClaims.Any(a => a.Type == FSHClaims.Permission && a.Value == propertyValue.ToString()))
+                _logger.LogInformation("Seeding {role} Permission '{permission}' for '{tenantId}' Tenant.", role.Name, permission.Name, _currentTenant.Id);
+                _dbContext.RoleClaims.Add(new ApplicationRoleClaim("ApplicationDbSeeder")
                 {
-                    _logger.LogInformation("Seeding {role} Permission '{permission}' for '{tenantId}' Tenant.", role.Name, propertyValue.ToString(), _currentTenant.Id);
-                    _dbContext.RoleClaims.Add(new ApplicationRoleClaim()
-                    {
-                        RoleId = role.Id,
-                        ClaimType = FSHClaims.Permission,
-                        ClaimValue = propertyValue.ToString(),
-                        Description = moduleDescription,
-                        Group = moduleName,
-                        CreatedOn = DateTime.UtcNow,
-                        LastModifiedOn = DateTime.UtcNow
-                    });
-                    await _dbContext.SaveChangesAsync();
-                }
+                    RoleId = role.Id,
+                    ClaimType = FSHClaims.Permission,
+                    ClaimValue = permission.Name
+                });
+                await _dbContext.SaveChangesAsync();
             }
         }
     }

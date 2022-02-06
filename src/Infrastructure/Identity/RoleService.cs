@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using Finbuckle.MultiTenant;
 using FSH.WebApi.Application.Common.Exceptions;
-using FSH.WebApi.Application.Common.Interfaces;
 using FSH.WebApi.Application.Identity;
 using FSH.WebApi.Application.Identity.Roles;
 using FSH.WebApi.Infrastructure.Common.Extensions;
@@ -37,15 +36,9 @@ public class RoleService : IRoleService
         _tenantInfo = tenantInfo;
     }
 
-    public async Task<List<RoleDto>> GetListAsync()
-    {
-        var roles = await _roleManager.Roles.ToListAsync();
-
-        var roleDtos = roles.Adapt<List<RoleDto>>();
-        roleDtos.ForEach(role => role.IsDefault = DefaultRoles.Contains(role.Name));
-
-        return roleDtos;
-    }
+    public async Task<List<RoleDto>> GetListAsync(CancellationToken cancellationToken) =>
+        (await _roleManager.Roles.ToListAsync(cancellationToken))
+            .Adapt<List<RoleDto>>();
 
     public async Task<int> GetCountAsync(CancellationToken cancellationToken) =>
         await _roleManager.Roles.CountAsync(cancellationToken);
@@ -55,33 +48,24 @@ public class RoleService : IRoleService
             is ApplicationRole existingRole
             && existingRole.Id != excludeId;
 
-    public async Task<RoleDto> GetByIdAsync(string id)
-    {
-        var role = await _context.Roles.SingleOrDefaultAsync(x => x.Id == id);
-        _ = role ?? throw new NotFoundException(_localizer["Role Not Found"]);
-        var roleDto = role.Adapt<RoleDto>();
-        roleDto.IsDefault = DefaultRoles.Contains(role.Name);
-        return roleDto;
-    }
+    public async Task<RoleDto> GetByIdAsync(string id) =>
+        await _context.Roles.SingleOrDefaultAsync(x => x.Id == id) is { } role
+            ? role.Adapt<RoleDto>()
+            : throw new NotFoundException(_localizer["Role Not Found"]);
 
-    /// <summary>
-    /// Get Permissions By Role Async.
-    /// </summary>
     public async Task<RoleDto> GetByIdWithPermissionsAsync(string roleId, CancellationToken cancellationToken)
     {
         var role = await GetByIdAsync(roleId);
 
-        role.Permissions = (await _context.RoleClaims
-            .Where(a => a.RoleId == roleId && a.ClaimType == FSHClaims.Permission)
-            .ToListAsync(cancellationToken))
-            .Adapt<List<PermissionDto>>();
-
-        if (_tenantInfo.Id == MultitenancyConstants.Root.Id) role.IsRootRole = true;
+        role.Permissions = await _context.RoleClaims
+            .Where(c => c.RoleId == roleId && c.ClaimType == FSHClaims.Permission)
+            .Select(c => c.ClaimValue)
+            .ToListAsync(cancellationToken);
 
         return role;
     }
 
-    public async Task<string> RegisterRoleAsync(RoleRequest request)
+    public async Task<string> CreateOrUpdateAsync(CreateOrUpdateRoleRequest request)
     {
         if (string.IsNullOrEmpty(request.Id))
         {
@@ -114,10 +98,7 @@ public class RoleService : IRoleService
         }
     }
 
-    /// <summary>
-    /// Update Permissions by Role Async.
-    /// </summary>
-    public async Task<string> UpdatePermissionsAsync(UpdatePermissionsRequest request, CancellationToken cancellationToken)
+    public async Task<string> UpdatePermissionsAsync(UpdateRolePermissionsRequest request, CancellationToken cancellationToken)
     {
         var selectedPermissions = request.Permissions;
         var role = await _roleManager.FindByIdAsync(request.RoleId);
