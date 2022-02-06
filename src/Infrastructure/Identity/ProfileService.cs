@@ -26,38 +26,45 @@ public class ProfileService : IProfileService
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<ApplicationRole> _roleManager;
+    private readonly IStringLocalizer<ProfileService> _localizer;
     private readonly IJobService _jobService;
     private readonly IMailService _mailService;
     private readonly MailSettings _mailSettings;
-    private readonly IStringLocalizer<ProfileService> _localizer;
-    private readonly ITenantInfo _currentTenant;
-    private readonly IFileStorageService _fileStorage;
     private readonly IEmailTemplateService _templateService;
+    private readonly IFileStorageService _fileStorage;
+    private readonly ITenantInfo _currentTenant;
 
     public ProfileService(
         SignInManager<ApplicationUser> signInManager,
         UserManager<ApplicationUser> userManager,
         RoleManager<ApplicationRole> roleManager,
+        IStringLocalizer<ProfileService> localizer,
         IJobService jobService,
         IMailService mailService,
         IOptions<MailSettings> mailSettings,
-        IStringLocalizer<ProfileService> localizer,
-        ITenantInfo currentTenant,
+        IEmailTemplateService templateService,
         IFileStorageService fileStorage,
-        IEmailTemplateService templateService)
+        ITenantInfo currentTenant)
     {
         _signInManager = signInManager;
         _userManager = userManager;
         _roleManager = roleManager;
+        _localizer = localizer;
         _jobService = jobService;
         _mailService = mailService;
         _mailSettings = mailSettings.Value;
-        _localizer = localizer;
-        _currentTenant = currentTenant;
-        _fileStorage = fileStorage;
         _templateService = templateService;
+        _fileStorage = fileStorage;
+        _currentTenant = currentTenant;
     }
 
+    /// <summary>
+    /// This is used when authenticating with AzureAd.
+    /// The local user is retrieved using the objectidentifier claim present in the ClaimsPrincipal.
+    /// If no such claim is found, an InternalServerException is thrown.
+    /// If no user is found with that ObjectId, a new one is created and populated with the values from the ClaimsPrincipal.
+    /// If a role claim is present in the principal, and the user is not yet in that roll, then the user is added to that role.
+    /// </summary>
     public async Task<string> GetOrCreateFromPrincipalAsync(ClaimsPrincipal principal)
     {
         string? objectId = principal.GetObjectId();
@@ -69,7 +76,6 @@ public class ProfileService : IProfileService
         var user = await _userManager.Users.Where(u => u.ObjectId == objectId).FirstOrDefaultAsync()
             ?? await CreateOrUpdateFromPrincipalAsync(principal);
 
-        // Add user to incoming role if that isn't the case yet
         if (principal.FindFirstValue(ClaimTypes.Role) is string role &&
             await _roleManager.RoleExistsAsync(role) &&
             !await _userManager.IsInRoleAsync(user, role))
@@ -130,7 +136,7 @@ public class ProfileService : IProfileService
 
         if (!result.Succeeded)
         {
-            throw new InternalServerException(_localizer["Validation Errors Occurred."], result.Errors.Select(a => _localizer[a.Description].ToString()).ToList());
+            throw new InternalServerException(_localizer["Validation Errors Occurred."], result.GetErrors(_localizer));
         }
 
         return user;
@@ -151,7 +157,7 @@ public class ProfileService : IProfileService
         var result = await _userManager.CreateAsync(user, request.Password);
         if (!result.Succeeded)
         {
-            throw new InternalServerException(_localizer["Validation Errors Occurred."], result.Errors.Select(a => _localizer[a.Description].ToString()).ToList());
+            throw new InternalServerException(_localizer["Validation Errors Occurred."], result.GetErrors(_localizer));
         }
 
         await _userManager.AddToRoleAsync(user, FSHRoles.Basic);
@@ -171,6 +177,18 @@ public class ProfileService : IProfileService
         }
 
         return string.Join(Environment.NewLine, messages);
+    }
+
+    private async Task<string> GetEmailVerificationUriAsync(ApplicationUser user, string origin)
+    {
+        string code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+        const string route = "api/identity/confirm-email/";
+        var endpointUri = new Uri(string.Concat($"{origin}/", route));
+        string verificationUri = QueryHelpers.AddQueryString(endpointUri.ToString(), QueryStringKeys.UserId, user.Id);
+        verificationUri = QueryHelpers.AddQueryString(verificationUri, QueryStringKeys.Code, code);
+        verificationUri = QueryHelpers.AddQueryString(verificationUri, MultitenancyConstants.TenantIdName, _currentTenant.Id);
+        return verificationUri;
     }
 
     public async Task UpdateAsync(UpdateProfileRequest request, string userId)
@@ -196,30 +214,17 @@ public class ProfileService : IProfileService
         string phoneNumber = await _userManager.GetPhoneNumberAsync(user);
         if (request.PhoneNumber != phoneNumber)
         {
-            var setPhoneResult = await _userManager.SetPhoneNumberAsync(user, request.PhoneNumber);
+            await _userManager.SetPhoneNumberAsync(user, request.PhoneNumber);
         }
 
-        var identityResult = await _userManager.UpdateAsync(user);
+        var result = await _userManager.UpdateAsync(user);
 
         await _signInManager.RefreshSignInAsync(user);
 
-        if (!identityResult.Succeeded)
+        if (!result.Succeeded)
         {
-            var errors = identityResult.Errors.Select(e => _localizer[e.Description].ToString()).ToList();
-            throw new InternalServerException(_localizer["Update profile failed"], errors);
+            throw new InternalServerException(_localizer["Update profile failed"], result.GetErrors(_localizer));
         }
-    }
-
-    private async Task<string> GetEmailVerificationUriAsync(ApplicationUser user, string origin)
-    {
-        string code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-        const string route = "api/identity/confirm-email/";
-        var endpointUri = new Uri(string.Concat($"{origin}/", route));
-        string verificationUri = QueryHelpers.AddQueryString(endpointUri.ToString(), QueryStringKeys.UserId, user.Id);
-        verificationUri = QueryHelpers.AddQueryString(verificationUri, QueryStringKeys.Code, code);
-        verificationUri = QueryHelpers.AddQueryString(verificationUri, MultitenancyConstants.TenantIdName, _currentTenant.Id);
-        return verificationUri;
     }
 
     public async Task<string> ConfirmEmailAsync(string userId, string code, string tenant, CancellationToken cancellationToken)
@@ -297,12 +302,11 @@ public class ProfileService : IProfileService
 
         _ = user ?? throw new NotFoundException(_localizer["User Not Found."]);
 
-        var identityResult = await _userManager.ChangePasswordAsync(user, model.Password, model.NewPassword);
+        var result = await _userManager.ChangePasswordAsync(user, model.Password, model.NewPassword);
 
-        if (!identityResult.Succeeded)
+        if (!result.Succeeded)
         {
-            var errors = identityResult.Errors.Select(e => _localizer[e.Description].ToString()).ToList();
-            throw new InternalServerException(_localizer["Change password failed"], errors);
+            throw new InternalServerException(_localizer["Change password failed"], result.GetErrors(_localizer));
         }
     }
 }

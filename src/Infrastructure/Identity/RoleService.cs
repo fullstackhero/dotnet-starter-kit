@@ -80,7 +80,7 @@ public class RoleService : IRoleService
 
             return result.Succeeded
                 ? string.Format(_localizer["Role {0} Created."], request.Name)
-                : throw new InternalServerException(_localizer["Register role failed"], result.Errors.Select(e => _localizer[e.Description].ToString()).ToList());
+                : throw new InternalServerException(_localizer["Register role failed"], result.GetErrors(_localizer));
         }
         else
         {
@@ -100,7 +100,7 @@ public class RoleService : IRoleService
 
             return result.Succeeded
                 ? string.Format(_localizer["Role {0} Updated."], role.Name)
-                : throw new InternalServerException(_localizer["Update role failed"], result.Errors.Select(e => _localizer[e.Description].ToString()).ToList());
+                : throw new InternalServerException(_localizer["Update role failed"], result.GetErrors(_localizer));
         }
     }
 
@@ -133,7 +133,7 @@ public class RoleService : IRoleService
             var removeResult = await _roleManager.RemoveClaimAsync(role, claim);
             if (!removeResult.Succeeded)
             {
-                throw new InternalServerException(_localizer["Update permissions failed."], removeResult.Errors.Select(e => _localizer[e.Description].ToString()).ToList());
+                throw new InternalServerException(_localizer["Update permissions failed."], removeResult.GetErrors(_localizer));
             }
         }
 
