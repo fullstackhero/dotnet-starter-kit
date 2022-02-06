@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "794f24b5-0c2b-41d5-9a27-9de067c7e47c",
+		"_postman_id": "4998314c-b6f5-4e57-9fe1-63ddcae7bc78",
 		"name": "dotnet.webapi.boilerplate",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -81,14 +81,12 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/identity/register/",
+							"raw": "{{url}}/profile",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
-								"identity",
-								"register",
-								""
+								"profile"
 							]
 						}
 					},
@@ -100,13 +98,12 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}/roles/all",
+							"raw": "{{url}}/roles",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
-								"roles",
-								"all"
+								"roles"
 							]
 						}
 					},
@@ -127,31 +124,29 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/roles/",
+							"raw": "{{url}}/roles",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
-								"roles",
-								""
+								"roles"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "get-user-permissions",
+					"name": "get-my-permissions",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}/users/72aa9336-fab0-4634-b5ab-a842e95dcea9/permissions",
+							"raw": "{{url}}/personal/permissions",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
-								"users",
-								"72aa9336-fab0-4634-b5ab-a842e95dcea9",
+								"personal",
 								"permissions"
 							]
 						}
@@ -164,12 +159,11 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}/identity/profile",
+							"raw": "{{url}}/profile",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
-								"identity",
 								"profile"
 							]
 						}
@@ -210,12 +204,13 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}/audit-logs",
+							"raw": "{{url}}/personal/logs",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
-								"audit-logs"
+								"personal",
+								"logs"
 							]
 						}
 					},
@@ -252,14 +247,13 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/identity/forgot-password/",
+							"raw": "{{url}}/profile/forgot-password",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
-								"identity",
-								"forgot-password",
-								""
+								"profile",
+								"forgot-password"
 							]
 						}
 					},
@@ -286,14 +280,13 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/identity/reset-password/",
+							"raw": "{{url}}/profile/reset-password",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
-								"identity",
-								"reset-password",
-								""
+								"profile",
+								"reset-password"
 							]
 						}
 					},
@@ -644,13 +637,12 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}/tenants/",
+							"raw": "{{url}}/tenants",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
-								"tenants",
-								""
+								"tenants"
 							]
 						}
 					},
@@ -671,13 +663,12 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/tenants/",
+							"raw": "{{url}}/tenants",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
-								"tenants",
-								""
+								"tenants"
 							]
 						}
 					},
@@ -777,13 +768,12 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}/health/",
+							"raw": "{{url}}/health",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
-								"health",
-								""
+								"health"
 							]
 						}
 					},
@@ -795,18 +785,18 @@
 			"name": "General",
 			"item": [
 				{
-					"name": "stats",
+					"name": "dashboard",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}/v1/stats",
+							"raw": "{{url}}/v1/dashboard",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
 								"v1",
-								"stats"
+								"dashboard"
 							]
 						}
 					},
