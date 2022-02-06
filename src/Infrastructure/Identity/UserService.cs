@@ -198,7 +198,7 @@ internal class UserService : IUserService
         return permissions?.Contains(permission) ?? false;
     }
 
-    public Task ClearPermissionCacheAsync(string userId, CancellationToken cancellationToken) =>
+    public Task InvalidatePermissionCacheAsync(string userId, CancellationToken cancellationToken) =>
         _cache.RemoveAsync(_cacheKeys.GetCacheKey(FSHClaims.Permission, userId), cancellationToken);
 
     public async Task ToggleStatusAsync(ToggleUserStatusRequest request, CancellationToken cancellationToken)
