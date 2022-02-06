@@ -26,14 +26,14 @@ internal class ApplicationDbSeeder
         _logger = logger;
     }
 
-    public async Task SeedDatabaseAsync(ApplicationDbContext _dbContext, CancellationToken cancellationToken)
+    public async Task SeedDatabaseAsync(ApplicationDbContext dbContext, CancellationToken cancellationToken)
     {
-        await SeedRolesAsync(_dbContext);
+        await SeedRolesAsync(dbContext);
         await SeedAdminUserAsync();
         await _seederRunner.RunSeedersAsync(cancellationToken);
     }
 
-    private async Task SeedRolesAsync(ApplicationDbContext _dbContext)
+    private async Task SeedRolesAsync(ApplicationDbContext dbContext)
     {
         foreach (string roleName in FSHRoles.DefaultRoles)
         {
@@ -49,21 +49,21 @@ internal class ApplicationDbSeeder
             // Assign permissions
             if (roleName == FSHRoles.Basic)
             {
-                await AssignPermissionsToRoleAsync(_dbContext, role, FSHPermissions.Basic);
+                await AssignPermissionsToRoleAsync(dbContext, FSHPermissions.Basic, role);
             }
             else if (roleName == FSHRoles.Admin)
             {
-                await AssignPermissionsToRoleAsync(_dbContext, role, FSHPermissions.Admin);
+                await AssignPermissionsToRoleAsync(dbContext, FSHPermissions.Admin, role);
 
                 if (_currentTenant.Id == MultitenancyConstants.Root.Id)
                 {
-                    await AssignPermissionsToRoleAsync(_dbContext, role, FSHPermissions.Root);
+                    await AssignPermissionsToRoleAsync(dbContext, FSHPermissions.Root, role);
                 }
             }
         }
     }
 
-    private async Task AssignPermissionsToRoleAsync(ApplicationDbContext _dbContext, ApplicationRole role, IReadOnlyList<FSHPermission> permissions)
+    private async Task AssignPermissionsToRoleAsync(ApplicationDbContext dbContext, IReadOnlyList<FSHPermission> permissions, ApplicationRole role)
     {
         var currentClaims = await _roleManager.GetClaimsAsync(role);
         foreach (var permission in permissions)
@@ -71,14 +71,14 @@ internal class ApplicationDbSeeder
             if (!currentClaims.Any(c => c.Type == FSHClaims.Permission && c.Value == permission.Name))
             {
                 _logger.LogInformation("Seeding {role} Permission '{permission}' for '{tenantId}' Tenant.", role.Name, permission.Name, _currentTenant.Id);
-                _dbContext.RoleClaims.Add(new ApplicationRoleClaim
+                dbContext.RoleClaims.Add(new ApplicationRoleClaim
                 {
                     RoleId = role.Id,
                     ClaimType = FSHClaims.Permission,
                     ClaimValue = permission.Name,
                     CreatedBy = "ApplicationDbSeeder"
                 });
-                await _dbContext.SaveChangesAsync();
+                await dbContext.SaveChangesAsync();
             }
         }
     }
