@@ -1,9 +1,15 @@
+param(
+     [Parameter(Mandatory=$true)]
+     [ValidateNotNullOrEmpty()]
+     [string]$commitMessage  
+ )
+ 
 $rootDirectory = git rev-parse --show-toplevel
 $hostDirectory = $rootDirectory + '/src/Host'
 Set-Location -Path $hostDirectory
 Write-Host "Host Directory is $hostDirectory `n"
 
-$commitMessage = 'UpdateREADME'
+<# $commitMessage = 'UpdateREADME' #>
 Write-Host "Commit Message is $commitMessage `n"
 
 <# Declaring Connection String #>
