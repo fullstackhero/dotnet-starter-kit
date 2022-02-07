@@ -1,10 +1,5 @@
 ﻿using FSH.WebApi.Application.Common.Exporters;
 using Mapster;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FSH.WebApi.Application.Catalog.Products;
 
@@ -15,12 +10,12 @@ public class ExportProductsRequest : PaginationFilter, IRequest<MemoryStream>
 public class ExportProductsRequestHandler : IRequestHandler<ExportProductsRequest, MemoryStream>
 {
     private readonly IReadRepository<Product> _repository;
-    private readonly IExporter _exporter;
+    private readonly IExcelWriter _excelWriter;
 
-    public ExportProductsRequestHandler(IReadRepository<Product> repository, IExporter exporter)
+    public ExportProductsRequestHandler(IReadRepository<Product> repository, IExcelWriter excelWriter)
     {
         _repository = repository;
-        _exporter = exporter;
+        _excelWriter = excelWriter;
     }
 
     public async Task<MemoryStream> Handle(ExportProductsRequest request, CancellationToken cancellationToken)
@@ -29,9 +24,7 @@ public class ExportProductsRequestHandler : IRequestHandler<ExportProductsReques
 
         var list = await _repository.ListAsync(spec, cancellationToken);
 
-        var dt = _exporter.Convert(list.Adapt<List<ProductExportDto>>());
-
-        return _exporter.ExportToAsync(dt);
+        return _excelWriter.WriteToStream(list.Adapt<List<ProductExportDto>>());
     }
 }
 

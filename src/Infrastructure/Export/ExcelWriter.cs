@@ -5,9 +5,9 @@ using System.Data;
 
 namespace FSH.WebApi.Infrastructure.Export;
 
-public class ExcelExport : IExporter
+public class ExcelWriter : IExcelWriter
 {
-    public DataTable Convert<T>(IList<T> data)
+    public MemoryStream WriteToStream<T>(IList<T> data)
     {
         PropertyDescriptorCollection properties = TypeDescriptor.GetProperties(typeof(T));
         DataTable table = new DataTable("table", "table");
@@ -20,19 +20,14 @@ public class ExcelExport : IExporter
                 row[prop.Name] = prop.GetValue(item) ?? DBNull.Value;
             table.Rows.Add(row);
         }
-        return table;
-    }
 
-    public MemoryStream ExportToAsync(DataTable dt)
-    {
         using (XLWorkbook wb = new XLWorkbook())
         {
-            wb.Worksheets.Add(dt);
-            using (MemoryStream stream = new MemoryStream())
-            {
-                wb.SaveAs(stream);
-                return stream;
-            }
+            wb.Worksheets.Add(table);
+            MemoryStream stream = new MemoryStream();
+
+            wb.SaveAs(stream);
+            return stream;
         }
     }
 }
