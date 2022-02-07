@@ -1,8 +1,8 @@
-namespace FSH.WebApi.Application.Identity.Users.Profile;
+namespace FSH.WebApi.Application.Identity.Users;
 
-public class CreateProfileRequestValidator : CustomValidator<CreateProfileRequest>
+public class CreateUserRequestValidator : CustomValidator<CreateUserRequest>
 {
-    public CreateProfileRequestValidator(IUserService userService, IStringLocalizer<CreateProfileRequestValidator> localizer)
+    public CreateUserRequestValidator(IUserService userService, IStringLocalizer<CreateUserRequestValidator> localizer)
     {
         RuleFor(u => u.Email).Cascade(CascadeMode.Stop)
             .NotEmpty()

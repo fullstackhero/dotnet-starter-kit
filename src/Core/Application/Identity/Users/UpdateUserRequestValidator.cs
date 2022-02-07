@@ -1,8 +1,8 @@
-namespace FSH.WebApi.Application.Identity.Users.Profile;
+namespace FSH.WebApi.Application.Identity.Users;
 
-public class UpdateProfileRequestValidator : CustomValidator<UpdateProfileRequest>
+public class UpdateUserRequestValidator : CustomValidator<UpdateUserRequest>
 {
-    public UpdateProfileRequestValidator(IUserService userService, IStringLocalizer<UpdateProfileRequestValidator> localizer)
+    public UpdateUserRequestValidator(IUserService userService, IStringLocalizer<UpdateUserRequestValidator> localizer)
     {
         RuleFor(p => p.Id)
             .NotEmpty();

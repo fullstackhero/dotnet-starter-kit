@@ -1,6 +1,6 @@
-namespace FSH.WebApi.Application.Identity.Users.Profile;
+namespace FSH.WebApi.Application.Identity.Users;
 
-public class CreateProfileRequest
+public class CreateUserRequest
 {
     public string FirstName { get; set; } = default!;
     public string LastName { get; set; } = default!;
