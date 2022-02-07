@@ -74,6 +74,7 @@ public class FSHPermissions
         public const string Create = "Permissions.Products.Create";
         public const string Update = "Permissions.Products.Update";
         public const string Delete = "Permissions.Products.Delete";
+        public const string Export = "Permissions.Products.Export";
     }
 
     [DisplayName("Brands")]

@@ -56,4 +56,13 @@ public class ProductsController : VersionedApiController
     {
         return Mediator.Send(new DeleteProductRequest(id));
     }
+
+    [HttpGet("export")]
+    [MustHavePermission(FSHPermissions.Products.Export)]
+    [OpenApiOperation("Export a products.", "")]
+    public async Task<FileResult> ExportAsync(Guid id)
+    {
+        var result = await Mediator.Send(new ExportProductsRequest());
+        return File(result.ToArray(), "application/octet-stream", "ProductExports");
+    }
 }
