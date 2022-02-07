@@ -81,12 +81,12 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/profile",
+							"raw": "{{url}}/users",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
-								"profile"
+								"users"
 							]
 						}
 					},
@@ -159,11 +159,12 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}/profile",
+							"raw": "{{url}}/personal/profile",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
+								"personal",
 								"profile"
 							]
 						}
@@ -177,7 +178,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "[\r\n    {\r\n        \"permission\":\"Permissions.Brands.BJ\",\r\n        \"enabled\":true\r\n    }\r\n]",
+							"raw": "{\r\n    \"RoleId\": \"17c9fb87-a92f-404d-b2e4-30ce88f5f6b6\",\r\n    \"Permissions\": [\"Permissions.Brands.BJ\"]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -247,12 +248,12 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/profile/forgot-password",
+							"raw": "{{url}}/users/forgot-password",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
-								"profile",
+								"users",
 								"forgot-password"
 							]
 						}
@@ -280,12 +281,12 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/profile/reset-password",
+							"raw": "{{url}}/users/reset-password",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
-								"profile",
+								"users",
 								"reset-password"
 							]
 						}
