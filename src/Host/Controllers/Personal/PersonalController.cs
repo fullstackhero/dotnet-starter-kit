@@ -11,12 +11,14 @@ public class PersonalController : VersionNeutralApiController
     public PersonalController(IUserService userService) => _userService = userService;
 
     [HttpGet("logs")]
+    [OpenApiOperation("Get audit logs of currently logged in user.", "")]
     public Task<List<AuditDto>> GetMyLogsAsync()
     {
         return Mediator.Send(new GetMyAuditLogsRequest());
     }
 
     [HttpGet("permissions")]
+    [OpenApiOperation("Get permissions of currently logged in user.", "")]
     public async Task<ActionResult<List<string>>> GetMyPermissionsAsync(CancellationToken cancellationToken)
     {
         if (User.GetUserId() is not { } userId || string.IsNullOrEmpty(userId))

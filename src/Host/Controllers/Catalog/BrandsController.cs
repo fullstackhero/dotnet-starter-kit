@@ -6,7 +6,7 @@ public class BrandsController : VersionedApiController
 {
     [HttpPost("search")]
     [MustHavePermission(FSHAction.Search, FSHResource.Brands)]
-    [OpenApiOperation("Search Brands using available Filters.", "")]
+    [OpenApiOperation("Search brands using available filters.", "")]
     public Task<PaginationResponse<BrandDto>> SearchAsync(SearchBrandsRequest request)
     {
         return Mediator.Send(request);
