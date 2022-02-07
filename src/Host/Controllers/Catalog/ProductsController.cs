@@ -60,7 +60,7 @@ public class ProductsController : VersionedApiController
     [HttpGet("export")]
     [MustHavePermission(FSHPermissions.Products.Export)]
     [OpenApiOperation("Export a products.", "")]
-    public async Task<FileResult> ExportAsync(Guid id)
+    public async Task<FileResult> ExportAsync()
     {
         var result = await Mediator.Send(new ExportProductsRequest());
         return File(result.ToArray(), "application/octet-stream", "ProductExports");

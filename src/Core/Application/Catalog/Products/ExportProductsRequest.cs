@@ -1,4 +1,5 @@
 ﻿using FSH.WebApi.Application.Common.Exporters;
+using Mapster;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,7 +29,7 @@ public class ExportProductsRequestHandler : IRequestHandler<ExportProductsReques
 
         var list = await _repository.ListAsync(spec, cancellationToken);
 
-        var dt = _exporter.Convert(list);
+        var dt = _exporter.Convert(list.Adapt<List<ProductExportDto>>());
 
         return _exporter.ExportToAsync(dt);
     }
