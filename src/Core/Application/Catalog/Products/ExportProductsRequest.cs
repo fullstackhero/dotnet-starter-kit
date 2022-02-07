@@ -24,11 +24,11 @@ public class ExportProductsRequestHandler : IRequestHandler<ExportProductsReques
 
         var list = await _repository.ListAsync(spec, cancellationToken);
 
-        return _excelWriter.WriteToStream(list.Adapt<List<ProductExportDto>>());
+        return _excelWriter.WriteToStream(list);
     }
 }
 
-public class ExportProductsWithBrandsSpecification : Specification<Product>
+public class ExportProductsWithBrandsSpecification : Specification<Product, ProductExportDto>
 {
     public ExportProductsWithBrandsSpecification()
     {
