@@ -63,6 +63,6 @@ public class ProductsController : VersionedApiController
     public async Task<FileResult> ExportAsync()
     {
         var result = await Mediator.Send(new ExportProductsRequest());
-        return File(result.ToArray() , "application/octet-stream", "ProductExports");
+        return File(result, "application/octet-stream", "ProductExports");
     }
 }

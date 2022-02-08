@@ -7,7 +7,7 @@ namespace FSH.WebApi.Infrastructure.Export;
 
 public class ExcelWriter : IExcelWriter
 {
-    public MemoryStream WriteToStream<T>(IList<T> data)
+    public Stream WriteToStream<T>(IList<T> data)
     {
         PropertyDescriptorCollection properties = TypeDescriptor.GetProperties(typeof(T));
         DataTable table = new DataTable("table", "table");
@@ -24,9 +24,9 @@ public class ExcelWriter : IExcelWriter
         using (XLWorkbook wb = new XLWorkbook())
         {
             wb.Worksheets.Add(table);
-            MemoryStream stream = new MemoryStream();
-
+            Stream stream = new MemoryStream();
             wb.SaveAs(stream);
+            stream.Seek(0, SeekOrigin.Begin);
             return stream;
         }
     }

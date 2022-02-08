@@ -3,11 +3,11 @@ using Mapster;
 
 namespace FSH.WebApi.Application.Catalog.Products;
 
-public class ExportProductsRequest : PaginationFilter, IRequest<MemoryStream>
+public class ExportProductsRequest : PaginationFilter, IRequest<Stream>
 {
 }
 
-public class ExportProductsRequestHandler : IRequestHandler<ExportProductsRequest, MemoryStream>
+public class ExportProductsRequestHandler : IRequestHandler<ExportProductsRequest, Stream>
 {
     private readonly IReadRepository<Product> _repository;
     private readonly IExcelWriter _excelWriter;
@@ -18,7 +18,7 @@ public class ExportProductsRequestHandler : IRequestHandler<ExportProductsReques
         _excelWriter = excelWriter;
     }
 
-    public async Task<MemoryStream> Handle(ExportProductsRequest request, CancellationToken cancellationToken)
+    public async Task<Stream> Handle(ExportProductsRequest request, CancellationToken cancellationToken)
     {
         var spec = new ExportProductsWithBrandsSpecification();
 
