@@ -13,7 +13,7 @@ public class ProductUpdatedEventHandler : INotificationHandler<EventNotification
 
     public Task Handle(EventNotification<EntityUpdatedEvent<Product>> notification, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("{event} Triggered", notification.DomainEvent.GetType().Name);
+        _logger.LogInformation("{event} Triggered", notification.Event.GetType().Name);
         return Task.CompletedTask;
     }
 }

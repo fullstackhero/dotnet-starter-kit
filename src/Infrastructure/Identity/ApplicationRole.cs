@@ -6,14 +6,10 @@ public class ApplicationRole : IdentityRole
 {
     public string? Description { get; set; }
 
-    public ApplicationRole()
-    {
-    }
-
-    public ApplicationRole(string roleName, string? description = null)
-        : base(roleName)
+    public ApplicationRole(string name, string? description = null)
+        : base(name)
     {
         Description = description;
-        NormalizedName = roleName.ToUpperInvariant();
+        NormalizedName = name.ToUpperInvariant();
     }
 }

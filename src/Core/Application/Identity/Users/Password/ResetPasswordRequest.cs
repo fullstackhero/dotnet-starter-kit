@@ -1,4 +1,4 @@
-namespace FSH.WebApi.Application.Identity.Users;
+namespace FSH.WebApi.Application.Identity.Users.Password;
 
 public class ResetPasswordRequest
 {

@@ -1,4 +1,3 @@
-global using FSH.WebApi.Application.Common.Interfaces;
 global using FSH.WebApi.Application.Common.Models;
 global using FSH.WebApi.Infrastructure.Auth.Permissions;
 global using FSH.WebApi.Infrastructure.OpenApi;

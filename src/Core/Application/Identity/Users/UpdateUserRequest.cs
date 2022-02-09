@@ -1,6 +1,6 @@
 namespace FSH.WebApi.Application.Identity.Users;
 
-public class UpdateProfileRequest
+public class UpdateUserRequest
 {
     public string Id { get; set; } = default!;
     public string? FirstName { get; set; }
