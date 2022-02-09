@@ -28,7 +28,6 @@ internal class RoleService : IRoleService
     public RoleService(
         RoleManager<ApplicationRole> roleManager,
         UserManager<ApplicationUser> userManager,
-
         ApplicationDbContext db,
         IStringLocalizer<RoleService> localizer,
         ICurrentUser currentUser,
@@ -92,7 +91,6 @@ internal class RoleService : IRoleService
         {
             // Update an existing role.
             var role = await _roleManager.FindByIdAsync(request.Id);
-
             _ = role ?? throw new NotFoundException(_localizer["Role Not Found"]);
 
             if (FSHRoles.IsDefault(role.Name))
