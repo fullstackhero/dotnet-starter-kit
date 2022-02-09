@@ -1,0 +1,20 @@
+﻿{
+  "auth.failed": "Kimlik Doğrulama Başarısız.",
+  "tenant.invalid": "Geçersiz Kiracı.",
+  "tenant.expired": "Kiracı Geçerliliğinin Süresi Doldu. Lütfen Uygulama Yöneticisi ile iletişime geçin.",
+  "tenant.inactive": "Kiracı Etkin değil. Lütfen Uygulama Yöneticisi ile iletişime geçin.",
+  "caching.added": "Önbellek Eklendi: {0}",
+  "caching.refreshed": "Önbellek Yenilendi: {0}",
+  "identity.usernotfound": "Kullanıcı Bulunamadı.",
+  "identity.usernotactive": "Kullanıcı Aktif Değil. Lütfen yönetici ile iletişime geçin.",
+  "identity.emailnotconfirmed": "E-posta onaylanmadı.",
+  "identity.invalidcredentials": "Sağlanan Kimlik Bilgileri geçersiz.",
+  "identity.invalidtoken": "Geçersiz Bilet.",
+  "identity.invalidrefreshtoken": "Geçersiz Yenileme Bileti.",
+  "entity.notfound": "{0} {1} Bulunamadı.",
+  "product.alreadyexists": "{0} Ürünü zaten Mevcut.",
+  "product.notfound": "{0} Ürünü Bulunamadı.",
+  "brand.notfound": "{0} Markası Bulunamadı.",
+  "brand.cannotbedeleted": "Marka, kullanıldığı için silinemez.",
+  "exceptionmiddleware.supportmessage": "Daha fazla analiz için ErrorId'yi destek ekibine sağlayın."
+}

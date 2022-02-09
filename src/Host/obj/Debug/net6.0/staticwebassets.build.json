@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "IaWOXM+DfO6YxNqb1D6CZwr+Wat5n9xY6nUqHfDsQOY=",
+  "Source": "FSH.WebApi.Host",
+  "BasePath": "_content/FSH.WebApi.Host",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

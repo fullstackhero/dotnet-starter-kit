@@ -1,0 +1,21 @@
+﻿{
+  "auth.failed": "Falha na autenticação.",
+  "tenant.invalid": "Tenant inválido.",
+  "tenant.expired": "Tenant expirado. Por favor contate o administrador do sistema.",
+  "tenant.inactive": "Tenant inativo. Por favor contate o administrador do sistema.",
+  "caching.added": "Cache adicionado : {0}",
+  "caching.refreshed": "Cache atualizado : {0}",
+  "identity.usernotfound": "Usuário não encontrado.",
+  "identity.usernotactive": "Usuário inativo. Por favor contate o administrador do sistema.",
+  "identity.emailnotconfirmed": "E-mail não confirmado.",
+  "identity.invalidcredentials": "Credenciais inválidas.",
+  "identity.invalidtoken": "Token inválido.",
+  "identity.invalidrefreshtoken": "Refresh Token inválido.",
+  "entity.notfound": "{0} {1} não encontrado.",
+  "product.alreadyexists": "Produto {0} já existe.",
+  "product.notfound": "Produto {0} não encontrado.",
+  "brand.notfound": "Marca {0} não encontrada.",
+  "brand.cannotbedeleted": "Esta marca não pode ser excluída pois está em uso.",
+  "brand.alreadyexists": "Marca {0} já existe.",
+  "exceptionmiddleware.supportmessage": "Forneça o ErrorId ao time de suporte para análise posterior."
+}

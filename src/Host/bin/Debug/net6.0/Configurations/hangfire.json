@@ -1,0 +1,38 @@
+{
+  "HangfireSettings": {
+    "Route": "/jobs",
+    "Dashboard": {
+      "AppPath": "/",
+      "StatsPollingInterval": 2000,
+      "DashboardTitle": "Jobs"
+    },
+    "Server": {
+      "HeartbeatInterval": "00:00:30",
+      "Queues": [
+        "default",
+        "notdefault"
+      ],
+      "SchedulePollingInterval": "00:00:15",
+      "ServerCheckInterval": "00:05:00",
+      "ServerName": null,
+      "ServerTimeout": "00:05:00",
+      "ShutdownTimeout": "00:00:15",
+      "WorkerCount": 5
+    },
+    "Storage": {
+      "StorageProvider": "mssql",
+      "ConnectionString": "Data Source=(localdb)\\mssqllocaldb;Initial Catalog=fullStackHeroDb;Integrated Security=True;MultipleActiveResultSets=True",
+      "Options": {
+        "CommandBatchMaxTimeout": "00:05:00",
+        "QueuePollInterval": "00:00:01",
+        "UseRecommendedIsolationLevel": true,
+        "SlidingInvisibilityTimeout": "00:05:00",
+        "DisableGlobalLocks": true
+      }
+    },
+    "Credentials": {
+      "User": "Admin",
+      "Password": "S3(r3tP@55w0rd"
+    }
+  }
+}

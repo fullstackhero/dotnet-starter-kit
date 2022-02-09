@@ -1,0 +1,82 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v6.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v6.0": {
+      "FSH.WebApi.Domain/1.0.0": {
+        "dependencies": {
+          "FSH.WebApi.Shared": "1.0.0",
+          "NewId": "4.0.0-develop.44",
+          "Roslynator.Analyzers": "4.0.2",
+          "StyleCop.Analyzers": "1.2.0-beta.376"
+        },
+        "runtime": {
+          "FSH.WebApi.Domain.dll": {}
+        }
+      },
+      "NewId/4.0.0-develop.44": {
+        "runtime": {
+          "lib/netstandard2.0/NewId.dll": {
+            "assemblyVersion": "4.0.0.0",
+            "fileVersion": "4.0.0.0"
+          }
+        }
+      },
+      "Roslynator.Analyzers/4.0.2": {},
+      "StyleCop.Analyzers/1.2.0-beta.376": {
+        "dependencies": {
+          "StyleCop.Analyzers.Unstable": "1.2.0.376"
+        }
+      },
+      "StyleCop.Analyzers.Unstable/1.2.0.376": {},
+      "FSH.WebApi.Shared/1.0.0": {
+        "runtime": {
+          "FSH.WebApi.Shared.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "FSH.WebApi.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "NewId/4.0.0-develop.44": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-tQyQpBBdTvdh27pLB29kwiNF89BPgdIAvNA57c2oHI9OXrWBNYj+yz8BvbaEEf2CcZxuq2J/DJjUllfOlmmGCg==",
+      "path": "newid/4.0.0-develop.44",
+      "hashPath": "newid.4.0.0-develop.44.nupkg.sha512"
+    },
+    "Roslynator.Analyzers/4.0.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-UmKLY06/yIAAkARvvGHjIS5LA0XEeEn7pbRHmsDcxvbLFla2fqrTTPVBUW7HMttBAwFi2WKvkVzGNu3/0JDdxA==",
+      "path": "roslynator.analyzers/4.0.2",
+      "hashPath": "roslynator.analyzers.4.0.2.nupkg.sha512"
+    },
+    "StyleCop.Analyzers/1.2.0-beta.376": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-uaaVoOYWfIMoWtZsNJwV0m/GI3XAi8BA71e9iBOFDPo3TtAmcGkZ2qcxItkWb6eKI90urOPmxc35BnuhluC1IA==",
+      "path": "stylecop.analyzers/1.2.0-beta.376",
+      "hashPath": "stylecop.analyzers.1.2.0-beta.376.nupkg.sha512"
+    },
+    "StyleCop.Analyzers.Unstable/1.2.0.376": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-a009jDRd7zP6h+jenZ7nGjqkkFkEuxmT9FeM334cLDwodfU2x/nNcsFqw2Pjd4wVPiyX+qjLq+vhhbE3OPzFMw==",
+      "path": "stylecop.analyzers.unstable/1.2.0.376",
+      "hashPath": "stylecop.analyzers.unstable.1.2.0.376.nupkg.sha512"
+    },
+    "FSH.WebApi.Shared/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

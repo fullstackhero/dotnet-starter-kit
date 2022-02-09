@@ -1,0 +1,13 @@
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Shared\bin\Debug\net6.0\FSH.WebApi.Shared.xml
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Shared\bin\Debug\net6.0\FSH.WebApi.Shared.deps.json
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Shared\bin\Debug\net6.0\FSH.WebApi.Shared.dll
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Shared\bin\Debug\net6.0\ref\FSH.WebApi.Shared.dll
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Shared\bin\Debug\net6.0\FSH.WebApi.Shared.pdb
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Shared\obj\Debug\net6.0\Shared.csproj.AssemblyReference.cache
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Shared\obj\Debug\net6.0\Shared.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Shared\obj\Debug\net6.0\Shared.AssemblyInfoInputs.cache
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Shared\obj\Debug\net6.0\Shared.AssemblyInfo.cs
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Shared\obj\Debug\net6.0\Shared.csproj.CoreCompileInputs.cache
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Shared\obj\Debug\net6.0\FSH.WebApi.Shared.dll
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Shared\obj\Debug\net6.0\ref\FSH.WebApi.Shared.dll
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Shared\obj\Debug\net6.0\FSH.WebApi.Shared.pdb

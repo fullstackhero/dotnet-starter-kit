@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>FSH.WebApi.Infrastructure</name>
+    </assembly>
+    <members>
+        <member name="M:FSH.WebApi.Infrastructure.Auth.AzureAd.AzureAdJwtBearerEvents.TokenValidated(Microsoft.AspNetCore.Authentication.JwtBearer.TokenValidatedContext)">
+            <summary>
+            This method contains the logic that validates the user's tenant and normalizes claims.
+            </summary>
+            <param name="context">The validated token context.</param>
+            <returns>A task.</returns>
+        </member>
+        <member name="M:FSH.WebApi.Infrastructure.Identity.RoleService.GetByIdWithPermissionsAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Get Permissions By Role Async.
+            </summary>
+        </member>
+        <member name="M:FSH.WebApi.Infrastructure.Identity.RoleService.UpdatePermissionsAsync(FSH.WebApi.Application.Identity.Roles.UpdatePermissionsRequest,System.Threading.CancellationToken)">
+            <summary>
+            Update Permissions by Role Async.
+            </summary>
+        </member>
+        <member name="P:FSH.WebApi.Infrastructure.Multitenancy.FSHTenantInfo.Id">
+            <summary>
+            The actual TenantId, which is also used in the TenantId shadow property on the multitenant entities.
+            </summary>
+        </member>
+        <member name="P:FSH.WebApi.Infrastructure.Multitenancy.FSHTenantInfo.Identifier">
+            <summary>
+            The identifier that is used in headers/routes/querystrings. This is set to the same as Id to avoid confusion.
+            </summary>
+        </member>
+        <member name="P:FSH.WebApi.Infrastructure.Multitenancy.FSHTenantInfo.Issuer">
+            <summary>
+            Used by AzureAd Authorization to store the AzureAd Tenant Issuer to map against.
+            </summary>
+        </member>
+        <member name="T:FSH.WebApi.Infrastructure.OpenApi.SwaggerGlobalAuthProcessor">
+            <summary>
+            The default NSwag AspNetCoreOperationProcessor doesn't take .RequireAuthorization() calls into account
+            Unless the AllowAnonymous attribute is defined, this processor will always add the security scheme
+            when it's not already there, so effectively adding "Global Auth".
+            </summary>
+        </member>
+        <member name="T:FSH.WebApi.Infrastructure.Persistence.Repository.EventAddingRepositoryDecorator`1">
+            <summary>
+            The repository that implements IRepositoryWithEvents.
+            Implemented as a decorator. It only augments the Add,
+            Update and Delete calls where it adds the respective
+            EntityCreated, EntityUpdated or EntityDeleted event
+            before delegating to the decorated repository.
+            </summary>
+        </member>
+        <member name="P:FSH.WebApi.Infrastructure.SecurityHeaders.SecurityHeaderSettings.XFrameOptions">
+            <summary>
+            X-Frame-Options.
+            </summary>
+        </member>
+        <member name="P:FSH.WebApi.Infrastructure.SecurityHeaders.SecurityHeaderSettings.XContentTypeOptions">
+            <summary>
+            X-Content-Type-Options.
+            </summary>
+        </member>
+        <member name="P:FSH.WebApi.Infrastructure.SecurityHeaders.SecurityHeaderSettings.ReferrerPolicy">
+            <summary>
+            Referrer-Policy.
+            </summary>
+        </member>
+        <member name="P:FSH.WebApi.Infrastructure.SecurityHeaders.SecurityHeaderSettings.PermissionsPolicy">
+            <summary>
+            Permissions-Policy.
+            </summary>
+        </member>
+        <member name="P:FSH.WebApi.Infrastructure.SecurityHeaders.SecurityHeaderSettings.XXSSProtection">
+            <summary>
+            X-XSS-Protection.
+            </summary>
+        </member>
+    </members>
+</doc>

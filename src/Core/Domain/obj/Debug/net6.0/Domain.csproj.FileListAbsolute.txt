@@ -1,0 +1,17 @@
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Domain\bin\Debug\net6.0\FSH.WebApi.Domain.xml
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Domain\bin\Debug\net6.0\FSH.WebApi.Domain.deps.json
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Domain\bin\Debug\net6.0\FSH.WebApi.Domain.dll
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Domain\bin\Debug\net6.0\ref\FSH.WebApi.Domain.dll
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Domain\bin\Debug\net6.0\FSH.WebApi.Domain.pdb
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Domain\bin\Debug\net6.0\FSH.WebApi.Shared.dll
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Domain\bin\Debug\net6.0\FSH.WebApi.Shared.pdb
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Domain\bin\Debug\net6.0\FSH.WebApi.Shared.xml
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Domain\obj\Debug\net6.0\Domain.csproj.AssemblyReference.cache
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Domain\obj\Debug\net6.0\Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Domain\obj\Debug\net6.0\Domain.AssemblyInfoInputs.cache
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Domain\obj\Debug\net6.0\Domain.AssemblyInfo.cs
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Domain\obj\Debug\net6.0\Domain.csproj.CoreCompileInputs.cache
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Domain\obj\Debug\net6.0\Domain.csproj.CopyComplete
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Domain\obj\Debug\net6.0\FSH.WebApi.Domain.dll
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Domain\obj\Debug\net6.0\ref\FSH.WebApi.Domain.dll
+C:\Users\rippe\Source\Repos\Zigimun\dotnet-webapi-boilerplate\src\Core\Domain\obj\Debug\net6.0\FSH.WebApi.Domain.pdb

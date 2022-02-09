@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "PkjEFWHxqVjGZPYv+cOg1b/96ZXpyW61h4oyW7DPVWnmlyzBTqXmNcs8YolOX3/L82hNdXYUtqprqM9nPsgtDA==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\rippe\\source\\repos\\Zigimun\\dotnet-webapi-boilerplate\\src\\Core\\Domain\\Domain.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\rippe\\.nuget\\packages\\newid\\4.0.0-develop.44\\newid.4.0.0-develop.44.nupkg.sha512",
+    "C:\\Users\\rippe\\.nuget\\packages\\roslynator.analyzers\\4.0.2\\roslynator.analyzers.4.0.2.nupkg.sha512",
+    "C:\\Users\\rippe\\.nuget\\packages\\stylecop.analyzers\\1.2.0-beta.376\\stylecop.analyzers.1.2.0-beta.376.nupkg.sha512",
+    "C:\\Users\\rippe\\.nuget\\packages\\stylecop.analyzers.unstable\\1.2.0.376\\stylecop.analyzers.unstable.1.2.0.376.nupkg.sha512"
+  ],
+  "logs": []
+}
