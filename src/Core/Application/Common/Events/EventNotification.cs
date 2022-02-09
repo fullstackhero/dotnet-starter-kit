@@ -1,12 +1,9 @@
 namespace FSH.WebApi.Application.Common.Events;
 
-public class EventNotification<T> : INotification
-where T : DomainEvent
+public class EventNotification<TDomainEvent> : INotification
+    where TDomainEvent : DomainEvent
 {
-    public EventNotification(T domainEvent)
-    {
-        DomainEvent = domainEvent;
-    }
+    public EventNotification(TDomainEvent domainEvent) => Event = domainEvent;
 
-    public T DomainEvent { get; }
+    public TDomainEvent Event { get; }
 }

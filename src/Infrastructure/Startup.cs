@@ -1,3 +1,4 @@
+using System.Reflection;
 using FSH.WebApi.Infrastructure.Auth;
 using FSH.WebApi.Infrastructure.BackgroundJobs;
 using FSH.WebApi.Infrastructure.Caching;
@@ -14,6 +15,7 @@ using FSH.WebApi.Infrastructure.OpenApi;
 using FSH.WebApi.Infrastructure.Persistence;
 using FSH.WebApi.Infrastructure.Persistence.Initialization;
 using FSH.WebApi.Infrastructure.SecurityHeaders;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
@@ -37,6 +39,7 @@ public static class Startup
             .AddHealthCheck()
             .AddLocalization(config)
             .AddMailing(config)
+            .AddMediatR(Assembly.GetExecutingAssembly())
             .AddMultitenancy(config)
             .AddNotifications(config)
             .AddOpenApiDocumentation(config)

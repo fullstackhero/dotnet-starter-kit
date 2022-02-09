@@ -2,7 +2,7 @@ namespace FSH.WebApi.Application.Identity.Roles;
 
 public interface IRoleService : ITransientService
 {
-    Task<List<RoleDto>> GetListAsync();
+    Task<List<RoleDto>> GetListAsync(CancellationToken cancellationToken);
 
     Task<int> GetCountAsync(CancellationToken cancellationToken);
 
@@ -12,9 +12,9 @@ public interface IRoleService : ITransientService
 
     Task<RoleDto> GetByIdWithPermissionsAsync(string roleId, CancellationToken cancellationToken);
 
-    Task<string> RegisterRoleAsync(RoleRequest request);
+    Task<string> CreateOrUpdateAsync(CreateOrUpdateRoleRequest request);
 
-    Task<string> UpdatePermissionsAsync(UpdatePermissionsRequest request, CancellationToken cancellationToken);
+    Task<string> UpdatePermissionsAsync(UpdateRolePermissionsRequest request, CancellationToken cancellationToken);
 
     Task<string> DeleteAsync(string id);
 }

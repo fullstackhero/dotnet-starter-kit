@@ -1,23 +1,20 @@
 using System.Security.Claims;
-using FSH.WebApi.Application.Identity.RoleClaims;
+using FSH.WebApi.Application.Identity.Users;
 using Microsoft.AspNetCore.Authorization;
 
 namespace FSH.WebApi.Infrastructure.Auth.Permissions;
 
 internal class PermissionAuthorizationHandler : AuthorizationHandler<PermissionRequirement>
 {
-    private readonly IRoleClaimsService _permissionService;
+    private readonly IUserService _userService;
 
-    public PermissionAuthorizationHandler(IRoleClaimsService permissionService)
-    {
-        _permissionService = permissionService;
-    }
+    public PermissionAuthorizationHandler(IUserService userService) =>
+        _userService = userService;
 
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, PermissionRequirement requirement)
     {
-        string? userId = context.User?.GetUserId();
-        if (userId is not null &&
-            await _permissionService.HasPermissionAsync(userId, requirement.Permission))
+        if (context.User?.GetUserId() is { } userId &&
+            await _userService.HasPermissionAsync(userId, requirement.Permission))
         {
             context.Succeed(requirement);
         }

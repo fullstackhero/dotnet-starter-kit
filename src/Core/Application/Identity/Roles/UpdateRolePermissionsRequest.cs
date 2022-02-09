@@ -1,14 +1,14 @@
 namespace FSH.WebApi.Application.Identity.Roles;
 
-public class UpdatePermissionsRequest
+public class UpdateRolePermissionsRequest
 {
     public string RoleId { get; set; } = default!;
     public List<string> Permissions { get; set; } = default!;
 }
 
-public class UpdatePermissionsRequestValidator : CustomValidator<UpdatePermissionsRequest>
+public class UpdateRolePermissionsRequestValidator : CustomValidator<UpdateRolePermissionsRequest>
 {
-    public UpdatePermissionsRequestValidator()
+    public UpdateRolePermissionsRequestValidator()
     {
         RuleFor(r => r.RoleId)
             .NotEmpty();

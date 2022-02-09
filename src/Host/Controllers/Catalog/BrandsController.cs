@@ -5,15 +5,15 @@ namespace FSH.WebApi.Host.Controllers.Catalog;
 public class BrandsController : VersionedApiController
 {
     [HttpPost("search")]
-    [MustHavePermission(FSHPermissions.Brands.Search)]
-    [OpenApiOperation("Search Brands using available Filters.", "")]
+    [MustHavePermission(FSHAction.Search, FSHResource.Brands)]
+    [OpenApiOperation("Search brands using available filters.", "")]
     public Task<PaginationResponse<BrandDto>> SearchAsync(SearchBrandsRequest request)
     {
         return Mediator.Send(request);
     }
 
     [HttpGet("{id:guid}")]
-    [MustHavePermission(FSHPermissions.Brands.View)]
+    [MustHavePermission(FSHAction.View, FSHResource.Brands)]
     [OpenApiOperation("Get brand details.", "")]
     public Task<BrandDto> GetAsync(Guid id)
     {
@@ -21,7 +21,7 @@ public class BrandsController : VersionedApiController
     }
 
     [HttpPost]
-    [MustHavePermission(FSHPermissions.Brands.Create)]
+    [MustHavePermission(FSHAction.Create, FSHResource.Brands)]
     [OpenApiOperation("Create a new brand.", "")]
     public Task<Guid> CreateAsync(CreateBrandRequest request)
     {
@@ -29,20 +29,17 @@ public class BrandsController : VersionedApiController
     }
 
     [HttpPut("{id:guid}")]
-    [MustHavePermission(FSHPermissions.Brands.Update)]
+    [MustHavePermission(FSHAction.Update, FSHResource.Brands)]
     [OpenApiOperation("Update a brand.", "")]
     public async Task<ActionResult<Guid>> UpdateAsync(UpdateBrandRequest request, Guid id)
     {
-        if (id != request.Id)
-        {
-            return BadRequest();
-        }
-
-        return Ok(await Mediator.Send(request));
+        return id != request.Id
+            ? BadRequest()
+            : Ok(await Mediator.Send(request));
     }
 
     [HttpDelete("{id:guid}")]
-    [MustHavePermission(FSHPermissions.Brands.Delete)]
+    [MustHavePermission(FSHAction.Delete, FSHResource.Brands)]
     [OpenApiOperation("Delete a brand.", "")]
     public Task<Guid> DeleteAsync(Guid id)
     {
@@ -50,6 +47,7 @@ public class BrandsController : VersionedApiController
     }
 
     [HttpPost("generate-random")]
+    [MustHavePermission(FSHAction.Generate, FSHResource.Brands)]
     [OpenApiOperation("Generate a number of random brands.", "")]
     public Task<string> GenerateRandomAsync(GenerateRandomBrandRequest request)
     {
@@ -57,6 +55,7 @@ public class BrandsController : VersionedApiController
     }
 
     [HttpDelete("delete-random")]
+    [MustHavePermission(FSHAction.Clean, FSHResource.Brands)]
     [OpenApiOperation("Delete the brands generated with the generate-random call.", "")]
     [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Search))]
     public Task<string> DeleteRandomAsync()

@@ -51,7 +51,7 @@ public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUs
         // If you want to see the sql queries that efcore executes:
 
         // Uncomment the next line to see them in the output window of visual studio
-        // optionsBuilder.LogTo(m => Debug.WriteLine(m), LogLevel.Information)
+        // optionsBuilder.LogTo(m => Debug.WriteLine(m), LogLevel.Information);
 
         // Or uncomment the next line if you want to see them in the console
         // optionsBuilder.LogTo(Console.WriteLine, LogLevel.Information);

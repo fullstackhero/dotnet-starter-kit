@@ -16,7 +16,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace FSH.WebApi.Infrastructure.Identity;
 
-public class TokenService : ITokenService
+internal class TokenService : ITokenService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IStringLocalizer<TokenService> _localizer;
