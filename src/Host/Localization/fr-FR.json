@@ -1,0 +1,16 @@
+{
+  "auth.failed": "Echec d'authentification'.",
+  "tenant.invalid": "Tenant invalide.",
+  "tenant.expired": "La validité du Tenant a expiré. Veuillez contacter l'Administrateur de l'Application.",
+  "tenant.inactive": "Le Tenant n'est pas actif'. Veuillez contacter l'Administrateur de l'Application.",
+  "caching.added": "Entrée dans le Cache ajoutée : {0}",
+  "caching.refreshed": "Entrée du Cache rafraîchie : {0}",
+  "identity.usernotfound": "Utilisateur inconnu.",
+  "identity.usernotactive": "Utilisateur inactif. Veuillez contacter l'Administrateur.",
+  "identity.emailnotconfirmed": "E-Mail non confirmé.",
+  "identity.invalidcredentials": "Identifiants invalides.",
+  "identity.invalidtoken": "Token invalide.",
+  "entity.notfound": "{0} {1} non trouvé.",
+  "product.alreadyexists": "Le produit {0} existe déjà.",
+  "exceptionmiddleware.supportmessage": "Fournissez le ErrorId à l'équipe de support pour l'analyser en détail."
+}
