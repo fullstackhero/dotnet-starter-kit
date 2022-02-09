@@ -1,4 +1,5 @@
-﻿using Finbuckle.MultiTenant;
+﻿using System.Security.Claims;
+using Finbuckle.MultiTenant;
 using FSH.WebApi.Application.Common.Exceptions;
 using FSH.WebApi.Application.Identity.Users;
 using FSH.WebApi.Infrastructure.Multitenancy;
@@ -10,7 +11,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Identity.Web;
 using Serilog;
-using System.Security.Claims;
 
 namespace FSH.WebApi.Infrastructure.Auth.AzureAd;
 
@@ -77,7 +77,7 @@ internal class AzureAdJwtBearerEvents : JwtBearerEvents
         context.HttpContext.TrySetTenantInfo(tenant, false);
 
         // Lookup local user or create one if none exist.
-        string userId = await context.HttpContext.RequestServices.GetRequiredService<IIdentityService>()
+        string userId = await context.HttpContext.RequestServices.GetRequiredService<IUserService>()
             .GetOrCreateFromPrincipalAsync(principal);
 
         // We use the nameidentifier claim to store the user id.
