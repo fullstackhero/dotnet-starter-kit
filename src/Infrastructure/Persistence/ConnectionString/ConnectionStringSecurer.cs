@@ -23,6 +23,11 @@ public class ConnectionStringSecurer : IConnectionStringSecurer
             return connectionString;
         }
 
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            connectionString = _dbSettings.ConnectionString;
+        }
+
         if (string.IsNullOrWhiteSpace(dbProvider))
         {
             dbProvider = _dbSettings.DBProvider;

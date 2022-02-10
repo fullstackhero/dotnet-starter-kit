@@ -16,20 +16,18 @@ internal class TenantService : ITenantService
     private readonly IConnectionStringSecurer _csSecurer;
     private readonly IDatabaseInitializer _dbInitializer;
     private readonly IStringLocalizer<TenantService> _localizer;
-    private readonly DatabaseSettings _dbSettings;
-    public TenantService(IMultiTenantStore<FSHTenantInfo> tenantStore, IConnectionStringSecurer csSecurer, IDatabaseInitializer dbInitializer, IStringLocalizer<TenantService> localizer, IOptions<DatabaseSettings> dbSettings)
+
+    public TenantService(IMultiTenantStore<FSHTenantInfo> tenantStore, IConnectionStringSecurer csSecurer, IDatabaseInitializer dbInitializer, IStringLocalizer<TenantService> localizer)
     {
         _tenantStore = tenantStore;
         _csSecurer = csSecurer;
         _dbInitializer = dbInitializer;
         _localizer = localizer;
-        _dbSettings = dbSettings.Value;
     }
 
     public async Task<List<TenantDto>> GetAllAsync()
     {
         var tenants = (await _tenantStore.GetAllAsync()).Adapt<List<TenantDto>>();
-
         tenants.ForEach(t => t.ConnectionString = _csSecurer.MakeSecure(t.ConnectionString));
 
         return tenants;
@@ -41,15 +39,19 @@ internal class TenantService : ITenantService
     public async Task<bool> ExistsWithNameAsync(string name) =>
         (await _tenantStore.GetAllAsync()).Any(t => t.Name == name);
 
-    public async Task<TenantDto> GetByIdAsync(string id) =>
-        (await GetTenantInfoAsync(id))
-            .Adapt<TenantDto>();
+    public async Task<TenantDto> GetByIdAsync(string id)
+    {
+        var tenantDto = (await GetTenantInfoAsync(id)).Adapt<TenantDto>();
+        if (string.IsNullOrEmpty(tenantDto.ConnectionString))
+        {
+            tenantDto.ConnectionString = _csSecurer.MakeSecure(tenantDto.ConnectionString);
+        }
+
+        return tenantDto;
+    }
 
     public async Task<string> CreateAsync(CreateTenantRequest request, CancellationToken cancellationToken)
     {
-        if(string.IsNullOrEmpty(request.ConnectionString))
-            request.ConnectionString = _dbSettings.ConnectionString;
-
         var tenant = new FSHTenantInfo(request.Id, request.Name, request.ConnectionString, request.AdminEmail, request.Issuer);
         await _tenantStore.TryAddAsync(tenant);
 
