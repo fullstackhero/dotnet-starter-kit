@@ -2,9 +2,11 @@
 using FSH.WebApi.Application.Common.Exceptions;
 using FSH.WebApi.Application.Common.Persistence;
 using FSH.WebApi.Application.Multitenancy;
+using FSH.WebApi.Infrastructure.Persistence;
 using FSH.WebApi.Infrastructure.Persistence.Initialization;
 using Mapster;
 using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Options;
 
 namespace FSH.WebApi.Infrastructure.Multitenancy;
 
@@ -14,21 +16,26 @@ internal class TenantService : ITenantService
     private readonly IConnectionStringSecurer _csSecurer;
     private readonly IDatabaseInitializer _dbInitializer;
     private readonly IStringLocalizer<TenantService> _localizer;
+    private readonly DatabaseSettings _dbSettings;
 
-    public TenantService(IMultiTenantStore<FSHTenantInfo> tenantStore, IConnectionStringSecurer csSecurer, IDatabaseInitializer dbInitializer, IStringLocalizer<TenantService> localizer)
+    public TenantService(
+        IMultiTenantStore<FSHTenantInfo> tenantStore,
+        IConnectionStringSecurer csSecurer,
+        IDatabaseInitializer dbInitializer,
+        IStringLocalizer<TenantService> localizer,
+        IOptions<DatabaseSettings> dbSettings)
     {
         _tenantStore = tenantStore;
         _csSecurer = csSecurer;
         _dbInitializer = dbInitializer;
         _localizer = localizer;
+        _dbSettings = dbSettings.Value;
     }
 
     public async Task<List<TenantDto>> GetAllAsync()
     {
         var tenants = (await _tenantStore.GetAllAsync()).Adapt<List<TenantDto>>();
-
         tenants.ForEach(t => t.ConnectionString = _csSecurer.MakeSecure(t.ConnectionString));
-
         return tenants;
     }
 
@@ -44,8 +51,9 @@ internal class TenantService : ITenantService
 
     public async Task<string> CreateAsync(CreateTenantRequest request, CancellationToken cancellationToken)
     {
-        var tenant = new FSHTenantInfo(request.Id, request.Name, request.ConnectionString, request.AdminEmail, request.Issuer);
+        if(request.ConnectionString?.Trim() == _dbSettings.ConnectionString?.Trim()) request.ConnectionString = string.Empty;
 
+        var tenant = new FSHTenantInfo(request.Id, request.Name, request.ConnectionString, request.AdminEmail, request.Issuer);
         await _tenantStore.TryAddAsync(tenant);
 
         // TODO: run this in a hangfire job? will then have to send mail when it's ready or not
