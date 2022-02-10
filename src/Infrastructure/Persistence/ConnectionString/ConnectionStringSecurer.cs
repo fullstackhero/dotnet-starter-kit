@@ -18,14 +18,9 @@ public class ConnectionStringSecurer : IConnectionStringSecurer
 
     public string? MakeSecure(string? connectionString, string? dbProvider)
     {
-        if (connectionString == null)
+        if (connectionString == null || string.IsNullOrEmpty(connectionString))
         {
             return connectionString;
-        }
-
-        if (string.IsNullOrEmpty(connectionString))
-        {
-            connectionString = _dbSettings.ConnectionString;
         }
 
         if (string.IsNullOrWhiteSpace(dbProvider))
