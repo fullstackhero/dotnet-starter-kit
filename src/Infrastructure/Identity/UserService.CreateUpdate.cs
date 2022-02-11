@@ -128,10 +128,16 @@ internal partial class UserService
         {
             // send verification email
             string emailVerificationUri = await GetEmailVerificationUriAsync(user, origin);
+            RegisterUserEmailModel eMailModel = new RegisterUserEmailModel()
+            {
+                Email = user.Email,
+                UserName = user.UserName,
+                Url = emailVerificationUri
+            };
             var mailRequest = new MailRequest(
                 new List<string> { user.Email },
                 _localizer["Confirm Registration"],
-                _templateService.GenerateEmailConfirmationMail(user.UserName ?? "User", user.Email, emailVerificationUri));
+                _templateService.GenerateEmailTemplate("email-confirmation", eMailModel));
             _jobService.Enqueue(() => _mailService.SendAsync(mailRequest));
             messages.Add(_localizer[$"Please check {user.Email} to verify your account!"]);
         }

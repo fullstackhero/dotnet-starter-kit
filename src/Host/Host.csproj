@@ -37,4 +37,9 @@
         <Content Remove="Logs\*" />
         <None Include="Logs\*" />
     </ItemGroup>
+    <ItemGroup>
+        <None Include="Email Templates\*.cshtml">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
 </Project>
