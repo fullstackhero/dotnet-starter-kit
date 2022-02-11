@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "4998314c-b6f5-4e57-9fe1-63ddcae7bc78",
+		"_postman_id": "12e00597-47ae-4da7-b40d-4cbb458d9114",
 		"name": "dotnet.webapi.boilerplate",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -288,6 +288,59 @@
 							"path": [
 								"users",
 								"reset-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "refresh-token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"pm.collectionVariables.set(\"token\", jsonData.token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "tenant",
+								"value": "root",
+								"type": "text"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "en-US",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6ImExNDZkNTY4LTRmZmYtNDhmZS1iNTc2LWIxYTM2ZjBlMjIzMiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6ImFkbWluQHJvb3QuY29tIiwiZnVsbE5hbWUiOiJyb290IEFkbWluIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6InJvb3QiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zdXJuYW1lIjoiQWRtaW4iLCJpcEFkZHJlc3MiOiIwLjAuMC4xIiwidGVuYW50Ijoicm9vdCIsImltYWdlX3VybCI6IkZpbGVzL0ltYWdlcy9BcHBsaWNhdGlvblVzZXIvYTE0NmQ1Njg0ZmZmNDhmZWI1NzZiMWEzNmYwZTIyMzJlYzE3MWI4MGY0MzI0NzIzOThkNDVjYTFjZGQ0YTAwZi5wbmciLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9tb2JpbGVwaG9uZSI6IjUwNjQ2ODU5MiIsImV4cCI6MTY0NDYwMjE4NH0.a-y0WrNLQ6bnafZn91sUm_oIsHT8GD4R9w7Id2afxME\",\r\n    \"refreshToken\": \"vF34oRJ5LgK15qPT/Xf4DPQuSJxu5UP1pN/8hV6bSQE=\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/tokens/refresh",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"tokens",
+								"refresh"
 							]
 						}
 					},
