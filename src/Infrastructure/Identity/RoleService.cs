@@ -176,7 +176,7 @@ internal class RoleService : IRoleService
             throw new ConflictException(string.Format(_localizer["Not allowed to delete {0} Role."], role.Name));
         }
 
-        if ((await _userManager.GetUsersInRoleAsync(role.Name)).Any())
+        if ((await _userManager.GetUsersInRoleAsync(role.Name)).Count > 0)
         {
             throw new ConflictException(string.Format(_localizer["Not allowed to delete {0} Role as it is being used."], role.Name));
         }
