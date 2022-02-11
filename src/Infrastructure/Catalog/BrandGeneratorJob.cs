@@ -46,14 +46,14 @@ public class BrandGeneratorJob : IBrandGeneratorJob
     private async Task NotifyAsync(string message, int progress, CancellationToken cancellationToken)
     {
         _progress.SetValue(progress);
-        await _notificationService.SendMessageToUserAsync(
-            _currentUser.GetUserId().ToString(),
+        await _notificationService.SendToUserAsync(
             new JobNotification()
             {
                 JobId = _performingContext.BackgroundJob.Id,
                 Message = message,
                 Progress = progress
             },
+            _currentUser.GetUserId().ToString(),
             cancellationToken);
     }
 

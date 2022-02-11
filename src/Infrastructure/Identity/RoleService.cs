@@ -22,8 +22,8 @@ internal class RoleService : IRoleService
     private readonly ApplicationDbContext _db;
     private readonly IStringLocalizer<RoleService> _localizer;
     private readonly ICurrentUser _currentUser;
-    private readonly ITenantInfo _tenantInfo;
-    private readonly IEventService _eventService;
+    private readonly ITenantInfo _currentTenant;
+    private readonly IEventPublisher _events;
 
     public RoleService(
         RoleManager<ApplicationRole> roleManager,
@@ -31,16 +31,16 @@ internal class RoleService : IRoleService
         ApplicationDbContext db,
         IStringLocalizer<RoleService> localizer,
         ICurrentUser currentUser,
-        ITenantInfo tenantInfo,
-        IEventService eventService)
+        ITenantInfo currentTenant,
+        IEventPublisher events)
     {
         _roleManager = roleManager;
         _userManager = userManager;
         _db = db;
         _localizer = localizer;
         _currentUser = currentUser;
-        _tenantInfo = tenantInfo;
-        _eventService = eventService;
+        _currentTenant = currentTenant;
+        _events = events;
     }
 
     public async Task<List<RoleDto>> GetListAsync(CancellationToken cancellationToken) =>
@@ -85,7 +85,7 @@ internal class RoleService : IRoleService
                 throw new InternalServerException(_localizer["Register role failed"], result.GetErrors(_localizer));
             }
 
-            await _eventService.PublishAsync(new ApplicationRoleCreatedEvent(role.Id, role.Name));
+            await _events.PublishAsync(new ApplicationRoleCreatedEvent(role.Id, role.Name));
 
             return string.Format(_localizer["Role {0} Created."], request.Name);
         }
@@ -111,7 +111,7 @@ internal class RoleService : IRoleService
                 throw new InternalServerException(_localizer["Update role failed"], result.GetErrors(_localizer));
             }
 
-            await _eventService.PublishAsync(new ApplicationRoleUpdatedEvent(role.Id, role.Name));
+            await _events.PublishAsync(new ApplicationRoleUpdatedEvent(role.Id, role.Name));
 
             return string.Format(_localizer["Role {0} Updated."], role.Name);
         }
@@ -126,7 +126,7 @@ internal class RoleService : IRoleService
             throw new ConflictException(_localizer["Not allowed to modify Permissions for this Role."]);
         }
 
-        if (_tenantInfo.Id != MultitenancyConstants.Root.Id)
+        if (_currentTenant.Id != MultitenancyConstants.Root.Id)
         {
             // Remove Root Permissions if the Role is not created for Root Tenant.
             request.Permissions.RemoveAll(u => u.StartsWith("Permissions.Root."));
@@ -160,7 +160,7 @@ internal class RoleService : IRoleService
             }
         }
 
-        await _eventService.PublishAsync(new ApplicationRoleUpdatedEvent(role.Id, role.Name, true));
+        await _events.PublishAsync(new ApplicationRoleUpdatedEvent(role.Id, role.Name, true));
 
         return _localizer["Permissions Updated."];
     }
@@ -183,7 +183,7 @@ internal class RoleService : IRoleService
 
         await _roleManager.DeleteAsync(role);
 
-        await _eventService.PublishAsync(new ApplicationRoleDeletedEvent(role.Id, role.Name));
+        await _events.PublishAsync(new ApplicationRoleDeletedEvent(role.Id, role.Name));
 
         return string.Format(_localizer["Role {0} Deleted."], role.Name);
     }
