@@ -6,14 +6,15 @@ using MediatR;
 namespace FSH.WebApi.Infrastructure.Notifications;
 
 // Sends all events that are also an INotificationMessage to all clients
-// Note: for this to work, the Event/NotificationMessage class needs to be in the shared project
-public class SendNotificationToClientsHandler<TNotification> : INotificationHandler<TNotification>
+// Note: for this to work, the Event/NotificationMessage class needs to be in the
+// shared project (i.e. have the same FullName - so with namespace - on both sides)
+public class SendEventNotificationToClientsHandler<TNotification> : INotificationHandler<TNotification>
     where TNotification : INotification
 {
-    private readonly INotificationService _notificationService;
+    private readonly INotificationSender _notifications;
 
-    public SendNotificationToClientsHandler(INotificationService notificationService) =>
-        _notificationService = notificationService;
+    public SendEventNotificationToClientsHandler(INotificationSender notifications) =>
+        _notifications = notifications;
 
     public Task Handle(TNotification notification, CancellationToken cancellationToken)
     {
@@ -23,8 +24,8 @@ public class SendNotificationToClientsHandler<TNotification> : INotificationHand
             && notificationType.GetGenericArguments()[0] is { } eventType
             && eventType.IsAssignableTo(typeof(INotificationMessage)))
         {
-            INotificationMessage clientNotification = ((dynamic)notification).Event;
-            return _notificationService.SendToAllAsync(clientNotification, cancellationToken);
+            INotificationMessage notificationMessage = ((dynamic)notification).Event;
+            return _notifications.SendToAllAsync(notificationMessage, cancellationToken);
         }
 
         return Task.CompletedTask;

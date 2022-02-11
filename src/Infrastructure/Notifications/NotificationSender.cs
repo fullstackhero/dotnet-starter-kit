@@ -6,12 +6,12 @@ using static FSH.WebApi.Shared.Notifications.NotificationConstants;
 
 namespace FSH.WebApi.Infrastructure.Notifications;
 
-public class NotificationService : INotificationService
+public class NotificationSender : INotificationSender
 {
     private readonly IHubContext<NotificationHub> _notificationHubContext;
     private readonly ITenantInfo _currentTenant;
 
-    public NotificationService(IHubContext<NotificationHub> notificationHubContext, ITenantInfo currentTenant) =>
+    public NotificationSender(IHubContext<NotificationHub> notificationHubContext, ITenantInfo currentTenant) =>
         (_notificationHubContext, _currentTenant) = (notificationHubContext, currentTenant);
 
     public Task BroadcastAsync(INotificationMessage notification, CancellationToken cancellationToken) =>

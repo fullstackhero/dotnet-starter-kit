@@ -14,10 +14,10 @@ public class SendStatsChangedNotificationHandler :
     IEventNotificationHandler<ApplicationUserCreatedEvent>
 {
     private readonly ILogger<SendStatsChangedNotificationHandler> _logger;
-    private readonly INotificationService _notificationService;
+    private readonly INotificationSender _notifications;
 
-    public SendStatsChangedNotificationHandler(ILogger<SendStatsChangedNotificationHandler> logger, INotificationService notificationService) =>
-        (_logger, _notificationService) = (logger, notificationService);
+    public SendStatsChangedNotificationHandler(ILogger<SendStatsChangedNotificationHandler> logger, INotificationSender notifications) =>
+        (_logger, _notifications) = (logger, notifications);
 
     public Task Handle(EventNotification<EntityCreatedEvent<Brand>> notification, CancellationToken cancellationToken) =>
         SendStatsChangedNotification(notification.Event, cancellationToken);
@@ -38,6 +38,6 @@ public class SendStatsChangedNotificationHandler :
     {
         _logger.LogInformation("{event} Triggered => Sending StatsChangedNotification", @event.GetType().Name);
 
-        return _notificationService.SendToAllAsync(new StatsChangedNotification(), cancellationToken);
+        return _notifications.SendToAllAsync(new StatsChangedNotification(), cancellationToken);
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace FSH.WebApi.Application.Common.Interfaces;
 
-public interface INotificationService : ITransientService
+public interface INotificationSender : ITransientService
 {
     Task BroadcastAsync(INotificationMessage notification, CancellationToken cancellationToken);
     Task BroadcastAsync(INotificationMessage notification, IEnumerable<string> excludedConnectionIds, CancellationToken cancellationToken);
