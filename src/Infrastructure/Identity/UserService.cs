@@ -34,7 +34,7 @@ internal partial class UserService : IUserService
     private readonly MailSettings _mailSettings;
     private readonly IEmailTemplateService _templateService;
     private readonly IFileStorageService _fileStorage;
-    private readonly IEventService _eventService;
+    private readonly IEventPublisher _events;
     private readonly ICacheService _cache;
     private readonly ICacheKeyService _cacheKeys;
     private readonly ITenantInfo _currentTenant;
@@ -50,7 +50,7 @@ internal partial class UserService : IUserService
         IOptions<MailSettings> mailSettings,
         IEmailTemplateService templateService,
         IFileStorageService fileStorage,
-        IEventService eventService,
+        IEventPublisher events,
         ICacheService cache,
         ICacheKeyService cacheKeys,
         ITenantInfo currentTenant)
@@ -65,7 +65,7 @@ internal partial class UserService : IUserService
         _mailSettings = mailSettings.Value;
         _templateService = templateService;
         _fileStorage = fileStorage;
-        _eventService = eventService;
+        _events = events;
         _cache = cache;
         _cacheKeys = cacheKeys;
         _currentTenant = currentTenant;
@@ -131,6 +131,6 @@ internal partial class UserService : IUserService
 
         await _userManager.UpdateAsync(user);
 
-        await _eventService.PublishAsync(new ApplicationUserUpdatedEvent(user.Id));
+        await _events.PublishAsync(new ApplicationUserUpdatedEvent(user.Id));
     }
 }

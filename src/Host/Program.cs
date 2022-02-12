@@ -20,9 +20,9 @@ try
         .ReadFrom.Configuration(builder.Configuration);
     });
 
-    builder.Services.AddApplication();
-    builder.Services.AddInfrastructure(builder.Configuration);
     builder.Services.AddControllers().AddFluentValidation();
+    builder.Services.AddInfrastructure(builder.Configuration);
+    builder.Services.AddApplication();
 
     var app = builder.Build();
 

@@ -20,7 +20,7 @@ public class BrandGeneratorJob : IBrandGeneratorJob
     private readonly IReadRepository<Brand> _repository;
     private readonly IProgressBarFactory _progressBar;
     private readonly PerformingContext _performingContext;
-    private readonly INotificationService _notificationService;
+    private readonly INotificationSender _notifications;
     private readonly ICurrentUser _currentUser;
     private readonly IProgressBar _progress;
 
@@ -30,7 +30,7 @@ public class BrandGeneratorJob : IBrandGeneratorJob
         IReadRepository<Brand> repository,
         IProgressBarFactory progressBar,
         PerformingContext performingContext,
-        INotificationService notificationService,
+        INotificationSender notifications,
         ICurrentUser currentUser)
     {
         _logger = logger;
@@ -38,7 +38,7 @@ public class BrandGeneratorJob : IBrandGeneratorJob
         _repository = repository;
         _progressBar = progressBar;
         _performingContext = performingContext;
-        _notificationService = notificationService;
+        _notifications = notifications;
         _currentUser = currentUser;
         _progress = _progressBar.Create();
     }
@@ -46,14 +46,14 @@ public class BrandGeneratorJob : IBrandGeneratorJob
     private async Task NotifyAsync(string message, int progress, CancellationToken cancellationToken)
     {
         _progress.SetValue(progress);
-        await _notificationService.SendMessageToUserAsync(
-            _currentUser.GetUserId().ToString(),
+        await _notifications.SendToUserAsync(
             new JobNotification()
             {
                 JobId = _performingContext.BackgroundJob.Id,
                 Message = message,
                 Progress = progress
             },
+            _currentUser.GetUserId().ToString(),
             cancellationToken);
     }
 

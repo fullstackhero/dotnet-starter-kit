@@ -38,9 +38,9 @@ The goal of this repository is to provide a complete and feature-rich starting p
   - [x] Upgrade Subscription of Tenants - Add More Validity Months to each tenant!
 - [x] Supports MySQL, MSSQL, Oracle & PostgreSQL!
 
-<details>    
-  <summary>Click to See More!</summary>  
-    
+<details>
+  <summary>Click to See More!</summary>
+
 - [x] Uses Entity Framework Core as DB Abstraction
 - [x] Flexible Repository Pattern
 - [x] Dapper Integration for Optimal Performance
@@ -77,6 +77,17 @@ To get started with this Boilerplate, here are the avaiable options.
 
 > Make sure that your DEV enviroment is setup, [Read the Development Environment Guide](https://fullstackhero.net/dotnet-webapi-boilerplate/general/development-environment/)
 
+## Forking the Repository
+
+You would probably need to take this approach if you want to keep your source code upto date with the latest changes. To get started based on this repository, you need to get a copy locally. You have three options: fork, clone, or download.
+
+- Make a fork of this repository in your Github account.
+- Create your new `dotnet-webapi-boilerplate` personal project by cloning the forked repository on your personal github.
+- Setup an upstream remote on your personal project pointing to your forked repository using command `git remote add upstream https://github.com/{githubuseraccount}/dotnet-webapi-boilerplate` and `git remote set-url --push upstream DISABLE`
+
+For step by step instructions, [follow this](https://discord.com/channels/878181478972928011/892573122186838046/933513103688224838) and [this](https://gist.github.com/0xjac/85097472043b697ab57ba1b1c7530274).
+
+
 ### Using the .NET CLI
 
 Open up your Command Prompt / Powershell and run the following command to install the solution template.
@@ -95,12 +106,6 @@ dotnet new fsh-api -o FSH.Starter
 ```
 
 For further steps and details, [Read the Getting Started Guide](https://fullstackhero.net/dotnet-webapi-boilerplate/general/getting-started/)
-
-### Forking the Repository
-
-You would probably need to take this approach if you want to keep your source code upto date with the latest changes. To get started based on this repository, you need to get a copy locally. You have three options: fork, clone, or download. Most of the time, you probably just want to download.
-
-For step by step instructions, [follow this](https://discord.com/channels/878181478972928011/892573122186838046/933513103688224838) and [this](https://gist.github.com/0xjac/85097472043b697ab57ba1b1c7530274).
 
 ## Important Links & Documentations
 
@@ -149,6 +154,5 @@ Here are a few ways by which you can support.
 -   Or, If you want to support this project in the long run, [consider buying me a coffee](https://www.buymeacoffee.com/codewithmukesh)! ☕
 
 <br>
-    
-<a href="https://www.buymeacoffee.com/codewithmukesh"><img width="250" alt="black-button" src="https://user-images.githubusercontent.com/31455818/138557309-27587d91-7b82-4cab-96bb-90f4f4e600f1.png" ></a>
 
+<a href="https://www.buymeacoffee.com/codewithmukesh"><img width="250" alt="black-button" src="https://user-images.githubusercontent.com/31455818/138557309-27587d91-7b82-4cab-96bb-90f4f4e600f1.png" ></a>
