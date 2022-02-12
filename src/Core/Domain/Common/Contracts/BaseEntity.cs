@@ -1,5 +1,5 @@
-using MassTransit;
 using System.ComponentModel.DataAnnotations.Schema;
+using MassTransit;
 
 namespace FSH.WebApi.Domain.Common.Contracts;
 

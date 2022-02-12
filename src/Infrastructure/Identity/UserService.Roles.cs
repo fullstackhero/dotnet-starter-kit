@@ -78,7 +78,7 @@ internal partial class UserService
             }
         }
 
-        await _eventService.PublishAsync(new ApplicationUserUpdatedEvent(user.Id, true));
+        await _events.PublishAsync(new ApplicationUserUpdatedEvent(user.Id, true));
 
         return _localizer["User Roles Updated Successfully."];
     }

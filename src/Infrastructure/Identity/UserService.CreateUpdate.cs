@@ -72,7 +72,7 @@ internal partial class UserService
             user.ObjectId = principal.GetObjectId();
             result = await _userManager.UpdateAsync(user);
 
-            await _eventService.PublishAsync(new ApplicationUserUpdatedEvent(user.Id));
+            await _events.PublishAsync(new ApplicationUserUpdatedEvent(user.Id));
         }
         else
         {
@@ -91,7 +91,7 @@ internal partial class UserService
             };
             result = await _userManager.CreateAsync(user);
 
-            await _eventService.PublishAsync(new ApplicationUserCreatedEvent(user.Id));
+            await _events.PublishAsync(new ApplicationUserCreatedEvent(user.Id));
         }
 
         if (!result.Succeeded)
@@ -142,7 +142,7 @@ internal partial class UserService
             messages.Add(_localizer[$"Please check {user.Email} to verify your account!"]);
         }
 
-        await _eventService.PublishAsync(new ApplicationUserCreatedEvent(user.Id));
+        await _events.PublishAsync(new ApplicationUserCreatedEvent(user.Id));
 
         return string.Join(Environment.NewLine, messages);
     }
@@ -177,7 +177,7 @@ internal partial class UserService
 
         await _signInManager.RefreshSignInAsync(user);
 
-        await _eventService.PublishAsync(new ApplicationUserUpdatedEvent(user.Id));
+        await _events.PublishAsync(new ApplicationUserUpdatedEvent(user.Id));
 
         if (!result.Succeeded)
         {
