@@ -46,8 +46,8 @@ public class GetStatsRequestHandler : IRequestHandler<GetStatsRequest, StatsDto>
             var brandSpec = new AuditableEntitiesByCreatedOnBetweenSpec<Brand>(filterStartDate, filterEndDate);
             var productSpec = new AuditableEntitiesByCreatedOnBetweenSpec<Product>(filterStartDate, filterEndDate);
 
-            productsFigure[i - 1] = await _brandRepo.CountAsync(brandSpec, cancellationToken);
-            brandsFigure[i - 1] = await _productRepo.CountAsync(productSpec, cancellationToken);
+            brandsFigure[i - 1] = await _brandRepo.CountAsync(brandSpec, cancellationToken);
+            productsFigure[i - 1] = await _productRepo.CountAsync(productSpec, cancellationToken);
         }
 
         stats.DataEnterBarChart.Add(new ChartSeries { Name = _localizer["Products"], Data = productsFigure });
