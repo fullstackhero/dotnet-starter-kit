@@ -1,9 +1,11 @@
+using FSH.WebApi.Shared.Events;
+
 namespace FSH.WebApi.Application.Common.Events;
 
-public class EventNotification<TDomainEvent> : INotification
-    where TDomainEvent : DomainEvent
+public class EventNotification<TEvent> : INotification
+    where TEvent : IEvent
 {
-    public EventNotification(TDomainEvent domainEvent) => Event = domainEvent;
+    public EventNotification(TEvent @event) => Event = @event;
 
-    public TDomainEvent Event { get; }
+    public TEvent Event { get; }
 }
