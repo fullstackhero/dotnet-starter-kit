@@ -30,6 +30,20 @@ public class HangfireService : IJobService
     public bool Requeue(string jobId, string fromState) =>
         BackgroundJob.Requeue(jobId, fromState);
 
+    public void AddOrUpdate(string id, Expression<Func<Task>> methodCall, Func<string> cron, TimeZoneInfo timeZone, string qoeue) =>
+        RecurringJob.AddOrUpdate(id, methodCall, cron, timeZone, qoeue);
+
+    public void AddOrUpdate<T>(string id, Expression<Func<T, Task>> methodCall, Func<string> cron, TimeZoneInfo timeZone, string qoeue) =>
+        RecurringJob.AddOrUpdate(id, methodCall, cron, timeZone, qoeue);
+    public void AddOrUpdate(string id, Expression<Action> methodCall, Func<string> cron, TimeZoneInfo timeZone, string qoeue) =>
+        RecurringJob.AddOrUpdate(id, methodCall, cron, timeZone, qoeue);
+
+    public void AddOrUpdate<T>(string id, Expression<Action<T>> methodCall, Func<string> cron, TimeZoneInfo timeZone, string qoeue) =>
+        RecurringJob.AddOrUpdate(id, methodCall, cron, timeZone, qoeue);
+
+    public void RemoveIfExist(string jobId) =>
+        RecurringJob.RemoveIfExists(jobId);
+
     public string Schedule(Expression<Action> methodCall, TimeSpan delay) =>
         BackgroundJob.Schedule(methodCall, delay);
 

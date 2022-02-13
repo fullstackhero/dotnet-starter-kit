@@ -35,4 +35,14 @@ public interface IJobService : ITransientService
     bool Requeue(string jobId);
 
     bool Requeue(string jobId, string fromState);
+
+    void AddOrUpdate(string id, Expression<Func<Task>> methodCall, Func<string> cron, TimeZoneInfo timeZone, string qoeue);
+
+    void AddOrUpdate<T>(string id, Expression<Func<T, Task>> methodCall, Func<string> cron, TimeZoneInfo timeZone, string qoeue);
+
+    void AddOrUpdate(string id, Expression<Action> methodCall, Func<string> cron, TimeZoneInfo timeZone, string qoeue);
+
+    void AddOrUpdate<T>(string id, Expression<Action<T>> methodCall, Func<string> cron, TimeZoneInfo timeZone, string qoeue);
+
+    void RemoveIfExist(string jobId);
 }
