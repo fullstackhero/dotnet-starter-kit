@@ -6,7 +6,7 @@ public interface IJobService : ITransientService
 {
     string Enqueue(Expression<Action> methodCall);
 
-    string Enqueue(Expression<Func<Task>> expression);
+    string Enqueue(Expression<Func<Task>> methodCall);
 
     string Enqueue<T>(Expression<Action<T>> methodCall);
 
