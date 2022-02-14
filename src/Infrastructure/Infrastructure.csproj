@@ -39,6 +39,7 @@
         <PackageReference Include="MimeKit" Version="3.1.1" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.3" />
         <PackageReference Include="NSwag.AspNetCore" Version="13.15.9" />
+        <PackageReference Include="RazorEngineCore" Version="2022.1.2" />
         <PackageReference Include="ZymLabs.NSwag.FluentValidation.AspNetCore" Version="0.5.1" />
         <PackageReference Include="Oracle.EntityFrameworkCore" Version="6.21.5" />
         <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.1" />
@@ -55,8 +56,6 @@
         <PackageReference Include="Serilog.Sinks.MSSqlServer" Version="5.6.1" />
         <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="8.4.1" />
         <PackageReference Include="Serilog.Sinks.Seq" Version="5.1.1" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
-        <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.2.3" />
         <PackageReference Include="System.Linq.Dynamic.Core" Version="1.2.15" />
     </ItemGroup>
     <ItemGroup>

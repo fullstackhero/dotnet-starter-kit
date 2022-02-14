@@ -1,7 +1,7 @@
-﻿using ClosedXML.Excel;
-using FSH.WebApi.Application.Common.Exporters;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Data;
+using ClosedXML.Excel;
+using FSH.WebApi.Application.Common.Exporters;
 
 namespace FSH.WebApi.Infrastructure.Common.Export;
 
@@ -21,13 +21,11 @@ public class ExcelWriter : IExcelWriter
             table.Rows.Add(row);
         }
 
-        using (XLWorkbook wb = new XLWorkbook())
-        {
-            wb.Worksheets.Add(table);
-            Stream stream = new MemoryStream();
-            wb.SaveAs(stream);
-            stream.Seek(0, SeekOrigin.Begin);
-            return stream;
-        }
+        using XLWorkbook wb = new XLWorkbook();
+        wb.Worksheets.Add(table);
+        Stream stream = new MemoryStream();
+        wb.SaveAs(stream);
+        stream.Seek(0, SeekOrigin.Begin);
+        return stream;
     }
 }

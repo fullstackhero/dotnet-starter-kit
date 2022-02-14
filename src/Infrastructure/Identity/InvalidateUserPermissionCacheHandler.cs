@@ -1,14 +1,13 @@
 ﻿using FSH.WebApi.Application.Common.Events;
 using FSH.WebApi.Application.Identity.Users;
 using FSH.WebApi.Domain.Identity;
-using MediatR;
 using Microsoft.AspNetCore.Identity;
 
 namespace FSH.WebApi.Infrastructure.Identity;
 
 internal class InvalidateUserPermissionCacheHandler :
-    INotificationHandler<EventNotification<ApplicationUserUpdatedEvent>>,
-    INotificationHandler<EventNotification<ApplicationRoleUpdatedEvent>>
+    IEventNotificationHandler<ApplicationUserUpdatedEvent>,
+    IEventNotificationHandler<ApplicationRoleUpdatedEvent>
 {
     private readonly IUserService _userService;
     private readonly UserManager<ApplicationUser> _userManager;
