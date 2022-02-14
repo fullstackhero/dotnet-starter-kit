@@ -20,7 +20,7 @@ public class NewtonSoftService : ISerializerService
             NullValueHandling = NullValueHandling.Ignore,
             Converters = new List<JsonConverter>
             {
-                new StringEnumConverter() { NamingStrategy = new CamelCaseNamingStrategy() }
+                new StringEnumConverter() { CamelCaseText = true }
             }
         });
     }
