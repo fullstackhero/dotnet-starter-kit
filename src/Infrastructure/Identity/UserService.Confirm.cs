@@ -11,6 +11,7 @@ internal partial class UserService
 {
     private async Task<string> GetEmailVerificationUriAsync(ApplicationUser user, string origin)
     {
+        _ = _currentTenant.Id ?? throw new InternalServerException(_localizer["An error occurred while generating Verification Uri."]);
         string code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
         const string route = "api/profile/confirm-email/";
