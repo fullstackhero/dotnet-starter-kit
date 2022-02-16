@@ -3,6 +3,7 @@ using FSH.WebApi.Shared.Multitenancy;
 
 namespace FSH.WebApi.Infrastructure.Multitenancy;
 
+#pragma warning disable CS8767
 public class FSHTenantInfo : ITenantInfo
 {
     public FSHTenantInfo()
