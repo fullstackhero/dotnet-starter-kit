@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 
 namespace FSH.WebApi.Shared.Authorization;
 
+#pragma warning disable CA2211
 public static class FSHRoles
 {
     public static string Admin = nameof(Admin);
