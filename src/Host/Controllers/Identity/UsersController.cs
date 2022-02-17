@@ -44,6 +44,7 @@ public class UsersController : VersionNeutralApiController
 
     [HttpPost]
     [AllowAnonymous]
+    [TenantIdHeader]
     [OpenApiOperation("Create a new user.", "")]
     public Task<string> CreateAsync(CreateUserRequest request)
     {
