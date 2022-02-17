@@ -3,7 +3,6 @@ using FSH.WebApi.Shared.Multitenancy;
 
 namespace FSH.WebApi.Infrastructure.Multitenancy;
 
-#pragma warning disable CS8767
 public class FSHTenantInfo : ITenantInfo
 {
     public FSHTenantInfo()
@@ -73,4 +72,9 @@ public class FSHTenantInfo : ITenantInfo
 
         IsActive = false;
     }
+
+    string? ITenantInfo.Id { get => Id; set => Id = value ?? throw new InvalidOperationException("Id can't be null."); }
+    string? ITenantInfo.Identifier { get => Identifier; set => Identifier = value ?? throw new InvalidOperationException("Identifier can't be null."); }
+    string? ITenantInfo.Name { get => Name; set => Name = value ?? throw new InvalidOperationException("Name can't be null."); }
+    string? ITenantInfo.ConnectionString { get => ConnectionString; set => ConnectionString = value ?? throw new InvalidOperationException("ConnectionString can't be null."); }
 }
