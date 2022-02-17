@@ -86,13 +86,19 @@ internal partial class UserService : IUserService
     }
 
     public async Task<bool> ExistsWithNameAsync(string name) =>
-        await _userManager.FindByNameAsync(name) is not null;
+        string.IsNullOrEmpty(_currentTenant?.Id)
+            ? throw new UnauthorizedException(_localizer["tenant.invalid"])
+            : await _userManager.FindByNameAsync(name) is not null;
 
     public async Task<bool> ExistsWithEmailAsync(string email, string? exceptId = null) =>
-        await _userManager.FindByEmailAsync(email.Normalize()) is ApplicationUser user && user.Id != exceptId;
+        string.IsNullOrEmpty(_currentTenant?.Id)
+            ? throw new UnauthorizedException(_localizer["tenant.invalid"])
+            : await _userManager.FindByEmailAsync(email.Normalize()) is ApplicationUser user && user.Id != exceptId;
 
     public async Task<bool> ExistsWithPhoneNumberAsync(string phoneNumber, string? exceptId = null) =>
-        await _userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == phoneNumber) is ApplicationUser user && user.Id != exceptId;
+        string.IsNullOrEmpty(_currentTenant?.Id)
+            ? throw new UnauthorizedException(_localizer["tenant.invalid"])
+            : await _userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == phoneNumber) is ApplicationUser user && user.Id != exceptId;
 
     public async Task<List<UserDetailsDto>> GetListAsync(CancellationToken cancellationToken) =>
         (await _userManager.Users
