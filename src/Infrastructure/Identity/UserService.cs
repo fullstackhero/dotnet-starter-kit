@@ -85,20 +85,31 @@ internal partial class UserService : IUserService
         return new PaginationResponse<UserDetailsDto>(users, count, filter.PageNumber, filter.PageSize);
     }
 
-    public async Task<bool> ExistsWithNameAsync(string name) =>
-        string.IsNullOrEmpty(_currentTenant?.Id)
-            ? throw new UnauthorizedException(_localizer["tenant.invalid"])
-            : await _userManager.FindByNameAsync(name) is not null;
+    public async Task<bool> ExistsWithNameAsync(string name)
+    {
+        EnsureValidTenant();
+        return await _userManager.FindByNameAsync(name) is not null;
+    }
 
-    public async Task<bool> ExistsWithEmailAsync(string email, string? exceptId = null) =>
-        string.IsNullOrEmpty(_currentTenant?.Id)
-            ? throw new UnauthorizedException(_localizer["tenant.invalid"])
-            : await _userManager.FindByEmailAsync(email.Normalize()) is ApplicationUser user && user.Id != exceptId;
+    public async Task<bool> ExistsWithEmailAsync(string email, string? exceptId = null)
+    {
+        EnsureValidTenant();
+        return await _userManager.FindByEmailAsync(email.Normalize()) is ApplicationUser user && user.Id != exceptId;
+    }
 
-    public async Task<bool> ExistsWithPhoneNumberAsync(string phoneNumber, string? exceptId = null) =>
-        string.IsNullOrEmpty(_currentTenant?.Id)
-            ? throw new UnauthorizedException(_localizer["tenant.invalid"])
-            : await _userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == phoneNumber) is ApplicationUser user && user.Id != exceptId;
+    public async Task<bool> ExistsWithPhoneNumberAsync(string phoneNumber, string? exceptId = null)
+    {
+        EnsureValidTenant();
+        return await _userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == phoneNumber) is ApplicationUser user && user.Id != exceptId;
+    }
+
+    private void EnsureValidTenant()
+    {
+        if (string.IsNullOrWhiteSpace(_currentTenant?.Id))
+        {
+            throw new UnauthorizedException(_localizer["tenant.invalid"]);
+        }
+    }
 
     public async Task<List<UserDetailsDto>> GetListAsync(CancellationToken cancellationToken) =>
         (await _userManager.Users
