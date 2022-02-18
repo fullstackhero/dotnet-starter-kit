@@ -16,10 +16,6 @@ public class SearchProductsRequestHandler : IRequestHandler<SearchProductsReques
     public async Task<PaginationResponse<ProductDto>> Handle(SearchProductsRequest request, CancellationToken cancellationToken)
     {
         var spec = new ProductsBySearchRequestWithBrandsSpec(request);
-
-        var list = await _repository.ListAsync(spec, cancellationToken);
-        int count = await _repository.CountAsync(spec, cancellationToken);
-
-        return new PaginationResponse<ProductDto>(list, count, request.PageNumber, request.PageSize);
+        return await _repository.PaginatedListAsync(spec, request.PageNumber, request.PageSize, cancellationToken: cancellationToken);
     }
 }
