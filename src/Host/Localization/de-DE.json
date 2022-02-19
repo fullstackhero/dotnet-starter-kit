@@ -1,0 +1,21 @@
+{
+  "auth.failed": "Authentifizierung fehlgeschlagen",
+  "tenant.invalid": "Ungültiger Mandant",
+  "tenant.expired": "Mandant Laufzeit abgelaufen. Bitte kontaktieren Sie den Administrator.",
+  "tenant.inactive": "Mandant nicht aktiv. Bitte kontaktieren Sie den Administrator.",
+  "caching.added": "Zwischenspeicher hinzugefügt : {0}",
+  "caching.refreshed": "Zwischenspeicher aktualisiert",
+  "identity.usernotfound": "Benutzer nicht gefunden",
+  "identity.usernotactive": "Benutzer inaktiv. Bitte kontaktieren Sie den Administrator.",
+  "identity.emailnotconfirmed": "Bestätigungs-Mail nicht beantwortet",
+  "identity.invalidcredentials": "Eingabe ungültig",
+  "identity.invalidtoken": "Ungültiger Token",
+  "identity.invalidrefreshtoken": "Ungültige Aktualisierung Token",
+  "entity.notfound": "{0} {1} nicht gefunden",
+  "product.alreadyexists": "Produkt {0} bereits vorhanden",
+  "product.notfound": "Produkt {0} nicht gefunden",
+  "brand.notfound": "Marke {0} nicht gefunden",
+  "brand.cannotbedeleted": "Marke wird verwendet, löschen nicht möglich",
+  "brand.alreadyexists": "Marke {0} bereits vorhanden",
+  "exceptionmiddleware.supportmessage": "Zur Problemanalyse übermitteln Sie die Fehlernummer an den Support"
+}
