@@ -39,6 +39,5 @@
     <ItemGroup>
         <ProjectReference Include="..\Application.Contracts\Application.Contracts.csproj" />
         <ProjectReference Include="..\Domain\Domain.csproj" />
-        <ProjectReference Include="..\Shared\Domain.Shared.csproj" />
     </ItemGroup>
 </Project>

@@ -5,7 +5,7 @@
         <AssemblyName>FSH.WebApi.Application.Contracts</AssemblyName>
     </PropertyGroup>
     <ItemGroup>
+        <ProjectReference Include="..\Domain.Shared\Domain.Shared.csproj" />
         <ProjectReference Include="..\Domain\Domain.csproj" />
-        <ProjectReference Include="..\Shared\Domain.Shared.csproj" />
     </ItemGroup>
 </Project>
