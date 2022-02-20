@@ -1,9 +1,33 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <RootNamespace>FSH.WebApi.Application</RootNamespace>
         <AssemblyName>FSH.WebApi.Application</AssemblyName>
     </PropertyGroup>
+    <ItemGroup>
+      <Compile Remove="Common\Caching\**" />
+      <Compile Remove="Common\Exceptions\**" />
+      <Compile Remove="Common\Exporters\**" />
+      <Compile Remove="Common\Interfaces\**" />
+      <Compile Remove="Common\Mailing\**" />
+      <Compile Remove="Common\Models\**" />
+      <EmbeddedResource Remove="Common\Caching\**" />
+      <EmbeddedResource Remove="Common\Exceptions\**" />
+      <EmbeddedResource Remove="Common\Exporters\**" />
+      <EmbeddedResource Remove="Common\Interfaces\**" />
+      <EmbeddedResource Remove="Common\Mailing\**" />
+      <EmbeddedResource Remove="Common\Models\**" />
+      <None Remove="Common\Caching\**" />
+      <None Remove="Common\Exceptions\**" />
+      <None Remove="Common\Exporters\**" />
+      <None Remove="Common\Interfaces\**" />
+      <None Remove="Common\Mailing\**" />
+      <None Remove="Common\Models\**" />
+    </ItemGroup>
+    <ItemGroup>
+      <Compile Remove="Catalog\Brands\BrandDto.cs" />
+      <Compile Remove="Common\Events\IEventPublisher.cs" />
+    </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Ardalis.Specification" Version="6.0.1" />
         <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="10.3.6" />
@@ -13,7 +37,8 @@
         <PackageReference Include="Microsoft.Extensions.Localization" Version="6.0.2" />
     </ItemGroup>
     <ItemGroup>
+        <ProjectReference Include="..\Application.Contracts\Application.Contracts.csproj" />
         <ProjectReference Include="..\Domain\Domain.csproj" />
-        <ProjectReference Include="..\Shared\Shared.csproj" />
+        <ProjectReference Include="..\Shared\Domain.Shared.csproj" />
     </ItemGroup>
 </Project>

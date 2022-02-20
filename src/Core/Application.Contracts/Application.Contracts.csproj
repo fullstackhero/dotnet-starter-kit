@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <RootNamespace>FSH.WebApi.Application</RootNamespace>
+        <AssemblyName>FSH.WebApi.Application.Contracts</AssemblyName>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Domain\Domain.csproj" />
+        <ProjectReference Include="..\Shared\Domain.Shared.csproj" />
+    </ItemGroup>
+</Project>
