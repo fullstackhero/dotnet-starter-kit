@@ -6,7 +6,7 @@
 /// <summary>
 /// The regular read/write repository for an aggregate root.
 /// </summary>
-public interface IRepository<T> : IRepositoryBase<T>, IReadRepository<T>
+public interface IRepository<T> : IRepositoryBase<T>
     where T : class, IAggregateRoot
 {
 }
@@ -25,7 +25,7 @@ public interface IReadRepository<T> : IReadRepositoryBase<T>
 /// events to the DomainEvents of the entities before adding,
 /// updating or deleting them.
 /// </summary>
-public interface IRepositoryWithEvents<T> : IRepository<T>
+public interface IRepositoryWithEvents<T> : IRepositoryBase<T>
     where T : class, IAggregateRoot
 {
 }
