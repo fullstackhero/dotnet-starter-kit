@@ -50,7 +50,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure.Test", "test
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Migrators.Oracle", "src\Migrators\Migrators.Oracle\Migrators.Oracle.csproj", "{E860D5C5-7E42-438D-AD3E-8CDCD80F49FC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain.Shared", "src\Core\Shared\Domain.Shared.csproj", "{5B986063-2160-4F86-AF1D-7F97671146C5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain.Shared", "src\Core\Domain.Shared\Domain.Shared.csproj", "{5B986063-2160-4F86-AF1D-7F97671146C5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application.Contracts", "src\Core\Application.Contracts\Application.Contracts.csproj", "{2A5743F6-E308-4E5A-8816-B4DD6D5762D8}"
 EndProject
