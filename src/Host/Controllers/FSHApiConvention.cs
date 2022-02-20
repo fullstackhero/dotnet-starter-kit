@@ -5,8 +5,7 @@ namespace FSH.WebApi.Host.Controllers;
 
 #nullable disable
 #pragma warning disable RCS1163
-#pragma warning disable RCS1222
-#pragma warning disable IDE0060
+
 public static class FSHApiConventions
 {
     [ProducesResponseType(200)]

@@ -3,11 +3,12 @@ using FSH.WebApi.Application;
 using FSH.WebApi.Host.Configurations;
 using FSH.WebApi.Host.Controllers;
 using FSH.WebApi.Infrastructure;
+using FSH.WebApi.Infrastructure.Common;
 using Serilog;
 
 [assembly: ApiConventionType(typeof(FSHApiConventions))]
 
-Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+StaticLogger.EnsureInitialized();
 Log.Information("Server Booting Up...");
 try
 {
@@ -30,15 +31,16 @@ try
 
     app.UseInfrastructure(builder.Configuration);
     app.MapEndpoints();
-
     app.Run();
 }
 catch (Exception ex) when (!ex.GetType().Name.Equals("StopTheHostException", StringComparison.Ordinal))
 {
+    StaticLogger.EnsureInitialized();
     Log.Fatal(ex, "Unhandled exception");
 }
 finally
 {
+    StaticLogger.EnsureInitialized();
     Log.Information("Server Shutting down...");
     Log.CloseAndFlush();
 }

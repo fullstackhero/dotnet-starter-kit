@@ -40,7 +40,7 @@ internal static class Startup
         {
             if (context is not HttpContext httpContext)
             {
-                return Task.FromResult((string?)null);
+                return Task.FromResult((string?)null!);
             }
 
             httpContext.Request.Query.TryGetValue(queryStringKey, out StringValues tenantIdParam);

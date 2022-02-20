@@ -124,7 +124,7 @@ internal partial class UserService
 
         var messages = new List<string> { string.Format(_localizer["User {0} Registered."], user.UserName) };
 
-        if (_mailSettings.EnableVerification && !string.IsNullOrEmpty(user.Email))
+        if (_securitySettings.RequireConfirmedAccount && !string.IsNullOrEmpty(user.Email))
         {
             // send verification email
             string emailVerificationUri = await GetEmailVerificationUriAsync(user, origin);
