@@ -1,7 +1,6 @@
 {
   "MailSettings": {
     "DisplayName": "Mukesh Murugan",
-    "EnableVerification": true,
     "From": "mukesh@fullstackhero.net",
     "Host": "smtp.ethereal.email",
     "Password": "vAKmWQB8CyPUBg8rBQ",

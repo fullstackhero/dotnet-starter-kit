@@ -1,6 +1,7 @@
 {
   "SecuritySettings": {
     "Provider": "Jwt",
+    "RequireConfirmedAccount":true,
     "JwtSettings": {
       "key": "S0M3RAN0MS3CR3T!1!MAG1C!1!",
       "tokenExpirationInMinutes": 60,
