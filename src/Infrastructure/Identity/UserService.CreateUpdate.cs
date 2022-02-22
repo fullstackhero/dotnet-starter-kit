@@ -104,16 +104,6 @@ internal partial class UserService
 
     public async Task<string> CreateAsync(CreateUserRequest request, string origin)
     {
-        return await CreateUserInternalAsync(request, origin, false);
-    }
-
-    public async Task<string> SelfRegisterAsync(CreateUserRequest request, string origin)
-    {
-        return await CreateUserInternalAsync(request, origin, true);
-    }
-
-    private async Task<string> CreateUserInternalAsync(CreateUserRequest request, string origin, bool isAnonymous)
-    {
         var user = new ApplicationUser
         {
             Email = request.Email,
@@ -130,10 +120,7 @@ internal partial class UserService
             throw new InternalServerException(_localizer["Validation Errors Occurred."], result.GetErrors(_localizer));
         }
 
-        if (!isAnonymous)
-        {
-            await _userManager.AddToRoleAsync(user, FSHRoles.Basic);
-        }
+        await _userManager.AddToRoleAsync(user, FSHRoles.Basic);
 
         var messages = new List<string> { string.Format(_localizer["User {0} Registered."], user.UserName) };
 
@@ -158,7 +145,6 @@ internal partial class UserService
         await _events.PublishAsync(new ApplicationUserCreatedEvent(user.Id));
 
         return string.Join(Environment.NewLine, messages);
-
     }
 
     public async Task UpdateAsync(UpdateUserRequest request, string userId)
