@@ -56,7 +56,7 @@
         <PackageReference Include="Serilog.Sinks.MSSqlServer" Version="5.7.0" />
         <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="8.4.1" />
         <PackageReference Include="Serilog.Sinks.Seq" Version="5.1.1" />
-        <PackageReference Include="System.Linq.Dynamic.Core" Version="1.2.15" />
+        <PackageReference Include="System.Linq.Dynamic.Core" Version="1.2.17" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Core\Application\Application.csproj" />
