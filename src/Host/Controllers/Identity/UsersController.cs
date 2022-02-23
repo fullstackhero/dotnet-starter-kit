@@ -41,6 +41,7 @@ public class UsersController : VersionNeutralApiController
     {
         return _userService.AssignRolesAsync(id, request, cancellationToken);
     }
+
     [HttpPost]
     [TenantIdHeader]
     [MustHavePermission(FSHAction.Create, FSHResource.Users)]
