@@ -24,13 +24,13 @@ internal class ApplicationDbInitializer
     {
         if (_dbContext.Database.GetMigrations().Any())
         {
-            if (_dbContext.Database.GetPendingMigrations().Any())
+            if ((await _dbContext.Database.GetPendingMigrationsAsync(cancellationToken)).Any())
             {
                 _logger.LogInformation("Applying Migrations for '{tenantId}' tenant.", _currentTenant.Id);
                 await _dbContext.Database.MigrateAsync(cancellationToken);
             }
 
-            if (_dbContext.Database.CanConnect())
+            if (await _dbContext.Database.CanConnectAsync(cancellationToken))
             {
                 _logger.LogInformation("Connection to {tenantId}'s Database Succeeded.", _currentTenant.Id);
 
