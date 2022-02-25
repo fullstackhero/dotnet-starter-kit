@@ -11,7 +11,7 @@ internal class CustomSeederRunner
 
     public async Task RunSeedersAsync(CancellationToken cancellationToken)
     {
-        foreach (var seeder in _seeders)
+        foreach (var seeder in _seeders.OrderBy(seed => seed.OrderByKeyName))
         {
             await seeder.InitializeAsync(cancellationToken);
         }

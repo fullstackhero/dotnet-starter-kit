@@ -20,6 +20,8 @@ public class BrandSeeder : ICustomSeeder
         _db = db;
     }
 
+    public string OrderByKeyName { get; } = "010.Brands";
+
     public async Task InitializeAsync(CancellationToken cancellationToken)
     {
         string? path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);

@@ -9,28 +9,28 @@ using Microsoft.Extensions.Logging;
 
 namespace FSH.WebApi.Infrastructure.Persistence.Initialization;
 
-internal class ApplicationDbSeeder
+internal class ApplicationDbSeeder : ICustomSeeder
 {
     private readonly FSHTenantInfo _currentTenant;
     private readonly RoleManager<ApplicationRole> _roleManager;
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly CustomSeederRunner _seederRunner;
+    private readonly ApplicationDbContext _dbContext;
     private readonly ILogger<ApplicationDbSeeder> _logger;
 
-    public ApplicationDbSeeder(FSHTenantInfo currentTenant, RoleManager<ApplicationRole> roleManager, UserManager<ApplicationUser> userManager, CustomSeederRunner seederRunner, ILogger<ApplicationDbSeeder> logger)
+    public ApplicationDbSeeder(FSHTenantInfo currentTenant, RoleManager<ApplicationRole> roleManager, UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, ILogger<ApplicationDbSeeder> logger)
     {
         _currentTenant = currentTenant;
         _roleManager = roleManager;
         _userManager = userManager;
-        _seederRunner = seederRunner;
+        _dbContext = dbContext;
         _logger = logger;
     }
 
-    public async Task SeedDatabaseAsync(ApplicationDbContext dbContext, CancellationToken cancellationToken)
+    public string OrderByKeyName { get; } = "000.InitApplication";
+    public async Task InitializeAsync(CancellationToken cancellationToken)
     {
-        await SeedRolesAsync(dbContext);
+        await SeedRolesAsync(_dbContext);
         await SeedAdminUserAsync();
-        await _seederRunner.RunSeedersAsync(cancellationToken);
     }
 
     private async Task SeedRolesAsync(ApplicationDbContext dbContext)
@@ -120,4 +120,5 @@ internal class ApplicationDbSeeder
             await _userManager.AddToRoleAsync(adminUser, FSHRoles.Admin);
         }
     }
+
 }

@@ -9,14 +9,14 @@ internal class ApplicationDbInitializer
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly ITenantInfo _currentTenant;
-    private readonly ApplicationDbSeeder _dbSeeder;
     private readonly ILogger<ApplicationDbInitializer> _logger;
+    private readonly CustomSeederRunner _seederRunner;
 
-    public ApplicationDbInitializer(ApplicationDbContext dbContext, ITenantInfo currentTenant, ApplicationDbSeeder dbSeeder, ILogger<ApplicationDbInitializer> logger)
+    public ApplicationDbInitializer(ApplicationDbContext dbContext, ITenantInfo currentTenant, CustomSeederRunner seederRunner, ILogger<ApplicationDbInitializer> logger)
     {
         _dbContext = dbContext;
         _currentTenant = currentTenant;
-        _dbSeeder = dbSeeder;
+        _seederRunner = seederRunner;
         _logger = logger;
     }
 
@@ -34,7 +34,9 @@ internal class ApplicationDbInitializer
             {
                 _logger.LogInformation("Connection to {tenantId}'s Database Succeeded.", _currentTenant.Id);
 
-                await _dbSeeder.SeedDatabaseAsync(_dbContext, cancellationToken);
+                await _seederRunner.RunSeedersAsync(cancellationToken);
+
+                // await _dbSeeder.SeedDatabaseAsync(_dbContext, cancellationToken);
             }
         }
     }
