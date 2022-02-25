@@ -35,8 +35,6 @@ internal class ApplicationDbInitializer
                 _logger.LogInformation("Connection to {tenantId}'s Database Succeeded.", _currentTenant.Id);
 
                 await _seederRunner.RunSeedersAsync(cancellationToken);
-
-                // await _dbSeeder.SeedDatabaseAsync(_dbContext, cancellationToken);
             }
         }
     }
