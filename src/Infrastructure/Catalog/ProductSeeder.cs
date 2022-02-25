@@ -22,7 +22,7 @@ public class ProductSeeder : ICustomSeeder
 
     public string OrderByKeyName { get; } = "011.Products";
 
-    public async Task InitializeAsync(CancellationToken cancellationToken)
+    public Task InitializeAsync(CancellationToken cancellationToken)
     {
         string? path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         if (!_db.Products.Any())
@@ -34,5 +34,7 @@ public class ProductSeeder : ICustomSeeder
 
             _logger.LogInformation("Seeded Products.");
         }
+
+        return Task.CompletedTask;
     }
 }
