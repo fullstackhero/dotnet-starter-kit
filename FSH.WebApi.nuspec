@@ -2,8 +2,8 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>FullStackHero.WebAPI.Boilerplate</id>
-    <title>FullStackHero WebAPI Boilerplate</title>
-    <version>0.0.5-rc</version>
+    <title>.NET WebAPI Boilerplate - FullStackHero</title>
+    <version>0.0.6-rc</version>
     <authors>Mukesh Murugan</authors>
     <description>
       Clean Architecture Template for .NET 6.0 WebAPI built with Multitenancy Support.
@@ -11,8 +11,8 @@
     <language>en-US</language>
     <license type="expression">MIT</license>
     <copyright>2021</copyright>
-    <projectUrl>https://fullstackhero.net/dotnet-webapi-boilerplate/</projectUrl>
-    <repository type="git" url="https://github.com/fullstackhero/dotnet-webapi-boilerplate.git" branch="master" commit="1403b1b5637b526b356995c7a6e0b17ab5c780e9" />
+    <projectUrl>https://fullstackhero.net/dotnet-webapi-boilerplate/general/getting-started/</projectUrl>
+    <repository type="git" url="https://github.com/fullstackhero/dotnet-webapi-boilerplate.git"/>
     <packageTypes>
       <packageType name="Template" />
     </packageTypes>
