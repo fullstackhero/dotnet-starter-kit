@@ -90,6 +90,8 @@ For step by step instructions, [follow this](https://discord.com/channels/878181
 
 ### Using the .NET CLI
 
+> 0.0.6 RC is now released!
+
 Open up your Command Prompt / Powershell and run the following command to install the solution template.
 
 ```powershell
