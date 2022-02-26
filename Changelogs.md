@@ -28,7 +28,7 @@
 - Code Cleanups
 - Templated Emails for User Registrations
 
-0.0.5-rc - Current
+0.0.5-rc
 
 - Fixed Password Reset / Forgot
 - Fixed Omnisharp Warnings / Code Cleanup
@@ -45,11 +45,23 @@
 - File-Scoped namespaces and implicit usings
 - Better Folder Structure / Modular
 
-0.0.6-rc / (maybe 1.0) - Next Release
+0.0.6-rc - Current
 
 - AD Authentication Support
 - Oracle DB Provider for EFCore support
-- Refactored Repository Methods with better specifications
 - Code Refactors
 - Added ElasticSearch + Kibana for Logging
 - Added Docker Compose for ElasticSearch + Kibana Container
+- Integrated Finbucke Multitenant packages
+- Solution Restructure
+- Added Scripts for Generating Migrations
+- Introduced CQRS Pattern with MediatR
+- Better Configuration Files
+- Added .rest file for API Testing
+- Updated Postman Collection
+- Code Cleanup
+- Updated all Packages
+- Serilog Startup fix
+- Export to Excel Support
+- Specification Pattern using Ardalis packages
+- OpenAPI Client Generation
