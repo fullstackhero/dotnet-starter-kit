@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace FSH.WebApi.Application.Identity;
+namespace FSH.WebApi.Application.Common.Exceptions;
 
 public class InternalServerException : CustomException
 {

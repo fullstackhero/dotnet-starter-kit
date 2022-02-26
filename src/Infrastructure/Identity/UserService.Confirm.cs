@@ -1,5 +1,5 @@
 using System.Text;
-using FSH.WebApi.Application.Identity;
+using FSH.WebApi.Application.Common.Exceptions;
 using FSH.WebApi.Infrastructure.Common;
 using FSH.WebApi.Shared.Multitenancy;
 using Microsoft.AspNetCore.WebUtilities;
