@@ -43,9 +43,22 @@ public class UsersController : VersionNeutralApiController
     }
 
     [HttpPost]
-    [AllowAnonymous]
-    [OpenApiOperation("Create a new user.", "")]
+    [MustHavePermission(FSHAction.Create, FSHResource.Users)]
+    [OpenApiOperation("Creates a new user.", "")]
     public Task<string> CreateAsync(CreateUserRequest request)
+    {
+        // TODO: check if registering anonymous users is actually allowed (should probably be an appsetting)
+        // and return UnAuthorized when it isn't
+        // Also: add other protection to prevent automatic posting (captcha?)
+        return _userService.CreateAsync(request, GetOriginFromRequest());
+    }
+
+    [HttpPost("self-register")]
+    [TenantIdHeader]
+    [AllowAnonymous]
+    [OpenApiOperation("Anonymous user creates a user.", "")]
+    [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Register))]
+    public Task<string> SelfRegisterAsync(CreateUserRequest request)
     {
         // TODO: check if registering anonymous users is actually allowed (should probably be an appsetting)
         // and return UnAuthorized when it isn't

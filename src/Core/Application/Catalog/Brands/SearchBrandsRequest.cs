@@ -20,10 +20,6 @@ public class SearchBrandsRequestHandler : IRequestHandler<SearchBrandsRequest, P
     public async Task<PaginationResponse<BrandDto>> Handle(SearchBrandsRequest request, CancellationToken cancellationToken)
     {
         var spec = new BrandsBySearchRequestSpec(request);
-
-        var list = await _repository.ListAsync(spec, cancellationToken);
-        int count = await _repository.CountAsync(spec, cancellationToken);
-
-        return new PaginationResponse<BrandDto>(list, count, request.PageNumber, request.PageSize);
+        return await _repository.PaginatedListAsync(spec, request.PageNumber, request.PageSize, cancellationToken);
     }
 }

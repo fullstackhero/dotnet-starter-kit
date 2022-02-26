@@ -14,7 +14,7 @@ public static class SetNonNullableValidatorExtension
             RuleSets = ruleSets
         };
 
-        return ruleBuilder.SetAsyncValidator((IAsyncPropertyValidator<T, TProperty?>)adapter);
+        return ruleBuilder.SetAsyncValidator(adapter);
     }
 
     private class NullableChildValidatorAdaptor<T, TProperty> : ChildValidatorAdaptor<T, TProperty>, IPropertyValidator<T, TProperty?>, IAsyncPropertyValidator<T, TProperty?>
@@ -33,5 +33,6 @@ public static class SetNonNullableValidatorExtension
         {
             return base.IsValidAsync(context, value!, cancellation);
         }
+#pragma warning restore RCS1132
     }
 }

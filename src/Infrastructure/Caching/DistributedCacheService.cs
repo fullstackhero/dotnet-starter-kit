@@ -23,7 +23,6 @@ public class DistributedCacheService : ICacheService
 
     private byte[]? Get(string key)
     {
-        // throw exception if key is null
         ArgumentNullException.ThrowIfNull(key);
 
         try

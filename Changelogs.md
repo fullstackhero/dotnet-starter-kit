@@ -1,8 +1,8 @@
-0.0.1-rc
+## 0.0.1-rc
 
 - Initial release
 
-0.0.2-rc
+## 0.0.2-rc
 
 - Migration Refresh
 - Security Patches
@@ -13,11 +13,11 @@
 - Upgrade Tenant Subscription
 - Advanced Search
 
-0.0.3-rc
+## 0.0.3-rc
 
 - Security Patches
 
-0.0.4-rc - Current Stable Version
+## 0.0.4-rc
 
 - Bug fix in Repository / Update method.
 - Endpoint changes for Update / Delete Methods. (Postman Collection Updated)
@@ -28,7 +28,7 @@
 - Code Cleanups
 - Templated Emails for User Registrations
 
-0.0.5-rc - Current
+## 0.0.5-rc
 
 - Fixed Password Reset / Forgot
 - Fixed Omnisharp Warnings / Code Cleanup
@@ -45,11 +45,27 @@
 - File-Scoped namespaces and implicit usings
 - Better Folder Structure / Modular
 
-0.0.6-rc / (maybe 1.0) - Next Release
+## 0.0.6-rc `Current`
+
+Released on `2022-02-26`
+
+Release Tag - https://github.com/fullstackhero/dotnet-webapi-boilerplate/tree/0.0.6-rc
 
 - AD Authentication Support
 - Oracle DB Provider for EFCore support
-- Refactored Repository Methods with better specifications
 - Code Refactors
 - Added ElasticSearch + Kibana for Logging
 - Added Docker Compose for ElasticSearch + Kibana Container
+- Integrated Finbucke Multitenant packages
+- Solution Restructure
+- Added Scripts for Generating Migrations
+- Introduced CQRS Pattern with MediatR
+- Better Configuration Files
+- Added .rest file for API Testing
+- Updated Postman Collection
+- Code Cleanup
+- Updated all Packages
+- Serilog Startup fix
+- Export to Excel Support
+- Specification Pattern using Ardalis packages
+- OpenAPI Client Generation

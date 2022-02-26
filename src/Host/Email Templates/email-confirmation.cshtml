@@ -137,8 +137,8 @@
                         <td bgcolor="#ffffff" align="left"
                             style="padding: 20px 30px 40px 30px; color: #666666; font-family: 'Montserrat', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 400; line-height: 25px;">
                             <p style="margin: 0;">
-                                Hi @Model.UserName ! We're excited to have you get started. First, you need
-                                to confirm your email - @Model.Email for this account. Just press the button below.
+                                Hi @Model?.UserName ! We're excited to have you get started. First, you need
+                                to confirm your email - @Model?.Email for this account. Just press the button below.
                             </p>
                         </td>
                     </tr>
@@ -150,7 +150,7 @@
                                         <table border="0" cellspacing="0" cellpadding="0">
                                             <tr>
                                                 <td align="center" style="border-radius: 5px;" bgcolor="#3eaf7c">
-                                                    <a href="@Model.Url" target="_blank"
+                                                    <a href="@Model?.Url" target="_blank"
                                                        style="font-size: 20px; font-family: Helvetica, Arial, sans-serif; color: #ffffff; text-decoration: none; color: #ffffff; text-decoration: none; padding: 15px 25px; border-radius: 2px; border: 1px solid #3eaf7c; display: inline-block;">
                                                         Confirm
                                                         Account
@@ -174,7 +174,7 @@
                             style="padding: 20px 30px 20px 30px; color: #666666; font-family: 'Montserrat', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 400; line-height: 25px;overflow-wrap: anywhere;">
                             <p style="margin: 0;">
                                 <a href="[emailVerificationUri]" target="_blank"
-                                   style="color: #3eaf7c;">@Model.Url</a>
+                                   style="color: #3eaf7c;">@Model?.Url</a>
                             </p>
                         </td>
                     </tr>

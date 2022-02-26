@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using FSH.WebApi.Application.Common.Exceptions;
 using FSH.WebApi.Application.Identity.Tokens;
+using FSH.WebApi.Infrastructure.Auth;
 using FSH.WebApi.Infrastructure.Auth.Jwt;
 using FSH.WebApi.Infrastructure.Mailing;
 using FSH.WebApi.Infrastructure.Multitenancy;
@@ -20,7 +21,7 @@ internal class TokenService : ITokenService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IStringLocalizer<TokenService> _localizer;
-    private readonly MailSettings _mailSettings;
+    private readonly SecuritySettings _securitySettings;
     private readonly JwtSettings _jwtSettings;
     private readonly FSHTenantInfo? _currentTenant;
 
@@ -28,14 +29,14 @@ internal class TokenService : ITokenService
         UserManager<ApplicationUser> userManager,
         IOptions<JwtSettings> jwtSettings,
         IStringLocalizer<TokenService> localizer,
-        IOptions<MailSettings> mailSettings,
-        FSHTenantInfo? currentTenant)
+        FSHTenantInfo? currentTenant,
+        IOptions<SecuritySettings> securitySettings)
     {
         _userManager = userManager;
         _localizer = localizer;
-        _mailSettings = mailSettings.Value;
         _jwtSettings = jwtSettings.Value;
         _currentTenant = currentTenant;
+        _securitySettings = securitySettings.Value;
     }
 
     public async Task<TokenResponse> GetTokenAsync(TokenRequest request, string ipAddress, CancellationToken cancellationToken)
@@ -56,7 +57,7 @@ internal class TokenService : ITokenService
             throw new UnauthorizedException(_localizer["identity.usernotactive"]);
         }
 
-        if (_mailSettings.EnableVerification && !user.EmailConfirmed)
+        if (_securitySettings.RequireConfirmedAccount && !user.EmailConfirmed)
         {
             throw new UnauthorizedException(_localizer["identity.emailnotconfirmed"]);
         }
