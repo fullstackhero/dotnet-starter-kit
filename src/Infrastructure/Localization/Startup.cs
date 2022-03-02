@@ -27,7 +27,9 @@ internal static class Startup
                 new CultureInfo("fr-FR"),
                 new CultureInfo("fr"),
                 new CultureInfo("de"),
-                new CultureInfo("de-DE")
+                new CultureInfo("de-DE"),
+                new CultureInfo("it"),
+                new CultureInfo("it-IT"),
             };
 
             options.DefaultRequestCulture = new RequestCulture("en-US");
