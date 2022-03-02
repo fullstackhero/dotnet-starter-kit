@@ -41,14 +41,11 @@ internal class TokenService : ITokenService
 
     public async Task<TokenResponse> GetTokenAsync(TokenRequest request, string ipAddress, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(_currentTenant?.Id))
+        if (string.IsNullOrWhiteSpace(_currentTenant?.Id)
+            || await _userManager.FindByEmailAsync(request.Email.Trim().Normalize()) is not { } user
+            || !await _userManager.CheckPasswordAsync(user, request.Password))
         {
-            throw new UnauthorizedException(_localizer["Invalid Tenant."]);
-        }
 
-        var user = await _userManager.FindByEmailAsync(request.Email.Trim().Normalize());
-        if (user is null)
-        {
             throw new UnauthorizedException(_localizer["Authentication Failed."]);
         }
 
@@ -73,11 +70,6 @@ internal class TokenService : ITokenService
             {
                 throw new UnauthorizedException(_localizer["Tenant Validity Has Expired. Please contact the Application Administrator."]);
             }
-        }
-
-        if (!await _userManager.CheckPasswordAsync(user, request.Password))
-        {
-            throw new UnauthorizedException(_localizer["Provided Credentials are invalid."]);
         }
 
         return await GenerateTokensAndUpdateUser(user, ipAddress);
