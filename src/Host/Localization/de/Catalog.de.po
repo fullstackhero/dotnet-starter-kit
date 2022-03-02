@@ -1,0 +1,6 @@
+"Language-Key: de"
+"Language: German"
+"PO-Revision-Date: 2022-03-02T06:09:00+05:30"
+
+msgid "Brand {0} already Exists."
+msgstr "Marke {0} bereits vorhanden."

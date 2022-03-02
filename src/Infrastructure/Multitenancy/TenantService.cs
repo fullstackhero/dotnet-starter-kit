@@ -51,7 +51,7 @@ internal class TenantService : ITenantService
 
     public async Task<string> CreateAsync(CreateTenantRequest request, CancellationToken cancellationToken)
     {
-        if(request.ConnectionString?.Trim() == _dbSettings.ConnectionString?.Trim()) request.ConnectionString = string.Empty;
+        if (request.ConnectionString?.Trim() == _dbSettings.ConnectionString?.Trim()) request.ConnectionString = string.Empty;
 
         var tenant = new FSHTenantInfo(request.Id, request.Name, request.ConnectionString, request.AdminEmail, request.Issuer);
         await _tenantStore.TryAddAsync(tenant);
@@ -76,14 +76,14 @@ internal class TenantService : ITenantService
 
         if (tenant.IsActive)
         {
-            throw new ConflictException("Tenant is already Activated.");
+            throw new ConflictException(_localizer["Tenant is already Activated."]);
         }
 
         tenant.Activate();
 
         await _tenantStore.TryUpdateAsync(tenant);
 
-        return $"Tenant {id} is now Activated.";
+        return _localizer["Tenant {0} is now Activated.", id];
     }
 
     public async Task<string> DeactivateAsync(string id)
@@ -92,14 +92,14 @@ internal class TenantService : ITenantService
 
         if (!tenant.IsActive)
         {
-            throw new ConflictException("Tenant is already Deactivated.");
+            throw new ConflictException(_localizer["Tenant is already Deactivated."]);
         }
 
         tenant.Deactivate();
 
         await _tenantStore.TryUpdateAsync(tenant);
 
-        return $"Tenant {id} is now Deactivated.";
+        return _localizer[$"Tenant {0} is now Deactivated.", id];
     }
 
     public async Task<string> UpdateSubscription(string id, DateTime extendedExpiryDate)
@@ -110,10 +110,10 @@ internal class TenantService : ITenantService
 
         await _tenantStore.TryUpdateAsync(tenant);
 
-        return $"Tenant {id}'s Subscription Upgraded. Now Valid till {tenant.ValidUpto}.";
+        return _localizer[$"Tenant {0}'s Subscription Upgraded. Now Valid till {1}.", id, tenant.ValidUpto];
     }
 
     private async Task<FSHTenantInfo> GetTenantInfoAsync(string id) =>
         await _tenantStore.TryGetAsync(id)
-            ?? throw new NotFoundException(string.Format(_localizer["entity.notfound"], typeof(FSHTenantInfo).Name, id));
+            ?? throw new NotFoundException(_localizer["{0} {1} Not Found.", typeof(FSHTenantInfo).Name, id]);
 }

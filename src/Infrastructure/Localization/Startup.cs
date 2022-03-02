@@ -2,42 +2,40 @@
 using FSH.WebApi.Infrastructure.Middleware;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
+using OrchardCore.Localization;
 
 namespace FSH.WebApi.Infrastructure.Localization;
 
 internal static class Startup
 {
-    internal static IServiceCollection AddLocalization(this IServiceCollection services, IConfiguration config)
+    internal static IServiceCollection AddPOLocalization(this IServiceCollection services)
     {
-        services.AddLocalization();
+        services.AddMvc()
+        .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix);
+        services.AddPortableObjectLocalization(options => options.ResourcesPath = "Localization");
 
-        services.AddSingleton<IStringLocalizerFactory, JsonStringLocalizerFactory>();
-
-        var middlewareSettings = config.GetSection(nameof(MiddlewareSettings)).Get<MiddlewareSettings>();
-        if (middlewareSettings.EnableLocalization)
+        services.Configure<RequestLocalizationOptions>(options =>
         {
-            services.AddSingleton<LocalizationMiddleware>();
-        }
+            var supportedCultures = new List<CultureInfo>
+            {
+                new CultureInfo("en-US"),
+                new CultureInfo("en"),
+                new CultureInfo("fr-FR"),
+                new CultureInfo("fr"),
+                new CultureInfo("de"),
+                new CultureInfo("de-DE")
+            };
 
-        return services;
-    }
-
-    internal static IApplicationBuilder UseLocalization(this IApplicationBuilder app, IConfiguration config)
-    {
-        app.UseRequestLocalization(new RequestLocalizationOptions
-        {
-            DefaultRequestCulture = new RequestCulture(new CultureInfo("en-US"))
+            options.DefaultRequestCulture = new RequestCulture("en-US");
+            options.SupportedCultures = supportedCultures;
+            options.SupportedUICultures = supportedCultures;
         });
 
-        var middlewareSettings = config.GetSection(nameof(MiddlewareSettings)).Get<MiddlewareSettings>();
-        if (middlewareSettings.EnableLocalization)
-        {
-            app.UseMiddleware<LocalizationMiddleware>();
-        }
-
-        return app;
+        services.AddSingleton<ILocalizationFileLocationProvider, FSHPoFileLocationProvider>();
+        return services;
     }
 }
