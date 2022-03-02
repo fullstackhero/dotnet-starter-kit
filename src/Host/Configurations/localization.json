@@ -8,7 +8,9 @@
       "de",
       "de-DE",
       "it",
-      "it-IT"
+      "it-IT",
+      "pt",
+      "pt-BR"
     ],
     "ResourcesPath": "Localization",
     "DefaultRequestCulture": "en-US",
