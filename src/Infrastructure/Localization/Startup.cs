@@ -17,7 +17,7 @@ internal static class Startup
         var localizationSettings = config.GetSection(nameof(LocalizationSettings)).Get<LocalizationSettings>();
 
         if (localizationSettings == null) return services;
-        if (localizationSettings.EnableLocalization != null && !localizationSettings.EnableLocalization.Value) return services;
+        if (localizationSettings.EnableLocalization == false) return services;
         if(localizationSettings.ResourcesPath == null) return services;
 
         services.AddMvc().AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix);
