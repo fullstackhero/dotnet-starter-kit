@@ -111,7 +111,7 @@ internal partial class UserService : IUserService
     {
         if (string.IsNullOrWhiteSpace(_currentTenant?.Id))
         {
-            throw new UnauthorizedException(_localizer["tenant.invalid"]);
+            throw new UnauthorizedException(_localizer["Invalid Tenant."]);
         }
     }
 

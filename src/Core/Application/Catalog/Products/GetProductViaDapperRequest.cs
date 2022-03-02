@@ -22,7 +22,7 @@ public class GetProductViaDapperRequestHandler : IRequestHandler<GetProductViaDa
         var product = await _repository.QueryFirstOrDefaultAsync<Product>(
             $"SELECT * FROM public.\"Products\" WHERE \"Id\"  = '{request.Id}' AND \"Tenant\" = '@tenant'", cancellationToken: cancellationToken);
 
-        _ = product ?? throw new NotFoundException(string.Format(_localizer["product.notfound"], request.Id));
+        _ = product ?? throw new NotFoundException(_localizer["Product {0} Not Found.", request.Id]);
 
         return product.Adapt<ProductDto>();
     }
