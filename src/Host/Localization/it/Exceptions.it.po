@@ -1,0 +1,9 @@
+"Language-Key: it"
+"Language: Italian"
+"PO-Revision-Date: 2022-03-02T06:09:00+05:30"
+
+msgid "Authentication Failed."
+msgstr "Autenticazione fallita."
+
+msgid "{0} {1} Not Found."
+msgstr "{0} {1} non trovato."

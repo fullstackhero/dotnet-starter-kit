@@ -37,7 +37,7 @@ public static class Startup
             .AddCorsPolicy(config)
             .AddExceptionMiddleware()
             .AddHealthCheck()
-            .AddPOLocalization()
+            .AddPOLocalization(config)
             .AddMailing(config)
             .AddMediatR(Assembly.GetExecutingAssembly())
             .AddMultitenancy(config)

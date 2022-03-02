@@ -12,27 +12,28 @@ namespace FSH.WebApi.Infrastructure.Localization;
 
 internal static class Startup
 {
-    internal static IServiceCollection AddPOLocalization(this IServiceCollection services)
+    internal static IServiceCollection AddPOLocalization(this IServiceCollection services, IConfiguration config)
     {
-        services.AddMvc()
-        .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix);
-        services.AddPortableObjectLocalization(options => options.ResourcesPath = "Localization");
+        var localizationSettings = config.GetSection(nameof(LocalizationSettings)).Get<LocalizationSettings>();
+
+        if (localizationSettings == null) return services;
+        if (localizationSettings.EnableLocalization != null && !localizationSettings.EnableLocalization.Value) return services;
+        if(localizationSettings.ResourcesPath == null) return services;
+
+        services.AddMvc().AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix);
+
+        services.AddPortableObjectLocalization(options => options.ResourcesPath = localizationSettings.ResourcesPath);
 
         services.Configure<RequestLocalizationOptions>(options =>
         {
-            var supportedCultures = new List<CultureInfo>
+            if (localizationSettings.SupportedCultures != null)
             {
-                new CultureInfo("en-US"),
-                new CultureInfo("en"),
-                new CultureInfo("fr-FR"),
-                new CultureInfo("fr"),
-                new CultureInfo("de"),
-                new CultureInfo("de-DE")
-            };
+                var supportedCultures = localizationSettings.SupportedCultures.Select(x => new CultureInfo(x)).ToList<CultureInfo>();
 
-            options.DefaultRequestCulture = new RequestCulture("en-US");
-            options.SupportedCultures = supportedCultures;
-            options.SupportedUICultures = supportedCultures;
+                options.DefaultRequestCulture = new RequestCulture(localizationSettings.DefaultRequestCulture ?? "en-US");
+                options.SupportedCultures = supportedCultures;
+                options.SupportedUICultures = supportedCultures;
+            }
         });
 
         services.AddSingleton<ILocalizationFileLocationProvider, FSHPoFileLocationProvider>();
