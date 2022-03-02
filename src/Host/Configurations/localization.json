@@ -1,6 +1,15 @@
 {
   "LocalizationSettings": {
-    "SupportedCultures": [ "en-US", "en", "fr", "fr-FR", "de", "de-DE", "it", "it-IT" ],
+    "SupportedCultures": [
+      "en-US",
+      "en",
+      "fr",
+      "fr-FR",
+      "de",
+      "de-DE",
+      "it",
+      "it-IT"
+    ],
     "ResourcesPath": "Localization",
     "DefaultRequestCulture": "en-US",
     "EnableLocalization": true
