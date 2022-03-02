@@ -6,4 +6,4 @@ msgid "Authentication Failed."
 msgstr "Falha na autenticação."
 
 msgid "{0} {1} Not Found."
-msgstr "{0} {1} Não encontrado."
+msgstr "{0} {1} não encontrado."
