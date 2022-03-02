@@ -46,7 +46,7 @@ internal class ExceptionMiddleware : IMiddleware
                 Source = exception.TargetSite?.DeclaringType?.FullName,
                 Exception = exception.Message.Trim(),
                 ErrorId = errorId,
-                SupportMessage = _localizer["exceptionmiddleware.supportmessage"]
+                SupportMessage = _localizer["Provide the ErrorId {0} to the support team for further analysis.", errorId]
             };
             errorResult.Messages.Add(exception.Message);
             if (exception is not CustomException && exception.InnerException != null)

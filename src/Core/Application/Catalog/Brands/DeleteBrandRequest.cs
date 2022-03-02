@@ -23,12 +23,12 @@ public class DeleteBrandRequestHandler : IRequestHandler<DeleteBrandRequest, Gui
     {
         if (await _productRepo.AnyAsync(new ProductsByBrandSpec(request.Id), cancellationToken))
         {
-            throw new ConflictException(_localizer["brand.cannotbedeleted"]);
+            throw new ConflictException(_localizer["Brand cannot be deleted as it's being used."]);
         }
 
         var brand = await _brandRepo.GetByIdAsync(request.Id, cancellationToken);
 
-        _ = brand ?? throw new NotFoundException(_localizer["brand.notfound"]);
+        _ = brand ?? throw new NotFoundException(_localizer["Brand {0} Not Found."]);
 
         await _brandRepo.DeleteAsync(brand, cancellationToken);
 
