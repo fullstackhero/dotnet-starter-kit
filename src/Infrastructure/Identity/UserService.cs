@@ -32,7 +32,6 @@ internal partial class UserService : IUserService
     private readonly IStringLocalizer<UserService> _localizer;
     private readonly IJobService _jobService;
     private readonly IMailService _mailService;
-    private readonly MailSettings _mailSettings;
     private readonly SecuritySettings _securitySettings;
     private readonly IEmailTemplateService _templateService;
     private readonly IFileStorageService _fileStorage;
@@ -49,7 +48,6 @@ internal partial class UserService : IUserService
         IStringLocalizer<UserService> localizer,
         IJobService jobService,
         IMailService mailService,
-        IOptions<MailSettings> mailSettings,
         IEmailTemplateService templateService,
         IFileStorageService fileStorage,
         IEventPublisher events,
@@ -65,7 +63,6 @@ internal partial class UserService : IUserService
         _localizer = localizer;
         _jobService = jobService;
         _mailService = mailService;
-        _mailSettings = mailSettings.Value;
         _templateService = templateService;
         _fileStorage = fileStorage;
         _events = events;
