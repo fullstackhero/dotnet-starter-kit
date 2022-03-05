@@ -5,7 +5,7 @@
         <AssemblyName>FSH.WebApi.Domain</AssemblyName>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="NewId" Version="4.0.0-develop.44" />
+        <PackageReference Include="NewId" Version="4.0.0-develop.44+sha.e1e1364" />
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\Shared\Shared.csproj" />
