@@ -25,7 +25,7 @@ internal partial class UserService
         string? objectId = principal.GetObjectId();
         if (string.IsNullOrWhiteSpace(objectId))
         {
-            throw new InternalServerException(_localizer["Invalid objectId"]);
+            throw new InternalServerException(_t["Invalid objectId"]);
         }
 
         var user = await _userManager.Users.Where(u => u.ObjectId == objectId).FirstOrDefaultAsync()
@@ -47,13 +47,13 @@ internal partial class UserService
         string? username = principal.GetDisplayName();
         if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(username))
         {
-            throw new InternalServerException(string.Format(_localizer["Username or Email not valid."]));
+            throw new InternalServerException(string.Format(_t["Username or Email not valid."]));
         }
 
         var user = await _userManager.FindByNameAsync(username);
         if (user is not null && !string.IsNullOrWhiteSpace(user.ObjectId))
         {
-            throw new InternalServerException(string.Format(_localizer["Username {0} is already taken."], username));
+            throw new InternalServerException(string.Format(_t["Username {0} is already taken."], username));
         }
 
         if (user is null)
@@ -61,7 +61,7 @@ internal partial class UserService
             user = await _userManager.FindByEmailAsync(email);
             if (user is not null && !string.IsNullOrWhiteSpace(user.ObjectId))
             {
-                throw new InternalServerException(string.Format(_localizer["Email {0} is already taken."], email));
+                throw new InternalServerException(string.Format(_t["Email {0} is already taken."], email));
             }
         }
 
@@ -95,7 +95,7 @@ internal partial class UserService
 
         if (!result.Succeeded)
         {
-            throw new InternalServerException(_localizer["Validation Errors Occurred."], result.GetErrors(_localizer));
+            throw new InternalServerException(_t["Validation Errors Occurred."], result.GetErrors(_t));
         }
 
         return user;
@@ -116,12 +116,12 @@ internal partial class UserService
         var result = await _userManager.CreateAsync(user, request.Password);
         if (!result.Succeeded)
         {
-            throw new InternalServerException(_localizer["Validation Errors Occurred."], result.GetErrors(_localizer));
+            throw new InternalServerException(_t["Validation Errors Occurred."], result.GetErrors(_t));
         }
 
         await _userManager.AddToRoleAsync(user, FSHRoles.Basic);
 
-        var messages = new List<string> { string.Format(_localizer["User {0} Registered."], user.UserName) };
+        var messages = new List<string> { string.Format(_t["User {0} Registered."], user.UserName) };
 
         if (_securitySettings.RequireConfirmedAccount && !string.IsNullOrEmpty(user.Email))
         {
@@ -135,10 +135,10 @@ internal partial class UserService
             };
             var mailRequest = new MailRequest(
                 new List<string> { user.Email },
-                _localizer["Confirm Registration"],
+                _t["Confirm Registration"],
                 _templateService.GenerateEmailTemplate("email-confirmation", eMailModel));
             _jobService.Enqueue(() => _mailService.SendAsync(mailRequest, CancellationToken.None));
-            messages.Add(_localizer[$"Please check {user.Email} to verify your account!"]);
+            messages.Add(_t[$"Please check {user.Email} to verify your account!"]);
         }
 
         await _events.PublishAsync(new ApplicationUserCreatedEvent(user.Id));
@@ -150,7 +150,7 @@ internal partial class UserService
     {
         var user = await _userManager.FindByIdAsync(userId);
 
-        _ = user ?? throw new NotFoundException(_localizer["User Not Found."]);
+        _ = user ?? throw new NotFoundException(_t["User Not Found."]);
 
         string currentImage = user.ImageUrl ?? string.Empty;
         if (request.Image != null || request.DeleteCurrentImage)
@@ -180,7 +180,7 @@ internal partial class UserService
 
         if (!result.Succeeded)
         {
-            throw new InternalServerException(_localizer["Update profile failed"], result.GetErrors(_localizer));
+            throw new InternalServerException(_t["Update profile failed"], result.GetErrors(_t));
         }
     }
 }

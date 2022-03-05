@@ -13,15 +13,15 @@ public class GetStatsRequestHandler : IRequestHandler<GetStatsRequest, StatsDto>
     private readonly IRoleService _roleService;
     private readonly IReadRepository<Brand> _brandRepo;
     private readonly IReadRepository<Product> _productRepo;
-    private readonly IStringLocalizer<GetStatsRequestHandler> _localizer;
+    private readonly IStringLocalizer _t;
 
-    public GetStatsRequestHandler(IUserService userService, IRoleService roleService, IReadRepository<Brand> brandRepo, IReadRepository<Product> productRepo, IStringLocalizer<GetStatsRequestHandler> localizer)
+    public GetStatsRequestHandler(IUserService userService, IRoleService roleService, IReadRepository<Brand> brandRepo, IReadRepository<Product> productRepo, IStringLocalizer<SharedResource> localizer)
     {
         _userService = userService;
         _roleService = roleService;
         _brandRepo = brandRepo;
         _productRepo = productRepo;
-        _localizer = localizer;
+        _t = localizer;
     }
 
     public async Task<StatsDto> Handle(GetStatsRequest request, CancellationToken cancellationToken)
@@ -50,8 +50,8 @@ public class GetStatsRequestHandler : IRequestHandler<GetStatsRequest, StatsDto>
             productsFigure[i - 1] = await _productRepo.CountAsync(productSpec, cancellationToken);
         }
 
-        stats.DataEnterBarChart.Add(new ChartSeries { Name = _localizer["Products"], Data = productsFigure });
-        stats.DataEnterBarChart.Add(new ChartSeries { Name = _localizer["Brands"], Data = brandsFigure });
+        stats.DataEnterBarChart.Add(new ChartSeries { Name = _t["Products"], Data = productsFigure });
+        stats.DataEnterBarChart.Add(new ChartSeries { Name = _t["Brands"], Data = brandsFigure });
 
         return stats;
     }

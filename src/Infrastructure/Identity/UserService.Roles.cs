@@ -35,7 +35,7 @@ internal partial class UserService
 
         var user = await _userManager.Users.Where(u => u.Id == userId).FirstOrDefaultAsync(cancellationToken);
 
-        _ = user ?? throw new NotFoundException(_localizer["User Not Found."]);
+        _ = user ?? throw new NotFoundException(_t["User Not Found."]);
 
         // Check if the user is an admin for which the admin role is getting disabled
         if (await _userManager.IsInRoleAsync(user, FSHRoles.Admin)
@@ -50,12 +50,12 @@ internal partial class UserService
             {
                 if (_currentTenant.Id == MultitenancyConstants.Root.Id)
                 {
-                    throw new ConflictException(_localizer["Cannot Remove Admin Role From Root Tenant Admin."]);
+                    throw new ConflictException(_t["Cannot Remove Admin Role From Root Tenant Admin."]);
                 }
             }
             else if (adminCount <= 2)
             {
-                throw new ConflictException(_localizer["Tenant should have at least 2 Admins."]);
+                throw new ConflictException(_t["Tenant should have at least 2 Admins."]);
             }
         }
 
@@ -80,6 +80,6 @@ internal partial class UserService
 
         await _events.PublishAsync(new ApplicationUserUpdatedEvent(user.Id, true));
 
-        return _localizer["User Roles Updated Successfully."];
+        return _t["User Roles Updated Successfully."];
     }
 }

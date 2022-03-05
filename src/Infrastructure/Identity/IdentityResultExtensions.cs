@@ -5,6 +5,6 @@ namespace FSH.WebApi.Infrastructure.Identity;
 
 internal static class IdentityResultExtensions
 {
-    public static List<string> GetErrors(this IdentityResult result, IStringLocalizer localizer) =>
-        result.Errors.Select(e => localizer[e.Description].ToString()).ToList();
+    public static List<string> GetErrors(this IdentityResult result, IStringLocalizer T) =>
+        result.Errors.Select(e => T[e.Description].ToString()).ToList();
 }

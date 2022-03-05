@@ -12,6 +12,7 @@ global using FSH.WebApi.Domain.Catalog;
 global using FSH.WebApi.Domain.Common;
 global using FSH.WebApi.Domain.Common.Contracts;
 global using FSH.WebApi.Shared.Notifications;
+global using FSH.WebApi.Shared.Localization;
 global using MediatR;
 global using Microsoft.Extensions.Localization;
 global using Microsoft.Extensions.Logging;

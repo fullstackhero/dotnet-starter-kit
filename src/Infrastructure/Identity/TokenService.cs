@@ -9,6 +9,7 @@ using FSH.WebApi.Infrastructure.Auth.Jwt;
 using FSH.WebApi.Infrastructure.Mailing;
 using FSH.WebApi.Infrastructure.Multitenancy;
 using FSH.WebApi.Shared.Authorization;
+using FSH.WebApi.Shared.Localization;
 using FSH.WebApi.Shared.Multitenancy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Localization;
@@ -20,7 +21,7 @@ namespace FSH.WebApi.Infrastructure.Identity;
 internal class TokenService : ITokenService
 {
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly IStringLocalizer<TokenService> _localizer;
+    private readonly IStringLocalizer _t;
     private readonly SecuritySettings _securitySettings;
     private readonly JwtSettings _jwtSettings;
     private readonly FSHTenantInfo? _currentTenant;
@@ -28,12 +29,12 @@ internal class TokenService : ITokenService
     public TokenService(
         UserManager<ApplicationUser> userManager,
         IOptions<JwtSettings> jwtSettings,
-        IStringLocalizer<TokenService> localizer,
+        IStringLocalizer<SharedResource> localizer,
         FSHTenantInfo? currentTenant,
         IOptions<SecuritySettings> securitySettings)
     {
         _userManager = userManager;
-        _localizer = localizer;
+        _t = localizer;
         _jwtSettings = jwtSettings.Value;
         _currentTenant = currentTenant;
         _securitySettings = securitySettings.Value;
@@ -43,41 +44,41 @@ internal class TokenService : ITokenService
     {
         if (string.IsNullOrWhiteSpace(_currentTenant?.Id))
         {
-            throw new UnauthorizedException(_localizer["Invalid Tenant."]);
+            throw new UnauthorizedException(_t["Invalid Tenant."]);
         }
 
         var user = await _userManager.FindByEmailAsync(request.Email.Trim().Normalize());
         if (user is null)
         {
-            throw new UnauthorizedException(_localizer["Authentication Failed."]);
+            throw new UnauthorizedException(_t["Authentication Failed."]);
         }
 
         if (!user.IsActive)
         {
-            throw new UnauthorizedException(_localizer["User Not Active. Please contact the administrator."]);
+            throw new UnauthorizedException(_t["User Not Active. Please contact the administrator."]);
         }
 
         if (_securitySettings.RequireConfirmedAccount && !user.EmailConfirmed)
         {
-            throw new UnauthorizedException(_localizer["E-Mail not confirmed."]);
+            throw new UnauthorizedException(_t["E-Mail not confirmed."]);
         }
 
         if (_currentTenant.Id != MultitenancyConstants.Root.Id)
         {
             if (!_currentTenant.IsActive)
             {
-                throw new UnauthorizedException(_localizer["Tenant is not Active. Please contact the Application Administrator."]);
+                throw new UnauthorizedException(_t["Tenant is not Active. Please contact the Application Administrator."]);
             }
 
             if (DateTime.UtcNow > _currentTenant.ValidUpto)
             {
-                throw new UnauthorizedException(_localizer["Tenant Validity Has Expired. Please contact the Application Administrator."]);
+                throw new UnauthorizedException(_t["Tenant Validity Has Expired. Please contact the Application Administrator."]);
             }
         }
 
         if (!await _userManager.CheckPasswordAsync(user, request.Password))
         {
-            throw new UnauthorizedException(_localizer["Provided Credentials are invalid."]);
+            throw new UnauthorizedException(_t["Provided Credentials are invalid."]);
         }
 
         return await GenerateTokensAndUpdateUser(user, ipAddress);
@@ -90,12 +91,12 @@ internal class TokenService : ITokenService
         var user = await _userManager.FindByEmailAsync(userEmail);
         if (user is null)
         {
-            throw new UnauthorizedException(_localizer["Authentication Failed."]);
+            throw new UnauthorizedException(_t["Authentication Failed."]);
         }
 
         if (user.RefreshToken != request.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
         {
-            throw new UnauthorizedException(_localizer["Invalid Refresh Token."]);
+            throw new UnauthorizedException(_t["Invalid Refresh Token."]);
         }
 
         return await GenerateTokensAndUpdateUser(user, ipAddress);
@@ -172,7 +173,7 @@ internal class TokenService : ITokenService
                 SecurityAlgorithms.HmacSha256,
                 StringComparison.InvariantCultureIgnoreCase))
         {
-            throw new UnauthorizedException(_localizer["Invalid Token."]);
+            throw new UnauthorizedException(_t["Invalid Token."]);
         }
 
         return principal;

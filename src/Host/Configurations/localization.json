@@ -9,11 +9,11 @@
       "de-DE",
       "it",
       "it-IT",
-      "pt",
-      "pt-BR"
+      "pt"
     ],
     "ResourcesPath": "Localization",
-    "DefaultRequestCulture": "en-US",
+    "DefaultRequestCulture": "en",
+    "FallbackToParent": true,
     "EnableLocalization": true
   }
 }

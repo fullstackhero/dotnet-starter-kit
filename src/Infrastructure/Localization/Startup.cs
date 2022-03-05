@@ -33,6 +33,8 @@ internal static class Startup
                 options.DefaultRequestCulture = new RequestCulture(localizationSettings.DefaultRequestCulture ?? "en-US");
                 options.SupportedCultures = supportedCultures;
                 options.SupportedUICultures = supportedCultures;
+                options.FallBackToParentCultures = localizationSettings.FallbackToParent ?? false;
+                options.FallBackToParentUICultures = localizationSettings.FallbackToParent ?? false;
             }
         });
 
