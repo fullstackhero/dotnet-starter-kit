@@ -6,7 +6,6 @@ using FSH.WebApi.Application.Identity.Roles;
 using FSH.WebApi.Domain.Identity;
 using FSH.WebApi.Infrastructure.Persistence.Context;
 using FSH.WebApi.Shared.Authorization;
-using FSH.WebApi.Shared.Localization;
 using FSH.WebApi.Shared.Multitenancy;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
@@ -29,7 +28,7 @@ internal class RoleService : IRoleService
         RoleManager<ApplicationRole> roleManager,
         UserManager<ApplicationUser> userManager,
         ApplicationDbContext db,
-        IStringLocalizer<SharedResource> localizer,
+        IStringLocalizer<RoleService> localizer,
         ICurrentUser currentUser,
         ITenantInfo currentTenant,
         IEventPublisher events)

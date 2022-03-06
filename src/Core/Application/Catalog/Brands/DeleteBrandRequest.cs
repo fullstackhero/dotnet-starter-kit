@@ -16,7 +16,7 @@ public class DeleteBrandRequestHandler : IRequestHandler<DeleteBrandRequest, Gui
     private readonly IReadRepository<Product> _productRepo;
     private readonly IStringLocalizer _t;
 
-    public DeleteBrandRequestHandler(IRepositoryWithEvents<Brand> brandRepo, IReadRepository<Product> productRepo, IStringLocalizer<SharedResource> localizer) =>
+    public DeleteBrandRequestHandler(IRepositoryWithEvents<Brand> brandRepo, IReadRepository<Product> productRepo, IStringLocalizer<DeleteBrandRequestHandler> localizer) =>
         (_brandRepo, _productRepo, _t) = (brandRepo, productRepo, localizer);
 
     public async Task<Guid> Handle(DeleteBrandRequest request, CancellationToken cancellationToken)

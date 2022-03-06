@@ -14,7 +14,7 @@ public class DeleteProductRequestHandler : IRequestHandler<DeleteProductRequest,
     private readonly IRepository<Product> _repository;
     private readonly IStringLocalizer _t;
 
-    public DeleteProductRequestHandler(IRepository<Product> repository, IStringLocalizer<SharedResource> localizer) =>
+    public DeleteProductRequestHandler(IRepository<Product> repository, IStringLocalizer<DeleteProductRequestHandler> localizer) =>
         (_repository, _t) = (repository, localizer);
 
     public async Task<Guid> Handle(DeleteProductRequest request, CancellationToken cancellationToken)

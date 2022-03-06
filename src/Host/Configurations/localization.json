@@ -9,7 +9,9 @@
       "de-DE",
       "it",
       "it-IT",
-      "pt"
+      "pt",
+      "nl",
+      "nl-NL"
     ],
     "ResourcesPath": "Localization",
     "DefaultRequestCulture": "en",

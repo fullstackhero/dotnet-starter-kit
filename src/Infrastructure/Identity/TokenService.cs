@@ -9,7 +9,6 @@ using FSH.WebApi.Infrastructure.Auth.Jwt;
 using FSH.WebApi.Infrastructure.Mailing;
 using FSH.WebApi.Infrastructure.Multitenancy;
 using FSH.WebApi.Shared.Authorization;
-using FSH.WebApi.Shared.Localization;
 using FSH.WebApi.Shared.Multitenancy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Localization;
@@ -29,7 +28,7 @@ internal class TokenService : ITokenService
     public TokenService(
         UserManager<ApplicationUser> userManager,
         IOptions<JwtSettings> jwtSettings,
-        IStringLocalizer<SharedResource> localizer,
+        IStringLocalizer<TokenService> localizer,
         FSHTenantInfo? currentTenant,
         IOptions<SecuritySettings> securitySettings)
     {

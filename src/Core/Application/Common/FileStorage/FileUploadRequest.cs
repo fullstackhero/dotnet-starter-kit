@@ -9,7 +9,7 @@ public class FileUploadRequest
 
 public class FileUploadRequestValidator : CustomValidator<FileUploadRequest>
 {
-    public FileUploadRequestValidator(IStringLocalizer<SharedResource> T)
+    public FileUploadRequestValidator(IStringLocalizer<FileUploadRequestValidator> T)
     {
         RuleFor(p => p.Name)
             .NotEmpty()

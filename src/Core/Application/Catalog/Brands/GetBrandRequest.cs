@@ -18,7 +18,7 @@ public class GetBrandRequestHandler : IRequestHandler<GetBrandRequest, BrandDto>
     private readonly IRepository<Brand> _repository;
     private readonly IStringLocalizer _t;
 
-    public GetBrandRequestHandler(IRepository<Brand> repository, IStringLocalizer<SharedResource> localizer) => (_repository, _t) = (repository, localizer);
+    public GetBrandRequestHandler(IRepository<Brand> repository, IStringLocalizer<GetBrandRequestHandler> localizer) => (_repository, _t) = (repository, localizer);
 
     public async Task<BrandDto> Handle(GetBrandRequest request, CancellationToken cancellationToken) =>
         await _repository.GetBySpecAsync(

@@ -9,7 +9,7 @@ public class UpdateBrandRequest : IRequest<Guid>
 
 public class UpdateBrandRequestValidator : CustomValidator<UpdateBrandRequest>
 {
-    public UpdateBrandRequestValidator(IRepository<Brand> repository, IStringLocalizer<SharedResource> T) =>
+    public UpdateBrandRequestValidator(IRepository<Brand> repository, IStringLocalizer<UpdateBrandRequestValidator> T) =>
         RuleFor(p => p.Name)
             .NotEmpty()
             .MaximumLength(75)
@@ -25,7 +25,7 @@ public class UpdateBrandRequestHandler : IRequestHandler<UpdateBrandRequest, Gui
     private readonly IRepositoryWithEvents<Brand> _repository;
     private readonly IStringLocalizer _t;
 
-    public UpdateBrandRequestHandler(IRepositoryWithEvents<Brand> repository, IStringLocalizer<SharedResource> localizer) =>
+    public UpdateBrandRequestHandler(IRepositoryWithEvents<Brand> repository, IStringLocalizer<UpdateBrandRequestHandler> localizer) =>
         (_repository, _t) = (repository, localizer);
 
     public async Task<Guid> Handle(UpdateBrandRequest request, CancellationToken cancellationToken)

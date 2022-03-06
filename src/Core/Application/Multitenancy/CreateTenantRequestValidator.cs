@@ -4,7 +4,7 @@ public class CreateTenantRequestValidator : CustomValidator<CreateTenantRequest>
 {
     public CreateTenantRequestValidator(
         ITenantService tenantService,
-        IStringLocalizer<SharedResource> T,
+        IStringLocalizer<CreateTenantRequestValidator> T,
         IConnectionStringValidator connectionStringValidator)
     {
         RuleFor(t => t.Id).Cascade(CascadeMode.Stop)

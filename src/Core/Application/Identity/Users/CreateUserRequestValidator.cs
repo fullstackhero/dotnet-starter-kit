@@ -2,7 +2,7 @@ namespace FSH.WebApi.Application.Identity.Users;
 
 public class CreateUserRequestValidator : CustomValidator<CreateUserRequest>
 {
-    public CreateUserRequestValidator(IUserService userService, IStringLocalizer<SharedResource> T)
+    public CreateUserRequestValidator(IUserService userService, IStringLocalizer<CreateUserRequestValidator> T)
     {
         RuleFor(u => u.Email).Cascade(CascadeMode.Stop)
             .NotEmpty()

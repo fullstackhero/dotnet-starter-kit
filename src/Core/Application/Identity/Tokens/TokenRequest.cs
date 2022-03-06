@@ -4,7 +4,7 @@ public record TokenRequest(string Email, string Password);
 
 public class TokenRequestValidator : CustomValidator<TokenRequest>
 {
-    public TokenRequestValidator(IStringLocalizer<SharedResource> T)
+    public TokenRequestValidator(IStringLocalizer<TokenRequestValidator> T)
     {
         RuleFor(p => p.Email).Cascade(CascadeMode.Stop)
             .NotEmpty()

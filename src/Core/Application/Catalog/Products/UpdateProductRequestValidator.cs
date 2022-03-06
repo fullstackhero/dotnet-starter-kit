@@ -2,7 +2,7 @@ namespace FSH.WebApi.Application.Catalog.Products;
 
 public class UpdateProductRequestValidator : CustomValidator<UpdateProductRequest>
 {
-    public UpdateProductRequestValidator(IReadRepository<Product> productRepo, IReadRepository<Brand> brandRepo, IStringLocalizer<SharedResource> T)
+    public UpdateProductRequestValidator(IReadRepository<Product> productRepo, IReadRepository<Brand> brandRepo, IStringLocalizer<FileUploadRequestValidator> T)
     {
         RuleFor(p => p.Name)
             .NotEmpty()

@@ -15,7 +15,7 @@ public class GetStatsRequestHandler : IRequestHandler<GetStatsRequest, StatsDto>
     private readonly IReadRepository<Product> _productRepo;
     private readonly IStringLocalizer _t;
 
-    public GetStatsRequestHandler(IUserService userService, IRoleService roleService, IReadRepository<Brand> brandRepo, IReadRepository<Product> productRepo, IStringLocalizer<SharedResource> localizer)
+    public GetStatsRequestHandler(IUserService userService, IRoleService roleService, IReadRepository<Brand> brandRepo, IReadRepository<Product> productRepo, IStringLocalizer<GetStatsRequestHandler> localizer)
     {
         _userService = userService;
         _roleService = roleService;

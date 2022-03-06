@@ -12,7 +12,7 @@ public class GetProductRequestHandler : IRequestHandler<GetProductRequest, Produ
     private readonly IRepository<Product> _repository;
     private readonly IStringLocalizer _t;
 
-    public GetProductRequestHandler(IRepository<Product> repository, IStringLocalizer<SharedResource> localizer) =>
+    public GetProductRequestHandler(IRepository<Product> repository, IStringLocalizer<GetProductRequestHandler> localizer) =>
         (_repository, _t) = (repository, localizer);
 
     public async Task<ProductDetailsDto> Handle(GetProductRequest request, CancellationToken cancellationToken) =>

@@ -2,7 +2,7 @@ namespace FSH.WebApi.Application.Identity.Users;
 
 public class UpdateUserRequestValidator : CustomValidator<UpdateUserRequest>
 {
-    public UpdateUserRequestValidator(IUserService userService, IStringLocalizer<SharedResource> T)
+    public UpdateUserRequestValidator(IUserService userService, IStringLocalizer<FileUploadRequestValidator> T)
     {
         RuleFor(p => p.Id)
             .NotEmpty();

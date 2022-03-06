@@ -4,7 +4,6 @@ using FSH.WebApi.Application.Common.Persistence;
 using FSH.WebApi.Application.Multitenancy;
 using FSH.WebApi.Infrastructure.Persistence;
 using FSH.WebApi.Infrastructure.Persistence.Initialization;
-using FSH.WebApi.Shared.Localization;
 using Mapster;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
@@ -23,7 +22,7 @@ internal class TenantService : ITenantService
         IMultiTenantStore<FSHTenantInfo> tenantStore,
         IConnectionStringSecurer csSecurer,
         IDatabaseInitializer dbInitializer,
-        IStringLocalizer<SharedResource> localizer,
+        IStringLocalizer<TenantService> localizer,
         IOptions<DatabaseSettings> dbSettings)
     {
         _tenantStore = tenantStore;

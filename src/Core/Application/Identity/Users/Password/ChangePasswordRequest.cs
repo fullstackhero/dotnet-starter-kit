@@ -9,7 +9,7 @@ public class ChangePasswordRequest
 
 public class ChangePasswordRequestValidator : CustomValidator<ChangePasswordRequest>
 {
-    public ChangePasswordRequestValidator(IStringLocalizer<SharedResource> T)
+    public ChangePasswordRequestValidator(IStringLocalizer<ChangePasswordRequestValidator> T)
     {
         RuleFor(p => p.Password)
             .NotEmpty();

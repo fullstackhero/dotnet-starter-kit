@@ -14,7 +14,7 @@ public class GetProductViaDapperRequestHandler : IRequestHandler<GetProductViaDa
     private readonly IDapperRepository _repository;
     private readonly IStringLocalizer _t;
 
-    public GetProductViaDapperRequestHandler(IDapperRepository repository, IStringLocalizer<SharedResource> localizer) =>
+    public GetProductViaDapperRequestHandler(IDapperRepository repository, IStringLocalizer<GetProductViaDapperRequestHandler> localizer) =>
         (_repository, _t) = (repository, localizer);
 
     public async Task<ProductDto> Handle(GetProductViaDapperRequest request, CancellationToken cancellationToken)

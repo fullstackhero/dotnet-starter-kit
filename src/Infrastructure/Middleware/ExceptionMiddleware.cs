@@ -1,7 +1,6 @@
 using System.Net;
 using FSH.WebApi.Application.Common.Exceptions;
 using FSH.WebApi.Application.Common.Interfaces;
-using FSH.WebApi.Shared.Localization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Localization;
 using Serilog;
@@ -17,7 +16,7 @@ internal class ExceptionMiddleware : IMiddleware
 
     public ExceptionMiddleware(
         ICurrentUser currentUser,
-        IStringLocalizer<SharedResource> localizer,
+        IStringLocalizer<ExceptionMiddleware> localizer,
         ISerializerService jsonSerializer)
     {
         _currentUser = currentUser;

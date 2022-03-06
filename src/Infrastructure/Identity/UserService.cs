@@ -15,7 +15,6 @@ using FSH.WebApi.Infrastructure.Auth;
 using FSH.WebApi.Infrastructure.Mailing;
 using FSH.WebApi.Infrastructure.Persistence.Context;
 using FSH.WebApi.Shared.Authorization;
-using FSH.WebApi.Shared.Localization;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -46,7 +45,7 @@ internal partial class UserService : IUserService
         UserManager<ApplicationUser> userManager,
         RoleManager<ApplicationRole> roleManager,
         ApplicationDbContext db,
-        IStringLocalizer<SharedResource> localizer,
+        IStringLocalizer<UserService> localizer,
         IJobService jobService,
         IMailService mailService,
         IEmailTemplateService templateService,
