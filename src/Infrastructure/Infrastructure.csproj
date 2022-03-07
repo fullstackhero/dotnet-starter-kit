@@ -11,7 +11,7 @@
         <PackageReference Include="Ardalis.Specification.EntityFrameworkCore" Version="6.0.1" />
         <PackageReference Include="ClosedXML" Version="0.95.4" />
         <PackageReference Include="Dapper" Version="2.0.123" />
-        <PackageReference Include="Finbuckle.MultiTenant.AspNetCore" Version="6.6.1" />
+        <PackageReference Include="Finbuckle.MultiTenant.AspNetCore" Version="6.7.0" />
         <PackageReference Include="Finbuckle.MultiTenant.EntityFrameworkCore" Version="6.6.1" />
         <PackageReference Include="Hangfire" Version="1.7.28" />
         <PackageReference Include="Hangfire.Console" Version="1.4.2" />
