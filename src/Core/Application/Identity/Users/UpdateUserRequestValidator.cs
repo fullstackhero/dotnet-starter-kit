@@ -2,7 +2,7 @@ namespace FSH.WebApi.Application.Identity.Users;
 
 public class UpdateUserRequestValidator : CustomValidator<UpdateUserRequest>
 {
-    public UpdateUserRequestValidator(IUserService userService, IStringLocalizer<FileUploadRequestValidator> T)
+    public UpdateUserRequestValidator(IUserService userService, IStringLocalizer<UpdateUserRequestValidator> T)
     {
         RuleFor(p => p.Id)
             .NotEmpty();
@@ -23,7 +23,7 @@ public class UpdateUserRequestValidator : CustomValidator<UpdateUserRequest>
                 .WithMessage((_, email) => string.Format(T["Email {0} is already registered."], email));
 
         RuleFor(p => p.Image)
-            .SetNonNullableValidator(new FileUploadRequestValidator(T));
+            .InjectValidator();
 
         RuleFor(u => u.PhoneNumber).Cascade(CascadeMode.Stop)
             .MustAsync(async (user, phone, _) => !await userService.ExistsWithPhoneNumberAsync(phone!, user.Id))

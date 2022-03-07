@@ -2,7 +2,7 @@ namespace FSH.WebApi.Application.Catalog.Products;
 
 public class CreateProductRequestValidator : CustomValidator<CreateProductRequest>
 {
-    public CreateProductRequestValidator(IReadRepository<Product> productRepo, IReadRepository<Brand> brandRepo, IStringLocalizer<FileUploadRequestValidator> T)
+    public CreateProductRequestValidator(IReadRepository<Product> productRepo, IReadRepository<Brand> brandRepo, IStringLocalizer<CreateProductRequestValidator> T)
     {
         RuleFor(p => p.Name)
             .NotEmpty()
@@ -14,7 +14,7 @@ public class CreateProductRequestValidator : CustomValidator<CreateProductReques
             .GreaterThanOrEqualTo(1);
 
         RuleFor(p => p.Image)
-            .SetNonNullableValidator(new FileUploadRequestValidator(T));
+            .InjectValidator();
 
         RuleFor(p => p.BrandId)
             .NotEmpty()
