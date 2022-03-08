@@ -10,13 +10,13 @@ public class GetProductRequest : IRequest<ProductDetailsDto>
 public class GetProductRequestHandler : IRequestHandler<GetProductRequest, ProductDetailsDto>
 {
     private readonly IRepository<Product> _repository;
-    private readonly IStringLocalizer<GetProductRequestHandler> _localizer;
+    private readonly IStringLocalizer _t;
 
     public GetProductRequestHandler(IRepository<Product> repository, IStringLocalizer<GetProductRequestHandler> localizer) =>
-        (_repository, _localizer) = (repository, localizer);
+        (_repository, _t) = (repository, localizer);
 
     public async Task<ProductDetailsDto> Handle(GetProductRequest request, CancellationToken cancellationToken) =>
         await _repository.GetBySpecAsync(
             (ISpecification<Product, ProductDetailsDto>)new ProductByIdWithBrandSpec(request.Id), cancellationToken)
-        ?? throw new NotFoundException(_localizer["Product {0} Not Found.", request.Id]);
+        ?? throw new NotFoundException(_t["Product {0} Not Found.", request.Id]);
 }

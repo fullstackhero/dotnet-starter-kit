@@ -10,5 +10,6 @@ public class LocalizationSettings
     public string[]? SupportedCultures { get; set; }
     public string? ResourcesPath { get; set; }
     public string? DefaultRequestCulture { get; set; }
+    public bool? FallbackToParent { get; set; }
     public bool? EnableLocalization { get; set; }
 }

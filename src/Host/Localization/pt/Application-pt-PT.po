@@ -1,0 +1,208 @@
+msgid ""
+msgstr ""
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Crowdin-Project: fsh-dotnet-webapi-boilerplate\n"
+"X-Crowdin-Project-ID: 502764\n"
+"X-Crowdin-Language: pt-PT\n"
+"X-Crowdin-File: Application.pot\n"
+"X-Crowdin-File-ID: 12\n"
+"Project-Id-Version: fsh-dotnet-webapi-boilerplate\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language-Team: Portuguese\n"
+"Language: pt_PT\n"
+"PO-Revision-Date: 2022-03-06 16:58\n"
+
+#. .WithMessage((_, name) => T["Brand {0} already Exists.", name]);
+#: Application\Catalog\Brands\CreateBrandRequest.cs:16
+msgctxt "FSH.WebApi.Application.Catalog.Brands.CreateBrandRequestValidator"
+msgid "Brand {0} already Exists."
+msgstr "A Marca {0} já existe."
+
+#. throw new ConflictException(_t["Brand cannot be deleted as it's being used."]);
+#: Application\Catalog\Brands\DeleteBrandRequest.cs:26
+msgctxt "FSH.WebApi.Application.Catalog.Brands.DeleteBrandRequestHandler"
+msgid "Brand cannot be deleted as it's being used."
+msgstr "Marca não pode ser excluída, pois está sendo usada."
+
+#. _ = brand ?? throw new NotFoundException(_t["Brand {0} Not Found."]);
+#: Application\Catalog\Brands\DeleteBrandRequest.cs:31
+msgctxt "FSH.WebApi.Application.Catalog.Brands.DeleteBrandRequestHandler"
+msgid "Brand {0} Not Found."
+msgstr "Marca {0} não encontrada."
+
+#. ?? throw new NotFoundException(_t["Brand {0} Not Found.", request.Id]);
+#: Application\Catalog\Brands\GetBrandRequest.cs:26
+msgctxt "FSH.WebApi.Application.Catalog.Brands.GetBrandRequestHandler"
+msgid "Brand {0} Not Found."
+msgstr "Marca {0} não encontrada."
+
+#. .WithMessage((_, name) => T["Brand {0} already Exists.", name]);
+#: Application\Catalog\Brands\UpdateBrandRequest.cs:19
+msgctxt "FSH.WebApi.Application.Catalog.Brands.UpdateBrandRequestValidator"
+msgid "Brand {0} already Exists."
+msgstr "A Marca {0} já existe."
+
+#. ?? throw new NotFoundException(_t["Brand {0} Not Found.", request.Id]);
+#: Application\Catalog\Brands\UpdateBrandRequest.cs:36
+msgctxt "FSH.WebApi.Application.Catalog.Brands.UpdateBrandRequestHandler"
+msgid "Brand {0} Not Found."
+msgstr "Marca {0} não encontrada."
+
+#. .WithMessage((_, name) => T["Product {0} already Exists.", name]);
+#: Application\Catalog\Products\CreateProductRequestValidator.cs:11
+msgctxt "FSH.WebApi.Application.Catalog.Products.CreateProductRequestValidator"
+msgid "Product {0} already Exists."
+msgstr "O produto {0} já existe."
+
+#. .WithMessage((_, id) => T["Brand {0} Not Found.", id]);
+#: Application\Catalog\Products\CreateProductRequestValidator.cs:22
+msgctxt "FSH.WebApi.Application.Catalog.Products.CreateProductRequestValidator"
+msgid "Brand {0} Not Found."
+msgstr "Marca {0} não encontrada."
+
+#. _ = product ?? throw new NotFoundException(_t["Product {0} Not Found."]);
+#: Application\Catalog\Products\DeleteProductRequest.cs:24
+msgctxt "FSH.WebApi.Application.Catalog.Products.DeleteProductRequestHandler"
+msgid "Product {0} Not Found."
+msgstr "Produto {0} não encontrado."
+
+#. ?? throw new NotFoundException(_t["Product {0} Not Found.", request.Id]);
+#: Application\Catalog\Products\GetProductRequest.cs:21
+msgctxt "FSH.WebApi.Application.Catalog.Products.GetProductRequestHandler"
+msgid "Product {0} Not Found."
+msgstr "Produto {0} não encontrado."
+
+#. _ = product ?? throw new NotFoundException(_t["Product {0} Not Found.", request.Id]);
+#: Application\Catalog\Products\GetProductViaDapperRequest.cs:25
+msgctxt "FSH.WebApi.Application.Catalog.Products.GetProductViaDapperRequestHandler"
+msgid "Product {0} Not Found."
+msgstr "Produto {0} não encontrado."
+
+#. _ = product ?? throw new NotFoundException(_t["Product {0} Not Found.", request.Id]);
+#: Application\Catalog\Products\UpdateProductRequest.cs:29
+msgctxt "FSH.WebApi.Application.Catalog.Products.UpdateProductRequestHandler"
+msgid "Product {0} Not Found."
+msgstr "Produto {0} não encontrado."
+
+#. .WithMessage((_, name) => T["Product {0} already Exists.", name]);
+#: Application\Catalog\Products\UpdateProductRequestValidator.cs:13
+msgctxt "FSH.WebApi.Application.Catalog.Products.UpdateProductRequestValidator"
+msgid "Product {0} already Exists."
+msgstr "O produto {0} já existe."
+
+#. .WithMessage((_, id) => T["Brand {0} Not Found.", id]);
+#: Application\Catalog\Products\UpdateProductRequestValidator.cs:24
+msgctxt "FSH.WebApi.Application.Catalog.Products.UpdateProductRequestValidator"
+msgid "Brand {0} Not Found."
+msgstr "Marca {0} não encontrada."
+
+#. .WithMessage(T["Image Name cannot be empty!"])
+#: Application\Common\FileStorage\FileUploadRequest.cs:16
+msgctxt "FSH.WebApi.Application.Common.FileStorage.FileUploadRequestValidator"
+msgid "Image Name cannot be empty!"
+msgstr "O nome da imagem não pode estar vazio!"
+
+#. .WithMessage(T["Image Extension cannot be empty!"])
+#: Application\Common\FileStorage\FileUploadRequest.cs:21
+msgctxt "FSH.WebApi.Application.Common.FileStorage.FileUploadRequestValidator"
+msgid "Image Extension cannot be empty!"
+msgstr "A extensão da imagem não pode estar vazia!"
+
+#. .WithMessage(T["Image Data cannot be empty!"]);
+#: Application\Common\FileStorage\FileUploadRequest.cs:26
+msgctxt "FSH.WebApi.Application.Common.FileStorage.FileUploadRequestValidator"
+msgid "Image Data cannot be empty!"
+msgstr "Dados da imagem não podem estar vazios!"
+
+#. stats.DataEnterBarChart.Add(new ChartSeries { Name = _t["Products"], Data = productsFigure });
+#: Application\Dashboard\GetStatsRequest.cs:53
+msgctxt "FSH.WebApi.Application.Dashboard.GetStatsRequestHandler"
+msgid "Products"
+msgstr "produtos"
+
+#. stats.DataEnterBarChart.Add(new ChartSeries { Name = _t["Brands"], Data = brandsFigure });
+#: Application\Dashboard\GetStatsRequest.cs:54
+msgctxt "FSH.WebApi.Application.Dashboard.GetStatsRequestHandler"
+msgid "Brands"
+msgstr "Marcas"
+
+#. .WithMessage(T["Similar Role already exists."]);
+#: Application\Identity\Roles\CreateOrUpdateRoleRequest.cs:16
+msgctxt "FSH.WebApi.Application.Identity.Roles.CreateOrUpdateRoleRequestValidator"
+msgid "Similar Role already exists."
+msgstr "Função similar já existe."
+
+#. .WithMessage(T["Invalid Email Address."]);
+#: Application\Identity\Tokens\TokenRequest.cs:12
+msgctxt "FSH.WebApi.Application.Identity.Tokens.TokenRequestValidator"
+msgid "Invalid Email Address."
+msgstr "E-mail inválido"
+
+#. .WithMessage(T["Invalid Email Address."])
+#: Application\Identity\Users\CreateUserRequestValidator.cs:10
+msgctxt "FSH.WebApi.Application.Identity.Users.CreateUserRequestValidator"
+msgid "Invalid Email Address."
+msgstr "E-mail inválido"
+
+#. .WithMessage((_, email) => T["Email {0} is already registered.", email]);
+#: Application\Identity\Users\CreateUserRequestValidator.cs:12
+msgctxt "FSH.WebApi.Application.Identity.Users.CreateUserRequestValidator"
+msgid "Email {0} is already registered."
+msgstr "E-mail {0} já está registrado."
+
+#. .WithMessage((_, name) => T["Username {0} is already taken.", name]);
+#: Application\Identity\Users\CreateUserRequestValidator.cs:18
+msgctxt "FSH.WebApi.Application.Identity.Users.CreateUserRequestValidator"
+msgid "Username {0} is already taken."
+msgstr "Nome de usuário {0} já está em uso."
+
+#. .WithMessage((_, phone) => T["Phone number {0} is already registered.", phone!])
+#: Application\Identity\Users\CreateUserRequestValidator.cs:22
+msgctxt "FSH.WebApi.Application.Identity.Users.CreateUserRequestValidator"
+msgid "Phone number {0} is already registered."
+msgstr "Número de telefone {0} já está registrado."
+
+#. .WithMessage(T["Passwords do not match."]);
+#: Application\Identity\Users\Password\ChangePasswordRequest.cs:22
+msgctxt "FSH.WebApi.Application.Identity.Users.Password.ChangePasswordRequestValidator"
+msgid "Passwords do not match."
+msgstr "As senhas não conferem."
+
+#. .WithMessage(T["Invalid Email Address."]);
+#: Application\Identity\Users\Password\ForgotPasswordRequest.cs:14
+msgctxt "FSH.WebApi.Application.Identity.Users.Password.ForgotPasswordRequestValidator"
+msgid "Invalid Email Address."
+msgstr "E-mail inválido"
+
+#. .WithMessage(T["Invalid Email Address."])
+#: Application\Identity\Users\UpdateUserRequestValidator.cs:21
+msgctxt "FSH.WebApi.Application.Identity.Users.UpdateUserRequestValidator"
+msgid "Invalid Email Address."
+msgstr "E-mail inválido"
+
+#. .WithMessage((_, email) => string.Format(T["Email {0} is already registered."], email));
+#: Application\Identity\Users\UpdateUserRequestValidator.cs:23
+msgctxt "FSH.WebApi.Application.Identity.Users.UpdateUserRequestValidator"
+msgid "Email {0} is already registered."
+msgstr "E-mail {0} já está registrado."
+
+#. .WithMessage((_, phone) => string.Format(T["Phone number {0} is already registered."], phone))
+#: Application\Identity\Users\UpdateUserRequestValidator.cs:30
+msgctxt "FSH.WebApi.Application.Identity.Users.UpdateUserRequestValidator"
+msgid "Phone number {0} is already registered."
+msgstr "Número de telefone {0} já está registrado."
+
+#. .WithMessage((_, id) => T["Tenant {0} already exists.", id]);
+#. .WithMessage((_, name) => T["Tenant {0} already exists.", name]);
+#: Application\Multitenancy\CreateTenantRequestValidator.cs:13
+#: Application\Multitenancy\CreateTenantRequestValidator.cs:18
+msgctxt "FSH.WebApi.Application.Multitenancy.CreateTenantRequestValidator"
+msgid "Tenant {0} already exists."
+msgstr "Inquilino {0} já existe."
+
+#. .WithMessage(T["Connection string invalid."]);
+#: Application\Multitenancy\CreateTenantRequestValidator.cs:22
+msgctxt "FSH.WebApi.Application.Multitenancy.CreateTenantRequestValidator"
+msgid "Connection string invalid."
+msgstr "String de conexão inválida."
+

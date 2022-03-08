@@ -9,20 +9,20 @@ public class FileUploadRequest
 
 public class FileUploadRequestValidator : CustomValidator<FileUploadRequest>
 {
-    public FileUploadRequestValidator()
+    public FileUploadRequestValidator(IStringLocalizer<FileUploadRequestValidator> T)
     {
         RuleFor(p => p.Name)
             .NotEmpty()
-                .WithMessage("Image Name cannot be empty!")
+                .WithMessage(T["Image Name cannot be empty!"])
             .MaximumLength(150);
 
         RuleFor(p => p.Extension)
             .NotEmpty()
-                .WithMessage("Image Extension cannot be empty!")
+                .WithMessage(T["Image Extension cannot be empty!"])
             .MaximumLength(5);
 
         RuleFor(p => p.Data)
             .NotEmpty()
-                .WithMessage("Image Data cannot be empty!");
+                .WithMessage(T["Image Data cannot be empty!"]);
     }
 }

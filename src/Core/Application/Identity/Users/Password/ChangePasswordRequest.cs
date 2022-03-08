@@ -9,7 +9,7 @@ public class ChangePasswordRequest
 
 public class ChangePasswordRequestValidator : CustomValidator<ChangePasswordRequest>
 {
-    public ChangePasswordRequestValidator()
+    public ChangePasswordRequestValidator(IStringLocalizer<ChangePasswordRequestValidator> T)
     {
         RuleFor(p => p.Password)
             .NotEmpty();
@@ -19,6 +19,6 @@ public class ChangePasswordRequestValidator : CustomValidator<ChangePasswordRequ
 
         RuleFor(p => p.ConfirmNewPassword)
             .Equal(p => p.NewPassword)
-                .WithMessage("Passwords do not match.");
+                .WithMessage(T["Passwords do not match."]);
     }
 }

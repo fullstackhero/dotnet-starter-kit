@@ -11,7 +11,7 @@ namespace FSH.WebApi.Infrastructure.Middleware;
 internal class ExceptionMiddleware : IMiddleware
 {
     private readonly ICurrentUser _currentUser;
-    private readonly IStringLocalizer<ExceptionMiddleware> _localizer;
+    private readonly IStringLocalizer _t;
     private readonly ISerializerService _jsonSerializer;
 
     public ExceptionMiddleware(
@@ -20,7 +20,7 @@ internal class ExceptionMiddleware : IMiddleware
         ISerializerService jsonSerializer)
     {
         _currentUser = currentUser;
-        _localizer = localizer;
+        _t = localizer;
         _jsonSerializer = jsonSerializer;
     }
 
@@ -46,7 +46,7 @@ internal class ExceptionMiddleware : IMiddleware
                 Source = exception.TargetSite?.DeclaringType?.FullName,
                 Exception = exception.Message.Trim(),
                 ErrorId = errorId,
-                SupportMessage = _localizer["Provide the ErrorId {0} to the support team for further analysis.", errorId]
+                SupportMessage = _t["Provide the ErrorId {0} to the support team for further analysis.", errorId]
             };
             errorResult.Messages.Add(exception.Message);
             if (exception is not CustomException && exception.InnerException != null)

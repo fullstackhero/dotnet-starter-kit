@@ -10,10 +10,12 @@
       "it",
       "it-IT",
       "pt",
-      "pt-BR"
+      "nl",
+      "nl-NL"
     ],
     "ResourcesPath": "Localization",
-    "DefaultRequestCulture": "en-US",
+    "DefaultRequestCulture": "en",
+    "FallbackToParent": true,
     "EnableLocalization": true
   }
 }

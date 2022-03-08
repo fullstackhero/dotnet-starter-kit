@@ -1,0 +1,334 @@
+msgid ""
+msgstr ""
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Crowdin-Project: fsh-dotnet-webapi-boilerplate\n"
+"X-Crowdin-Project-ID: 502764\n"
+"X-Crowdin-Language: nl\n"
+"X-Crowdin-File: Infrastructure.pot\n"
+"X-Crowdin-File-ID: 14\n"
+"Project-Id-Version: fsh-dotnet-webapi-boilerplate\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language-Team: Dutch\n"
+"Language: nl_NL\n"
+"PO-Revision-Date: 2022-03-06 16:58\n"
+
+#. : throw new NotFoundException(_t["Role Not Found"]);
+#. _ = role ?? throw new NotFoundException(_t["Role Not Found"]);
+#. _ = role ?? throw new NotFoundException(_t["Role Not Found"]);
+#. _ = role ?? throw new NotFoundException(_t["Role Not Found"]);
+#: Infrastructure\Identity\RoleService.cs:61
+#: Infrastructure\Identity\RoleService.cs:97
+#: Infrastructure\Identity\RoleService.cs:123
+#: Infrastructure\Identity\RoleService.cs:172
+msgctxt "FSH.WebApi.Infrastructure.Identity.RoleService"
+msgid "Role Not Found"
+msgstr "Rol niet gevonden"
+
+#. throw new InternalServerException(_t["Register role failed"], result.GetErrors(_t));
+#: Infrastructure\Identity\RoleService.cs:85
+msgctxt "FSH.WebApi.Infrastructure.Identity.RoleService"
+msgid "Register role failed"
+msgstr "Registratie rol mislukt"
+
+#. return string.Format(_t["Role {0} Created."], request.Name);
+#: Infrastructure\Identity\RoleService.cs:90
+msgctxt "FSH.WebApi.Infrastructure.Identity.RoleService"
+msgid "Role {0} Created."
+msgstr "Rol {0} aangemaakt."
+
+#. throw new ConflictException(string.Format(_t["Not allowed to modify {0} Role."], role.Name));
+#: Infrastructure\Identity\RoleService.cs:101
+msgctxt "FSH.WebApi.Infrastructure.Identity.RoleService"
+msgid "Not allowed to modify {0} Role."
+msgstr "Het is niet toegestaan om {0} rol te wijzigen."
+
+#. throw new InternalServerException(_t["Update role failed"], result.GetErrors(_t));
+#: Infrastructure\Identity\RoleService.cs:111
+msgctxt "FSH.WebApi.Infrastructure.Identity.RoleService"
+msgid "Update role failed"
+msgstr "Bijwerken rol mislukt"
+
+#. return string.Format(_t["Role {0} Updated."], role.Name);
+#: Infrastructure\Identity\RoleService.cs:116
+msgctxt "FSH.WebApi.Infrastructure.Identity.RoleService"
+msgid "Role {0} Updated."
+msgstr "Rol {0} bijgewerkt."
+
+#. throw new ConflictException(_t["Not allowed to modify Permissions for this Role."]);
+#: Infrastructure\Identity\RoleService.cs:126
+msgctxt "FSH.WebApi.Infrastructure.Identity.RoleService"
+msgid "Not allowed to modify Permissions for this Role."
+msgstr "Het is niet toegestaan om machtigingen aan te passen voor deze rol."
+
+#. throw new InternalServerException(_t["Update permissions failed."], removeResult.GetErrors(_t));
+#: Infrastructure\Identity\RoleService.cs:143
+msgctxt "FSH.WebApi.Infrastructure.Identity.RoleService"
+msgid "Update permissions failed."
+msgstr "Update rechten mislukt."
+
+#. return _t["Permissions Updated."];
+#: Infrastructure\Identity\RoleService.cs:165
+msgctxt "FSH.WebApi.Infrastructure.Identity.RoleService"
+msgid "Permissions Updated."
+msgstr "Machtigingen bijgewerkt."
+
+#. throw new ConflictException(string.Format(_t["Not allowed to delete {0} Role."], role.Name));
+#: Infrastructure\Identity\RoleService.cs:176
+msgctxt "FSH.WebApi.Infrastructure.Identity.RoleService"
+msgid "Not allowed to delete {0} Role."
+msgstr "Niet toegestaan om {0} rol te verwijderen."
+
+#. throw new ConflictException(string.Format(_t["Not allowed to delete {0} Role as it is being used."], role.Name));
+#: Infrastructure\Identity\RoleService.cs:181
+msgctxt "FSH.WebApi.Infrastructure.Identity.RoleService"
+msgid "Not allowed to delete {0} Role as it is being used."
+msgstr "Niet toegestaan om {0} rol te verwijderen terwijl deze in gebruik is."
+
+#. return string.Format(_t["Role {0} Deleted."], role.Name);
+#: Infrastructure\Identity\RoleService.cs:188
+msgctxt "FSH.WebApi.Infrastructure.Identity.RoleService"
+msgid "Role {0} Deleted."
+msgstr "Rol {0} verwijderd."
+
+#. throw new UnauthorizedException(_t["Authentication Failed."]);
+#. throw new UnauthorizedException(_t["Authentication Failed."]);
+#: Infrastructure\Identity\TokenService.cs:50
+#: Infrastructure\Identity\TokenService.cs:86
+msgctxt "FSH.WebApi.Infrastructure.Identity.TokenService"
+msgid "Authentication Failed."
+msgstr "Authenticatie mislukt."
+
+#. throw new UnauthorizedException(_t["User Not Active. Please contact the administrator."]);
+#: Infrastructure\Identity\TokenService.cs:55
+msgctxt "FSH.WebApi.Infrastructure.Identity.TokenService"
+msgid "User Not Active. Please contact the administrator."
+msgstr "Gebruiker niet actief. Neem contact op met de beheerder."
+
+#. throw new UnauthorizedException(_t["E-Mail not confirmed."]);
+#: Infrastructure\Identity\TokenService.cs:60
+msgctxt "FSH.WebApi.Infrastructure.Identity.TokenService"
+msgid "E-Mail not confirmed."
+msgstr "E-mailadres niet bevestigd."
+
+#. throw new UnauthorizedException(_t["Tenant is not Active. Please contact the Application Administrator."]);
+#: Infrastructure\Identity\TokenService.cs:67
+msgctxt "FSH.WebApi.Infrastructure.Identity.TokenService"
+msgid "Tenant is not Active. Please contact the Application Administrator."
+msgstr "Tenant is niet actief. Neem contact op met de applicatiebeheerder."
+
+#. throw new UnauthorizedException(_t["Tenant Validity Has Expired. Please contact the Application Administrator."]);
+#: Infrastructure\Identity\TokenService.cs:72
+msgctxt "FSH.WebApi.Infrastructure.Identity.TokenService"
+msgid "Tenant Validity Has Expired. Please contact the Application Administrator."
+msgstr "Tenant validiteit is verlopen. Neem contact op met de applicatiebeheerder."
+
+#. throw new UnauthorizedException(_t["Invalid Refresh Token."]);
+#: Infrastructure\Identity\TokenService.cs:91
+msgctxt "FSH.WebApi.Infrastructure.Identity.TokenService"
+msgid "Invalid Refresh Token."
+msgstr "Ongeldige vernieuw Token."
+
+#. throw new UnauthorizedException(_t["Invalid Token."]);
+#: Infrastructure\Identity\TokenService.cs:168
+msgctxt "FSH.WebApi.Infrastructure.Identity.TokenService"
+msgid "Invalid Token."
+msgstr "Ongeldige Token."
+
+#. _ = user ?? throw new InternalServerException(_t["An error occurred while confirming E-Mail."]);
+#: Infrastructure\Identity\UserService.Confirm.cs:34
+msgctxt "FSH.WebApi.Infrastructure.Identity.UserService"
+msgid "An error occurred while confirming E-Mail."
+msgstr "Er is een fout opgetreden tijdens het bevestigen van e-mailadres."
+
+#. ? string.Format(_t["Account Confirmed for E-Mail {0}. You can now use the /api/tokens endpoint to generate JWT."], user.Email)
+#: Infrastructure\Identity\UserService.Confirm.cs:40
+msgctxt "FSH.WebApi.Infrastructure.Identity.UserService"
+msgid "Account Confirmed for E-Mail {0}. You can now use the /api/tokens endpoint to generate JWT."
+msgstr "Account bevestigd voor E-Mail {0}. U kunt nu het eindpunt /api/tokens gebruiken om JWT. te genereren."
+
+#. : throw new InternalServerException(string.Format(_t["An error occurred while confirming {0}"], user.Email));
+#. : throw new InternalServerException(string.Format(_t["An error occurred while confirming {0}"], user.PhoneNumber));
+#: Infrastructure\Identity\UserService.Confirm.cs:41
+#: Infrastructure\Identity\UserService.Confirm.cs:58
+msgctxt "FSH.WebApi.Infrastructure.Identity.UserService"
+msgid "An error occurred while confirming {0}"
+msgstr "Er is een fout opgetreden tijdens het bevestigen van {0}"
+
+#. _ = user ?? throw new InternalServerException(_t["An error occurred while confirming Mobile Phone."]);
+#: Infrastructure\Identity\UserService.Confirm.cs:50
+msgctxt "FSH.WebApi.Infrastructure.Identity.UserService"
+msgid "An error occurred while confirming Mobile Phone."
+msgstr "Er is een fout opgetreden tijdens het bevestigen van mobiele telefoon."
+
+#. ? string.Format(_t["Account Confirmed for Phone Number {0}. You can now use the /api/tokens endpoint to generate JWT."], user.PhoneNumber)
+#: Infrastructure\Identity\UserService.Confirm.cs:56
+msgctxt "FSH.WebApi.Infrastructure.Identity.UserService"
+msgid "Account Confirmed for Phone Number {0}. You can now use the /api/tokens endpoint to generate JWT."
+msgstr "Account bevestigd voor telefoon nummer {0}. U kunt nu het eindpunt /api/tokens gebruiken om JWT. te genereren."
+
+#. : string.Format(_t["Account Confirmed for Phone Number {0}. You should confirm your E-mail before using the /api/tokens endpoint to generate JWT."], user.PhoneNumber)
+#: Infrastructure\Identity\UserService.Confirm.cs:57
+msgctxt "FSH.WebApi.Infrastructure.Identity.UserService"
+msgid "Account Confirmed for Phone Number {0}. You should confirm your E-mail before using the /api/tokens endpoint to generate JWT."
+msgstr "Account bevestigd voor telefoonnummer {0}. Bevestig uw e-mail voordat u het eindpunt /api/tokens gebruikt om JWT. te genereren."
+
+#. throw new InternalServerException(_t["Invalid objectId"]);
+#: Infrastructure\Identity\UserService.CreateUpdate.cs:28
+msgctxt "FSH.WebApi.Infrastructure.Identity.UserService"
+msgid "Invalid objectId"
+msgstr "Invalid objectId"
+
+#. throw new InternalServerException(string.Format(_t["Username or Email not valid."]));
+#: Infrastructure\Identity\UserService.CreateUpdate.cs:50
+msgctxt "FSH.WebApi.Infrastructure.Identity.UserService"
+msgid "Username or Email not valid."
+msgstr "Gebruikersnaam of e-mailadres niet geldig."
+
+#. throw new InternalServerException(string.Format(_t["Username {0} is already taken."], username));
+#: Infrastructure\Identity\UserService.CreateUpdate.cs:56
+msgctxt "FSH.WebApi.Infrastructure.Identity.UserService"
+msgid "Username {0} is already taken."
+msgstr "Gebruikersnaam {0} is al in gebruik."
+
+#. throw new InternalServerException(string.Format(_t["Email {0} is already taken."], email));
+#: Infrastructure\Identity\UserService.CreateUpdate.cs:64
+msgctxt "FSH.WebApi.Infrastructure.Identity.UserService"
+msgid "Email {0} is already taken."
+msgstr "E-mail {0} is al in gebruik."
+
+#. throw new InternalServerException(_t["Validation Errors Occurred."], result.GetErrors(_t));
+#. throw new InternalServerException(_t["Validation Errors Occurred."], result.GetErrors(_t));
+#: Infrastructure\Identity\UserService.CreateUpdate.cs:98
+#: Infrastructure\Identity\UserService.CreateUpdate.cs:119
+msgctxt "FSH.WebApi.Infrastructure.Identity.UserService"
+msgid "Validation Errors Occurred."
+msgstr "Er zijn fouten opgetreden."
+
+#. var messages = new List<string> { string.Format(_t["User {0} Registered."], user.UserName) };
+#: Infrastructure\Identity\UserService.CreateUpdate.cs:124
+msgctxt "FSH.WebApi.Infrastructure.Identity.UserService"
+msgid "User {0} Registered."
+msgstr "Gebruiker {0} geregistreerd."
+
+#. _t["Confirm Registration"],
+#: Infrastructure\Identity\UserService.CreateUpdate.cs:138
+msgctxt "FSH.WebApi.Infrastructure.Identity.UserService"
+msgid "Confirm Registration"
+msgstr "Registratie bevestigen"
+
+#. _ = user ?? throw new NotFoundException(_t["User Not Found."]);
+#. _ = user ?? throw new NotFoundException(_t["User Not Found."]);
+#. _ = user ?? throw new NotFoundException(_t["User Not Found."]);
+#. _ = user ?? throw new NotFoundException(_t["User Not Found."]);
+#. _ = user ?? throw new NotFoundException(_t["User Not Found."]);
+#. _ = user ?? throw new NotFoundException(_t["User Not Found."]);
+#: Infrastructure\Identity\UserService.CreateUpdate.cs:153
+#: Infrastructure\Identity\UserService.cs:132
+#: Infrastructure\Identity\UserService.cs:141
+#: Infrastructure\Identity\UserService.Password.cs:54
+#: Infrastructure\Identity\UserService.Permissions.cs:14
+#: Infrastructure\Identity\UserService.Roles.cs:38
+msgctxt "FSH.WebApi.Infrastructure.Identity.UserService"
+msgid "User Not Found."
+msgstr "Gebruiker niet gevonden."
+
+#. throw new InternalServerException(_t["Update profile failed"], result.GetErrors(_t));
+#: Infrastructure\Identity\UserService.CreateUpdate.cs:183
+msgctxt "FSH.WebApi.Infrastructure.Identity.UserService"
+msgid "Update profile failed"
+msgstr "Update profiel is mislukt"
+
+#. throw new UnauthorizedException(_t["Invalid Tenant."]);
+#: Infrastructure\Identity\UserService.cs:112
+msgctxt "FSH.WebApi.Infrastructure.Identity.UserService"
+msgid "Invalid Tenant."
+msgstr "Ongeldige instantie."
+
+#. throw new ConflictException(_t["Administrators Profile's Status cannot be toggled"]);
+#: Infrastructure\Identity\UserService.cs:146
+msgctxt "FSH.WebApi.Infrastructure.Identity.UserService"
+msgid "Administrators Profile's Status cannot be toggled"
+msgstr "De status van het beheerdersprofiel kan niet worden omgeschakeld"
+
+#. throw new InternalServerException(_t["An Error has occurred!"]);
+#. _ = user ?? throw new InternalServerException(_t["An Error has occurred!"]);
+#. : throw new InternalServerException(_t["An Error has occurred!"]);
+#: Infrastructure\Identity\UserService.Password.cs:18
+#: Infrastructure\Identity\UserService.Password.cs:41
+#: Infrastructure\Identity\UserService.Password.cs:47
+msgctxt "FSH.WebApi.Infrastructure.Identity.UserService"
+msgid "An Error has occurred!"
+msgstr "Er is een fout opgetreden!"
+
+#. _t["Reset Password"],
+#: Infrastructure\Identity\UserService.Password.cs:29
+msgctxt "FSH.WebApi.Infrastructure.Identity.UserService"
+msgid "Reset Password"
+msgstr "Wachtwoord opnieuw instellen"
+
+#. return _t["Password Reset Mail has been sent to your authorized Email."];
+#: Infrastructure\Identity\UserService.Password.cs:33
+msgctxt "FSH.WebApi.Infrastructure.Identity.UserService"
+msgid "Password Reset Mail has been sent to your authorized Email."
+msgstr "E-mail om het wachtwoord te resetten is verzonden naar uw geautoriseerde e-mailadres."
+
+#. ? _t["Password Reset Successful!"]
+#: Infrastructure\Identity\UserService.Password.cs:46
+msgctxt "FSH.WebApi.Infrastructure.Identity.UserService"
+msgid "Password Reset Successful!"
+msgstr "Wachtwoord resetten geslaagd!"
+
+#. throw new InternalServerException(_t["Change password failed"], result.GetErrors(_t));
+#: Infrastructure\Identity\UserService.Password.cs:60
+msgctxt "FSH.WebApi.Infrastructure.Identity.UserService"
+msgid "Change password failed"
+msgstr "Wachtwoord wijzigen mislukt"
+
+#. throw new ConflictException(_t["Cannot Remove Admin Role From Root Tenant Admin."]);
+#: Infrastructure\Identity\UserService.Roles.cs:53
+msgctxt "FSH.WebApi.Infrastructure.Identity.UserService"
+msgid "Cannot Remove Admin Role From Root Tenant Admin."
+msgstr "Kan de beheerdersrol niet verwijderen uit de Root Tenant Admin."
+
+#. throw new ConflictException(_t["Tenant should have at least 2 Admins."]);
+#: Infrastructure\Identity\UserService.Roles.cs:58
+msgctxt "FSH.WebApi.Infrastructure.Identity.UserService"
+msgid "Tenant should have at least 2 Admins."
+msgstr "Tenant moet ten minste 2 beheerders hebben."
+
+#. return _t["User Roles Updated Successfully."];
+#: Infrastructure\Identity\UserService.Roles.cs:83
+msgctxt "FSH.WebApi.Infrastructure.Identity.UserService"
+msgid "User Roles Updated Successfully."
+msgstr "Gebruikersrollen succesvol bijgewerkt."
+
+#. SupportMessage = _t["Provide the ErrorId {0} to the support team for further analysis.", errorId]
+#: Infrastructure\Middleware\ExceptionMiddleware.cs:50
+msgctxt "FSH.WebApi.Infrastructure.Middleware.ExceptionMiddleware"
+msgid "Provide the ErrorId {0} to the support team for further analysis."
+msgstr "Geef de Fout-ID {0} aan het supportteam voor verdere analyse."
+
+#. throw new ConflictException(_t["Tenant is already Activated."]);
+#: Infrastructure\Multitenancy\TenantService.cs:80
+msgctxt "FSH.WebApi.Infrastructure.Multitenancy.TenantService"
+msgid "Tenant is already Activated."
+msgstr "De tenant is al geactiveerd."
+
+#. return _t["Tenant {0} is now Activated.", id];
+#: Infrastructure\Multitenancy\TenantService.cs:87
+msgctxt "FSH.WebApi.Infrastructure.Multitenancy.TenantService"
+msgid "Tenant {0} is now Activated."
+msgstr "Tenant {0} is nu geactiveerd."
+
+#. throw new ConflictException(_t["Tenant is already Deactivated."]);
+#: Infrastructure\Multitenancy\TenantService.cs:96
+msgctxt "FSH.WebApi.Infrastructure.Multitenancy.TenantService"
+msgid "Tenant is already Deactivated."
+msgstr "De instantie is al gedeactiveerd."
+
+#. ?? throw new NotFoundException(_t["{0} {1} Not Found.", typeof(FSHTenantInfo).Name, id]);
+#: Infrastructure\Multitenancy\TenantService.cs:119
+msgctxt "FSH.WebApi.Infrastructure.Multitenancy.TenantService"
+msgid "{0} {1} Not Found."
+msgstr "{0} {1} niet gevonden."
+

@@ -7,9 +7,9 @@ public class ForgotPasswordRequest
 
 public class ForgotPasswordRequestValidator : CustomValidator<ForgotPasswordRequest>
 {
-    public ForgotPasswordRequestValidator() =>
+    public ForgotPasswordRequestValidator(IStringLocalizer<ForgotPasswordRequestValidator> T) =>
         RuleFor(p => p.Email).Cascade(CascadeMode.Stop)
             .NotEmpty()
             .EmailAddress()
-                .WithMessage("Invalid Email Address.");
+                .WithMessage(T["Invalid Email Address."]);
 }
