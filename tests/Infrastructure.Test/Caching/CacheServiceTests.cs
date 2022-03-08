@@ -4,7 +4,7 @@ using Xunit;
 
 namespace Infrastructure.Test.Caching;
 
-public abstract class CacheService<TCacheService>
+public abstract class CacheServiceTests<TCacheService>
     where TCacheService : ICacheService
 {
     private record TestRecord(Guid Id, string StringValue, DateTime DateTimeValue);

@@ -12,7 +12,6 @@ using FSH.WebApi.Application.Common.Specification;
 using FSH.WebApi.Application.Identity.Users;
 using FSH.WebApi.Domain.Identity;
 using FSH.WebApi.Infrastructure.Auth;
-using FSH.WebApi.Infrastructure.Mailing;
 using FSH.WebApi.Infrastructure.Persistence.Context;
 using FSH.WebApi.Shared.Authorization;
 using Mapster;
