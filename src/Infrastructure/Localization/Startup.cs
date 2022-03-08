@@ -22,14 +22,15 @@ internal static class Startup
             {
                 if (localizationSettings.SupportedCultures != null)
                 {
-                    var supportedCultures = localizationSettings.SupportedCultures.Select(x => new CultureInfo(x)).ToList<CultureInfo>();
+                    var supportedCultures = localizationSettings.SupportedCultures.Select(x => new CultureInfo(x)).ToList();
 
-                    options.DefaultRequestCulture = new RequestCulture(localizationSettings.DefaultRequestCulture ?? "en-US");
                     options.SupportedCultures = supportedCultures;
                     options.SupportedUICultures = supportedCultures;
-                    options.FallBackToParentCultures = localizationSettings.FallbackToParent ?? true;
-                    options.FallBackToParentUICultures = localizationSettings.FallbackToParent ?? true;
                 }
+
+                options.DefaultRequestCulture = new RequestCulture(localizationSettings.DefaultRequestCulture ?? "en-US");
+                options.FallBackToParentCultures = localizationSettings.FallbackToParent ?? true;
+                options.FallBackToParentUICultures = localizationSettings.FallbackToParent ?? true;
             });
 
             services.AddSingleton<ILocalizationFileLocationProvider, FSHPoFileLocationProvider>();
