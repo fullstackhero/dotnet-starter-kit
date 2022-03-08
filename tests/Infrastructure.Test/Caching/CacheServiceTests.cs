@@ -4,22 +4,21 @@ using Xunit;
 
 namespace Infrastructure.Test.Caching;
 
-public abstract class CacheService<TCacheService>
-    where TCacheService : ICacheService
+public abstract class CacheServiceTests
 {
     private record TestRecord(Guid Id, string StringValue, DateTime DateTimeValue);
 
     private const string _testKey = "testkey";
     private const string _testValue = "testvalue";
 
-    protected abstract TCacheService CreateCacheService();
+    private readonly ICacheService _sut;
+
+    protected CacheServiceTests(ICacheService cacheService) => _sut = cacheService;
 
     [Fact]
     public void ThrowsGivenNullKey()
     {
-        var sut = CreateCacheService();
-
-        var action = () => { string? result = sut.Get<string>(null!); };
+        var action = () => { string? result = _sut.Get<string>(null!); };
 
         action.Should().Throw<ArgumentNullException>();
     }
@@ -27,9 +26,7 @@ public abstract class CacheService<TCacheService>
     [Fact]
     public void ReturnsNullGivenNonExistingKey()
     {
-        var sut = CreateCacheService();
-
-        string? result = sut.Get<string>(_testKey);
+        string? result = _sut.Get<string>(_testKey);
 
         result.Should().BeNull();
     }
@@ -50,10 +47,8 @@ public abstract class CacheService<TCacheService>
     [MemberData(nameof(ValueData))]
     public void ReturnsExistingValueGivenExistingKey<T>(string testKey, T testValue)
     {
-        var sut = CreateCacheService();
-
-        sut.Set(testKey, testValue);
-        T? result = sut.Get<T>(testKey);
+        _sut.Set(testKey, testValue);
+        T? result = _sut.Get<T>(testKey);
 
         result.Should().Be(testValue);
     }
@@ -62,10 +57,9 @@ public abstract class CacheService<TCacheService>
     public void ReturnsExistingObjectGivenExistingKey()
     {
         var expected = new TestRecord(Guid.NewGuid(), _testValue, DateTime.UtcNow);
-        var sut = CreateCacheService();
 
-        sut.Set(_testKey, expected);
-        var result = sut.Get<TestRecord>(_testKey);
+        _sut.Set(_testKey, expected);
+        var result = _sut.Get<TestRecord>(_testKey);
 
         result.Should().BeEquivalentTo(expected);
     }
@@ -73,14 +67,13 @@ public abstract class CacheService<TCacheService>
     [Fact]
     public async Task ReturnsNullGivenAnExpiredKey()
     {
-        var sut = CreateCacheService();
-        sut.Set(_testKey, _testValue, TimeSpan.FromMilliseconds(200));
+        _sut.Set(_testKey, _testValue, TimeSpan.FromMilliseconds(200));
 
-        string? result = sut.Get<string>(_testKey);
+        string? result = _sut.Get<string>(_testKey);
         Assert.Equal(_testValue, result);
 
         await Task.Delay(250);
-        result = sut.Get<string>(_testKey);
+        result = _sut.Get<string>(_testKey);
 
         result.Should().BeNull();
     }

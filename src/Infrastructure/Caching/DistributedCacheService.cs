@@ -17,7 +17,7 @@ public class DistributedCacheService : ICacheService
         (_cache, _serializer, _logger) = (cache, serializer, logger);
 
     public T? Get<T>(string key) =>
-        Get(key) is byte[] data
+        Get(key) is { } data
             ? Deserialize<T>(data)
             : default;
 
@@ -36,7 +36,7 @@ public class DistributedCacheService : ICacheService
     }
 
     public async Task<T?> GetAsync<T>(string key, CancellationToken token = default) =>
-        await GetAsync(key, token) is byte[] data
+        await GetAsync(key, token) is { } data
             ? Deserialize<T>(data)
             : default;
 
