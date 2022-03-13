@@ -239,8 +239,8 @@ public static class SpecificationBuilderExtensions
 
         string searchTerm = operatorSearch switch
         {
-            FilterOperator.ENDWITH => $"{keyword}%",
-            FilterOperator.STARTWITH => $"%{keyword}",
+            FilterOperator.STARTWITH => $"{keyword}%",
+            FilterOperator.ENDWITH => $"%{keyword}",
             FilterOperator.CONTAINS => $"%{keyword}%",
             _ => throw new ArgumentException("operatorSearch is not valid.", nameof(operatorSearch))
         };
