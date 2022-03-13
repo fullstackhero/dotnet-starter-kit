@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
+using System.Text.Json;
 
 namespace FSH.WebApi.Application.Common.Specification;
 
@@ -9,7 +10,8 @@ public static class SpecificationBuilderExtensions
     public static ISpecificationBuilder<T> SearchBy<T>(this ISpecificationBuilder<T> query, BaseFilter filter) =>
         query
             .SearchByKeyword(filter.Keyword)
-            .AdvancedSearch(filter.AdvancedSearch);
+            .AdvancedSearch(filter.AdvancedSearch)
+            .AdvancedFilter(filter.AdvancedFilter);
 
     public static ISpecificationBuilder<T> PaginateBy<T>(this ISpecificationBuilder<T> query, PaginationFilter filter)
     {
@@ -79,12 +81,169 @@ public static class SpecificationBuilderExtensions
         return new OrderedSpecificationBuilder<T>(specificationBuilder.Specification);
     }
 
-    private static void AddSearchPropertyByKeyword<T>(this ISpecificationBuilder<T> specificationBuilder, Expression propertyExpr, ParameterExpression paramExpr, string keyword)
+
+    private static MemberExpression GetMemberExpression(string propertyName, ParameterExpression parameter)
+    {
+        Expression mapProperty = parameter;
+        foreach (string member in propertyName.Split('.'))
+        {
+            mapProperty = Expression.PropertyOrField(mapProperty, member);
+        }
+
+        return (MemberExpression)mapProperty;
+    }
+
+    private static BinaryExpression GetBinaryExpression(MemberExpression memberExpression, ConstantExpression constantExpression, ConstantExpression constantExpressionAux, Filter filter)
+    {
+
+        return filter.Operator switch
+        {
+            FilterOperator.EQ => Expression.Equal(memberExpression, constantExpression),
+            FilterOperator.NEQ => Expression.NotEqual(memberExpression, constantExpression),
+            FilterOperator.LT => Expression.LessThan(memberExpression, constantExpression),
+            FilterOperator.LTE => Expression.LessThanOrEqual(memberExpression, constantExpression),
+            FilterOperator.GT => Expression.GreaterThan(memberExpression, constantExpression),
+            FilterOperator.GTE => Expression.GreaterThanOrEqual(memberExpression, constantExpression),
+            FilterOperator.BETWEEN => Expression.AndAlso(Expression.GreaterThanOrEqual(memberExpression, constantExpression), Expression.LessThanOrEqual(memberExpression, constantExpressionAux)),
+            _ => throw new ArgumentException("operatorSearch is not valid.", nameof(filter.Operator)),
+        };
+    }
+
+    private static string GetStringFromJsonElement(object value) => ((JsonElement)value).GetString()!;
+
+    private static BinaryExpression GetBinaryExpressionFromFilter(Filter filter, ParameterExpression parameter)
+    {
+
+        MemberExpression mapProperty = GetMemberExpression(filter.Field, parameter);
+
+        (ConstantExpression value, ConstantExpression valueAx) = GetConstantExpressionFromFilter(mapProperty, filter);
+
+        var bExpresion = GetBinaryExpression(mapProperty, value, valueAx, filter);
+        if (filter.Filters.Any())
+        {
+            bExpresion = AddFilters(filter.Filters, parameter, bExpresion);
+        }
+
+        return bExpresion;
+    }
+    private static (ConstantExpression CExpresion, ConstantExpression CExpresionAux) GetConstantExpressionFromFilter(MemberExpression mapProperty, Filter filter)
+    {
+        ConstantExpression cExpresionAux = default!;
+
+        ConstantExpression cExpresion;
+        if (mapProperty.Type.IsEnum)
+        {
+            string? stringEnum = GetStringFromJsonElement(filter.Value!);
+
+            if (!Enum.TryParse(mapProperty.Type, stringEnum, true, out object? valueparsed)) throw new CustomException("Value {0} is not valid for {1}");
+
+            cExpresion = Expression.Constant(valueparsed, mapProperty.Type);
+        }
+        else if (mapProperty.Type == typeof(Guid))
+        {
+            string? stringGuid = GetStringFromJsonElement(filter.Value!);
+
+            if (!Guid.TryParse(stringGuid, out Guid valueparsed)) throw new CustomException("Value {0} is not valid for {1}");
+
+            cExpresion = Expression.Constant(valueparsed, mapProperty.Type);
+        }
+        else if (mapProperty.Type == typeof(string))
+        {
+            string? text = GetStringFromJsonElement(filter.Value!);
+
+            cExpresion = Expression.Constant(text, mapProperty.Type);
+        }
+        else
+        {
+            cExpresion = Expression.Constant(Convert.ChangeType(((JsonElement)filter.Value!).GetRawText(), mapProperty.Type), mapProperty.Type);
+            if (filter.ValueAux is not null)
+            {
+                cExpresionAux = Expression.Constant(Convert.ChangeType(((JsonElement)filter.ValueAux).GetRawText(), mapProperty.Type), mapProperty.Type);
+            }
+        }
+
+        return (cExpresion, cExpresionAux);
+    }
+
+    private static BinaryExpression AddFilters(IEnumerable<Filter> filters, ParameterExpression parameter, BinaryExpression bExpresionBase = default!)
+    {
+        BinaryExpression bResult = default!;
+        foreach (Filter filter in filters)
+        {
+            var bExpresionFilter = GetBinaryExpressionFromFilter(filter, parameter);
+
+            if (bExpresionBase is not null)
+            {
+                bResult = filter.Logic switch
+                {
+                    FilterLogic.AND => Expression.And(bExpresionBase, bExpresionFilter),
+                    FilterLogic.OR => Expression.Or(bExpresionBase, bExpresionFilter),
+                    FilterLogic.XOR => Expression.ExclusiveOr(bExpresionBase, bExpresionFilter),
+                    _ => throw new ArgumentException("FilterLogic is not valid.", nameof(FilterLogic)),
+                };
+            }
+            else
+            {
+                bResult = bExpresionFilter;
+            }
+
+        }
+
+        return bResult;
+    }
+
+    public static IOrderedSpecificationBuilder<T> AdvancedFilter<T>(
+        this ISpecificationBuilder<T> specificationBuilder,
+        IEnumerable<Filter>? filters)
+    {
+        if (filters is not null)
+        {
+            List<string> operatorsSearch = new List<string>
+            {
+                FilterOperator.STARTWITH,
+                FilterOperator.ENDWITH,
+                FilterOperator.CONTAINS
+            };
+
+            // search seleted fields (can contain deeper nested fields)
+            foreach (Filter filter in filters)
+            {
+
+                var parameter = Expression.Parameter(typeof(T));
+
+                // TODO: Add support for nested filter: like
+                if (operatorsSearch.Contains(filter.Operator))
+                {
+                    specificationBuilder.AddSearchPropertyByKeyword(GetMemberExpression(filter.Field, parameter), parameter, GetStringFromJsonElement(filter.Value), filter.Operator);
+                    continue;
+                }
+
+                var binaryExpresioFilter = GetBinaryExpressionFromFilter(filter, parameter);
+
+                ((List<WhereExpressionInfo<T>>)specificationBuilder.Specification.WhereExpressions)
+                    .Add(new WhereExpressionInfo<T>(Expression.Lambda<Func<T, bool>>(binaryExpresioFilter, parameter)));
+
+            }
+        }
+
+        return new OrderedSpecificationBuilder<T>(specificationBuilder.Specification);
+    }
+
+
+    private static void AddSearchPropertyByKeyword<T>(this ISpecificationBuilder<T> specificationBuilder, Expression propertyExpr, ParameterExpression paramExpr, string keyword, string operatorSearch = FilterOperator.CONTAINS)
     {
         if (propertyExpr is not MemberExpression memberExpr || memberExpr.Member is not PropertyInfo property)
         {
             throw new ArgumentException("propertyExpr must be a property expression.", nameof(propertyExpr));
         }
+
+        string searchTerm = operatorSearch switch
+        {
+            FilterOperator.ENDWITH => $"{keyword}%",
+            FilterOperator.STARTWITH => $"%{keyword}",
+            FilterOperator.CONTAINS => $"%{keyword}%",
+            _ => throw new ArgumentException("operatorSearch is not valid.", nameof(operatorSearch))
+        };
 
         // Generate lambda [ x => x.Property ] for string properties
         // or [ x => ((object)x.Property) == null ? null : x.Property.ToString() ] for other properties
@@ -92,16 +251,14 @@ public static class SpecificationBuilderExtensions
             property.PropertyType == typeof(string)
                 ? propertyExpr
                 : Expression.Condition(
-                    Expression.Equal(
-                        Expression.Convert(propertyExpr, typeof(object)),
-                        Expression.Constant(null, typeof(object))),
+                    Expression.Equal(Expression.Convert(propertyExpr, typeof(object)), Expression.Constant(null, typeof(object))),
                     Expression.Constant(null, typeof(string)),
                     Expression.Call(propertyExpr, "ToString", null, null));
 
         var selector = Expression.Lambda<Func<T, string>>(selectorExpr, paramExpr);
 
         ((List<SearchExpressionInfo<T>>)specificationBuilder.Specification.SearchCriterias)
-            .Add(new SearchExpressionInfo<T>(selector, $"%{keyword}%", 1));
+            .Add(new SearchExpressionInfo<T>(selector, searchTerm, 1));
     }
 
     public static IOrderedSpecificationBuilder<T> OrderBy<T>(
