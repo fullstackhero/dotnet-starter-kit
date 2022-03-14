@@ -128,7 +128,7 @@ public static class SpecificationBuilderExtensions
         {
             string? stringEnum = GetStringFromJsonElement(filter.Value!);
 
-            if (!Enum.TryParse(mapProperty.Type, stringEnum, true, out object? valueparsed)) throw new CustomException("Value {0} is not valid for {1}");
+            if (!Enum.TryParse(mapProperty.Type, stringEnum, true, out object? valueparsed)) throw new CustomException(string.Format("Value {0} is not valid for {1}", filter.Value, filter.Field));
 
             cExpresion = Expression.Constant(valueparsed, mapProperty.Type);
         }
@@ -136,7 +136,7 @@ public static class SpecificationBuilderExtensions
         {
             string? stringGuid = GetStringFromJsonElement(filter.Value!);
 
-            if (!Guid.TryParse(stringGuid, out Guid valueparsed)) throw new CustomException("Value {0} is not valid for {1}");
+            if (!Guid.TryParse(stringGuid, out Guid valueparsed)) throw new CustomException(string.Format("Value {0} is not valid for {1}", filter.Value, filter.Field));
 
             cExpresion = Expression.Constant(valueparsed, mapProperty.Type);
         }
