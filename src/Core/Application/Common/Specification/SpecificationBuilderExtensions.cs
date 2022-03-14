@@ -87,7 +87,7 @@ public static class SpecificationBuilderExtensions
         return (MemberExpression)mapProperty;
     }
 
-    private static BinaryExpression GetBinaryExpression(MemberExpression memberExpression, ConstantExpression constantExpression, ConstantExpression constantExpressionAux, string filterOperator)
+    private static BinaryExpression GetBinaryExpression(MemberExpression memberExpression, ConstantExpression constantExpression, string filterOperator)
     {
         return filterOperator switch
         {
@@ -97,7 +97,6 @@ public static class SpecificationBuilderExtensions
             FilterOperator.LTE => Expression.LessThanOrEqual(memberExpression, constantExpression),
             FilterOperator.GT => Expression.GreaterThan(memberExpression, constantExpression),
             FilterOperator.GTE => Expression.GreaterThanOrEqual(memberExpression, constantExpression),
-            FilterOperator.BETWEEN => Expression.AndAlso(Expression.GreaterThanOrEqual(memberExpression, constantExpression), Expression.LessThanOrEqual(memberExpression, constantExpressionAux)),
             _ => throw new ArgumentException("operatorSearch is not valid.", nameof(filterOperator)),
         };
     }
@@ -108,9 +107,9 @@ public static class SpecificationBuilderExtensions
     {
         MemberExpression mapProperty = GetMemberExpression(filter.Field, parameter);
 
-        (ConstantExpression value, ConstantExpression valueAx) = GetConstantExpressionFromFilter(mapProperty, filter);
+        ConstantExpression value = GetConstantExpressionFromFilter(mapProperty, filter);
 
-        var bExpresion = GetBinaryExpression(mapProperty, value, valueAx, filter.Operator);
+        var bExpresion = GetBinaryExpression(mapProperty, value, filter.Operator);
         if (filter.Filters.Any())
         {
             bExpresion = AddFilters(filter.Filters, parameter, bExpresion);
@@ -119,18 +118,15 @@ public static class SpecificationBuilderExtensions
         return bExpresion;
     }
 
-    private static (ConstantExpression cExpresion, ConstantExpression cExpresionAux) GetConstantExpressionFromFilter(MemberExpression mapProperty, Filter filter)
+    private static ConstantExpression GetConstantExpressionFromFilter(MemberExpression mapProperty, Filter filter)
     {
-        ConstantExpression cExpresionAux = default!;
-
-        ConstantExpression cExpresion;
         if (mapProperty.Type.IsEnum)
         {
             string? stringEnum = GetStringFromJsonElement(filter.Value!);
 
             if (!Enum.TryParse(mapProperty.Type, stringEnum, true, out object? valueparsed)) throw new CustomException(string.Format("Value {0} is not valid for {1}", filter.Value, filter.Field));
 
-            cExpresion = Expression.Constant(valueparsed, mapProperty.Type);
+            return Expression.Constant(valueparsed, mapProperty.Type);
         }
         else if (mapProperty.Type == typeof(Guid))
         {
@@ -138,24 +134,18 @@ public static class SpecificationBuilderExtensions
 
             if (!Guid.TryParse(stringGuid, out Guid valueparsed)) throw new CustomException(string.Format("Value {0} is not valid for {1}", filter.Value, filter.Field));
 
-            cExpresion = Expression.Constant(valueparsed, mapProperty.Type);
+            return Expression.Constant(valueparsed, mapProperty.Type);
         }
         else if (mapProperty.Type == typeof(string))
         {
             string? text = GetStringFromJsonElement(filter.Value!);
 
-            cExpresion = Expression.Constant(text, mapProperty.Type);
+            return Expression.Constant(text, mapProperty.Type);
         }
         else
         {
-            cExpresion = Expression.Constant(Convert.ChangeType(((JsonElement)filter.Value!).GetRawText(), mapProperty.Type), mapProperty.Type);
-            if (filter.ValueAux is not null)
-            {
-                cExpresionAux = Expression.Constant(Convert.ChangeType(((JsonElement)filter.ValueAux).GetRawText(), mapProperty.Type), mapProperty.Type);
-            }
+            return Expression.Constant(Convert.ChangeType(((JsonElement)filter.Value!).GetRawText(), mapProperty.Type), mapProperty.Type);
         }
-
-        return (cExpresion, cExpresionAux);
     }
 
     private static BinaryExpression AddFilters(IEnumerable<Filter> filters, ParameterExpression parameter, BinaryExpression bExpresionBase = default!)

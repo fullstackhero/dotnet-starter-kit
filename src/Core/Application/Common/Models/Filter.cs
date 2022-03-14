@@ -8,7 +8,6 @@ public static class FilterOperator
     public const string LTE = "lte";
     public const string GT = "gt";
     public const string GTE = "gte";
-    public const string BETWEEN = "between";
     public const string STARTSWITH = "startswith";
     public const string ENDSWITH = "endswith";
     public const string CONTAINS = "contains";
@@ -28,8 +27,6 @@ public class Filter
     public string Operator { get; set; } = default!;
 
     public object Value { get; set; } = default!;
-
-    public object? ValueAux { get; set; }
 
     public string Logic { get; set; } = default!;
 
