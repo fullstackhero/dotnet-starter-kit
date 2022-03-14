@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
-using Finbuckle.MultiTenant;
 using FSH.WebApi.Infrastructure.Common;
+using FSH.WebApi.Infrastructure.Multitenancy;
 using FSH.WebApi.Shared.Multitenancy;
 using Hangfire.Client;
 using Hangfire.Logging;
@@ -25,14 +25,17 @@ public class FSHJobFilter : IClientFilter
 
         using var scope = _services.CreateScope();
 
-        var httpContext = scope.ServiceProvider.GetRequiredService<IHttpContextAccessor>()?.HttpContext;
-        _ = httpContext ?? throw new InvalidOperationException("Can't create a TenantJob without HttpContext.");
+        var currentTenant = scope.ServiceProvider.GetService<FSHTenantInfo>();
+        if (currentTenant?.Id is not null)
+        {
+            context.SetJobParameter(MultitenancyConstants.TenantIdName, currentTenant.Id);
+        }
 
-        var tenantInfo = scope.ServiceProvider.GetRequiredService<ITenantInfo>();
-        context.SetJobParameter(MultitenancyConstants.TenantIdName, tenantInfo);
-
-        string? userId = httpContext.User.GetUserId();
-        context.SetJobParameter(QueryStringKeys.UserId, userId);
+        var currentUser = scope.ServiceProvider.GetService<IHttpContextAccessor>()?.HttpContext?.User;
+        if (currentUser?.GetUserId() is { } userId)
+        {
+            context.SetJobParameter(QueryStringKeys.UserId, userId);
+        }
     }
 
     public void OnCreated(CreatedContext context) =>
