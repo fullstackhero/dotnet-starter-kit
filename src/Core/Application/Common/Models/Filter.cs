@@ -9,8 +9,8 @@ public static class FilterOperator
     public const string GT = "gt";
     public const string GTE = "gte";
     public const string BETWEEN = "between";
-    public const string STARTWITH = "startswith";
-    public const string ENDWITH = "endswith";
+    public const string STARTSWITH = "startswith";
+    public const string ENDSWITH = "endswith";
     public const string CONTAINS = "contains";
 }
 
@@ -23,15 +23,15 @@ public static class FilterLogic
 
 public class Filter
 {
-    public string Field { get; set; }
+    public string Field { get; set; } = default!;
 
-    public string Operator { get; set; }
+    public string Operator { get; set; } = default!;
 
-    public object Value { get; set; }
+    public object Value { get; set; } = default!;
 
     public object? ValueAux { get; set; }
 
-    public string Logic { get; set; }
+    public string Logic { get; set; } = default!;
 
-    public IEnumerable<Filter> Filters { get; set; }
+    public IEnumerable<Filter> Filters { get; set; } = default!;
 }

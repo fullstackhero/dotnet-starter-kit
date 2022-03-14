@@ -81,7 +81,6 @@ public static class SpecificationBuilderExtensions
         return new OrderedSpecificationBuilder<T>(specificationBuilder.Specification);
     }
 
-
     private static MemberExpression GetMemberExpression(string propertyName, ParameterExpression parameter)
     {
         Expression mapProperty = parameter;
@@ -95,7 +94,6 @@ public static class SpecificationBuilderExtensions
 
     private static BinaryExpression GetBinaryExpression(MemberExpression memberExpression, ConstantExpression constantExpression, ConstantExpression constantExpressionAux, Filter filter)
     {
-
         return filter.Operator switch
         {
             FilterOperator.EQ => Expression.Equal(memberExpression, constantExpression),
@@ -113,7 +111,6 @@ public static class SpecificationBuilderExtensions
 
     private static BinaryExpression GetBinaryExpressionFromFilter(Filter filter, ParameterExpression parameter)
     {
-
         MemberExpression mapProperty = GetMemberExpression(filter.Field, parameter);
 
         (ConstantExpression value, ConstantExpression valueAx) = GetConstantExpressionFromFilter(mapProperty, filter);
@@ -126,7 +123,8 @@ public static class SpecificationBuilderExtensions
 
         return bExpresion;
     }
-    private static (ConstantExpression CExpresion, ConstantExpression CExpresionAux) GetConstantExpressionFromFilter(MemberExpression mapProperty, Filter filter)
+
+    private static (ConstantExpression cExpresion, ConstantExpression cExpresionAux) GetConstantExpressionFromFilter(MemberExpression mapProperty, Filter filter)
     {
         ConstantExpression cExpresionAux = default!;
 
@@ -186,7 +184,6 @@ public static class SpecificationBuilderExtensions
             {
                 bResult = bExpresionFilter;
             }
-
         }
 
         return bResult;
@@ -200,15 +197,14 @@ public static class SpecificationBuilderExtensions
         {
             List<string> operatorsSearch = new List<string>
             {
-                FilterOperator.STARTWITH,
-                FilterOperator.ENDWITH,
+                FilterOperator.STARTSWITH,
+                FilterOperator.ENDSWITH,
                 FilterOperator.CONTAINS
             };
 
             // search seleted fields (can contain deeper nested fields)
             foreach (Filter filter in filters)
             {
-
                 var parameter = Expression.Parameter(typeof(T));
 
                 // TODO: Add support for nested filter: like
@@ -222,13 +218,11 @@ public static class SpecificationBuilderExtensions
 
                 ((List<WhereExpressionInfo<T>>)specificationBuilder.Specification.WhereExpressions)
                     .Add(new WhereExpressionInfo<T>(Expression.Lambda<Func<T, bool>>(binaryExpresioFilter, parameter)));
-
             }
         }
 
         return new OrderedSpecificationBuilder<T>(specificationBuilder.Specification);
     }
-
 
     private static void AddSearchPropertyByKeyword<T>(this ISpecificationBuilder<T> specificationBuilder, Expression propertyExpr, ParameterExpression paramExpr, string keyword, string operatorSearch = FilterOperator.CONTAINS)
     {
@@ -239,8 +233,8 @@ public static class SpecificationBuilderExtensions
 
         string searchTerm = operatorSearch switch
         {
-            FilterOperator.STARTWITH => $"{keyword}%",
-            FilterOperator.ENDWITH => $"%{keyword}",
+            FilterOperator.STARTSWITH => $"{keyword}%",
+            FilterOperator.ENDSWITH => $"%{keyword}",
             FilterOperator.CONTAINS => $"%{keyword}%",
             _ => throw new ArgumentException("operatorSearch is not valid.", nameof(operatorSearch))
         };
