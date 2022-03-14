@@ -87,9 +87,9 @@ public static class SpecificationBuilderExtensions
         return (MemberExpression)mapProperty;
     }
 
-    private static BinaryExpression GetBinaryExpression(MemberExpression memberExpression, ConstantExpression constantExpression, ConstantExpression constantExpressionAux, Filter filter)
+    private static BinaryExpression GetBinaryExpression(MemberExpression memberExpression, ConstantExpression constantExpression, ConstantExpression constantExpressionAux, string filterOperator)
     {
-        return filter.Operator switch
+        return filterOperator switch
         {
             FilterOperator.EQ => Expression.Equal(memberExpression, constantExpression),
             FilterOperator.NEQ => Expression.NotEqual(memberExpression, constantExpression),
@@ -98,7 +98,7 @@ public static class SpecificationBuilderExtensions
             FilterOperator.GT => Expression.GreaterThan(memberExpression, constantExpression),
             FilterOperator.GTE => Expression.GreaterThanOrEqual(memberExpression, constantExpression),
             FilterOperator.BETWEEN => Expression.AndAlso(Expression.GreaterThanOrEqual(memberExpression, constantExpression), Expression.LessThanOrEqual(memberExpression, constantExpressionAux)),
-            _ => throw new ArgumentException("operatorSearch is not valid.", nameof(filter.Operator)),
+            _ => throw new ArgumentException("operatorSearch is not valid.", nameof(filterOperator)),
         };
     }
 
@@ -110,7 +110,7 @@ public static class SpecificationBuilderExtensions
 
         (ConstantExpression value, ConstantExpression valueAx) = GetConstantExpressionFromFilter(mapProperty, filter);
 
-        var bExpresion = GetBinaryExpression(mapProperty, value, valueAx, filter);
+        var bExpresion = GetBinaryExpression(mapProperty, value, valueAx, filter.Operator);
         if (filter.Filters.Any())
         {
             bExpresion = AddFilters(filter.Filters, parameter, bExpresion);
