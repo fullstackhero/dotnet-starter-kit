@@ -103,7 +103,14 @@ public static class SpecificationBuilderExtensions
 
     private static string GetStringFromJsonElement(object value) => ((JsonElement)value).GetString()!;
 
-    private static BinaryExpression GetBinaryExpression(string filterLogic, IEnumerable<Filter> filters, ParameterExpression parameter)
+    private static BinaryExpression GetBinaryExpressionFromFilter(Filter filter, ParameterExpression parameter)
+    {
+        MemberExpression mapProperty = GetMemberExpression(filter.Field!, parameter);
+        ConstantExpression value = GetConstantExpression(mapProperty, filter);
+        return CreateBinaryExpression(mapProperty, value, filter.Operator!);
+    }
+
+    private static BinaryExpression GetBinaryExpressionFromLogic(string filterLogic, IEnumerable<Filter> filters, ParameterExpression parameter)
     {
         BinaryExpression bExpresionBase = default!;
 
@@ -113,13 +120,11 @@ public static class SpecificationBuilderExtensions
 
             if (!string.IsNullOrEmpty(filter.Logic))
             {
-                bExpresionFilter = GetBinaryExpression(filter.Logic, filter.Filters!, parameter);
+                bExpresionFilter = GetBinaryExpressionFromLogic(filter.Logic, filter.Filters!, parameter);
             }
             else
             {
-                MemberExpression mapProperty = GetMemberExpression(filter.Field!, parameter);
-                ConstantExpression value = GetConstantExpression(mapProperty, filter);
-                bExpresionFilter = CreateBinaryExpression(mapProperty, value, filter.Operator!);
+                bExpresionFilter = GetBinaryExpressionFromFilter(filter, parameter);
             }
 
             bExpresionBase = bExpresionBase is null ? bExpresionFilter : CombineFilter(filterLogic, bExpresionBase, bExpresionFilter);
@@ -177,7 +182,16 @@ public static class SpecificationBuilderExtensions
         {
             var parameter = Expression.Parameter(typeof(T));
 
-            var binaryExpresioFilter = GetBinaryExpression(filter.Logic!, filter.Filters!, parameter);
+            BinaryExpression binaryExpresioFilter;
+
+            if (!string.IsNullOrEmpty(filter.Logic))
+            {
+                binaryExpresioFilter = GetBinaryExpressionFromLogic(filter.Logic!, filter.Filters!, parameter);
+            }
+            else
+            {
+                binaryExpresioFilter = GetBinaryExpressionFromFilter(filter, parameter);
+            }
 
             ((List<WhereExpressionInfo<T>>)specificationBuilder.Specification.WhereExpressions)
                 .Add(new WhereExpressionInfo<T>(Expression.Lambda<Func<T, bool>>(binaryExpresioFilter, parameter)));
