@@ -52,12 +52,7 @@ public static class SpecificationBuilderExtensions
                 foreach (string field in search.Fields)
                 {
                     var paramExpr = Expression.Parameter(typeof(T));
-
-                    Expression propertyExpr = paramExpr;
-                    foreach (string member in field.Split('.'))
-                    {
-                        propertyExpr = Expression.PropertyOrField(propertyExpr, member);
-                    }
+                    MemberExpression propertyExpr = GetMemberExpression(field, paramExpr);
 
                     specificationBuilder.AddSearchPropertyByKeyword(propertyExpr, paramExpr, search.Keyword);
                 }
