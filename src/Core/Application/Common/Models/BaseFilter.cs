@@ -15,5 +15,5 @@ public class BaseFilter
     /// <summary>
     /// Advanced column filtering with logical operators and query operators is supported.
     /// </summary>
-    public IEnumerable<Filter>? AdvancedFilter { get; set; }
+    public Filter? AdvancedFilter { get; set; }
 }

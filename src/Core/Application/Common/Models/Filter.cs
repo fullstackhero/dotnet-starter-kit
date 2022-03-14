@@ -22,13 +22,13 @@ public static class FilterLogic
 
 public class Filter
 {
-    public string Field { get; set; } = default!;
+    public string? Logic { get; set; }
 
-    public string Operator { get; set; } = default!;
+    public IEnumerable<Filter>? Filters { get; set; }
 
-    public object Value { get; set; } = default!;
+    public string? Field { get; set; }
 
-    public string Logic { get; set; } = default!;
+    public string? Operator { get; set; }
 
-    public IEnumerable<Filter> Filters { get; set; } = default!;
+    public object? Value { get; set; }
 }

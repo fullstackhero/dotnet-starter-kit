@@ -87,7 +87,7 @@ public static class SpecificationBuilderExtensions
         return (MemberExpression)mapProperty;
     }
 
-    private static BinaryExpression GetBinaryExpression(MemberExpression memberExpression, ConstantExpression constantExpression, string filterOperator)
+    private static BinaryExpression CreateBinaryExpression(MemberExpression memberExpression, ConstantExpression constantExpression, string filterOperator)
     {
         return filterOperator switch
         {
@@ -103,22 +103,32 @@ public static class SpecificationBuilderExtensions
 
     private static string GetStringFromJsonElement(object value) => ((JsonElement)value).GetString()!;
 
-    private static BinaryExpression GetBinaryExpressionFromFilter(Filter filter, ParameterExpression parameter)
+    private static BinaryExpression GetBinaryExpression(string filterLogic, IEnumerable<Filter> filters, ParameterExpression parameter)
     {
-        MemberExpression mapProperty = GetMemberExpression(filter.Field, parameter);
+        BinaryExpression bExpresionBase = default!;
 
-        ConstantExpression value = GetConstantExpressionFromFilter(mapProperty, filter);
-
-        var bExpresion = GetBinaryExpression(mapProperty, value, filter.Operator);
-        if (filter.Filters.Any())
+        foreach (var filter in filters)
         {
-            bExpresion = AddFilters(filter.Filters, parameter, bExpresion);
+            BinaryExpression bExpresionFilter;
+
+            if (!string.IsNullOrEmpty(filter.Logic))
+            {
+                bExpresionFilter = GetBinaryExpression(filter.Logic, filter.Filters!, parameter);
+            }
+            else
+            {
+                MemberExpression mapProperty = GetMemberExpression(filter.Field!, parameter);
+                ConstantExpression value = GetConstantExpression(mapProperty, filter);
+                bExpresionFilter = CreateBinaryExpression(mapProperty, value, filter.Operator!);
+            }
+
+            bExpresionBase = bExpresionBase is null ? bExpresionFilter : CombineFilter(filterLogic, bExpresionBase, bExpresionFilter);
         }
 
-        return bExpresion;
+        return bExpresionBase;
     }
 
-    private static ConstantExpression GetConstantExpressionFromFilter(MemberExpression mapProperty, Filter filter)
+    private static ConstantExpression GetConstantExpression(MemberExpression mapProperty, Filter filter)
     {
         if (mapProperty.Type.IsEnum)
         {
@@ -148,62 +158,29 @@ public static class SpecificationBuilderExtensions
         }
     }
 
-    private static BinaryExpression AddFilters(IEnumerable<Filter> filters, ParameterExpression parameter, BinaryExpression bExpresionBase = default!)
+    private static BinaryExpression CombineFilter(string filterOperator, Expression bExpresionBase, BinaryExpression bExpresion)
     {
-        BinaryExpression bResult = default!;
-        foreach (Filter filter in filters)
+        return filterOperator switch
         {
-            var bExpresionFilter = GetBinaryExpressionFromFilter(filter, parameter);
-
-            if (bExpresionBase is not null)
-            {
-                bResult = filter.Logic switch
-                {
-                    FilterLogic.AND => Expression.And(bExpresionBase, bExpresionFilter),
-                    FilterLogic.OR => Expression.Or(bExpresionBase, bExpresionFilter),
-                    FilterLogic.XOR => Expression.ExclusiveOr(bExpresionBase, bExpresionFilter),
-                    _ => throw new ArgumentException("FilterLogic is not valid.", nameof(FilterLogic)),
-                };
-            }
-            else
-            {
-                bResult = bExpresionFilter;
-            }
-        }
-
-        return bResult;
+            FilterLogic.AND => Expression.And(bExpresionBase, bExpresion),
+            FilterLogic.OR => Expression.Or(bExpresionBase, bExpresion),
+            FilterLogic.XOR => Expression.ExclusiveOr(bExpresionBase, bExpresion),
+            _ => throw new ArgumentException("FilterLogic is not valid.", nameof(FilterLogic)),
+        };
     }
 
     public static IOrderedSpecificationBuilder<T> AdvancedFilter<T>(
         this ISpecificationBuilder<T> specificationBuilder,
-        IEnumerable<Filter>? filters)
+        Filter? filter)
     {
-        if (filters is not null)
+        if (filter is not null)
         {
-            List<string> operatorsSearch = new List<string>
-            {
-                FilterOperator.STARTSWITH,
-                FilterOperator.ENDSWITH,
-                FilterOperator.CONTAINS
-            };
+            var parameter = Expression.Parameter(typeof(T));
 
-            // search seleted fields (can contain deeper nested fields)
-            foreach (Filter filter in filters)
-            {
-                var parameter = Expression.Parameter(typeof(T));
+            var binaryExpresioFilter = GetBinaryExpression(filter.Logic!, filter.Filters!, parameter);
 
-                // TODO: Add support for nested filter: like
-                if (operatorsSearch.Contains(filter.Operator))
-                {
-                    specificationBuilder.AddSearchPropertyByKeyword(GetMemberExpression(filter.Field, parameter), parameter, GetStringFromJsonElement(filter.Value), filter.Operator);
-                    continue;
-                }
-
-                var binaryExpresioFilter = GetBinaryExpressionFromFilter(filter, parameter);
-
-                ((List<WhereExpressionInfo<T>>)specificationBuilder.Specification.WhereExpressions)
-                    .Add(new WhereExpressionInfo<T>(Expression.Lambda<Func<T, bool>>(binaryExpresioFilter, parameter)));
-            }
+            ((List<WhereExpressionInfo<T>>)specificationBuilder.Specification.WhereExpressions)
+                .Add(new WhereExpressionInfo<T>(Expression.Lambda<Func<T, bool>>(binaryExpresioFilter, parameter)));
         }
 
         return new OrderedSpecificationBuilder<T>(specificationBuilder.Specification);
