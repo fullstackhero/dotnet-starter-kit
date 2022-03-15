@@ -4,6 +4,7 @@ public class DeleteRandomBrandRequest : IRequest<string>
 {
 }
 
+// The request to start the deleterandombrands job (which handler is defined in infrastructure)
 public class DeleteRandomBrands : IRequest
 {
 }
@@ -20,6 +21,7 @@ public class DeleteRandomBrandRequestHandler : IRequestHandler<DeleteRandomBrand
         string jobId = "testje";
 
         // Register as a recurring job running every minute
+        // This is just a test... don't forget to remove the recurring job again from hangfire ;-)
         _jobService.AddOrUpdate(jobId, new DeleteRandomBrands(), "* * * * *");
 
         return Task.FromResult(jobId);
