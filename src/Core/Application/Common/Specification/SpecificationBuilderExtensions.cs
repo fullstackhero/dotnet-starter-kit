@@ -87,6 +87,8 @@ public static class SpecificationBuilderExtensions
         return (MemberExpression)propertyExpression;
     }
 
+    private static string GetStringFromJsonElement(object value) => ((JsonElement)value).GetString()!;
+
     private static Expression CreateFilterExpression(MemberExpression memberExpression, ConstantExpression constantExpression, string filterOperator)
     {
         return filterOperator switch
@@ -103,8 +105,6 @@ public static class SpecificationBuilderExtensions
             _ => throw new CustomException("Filter Operator is not valid."),
         };
     }
-
-    private static string GetStringFromJsonElement(object value) => ((JsonElement)value).GetString()!;
 
     private static Expression CreateFilterExpression(string field, string filterOperator, object value, ParameterExpression parameter)
     {
