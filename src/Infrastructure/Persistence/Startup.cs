@@ -57,7 +57,6 @@ internal static class Startup
         switch (dbProvider.ToLowerInvariant())
         {
             case DbProviderKeys.Npgsql:
-                AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
                 return builder.UseNpgsql(connectionString, e =>
                      e.MigrationsAssembly("Migrators.PostgreSQL"));
 
