@@ -18,6 +18,7 @@ public class ApplicationDbContext : BaseDbContext
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Brand> Brands => Set<Brand>();
 
+    public DbSet<GameType> GameTypes => Set<GameType>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
