@@ -26,6 +26,7 @@ public static class FSHResource
     public const string RoleClaims = nameof(RoleClaims);
     public const string Products = nameof(Products);
     public const string Brands = nameof(Brands);
+    public const string GameTypes = nameof(GameTypes);
 }
 
 public static class FSHPermissions
@@ -59,6 +60,13 @@ public static class FSHPermissions
         new("Create Brands", FSHAction.Create, FSHResource.Brands),
         new("Update Brands", FSHAction.Update, FSHResource.Brands),
         new("Delete Brands", FSHAction.Delete, FSHResource.Brands),
+
+        //
+        new("Search GameTypes", FSHAction.Search, FSHResource.GameTypes, IsBasic: true),
+        new("Create GameTypes", FSHAction.Create, FSHResource.GameTypes),
+        new("Update GameTypes", FSHAction.Update, FSHResource.GameTypes),
+        new("Delete GameTypes", FSHAction.Delete, FSHResource.GameTypes),
+        //
         new("Generate Brands", FSHAction.Generate, FSHResource.Brands),
         new("Clean Brands", FSHAction.Clean, FSHResource.Brands),
         new("View Tenants", FSHAction.View, FSHResource.Tenants, IsRoot: true),
