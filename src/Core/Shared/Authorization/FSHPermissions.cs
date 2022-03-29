@@ -62,7 +62,6 @@ public static class FSHPermissions
         new("Delete Brands", FSHAction.Delete, FSHResource.Brands),
 
         //
-        new("View GameTypes", FSHAction.View, FSHResource.GameTypes, IsBasic: true),
         new("Search GameTypes", FSHAction.Search, FSHResource.GameTypes, IsBasic: true),
         new("Create GameTypes", FSHAction.Create, FSHResource.GameTypes),
         new("Update GameTypes", FSHAction.Update, FSHResource.GameTypes),
