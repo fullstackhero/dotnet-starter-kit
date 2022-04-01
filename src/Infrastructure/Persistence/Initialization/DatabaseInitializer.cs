@@ -71,7 +71,7 @@ internal class DatabaseInitializer : IDatabaseInitializer
             var rootTenant = new FSHTenantInfo(
                 MultitenancyConstants.Root.Id,
                 MultitenancyConstants.Root.Name,
-                _dbSettings.ConnectionString,
+                string.Empty,
                 MultitenancyConstants.Root.EmailAddress);
 
             rootTenant.SetValidity(DateTime.UtcNow.AddYears(1));
