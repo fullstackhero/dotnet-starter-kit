@@ -4,21 +4,18 @@ using FSH.WebApi.Shared.Multitenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace FSH.WebApi.Infrastructure.Persistence.Initialization;
 
 internal class DatabaseInitializer : IDatabaseInitializer
 {
     private readonly TenantDbContext _tenantDbContext;
-    private readonly DatabaseSettings _dbSettings;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<DatabaseInitializer> _logger;
 
-    public DatabaseInitializer(TenantDbContext tenantDbContext, IOptions<DatabaseSettings> dbSettings, IServiceProvider serviceProvider, ILogger<DatabaseInitializer> logger)
+    public DatabaseInitializer(TenantDbContext tenantDbContext, IServiceProvider serviceProvider, ILogger<DatabaseInitializer> logger)
     {
         _tenantDbContext = tenantDbContext;
-        _dbSettings = dbSettings.Value;
         _serviceProvider = serviceProvider;
         _logger = logger;
     }
@@ -71,7 +68,7 @@ internal class DatabaseInitializer : IDatabaseInitializer
             var rootTenant = new FSHTenantInfo(
                 MultitenancyConstants.Root.Id,
                 MultitenancyConstants.Root.Name,
-                _dbSettings.ConnectionString,
+                string.Empty,
                 MultitenancyConstants.Root.EmailAddress);
 
             rootTenant.SetValidity(DateTime.UtcNow.AddYears(1));
