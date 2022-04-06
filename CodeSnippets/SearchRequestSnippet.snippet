@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+    <CodeSnippet Format="1.0.0">
+        <Header>
+            <Title>Search Request</Title>
+            <Author>FSH</Author>
+            <Description>Adds boilerplate code for search request</Description>
+            <Shortcut>searchrequest</Shortcut>
+        </Header>
+        <Snippet>
+            <References>
+                <Reference>
+                </Reference>
+            </References>
+            <Imports>
+                <Import>
+                    <Namespace>FSH.WebApi.Domain.Common.Events</Namespace>
+                </Import>
+            </Imports>
+            <Declarations>
+                <Literal>
+                    <ID>classname</ID>
+                    <ToolTip>Replace with specified name</ToolTip>
+                    <Default>Entity</Default>
+                </Literal>
+                <Literal>
+                    <ID>entityclassname</ID>
+                    <ToolTip>Replace with specified name</ToolTip>
+                    <Default>Entity</Default>
+                </Literal>
+                <Object>
+                    <ID>Object</ID>
+                    <Type>System.Object</Type>
+                    <ToolTip>Replace with a object in your application.</ToolTip>
+                    <Default>myObject</Default>
+                </Object>
+            </Declarations>
+            <Code Language="CSharp">
+                <![CDATA[ 
+public class Search$classname$Request : PaginationFilter,IRequest<PaginationResponse<$entityclassname$Dto>>{
+
+}
+
+public class $classname$BySearchRequestSpec : EntitiesByPaginationFilterSpec<$entityclassname$, $entityclassname$Dto>
+{
+    public $classname$BySearchRequestSpec(Search$classname$Request request)
+        : base(request) =>
+        Query.OrderBy(c => c.Id, !request.HasOrderBy());
+}
+
+public class Search$classname$RequestHandler : IRequestHandler<Search$classname$Request,PaginationResponse<$entityclassname$Dto>>
+{
+    private readonly IReadRepository<$entityclassname$> _repository;
+
+    public Search$classname$RequestHandler(IReadRepository<$entityclassname$> repository) => _repository = repository;
+
+    public async Task<PaginationResponse<$entityclassname$Dto>> Handle(Search$classname$Request request, CancellationToken cancellationToken)
+    {
+        var spec = new $classname$BySearchRequestSpec(request);
+        return await _repository.PaginatedListAsync(spec, request.PageNumber, request.PageSize, cancellationToken);
+    }
+} 
+]]>
+            </Code>
+        </Snippet>
+    </CodeSnippet>
+</CodeSnippets>
