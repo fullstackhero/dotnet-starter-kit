@@ -231,9 +231,11 @@ public static class SpecificationBuilderExtensions
 
     private static ConstantExpression GeValuetExpression(
         string field,
-        object value,
+        object? value,
         Type propertyType)
     {
+        if (value == null) return Expression.Constant(null, propertyType);
+
         if (propertyType.IsEnum)
         {
             string? stringEnum = GetStringFromJsonElement(value);
@@ -258,8 +260,6 @@ public static class SpecificationBuilderExtensions
 
             return Expression.Constant(text, propertyType);
         }
-
-        if (value == null) return Expression.Constant(null, propertyType);
 
         return Expression.Constant(Convert.ChangeType(((JsonElement)value).GetRawText(), propertyType), propertyType);
     }
