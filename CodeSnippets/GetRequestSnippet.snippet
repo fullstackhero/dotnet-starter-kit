@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+    <CodeSnippet Format="1.0.0">
+        <Header>
+            <Title>Get Request</Title>
+            <Author>FSH</Author>
+            <Description>Adds boilerplate code for get request</Description>
+            <Shortcut>getrequest</Shortcut>
+        </Header>
+        <Snippet>
+            <References>
+                <Reference>
+                </Reference>
+            </References>
+            <Declarations>
+                <Literal>
+                    <ID>classname</ID>
+                    <ToolTip>Replace with specified name</ToolTip>
+                    <Default>Entity</Default>
+                </Literal>
+                <Literal>
+                    <ID>entityclassname</ID>
+                    <ToolTip>Replace with specified name</ToolTip>
+                    <Default>Entity</Default>
+                </Literal>
+                <Object>
+                    <ID>Object</ID>
+                    <Type>System.Object</Type>
+                    <ToolTip>Replace with a object in your application.</ToolTip>
+                    <Default>myObject</Default>
+                </Object>
+            </Declarations>
+            <Code Language="CSharp">
+                <![CDATA[ 
+public class Get$classname$Request : IRequest<$entityclassname$Dto>
+{
+    public Guid Id { get; set; }
+
+    public Get$classname$Request(Guid id) => Id = id;
+}
+
+public class Get$classname$RequestHandler : IRequestHandler<Get$classname$Request, $entityclassname$Dto>
+{
+    private readonly IRepository<$entityclassname$> _repository;
+    private readonly IStringLocalizer _t;
+
+    public Get$classname$RequestHandler(IRepository<$entityclassname$> repository, IStringLocalizer<Get$classname$RequestHandler> localizer) =>
+        (_repository, _t) = (repository, localizer);
+
+    public async Task<$entityclassname$Dto> Handle(Get$classname$Request request, CancellationToken cancellationToken) =>
+        await _repository.GetBySpecAsync(
+            (ISpecification<$entityclassname$, $entityclassname$Dto>)new $entityclassname$ByIdSpec(request.Id), cancellationToken)
+        ?? throw new NotFoundException(_t["Entity {0} Not Found.", request.Id]);
+} 
+]]>
+            </Code>
+        </Snippet>
+    </CodeSnippet>
+</CodeSnippets>

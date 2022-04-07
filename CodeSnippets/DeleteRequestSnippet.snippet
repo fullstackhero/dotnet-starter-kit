@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+    <CodeSnippet Format="1.0.0">
+        <Header>
+            <Title>Delete Request</Title>
+            <Author>FSH</Author>
+            <Description>Adds boilerplate code for delete request</Description>
+            <Shortcut>deleterequest</Shortcut>
+        </Header>
+        <Snippet>
+            <References>
+                <Reference>
+                </Reference>
+            </References>
+            <Imports>
+                <Import>
+                    <Namespace>FSH.WebApi.Domain.Common.Events</Namespace>
+                </Import>
+            </Imports>
+            <Declarations>
+                <Literal>
+                    <ID>classname</ID>
+                    <ToolTip>Replace with specified name</ToolTip>
+                    <Default>Entity</Default>
+                </Literal>
+                <Literal>
+                    <ID>entityclassname</ID>
+                    <ToolTip>Replace with specified name</ToolTip>
+                    <Default>Entity</Default>
+                </Literal>
+            </Declarations>
+            <Code Language="CSharp">
+                <![CDATA[ 
+public class Delete$classname$Request : IRequest<Guid>
+{
+    public Guid Id { get; set; }
+
+    public Delete$classname$Request(Guid id) => Id = id;
+}
+
+public class Delete$classname$RequestHandler : IRequestHandler<Delete$classname$Request,Guid>
+{
+    // Add Domain Events automatically by using IRepositoryWithEvents
+    private readonly IRepositoryWithEvents<$entityclassname$> _repository;
+    private readonly IStringLocalizer _t;
+
+    public Delete$classname$RequestHandler(IRepositoryWithEvents<$entityclassname$> repository, IStringLocalizer<Delete$classname$RequestHandler> localizer) =>
+        (_repository, _t) = (repository, localizer);
+
+    public async Task<Guid> Handle(Delete$classname$Request request, CancellationToken cancellationToken)
+    {
+        var entity = await _repository.GetByIdAsync(request.Id, cancellationToken);
+
+        _ = entity ?? throw new NotFoundException(_t["Entity {0} Not Found."]);
+
+        await _repository.DeleteAsync(entity, cancellationToken);
+
+        return request.Id;
+    }
+} 
+]]>
+            </Code>
+        </Snippet>
+    </CodeSnippet>
+</CodeSnippets>

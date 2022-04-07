@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>  
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">  
+    <CodeSnippet Format="1.0.0">  
+    <Header>  
+        <Title>Create Request</Title>  
+        <Author>FSH</Author>  
+        <Description>Adds boilerplate code for create request</Description>  
+        <Shortcut>createrequest</Shortcut>  
+    </Header>  
+    <Snippet>  
+        <References>  
+        <Reference>  
+        </Reference>  
+        </References>  
+        <Imports>  
+        <Import>  
+            <Namespace>FSH.WebApi.Domain.Common.Events</Namespace>  
+        </Import>  
+        </Imports>  
+        <Declarations>  
+        <Literal>  
+            <ID>classname</ID>  
+            <ToolTip>Replace with specified name</ToolTip>  
+            <Default>Entity</Default>  
+        </Literal>
+        <Literal>
+            <ID>entityclassname</ID>
+            <ToolTip>Replace with specified name</ToolTip>
+            <Default>Entity</Default>
+        </Literal>
+        <Object>  
+            <ID>Object</ID>  
+            <Type>System.Object</Type>  
+            <ToolTip>Replace with a object in your application.</ToolTip>  
+            <Default>myObject</Default>  
+        </Object>  
+        </Declarations>  
+        <Code Language="CSharp">  
+        <![CDATA[ 
+public class Create$classname$Request : IRequest<Guid>{
+
+}
+
+public class Create$classname$RequestHandler : IRequestHandler<Create$classname$Request,Guid>
+{
+    // Add Domain Events automatically by using IRepositoryWithEvents
+    private readonly IRepositoryWithEvents<$entityclassname$> _repository;
+
+    public Create$classname$RequestHandler(IRepositoryWithEvents<$entityclassname$> repository) => _repository = repository;
+
+    public async Task<Guid> Handle(Create$classname$Request request, CancellationToken cancellationToken)
+    {
+        var entity = new $entityclassname$(/*add properties*/);
+
+        await _repository.AddAsync(entity, cancellationToken);
+
+        return entity.Id;
+    }
+} 
+]]>  
+        </Code>  
+    </Snippet>  
+    </CodeSnippet>  
+</CodeSnippets>
