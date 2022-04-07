@@ -76,144 +76,12 @@ public static class SpecificationBuilderExtensions
         return new OrderedSpecificationBuilder<T>(specificationBuilder.Specification);
     }
 
-    private static MemberExpression GetPropertyExpression(string propertyName, ParameterExpression parameter)
-    {
-        Expression propertyExpression = parameter;
-        foreach (string member in propertyName.Split('.'))
-        {
-            propertyExpression = Expression.PropertyOrField(propertyExpression, member);
-        }
-
-        return (MemberExpression)propertyExpression;
-    }
-
-    private static string GetStringFromJsonElement(object value) => ((JsonElement)value).GetString()!;
-
-    private static Expression CreateFilterExpression(MemberExpression memberExpression, ConstantExpression constantExpression, string filterOperator)
-    {
-        return filterOperator switch
-        {
-            FilterOperator.EQ => Expression.Equal(memberExpression, constantExpression),
-            FilterOperator.NEQ => Expression.NotEqual(memberExpression, constantExpression),
-            FilterOperator.LT => Expression.LessThan(memberExpression, constantExpression),
-            FilterOperator.LTE => Expression.LessThanOrEqual(memberExpression, constantExpression),
-            FilterOperator.GT => Expression.GreaterThan(memberExpression, constantExpression),
-            FilterOperator.GTE => Expression.GreaterThanOrEqual(memberExpression, constantExpression),
-            FilterOperator.CONTAINS => Expression.Call(memberExpression, "Contains", null, constantExpression),
-            FilterOperator.STARTSWITH => Expression.Call(memberExpression, "StartsWith", null, constantExpression),
-            FilterOperator.ENDSWITH => Expression.Call(memberExpression, "EndsWith", null, constantExpression),
-            _ => throw new CustomException("Filter Operator is not valid."),
-        };
-    }
-
-    private static Expression CreateFilterExpression(string field, string filterOperator, object value, ParameterExpression parameter)
-    {
-        var propertyExpresion = GetPropertyExpression(field, parameter);
-        var valueExpresion = GeValuetExpression(field, value, propertyExpresion.Type);
-        return CreateFilterExpression(propertyExpresion, valueExpresion, filterOperator);
-    }
-
-    private static Expression CreateFilterExpression(string logic, IEnumerable<Filter> filters, ParameterExpression parameter)
-    {
-        Expression filterExpression = default!;
-
-        foreach (var filter in filters)
-        {
-            Expression bExpresionFilter;
-
-            if (!string.IsNullOrEmpty(filter.Logic))
-            {
-                if (filter.Filters is null) throw new CustomException("The Filters attribute is required when declaring a logic");
-                bExpresionFilter = CreateFilterExpression(filter.Logic, filter.Filters, parameter);
-            }
-            else
-            {
-                if (string.IsNullOrEmpty(filter.Field)) throw new CustomException("The field attribute is required when declaring a filter");
-                if (string.IsNullOrEmpty(filter.Operator)) throw new CustomException("The Operator attribute is required when declaring a filter");
-                if (filter.Value is null) throw new CustomException("The Value attribute is required when declaring a filter");
-
-                bExpresionFilter = CreateFilterExpression(filter.Field, filter.Operator, filter.Value, parameter);
-            }
-
-            filterExpression = filterExpression is null ? bExpresionFilter : CombineFilter(logic, filterExpression, bExpresionFilter);
-        }
-
-        return filterExpression;
-    }
-
-    private static ConstantExpression GeValuetExpression(string field, object value, Type propertyType)
-    {
-        if (propertyType.IsEnum)
-        {
-            string? stringEnum = GetStringFromJsonElement(value);
-
-            if (!Enum.TryParse(propertyType, stringEnum, true, out object? valueparsed)) throw new CustomException(string.Format("Value {0} is not valid for {1}", value, field));
-
-            return Expression.Constant(valueparsed, propertyType);
-        }
-        else if (propertyType == typeof(Guid))
-        {
-            string? stringGuid = GetStringFromJsonElement(value);
-
-            if (!Guid.TryParse(stringGuid, out Guid valueparsed)) throw new CustomException(string.Format("Value {0} is not valid for {1}", value, field));
-
-            return Expression.Constant(valueparsed, propertyType);
-        }
-        else if (propertyType == typeof(string))
-        {
-            string? text = GetStringFromJsonElement(value);
-
-            return Expression.Constant(text, propertyType);
-        }
-        else
-        {
-            return Expression.Constant(Convert.ChangeType(((JsonElement)value).GetRawText(), propertyType), propertyType);
-        }
-    }
-
-    private static Expression CombineFilter(string filterOperator, Expression bExpresionBase, Expression bExpresion)
-    {
-        return filterOperator switch
-        {
-            FilterLogic.AND => Expression.And(bExpresionBase, bExpresion),
-            FilterLogic.OR => Expression.Or(bExpresionBase, bExpresion),
-            FilterLogic.XOR => Expression.ExclusiveOr(bExpresionBase, bExpresion),
-            _ => throw new ArgumentException("FilterLogic is not valid.", nameof(FilterLogic)),
-        };
-    }
-
-    public static IOrderedSpecificationBuilder<T> AdvancedFilter<T>(
+    private static void AddSearchPropertyByKeyword<T>(
         this ISpecificationBuilder<T> specificationBuilder,
-        Filter? filter)
-    {
-        if (filter is not null)
-        {
-            var parameter = Expression.Parameter(typeof(T));
-
-            Expression binaryExpresioFilter;
-
-            if (!string.IsNullOrEmpty(filter.Logic))
-            {
-                if (filter.Filters is null) throw new CustomException("The Filters attribute is required when declaring a logic");
-                binaryExpresioFilter = CreateFilterExpression(filter.Logic, filter.Filters, parameter);
-            }
-            else
-            {
-                if (string.IsNullOrEmpty(filter.Field)) throw new CustomException("The field attribute is required when declaring a filter");
-                if (string.IsNullOrEmpty(filter.Operator)) throw new CustomException("The Operator attribute is required when declaring a filter");
-                if (filter.Value is null) throw new CustomException("The Value attribute is required when declaring a filter");
-
-                binaryExpresioFilter = CreateFilterExpression(filter.Field, filter.Operator, filter.Value, parameter);
-            }
-
-            ((List<WhereExpressionInfo<T>>)specificationBuilder.Specification.WhereExpressions)
-                .Add(new WhereExpressionInfo<T>(Expression.Lambda<Func<T, bool>>(binaryExpresioFilter, parameter)));
-        }
-
-        return new OrderedSpecificationBuilder<T>(specificationBuilder.Specification);
-    }
-
-    private static void AddSearchPropertyByKeyword<T>(this ISpecificationBuilder<T> specificationBuilder, Expression propertyExpr, ParameterExpression paramExpr, string keyword, string operatorSearch = FilterOperator.CONTAINS)
+        Expression propertyExpr,
+        ParameterExpression paramExpr,
+        string keyword,
+        string operatorSearch = FilterOperator.CONTAINS)
     {
         if (propertyExpr is not MemberExpression memberExpr || memberExpr.Member is not PropertyInfo property)
         {
@@ -242,6 +110,165 @@ public static class SpecificationBuilderExtensions
 
         ((List<SearchExpressionInfo<T>>)specificationBuilder.Specification.SearchCriterias)
             .Add(new SearchExpressionInfo<T>(selector, searchTerm, 1));
+    }
+
+    public static IOrderedSpecificationBuilder<T> AdvancedFilter<T>(
+        this ISpecificationBuilder<T> specificationBuilder,
+        Filter? filter)
+    {
+        if (filter is not null)
+        {
+            var parameter = Expression.Parameter(typeof(T));
+
+            Expression binaryExpresioFilter;
+
+            if (!string.IsNullOrEmpty(filter.Logic))
+            {
+                if (filter.Filters is null) throw new CustomException("The Filters attribute is required when declaring a logic");
+                binaryExpresioFilter = CreateFilterExpression(filter.Logic, filter.Filters, parameter);
+            }
+            else
+            {
+                var filterValid = GetValidFilter(filter);
+                binaryExpresioFilter = CreateFilterExpression(filterValid.Field!, filterValid.Operator!, filterValid.Value, parameter);
+            }
+
+            ((List<WhereExpressionInfo<T>>)specificationBuilder.Specification.WhereExpressions)
+                .Add(new WhereExpressionInfo<T>(Expression.Lambda<Func<T, bool>>(binaryExpresioFilter, parameter)));
+        }
+
+        return new OrderedSpecificationBuilder<T>(specificationBuilder.Specification);
+    }
+
+    private static Expression CreateFilterExpression(
+        string logic,
+        IEnumerable<Filter> filters,
+        ParameterExpression parameter)
+    {
+        Expression filterExpression = default!;
+
+        foreach (var filter in filters)
+        {
+            Expression bExpresionFilter;
+
+            if (!string.IsNullOrEmpty(filter.Logic))
+            {
+                if (filter.Filters is null) throw new CustomException("The Filters attribute is required when declaring a logic");
+                bExpresionFilter = CreateFilterExpression(filter.Logic, filter.Filters, parameter);
+            }
+            else
+            {
+                var filterValid = GetValidFilter(filter);
+                bExpresionFilter = CreateFilterExpression(filterValid.Field!, filterValid.Operator!, filterValid.Value, parameter);
+            }
+
+            filterExpression = filterExpression is null ? bExpresionFilter : CombineFilter(logic, filterExpression, bExpresionFilter);
+        }
+
+        return filterExpression;
+    }
+
+    private static Expression CreateFilterExpression(
+        string field,
+        string filterOperator,
+        object? value,
+        ParameterExpression parameter)
+    {
+        var propertyExpresion = GetPropertyExpression(field, parameter);
+        var valueExpresion = GeValuetExpression(field, value, propertyExpresion.Type);
+        return CreateFilterExpression(propertyExpresion, valueExpresion, filterOperator);
+    }
+
+    private static Expression CreateFilterExpression(
+        MemberExpression memberExpression,
+        ConstantExpression constantExpression,
+        string filterOperator)
+    {
+        return filterOperator switch
+        {
+            FilterOperator.EQ => Expression.Equal(memberExpression, constantExpression),
+            FilterOperator.NEQ => Expression.NotEqual(memberExpression, constantExpression),
+            FilterOperator.LT => Expression.LessThan(memberExpression, constantExpression),
+            FilterOperator.LTE => Expression.LessThanOrEqual(memberExpression, constantExpression),
+            FilterOperator.GT => Expression.GreaterThan(memberExpression, constantExpression),
+            FilterOperator.GTE => Expression.GreaterThanOrEqual(memberExpression, constantExpression),
+            FilterOperator.CONTAINS => Expression.Call(memberExpression, "Contains", null, constantExpression),
+            FilterOperator.STARTSWITH => Expression.Call(memberExpression, "StartsWith", null, constantExpression),
+            FilterOperator.ENDSWITH => Expression.Call(memberExpression, "EndsWith", null, constantExpression),
+            _ => throw new CustomException("Filter Operator is not valid."),
+        };
+    }
+
+    private static Expression CombineFilter(
+        string filterOperator,
+        Expression bExpresionBase,
+        Expression bExpresion)
+    {
+        return filterOperator switch
+        {
+            FilterLogic.AND => Expression.And(bExpresionBase, bExpresion),
+            FilterLogic.OR => Expression.Or(bExpresionBase, bExpresion),
+            FilterLogic.XOR => Expression.ExclusiveOr(bExpresionBase, bExpresion),
+            _ => throw new ArgumentException("FilterLogic is not valid.", nameof(FilterLogic)),
+        };
+    }
+
+    private static MemberExpression GetPropertyExpression(
+        string propertyName,
+        ParameterExpression parameter)
+    {
+        Expression propertyExpression = parameter;
+        foreach (string member in propertyName.Split('.'))
+        {
+            propertyExpression = Expression.PropertyOrField(propertyExpression, member);
+        }
+
+        return (MemberExpression)propertyExpression;
+    }
+
+    private static string GetStringFromJsonElement(object value)
+        => ((JsonElement)value).GetString()!;
+
+    private static ConstantExpression GeValuetExpression(
+        string field,
+        object value,
+        Type propertyType)
+    {
+        if (propertyType.IsEnum)
+        {
+            string? stringEnum = GetStringFromJsonElement(value);
+
+            if (!Enum.TryParse(propertyType, stringEnum, true, out object? valueparsed)) throw new CustomException(string.Format("Value {0} is not valid for {1}", value, field));
+
+            return Expression.Constant(valueparsed, propertyType);
+        }
+
+        if (propertyType == typeof(Guid))
+        {
+            string? stringGuid = GetStringFromJsonElement(value);
+
+            if (!Guid.TryParse(stringGuid, out Guid valueparsed)) throw new CustomException(string.Format("Value {0} is not valid for {1}", value, field));
+
+            return Expression.Constant(valueparsed, propertyType);
+        }
+
+        if (propertyType == typeof(string))
+        {
+            string? text = GetStringFromJsonElement(value);
+
+            return Expression.Constant(text, propertyType);
+        }
+
+        if (value == null) return Expression.Constant(null, propertyType);
+
+        return Expression.Constant(Convert.ChangeType(((JsonElement)value).GetRawText(), propertyType), propertyType);
+    }
+
+    private static Filter GetValidFilter(Filter filter)
+    {
+        if (string.IsNullOrEmpty(filter.Field)) throw new CustomException("The field attribute is required when declaring a filter");
+        if (string.IsNullOrEmpty(filter.Operator)) throw new CustomException("The Operator attribute is required when declaring a filter");
+        return filter;
     }
 
     public static IOrderedSpecificationBuilder<T> OrderBy<T>(
