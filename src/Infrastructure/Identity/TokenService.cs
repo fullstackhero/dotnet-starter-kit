@@ -141,15 +141,10 @@ internal class TokenService : ITokenService
 
     private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
     {
-        if (string.IsNullOrEmpty(_jwtSettings.Key))
-        {
-            throw new InvalidOperationException("No Key defined in JwtSettings config.");
-        }
-
         var tokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key)),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key!)),
             ValidateIssuer = false,
             ValidateAudience = false,
             RoleClaimType = ClaimTypes.Role,
@@ -171,12 +166,7 @@ internal class TokenService : ITokenService
 
     private SigningCredentials GetSigningCredentials()
     {
-        if (string.IsNullOrEmpty(_jwtSettings.Key))
-        {
-            throw new InvalidOperationException("No Key defined in JwtSettings config.");
-        }
-
-        byte[] secret = Encoding.UTF8.GetBytes(_jwtSettings.Key);
+        byte[] secret = Encoding.UTF8.GetBytes(_jwtSettings.Key!);
         return new SigningCredentials(new SymmetricSecurityKey(secret), SecurityAlgorithms.HmacSha256);
     }
 }
