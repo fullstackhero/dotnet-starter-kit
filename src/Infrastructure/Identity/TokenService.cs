@@ -144,7 +144,7 @@ internal class TokenService : ITokenService
         var tokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key!)),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key)),
             ValidateIssuer = false,
             ValidateAudience = false,
             RoleClaimType = ClaimTypes.Role,
@@ -166,7 +166,7 @@ internal class TokenService : ITokenService
 
     private SigningCredentials GetSigningCredentials()
     {
-        byte[] secret = Encoding.UTF8.GetBytes(_jwtSettings.Key!);
+        byte[] secret = Encoding.UTF8.GetBytes(_jwtSettings.Key);
         return new SigningCredentials(new SymmetricSecurityKey(secret), SecurityAlgorithms.HmacSha256);
     }
 }

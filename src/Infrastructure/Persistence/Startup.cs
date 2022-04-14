@@ -22,8 +22,7 @@ internal static class Startup
     {
         services.AddOptions<DatabaseSettings>()
             .BindConfiguration(nameof(DatabaseSettings))
-            .Validate(databaseSettings => !string.IsNullOrEmpty(databaseSettings.DBProvider), $"{nameof(DatabaseSettings)}.{nameof(DatabaseSettings.DBProvider)} is not configured")
-            .Validate(databaseSettings => !string.IsNullOrEmpty(databaseSettings.ConnectionString), $"{nameof(DatabaseSettings)}.{nameof(DatabaseSettings.ConnectionString)} is not configured")
+            .ValidateDataAnnotations()
             .ValidateOnStart();
 
         return services
@@ -31,7 +30,7 @@ internal static class Startup
             {
                 var databaseSettings = p.GetRequiredService<IOptions<DatabaseSettings>>().Value;
                 _logger.Information("Current DB Provider : {dbProvider}", databaseSettings.DBProvider);
-                m.UseDatabase(databaseSettings.DBProvider!, databaseSettings.ConnectionString!);
+                m.UseDatabase(databaseSettings.DBProvider, databaseSettings.ConnectionString);
             })
 
             .AddTransient<IDatabaseInitializer, DatabaseInitializer>()

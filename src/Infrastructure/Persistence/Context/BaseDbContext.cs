@@ -58,7 +58,7 @@ public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUs
 
         if (!string.IsNullOrWhiteSpace(TenantInfo?.ConnectionString))
         {
-            optionsBuilder.UseDatabase(_dbSettings.DBProvider!, TenantInfo.ConnectionString);
+            optionsBuilder.UseDatabase(_dbSettings.DBProvider, TenantInfo.ConnectionString);
         }
     }
 

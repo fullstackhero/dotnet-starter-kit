@@ -28,7 +28,7 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
             return;
         }
 
-        byte[] key = Encoding.ASCII.GetBytes(_jwtSettings.Key!);
+        byte[] key = Encoding.ASCII.GetBytes(_jwtSettings.Key);
 
         options.RequireHttpsMetadata = false;
         options.SaveToken = true;

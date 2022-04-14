@@ -11,7 +11,7 @@ internal static class Startup
     {
         services.AddOptions<JwtSettings>()
             .BindConfiguration($"SecuritySettings:{nameof(JwtSettings)}")
-            .Validate(jwtSettings => !string.IsNullOrEmpty(jwtSettings.Key), "No Key defined in JwtSettings config")
+            .ValidateDataAnnotations()
             .ValidateOnStart();
 
         services.AddSingleton<IConfigureOptions<JwtBearerOptions>, ConfigureJwtBearerOptions>();

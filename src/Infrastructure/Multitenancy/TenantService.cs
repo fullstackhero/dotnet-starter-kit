@@ -51,7 +51,7 @@ internal class TenantService : ITenantService
 
     public async Task<string> CreateAsync(CreateTenantRequest request, CancellationToken cancellationToken)
     {
-        if (request.ConnectionString?.Trim() == _dbSettings.ConnectionString?.Trim()) request.ConnectionString = string.Empty;
+        if (request.ConnectionString?.Trim() == _dbSettings.ConnectionString.Trim()) request.ConnectionString = string.Empty;
 
         var tenant = new FSHTenantInfo(request.Id, request.Name, request.ConnectionString, request.AdminEmail, request.Issuer);
         await _tenantStore.TryAddAsync(tenant);
