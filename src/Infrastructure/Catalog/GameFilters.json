@@ -1,0 +1,23 @@
+[
+  {
+
+    "Name": "Light",
+    "Color": "Blue"
+    
+  },
+  {
+
+    "Name": "Medium",
+  "Color": "Green"
+  },
+  {
+
+    "Name": "Hard",
+    "Color": "Red"
+  },
+  {
+
+    "Name": "Тренировка"
+     
+  }
+]

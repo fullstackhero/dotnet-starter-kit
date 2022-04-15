@@ -19,6 +19,7 @@ public class ApplicationDbContext : BaseDbContext
     public DbSet<Brand> Brands => Set<Brand>();
 
     public DbSet<GameType> GameTypes => Set<GameType>();
+    public DbSet<GameFilter> GameFilters => Set<GameFilter>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
