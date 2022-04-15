@@ -22,6 +22,10 @@ internal static class Startup
     {
         services.AddOptions<DatabaseSettings>()
             .BindConfiguration(nameof(DatabaseSettings))
+            .PostConfigure(databaseSettings =>
+            {
+                _logger.Information("Current DB Provider: {dbProvider}", databaseSettings.DBProvider);
+            })
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
@@ -29,7 +33,6 @@ internal static class Startup
             .AddDbContext<ApplicationDbContext>((p, m) =>
             {
                 var databaseSettings = p.GetRequiredService<IOptions<DatabaseSettings>>().Value;
-                _logger.Information("Current DB Provider : {dbProvider}", databaseSettings.DBProvider);
                 m.UseDatabase(databaseSettings.DBProvider, databaseSettings.ConnectionString);
             })
 
