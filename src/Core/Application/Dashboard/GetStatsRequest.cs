@@ -34,14 +34,14 @@ public class GetStatsRequestHandler : IRequestHandler<GetStatsRequest, StatsDto>
             RoleCount = await _roleService.GetCountAsync(cancellationToken)
         };
 
-        int selectedYear = DateTime.Now.Year;
+        int selectedYear = DateTime.UtcNow.Year;
         double[] productsFigure = new double[13];
         double[] brandsFigure = new double[13];
         for (int i = 1; i <= 12; i++)
         {
             int month = i;
-            var filterStartDate = new DateTime(selectedYear, month, 01);
-            var filterEndDate = new DateTime(selectedYear, month, DateTime.DaysInMonth(selectedYear, month), 23, 59, 59); // Monthly Based
+            var filterStartDate = new DateTime(selectedYear, month, 01).ToUniversalTime();
+            var filterEndDate = new DateTime(selectedYear, month, DateTime.DaysInMonth(selectedYear, month), 23, 59, 59).ToUniversalTime(); // Monthly Based
 
             var brandSpec = new AuditableEntitiesByCreatedOnBetweenSpec<Brand>(filterStartDate, filterEndDate);
             var productSpec = new AuditableEntitiesByCreatedOnBetweenSpec<Product>(filterStartDate, filterEndDate);
