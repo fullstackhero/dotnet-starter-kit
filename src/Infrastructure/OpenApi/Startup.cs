@@ -111,6 +111,7 @@ internal static class Startup
                     {
                         AppName = "Full Stack Hero Api Client",
                         ClientId = config["SecuritySettings:Swagger:OpenIdClientId"],
+                        ClientSecret = string.Empty,
                         UsePkceWithAuthorizationCodeGrant = true,
                         ScopeSeparator = " "
                     };
