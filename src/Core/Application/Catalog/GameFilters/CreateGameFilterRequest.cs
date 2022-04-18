@@ -6,34 +6,34 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FSH.WebApi.Application.Catalog.GameFilters;
-public class CreateGameFilterRequest: IRequest<Guid>
+namespace FSH.WebApi.Application.Catalog.Filters;
+public class CreateFilterRequest: IRequest<Guid>
 {
     public string Name { get; set; } = default!;
     public string Color { get; set; }
     
 }
-public class CreateGameFilterRequestValidator: CustomValidator<CreateGameFilterRequest>
+public class CreateFilterRequestValidator: CustomValidator<CreateFilterRequest>
 {
-    public CreateGameFilterRequestValidator(IReadRepository<GameFilter> repository, IStringLocalizer<CreateGameFilterRequestValidator> T) =>
+    public CreateFilterRequestValidator(IReadRepository<Filter> repository, IStringLocalizer<CreateFilterRequestValidator> T) =>
     RuleFor(p => p.Name)
         .NotEmpty()
         .MaximumLength(100)
-        .MustAsync(async (name, ct) => await repository.GetBySpecAsync(new GameFilterByNameSpec(name), ct) is null)
+        .MustAsync(async (name, ct) => await repository.GetBySpecAsync(new FilterByNameSpec(name), ct) is null)
         .WithMessage((_, name) => T["Game type {0} already exists", name]);
 }
-public class CreateGameFilterRequestHandler : IRequestHandler<CreateGameFilterRequest, Guid>
+public class CreateFilterRequestHandler : IRequestHandler<CreateFilterRequest, Guid>
 {
-    private readonly IRepositoryWithEvents<GameFilter> _repository;
+    private readonly IRepositoryWithEvents<Filter> _repository;
 
-    public CreateGameFilterRequestHandler(IRepositoryWithEvents<GameFilter> repository) => _repository = repository;
+    public CreateFilterRequestHandler(IRepositoryWithEvents<Filter> repository) => _repository = repository;
     
-    public async Task<Guid> Handle(CreateGameFilterRequest request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(CreateFilterRequest request, CancellationToken cancellationToken)
     {
-        var GameFilter = new GameFilter(request.Name, request.Description, request.Rules);
-        GameFilter.DomainEvents.Add(EntityCreatedEvent.WithEntity(GameFilter));
-        await _repository.AddAsync(GameFilter);
-        return GameFilter.Id;
+        var Filter = new Filter(request.Name, request.Description, request.Rules);
+        Filter.DomainEvents.Add(EntityCreatedEvent.WithEntity(Filter));
+        await _repository.AddAsync(Filter);
+        return Filter.Id;
     }
 }
 

@@ -1,27 +1,27 @@
-﻿namespace FSH.WebApi.Application.Catalog.GameFilters;
+﻿namespace FSH.WebApi.Application.Catalog.Filters;
 
-public class GetGameFilterRequest : IRequest<GameFilterDto>
+public class GetFilterRequest : IRequest<FilterDto>
 {
     public Guid Id { get; set; }
 
-    public GetGameFilterRequest(Guid id) => Id = id;
+    public GetFilterRequest(Guid id) => Id = id;
 }
 
-public class GameFilterByIdSpec : Specification<GameFilter, GameFilterDto>, ISingleResultSpecification
+public class FilterByIdSpec : Specification<Filter, FilterDto>, ISingleResultSpecification
 {
-    public GameFilterByIdSpec(Guid id) =>
+    public FilterByIdSpec(Guid id) =>
         Query.Where(p => p.Id == id);
 }
 
-public class GetGameFilterRequestHandler : IRequestHandler<GetGameFilterRequest, GameFilterDto>
+public class GetFilterRequestHandler : IRequestHandler<GetFilterRequest, FilterDto>
 {
-    private readonly IRepository<GameFilter> _repository;
+    private readonly IRepository<Filter> _repository;
     private readonly IStringLocalizer _t;
 
-    public GetGameFilterRequestHandler(IRepository<GameFilter> repository, IStringLocalizer<GetGameFilterRequestHandler> localizer) => (_repository, _t) = (repository, localizer);
+    public GetFilterRequestHandler(IRepository<Filter> repository, IStringLocalizer<GetFilterRequestHandler> localizer) => (_repository, _t) = (repository, localizer);
 
-    public async Task<GameFilterDto> Handle(GetGameFilterRequest request, CancellationToken cancellationToken) =>
+    public async Task<FilterDto> Handle(GetFilterRequest request, CancellationToken cancellationToken) =>
         await _repository.GetBySpecAsync(
-            (ISpecification<GameFilter, GameFilterDto>)new GameFilterByIdSpec(request.Id), cancellationToken)
-        ?? throw new NotFoundException(_t["GameFilter {0} Not Found.", request.Id]);
+            (ISpecification<Filter, FilterDto>)new FilterByIdSpec(request.Id), cancellationToken)
+        ?? throw new NotFoundException(_t["Filter {0} Not Found.", request.Id]);
 }

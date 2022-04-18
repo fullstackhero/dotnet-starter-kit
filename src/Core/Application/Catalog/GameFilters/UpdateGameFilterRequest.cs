@@ -1,8 +1,8 @@
 using FSH.WebApi.Domain.Common.Events;
 
-namespace FSH.WebApi.Application.Catalog.GameFilters;
+namespace FSH.WebApi.Application.Catalog.Filters;
 
-public class UpdateGameFilterRequest : IRequest<Guid>
+public class UpdateFilterRequest : IRequest<Guid>
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = default!;
@@ -10,38 +10,38 @@ public class UpdateGameFilterRequest : IRequest<Guid>
     public string Rules { get; set; }
 }
 
-public class UpdateGameFilterRequestValidator : CustomValidator<UpdateGameFilterRequest>
+public class UpdateFilterRequestValidator : CustomValidator<UpdateFilterRequest>
 {
-    public UpdateGameFilterRequestValidator(IRepository<GameFilter> repository, IStringLocalizer<UpdateGameFilterRequestValidator> T) =>
+    public UpdateFilterRequestValidator(IRepository<Filter> repository, IStringLocalizer<UpdateFilterRequestValidator> T) =>
         RuleFor(p => p.Name)
             .NotEmpty()
             .MaximumLength(75)
-            .MustAsync(async (GameFilter, name, ct) =>
-                    await repository.GetBySpecAsync(new GameFilterByNameSpec(name), ct)
-                        is not GameFilter existingGameFilter || existingGameFilter.Id == GameFilter.Id)
-                .WithMessage((_, name) => T["GameFilter {0} already Exists.", name]);
+            .MustAsync(async (Filter, name, ct) =>
+                    await repository.GetBySpecAsync(new FilterByNameSpec(name), ct)
+                        is not Filter existingFilter || existingFilter.Id == Filter.Id)
+                .WithMessage((_, name) => T["Filter {0} already Exists.", name]);
 }
 
-public class UpdateGameFilterRequestHandler : IRequestHandler<UpdateGameFilterRequest, Guid>
+public class UpdateFilterRequestHandler : IRequestHandler<UpdateFilterRequest, Guid>
 {
     // Add Domain Events automatically by using IRepositoryWithEvents
-    private readonly IRepositoryWithEvents<GameFilter> _repository;
+    private readonly IRepositoryWithEvents<Filter> _repository;
     private readonly IStringLocalizer _t;
 
-    public UpdateGameFilterRequestHandler(IRepositoryWithEvents<GameFilter> repository, IStringLocalizer<UpdateGameFilterRequestHandler> localizer) =>
+    public UpdateFilterRequestHandler(IRepositoryWithEvents<Filter> repository, IStringLocalizer<UpdateFilterRequestHandler> localizer) =>
         (_repository, _t) = (repository, localizer);
 
-    public async Task<Guid> Handle(UpdateGameFilterRequest request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(UpdateFilterRequest request, CancellationToken cancellationToken)
     {
-        var GameFilter = await _repository.GetByIdAsync(request.Id, cancellationToken);
+        var Filter = await _repository.GetByIdAsync(request.Id, cancellationToken);
 
-        _ = GameFilter
-        ?? throw new NotFoundException(_t["GameFilter {0} Not Found.", request.Id]);
+        _ = Filter
+        ?? throw new NotFoundException(_t["Filter {0} Not Found.", request.Id]);
 
-        GameFilter.Update(request.Name, request.Description,request.Rules);
+        Filter.Update(request.Name, request.Description,request.Rules);
         // Add Domain Events to be raised after the commit
-        GameFilter.DomainEvents.Add(EntityUpdatedEvent.WithEntity(GameFilter));
-        await _repository.UpdateAsync(GameFilter, cancellationToken);
+        Filter.DomainEvents.Add(EntityUpdatedEvent.WithEntity(Filter));
+        await _repository.UpdateAsync(Filter, cancellationToken);
 
         return request.Id;
     }

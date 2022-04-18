@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 
 namespace FSH.WebApi.Domain.Catalog
 {
-    public class GameFilter : AuditableEntitySimple
+    public class GamePlayer : AuditableEntitySimple
     {
         public DefaultIdType GameId { get; set; }
-        public virtual Game Game { get; set; }
-        public DefaultIdType FilterId { get; set; }
-        public virtual Filter Filter {get;set;}
+        public virtual Game Game{get;set;}
+
+        public DefaultIdType PlayerId { get; set; }
+        public virtual Player Player { get; set; }
     }
 }

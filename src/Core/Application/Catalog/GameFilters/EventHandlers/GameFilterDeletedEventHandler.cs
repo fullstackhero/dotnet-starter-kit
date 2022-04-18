@@ -1,14 +1,14 @@
 using FSH.WebApi.Domain.Common.Events;
 
-namespace FSH.WebApi.Application.Catalog.GameFilters.EventHandlers;
+namespace FSH.WebApi.Application.Catalog.Filters.EventHandlers;
 
-public class GameFilterDeletedEventHandler : EventNotificationHandler<EntityDeletedEvent<GameFilter>>
+public class FilterDeletedEventHandler : EventNotificationHandler<EntityDeletedEvent<Filter>>
 {
-    private readonly ILogger<GameFilterDeletedEventHandler> _logger;
+    private readonly ILogger<FilterDeletedEventHandler> _logger;
 
-    public GameFilterDeletedEventHandler(ILogger<GameFilterDeletedEventHandler> logger) => _logger = logger;
+    public FilterDeletedEventHandler(ILogger<FilterDeletedEventHandler> logger) => _logger = logger;
 
-    public override Task Handle(EntityDeletedEvent<GameFilter> @event, CancellationToken cancellationToken)
+    public override Task Handle(EntityDeletedEvent<Filter> @event, CancellationToken cancellationToken)
     {
         _logger.LogInformation("{event} Triggered", @event.GetType().Name);
         return Task.CompletedTask;

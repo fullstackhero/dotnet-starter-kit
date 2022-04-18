@@ -1,25 +1,25 @@
-namespace FSH.WebApi.Application.Catalog.GameFilters;
+namespace FSH.WebApi.Application.Catalog.Filters;
 
-public class SearchGameFiltersRequest : PaginationFilter, IRequest<PaginationResponse<GameFilterDto>>
+public class SearchFiltersRequest : PaginationFilter, IRequest<PaginationResponse<FilterDto>>
 {
 }
 
-public class GameFiltersBySearchRequestSpec : EntitiesByPaginationFilterSpec<GameFilter, GameFilterDto>
+public class FiltersBySearchRequestSpec : EntitiesByPaginationFilterSpec<Filter, FilterDto>
 {
-    public GameFiltersBySearchRequestSpec(SearchGameFiltersRequest request)
+    public FiltersBySearchRequestSpec(SearchFiltersRequest request)
         : base(request) =>
         Query.OrderBy(c => c.Name, !request.HasOrderBy());
 }
 
-public class SearchGameFiltersRequestHandler : IRequestHandler<SearchGameFiltersRequest, PaginationResponse<GameFilterDto>>
+public class SearchFiltersRequestHandler : IRequestHandler<SearchFiltersRequest, PaginationResponse<FilterDto>>
 {
-    private readonly IReadRepository<GameFilter> _repository;
+    private readonly IReadRepository<Filter> _repository;
 
-    public SearchGameFiltersRequestHandler(IReadRepository<GameFilter> repository) => _repository = repository;
+    public SearchFiltersRequestHandler(IReadRepository<Filter> repository) => _repository = repository;
 
-    public async Task<PaginationResponse<GameFilterDto>> Handle(SearchGameFiltersRequest request, CancellationToken cancellationToken)
+    public async Task<PaginationResponse<FilterDto>> Handle(SearchFiltersRequest request, CancellationToken cancellationToken)
     {
-        var spec = new GameFiltersBySearchRequestSpec(request);
+        var spec = new FiltersBySearchRequestSpec(request);
         return await _repository.PaginatedListAsync(spec, request.PageNumber, request.PageSize, cancellationToken);
     }
 }

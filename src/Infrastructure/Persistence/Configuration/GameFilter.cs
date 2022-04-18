@@ -9,9 +9,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace FSH.WebApi.Infrastructure.Persistence.Configuration;
-public class GameFilterConfig : IEntityTypeConfiguration<GameFilter>
+public class FilterConfig : IEntityTypeConfiguration<Filter>
 {
-    public void Configure(EntityTypeBuilder<GameFilter> builder)
+    public void Configure(EntityTypeBuilder<Filter> builder)
     {
         builder.IsMultiTenant();
         builder.Property(x => x.Name)

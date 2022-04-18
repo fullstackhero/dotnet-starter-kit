@@ -1,37 +1,37 @@
-﻿using FSH.WebApi.Application.Catalog.GameFilters;
+﻿using FSH.WebApi.Application.Catalog.Filters;
 
 namespace FSH.WebApi.Host.Controllers.Catalog;
 
-public class GameFiltersController : VersionedApiController
+public class FiltersController : VersionedApiController
 {
     [HttpPost("search")]
-    [MustHavePermission(FSHAction.Search, FSHResource.GameFilters)]
-    [OpenApiOperation("Search GameFilters using available filters.", "")]
-    public Task<PaginationResponse<GameFilterDto>> SearchAsync(SearchGameFiltersRequest request)
+    [MustHavePermission(FSHAction.Search, FSHResource.Filters)]
+    [OpenApiOperation("Search Filters using available filters.", "")]
+    public Task<PaginationResponse<FilterDto>> SearchAsync(SearchFiltersRequest request)
     {
         return Mediator.Send(request);
     }
 
     [HttpGet("{id:guid}")]
-    [MustHavePermission(FSHAction.View, FSHResource.GameFilters)]
-    [OpenApiOperation("Get GameFilter details.", "")]
-    public Task<GameFilterDto> GetAsync(Guid id)
+    [MustHavePermission(FSHAction.View, FSHResource.Filters)]
+    [OpenApiOperation("Get Filter details.", "")]
+    public Task<FilterDto> GetAsync(Guid id)
     {
-        return Mediator.Send(new GetGameFilterRequest(id));
+        return Mediator.Send(new GetFilterRequest(id));
     }
 
     [HttpPost]
-    [MustHavePermission(FSHAction.Create, FSHResource.GameFilters)]
-    [OpenApiOperation("Create a new GameFilter.", "")]
-    public Task<Guid> CreateAsync(CreateGameFilterRequest request)
+    [MustHavePermission(FSHAction.Create, FSHResource.Filters)]
+    [OpenApiOperation("Create a new Filter.", "")]
+    public Task<Guid> CreateAsync(CreateFilterRequest request)
     {
         return Mediator.Send(request);
     }
 
     [HttpPut("{id:guid}")]
-    [MustHavePermission(FSHAction.Update, FSHResource.GameFilters)]
-    [OpenApiOperation("Update a GameFilter.", "")]
-    public async Task<ActionResult<Guid>> UpdateAsync(UpdateGameFilterRequest request, Guid id)
+    [MustHavePermission(FSHAction.Update, FSHResource.Filters)]
+    [OpenApiOperation("Update a Filter.", "")]
+    public async Task<ActionResult<Guid>> UpdateAsync(UpdateFilterRequest request, Guid id)
     {
         return id != request.Id
             ? BadRequest()
@@ -39,11 +39,11 @@ public class GameFiltersController : VersionedApiController
     }
 
     [HttpDelete("{id:guid}")]
-    [MustHavePermission(FSHAction.Delete, FSHResource.GameFilters)]
-    [OpenApiOperation("Delete a GameFilter.", "")]
+    [MustHavePermission(FSHAction.Delete, FSHResource.Filters)]
+    [OpenApiOperation("Delete a Filter.", "")]
     public Task<Guid> DeleteAsync(Guid id)
     {
-        return Mediator.Send(new DeleteGameFilterRequest(id));
+        return Mediator.Send(new DeleteFilterRequest(id));
     }
 
     
