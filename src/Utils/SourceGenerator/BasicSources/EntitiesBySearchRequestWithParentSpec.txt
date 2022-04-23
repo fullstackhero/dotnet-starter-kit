@@ -1,0 +1,13 @@
+﻿namespace <&StringNameSpace&>;
+
+public class <&EntityPlural&>BySearchRequestWith<&Parent&>sSpec : EntitiesByPaginationFilterSpec<<&Entity&>, <&Entity&>Dto>
+{
+//    replace <&Orderby&> with fieldname and uncomment code.
+    public <&EntityPlural&>BySearchRequestWith<&Parent&>sSpec(Search<&EntityPlural&>Request request)
+        : base(request) =>
+        Query
+            .Include(p => p.<&Parent&>)
+//            .OrderBy(c => c.<&Orderby&>, !request.HasOrderBy())
+            .Where(p => p.<&Parent&>Id.Equals(request.<&Parent&>Id!.Value), request.<&Parent&>Id.HasValue);
+}
+            

@@ -1,0 +1,19 @@
+﻿namespace <&StringNameSpace&>;
+
+public class Search<&EntityPlural&>Request : PaginationFilter, IRequest<PaginationResponse<<&Entity&>Dto>>
+{    
+    <&ParentGuids&>
+}
+
+public class Search<&EntityPlural&>RequestHandler : IRequestHandler<Search<&EntityPlural&>Request, PaginationResponse<<&Entity&>Dto>>
+{
+    private readonly IReadRepository<<&Entity&>> _repository;
+
+    public Search<&EntityPlural&>RequestHandler(IReadRepository<<&Entity&>> repository) => _repository = repository;
+
+    public async Task<PaginationResponse<<&Entity&>Dto>> Handle(Search<&EntityPlural&>Request request, CancellationToken cancellationToken)
+    {
+        var spec = new <&EntityPlural&>BySearchRequestWith<&ParentEntityPlural&>Spec(request);
+        return await _repository.PaginatedListAsync(spec, request.PageNumber, request.PageSize, cancellationToken: cancellationToken);
+    }
+}

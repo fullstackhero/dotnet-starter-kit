@@ -1,0 +1,4 @@
+﻿ public async Task<<&Entity&>DetailsDto> Handle(Get<&Entity&>Request request, CancellationToken cancellationToken) =>
+        await _repository.GetBySpecAsync(
+            (ISpecification<<&Entity&>, <&Entity&>DetailsDto>)new <&Entity&>ByIdWith<&Parent&>Spec(request.Id), cancellationToken)
+               ?? throw new NotFoundException(_t["<&Entity&> {0} Not Found.", request.Id]);

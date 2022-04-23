@@ -1,0 +1,12 @@
+﻿<&theusings&>
+namespace <&StringNameSpace&>;
+
+public class <&Entity&> : IDto
+{
+ public Guid Id { get; set; }
+<&PropertyLines&>
+<&RelationalLines&>
+<&DetailLines&>
+}
+
+

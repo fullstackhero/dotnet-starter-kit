@@ -1,0 +1,16 @@
+﻿using FSH.WebApi.Domain.Common.Events;
+
+namespace <&StringNameSpace&>.EventHandlers;
+
+public class <&Entity&><&Action&>EventHandler : EventNotificationHandler<Entity<&Action&>Event<<&Entity&>>>
+{
+    private readonly ILogger<<&Entity&><&Action&>EventHandler> _logger;
+
+    public <&Entity&><&Action&>EventHandler(ILogger<<&Entity&><&Action&>EventHandler> logger) => _logger = logger;
+
+    public override Task Handle(Entity<&Action&>Event<<&Entity&>> @event, CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("{event} Triggered", @event.GetType().Name);
+        return Task.CompletedTask;
+    }
+}

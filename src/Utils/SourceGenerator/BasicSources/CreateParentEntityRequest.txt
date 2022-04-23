@@ -1,0 +1,37 @@
+﻿using <&EventsPath&>;
+namespace <&StringNameSpace&>;
+
+public class Create<&Entity&>Request : IRequest<Guid>
+{
+<&PropertyLines&>
+}
+
+
+// Important leftout the T for the translations !
+
+public class Create<&Entity&>RequestValidator : CustomValidator<Create<&Entity&>Request>
+{ 
+    public Create<&Entity&>RequestValidator(IReadRepository<<&Entity&>> repository, IStringLocalizer<Create<&Entity&>RequestValidator> localizer) =>
+    RuleFor(p => p.<&ValidatorName&>)
+    .NotEmpty() 
+    .MustAsync(async (<&ValidatorNameToLower&>, ct) => await repository.GetBySpecAsync(new <&Entity&>By<&ValidatorName&>Spec(<&ValidatorNameToLower&>), ct) is null) 
+   .WithMessage((_, <&ValidatorNameToLower&>) => "<&Entity&> {0} already Exists.");
+   
+}
+
+public class Create<&Entity&>RequestHandler : IRequestHandler<Create<&Entity&>Request, Guid>
+{
+    // Add Domain Events automatically by using IRepositoryWithEvents
+    private readonly IRepositoryWithEvents<<&Entity&>> _repository;
+
+    public Create<&Entity&>RequestHandler(IRepositoryWithEvents<<&Entity&>> repository) => _repository = repository;
+
+    public async Task<Guid> Handle(Create<&Entity&>Request request, CancellationToken cancellationToken)
+    {
+        var <&EntityToLower&> = new <&Entity&>(<&Request&>);
+
+        await _repository.AddAsync(<&EntityToLower&>, cancellationToken);
+
+        return <&EntityToLower&>.Id;
+    }
+}

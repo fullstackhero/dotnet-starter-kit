@@ -1,0 +1,7 @@
+﻿namespace <&StringNameSpace&>;
+
+public class <&EntityPlural&>By<&Parent&>Spec : Specification<<&Entity&>>
+{
+    public <&EntityPlural&>By<&Parent&>Spec(Guid <&ParentToLower&>Id) =>
+        Query.Where(p => p.<&Parent&>Id == <&ParentToLower&>Id);
+}

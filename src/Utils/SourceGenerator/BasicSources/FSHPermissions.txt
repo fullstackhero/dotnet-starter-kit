@@ -1,0 +1,7 @@
+﻿        new("View <&EntityPlural&>", FSHAction.View, FSHResource.<&EntityPlural&>, IsBasic: true),
+        new("Search <&EntityPlural&>", FSHAction.Search, FSHResource.<&EntityPlural&>, IsBasic: true),
+        new("Create <&EntityPlural&>", FSHAction.Create, FSHResource.<&EntityPlural&>),
+        new("Update <&EntityPlural&>", FSHAction.Update, FSHResource.<&EntityPlural&>),
+        new("Delete <&EntityPlural&>", FSHAction.Delete, FSHResource.<&EntityPlural&>),
+        new("Generate <&EntityPlural&>", FSHAction.Generate, FSHResource.<&EntityPlural&>),
+        new("Clean <&EntityPlural&>", FSHAction.Clean, FSHResource.<&EntityPlural&>),

@@ -1,0 +1,44 @@
+﻿namespace FSH.WebApi.Application.Catalog.<&EntityPlural&>;
+
+public class Update<&Entity&>Request : IRequest<Guid>
+{
+    public Guid Id { get; set; }
+    <&PropertyLines&>
+}
+
+public class Update<&Entity&>RequestValidator : CustomValidator<Update<&Entity&>Request>
+{
+
+// Important leftout the T for the translations !
+    public Update<&Entity&>RequestValidator(IRepository<<&Entity&>> repository, IStringLocalizer<Update<&Entity&>RequestValidator> localizer) =>
+        RuleFor(p => p.<&ValidatorName&>)
+        .NotEmpty()        
+        .MustAsync(async (<&EntityToLower&>, <&ValidatorNameToLower&>, ct) =>
+        await repository.GetBySpecAsync(new <&Entity&>By<&ValidatorName&>Spec(<&ValidatorNameToLower&>), ct)
+        is not <&Entity&> existing<&Entity&> || existing<&Entity&>.Id == <&EntityToLower&>.Id)
+        .WithMessage((_, <&ValidatorNameToLower&>) => "<&Entity&> {0} already Exists.");
+}
+
+public class Update<&Entity&>RequestHandler : IRequestHandler<Update<&Entity&>Request, Guid>
+{
+    // Add Domain Events automatically by using IRepositoryWithEvents
+    private readonly IRepositoryWithEvents<<&Entity&>> _repository;
+    private readonly IStringLocalizer<Update<&Entity&>RequestHandler> _t;
+
+    public Update<&Entity&>RequestHandler(IRepositoryWithEvents<<&Entity&>> repository, IStringLocalizer<Update<&Entity&>RequestHandler> localizer) =>
+        (_repository, _t) = (repository, localizer);
+
+    public async Task<Guid> Handle(Update<&Entity&>Request request, CancellationToken cancellationToken)
+    {
+        var <&EntityToLower&> = await _repository.GetByIdAsync(request.Id, cancellationToken);
+
+        _ = <&EntityToLower&>?? throw new NotFoundException(_t["<&Entity&> {0} Not Found.", request.Id]);
+
+
+        <&EntityToLower&>.Update(<&Request&>);
+
+        await _repository.UpdateAsync(<&EntityToLower&>, cancellationToken);
+
+        return request.Id;
+    }
+}

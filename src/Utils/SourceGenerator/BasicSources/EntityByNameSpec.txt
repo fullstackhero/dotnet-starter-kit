@@ -1,0 +1,7 @@
+﻿namespace <&StringNameSpace&>;
+
+public class <&Entity&>ByNameSpec : Specification<<&Entity&>>, ISingleResultSpecification
+{
+    public <&Entity&>ByNameSpec(string name) =>
+        Query.Where(p => p.Name == name);
+}

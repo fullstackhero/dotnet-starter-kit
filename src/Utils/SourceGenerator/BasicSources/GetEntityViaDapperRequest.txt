@@ -1,0 +1,29 @@
+﻿using Mapster;
+
+namespace <&StringNameSpace&>;
+
+public class Get<&Entity&>ViaDapperRequest : IRequest<<&Entity&>Dto>
+{
+    public Guid Id { get; set; }
+
+    public Get<&Entity&>ViaDapperRequest(Guid id) => Id = id;
+}
+
+public class Get<&Entity&>ViaDapperRequestHandler : IRequestHandler<Get<&Entity&>ViaDapperRequest, <&Entity&>Dto>
+{
+    private readonly IDapperRepository _repository;
+    private readonly IStringLocalizer<Get<&Entity&>ViaDapperRequestHandler> _t;
+
+    public Get<&Entity&>ViaDapperRequestHandler(IDapperRepository repository, IStringLocalizer<Get<&Entity&>ViaDapperRequestHandler> localizer) =>
+        (_repository, _t) = (repository, localizer);
+
+    public async Task<<&Entity&>Dto> Handle(Get<&Entity&>ViaDapperRequest request, CancellationToken cancellationToken)
+    {
+        var <&EntityToLower&> = await _repository.QueryFirstOrDefaultAsync<<&Entity&>>(
+            $"SELECT * FROM public.\"<&Entity&>s\" WHERE \"Id\"  = '{request.Id}' AND \"Tenant\" = '@tenant'", cancellationToken: cancellationToken);
+
+                _ = <&EntityToLower&> ?? throw new NotFoundException(_t["<&Entity&> {0} Not Found.", request.Id]);
+
+        return <&EntityToLower&>.Adapt<<&Entity&>Dto>();
+    }
+}

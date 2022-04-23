@@ -1,0 +1,4 @@
+﻿RuleFor(p => p.<&ParentEntity&>Id)
+            .NotEmpty()
+            .MustAsync(async (id, ct) => await <&ParentEntityToLower&>Repo.GetByIdAsync(id, ct) is not null)
+            .WithMessage((_, id) => T["<&ParentEntity&> {0} Not Found.", id]);

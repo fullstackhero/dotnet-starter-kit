@@ -1,0 +1,20 @@
+﻿namespace <&StringNameSpace&>;
+
+public class Get<&Entity&>Request : IRequest<<&Entity&>DetailsDto>
+{
+    public Guid Id { get; set; }
+
+    public Get<&Entity&>Request(Guid id) => Id = id;
+}
+
+public class Get<&Entity&>RequestHandler : IRequestHandler<Get<&Entity&>Request, <&Entity&>DetailsDto>
+{
+    private readonly IRepository<<&Entity&>> _repository;
+    private readonly IStringLocalizer _t;
+
+    public Get<&Entity&>RequestHandler(IRepository<<&Entity&>> repository, IStringLocalizer<Get<&Entity&>RequestHandler> localizer) =>
+        (_repository, _t) = (repository, localizer);
+    <&GetEntityRequestHandle&>
+
+  
+}

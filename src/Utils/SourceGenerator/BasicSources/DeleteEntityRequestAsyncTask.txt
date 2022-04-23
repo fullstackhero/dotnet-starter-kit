@@ -1,0 +1,4 @@
+﻿   if (await _<&ChildEntity&>Repo.AnyAsync(new <&ChildEntityPLural&>By<&Entity&>Spec(request.Id), cancellationToken))
+        {
+            throw new ConflictException(_t["<&Entity&>.cannot be deleted as it's being used."]);
+       }

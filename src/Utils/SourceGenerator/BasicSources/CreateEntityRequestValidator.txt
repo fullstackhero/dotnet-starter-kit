@@ -1,0 +1,17 @@
+﻿<&Usings&>
+namespace <&StringNameSpace&>;
+
+public class Create<&Entity&>RequestValidator : CustomValidator<Create<&Entity&>Request>
+{
+    public Create<&Entity&>RequestValidator(IReadRepository<<&Entity&>> <&EntityToLower&>Repo, <&ReadRepository&> IStringLocalizer<Create<&Entity&>RequestValidator> localizer)
+    {
+    // Important leftout the T for the translations !
+    
+        RuleFor(p => p.<&ValidatorName&>)
+            .NotEmpty()            
+            .MustAsync(async (<&ValidatorNameToLower&>, ct) => await <&EntityToLower&>Repo.GetBySpecAsync(new <&Entity&>By<&ValidatorName&>Spec(<&ValidatorNameToLower&>), ct) is null)
+            .WithMessage((_, <&ValidatorNameToLower&>) => "<&Entity&> {0} already Exists.");
+
+        <&ParentRule&> 
+    }
+}

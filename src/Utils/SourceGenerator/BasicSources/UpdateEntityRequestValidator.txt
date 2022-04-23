@@ -1,0 +1,21 @@
+﻿namespace <&StringNameSpace&>;
+
+public class Update<&Entity&>RequestValidator : CustomValidator<Update<&Entity&>Request>
+{
+    public Update<&Entity&>RequestValidator(IReadRepository<<&Entity&>> <&EntityToLower&>Repo, <&ReadRepository&> IStringLocalizer<Update<&Entity&>RequestValidator> localizer)
+    {
+
+    // replace validator_<&validator_name&> with appropriate field<&validator_name&>  !! Watch out for lower and Capital and field type
+    // replace or remove eventual length in <&validator_length&>
+    // sample code if <&validator_name&> would be a rule  (to be altered accordingly your specific rules)
+
+    //    RuleFor(p => p.<&validator_Name&>)
+    //        .NotEmpty()
+    //        .MaximumLength(<&validator_length&>)
+    //        .MustAsync(async (<&validator_name&>, ct) => await <&EntityToLower&>Repo.GetBySpecAsync(new <&Entity&>ByNameSpec(<&validator_name&>), ct) is null)    
+    //        .WithMessage((_, <&validator_name&>) => T["<&Entity&> {0} already Exists.", <&validator_name&>]);
+
+                       
+       
+    }
+}

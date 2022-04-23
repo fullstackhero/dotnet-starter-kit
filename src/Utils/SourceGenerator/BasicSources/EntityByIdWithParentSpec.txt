@@ -1,0 +1,10 @@
+﻿namespace <&StringNameSpace&>;
+
+public class <&Entity&>ByIdWith<&Parent&>Spec : Specification<<&Entity&>, <&Entity&>DetailsDto>, ISingleResultSpecification
+
+{
+    public <&Entity&>ByIdWith<&Parent&>Spec(Guid id) =>
+        Query
+        .Where(p => p.Id == id)
+        .Include(p => p.<&Parent&>);
+}

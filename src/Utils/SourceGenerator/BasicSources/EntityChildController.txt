@@ -1,0 +1,57 @@
+﻿using FSH.WebApi.Application.Catalog.<&EntityPlural&>;
+
+namespace FSH.WebApi.Host.Controllers.Catalog;
+
+public class <&EntityPlural&>Controller : VersionedApiController
+{
+    [HttpPost("search")]
+    [MustHavePermission(FSHAction.Search, FSHResource.<&EntityPlural&>)]
+    [OpenApiOperation("Search <&EntityPlural&> using available filters.", "")]
+    public Task<PaginationResponse<<&Entity&>Dto>> SearchAsync(Search<&EntityPlural&>Request request)
+    {
+        return Mediator.Send(request);
+    }
+
+    [HttpGet("{id:guid}")]
+    [MustHavePermission(FSHAction.View, FSHResource.<&EntityPlural&>)]
+    [OpenApiOperation("Get <&EntityToLower&> details.", "")]
+    public Task<<&Entity&>DetailsDto> GetAsync(Guid id)
+    {
+        return Mediator.Send(new Get<&Entity&>Request(id));
+    }
+
+    [HttpGet("dapper")]
+    [MustHavePermission(FSHAction.View, FSHResource.<&EntityPlural&>)]
+    [OpenApiOperation("Get <&EntityToLower&> details via dapper.", "")]
+    public Task<<&Entity&>Dto> GetDapperAsync(Guid id)
+    {
+        return Mediator.Send(new Get<&Entity&>ViaDapperRequest(id));
+    }
+
+    [HttpPost]
+    [MustHavePermission(FSHAction.Create, FSHResource.<&EntityPlural&>)]
+    [OpenApiOperation("Create a new <&EntityToLower&>.", "")]
+    public Task<Guid> CreateAsync(Create<&Entity&>Request request)
+    {
+        return Mediator.Send(request);
+    }
+
+    [HttpPut("{id:guid}")]
+    [MustHavePermission(FSHAction.Update, FSHResource.<&EntityPlural&>)]
+    [OpenApiOperation("Update a <&EntityToLower&>.", "")]
+    public async Task<ActionResult<Guid>> UpdateAsync(Update<&Entity&>Request request, Guid id)
+    {
+        return id != request.Id
+            ? BadRequest()
+            : Ok(await Mediator.Send(request));
+    }
+
+    [HttpDelete("{id:guid}")]
+    [MustHavePermission(FSHAction.Delete, FSHResource.<&EntityPlural&>)]
+    [OpenApiOperation("Delete a <&EntityToLower&>.", "")]
+    public Task<Guid> DeleteAsync(Guid id)
+    {
+        return Mediator.Send(new Delete<&Entity&>Request(id));
+    }
+
+    }

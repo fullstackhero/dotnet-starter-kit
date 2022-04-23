@@ -1,0 +1,30 @@
+﻿
+
+using <&EventsPath&>;
+
+namespace <&StringNameSpace&>;
+
+public class Create<&Entity&>Request : IRequest<Guid>
+{
+    <&PropertyLines&>
+}
+
+public class Create<&Entity&>RequestHandler : IRequestHandler<Create<&Entity&>Request, Guid>
+{
+    private readonly IRepository<<&Entity&>> _repository;
+    
+    public Create<&Entity&>RequestHandler(IRepository<<&Entity&>> repository) =>
+        _repository = repository;
+
+    public async Task<Guid> Handle(Create<&Entity&>Request request, CancellationToken cancellationToken)
+    {
+        var <&EntityToLower&> = new <&Entity&>(<&Request&>);
+
+        // Add Domain Events to be raised after the commit
+        <&EntityToLower&>.DomainEvents.Add(EntityCreatedEvent.WithEntity(<&EntityToLower&>));
+
+        await _repository.AddAsync(<&EntityToLower&>, cancellationToken);
+
+        return <&EntityToLower&>.Id;
+    }
+}

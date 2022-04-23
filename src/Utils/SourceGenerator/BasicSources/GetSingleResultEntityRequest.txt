@@ -1,0 +1,27 @@
+﻿namespace <&StringNameSpace&>;
+
+public class Get<&Entity&>Request : IRequest<<&Entity&>Dto>
+{
+    public Guid Id { get; set; }
+
+    public Get<&Entity&>Request(Guid id) => Id = id;
+}
+
+public class <&Entity&>ByIdSpec : Specification<<&Entity&>, <&Entity&>Dto>, ISingleResultSpecification
+{
+    public <&Entity&>ByIdSpec(Guid id) =>
+        Query.Where(p => p.Id == id);
+}
+
+public class Get<&Entity&>RequestHandler : IRequestHandler<Get<&Entity&>Request, <&Entity&>Dto>
+{
+    private readonly IRepository<<&Entity&>> _repository;
+    private readonly IStringLocalizer<Get<&Entity&>RequestHandler> _t;
+
+    public Get<&Entity&>RequestHandler(IRepository<<&Entity&>> repository, IStringLocalizer<Get<&Entity&>RequestHandler> localizer) => (_repository, _t) = (repository, localizer);
+
+    public async Task<<&Entity&>Dto> Handle(Get<&Entity&>Request request, CancellationToken cancellationToken) =>
+        await _repository.GetBySpecAsync(
+            (ISpecification<<&Entity&>, <&Entity&>Dto>)new <&Entity&>ByIdSpec(request.Id), cancellationToken)
+        ?? throw new NotFoundException(_t["<&EntityToLower&> {0} Not Found", request.Id]);
+}

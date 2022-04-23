@@ -1,0 +1,34 @@
+﻿using <&EventsUsing&>;
+namespace <&StringNameSpace&>;
+
+
+public class Delete<&Entity&>Request : IRequest<Guid>
+{
+    public Guid Id { get; set; }
+
+    public Delete<&Entity&>Request(Guid id) => Id = id;
+}
+
+public class Delete<&Entity&>RequestHandler : IRequestHandler<Delete<&Entity&>Request, Guid>
+{
+    private readonly IRepository<<&Entity&>> _repository;
+    private readonly IStringLocalizer<Delete<&Entity&>RequestHandler> _t;
+
+    public Delete<&Entity&>RequestHandler(IRepository<<&Entity&>> repository, IStringLocalizer<Delete<&Entity&>RequestHandler> localizer) =>
+        (_repository, _t) = (repository, localizer);
+
+    public async Task<Guid> Handle(Delete<&Entity&>Request request, CancellationToken cancellationToken)
+    {
+        var <&EntityToLower&> = await _repository.GetByIdAsync(request.Id, cancellationToken);
+
+                _ = <&EntityToLower&> ?? throw new NotFoundException(_t["<&Entity&> {0} Not Found."]);
+
+
+        // Add Domain Events to be raised after the commit
+        <&EntityToLower&>.DomainEvents.Add(EntityDeletedEvent.WithEntity(<&EntityToLower&>));
+
+        await _repository.DeleteAsync(<&EntityToLower&>, cancellationToken);
+
+        return request.Id;
+    }
+}

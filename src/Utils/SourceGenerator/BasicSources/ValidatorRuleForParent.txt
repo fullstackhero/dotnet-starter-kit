@@ -1,0 +1,4 @@
+﻿  RuleFor(p => p.<&Parent&>Id)
+            .NotEmpty()
+            .MustAsync(async (id, ct) => await <&ParentToLower&>Repo.GetByIdAsync(id, ct) is not null)
+            .WithMessage((_, id) => "<&Parent&> {0} Not Found.");

@@ -1,0 +1,37 @@
+﻿using <&EventsPath&>;
+
+namespace <&StringNameSpace&>;
+
+public class Update<&Entity&>Request : IRequest<Guid>
+{
+    public Guid Id { get; set; }
+   <&PropertyLines&>
+}
+
+public class Update<&Entity&>RequestHandler : IRequestHandler<Update<&Entity&>Request, Guid>
+{
+    private readonly IRepository<<&Entity&>> _repository;
+    private readonly IStringLocalizer _t;
+   
+
+    public Update<&Entity&>RequestHandler(IRepository<<&Entity&>> repository, IStringLocalizer<Update<&Entity&>RequestHandler> localizer) =>
+        (_repository, _t) = (repository, localizer);
+
+    public async Task<Guid> Handle(Update<&Entity&>Request request, CancellationToken cancellationToken)
+    {
+        var <&EntityToLower&> = await _repository.GetByIdAsync(request.Id, cancellationToken);
+
+        _ = <&EntityToLower&> ?? throw new NotFoundException(_t["<&Entity&> {0} Not Found.", request.Id]);
+
+               
+        
+        var updated<&Entity&> = <&EntityToLower&>.Update(<&Request&>);
+
+        // Add Domain Events to be raised after the commit
+        <&EntityToLower&>.DomainEvents.Add(EntityUpdatedEvent.WithEntity(<&EntityToLower&>));
+
+        await _repository.UpdateAsync(updated<&Entity&>, cancellationToken);
+
+        return request.Id;
+    }
+}

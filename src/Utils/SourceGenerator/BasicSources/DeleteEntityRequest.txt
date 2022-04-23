@@ -1,0 +1,34 @@
+﻿<&usingpathtochildren&>
+namespace <&StringNameSpace&>;
+public class Delete<&Entity&>Request : IRequest<Guid>
+{
+    public Guid Id { get; set; }
+    public Delete<&Entity&>Request(Guid id) => Id = id;
+}
+
+public class Delete<&Entity&>RequestHandler : IRequestHandler<Delete<&Entity&>Request, Guid>
+{
+    // Add Domain Events automatically by using IRepositoryWithEvents
+
+    private readonly IRepositoryWithEvents<<&Entity&>> _<&EntityToLower&>Repo;
+   <&ReadRepositoryLines&>  
+   private readonly IStringLocalizer _t;
+
+
+     public Delete<&Entity&>RequestHandler(IRepositoryWithEvents<<&Entity&>> <&EntityToLower&>Repo,<&PublicRepositoryLine&> IStringLocalizer<Delete<&Entity&>RequestHandler> localizer) =>
+        (<&repo_Repo&> _t) = (<&repoRepo&> localizer);
+
+    
+    public async Task<Guid> Handle(Delete<&Entity&>Request request, CancellationToken cancellationToken)
+    {
+    <&PublicAsyncTask&> 
+    
+     var <&EntityToLower&> = await _<&EntityToLower&>Repo.GetByIdAsync(request.Id, cancellationToken);
+
+        _ = <&EntityToLower&> ?? throw new NotFoundException(_t["<&Entity&>.notfound"]);
+
+        await _<&EntityToLower&>Repo.DeleteAsync(<&EntityToLower&>, cancellationToken);
+
+        return request.Id;
+    }
+}
