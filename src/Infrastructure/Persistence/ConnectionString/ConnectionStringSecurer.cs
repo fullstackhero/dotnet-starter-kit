@@ -1,6 +1,8 @@
 using System.Data.SqlClient;
+using System.Runtime.InteropServices;
 using FSH.WebApi.Application.Common.Persistence;
 using FSH.WebApi.Infrastructure.Common;
+using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
 using Npgsql;
@@ -33,6 +35,7 @@ public class ConnectionStringSecurer : IConnectionStringSecurer
             DbProviderKeys.Npgsql => MakeSecureNpgsqlConnectionString(connectionString),
             DbProviderKeys.SqlServer => MakeSecureSqlConnectionString(connectionString),
             DbProviderKeys.MySql => MakeSecureMySqlConnectionString(connectionString),
+            DbProviderKeys.SqLite => MakeSecureSqLiteConnectionString(connectionString),
             DbProviderKeys.Oracle => MakeSecureOracleConnectionString(connectionString),
             _ => connectionString
         };
@@ -85,6 +88,33 @@ public class ConnectionStringSecurer : IConnectionStringSecurer
         {
             builder.UserID = HiddenValueDefault;
         }
+
+        return builder.ToString();
+    }
+
+    private string MakeSecureSqLiteConnectionString(string connectionString)
+    {
+        var builder = new SqliteConnection(connectionString);
+        //string folder = connectionString;
+        //if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        //{
+        //    folder = folder.Replace(@"\", "/");
+        //}
+
+        //string folderName = Path.Combine("Files", "Databases", folder);
+        //string pathToSave = Path.Combine(Directory.GetCurrentDirectory(), folderName);
+        //Directory.CreateDirectory(pathToSave);
+
+
+        //if (!string.IsNullOrEmpty(builder.Password) || !builder.IntegratedSecurity)
+        //{
+        //    builder.Password = HiddenValueDefault;
+        //}
+
+        //if (!string.IsNullOrEmpty(builder.UserID) || !builder.IntegratedSecurity)
+        //{
+        //    builder.UserID = HiddenValueDefault;
+        //}
 
         return builder.ToString();
     }

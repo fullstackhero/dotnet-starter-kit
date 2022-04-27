@@ -52,6 +52,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Migrators.Oracle", "src\Mig
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared", "src\Core\Shared\Shared.csproj", "{5B986063-2160-4F86-AF1D-7F97671146C5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Migrators.SqLite", "src\Migrators\Migrators.SqLite\Migrators.SqLite.csproj", "{4881A50F-5C2B-4381-81FD-3ECA11450016}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -98,6 +100,10 @@ Global
 		{5B986063-2160-4F86-AF1D-7F97671146C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5B986063-2160-4F86-AF1D-7F97671146C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5B986063-2160-4F86-AF1D-7F97671146C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4881A50F-5C2B-4381-81FD-3ECA11450016}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4881A50F-5C2B-4381-81FD-3ECA11450016}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4881A50F-5C2B-4381-81FD-3ECA11450016}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4881A50F-5C2B-4381-81FD-3ECA11450016}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -115,6 +121,7 @@ Global
 		{56278085-6921-4F93-A64B-DE6BEBFB6F24} = {E63DB355-B283-460C-87E9-68A8E831ADCE}
 		{E860D5C5-7E42-438D-AD3E-8CDCD80F49FC} = {B778FB14-BDFD-454E-9FD7-5CE3572552B7}
 		{5B986063-2160-4F86-AF1D-7F97671146C5} = {225C0FD8-B796-4E9E-B1E7-0E4CD13F2E45}
+		{4881A50F-5C2B-4381-81FD-3ECA11450016} = {B778FB14-BDFD-454E-9FD7-5CE3572552B7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D0D80036-558A-4A3A-A0BE-00CED864A4DD}
