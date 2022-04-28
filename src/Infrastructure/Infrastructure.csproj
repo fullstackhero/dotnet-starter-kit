@@ -35,7 +35,7 @@
         </PackageReference>
         <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="6.0.4" />
         <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="6.0.4" />
-        <PackageReference Include="Microsoft.Identity.Web" Version="1.24.0" />
+        <PackageReference Include="Microsoft.Identity.Web" Version="1.24.1" />
         <PackageReference Include="MimeKit" Version="3.2.0" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.4" />
         <PackageReference Include="NSwag.AspNetCore" Version="13.15.10" />
