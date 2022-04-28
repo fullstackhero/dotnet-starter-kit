@@ -95,26 +95,6 @@ public class ConnectionStringSecurer : IConnectionStringSecurer
     private string MakeSecureSqLiteConnectionString(string connectionString)
     {
         var builder = new SqliteConnection(connectionString);
-        //string folder = connectionString;
-        //if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-        //{
-        //    folder = folder.Replace(@"\", "/");
-        //}
-
-        //string folderName = Path.Combine("Files", "Databases", folder);
-        //string pathToSave = Path.Combine(Directory.GetCurrentDirectory(), folderName);
-        //Directory.CreateDirectory(pathToSave);
-
-
-        //if (!string.IsNullOrEmpty(builder.Password) || !builder.IntegratedSecurity)
-        //{
-        //    builder.Password = HiddenValueDefault;
-        //}
-
-        //if (!string.IsNullOrEmpty(builder.UserID) || !builder.IntegratedSecurity)
-        //{
-        //    builder.UserID = HiddenValueDefault;
-        //}
 
         return builder.ToString();
     }

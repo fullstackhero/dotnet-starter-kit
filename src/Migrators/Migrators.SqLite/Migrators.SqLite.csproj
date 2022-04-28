@@ -12,7 +12,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Migrations\Application\" />
       <Folder Include="Migrations\TenantDb\" />
     </ItemGroup>
 
