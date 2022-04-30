@@ -1,6 +1,6 @@
 {
   "DatabaseSettings": {
     "DBProvider": "mssql",
-    "ConnectionString": "Data Source=(localdb)\\mssqllocaldb;Initial Catalog=fullStackHeroDb;Integrated Security=True;MultipleActiveResultSets=True"
+    "ConnectionString": "Data Source=DESKTOP-J8GFEVN\\SQLSERVER2019;Initial Catalog=fullStackHeroDb;Integrated Security= false;Persist Security Info=True;User Id=sa;Password=asdASD@1234;MultipleActiveResultSets=True"
   }
 }
