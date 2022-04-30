@@ -4,7 +4,7 @@
     <id>FullStackHero.WebAPI.Boilerplate</id>
     <title>.NET WebAPI Boilerplate - FullStackHero</title>
     <version>0.0.6-rc</version>
-    <authors>Mukesh Murugan</authors>
+    <authors>Kinan Tassapehji</authors>
     <description>
       Clean Architecture Template for .NET 6.0 WebAPI built with Multitenancy Support.
     </description>
@@ -16,7 +16,7 @@
     <packageTypes>
       <packageType name="Template" />
     </packageTypes>
-    <tags>cleanarchitecture clean architecture WebAPI mukesh codewithmukesh fullstackhero solution csharp</tags>
+    <tags>cleanarchitecture clean architecture WebAPI Kinan Tassapehji fullstackhero solution csharp</tags>
     <icon>./content/icon.png</icon>
   </metadata>
   <files>

@@ -14,19 +14,13 @@ public static class SpecificationBuilderExtensions
     public static ISpecificationBuilder<T> PaginateBy<T>(this ISpecificationBuilder<T> query, PaginationFilter filter)
     {
         if (filter.PageNumber <= 0)
-        {
             filter.PageNumber = 1;
-        }
 
         if (filter.PageSize <= 0)
-        {
             filter.PageSize = 10;
-        }
 
         if (filter.PageNumber > 1)
-        {
             query = query.Skip((filter.PageNumber - 1) * filter.PageSize);
-        }
 
         return query
             .Take(filter.PageSize)
@@ -82,9 +76,7 @@ public static class SpecificationBuilderExtensions
     private static void AddSearchPropertyByKeyword<T>(this ISpecificationBuilder<T> specificationBuilder, Expression propertyExpr, ParameterExpression paramExpr, string keyword)
     {
         if (propertyExpr is not MemberExpression memberExpr || memberExpr.Member is not PropertyInfo property)
-        {
             throw new ArgumentException("propertyExpr must be a property expression.", nameof(propertyExpr));
-        }
 
         // Generate lambda [ x => x.Property ] for string properties
         // or [ x => ((object)x.Property) == null ? null : x.Property.ToString() ] for other properties
