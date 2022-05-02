@@ -3,16 +3,15 @@ using Ardalis.Specification.EntityFrameworkCore;
 
 namespace FSH.WebApi.Infrastructure.Persistence.Specification.Evaluators;
 
-public sealed class FSHSpecificationEvaluator : SpecificationEvaluator
+public sealed class NpgsqlSpecificationEvaluator : SpecificationEvaluator
 {
-    public static FSHSpecificationEvaluator DefaultInstance { get; } = new FSHSpecificationEvaluator();
-    public static FSHSpecificationEvaluator NpgsqlInstance { get; } = new FSHSpecificationEvaluator(true);
+    public static NpgsqlSpecificationEvaluator Instance { get; } = new NpgsqlSpecificationEvaluator();
 
-    private FSHSpecificationEvaluator(bool isNpgsql = false)
+    private NpgsqlSpecificationEvaluator()
         : base(new IEvaluator[]
         {
             WhereEvaluator.Instance,
-            isNpgsql ? FSHSearchEvaluator.NpgsqlInstance : FSHSearchEvaluator.DefaultInstance,
+            NpgsqlSearchEvaluator.Instance,
             IncludeEvaluator.Default,
             OrderEvaluator.Instance,
             PaginationEvaluator.Instance,

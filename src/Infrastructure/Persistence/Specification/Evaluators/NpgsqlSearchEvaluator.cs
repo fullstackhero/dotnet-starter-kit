@@ -3,17 +3,13 @@ using Ardalis.Specification;
 using FSH.WebApi.Infrastructure.Persistence.Specification.Extensions;
 
 namespace FSH.WebApi.Infrastructure.Persistence.Specification.Evaluators;
-public sealed class FSHSearchEvaluator : IEvaluator
+public sealed class NpgsqlSearchEvaluator : IEvaluator
 {
-    private MethodInfo SearchMethod { get; }
-
-    private FSHSearchEvaluator(bool isNpgsql = false)
+    private NpgsqlSearchEvaluator()
     {
-        SearchMethod = isNpgsql ? FSHSearchExtension.ILikeMethodInfo : FSHSearchExtension.LikeMethodInfo;
     }
 
-    public static FSHSearchEvaluator DefaultInstance { get; } = new FSHSearchEvaluator();
-    public static FSHSearchEvaluator NpgsqlInstance { get; } = new FSHSearchEvaluator(true);
+    public static NpgsqlSearchEvaluator Instance { get; } = new NpgsqlSearchEvaluator();
 
     public bool IsCriteriaEvaluator { get; } = true;
 
@@ -22,7 +18,7 @@ public sealed class FSHSearchEvaluator : IEvaluator
     {
         foreach (var searchCriteria in specification.SearchCriterias.GroupBy(x => x.SearchGroup))
         {
-            query = query.Search(searchCriteria, SearchMethod);
+            query = query.Search(searchCriteria);
         }
 
         return query;

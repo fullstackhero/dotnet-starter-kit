@@ -6,12 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FSH.WebApi.Infrastructure.Persistence.Specification.Extensions;
 
-public static class FSHSearchExtension
+public static class NpgsqlSearchExtension
 {
-    public static readonly MethodInfo LikeMethodInfo = typeof(DbFunctionsExtensions)
-        .GetMethod(nameof(DbFunctionsExtensions.Like), new Type[] { typeof(DbFunctions), typeof(string), typeof(string) })
-        ?? throw new TargetException("The EF.Functions.Like not found");
-    public static readonly MethodInfo ILikeMethodInfo = typeof(NpgsqlDbFunctionsExtensions)
+    private static readonly MethodInfo ILikeMethodInfo = typeof(NpgsqlDbFunctionsExtensions)
         .GetMethod(nameof(NpgsqlDbFunctionsExtensions.ILike), new Type[] { typeof(DbFunctions), typeof(string), typeof(string) })
         ?? throw new TargetException("The EF.Functions.ILike not found");
 
@@ -29,9 +26,8 @@ public static class FSHSearchExtension
     ///     <item>SearchTerm, the value to use for the SQL LIKE.</item>
     /// </list>
     /// </param>
-    /// <param name="searchMethod">Kind of the SQL LIKE operation.</param>
     /// <returns></returns>
-    public static IQueryable<T> Search<T>(this IQueryable<T> source, IEnumerable<SearchExpressionInfo<T>> criterias, MethodInfo searchMethod)
+    public static IQueryable<T> Search<T>(this IQueryable<T> source, IEnumerable<SearchExpressionInfo<T>> criterias)
     {
         Expression? expr = null;
         var parameter = Expression.Parameter(typeof(T), "x");
@@ -46,7 +42,7 @@ public static class FSHSearchExtension
 
             var likeExpression = Expression.Call(
                                     null,
-                                    searchMethod,
+                                    ILikeMethodInfo,
                                     Functions,
                                     propertySelector.Body,
                                     Expression.Constant(criteria.SearchTerm));

@@ -18,8 +18,8 @@ public class ApplicationDbRepository<T> : RepositoryBase<T>, IReadRepository<T>,
         : base(
             dbContext,
             dbSettings.Value.DBProvider == DbProviderKeys.Npgsql
-                ? FSHSpecificationEvaluator.NpgsqlInstance
-                : FSHSpecificationEvaluator.DefaultInstance)
+                ? NpgsqlSpecificationEvaluator.Instance
+                : SpecificationEvaluator.Default)
     {
     }
 
