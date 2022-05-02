@@ -2,8 +2,11 @@
 using Ardalis.Specification.EntityFrameworkCore;
 using FSH.WebApi.Application.Common.Persistence;
 using FSH.WebApi.Domain.Common.Contracts;
+using FSH.WebApi.Infrastructure.Common;
 using FSH.WebApi.Infrastructure.Persistence.Context;
+using FSH.WebApi.Infrastructure.Persistence.Specification.Evaluators;
 using Mapster;
+using Microsoft.Extensions.Options;
 
 namespace FSH.WebApi.Infrastructure.Persistence.Repository;
 
@@ -11,8 +14,12 @@ namespace FSH.WebApi.Infrastructure.Persistence.Repository;
 public class ApplicationDbRepository<T> : RepositoryBase<T>, IReadRepository<T>, IRepository<T>
     where T : class, IAggregateRoot
 {
-    public ApplicationDbRepository(ApplicationDbContext dbContext)
-        : base(dbContext)
+    public ApplicationDbRepository(ApplicationDbContext dbContext, IOptions<DatabaseSettings> dbSettings)
+        : base(
+            dbContext,
+            dbSettings.Value.DBProvider == DbProviderKeys.Npgsql
+                ? FSHSpecificationEvaluator.NpgsqlInstance
+                : FSHSpecificationEvaluator.DefaultInstance)
     {
     }
 
