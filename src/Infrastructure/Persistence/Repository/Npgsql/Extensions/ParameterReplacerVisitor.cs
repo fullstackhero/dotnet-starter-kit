@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace FSH.WebApi.Infrastructure.Persistence.Specification.Extensions;
+namespace FSH.WebApi.Infrastructure.Persistence.Repository.Npgsql.Extensions;
 
 internal sealed class ParameterReplacerVisitor : ExpressionVisitor
 {

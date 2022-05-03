@@ -1,8 +1,7 @@
-using System.Reflection;
 using Ardalis.Specification;
-using FSH.WebApi.Infrastructure.Persistence.Specification.Extensions;
+using FSH.WebApi.Infrastructure.Persistence.Repository.Npgsql.Extensions;
 
-namespace FSH.WebApi.Infrastructure.Persistence.Specification.Evaluators;
+namespace FSH.WebApi.Infrastructure.Persistence.Repository.Npgsql.Evaluators;
 public sealed class NpgsqlSearchEvaluator : IEvaluator
 {
     private NpgsqlSearchEvaluator()

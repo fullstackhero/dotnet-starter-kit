@@ -4,7 +4,7 @@ using FSH.WebApi.Application.Common.Persistence;
 using FSH.WebApi.Domain.Common.Contracts;
 using FSH.WebApi.Infrastructure.Common;
 using FSH.WebApi.Infrastructure.Persistence.Context;
-using FSH.WebApi.Infrastructure.Persistence.Specification.Evaluators;
+using FSH.WebApi.Infrastructure.Persistence.Repository.Npgsql.Evaluators;
 using Mapster;
 using Microsoft.Extensions.Options;
 

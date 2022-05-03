@@ -4,7 +4,7 @@ using System.Reflection;
 using Ardalis.Specification;
 using Microsoft.EntityFrameworkCore;
 
-namespace FSH.WebApi.Infrastructure.Persistence.Specification.Extensions;
+namespace FSH.WebApi.Infrastructure.Persistence.Repository.Npgsql.Extensions;
 
 public static class NpgsqlSearchExtension
 {

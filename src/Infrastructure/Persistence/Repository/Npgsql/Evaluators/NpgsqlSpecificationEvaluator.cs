@@ -1,7 +1,7 @@
 using Ardalis.Specification;
 using Ardalis.Specification.EntityFrameworkCore;
 
-namespace FSH.WebApi.Infrastructure.Persistence.Specification.Evaluators;
+namespace FSH.WebApi.Infrastructure.Persistence.Repository.Npgsql.Evaluators;
 
 public sealed class NpgsqlSpecificationEvaluator : SpecificationEvaluator
 {
