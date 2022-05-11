@@ -10,7 +10,7 @@
         <PackageReference Include="Mapster" Version="7.3.0" />
         <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="10.0.1" />
         <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="6.0.0" />
-        <PackageReference Include="Microsoft.Extensions.Localization" Version="6.0.4" />
+        <PackageReference Include="Microsoft.Extensions.Localization" Version="6.0.5" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Domain\Domain.csproj" />

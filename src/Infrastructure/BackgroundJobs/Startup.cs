@@ -5,6 +5,7 @@ using Hangfire.Console.Extensions;
 using Hangfire.MySql;
 using Hangfire.PostgreSql;
 using Hangfire.SqlServer;
+using Hangfire.SQLite;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -47,6 +48,8 @@ internal static class Startup
                 hangfireConfig.UsePostgreSqlStorage(connectionString, config.GetSection("HangfireSettings:Storage:Options").Get<PostgreSqlStorageOptions>()),
             DbProviderKeys.SqlServer =>
                 hangfireConfig.UseSqlServerStorage(connectionString, config.GetSection("HangfireSettings:Storage:Options").Get<SqlServerStorageOptions>()),
+            DbProviderKeys.SqLite =>
+                hangfireConfig.UseSQLiteStorage(connectionString, config.GetSection("HangfireSettings:Storage:Options").Get<SQLiteStorageOptions>()),
             DbProviderKeys.MySql =>
                 hangfireConfig.UseStorage(new MySqlStorage(connectionString, config.GetSection("HangfireSettings:Storage:Options").Get<MySqlStorageOptions>())),
             _ => throw new Exception($"Hangfire Storage Provider {dbProvider} is not supported.")
