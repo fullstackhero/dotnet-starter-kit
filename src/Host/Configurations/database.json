@@ -1,6 +1,6 @@
 {
   "DatabaseSettings": {
-    "DBProvider": "sqlite",
-    "ConnectionString": "Data Source=.\\Databases\\Host\\database.db"
+    "DBProvider": "mssql",
+    "ConnectionString": "Data Source=(localdb)\\mssqllocaldb;Initial Catalog=rootTenantDb;Integrated Security=True;MultipleActiveResultSets=True"
   }
 }
