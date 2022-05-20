@@ -13,14 +13,14 @@ public class DatabaseSettings : IValidatableObject
         {
             yield return new ValidationResult(
                 $"{nameof(DatabaseSettings)}.{nameof(DBProvider)} is not configured",
-                new[] {nameof(DBProvider)});
+                new[] { nameof(DBProvider) });
         }
 
         if (string.IsNullOrEmpty(ConnectionString))
         {
             yield return new ValidationResult(
                 $"{nameof(DatabaseSettings)}.{nameof(ConnectionString)} is not configured",
-                new[] {nameof(ConnectionString)});
+                new[] { nameof(ConnectionString) });
         }
     }
 }
