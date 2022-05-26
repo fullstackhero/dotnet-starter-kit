@@ -13,7 +13,7 @@
         <PackageReference Include="Dapper" Version="2.0.123" />
         <PackageReference Include="Finbuckle.MultiTenant.AspNetCore" Version="6.7.2" />
         <PackageReference Include="Finbuckle.MultiTenant.EntityFrameworkCore" Version="6.7.2" />
-        <PackageReference Include="Hangfire" Version="1.7.28" />
+        <PackageReference Include="Hangfire" Version="1.7.29" />
         <PackageReference Include="Hangfire.Console" Version="1.4.2" />
         <PackageReference Include="Hangfire.Console.Extensions" Version="1.0.5" />
         <PackageReference Include="Hangfire.MySqlStorage" Version="2.0.3" />
