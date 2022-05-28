@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using EnumFastToStringGenerated;
 using FSH.WebApi.Application.Common.FileStorage;
 using FSH.WebApi.Domain.Common;
 using FSH.WebApi.Infrastructure.Common.Extensions;
@@ -16,7 +17,8 @@ public class LocalFileStorageService : IFileStorageService
             return string.Empty;
         }
 
-        if (request.Extension is null || !supportedFileType.GetDescriptionList().Contains(request.Extension.ToLower()))
+        var contentType = supportedFileType.ToDisplayFast().Split(',');
+        if (request.Extension is null || !contentType.Contains(request.Extension.ToLower()))
             throw new InvalidOperationException("File Format Not Supported.");
         if (request.Name is null)
             throw new InvalidOperationException("Name is required.");
