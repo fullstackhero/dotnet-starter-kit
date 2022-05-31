@@ -1,0 +1,22 @@
+[
+  {
+    "Name": "Black & Tan",
+    "IsStandard": true,
+    "RegistrationCode": "018"
+  },
+  {
+    "Name": "Fawn",
+    "IsStandard": true,
+    "RegistrationCode": "082"
+  },
+  {
+    "Name": "Red",
+    "IsStandard": true,
+    "RegistrationCode": "140"
+  },
+  {
+    "Name": "Sable",
+    "IsStandard": true,
+    "RegistrationCode": "164"
+  }
+]

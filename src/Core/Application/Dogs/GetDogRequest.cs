@@ -8,7 +8,10 @@ public class GetDogRequest : IRequest<DogDto>
 public class DogByIdSpec : Specification<Dog, DogDto>, ISingleResultSpecification
 {
     public DogByIdSpec(Guid id) =>
-        Query.Where(d => d.Id == id);
+        Query
+        .Include(c => c.Color)
+        .Include(b => b.Breed)
+        .Where(d => d.Id == id);
 }
 
 public class GetDogRequestHandler : IRequestHandler<GetDogRequest, DogDto>

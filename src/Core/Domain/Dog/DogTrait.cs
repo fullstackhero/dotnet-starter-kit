@@ -1,13 +1,8 @@
 ﻿namespace FSH.WebApi.Domain.Dog;
 public class DogTrait : AuditableEntity, IAggregateRoot
 {
-    public string Name { get; private set; } = string.Empty;
-
-    public DogTrait() { }
-    public DogTrait(string name)
-    {
-        Name = name;
-    }
+    public string Name { get; set; } = string.Empty;
+    public List<DogBreed>? Breeds { get; set; } = new();
 
     public DogTrait Update(string name)
     {

@@ -4,6 +4,7 @@ using FSH.WebApi.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Migrators.MSSQL.Migrations.Application
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220530174513_DogBreedToDogTraitRelationshipNullable")]
+    partial class DogBreedToDogTraitRelationshipNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,21 +24,6 @@ namespace Migrators.MSSQL.Migrations.Application
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
-
-            modelBuilder.Entity("DogBreedDogColor", b =>
-                {
-                    b.Property<Guid>("BreedsId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("ColorsId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("BreedsId", "ColorsId");
-
-                    b.HasIndex("ColorsId");
-
-                    b.ToTable("DogBreedDogColor", "Dsc");
-                });
 
             modelBuilder.Entity("DogBreedDogTrait", b =>
                 {
@@ -162,8 +149,14 @@ namespace Migrators.MSSQL.Migrations.Application
                     b.Property<string>("AkcId")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("Birthdate")
+                    b.Property<DateTime>("Birthdate")
                         .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("BreedId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ColorId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("CreatedBy")
                         .HasColumnType("uniqueidentifier");
@@ -177,14 +170,11 @@ namespace Migrators.MSSQL.Migrations.Application
                     b.Property<DateTime?>("DeletedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("DogBreedId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("DogColorId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("Gender")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("GroupId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ImagePath")
                         .HasColumnType("nvarchar(max)");
@@ -207,9 +197,11 @@ namespace Migrators.MSSQL.Migrations.Application
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DogBreedId");
+                    b.HasIndex("BreedId");
 
-                    b.HasIndex("DogColorId");
+                    b.HasIndex("ColorId");
+
+                    b.HasIndex("GroupId");
 
                     b.ToTable("Dogs", "Dsc");
                 });
@@ -235,9 +227,6 @@ namespace Migrators.MSSQL.Migrations.Application
                     b.Property<DateTime?>("DeletedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("DogGroupId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<Guid>("LastModifiedBy")
                         .HasColumnType("uniqueidentifier");
 
@@ -249,8 +238,6 @@ namespace Migrators.MSSQL.Migrations.Application
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("DogGroupId");
 
                     b.ToTable("DogBreeds", "Dsc");
                 });
@@ -273,6 +260,9 @@ namespace Migrators.MSSQL.Migrations.Application
                     b.Property<DateTime?>("DeletedOn")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid?>("DogBreedId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<bool?>("IsStandard")
                         .HasColumnType("bit");
 
@@ -290,6 +280,8 @@ namespace Migrators.MSSQL.Migrations.Application
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DogBreedId");
 
                     b.ToTable("DogColors", "Dsc");
                 });
@@ -692,21 +684,6 @@ namespace Migrators.MSSQL.Migrations.Application
                     b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
-            modelBuilder.Entity("DogBreedDogColor", b =>
-                {
-                    b.HasOne("FSH.WebApi.Domain.Dog.DogBreed", null)
-                        .WithMany()
-                        .HasForeignKey("BreedsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("FSH.WebApi.Domain.Dog.DogColor", null)
-                        .WithMany()
-                        .HasForeignKey("ColorsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("DogBreedDogTrait", b =>
                 {
                     b.HasOne("FSH.WebApi.Domain.Dog.DogBreed", null)
@@ -736,25 +713,29 @@ namespace Migrators.MSSQL.Migrations.Application
             modelBuilder.Entity("FSH.WebApi.Domain.Dog.Dog", b =>
                 {
                     b.HasOne("FSH.WebApi.Domain.Dog.DogBreed", "Breed")
-                        .WithMany("Dogs")
-                        .HasForeignKey("DogBreedId");
+                        .WithMany()
+                        .HasForeignKey("BreedId");
 
                     b.HasOne("FSH.WebApi.Domain.Dog.DogColor", "Color")
-                        .WithMany("Dogs")
-                        .HasForeignKey("DogColorId");
+                        .WithMany()
+                        .HasForeignKey("ColorId");
+
+                    b.HasOne("FSH.WebApi.Domain.Dog.DogGroup", "Group")
+                        .WithMany()
+                        .HasForeignKey("GroupId");
 
                     b.Navigation("Breed");
 
                     b.Navigation("Color");
-                });
-
-            modelBuilder.Entity("FSH.WebApi.Domain.Dog.DogBreed", b =>
-                {
-                    b.HasOne("FSH.WebApi.Domain.Dog.DogGroup", "Group")
-                        .WithMany("DogBreeds")
-                        .HasForeignKey("DogGroupId");
 
                     b.Navigation("Group");
+                });
+
+            modelBuilder.Entity("FSH.WebApi.Domain.Dog.DogColor", b =>
+                {
+                    b.HasOne("FSH.WebApi.Domain.Dog.DogBreed", null)
+                        .WithMany("Colors")
+                        .HasForeignKey("DogBreedId");
                 });
 
             modelBuilder.Entity("FSH.WebApi.Infrastructure.Identity.ApplicationRoleClaim", b =>
@@ -810,17 +791,7 @@ namespace Migrators.MSSQL.Migrations.Application
 
             modelBuilder.Entity("FSH.WebApi.Domain.Dog.DogBreed", b =>
                 {
-                    b.Navigation("Dogs");
-                });
-
-            modelBuilder.Entity("FSH.WebApi.Domain.Dog.DogColor", b =>
-                {
-                    b.Navigation("Dogs");
-                });
-
-            modelBuilder.Entity("FSH.WebApi.Domain.Dog.DogGroup", b =>
-                {
-                    b.Navigation("DogBreeds");
+                    b.Navigation("Colors");
                 });
 #pragma warning restore 612, 618
         }

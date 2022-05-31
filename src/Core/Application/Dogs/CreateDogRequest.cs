@@ -1,16 +1,15 @@
 ﻿namespace FSH.WebApi.Application.Dogs;
 public class CreateDogRequest : IRequest<Guid>
 {
-    public string Name { get; set; } = default!;
+    public string Name { get; set; } = string.Empty;
     public string? OfficialName { get; set; }
     public string? AkcId { get; set; }
-    public DateTime Birthdate { get; set; }
-    public DogBreed? Breed { get; set; }
+    public DateTime? Birthdate { get; set; }
+    public Guid? DogBreedId { get; set; }
     public string? Gender { get; set; }
     public string? Microchip { get; set; }
     public string? ImagePath { get; set; }
-    public DogColor? Color { get; set; }
-    public DogGroup? Group { get; set; }
+    public Guid? DogColorId { get; set; }
 }
 
 public class CreateDogRequestHandler : IRequestHandler<CreateDogRequest, Guid>
@@ -27,13 +26,11 @@ public class CreateDogRequestHandler : IRequestHandler<CreateDogRequest, Guid>
             request.OfficialName,
             request.AkcId,
             request.Birthdate,
-            request.Breed,
+            request.DogBreedId,
             request.Gender,
             request.Microchip,
             request.ImagePath,
-            request.Color,
-            request.Group
-            );
+            request.DogColorId);
 
         await _repository.AddAsync(dog, cancellationToken);
 

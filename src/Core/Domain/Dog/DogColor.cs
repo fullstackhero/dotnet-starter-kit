@@ -1,17 +1,12 @@
 ﻿namespace FSH.WebApi.Domain.Dog;
 public class DogColor : AuditableEntity, IAggregateRoot
 {
-    public string Name { get; private set; }
-    public bool? IsStandard { get; private set; }
-    public string? RegistrationCode { get; private set; }
+    public string Name { get; set; } = string.Empty;
+    public bool? IsStandard { get; set; }
+    public string? RegistrationCode { get; set; }
+    public List<DogBreed>? Breeds { get; set; }
+    public List<Dog>? Dogs { get; set; }
 
-    public DogColor() { }
-    public DogColor(string name, bool? isstandard, string? registrationcode)
-    {
-        Name = name;
-        IsStandard = isstandard;
-        RegistrationCode = registrationcode;
-    }
     public DogColor Update(string name, bool? isstandard, string? registrationcode)
     {
         if (name is not null && Name?.Equals(name) is not true) Name = name;

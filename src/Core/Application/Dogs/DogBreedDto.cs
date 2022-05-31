@@ -5,4 +5,5 @@ public class DogBreedDto : IDto
     public List<DogTraitDto>? Traits { get; set; }
     public string? About { get; set; }
     public List<DogColorDto>? Colors { get; set; }
+    public DogGroup? Group { get; set; }
 }

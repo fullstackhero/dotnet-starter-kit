@@ -4,6 +4,7 @@ using FSH.WebApi.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Migrators.MSSQL.Migrations.Application
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220531150130_AddedDogCollectionToColor")]
+    partial class AddedDogCollectionToColor
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -162,7 +164,7 @@ namespace Migrators.MSSQL.Migrations.Application
                     b.Property<string>("AkcId")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("Birthdate")
+                    b.Property<DateTime>("Birthdate")
                         .HasColumnType("datetime2");
 
                     b.Property<Guid>("CreatedBy")
@@ -235,7 +237,7 @@ namespace Migrators.MSSQL.Migrations.Application
                     b.Property<DateTime?>("DeletedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("DogGroupId")
+                    b.Property<Guid?>("GroupId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("LastModifiedBy")
@@ -250,7 +252,7 @@ namespace Migrators.MSSQL.Migrations.Application
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DogGroupId");
+                    b.HasIndex("GroupId");
 
                     b.ToTable("DogBreeds", "Dsc");
                 });
@@ -751,8 +753,8 @@ namespace Migrators.MSSQL.Migrations.Application
             modelBuilder.Entity("FSH.WebApi.Domain.Dog.DogBreed", b =>
                 {
                     b.HasOne("FSH.WebApi.Domain.Dog.DogGroup", "Group")
-                        .WithMany("DogBreeds")
-                        .HasForeignKey("DogGroupId");
+                        .WithMany()
+                        .HasForeignKey("GroupId");
 
                     b.Navigation("Group");
                 });
@@ -816,11 +818,6 @@ namespace Migrators.MSSQL.Migrations.Application
             modelBuilder.Entity("FSH.WebApi.Domain.Dog.DogColor", b =>
                 {
                     b.Navigation("Dogs");
-                });
-
-            modelBuilder.Entity("FSH.WebApi.Domain.Dog.DogGroup", b =>
-                {
-                    b.Navigation("DogBreeds");
                 });
 #pragma warning restore 612, 618
         }

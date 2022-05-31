@@ -1,13 +1,19 @@
 ﻿namespace FSH.WebApi.Domain.Dog;
 public class DogBreed : AuditableEntity, IAggregateRoot
 {
-    public string Name { get; private set; }
-    public List<DogTrait>? Traits { get; private set; }
-    public string? About { get; private set; }
-    public List<DogColor>? Colors { get; private set; }
+    public string Name { get; set; } = string.Empty;
+    public List<DogTrait>? Traits { get; set; }
+    public string? About { get; set; }
+    public List<DogColor>? Colors { get; set; }
+    public Guid? DogGroupId { get; set; }
+    public DogGroup? Group { get; set; }
+    public List<Dog> Dogs { get; set; }
 
-    public DogBreed() { }
-    public DogBreed(string name, List<DogTrait>? traits, string? about, List<DogColor>? colors)
+    public DogBreed()
+    {
+    }
+
+    public DogBreed(string name, List<DogTrait>? traits, string? about, List<DogColor>? colors, DogGroup? group)
     {
         Name = name;
         Traits = new List<DogTrait>();
@@ -15,14 +21,18 @@ public class DogBreed : AuditableEntity, IAggregateRoot
         {
             Traits.AddRange(traits);
         }
+
         About = about;
         Colors = new List<DogColor>();
         if (colors?.Count > 0)
         {
             Colors.AddRange(colors);
         }
+
+        Group = group;
     }
-    public DogBreed Update(string name, List<DogTrait>? traits, string? about, List<DogColor>? colors)
+
+    public DogBreed Update(string name, List<DogTrait>? traits, string? about, List<DogColor>? colors, DogGroup group)
     {
         if (name is not null && Name?.Equals(name) is not true) Name = name;
         if (traits?.Count > 0)
@@ -38,6 +48,7 @@ public class DogBreed : AuditableEntity, IAggregateRoot
                 Traits.AddRange(traits);
             }
         }
+
         if (about is not null && About?.Equals(about) is not true) About = about;
         if (colors?.Count > 0)
         {
@@ -52,6 +63,8 @@ public class DogBreed : AuditableEntity, IAggregateRoot
                 Colors.AddRange(colors);
             }
         }
+
+        if (group is not null && Group?.Name.Equals(group?.Name) is not true) Group = group;
 
         return this;
     }
