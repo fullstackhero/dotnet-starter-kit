@@ -1,9 +1,11 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using FSH.WebApi.Application.Common.Interfaces;
 using FSH.WebApi.Infrastructure.Auth;
 using FSH.WebApi.Infrastructure.BackgroundJobs;
 using FSH.WebApi.Infrastructure.Caching;
 using FSH.WebApi.Infrastructure.Common;
+using FSH.WebApi.Infrastructure.Common.Validation;
 using FSH.WebApi.Infrastructure.Cors;
 using FSH.WebApi.Infrastructure.FileStorage;
 using FSH.WebApi.Infrastructure.Localization;
@@ -31,6 +33,12 @@ public static class Startup
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
     {
+        var assemblies = new[]
+        {
+            Assembly.GetExecutingAssembly(), // Infrastructure
+            typeof(IApplicationMarker).Assembly // Aapplication
+        };
+
         MapsterSettings.Configure();
         return services
             .AddApiVersioning()
@@ -42,7 +50,8 @@ public static class Startup
             .AddHealthCheck()
             .AddPOLocalization(config)
             .AddMailing(config)
-            .AddMediatR(Assembly.GetExecutingAssembly())
+            .AddMediatR(assemblies)
+            .AddFluentValidation(assemblies)
             .AddMultitenancy(config)
             .AddNotifications(config)
             .AddOpenApiDocumentation(config)

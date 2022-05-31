@@ -1,5 +1,4 @@
 using FluentValidation.AspNetCore;
-using FSH.WebApi.Application;
 using FSH.WebApi.Host.Configurations;
 using FSH.WebApi.Host.Controllers;
 using FSH.WebApi.Infrastructure;
@@ -15,15 +14,13 @@ try
     var builder = WebApplication.CreateBuilder(args);
 
     builder.Host.AddConfigurations();
-    builder.Host.UseSerilog((_, config) =>
-    {
-        config.WriteTo.Console()
-        .ReadFrom.Configuration(builder.Configuration);
-    });
+    builder.Host.UseSerilog((_, config) => config
+        .WriteTo.Console()
+        .ReadFrom.Configuration(builder.Configuration));
 
-    builder.Services.AddControllers().AddFluentValidation();
+    builder.Services.AddControllers()
+        .AddFluentValidation(options => options.AutomaticValidationEnabled = false);
     builder.Services.AddInfrastructure(builder.Configuration);
-    builder.Services.AddApplication();
 
     var app = builder.Build();
 
