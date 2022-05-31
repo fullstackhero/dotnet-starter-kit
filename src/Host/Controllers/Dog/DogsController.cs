@@ -29,4 +29,12 @@ public class DogsController : VersionedApiController
             ? BadRequest()
             : Ok(await Mediator.Send(request));
     }
+
+    [HttpDelete("{id:guid}")]
+    [MustHavePermission(FSHAction.Delete, FSHResource.Dogs)]
+    [OpenApiOperation("Delete a dog.", "")]
+    public Task<Guid> DeleteAsync(Guid id)
+    {
+        return Mediator.Send(new DeleteDogRequest(id));
+    }
 }
