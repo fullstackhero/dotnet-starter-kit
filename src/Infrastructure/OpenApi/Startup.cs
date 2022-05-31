@@ -1,7 +1,9 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using NJsonSchema.Generation.TypeMappers;
 using NSwag;
 using NSwag.AspNetCore;
@@ -89,6 +91,9 @@ internal static class Startup
                 var fluentValidationSchemaProcessor = serviceProvider.CreateScope().ServiceProvider.GetService<FluentValidationSchemaProcessor>();
                 document.SchemaProcessors.Add(fluentValidationSchemaProcessor);
             });
+
+            // FluentValidationSchemaProcessor needs an IValidatorFactory
+            services.TryAddScoped<IValidatorFactory, ServiceProviderValidatorFactory>();
             services.AddScoped<FluentValidationSchemaProcessor>();
         }
 
