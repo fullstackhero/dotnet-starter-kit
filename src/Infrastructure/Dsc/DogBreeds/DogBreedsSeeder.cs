@@ -50,7 +50,22 @@ public class DogBreedsSeeder : ICustomSeeder
                             var dbdogcolor = await _db.DogColors.Where(c => c.Name.Equals(dogcolor.Name)).FirstOrDefaultAsync(cancellationToken: cancellationToken);
 
                             if (dbdogcolor != null)
+                            {
                                 dogbreed.Entity.Colors.Add(dbdogcolor);
+                            }
+                            else
+                            {
+                                // if the color isn't in the database add it.
+                                dbdogcolor = new DogColor
+                                {
+                                    Name = dogcolor.Name,
+                                    IsStandard = dogcolor.IsStandard,
+                                    RegistrationCode = dogcolor.RegistrationCode
+                                };
+                                var dbdogcoloradded = _db.DogColors.Add(dbdogcolor);
+
+                                dogbreed.Entity.Colors.Add(dbdogcoloradded.Entity);
+                            }
                         }
 
                         string dogTraitsData = await File.ReadAllTextAsync(path + $"/Dsc/DogBreeds/{dogbreed.Entity.Name.Replace(" ", string.Empty)}Traits.json", cancellationToken);
@@ -64,7 +79,20 @@ public class DogBreedsSeeder : ICustomSeeder
                             var dbdogtrait = await _db.DogTraits.Where(c => c.Name.Equals(dogtrait.Name)).FirstOrDefaultAsync(cancellationToken: cancellationToken);
 
                             if (dbdogtrait != null)
+                            {
                                 dogbreed.Entity.Traits.Add(dbdogtrait);
+                            }
+                            else
+                            {
+                                // if the trait isn't in the database add it.
+                                dbdogtrait = new DogTrait
+                                {
+                                    Name = dogtrait.Name
+                                };
+                                var dbdogtraitadded = _db.DogTraits.Add(dbdogtrait);
+
+                                dogbreed.Entity.Traits.Add(dbdogtraitadded.Entity);
+                            }
                         }
 
                         string dogGroupData = await File.ReadAllTextAsync(path + $"/Dsc/DogBreeds/{dogbreed.Entity.Name.Replace(" ", string.Empty)}Group.json", cancellationToken);
@@ -72,14 +100,15 @@ public class DogBreedsSeeder : ICustomSeeder
 
                         var dbdogGroup = await _db.DogGroups.Where(c => c.Name.Equals(doggroup.Name)).FirstOrDefaultAsync(cancellationToken: cancellationToken);
 
-                        if(dbdogGroup != null)
+                        if (dbdogGroup != null)
                             dogbreed.Entity.Group = dbdogGroup;
 
                     }
+
+                    await _db.SaveChangesAsync(cancellationToken);
                 }
             }
 
-            await _db.SaveChangesAsync(cancellationToken);
             _logger.LogInformation("Seeded dog breeds.");
         }
     }

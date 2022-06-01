@@ -4,6 +4,14 @@ namespace FSH.WebApi.Host.Controllers.Dog;
 
 public class DogsController : VersionedApiController
 {
+    [HttpPost("search")]
+    [MustHavePermission(FSHAction.Search, FSHResource.Products)]
+    [OpenApiOperation("Search products using available filters.", "")]
+    public Task<PaginationResponse<DogDto>> SearchAsync(SearchDogsRequest request)
+    {
+        return Mediator.Send(request);
+    }
+
     [HttpGet("{id:guid}")]
     [MustHavePermission(FSHAction.View, FSHResource.Dogs)]
     [OpenApiOperation("Get dog by Id.", "")]

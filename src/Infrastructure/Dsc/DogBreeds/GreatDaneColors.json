@@ -1,0 +1,87 @@
+[
+  {
+    "Name": "Black",
+    "IsStandard": true,
+    "RegistrationCode": "007"
+  },
+  {
+    "Name": "Black & White",
+    "IsStandard": true,
+    "RegistrationCode": "019"
+  },
+  {
+    "Name": "Blue",
+    "IsStandard": true,
+    "RegistrationCode": "037"
+  },
+  {
+    "Name": "Blue & White",
+    "IsStandard": false,
+    "RegistrationCode": "045"
+  },
+  {
+    "Name": "Blue & Brindle",
+    "IsStandard": false,
+    "RegistrationCode": "056"
+  },
+  {
+    "Name": "Brindle",
+    "IsStandard": true,
+    "RegistrationCode": "057"
+  },
+  {
+    "Name": "Chocolate",
+    "IsStandard": false,
+    "RegistrationCode": "071"
+  },
+  {
+    "Name": "Fawn",
+    "IsStandard": true,
+    "RegistrationCode": "082"
+  },
+  {
+    "Name": "Harlequin",
+    "IsStandard": true,
+    "RegistrationCode": "112"
+  },
+  {
+    "Name": "Merle",
+    "IsStandard": true,
+    "RegistrationCode": "131"
+  },
+  {
+    "Name": "Silver",
+    "IsStandard": true,
+    "RegistrationCode": "176"
+  },
+  {
+    "Name": "White",
+    "IsStandard": true,
+    "RegistrationCode": "199"
+  },
+  {
+    "Name": "Chocolate & White",
+    "IsStandard": false,
+    "RegistrationCode": "271"
+  },
+  {
+    "Name": "Chocolate & Brindle",
+    "IsStandard": false,
+    "RegistrationCode": "342"
+  },
+  {
+    "Name": "Mantle",
+    "IsStandard": true,
+    "RegistrationCode": "431"
+  },
+  {
+    "Name": "Mantle Merle",
+    "IsStandard": false,
+    "RegistrationCode": "516"
+  },
+  {
+    "Name": "Merlequin",
+    "IsStandard": false,
+    "RegistrationCode": "517"
+  }
+]
