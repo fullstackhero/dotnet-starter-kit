@@ -18,3 +18,5 @@ public class Brand : AuditableEntity, IAggregateRoot
         return this;
     }
 }
+
+//changed for testing purpose
