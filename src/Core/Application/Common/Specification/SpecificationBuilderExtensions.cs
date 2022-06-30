@@ -261,7 +261,30 @@ public static class SpecificationBuilderExtensions
             return Expression.Constant(text, propertyType);
         }
 
-        return Expression.Constant(Convert.ChangeType(((JsonElement)value).GetRawText(), propertyType), propertyType);
+        if (propertyType == typeof(DateTime) || propertyType == typeof(DateTime?))
+        {
+            string? text = GetStringFromJsonElement(value);
+            return Expression.Constant(ChangeType(text, propertyType), propertyType);
+        }
+
+        return Expression.Constant(ChangeType(((JsonElement)value).GetRawText(), propertyType), propertyType);
+    }
+
+    public static dynamic? ChangeType(object value, Type conversion)
+    {
+        var t = conversion;
+
+        if (t.IsGenericType && t.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            t = Nullable.GetUnderlyingType(t);
+        }
+
+        return Convert.ChangeType(value, t!);
     }
 
     private static Filter GetValidFilter(Filter filter)
