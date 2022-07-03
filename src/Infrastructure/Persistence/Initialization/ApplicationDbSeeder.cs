@@ -28,12 +28,12 @@ internal class ApplicationDbSeeder
 
     public async Task SeedDatabaseAsync(ApplicationDbContext dbContext, CancellationToken cancellationToken)
     {
-        await SeedRolesAsync(dbContext);
+        await SeedRolesAsync(dbContext, cancellationToken);
         await SeedAdminUserAsync();
         await _seederRunner.RunSeedersAsync(cancellationToken);
     }
 
-    private async Task SeedRolesAsync(ApplicationDbContext dbContext)
+    private async Task SeedRolesAsync(ApplicationDbContext dbContext, CancellationToken cancellationToken)
     {
         foreach (string roleName in FSHRoles.DefaultRoles)
         {
@@ -49,21 +49,21 @@ internal class ApplicationDbSeeder
             // Assign permissions
             if (roleName == FSHRoles.Basic)
             {
-                await AssignPermissionsToRoleAsync(dbContext, FSHPermissions.Basic, role);
+                await AssignPermissionsToRoleAsync(dbContext, FSHPermissions.Basic, role, cancellationToken);
             }
             else if (roleName == FSHRoles.Admin)
             {
-                await AssignPermissionsToRoleAsync(dbContext, FSHPermissions.Admin, role);
+                await AssignPermissionsToRoleAsync(dbContext, FSHPermissions.Admin, role, cancellationToken);
 
                 if (_currentTenant.Id == MultitenancyConstants.Root.Id)
                 {
-                    await AssignPermissionsToRoleAsync(dbContext, FSHPermissions.Root, role);
+                    await AssignPermissionsToRoleAsync(dbContext, FSHPermissions.Root, role, cancellationToken);
                 }
             }
         }
     }
 
-    private async Task AssignPermissionsToRoleAsync(ApplicationDbContext dbContext, IReadOnlyList<FSHPermission> permissions, ApplicationRole role)
+    private async Task AssignPermissionsToRoleAsync(ApplicationDbContext dbContext, IReadOnlyList<FSHPermission> permissions, ApplicationRole role, CancellationToken cancellationToken)
     {
         var currentClaims = await _roleManager.GetClaimsAsync(role);
         foreach (var permission in permissions)
@@ -78,7 +78,7 @@ internal class ApplicationDbSeeder
                     ClaimValue = permission.Name,
                     CreatedBy = "ApplicationDbSeeder"
                 });
-                await dbContext.SaveChangesAsync();
+                await dbContext.SaveChangesAsync(cancellationToken);
             }
         }
     }

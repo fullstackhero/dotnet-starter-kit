@@ -148,6 +148,6 @@ internal partial class UserService : IUserService
 
         await _userManager.UpdateAsync(user);
 
-        await _events.PublishAsync(new ApplicationUserUpdatedEvent(user.Id));
+        await _events.PublishAsync(new ApplicationUserUpdatedEvent(user.Id), cancellationToken);
     }
 }

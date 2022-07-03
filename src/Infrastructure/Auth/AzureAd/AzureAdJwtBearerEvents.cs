@@ -78,7 +78,7 @@ internal class AzureAdJwtBearerEvents : JwtBearerEvents
 
         // Lookup local user or create one if none exist.
         string userId = await context.HttpContext.RequestServices.GetRequiredService<IUserService>()
-            .GetOrCreateFromPrincipalAsync(principal);
+            .GetOrCreateFromPrincipalAsync(principal, default);
 
         // We use the nameidentifier claim to store the user id.
         var idClaim = principal.FindFirst(ClaimTypes.NameIdentifier);

@@ -91,9 +91,6 @@ internal static class Startup
                 var fluentValidationSchemaProcessor = serviceProvider.CreateScope().ServiceProvider.GetService<FluentValidationSchemaProcessor>();
                 document.SchemaProcessors.Add(fluentValidationSchemaProcessor);
             });
-
-            // FluentValidationSchemaProcessor needs an IValidatorFactory
-            services.TryAddScoped<IValidatorFactory, ServiceProviderValidatorFactory>();
             services.AddScoped<FluentValidationSchemaProcessor>();
         }
 

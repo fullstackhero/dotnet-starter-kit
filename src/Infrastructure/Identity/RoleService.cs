@@ -71,7 +71,7 @@ internal class RoleService : IRoleService
         return role;
     }
 
-    public async Task<string> CreateOrUpdateAsync(CreateOrUpdateRoleRequest request)
+    public async Task<string> CreateOrUpdateAsync(CreateOrUpdateRoleRequest request, CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(request.Id))
         {
@@ -84,7 +84,7 @@ internal class RoleService : IRoleService
                 throw new InternalServerException(_t["Register role failed"], result.GetErrors(_t));
             }
 
-            await _events.PublishAsync(new ApplicationRoleCreatedEvent(role.Id, role.Name));
+            await _events.PublishAsync(new ApplicationRoleCreatedEvent(role.Id, role.Name), cancellationToken);
 
             return string.Format(_t["Role {0} Created."], request.Name);
         }
@@ -110,7 +110,7 @@ internal class RoleService : IRoleService
                 throw new InternalServerException(_t["Update role failed"], result.GetErrors(_t));
             }
 
-            await _events.PublishAsync(new ApplicationRoleUpdatedEvent(role.Id, role.Name));
+            await _events.PublishAsync(new ApplicationRoleUpdatedEvent(role.Id, role.Name), cancellationToken);
 
             return string.Format(_t["Role {0} Updated."], role.Name);
         }
@@ -159,12 +159,12 @@ internal class RoleService : IRoleService
             }
         }
 
-        await _events.PublishAsync(new ApplicationRoleUpdatedEvent(role.Id, role.Name, true));
+        await _events.PublishAsync(new ApplicationRoleUpdatedEvent(role.Id, role.Name, true), cancellationToken);
 
         return _t["Permissions Updated."];
     }
 
-    public async Task<string> DeleteAsync(string id)
+    public async Task<string> DeleteAsync(string id, CancellationToken cancellationToken)
     {
         var role = await _roleManager.FindByIdAsync(id);
 
@@ -182,7 +182,7 @@ internal class RoleService : IRoleService
 
         await _roleManager.DeleteAsync(role);
 
-        await _events.PublishAsync(new ApplicationRoleDeletedEvent(role.Id, role.Name));
+        await _events.PublishAsync(new ApplicationRoleDeletedEvent(role.Id, role.Name), cancellationToken);
 
         return string.Format(_t["Role {0} Deleted."], role.Name);
     }

@@ -45,12 +45,12 @@ public class UsersController : VersionNeutralApiController
     [HttpPost]
     [MustHavePermission(FSHAction.Create, FSHResource.Users)]
     [OpenApiOperation("Creates a new user.", "")]
-    public Task<string> CreateAsync(CreateUserRequest request)
+    public Task<string> CreateAsync(CreateUserRequest request, CancellationToken cancellationToken)
     {
         // TODO: check if registering anonymous users is actually allowed (should probably be an appsetting)
         // and return UnAuthorized when it isn't
         // Also: add other protection to prevent automatic posting (captcha?)
-        return _userService.CreateAsync(request, GetOriginFromRequest());
+        return _userService.CreateAsync(request, GetOriginFromRequest(), cancellationToken);
     }
 
     [HttpPost("self-register")]
@@ -58,12 +58,12 @@ public class UsersController : VersionNeutralApiController
     [AllowAnonymous]
     [OpenApiOperation("Anonymous user creates a user.", "")]
     [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Register))]
-    public Task<string> SelfRegisterAsync(CreateUserRequest request)
+    public Task<string> SelfRegisterAsync(CreateUserRequest request, CancellationToken cancellationToken)
     {
         // TODO: check if registering anonymous users is actually allowed (should probably be an appsetting)
         // and return UnAuthorized when it isn't
         // Also: add other protection to prevent automatic posting (captcha?)
-        return _userService.CreateAsync(request, GetOriginFromRequest());
+        return _userService.CreateAsync(request, GetOriginFromRequest(), cancellationToken);
     }
 
     [HttpPost("{id}/toggle-status")]

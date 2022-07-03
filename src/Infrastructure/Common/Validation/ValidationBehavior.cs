@@ -6,15 +6,12 @@ namespace FSH.WebApi.Infrastructure.Common.Validation;
 public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
 {
-    private readonly IServiceProvider _serviceProvider;
     private readonly IEnumerable<IValidator<TRequest>> _validators;
-    public ValidationBehavior(IServiceProvider serviceProvider, IEnumerable<IValidator<TRequest>> validators) =>
-        (_serviceProvider, _validators) = (serviceProvider, validators);
+    public ValidationBehavior(IEnumerable<IValidator<TRequest>> validators) => _validators = validators;
 
     public async Task<TResponse> Handle(TRequest request, CancellationToken ct, RequestHandlerDelegate<TResponse> next)
     {
         var context = new ValidationContext<TRequest>(request);
-        context.SetServiceProvider(_serviceProvider); // to be able to use InjectValidator()
 
         var results = await Task.WhenAll(
             _validators.Select(

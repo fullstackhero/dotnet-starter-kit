@@ -62,7 +62,7 @@ public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUs
         }
     }
 
-    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
     {
         var auditEntries = HandleAuditingBeforeSaveChanges(_currentUser.GetUserId());
 
@@ -70,7 +70,7 @@ public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUs
 
         await HandleAuditingAfterSaveChangesAsync(auditEntries, cancellationToken);
 
-        await SendDomainEventsAsync();
+        await SendDomainEventsAsync(cancellationToken);
 
         return result;
     }
@@ -199,7 +199,7 @@ public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUs
         return SaveChangesAsync(cancellationToken);
     }
 
-    private async Task SendDomainEventsAsync()
+    private async Task SendDomainEventsAsync(CancellationToken cancellationToken)
     {
         var entitiesWithEvents = ChangeTracker.Entries<IEntity>()
             .Select(e => e.Entity)
@@ -212,7 +212,7 @@ public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUs
             entity.DomainEvents.Clear();
             foreach (var domainEvent in domainEvents)
             {
-                await _events.PublishAsync(domainEvent);
+                await _events.PublishAsync(domainEvent, cancellationToken);
             }
         }
     }

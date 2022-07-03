@@ -20,7 +20,7 @@ internal partial class UserService
     /// If no user is found with that ObjectId, a new one is created and populated with the values from the ClaimsPrincipal.
     /// If a role claim is present in the principal, and the user is not yet in that roll, then the user is added to that role.
     /// </summary>
-    public async Task<string> GetOrCreateFromPrincipalAsync(ClaimsPrincipal principal)
+    public async Task<string> GetOrCreateFromPrincipalAsync(ClaimsPrincipal principal, CancellationToken cancellationToken)
     {
         string? objectId = principal.GetObjectId();
         if (string.IsNullOrWhiteSpace(objectId))
@@ -29,7 +29,7 @@ internal partial class UserService
         }
 
         var user = await _userManager.Users.Where(u => u.ObjectId == objectId).FirstOrDefaultAsync()
-            ?? await CreateOrUpdateFromPrincipalAsync(principal);
+            ?? await CreateOrUpdateFromPrincipalAsync(principal, cancellationToken);
 
         if (principal.FindFirstValue(ClaimTypes.Role) is string role &&
             await _roleManager.RoleExistsAsync(role) &&
@@ -41,7 +41,7 @@ internal partial class UserService
         return user.Id;
     }
 
-    private async Task<ApplicationUser> CreateOrUpdateFromPrincipalAsync(ClaimsPrincipal principal)
+    private async Task<ApplicationUser> CreateOrUpdateFromPrincipalAsync(ClaimsPrincipal principal, CancellationToken cancellationToken)
     {
         string? email = principal.FindFirstValue(ClaimTypes.Upn);
         string? username = principal.GetDisplayName();
@@ -71,7 +71,7 @@ internal partial class UserService
             user.ObjectId = principal.GetObjectId();
             result = await _userManager.UpdateAsync(user);
 
-            await _events.PublishAsync(new ApplicationUserUpdatedEvent(user.Id));
+            await _events.PublishAsync(new ApplicationUserUpdatedEvent(user.Id), cancellationToken);
         }
         else
         {
@@ -90,7 +90,7 @@ internal partial class UserService
             };
             result = await _userManager.CreateAsync(user);
 
-            await _events.PublishAsync(new ApplicationUserCreatedEvent(user.Id));
+            await _events.PublishAsync(new ApplicationUserCreatedEvent(user.Id), cancellationToken);
         }
 
         if (!result.Succeeded)
@@ -101,7 +101,7 @@ internal partial class UserService
         return user;
     }
 
-    public async Task<string> CreateAsync(CreateUserRequest request, string origin)
+    public async Task<string> CreateAsync(CreateUserRequest request, string origin, CancellationToken cancellationToken)
     {
         var user = new ApplicationUser
         {
@@ -141,21 +141,21 @@ internal partial class UserService
             messages.Add(_t[$"Please check {user.Email} to verify your account!"]);
         }
 
-        await _events.PublishAsync(new ApplicationUserCreatedEvent(user.Id));
+        await _events.PublishAsync(new ApplicationUserCreatedEvent(user.Id), cancellationToken);
 
         return string.Join(Environment.NewLine, messages);
     }
 
-    public async Task UpdateAsync(UpdateUserRequest request, string userId)
+    public async Task UpdateAsync(UpdateUserRequest request, CancellationToken cancellationToken)
     {
-        var user = await _userManager.FindByIdAsync(userId);
+        var user = await _userManager.FindByIdAsync(request.Id);
 
         _ = user ?? throw new NotFoundException(_t["User Not Found."]);
 
         string currentImage = user.ImageUrl ?? string.Empty;
         if (request.Image != null || request.DeleteCurrentImage)
         {
-            user.ImageUrl = await _fileStorage.UploadAsync<ApplicationUser>(request.Image, FileType.Image);
+            user.ImageUrl = await _fileStorage.UploadAsync<ApplicationUser>(request.Image, FileType.Image, cancellationToken);
             if (request.DeleteCurrentImage && !string.IsNullOrEmpty(currentImage))
             {
                 string root = Directory.GetCurrentDirectory();
@@ -176,7 +176,7 @@ internal partial class UserService
 
         await _signInManager.RefreshSignInAsync(user);
 
-        await _events.PublishAsync(new ApplicationUserUpdatedEvent(user.Id));
+        await _events.PublishAsync(new ApplicationUserUpdatedEvent(user.Id), cancellationToken);
 
         if (!result.Succeeded)
         {

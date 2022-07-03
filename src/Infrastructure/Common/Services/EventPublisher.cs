@@ -13,10 +13,10 @@ public class EventPublisher : IEventPublisher
     public EventPublisher(ILogger<EventPublisher> logger, IPublisher mediator) =>
         (_logger, _mediator) = (logger, mediator);
 
-    public Task PublishAsync(IEvent @event)
+    public Task PublishAsync(IEvent @event, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Publishing Event : {event}", @event.GetType().Name);
-        return _mediator.Publish(CreateEventNotification(@event));
+        return _mediator.Publish(CreateEventNotification(@event), cancellationToken);
     }
 
     private INotification CreateEventNotification(IEvent @event) =>

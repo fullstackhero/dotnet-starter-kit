@@ -78,7 +78,7 @@ internal partial class UserService
             }
         }
 
-        await _events.PublishAsync(new ApplicationUserUpdatedEvent(user.Id, true));
+        await _events.PublishAsync(new ApplicationUserUpdatedEvent(user.Id, true), cancellationToken);
 
         return _t["User Roles Updated Successfully."];
     }

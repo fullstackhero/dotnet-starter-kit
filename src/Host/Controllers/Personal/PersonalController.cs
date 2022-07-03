@@ -22,14 +22,19 @@ public class PersonalController : VersionNeutralApiController
 
     [HttpPut("profile")]
     [OpenApiOperation("Update profile details of currently logged in user.", "")]
-    public async Task<ActionResult> UpdateProfileAsync(UpdateUserRequest request)
+    public async Task<ActionResult> UpdateProfileAsync(UpdateUserRequest request, CancellationToken cancellationToken)
     {
         if (User.GetUserId() is not { } userId || string.IsNullOrEmpty(userId))
         {
             return Unauthorized();
         }
 
-        await _userService.UpdateAsync(request, userId);
+        if (request.Id != userId)
+        {
+            return BadRequest();
+        }
+
+        await Mediator.Send(request, cancellationToken);
         return Ok();
     }
 
