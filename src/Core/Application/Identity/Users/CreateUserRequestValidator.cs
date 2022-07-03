@@ -1,6 +1,6 @@
 namespace FSH.WebApi.Application.Identity.Users;
 
-public class CreateUserRequestValidator : CustomValidator<CreateUserRequest>
+public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
 {
     public CreateUserRequestValidator(IUserService userService, IStringLocalizer<CreateUserRequestValidator> T)
     {

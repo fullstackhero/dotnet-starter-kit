@@ -1,6 +1,6 @@
 namespace FSH.WebApi.Application.Catalog.Products;
 
-public class UpdateProductRequestValidator : CustomValidator<UpdateProductRequest>
+public class UpdateProductRequestValidator : AbstractValidator<UpdateProductRequest>
 {
     public UpdateProductRequestValidator(IReadRepository<Product> productRepo, IReadRepository<Brand> brandRepo, IValidator<FileUploadRequest> imageValidator, IStringLocalizer<UpdateProductRequestValidator> T)
     {

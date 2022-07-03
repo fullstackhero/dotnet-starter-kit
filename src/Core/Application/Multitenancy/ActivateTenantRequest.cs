@@ -7,7 +7,7 @@ public class ActivateTenantRequest : IRequest<string>
     public ActivateTenantRequest(string tenantId) => TenantId = tenantId;
 }
 
-public class ActivateTenantRequestValidator : CustomValidator<ActivateTenantRequest>
+public class ActivateTenantRequestValidator : AbstractValidator<ActivateTenantRequest>
 {
     public ActivateTenantRequestValidator() =>
         RuleFor(t => t.TenantId)

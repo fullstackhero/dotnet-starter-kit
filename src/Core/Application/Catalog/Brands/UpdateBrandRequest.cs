@@ -7,7 +7,7 @@ public class UpdateBrandRequest : IRequest<Guid>
     public string? Description { get; set; }
 }
 
-public class UpdateBrandRequestValidator : CustomValidator<UpdateBrandRequest>
+public class UpdateBrandRequestValidator : AbstractValidator<UpdateBrandRequest>
 {
     public UpdateBrandRequestValidator(IRepository<Brand> repository, IStringLocalizer<UpdateBrandRequestValidator> T) =>
         RuleFor(p => p.Name)

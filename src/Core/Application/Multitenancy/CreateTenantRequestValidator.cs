@@ -1,6 +1,6 @@
 namespace FSH.WebApi.Application.Multitenancy;
 
-public class CreateTenantRequestValidator : CustomValidator<CreateTenantRequest>
+public class CreateTenantRequestValidator : AbstractValidator<CreateTenantRequest>
 {
     public CreateTenantRequestValidator(
         ITenantService tenantService,

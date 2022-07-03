@@ -6,7 +6,7 @@ public class UpdateRolePermissionsRequest : IRequest<string>
     public List<string> Permissions { get; set; } = default!;
 }
 
-public class UpdateRolePermissionsRequestValidator : CustomValidator<UpdateRolePermissionsRequest>
+public class UpdateRolePermissionsRequestValidator : AbstractValidator<UpdateRolePermissionsRequest>
 {
     public UpdateRolePermissionsRequestValidator()
     {

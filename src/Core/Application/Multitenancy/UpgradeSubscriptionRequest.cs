@@ -6,7 +6,7 @@ public class UpgradeSubscriptionRequest : IRequest<string>
     public DateTime ExtendedExpiryDate { get; set; }
 }
 
-public class UpgradeSubscriptionRequestValidator : CustomValidator<UpgradeSubscriptionRequest>
+public class UpgradeSubscriptionRequestValidator : AbstractValidator<UpgradeSubscriptionRequest>
 {
     public UpgradeSubscriptionRequestValidator() =>
         RuleFor(t => t.TenantId)

@@ -1,6 +1,6 @@
 namespace FSH.WebApi.Application.Catalog.Products;
 
-public class CreateProductRequestValidator : CustomValidator<CreateProductRequest>
+public class CreateProductRequestValidator : AbstractValidator<CreateProductRequest>
 {
     public CreateProductRequestValidator(IReadRepository<Product> productRepo, IReadRepository<Brand> brandRepo, IValidator<FileUploadRequest> imageValidator, IStringLocalizer<CreateProductRequestValidator> T)
     {

@@ -2,7 +2,7 @@ namespace FSH.WebApi.Application.Identity.Tokens;
 
 public record TokenRequest(string Email, string Password);
 
-public class TokenRequestValidator : CustomValidator<TokenRequest>
+public class TokenRequestValidator : AbstractValidator<TokenRequest>
 {
     public TokenRequestValidator(IStringLocalizer<TokenRequestValidator> T)
     {

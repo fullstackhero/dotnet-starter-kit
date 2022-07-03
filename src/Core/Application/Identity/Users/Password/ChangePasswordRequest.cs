@@ -7,7 +7,7 @@ public class ChangePasswordRequest
     public string ConfirmNewPassword { get; set; } = default!;
 }
 
-public class ChangePasswordRequestValidator : CustomValidator<ChangePasswordRequest>
+public class ChangePasswordRequestValidator : AbstractValidator<ChangePasswordRequest>
 {
     public ChangePasswordRequestValidator(IStringLocalizer<ChangePasswordRequestValidator> T)
     {

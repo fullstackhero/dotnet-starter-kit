@@ -7,7 +7,7 @@ public class GetTenantRequest : IRequest<TenantDto>
     public GetTenantRequest(string tenantId) => TenantId = tenantId;
 }
 
-public class GetTenantRequestValidator : CustomValidator<GetTenantRequest>
+public class GetTenantRequestValidator : AbstractValidator<GetTenantRequest>
 {
     public GetTenantRequestValidator() =>
         RuleFor(t => t.TenantId)

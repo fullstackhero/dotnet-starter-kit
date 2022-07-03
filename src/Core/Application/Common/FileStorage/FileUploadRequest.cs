@@ -7,7 +7,7 @@ public class FileUploadRequest
     public string Data { get; set; } = default!;
 }
 
-public class FileUploadRequestValidator : CustomValidator<FileUploadRequest>
+public class FileUploadRequestValidator : AbstractValidator<FileUploadRequest>
 {
     public FileUploadRequestValidator(IStringLocalizer<FileUploadRequestValidator> T)
     {
