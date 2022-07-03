@@ -7,6 +7,7 @@ using Serilog;
 using Serilog.Context;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace FSH.WebApi.Infrastructure.Middleware;
 
@@ -42,8 +43,8 @@ internal class ExceptionMiddleware : IMiddleware
                 response.ContentType = "application/json";
                 response.StatusCode = 400;
                 var problemDetails = new ValidationProblemDetails(
-                    ex.Errors.ToDictionary(e => e.PropertyName, e => new[] { e.ErrorMessage }));
-                await response.WriteAsync(_jsonSerializer.Serialize(problemDetails));
+                    ex.Errors.GroupBy(e => e.PropertyName).ToDictionary(e => e.Key, e => e.Select(e => e.ErrorMessage).ToArray()));
+                await response.WriteAsync(JsonSerializer.Serialize(problemDetails));
                 return;
             }
 
