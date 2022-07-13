@@ -110,6 +110,7 @@ public class UsersController : VersionNeutralApiController
     }
 
     [HttpPost("reset-password")]
+    [AllowAnonymous]
     [OpenApiOperation("Reset a user's password.", "")]
     [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Register))]
     public Task<string> ResetPasswordAsync(ResetPasswordRequest request, [FromQuery] string tenant)
