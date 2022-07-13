@@ -21,7 +21,7 @@ internal partial class UserService
         // For more information on how to enable account confirmation and password reset please
         // visit https://go.microsoft.com/fwlink/?LinkID=532713
         string code = await _userManager.GeneratePasswordResetTokenAsync(user);
-        const string route = "account/reset-password";
+        string route = $"account/reset-password?token={code}";
         var endpointUri = new Uri(string.Concat($"{origin}/", route));
         string passwordResetUrl = QueryHelpers.AddQueryString(endpointUri.ToString(), "Token", code);
         var mailRequest = new MailRequest(
@@ -33,8 +33,10 @@ internal partial class UserService
         return _t["Password Reset Mail has been sent to your authorized Email."];
     }
 
-    public async Task<string> ResetPasswordAsync(ResetPasswordRequest request)
+    public async Task<string> ResetPasswordAsync(ResetPasswordRequest request, string tenant)
     {
+        EnsureValidTenant();
+
         var user = await _userManager.FindByEmailAsync(request.Email?.Normalize());
 
         // Don't reveal that the user does not exist
