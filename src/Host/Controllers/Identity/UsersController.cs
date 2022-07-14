@@ -111,11 +111,12 @@ public class UsersController : VersionNeutralApiController
 
     [HttpPost("reset-password")]
     [AllowAnonymous]
+    [TenantIdHeader]
     [OpenApiOperation("Reset a user's password.", "")]
     [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Register))]
-    public Task<string> ResetPasswordAsync(ResetPasswordRequest request, [FromQuery] string tenant)
+    public Task<string> ResetPasswordAsync(ResetPasswordRequest request)
     {
-        return _userService.ResetPasswordAsync(request, tenant);
+        return _userService.ResetPasswordAsync(request);
     }
 
     private string GetOriginFromRequest() => $"{Request.Scheme}://{Request.Host.Value}{Request.PathBase.Value}";
