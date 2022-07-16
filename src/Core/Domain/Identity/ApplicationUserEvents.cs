@@ -23,3 +23,11 @@ public class ApplicationUserUpdatedEvent : ApplicationUserEvent
         : base(userId) =>
         RolesUpdated = rolesUpdated;
 }
+
+public class ApplicationUserDeletedEvent : ApplicationUserEvent
+{
+    public ApplicationUserDeletedEvent(string userId)
+        : base(userId)
+    {
+    }
+}
