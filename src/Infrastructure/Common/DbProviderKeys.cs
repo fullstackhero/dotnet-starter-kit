@@ -6,8 +6,8 @@ internal class DbProviderKeys
     public const string SqlServer = "mssql";
     public const string MySql = "mysql";
     public const string Oracle = "oracle";
-    public const string SqLite = "sqlite";
-    
+    public const string SqlLite = "sqlite";
+
     public static string GetMigratorAssemblyNameFromDbProviderKey(string dbProviderKey)
     {
         return dbProviderKey switch

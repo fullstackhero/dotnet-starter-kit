@@ -61,7 +61,7 @@ internal static class Startup
                 return builder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), e => e.MigrationsAssembly(DbProviderKeys.GetMigratorAssemblyNameFromDbProviderKey(DbProviderKeys.MySql)).SchemaBehavior(MySqlSchemaBehavior.Ignore));
             case DbProviderKeys.Oracle:
                 return builder.UseOracle(connectionString, e => e.MigrationsAssembly(DbProviderKeys.GetMigratorAssemblyNameFromDbProviderKey(DbProviderKeys.Oracle)));
-            case DbProviderKeys.SqLite:
+            case DbProviderKeys.SqlLite:
                 return builder.UseSqlite(connectionString, e => e.MigrationsAssembly(DbProviderKeys.GetMigratorAssemblyNameFromDbProviderKey(DbProviderKeys.SqlLite)));
 
             default:
