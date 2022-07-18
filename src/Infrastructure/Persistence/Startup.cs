@@ -62,7 +62,7 @@ internal static class Startup
             case DbProviderKeys.Oracle:
                 return builder.UseOracle(connectionString, e => e.MigrationsAssembly(DbProviderKeys.GetMigratorAssemblyNameFromDbProviderKey(DbProviderKeys.Oracle)));
             case DbProviderKeys.SqLite:
-                return builder.UseSqlite(connectionString, e => e.MigrationsAssembly(DbProviderKeys.GetMigratorAssemblyNameFromDbProviderKey(DbProviderKeys.SqlLite)));
+                return builder.UseSqlite(connectionString, e => e.MigrationsAssembly(DbProviderKeys.GetMigratorAssemblyNameFromDbProviderKey(DbProviderKeys.SqLite)));
 
             default:
                 throw new InvalidOperationException($"DB Provider {dbProvider} is not supported.");
