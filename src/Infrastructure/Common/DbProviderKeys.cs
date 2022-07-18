@@ -6,7 +6,7 @@ internal class DbProviderKeys
     public const string SqlServer = "mssql";
     public const string MySql = "mysql";
     public const string Oracle = "oracle";
-    public const string SqlLite = "sqlite";
+    public const string SqLite = "sqlite";
 
     public static string GetMigratorAssemblyNameFromDbProviderKey(string dbProviderKey)
     {
@@ -16,7 +16,7 @@ internal class DbProviderKeys
             SqlServer => "Migrators.MSSQL",
             MySql => "Migrators.MySQL",
             Oracle => "Migrators.Oracle",
-            SqlLite => "Migrators.SqLite",
+            SqLite => "Migrators.SqLite",
             _ => throw new NotSupportedException($"{dbProviderKey} is not supported")
         };
     }
