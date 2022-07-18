@@ -16,6 +16,7 @@ internal class DbProviderKeys
             SqlServer => "Migrators.MSSQL",
             MySql => "Migrators.MySQL",
             Oracle => "Migrators.Oracle",
+            SqlLite => "Migrators.SqLite",
             _ => throw new NotSupportedException($"{dbProviderKey} is not supported")
         };
     }
