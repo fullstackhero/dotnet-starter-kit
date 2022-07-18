@@ -53,25 +53,16 @@ internal static class Startup
         switch (dbProvider.ToLowerInvariant())
         {
             case DbProviderKeys.Npgsql:
-                return builder.UseNpgsql(connectionString, e =>
-                     e.MigrationsAssembly("Migrators.PostgreSQL"));
-
+                AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+                return builder.UseNpgsql(connectionString, e => e.MigrationsAssembly(DbProviderKeys.GetMigratorAssemblyNameFromDbProviderKey(DbProviderKeys.Npgsql)));
             case DbProviderKeys.SqlServer:
-                return builder.UseSqlServer(connectionString, e =>
-                     e.MigrationsAssembly("Migrators.MSSQL"));
-
+                return builder.UseSqlServer(connectionString, e => e.MigrationsAssembly(DbProviderKeys.GetMigratorAssemblyNameFromDbProviderKey(DbProviderKeys.SqlServer)));
             case DbProviderKeys.MySql:
-                return builder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), e =>
-                     e.MigrationsAssembly("Migrators.MySQL")
-                      .SchemaBehavior(MySqlSchemaBehavior.Ignore));
-
+                return builder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), e => e.MigrationsAssembly(DbProviderKeys.GetMigratorAssemblyNameFromDbProviderKey(DbProviderKeys.MySql)).SchemaBehavior(MySqlSchemaBehavior.Ignore));
             case DbProviderKeys.Oracle:
-                return builder.UseOracle(connectionString, e =>
-                     e.MigrationsAssembly("Migrators.Oracle"));
-
+                return builder.UseOracle(connectionString, e => e.MigrationsAssembly(DbProviderKeys.GetMigratorAssemblyNameFromDbProviderKey(DbProviderKeys.Oracle)));
             case DbProviderKeys.SqLite:
-                return builder.UseSqlite(connectionString, e =>
-                     e.MigrationsAssembly("Migrators.SqLite"));
+                return builder.UseSqlite(connectionString, e => e.MigrationsAssembly(DbProviderKeys.GetMigratorAssemblyNameFromDbProviderKey(DbProviderKeys.SqlLite)));
 
             default:
                 throw new InvalidOperationException($"DB Provider {dbProvider} is not supported.");
