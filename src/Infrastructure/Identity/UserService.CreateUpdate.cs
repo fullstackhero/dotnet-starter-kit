@@ -146,7 +146,7 @@ internal partial class UserService
         return string.Join(Environment.NewLine, messages);
     }
 
-    public async Task UpdateAsync(UpdateUserRequest request, string userId)
+    public async Task UpdateAsync(UpdateUserRequest request, string userId, CancellationToken cancellationToken)
     {
         var user = await _userManager.FindByIdAsync(userId);
 
@@ -155,7 +155,7 @@ internal partial class UserService
         string currentImage = user.ImageUrl ?? string.Empty;
         if (request.Image != null || request.DeleteCurrentImage)
         {
-            user.ImageUrl = await _fileStorage.UploadAsync<ApplicationUser>(request.Image, FileType.Image);
+            user.ImageUrl = await _fileStorage.UploadAsync<ApplicationUser>(request.Image, FileType.Image, cancellationToken);
             if (request.DeleteCurrentImage && !string.IsNullOrEmpty(currentImage))
             {
                 string root = Directory.GetCurrentDirectory();
@@ -170,6 +170,17 @@ internal partial class UserService
         if (request.PhoneNumber != phoneNumber)
         {
             await _userManager.SetPhoneNumberAsync(user, request.PhoneNumber);
+        }
+
+        if (!string.IsNullOrEmpty(request.Password) && await HasPermissionAsync(user.Id, FSHPermission.NameFor(nameof(FSHAction.Update), nameof(FSHResource.Users)), cancellationToken))
+        {
+            string token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var changePasswordResult = await _userManager.ResetPasswordAsync(user, token, request.Password);
+
+            if (!changePasswordResult.Succeeded)
+            {
+                throw new InternalServerException(_t["Change password failed"], changePasswordResult.GetErrors(_t));
+            }
         }
 
         var result = await _userManager.UpdateAsync(user);
