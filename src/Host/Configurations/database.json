@@ -1,6 +1,6 @@
 {
   "DatabaseSettings": {
-    "DBProvider": "mssql",
-    "ConnectionString": "Data Source=(localdb)\\mssqllocaldb;Initial Catalog=fullStackHeroDb;Integrated Security=True;MultipleActiveResultSets=True"
+    "DBProvider": "mysql",
+    "ConnectionString": "Server=abentor-poc1-do-user-146364-0.b.db.ondigitalocean.com;Port=25060;Database=defaultdb;Uid=doadmin;Pwd=AVNS_CCrcRzXKOslqfO1qe4l;SslMode=Required;"
   }
 }
