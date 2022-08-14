@@ -21,7 +21,7 @@
     },
     "Storage": {
       "StorageProvider": "mysql",
-      "ConnectionString": "Server=abentor-poc1-do-user-146364-0.b.db.ondigitalocean.com;Port=25060;Database=defaultdb;Uid=doadmin;Pwd=AVNS_CCrcRzXKOslqfO1qe4l;SslMode=Required;",
+      "ConnectionString": "Server=abentor-poc1-do-user-146364-0.b.db.ondigitalocean.com;Port=25060;Database=abentor;Uid=doadmin;Pwd=AVNS_CCrcRzXKOslqfO1qe4l;SslMode=Required;",
       "Options": {
         "CommandBatchMaxTimeout": "00:05:00",
         "QueuePollInterval": "00:00:01",
