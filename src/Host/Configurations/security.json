@@ -19,7 +19,7 @@
       "AuthorizationUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize",
       "TokenUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/token",
       "ApiScope": "api://91598980-7b5d-4194-a834-ecddbe721587/access_as_user",
-      "OpenIdClientId": "91598980-7b5d-4194-a834-ecddbe721587"
+      "OpenIdClientId": "83e4b255-e4f4-4724-a761-23a43fd6060d"
     }
   }
 }
