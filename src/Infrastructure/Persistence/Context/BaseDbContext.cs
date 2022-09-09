@@ -83,6 +83,7 @@ public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUs
             {
                 case EntityState.Added:
                     entry.Entity.CreatedBy = userId;
+                    entry.Entity.CreatedOn = DateTime.UtcNow;
                     entry.Entity.LastModifiedBy = userId;
                     break;
 
