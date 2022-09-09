@@ -1,0 +1,17 @@
+{
+  "FeatureFlagSettings": {
+    "Auth": false,
+    "Cors": true,
+    "Database": false,
+    "Hangfire": true,
+    "Localization": true,
+    "Mail": true,
+    "Swagger": true,
+    "Multitenancy": true,
+    "SignalR": true,
+    "StaticFiles": true
+  }
+}
+
+//Hangfire & Multitenancy requires a running database
+//Auth requires database and localization, maybe multitenancy too

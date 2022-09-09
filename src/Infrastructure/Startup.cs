@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using FSH.WebApi.Infrastructure.Auth;
+using FSH.WebApi.Infrastructure.Auth.Permissions;
 using FSH.WebApi.Infrastructure.BackgroundJobs;
 using FSH.WebApi.Infrastructure.Caching;
 using FSH.WebApi.Infrastructure.Common;
@@ -19,9 +20,12 @@ using FSH.WebApi.Infrastructure.SecurityHeaders;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 [assembly: InternalsVisibleTo("Infrastructure.Test")]
 
@@ -32,6 +36,8 @@ public static class Startup
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
     {
         MapsterSettings.Configure();
+
+        services.TryAddEnumerable(ServiceDescriptor.Transient<IApplicationModelProvider, MyApplicationModelProvider>());
         return services
             .AddApiVersioning()
             .AddAuth(config)
@@ -63,35 +69,41 @@ public static class Startup
     private static IServiceCollection AddHealthCheck(this IServiceCollection services) =>
         services.AddHealthChecks().AddCheck<TenantHealthCheck>("Tenant").Services;
 
-    public static async Task InitializeDatabasesAsync(this IServiceProvider services, CancellationToken cancellationToken = default)
+    public static async Task InitializeDatabasesAsync(this IServiceProvider services, IConfiguration config, CancellationToken cancellationToken = default)
     {
         // Create a new scope to retrieve scoped services
         using var scope = services.CreateScope();
 
-        await scope.ServiceProvider.GetRequiredService<IDatabaseInitializer>()
-            .InitializeDatabasesAsync(cancellationToken);
+        if (config.GetSection("FeatureFlagSettings").GetSection("Database").Value == "True" && config.GetSection("FeatureFlagSettings").GetSection("Auth").Value == "True") {
+            await scope.ServiceProvider.GetRequiredService<IDatabaseInitializer>().InitializeDatabasesAsync(cancellationToken);
+
+        }
     }
 
-    public static IApplicationBuilder UseInfrastructure(this IApplicationBuilder builder, IConfiguration config) =>
+    public static IApplicationBuilder UseInfrastructure(this IApplicationBuilder builder, IConfiguration config) {
         builder
             .UseRequestLocalization()
             .UseStaticFiles()
             .UseSecurityHeaders(config)
-            .UseFileStorage()
+            .UseFileStorage(config)
             .UseExceptionMiddleware()
             .UseRouting()
-            .UseCorsPolicy()
+            .UseCorsPolicy(config)
             .UseAuthentication()
-            .UseCurrentUser()
-            .UseMultiTenancy()
+            .UseCurrentUser(config)
+            .UseMultiTenancy(config)
             .UseAuthorization()
             .UseRequestLogging(config)
             .UseHangfireDashboard(config)
             .UseOpenApiDocumentation(config);
 
-    public static IEndpointRouteBuilder MapEndpoints(this IEndpointRouteBuilder builder)
+        return builder;
+    }
+
+    public static IEndpointRouteBuilder MapEndpoints(this IEndpointRouteBuilder builder, IConfiguration config)
     {
-        builder.MapControllers().RequireAuthorization();
+        if (config.GetSection("FeatureFlagSettings").GetSection("Auth").Value == "True") { builder.MapControllers().RequireAuthorization(); }
+        else { builder.MapControllers(); }
         builder.MapHealthCheck();
         builder.MapNotifications();
         return builder;

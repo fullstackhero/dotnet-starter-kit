@@ -20,8 +20,8 @@
       "WorkerCount": 5
     },
     "Storage": {
-      "StorageProvider": "mysql",
-      "ConnectionString": "Server=db-mysql-ams3-60362-do-user-146364-0.b.db.ondigitalocean.com;Port=25060;Database=abentor;Uid=doadmin;Pwd=AVNS_b38x8KTnr331B1pRY-w;SslMode=Required;",
+      "StorageProvider": "mssql",
+      "ConnectionString": "Data Source=(localdb)\\mssqllocaldb;Initial Catalog=fullStackHeroDb;Integrated Security=True;MultipleActiveResultSets=True",
       "Options": {
         "CommandBatchMaxTimeout": "00:05:00",
         "QueuePollInterval": "00:00:01",

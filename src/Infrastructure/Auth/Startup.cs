@@ -14,20 +14,28 @@ internal static class Startup
 {
     internal static IServiceCollection AddAuth(this IServiceCollection services, IConfiguration config)
     {
-        services
-            .AddCurrentUser()
-            .AddPermissions()
+        services.AddCurrentUser();
+        if(config.GetSection("FeatureFlagSettings").GetSection("Auth").Value == "True") {
+            services
+                //.AddCurrentUser()
+                .AddPermissions()
 
-            // Must add identity before adding auth!
-            .AddIdentity();
-        services.Configure<SecuritySettings>(config.GetSection(nameof(SecuritySettings)));
-        return config["SecuritySettings:Provider"].Equals("AzureAd", StringComparison.OrdinalIgnoreCase)
-            ? services.AddAzureAdAuth(config)
-            : services.AddJwtAuth(config);
+                // Must add identity before adding auth!
+                .AddIdentity();
+            services.Configure<SecuritySettings>(config.GetSection(nameof(SecuritySettings)));
+            return config["SecuritySettings:Provider"].Equals("AzureAd", StringComparison.OrdinalIgnoreCase)
+                ? services.AddAzureAdAuth(config)
+                : services.AddJwtAuth(config);
+        }
+        else { return services; }
     }
 
-    internal static IApplicationBuilder UseCurrentUser(this IApplicationBuilder app) =>
-        app.UseMiddleware<CurrentUserMiddleware>();
+    internal static IApplicationBuilder UseCurrentUser(this IApplicationBuilder app, IConfiguration config) {
+        if (config.GetSection("FeatureFlagSettings").GetSection("Auth").Value == "True") {
+            app.UseMiddleware<CurrentUserMiddleware>();
+        }
+        return app;
+    }
 
     private static IServiceCollection AddCurrentUser(this IServiceCollection services) =>
         services

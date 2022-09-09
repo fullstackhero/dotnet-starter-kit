@@ -2,11 +2,6 @@ namespace FSH.WebApi.Infrastructure.SecurityHeaders;
 
 public class SecurityHeaderSettings
 {
-    public bool Enable { get; set; }
-
-    /// <summary>
-    /// X-Frame-Options.
-    /// </summary>
     public string? XFrameOptions { get; set; }
 
     /// <summary>

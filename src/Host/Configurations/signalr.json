@@ -1,5 +1,6 @@
 {
   "SignalRSettings": {
+    "Enabled": true,
     "UseBackplane": false,
     "Backplane": {
       "Provider": "redis",

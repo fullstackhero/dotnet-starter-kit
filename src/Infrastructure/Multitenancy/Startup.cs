@@ -15,9 +15,10 @@ internal static class Startup
 {
     internal static IServiceCollection AddMultitenancy(this IServiceCollection services, IConfiguration config)
     {
-        return services
-            .AddDbContext<TenantDbContext>((p, m) =>
-            {
+        if (config.GetSection("FeatureFlagSettings").GetSection("Database").Value == "True") {
+
+            return services
+            .AddDbContext<TenantDbContext>((p, m) => {
                 // TODO: We should probably add specific dbprovider/connectionstring setting for the tenantDb with a fallback to the main databasesettings
                 var databaseSettings = p.GetRequiredService<IOptions<DatabaseSettings>>().Value;
                 m.UseDatabase(databaseSettings.DBProvider, databaseSettings.ConnectionString);
@@ -29,10 +30,16 @@ internal static class Startup
                 .WithEFCoreStore<TenantDbContext, FSHTenantInfo>()
                 .Services
             .AddScoped<ITenantService, TenantService>();
+        }
+        return services;
     }
 
-    internal static IApplicationBuilder UseMultiTenancy(this IApplicationBuilder app) =>
-        app.UseMultiTenant();
+    internal static IApplicationBuilder UseMultiTenancy(this IApplicationBuilder app, IConfiguration config) {
+        if (config.GetSection("FeatureFlagSettings").GetSection("Database").Value == "True" && config.GetSection("FeatureFlagSettings").GetSection("Multitenancy").Value == "True") {
+            app.UseMultiTenant();
+        }
+        return app;
+    }
 
     private static FinbuckleMultiTenantBuilder<FSHTenantInfo> WithQueryStringStrategy(this FinbuckleMultiTenantBuilder<FSHTenantInfo> builder, string queryStringKey) =>
         builder.WithDelegateStrategy(context =>

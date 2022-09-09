@@ -27,10 +27,10 @@ try
 
     var app = builder.Build();
 
-    await app.Services.InitializeDatabasesAsync();
+    await app.Services.InitializeDatabasesAsync(builder.Configuration);
 
     app.UseInfrastructure(builder.Configuration);
-    app.MapEndpoints();
+    app.MapEndpoints(builder.Configuration);
     app.Run();
 }
 catch (Exception ex) when (!ex.GetType().Name.Equals("StopTheHostException", StringComparison.Ordinal))

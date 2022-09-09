@@ -20,32 +20,33 @@ internal static class Startup
 
     internal static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration config)
     {
-        services.AddOptions<DatabaseSettings>()
+        if(config.GetSection("FeatureFlagSettings").GetSection("Database").Value == "True") {
+            services.AddOptions<DatabaseSettings>()
             .BindConfiguration(nameof(DatabaseSettings))
-            .PostConfigure(databaseSettings =>
-            {
+            .PostConfigure(databaseSettings => {
                 _logger.Information("Current DB Provider: {dbProvider}", databaseSettings.DBProvider);
             })
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        return services
-            .AddDbContext<ApplicationDbContext>((p, m) =>
-            {
-                var databaseSettings = p.GetRequiredService<IOptions<DatabaseSettings>>().Value;
-                m.UseDatabase(databaseSettings.DBProvider, databaseSettings.ConnectionString);
-            })
+            return services
+                .AddDbContext<ApplicationDbContext>((p, m) => {
+                    var databaseSettings = p.GetRequiredService<IOptions<DatabaseSettings>>().Value;
+                    m.UseDatabase(databaseSettings.DBProvider, databaseSettings.ConnectionString);
+                })
 
-            .AddTransient<IDatabaseInitializer, DatabaseInitializer>()
-            .AddTransient<ApplicationDbInitializer>()
-            .AddTransient<ApplicationDbSeeder>()
-            .AddServices(typeof(ICustomSeeder), ServiceLifetime.Transient)
-            .AddTransient<CustomSeederRunner>()
+                .AddTransient<IDatabaseInitializer, DatabaseInitializer>()
+                .AddTransient<ApplicationDbInitializer>()
+                .AddTransient<ApplicationDbSeeder>()
+                .AddServices(typeof(ICustomSeeder), ServiceLifetime.Transient)
+                .AddTransient<CustomSeederRunner>()
 
-            .AddTransient<IConnectionStringSecurer, ConnectionStringSecurer>()
-            .AddTransient<IConnectionStringValidator, ConnectionStringValidator>()
+                .AddTransient<IConnectionStringSecurer, ConnectionStringSecurer>()
+                .AddTransient<IConnectionStringValidator, ConnectionStringValidator>()
 
-            .AddRepositories();
+                .AddRepositories();
+        }
+        return services;
     }
 
     internal static DbContextOptionsBuilder UseDatabase(this DbContextOptionsBuilder builder, string dbProvider, string connectionString)

@@ -4,6 +4,13 @@ namespace FSH.WebApi.Host.Controllers.Catalog;
 
 public class BrandsController : VersionedApiController
 {
+
+    [HttpGet]
+    //[OpenApiOperation("Just testing", "")]
+    public bool Test() {
+        return true;
+    }
+
     [HttpPost("search")]
     [MustHavePermission(FSHAction.Search, FSHResource.Brands)]
     [OpenApiOperation("Search brands using available filters.", "")]

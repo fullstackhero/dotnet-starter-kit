@@ -20,24 +20,27 @@ internal static class Startup
 
     internal static IServiceCollection AddBackgroundJobs(this IServiceCollection services, IConfiguration config)
     {
-        services.AddHangfireServer(options => config.GetSection("HangfireSettings:Server").Bind(options));
+        if (config.GetSection("FeatureFlagSettings").GetSection("Hangfire").Value == "True" && config.GetSection("FeatureFlagSettings").GetSection("Database").Value == "True") {
 
-        services.AddHangfireConsoleExtensions();
+            services.AddHangfireServer(options => config.GetSection("HangfireSettings:Server").Bind(options));
 
-        var storageSettings = config.GetSection("HangfireSettings:Storage").Get<HangfireStorageSettings>();
+            services.AddHangfireConsoleExtensions();
 
-        if (string.IsNullOrEmpty(storageSettings.StorageProvider)) throw new Exception("Hangfire Storage Provider is not configured.");
-        if (string.IsNullOrEmpty(storageSettings.ConnectionString)) throw new Exception("Hangfire Storage Provider ConnectionString is not configured.");
-        _logger.Information($"Hangfire: Current Storage Provider : {storageSettings.StorageProvider}");
-        _logger.Information("For more Hangfire storage, visit https://www.hangfire.io/extensions.html");
+            var storageSettings = config.GetSection("HangfireSettings:Storage").Get<HangfireStorageSettings>();
 
-        services.AddSingleton<JobActivator, FSHJobActivator>();
+            if (string.IsNullOrEmpty(storageSettings.StorageProvider)) throw new Exception("Hangfire Storage Provider is not configured.");
+            if (string.IsNullOrEmpty(storageSettings.ConnectionString)) throw new Exception("Hangfire Storage Provider ConnectionString is not configured.");
+            _logger.Information($"Hangfire: Current Storage Provider : {storageSettings.StorageProvider}");
+            _logger.Information("For more Hangfire storage, visit https://www.hangfire.io/extensions.html");
 
-        services.AddHangfire((provider, hangfireConfig) => hangfireConfig
-            .UseDatabase(storageSettings.StorageProvider, storageSettings.ConnectionString, config)
-            .UseFilter(new FSHJobFilter(provider))
-            .UseFilter(new LogJobFilter())
-            .UseConsole());
+            services.AddSingleton<JobActivator, FSHJobActivator>();
+
+            services.AddHangfire((provider, hangfireConfig) => hangfireConfig
+                .UseDatabase(storageSettings.StorageProvider, storageSettings.ConnectionString, config)
+                .UseFilter(new FSHJobFilter(provider))
+                .UseFilter(new LogJobFilter())
+                .UseConsole());
+        }
 
         return services;
     }
@@ -56,12 +59,14 @@ internal static class Startup
             _ => throw new Exception($"Hangfire Storage Provider {dbProvider} is not supported.")
         };
 
-    internal static IApplicationBuilder UseHangfireDashboard(this IApplicationBuilder app, IConfiguration config)
-    {
-        var dashboardOptions = config.GetSection("HangfireSettings:Dashboard").Get<DashboardOptions>();
+    internal static IApplicationBuilder UseHangfireDashboard(this IApplicationBuilder app, IConfiguration config) {
 
-        dashboardOptions.Authorization = new[]
-        {
+        if (config.GetSection("FeatureFlagSettings").GetSection("Hangfire").Value == "True" && config.GetSection("FeatureFlagSettings").GetSection("Database").Value == "True") {
+
+            var dashboardOptions = config.GetSection("HangfireSettings:Dashboard").Get<DashboardOptions>();
+
+            dashboardOptions.Authorization = new[]
+            {
            new HangfireCustomBasicAuthenticationFilter
            {
                 User = config.GetSection("HangfireSettings:Credentials:User").Value,
@@ -69,6 +74,8 @@ internal static class Startup
            }
         };
 
-        return app.UseHangfireDashboard(config["HangfireSettings:Route"], dashboardOptions);
+            return app.UseHangfireDashboard(config["HangfireSettings:Route"], dashboardOptions);
+        }
+        return app;
     }
 }

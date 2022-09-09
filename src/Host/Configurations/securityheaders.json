@@ -1,6 +1,5 @@
 {
   "SecurityHeaderSettings": {
-    "Enable": true,
     "Headers": {
       "XFrameOptions": "SAMEORIGIN",
       "XContentTypeOptions": "nosniff",
