@@ -21,7 +21,7 @@
     },
     "Storage": {
       "StorageProvider": "mysql",
-      "ConnectionString": "Server=z224b979f-mysql.z70fd7601.qovery.cloud;Port=3306;Database=abentor;Uid=root;Pwd=yarogi-rQiYiuAo7yq7MuyV90xdpRD45;SslMode=Required;",
+      "ConnectionString": "Server=z224b979f-mysql;Port=3306;Database=abentor;Uid=root;Pwd=yarogi-rQiYiuAo7yq7MuyV90xdpRD45;SslMode=Required;",
       "Options": {
         "CommandBatchMaxTimeout": "00:05:00",
         "QueuePollInterval": "00:00:01",
