@@ -18,6 +18,7 @@ COPY ["src/Migrators/Migrators.Oracle/Migrators.Oracle.csproj", "src/Migrators/M
 
 RUN dotnet restore "src/Host/Host.csproj" --disable-parallel
 
+
 # Copy everything else and build
 COPY . .
 WORKDIR "/src/Host"
