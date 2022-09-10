@@ -1,8 +1,8 @@
 {
   "FeatureFlagSettings": {
-    "Auth": false,
+    "Auth": true,
     "Cors": true,
-    "Database": false,
+    "Database": true,
     "Hangfire": true,
     "Localization": true,
     "Mail": true,

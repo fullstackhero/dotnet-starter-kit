@@ -1,6 +1,6 @@
 {
   "DatabaseSettings": {
-    "DBProvider": "mssql",
-    "ConnectionString": "Data Source=(localdb)\\mssqllocaldb;Initial Catalog=fullStackHeroDb;Integrated Security=True;MultipleActiveResultSets=True"
+    "DBProvider": "mysql",
+    "ConnectionString": "Server=z224b979f-mysql.z70fd7601.qovery.cloud;Port=3306;Database=abentor;Uid=root;Pwd=yarogi-rQiYiuAo7yq7MuyV90xdpRD45;SslMode=Required;"
   }
 }
