@@ -1,10 +1,7 @@
 ﻿using System.Security.Claims;
-using Finbuckle.MultiTenant;
 using FSH.WebApi.Application.Common.Exceptions;
 using FSH.WebApi.Application.Identity.Users;
-using FSH.WebApi.Infrastructure.Multitenancy;
 using FSH.WebApi.Shared.Authorization;
-using FSH.WebApi.Shared.Multitenancy;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -52,30 +49,9 @@ internal class AzureAdJwtBearerEvents : JwtBearerEvents
             throw new UnauthorizedException("Authentication Failed.");
         }
 
-        // Lookup the tenant using the issuer.
-        // TODO: we should probably cache this (root tenant and tenant per issuer)
-        var tenantDb = context.HttpContext.RequestServices.GetRequiredService<TenantDbContext>();
-        var tenant = issuer == _config["SecuritySettings:AzureAd:RootIssuer"]
-            ? await tenantDb.TenantInfo.FindAsync(MultitenancyConstants.Root.Id)
-            : await tenantDb.TenantInfo.FirstOrDefaultAsync(t => t.Issuer == issuer);
-
-        if (tenant is null)
-        {
-            _logger.TokenValidationFailed(objectId, issuer);
-
-            // The caller was not from a trusted issuer - throw to block the authentication flow.
-            throw new UnauthorizedException("Authentication Failed.");
-        }
-
         // The caller comes from an admin-consented, recorded issuer.
         var identity = principal.Identities.First();
-
-        // Adding tenant claim.
-        identity.AddClaim(new Claim(FSHClaims.Tenant, tenant.Id));
-
-        // Set new tenant info to the HttpContext so the right connectionstring is used.
-        context.HttpContext.TrySetTenantInfo(tenant, false);
-
+       
         // Lookup local user or create one if none exist.
         string userId = await context.HttpContext.RequestServices.GetRequiredService<IUserService>()
             .GetOrCreateFromPrincipalAsync(principal);

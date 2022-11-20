@@ -1,4 +1,3 @@
-using Finbuckle.MultiTenant;
 using FSH.WebApi.Application.Common.Events;
 using FSH.WebApi.Application.Common.Exceptions;
 using FSH.WebApi.Application.Common.Interfaces;
@@ -6,7 +5,6 @@ using FSH.WebApi.Application.Identity.Roles;
 using FSH.WebApi.Domain.Identity;
 using FSH.WebApi.Infrastructure.Persistence.Context;
 using FSH.WebApi.Shared.Authorization;
-using FSH.WebApi.Shared.Multitenancy;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -21,7 +19,6 @@ internal class RoleService : IRoleService
     private readonly ApplicationDbContext _db;
     private readonly IStringLocalizer _t;
     private readonly ICurrentUser _currentUser;
-    private readonly ITenantInfo _currentTenant;
     private readonly IEventPublisher _events;
 
     public RoleService(
@@ -30,7 +27,6 @@ internal class RoleService : IRoleService
         ApplicationDbContext db,
         IStringLocalizer<RoleService> localizer,
         ICurrentUser currentUser,
-        ITenantInfo currentTenant,
         IEventPublisher events)
     {
         _roleManager = roleManager;
@@ -38,7 +34,6 @@ internal class RoleService : IRoleService
         _db = db;
         _t = localizer;
         _currentUser = currentUser;
-        _currentTenant = currentTenant;
         _events = events;
     }
 
@@ -125,11 +120,6 @@ internal class RoleService : IRoleService
             throw new ConflictException(_t["Not allowed to modify Permissions for this Role."]);
         }
 
-        if (_currentTenant.Id != MultitenancyConstants.Root.Id)
-        {
-            // Remove Root Permissions if the Role is not created for Root Tenant.
-            request.Permissions.RemoveAll(u => u.StartsWith("Permissions.Root."));
-        }
 
         var currentClaims = await _roleManager.GetClaimsAsync(role);
 

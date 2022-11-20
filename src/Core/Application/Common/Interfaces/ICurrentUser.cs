@@ -10,8 +10,6 @@ public interface ICurrentUser
 
     string? GetUserEmail();
 
-    string? GetTenant();
-
     bool IsAuthenticated();
 
     bool IsInRole(string role);

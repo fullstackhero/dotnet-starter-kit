@@ -1,6 +1,5 @@
 using Ardalis.Specification;
 using Ardalis.Specification.EntityFrameworkCore;
-using Finbuckle.MultiTenant;
 using FSH.WebApi.Application.Common.Caching;
 using FSH.WebApi.Application.Common.Events;
 using FSH.WebApi.Application.Common.Exceptions;
@@ -37,7 +36,6 @@ internal partial class UserService : IUserService
     private readonly IEventPublisher _events;
     private readonly ICacheService _cache;
     private readonly ICacheKeyService _cacheKeys;
-    private readonly ITenantInfo _currentTenant;
 
     public UserService(
         SignInManager<ApplicationUser> signInManager,
@@ -52,7 +50,6 @@ internal partial class UserService : IUserService
         IEventPublisher events,
         ICacheService cache,
         ICacheKeyService cacheKeys,
-        ITenantInfo currentTenant,
         IOptions<SecuritySettings> securitySettings)
     {
         _signInManager = signInManager;
@@ -67,7 +64,6 @@ internal partial class UserService : IUserService
         _events = events;
         _cache = cache;
         _cacheKeys = cacheKeys;
-        _currentTenant = currentTenant;
         _securitySettings = securitySettings.Value;
     }
 
@@ -87,29 +83,20 @@ internal partial class UserService : IUserService
 
     public async Task<bool> ExistsWithNameAsync(string name)
     {
-        EnsureValidTenant();
         return await _userManager.FindByNameAsync(name) is not null;
     }
 
     public async Task<bool> ExistsWithEmailAsync(string email, string? exceptId = null)
     {
-        EnsureValidTenant();
         return await _userManager.FindByEmailAsync(email.Normalize()) is ApplicationUser user && user.Id != exceptId;
     }
 
     public async Task<bool> ExistsWithPhoneNumberAsync(string phoneNumber, string? exceptId = null)
     {
-        EnsureValidTenant();
         return await _userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == phoneNumber) is ApplicationUser user && user.Id != exceptId;
     }
 
-    private void EnsureValidTenant()
-    {
-        if (string.IsNullOrWhiteSpace(_currentTenant?.Id))
-        {
-            throw new UnauthorizedException(_t["Invalid Tenant."]);
-        }
-    }
+    
 
     public async Task<List<UserDetailsDto>> GetListAsync(CancellationToken cancellationToken) =>
         (await _userManager.Users

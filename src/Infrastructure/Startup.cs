@@ -10,7 +10,6 @@ using FSH.WebApi.Infrastructure.Localization;
 using FSH.WebApi.Infrastructure.Mailing;
 using FSH.WebApi.Infrastructure.Mapping;
 using FSH.WebApi.Infrastructure.Middleware;
-using FSH.WebApi.Infrastructure.Multitenancy;
 using FSH.WebApi.Infrastructure.Notifications;
 using FSH.WebApi.Infrastructure.OpenApi;
 using FSH.WebApi.Infrastructure.Persistence;
@@ -39,11 +38,9 @@ public static class Startup
             .AddCaching(config)
             .AddCorsPolicy(config)
             .AddExceptionMiddleware()
-            .AddHealthCheck()
             .AddPOLocalization(config)
             .AddMailing(config)
             .AddMediatR(Assembly.GetExecutingAssembly())
-            .AddMultitenancy(config)
             .AddNotifications(config)
             .AddOpenApiDocumentation(config)
             .AddPersistence(config)
@@ -59,9 +56,6 @@ public static class Startup
             config.AssumeDefaultVersionWhenUnspecified = true;
             config.ReportApiVersions = true;
         });
-
-    private static IServiceCollection AddHealthCheck(this IServiceCollection services) =>
-        services.AddHealthChecks().AddCheck<TenantHealthCheck>("Tenant").Services;
 
     public static async Task InitializeDatabasesAsync(this IServiceProvider services, CancellationToken cancellationToken = default)
     {
@@ -83,7 +77,6 @@ public static class Startup
             .UseCorsPolicy()
             .UseAuthentication()
             .UseCurrentUser()
-            .UseMultiTenancy()
             .UseAuthorization()
             .UseRequestLogging(config)
             .UseHangfireDashboard(config)

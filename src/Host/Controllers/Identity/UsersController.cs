@@ -54,7 +54,6 @@ public class UsersController : VersionNeutralApiController
     }
 
     [HttpPost("self-register")]
-    [TenantIdHeader]
     [AllowAnonymous]
     [OpenApiOperation("Anonymous user creates a user.", "")]
     [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Register))]
@@ -101,7 +100,6 @@ public class UsersController : VersionNeutralApiController
 
     [HttpPost("forgot-password")]
     [AllowAnonymous]
-    [TenantIdHeader]
     [OpenApiOperation("Request a password reset email for a user.", "")]
     [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Register))]
     public Task<string> ForgotPasswordAsync(ForgotPasswordRequest request)

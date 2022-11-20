@@ -17,7 +17,6 @@ public static class FSHAction
 
 public static class FSHResource
 {
-    public const string Tenants = nameof(Tenants);
     public const string Dashboard = nameof(Dashboard);
     public const string Hangfire = nameof(Hangfire);
     public const string Users = nameof(Users);
@@ -60,11 +59,7 @@ public static class FSHPermissions
         new("Update Brands", FSHAction.Update, FSHResource.Brands),
         new("Delete Brands", FSHAction.Delete, FSHResource.Brands),
         new("Generate Brands", FSHAction.Generate, FSHResource.Brands),
-        new("Clean Brands", FSHAction.Clean, FSHResource.Brands),
-        new("View Tenants", FSHAction.View, FSHResource.Tenants, IsRoot: true),
-        new("Create Tenants", FSHAction.Create, FSHResource.Tenants, IsRoot: true),
-        new("Update Tenants", FSHAction.Update, FSHResource.Tenants, IsRoot: true),
-        new("Upgrade Tenant Subscription", FSHAction.UpgradeSubscription, FSHResource.Tenants, IsRoot: true)
+        new("Clean Brands", FSHAction.Clean, FSHResource.Brands),        
     };
 
     public static IReadOnlyList<FSHPermission> All { get; } = new ReadOnlyCollection<FSHPermission>(_all);

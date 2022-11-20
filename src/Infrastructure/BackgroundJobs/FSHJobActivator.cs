@@ -1,8 +1,5 @@
-﻿using Finbuckle.MultiTenant;
-using FSH.WebApi.Infrastructure.Auth;
+﻿using FSH.WebApi.Infrastructure.Auth;
 using FSH.WebApi.Infrastructure.Common;
-using FSH.WebApi.Infrastructure.Multitenancy;
-using FSH.WebApi.Shared.Multitenancy;
 using Hangfire;
 using Hangfire.Server;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,15 +31,6 @@ public class FSHJobActivator : JobActivator
 
         private void ReceiveParameters()
         {
-            var tenantInfo = _context.GetJobParameter<FSHTenantInfo>(MultitenancyConstants.TenantIdName);
-            if (tenantInfo is not null)
-            {
-                _scope.ServiceProvider.GetRequiredService<IMultiTenantContextAccessor>()
-                    .MultiTenantContext = new MultiTenantContext<FSHTenantInfo>
-                    {
-                        TenantInfo = tenantInfo
-                    };
-            }
 
             string userId = _context.GetJobParameter<string>(QueryStringKeys.UserId);
             if (!string.IsNullOrEmpty(userId))

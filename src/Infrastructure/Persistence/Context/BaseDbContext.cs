@@ -1,26 +1,26 @@
 using System.Data;
-using Finbuckle.MultiTenant;
 using FSH.WebApi.Application.Common.Events;
 using FSH.WebApi.Application.Common.Interfaces;
 using FSH.WebApi.Domain.Common.Contracts;
 using FSH.WebApi.Infrastructure.Auditing;
 using FSH.WebApi.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.Options;
 
 namespace FSH.WebApi.Infrastructure.Persistence.Context;
 
-public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUser, ApplicationRole, string, IdentityUserClaim<string>, IdentityUserRole<string>, IdentityUserLogin<string>, ApplicationRoleClaim, IdentityUserToken<string>>
+public abstract class BaseDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string, IdentityUserClaim<string>, IdentityUserRole<string>, IdentityUserLogin<string>, ApplicationRoleClaim, IdentityUserToken<string>>
 {
     protected readonly ICurrentUser _currentUser;
     private readonly ISerializerService _serializer;
     private readonly DatabaseSettings _dbSettings;
     private readonly IEventPublisher _events;
 
-    protected BaseDbContext(ITenantInfo currentTenant, DbContextOptions options, ICurrentUser currentUser, ISerializerService serializer, IOptions<DatabaseSettings> dbSettings, IEventPublisher events)
-        : base(currentTenant, options)
+    protected BaseDbContext(DbContextOptions options, ICurrentUser currentUser, ISerializerService serializer, IOptions<DatabaseSettings> dbSettings, IEventPublisher events)
+        : base(options)
     {
         _currentUser = currentUser;
         _serializer = serializer;
@@ -56,10 +56,8 @@ public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUs
         // Or uncomment the next line if you want to see them in the console
         // optionsBuilder.LogTo(Console.WriteLine, Microsoft.Extensions.Logging.LogLevel.Information);
 
-        if (!string.IsNullOrWhiteSpace(TenantInfo?.ConnectionString))
-        {
-            optionsBuilder.UseDatabase(_dbSettings.DBProvider, TenantInfo.ConnectionString);
-        }
+        //optionsBuilder.UseDatabase(_dbSettings.DBProvider, TenantInfo.ConnectionString);
+
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())

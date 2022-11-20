@@ -1,7 +1,6 @@
 using System.Text;
 using FSH.WebApi.Application.Common.Exceptions;
 using FSH.WebApi.Infrastructure.Common;
-using FSH.WebApi.Shared.Multitenancy;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,7 +10,6 @@ internal partial class UserService
 {
     private async Task<string> GetEmailVerificationUriAsync(ApplicationUser user, string origin)
     {
-        EnsureValidTenant();
 
         string code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
@@ -19,13 +17,11 @@ internal partial class UserService
         var endpointUri = new Uri(string.Concat($"{origin}/", route));
         string verificationUri = QueryHelpers.AddQueryString(endpointUri.ToString(), QueryStringKeys.UserId, user.Id);
         verificationUri = QueryHelpers.AddQueryString(verificationUri, QueryStringKeys.Code, code);
-        verificationUri = QueryHelpers.AddQueryString(verificationUri, MultitenancyConstants.TenantIdName, _currentTenant.Id!);
         return verificationUri;
     }
 
     public async Task<string> ConfirmEmailAsync(string userId, string code, string tenant, CancellationToken cancellationToken)
     {
-        EnsureValidTenant();
 
         var user = await _userManager.Users
             .Where(u => u.Id == userId && !u.EmailConfirmed)
@@ -43,7 +39,6 @@ internal partial class UserService
 
     public async Task<string> ConfirmPhoneNumberAsync(string userId, string code)
     {
-        EnsureValidTenant();
 
         var user = await _userManager.FindByIdAsync(userId);
 

@@ -9,7 +9,6 @@ internal partial class UserService
 {
     public async Task<string> ForgotPasswordAsync(ForgotPasswordRequest request, string origin)
     {
-        EnsureValidTenant();
 
         var user = await _userManager.FindByEmailAsync(request.Email.Normalize());
         if (user is null || !await _userManager.IsEmailConfirmedAsync(user))

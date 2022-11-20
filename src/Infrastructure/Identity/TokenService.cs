@@ -6,9 +6,7 @@ using FSH.WebApi.Application.Common.Exceptions;
 using FSH.WebApi.Application.Identity.Tokens;
 using FSH.WebApi.Infrastructure.Auth;
 using FSH.WebApi.Infrastructure.Auth.Jwt;
-using FSH.WebApi.Infrastructure.Multitenancy;
 using FSH.WebApi.Shared.Authorization;
-using FSH.WebApi.Shared.Multitenancy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
@@ -22,26 +20,22 @@ internal class TokenService : ITokenService
     private readonly IStringLocalizer _t;
     private readonly SecuritySettings _securitySettings;
     private readonly JwtSettings _jwtSettings;
-    private readonly FSHTenantInfo? _currentTenant;
 
     public TokenService(
         UserManager<ApplicationUser> userManager,
         IOptions<JwtSettings> jwtSettings,
         IStringLocalizer<TokenService> localizer,
-        FSHTenantInfo? currentTenant,
         IOptions<SecuritySettings> securitySettings)
     {
         _userManager = userManager;
         _t = localizer;
         _jwtSettings = jwtSettings.Value;
-        _currentTenant = currentTenant;
         _securitySettings = securitySettings.Value;
     }
 
     public async Task<TokenResponse> GetTokenAsync(TokenRequest request, string ipAddress, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(_currentTenant?.Id)
-            || await _userManager.FindByEmailAsync(request.Email.Trim().Normalize()) is not { } user
+        if (await _userManager.FindByEmailAsync(request.Email.Trim().Normalize()) is not { } user
             || !await _userManager.CheckPasswordAsync(user, request.Password))
         {
 
@@ -56,19 +50,6 @@ internal class TokenService : ITokenService
         if (_securitySettings.RequireConfirmedAccount && !user.EmailConfirmed)
         {
             throw new UnauthorizedException(_t["E-Mail not confirmed."]);
-        }
-
-        if (_currentTenant.Id != MultitenancyConstants.Root.Id)
-        {
-            if (!_currentTenant.IsActive)
-            {
-                throw new UnauthorizedException(_t["Tenant is not Active. Please contact the Application Administrator."]);
-            }
-
-            if (DateTime.UtcNow > _currentTenant.ValidUpto)
-            {
-                throw new UnauthorizedException(_t["Tenant Validity Has Expired. Please contact the Application Administrator."]);
-            }
         }
 
         return await GenerateTokensAndUpdateUser(user, ipAddress);
@@ -116,7 +97,6 @@ internal class TokenService : ITokenService
             new(ClaimTypes.Name, user.FirstName ?? string.Empty),
             new(ClaimTypes.Surname, user.LastName ?? string.Empty),
             new(FSHClaims.IpAddress, ipAddress),
-            new(FSHClaims.Tenant, _currentTenant!.Id),
             new(FSHClaims.ImageUrl, user.ImageUrl ?? string.Empty),
             new(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty)
         };
