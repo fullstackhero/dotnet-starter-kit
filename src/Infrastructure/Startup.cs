@@ -37,7 +37,7 @@ public static class Startup
             .AddBackgroundJobs(config)
             .AddCaching(config)
             .AddCorsPolicy(config)
-            .AddExceptionMiddleware()
+            .AddExceptionMiddleware()            
             .AddPOLocalization(config)
             .AddMailing(config)
             .AddMediatR(Assembly.GetExecutingAssembly())
@@ -85,7 +85,7 @@ public static class Startup
     public static IEndpointRouteBuilder MapEndpoints(this IEndpointRouteBuilder builder)
     {
         builder.MapControllers().RequireAuthorization();
-        builder.MapHealthCheck();
+        //builder.MapHealthCheck();
         builder.MapNotifications();
         return builder;
     }
