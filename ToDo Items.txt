@@ -1,0 +1,18 @@
+Settings
+Email Templates
+Communication
+- SMTP
+- - Tenant Based
+- - Tenant set outbound service
+- - - Simple SMTP
+- - - SendGrid
+- - - (Furture - add others)
+- SMS (Twilio)
+- - Tenant Based
+Identity
+- Login based on email only
+- Forgot Password
+- Reset Password
+- 
+New Tenant Setup
+- Modify the new tenant screen to ask for the information we need to sup up a tenant
