@@ -1,6 +1,14 @@
 Settings
+- Need Global Settings
+- - When creating a new tenant database, we need to copy over the global settings and prompt for tenant specific settings
+Logging
+- Email Logs
+- SMS Logs
+- API Logs
+- Other used for tracking
 Email Templates
 Communication
+
 - SMTP
 - - Tenant Based
 - - Tenant set outbound service
@@ -13,6 +21,8 @@ Identity
 - Login based on email only
 - Forgot Password
 - Reset Password
-- 
+- Registion Enable/Disable setting option - Off by default
+Code Gen
 New Tenant Setup
 - Modify the new tenant screen to ask for the information we need to sup up a tenant
+Make a tenent sub domain driven or custom domain (future)
