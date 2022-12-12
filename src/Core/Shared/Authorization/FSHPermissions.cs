@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Reflection;
 
 namespace FSH.WebApi.Shared.Authorization;
 
@@ -28,8 +29,24 @@ public static class FSHResource
     public const string Brands = nameof(Brands);
 }
 
-public static class FSHPermissions
+public static partial class FSHPermissions
 {
+    // TODO: To refactor the permission declarations
+    // private static readonly List<FSHPermission> _all = GetPermissions();
+
+    // public static List<FSHPermission> GetPermissions()
+    // {
+    //    var permissions = new List<FSHPermission>();
+    //    var props = typeof(FSHPermissions).GetNestedTypes().SelectMany(c => c.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+    //    foreach (var prop in typeof(FSHPermissions).GetNestedTypes().SelectMany(c => c.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)))
+    //    {
+    //        object? propertyValue = prop.GetValue(null);
+    //        if (propertyValue is not null)
+    //            permissions.Add((FSHPermission)propertyValue);
+    //    }
+    //    return permissions;
+    // }
+
     private static readonly FSHPermission[] _all = new FSHPermission[]
     {
         new("View Dashboard", FSHAction.View, FSHResource.Dashboard),

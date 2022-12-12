@@ -1,4 +1,5 @@
 using FSH.WebApi.Application.Common.Interfaces;
+using FSH.WebApi.Domain.Base;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace FSH.WebApi.Infrastructure.Auditing;

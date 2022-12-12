@@ -22,26 +22,26 @@ public class BrandSeeder : ICustomSeeder
 
     public async Task InitializeAsync(CancellationToken cancellationToken)
     {
-        string? path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-        if (!_db.Brands.Any())
-        {
-            _logger.LogInformation("Started to Seed Brands.");
+        //string? path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        //if (!_db.Brands.Any())
+        //{
+        //    _logger.LogInformation("Started to Seed Brands.");
 
-            // Here you can use your own logic to populate the database.
-            // As an example, I am using a JSON file to populate the database.
-            string brandData = await File.ReadAllTextAsync(path + "/Catalog/brands.json", cancellationToken);
-            var brands = _serializerService.Deserialize<List<Brand>>(brandData);
+        //    // Here you can use your own logic to populate the database.
+        //    // As an example, I am using a JSON file to populate the database.
+        //    string brandData = await File.ReadAllTextAsync(path + "/Catalog/brands.json", cancellationToken);
+        //    var brands = _serializerService.Deserialize<List<Brand>>(brandData);
 
-            if (brands != null)
-            {
-                foreach (var brand in brands)
-                {
-                    await _db.Brands.AddAsync(brand, cancellationToken);
-                }
-            }
+        //    if (brands != null)
+        //    {
+        //        foreach (var brand in brands)
+        //        {
+        //            await _db.Brands.AddAsync(brand, cancellationToken);
+        //        }
+        //    }
 
-            await _db.SaveChangesAsync(cancellationToken);
-            _logger.LogInformation("Seeded Brands.");
-        }
+        //    await _db.SaveChangesAsync(cancellationToken);
+        //    _logger.LogInformation("Seeded Brands.");
+        //}
     }
 }
