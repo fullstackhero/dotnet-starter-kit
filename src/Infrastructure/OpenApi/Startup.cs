@@ -19,6 +19,14 @@ internal static class Startup
         {
             services.AddVersionedApiExplorer(o => o.SubstituteApiVersionInUrl = true);
             services.AddEndpointsApiExplorer();
+            services.AddScoped<FluentValidationSchemaProcessor>(provider =>
+            {
+                var validationRules = provider.GetService<IEnumerable<FluentValidationRule>>();
+                var loggerFactory = provider.GetService<ILoggerFactory>();
+            
+                return new FluentValidationSchemaProcessor(provider, validationRules, loggerFactory);
+            });
+            
             services.AddOpenApiDocument((document, serviceProvider) =>
             {
                 document.PostProcess = doc =>
@@ -89,7 +97,6 @@ internal static class Startup
                 var fluentValidationSchemaProcessor = serviceProvider.CreateScope().ServiceProvider.GetService<FluentValidationSchemaProcessor>();
                 document.SchemaProcessors.Add(fluentValidationSchemaProcessor);
             });
-            services.AddScoped<FluentValidationSchemaProcessor>();
         }
 
         return services;
