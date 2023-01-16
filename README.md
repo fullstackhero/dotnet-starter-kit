@@ -70,7 +70,7 @@ Read Documentation related to this Boilerplate here - https://fullstackhero.net/
 
 ## Getting Started
 
-To get started with this Boilerplate, here are the avaiable options.
+To get started with this Boilerplate, here are the available options.
 
 - Install using `dotnet new` . Use this for release versions of the Boilerplate only.
 - Fork the Repository. Use this if you want to always keep your version of the Boilerplate up-to date with the latest changes.
