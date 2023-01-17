@@ -21,9 +21,12 @@ try
         .ReadFrom.Configuration(builder.Configuration);
     });
 
-    builder.Services.AddControllers().AddFluentValidation();
-    builder.Services.AddInfrastructure(builder.Configuration);
-    builder.Services.AddApplication();
+    builder.Services.AddControllers();
+    builder.Services
+        // .AddFluentValidationAutoValidation()
+        .AddFluentValidationClientsideAdapters()
+    .AddInfrastructure(builder.Configuration)
+    .AddApplication();
 
     var app = builder.Build();
 
