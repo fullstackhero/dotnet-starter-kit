@@ -15,34 +15,34 @@ internal static class Startup
             {
                 if (!context.Response.HasStarted)
                 {
-                    if (!string.IsNullOrWhiteSpace(settings.XFrameOptions))
+                    if (!string.IsNullOrWhiteSpace(settings.Headers.XFrameOptions))
                     {
-                        context.Response.Headers.Add(HeaderNames.XFRAMEOPTIONS, settings.XFrameOptions);
+                        context.Response.Headers.Add(HeaderNames.XFRAMEOPTIONS, settings.Headers.XFrameOptions);
                     }
 
-                    if (!string.IsNullOrWhiteSpace(settings.XContentTypeOptions))
+                    if (!string.IsNullOrWhiteSpace(settings.Headers.XContentTypeOptions))
                     {
-                        context.Response.Headers.Add(HeaderNames.XCONTENTTYPEOPTIONS, settings.XContentTypeOptions);
+                        context.Response.Headers.Add(HeaderNames.XCONTENTTYPEOPTIONS, settings.Headers.XContentTypeOptions);
                     }
 
-                    if (!string.IsNullOrWhiteSpace(settings.ReferrerPolicy))
+                    if (!string.IsNullOrWhiteSpace(settings.Headers.ReferrerPolicy))
                     {
-                        context.Response.Headers.Add(HeaderNames.REFERRERPOLICY, settings.ReferrerPolicy);
+                        context.Response.Headers.Add(HeaderNames.REFERRERPOLICY, settings.Headers.ReferrerPolicy);
                     }
 
-                    if (!string.IsNullOrWhiteSpace(settings.PermissionsPolicy))
+                    if (!string.IsNullOrWhiteSpace(settings.Headers.PermissionsPolicy))
                     {
-                        context.Response.Headers.Add(HeaderNames.PERMISSIONSPOLICY, settings.PermissionsPolicy);
+                        context.Response.Headers.Add(HeaderNames.PERMISSIONSPOLICY, settings.Headers.PermissionsPolicy);
                     }
 
-                    if (!string.IsNullOrWhiteSpace(settings.SameSite))
+                    if (!string.IsNullOrWhiteSpace(settings.Headers.SameSite))
                     {
-                        context.Response.Headers.Add(HeaderNames.SAMESITE, settings.SameSite);
+                        context.Response.Headers.Add(HeaderNames.SAMESITE, settings.Headers.SameSite);
                     }
 
-                    if (!string.IsNullOrWhiteSpace(settings.XXSSProtection))
+                    if (!string.IsNullOrWhiteSpace(settings.Headers.XXSSProtection))
                     {
-                        context.Response.Headers.Add(HeaderNames.XXSSPROTECTION, settings.XXSSProtection);
+                        context.Response.Headers.Add(HeaderNames.XXSSPROTECTION, settings.Headers.XXSSProtection);
                     }
                 }
 
