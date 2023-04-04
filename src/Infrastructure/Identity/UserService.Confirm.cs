@@ -52,7 +52,7 @@ internal partial class UserService
         var result = await _userManager.ChangePhoneNumberAsync(user, user.PhoneNumber, code);
 
         return result.Succeeded
-            ? user.EmailConfirmed
+            ? user.PhoneNumberConfirmed
                 ? string.Format(_t["Account Confirmed for Phone Number {0}. You can now use the /api/tokens endpoint to generate JWT."], user.PhoneNumber)
                 : string.Format(_t["Account Confirmed for Phone Number {0}. You should confirm your E-mail before using the /api/tokens endpoint to generate JWT."], user.PhoneNumber)
             : throw new InternalServerException(string.Format(_t["An error occurred while confirming {0}"], user.PhoneNumber));
