@@ -72,4 +72,25 @@ public class EventAddingRepositoryDecorator<T> : IRepositoryWithEvents<T>
         _decorated.CountAsync(specification, cancellationToken);
     public Task<int> CountAsync(CancellationToken cancellationToken = default) =>
         _decorated.CountAsync(cancellationToken);
+
+    public Task<IEnumerable<T>> AddRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default) =>
+        _decorated.AddRangeAsync(entities, cancellationToken);
+
+    public Task UpdateRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default) =>
+        _decorated.UpdateRangeAsync(entities, cancellationToken);
+
+    public Task<T?> GetBySpecAsync(ISpecification<T> specification, CancellationToken cancellationToken = default)
+    => _decorated.GetBySpecAsync(specification, cancellationToken);
+
+    public Task<T?> FirstOrDefaultAsync(ISpecification<T> specification, CancellationToken cancellationToken = default)
+    => _decorated.FirstOrDefaultAsync(specification, cancellationToken);
+
+    public Task<TResult?> FirstOrDefaultAsync<TResult>(ISpecification<T, TResult> specification, CancellationToken cancellationToken = default) =>
+        _decorated.FirstOrDefaultAsync<TResult>(specification, cancellationToken);
+
+    public Task<T?> SingleOrDefaultAsync(ISingleResultSpecification<T> specification, CancellationToken cancellationToken = default) =>
+        _decorated.SingleOrDefaultAsync(specification, cancellationToken);
+
+    public Task<TResult?> SingleOrDefaultAsync<TResult>(ISingleResultSpecification<T, TResult> specification, CancellationToken cancellationToken = default) =>
+        _decorated.SingleOrDefaultAsync<TResult>(specification, cancellationToken);
 }
