@@ -25,7 +25,12 @@
       "source": "./",
       "target": "./",
       "exclude": [
-        ".template.config/**"
+        ".template.config/**",
+        ".idea/**",
+        ".vscode/**",
+        "icon.png",
+        "fsh-console/**",
+        "scripts/**"
       ]
     }
   ],

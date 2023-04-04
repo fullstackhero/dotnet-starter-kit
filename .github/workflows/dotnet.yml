@@ -43,5 +43,5 @@ jobs:
         name: Build FSH .NET Web API Image
         working-directory: ./
         run: |
-          dotnet publish -c Release -p:ContainerImageName=${{ secrets.DOCKER_USERNAME }}/dotnet-webapi
+          dotnet publish -c Release -p:ContainerImageName=${{ secrets.DOCKER_USERNAME }}/dotnet-webapi -p:RuntimeIdentifier=linux-x64
           docker push ${{ secrets.DOCKER_USERNAME }}/dotnet-webapi --all-tags
