@@ -57,12 +57,12 @@ resource "aws_ecs_task_definition" "api_ecs_task" {
         { "name" : "HangfireSettings__Storage__ConnectionString", "value" : "Host=${aws_db_instance.postgres.endpoint};Port=5432;Database=fshdb;Username=${var.pg_username};Password=${var.pg_password};Include Error Detail=true" },
         { "name" : "HangfireSettings__Storage__StorageProvider", "value" : "postgresql" },
         { "name" : "Logging__LogLevel__Default", "value" : "Debug" },
-        { "name" : "MiddlewareSettings__EnableHttpsLogging", "value" : true }
+        { "name" : "MiddlewareSettings__EnableHttpsLogging", "value" : "true" }
       ]
       logConfiguration : {
         "logDriver" : "awslogs",
         "options" : {
-          "awslogs-region" : "ap-south-1",
+          "awslogs-region" : var.aws_region,
           "awslogs-group" : "fsh/dotnet-webapi",
           "awslogs-stream-prefix" : "fsh-api"
         }
