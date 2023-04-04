@@ -1,6 +1,6 @@
 {
   "MiddlewareSettings": {
-    "EnableHttpsLogging": false,
+    "EnableHttpsLogging": true,
     "EnableLocalization": true
   }
 }
