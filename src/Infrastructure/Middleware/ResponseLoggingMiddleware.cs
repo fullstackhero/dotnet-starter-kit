@@ -24,6 +24,8 @@ public class ResponseLoggingMiddleware : IMiddleware
         }
         else if (httpContext.Request.Path.ToString().Contains("jobs"))
         {
+            newBody.Seek(0, SeekOrigin.Begin);
+            await newBody.CopyToAsync(originalBody);
             return;
         }
         else
