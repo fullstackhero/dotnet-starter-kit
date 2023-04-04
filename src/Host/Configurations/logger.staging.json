@@ -11,12 +11,12 @@
       "WithHangfireContext"
     ],
     "MinimumLevel": {
-      "Default": "Debug",
+      "Default": "Information",
       "Override": {
         "Hangfire": "Warning",
-        "Microsoft": "Debug",
-        "Microsoft.Hosting.Lifetime": "Debug",
-        "System": "Debug"
+        "Microsoft": "Error",
+        "Microsoft.Hosting.Lifetime": "Information",
+        "System": "Information"
       }
     },
     "Properties": {
