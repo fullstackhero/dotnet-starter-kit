@@ -5,7 +5,6 @@ using Hangfire.Console.Extensions;
 using Hangfire.MySql;
 using Hangfire.PostgreSql;
 using Hangfire.SqlServer;
-using HangfireBasicAuthenticationFilter;
 using Hangfire.SQLite;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
