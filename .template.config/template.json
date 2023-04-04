@@ -28,6 +28,8 @@
         ".template.config/**",
         ".idea/**",
         ".vscode/**",
+        ".vs/**",
+        ".github/**",
         "icon.png",
         "fsh-console/**",
         "scripts/**"
