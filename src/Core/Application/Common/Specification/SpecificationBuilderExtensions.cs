@@ -90,9 +90,9 @@ public static class SpecificationBuilderExtensions
 
         string searchTerm = operatorSearch switch
         {
-            FilterOperator.STARTSWITH => $"{keyword}%",
-            FilterOperator.ENDSWITH => $"%{keyword}",
-            FilterOperator.CONTAINS => $"%{keyword}%",
+            FilterOperator.STARTSWITH => $"{keyword.ToLower()}%",
+            FilterOperator.ENDSWITH => $"%{keyword.ToLower()}",
+            FilterOperator.CONTAINS => $"%{keyword.ToLower()}%",
             _ => throw new ArgumentException("operatorSearch is not valid.", nameof(operatorSearch))
         };
 
@@ -106,7 +106,10 @@ public static class SpecificationBuilderExtensions
                     Expression.Constant(null, typeof(string)),
                     Expression.Call(propertyExpr, "ToString", null, null));
 
-        var selector = Expression.Lambda<Func<T, string>>(selectorExpr, paramExpr);
+        var toLowerMethod = typeof(string).GetMethod("ToLower", Type.EmptyTypes);
+        Expression callToLowerMethod = Expression.Call(selectorExpr, toLowerMethod);
+
+        var selector = Expression.Lambda<Func<T, string>>(callToLowerMethod, paramExpr);
 
         ((List<SearchExpressionInfo<T>>)specificationBuilder.Specification.SearchCriterias)
             .Add(new SearchExpressionInfo<T>(selector, searchTerm, 1));
@@ -180,10 +183,16 @@ public static class SpecificationBuilderExtensions
     }
 
     private static Expression CreateFilterExpression(
-        MemberExpression memberExpression,
-        ConstantExpression constantExpression,
+        Expression memberExpression,
+        Expression constantExpression,
         string filterOperator)
     {
+        if (memberExpression.Type == typeof(string))
+        {
+            constantExpression = Expression.Call(constantExpression, "ToLower", null);
+            memberExpression = Expression.Call(memberExpression, "ToLower", null);
+        }
+
         return filterOperator switch
         {
             FilterOperator.EQ => Expression.Equal(memberExpression, constantExpression),
