@@ -77,7 +77,7 @@ internal class ExceptionMiddleware : IMiddleware
                     break;
             }
 
-            Log.Error($"{errorResult.Exception} Request failed with Status Code {context.Response.StatusCode} and Error Id {errorId}.");
+            Log.Error($"{errorResult.Exception} Request failed with Status Code {errorResult.StatusCode} and Error Id {errorId}.");
             var response = context.Response;
             if (!response.HasStarted)
             {
