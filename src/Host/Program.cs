@@ -13,7 +13,7 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    builder.Host.AddConfigurations();
+    builder.AddConfigurations();
     builder.Host.UseSerilog((_, config) =>
     {
         config.WriteTo.Console()
