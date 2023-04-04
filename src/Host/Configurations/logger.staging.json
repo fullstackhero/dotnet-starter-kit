@@ -9,8 +9,7 @@
       {
         "Name": "AWSSeriLog",
         "Args": {
-          "textFormatter": "Serilog.Formatting.Json.JsonFormatter, Serilog",
-          "restrictedToMinimumLevel": "Warning"
+          "textFormatter": "Serilog.Formatting.Json.JsonFormatter, Serilog"
         }
       }
     ]
