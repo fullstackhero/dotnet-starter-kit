@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using NJsonSchema.Generation.TypeMappers;
 using NSwag;
 using NSwag.AspNetCore;
@@ -19,14 +20,15 @@ internal static class Startup
         {
             services.AddVersionedApiExplorer(o => o.SubstituteApiVersionInUrl = true);
             services.AddEndpointsApiExplorer();
+
             services.AddScoped<FluentValidationSchemaProcessor>(provider =>
             {
                 var validationRules = provider.GetService<IEnumerable<FluentValidationRule>>();
                 var loggerFactory = provider.GetService<ILoggerFactory>();
-            
+
                 return new FluentValidationSchemaProcessor(provider, validationRules, loggerFactory);
             });
-            
+
             services.AddOpenApiDocument((document, serviceProvider) =>
             {
                 document.PostProcess = doc =>
