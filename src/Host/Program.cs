@@ -16,12 +16,8 @@ try
     builder.AddConfigurations();
     builder.Host.UseSerilog((_, config) =>
     {
-        if (builder.Environment.EnvironmentName != "staging")
-        {
-            config.WriteTo.Console();
-        }
-
-        config.ReadFrom.Configuration(builder.Configuration);
+        config.WriteTo.Console()
+        .ReadFrom.Configuration(builder.Configuration);
     });
 
     builder.Services.AddControllers();
