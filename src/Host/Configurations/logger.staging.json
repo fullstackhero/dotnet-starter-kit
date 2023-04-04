@@ -10,7 +10,7 @@
         "Name": "AWSSeriLog",
         "Args": {
           "textFormatter": "Serilog.Formatting.Json.JsonFormatter, Serilog",
-          "restrictedToMinimumLevel": "Error"
+          "restrictedToMinimumLevel": "Warning"
         }
       }
     ]
