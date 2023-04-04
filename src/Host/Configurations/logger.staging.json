@@ -11,12 +11,12 @@
       "WithHangfireContext"
     ],
     "MinimumLevel": {
-      "Default": "Information",
+      "Default": "Debug",
       "Override": {
         "Hangfire": "Warning",
-        "Microsoft": "Error",
-        "Microsoft.Hosting.Lifetime": "Information",
-        "System": "Information"
+        "Microsoft": "Debug",
+        "Microsoft.Hosting.Lifetime": "Debug",
+        "System": "Debug"
       }
     },
     "Properties": {
@@ -25,6 +25,9 @@
     "WriteTo": [
       {
         "Name": "Hangfire"
+      },
+      {
+        "Name": "Console"
       },
       {
         "Name": "AWSSeriLog",
