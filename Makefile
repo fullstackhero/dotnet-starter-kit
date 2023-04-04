@@ -3,3 +3,6 @@ build: ## builds the solution
 
 start: ## runs the server
 	dotnet run --project src/Host/Host.csproj
+
+publish: ## runs the server
+	dotnet publish -c Release

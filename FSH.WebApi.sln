@@ -33,7 +33,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Directory.Build.props = Directory.Build.props
 		Directory.Build.targets = Directory.Build.targets
 		docker-compose.yml = docker-compose.yml
-		Dockerfile = Dockerfile
 		dotnet.ruleset = dotnet.ruleset
 		FSH.WebApi.nuspec = FSH.WebApi.nuspec
 		global.json = global.json

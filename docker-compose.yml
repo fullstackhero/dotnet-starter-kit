@@ -1,8 +1,6 @@
 services:
   api:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: "iammukeshm/dotnet-webapi:latest"
     container_name: api
     environment:
       - "DatabaseSettings__ConnectionString=Server=db;Database=fullStackHeroDb;\
