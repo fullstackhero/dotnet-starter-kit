@@ -1,4 +1,4 @@
-name: .NET
+name: cicd
 
 on:
   push:
@@ -43,5 +43,5 @@ jobs:
         name: Build FSH .NET Web API Image
         working-directory: ./
         run: |
-          dotnet publish -c Release
+          dotnet publish -c Release -p:ContainerImageName=${{ secrets.DOCKER_USERNAME }}/dotnet-webapi
           docker push ${{ secrets.DOCKER_USERNAME }}/dotnet-webapi --all-tags
