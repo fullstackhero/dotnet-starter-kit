@@ -21,7 +21,7 @@ resource "aws_ecs_service" "api_ecs_service" {
   launch_type                       = "FARGATE"
   desired_count                     = 1
   tags                              = merge(var.common_tags)
-  health_check_grace_period_seconds = 90
+  health_check_grace_period_seconds = 600
 
   load_balancer {
     target_group_arn = aws_lb_target_group.fsh_api_tg.arn

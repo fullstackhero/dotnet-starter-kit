@@ -15,6 +15,10 @@ public class RequestLoggingMiddleware : IMiddleware
         {
             requestBody = "[Redacted] Contains Sensitive Information.";
         }
+        else if (httpContext.Request.Path.ToString().Contains("jobs"))
+        {
+            await next(httpContext);
+        }
         else
         {
             var request = httpContext.Request;

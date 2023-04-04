@@ -22,6 +22,10 @@ public class ResponseLoggingMiddleware : IMiddleware
         {
             responseBody = "[Redacted] Contains Sensitive Information.";
         }
+        else if (httpContext.Request.Path.ToString().Contains("jobs"))
+        {
+            return;
+        }
         else
         {
             newBody.Seek(0, SeekOrigin.Begin);

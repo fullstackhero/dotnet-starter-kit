@@ -1,28 +1,17 @@
 {
   "Serilog": {
-    "Using": [],
-    "Enrich": [
-      "FromLogContext",
-      "WithMachineName",
-      "WithProcessId",
-      "WithThreadId",
-      "WithHangfireContext"
-    ],
-    "MinimumLevel": {
-      "Default": "Information",
-      "Override": {
-        "Hangfire": "Warning",
-        "Microsoft": "Error",
-        "Microsoft.Hosting.Lifetime": "Information",
-        "System": "Information"
-      }
-    },
-    "Properties": {
-      "Application": "FSH.WebApi"
-    },
+    "LogGroup": "fsh/dotnet-webapi",
+    "Region": "ap-south-1",
     "WriteTo": [
       {
         "Name": "Hangfire"
+      },
+      {
+        "Name": "AWSSeriLog",
+        "Args": {
+          "textFormatter": "Serilog.Formatting.Json.JsonFormatter, Serilog",
+          "restrictedToMinimumLevel": "Error"
+        }
       }
     ]
   }
