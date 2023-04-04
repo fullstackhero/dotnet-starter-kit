@@ -107,7 +107,7 @@ public static class SpecificationBuilderExtensions
                     Expression.Call(propertyExpr, "ToString", null, null));
 
         var toLowerMethod = typeof(string).GetMethod("ToLower", Type.EmptyTypes);
-        Expression callToLowerMethod = Expression.Call(selectorExpr, toLowerMethod);
+        Expression callToLowerMethod = Expression.Call(selectorExpr, toLowerMethod!);
 
         var selector = Expression.Lambda<Func<T, string>>(callToLowerMethod, paramExpr);
 
