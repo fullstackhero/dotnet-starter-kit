@@ -17,6 +17,7 @@ try
     builder.AddConfigurations();
     builder.Host.UseSerilog((_, logger) =>
     {
+        logger.ReadFrom.Configuration(builder.Configuration);
         if (builder.Environment.EnvironmentName == "staging")
         {
             logger.WriteTo.Async(wt => wt.Console(new CompactJsonFormatter()));
@@ -25,8 +26,6 @@ try
         {
             logger.WriteTo.Async(wt => wt.Console());
         }
-
-        logger.ReadFrom.Configuration(builder.Configuration);
     });
 
     builder.Services.AddControllers();

@@ -1,0 +1,29 @@
+{
+  "Serilog": {
+    "Using": [],
+    "Enrich": [
+      "FromLogContext",
+      "WithMachineName",
+      "WithProcessId",
+      "WithThreadId",
+      "WithHangfireContext"
+    ],
+    "MinimumLevel": {
+      "Default": "Information",
+      "Override": {
+        "Hangfire": "Warning",
+        "Microsoft": "Error",
+        "Microsoft.Hosting.Lifetime": "Information",
+        "System": "Information"
+      }
+    },
+    "Properties": {
+      "Application": "FSH.WebApi"
+    },
+    "WriteTo": [
+      {
+        "Name": "Hangfire"
+      }
+    ]
+  }
+}
