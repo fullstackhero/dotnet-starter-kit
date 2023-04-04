@@ -1,4 +1,3 @@
-using FluentValidation.AspNetCore;
 using FSH.WebApi.Application;
 using FSH.WebApi.Host.Configurations;
 using FSH.WebApi.Host.Controllers;
@@ -21,7 +20,7 @@ try
         .ReadFrom.Configuration(builder.Configuration);
     });
 
-    builder.Services.AddControllers().AddFluentValidation();
+    builder.Services.AddControllers();
     builder.Services.AddInfrastructure(builder.Configuration);
     builder.Services.AddApplication();
 
