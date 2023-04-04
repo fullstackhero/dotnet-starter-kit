@@ -8,8 +8,9 @@ resource "aws_lb" "fsh_api_alb" {
 
 resource "aws_lb_target_group" "fsh_api_tg" {
   health_check {
-    enabled = true
-    path    = "/api/health"
+    enabled  = true
+    path     = "/api/health"
+    interval = 300
   }
   name        = "fsh-api-tg"
   port        = 80

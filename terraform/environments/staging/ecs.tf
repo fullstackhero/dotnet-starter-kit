@@ -15,13 +15,12 @@ resource "aws_ecs_cluster_capacity_providers" "cluster" {
 }
 
 resource "aws_ecs_service" "api_ecs_service" {
-  name                              = "webapi"
-  cluster                           = aws_ecs_cluster.cluster.id
-  task_definition                   = aws_ecs_task_definition.api_ecs_task.arn
-  launch_type                       = "FARGATE"
-  desired_count                     = 1
-  tags                              = merge(var.common_tags)
-  health_check_grace_period_seconds = 600
+  name            = "webapi"
+  cluster         = aws_ecs_cluster.cluster.id
+  task_definition = aws_ecs_task_definition.api_ecs_task.arn
+  launch_type     = "FARGATE"
+  desired_count   = 1
+  tags            = merge(var.common_tags)
 
   load_balancer {
     target_group_arn = aws_lb_target_group.fsh_api_tg.arn
