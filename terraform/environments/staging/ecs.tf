@@ -38,8 +38,8 @@ resource "aws_ecs_task_definition" "api_ecs_task" {
   family                   = "webapi"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = 256
-  memory                   = 512
+  cpu                      = 512
+  memory                   = 1024
   task_role_arn            = aws_iam_role.ecs_task_role.arn
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
   tags                     = merge(var.common_tags)
@@ -47,8 +47,8 @@ resource "aws_ecs_task_definition" "api_ecs_task" {
     {
       name : "webapi"
       image : "iammukeshm/dotnet-webapi:latest"
-      cpu : 256
-      memory : 512
+      cpu : 512
+      memory : 1024
       essential : true
       environment : [
         { "name" : "ASPNETCORE_ENVIRONMENT", "value" : "staging" },
