@@ -35,12 +35,12 @@ internal partial class UserService
 
     public async Task<string> ResetPasswordAsync(ResetPasswordRequest request)
     {
-        var user = await _userManager.FindByEmailAsync(request.Email?.Normalize());
+        var user = await _userManager.FindByEmailAsync(request.Email?.Normalize()!);
 
         // Don't reveal that the user does not exist
         _ = user ?? throw new InternalServerException(_t["An Error has occurred!"]);
 
-        var result = await _userManager.ResetPasswordAsync(user, request.Token, request.Password);
+        var result = await _userManager.ResetPasswordAsync(user, request.Token!, request.Password!);
 
         return result.Succeeded
             ? _t["Password Reset Successful!"]

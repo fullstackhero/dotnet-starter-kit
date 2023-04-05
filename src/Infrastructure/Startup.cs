@@ -45,10 +45,10 @@ public static class Startup
             .AddMailing(config)
             .AddMediatR(Assembly.GetExecutingAssembly())
             .RegisterValidators(Assembly.GetExecutingAssembly())
-            .AddMultitenancy(config)
+            .AddMultitenancy()
             .AddNotifications(config)
             .AddOpenApiDocumentation(config)
-            .AddPersistence(config)
+            .AddPersistence()
             .AddRequestLogging(config)
             .AddRouting(options => options.LowercaseUrls = true)
             .AddServices();

@@ -4,7 +4,6 @@ public class UpdateProductRequestValidator : CustomValidator<UpdateProductReques
 {
     public UpdateProductRequestValidator(IReadRepository<Product> productRepo, IReadRepository<Brand> brandRepo, IStringLocalizer<UpdateProductRequestValidator> T)
     {
-
         RuleFor(p => p.Name)
             .NotEmpty()
             .MaximumLength(75)

@@ -48,6 +48,7 @@ internal partial class UserService
         var user = await _userManager.FindByIdAsync(userId);
 
         _ = user ?? throw new InternalServerException(_t["An error occurred while confirming Mobile Phone."]);
+        if (string.IsNullOrEmpty(user.PhoneNumber)) throw new InternalServerException(_t["An error occurred while confirming Mobile Phone."]);
 
         var result = await _userManager.ChangePhoneNumberAsync(user, user.PhoneNumber, code);
 

@@ -7,7 +7,7 @@ namespace FSH.WebApi.Infrastructure.Auth.Jwt;
 
 internal static class Startup
 {
-    internal static IServiceCollection AddJwtAuth(this IServiceCollection services, IConfiguration config)
+    internal static IServiceCollection AddJwtAuth(this IServiceCollection services)
     {
         services.AddOptions<JwtSettings>()
             .BindConfiguration($"SecuritySettings:{nameof(JwtSettings)}")

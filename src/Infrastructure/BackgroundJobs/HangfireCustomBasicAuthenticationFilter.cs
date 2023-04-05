@@ -80,7 +80,7 @@ public class HangfireCustomBasicAuthenticationFilter : IDashboardAuthorizationFi
         return !_AuthenticationScheme.Equals(authValues.Scheme, StringComparison.InvariantCultureIgnoreCase);
     }
 
-    private void SetChallengeResponse(HttpContext httpContext)
+    private static void SetChallengeResponse(HttpContext httpContext)
     {
         httpContext.Response.StatusCode = 401;
         httpContext.Response.Headers.Append("WWW-Authenticate", "Basic realm=\"Hangfire Dashboard\"");
@@ -109,7 +109,7 @@ public class BasicAuthenticationTokens
         return Username.Equals(user) && Password.Equals(pass);
     }
 
-    private bool ValidTokenValue(string token)
+    private static bool ValidTokenValue(string token)
     {
         return string.IsNullOrWhiteSpace(token);
     }

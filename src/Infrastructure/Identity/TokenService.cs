@@ -44,7 +44,6 @@ internal class TokenService : ITokenService
             || await _userManager.FindByEmailAsync(request.Email.Trim().Normalize()) is not { } user
             || !await _userManager.CheckPasswordAsync(user, request.Password))
         {
-
             throw new UnauthorizedException(_t["Authentication Failed."]);
         }
 
@@ -78,7 +77,7 @@ internal class TokenService : ITokenService
     {
         var userPrincipal = GetPrincipalFromExpiredToken(request.Token);
         string? userEmail = userPrincipal.GetEmail();
-        var user = await _userManager.FindByEmailAsync(userEmail);
+        var user = await _userManager.FindByEmailAsync(userEmail!);
         if (user is null)
         {
             throw new UnauthorizedException(_t["Authentication Failed."]);
@@ -111,7 +110,7 @@ internal class TokenService : ITokenService
         new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id),
-            new(ClaimTypes.Email, user.Email),
+            new(ClaimTypes.Email, user.Email!),
             new(FSHClaims.Fullname, $"{user.FirstName} {user.LastName}"),
             new(ClaimTypes.Name, user.FirstName ?? string.Empty),
             new(ClaimTypes.Surname, user.LastName ?? string.Empty),
@@ -121,7 +120,7 @@ internal class TokenService : ITokenService
             new(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty)
         };
 
-    private string GenerateRefreshToken()
+    private static string GenerateRefreshToken()
     {
         byte[] randomNumber = new byte[32];
         using var rng = RandomNumberGenerator.Create();

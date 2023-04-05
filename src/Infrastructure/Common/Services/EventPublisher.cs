@@ -19,7 +19,7 @@ public class EventPublisher : IEventPublisher
         return _mediator.Publish(CreateEventNotification(@event));
     }
 
-    private INotification CreateEventNotification(IEvent @event) =>
+    private static INotification CreateEventNotification(IEvent @event) =>
         (INotification)Activator.CreateInstance(
             typeof(EventNotification<>).MakeGenericType(@event.GetType()), @event)!;
 }

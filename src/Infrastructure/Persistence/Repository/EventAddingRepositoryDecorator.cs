@@ -55,9 +55,9 @@ public class EventAddingRepositoryDecorator<T> : IRepositoryWithEvents<T>
         _decorated.GetByIdAsync(id, cancellationToken);
     public Task<T?> GetBySpecAsync<TSpec>(TSpec specification, CancellationToken cancellationToken = default)
         where TSpec : ISingleResultSpecification, ISpecification<T> =>
-        _decorated.GetBySpecAsync(specification, cancellationToken);
+        _decorated.FirstOrDefaultAsync(specification, cancellationToken);
     public Task<TResult?> GetBySpecAsync<TResult>(ISpecification<T, TResult> specification, CancellationToken cancellationToken = default) =>
-        _decorated.GetBySpecAsync(specification, cancellationToken);
+        _decorated.FirstOrDefaultAsync(specification, cancellationToken);
     public Task<List<T>> ListAsync(CancellationToken cancellationToken = default) =>
         _decorated.ListAsync(cancellationToken);
     public Task<List<T>> ListAsync(ISpecification<T> specification, CancellationToken cancellationToken = default) =>
@@ -80,7 +80,7 @@ public class EventAddingRepositoryDecorator<T> : IRepositoryWithEvents<T>
         _decorated.UpdateRangeAsync(entities, cancellationToken);
 
     public Task<T?> GetBySpecAsync(ISpecification<T> specification, CancellationToken cancellationToken = default)
-    => _decorated.GetBySpecAsync(specification, cancellationToken);
+    => _decorated.FirstOrDefaultAsync(specification, cancellationToken);
 
     public Task<T?> FirstOrDefaultAsync(ISpecification<T> specification, CancellationToken cancellationToken = default)
     => _decorated.FirstOrDefaultAsync(specification, cancellationToken);

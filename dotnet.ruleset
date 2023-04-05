@@ -37,6 +37,7 @@
   <Rules AnalyzerId="Microsoft.CodeAnalysis.CSharp" RuleNamespace="Microsoft.CodeAnalysis.CSharp">
     <Rule Id="AD0001" Action="Info" />
     <Rule Id="CS1591" Action="None" />
+    <Rule Id="CS8602" Action="None" />
   </Rules>
   <Rules AnalyzerId="Microsoft.CodeAnalysis.CSharp.Features" RuleNamespace="Microsoft.CodeAnalysis.CSharp.Features">
     <Rule Id="IDE0007" Action="None" />
@@ -56,6 +57,8 @@
     <Rule Id="RCS1009" Action="Hidden" />
     <Rule Id="RCS1012" Action="Hidden" />
     <Rule Id="RCS1022" Action="None" />
+    <Rule Id="RCS1205" Action="None" />
+    <Rule Id="SYSLIB1045" Action="None" />
     <Rule Id="RCS1023" Action="None" />
     <Rule Id="RCS1024" Action="None" />
     <Rule Id="RCS1025" Action="None" />

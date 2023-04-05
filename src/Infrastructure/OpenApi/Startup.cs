@@ -16,6 +16,7 @@ internal static class Startup
     internal static IServiceCollection AddOpenApiDocumentation(this IServiceCollection services, IConfiguration config)
     {
         var settings = config.GetSection(nameof(SwaggerSettings)).Get<SwaggerSettings>();
+        if (settings == null) return services;
         if (settings.Enable)
         {
             services.AddVersionedApiExplorer(o => o.SubstituteApiVersionInUrl = true);
@@ -29,7 +30,7 @@ internal static class Startup
                 return new FluentValidationSchemaProcessor(provider, validationRules, loggerFactory);
             });
 
-            services.AddOpenApiDocument((document, serviceProvider) =>
+            _ = services.AddOpenApiDocument((document, serviceProvider) =>
             {
                 document.PostProcess = doc =>
                 {
@@ -64,7 +65,7 @@ internal static class Startup
                                 TokenUrl = config["SecuritySettings:Swagger:TokenUrl"],
                                 Scopes = new Dictionary<string, string>
                                 {
-                                    { config["SecuritySettings:Swagger:ApiScope"], "access the api" }
+                                    { config["SecuritySettings:Swagger:ApiScope"]!, "access the api" }
                                 }
                             }
                         }

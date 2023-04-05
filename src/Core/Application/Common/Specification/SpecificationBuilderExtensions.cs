@@ -211,16 +211,13 @@ public static class SpecificationBuilderExtensions
     private static Expression CombineFilter(
         string filterOperator,
         Expression bExpresionBase,
-        Expression bExpresion)
-    {
-        return filterOperator switch
+        Expression bExpresion) => filterOperator switch
         {
             FilterLogic.AND => Expression.And(bExpresionBase, bExpresion),
             FilterLogic.OR => Expression.Or(bExpresionBase, bExpresion),
             FilterLogic.XOR => Expression.ExclusiveOr(bExpresionBase, bExpresion),
-            _ => throw new ArgumentException("FilterLogic is not valid.", nameof(FilterLogic)),
+            _ => throw new ArgumentException("FilterLogic is not valid."),
         };
-    }
 
     private static MemberExpression GetPropertyExpression(
         string propertyName,

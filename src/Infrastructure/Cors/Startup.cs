@@ -12,6 +12,7 @@ internal static class Startup
     internal static IServiceCollection AddCorsPolicy(this IServiceCollection services, IConfiguration config)
     {
         var corsSettings = config.GetSection(nameof(CorsSettings)).Get<CorsSettings>();
+        if (corsSettings == null) return services;
         var origins = new List<string>();
         if (corsSettings.Angular is not null)
             origins.AddRange(corsSettings.Angular.Split(';', StringSplitOptions.RemoveEmptyEntries));
