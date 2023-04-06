@@ -2,7 +2,7 @@ version: '3.8'
 name: fullstackhero
 services:
   dotnet-webapi:
-    image: "iammukeshm/dotnet-webapi:latest"
+    image: iammukeshm/dotnet-webapi:latest
     container_name: dotnet-webapi
     networks:
       - fullstackhero
