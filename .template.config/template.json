@@ -27,11 +27,10 @@
       "exclude": [
         ".template.config/**",
         ".idea/**",
-        ".vscode/**",
         ".vs/**",
         ".github/**",
         "icon.png",
-        "fsh-console/**",
+        "fsh-api-console/**",
         "scripts/**"
       ]
     }
