@@ -24,7 +24,7 @@
   {
     "_id": "d18bd1f2-c187-4225-b8f7-923778f88497",
     "name": "ecs",
-    "default": true,
+    "default": false,
     "sortNum": 20000,
     "created": "2023-04-04T12:35:14.058Z",
     "modified": "2023-04-04T12:35:14.058Z",
@@ -40,6 +40,28 @@
       {
         "name": "refresh_token",
         "value": "oM1A7Jn/yqAuB2qyHbu001sGPJTOf7wGJhTmVCosiak="
+      }
+    ]
+  },
+  {
+    "_id": "d1201d3b-1307-430f-9977-6f2e25c9d4cd",
+    "name": "docker",
+    "default": true,
+    "sortNum": 30000,
+    "created": "2023-04-06T12:29:08.099Z",
+    "modified": "2023-04-06T12:29:08.099Z",
+    "data": [
+      {
+        "name": "server_url",
+        "value": "https://localhost:5100/api"
+      },
+      {
+        "name": "access_token",
+        "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6ImE5NDcwNmI1LWU3ZGUtNDhmMi1hNTNjLTE5NzNlYzIyMDMwZCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6ImFkbWluQHJvb3QuY29tIiwiZnVsbE5hbWUiOiJyb290IEFkbWluIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6InJvb3QiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zdXJuYW1lIjoiQWRtaW4iLCJpcEFkZHJlc3MiOiIxNzIuMjAuMC4xIiwidGVuYW50Ijoicm9vdCIsImltYWdlX3VybCI6IiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL21vYmlsZXBob25lIjoiIiwiZXhwIjoxNjgwNzg3ODA5fQ.Y9HNUYJXpyRYf28TAY7W_fSIS7n7uJt5nszPF3yUd5M"
+      },
+      {
+        "name": "refresh_token",
+        "value": "eGIGuzMf7fCav0GmbdEHF7osTVe5kioPWlN4UsARitw="
       }
     ]
   }

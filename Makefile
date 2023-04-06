@@ -12,3 +12,5 @@ ta:
 	cd terraform/environments/staging && terraform apply
 td:
 	cd terraform/environments/staging && terraform destroy
+dcu:
+	cd docker-compose/ && docker-compose -f docker-compose.yml up -d
