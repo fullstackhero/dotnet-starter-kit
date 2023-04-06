@@ -42,8 +42,21 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  # elk:
+  #     container_name:  elasticsearch-kibana
+  #     image: sebp/elk:oss-8.5.3
+  #     environment:
+  #       - LOGSTASH_START=0
+  #     volumes:
+  #       - sebp-elk-data:/usr/share/elk/data
+  #     ports:
+  #       - 5601:5601
+  #       - 9200:9200
+  #     networks:
+  #       - fullstackhero
 volumes:
   postgres-data:
+  # sebp-elk-data:
 networks:
   fullstackhero:
     name:  fullstackhero

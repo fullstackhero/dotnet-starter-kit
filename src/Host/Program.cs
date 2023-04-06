@@ -3,6 +3,7 @@ using FSH.WebApi.Host.Configurations;
 using FSH.WebApi.Host.Controllers;
 using FSH.WebApi.Infrastructure;
 using FSH.WebApi.Infrastructure.Common;
+using FSH.WebApi.Infrastructure.Logging.Serilog;
 using Serilog;
 using Serilog.Formatting.Compact;
 
@@ -14,20 +15,7 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    builder.AddConfigurations();
-    builder.Host.UseSerilog((_, logger) =>
-    {
-        logger.ReadFrom.Configuration(builder.Configuration);
-        if (builder.Environment.EnvironmentName == "staging")
-        {
-            logger.WriteTo.Async(wt => wt.Console(new CompactJsonFormatter()));
-        }
-        else
-        {
-            logger.WriteTo.Async(wt => wt.Console());
-        }
-    });
-
+    builder.AddConfigurations().RegisterSerilog();
     builder.Services.AddControllers();
     builder.Services.AddInfrastructure(builder.Configuration);
     builder.Services.AddApplication();
