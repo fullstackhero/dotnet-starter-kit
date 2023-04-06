@@ -6,11 +6,15 @@ publish:
 	dotnet publish -c Release
 publish-to-hub:
 	dotnet publish -c Release -p:ContainerRegistry=docker.io -p:ContainerImageName=iammukeshm/dotnet-webapi
-tp:
+tp: # terraform plan
 	cd terraform/environments/staging && terraform plan
-ta:
+ta: # terraform apply
 	cd terraform/environments/staging && terraform apply
-td:
+td: # terraform destroy
 	cd terraform/environments/staging && terraform destroy
-dcu:
+dcu: # docker-compose up : webapi + postgresql
 	cd docker-compose/ && docker-compose -f docker-compose.yml up -d
+dcd: # docker-compose down : webapi + postgresql
+	cd docker-compose/ && docker-compose -f docker-compose.yml down -d
+fds: # force rededeploy aws ecs service
+	aws ecs update-service --force-new-deployment --service dotnet-webapi --cluster fullstackhero
