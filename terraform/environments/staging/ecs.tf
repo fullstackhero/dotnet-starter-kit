@@ -1,6 +1,6 @@
 resource "aws_ecs_cluster" "cluster" {
-  name = "fsh-cluster"
-  tags = merge(var.common_tags)
+  name = var.ecs_cluster_name
+  tags = merge(local.common_tags)
 }
 
 resource "aws_ecs_cluster_capacity_providers" "cluster" {
@@ -15,16 +15,16 @@ resource "aws_ecs_cluster_capacity_providers" "cluster" {
 }
 
 resource "aws_ecs_service" "api_ecs_service" {
-  name            = "webapi"
+  name            = var.api_service_name
   cluster         = aws_ecs_cluster.cluster.id
   task_definition = aws_ecs_task_definition.api_ecs_task.arn
   launch_type     = "FARGATE"
   desired_count   = 1
-  tags            = merge(var.common_tags)
+  tags            = merge(local.common_tags)
 
   load_balancer {
     target_group_arn = aws_lb_target_group.fsh_api_tg.arn
-    container_name   = "webapi"
+    container_name   = var.api_service_name
     container_port   = 80
   }
   network_configuration {
@@ -35,23 +35,23 @@ resource "aws_ecs_service" "api_ecs_service" {
 }
 
 resource "aws_ecs_task_definition" "api_ecs_task" {
-  family                   = "webapi"
+  family                   = var.api_service_name
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = 512
-  memory                   = 1024
+  cpu                      = var.api_container_cpu
+  memory                   = var.api_container_memory
   task_role_arn            = aws_iam_role.ecs_task_role.arn
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
-  tags                     = merge(var.common_tags)
+  tags                     = merge(local.common_tags)
   container_definitions = jsonencode([
     {
-      name : "webapi"
-      image : "iammukeshm/dotnet-webapi:latest"
-      cpu : 512
-      memory : 1024
+      name : var.api_service_name
+      image : var.api_image_name
+      cpu : var.api_container_cpu
+      memory : var.api_container_memory
       essential : true
       environment : [
-        { "name" : "ASPNETCORE_ENVIRONMENT", "value" : "staging" },
+        { "name" : "ASPNETCORE_ENVIRONMENT", "value" : var.environment },
         { "name" : "DatabaseSettings__ConnectionString", "value" : "Host=${aws_db_instance.postgres.endpoint};Port=5432;Database=fshdb;Username=${var.pg_username};Password=${var.pg_password};Include Error Detail=true" },
         { "name" : "DatabaseSettings__DBProvider", "value" : "postgresql" },
         { "name" : "HangfireSettings__Storage__ConnectionString", "value" : "Host=${aws_db_instance.postgres.endpoint};Port=5432;Database=fshdb;Username=${var.pg_username};Password=${var.pg_password};Include Error Detail=true" },
@@ -78,7 +78,7 @@ resource "aws_ecs_task_definition" "api_ecs_task" {
 resource "aws_security_group" "lb" {
   name   = "security-group"
   vpc_id = aws_vpc.project_ecs.id
-  tags   = merge(var.common_tags)
+  tags   = merge(local.common_tags)
   ingress {
     protocol    = "tcp"
     from_port   = 80
@@ -96,7 +96,7 @@ resource "aws_security_group" "lb" {
 
 resource "aws_internet_gateway" "api" {
   vpc_id = aws_vpc.project_ecs.id
-  tags   = merge(var.common_tags)
+  tags   = merge(local.common_tags)
 }
 
 resource "aws_route" "internet_access" {
@@ -108,5 +108,5 @@ resource "aws_route" "internet_access" {
 resource "aws_cloudwatch_log_group" "api_log_group" {
   name              = "fsh/dotnet-webapi"
   retention_in_days = 5
-  tags              = merge(var.common_tags)
+  tags              = merge(local.common_tags)
 }

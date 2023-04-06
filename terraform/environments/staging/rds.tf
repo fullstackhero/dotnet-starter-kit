@@ -1,6 +1,6 @@
 resource "aws_security_group" "rds_sg" {
   vpc_id = aws_vpc.project_ecs.id
-  tags   = merge(var.common_tags)
+  tags   = merge(local.common_tags)
   ingress {
     protocol    = "tcp"
     from_port   = 5432
@@ -20,7 +20,7 @@ resource "aws_db_instance" "postgres" {
   identifier             = var.db_name
   skip_final_snapshot    = true
   multi_az               = false
-  tags                   = merge(var.common_tags)
+  tags                   = merge(local.common_tags)
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
   db_subnet_group_name   = aws_db_subnet_group.default.name
 }

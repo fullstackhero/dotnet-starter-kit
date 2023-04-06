@@ -1,6 +1,6 @@
 resource "aws_iam_role" "ecs_task_execution_role" {
   name               = "fsh-ecs-task-execution-role"
-  tags               = merge(var.common_tags)
+  tags               = merge(local.common_tags)
   assume_role_policy = <<EOF
 {
  "Version": "2012-10-17",
@@ -19,7 +19,7 @@ EOF
 }
 resource "aws_iam_role" "ecs_task_role" {
   name               = "fsh-ecs-task-role"
-  tags               = merge(var.common_tags)
+  tags               = merge(local.common_tags)
   assume_role_policy = <<EOF
 {
  "Version": "2012-10-17",
