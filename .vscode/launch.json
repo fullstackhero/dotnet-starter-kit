@@ -6,7 +6,7 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/src/Host/bin/Debug/net6.0/FSH.WebApi.Host.dll",
+            "program": "${workspaceFolder}/src/Host/bin/Debug/net7.0/FSH.WebApi.Host.dll",
             "args": [],
             "cwd": "${workspaceFolder}/src/Host",
             "stopAtEntry": false,
