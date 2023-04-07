@@ -41,7 +41,7 @@
         <PackageReference Include="MimeKit" Version="3.3.0" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.4" />
         <PackageReference Include="NSwag.AspNetCore" Version="13.16.1" />
-        <PackageReference Include="RazorEngineCore" Version="2022.1.2" />
+        <PackageReference Include="RazorEngineCore" Version="2022.8.1" />
         <PackageReference Include="ZymLabs.NSwag.FluentValidation.AspNetCore" Version="0.6.2" />
         <PackageReference Include="Oracle.EntityFrameworkCore" Version="6.21.61" />
         <PackageReference Include="OrchardCore.Localization.Core" Version="1.4.0" />
