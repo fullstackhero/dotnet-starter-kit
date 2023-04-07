@@ -33,10 +33,10 @@ internal static class Startup
         }
         else
         {
-            services.AddMemoryCache();
             services.AddTransient<ICacheService, LocalCacheService>();
         }
 
+        services.AddMemoryCache();
         return services;
     }
 }
