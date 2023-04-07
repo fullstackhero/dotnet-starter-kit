@@ -1,12 +1,10 @@
 resource "aws_ecs_cluster" "cluster" {
   name = var.ecs_cluster_name
-  tags = merge(local.common_tags)
 }
 
 resource "aws_ecs_cluster_capacity_providers" "cluster" {
   cluster_name       = aws_ecs_cluster.cluster.name
   capacity_providers = ["FARGATE"]
-
   default_capacity_provider_strategy {
     base              = 1
     weight            = 100
@@ -20,8 +18,6 @@ resource "aws_ecs_service" "api_ecs_service" {
   task_definition = aws_ecs_task_definition.api_ecs_task.arn
   launch_type     = "FARGATE"
   desired_count   = 1
-  tags            = merge(local.common_tags)
-
   load_balancer {
     target_group_arn = aws_lb_target_group.fsh_api_tg.arn
     container_name   = var.api_service_name
@@ -42,7 +38,6 @@ resource "aws_ecs_task_definition" "api_ecs_task" {
   memory                   = var.api_container_memory
   task_role_arn            = aws_iam_role.ecs_task_role.arn
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
-  tags                     = merge(local.common_tags)
   container_definitions = jsonencode([
     {
       name : var.api_service_name
@@ -78,7 +73,6 @@ resource "aws_ecs_task_definition" "api_ecs_task" {
 resource "aws_security_group" "lb" {
   name   = "security-group"
   vpc_id = aws_vpc.project_ecs.id
-  tags   = merge(local.common_tags)
   ingress {
     protocol    = "tcp"
     from_port   = 80
@@ -96,7 +90,6 @@ resource "aws_security_group" "lb" {
 
 resource "aws_internet_gateway" "api" {
   vpc_id = aws_vpc.project_ecs.id
-  tags   = merge(local.common_tags)
 }
 
 resource "aws_route" "internet_access" {
@@ -108,5 +101,4 @@ resource "aws_route" "internet_access" {
 resource "aws_cloudwatch_log_group" "api_log_group" {
   name              = "fsh/dotnet-webapi"
   retention_in_days = 5
-  tags              = merge(local.common_tags)
 }
