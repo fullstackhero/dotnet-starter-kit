@@ -8,7 +8,7 @@
     "method": "POST",
     "sortNum": 10000,
     "created": "2023-04-07T15:15:13.365Z",
-    "modified": "2023-04-07T15:16:54.253Z",
+    "modified": "2023-04-07T16:09:57.242Z",
     "headers": [
       {
         "name": "tenant",
@@ -22,7 +22,7 @@
     "params": [],
     "body": {
       "type": "json",
-      "raw": "{\n    \"email\":\"admin@root.com\",\n    \"password\":\"123Pa$$word!\"\n}",
+      "raw": "{\n  \"email\": \"admin@root.com\",\n  \"password\": \"123Pa$$word!\"\n}",
       "form": []
     },
     "auth": {
@@ -94,12 +94,15 @@
     "method": "POST",
     "sortNum": 40000,
     "created": "2023-04-07T15:15:13.368Z",
-    "modified": "2023-04-07T15:15:13.368Z",
+    "modified": "2023-04-07T16:10:09.898Z",
     "headers": [],
+    "params": [],
     "body": {
       "type": "json",
-      "raw": "{\r\n    \"name\":\"Manager\",\r\n    \"description\":\"tadaaaa!\"\r\n}"
-    }
+      "raw": "{\n    \"name\":\"Manager\",\n    \"description\":\"tadaaaa!\"\n}",
+      "form": []
+    },
+    "tests": []
   },
   {
     "_id": "27ef9662-3950-410d-9db5-a9b933e2c87c",
@@ -134,12 +137,15 @@
     "method": "PUT",
     "sortNum": 70000,
     "created": "2023-04-07T15:15:13.371Z",
-    "modified": "2023-04-07T15:15:13.371Z",
+    "modified": "2023-04-07T16:10:17.954Z",
     "headers": [],
+    "params": [],
     "body": {
       "type": "json",
-      "raw": "{\r\n    \"RoleId\": \"17c9fb87-a92f-404d-b2e4-30ce88f5f6b6\",\r\n    \"Permissions\": [\"Permissions.Brands.BJ\"]\r\n}"
-    }
+      "raw": "{\n    \"RoleId\": \"17c9fb87-a92f-404d-b2e4-30ce88f5f6b6\",\n    \"Permissions\": [\"Permissions.Brands.BJ\"]\n}",
+      "form": []
+    },
+    "tests": []
   },
   {
     "_id": "c19424e6-21de-4650-90a1-473eb0d8faaf",
