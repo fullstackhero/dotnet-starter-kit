@@ -89,28 +89,22 @@ internal class TenantService : ITenantService
     public async Task<string> DeactivateAsync(string id)
     {
         var tenant = await GetTenantInfoAsync(id);
-
         if (!tenant.IsActive)
         {
             throw new ConflictException(_t["Tenant is already Deactivated."]);
         }
 
         tenant.Deactivate();
-
         await _tenantStore.TryUpdateAsync(tenant);
-
-        return _t[$"Tenant {0} is now Deactivated.", id];
+        return _t["Tenant {0} is now Deactivated.", id];
     }
 
     public async Task<string> UpdateSubscription(string id, DateTime extendedExpiryDate)
     {
         var tenant = await GetTenantInfoAsync(id);
-
         tenant.SetValidity(extendedExpiryDate);
-
         await _tenantStore.TryUpdateAsync(tenant);
-
-        return _t[$"Tenant {0}'s Subscription Upgraded. Now Valid till {1}.", id, tenant.ValidUpto];
+        return _t["Tenant {0}'s Subscription Upgraded. Now Valid till {1}.", id, tenant.ValidUpto];
     }
 
     private async Task<FSHTenantInfo> GetTenantInfoAsync(string id) =>
