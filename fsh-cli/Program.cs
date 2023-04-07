@@ -21,7 +21,16 @@ if (firstArg == "update" || firstArg == "u")
 
 async Task UpdateFshCliTool()
 {
-    throw new NotImplementedException();
+    Console.WriteLine("updating the fsh cli tool...");
+    var fshPsi = new ProcessStartInfo
+    {
+        FileName = "dotnet",
+        Arguments = "tool update -g FSH.CLI -v=q"
+    };
+    using var fshProc = Process.Start(fshPsi)!;
+    await fshProc.WaitForExitAsync();
+
+    Console.WriteLine("completed updating the fsh cli tool...");
 }
 
 if (firstArg == "api")

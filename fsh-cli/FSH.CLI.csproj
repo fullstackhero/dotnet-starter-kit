@@ -7,7 +7,7 @@
     <PackageOutputPath>./nupkg</PackageOutputPath>
     <PackageVersion>1.0.0</PackageVersion>
     <PackageId>FSH.CLI</PackageId>
-    <Title>FullStackHero .NET WebAPI CLI Tool</Title>
+    <Title>FullStackHero CLI Tool</Title>
     <Authors>Mukesh Murugan</Authors>
     <Description>FSH CLI tool for creating and using FullStackHero Boilerplate Projects.</Description>
     <PackageTags>dotnet-new;templates</PackageTags>
