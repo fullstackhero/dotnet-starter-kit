@@ -48,12 +48,21 @@ internal class ExceptionMiddleware : IMiddleware
                 ErrorId = errorId,
                 SupportMessage = _t["Provide the ErrorId {0} to the support team for further analysis.", errorId]
             };
-            errorResult.Messages.Add(exception.Message);
+
             if (exception is not CustomException && exception.InnerException != null)
             {
                 while (exception.InnerException != null)
                 {
                     exception = exception.InnerException;
+                }
+            }
+
+            if (exception is FluentValidation.ValidationException fluentException)
+            {
+                errorResult.Exception = "One or More Validations failed.";
+                foreach (var error in fluentException.Errors)
+                {
+                    errorResult.Messages.Add(error.ErrorMessage);
                 }
             }
 
@@ -70,6 +79,10 @@ internal class ExceptionMiddleware : IMiddleware
 
                 case KeyNotFoundException:
                     errorResult.StatusCode = (int)HttpStatusCode.NotFound;
+                    break;
+
+                case FluentValidation.ValidationException:
+                    errorResult.StatusCode = (int)HttpStatusCode.BadRequest;
                     break;
 
                 default:
