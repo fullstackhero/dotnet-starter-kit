@@ -3,13 +3,13 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
     <PackAsTool>true</PackAsTool>
-    <ToolCommandName>fsh-api</ToolCommandName>
+    <ToolCommandName>fsh</ToolCommandName>
     <PackageOutputPath>./nupkg</PackageOutputPath>
     <PackageVersion>1.0.0</PackageVersion>
-    <PackageId>FSH.API.CLI</PackageId>
+    <PackageId>FSH.CLI</PackageId>
     <Title>FullStackHero .NET WebAPI CLI Tool</Title>
     <Authors>Mukesh Murugan</Authors>
-    <Description>FSH CLI tool for creating and using FSH .NET WebAPI Boilerplate Projects.</Description>
+    <Description>FSH CLI tool for creating and using FullStackHero Boilerplate Projects.</Description>
     <PackageTags>dotnet-new;templates</PackageTags>
     <RepositoryUrl>https://github.com/fullstackhero/dotnet-webapi-boilerplate</RepositoryUrl>
     <PackageProjectUrl>https://fullstackhero.net/</PackageProjectUrl>
