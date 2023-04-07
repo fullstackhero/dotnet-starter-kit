@@ -30,7 +30,7 @@
         ".vs/**",
         ".github/**",
         "icon.png",
-        "fsh-api-console/**",
+        "fsh-api-cli/**",
         "scripts/**"
       ]
     }
