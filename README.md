@@ -153,9 +153,7 @@ Join our Discord - [fullstackhero @ Discord](https://discord.gg/gdgHRt4mMw)
 
 Submit your PR and join the elite list!
 
-<a href="https://github.com/fullstackhero/dotnet-webapi-boilerplate/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=fullstackhero/dotnet-webapi-boilerplate" />
-</a>
+[![fsh dotnet webapi contributors](https://contrib.rocks/image?repo=fullstackhero/dotnet-webapi-boilerplate "fsh dotnet webapi contributors")](https://github.com/fullstackhero/dotnet-webapi-boilerplate/graphs/contributors)
 
 ## License
 
