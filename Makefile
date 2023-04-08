@@ -21,5 +21,6 @@ dcd: # docker-compose down : webapi + postgresql
 fds: # force rededeploy aws ecs service
 	aws ecs update-service --force-new-deployment --service dotnet-webapi --cluster fullstackhero
 gw: # git docker workflow to push docker image to the repository based on the main branch
-	@echo "triggering github workflow to push docker image to container"
+	@echo triggering github workflow to push docker image to container
+	@echo ensure that you have the gh-cli installed and authenticated.
 	gh workflow run dotnet-cicd -f push_to_docker=true
