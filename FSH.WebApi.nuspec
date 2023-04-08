@@ -9,9 +9,9 @@
       Clean Architecture Template for .NET 7.0 WebAPI built with Multitenancy Support.
     </description>
     <language>en-US</language>
-    <license type="expression">MIT</license>
+    <license type="file">./content/LICENSE</license>
     <copyright>2023</copyright>
-    <readme>README.md</readme>
+    <readme>./content/README.md</readme>
     <projectUrl>https://fullstackhero.net/dotnet-webapi-boilerplate/general/getting-started/</projectUrl>
     <repository type="git" url="https://github.com/fullstackhero/dotnet-webapi-boilerplate.git"/>
     <packageTypes>
@@ -22,6 +22,5 @@
   </metadata>
   <files>
     <file src=".\**" target="content" exclude="**\bin\**;**\obj\**;**\.git\**;**\.github\**;**\*.user;**\.vs\**;**\Images\**;**\Logs\**;**\.terraform\**;**\.terraform.lock.hcl;**\terraform.tfstate;**\.nupkg;**\nupkg;" />
-    <file src="README.md" target="\" />
   </files>
 </package>
