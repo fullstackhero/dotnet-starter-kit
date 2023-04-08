@@ -138,8 +138,6 @@ Getting Started - [Read](https://fullstackhero.net/dotnet-webapi-boilerplate/gen
 
 Development Environment - [Learn about setting up the DEV environment](https://fullstackhero.net/dotnet-webapi-boilerplate/general/development-environment/)
 
-Track Progress - [Release 1.0 Milestones](https://github.com/fullstackhero/dotnet-webapi-boilerplate/milestone/1)
-
 Participate in Discussions - [QNA & General Discussions](https://github.com/fullstackhero/dotnet-webapi-boilerplate/discussions)
 
 Join our Discord - [fullstackhero @ Discord](https://discord.gg/gdgHRt4mMw)
@@ -166,15 +164,16 @@ Submit your PR and join the elite list!
 
 This project is licensed with the [MIT license](LICENSE).
 
-## Support :star:
+## Support ⭐
 
 Has this Project helped you learn something New? or Helped you at work?
 Here are a few ways by which you can support.
 
--   Leave a star! :star:
+-   Leave a star! ⭐
 -   Recommend this awesome project to your colleagues. 🥇
 -   Do consider endorsing me on LinkedIn for ASP.NET Core - [Connect via LinkedIn](https://codewithmukesh.com/linkedin) 🦸
--   Or, If you want to support this project in the long run, [consider buying me a coffee](https://www.buymeacoffee.com/codewithmukesh)! ☕
+-   Sponsor the project - [opencollective/fullstackhero](https://opencollective.com/fullstackhero) ❤️
+-   Or, [consider buying me a coffee](https://www.buymeacoffee.com/codewithmukesh)! ☕
 
 <br>
 
