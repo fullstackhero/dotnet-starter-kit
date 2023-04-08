@@ -51,7 +51,7 @@ if (firstArg == "wasm")
 
 async Task InstallTemplates()
 {
-    Console.WriteLine("installing fsh dotnet webapi template...");
+    WriteSuccessMessage("installing fsh dotnet webapi template...");
     var apiPsi = new ProcessStartInfo
     {
         FileName = "dotnet",
@@ -69,7 +69,7 @@ async Task InstallTemplates()
     using var wasmProc = Process.Start(wasmPsi)!;
     await wasmProc.WaitForExitAsync();
 
-    Console.WriteLine("installed the required templates.");
+    WriteSuccessMessage("installed the required templates.");
     Console.WriteLine("get started by using : fsh <type> new <projectname>.");
     Console.WriteLine("note : <type> can be api, wasm.");
     Console.WriteLine("refer to documentation at https://fullstackhero.net/dotnet-webapi-boilerplate/general/getting-started");
@@ -85,8 +85,8 @@ async Task BootstrapWebApiSolution(string projectName)
     };
     using var proc = Process.Start(psi)!;
     await proc.WaitForExitAsync();
-    Console.WriteLine($"fsh-api project {projectName} successfully created.");
-    Console.WriteLine("application ready! build something amazing!");
+    WriteSuccessMessage($"fsh-api project {projectName} successfully created.");
+    WriteSuccessMessage("application ready! build something amazing!");
     Console.WriteLine("refer to documentation at https://fullstackhero.net/dotnet-webapi-boilerplate/general/getting-started");
 }
 
@@ -100,7 +100,14 @@ async Task BootstrapBlazorWasmSolution(string projectName)
     };
     using var proc = Process.Start(psi)!;
     await proc.WaitForExitAsync();
-    Console.WriteLine($"fullstackhero blazor wasm solution {projectName} successfully created.");
-    Console.WriteLine("application ready! build something amazing!");
+    WriteSuccessMessage($"fullstackhero blazor wasm solution {projectName} successfully created.");
+    WriteSuccessMessage("application ready! build something amazing!");
     Console.WriteLine("refer to documentation at https://fullstackhero.net/blazor-webassembly-boilerplate/general/getting-started/");
+}
+
+void WriteSuccessMessage(string message)
+{
+    Console.ForegroundColor = ConsoleColor.Green;
+    Console.WriteLine(message);
+    Console.ResetColor();
 }

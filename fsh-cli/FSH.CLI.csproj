@@ -5,7 +5,7 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>fsh</ToolCommandName>
     <PackageOutputPath>./nupkg</PackageOutputPath>
-    <PackageVersion>0.0.3</PackageVersion>
+    <PackageVersion>0.0.4</PackageVersion>
     <PackageId>FSH.CLI</PackageId>
     <Title>FullStackHero CLI Tool</Title>
     <Authors>Mukesh Murugan</Authors>
