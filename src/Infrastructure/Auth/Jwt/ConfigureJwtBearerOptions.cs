@@ -21,7 +21,7 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
         Configure(string.Empty, options);
     }
 
-    public void Configure(string name, JwtBearerOptions options)
+    public void Configure(string? name, JwtBearerOptions options)
     {
         if (name != JwtBearerDefaults.AuthenticationScheme)
         {

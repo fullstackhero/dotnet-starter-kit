@@ -41,7 +41,7 @@ public class ConnectionStringSecurer : IConnectionStringSecurer
         };
     }
 
-    private string MakeSecureOracleConnectionString(string connectionString)
+    private static string MakeSecureOracleConnectionString(string connectionString)
     {
         var builder = new OracleConnectionStringBuilder(connectionString);
 
@@ -58,7 +58,7 @@ public class ConnectionStringSecurer : IConnectionStringSecurer
         return builder.ToString();
     }
 
-    private string MakeSecureMySqlConnectionString(string connectionString)
+    private static string MakeSecureMySqlConnectionString(string connectionString)
     {
         var builder = new MySqlConnectionStringBuilder(connectionString);
 
@@ -75,7 +75,7 @@ public class ConnectionStringSecurer : IConnectionStringSecurer
         return builder.ToString();
     }
 
-    private string MakeSecureSqlConnectionString(string connectionString)
+    private static string MakeSecureSqlConnectionString(string connectionString)
     {
         var builder = new SqlConnectionStringBuilder(connectionString);
 
@@ -92,14 +92,14 @@ public class ConnectionStringSecurer : IConnectionStringSecurer
         return builder.ToString();
     }
 
-    private string MakeSecureSqLiteConnectionString(string connectionString)
+    private static string MakeSecureSqLiteConnectionString(string connectionString)
     {
         var builder = new SqliteConnection(connectionString);
 
         return builder.ToString();
     }
 
-    private string MakeSecureNpgsqlConnectionString(string connectionString)
+    private static string MakeSecureNpgsqlConnectionString(string connectionString)
     {
         var builder = new NpgsqlConnectionStringBuilder(connectionString);
 

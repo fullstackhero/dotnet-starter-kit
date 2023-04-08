@@ -5,33 +5,33 @@
 
 <a href="https://twitter.com/intent/follow?screen_name=iammukeshm">
     <img src="https://img.shields.io/twitter/follow/iammukeshm.svg?label=Follow%20@iammukeshm" alt="Follow @iammukeshm" />
-</a> &nbsp; <a href="https://twitter.com/intent/follow?screen_name=codewithmukesh">
-    <img src="https://img.shields.io/twitter/follow/codewithmukesh.svg?label=Follow%20@codewithmukesh" alt="Follow @codewithmukesh" />
 </a>
 
 <p>
 
 <p align="center">
-    <img src="https://codewithmukesh.com/wp-content/uploads/2022/02/fullstackhero-dotnet-webapi-banner.png" alt="fullstackhero">
+    <img src="https://codewithmukesh.com/wp-content/uploads/2023/04/fullstack-hero-dotnet-7-webapi-boilerplate-banner.png" alt="fullstackhero">
 </p>
 
 ## What's fullstackhero's .NET Web API Boilerplate?
 
-fullstackhero's .NET Web API Boilerplate is a starting point for your next `.NET 6 Clean Architecture Project` that incorporates the most essential packages and features your projects will ever need including out of the box Multi-Tenancy support. This project can save well over `200+ hours` of development time for your team.
+fullstackhero's .NET Web API Boilerplate is a starting point for your next `.NET 7 Clean Architecture Project` that incorporates the most essential packages and features your projects will ever need including out of the box Multi-Tenancy support. This project can save well over `200+ hours` of development time for your team.
 
 > As the name suggests, this is an API / Server Boilerplate. You can find other Client Boilerplates that consume this API under `@fullstackhero` handle.
 > - Find `Blazor WebAssembly Boilerplate` here - https://github.com/fullstackhero/blazor-wasm-boilerplate
 
 ## Goals
 
-The goal of this repository is to provide a complete and feature-rich starting point for any .NET Developer / Team to kick-start their next major project using .NET 6 Web API. This also serves the purpose of learning advanced concepts and implementations such as `Multitenancy, CQRS, Onion Architecture, Clean Coding standards` and so on.
+The goal of this repository is to provide a complete and feature-rich starting point for any .NET Developer / Team to kick-start their next major project using .NET 7 Web API. This also serves the purpose of learning advanced concepts and implementations such as `Multitenancy, CQRS, Onion Architecture, Clean Coding standards, Cloud Deployments with Terraform to AWS, Docker Concepts, CICD Pipelines & Workflows` and so on.
 
 ## Features
 
-- [x] Built on .NET 6.0
+- [x] Built on .NET 7.0
 - [x] Follows Clean Architecture Principles
 - [x] Domain Driven Design
-- [ ] Completely Documented at [fullstackhero.net](https://fullstackhero.net)
+- [x] Cloud Ready. Can be deployed to AWS Infrastructure as ECS Containers using Terraform!
+- [x] Docker-Compose File Examples
+- [x] Documented at [fullstackhero.net](https://fullstackhero.net)
 - [x] Multi Tenancy Support with Finbuckle
   - [x] Create Tenants with Multi Database / Shared Database Support
   - [x] Activate / Deactivate Tenants on Demand

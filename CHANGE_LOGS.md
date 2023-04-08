@@ -45,7 +45,7 @@
 - File-Scoped namespaces and implicit usings
 - Better Folder Structure / Modular
 
-## 0.0.6-rc `Current`
+## 0.0.6-rc
 
 Released on `2022-02-26`
 
@@ -69,3 +69,10 @@ Release Tag - https://github.com/fullstackhero/dotnet-webapi-boilerplate/tree/0.
 - Export to Excel Support
 - Specification Pattern using Ardalis packages
 - OpenAPI Client Generation
+
+
+## 1.0.0
+
+Released on `2023-04-08`
+
+Release Tag - https://github.com/fullstackhero/dotnet-webapi-boilerplate/tree/1.0.0

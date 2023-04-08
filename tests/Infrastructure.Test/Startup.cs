@@ -14,10 +14,10 @@ namespace Infrastructure.Test;
 
 public class Startup
 {
-    public void ConfigureHost(IHostBuilder host) =>
+    public static void ConfigureHost(IHostBuilder host) =>
         host.ConfigureHostConfiguration(config => config.AddJsonFile("appsettings.json"));
 
-    public void ConfigureServices(IServiceCollection services, HostBuilderContext context) =>
+    public static void ConfigureServices(IServiceCollection services, HostBuilderContext context) =>
         services
             .AddTransient<IMemoryCache, MemoryCache>()
             .AddTransient<LocalCacheService>()

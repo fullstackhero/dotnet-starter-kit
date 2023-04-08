@@ -16,7 +16,7 @@
   },
   "identity": "FullStackHero.WebAPI.Boilerplate",
   "name": "FullStackHero WebAPI Boilerplate",
-  "description": "Clean Architecture Template for .NET 6.0 WebApi built with Multitenancy Support.",
+  "description": "Clean Architecture Template for .NET 7.0 WebApi built with Multitenancy Support.",
   "shortName": "fsh-api",
   "sourceName": "FSH.WebApi",
   "preferNameDirectory": true,
@@ -25,7 +25,13 @@
       "source": "./",
       "target": "./",
       "exclude": [
-        ".template.config/**"
+        ".template.config/**",
+        ".idea/**",
+        ".vs/**",
+        ".github/**",
+        "icon.png",
+        "fsh-api-cli/**",
+        "scripts/**"
       ]
     }
   ],

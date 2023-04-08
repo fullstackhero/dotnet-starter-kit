@@ -1,0 +1,49 @@
+version: '3.8'
+name: fullstackhero
+services:
+  dotnet-webapi:
+    image: iammukeshm/dotnet-webapi:latest
+    container_name: dotnet-webapi
+    networks:
+      - fullstackhero
+    environment:
+      - ASPNETCORE_ENVIRONMENT=docker
+      - ASPNETCORE_URLS=https://+:5100;http://+:5010
+      - ASPNETCORE_HTTPS_PORT=5100
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=password!
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/cert.pfx
+      - DatabaseSettings__ConnectionString=Server=mssql;Database=fshdb;User=sa;Password=123Pa$$word!;MultipleActiveResultSets=true;Encrypt=false
+      - HangfireSettings__Storage__ConnectionString=Server=mssql;Database=fshdb;User=sa;Password=123Pa$$word!;MultipleActiveResultSets=true;Encrypt=false
+      - DatabaseSettings__DBProvider=mssql
+      - HangfireSettings__Storage__StorageProvider=mssql
+    volumes:
+      - ~/.aspnet/https:/https:ro
+    ports:
+      - 5100:5100
+      - 5010:5010
+    depends_on:
+      mssql:
+        condition: service_healthy
+    restart: on-failure
+  mssql:
+    image: mcr.microsoft.com/mssql/server:latest
+    environment:
+      - SA_PASSWORD=123Pa$$word!
+      - ACCEPT_EULA=Y
+    container_name: mssql
+    volumes:
+      - mssql-data:/data/db
+    networks:
+      - fullstackhero
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$$SA_PASSWORD" -Q
+        "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+volumes:
+  mssql-data:
+networks:
+  fullstackhero:
+    name:  fullstackhero

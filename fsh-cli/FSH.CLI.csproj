@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net7.0</TargetFramework>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>fsh</ToolCommandName>
+    <PackageOutputPath>./nupkg</PackageOutputPath>
+    <PackageVersion>0.0.4</PackageVersion>
+    <PackageId>FSH.CLI</PackageId>
+    <Title>FullStackHero CLI Tool</Title>
+    <Authors>Mukesh Murugan</Authors>
+    <Description>FSH CLI tool for creating and using FullStackHero Boilerplate Projects.</Description>
+    <PackageTags>dotnet-new;templates</PackageTags>
+    <RepositoryUrl>https://github.com/fullstackhero/dotnet-webapi-boilerplate</RepositoryUrl>
+    <PackageProjectUrl>https://fullstackhero.net/</PackageProjectUrl>
+
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageIcon>icon.png</PackageIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+	  <None Update="LICENSE">
+		  <Pack>True</Pack>
+		  <PackagePath>\</PackagePath>
+	  </None>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+</Project>

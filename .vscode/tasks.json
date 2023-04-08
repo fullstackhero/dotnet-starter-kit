@@ -15,62 +15,6 @@
         "reveal": "silent"
       },
       "problemMatcher": "$msCompile"
-    },
-    {
-      "type": "docker-build",
-      "label": "docker-build: debug",
-      "dependsOn": [
-        "build"
-      ],
-      "dockerBuild": {
-        "tag": "dotnetwebapiboilerplate:dev",
-        "target": "base",
-        "dockerfile": "${workspaceFolder}/src/Host/Dockerfile",
-        "context": "${workspaceFolder}",
-        "pull": true
-      },
-      "netCore": {
-        "appProject": "${workspaceFolder}/src/Host/Host.csproj"
-      }
-    },
-    {
-      "type": "docker-build",
-      "label": "docker-build: release",
-      "dependsOn": [
-        "build"
-      ],
-      "dockerBuild": {
-        "tag": "dotnetwebapiboilerplate:latest",
-        "dockerfile": "${workspaceFolder}/src/Host/Dockerfile",
-        "context": "${workspaceFolder}",
-        "pull": true
-      },
-      "netCore": {
-        "appProject": "${workspaceFolder}/src/Host/Host.csproj"
-      }
-    },
-    {
-      "type": "docker-run",
-      "label": "docker-run: debug",
-      "dependsOn": [
-        "docker-build: debug"
-      ],
-      "dockerRun": {},
-      "netCore": {
-        "appProject": "${workspaceFolder}/src/Host/Host.csproj",
-        "enableDebugging": true
-      }
-    },
-    {
-      "type": "docker-run",
-      "label": "docker-run: release",
-      "dependsOn": [
-        "docker-build: release"
-      ],
-      "dockerRun": {},
-      "netCore": {
-        "appProject": "${workspaceFolder}/src/Host/Host.csproj"
-      }
     }
   ]
 }

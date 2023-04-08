@@ -1,10 +1,11 @@
-using FluentValidation.AspNetCore;
 using FSH.WebApi.Application;
 using FSH.WebApi.Host.Configurations;
 using FSH.WebApi.Host.Controllers;
 using FSH.WebApi.Infrastructure;
 using FSH.WebApi.Infrastructure.Common;
+using FSH.WebApi.Infrastructure.Logging.Serilog;
 using Serilog;
+using Serilog.Formatting.Compact;
 
 [assembly: ApiConventionType(typeof(FSHApiConventions))]
 
@@ -14,14 +15,8 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    builder.Host.AddConfigurations();
-    builder.Host.UseSerilog((_, config) =>
-    {
-        config.WriteTo.Console()
-        .ReadFrom.Configuration(builder.Configuration);
-    });
-
-    builder.Services.AddControllers().AddFluentValidation();
+    builder.AddConfigurations().RegisterSerilog();
+    builder.Services.AddControllers();
     builder.Services.AddInfrastructure(builder.Configuration);
     builder.Services.AddApplication();
 

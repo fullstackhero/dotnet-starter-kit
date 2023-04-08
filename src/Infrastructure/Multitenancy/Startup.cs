@@ -13,7 +13,7 @@ namespace FSH.WebApi.Infrastructure.Multitenancy;
 
 internal static class Startup
 {
-    internal static IServiceCollection AddMultitenancy(this IServiceCollection services, IConfiguration config)
+    internal static IServiceCollection AddMultitenancy(this IServiceCollection services)
     {
         return services
             .AddDbContext<TenantDbContext>((p, m) =>

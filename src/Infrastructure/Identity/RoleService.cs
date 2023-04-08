@@ -65,7 +65,7 @@ internal class RoleService : IRoleService
 
         role.Permissions = await _db.RoleClaims
             .Where(c => c.RoleId == roleId && c.ClaimType == FSHClaims.Permission)
-            .Select(c => c.ClaimValue)
+            .Select(c => c.ClaimValue!)
             .ToListAsync(cancellationToken);
 
         return role;
@@ -84,7 +84,7 @@ internal class RoleService : IRoleService
                 throw new InternalServerException(_t["Register role failed"], result.GetErrors(_t));
             }
 
-            await _events.PublishAsync(new ApplicationRoleCreatedEvent(role.Id, role.Name));
+            await _events.PublishAsync(new ApplicationRoleCreatedEvent(role.Id, role.Name!));
 
             return string.Format(_t["Role {0} Created."], request.Name);
         }
@@ -95,7 +95,7 @@ internal class RoleService : IRoleService
 
             _ = role ?? throw new NotFoundException(_t["Role Not Found"]);
 
-            if (FSHRoles.IsDefault(role.Name))
+            if (FSHRoles.IsDefault(role.Name!))
             {
                 throw new ConflictException(string.Format(_t["Not allowed to modify {0} Role."], role.Name));
             }
@@ -159,7 +159,7 @@ internal class RoleService : IRoleService
             }
         }
 
-        await _events.PublishAsync(new ApplicationRoleUpdatedEvent(role.Id, role.Name, true));
+        await _events.PublishAsync(new ApplicationRoleUpdatedEvent(role.Id, role.Name!, true));
 
         return _t["Permissions Updated."];
     }
@@ -170,19 +170,19 @@ internal class RoleService : IRoleService
 
         _ = role ?? throw new NotFoundException(_t["Role Not Found"]);
 
-        if (FSHRoles.IsDefault(role.Name))
+        if (FSHRoles.IsDefault(role.Name!))
         {
             throw new ConflictException(string.Format(_t["Not allowed to delete {0} Role."], role.Name));
         }
 
-        if ((await _userManager.GetUsersInRoleAsync(role.Name)).Count > 0)
+        if ((await _userManager.GetUsersInRoleAsync(role.Name!)).Count > 0)
         {
             throw new ConflictException(string.Format(_t["Not allowed to delete {0} Role as it is being used."], role.Name));
         }
 
         await _roleManager.DeleteAsync(role);
 
-        await _events.PublishAsync(new ApplicationRoleDeletedEvent(role.Id, role.Name));
+        await _events.PublishAsync(new ApplicationRoleDeletedEvent(role.Id, role.Name!));
 
         return string.Format(_t["Role {0} Deleted."], role.Name);
     }

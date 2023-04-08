@@ -166,7 +166,7 @@ internal partial class UserService
         user.FirstName = request.FirstName;
         user.LastName = request.LastName;
         user.PhoneNumber = request.PhoneNumber;
-        string phoneNumber = await _userManager.GetPhoneNumberAsync(user);
+        string? phoneNumber = await _userManager.GetPhoneNumberAsync(user);
         if (request.PhoneNumber != phoneNumber)
         {
             await _userManager.SetPhoneNumberAsync(user, request.PhoneNumber);

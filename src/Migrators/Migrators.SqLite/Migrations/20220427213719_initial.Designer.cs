@@ -12,7 +12,7 @@ namespace Migrators.SqLite.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     [Migration("20220427213719_initial")]
-    partial class initial
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

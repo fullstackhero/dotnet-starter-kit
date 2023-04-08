@@ -1,18 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net7.0</TargetFramework>
         <RootNamespace>FSH.WebApi.Host</RootNamespace>
         <AssemblyName>FSH.WebApi.Host</AssemblyName>
     </PropertyGroup>
+    <PropertyGroup>
+        <ContainerImageName>dotnet-webapi</ContainerImageName>
+        <ContainerImageTags>1.0.0;latest</ContainerImageTags>
+        <PublishProfile>DefaultContainer</PublishProfile>
+    </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="FluentValidation.AspNetCore" Version="10.4.0" />
+        <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
         <PackageReference Include="Hangfire.Console.Extensions.Serilog" Version="1.0.2" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.5">
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.4">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0" />
-        <PackageReference Include="Serilog.AspNetCore" Version="5.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="7.0.0" />
+        <PackageReference Include="Serilog.AspNetCore" Version="6.1.0" />
+        <PackageReference Include="Microsoft.NET.Build.Containers" Version="0.4.0" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Core\Application\Application.csproj" />
@@ -45,5 +51,11 @@
     </ItemGroup>
     <ItemGroup>
       <Folder Include="Databases\Host\" />
+    </ItemGroup>
+    <ItemGroup>
+      <PackageReference Update="Roslynator.Analyzers" Version="4.2.0">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
     </ItemGroup>
 </Project>

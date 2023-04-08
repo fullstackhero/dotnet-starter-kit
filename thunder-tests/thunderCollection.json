@@ -1,0 +1,65 @@
+[
+  {
+    "_id": "ae3e352d-0da9-42e6-bced-27ee27f985ab",
+    "colName": "dotnet.webapi.boilerplate",
+    "created": "2023-04-07T15:15:13.274Z",
+    "sortNum": 20000,
+    "folders": [
+      {
+        "_id": "d0f8b384-7067-4ebf-96cf-0627ab0de556",
+        "name": "identity",
+        "containerId": "",
+        "created": "2023-04-07T15:15:13.365Z",
+        "sortNum": 10000
+      },
+      {
+        "_id": "19f7ab35-2478-429d-9af2-7d08549414f6",
+        "name": "catalog",
+        "containerId": "",
+        "created": "2023-04-07T15:15:13.366Z",
+        "sortNum": 20000
+      },
+      {
+        "_id": "3f8bfd1f-e1ab-4a68-bf3f-dfdef7a393f5",
+        "name": "products",
+        "containerId": "19f7ab35-2478-429d-9af2-7d08549414f6",
+        "created": "2023-04-07T15:15:13.367Z",
+        "sortNum": 30000
+      },
+      {
+        "_id": "06998b92-d60a-421c-b2ec-13f093f3de60",
+        "name": "brands",
+        "containerId": "19f7ab35-2478-429d-9af2-7d08549414f6",
+        "created": "2023-04-07T15:15:13.368Z",
+        "sortNum": 40000
+      },
+      {
+        "_id": "ca739794-2481-4fb2-81dd-e05de7f1b3c5",
+        "name": "multitenancy",
+        "containerId": "",
+        "created": "2023-04-07T15:15:13.369Z",
+        "sortNum": 50000
+      },
+      {
+        "_id": "5ce684e2-a4a7-496e-b250-e5b533cf8caa",
+        "name": "health",
+        "containerId": "",
+        "created": "2023-04-07T15:15:13.370Z",
+        "sortNum": 60000
+      },
+      {
+        "_id": "263e2bfb-9e1b-4a80-ac05-68b77db04bef",
+        "name": "general",
+        "containerId": "",
+        "created": "2023-04-07T15:15:13.371Z",
+        "sortNum": 70000
+      }
+    ],
+    "settings": {
+      "auth": {
+        "type": "bearer",
+        "bearer": "{{access_token}}"
+      }
+    }
+  }
+]

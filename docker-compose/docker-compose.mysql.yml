@@ -1,0 +1,47 @@
+version: '3.8'
+name: fullstackhero
+services:
+  dotnet-webapi:
+    image: iammukeshm/dotnet-webapi:latest
+    container_name: dotnet-webapi
+    networks:
+      - fullstackhero
+    environment:
+      - ASPNETCORE_ENVIRONMENT=docker
+      - ASPNETCORE_URLS=https://+:5100;http://+:5010
+      - ASPNETCORE_HTTPS_PORT=5100
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=password!
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/cert.pfx
+      - DatabaseSettings__ConnectionString=server=mysql;uid=root;pwd=root;database=fshdb;Allow User Variables=True
+      - HangfireSettings__Storage__ConnectionString=server=mysql;uid=root;pwd=root;database=fshdb;Allow User Variables=True
+      - DatabaseSettings__DBProvider=mysql
+      - HangfireSettings__Storage__StorageProvider=mysql
+    volumes:
+      - ~/.aspnet/https:/https:ro
+    ports:
+      - 5100:5100
+      - 5010:5010
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: on-failure
+  mysql:
+    image: mysql:latest
+    networks:
+      - fullstackhero
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_PASSWORD=root
+    container_name: mysql
+    volumes:
+      - mysql-data:/data/db
+    healthcheck:
+      test: "/usr/bin/mysql --user=root --password=root --execute \"SHOW DATABASES;\""
+      interval: 2s
+      timeout: 40s
+      retries: 10
+volumes:
+  mysql-data:
+networks:
+  fullstackhero:
+    name: fullstackhero

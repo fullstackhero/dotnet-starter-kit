@@ -21,9 +21,9 @@ internal static class Startup
             // Must add identity before adding auth!
             .AddIdentity();
         services.Configure<SecuritySettings>(config.GetSection(nameof(SecuritySettings)));
-        return config["SecuritySettings:Provider"].Equals("AzureAd", StringComparison.OrdinalIgnoreCase)
+        return config["SecuritySettings:Provider"]!.Equals("AzureAd", StringComparison.OrdinalIgnoreCase)
             ? services.AddAzureAdAuth(config)
-            : services.AddJwtAuth(config);
+            : services.AddJwtAuth();
     }
 
     internal static IApplicationBuilder UseCurrentUser(this IApplicationBuilder app) =>

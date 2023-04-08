@@ -1,0 +1,62 @@
+version: '3.8'
+name: fullstackhero
+services:
+  dotnet-webapi:
+    image: iammukeshm/dotnet-webapi:latest
+    container_name: dotnet-webapi
+    networks:
+      - fullstackhero
+    environment:
+      - ASPNETCORE_ENVIRONMENT=docker
+      - ASPNETCORE_URLS=https://+:5100;http://+:5010
+      - ASPNETCORE_HTTPS_PORT=5100
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=password!
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/cert.pfx
+      - DatabaseSettings__ConnectionString=Server=postgres;Port=5433;Database=fshdb;User Id=posgresqladmin;Password=posgresqladmin
+      - HangfireSettings__Storage__ConnectionString=Server=postgres;Port=5433;Database=fshdb;User Id=posgresqladmin;Password=posgresqladmin
+      - DatabaseSettings__DBProvider=postgresql
+      - HangfireSettings__Storage__StorageProvider=postgresql
+    volumes:
+      - ~/.aspnet/https:/https:ro
+    ports:
+      - 5100:5100
+      - 5010:5010
+    depends_on:
+      - postgres
+    restart: on-failure
+  postgres:
+    container_name: postgres
+    image: postgres:15-alpine
+    networks:
+      - fullstackhero
+    environment:
+      - POSTGRES_USER=posgresqladmin
+      - POSTGRES_PASSWORD=posgresqladmin
+      - PGPORT=5433
+    ports:
+      - 5433:5433
+    volumes:
+      - postgres-data:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  # elk:
+  #     container_name:  elasticsearch-kibana
+  #     image: sebp/elk:oss-8.5.3
+  #     environment:
+  #       - LOGSTASH_START=0
+  #     volumes:
+  #       - sebp-elk-data:/usr/share/elk/data
+  #     ports:
+  #       - 5601:5601
+  #       - 9200:9200
+  #     networks:
+  #       - fullstackhero
+volumes:
+  postgres-data:
+  # sebp-elk-data:
+networks:
+  fullstackhero:
+    name:  fullstackhero
