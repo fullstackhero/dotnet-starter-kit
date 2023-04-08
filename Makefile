@@ -5,9 +5,9 @@ start:
 nuget:
 	nuget pack -NoDefaultExcludes -OutputDirectory nupkg
 publish:
-	dotnet publish -c Release
+	dotnet publish --os linux --arch x64 -c Release --self-contained
 publish-to-hub:
-	dotnet publish -c Release -p:ContainerRegistry=docker.io -p:ContainerImageName=iammukeshm/dotnet-webapi
+	dotnet publish --os linux --arch x64 -c Release -p:ContainerRegistry=docker.io -p:ContainerImageName=iammukeshm/dotnet-webapi --self-contained
 tp: # terraform plan
 	cd terraform/environments/staging && terraform plan
 ta: # terraform apply
