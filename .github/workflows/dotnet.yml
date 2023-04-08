@@ -1,5 +1,4 @@
-name: .NET
-
+name: dotnet-cicd
 on:
   push:
     branches: [ main ]
@@ -10,10 +9,9 @@ on:
       push_to_docker:
         type: boolean
         description: Docker Push
-
 jobs:
   build:
-    name: Build & Test
+    name: Build
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -28,7 +26,7 @@ jobs:
     - name: Test
       run: dotnet test --no-build --verbosity normal
   docker:
-    name: Docker Build & Push
+    name: Docker
     needs: build
     runs-on: ubuntu-latest
     steps:
