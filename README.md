@@ -4,7 +4,7 @@
 [![Nuget downloads](https://img.shields.io/nuget/dt/FullStackHero.WebAPI.Boilerplate?color=2da44e&label=nuget%20downloads&logo=nuget)](https://www.nuget.org/packages/FullStackHero.WebAPI.Boilerplate/)
 [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/iammukeshm.svg?style=social&label=Follow%20%40iammukeshm)](https://twitter.com/iammukeshm)
 
-![fullstackhero webapi](https://codewithmukesh.com/wp-content/uploads/2023/04/fullstack-hero-dotnet-7-webapi-boilerplate-banner.png "fullstackhero webapi")
+![fullstackhero webapi](https://raw.githubusercontent.com/fullstackhero/dotnet-webapi-boilerplate/main/media/fullstack-hero-dotnet-7-webapi-boilerplate-banner.png "fullstackhero webapi")
 
 ## What's fullstackhero's .NET Web API Boilerplate?
 
