@@ -25,12 +25,14 @@ async Task UpdateFshCliTool()
     var fshPsi = new ProcessStartInfo
     {
         FileName = "dotnet",
-        Arguments = "tool update -g FSH.CLI -v=q"
+        Arguments = "tool update FSH.CLI --global -v=q"
     };
     using var fshProc = Process.Start(fshPsi)!;
     await fshProc.WaitForExitAsync();
 
-    Console.WriteLine("completed updating the fsh cli tool...");
+    Console.WriteLine("completed updating the fsh cli tool.");
+    await InstallTemplates();
+    Console.WriteLine("completed updating the fsh templates.");
 }
 
 if (firstArg == "api")
@@ -91,7 +93,8 @@ async Task InstallTemplates()
 
     Console.WriteLine("installed the required templates.");
     Console.WriteLine("get started by using : fsh <type> new <projectname>.");
-    Console.WriteLine("<type> can be api, wasm.");
+    Console.WriteLine("note : <type> can be api, wasm.");
+    Console.WriteLine("refer to documentation at https://fullstackhero.net/dotnet-webapi-boilerplate/general/getting-started");
 }
 
 async Task BootstrapWebApiSolution(string projectName)
@@ -105,8 +108,8 @@ async Task BootstrapWebApiSolution(string projectName)
     using var proc = Process.Start(psi)!;
     await proc.WaitForExitAsync();
     Console.WriteLine($"fsh-api project {projectName} successfully created.");
-    Console.WriteLine("Application ready! Build something amazing!");
-    Console.WriteLine("Refer to documentation at https://fullstackhero.net/dotnet-webapi-boilerplate/general/getting-started");
+    Console.WriteLine("application ready! build something amazing!");
+    Console.WriteLine("refer to documentation at https://fullstackhero.net/dotnet-webapi-boilerplate/general/getting-started");
 }
 
 async Task BootstrapBlazorWasmSolution(string projectName)
