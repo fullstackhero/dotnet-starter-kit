@@ -127,6 +127,146 @@ You would probably need to take this approach if you want to keep your source co
 For step by step instructions, [follow this](https://discord.com/channels/878181478972928011/892573122186838046/933513103688224838) and [this](https://gist.github.com/0xjac/85097472043b697ab57ba1b1c7530274).
 
 
+## Quick Start Guide
+
+So, for a better developer experience, I have added Makefile into the solution. Now that our solution is generated, let's navigate to the root folder of the solution and open up a command terminal.
+
+To build the solution,
+```
+make build
+```
+
+By default, the solution is configured to work with postgresql database (mainly because of hte OS licensing). So, you will have to make sure that postgresql database instance is up and running on your machine. You can modify the connection string to include your username and password. Connections strings can be found at `src/Host/Configurations/database.json` and `src/Host/Configurations/hangfire.json`. Once that's done, let's start up the API server.
+
+```
+make start
+```
+
+That's it, the application would connect to the defined postgresql database and start creating tables, and seed required data.
+
+For testing this API, we have 3 options.
+1. Swagger @ `localhost:5001/swagger`
+2. Postman collections are available `./postman`
+3. ThunderClient for VSCode. This is my personal favorite. You will have to install the Thunderclient extension for VSCode.
+
+The default credentials to this API is:
+
+
+```json
+{
+    "email":"admin@root.com",
+    "password":"123Pa$$word!"
+}
+```
+
+Open up Postman, Thunderclient or Swagger.
+
+identity -> get-token
+
+This is a POST Request. Here the body of the request will be the JSON (credentials) I specified earlier. And also, remember to pass the tenant id in the header of the request. The default tenant id is `root`.
+
+Here is a sample CURL command for getting the tokens.
+
+```curl
+curl -X POST \
+  'https://localhost:5001/api/tokens' \
+  --header 'Accept: */*' \
+  --header 'tenant: root' \
+  --header 'Accept-Language: en-US' \
+  --header 'Content-Type: application/json' \
+  --data-raw '{
+  "email": "admin@root.com",
+  "password": "123Pa$$word!"
+}'
+```
+
+And here is the response.
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjM0YTY4ZjQyLWE0ZDgtNDNlMy1hNzE3LTI1OTczZjZmZTJjNyIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6ImFkbWluQHJvb3QuY29tIiwiZnVsbE5hbWUiOiJyb290IEFkbWluIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6InJvb3QiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zdXJuYW1lIjoiQWRtaW4iLCJpcEFkZHJlc3MiOiIxMjcuMC4wLjEiLCJ0ZW5hbnQiOiJyb290IiwiaW1hZ2VfdXJsIjoiIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbW9iaWxlcGhvbmUiOiIiLCJleHAiOjE2ODA5NDE3MzN9.VYNaNvk2T4YDvQ3wriXgk2W_Vy9zyEEhjveNauNAeJY",
+  "refreshToken": "pyxO30zJK8KelpEXF0vPfbSbjntdlbbnxrZAlUFXfyE=",
+  "refreshTokenExpiryTime": "2023-04-15T07:15:33.5187598Z"
+}
+```
+
+You will need to pass the `token` in the request headers to authenticate calls to the fullstackhero API!
+
+For further steps and details, [Read the Getting Started Guide](https://fullstackhero.net/dotnet-webapi-boilerplate/general/getting-started/)
+
+## Containerization
+
+The API project, being .NET 7, it is configured to have built-in support for containerization. That means, you really don't need a Dockerfile to containerize the webapi.
+
+To build a docker image, all you have to do is, ensure that docker-desktop or docker instance is running. And run the following command at the root of the solution.
+
+```
+make publish
+```
+
+You can also push the docker image directly to dockerhub or any supported registry by using the following command.
+
+```
+make publish-to-hub
+```
+You will have to update your docker registry / repo url in the Makefile though!.
+
+## Docker Compose
+
+This project also comes with examples of docker compose files, where you can spin up the webapi and database isntance in your local containers with the following commands.
+
+```powershell
+make dcu #docker compose up - Boots up the webapi & postgresql container
+make dcd #docker compose down - Shuts down the webapi & postgresql containers
+```
+
+There are also examples for mysql & mssql variations of the fsh webapi. You can find the other docker-compose files under the ./docker-compose folder. Read more about [fullstackhero's docker-compose instructions & files here](./docker-compose/README.md)
+
+## Cloud Deployment with Terraform + AWS ECS
+
+This is something you wont get to see very often with boilerplates. But, we do support cloud deployment to AWS using terraform. The terraform files are available at the `./terraform` folder.
+
+### Prerequisites
+- Install Terraform
+- Install & Configure AWS CLI profiles to allow terraform to provision resources for you. I have made a video about [AWS Credentials Management](https://www.youtube.com/watch?v=oY0-1mj4oCo&ab_channel=MukeshMurugan).
+
+In brief, the terraform folder has 2 sub-folders.
+- backend
+- environments/staging
+
+The Backend folder is internally used by Terraform for state management and locking. There is a one-time setup you have to do against this folder. Navigate to the backend folder and run the command.
+
+```
+terraform init
+terraform apply -auto-approve
+```
+
+This would create the required S3 Buckets and DDB table for you.
+
+Next is the `environments/staging` folder. Here too, run the following command.
+
+```
+terraform init
+```
+
+Once done, you can go the terraform.tfvars file to change the variables like,
+- project tags
+- docker image name
+- ecs cluster name and so on.
+
+After that, simply back to the root of the solution and run the following command.
+
+```
+make ta
+```
+
+This will evaluate your terraform files and create a provision plan for you. Once you are ok, type in `yes` and the tool will start to deploy your .NET WebAPI project as containers along with a RDS PostgreSQL intance. You will be receiving the hosted api url once the provisioning is completed!
+
+To destroy the deployed resources, run the following
+```
+make td
+```
+
 ## Important Links & Documentations
 
 Overview - [Read](https://fullstackhero.net/dotnet-webapi-boilerplate/general/overview/)
