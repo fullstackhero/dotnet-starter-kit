@@ -72,12 +72,58 @@ Read Documentation related to this Boilerplate here - https://fullstackhero.net/
 
 To get started with this Boilerplate, here are the available options.
 
-- Install using `dotnet new` . Use this for release versions of the Boilerplate only.
+- Install using the `FSH CLI` tool. Use this for release versions of the Boilerplate only.
 - Fork the Repository. Use this if you want to always keep your version of the Boilerplate up-to date with the latest changes.
 
 > Make sure that your DEV enviroment is setup, [Read the Development Environment Guide](https://fullstackhero.net/dotnet-webapi-boilerplate/general/development-environment/)
 
-## Forking the Repository
+### FSH CLI Tool
+
+#### Prerequisites
+
+Before creating your first fullstackhero solution, you should ensure that your local machine has:
+
+- **.NET 7** You can find the download [here](https://dotnet.microsoft.com/en-us/download/dotnet/7.0).
+- **NodeJS (16+)** You can find the download [here](https://nodejs.org/en/download).
+
+#### Installation
+
+After you have installed .NET, you will need to install the `fsh` console tool.
+
+```bash
+dotnet tool install --global FSH.CLI
+fsh install
+```
+
+This isntall the FSH CLI tools and the associated Templates. You are now ready to create your first FSH project!
+
+#### FSH .NET WebAPI Boilerplate
+Here's how you would create a Solution using the FSH .NET WebAPI Boilerplate.
+
+Simply navigate to a new directory (wherever you want to place your new solution), and open up Command Prompt at the opened directory.
+
+Run the following command. Note that, in this demonstration, I am naming my new solution as FSH.Starter.
+
+```bash
+fsh api new FSH.Starter
+```
+
+OR
+
+```bash
+fsh api n FSH.Starter
+```
+
+This will create a new .NET 7 WEBAPI solution for you using the FSH Templates.
+For further steps and details, [Read the Getting Started Guide](https://fullstackhero.net/dotnet-webapi-boilerplate/general/getting-started/)
+
+#### Update
+To update the tool & templates, run the following commands
+```bash
+dotnet tool update FSH.CLI --global
+fsh update
+```
+### Forking the Repository
 
 You would probably need to take this approach if you want to keep your source code upto date with the latest changes. To get started based on this repository, you need to get a copy locally. You have three options: fork, clone, or download.
 
@@ -86,28 +132,6 @@ You would probably need to take this approach if you want to keep your source co
 - Setup an upstream remote on your personal project pointing to your forked repository using command `git remote add upstream https://github.com/{githubuseraccount}/dotnet-webapi-boilerplate` and `git remote set-url --push upstream DISABLE`
 
 For step by step instructions, [follow this](https://discord.com/channels/878181478972928011/892573122186838046/933513103688224838) and [this](https://gist.github.com/0xjac/85097472043b697ab57ba1b1c7530274).
-
-
-### Using the .NET CLI
-
-> 0.0.6 RC is now released!
-
-Open up your Command Prompt / Powershell and run the following command to install the solution template.
-
-```powershell
-dotnet new --install FullStackHero.WebAPI.Boilerplate
-```
-This would install the `fullstackhero .NET WebAPI Boilerplate` template globally on your machine. With that done, let's see how you can start generating complete .NET WebAPI Solutions seamlessly.
-
-Simply navigate to a new directory (wherever you want to place your new solution), and open up Command Prompt at the opened directory.
-
-Run the following command. Note that, in this demonstration, I am naming my new solution as `FSH.Starter`.
-
-```powershell
-dotnet new fsh-api -o FSH.Starter
-```
-
-For further steps and details, [Read the Getting Started Guide](https://fullstackhero.net/dotnet-webapi-boilerplate/general/getting-started/)
 
 ## Important Links & Documentations
 
