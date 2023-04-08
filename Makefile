@@ -1,13 +1,9 @@
 build:
-b:
 	dotnet build
 start:
-s:
 	dotnet run --project src/Host/Host.csproj
 nuget:
-n: # del ./nupkg/FullStackHero.WebAPI.Boilerplate.1.0.0.nupkg # dotnet new uninstall FullStackHero.WebAPI.Boilerplate
 	nuget pack -NoDefaultExcludes -OutputDirectory nupkg
-	dotnet new install ./nupkg/FullStackHero.WebAPI.Boilerplate.1.0.0.nupkg
 publish:
 	dotnet publish -c Release
 publish-to-hub:
