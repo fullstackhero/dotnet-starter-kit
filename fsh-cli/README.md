@@ -2,14 +2,15 @@
 
 ## Prerequisites
 
-Before creating your first spark project, you should ensure that your local machine has:
+Before creating your first fullstackhero solution, you should ensure that your local machine has:
 
 - **.NET 7** You can find the download [here](https://dotnet.microsoft.com/en-us/download/dotnet/7.0).
 - **NodeJS (16+)** You can find the download [here](https://nodejs.org/en/download).
 
 ## Installation
 
-After you have installed .NET, you will need to install the Spark console tool.
+After you have installed .NET, you will need to install the `fsh` console tool.
+
 ```bash
 dotnet tool install --global FSH.CLI
 fsh install
@@ -17,7 +18,7 @@ fsh install
 
 You are now ready to create your first FSH project!
 
-## FSH .NET WebAPI
+## FSH .NET WebAPI Boilerplate
 Here's how you would create a Solution using the FSH .NET WebAPI Boilerplate.
 
 ```bash
@@ -32,7 +33,7 @@ fsh api n Demo.Server
 
 This will create a new solution for you using the FSH Templates.
 
-## FSH Blazor WASM
+## FSH Blazor WASM Boilerplate
 Here's how you would create a Solution using the FSH Blazor WASM Boilerplate.
 
 ```bash
@@ -50,7 +51,7 @@ This will create a new solution for you using the FSH Templates.
 ## Update
 
 ```bash
-fsh update
+dotnet tool update FSH.CLI --global
 ```
 
 ## Uninstall
@@ -64,5 +65,4 @@ For developers
 dotnet pack
 ```
 
-#
-More Features Incoming!
+# More Features Incoming!

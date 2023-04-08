@@ -7,32 +7,10 @@ if (args.Length == 0)
 }
 
 string firstArg = args[0];
-if (firstArg == "install" || firstArg == "i")
+if (firstArg == "install" || firstArg == "i" || firstArg == "update" || firstArg == "u")
 {
     await InstallTemplates();
     return;
-}
-
-if (firstArg == "update" || firstArg == "u")
-{
-    await UpdateFshCliTool();
-    return;
-}
-
-async Task UpdateFshCliTool()
-{
-    Console.WriteLine("updating the fsh cli tool...");
-    var fshPsi = new ProcessStartInfo
-    {
-        FileName = "dotnet",
-        Arguments = "tool update FSH.CLI --global -v=q"
-    };
-    using var fshProc = Process.Start(fshPsi)!;
-    await fshProc.WaitForExitAsync();
-
-    Console.WriteLine("completed updating the fsh cli tool.");
-    await InstallTemplates();
-    Console.WriteLine("completed updating the fsh templates.");
 }
 
 if (firstArg == "api")
@@ -77,7 +55,7 @@ async Task InstallTemplates()
     var apiPsi = new ProcessStartInfo
     {
         FileName = "dotnet",
-        Arguments = "new install FullStackHero.WebAPI.Boilerplate -v=q"
+        Arguments = "new install FullStackHero.WebAPI.Boilerplate"
     };
     using var apiProc = Process.Start(apiPsi)!;
     await apiProc.WaitForExitAsync();
@@ -86,7 +64,7 @@ async Task InstallTemplates()
     var wasmPsi = new ProcessStartInfo
     {
         FileName = "dotnet",
-        Arguments = "new install FullStackHero.BlazorWebAssembly.Boilerplate -v=q"
+        Arguments = "new install FullStackHero.BlazorWebAssembly.Boilerplate"
     };
     using var wasmProc = Process.Start(wasmPsi)!;
     await wasmProc.WaitForExitAsync();
