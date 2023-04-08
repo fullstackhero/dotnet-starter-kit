@@ -31,7 +31,8 @@
         ".github/**",
         "icon.png",
         "fsh-cli/**",
-        "scripts/**"
+        "scripts/**",
+        "media/**"
       ]
     }
   ],
