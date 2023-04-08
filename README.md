@@ -4,11 +4,7 @@
 [![Nuget downloads](https://img.shields.io/nuget/dt/FullStackHero.WebAPI.Boilerplate?color=2da44e&label=nuget%20downloads&logo=nuget)](https://www.nuget.org/packages/FullStackHero.WebAPI.Boilerplate/)
 [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/iammukeshm.svg?style=social&label=Follow%20%40iammukeshm)](https://twitter.com/iammukeshm)
 
-<p>
-
-<p align="center">
-    <img src="https://codewithmukesh.com/wp-content/uploads/2023/04/fullstack-hero-dotnet-7-webapi-boilerplate-banner.png" alt="fullstackhero">
-</p>
+![fullstackhero webapi](https://codewithmukesh.com/wp-content/uploads/2023/04/fullstack-hero-dotnet-7-webapi-boilerplate-banner.png "fullstackhero webapi")
 
 ## What's fullstackhero's .NET Web API Boilerplate?
 
@@ -176,6 +172,5 @@ Here are a few ways by which you can support.
 -   Sponsor the project - [opencollective/fullstackhero](https://opencollective.com/fullstackhero) ❤️
 -   Or, [consider buying me a coffee](https://www.buymeacoffee.com/codewithmukesh)! ☕
 
-<br>
 
-<a href="https://www.buymeacoffee.com/codewithmukesh"><img width="250" alt="black-button" src="https://user-images.githubusercontent.com/31455818/138557309-27587d91-7b82-4cab-96bb-90f4f4e600f1.png" ></a>
+[<img src="https://user-images.githubusercontent.com/31455818/138557309-27587d91-7b82-4cab-96bb-90f4f4e600f1.png" width="200"/>](https://www.buymeacoffee.com/codewithmukesh)
