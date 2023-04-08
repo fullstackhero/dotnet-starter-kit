@@ -29,9 +29,7 @@
         ".idea/**",
         ".vs/**",
         ".github/**",
-        "icon.png",
         "fsh-cli/**",
-        "scripts/**",
         "media/**"
       ]
     }
