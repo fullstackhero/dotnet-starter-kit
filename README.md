@@ -172,5 +172,4 @@ Here are a few ways by which you can support.
 -   Sponsor the project - [opencollective/fullstackhero](https://opencollective.com/fullstackhero) ❤️
 -   Or, [consider buying me a coffee](https://www.buymeacoffee.com/codewithmukesh)! ☕
 
-
-[<img src="https://user-images.githubusercontent.com/31455818/138557309-27587d91-7b82-4cab-96bb-90f4f4e600f1.png" width="200"/>](https://www.buymeacoffee.com/codewithmukesh)
+[![buy-me-a-coffee](https://raw.githubusercontent.com/fullstackhero/dotnet-webapi-boilerplate/main/media/buy-me-a-coffee.png "buy-me-a-coffee")](https://www.buymeacoffee.com/codewithmukesh)
