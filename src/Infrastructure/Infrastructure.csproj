@@ -27,7 +27,7 @@
         <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="7.0.4" />
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.0.0" />
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.0.0" />
-        <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.1.0" />
+        <!--<PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.1.0" />-->
         <PackageReference Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="7.0.4" />
         <PackageReference Include="Microsoft.Data.Sqlite" Version="7.0.4" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.4" />
