@@ -1,10 +1,18 @@
 {
   "MailSettings": {
-    "DisplayName": "Mukesh Murugan",
-    "From": "mukesh@fullstackhero.net",
-    "Host": "smtp.ethereal.email",
-    "Password": "AdEqEKB4QwWX9Xey82",
+    "From": "itsupport@tara.com.vn",
+    "Host": "smtp.office365.com",
     "Port": 587,
-    "UserName": "nestor91@ethereal.email"
+    "UserName": "itsupport@tara.com.vn",
+    "Password": "IT@2023",
+    "DisplayName": "Administrator"
   }
+  //"MailSettings": {
+  //  "DisplayName": "Mukesh Murugan",
+  //  "From": "mukesh@fullstackhero.net",
+  //  "Host": "smtp.ethereal.email",
+  //  "Password": "AdEqEKB4QwWX9Xey82",
+  //  "Port": 587,
+  //  "UserName": "nestor91@ethereal.email"
+  //}
 }
