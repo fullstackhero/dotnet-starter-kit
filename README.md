@@ -13,9 +13,12 @@ fullstackhero's .NET Web API Boilerplate is a starting point for your next `.NET
 > As the name suggests, this is an API / Server Boilerplate. You can find other Client Boilerplates that consume this API under `@fullstackhero` handle.
 > - Find `Blazor WebAssembly Boilerplate` here - https://github.com/fullstackhero/blazor-wasm-boilerplate
 
-`Watch the Getting started video here` : https://www.youtube.com/watch?v=a1mWRLQf9hY
+
 
 ## YouTube Video - .NET Web API Boilerplate | FullStackHero - Getting Started
+
+`Watch the Getting started video here` : https://www.youtube.com/watch?v=a1mWRLQf9hY
+
 [![.NET Web API Boilerplate | FullStackHero - Getting Started](https://codewithmukesh.com/wp-content/uploads/2023/04/fullstackhero-youtube.png)](https://www.youtube.com/watch?v=a1mWRLQf9hY)
 
 
