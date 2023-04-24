@@ -298,12 +298,6 @@ Join our Discord - [fullstackhero @ Discord](https://discord.gg/gdgHRt4mMw)
 - Facebook Page [@codewithmukesh](https://facebook.com/codewithmukesh)
 - Youtube Channel [@codewithmukesh](https://youtube.com/c/codewithmukesh)
 
-## Contributors
-
-Submit your PR and join the elite list!
-
-[![fsh dotnet webapi contributors](https://contrib.rocks/image?repo=fullstackhero/dotnet-webapi-boilerplate "fsh dotnet webapi contributors")](https://github.com/fullstackhero/dotnet-webapi-boilerplate/graphs/contributors)
-
 ## License
 
 This project is licensed with the [MIT license](LICENSE).
@@ -320,3 +314,15 @@ Here are a few ways by which you can support.
 -   Or, [consider buying me a coffee](https://www.buymeacoffee.com/codewithmukesh)! ☕
 
 [![buy-me-a-coffee](https://raw.githubusercontent.com/fullstackhero/dotnet-webapi-boilerplate/main/media/buy-me-a-coffee.png "buy-me-a-coffee")](https://www.buymeacoffee.com/codewithmukesh)
+
+## Code Contributors
+
+This project exists thanks to all the people who contribute. [Submit your PR and join the elite list!](CONTRIBUTING.md)
+
+[![fsh dotnet webapi contributors](https://contrib.rocks/image?repo=fullstackhero/dotnet-webapi-boilerplate "fsh dotnet webapi contributors")](https://github.com/fullstackhero/dotnet-webapi-boilerplate/graphs/contributors)
+
+## Financial Contributors
+
+Become a financial contributor and help me sustain the project. [Support the Project!](https://opencollective.com/fullstackhero/contribute)
+
+<a href="https://opencollective.com/fullstackhero"><img src="https://opencollective.com/fullstackhero/individuals.svg?width=890"></a>
