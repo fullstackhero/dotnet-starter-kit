@@ -37,15 +37,17 @@ public class ExcelReader : IExcelReader
                     {
                         try
                         {
-                            var type = prop.PropertyType;
+                            var propertyType = prop.PropertyType;
                             var col = columns.SingleOrDefault(c => c.Value.ToString() == prop.Name);
                             if (col == null) continue;
 
-                            object? obj = GetObjectByDataType(type, row.Cell(col.Index).Value);
-                            prop.SetValue(item, obj);
+                            object? obj = GetObjectByDataType(propertyType, row.Cell(col.Index).Value);
+                            if(obj != null) prop.SetValue(item, obj);
                         }
                         catch
                         {
+                            // if any error
+                             return await Task.FromResult(new List<T>());
                         }
                     }
 

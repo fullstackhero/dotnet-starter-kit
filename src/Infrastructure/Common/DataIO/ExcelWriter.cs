@@ -10,7 +10,7 @@ public class ExcelWriter : IExcelWriter
     public Stream WriteToStream<T>(IList<T> data)
     {
         var properties = TypeDescriptor.GetProperties(typeof(T));
-        var table = new DataTable("table", "table");
+        var table = new DataTable("Sheet1", "table"); // "Sheet1" = typeof(T).Name
         foreach (PropertyDescriptor prop in properties)
             table.Columns.Add(prop.Name, Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType);
         foreach (var item in data)

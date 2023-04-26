@@ -39,4 +39,32 @@ public interface IDapperRepository : ITransientService
     /// <returns>Returns <see cref="Task"/> of <typeparamref name="T"/>.</returns>
     Task<T> QuerySingleAsync<T>(string sql, object? param = null, IDbTransaction? transaction = null, CancellationToken cancellationToken = default)
     where T : class, IEntity;
+
+    /// <summary>
+    /// This method used for Delete, Insert, Update methords.
+    /// </summary>
+    /// <param name="sql"></param>
+    /// sql = $"DELETE FROM {_tableName} WHERE Id=@Id"
+    /// sql = $"delete from {typeof(T).Name}s where Id = @Id";
+    /// sql = $"select * from {typeof(T).Name}s ";
+    /// string sql = $"insert into {typeof(T).Name}s ({stringOfColumns}) values ({stringOfParameters})";
+    /// string sql = $"update {typeof(T).Name}s set {stringOfColumns} where Id = @Id";
+    /// <param name="param">The paramters in the sql string.</param>
+    /// <param name="transaction">The transaction to be performed.</param>
+    /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
+    /// <returns>int.</returns>
+    Task<int> ExecuteAsync<T>(string sql, object? param = null, IDbTransaction? transaction = null, CancellationToken cancellationToken = default)
+        where T : class, IEntity;
+    Task<T> GetAsync<T>(DefaultIdType id)
+        where T : class, IEntity;
+
+    /// <summary>
+    /// This method used for Update Range Entities.
+    /// </summary>
+    Task UpdateRangeAsync<T>(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+        where T : class, IAggregateRoot;
+    Task DeleteRangeAsync<T>(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+    where T : class, IEntity;
+    Task<IEnumerable<T>> AddRangeAsync<T>(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+    where T : class, IEntity;
 }
