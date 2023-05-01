@@ -13,10 +13,11 @@ public class ResponseLoggingMiddleware : IMiddleware
 
     public async Task InvokeAsync(HttpContext httpContext, RequestDelegate next)
     {
-        await next(httpContext);
+      
         var originalBody = httpContext.Response.Body;
         using var newBody = new MemoryStream();
         httpContext.Response.Body = newBody;
+        await next(httpContext);
         string responseBody;
         if (httpContext.Request.Path.ToString().Contains("tokens"))
         {
