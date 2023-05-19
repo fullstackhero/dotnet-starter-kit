@@ -6,3 +6,10 @@ public class AuditableEntitiesByCreatedOnBetweenSpec<T> : Specification<T>
     public AuditableEntitiesByCreatedOnBetweenSpec(DateTime from, DateTime until) =>
         Query.Where(e => e.CreatedOn >= from && e.CreatedOn <= until);
 }
+
+public class AuditableEntitiesByCreatedOnBetweenSpec<T, TIdType> : Specification<T>
+    where T : AuditableEntity<TIdType>
+{
+    public AuditableEntitiesByCreatedOnBetweenSpec(DateTime from, DateTime until) =>
+        Query.Where(e => e.CreatedOn >= from && e.CreatedOn <= until);
+}
