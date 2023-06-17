@@ -1,14 +1,14 @@
 ﻿using Finbuckle.MultiTenant;
-using FSH.WebApi.Application.Common.Exceptions;
-using FSH.WebApi.Application.Common.Persistence;
-using FSH.WebApi.Application.Multitenancy;
-using FSH.WebApi.Infrastructure.Persistence;
-using FSH.WebApi.Infrastructure.Persistence.Initialization;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Exceptions;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Persistence;
+using FL_CRMS_ERP_WEBAPI.Application.Multitenancy;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence.Initialization;
 using Mapster;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 
-namespace FSH.WebApi.Infrastructure.Multitenancy;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Multitenancy;
 
 internal class TenantService : ITenantService
 {

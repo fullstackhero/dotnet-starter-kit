@@ -1,7 +1,7 @@
 ﻿using Finbuckle.MultiTenant;
-using FSH.WebApi.Shared.Multitenancy;
+using FL_CRMS_ERP_WEBAPI.Shared.Multitenancy;
 
-namespace FSH.WebApi.Infrastructure.Multitenancy;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Multitenancy;
 
 public class FSHTenantInfo : ITenantInfo
 {

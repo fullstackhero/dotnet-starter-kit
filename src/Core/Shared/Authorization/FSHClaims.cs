@@ -1,4 +1,4 @@
-﻿namespace FSH.WebApi.Shared.Authorization;
+﻿namespace FL_CRMS_ERP_WEBAPI.Shared.Authorization;
 
 public static class FSHClaims
 {

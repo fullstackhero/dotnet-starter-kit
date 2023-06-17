@@ -1,13 +1,13 @@
-﻿using FSH.WebApi.Infrastructure.Identity;
-using FSH.WebApi.Infrastructure.Multitenancy;
-using FSH.WebApi.Infrastructure.Persistence.Context;
-using FSH.WebApi.Shared.Authorization;
-using FSH.WebApi.Shared.Multitenancy;
+﻿using FL_CRMS_ERP_WEBAPI.Infrastructure.Identity;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Multitenancy;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence.Context;
+using FL_CRMS_ERP_WEBAPI.Shared.Authorization;
+using FL_CRMS_ERP_WEBAPI.Shared.Multitenancy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace FSH.WebApi.Infrastructure.Persistence.Initialization;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence.Initialization;
 
 internal class ApplicationDbSeeder
 {

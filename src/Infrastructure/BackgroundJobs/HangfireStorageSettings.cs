@@ -1,4 +1,4 @@
-namespace FSH.WebApi.Infrastructure.BackgroundJobs;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.BackgroundJobs;
 
 public class HangfireStorageSettings
 {

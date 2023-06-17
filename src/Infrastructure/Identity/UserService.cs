@@ -1,26 +1,26 @@
 using Ardalis.Specification;
 using Ardalis.Specification.EntityFrameworkCore;
 using Finbuckle.MultiTenant;
-using FSH.WebApi.Application.Common.Caching;
-using FSH.WebApi.Application.Common.Events;
-using FSH.WebApi.Application.Common.Exceptions;
-using FSH.WebApi.Application.Common.FileStorage;
-using FSH.WebApi.Application.Common.Interfaces;
-using FSH.WebApi.Application.Common.Mailing;
-using FSH.WebApi.Application.Common.Models;
-using FSH.WebApi.Application.Common.Specification;
-using FSH.WebApi.Application.Identity.Users;
-using FSH.WebApi.Domain.Identity;
-using FSH.WebApi.Infrastructure.Auth;
-using FSH.WebApi.Infrastructure.Persistence.Context;
-using FSH.WebApi.Shared.Authorization;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Caching;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Events;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Exceptions;
+using FL_CRMS_ERP_WEBAPI.Application.Common.FileStorage;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Interfaces;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Mailing;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Models;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Specification;
+using FL_CRMS_ERP_WEBAPI.Application.Identity.Users;
+using FL_CRMS_ERP_WEBAPI.Domain.Identity;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Auth;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence.Context;
+using FL_CRMS_ERP_WEBAPI.Shared.Authorization;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 
-namespace FSH.WebApi.Infrastructure.Identity;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Identity;
 
 internal partial class UserService : IUserService
 {

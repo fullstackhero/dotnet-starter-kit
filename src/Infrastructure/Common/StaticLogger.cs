@@ -1,6 +1,6 @@
 using Serilog;
 
-namespace FSH.WebApi.Infrastructure.Common;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Common;
 
 public static class StaticLogger
 {

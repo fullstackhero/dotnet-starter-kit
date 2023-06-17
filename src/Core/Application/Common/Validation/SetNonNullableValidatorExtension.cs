@@ -1,6 +1,6 @@
 ﻿using FluentValidation.Validators;
 
-namespace FSH.WebApi.Application.Common.Validation;
+namespace FL_CRMS_ERP_WEBAPI.Application.Common.Validation;
 
 // SetValidator doesn't work when dealing with a nullable reference type
 // Use this SetNonNullableValidator extension method instead

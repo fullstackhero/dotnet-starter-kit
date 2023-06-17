@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Primitives;
 
-namespace FSH.WebApi.Infrastructure.BackgroundJobs;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.BackgroundJobs;
 
 public class HangfireCustomBasicAuthenticationFilter : IDashboardAuthorizationFilter
 {

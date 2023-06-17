@@ -1,9 +1,9 @@
 ﻿using Ardalis.Specification;
-using FSH.WebApi.Application.Catalog.Brands;
-using FSH.WebApi.Application.Common.Interfaces;
-using FSH.WebApi.Application.Common.Persistence;
-using FSH.WebApi.Domain.Catalog;
-using FSH.WebApi.Shared.Notifications;
+using FL_CRMS_ERP_WEBAPI.Application.Catalog.Brands;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Interfaces;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Persistence;
+using FL_CRMS_ERP_WEBAPI.Domain.Catalog;
+using FL_CRMS_ERP_WEBAPI.Shared.Notifications;
 using Hangfire;
 using Hangfire.Console.Extensions;
 using Hangfire.Console.Progress;
@@ -11,7 +11,7 @@ using Hangfire.Server;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace FSH.WebApi.Infrastructure.Catalog;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Catalog;
 
 public class BrandGeneratorJob : IBrandGeneratorJob
 {

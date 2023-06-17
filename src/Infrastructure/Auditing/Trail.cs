@@ -1,6 +1,6 @@
-using FSH.WebApi.Domain.Common.Contracts;
+using FL_CRMS_ERP_WEBAPI.Domain.Common.Contracts;
 
-namespace FSH.WebApi.Infrastructure.Auditing;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Auditing;
 
 public class Trail : BaseEntity
 {

@@ -1,8 +1,8 @@
-using FSH.WebApi.Shared.Authorization;
+using FL_CRMS_ERP_WEBAPI.Shared.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 
-namespace FSH.WebApi.Infrastructure.Auth.Permissions;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Auth.Permissions;
 
 internal class PermissionPolicyProvider : IAuthorizationPolicyProvider
 {

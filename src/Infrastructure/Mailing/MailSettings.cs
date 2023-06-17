@@ -1,4 +1,4 @@
-namespace FSH.WebApi.Infrastructure.Mailing;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Mailing;
 
 public class MailSettings
 {

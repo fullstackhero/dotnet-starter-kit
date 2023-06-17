@@ -1,7 +1,7 @@
 using System.Security.Claims;
-using FSH.WebApi.Application.Identity.Users.Password;
+using FL_CRMS_ERP_WEBAPI.Application.Identity.Users.Password;
 
-namespace FSH.WebApi.Application.Identity.Users;
+namespace FL_CRMS_ERP_WEBAPI.Application.Identity.Users;
 
 public interface IUserService : ITransientService
 {

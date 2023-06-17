@@ -1,4 +1,4 @@
-namespace FSH.WebApi.Infrastructure.SecurityHeaders;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.SecurityHeaders;
 
 public class SecurityHeaders
 {

@@ -1,4 +1,4 @@
-namespace FSH.WebApi.Application.Identity.Users;
+namespace FL_CRMS_ERP_WEBAPI.Application.Identity.Users;
 
 public class UserDetailsDto
 {

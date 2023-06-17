@@ -1,9 +1,9 @@
-using FSH.WebApi.Application;
-using FSH.WebApi.Host.Configurations;
-using FSH.WebApi.Host.Controllers;
-using FSH.WebApi.Infrastructure;
-using FSH.WebApi.Infrastructure.Common;
-using FSH.WebApi.Infrastructure.Logging.Serilog;
+using FL_CRMS_ERP_WEBAPI.Application;
+using FL_CRMS_ERP_WEBAPI.Host.Configurations;
+using FL_CRMS_ERP_WEBAPI.Host.Controllers;
+using FL_CRMS_ERP_WEBAPI.Infrastructure;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Common;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Logging.Serilog;
 using Serilog;
 using Serilog.Formatting.Compact;
 

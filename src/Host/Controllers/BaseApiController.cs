@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace FSH.WebApi.Host.Controllers;
+namespace FL_CRMS_ERP_WEBAPI.Host.Controllers;
 
 [ApiController]
 public class BaseApiController : ControllerBase

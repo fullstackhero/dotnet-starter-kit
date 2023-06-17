@@ -1,9 +1,9 @@
 using Finbuckle.MultiTenant;
-using FSH.WebApi.Infrastructure.Persistence.Context;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace FSH.WebApi.Infrastructure.Persistence.Initialization;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence.Initialization;
 
 internal class ApplicationDbInitializer
 {

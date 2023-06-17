@@ -9,7 +9,7 @@ using Serilog.Events;
 using Serilog.Exceptions;
 using Serilog.Formatting.Compact;
 
-namespace FSH.WebApi.Infrastructure.Logging.Serilog;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Logging.Serilog;
 
 public static class Extensions
 {

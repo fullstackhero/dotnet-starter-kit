@@ -1,4 +1,4 @@
-namespace FSH.WebApi.Application.Common.FileStorage;
+namespace FL_CRMS_ERP_WEBAPI.Application.Common.FileStorage;
 
 public class FileUploadRequest
 {

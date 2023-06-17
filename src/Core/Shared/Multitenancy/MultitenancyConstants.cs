@@ -1,4 +1,4 @@
-namespace FSH.WebApi.Shared.Multitenancy;
+namespace FL_CRMS_ERP_WEBAPI.Shared.Multitenancy;
 
 public class MultitenancyConstants
 {

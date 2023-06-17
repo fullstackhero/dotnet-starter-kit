@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Text.Json;
 
-namespace FSH.WebApi.Application.Common.Specification;
+namespace FL_CRMS_ERP_WEBAPI.Application.Common.Specification;
 
 // See https://github.com/ardalis/Specification/issues/53
 public static class SpecificationBuilderExtensions

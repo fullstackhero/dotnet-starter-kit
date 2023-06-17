@@ -1,6 +1,6 @@
-﻿using FSH.WebApi.Domain.Common.Events;
+﻿using FL_CRMS_ERP_WEBAPI.Domain.Common.Events;
 
-namespace FSH.WebApi.Application.Catalog.Products;
+namespace FL_CRMS_ERP_WEBAPI.Application.Catalog.Products;
 
 public class DeleteProductRequest : IRequest<Guid>
 {

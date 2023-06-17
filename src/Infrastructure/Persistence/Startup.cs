@@ -1,10 +1,10 @@
-using FSH.WebApi.Application.Common.Persistence;
-using FSH.WebApi.Domain.Common.Contracts;
-using FSH.WebApi.Infrastructure.Common;
-using FSH.WebApi.Infrastructure.Persistence.ConnectionString;
-using FSH.WebApi.Infrastructure.Persistence.Context;
-using FSH.WebApi.Infrastructure.Persistence.Initialization;
-using FSH.WebApi.Infrastructure.Persistence.Repository;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Persistence;
+using FL_CRMS_ERP_WEBAPI.Domain.Common.Contracts;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Common;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence.ConnectionString;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence.Context;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence.Initialization;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence.Repository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,7 +12,7 @@ using Microsoft.Extensions.Options;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Serilog;
 
-namespace FSH.WebApi.Infrastructure.Persistence;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence;
 
 internal static class Startup
 {

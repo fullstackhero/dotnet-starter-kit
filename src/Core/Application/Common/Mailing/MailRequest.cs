@@ -1,4 +1,4 @@
-namespace FSH.WebApi.Application.Common.Mailing;
+namespace FL_CRMS_ERP_WEBAPI.Application.Common.Mailing;
 
 public class MailRequest
 {

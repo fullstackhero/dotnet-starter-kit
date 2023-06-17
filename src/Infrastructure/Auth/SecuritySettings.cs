@@ -1,4 +1,4 @@
-namespace FSH.WebApi.Infrastructure.Auth;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Auth;
 
 public class SecuritySettings
 {

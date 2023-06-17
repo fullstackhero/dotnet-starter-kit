@@ -1,14 +1,14 @@
-using FSH.WebApi.Application.Common.Interfaces;
-using FSH.WebApi.Infrastructure.Auth.AzureAd;
-using FSH.WebApi.Infrastructure.Auth.Jwt;
-using FSH.WebApi.Infrastructure.Auth.Permissions;
-using FSH.WebApi.Infrastructure.Identity;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Interfaces;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Auth.AzureAd;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Auth.Jwt;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Auth.Permissions;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace FSH.WebApi.Infrastructure.Auth;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Auth;
 
 internal static class Startup
 {

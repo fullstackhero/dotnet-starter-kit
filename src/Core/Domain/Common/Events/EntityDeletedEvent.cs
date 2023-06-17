@@ -1,4 +1,4 @@
-namespace FSH.WebApi.Domain.Common.Events;
+namespace FL_CRMS_ERP_WEBAPI.Domain.Common.Events;
 
 public static class EntityDeletedEvent
 {

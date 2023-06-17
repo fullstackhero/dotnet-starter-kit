@@ -1,8 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
-        <RootNamespace>FSH.WebApi.Application</RootNamespace>
-        <AssemblyName>FSH.WebApi.Application</AssemblyName>
+        <RootNamespace>FL_CRMS_ERP_WEBAPIFL_CRMS_ERP_WEBAPIApplication</RootNamespace>
+        <AssemblyName>FL_CRMS_ERP_WEBAPIFL_CRMS_ERP_WEBAPIApplication</AssemblyName>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Ardalis.Specification" Version="6.1.0" />

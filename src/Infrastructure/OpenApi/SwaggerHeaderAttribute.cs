@@ -1,4 +1,4 @@
-﻿namespace FSH.WebApi.Infrastructure.OpenApi;
+﻿namespace FL_CRMS_ERP_WEBAPI.Infrastructure.OpenApi;
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
 public class SwaggerHeaderAttribute : Attribute

@@ -1,9 +1,9 @@
 using System.Security.Claims;
-using FSH.WebApi.Application.Auditing;
-using FSH.WebApi.Application.Identity.Users;
-using FSH.WebApi.Application.Identity.Users.Password;
+using FL_CRMS_ERP_WEBAPI.Application.Auditing;
+using FL_CRMS_ERP_WEBAPI.Application.Identity.Users;
+using FL_CRMS_ERP_WEBAPI.Application.Identity.Users.Password;
 
-namespace FSH.WebApi.Host.Controllers.Identity;
+namespace FL_CRMS_ERP_WEBAPI.Host.Controllers.Identity;
 
 public class PersonalController : VersionNeutralApiController
 {

@@ -1,7 +1,7 @@
-using FSH.WebApi.Shared.Authorization;
+using FL_CRMS_ERP_WEBAPI.Shared.Authorization;
 using Microsoft.AspNetCore.Authorization;
 
-namespace FSH.WebApi.Infrastructure.Auth.Permissions;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Auth.Permissions;
 
 public class MustHavePermissionAttribute : AuthorizeAttribute
 {

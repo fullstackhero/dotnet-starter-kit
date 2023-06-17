@@ -1,7 +1,7 @@
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace FSH.WebApi.Application;
+namespace FL_CRMS_ERP_WEBAPI.Application;
 
 public static class Startup
 {

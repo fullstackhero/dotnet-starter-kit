@@ -1,6 +1,6 @@
-﻿using FSH.WebApi.Application.Catalog.Products;
+﻿using FL_CRMS_ERP_WEBAPI.Application.Catalog.Products;
 
-namespace FSH.WebApi.Host.Controllers.Catalog;
+namespace FL_CRMS_ERP_WEBAPI.Host.Controllers.Catalog;
 
 public class ProductsController : VersionedApiController
 {

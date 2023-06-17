@@ -1,4 +1,4 @@
-﻿namespace FSH.WebApi.Infrastructure.Localization;
+﻿namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Localization;
 
 public class LocalizationSettings
 {

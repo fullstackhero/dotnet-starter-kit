@@ -1,6 +1,6 @@
-using FSH.WebApi.Domain.Common.Events;
+using FL_CRMS_ERP_WEBAPI.Domain.Common.Events;
 
-namespace FSH.WebApi.Application.Catalog.Products.EventHandlers;
+namespace FL_CRMS_ERP_WEBAPI.Application.Catalog.Products.EventHandlers;
 
 public class ProductCreatedEventHandler : EventNotificationHandler<EntityCreatedEvent<Product>>
 {

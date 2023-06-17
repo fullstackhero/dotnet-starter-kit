@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using MediatR;
 
-namespace FSH.WebApi.Infrastructure.Validations;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Validations;
 
 public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>

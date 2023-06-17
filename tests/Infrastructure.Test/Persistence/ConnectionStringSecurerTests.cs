@@ -1,7 +1,7 @@
-﻿using FSH.WebApi.Application.Common.Persistence;
+﻿using FL_CRMS_ERP_WEBAPI.Application.Common.Persistence;
 using Xunit;
 
-namespace FSH.WebApi.Infrastructure.Persistence.Tests;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence.Tests;
 
 public class ConnectionStringSecurerTests
 {

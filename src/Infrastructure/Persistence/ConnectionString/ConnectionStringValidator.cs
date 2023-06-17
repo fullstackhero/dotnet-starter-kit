@@ -1,5 +1,5 @@
-﻿using FSH.WebApi.Application.Common.Persistence;
-using FSH.WebApi.Infrastructure.Common;
+﻿using FL_CRMS_ERP_WEBAPI.Application.Common.Persistence;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Common;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -7,7 +7,7 @@ using MySqlConnector;
 using Npgsql;
 using System.Data.SqlClient;
 
-namespace FSH.WebApi.Infrastructure.Persistence.ConnectionString;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence.ConnectionString;
 
 internal class ConnectionStringValidator : IConnectionStringValidator
 {

@@ -1,4 +1,4 @@
-namespace FSH.WebApi.Application.Common.Models;
+namespace FL_CRMS_ERP_WEBAPI.Application.Common.Models;
 
 public class Search
 {

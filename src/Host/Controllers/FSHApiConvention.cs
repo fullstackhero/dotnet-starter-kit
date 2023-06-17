@@ -1,7 +1,7 @@
-﻿using FSH.WebApi.Infrastructure.Middleware;
+﻿using FL_CRMS_ERP_WEBAPI.Infrastructure.Middleware;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 
-namespace FSH.WebApi.Host.Controllers;
+namespace FL_CRMS_ERP_WEBAPI.Host.Controllers;
 
 #nullable disable
 #pragma warning disable RCS1163, IDE0060

@@ -1,8 +1,8 @@
-using FSH.WebApi.Application.Common.Caching;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Caching;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
-namespace FSH.WebApi.Infrastructure.Caching;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Caching;
 
 public class LocalCacheService : ICacheService
 {

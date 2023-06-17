@@ -1,4 +1,4 @@
-namespace FSH.WebApi.Infrastructure.Middleware;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Middleware;
 
 public class MiddlewareSettings
 {

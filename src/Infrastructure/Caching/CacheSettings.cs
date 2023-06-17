@@ -1,4 +1,4 @@
-namespace FSH.WebApi.Infrastructure.Caching;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Caching;
 
 public class CacheSettings
 {

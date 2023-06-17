@@ -1,6 +1,6 @@
-using FSH.WebApi.Shared.Events;
+using FL_CRMS_ERP_WEBAPI.Shared.Events;
 
-namespace FSH.WebApi.Domain.Common.Contracts;
+namespace FL_CRMS_ERP_WEBAPI.Domain.Common.Contracts;
 
 public abstract class DomainEvent : IEvent
 {

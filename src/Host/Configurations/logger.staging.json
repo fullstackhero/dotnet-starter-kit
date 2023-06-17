@@ -1,6 +1,6 @@
 {
   "LoggerSettings": {
-    "AppName": "FSH.WebApi",
+    "AppName": "FL_CRMS_ERP_WEBAPI",
     "WriteToFile": false,
     "StructuredConsoleLogging": true
   }

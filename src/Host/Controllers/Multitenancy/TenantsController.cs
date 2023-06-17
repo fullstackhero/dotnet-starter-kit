@@ -1,6 +1,6 @@
-using FSH.WebApi.Application.Multitenancy;
+using FL_CRMS_ERP_WEBAPI.Application.Multitenancy;
 
-namespace FSH.WebApi.Host.Controllers.Multitenancy;
+namespace FL_CRMS_ERP_WEBAPI.Host.Controllers.Multitenancy;
 
 public class TenantsController : VersionNeutralApiController
 {

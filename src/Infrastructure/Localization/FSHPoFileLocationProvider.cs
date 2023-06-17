@@ -1,11 +1,11 @@
-using FSH.WebApi.Infrastructure.Common.Extensions;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Common.Extensions;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using OrchardCore.Localization;
 
-namespace FSH.WebApi.Infrastructure.Localization;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Localization;
 
 /// <summary>
 /// Provides PO files for FSH Localization.

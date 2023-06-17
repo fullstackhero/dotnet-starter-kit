@@ -1,4 +1,4 @@
-namespace FSH.WebApi.Infrastructure.Common.Settings;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Common.Settings;
 
 public class CorsSettings
 {
