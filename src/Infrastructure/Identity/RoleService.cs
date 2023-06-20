@@ -76,7 +76,7 @@ internal class RoleService : IRoleService
         if (string.IsNullOrEmpty(request.Id))
         {
             // Create a new role.
-            var role = new ApplicationRole(request.Name, request.Description);
+            var role = new ApplicationRole(request.Name, request.Description, request.ReportTo);
             var result = await _roleManager.CreateAsync(role);
 
             if (!result.Succeeded)
@@ -95,14 +95,34 @@ internal class RoleService : IRoleService
 
             _ = role ?? throw new NotFoundException(_t["Role Not Found"]);
 
-            if (FSHRoles.IsDefault(role.Name!))
-            {
-                throw new ConflictException(string.Format(_t["Not allowed to modify {0} Role."], role.Name));
-            }
+            //if (FSHRoles.IsDefault(role.Name!))
+            //{
+            //    throw new ConflictException(string.Format(_t["Not allowed to modify {0} Role."], role.Name));
+            //}
 
-            role.Name = request.Name;
-            role.NormalizedName = request.Name.ToUpperInvariant();
-            role.Description = request.Description;
+            if(FSHRoles.IsDefault(role.Name!))
+            {
+                if(role.Name == request.Name && role.Description == request.Description)
+                {
+                    role.Name = request.Name;
+                    role.NormalizedName = request.Name.ToUpperInvariant();
+                    role.Description = request.Description;
+                    role.ReportTo = request.ReportTo;
+                }
+                else
+                {
+                    throw new ConflictException(string.Format(_t["Not allowed to modify {0} Role."], role.Name));
+                }
+            }
+            else
+            {
+                role.Name = request.Name;
+                role.NormalizedName = request.Name.ToUpperInvariant();
+                role.Description = request.Description;
+                role.ReportTo = request.ReportTo;
+            }
+           
+
             var result = await _roleManager.UpdateAsync(role);
 
             if (!result.Succeeded)
