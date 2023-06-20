@@ -12,4 +12,8 @@ public class Trail : BaseEntity
     public string? NewValues { get; set; }
     public string? AffectedColumns { get; set; }
     public string? PrimaryKey { get; set; }
+    public Guid LeadId { get; set; }
+    public string? Subject { get; set; }
+    public string[]? MeetingLeadId { get; set; }
+    public string? RelatedTo { get; set; }
 }

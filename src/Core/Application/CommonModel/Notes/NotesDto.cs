@@ -11,6 +11,6 @@ public class NotesDto
     public Guid NoteOwnerId { get; set; }
     public string? NoteTitle { get; set; }
     public string? NoteContent { get; set; }
-    public Guid? ParentId { get; set; }
+    public Guid ParentId { get; set; }
     public string? RelatedTo { get; set; }
 }

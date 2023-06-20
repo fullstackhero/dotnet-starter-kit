@@ -14,7 +14,7 @@ public class UpdateNotesRequest : IRequest<Guid>
     public Guid NoteOwnerId { get; set; }
     public string? NoteTitle { get; set; }
     public string? NoteContent { get; set; }
-    public Guid? ParentId { get; set; }
+    public Guid ParentId { get; set; }
     public string? RelatedTo { get; set; }
 
     public class UpdateNotesRequestHandler : IRequestHandler<UpdateNotesRequest, Guid>
@@ -33,7 +33,7 @@ public class UpdateNotesRequest : IRequest<Guid>
             _ = notes
             ?? throw new NotFoundException(_t["Note {0} Not Found.", request.Id]);
 
-            notes.Update(request.NoteOwnerId, request?.NoteTitle, request?.NoteContent, request?.ParentId, request?.RelatedTo);
+            notes.Update(request.NoteOwnerId, request?.NoteTitle, request?.NoteContent, request.ParentId, request?.RelatedTo);
 
             await _repository.UpdateAsync(notes, cancellationToken);
 
