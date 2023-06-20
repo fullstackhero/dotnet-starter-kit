@@ -12,11 +12,11 @@ public class AccountDto
     public Guid UserId { get; set; }
     public string? AccountName { get; set; }
     public string? AccountSite { get; set; }
-    public Guid ParentAccountId { get; set; }
+    public Guid? ParentAccountId { get; set; }
     public string? AccountNumber { get; set; }
     public string? AccountType { get; set; }
     public string? Industry { get; set; }
-    public decimal Revenue { get; set; }
+    public decimal? Revenue { get; set; }
     public string? Rating { get; set; }
     public string? Phone { get; set; }
     public string? Fax { get; set; }
@@ -36,4 +36,5 @@ public class AccountDto
     public string? Description { get; set; }
     public string? BillingState { get; set; }
     public string? ShippingState { get; set; }
+    public Guid ConvertedLeadId { get; set; }
 }

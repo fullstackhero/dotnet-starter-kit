@@ -14,18 +14,18 @@ public class UpdateAccountRequest : IRequest<Guid>
     public Guid UserId { get; set; }
     public string? AccountName { get; set; }
     public string? AccountSite { get; set; }
-    public Guid ParentAccountId { get; set; }
+    public Guid? ParentAccountId { get; set; }
     public string? AccountNumber { get; set; }
     public string? AccountType { get; set; }
     public string? Industry { get; set; }
-    public decimal Revenue { get; set; }
+    public decimal? Revenue { get; set; }
     public string? Rating { get; set; }
     public string? Phone { get; set; }
     public string? Fax { get; set; }
     public string? Website { get; set; }
     public string? TickerSymbol { get; set; }
     public string? OwnerShip { get; set; }
-    public int Employees { get; set; }
+    public int? Employees { get; set; }
     public string? SICCode { get; set; }
     public string? BillingStreet { get; set; }
     public string? ShippingStreet { get; set; }
@@ -38,6 +38,7 @@ public class UpdateAccountRequest : IRequest<Guid>
     public string? Description { get; set; }
     public string? BillingState { get; set; }
     public string? ShippingState { get; set; }
+    public Guid ConvertedLeadId { get; set; }
 
     public class UpdateAccountRequestHandler : IRequestHandler<UpdateAccountRequest, Guid>
     {
@@ -57,7 +58,7 @@ public class UpdateAccountRequest : IRequest<Guid>
 
             account.Update(request.AccountImage, request.UserId, request.AccountName, request.AccountSite, request.ParentAccountId, request.AccountNumber, request.AccountType, request.Industry,
                 request.Revenue, request.Rating, request.Phone, request.Fax, request.Website, request.TickerSymbol, request.OwnerShip, request.Employees, request.SICCode, request.BillingStreet,
-                request.ShippingStreet, request.BillingCity, request.ShippingCity, request.BillingCode, request.ShippingCode, request.BillingCountry, request.ShippingCountry, request.Description, request.BillingState, request.ShippingState);
+                request.ShippingStreet, request.BillingCity, request.ShippingCity, request.BillingCode, request.ShippingCode, request.BillingCountry, request.ShippingCountry, request.Description, request.BillingState, request.ShippingState, request.ConvertedLeadId);
 
             await _repository.UpdateAsync(account, cancellationToken);
 

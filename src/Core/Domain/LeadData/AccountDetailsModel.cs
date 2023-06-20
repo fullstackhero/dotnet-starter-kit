@@ -11,7 +11,7 @@ public class AccountDetailsModel : AuditableEntity, IAggregateRoot
     public Guid UserId { get; set; }
     public string? AccountName { get; set; }
     public string? AccountSite { get; set; }
-    public Guid ParentAccountId { get; set; }
+    public Guid? ParentAccountId { get; set; }
     public string? AccountNumber { get; set; }
     public string? AccountType { get; set; }
     public string? Industry { get; set; }
@@ -22,7 +22,7 @@ public class AccountDetailsModel : AuditableEntity, IAggregateRoot
     public string? Website { get; set; }
     public string? TickerSymbol { get; set; }
     public string? OwnerShip { get; set; }
-    public int Employees { get; set; }
+    public int? Employees { get; set; }
     public string? SICCode { get; set; }
     public string? BillingStreet { get; set; }
     public string? ShippingStreet { get; set; }
@@ -35,8 +35,9 @@ public class AccountDetailsModel : AuditableEntity, IAggregateRoot
     public string? Description { get; set; }
     public string? BillingState { get; set; }
     public string? ShippingState { get; set; }
+    public Guid ConvertedLeadId { get; set; }
 
-    public AccountDetailsModel(string? accountImage, Guid userId, string? accountName, string? accountSite, Guid parentAccountId, string? accountNumber, string? accountType, string? industry, decimal? revenue, string? rating, string? phone, string? fax, string? website, string? tickerSymbol, string? ownerShip, int employees, string? sICCode, string? billingStreet, string? shippingStreet, string? billingCity, string? shippingCity, string? billingCode, string? shippingCode, string? billingCountry, string? shippingCountry, string? description, string? billingState, string? shippingState)
+    public AccountDetailsModel(string? accountImage, Guid userId, string? accountName, string? accountSite, Guid? parentAccountId, string? accountNumber, string? accountType, string? industry, decimal? revenue, string? rating, string? phone, string? fax, string? website, string? tickerSymbol, string? ownerShip, int? employees, string? sICCode, string? billingStreet, string? shippingStreet, string? billingCity, string? shippingCity, string? billingCode, string? shippingCode, string? billingCountry, string? shippingCountry, string? description, string? billingState, string? shippingState, Guid convertedLeadId)
     {
         AccountImage = accountImage;
         UserId = userId;
@@ -66,9 +67,10 @@ public class AccountDetailsModel : AuditableEntity, IAggregateRoot
         Description = description;
         BillingState = billingState;
         ShippingState = shippingState;
+        ConvertedLeadId = convertedLeadId;
     }
 
-    public AccountDetailsModel Update(string? accountImage, Guid userId, string? accountName, string? accountSite, Guid parentAccountId, string? accountNumber, string? accountType, string? industry, decimal revenue, string? rating, string? phone, string? fax, string? website, string? tickerSymbol, string? ownerShip, int employees, string? sICCode, string? billingStreet, string? shippingStreet, string? billingCity, string? shippingCity, string? billingCode, string? shippingCode, string? billingCountry, string? shippingCountry, string? description, string? billingState, string? shippingState)
+    public AccountDetailsModel Update(string? accountImage, Guid userId, string? accountName, string? accountSite, Guid? parentAccountId, string? accountNumber, string? accountType, string? industry, decimal? revenue, string? rating, string? phone, string? fax, string? website, string? tickerSymbol, string? ownerShip, int? employees, string? sICCode, string? billingStreet, string? shippingStreet, string? billingCity, string? shippingCity, string? billingCode, string? shippingCode, string? billingCountry, string? shippingCountry, string? description, string? billingState, string? shippingState, Guid convertedLeadId)
     {
         if (accountImage is not null && AccountImage?.Equals(accountImage) is not true) AccountImage = accountImage;
         if (userId != Guid.Empty && !UserId.Equals(userId)) UserId = userId;
@@ -98,6 +100,7 @@ public class AccountDetailsModel : AuditableEntity, IAggregateRoot
         if (description is not null && Description?.Equals(description) is not true) Description = description;
         if (billingState is not null && BillingState?.Equals(billingState) is not true) BillingState = billingState;
         if (shippingState is not null && ShippingState?.Equals(shippingState) is not true) ShippingState = shippingState;
+        if (convertedLeadId != Guid.Empty && !ConvertedLeadId.Equals(convertedLeadId)) ConvertedLeadId = convertedLeadId;
         return this;
     }
 }

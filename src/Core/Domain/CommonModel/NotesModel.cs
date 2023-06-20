@@ -11,10 +11,10 @@ public class NotesModel : AuditableEntity, IAggregateRoot
     public Guid NoteOwnerId { get; set; }
     public string? NoteTitle { get; set; }
     public string? NoteContent { get; set; }
-    public Guid? ParentId { get; set; }
+    public Guid ParentId { get; set; }
     public string? RelatedTo { get; set; }
 
-    public NotesModel(Guid noteOwnerId, string? noteTitle, string? noteContent, Guid? parentId, string? relatedTo)
+    public NotesModel(Guid noteOwnerId, string? noteTitle, string? noteContent, Guid parentId, string? relatedTo)
     {
         NoteOwnerId = noteOwnerId;
         NoteTitle = noteTitle;
@@ -23,7 +23,7 @@ public class NotesModel : AuditableEntity, IAggregateRoot
         RelatedTo = relatedTo;
     }
 
-    public NotesModel Update(Guid noteOwnerId, string? noteTitle, string? noteContent, Guid? parentId, string? relatedTo)
+    public NotesModel Update(Guid noteOwnerId, string? noteTitle, string? noteContent, Guid parentId, string? relatedTo)
     {
         if (noteOwnerId != Guid.Empty && !NoteOwnerId.Equals(noteOwnerId)) NoteOwnerId = noteOwnerId;
         if (noteTitle is not null && NoteTitle?.Equals(noteTitle) is not true) NoteTitle = noteTitle;
