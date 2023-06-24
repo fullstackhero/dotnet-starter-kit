@@ -24,7 +24,8 @@ internal partial class UserService
                 RoleId = role.Id,
                 RoleName = role.Name,
                 Description = role.Description,
-                Enabled = await _userManager.IsInRoleAsync(user, role.Name!)
+                Enabled = await _userManager.IsInRoleAsync(user, role.Name!),
+                ReportTo = role.ReportTo
             });
         }
 

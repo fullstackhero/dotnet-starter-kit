@@ -110,7 +110,9 @@ internal partial class UserService
             LastName = request.LastName,
             UserName = request.UserName,
             PhoneNumber = request.PhoneNumber,
-            IsActive = true
+            IsActive = true,
+            ReportTo = request.ReportTo,
+            EmailConfirmed = true
         };
 
         var result = await _userManager.CreateAsync(user, request.Password);
@@ -148,7 +150,8 @@ internal partial class UserService
 
     public async Task UpdateAsync(UpdateUserRequest request, string userId)
     {
-        var user = await _userManager.FindByIdAsync(userId);
+        var user = await _userManager.FindByIdAsync(request.Id);// It is updated by selected user id based
+        //var user = await _userManager.FindByIdAsync(userId);
 
         _ = user ?? throw new NotFoundException(_t["User Not Found."]);
 
@@ -162,10 +165,21 @@ internal partial class UserService
                 _fileStorage.Remove(Path.Combine(root, currentImage));
             }
         }
+        if(request.ReportTo != null)
+        {
+            user.ReportTo = request.ReportTo;
+        }
+        if(request.UserName != null)
+        {
+            user.UserName = request.UserName;
+        }
 
         user.FirstName = request.FirstName;
         user.LastName = request.LastName;
-        user.PhoneNumber = request.PhoneNumber;
+        user.PhoneNumber = request.PhoneNumber;        
+        user.Email = request.Email;
+        
+
         string? phoneNumber = await _userManager.GetPhoneNumberAsync(user);
         if (request.PhoneNumber != phoneNumber)
         {

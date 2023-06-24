@@ -1,5 +1,7 @@
 using FL_CRMS_ERP_WEBAPI.Application.Identity.Users;
 using FL_CRMS_ERP_WEBAPI.Application.Identity.Users.Password;
+using FL_CRMS_ERP_WEBAPI.Application.Identity.Users.PersonalDetails;
+using System.Threading;
 
 namespace FL_CRMS_ERP_WEBAPI.Host.Controllers.Identity;
 
@@ -51,6 +53,19 @@ public class UsersController : VersionNeutralApiController
         // and return UnAuthorized when it isn't
         // Also: add other protection to prevent automatic posting (captcha?)
         return _userService.CreateAsync(request, GetOriginFromRequest());
+    }
+
+    [HttpPut("{id:guid}")]
+    [OpenApiOperation("Update a selected user.", "")]
+    public async Task<ActionResult> UpdateAsync(UpdateUserRequest request, string id)
+    {
+        if (id != request.Id)
+        {
+            return BadRequest();
+        }
+
+        await _userService.UpdateAsync(request, id );
+        return Ok();
     }
 
     [HttpPost("self-register")]
