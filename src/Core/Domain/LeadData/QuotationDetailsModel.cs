@@ -11,7 +11,7 @@ namespace FL_CRMS_ERP_WEBAPI.Domain.LeadData;
 public class QuotationDetailsModel : AuditableEntity, IAggregateRoot
 {
     public string? Team { get; set; }
-    public Guid DealId { get; set; }
+    public Guid? DealId { get; set; }
     public string? Subject { get; set; }
     public DateTime? ValidDate { get; set; }
     public Guid ContactId { get; set; }
@@ -32,7 +32,7 @@ public class QuotationDetailsModel : AuditableEntity, IAggregateRoot
     public string? TermsConditions { get; set; }
     public Guid QuoteOwnerId { get; set; }
 
-    public Guid LeadId { get; set; }
+    public Guid? LeadId { get; set; }
 
     [NotMapped]
     public List<Quote> QuoteItems { get; set; }
@@ -55,7 +55,7 @@ public class QuotationDetailsModel : AuditableEntity, IAggregateRoot
     public decimal TotalAdjustment { get; set; }
     public decimal GrandTotal { get; set; }
 
-    public QuotationDetailsModel(string? team, Guid dealId, string? subject, DateTime? validDate, Guid contactId, Guid accountId, string? carrier, string? quoteStage, string? billingStreet, string? billingCity, string? billingState, string? billingCode, string? billingCountry, string? shippingStreet, string? shippingCity, string? shippingState, string? shippingCode, string? shippingCountry, string? description, string? termsConditions, Guid quoteOwnerId, Guid leadId, string quoteItemsJson, decimal subTotal, decimal totalDiscount, decimal totalTax, decimal totalAdjustment, decimal grandTotal)
+    public QuotationDetailsModel(string? team, Guid? dealId, string? subject, DateTime? validDate, Guid contactId, Guid accountId, string? carrier, string? quoteStage, string? billingStreet, string? billingCity, string? billingState, string? billingCode, string? billingCountry, string? shippingStreet, string? shippingCity, string? shippingState, string? shippingCode, string? shippingCountry, string? description, string? termsConditions, Guid quoteOwnerId, Guid? leadId, string quoteItemsJson, decimal subTotal, decimal totalDiscount, decimal totalTax, decimal totalAdjustment, decimal grandTotal)
     {
         Team = team;
         DealId = dealId;
@@ -88,7 +88,7 @@ public class QuotationDetailsModel : AuditableEntity, IAggregateRoot
         GrandTotal = grandTotal;
     }
 
-    public QuotationDetailsModel Update(string? team, Guid dealId, string? subject, DateTime? validDate, Guid contactId, Guid accountId, string? carrier, string? quoteStage, string? billingStreet, string? billingCity, string? billingState, string? billingCode, string? billingCountry, string? shippingStreet, string? shippingCity, string? shippingState, string? shippingCode, string? shippingCountry, string? description, string? termsConditions, Guid quoteOwnerId, Guid leadId, List<Quote> quoteItems, string quoteItemsJson, decimal subTotal, decimal totalDiscount, decimal totalTax, decimal totalAdjustment, decimal grandTotal)
+    public QuotationDetailsModel Update(string? team, Guid? dealId, string? subject, DateTime? validDate, Guid contactId, Guid accountId, string? carrier, string? quoteStage, string? billingStreet, string? billingCity, string? billingState, string? billingCode, string? billingCountry, string? shippingStreet, string? shippingCity, string? shippingState, string? shippingCode, string? shippingCountry, string? description, string? termsConditions, Guid quoteOwnerId, Guid? leadId, List<Quote> quoteItems, string quoteItemsJson, decimal subTotal, decimal totalDiscount, decimal totalTax, decimal totalAdjustment, decimal grandTotal)
     {
         if (team is not null && Team?.Equals(team) is not true) Team = team;
         if (dealId != Guid.Empty && !DealId.Equals(dealId)) DealId = dealId;

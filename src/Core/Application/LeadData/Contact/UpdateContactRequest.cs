@@ -20,7 +20,7 @@ public class UpdateContactRequest : IRequest<Guid>
     public string? HomePhone { get; set; }
     public string? Fax { get; set; }
     public string? Mobile { get; set; }
-    public DateTime DateOfBirth { get; set; }
+    public DateTime? DateOfBirth { get; set; }
     public string? SkypeId { get; set; }
     public string? SecondEmail { get; set; }
     public string? Twitter { get; set; }
@@ -42,8 +42,8 @@ public class UpdateContactRequest : IRequest<Guid>
     public string? Assistant { get; set; }
     public string? AssistantNumber { get; set; }
     public string? Source { get; set; }
-    public Guid LeadId { get; set; }
-    public Guid ReportTo { get; set; }
+    public Guid? LeadId { get; set; }
+    public Guid? ReportTo { get; set; }
     public string? OtherPhone { get; set; }
 
     public class UpdateContactRequestHandler : IRequestHandler<UpdateContactRequest, Guid>

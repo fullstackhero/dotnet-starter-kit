@@ -17,7 +17,7 @@ public class ContactDetailsModel : AuditableEntity, IAggregateRoot
     public string? HomePhone { get; set; }
     public string? Fax { get; set; }
     public string? Mobile { get; set; }
-    public DateTime DateOfBirth { get; set; }
+    public DateTime? DateOfBirth { get; set; }
     public string? SkypeId { get; set; }
     public string? SecondEmail { get; set; }
     public string? Twitter { get; set; }
@@ -39,11 +39,11 @@ public class ContactDetailsModel : AuditableEntity, IAggregateRoot
     public string? Assistant { get; set; }
     public string? AssistantNumber { get; set; }
     public string? Source { get; set; }
-    public Guid LeadId { get; set; }
-    public Guid ReportTo { get; set; }
+    public Guid? LeadId { get; set; }
+    public Guid? ReportTo { get; set; }
     public string? OtherPhone { get; set; }
 
-    public ContactDetailsModel(Guid contactOwnerId, string? firstName, string? lastName, Guid accountId, string? email, string? department, string? phone, string? homePhone, string? fax, string? mobile, DateTime dateOfBirth, string? skypeId, string? secondEmail, string? twitter, string? mailingStreet, string? otherStreet, string? mailingCity, string? otherCity, string? mailingState, string? otherState, string? mailingZipcode, string? otherZipCode, string? mailingCountry, string? otherCountry, string? description, string? contactImage, string? leadSource, bool emailOptOut, string? title, string? assistant, string? assistantNumber, string? source, Guid leadId, Guid reportTo, string? otherPhone)
+    public ContactDetailsModel(Guid contactOwnerId, string? firstName, string? lastName, Guid accountId, string? email, string? department, string? phone, string? homePhone, string? fax, string? mobile, DateTime? dateOfBirth, string? skypeId, string? secondEmail, string? twitter, string? mailingStreet, string? otherStreet, string? mailingCity, string? otherCity, string? mailingState, string? otherState, string? mailingZipcode, string? otherZipCode, string? mailingCountry, string? otherCountry, string? description, string? contactImage, string? leadSource, bool emailOptOut, string? title, string? assistant, string? assistantNumber, string? source, Guid? leadId, Guid? reportTo, string? otherPhone)
     {
         ContactOwnerId = contactOwnerId;
         FirstName = firstName;
@@ -82,7 +82,7 @@ public class ContactDetailsModel : AuditableEntity, IAggregateRoot
         OtherPhone = otherPhone;
     }
 
-    public ContactDetailsModel Update(Guid contactOwnerId, string? firstName, string? lastName, Guid accountId, string? email, string? department, string? phone, string? homePhone, string? fax, string? mobile, DateTime dateOfBirth, string? skypeId, string? secondEmail, string? twitter, string? mailingStreet, string? otherStreet, string? mailingCity, string? otherCity, string? mailingState, string? otherState, string? mailingZipcode, string? otherZipCode, string? mailingCountry, string? otherCountry, string? description, string? contactImage, string? leadSource, bool emailOptOut, string? title, string? assistant, string? assistantNumber, string? source, Guid leadId, Guid reportTo, string? otherPhone)
+    public ContactDetailsModel Update(Guid contactOwnerId, string? firstName, string? lastName, Guid accountId, string? email, string? department, string? phone, string? homePhone, string? fax, string? mobile, DateTime? dateOfBirth, string? skypeId, string? secondEmail, string? twitter, string? mailingStreet, string? otherStreet, string? mailingCity, string? otherCity, string? mailingState, string? otherState, string? mailingZipcode, string? otherZipCode, string? mailingCountry, string? otherCountry, string? description, string? contactImage, string? leadSource, bool emailOptOut, string? title, string? assistant, string? assistantNumber, string? source, Guid? leadId, Guid? reportTo, string? otherPhone)
     {
         if (contactOwnerId != Guid.Empty && !ContactOwnerId.Equals(contactOwnerId)) ContactOwnerId = contactOwnerId;
         if (firstName is not null && FirstName?.Equals(firstName) is not true) FirstName = firstName;
