@@ -13,7 +13,7 @@ public class UpdateQuotationRequest : IRequest<Guid>
 {
     public Guid Id { get; set; }
     public string? Team { get; set; }
-    public Guid DealId { get; set; }
+    public Guid? DealId { get; set; }
     public string? Subject { get; set; }
     public DateTime? ValidDate { get; set; }
     public Guid ContactId { get; set; }
@@ -34,7 +34,7 @@ public class UpdateQuotationRequest : IRequest<Guid>
     public string? TermsConditions { get; set; }
     public Guid QuoteOwnerId { get; set; }
 
-    public Guid LeadId { get; set; }
+    public Guid? LeadId { get; set; }
 
     [NotMapped]
     public List<Quote> QuoteItems { get; set; }
