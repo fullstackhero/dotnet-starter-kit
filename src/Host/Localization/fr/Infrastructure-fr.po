@@ -1,12 +1,12 @@
 msgid ""
 msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Crowdin-Project: fsh-dotnet-webapi-boilerplate\n"
+"X-Crowdin-Project: FL-dotnet-webapi-boilerplate\n"
 "X-Crowdin-Project-ID: 502764\n"
 "X-Crowdin-Language: fr\n"
 "X-Crowdin-File: Infrastructure.pot\n"
 "X-Crowdin-File-ID: 14\n"
-"Project-Id-Version: fsh-dotnet-webapi-boilerplate\n"
+"Project-Id-Version: FL-dotnet-webapi-boilerplate\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Language-Team: French\n"
 "Language: fr_FR\n"
@@ -326,7 +326,7 @@ msgctxt "FL_CRMS_ERP_WEBAPI.Infrastructure.Multitenancy.TenantService"
 msgid "Tenant is already Deactivated."
 msgstr "Le tenant est déjà désactivé."
 
-#. ?? throw new NotFoundException(_t["{0} {1} Not Found.", typeof(FSHTenantInfo).Name, id]);
+#. ?? throw new NotFoundException(_t["{0} {1} Not Found.", typeof(FLTenantInfo).Name, id]);
 #: Infrastructure\Multitenancy\TenantService.cs:119
 msgctxt "FL_CRMS_ERP_WEBAPI.Infrastructure.Multitenancy.TenantService"
 msgid "{0} {1} Not Found."

@@ -71,7 +71,7 @@ internal class AzureAdJwtBearerEvents : JwtBearerEvents
         var identity = principal.Identities.First();
 
         // Adding tenant claim.
-        identity.AddClaim(new Claim(FSHClaims.Tenant, tenant.Id));
+        identity.AddClaim(new Claim(FLClaims.Tenant, tenant.Id));
 
         // Set new tenant info to the HttpContext so the right connectionstring is used.
         context.HttpContext.TrySetTenantInfo(tenant, false);

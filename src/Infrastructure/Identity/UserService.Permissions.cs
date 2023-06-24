@@ -20,7 +20,7 @@ internal partial class UserService
             .ToListAsync(cancellationToken))
         {
             permissions.AddRange(await _db.RoleClaims
-                .Where(rc => rc.RoleId == role.Id && rc.ClaimType == FSHClaims.Permission)
+                .Where(rc => rc.RoleId == role.Id && rc.ClaimType == FLClaims.Permission)
                 .Select(rc => rc.ClaimValue!)
                 .ToListAsync(cancellationToken));
         }
@@ -31,7 +31,7 @@ internal partial class UserService
     public async Task<bool> HasPermissionAsync(string userId, string permission, CancellationToken cancellationToken)
     {
         var permissions = await _cache.GetOrSetAsync(
-            _cacheKeys.GetCacheKey(FSHClaims.Permission, userId),
+            _cacheKeys.GetCacheKey(FLClaims.Permission, userId),
             () => GetPermissionsAsync(userId, cancellationToken),
             cancellationToken: cancellationToken);
 
@@ -39,5 +39,5 @@ internal partial class UserService
     }
 
     public Task InvalidatePermissionCacheAsync(string userId, CancellationToken cancellationToken) =>
-        _cache.RemoveAsync(_cacheKeys.GetCacheKey(FSHClaims.Permission, userId), cancellationToken);
+        _cache.RemoveAsync(_cacheKeys.GetCacheKey(FLClaims.Permission, userId), cancellationToken);
 }

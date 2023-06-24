@@ -9,13 +9,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FL_CRMS_ERP_WEBAPI.Infrastructure.BackgroundJobs;
 
-public class FSHJobFilter : IClientFilter
+public class FLJobFilter : IClientFilter
 {
     private static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
 
     private readonly IServiceProvider _services;
 
-    public FSHJobFilter(IServiceProvider services) => _services = services;
+    public FLJobFilter(IServiceProvider services) => _services = services;
 
     public void OnCreating(CreatingContext context)
     {

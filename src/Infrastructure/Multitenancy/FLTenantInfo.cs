@@ -3,13 +3,13 @@ using FL_CRMS_ERP_WEBAPI.Shared.Multitenancy;
 
 namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Multitenancy;
 
-public class FSHTenantInfo : ITenantInfo
+public class FLTenantInfo : ITenantInfo
 {
-    public FSHTenantInfo()
+    public FLTenantInfo()
     {
     }
 
-    public FSHTenantInfo(string id, string name, string? connectionString, string adminEmail, string? issuer = null)
+    public FLTenantInfo(string id, string name, string? connectionString, string adminEmail, string? issuer = null)
     {
         Id = id;
         Identifier = id;

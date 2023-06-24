@@ -24,7 +24,7 @@ namespace Migrators.MSSQL.Migrations.Tenant
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
-            modelBuilder.Entity("FL_CRMS_ERP_WEBAPI.Infrastructure.Multitenancy.FSHTenantInfo", b =>
+            modelBuilder.Entity("FL_CRMS_ERP_WEBAPI.Infrastructure.Multitenancy.FLTenantInfo", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(64)

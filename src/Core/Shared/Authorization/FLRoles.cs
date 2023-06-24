@@ -2,7 +2,7 @@ using System.Collections.ObjectModel;
 
 namespace FL_CRMS_ERP_WEBAPI.Shared.Authorization;
 
-public static class FSHRoles
+public static class FLRoles
 {
     public const string Admin = nameof(Admin);
     public const string Basic = nameof(Basic);

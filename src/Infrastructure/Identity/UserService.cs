@@ -138,7 +138,7 @@ internal partial class UserService : IUserService
 
         _ = user ?? throw new NotFoundException(_t["User Not Found."]);
 
-        bool isAdmin = await _userManager.IsInRoleAsync(user, FSHRoles.Admin);
+        bool isAdmin = await _userManager.IsInRoleAsync(user, FLRoles.Admin);
         if (isAdmin)
         {
             throw new ConflictException(_t["Administrators Profile's Status cannot be toggled"]);

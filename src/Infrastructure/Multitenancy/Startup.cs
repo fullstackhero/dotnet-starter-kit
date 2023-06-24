@@ -22,11 +22,11 @@ internal static class Startup
                 var databaseSettings = p.GetRequiredService<IOptions<DatabaseSettings>>().Value;
                 m.UseDatabase(databaseSettings.DBProvider, databaseSettings.ConnectionString);
             })
-            .AddMultiTenant<FSHTenantInfo>()
-                .WithClaimStrategy(FSHClaims.Tenant)
+            .AddMultiTenant<FLTenantInfo>()
+                .WithClaimStrategy(FLClaims.Tenant)
                 .WithHeaderStrategy(MultitenancyConstants.TenantIdName)
                 .WithQueryStringStrategy(MultitenancyConstants.TenantIdName)
-                .WithEFCoreStore<TenantDbContext, FSHTenantInfo>()
+                .WithEFCoreStore<TenantDbContext, FLTenantInfo>()
                 .Services
             .AddScoped<ITenantService, TenantService>();
     }
@@ -34,7 +34,7 @@ internal static class Startup
     internal static IApplicationBuilder UseMultiTenancy(this IApplicationBuilder app) =>
         app.UseMultiTenant();
 
-    private static FinbuckleMultiTenantBuilder<FSHTenantInfo> WithQueryStringStrategy(this FinbuckleMultiTenantBuilder<FSHTenantInfo> builder, string queryStringKey) =>
+    private static FinbuckleMultiTenantBuilder<FLTenantInfo> WithQueryStringStrategy(this FinbuckleMultiTenantBuilder<FLTenantInfo> builder, string queryStringKey) =>
         builder.WithDelegateStrategy(context =>
         {
             if (context is not HttpContext httpContext)

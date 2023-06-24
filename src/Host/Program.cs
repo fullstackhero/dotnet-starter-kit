@@ -7,7 +7,7 @@ using FL_CRMS_ERP_WEBAPI.Infrastructure.Logging.Serilog;
 using Serilog;
 using Serilog.Formatting.Compact;
 
-[assembly: ApiConventionType(typeof(FSHApiConventions))]
+[assembly: ApiConventionType(typeof(FLApiConventions))]
 
 StaticLogger.EnsureInitialized();
 Log.Information("Server Booting Up...");

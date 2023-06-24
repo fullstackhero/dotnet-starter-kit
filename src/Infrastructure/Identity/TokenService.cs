@@ -22,13 +22,13 @@ internal class TokenService : ITokenService
     private readonly IStringLocalizer _t;
     private readonly SecuritySettings _securitySettings;
     private readonly JwtSettings _jwtSettings;
-    private readonly FSHTenantInfo? _currentTenant;
+    private readonly FLTenantInfo? _currentTenant;
 
     public TokenService(
         UserManager<ApplicationUser> userManager,
         IOptions<JwtSettings> jwtSettings,
         IStringLocalizer<TokenService> localizer,
-        FSHTenantInfo? currentTenant,
+        FLTenantInfo? currentTenant,
         IOptions<SecuritySettings> securitySettings)
     {
         _userManager = userManager;
@@ -111,12 +111,12 @@ internal class TokenService : ITokenService
         {
             new(ClaimTypes.NameIdentifier, user.Id),
             new(ClaimTypes.Email, user.Email!),
-            new(FSHClaims.Fullname, $"{user.FirstName} {user.LastName}"),
+            new(FLClaims.Fullname, $"{user.FirstName} {user.LastName}"),
             new(ClaimTypes.Name, user.FirstName ?? string.Empty),
             new(ClaimTypes.Surname, user.LastName ?? string.Empty),
-            new(FSHClaims.IpAddress, ipAddress),
-            new(FSHClaims.Tenant, _currentTenant!.Id),
-            new(FSHClaims.ImageUrl, user.ImageUrl ?? string.Empty),
+            new(FLClaims.IpAddress, ipAddress),
+            new(FLClaims.Tenant, _currentTenant!.Id),
+            new(FLClaims.ImageUrl, user.ImageUrl ?? string.Empty),
             new(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty)
         };
 

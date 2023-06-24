@@ -5,7 +5,7 @@ namespace FL_CRMS_ERP_WEBAPI.Host.Controllers.Catalog;
 public class ProductsController : VersionedApiController
 {
     [HttpPost("search")]
-    [MustHavePermission(FSHAction.Search, FSHResource.Products)]
+    [MustHavePermission(FLAction.Search, FLResource.Products)]
     [OpenApiOperation("Search products using available filters.", "")]
     public Task<PaginationResponse<ProductDto>> SearchAsync(SearchProductsRequest request)
     {
@@ -13,7 +13,7 @@ public class ProductsController : VersionedApiController
     }
 
     [HttpGet("{id:guid}")]
-    [MustHavePermission(FSHAction.View, FSHResource.Products)]
+    [MustHavePermission(FLAction.View, FLResource.Products)]
     [OpenApiOperation("Get product details.", "")]
     public Task<ProductDetailsDto> GetAsync(Guid id)
     {
@@ -21,7 +21,7 @@ public class ProductsController : VersionedApiController
     }
 
     [HttpGet("dapper")]
-    [MustHavePermission(FSHAction.View, FSHResource.Products)]
+    [MustHavePermission(FLAction.View, FLResource.Products)]
     [OpenApiOperation("Get product details via dapper.", "")]
     public Task<ProductDto> GetDapperAsync(Guid id)
     {
@@ -29,7 +29,7 @@ public class ProductsController : VersionedApiController
     }
 
     [HttpPost]
-    [MustHavePermission(FSHAction.Create, FSHResource.Products)]
+    [MustHavePermission(FLAction.Create, FLResource.Products)]
     [OpenApiOperation("Create a new product.", "")]
     public Task<Guid> CreateAsync(CreateProductRequest request)
     {
@@ -37,7 +37,7 @@ public class ProductsController : VersionedApiController
     }
 
     [HttpPut("{id:guid}")]
-    [MustHavePermission(FSHAction.Update, FSHResource.Products)]
+    [MustHavePermission(FLAction.Update, FLResource.Products)]
     [OpenApiOperation("Update a product.", "")]
     public async Task<ActionResult<Guid>> UpdateAsync(UpdateProductRequest request, Guid id)
     {
@@ -47,7 +47,7 @@ public class ProductsController : VersionedApiController
     }
 
     [HttpDelete("{id:guid}")]
-    [MustHavePermission(FSHAction.Delete, FSHResource.Products)]
+    [MustHavePermission(FLAction.Delete, FLResource.Products)]
     [OpenApiOperation("Delete a product.", "")]
     public Task<Guid> DeleteAsync(Guid id)
     {
@@ -55,7 +55,7 @@ public class ProductsController : VersionedApiController
     }
 
     [HttpPost("export")]
-    [MustHavePermission(FSHAction.Export, FSHResource.Products)]
+    [MustHavePermission(FLAction.Export, FLResource.Products)]
     [OpenApiOperation("Export a products.", "")]
     public async Task<FileResult> ExportAsync(ExportProductsRequest filter)
     {

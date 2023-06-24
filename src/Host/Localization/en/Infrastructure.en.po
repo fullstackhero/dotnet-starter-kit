@@ -340,7 +340,7 @@ msgctxt "FL_CRMS_ERP_WEBAPI.Infrastructure.Multitenancy.TenantService"
 msgid "Tenant is already Deactivated."
 msgstr "Tenant is already Deactivated."
 
-#. ?? throw new NotFoundException(_t["{0} {1} Not Found.", typeof(FSHTenantInfo).Name, id]);
+#. ?? throw new NotFoundException(_t["{0} {1} Not Found.", typeof(FLTenantInfo).Name, id]);
 #: Infrastructure\Multitenancy\TenantService.cs:119
 msgctxt "FL_CRMS_ERP_WEBAPI.Infrastructure.Multitenancy.TenantService"
 msgid "{0} {1} Not Found."

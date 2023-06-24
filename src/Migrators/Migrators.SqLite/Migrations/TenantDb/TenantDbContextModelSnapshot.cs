@@ -17,7 +17,7 @@ namespace Migrators.SqLite.Migrations.TenantDb
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.4");
 
-            modelBuilder.Entity("FL_CRMS_ERP_WEBAPI.Infrastructure.Multitenancy.FSHTenantInfo", b =>
+            modelBuilder.Entity("FL_CRMS_ERP_WEBAPI.Infrastructure.Multitenancy.FLTenantInfo", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(64)

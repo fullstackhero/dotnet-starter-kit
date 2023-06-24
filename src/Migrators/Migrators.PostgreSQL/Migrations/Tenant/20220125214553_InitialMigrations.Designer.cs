@@ -24,7 +24,7 @@ namespace Migrators.PostgreSQL.Migrations.Tenant
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("FL_CRMS_ERP_WEBAPI.Infrastructure.Multitenancy.FSHTenantInfo", b =>
+            modelBuilder.Entity("FL_CRMS_ERP_WEBAPI.Infrastructure.Multitenancy.FLTenantInfo", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(64)
