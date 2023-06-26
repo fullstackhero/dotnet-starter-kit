@@ -42,7 +42,7 @@ public class UpdateContactRequest : IRequest<Guid>
     public string? Assistant { get; set; }
     public string? AssistantNumber { get; set; }
     public string? Source { get; set; }
-    public Guid? LeadId { get; set; }
+    public Guid LeadId { get; set; }
     public Guid? ReportTo { get; set; }
     public string? OtherPhone { get; set; }
 

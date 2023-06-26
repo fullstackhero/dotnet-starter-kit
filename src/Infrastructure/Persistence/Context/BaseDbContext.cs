@@ -201,6 +201,18 @@ public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUs
                     }
                 }
             }
+            else if (trailEntry.TableName == "ContactDetailsModel")
+            {
+                foreach (var entrys in _addedEntities)
+                {
+                    if (entrys is ContactDetailsModel myModel)
+                    {
+                        trailEntry.LeadId = myModel.LeadId;
+                        trailEntry.Subject = myModel.FirstName;
+                        // Do something with the name
+                    }
+                }
+            }
             //else if (trailEntry.TableName == "LeadDetailsModel")
             //{
             //    foreach (var entrys in _addedEntities)
