@@ -9,4 +9,5 @@ internal static class SchemaNames
     public static string LeadData = nameof(LeadData);
     public static string Common = nameof(Common);
     public static string MultiTenancy = nameof(MultiTenancy); // "MULTITENANCY";
+    public static string Enum = nameof(Enum); // "MULTITENANCY";
 }

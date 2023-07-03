@@ -40,4 +40,14 @@ public class CallsController : VersionedApiController
     {
         return Mediator.Send(new DeleteCallRequestById(id));
     }
+
+    [HttpPut("{id:guid}")]
+    // [MustHavePermission(FLRetailERPAction.Update, FLRetailERPResource.Customers)]
+    [OpenApiOperation("Update a Calls.", "")]
+    public async Task<ActionResult<Guid>> UpdateAsync(UpdateCallsRequest request, Guid id)
+    {
+        return id != request.Id
+            ? BadRequest()
+            : Ok(await Mediator.Send(request));
+    }
 }

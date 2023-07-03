@@ -81,3 +81,23 @@ public class ProductDetailsConfig : IEntityTypeConfiguration<ProductDetailsModel
              .IsMultiTenant();
     }
 }
+
+public class DocumentConfig : IEntityTypeConfiguration<DocumentModel>
+{
+    public void Configure(EntityTypeBuilder<DocumentModel> builder)
+    {
+        builder
+             .ToTable("Documents", SchemaNames.LeadData)
+             .IsMultiTenant();
+    }
+}
+
+public class DocumentTypeConfig : IEntityTypeConfiguration<DocumentTypeModel>
+{
+    public void Configure(EntityTypeBuilder<DocumentTypeModel> builder)
+    {
+        builder
+             .ToTable("DocumentTypes", SchemaNames.LeadData)
+             .IsMultiTenant();
+    }
+}

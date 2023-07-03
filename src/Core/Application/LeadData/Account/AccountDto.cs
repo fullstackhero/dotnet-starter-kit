@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 namespace FL_CRMS_ERP_WEBAPI.Application.LeadData.Account;
 public class AccountDto
 {
+    
     public Guid Id { get; set; }
     public string? AccountImage { get; set; }
     public Guid UserId { get; set; }

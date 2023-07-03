@@ -3,6 +3,7 @@ using FL_CRMS_ERP_WEBAPI.Application.Common.Events;
 using FL_CRMS_ERP_WEBAPI.Application.Common.Interfaces;
 using FL_CRMS_ERP_WEBAPI.Domain.Catalog;
 using FL_CRMS_ERP_WEBAPI.Domain.CommonModel;
+using FL_CRMS_ERP_WEBAPI.Domain.Enum;
 using FL_CRMS_ERP_WEBAPI.Domain.Identity;
 using FL_CRMS_ERP_WEBAPI.Domain.LeadData;
 using FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence.Configuration;
@@ -35,6 +36,10 @@ public class ApplicationDbContext : BaseDbContext
     public DbSet<PersonalDetailsModel> PersonalDetailsInfo => Set<PersonalDetailsModel>();
     public DbSet<CustomerDetailsModel> CustomerDetailsInfo => Set<CustomerDetailsModel>();
     public DbSet<ProductDetailsModel> ProductDetailsInfo => Set<ProductDetailsModel>();
+
+    public DbSet<DocumentModel> Documents => Set<DocumentModel>();
+    public DbSet<DocumentTypeModel> DocumentTypes => Set<DocumentTypeModel>();
+    public DbSet<InvoiceStatusModel> InvoiceStatus => Set<InvoiceStatusModel>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

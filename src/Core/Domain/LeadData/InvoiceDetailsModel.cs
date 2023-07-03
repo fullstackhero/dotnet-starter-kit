@@ -14,7 +14,7 @@ public class InvoiceDetailsModel : AuditableEntity, IAggregateRoot
     public Guid ContactId { get; set; }
     public Guid AccountId { get; set; }
     public decimal ExciseDuty { get; set; }
-    public int InvoiceStatusId { get; set; }
+    public Guid? InvoiceStatusId { get; set; }
     public string? Subject { get; set; }
     public DateTime? InvoiceDate { get; set; }
     public DateTime? DueDate { get; set; }
@@ -60,7 +60,7 @@ public class InvoiceDetailsModel : AuditableEntity, IAggregateRoot
     public string? TermsConditions { get; set; }
     public string? Description { get; set; }
 
-    public InvoiceDetailsModel(Guid invoiceOwnerId, Guid contactId, Guid accountId, decimal exciseDuty, int invoiceStatusId, string? subject, DateTime? invoiceDate, DateTime? dueDate, decimal salesCommission, string? billingStreet, string? billingCity, string? billingState, string? billingCode, string? billingCountry, string? shippingStreet, string? shippingCity, string? shippingState, string? shippingCode, string? shippingCountry, string invoiceItemsJson, decimal subTotal, decimal totalDiscount, decimal totalTax, decimal totalAdjustment, decimal grandTotal, Guid quoteId, Guid customerInsuranceId, Guid leadId, string? termsConditions, string? description)
+    public InvoiceDetailsModel(Guid invoiceOwnerId, Guid contactId, Guid accountId, decimal exciseDuty, Guid? invoiceStatusId, string? subject, DateTime? invoiceDate, DateTime? dueDate, decimal salesCommission, string? billingStreet, string? billingCity, string? billingState, string? billingCode, string? billingCountry, string? shippingStreet, string? shippingCity, string? shippingState, string? shippingCode, string? shippingCountry, string invoiceItemsJson, decimal subTotal, decimal totalDiscount, decimal totalTax, decimal totalAdjustment, decimal grandTotal, Guid quoteId, Guid customerInsuranceId, Guid leadId, string? termsConditions, string? description)
     {
         InvoiceOwnerId = invoiceOwnerId;
         ContactId = contactId;
@@ -95,7 +95,7 @@ public class InvoiceDetailsModel : AuditableEntity, IAggregateRoot
         Description = description;
     }
 
-    public InvoiceDetailsModel Update(Guid invoiceOwnerId, Guid contactId, Guid accountId, decimal exciseDuty, int invoiceStatusId, string? subject, DateTime? invoiceDate, DateTime? dueDate, decimal salesCommission, string? billingStreet, string? billingCity, string? billingState, string? billingCode, string? billingCountry, string? shippingStreet, string? shippingCity, string? shippingState, string? shippingCode, string? shippingCountry, List<Quote> invoiceItems, string invoiceItemsJson, decimal subTotal, decimal totalDiscount, decimal totalTax, decimal totalAdjustment, decimal grandTotal, Guid quoteId, Guid customerInsuranceId, Guid leadId, string? termsConditions, string? description)
+    public InvoiceDetailsModel Update(Guid invoiceOwnerId, Guid contactId, Guid accountId, decimal exciseDuty, Guid? invoiceStatusId, string? subject, DateTime? invoiceDate, DateTime? dueDate, decimal salesCommission, string? billingStreet, string? billingCity, string? billingState, string? billingCode, string? billingCountry, string? shippingStreet, string? shippingCity, string? shippingState, string? shippingCode, string? shippingCountry, List<Quote> invoiceItems, string invoiceItemsJson, decimal subTotal, decimal totalDiscount, decimal totalTax, decimal totalAdjustment, decimal grandTotal, Guid quoteId, Guid customerInsuranceId, Guid leadId, string? termsConditions, string? description)
     {
         if (invoiceOwnerId != Guid.Empty && !InvoiceOwnerId.Equals(invoiceOwnerId)) InvoiceOwnerId = invoiceOwnerId;
         if (contactId != Guid.Empty && !ContactId.Equals(contactId)) ContactId = contactId;

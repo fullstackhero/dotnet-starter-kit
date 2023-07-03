@@ -15,7 +15,7 @@ public class InvoiceDto
     public Guid ContactId { get; set; }
     public Guid AccountId { get; set; }
     public decimal ExciseDuty { get; set; }
-    public int InvoiceStatusId { get; set; }
+    public Guid? InvoiceStatusId { get; set; }
     public string? Subject { get; set; }
     public DateTime? InvoiceDate { get; set; }
     public DateTime? DueDate { get; set; }
