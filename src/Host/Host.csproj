@@ -19,6 +19,7 @@
         <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="7.0.0" />
         <PackageReference Include="Serilog.AspNetCore" Version="6.1.0" />
         <PackageReference Include="Microsoft.NET.Build.Containers" Version="0.4.0" />
+        <PackageReference Include="sib_api_v3_sdk" Version="4.0.2" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Core\Application\Application.csproj" />
