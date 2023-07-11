@@ -46,8 +46,8 @@ public class CreateLeadRequest : IRequest<DefaultIdType>
 
     public Guid? ConvertedContactId { get; set; }
     public DateTime? DateOfBirth { get; set; }
-    [NotMapped]
-    public UploadRequest? UploadRequest { get; set; }
+    //[NotMapped]
+    //public UploadRequest? UploadRequest { get; set; }
 
 }
 
@@ -71,11 +71,11 @@ public class CreateLeadRequestHandler : IRequestHandler<CreateLeadRequest, Defau
 
     public async Task<DefaultIdType> Handle(CreateLeadRequest request, CancellationToken cancellationToken)
     {
-        var uploadRequest1 = request.UploadRequest;
-        if (uploadRequest1 != null)
-        {
-            uploadRequest1.FileName = $"D-{Guid.NewGuid()}{uploadRequest1.Extension}";
-        }
+        //var uploadRequest1 = request.UploadRequest;
+        //if (uploadRequest1 != null)
+        //{
+        //    uploadRequest1.FileName = $"D-{Guid.NewGuid()}{uploadRequest1.Extension}";
+        //}
 
         //if (uploadRequest1 != null)
         //{

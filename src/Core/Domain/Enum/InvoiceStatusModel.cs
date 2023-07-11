@@ -8,4 +8,10 @@ namespace FL_CRMS_ERP_WEBAPI.Domain.Enum;
 public class InvoiceStatusModel : AuditableEntity, IAggregateRoot
 {
     public string? StatusName { get; set; }
+
+    public InvoiceStatusModel(string? statusName)
+    {
+            StatusName = statusName;
+    }
 }
+
