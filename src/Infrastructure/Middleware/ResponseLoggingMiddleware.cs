@@ -13,7 +13,6 @@ public class ResponseLoggingMiddleware : IMiddleware
 
     public async Task InvokeAsync(HttpContext httpContext, RequestDelegate next)
     {
-      
         var originalBody = httpContext.Response.Body;
         using var newBody = new MemoryStream();
         httpContext.Response.Body = newBody;
