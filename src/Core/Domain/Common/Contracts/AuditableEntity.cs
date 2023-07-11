@@ -4,7 +4,7 @@ public abstract class AuditableEntity : AuditableEntity<DefaultIdType>
 {
 }
 
-public abstract class AuditableEntity<T> : BaseEntity<T>, IAuditableEntity, ISoftDelete
+public abstract class AuditableEntity<T> : BaseEntity<T>, IAuditableEntity
 {
     public Guid CreatedBy { get; set; }
     public DateTime CreatedOn { get; private set; }
