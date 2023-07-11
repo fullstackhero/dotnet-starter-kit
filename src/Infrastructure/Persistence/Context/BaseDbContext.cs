@@ -33,7 +33,7 @@ public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUs
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // QueryFilters need to be applied before base.OnModelCreating
-        modelBuilder.AppendGlobalQueryFilter<ISoftDelete>(s => s.DeletedOn == null);
+        // modelBuilder.AppendGlobalQueryFilter<ISoftDelete>(s => s.DeletedOn == null);
 
         base.OnModelCreating(modelBuilder);
 
@@ -90,15 +90,15 @@ public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUs
                     entry.Entity.LastModifiedBy = userId;
                     break;
 
-                case EntityState.Deleted:
-                    if (entry.Entity is ISoftDelete softDelete)
-                    {
-                        softDelete.DeletedBy = userId;
-                        softDelete.DeletedOn = DateTime.UtcNow;
-                        entry.State = EntityState.Modified;
-                    }
+                    //case EntityState.Deleted:
+                    //    if (entry.Entity is ISoftDelete softDelete)
+                    //    {
+                    //        softDelete.DeletedBy = userId;
+                    //        softDelete.DeletedOn = DateTime.UtcNow;
+                    //        entry.State = EntityState.Modified;
+                    //    }
 
-                    break;
+                    //    break;
             }
         }
     }
