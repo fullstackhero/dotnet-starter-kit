@@ -1,0 +1,22 @@
+version: '3.9'
+
+services:
+  tenant-demo-postgres:
+    container_name: tenant-demo-postgres
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - PGPORT=5432
+    ports:
+      - 12999:5432
+    volumes:
+      - tenant-demo-postgres-data:/data/db
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  tenant-demo-postgres-data:
