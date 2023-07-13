@@ -4,11 +4,11 @@
         <RootNamespace>FSH.WebApi.Host</RootNamespace>
         <AssemblyName>FSH.WebApi.Host</AssemblyName>
     </PropertyGroup>
-    <PropertyGroup>
+    <!--<PropertyGroup>
         <ContainerImageName>dotnet-webapi</ContainerImageName>
         <ContainerImageTags>1.0.0;latest</ContainerImageTags>
         <PublishProfile>DefaultContainer</PublishProfile>
-    </PropertyGroup>
+    </PropertyGroup>-->
     <ItemGroup>
         <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
         <PackageReference Include="Hangfire.Console.Extensions.Serilog" Version="1.0.2" />
