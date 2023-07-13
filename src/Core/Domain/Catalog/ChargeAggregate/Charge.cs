@@ -21,26 +21,23 @@ public class Charge
     public int MeterValue { get; private set; }
     public ChargeStatus Status { get; private set; } = ChargeStatus.Initiated;
 
-    public void Apply(ChargeInitiatedEvent @event)
+    public ChargeInitiatedEvent InitiateCharge()
     {
-        Id = @event.ChargeId;
-        UserId = @event.UserId;
-        MeterValue = @event.MeterValue;
-        Status = ChargeStatus.Initiated;
+        return new ChargeInitiatedEvent(Id, UserId);
     }
 
-    public void Apply(ChargeStartedEvent @event)
+    public ChargeStartedEvent StartCharge()
     {
-        Status = ChargeStatus.Active;
+        return new ChargeStartedEvent(Id);
     }
 
-    public void Apply(ChargeReceivedMeterValueEvent @event)
+    public ChargeReceivedMeterValueEvent ReceiveMeterValue(int meterValue)
     {
-        MeterValue = @event.MeterValue;
+        return new ChargeReceivedMeterValueEvent(Id, meterValue);
     }
 
-    public void Apply(ChargeStoppedEvent @event)
+    public ChargeStoppedEvent StopCharge()
     {
-        Status = ChargeStatus.Stopped;
+        return new ChargeStoppedEvent(Id);
     }
 }

@@ -22,6 +22,7 @@
         <PackageReference Include="Hangfire.PostgreSql" Version="1.19.12" />
         <PackageReference Include="Hangfire.SQLite" Version="1.4.2" />
         <PackageReference Include="MailKit" Version="3.6.0" />
+        <PackageReference Include="Marten" Version="6.0.4" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.4" />
         <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="7.0.4" />
         <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />

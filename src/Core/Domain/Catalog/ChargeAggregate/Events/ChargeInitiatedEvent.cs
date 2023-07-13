@@ -8,14 +8,12 @@ namespace FSH.WebApi.Domain.Catalog.ChargeAggregate.Events;
 
 public class ChargeInitiatedEvent : DomainEvent
 {
-    public ChargeInitiatedEvent(Guid chargeId, Guid userId, int meterValue)
+    public ChargeInitiatedEvent(Guid chargeId, Guid userId)
     {
         ChargeId = chargeId;
         UserId = userId;
-        MeterValue = meterValue;
     }
 
     public Guid ChargeId { get; }
     public Guid UserId { get; }
-    public int MeterValue { get; }
 }
