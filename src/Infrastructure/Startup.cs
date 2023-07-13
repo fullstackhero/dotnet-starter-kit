@@ -83,7 +83,7 @@ public static class Startup
             .UseFileStorage()
             .UseExceptionMiddleware()
             .UseRouting()
-            .UseCorsPolicy()
+            .UseCors()
             .UseAuthentication()
             .UseCurrentUser()
             .UseMultiTenancy()
