@@ -11,8 +11,7 @@ namespace FL_CRMS_ERP_WEBAPIFL_CRMS_ERP_WEBAPIApplication.Enum.InvoiceStatus;
 public class GetAllInvoiceStatusRequest : IRequest<List<InvoiceStatusModel>>
 {
     public GetAllInvoiceStatusRequest()
-    {
-            
+    {            
     }
 
     public class GetAllInvoiceStatusRequestHandler : IRequestHandler<GetAllInvoiceStatusRequest, List<InvoiceStatusModel>>

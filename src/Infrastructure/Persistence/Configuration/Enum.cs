@@ -17,6 +17,65 @@ public class InvoiceStatusConfig : IEntityTypeConfiguration<InvoiceStatusModel>
         builder
            .ToTable("InvoiceStatus", SchemaNames.Enum)
            .IsMultiTenant();
+    }
+}
 
+public class LineOfBusinessConfig : IEntityTypeConfiguration<LineOfBusinessModel>
+{
+    public void Configure(EntityTypeBuilder<LineOfBusinessModel> builder)
+    {
+        builder
+           .ToTable("LineOfBusiness", SchemaNames.Enum)
+           .IsMultiTenant();
+    }
+}
+
+public class CustomerCompanyNameConfig : IEntityTypeConfiguration<CustomerCompanyNameModel>
+{
+    public void Configure(EntityTypeBuilder<CustomerCompanyNameModel> builder)
+    {
+        builder
+           .ToTable("CustomerCompanyName", SchemaNames.Enum)
+           .IsMultiTenant();
+    }
+}
+
+public class CustomerModeOfPaymentConfig : IEntityTypeConfiguration<CustomerModeOfPaymentModel>
+{
+    public void Configure(EntityTypeBuilder<CustomerModeOfPaymentModel> builder)
+    {
+        builder
+           .ToTable("CustomerModeOfPayment", SchemaNames.Enum)
+           .IsMultiTenant();
+    }
+}
+
+public class CustomerNumberOfLivesConfig : IEntityTypeConfiguration<CustomerNumberOfLivesModel>
+{
+    public void Configure(EntityTypeBuilder<CustomerNumberOfLivesModel> builder)
+    {
+        builder
+           .ToTable("CustomerNumberOfLives", SchemaNames.Enum)
+           .IsMultiTenant();
+    }
+}
+
+public class CustomerProductConfig : IEntityTypeConfiguration<CustomerProductModel>
+{
+    public void Configure(EntityTypeBuilder<CustomerProductModel> builder)
+    {
+        builder
+           .ToTable("CustomerProduct", SchemaNames.Enum)
+           .IsMultiTenant();
+    }
+}
+
+public class CustomerPolicyStatusConfig : IEntityTypeConfiguration<CustomerPolicyStatusModel>
+{
+    public void Configure(EntityTypeBuilder<CustomerPolicyStatusModel> builder)
+    {
+        builder
+           .ToTable("CustomerPolicyStatus", SchemaNames.Enum)
+           .IsMultiTenant();
     }
 }

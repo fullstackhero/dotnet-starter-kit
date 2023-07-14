@@ -39,8 +39,15 @@ public class ApplicationDbContext : BaseDbContext
 
     public DbSet<DocumentModel> Documents => Set<DocumentModel>();
     public DbSet<DocumentTypeModel> DocumentTypes => Set<DocumentTypeModel>();
+    //Enum DB Start
     public DbSet<InvoiceStatusModel> InvoiceStatus => Set<InvoiceStatusModel>();
-
+    public DbSet<LineOfBusinessModel> LineOfBusiness => Set<LineOfBusinessModel>();
+    public DbSet<CustomerCompanyNameModel> CustomerCompanyName => Set<CustomerCompanyNameModel>();
+    public DbSet<CustomerModeOfPaymentModel> CustomerModeOfPayment => Set<CustomerModeOfPaymentModel>();
+    public DbSet<CustomerNumberOfLivesModel> CustomerNumberOfLives => Set<CustomerNumberOfLivesModel>();
+    public DbSet<CustomerProductModel> CustomerProduct => Set<CustomerProductModel>();
+    public DbSet<CustomerPolicyStatusModel> CustomerPolicyStatus => Set<CustomerPolicyStatusModel>();
+    //end
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
