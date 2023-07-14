@@ -12,7 +12,7 @@ public class InvoiceDto
 {
     public Guid Id { get; set; }
     public Guid InvoiceOwnerId { get; set; }
-    public Guid ContactId { get; set; }
+    public Guid? ContactId { get; set; }
     public Guid AccountId { get; set; }
     public decimal ExciseDuty { get; set; }
     public Guid? InvoiceStatusId { get; set; }
@@ -57,4 +57,14 @@ public class InvoiceDto
     public Guid LeadId { get; set; }
     public string? TermsConditions { get; set; }
     public string? Description { get; set; }
+    public string[]? ContactIds { get; set; }
+   // public int IsActive { get; set; }
+    public string? Reason { get; set; }
+    public int InvoiceId { get; set; }
+
+    //Naveen
+    public Guid CreatedBy { get; set; }
+    public DateTime CreatedOn { get; private set; }
+    public Guid LastModifiedBy { get; set; }
+    public DateTime? LastModifiedOn { get; set; }
 }

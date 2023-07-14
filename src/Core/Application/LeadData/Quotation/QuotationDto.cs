@@ -15,7 +15,7 @@ public class QuotationDto
     public Guid? DealId { get; set; }
     public string? Subject { get; set; }
     public DateTime? ValidDate { get; set; }
-    public Guid ContactId { get; set; }
+    public Guid? ContactId { get; set; }
     public Guid AccountId { get; set; }
     public string? Carrier { get; set; }
     public string? QuoteStage { get; set; }
@@ -55,4 +55,11 @@ public class QuotationDto
     public decimal TotalTax { get; set; }
     public decimal TotalAdjustment { get; set; }
     public decimal GrandTotal { get; set; }
+
+    public string[]? ContactIds { get; set; }
+    //Naveen
+    public Guid CreatedBy { get; set; }
+    public DateTime CreatedOn { get; private set; }
+    public Guid LastModifiedBy { get; set; }
+    public DateTime? LastModifiedOn { get; set; }
 }

@@ -16,7 +16,7 @@ public class UpdateQuotationRequest : IRequest<Guid>
     public Guid? DealId { get; set; }
     public string? Subject { get; set; }
     public DateTime? ValidDate { get; set; }
-    public Guid ContactId { get; set; }
+    public Guid? ContactId { get; set; }
     public Guid AccountId { get; set; }
     public string? Carrier { get; set; }
     public string? QuoteStage { get; set; }
@@ -56,6 +56,7 @@ public class UpdateQuotationRequest : IRequest<Guid>
     public decimal TotalTax { get; set; }
     public decimal TotalAdjustment { get; set; }
     public decimal GrandTotal { get; set; }
+    public string[]? ContactIds { get; set; }
 
     public class UpdateQuotationRequestHandler : IRequestHandler<UpdateQuotationRequest, Guid>
     {
@@ -75,7 +76,7 @@ public class UpdateQuotationRequest : IRequest<Guid>
 
             quotation.Update(request.Team, request.DealId, request.Subject, request.ValidDate, request.ContactId, request.AccountId, request.Carrier, request.QuoteStage, request.BillingStreet,
                 request.ShippingStreet, request.BillingCity, request.ShippingCity, request.BillingCode, request.ShippingCode, request.BillingCountry, request.ShippingCountry, request.BillingState, request.ShippingState,
-                request.Description, request.TermsConditions, request.QuoteOwnerId, request.LeadId, request.QuoteItems, request.QuoteItemsJson, request.SubTotal, request.TotalDiscount, request.TotalTax, request.TotalAdjustment, request.GrandTotal);
+                request.Description, request.TermsConditions, request.QuoteOwnerId, request.LeadId, request.QuoteItems, request.QuoteItemsJson, request.SubTotal, request.TotalDiscount, request.TotalTax, request.TotalAdjustment, request.GrandTotal, request.ContactIds);
 
             await _repository.UpdateAsync(quotation, cancellationToken);
 

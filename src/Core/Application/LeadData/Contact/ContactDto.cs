@@ -43,4 +43,9 @@ public class ContactDto
     public Guid LeadId { get; set; }
     public Guid? ReportTo { get; set; }
     public string? OtherPhone { get; set; }
+    //Naveen
+    public Guid CreatedBy { get; set; }
+    public DateTime CreatedOn { get; set; }
+    public Guid LastModifiedBy { get; set; }
+    public DateTime? LastModifiedOn { get; set; }
 }

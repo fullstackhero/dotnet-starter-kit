@@ -15,7 +15,7 @@ public class CreateQuotationRequest : IRequest<DefaultIdType>
     public Guid? DealId { get; set; }
     public string? Subject { get; set; }
     public DateTime? ValidDate { get; set; }
-    public Guid ContactId { get; set; }
+    public Guid? ContactId { get; set; }
     public Guid AccountId { get; set; }
     public string? Carrier { get; set; }
     public string? QuoteStage { get; set; }
@@ -55,6 +55,8 @@ public class CreateQuotationRequest : IRequest<DefaultIdType>
     public decimal TotalTax { get; set; }
     public decimal TotalAdjustment { get; set; }
     public decimal GrandTotal { get; set; }
+
+    public string[]? ContactIds { get; set; }
 }
 
 public class CreateQuotationRequestHandler : IRequestHandler<CreateQuotationRequest, DefaultIdType>
@@ -68,7 +70,7 @@ public class CreateQuotationRequestHandler : IRequestHandler<CreateQuotationRequ
     {
         var quotation = new QuotationDetailsModel(request.Team, request.DealId, request.Subject, request.ValidDate, request.ContactId, request.AccountId, request.Carrier, request.QuoteStage, request.BillingStreet, request.BillingCity,
             request.BillingState, request.BillingCode, request.BillingCountry, request.ShippingStreet, request.ShippingCity, request.ShippingState, request.ShippingCode, request.ShippingCountry, request.Description, request.TermsConditions, request.QuoteOwnerId,
-            request.LeadId, request.QuoteItemsJson, request.SubTotal, request.TotalDiscount, request.TotalTax, request.TotalAdjustment, request.GrandTotal);
+            request.LeadId, request.QuoteItemsJson, request.SubTotal, request.TotalDiscount, request.TotalTax, request.TotalAdjustment, request.GrandTotal, request.ContactIds);
 
         await _repository.AddAsync(quotation, cancellationToken);
 
