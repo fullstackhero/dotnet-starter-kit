@@ -10,13 +10,13 @@ public class CustomerDetailsModel : AuditableEntity, IAggregateRoot
     public Guid ContactId { get; set; }
     public Guid AccountId { get; set; }
     public Guid InvoiceId { get; set; }
-    public int? LineOfBusinessId { get; set; }
-    public int? CustomerCompanyId { get; set; }
-    public int? CustomerProductId { get; set; }
-    public int? NumberOfLivesId { get; set; }
+    public Guid LineOfBusinessId { get; set; }
+    public Guid CustomerCompanyId { get; set; }
+    public Guid CustomerProductId { get; set; }
+    public Guid NumberOfLivesId { get; set; }
     public string? SaORSiORIdv { get; set; }
     public string? DeductibleSI { get; set; }
-    public int? ModeOfPaymentId { get; set; }
+    public Guid ModeOfPaymentId { get; set; }
     public string? GrossPremium { get; set; }
     public string? NetPremium { get; set; }
     public string? ODPremium { get; set; }
@@ -34,7 +34,7 @@ public class CustomerDetailsModel : AuditableEntity, IAggregateRoot
     public DateTime? PolicyExpiryDate { get; set; }
     public DateTime? RenewalRemainderDate { get; set; }
     public string? RenewalFlag { get; set; }
-    public int? PolicyStatusId { get; set; }
+    public Guid PolicyStatusId { get; set; }
     public DateTime? PolicyIssueDate { get; set; }
     public string? Insured1Name { get; set; }
     public DateTime? Insured1DOB { get; set; }
@@ -50,7 +50,7 @@ public class CustomerDetailsModel : AuditableEntity, IAggregateRoot
     public decimal? CommissionReceivable { get; set; }
     public decimal? CommissionPayable { get; set; }
 
-    public CustomerDetailsModel(Guid contactId, Guid accountId, Guid invoiceId, int? lineOfBusinessId, int? customerCompanyId, int? customerProductId, int? numberOfLivesId, string? saORSiORIdv, string? deductibleSI, int? modeOfPaymentId, string? grossPremium, string? netPremium, string? oDPremium, string? addOnPremium, string? tPPremium, decimal? premiumForCommission, string? vehicleNumber, string? nCB, string? lifePayingTerm, string? lifeTermPoilcy, string? iSPORMarketing, string? teamLead, string? policyNumber, DateTime? policyStartDate, DateTime? policyExpiryDate, DateTime? renewalRemainderDate, string? renewalFlag, int? policyStatusId, DateTime? policyIssueDate, string? insured1Name, DateTime? insured1DOB, string? insured2Name, DateTime? insured2DOB, string? insured3Name, DateTime? insured3DOB, string? insured4Name, DateTime? insured4DOB, string? insured5Name, DateTime? insured5DOB, decimal? commissionReceivable, decimal? commissionPayable)
+    public CustomerDetailsModel(Guid contactId, Guid accountId, Guid invoiceId, Guid lineOfBusinessId, Guid customerCompanyId, Guid customerProductId, Guid numberOfLivesId, string? saORSiORIdv, string? deductibleSI, Guid modeOfPaymentId, string? grossPremium, string? netPremium, string? oDPremium, string? addOnPremium, string? tPPremium, decimal? premiumForCommission, string? vehicleNumber, string? nCB, string? lifePayingTerm, string? lifeTermPoilcy, string? iSPORMarketing, string? teamLead, string? policyNumber, DateTime? policyStartDate, DateTime? policyExpiryDate, DateTime? renewalRemainderDate, string? renewalFlag, Guid policyStatusId, DateTime? policyIssueDate, string? insured1Name, DateTime? insured1DOB, string? insured2Name, DateTime? insured2DOB, string? insured3Name, DateTime? insured3DOB, string? insured4Name, DateTime? insured4DOB, string? insured5Name, DateTime? insured5DOB, decimal? commissionReceivable, decimal? commissionPayable)
     {
         ContactId = contactId;
         AccountId = accountId;
@@ -95,18 +95,18 @@ public class CustomerDetailsModel : AuditableEntity, IAggregateRoot
         CommissionPayable = commissionPayable;
     }
 
-    public CustomerDetailsModel Update(Guid contactId, Guid accountId, Guid invoiceId, int? lineOfBusinessId, int? customerCompanyId, int? customerProductId, int? numberOfLivesId, string? saORSiORIdv, string? deductibleSI, int? modeOfPaymentId, string? grossPremium, string? netPremium, string? oDPremium, string? addOnPremium, string? tPPremium, decimal? premiumForCommission, string? vehicleNumber, string? nCB, string? lifePayingTerm, string? lifeTermPoilcy, string? iSPORMarketing, string? teamLead, string? policyNumber, DateTime? policyStartDate, DateTime? policyExpiryDate, DateTime? renewalRemainderDate, string? renewalFlag, int? policyStatusId, DateTime? policyIssueDate, string? insured1Name, DateTime? insured1DOB, string? insured2Name, DateTime? insured2DOB, string? insured3Name, DateTime? insured3DOB, string? insured4Name, DateTime? insured4DOB, string insured5Name, DateTime? insured5DOB, decimal? commissionReceivable, decimal? commissionPayable)
+    public CustomerDetailsModel Update(Guid contactId, Guid accountId, Guid invoiceId, Guid lineOfBusinessId, Guid customerCompanyId, Guid customerProductId, Guid numberOfLivesId, string? saORSiORIdv, string? deductibleSI, Guid modeOfPaymentId, string? grossPremium, string? netPremium, string? oDPremium, string? addOnPremium, string? tPPremium, decimal? premiumForCommission, string? vehicleNumber, string? nCB, string? lifePayingTerm, string? lifeTermPoilcy, string? iSPORMarketing, string? teamLead, string? policyNumber, DateTime? policyStartDate, DateTime? policyExpiryDate, DateTime? renewalRemainderDate, string? renewalFlag, Guid policyStatusId, DateTime? policyIssueDate, string? insured1Name, DateTime? insured1DOB, string? insured2Name, DateTime? insured2DOB, string? insured3Name, DateTime? insured3DOB, string? insured4Name, DateTime? insured4DOB, string? insured5Name, DateTime? insured5DOB, decimal? commissionReceivable, decimal? commissionPayable)
     {
         if (contactId != Guid.Empty && !ContactId.Equals(contactId)) ContactId = contactId;
         if (accountId != Guid.Empty && !AccountId.Equals(accountId)) AccountId = accountId;
         if (invoiceId != Guid.Empty && !InvoiceId.Equals(invoiceId)) InvoiceId = invoiceId;
-        if (LineOfBusinessId != lineOfBusinessId) LineOfBusinessId = lineOfBusinessId;
-        if (CustomerCompanyId != customerCompanyId) CustomerCompanyId = customerCompanyId;
-        if (CustomerProductId != customerProductId) CustomerProductId = customerProductId;
-        if (NumberOfLivesId != numberOfLivesId) NumberOfLivesId = numberOfLivesId;
+        if (lineOfBusinessId != Guid.Empty && !LineOfBusinessId.Equals(lineOfBusinessId)) LineOfBusinessId = lineOfBusinessId;
+        if (customerCompanyId != Guid.Empty && !CustomerCompanyId.Equals(customerCompanyId)) CustomerCompanyId = customerCompanyId;
+        if (customerProductId != Guid.Empty && !CustomerProductId.Equals(customerProductId)) CustomerProductId = customerProductId;
+        if (numberOfLivesId != Guid.Empty && !NumberOfLivesId.Equals(numberOfLivesId)) NumberOfLivesId = numberOfLivesId;
         if (saORSiORIdv is not null && SaORSiORIdv?.Equals(saORSiORIdv) is not true) SaORSiORIdv = saORSiORIdv;
         if (deductibleSI is not null && DeductibleSI?.Equals(deductibleSI) is not true) DeductibleSI = deductibleSI;
-        if (ModeOfPaymentId != modeOfPaymentId) ModeOfPaymentId = modeOfPaymentId;
+        if (modeOfPaymentId != Guid.Empty && !ModeOfPaymentId.Equals(modeOfPaymentId)) ModeOfPaymentId = modeOfPaymentId;
         if (grossPremium is not null && GrossPremium?.Equals(grossPremium) is not true) GrossPremium = grossPremium;
         if (netPremium is not null && NetPremium?.Equals(netPremium) is not true) NetPremium = netPremium;
         if (oDPremium is not null && ODPremium?.Equals(oDPremium) is not true) ODPremium = oDPremium;
@@ -123,7 +123,7 @@ public class CustomerDetailsModel : AuditableEntity, IAggregateRoot
         if (PolicyStartDate != policyStartDate) PolicyStartDate = policyStartDate;
         if (RenewalRemainderDate != renewalRemainderDate) RenewalRemainderDate = renewalRemainderDate;
         if (RenewalFlag != renewalFlag) RenewalFlag = renewalFlag;
-        if (PolicyStatusId != policyStatusId) PolicyStatusId = policyStatusId;
+        if (policyStatusId != Guid.Empty && !PolicyStatusId.Equals(policyStatusId)) PolicyStatusId = policyStatusId;
         if (RenewalRemainderDate != renewalRemainderDate) RenewalRemainderDate = renewalRemainderDate;
         if (PolicyIssueDate != policyIssueDate) PolicyIssueDate = policyIssueDate;
         if (insured1Name is not null && Insured1Name?.Equals(insured1Name) is not true) Insured1Name = insured1Name;

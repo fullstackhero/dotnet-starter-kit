@@ -12,13 +12,13 @@ public class CreateCustomerRequest : IRequest<DefaultIdType>
     public Guid ContactId { get; set; }
     public Guid AccountId { get; set; }
     public Guid InvoiceId { get; set; }
-    public int? LineOfBusinessId { get; set; }
-    public int? CustomerCompanyId { get; set; }
-    public int? CustomerProductId { get; set; }
-    public int? NumberOfLivesId { get; set; }
+    public Guid LineOfBusinessId { get; set; }
+    public Guid CustomerCompanyId { get; set; }
+    public Guid CustomerProductId { get; set; }
+    public Guid NumberOfLivesId { get; set; }
     public string? SaORSiORIdv { get; set; }
     public string? DeductibleSI { get; set; }
-    public int? ModeOfPaymentId { get; set; }
+    public Guid ModeOfPaymentId { get; set; }
     public string? GrossPremium { get; set; }
     public string? NetPremium { get; set; }
     public string? ODPremium { get; set; }
@@ -36,7 +36,7 @@ public class CreateCustomerRequest : IRequest<DefaultIdType>
     public DateTime? PolicyExpiryDate { get; set; }
     public DateTime? RenewalRemainderDate { get; set; }
     public string? RenewalFlag { get; set; }
-    public int? PolicyStatusId { get; set; }
+    public Guid PolicyStatusId { get; set; }
     public DateTime? PolicyIssueDate { get; set; }
     public string? Insured1Name { get; set; }
     public DateTime? Insured1DOB { get; set; }
@@ -47,7 +47,7 @@ public class CreateCustomerRequest : IRequest<DefaultIdType>
     public DateTime? Insured3DOB { get; set; }
     public string? Insured4Name { get; set; }
     public DateTime? Insured4DOB { get; set; }
-    public string Insured5Name { get; set; }
+    public string? Insured5Name { get; set; }
     public DateTime? Insured5DOB { get; set; }
     public decimal? CommissionReceivable { get; set; }
     public decimal? CommissionPayable { get; set; }
