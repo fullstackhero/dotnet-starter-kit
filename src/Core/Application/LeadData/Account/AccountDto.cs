@@ -38,4 +38,10 @@ public class AccountDto
     public string? BillingState { get; set; }
     public string? ShippingState { get; set; }
     public Guid ConvertedLeadId { get; set; }
+
+    //Naveen for Createdby issue
+    public Guid CreatedBy { get; set; }
+    public DateTime CreatedOn { get; set; }
+    public Guid LastModifiedBy { get; set; }
+    public DateTime? LastModifiedOn { get; set; }
 }

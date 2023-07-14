@@ -59,6 +59,7 @@ public class InvoiceConfig : IEntityTypeConfiguration<InvoiceDetailsModel>
         builder
              .ToTable("InvoiceDetailsInfo", SchemaNames.LeadData)
              .IsMultiTenant();
+        builder.Property(i => i.InvoiceId).ValueGeneratedOnAddOrUpdate();
     }
 }
 

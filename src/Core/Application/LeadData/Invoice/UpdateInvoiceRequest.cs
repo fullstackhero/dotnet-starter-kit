@@ -13,7 +13,7 @@ public class UpdateInvoiceRequest : IRequest<Guid>
 {
     public Guid Id { get; set; }
     public Guid InvoiceOwnerId { get; set; }
-    public Guid ContactId { get; set; }
+    public Guid? ContactId { get; set; }
     public Guid AccountId { get; set; }
     public decimal ExciseDuty { get; set; }
     public Guid? InvoiceStatusId { get; set; }
@@ -61,7 +61,10 @@ public class UpdateInvoiceRequest : IRequest<Guid>
     public Guid LeadId { get; set; }
     public string? TermsConditions { get; set; }
     public string? Description { get; set; }
-
+    public string[]? ContactIds { get; set; }
+    //public int IsActive { get; set; }
+    public string? Reason { get; set; }
+    public int InvoiceId { get; set; }
     public class UpdateInvoiceRequestHandler : IRequestHandler<UpdateInvoiceRequest, Guid>
     {
         // Add Domain Events automatically by using IRepositoryWithEvents
@@ -81,7 +84,7 @@ public class UpdateInvoiceRequest : IRequest<Guid>
             invoice.Update(request.InvoiceOwnerId, request.ContactId, request.AccountId, request.ExciseDuty, request.InvoiceStatusId, request.Subject, request.InvoiceDate, request.DueDate,
                 request.SalesCommission, request.BillingStreet, request.BillingCity, request.BillingState, request.BillingCode, request.BillingCountry, request.ShippingStreet, request.ShippingCity, request.ShippingState,
                 request.ShippingCode, request.ShippingCountry, request.InvoiceItems, request.InvoiceItemsJson, request.SubTotal, request.TotalDiscount, request.TotalTax, request.TotalAdjustment, request.GrandTotal, request.QuoteId, request.CustomerInsuranceId, request.LeadId,
-                request.TermsConditions, request.Description);
+                request.TermsConditions, request.Description, request.ContactIds, request.Reason, request.InvoiceId);
 
             await _repository.UpdateAsync(invoice, cancellationToken);
 

@@ -171,7 +171,7 @@ public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUs
                     if (entrys is NotesModel myModel)
                     {
                         trailEntry.LeadId = myModel.ParentId;
-                        trailEntry.Subject = myModel.NoteTitle;
+                        trailEntry.Subject = myModel.NoteContent;
                         trailEntry.RelatedTo = myModel.RelatedTo;
                         // Do something with the name
                     }
@@ -185,6 +185,20 @@ public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUs
                     {
                         trailEntry.LeadId = myModel.ConvertedLeadId;
                         trailEntry.Subject = myModel.AccountName;
+                        trailEntry.RelatedTo = "Account";
+                        // Do something with the name
+                    }
+                }
+            }
+            else if (trailEntry.TableName == "InvoiceDetailsModel")
+            {
+                foreach (var entrys in _addedEntities)
+                {
+                    if (entrys is InvoiceDetailsModel myModel)
+                    {
+                        trailEntry.LeadId = myModel.Id;
+                        trailEntry.Subject = myModel.Subject;
+                        trailEntry.RelatedTo = "Invoice";
                         // Do something with the name
                     }
                 }
@@ -197,6 +211,7 @@ public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUs
                     {
                         trailEntry.LeadId = myModel.Id;
                         trailEntry.Subject = myModel.CompanyName;
+                        trailEntry.RelatedTo = "Lead";
                         // Do something with the name
                     }
                 }
@@ -207,8 +222,35 @@ public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUs
                 {
                     if (entrys is ContactDetailsModel myModel)
                     {
-                        trailEntry.LeadId = myModel.LeadId;
+                        trailEntry.LeadId = myModel.Id;
                         trailEntry.Subject = myModel.FirstName;
+                        trailEntry.RelatedTo = "Contact";
+                        // Do something with the name
+                    }
+                }
+            }
+            else if(trailEntry.TableName == "DocumentModel")
+            {
+                foreach (var entrys in _addedEntities)
+                {
+                    if (entrys is DocumentModel myModel)
+                    {
+                        trailEntry.LeadId = (Guid)myModel.ParentID;
+                        trailEntry.Subject = myModel.Title;
+                        trailEntry.RelatedTo = myModel.RelatedTo;
+                        // Do something with the name
+                    }
+                }
+            }
+            else if(trailEntry.TableName == "QuotationDetailsModel")
+            {
+                foreach (var entrys in _addedEntities)
+                {
+                    if (entrys is QuotationDetailsModel myModel)
+                    {
+                        trailEntry.LeadId = (Guid)myModel.LeadId;
+                        trailEntry.Subject = myModel.Subject;
+                        trailEntry.RelatedTo = "Quotation";
                         // Do something with the name
                     }
                 }

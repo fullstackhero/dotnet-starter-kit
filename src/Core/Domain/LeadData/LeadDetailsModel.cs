@@ -94,7 +94,7 @@ public class LeadDetailsModel : AuditableEntity, IAggregateRoot
         if (mobile is not null && Mobile?.Equals(mobile) is not true) Mobile = mobile;
         if (website is not null && Website?.Equals(website) is not true) Website = website;
         if (leadSource is not null && LeadSource?.Equals(leadSource) is not true) LeadSource = leadSource;
-        if (leadStatus is not null && LeadStatus?.Equals(LeadStatus) is not true) LeadStatus = leadStatus;
+        if (leadStatus is not null && LeadStatus?.Equals(leadStatus) is not true) LeadStatus = leadStatus;
         if (industry is not null && Industry?.Equals(industry) is not true) Industry = industry;
         if (noEmployess is not null && NoEmployess?.Equals(noEmployess) is not true) NoEmployess = noEmployess;
         if (annualRevenue is not null && AnnualRevenue?.Equals(annualRevenue) is not true) AnnualRevenue = annualRevenue;

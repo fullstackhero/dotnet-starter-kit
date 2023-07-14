@@ -42,4 +42,9 @@ public class LeadDto
 
     public Guid? ConvertedContactId { get; set; }
     public DateTime? DateOfBirth { get; set; }
+    //Naveen
+    public Guid CreatedBy { get; set; }
+    public DateTime CreatedOn { get; private set; }
+    public Guid LastModifiedBy { get; set; }
+    public DateTime? LastModifiedOn { get; set; }
 }

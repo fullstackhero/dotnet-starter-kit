@@ -14,7 +14,7 @@ public class QuotationDetailsModel : AuditableEntity, IAggregateRoot
     public Guid? DealId { get; set; }
     public string? Subject { get; set; }
     public DateTime? ValidDate { get; set; }
-    public Guid ContactId { get; set; }
+    public Guid? ContactId { get; set; }
     public Guid AccountId { get; set; }
     public string? Carrier { get; set; }
     public string? QuoteStage { get; set; }
@@ -54,8 +54,9 @@ public class QuotationDetailsModel : AuditableEntity, IAggregateRoot
     public decimal TotalTax { get; set; }
     public decimal TotalAdjustment { get; set; }
     public decimal GrandTotal { get; set; }
+    public string[]? ContactIds { get; set; }
 
-    public QuotationDetailsModel(string? team, Guid? dealId, string? subject, DateTime? validDate, Guid contactId, Guid accountId, string? carrier, string? quoteStage, string? billingStreet, string? billingCity, string? billingState, string? billingCode, string? billingCountry, string? shippingStreet, string? shippingCity, string? shippingState, string? shippingCode, string? shippingCountry, string? description, string? termsConditions, Guid quoteOwnerId, Guid? leadId, string quoteItemsJson, decimal subTotal, decimal totalDiscount, decimal totalTax, decimal totalAdjustment, decimal grandTotal)
+    public QuotationDetailsModel(string? team, Guid? dealId, string? subject, DateTime? validDate, Guid? contactId, Guid accountId, string? carrier, string? quoteStage, string? billingStreet, string? billingCity, string? billingState, string? billingCode, string? billingCountry, string? shippingStreet, string? shippingCity, string? shippingState, string? shippingCode, string? shippingCountry, string? description, string? termsConditions, Guid quoteOwnerId, Guid? leadId, string quoteItemsJson, decimal subTotal, decimal totalDiscount, decimal totalTax, decimal totalAdjustment, decimal grandTotal, string[]? contactIds)
     {
         Team = team;
         DealId = dealId;
@@ -86,9 +87,10 @@ public class QuotationDetailsModel : AuditableEntity, IAggregateRoot
         TotalTax = totalTax;
         TotalAdjustment = totalAdjustment;
         GrandTotal = grandTotal;
+        ContactIds = contactIds;
     }
 
-    public QuotationDetailsModel Update(string? team, Guid? dealId, string? subject, DateTime? validDate, Guid contactId, Guid accountId, string? carrier, string? quoteStage, string? billingStreet, string? billingCity, string? billingState, string? billingCode, string? billingCountry, string? shippingStreet, string? shippingCity, string? shippingState, string? shippingCode, string? shippingCountry, string? description, string? termsConditions, Guid quoteOwnerId, Guid? leadId, List<Quote> quoteItems, string quoteItemsJson, decimal subTotal, decimal totalDiscount, decimal totalTax, decimal totalAdjustment, decimal grandTotal)
+    public QuotationDetailsModel Update(string? team, Guid? dealId, string? subject, DateTime? validDate, Guid? contactId, Guid accountId, string? carrier, string? quoteStage, string? billingStreet, string? billingCity, string? billingState, string? billingCode, string? billingCountry, string? shippingStreet, string? shippingCity, string? shippingState, string? shippingCode, string? shippingCountry, string? description, string? termsConditions, Guid quoteOwnerId, Guid? leadId, List<Quote> quoteItems, string quoteItemsJson, decimal subTotal, decimal totalDiscount, decimal totalTax, decimal totalAdjustment, decimal grandTotal, string[]? contactIds)
     {
         if (team is not null && Team?.Equals(team) is not true) Team = team;
         if (dealId != Guid.Empty && !DealId.Equals(dealId)) DealId = dealId;
@@ -119,6 +121,7 @@ public class QuotationDetailsModel : AuditableEntity, IAggregateRoot
         if (TotalTax != totalTax) TotalTax = totalTax;
         if (TotalAdjustment != totalAdjustment) TotalAdjustment = totalAdjustment;
         if (GrandTotal != grandTotal) GrandTotal = grandTotal;
+        if (contactIds is not null && ContactIds?.Equals(contactIds) is not true) ContactIds = contactIds;
         return this;
     }
 }
