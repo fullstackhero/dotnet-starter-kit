@@ -53,7 +53,7 @@ internal class TenantService : ITenantService
     {
         if (request.ConnectionString?.Trim() == _dbSettings.ConnectionString.Trim()) request.ConnectionString = string.Empty;
 
-        var tenant = new FSHTenantInfo(request.Id, request.Name, request.ConnectionString, request.AdminEmail, request.Issuer);
+        var tenant = new FSHTenantInfo(request.Id, request.Name, request.ConnectionString, request.AdminEmail, request.Issuer, request.PushNotificationInfo);
         await _tenantStore.TryAddAsync(tenant);
 
         // TODO: run this in a hangfire job? will then have to send mail when it's ready or not
@@ -105,6 +105,14 @@ internal class TenantService : ITenantService
         tenant.SetValidity(extendedExpiryDate);
         await _tenantStore.TryUpdateAsync(tenant);
         return _t["Tenant {0}'s Subscription Upgraded. Now Valid till {1}.", id, tenant.ValidUpto];
+    }
+
+    public async Task<string> UpdatePushNotificationInfo(string id, TenantPushNotificationInfo pushNotificationInfo)
+    {
+        var tenant = await GetTenantInfoAsync(id);
+        tenant.SetPushNotificationInfo(pushNotificationInfo);
+        await _tenantStore.TryUpdateAsync(tenant);
+        return _t["Tenant {0}'s Push Notification Info Updated.", id];
     }
 
     private async Task<FSHTenantInfo> GetTenantInfoAsync(string id) =>
