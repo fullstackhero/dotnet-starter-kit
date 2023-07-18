@@ -21,7 +21,7 @@
     },
     "Storage": {
       "StorageProvider": "postgresql",
-      "ConnectionString": "Host=localhost;Port=5432;Database=fshDb;Username=postgres;Password=admin;Include Error Detail=true",
+      "ConnectionString": "Host=localhost;Port=12998;Database=postgres;Username=postgres;Password=postgres;Include Error Detail=true",
       "Options": {
         "CommandBatchMaxTimeout": "00:05:00",
         "QueuePollInterval": "00:00:01",

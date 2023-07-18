@@ -6,11 +6,13 @@ using FSH.WebApi.Infrastructure.Common;
 using FSH.WebApi.Infrastructure.Logging.Serilog;
 using Serilog;
 using Serilog.Formatting.Compact;
+using System.Net;
 
 [assembly: ApiConventionType(typeof(FSHApiConventions))]
-
 StaticLogger.EnsureInitialized();
 Log.Information("Server Booting Up...");
+
+ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
 try
 {
     var builder = WebApplication.CreateBuilder(args);

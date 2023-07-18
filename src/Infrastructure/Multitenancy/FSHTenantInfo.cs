@@ -1,4 +1,5 @@
 ﻿using Finbuckle.MultiTenant;
+using FSH.WebApi.Application.Multitenancy;
 using FSH.WebApi.Shared.Multitenancy;
 
 namespace FSH.WebApi.Infrastructure.Multitenancy;
@@ -9,7 +10,7 @@ public class FSHTenantInfo : ITenantInfo
     {
     }
 
-    public FSHTenantInfo(string id, string name, string? connectionString, string adminEmail, string? issuer = null)
+    public FSHTenantInfo(string id, string name, string? connectionString, string adminEmail, string? issuer = null, TenantPushNotificationInfo? pushNotificationInfo = null)
     {
         Id = id;
         Identifier = id;
@@ -18,6 +19,7 @@ public class FSHTenantInfo : ITenantInfo
         AdminEmail = adminEmail;
         IsActive = true;
         Issuer = issuer;
+        PushNotificationInfo = pushNotificationInfo;
 
         // Add Default 1 Month Validity for all new tenants. Something like a DEMO period for tenants.
         ValidUpto = DateTime.UtcNow.AddMonths(1);
@@ -45,6 +47,8 @@ public class FSHTenantInfo : ITenantInfo
     /// </summary>
     public string? Issuer { get; set; }
 
+    public TenantPushNotificationInfo? PushNotificationInfo { get; private set; }
+
     public void AddValidity(int months) =>
         ValidUpto = ValidUpto.AddMonths(months);
 
@@ -52,6 +56,9 @@ public class FSHTenantInfo : ITenantInfo
         ValidUpto = ValidUpto < validTill
             ? validTill
             : throw new Exception("Subscription cannot be backdated.");
+
+    public void SetPushNotificationInfo(TenantPushNotificationInfo pushNotificationInfo) =>
+        PushNotificationInfo = pushNotificationInfo;
 
     public void Activate()
     {

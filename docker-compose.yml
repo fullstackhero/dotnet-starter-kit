@@ -1,0 +1,50 @@
+version: '3.8'
+name: maviarge-tenant-demo-backend-setup
+services:
+  dotnet-webapi:
+    image: baranacikgoz/maviarge-tenant-demo-amd64
+    container_name: dotnet-webapi
+    networks:
+      - maviarge
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:5100;http://+:5010
+      - ASPNETCORE_HTTPS_PORT=5100
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=password!
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/cert.pfx
+      - DatabaseSettings__ConnectionString=Server=postgres;Port=5432;Database=postgres;User Id=postgres;Password=postgres
+      - HangfireSettings__Storage__ConnectionString=Server=postgres;Port=5432;Database=postgres;User Id=postgres;Password=postgres
+      - DatabaseSettings__DBProvider=postgresql
+      - HangfireSettings__Storage__StorageProvider=postgresql
+    volumes:
+      - ~/.aspnet/https:/https:ro
+    ports:
+      - 5100:5100
+      - 5010:5010
+    depends_on:
+      - postgres
+    restart: on-failure
+  postgres:
+    container_name: tenant-demo-postgres
+    image: postgres:15-alpine
+    networks:
+      - maviarge
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - PGPORT=5432
+    ports:
+      - 12998:5432
+    volumes:
+      - postgres-data:/data/db
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres-data:
+networks:
+  maviarge:
+    name: maviarge

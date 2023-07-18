@@ -1,3 +1,4 @@
+using EntityFramework.Exceptions.PostgreSQL;
 using FSH.WebApi.Application.Common.Persistence;
 using FSH.WebApi.Domain.Common.Contracts;
 using FSH.WebApi.Infrastructure.Common;
@@ -52,8 +53,10 @@ internal static class Startup
     {
         return dbProvider.ToLowerInvariant() switch
         {
-            DbProviderKeys.Npgsql => builder.UseNpgsql(connectionString, e =>
-                                 e.MigrationsAssembly("Migrators.PostgreSQL")),
+            DbProviderKeys.Npgsql => builder
+                                    .UseNpgsql(connectionString, e =>
+                                        e.MigrationsAssembly("Migrators.PostgreSQL"))
+                                    .UseExceptionProcessor(),
             DbProviderKeys.SqlServer => builder.UseSqlServer(connectionString, e =>
                                  e.MigrationsAssembly("Migrators.MSSQL")),
             DbProviderKeys.MySql => builder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), e =>

@@ -9,7 +9,7 @@ public class BrandConfig : IEntityTypeConfiguration<Brand>
 {
     public void Configure(EntityTypeBuilder<Brand> builder)
     {
-        builder.IsMultiTenant();
+        // builder.IsMultiTenant();
 
         builder
             .Property(b => b.Name)
@@ -21,7 +21,7 @@ public class ProductConfig : IEntityTypeConfiguration<Product>
 {
     public void Configure(EntityTypeBuilder<Product> builder)
     {
-        builder.IsMultiTenant();
+        // builder.IsMultiTenant();
 
         builder
             .Property(b => b.Name)

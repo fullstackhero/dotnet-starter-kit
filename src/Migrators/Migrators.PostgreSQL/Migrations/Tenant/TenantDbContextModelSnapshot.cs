@@ -17,7 +17,7 @@ namespace Migrators.PostgreSQL.Migrations.Tenant
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.1")
+                .HasAnnotation("ProductVersion", "7.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -59,6 +59,43 @@ namespace Migrators.PostgreSQL.Migrations.Tenant
                         .IsUnique();
 
                     b.ToTable("Tenants", "MultiTenancy");
+                });
+
+            modelBuilder.Entity("FSH.WebApi.Infrastructure.Multitenancy.FSHTenantInfo", b =>
+                {
+                    b.OwnsOne("FSH.WebApi.Application.Multitenancy.TenantPushNotificationInfo", "PushNotificationInfo", b1 =>
+                        {
+                            b1.Property<string>("FSHTenantInfoId")
+                                .HasColumnType("character varying(64)");
+
+                            b1.Property<string>("AppId")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.Property<string>("AuthKey")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.Property<string>("IconUrl")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.Property<string>("Name")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.Property<int>("Provider")
+                                .HasColumnType("integer");
+
+                            b1.HasKey("FSHTenantInfoId");
+
+                            b1.ToTable("Tenants", "MultiTenancy");
+
+                            b1.WithOwner()
+                                .HasForeignKey("FSHTenantInfoId");
+                        });
+
+                    b.Navigation("PushNotificationInfo");
                 });
 #pragma warning restore 612, 618
         }

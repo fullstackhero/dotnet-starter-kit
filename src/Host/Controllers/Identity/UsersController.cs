@@ -1,3 +1,4 @@
+using FSH.WebApi.Application.Common.PushNotifications;
 using FSH.WebApi.Application.Identity.Users;
 using FSH.WebApi.Application.Identity.Users.Password;
 
@@ -6,8 +7,13 @@ namespace FSH.WebApi.Host.Controllers.Identity;
 public class UsersController : VersionNeutralApiController
 {
     private readonly IUserService _userService;
+    private readonly IPushNotificationsService _pushNotifications;
 
-    public UsersController(IUserService userService) => _userService = userService;
+    public UsersController(IUserService userService, IPushNotificationServiceFactory pushNotificationFactory)
+    {
+        _userService = userService;
+        _pushNotifications = pushNotificationFactory.Create();
+    }
 
     [HttpGet]
     [MustHavePermission(FSHAction.View, FSHResource.Users)]

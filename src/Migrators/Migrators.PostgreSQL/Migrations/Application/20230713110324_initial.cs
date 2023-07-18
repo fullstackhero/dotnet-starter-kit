@@ -1,43 +1,22 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace Migrators.PostgreSQL.Migrations.Application
 {
-    public partial class InitialMigration : Migration
+    /// <inheritdoc />
+    public partial class initial : Migration
     {
+        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.EnsureSchema(
-                name: "Auditing");
-
             migrationBuilder.EnsureSchema(
                 name: "Catalog");
 
             migrationBuilder.EnsureSchema(
                 name: "Identity");
-
-            migrationBuilder.CreateTable(
-                name: "AuditTrails",
-                schema: "Auditing",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Type = table.Column<string>(type: "text", nullable: true),
-                    TableName = table.Column<string>(type: "text", nullable: true),
-                    DateTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    OldValues = table.Column<string>(type: "text", nullable: true),
-                    NewValues = table.Column<string>(type: "text", nullable: true),
-                    AffectedColumns = table.Column<string>(type: "text", nullable: true),
-                    PrimaryKey = table.Column<string>(type: "text", nullable: true),
-                    TenantId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AuditTrails", x => x.Id);
-                });
 
             migrationBuilder.CreateTable(
                 name: "Brands",
@@ -47,7 +26,6 @@ namespace Migrators.PostgreSQL.Migrations.Application
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     Description = table.Column<string>(type: "text", nullable: true),
-                    TenantId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                     CreatedBy = table.Column<Guid>(type: "uuid", nullable: false),
                     CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     LastModifiedBy = table.Column<Guid>(type: "uuid", nullable: false),
@@ -67,7 +45,6 @@ namespace Migrators.PostgreSQL.Migrations.Application
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: true),
-                    TenantId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                     Name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     ConcurrencyStamp = table.Column<string>(type: "text", nullable: true)
@@ -90,7 +67,6 @@ namespace Migrators.PostgreSQL.Migrations.Application
                     RefreshToken = table.Column<string>(type: "text", nullable: true),
                     RefreshTokenExpiryTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     ObjectId = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-                    TenantId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -122,7 +98,6 @@ namespace Migrators.PostgreSQL.Migrations.Application
                     Rate = table.Column<decimal>(type: "numeric", nullable: false),
                     ImagePath = table.Column<string>(type: "character varying(2048)", maxLength: 2048, nullable: true),
                     BrandId = table.Column<Guid>(type: "uuid", nullable: false),
-                    TenantId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                     CreatedBy = table.Column<Guid>(type: "uuid", nullable: false),
                     CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     LastModifiedBy = table.Column<Guid>(type: "uuid", nullable: false),
@@ -151,7 +126,6 @@ namespace Migrators.PostgreSQL.Migrations.Application
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
                     CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    TenantId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                     RoleId = table.Column<string>(type: "text", nullable: false),
                     ClaimType = table.Column<string>(type: "text", nullable: true),
                     ClaimValue = table.Column<string>(type: "text", nullable: true)
@@ -177,8 +151,7 @@ namespace Migrators.PostgreSQL.Migrations.Application
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     UserId = table.Column<string>(type: "text", nullable: false),
                     ClaimType = table.Column<string>(type: "text", nullable: true),
-                    ClaimValue = table.Column<string>(type: "text", nullable: true),
-                    TenantId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false)
+                    ClaimValue = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -197,16 +170,14 @@ namespace Migrators.PostgreSQL.Migrations.Application
                 schema: "Identity",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
                     LoginProvider = table.Column<string>(type: "text", nullable: false),
                     ProviderKey = table.Column<string>(type: "text", nullable: false),
                     ProviderDisplayName = table.Column<string>(type: "text", nullable: true),
-                    UserId = table.Column<string>(type: "text", nullable: false),
-                    TenantId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false)
+                    UserId = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UserLogins", x => x.Id);
+                    table.PrimaryKey("PK_UserLogins", x => new { x.LoginProvider, x.ProviderKey });
                     table.ForeignKey(
                         name: "FK_UserLogins_Users_UserId",
                         column: x => x.UserId,
@@ -222,8 +193,7 @@ namespace Migrators.PostgreSQL.Migrations.Application
                 columns: table => new
                 {
                     UserId = table.Column<string>(type: "text", nullable: false),
-                    RoleId = table.Column<string>(type: "text", nullable: false),
-                    TenantId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false)
+                    RoleId = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -252,8 +222,7 @@ namespace Migrators.PostgreSQL.Migrations.Application
                     UserId = table.Column<string>(type: "text", nullable: false),
                     LoginProvider = table.Column<string>(type: "text", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
-                    Value = table.Column<string>(type: "text", nullable: true),
-                    TenantId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false)
+                    Value = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -283,7 +252,7 @@ namespace Migrators.PostgreSQL.Migrations.Application
                 name: "RoleNameIndex",
                 schema: "Identity",
                 table: "Roles",
-                columns: new[] { "NormalizedName", "TenantId" },
+                column: "NormalizedName",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -291,13 +260,6 @@ namespace Migrators.PostgreSQL.Migrations.Application
                 schema: "Identity",
                 table: "UserClaims",
                 column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_UserLogins_LoginProvider_ProviderKey_TenantId",
-                schema: "Identity",
-                table: "UserLogins",
-                columns: new[] { "LoginProvider", "ProviderKey", "TenantId" },
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserLogins_UserId",
@@ -321,16 +283,13 @@ namespace Migrators.PostgreSQL.Migrations.Application
                 name: "UserNameIndex",
                 schema: "Identity",
                 table: "Users",
-                columns: new[] { "NormalizedUserName", "TenantId" },
+                column: "NormalizedUserName",
                 unique: true);
         }
 
+        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "AuditTrails",
-                schema: "Auditing");
-
             migrationBuilder.DropTable(
                 name: "Products",
                 schema: "Catalog");

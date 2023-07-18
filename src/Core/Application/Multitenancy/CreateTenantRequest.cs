@@ -7,6 +7,7 @@ public class CreateTenantRequest : IRequest<string>
     public string? ConnectionString { get; set; }
     public string AdminEmail { get; set; } = default!;
     public string? Issuer { get; set; }
+    public TenantPushNotificationInfo? PushNotificationInfo { get; set; }
 }
 
 public class CreateTenantRequestHandler : IRequestHandler<CreateTenantRequest, string>

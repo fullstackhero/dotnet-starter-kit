@@ -22,7 +22,8 @@ public class Startup
             .AddTransient<IMemoryCache, MemoryCache>()
             .AddTransient<LocalCacheService>()
             .AddTransient<IDistributedCache, MemoryDistributedCache>()
-            .AddTransient<ISerializerService, NewtonSoftService>()
+            // .AddTransient<ISerializerService, NewtonSoftService>()
+            .AddTransient<ISerializerService, SystemTextJsonService>()
             .AddTransient<DistributedCacheService>()
 
             .AddPOLocalization(context.Configuration)
