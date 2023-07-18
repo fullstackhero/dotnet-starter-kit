@@ -35,7 +35,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		docker-compose.yml = docker-compose.yml
 		dotnet.ruleset = dotnet.ruleset
 		FSH.WebApi.nuspec = FSH.WebApi.nuspec
-		global.json = global.json
 		icon.png = icon.png
 		LICENSE = LICENSE
 		README.md = README.md
@@ -51,7 +50,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Migrators.Oracle", "src\Mig
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared", "src\Core\Shared\Shared.csproj", "{5B986063-2160-4F86-AF1D-7F97671146C5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Migrators.SqLite", "src\Migrators\Migrators.SqLite\Migrators.SqLite.csproj", "{4881A50F-5C2B-4381-81FD-3ECA11450016}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Migrators.SqLite", "src\Migrators\Migrators.SqLite\Migrators.SqLite.csproj", "{4881A50F-5C2B-4381-81FD-3ECA11450016}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

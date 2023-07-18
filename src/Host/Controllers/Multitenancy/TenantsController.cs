@@ -56,4 +56,14 @@ public class TenantsController : VersionNeutralApiController
             ? BadRequest()
             : Ok(await Mediator.Send(request));
     }
+
+    [HttpPut("{id}/push-notification-settings")]
+    [MustHavePermission(FSHAction.Update, FSHResource.Tenants)]
+    [OpenApiOperation("Update a tenant's push notification settings.", "")]
+    public async Task<ActionResult<string>> UpdatePushNotificationSettingsAsync(string id, UpdatePushNotificationInfoRequest request)
+    {
+        return id != request.Id
+            ? BadRequest()
+            : Ok(await Mediator.Send(request));
+    }
 }
