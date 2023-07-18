@@ -13,8 +13,6 @@ public static class Startup
 {
     public static IServiceCollection AddPushNotifications(this IServiceCollection services)
     {
-        //services.AddTransient<OneSignalPushNotificationService>();
-
         services.AddHttpClient(PushNotificationsConstants.HttpClientName, conf =>
         {
             // I could put basepath, authKey etc. here,

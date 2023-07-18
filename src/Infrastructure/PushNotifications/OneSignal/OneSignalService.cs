@@ -130,23 +130,30 @@ public class OneSignalService : IOneSignalService
     {
         var (headingEN, contentEN, headingTR, contentTR) = _template.Create(notificationType);
 
-        var notification = new
-        {
-            app_id = _tenantPushNotificationInfo.AppId,
-            app_name = _tenantPushNotificationInfo.Name,
-            receiverInfo,
-            headings = new Dictionary<string, string>
-        {
-            { "en", headingEN },
-            { "tr", headingTR }
+        var notification = new Dictionary<string, object>
+    {
+        { OneSignalConstants.AppId, _tenantPushNotificationInfo.AppId },
+        { OneSignalConstants.AppName, _tenantPushNotificationInfo.Name },
+        { OneSignalConstants.Headings, new Dictionary<string, string>
+            {
+                { OneSignalConstants.EN, headingEN },
+                { OneSignalConstants.TR, headingTR }
+            }
         },
-            contents = new Dictionary<string, string>
-        {
-            { "en", contentEN },
-            { "tr", contentTR }
+        { OneSignalConstants.Contents, new Dictionary<string, string>
+            {
+                { OneSignalConstants.EN, contentEN },
+                { OneSignalConstants.TR, contentTR }
+            }
         },
-            large_icon = _tenantPushNotificationInfo.IconUrl
-        };
+        { OneSignalConstants.LargeIcon, _tenantPushNotificationInfo.IconUrl }
+    };
+
+        // Add receiverInfo entries to the root of the notification
+        foreach (var entry in receiverInfo)
+        {
+            notification[entry.Key] = entry.Value;
+        }
 
         return _serializer.Serialize(notification);
     }
