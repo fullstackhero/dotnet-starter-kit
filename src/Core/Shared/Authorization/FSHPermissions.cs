@@ -13,6 +13,7 @@ public static class FSHAction
     public const string Generate = nameof(Generate);
     public const string Clean = nameof(Clean);
     public const string UpgradeSubscription = nameof(UpgradeSubscription);
+    public const string SendNotification = nameof(SendNotification);
 }
 
 public static class FSHResource
@@ -40,6 +41,7 @@ public static class FSHPermissions
         new("Update Users", FSHAction.Update, FSHResource.Users),
         new("Delete Users", FSHAction.Delete, FSHResource.Users),
         new("Export Users", FSHAction.Export, FSHResource.Users),
+        new("Send notification to Users", FSHAction.SendNotification, FSHResource.Users),
         new("View UserRoles", FSHAction.View, FSHResource.UserRoles),
         new("Update UserRoles", FSHAction.Update, FSHResource.UserRoles),
         new("View Roles", FSHAction.View, FSHResource.Roles),

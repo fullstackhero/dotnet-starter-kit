@@ -1,3 +1,4 @@
+using FSH.WebApi.Application.Common.PushNotifications;
 using FSH.WebApi.Application.Identity.Users;
 using FSH.WebApi.Application.Identity.Users.Password;
 
@@ -6,8 +7,13 @@ namespace FSH.WebApi.Host.Controllers.Identity;
 public class UsersController : VersionNeutralApiController
 {
     private readonly IUserService _userService;
+    private readonly IPushNotificationService _pushNotifications;
 
-    public UsersController(IUserService userService) => _userService = userService;
+    public UsersController(IUserService userService, IPushNotificationServiceFactory pushNotificationFactory)
+    {
+        _userService = userService;
+        _pushNotifications = pushNotificationFactory.Create();
+    }
 
     [HttpGet]
     [MustHavePermission(FSHAction.View, FSHResource.Users)]
@@ -115,6 +121,14 @@ public class UsersController : VersionNeutralApiController
     public Task<string> ResetPasswordAsync(ResetPasswordRequest request)
     {
         return _userService.ResetPasswordAsync(request);
+    }
+
+    [HttpPost("send-custom-notification")]
+    [OpenApiOperation("Send a custom notification to user(s).", "")]
+    [MustHavePermission(FSHAction.Update, FSHResource.Users)]
+    public async Task SendCustomNotificationAsync(CancellationToken cancellationToken)
+    {
+        await _pushNotifications.SendTo("7dd2e52f-3400-4c86-998a-f93600e196be", PushNotificationType.ChargeCompletedNotification);
     }
 
     private string GetOriginFromRequest() => $"{Request.Scheme}://{Request.Host.Value}{Request.PathBase.Value}";

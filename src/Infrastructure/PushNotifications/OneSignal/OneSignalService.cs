@@ -3,6 +3,7 @@ using DocumentFormat.OpenXml.Spreadsheet;
 using Finbuckle.MultiTenant;
 using FSH.WebApi.Application.Common.Interfaces;
 using FSH.WebApi.Application.Common.PushNotifications;
+using FSH.WebApi.Application.Common.PushNotifications.OneSignal;
 using FSH.WebApi.Application.Multitenancy;
 using FSH.WebApi.Infrastructure.Multitenancy;
 using Microsoft.Extensions.Logging;
@@ -17,19 +18,19 @@ namespace FSH.WebApi.Infrastructure.PushNotifications.OneSignal;
 // Use via IPushNotificationServiceFactory.Create(). Do not use directly.
 
 // Maybe use template method pattern? It could be usefull if we add another push notification provider.
-public class OneSignalPushNotificationService : IPushNotificationService
+public class OneSignalService : IOneSignalService
 {
     private readonly TenantPushNotificationInfo _tenantPushNotificationInfo;
     private readonly IPushNotificationTemplateFactory _template;
     private readonly HttpClient _httpClient;
-    private readonly ILogger<OneSignalPushNotificationService> _logger;
+    private readonly ILogger<OneSignalService> _logger;
     private readonly ISerializerService _serializer;
 
-    public OneSignalPushNotificationService(
+    public OneSignalService(
         FSHTenantInfo currentTenant,
         IPushNotificationTemplateFactory template,
         IHttpClientFactory httpClientFactory,
-        ILogger<OneSignalPushNotificationService> logger,
+        ILogger<OneSignalService> logger,
         ISerializerService serializer)
     {
         _tenantPushNotificationInfo = currentTenant.PushNotificationInfo!; // null check is done in PushNotificationServiceFactory

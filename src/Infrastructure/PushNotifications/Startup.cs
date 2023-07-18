@@ -1,4 +1,5 @@
-﻿using FSH.WebApi.Infrastructure.PushNotifications.OneSignal;
+﻿using FSH.WebApi.Application.Common.PushNotifications;
+using FSH.WebApi.Infrastructure.PushNotifications.OneSignal;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,8 @@ public static class Startup
 {
     public static IServiceCollection AddPushNotifications(this IServiceCollection services)
     {
+        //services.AddTransient<OneSignalPushNotificationService>();
+
         services.AddHttpClient(PushNotificationsConstants.HttpClientName, conf =>
         {
             // I could put basepath, authKey etc. here,

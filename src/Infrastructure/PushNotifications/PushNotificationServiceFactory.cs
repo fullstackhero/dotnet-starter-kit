@@ -1,4 +1,5 @@
 ﻿using FSH.WebApi.Application.Common.PushNotifications;
+using FSH.WebApi.Application.Common.PushNotifications.OneSignal;
 using FSH.WebApi.Application.Multitenancy;
 using FSH.WebApi.Infrastructure.Multitenancy;
 using FSH.WebApi.Infrastructure.PushNotifications.OneSignal;
@@ -33,7 +34,7 @@ public class PushNotificationServiceFactory : IPushNotificationServiceFactory
 
         return _currentTenant.PushNotificationInfo.Provider switch
         {
-            PushNotificationProvider.OneSignal => _serviceProvider.GetRequiredService<OneSignalPushNotificationService>(),
+            PushNotificationProvider.OneSignal => _serviceProvider.GetRequiredService<IOneSignalService>(),
             // PushNotificationProvider.Firebase => _serviceProvider.GetRequiredService<FirebasePushNotificationService>(),
             _ => throw new NotImplementedException()
         };
