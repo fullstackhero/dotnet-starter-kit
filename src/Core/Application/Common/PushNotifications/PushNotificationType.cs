@@ -8,5 +8,6 @@ namespace FSH.WebApi.Application.Common.PushNotifications;
 
 public enum PushNotificationType
 {
-    ChargeCompletedNotification
+    ChargeCompletedNotification,
+    ChargeStoppedWithErrorNotification,
 }

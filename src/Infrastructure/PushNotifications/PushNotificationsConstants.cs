@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace FSH.WebApi.Infrastructure.PushNotifications;
-internal class PushNotificationSettings
+public class PushNotificationsConstants
 {
+    public const string HttpClientName = "PushNotificationsHttpClient";
 }

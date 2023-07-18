@@ -6,4 +6,9 @@ using System.Threading.Tasks;
 
 namespace FSH.WebApi.Application.Multitenancy;
 
-public sealed record TenantPushNotificationInfo(string appId, string authKey, string baseUrl);
+public sealed record TenantPushNotificationInfo(PushNotificationProvider Provider, string AppId, string Name, string AuthKey, string IconUrl);
+
+public enum PushNotificationProvider
+{
+    OneSignal = 1
+}

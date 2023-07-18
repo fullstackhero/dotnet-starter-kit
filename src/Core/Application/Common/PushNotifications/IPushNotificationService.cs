@@ -6,9 +6,13 @@ using System.Threading.Tasks;
 
 namespace FSH.WebApi.Application.Common.PushNotifications;
 
-public interface IPushNotificationService : ITransientService
+public interface IPushNotificationService
 {
     Task SendTo(string userId, PushNotificationType notificationType);
 
     Task SendToAll(PushNotificationType notificationType);
+
+    Task SendToActiveUsers(PushNotificationType notificationType);
+
+    Task SendToInactiveUsers(PushNotificationType notificationType);
 }
