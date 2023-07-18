@@ -9,5 +9,5 @@ namespace FSH.WebApi.Application.Common.PushNotifications;
 
 public interface IPushNotificationServiceFactory : ITransientService
 {
-    IPushNotificationService Create();
+    IPushNotificationsService Create();
 }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace FSH.WebApi.Infrastructure.PushNotifications;
 
 // Maybe make an api to accept more template?
-public class PushNotificationTemplateFactory : IPushNotificationTemplateFactory
+public class PushNotificationsTemplateFactory : IPushNotificationsTemplateFactory
 {
     private static readonly Dictionary<PushNotificationType, (string HeadingEN, string HeadingTR, string ContentEN, string ContentTR)> _notificationTypeToTemplateMap
         = new()

@@ -12,12 +12,12 @@ using System.Threading.Tasks;
 
 namespace FSH.WebApi.Infrastructure.PushNotifications;
 
-public class PushNotificationServiceFactory : IPushNotificationServiceFactory
+public class PushNotificationsServiceFactory : IPushNotificationServiceFactory
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly FSHTenantInfo _currentTenant;
 
-    public PushNotificationServiceFactory(IServiceProvider serviceProvider, FSHTenantInfo currentTenant)
+    public PushNotificationsServiceFactory(IServiceProvider serviceProvider, FSHTenantInfo currentTenant)
     {
         _serviceProvider = serviceProvider;
         _currentTenant = currentTenant;
@@ -28,7 +28,7 @@ public class PushNotificationServiceFactory : IPushNotificationServiceFactory
     /// </summary>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException">Thrown when the current tenant's push notification info is null.</exception>
-    public IPushNotificationService Create()
+    public IPushNotificationsService Create()
     {
         ArgumentNullException.ThrowIfNull(_currentTenant.PushNotificationInfo, nameof(_currentTenant.PushNotificationInfo));
 

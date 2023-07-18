@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FSH.WebApi.Application.Common.PushNotifications;
 
-public interface IPushNotificationService : ITransientService
+public interface IPushNotificationsService : ITransientService
 {
     Task SendTo(string userId, PushNotificationType notificationType);
 

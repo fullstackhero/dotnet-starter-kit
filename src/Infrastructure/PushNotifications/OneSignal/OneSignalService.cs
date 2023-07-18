@@ -21,14 +21,14 @@ namespace FSH.WebApi.Infrastructure.PushNotifications.OneSignal;
 public class OneSignalService : IOneSignalService
 {
     private readonly TenantPushNotificationInfo _tenantPushNotificationInfo;
-    private readonly IPushNotificationTemplateFactory _template;
+    private readonly IPushNotificationsTemplateFactory _template;
     private readonly HttpClient _httpClient;
     private readonly ILogger<OneSignalService> _logger;
     private readonly ISerializerService _serializer;
 
     public OneSignalService(
         FSHTenantInfo currentTenant,
-        IPushNotificationTemplateFactory template,
+        IPushNotificationsTemplateFactory template,
         IHttpClientFactory httpClientFactory,
         ILogger<OneSignalService> logger,
         ISerializerService serializer)

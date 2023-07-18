@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FSH.WebApi.Application.Common.PushNotifications;
 
-public interface IPushNotificationTemplateFactory : ITransientService
+public interface IPushNotificationsTemplateFactory : ITransientService
 {
     (string HeadingEN, string HeadingTR, string ContentEN, string ContentTR) Create(PushNotificationType notificationType);
 }

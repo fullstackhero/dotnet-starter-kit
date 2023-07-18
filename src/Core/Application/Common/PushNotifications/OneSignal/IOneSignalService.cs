@@ -6,6 +6,6 @@ using System.Threading.Tasks;
 
 namespace FSH.WebApi.Application.Common.PushNotifications.OneSignal;
 
-public interface IOneSignalService : IPushNotificationService
+public interface IOneSignalService : IPushNotificationsService
 {
 }

@@ -7,7 +7,7 @@ namespace FSH.WebApi.Host.Controllers.Identity;
 public class UsersController : VersionNeutralApiController
 {
     private readonly IUserService _userService;
-    private readonly IPushNotificationService _pushNotifications;
+    private readonly IPushNotificationsService _pushNotifications;
 
     public UsersController(IUserService userService, IPushNotificationServiceFactory pushNotificationFactory)
     {
