@@ -1,7 +1,7 @@
-﻿using FSH.WebApi.Application.Common.Interfaces;
+﻿using FL_CRMS_ERP_WEBAPI.Application.Common.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace FSH.WebApi.Infrastructure.Common;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Common;
 
 internal static class Startup
 {

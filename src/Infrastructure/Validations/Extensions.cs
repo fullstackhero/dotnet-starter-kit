@@ -3,7 +3,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace FSH.WebApi.Infrastructure.Validations;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Validations;
 public static class Extensions
 {
     public static IServiceCollection AddBehaviours(this IServiceCollection services, Assembly assemblyContainingValidators)

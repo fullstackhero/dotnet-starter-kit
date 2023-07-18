@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace FSH.WebApi.Infrastructure.Mailing;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Mailing;
 
 internal static class Startup
 {

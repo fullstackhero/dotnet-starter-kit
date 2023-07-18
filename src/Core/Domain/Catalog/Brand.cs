@@ -1,4 +1,4 @@
-namespace FSH.WebApi.Domain.Catalog;
+namespace FL_CRMS_ERP_WEBAPI.Domain.Catalog;
 
 public class Brand : AuditableEntity, IAggregateRoot
 {

@@ -1,4 +1,4 @@
-namespace FSH.WebApi.Application.Auditing;
+namespace FL_CRMS_ERP_WEBAPI.Application.Auditing;
 
 public class AuditDto
 {
@@ -11,4 +11,11 @@ public class AuditDto
     public string? NewValues { get; set; }
     public string? AffectedColumns { get; set; }
     public string? PrimaryKey { get; set; }
+
+    //TimeLine for all modules started from here
+    public Guid LeadId { get; set; }
+    public string? Subject { get; set; }
+    public string[]? MeetingLeadId { get; set; }
+    public string? RelatedTo { get; set; }
+    //
 }

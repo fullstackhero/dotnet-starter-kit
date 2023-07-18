@@ -1,9 +1,9 @@
 ﻿using Finbuckle.MultiTenant.EntityFrameworkCore;
-using FSH.WebApi.Domain.Catalog;
+using FL_CRMS_ERP_WEBAPI.Domain.Catalog;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace FSH.WebApi.Infrastructure.Persistence.Configuration;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence.Configuration;
 
 public class BrandConfig : IEntityTypeConfiguration<Brand>
 {
@@ -32,3 +32,4 @@ public class ProductConfig : IEntityTypeConfiguration<Product>
                 .HasMaxLength(2048);
     }
 }
+

@@ -1,22 +1,22 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using FSH.WebApi.Infrastructure.Auth;
-using FSH.WebApi.Infrastructure.BackgroundJobs;
-using FSH.WebApi.Infrastructure.Caching;
-using FSH.WebApi.Infrastructure.Common;
-using FSH.WebApi.Infrastructure.Cors;
-using FSH.WebApi.Infrastructure.FileStorage;
-using FSH.WebApi.Infrastructure.Localization;
-using FSH.WebApi.Infrastructure.Mailing;
-using FSH.WebApi.Infrastructure.Mapping;
-using FSH.WebApi.Infrastructure.Middleware;
-using FSH.WebApi.Infrastructure.Multitenancy;
-using FSH.WebApi.Infrastructure.Notifications;
-using FSH.WebApi.Infrastructure.OpenApi;
-using FSH.WebApi.Infrastructure.Persistence;
-using FSH.WebApi.Infrastructure.Persistence.Initialization;
-using FSH.WebApi.Infrastructure.SecurityHeaders;
-using FSH.WebApi.Infrastructure.Validations;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Auth;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.BackgroundJobs;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Caching;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Common;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Cors;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.FileStorage;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Localization;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Mailing;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Mapping;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Middleware;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Multitenancy;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Notifications;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.OpenApi;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence.Initialization;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.SecurityHeaders;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Validations;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
@@ -26,13 +26,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 [assembly: InternalsVisibleTo("Infrastructure.Test")]
 
-namespace FSH.WebApi.Infrastructure;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure;
 
 public static class Startup
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
     {
-        var applicationAssembly = typeof(FSH.WebApi.Application.Startup).GetTypeInfo().Assembly;
+        var applicationAssembly = typeof(FL_CRMS_ERP_WEBAPI.Application.Startup).GetTypeInfo().Assembly;
         MapsterSettings.Configure();
         return services
             .AddApiVersioning()

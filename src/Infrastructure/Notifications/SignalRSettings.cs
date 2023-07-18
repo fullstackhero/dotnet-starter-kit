@@ -1,4 +1,4 @@
-﻿namespace FSH.WebApi.Infrastructure.Notifications;
+﻿namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Notifications;
 
 public class SignalRSettings
 {

@@ -1,4 +1,4 @@
-﻿namespace FSH.WebApi.Application.Catalog.Brands;
+﻿namespace FL_CRMS_ERP_WEBAPI.Application.Catalog.Brands;
 
 public class GenerateRandomBrandRequest : IRequest<string>
 {

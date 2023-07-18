@@ -4,7 +4,7 @@ using Hangfire.Server;
 using Hangfire.States;
 using Hangfire.Storage;
 
-namespace FSH.WebApi.Infrastructure.BackgroundJobs;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.BackgroundJobs;
 
 public class LogJobFilter : IClientFilter, IServerFilter, IElectStateFilter, IApplyStateFilter
 {

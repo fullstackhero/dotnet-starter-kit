@@ -1,15 +1,15 @@
 ﻿using System.Security.Claims;
-using FSH.WebApi.Application.Common.Exceptions;
-using FSH.WebApi.Application.Common.Mailing;
-using FSH.WebApi.Application.Identity.Users;
-using FSH.WebApi.Domain.Common;
-using FSH.WebApi.Domain.Identity;
-using FSH.WebApi.Shared.Authorization;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Exceptions;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Mailing;
+using FL_CRMS_ERP_WEBAPI.Application.Identity.Users;
+using FL_CRMS_ERP_WEBAPI.Domain.Common;
+using FL_CRMS_ERP_WEBAPI.Domain.Identity;
+using FL_CRMS_ERP_WEBAPI.Shared.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
 
-namespace FSH.WebApi.Infrastructure.Identity;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Identity;
 
 internal partial class UserService
 {
@@ -110,7 +110,9 @@ internal partial class UserService
             LastName = request.LastName,
             UserName = request.UserName,
             PhoneNumber = request.PhoneNumber,
-            IsActive = true
+            IsActive = true,
+            ReportTo = request.ReportTo,
+            EmailConfirmed = true
         };
 
         var result = await _userManager.CreateAsync(user, request.Password);
@@ -119,7 +121,7 @@ internal partial class UserService
             throw new InternalServerException(_t["Validation Errors Occurred."], result.GetErrors(_t));
         }
 
-        await _userManager.AddToRoleAsync(user, FSHRoles.Basic);
+        await _userManager.AddToRoleAsync(user, FLRoles.Basic);
 
         var messages = new List<string> { string.Format(_t["User {0} Registered."], user.UserName) };
 
@@ -148,7 +150,8 @@ internal partial class UserService
 
     public async Task UpdateAsync(UpdateUserRequest request, string userId)
     {
-        var user = await _userManager.FindByIdAsync(userId);
+        var user = await _userManager.FindByIdAsync(request.Id);// It is updated by selected user id based
+        //var user = await _userManager.FindByIdAsync(userId);
 
         _ = user ?? throw new NotFoundException(_t["User Not Found."]);
 
@@ -162,10 +165,21 @@ internal partial class UserService
                 _fileStorage.Remove(Path.Combine(root, currentImage));
             }
         }
+        if(request.ReportTo != null)
+        {
+            user.ReportTo = request.ReportTo;
+        }
+        if(request.UserName != null)
+        {
+            user.UserName = request.UserName;
+        }
 
         user.FirstName = request.FirstName;
         user.LastName = request.LastName;
-        user.PhoneNumber = request.PhoneNumber;
+        user.PhoneNumber = request.PhoneNumber;        
+        user.Email = request.Email;
+        
+
         string? phoneNumber = await _userManager.GetPhoneNumberAsync(user);
         if (request.PhoneNumber != phoneNumber)
         {

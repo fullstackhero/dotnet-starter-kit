@@ -1,4 +1,4 @@
-﻿namespace FSH.WebApi.Application.Common.Caching;
+﻿namespace FL_CRMS_ERP_WEBAPI.Application.Common.Caching;
 
 public static class CacheKeyServiceExtensions
 {

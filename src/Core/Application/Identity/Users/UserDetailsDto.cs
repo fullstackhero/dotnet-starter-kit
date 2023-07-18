@@ -1,4 +1,4 @@
-namespace FSH.WebApi.Application.Identity.Users;
+namespace FL_CRMS_ERP_WEBAPI.Application.Identity.Users;
 
 public class UserDetailsDto
 {
@@ -19,4 +19,6 @@ public class UserDetailsDto
     public string? PhoneNumber { get; set; }
 
     public string? ImageUrl { get; set; }
+
+    public string? ReportTo { get; set; }
 }

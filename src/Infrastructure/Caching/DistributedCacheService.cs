@@ -1,10 +1,10 @@
 using System.Text;
-using FSH.WebApi.Application.Common.Caching;
-using FSH.WebApi.Application.Common.Interfaces;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Caching;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Interfaces;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 
-namespace FSH.WebApi.Infrastructure.Caching;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Caching;
 
 #pragma warning disable CA2254
 public class DistributedCacheService : ICacheService

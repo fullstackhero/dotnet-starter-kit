@@ -1,4 +1,4 @@
-namespace FSH.WebApi.Domain.Common.Contracts;
+namespace FL_CRMS_ERP_WEBAPI.Domain.Common.Contracts;
 
 public interface ISoftDelete
 {

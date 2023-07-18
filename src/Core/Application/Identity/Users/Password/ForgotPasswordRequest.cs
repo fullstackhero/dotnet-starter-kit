@@ -1,4 +1,4 @@
-namespace FSH.WebApi.Application.Identity.Users.Password;
+namespace FL_CRMS_ERP_WEBAPI.Application.Identity.Users.Password;
 
 public class ForgotPasswordRequest
 {

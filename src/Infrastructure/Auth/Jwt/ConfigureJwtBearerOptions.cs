@@ -1,11 +1,11 @@
 ﻿using System.Security.Claims;
 using System.Text;
-using FSH.WebApi.Application.Common.Exceptions;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Exceptions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
-namespace FSH.WebApi.Infrastructure.Auth.Jwt;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Auth.Jwt;
 
 public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions>
 {

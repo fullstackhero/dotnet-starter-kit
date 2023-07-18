@@ -1,4 +1,4 @@
-namespace FSH.WebApi.Application.Identity.Roles;
+namespace FL_CRMS_ERP_WEBAPI.Application.Identity.Roles;
 
 public interface IRoleService : ITransientService
 {

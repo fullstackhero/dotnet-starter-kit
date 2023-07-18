@@ -1,16 +1,18 @@
 using System.Data;
 using Finbuckle.MultiTenant;
-using FSH.WebApi.Application.Common.Events;
-using FSH.WebApi.Application.Common.Interfaces;
-using FSH.WebApi.Domain.Common.Contracts;
-using FSH.WebApi.Infrastructure.Auditing;
-using FSH.WebApi.Infrastructure.Identity;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Events;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Interfaces;
+using FL_CRMS_ERP_WEBAPI.Domain.Common.Contracts;
+using FL_CRMS_ERP_WEBAPI.Domain.CommonModel;
+using FL_CRMS_ERP_WEBAPI.Domain.LeadData;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Auditing;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.Options;
 
-namespace FSH.WebApi.Infrastructure.Persistence.Context;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence.Context;
 
 public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUser, ApplicationRole, string, IdentityUserClaim<string>, IdentityUserRole<string>, IdentityUserLogin<string>, ApplicationRoleClaim, IdentityUserToken<string>>
 {
@@ -115,6 +117,159 @@ public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUs
                 TableName = entry.Entity.GetType().Name,
                 UserId = userId
             };
+
+            //TimeLine for all modules started from here
+
+            var _addedEntities = ChangeTracker.Entries()
+             .Select(e => e.Entity)
+             .ToList();
+
+            if (trailEntry.TableName == "TaskModel")
+            {
+               foreach (var entrys in _addedEntities)
+                {
+                    if (entrys is TaskModel myModel)
+                    {
+                        trailEntry.LeadId = myModel.WhoId;
+                        trailEntry.Subject = myModel.Subject;
+                        trailEntry.RelatedTo = myModel.RelatedTo;
+                        // Do something with the name
+                    }
+                }
+            }
+            else if(trailEntry.TableName == "CallsModel")
+            {
+
+                foreach (var entrys in _addedEntities)
+                {
+                    if (entrys is CallsModel myModel)
+                    {
+                        trailEntry.LeadId = myModel.WhoId;
+                        trailEntry.Subject = myModel.Subject;
+                        trailEntry.RelatedTo = myModel.RelatedTo;
+                        // Do something with the name
+                    }
+                }
+            }
+            else if(trailEntry.TableName == "MeetingModel")
+            {
+                foreach (var entrys in _addedEntities)
+                {
+                    if (entrys is MeetingModel myModel)
+                    {
+                        trailEntry.MeetingLeadId = myModel.Participants;
+                        trailEntry.Subject = myModel.MeetingTitle;
+                        trailEntry.RelatedTo = myModel.RelatedTo;
+                        // Do something with the name
+                    }
+                }
+            }
+            else if(trailEntry.TableName == "NotesModel")
+            {
+                foreach (var entrys in _addedEntities)
+                {
+                    if (entrys is NotesModel myModel)
+                    {
+                        trailEntry.LeadId = myModel.ParentId;
+                        trailEntry.Subject = myModel.NoteContent;
+                        trailEntry.RelatedTo = myModel.RelatedTo;
+                        // Do something with the name
+                    }
+                }
+            }
+            else if(trailEntry.TableName == "AccountDetailsModel")
+            {
+                foreach (var entrys in _addedEntities)
+                {
+                    if (entrys is AccountDetailsModel myModel)
+                    {
+                        trailEntry.LeadId = myModel.ConvertedLeadId;
+                        trailEntry.Subject = myModel.AccountName;
+                        trailEntry.RelatedTo = "Account";
+                        // Do something with the name
+                    }
+                }
+            }
+            else if (trailEntry.TableName == "InvoiceDetailsModel")
+            {
+                foreach (var entrys in _addedEntities)
+                {
+                    if (entrys is InvoiceDetailsModel myModel)
+                    {
+                        trailEntry.LeadId = myModel.Id;
+                        trailEntry.Subject = myModel.Subject;
+                        trailEntry.RelatedTo = "Invoice";
+                        // Do something with the name
+                    }
+                }
+            }
+            else if (trailEntry.TableName == "LeadDetailsModel")
+            {
+                foreach (var entrys in _addedEntities)
+                {
+                    if (entrys is LeadDetailsModel myModel)
+                    {
+                        trailEntry.LeadId = myModel.Id;
+                        trailEntry.Subject = myModel.CompanyName;
+                        trailEntry.RelatedTo = "Lead";
+                        // Do something with the name
+                    }
+                }
+            }
+            else if (trailEntry.TableName == "ContactDetailsModel")
+            {
+                foreach (var entrys in _addedEntities)
+                {
+                    if (entrys is ContactDetailsModel myModel)
+                    {
+                        trailEntry.LeadId = myModel.Id;
+                        trailEntry.Subject = myModel.FirstName;
+                        trailEntry.RelatedTo = "Contact";
+                        // Do something with the name
+                    }
+                }
+            }
+            else if(trailEntry.TableName == "DocumentModel")
+            {
+                foreach (var entrys in _addedEntities)
+                {
+                    if (entrys is DocumentModel myModel)
+                    {
+                        trailEntry.LeadId = (Guid)myModel.ParentID;
+                        trailEntry.Subject = myModel.Title;
+                        trailEntry.RelatedTo = myModel.RelatedTo;
+                        // Do something with the name
+                    }
+                }
+            }
+            else if(trailEntry.TableName == "QuotationDetailsModel")
+            {
+                foreach (var entrys in _addedEntities)
+                {
+                    if (entrys is QuotationDetailsModel myModel)
+                    {
+                        trailEntry.LeadId = (Guid)myModel.LeadId;
+                        trailEntry.Subject = myModel.Subject;
+                        trailEntry.RelatedTo = "Quotation";
+                        // Do something with the name
+                    }
+                }
+            }
+            //else if (trailEntry.TableName == "LeadDetailsModel")
+            //{
+            //    foreach (var entrys in _addedEntities)
+            //    {
+            //        if (entrys is LeadDetailsModel myModel)
+            //        {
+            //            trailEntry.LeadId = myModel.Id;
+            //            trailEntry.Subject = myModel.CompanyName;
+            //            // Do something with the name
+            //        }
+            //    }
+            //}
+            //
+
+
             trailEntries.Add(trailEntry);
             foreach (var property in entry.Properties)
             {
@@ -130,6 +285,7 @@ public abstract class BaseDbContext : MultiTenantIdentityDbContext<ApplicationUs
                     trailEntry.KeyValues[propertyName] = property.CurrentValue;
                     continue;
                 }
+
 
                 switch (entry.State)
                 {

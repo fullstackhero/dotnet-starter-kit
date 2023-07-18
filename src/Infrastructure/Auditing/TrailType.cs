@@ -1,4 +1,4 @@
-namespace FSH.WebApi.Infrastructure.Auditing;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Auditing;
 
 public enum TrailType : byte
 {

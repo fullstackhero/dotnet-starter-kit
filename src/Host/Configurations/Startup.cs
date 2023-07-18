@@ -1,4 +1,4 @@
-namespace FSH.WebApi.Host.Configurations;
+namespace FL_CRMS_ERP_WEBAPI.Host.Configurations;
 
 internal static class Startup
 {

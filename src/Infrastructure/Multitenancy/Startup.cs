@@ -1,7 +1,7 @@
-using FSH.WebApi.Application.Multitenancy;
-using FSH.WebApi.Infrastructure.Persistence;
-using FSH.WebApi.Shared.Authorization;
-using FSH.WebApi.Shared.Multitenancy;
+using FL_CRMS_ERP_WEBAPI.Application.Multitenancy;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence;
+using FL_CRMS_ERP_WEBAPI.Shared.Authorization;
+using FL_CRMS_ERP_WEBAPI.Shared.Multitenancy;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 
-namespace FSH.WebApi.Infrastructure.Multitenancy;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Multitenancy;
 
 internal static class Startup
 {
@@ -22,11 +22,11 @@ internal static class Startup
                 var databaseSettings = p.GetRequiredService<IOptions<DatabaseSettings>>().Value;
                 m.UseDatabase(databaseSettings.DBProvider, databaseSettings.ConnectionString);
             })
-            .AddMultiTenant<FSHTenantInfo>()
-                .WithClaimStrategy(FSHClaims.Tenant)
+            .AddMultiTenant<FLTenantInfo>()
+                .WithClaimStrategy(FLClaims.Tenant)
                 .WithHeaderStrategy(MultitenancyConstants.TenantIdName)
                 .WithQueryStringStrategy(MultitenancyConstants.TenantIdName)
-                .WithEFCoreStore<TenantDbContext, FSHTenantInfo>()
+                .WithEFCoreStore<TenantDbContext, FLTenantInfo>()
                 .Services
             .AddScoped<ITenantService, TenantService>();
     }
@@ -34,7 +34,7 @@ internal static class Startup
     internal static IApplicationBuilder UseMultiTenancy(this IApplicationBuilder app) =>
         app.UseMultiTenant();
 
-    private static FinbuckleMultiTenantBuilder<FSHTenantInfo> WithQueryStringStrategy(this FinbuckleMultiTenantBuilder<FSHTenantInfo> builder, string queryStringKey) =>
+    private static FinbuckleMultiTenantBuilder<FLTenantInfo> WithQueryStringStrategy(this FinbuckleMultiTenantBuilder<FLTenantInfo> builder, string queryStringKey) =>
         builder.WithDelegateStrategy(context =>
         {
             if (context is not HttpContext httpContext)

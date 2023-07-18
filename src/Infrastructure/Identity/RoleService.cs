@@ -1,18 +1,18 @@
 using Finbuckle.MultiTenant;
-using FSH.WebApi.Application.Common.Events;
-using FSH.WebApi.Application.Common.Exceptions;
-using FSH.WebApi.Application.Common.Interfaces;
-using FSH.WebApi.Application.Identity.Roles;
-using FSH.WebApi.Domain.Identity;
-using FSH.WebApi.Infrastructure.Persistence.Context;
-using FSH.WebApi.Shared.Authorization;
-using FSH.WebApi.Shared.Multitenancy;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Events;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Exceptions;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Interfaces;
+using FL_CRMS_ERP_WEBAPI.Application.Identity.Roles;
+using FL_CRMS_ERP_WEBAPI.Domain.Identity;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence.Context;
+using FL_CRMS_ERP_WEBAPI.Shared.Authorization;
+using FL_CRMS_ERP_WEBAPI.Shared.Multitenancy;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 
-namespace FSH.WebApi.Infrastructure.Identity;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Identity;
 
 internal class RoleService : IRoleService
 {
@@ -64,7 +64,7 @@ internal class RoleService : IRoleService
         var role = await GetByIdAsync(roleId);
 
         role.Permissions = await _db.RoleClaims
-            .Where(c => c.RoleId == roleId && c.ClaimType == FSHClaims.Permission)
+            .Where(c => c.RoleId == roleId && c.ClaimType == FLClaims.Permission)
             .Select(c => c.ClaimValue!)
             .ToListAsync(cancellationToken);
 
@@ -76,7 +76,7 @@ internal class RoleService : IRoleService
         if (string.IsNullOrEmpty(request.Id))
         {
             // Create a new role.
-            var role = new ApplicationRole(request.Name, request.Description);
+            var role = new ApplicationRole(request.Name, request.Description, request.ReportTo);
             var result = await _roleManager.CreateAsync(role);
 
             if (!result.Succeeded)
@@ -95,14 +95,34 @@ internal class RoleService : IRoleService
 
             _ = role ?? throw new NotFoundException(_t["Role Not Found"]);
 
-            if (FSHRoles.IsDefault(role.Name!))
-            {
-                throw new ConflictException(string.Format(_t["Not allowed to modify {0} Role."], role.Name));
-            }
+            //if (FLRoles.IsDefault(role.Name!))
+            //{
+            //    throw new ConflictException(string.Format(_t["Not allowed to modify {0} Role."], role.Name));
+            //}
 
-            role.Name = request.Name;
-            role.NormalizedName = request.Name.ToUpperInvariant();
-            role.Description = request.Description;
+            if(FLRoles.IsDefault(role.Name!))
+            {
+                if(role.Name == request.Name && role.Description == request.Description)
+                {
+                    role.Name = request.Name;
+                    role.NormalizedName = request.Name.ToUpperInvariant();
+                    role.Description = request.Description;
+                    role.ReportTo = request.ReportTo;
+                }
+                else
+                {
+                    throw new ConflictException(string.Format(_t["Not allowed to modify {0} Role."], role.Name));
+                }
+            }
+            else
+            {
+                role.Name = request.Name;
+                role.NormalizedName = request.Name.ToUpperInvariant();
+                role.Description = request.Description;
+                role.ReportTo = request.ReportTo;
+            }
+           
+
             var result = await _roleManager.UpdateAsync(role);
 
             if (!result.Succeeded)
@@ -120,7 +140,7 @@ internal class RoleService : IRoleService
     {
         var role = await _roleManager.FindByIdAsync(request.RoleId);
         _ = role ?? throw new NotFoundException(_t["Role Not Found"]);
-        if (role.Name == FSHRoles.Admin)
+        if (role.Name == FLRoles.Admin)
         {
             throw new ConflictException(_t["Not allowed to modify Permissions for this Role."]);
         }
@@ -151,7 +171,7 @@ internal class RoleService : IRoleService
                 _db.RoleClaims.Add(new ApplicationRoleClaim
                 {
                     RoleId = role.Id,
-                    ClaimType = FSHClaims.Permission,
+                    ClaimType = FLClaims.Permission,
                     ClaimValue = permission,
                     CreatedBy = _currentUser.GetUserId().ToString()
                 });
@@ -170,7 +190,7 @@ internal class RoleService : IRoleService
 
         _ = role ?? throw new NotFoundException(_t["Role Not Found"]);
 
-        if (FSHRoles.IsDefault(role.Name!))
+        if (FLRoles.IsDefault(role.Name!))
         {
             throw new ConflictException(string.Format(_t["Not allowed to delete {0} Role."], role.Name));
         }

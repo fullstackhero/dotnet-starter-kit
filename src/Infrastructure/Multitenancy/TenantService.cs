@@ -1,25 +1,25 @@
 ﻿using Finbuckle.MultiTenant;
-using FSH.WebApi.Application.Common.Exceptions;
-using FSH.WebApi.Application.Common.Persistence;
-using FSH.WebApi.Application.Multitenancy;
-using FSH.WebApi.Infrastructure.Persistence;
-using FSH.WebApi.Infrastructure.Persistence.Initialization;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Exceptions;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Persistence;
+using FL_CRMS_ERP_WEBAPI.Application.Multitenancy;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence.Initialization;
 using Mapster;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 
-namespace FSH.WebApi.Infrastructure.Multitenancy;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Multitenancy;
 
 internal class TenantService : ITenantService
 {
-    private readonly IMultiTenantStore<FSHTenantInfo> _tenantStore;
+    private readonly IMultiTenantStore<FLTenantInfo> _tenantStore;
     private readonly IConnectionStringSecurer _csSecurer;
     private readonly IDatabaseInitializer _dbInitializer;
     private readonly IStringLocalizer _t;
     private readonly DatabaseSettings _dbSettings;
 
     public TenantService(
-        IMultiTenantStore<FSHTenantInfo> tenantStore,
+        IMultiTenantStore<FLTenantInfo> tenantStore,
         IConnectionStringSecurer csSecurer,
         IDatabaseInitializer dbInitializer,
         IStringLocalizer<TenantService> localizer,
@@ -53,7 +53,7 @@ internal class TenantService : ITenantService
     {
         if (request.ConnectionString?.Trim() == _dbSettings.ConnectionString.Trim()) request.ConnectionString = string.Empty;
 
-        var tenant = new FSHTenantInfo(request.Id, request.Name, request.ConnectionString, request.AdminEmail, request.Issuer);
+        var tenant = new FLTenantInfo(request.Id, request.Name, request.ConnectionString, request.AdminEmail, request.Issuer);
         await _tenantStore.TryAddAsync(tenant);
 
         // TODO: run this in a hangfire job? will then have to send mail when it's ready or not
@@ -107,7 +107,7 @@ internal class TenantService : ITenantService
         return _t["Tenant {0}'s Subscription Upgraded. Now Valid till {1}.", id, tenant.ValidUpto];
     }
 
-    private async Task<FSHTenantInfo> GetTenantInfoAsync(string id) =>
+    private async Task<FLTenantInfo> GetTenantInfoAsync(string id) =>
         await _tenantStore.TryGetAsync(id)
-            ?? throw new NotFoundException(_t["{0} {1} Not Found.", typeof(FSHTenantInfo).Name, id]);
+            ?? throw new NotFoundException(_t["{0} {1} Not Found.", typeof(FLTenantInfo).Name, id]);
 }

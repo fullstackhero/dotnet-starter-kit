@@ -1,6 +1,6 @@
-using FSH.WebApi.Application.Identity.Tokens;
+using FL_CRMS_ERP_WEBAPI.Application.Identity.Tokens;
 
-namespace FSH.WebApi.Host.Controllers.Identity;
+namespace FL_CRMS_ERP_WEBAPI.Host.Controllers.Identity;
 
 public sealed class TokensController : VersionNeutralApiController
 {
@@ -21,7 +21,7 @@ public sealed class TokensController : VersionNeutralApiController
     [AllowAnonymous]
     [TenantIdHeader]
     [OpenApiOperation("Request an access token using a refresh token.", "")]
-    [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Search))]
+    [ApiConventionMethod(typeof(FLApiConventions), nameof(FLApiConventions.Search))]
     public Task<TokenResponse> RefreshAsync(RefreshTokenRequest request)
     {
         return _tokenService.RefreshTokenAsync(request, GetIpAddress()!);

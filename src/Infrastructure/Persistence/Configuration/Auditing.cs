@@ -1,9 +1,9 @@
 ﻿using Finbuckle.MultiTenant.EntityFrameworkCore;
-using FSH.WebApi.Infrastructure.Auditing;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Auditing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace FSH.WebApi.Infrastructure.Persistence.Configuration;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence.Configuration;
 
 public class AuditTrailConfig : IEntityTypeConfiguration<Trail>
 {

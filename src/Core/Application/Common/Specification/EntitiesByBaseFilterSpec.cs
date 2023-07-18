@@ -1,4 +1,4 @@
-﻿namespace FSH.WebApi.Application.Common.Specification;
+﻿namespace FL_CRMS_ERP_WEBAPI.Application.Common.Specification;
 
 public class EntitiesByBaseFilterSpec<T, TResult> : Specification<T, TResult>
 {

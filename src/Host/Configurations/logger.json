@@ -1,6 +1,6 @@
 {
   "LoggerSettings": {
-    "AppName": "FSH.WebApi",
+    "AppName": "FL_CRMS_ERP_WEBAPI",
     "ElasticSearchUrl": "http://localhost:9200",
     "WriteToFile": true,
     "StructuredConsoleLogging": false

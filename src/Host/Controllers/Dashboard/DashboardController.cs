@@ -1,11 +1,11 @@
-using FSH.WebApi.Application.Dashboard;
+using FL_CRMS_ERP_WEBAPI.Application.Dashboard;
 
-namespace FSH.WebApi.Host.Controllers.Dashboard;
+namespace FL_CRMS_ERP_WEBAPI.Host.Controllers.Dashboard;
 
 public class DashboardController : VersionedApiController
 {
     [HttpGet]
-    [MustHavePermission(FSHAction.View, FSHResource.Dashboard)]
+    [MustHavePermission(FLAction.View, FLResource.Dashboard)]
     [OpenApiOperation("Get statistics for the dashboard.", "")]
     public Task<StatsDto> GetAsync()
     {

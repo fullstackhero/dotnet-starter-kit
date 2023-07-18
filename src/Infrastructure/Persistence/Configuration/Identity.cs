@@ -1,10 +1,12 @@
 ﻿using Finbuckle.MultiTenant.EntityFrameworkCore;
-using FSH.WebApi.Infrastructure.Identity;
+using FL_CRMS_ERP_WEBAPI.Domain.Identity;
+using FL_CRMS_ERP_WEBAPI.Domain.LeadData;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace FSH.WebApi.Infrastructure.Persistence.Configuration;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence.Configuration;
 
 public class ApplicationUserConfig : IEntityTypeConfiguration<ApplicationUser>
 {
@@ -67,4 +69,14 @@ public class IdentityUserTokenConfig : IEntityTypeConfiguration<IdentityUserToke
         builder
             .ToTable("UserTokens", SchemaNames.Identity)
             .IsMultiTenant();
+}
+
+public class PersonalInfoConfig : IEntityTypeConfiguration<PersonalDetailsModel>
+{
+    public void Configure(EntityTypeBuilder<PersonalDetailsModel> builder)
+    {
+        builder
+             .ToTable("PersonalDetailsInfo", SchemaNames.Identity)
+             .IsMultiTenant();
+    }
 }

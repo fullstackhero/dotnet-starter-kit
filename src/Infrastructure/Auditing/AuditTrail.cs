@@ -1,7 +1,7 @@
-using FSH.WebApi.Application.Common.Interfaces;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Interfaces;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
-namespace FSH.WebApi.Infrastructure.Auditing;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Auditing;
 
 public class AuditTrail
 {
@@ -22,6 +22,10 @@ public class AuditTrail
     public List<PropertyEntry> TemporaryProperties { get; } = new();
     public TrailType TrailType { get; set; }
     public List<string> ChangedColumns { get; } = new();
+    public Guid LeadId { get; set; }
+    public string? Subject { get; set; }
+    public string[]? MeetingLeadId { get; set; }
+    public string? RelatedTo { get; set; }
     public bool HasTemporaryProperties => TemporaryProperties.Count > 0;
 
     public Trail ToAuditTrail() =>
@@ -34,6 +38,10 @@ public class AuditTrail
             PrimaryKey = _serializer.Serialize(KeyValues),
             OldValues = OldValues.Count == 0 ? null : _serializer.Serialize(OldValues),
             NewValues = NewValues.Count == 0 ? null : _serializer.Serialize(NewValues),
-            AffectedColumns = ChangedColumns.Count == 0 ? null : _serializer.Serialize(ChangedColumns)
+            AffectedColumns = ChangedColumns.Count == 0 ? null : _serializer.Serialize(ChangedColumns),
+            LeadId = LeadId,
+            Subject = Subject,
+            MeetingLeadId = MeetingLeadId,
+            RelatedTo = RelatedTo
         };
 }

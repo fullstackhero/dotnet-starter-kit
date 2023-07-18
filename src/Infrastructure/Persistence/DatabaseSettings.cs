@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace FSH.WebApi.Infrastructure.Persistence;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence;
 
 public class DatabaseSettings : IValidatableObject
 {

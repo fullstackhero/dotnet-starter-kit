@@ -1,9 +1,9 @@
-﻿using FSH.WebApi.Infrastructure.Multitenancy;
+﻿using FL_CRMS_ERP_WEBAPI.Infrastructure.Multitenancy;
 
-namespace FSH.WebApi.Infrastructure.Persistence.Initialization;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence.Initialization;
 
 internal interface IDatabaseInitializer
 {
     Task InitializeDatabasesAsync(CancellationToken cancellationToken);
-    Task InitializeApplicationDbForTenantAsync(FSHTenantInfo tenant, CancellationToken cancellationToken);
+    Task InitializeApplicationDbForTenantAsync(FLTenantInfo tenant, CancellationToken cancellationToken);
 }

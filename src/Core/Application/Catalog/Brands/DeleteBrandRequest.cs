@@ -1,6 +1,6 @@
-﻿using FSH.WebApi.Application.Catalog.Products;
+﻿using FL_CRMS_ERP_WEBAPI.Application.Catalog.Products;
 
-namespace FSH.WebApi.Application.Catalog.Brands;
+namespace FL_CRMS_ERP_WEBAPI.Application.Catalog.Brands;
 
 public class DeleteBrandRequest : IRequest<Guid>
 {

@@ -1,8 +1,8 @@
 using System.Security.Claims;
-using FSH.WebApi.Application.Identity.Users;
+using FL_CRMS_ERP_WEBAPI.Application.Identity.Users;
 using Microsoft.AspNetCore.Authorization;
 
-namespace FSH.WebApi.Infrastructure.Auth.Permissions;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Auth.Permissions;
 
 internal class PermissionAuthorizationHandler : AuthorizationHandler<PermissionRequirement>
 {

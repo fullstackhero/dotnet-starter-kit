@@ -1,6 +1,6 @@
-using FSH.WebApi.Shared.Events;
+using FL_CRMS_ERP_WEBAPI.Shared.Events;
 
-namespace FSH.WebApi.Application.Common.Events;
+namespace FL_CRMS_ERP_WEBAPI.Application.Common.Events;
 
 public class EventNotification<TEvent> : INotification
     where TEvent : IEvent

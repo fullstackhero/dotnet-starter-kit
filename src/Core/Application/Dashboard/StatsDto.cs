@@ -1,4 +1,4 @@
-namespace FSH.WebApi.Application.Dashboard;
+namespace FL_CRMS_ERP_WEBAPI.Application.Dashboard;
 
 public class StatsDto
 {

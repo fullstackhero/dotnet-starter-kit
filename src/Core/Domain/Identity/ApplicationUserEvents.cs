@@ -1,4 +1,4 @@
-﻿namespace FSH.WebApi.Domain.Identity;
+﻿namespace FL_CRMS_ERP_WEBAPI.Domain.Identity;
 
 public abstract class ApplicationUserEvent : DomainEvent
 {

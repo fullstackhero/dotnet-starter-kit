@@ -1,8 +1,8 @@
-﻿using FSH.WebApi.Application.Common.Caching;
+﻿using FL_CRMS_ERP_WEBAPI.Application.Common.Caching;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace FSH.WebApi.Infrastructure.Caching;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Caching;
 
 internal static class Startup
 {

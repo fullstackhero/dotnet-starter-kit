@@ -1,6 +1,6 @@
-﻿using FSH.WebApi.Application.Common.Exporters;
+﻿using FL_CRMS_ERP_WEBAPI.Application.Common.Exporters;
 
-namespace FSH.WebApi.Application.Catalog.Products;
+namespace FL_CRMS_ERP_WEBAPI.Application.Catalog.Products;
 
 public class ExportProductsRequest : BaseFilter, IRequest<Stream>
 {

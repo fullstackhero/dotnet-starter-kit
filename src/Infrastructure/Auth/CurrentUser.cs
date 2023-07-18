@@ -1,7 +1,7 @@
 using System.Security.Claims;
-using FSH.WebApi.Application.Common.Interfaces;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Interfaces;
 
-namespace FSH.WebApi.Infrastructure.Auth;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Auth;
 
 public class CurrentUser : ICurrentUser, ICurrentUserInitializer
 {

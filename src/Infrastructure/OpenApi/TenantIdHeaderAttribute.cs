@@ -1,6 +1,6 @@
-﻿using FSH.WebApi.Shared.Multitenancy;
+﻿using FL_CRMS_ERP_WEBAPI.Shared.Multitenancy;
 
-namespace FSH.WebApi.Infrastructure.OpenApi;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.OpenApi;
 
 public class TenantIdHeaderAttribute : SwaggerHeaderAttribute
 {

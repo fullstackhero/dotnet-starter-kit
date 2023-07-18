@@ -1,4 +1,4 @@
-namespace FSH.WebApi.Application.Auditing;
+namespace FL_CRMS_ERP_WEBAPI.Application.Auditing;
 
 public interface IAuditService : ITransientService
 {

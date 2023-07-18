@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Localization;
 
-namespace FSH.WebApi.Infrastructure.Identity;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Identity;
 
 internal static class IdentityResultExtensions
 {

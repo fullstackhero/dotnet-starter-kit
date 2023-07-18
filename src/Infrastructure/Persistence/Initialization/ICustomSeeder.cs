@@ -1,4 +1,4 @@
-namespace FSH.WebApi.Infrastructure.Persistence.Initialization;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence.Initialization;
 
 public interface ICustomSeeder
 {

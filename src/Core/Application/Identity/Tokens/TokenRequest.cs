@@ -1,4 +1,4 @@
-namespace FSH.WebApi.Application.Identity.Tokens;
+namespace FL_CRMS_ERP_WEBAPI.Application.Identity.Tokens;
 
 public record TokenRequest(string Email, string Password);
 

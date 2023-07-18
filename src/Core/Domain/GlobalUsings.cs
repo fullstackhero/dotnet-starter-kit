@@ -1,1 +1,1 @@
-﻿global using FSH.WebApi.Domain.Common.Contracts;
+﻿global using FL_CRMS_ERP_WEBAPI.Domain.Common.Contracts;

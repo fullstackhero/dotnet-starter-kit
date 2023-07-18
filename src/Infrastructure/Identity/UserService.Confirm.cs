@@ -1,11 +1,11 @@
 using System.Text;
-using FSH.WebApi.Application.Common.Exceptions;
-using FSH.WebApi.Infrastructure.Common;
-using FSH.WebApi.Shared.Multitenancy;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Exceptions;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Common;
+using FL_CRMS_ERP_WEBAPI.Shared.Multitenancy;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 
-namespace FSH.WebApi.Infrastructure.Identity;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Identity;
 
 internal partial class UserService
 {

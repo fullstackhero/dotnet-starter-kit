@@ -1,8 +1,8 @@
-using FSH.WebApi.Infrastructure.Persistence.Context;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence.Context;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace FSH.WebApi.Infrastructure.Identity;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Identity;
 
 internal static class Startup
 {

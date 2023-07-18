@@ -1,7 +1,7 @@
-﻿using FSH.WebApi.Application.Identity.Roles;
-using FSH.WebApi.Application.Identity.Users;
+﻿using FL_CRMS_ERP_WEBAPI.Application.Identity.Roles;
+using FL_CRMS_ERP_WEBAPI.Application.Identity.Users;
 
-namespace FSH.WebApi.Application.Dashboard;
+namespace FL_CRMS_ERP_WEBAPI.Application.Dashboard;
 
 public class GetStatsRequest : IRequest<StatsDto>
 {

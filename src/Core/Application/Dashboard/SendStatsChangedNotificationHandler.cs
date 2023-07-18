@@ -1,8 +1,8 @@
-using FSH.WebApi.Domain.Common.Events;
-using FSH.WebApi.Domain.Identity;
-using FSH.WebApi.Shared.Events;
+using FL_CRMS_ERP_WEBAPI.Domain.Common.Events;
+using FL_CRMS_ERP_WEBAPI.Domain.Identity;
+using FL_CRMS_ERP_WEBAPI.Shared.Events;
 
-namespace FSH.WebApi.Application.Dashboard;
+namespace FL_CRMS_ERP_WEBAPI.Application.Dashboard;
 
 public class SendStatsChangedNotificationHandler :
     IEventNotificationHandler<EntityCreatedEvent<Brand>>,

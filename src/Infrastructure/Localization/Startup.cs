@@ -5,7 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OrchardCore.Localization;
 
-namespace FSH.WebApi.Infrastructure.Localization;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Localization;
 
 internal static class Startup
 {
@@ -33,7 +33,7 @@ internal static class Startup
                 options.FallBackToParentUICultures = localizationSettings.FallbackToParent ?? true;
             });
 
-            services.AddSingleton<ILocalizationFileLocationProvider, FSHPoFileLocationProvider>();
+            services.AddSingleton<ILocalizationFileLocationProvider, FLPoFileLocationProvider>();
         }
 
         return services;

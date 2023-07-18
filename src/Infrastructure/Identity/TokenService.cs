@@ -2,19 +2,19 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using FSH.WebApi.Application.Common.Exceptions;
-using FSH.WebApi.Application.Identity.Tokens;
-using FSH.WebApi.Infrastructure.Auth;
-using FSH.WebApi.Infrastructure.Auth.Jwt;
-using FSH.WebApi.Infrastructure.Multitenancy;
-using FSH.WebApi.Shared.Authorization;
-using FSH.WebApi.Shared.Multitenancy;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Exceptions;
+using FL_CRMS_ERP_WEBAPI.Application.Identity.Tokens;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Auth;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Auth.Jwt;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Multitenancy;
+using FL_CRMS_ERP_WEBAPI.Shared.Authorization;
+using FL_CRMS_ERP_WEBAPI.Shared.Multitenancy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
-namespace FSH.WebApi.Infrastructure.Identity;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Identity;
 
 internal class TokenService : ITokenService
 {
@@ -22,13 +22,13 @@ internal class TokenService : ITokenService
     private readonly IStringLocalizer _t;
     private readonly SecuritySettings _securitySettings;
     private readonly JwtSettings _jwtSettings;
-    private readonly FSHTenantInfo? _currentTenant;
+    private readonly FLTenantInfo? _currentTenant;
 
     public TokenService(
         UserManager<ApplicationUser> userManager,
         IOptions<JwtSettings> jwtSettings,
         IStringLocalizer<TokenService> localizer,
-        FSHTenantInfo? currentTenant,
+        FLTenantInfo? currentTenant,
         IOptions<SecuritySettings> securitySettings)
     {
         _userManager = userManager;
@@ -111,12 +111,12 @@ internal class TokenService : ITokenService
         {
             new(ClaimTypes.NameIdentifier, user.Id),
             new(ClaimTypes.Email, user.Email!),
-            new(FSHClaims.Fullname, $"{user.FirstName} {user.LastName}"),
+            new(FLClaims.Fullname, $"{user.FirstName} {user.LastName}"),
             new(ClaimTypes.Name, user.FirstName ?? string.Empty),
             new(ClaimTypes.Surname, user.LastName ?? string.Empty),
-            new(FSHClaims.IpAddress, ipAddress),
-            new(FSHClaims.Tenant, _currentTenant!.Id),
-            new(FSHClaims.ImageUrl, user.ImageUrl ?? string.Empty),
+            new(FLClaims.IpAddress, ipAddress),
+            new(FLClaims.Tenant, _currentTenant!.Id),
+            new(FLClaims.ImageUrl, user.ImageUrl ?? string.Empty),
             new(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty)
         };
 

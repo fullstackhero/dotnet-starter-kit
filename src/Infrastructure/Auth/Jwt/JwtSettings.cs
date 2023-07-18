@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace FSH.WebApi.Infrastructure.Auth.Jwt;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Auth.Jwt;
 
 public class JwtSettings : IValidatableObject
 {

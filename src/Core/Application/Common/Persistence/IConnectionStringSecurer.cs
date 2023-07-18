@@ -1,4 +1,4 @@
-﻿namespace FSH.WebApi.Application.Common.Persistence;
+﻿namespace FL_CRMS_ERP_WEBAPI.Application.Common.Persistence;
 
 public interface IConnectionStringSecurer
 {

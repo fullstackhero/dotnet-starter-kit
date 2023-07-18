@@ -74,12 +74,12 @@ Read Documentation related to this Boilerplate here - https://fullstackhero.net/
 
 To get started with this Boilerplate, here are the available options.
 
-- Install using the `FSH CLI` tool. Use this for release versions of the Boilerplate only.
+- Install using the `FL CLI` tool. Use this for release versions of the Boilerplate only.
 - Fork the Repository. Use this if you want to always keep your version of the Boilerplate up-to date with the latest changes.
 
 > Make sure that your DEV enviroment is setup, [Read the Development Environment Guide](https://fullstackhero.net/dotnet-webapi-boilerplate/general/development-environment/)
 
-### FSH CLI Tool
+### FL CLI Tool
 
 #### Prerequisites
 
@@ -90,40 +90,40 @@ Before creating your first fullstackhero solution, you should ensure that your l
 
 #### Installation
 
-After you have installed .NET, you will need to install the `fsh` console tool.
+After you have installed .NET, you will need to install the `FL` console tool.
 
 ```bash
-dotnet tool install --global FSH.CLI
-fsh install
+dotnet tool install --global FL.CLI
+FL install
 ```
 
-This isntall the FSH CLI tools and the associated Templates. You are now ready to create your first FSH project!
+This isntall the FL CLI tools and the associated Templates. You are now ready to create your first FL project!
 
-#### FSH .NET WebAPI Boilerplate
-Here's how you would create a Solution using the FSH .NET WebAPI Boilerplate.
+#### FL .NET WebAPI Boilerplate
+Here's how you would create a Solution using the FL .NET WebAPI Boilerplate.
 
 Simply navigate to a new directory (wherever you want to place your new solution), and open up Command Prompt at the opened directory.
 
-Run the following command. Note that, in this demonstration, I am naming my new solution as FSH.Starter.
+Run the following command. Note that, in this demonstration, I am naming my new solution as FL.Starter.
 
 ```bash
-fsh api new FSH.Starter
+FL api new FL.Starter
 ```
 
 OR
 
 ```bash
-fsh api n FSH.Starter
+FL api n FL.Starter
 ```
 
-This will create a new .NET 7 WEBAPI solution for you using the FSH Templates.
+This will create a new .NET 7 WEBAPI solution for you using the FL Templates.
 For further steps and details, [Read the Getting Started Guide](https://fullstackhero.net/dotnet-webapi-boilerplate/general/getting-started/)
 
 #### Update
 To update the tool & templates, run the following commands
 ```bash
-dotnet tool update FSH.CLI --global
-fsh update
+dotnet tool update FL.CLI --global
+FL update
 ```
 ### Forking the Repository
 
@@ -229,7 +229,7 @@ make dcu #docker compose up - Boots up the webapi & postgresql container
 make dcd #docker compose down - Shuts down the webapi & postgresql containers
 ```
 
-There are also examples for mysql & mssql variations of the fsh webapi. You can find the other docker-compose files under the ./docker-compose folder. Read more about [fullstackhero's docker-compose instructions & files here](./docker-compose/README.md)
+There are also examples for mysql & mssql variations of the FL webapi. You can find the other docker-compose files under the ./docker-compose folder. Read more about [fullstackhero's docker-compose instructions & files here](./docker-compose/README.md)
 
 ## Cloud Deployment with Terraform + AWS ECS
 
@@ -319,7 +319,7 @@ Here are a few ways by which you can support.
 
 This project exists thanks to all the people who contribute. [Submit your PR and join the elite list!](CONTRIBUTING.md)
 
-[![fsh dotnet webapi contributors](https://contrib.rocks/image?repo=fullstackhero/dotnet-webapi-boilerplate "fsh dotnet webapi contributors")](https://github.com/fullstackhero/dotnet-webapi-boilerplate/graphs/contributors)
+[![FL dotnet webapi contributors](https://contrib.rocks/image?repo=fullstackhero/dotnet-webapi-boilerplate "FL dotnet webapi contributors")](https://github.com/fullstackhero/dotnet-webapi-boilerplate/graphs/contributors)
 
 ## Financial Contributors
 

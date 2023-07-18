@@ -1,11 +1,11 @@
 ﻿using Ardalis.Specification;
 using Ardalis.Specification.EntityFrameworkCore;
-using FSH.WebApi.Application.Common.Persistence;
-using FSH.WebApi.Domain.Common.Contracts;
-using FSH.WebApi.Infrastructure.Persistence.Context;
+using FL_CRMS_ERP_WEBAPI.Application.Common.Persistence;
+using FL_CRMS_ERP_WEBAPI.Domain.Common.Contracts;
+using FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence.Context;
 using Mapster;
 
-namespace FSH.WebApi.Infrastructure.Persistence.Repository;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Persistence.Repository;
 
 // Inherited from Ardalis.Specification's RepositoryBase<T>
 public class ApplicationDbRepository<T> : RepositoryBase<T>, IReadRepository<T>, IRepository<T>

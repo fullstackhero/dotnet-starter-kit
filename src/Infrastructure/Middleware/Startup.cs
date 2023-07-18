@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace FSH.WebApi.Infrastructure.Middleware;
+namespace FL_CRMS_ERP_WEBAPI.Infrastructure.Middleware;
 
 internal static class Startup
 {
