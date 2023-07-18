@@ -123,13 +123,5 @@ public class UsersController : VersionNeutralApiController
         return _userService.ResetPasswordAsync(request);
     }
 
-    [HttpPost("send-custom-notification")]
-    [OpenApiOperation("Send a custom notification to user(s).", "")]
-    [MustHavePermission(FSHAction.Update, FSHResource.Users)]
-    public async Task SendCustomNotificationAsync(CancellationToken cancellationToken)
-    {
-        await _pushNotifications.SendTo("7dd2e52f-3400-4c86-998a-f93600e196be", PushNotificationType.ChargeCompletedNotification);
-    }
-
     private string GetOriginFromRequest() => $"{Request.Scheme}://{Request.Host.Value}{Request.PathBase.Value}";
 }
