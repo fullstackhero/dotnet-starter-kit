@@ -8,5 +8,8 @@ public enum FileType
     Image,
 
     [Description(@"Documents")]
-    Document
+    Document,
+
+    [Description(@"Documents")]
+    ProfilePic,
 }

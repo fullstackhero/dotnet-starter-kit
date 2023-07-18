@@ -60,11 +60,11 @@ public class InvoiceDetailsModel : AuditableEntity, IAggregateRoot
     public string? TermsConditions { get; set; }
     public string? Description { get; set; }
     public string[]? ContactIds { get; set; }
-    //public int IsActive { get; set; }
+    public int IsActive { get; set; }
     public string? Reason { get; set; }
-    //[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int InvoiceId { get; set; }
-    public InvoiceDetailsModel(Guid invoiceOwnerId, Guid? contactId, Guid accountId, decimal exciseDuty, Guid? invoiceStatusId, string? subject, DateTime? invoiceDate, DateTime? dueDate, decimal salesCommission, string? billingStreet, string? billingCity, string? billingState, string? billingCode, string? billingCountry, string? shippingStreet, string? shippingCity, string? shippingState, string? shippingCode, string? shippingCountry, string invoiceItemsJson, decimal subTotal, decimal totalDiscount, decimal totalTax, decimal totalAdjustment, decimal grandTotal, Guid quoteId, Guid customerInsuranceId, Guid leadId, string? termsConditions, string? description, string[]? contactIds, string? reason, int invoiceId)
+    public InvoiceDetailsModel(Guid invoiceOwnerId, Guid? contactId, Guid accountId, decimal exciseDuty, Guid? invoiceStatusId, string? subject, DateTime? invoiceDate, DateTime? dueDate, decimal salesCommission, string? billingStreet, string? billingCity, string? billingState, string? billingCode, string? billingCountry, string? shippingStreet, string? shippingCity, string? shippingState, string? shippingCode, string? shippingCountry, string invoiceItemsJson, decimal subTotal, decimal totalDiscount, decimal totalTax, decimal totalAdjustment, decimal grandTotal, Guid quoteId, Guid customerInsuranceId, Guid leadId, string? termsConditions, string? description, string[]? contactIds, string? reason, int isActive, int invoiceId)
     {
         InvoiceOwnerId = invoiceOwnerId;
         ContactId = contactId;
@@ -98,12 +98,12 @@ public class InvoiceDetailsModel : AuditableEntity, IAggregateRoot
         TermsConditions = termsConditions;
         Description = description;
         ContactIds = contactIds;
-        //IsActive = isActive;
+        IsActive = isActive;
         Reason = reason;
         InvoiceId = invoiceId;
     }
 
-    public InvoiceDetailsModel Update(Guid invoiceOwnerId, Guid? contactId, Guid accountId, decimal exciseDuty, Guid? invoiceStatusId, string? subject, DateTime? invoiceDate, DateTime? dueDate, decimal salesCommission, string? billingStreet, string? billingCity, string? billingState, string? billingCode, string? billingCountry, string? shippingStreet, string? shippingCity, string? shippingState, string? shippingCode, string? shippingCountry, List<Quote> invoiceItems, string invoiceItemsJson, decimal subTotal, decimal totalDiscount, decimal totalTax, decimal totalAdjustment, decimal grandTotal, Guid quoteId, Guid customerInsuranceId, Guid leadId, string? termsConditions, string? description, string[]? contactIds, string? reason, int invoiceId)
+    public InvoiceDetailsModel Update(Guid invoiceOwnerId, Guid? contactId, Guid accountId, decimal exciseDuty, Guid? invoiceStatusId, string? subject, DateTime? invoiceDate, DateTime? dueDate, decimal salesCommission, string? billingStreet, string? billingCity, string? billingState, string? billingCode, string? billingCountry, string? shippingStreet, string? shippingCity, string? shippingState, string? shippingCode, string? shippingCountry, List<Quote> invoiceItems, string invoiceItemsJson, decimal subTotal, decimal totalDiscount, decimal totalTax, decimal totalAdjustment, decimal grandTotal, Guid quoteId, Guid customerInsuranceId, Guid leadId, string? termsConditions, string? description, string[]? contactIds, int isActive, string? reason, int invoiceId)
     {
         if (invoiceOwnerId != Guid.Empty && !InvoiceOwnerId.Equals(invoiceOwnerId)) InvoiceOwnerId = invoiceOwnerId;
         if (contactId != Guid.Empty && !ContactId.Equals(contactId)) ContactId = contactId;
@@ -136,7 +136,7 @@ public class InvoiceDetailsModel : AuditableEntity, IAggregateRoot
         if (termsConditions is not null && TermsConditions?.Equals(termsConditions) is not true) TermsConditions = termsConditions;
         if (description is not null && Description?.Equals(description) is not true) Description = description;
         if (contactIds is not null && ContactIds?.Equals(contactIds) is not true) ContactIds = contactIds;
-        //if (IsActive != isActive) IsActive = isActive;
+        if (IsActive != isActive) IsActive = isActive;
         if (reason is not null && Reason?.Equals(reason) is not true) Reason = reason;
         if (InvoiceId != invoiceId) InvoiceId = invoiceId;
         return this;

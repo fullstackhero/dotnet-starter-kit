@@ -17,7 +17,13 @@ public class LeadConfig : IEntityTypeConfiguration<LeadDetailsModel>
         //builder.IsMultiTenant();
         builder
              .ToTable("LeadDetailsInfo", SchemaNames.LeadData)
-             .IsMultiTenant();  
+             .IsMultiTenant();
+        builder
+          .Property(e => e.CreatedOn)
+          .HasColumnType("timestamp with time zone");
+        builder
+           .Property(e => e.LastModifiedOn)
+           .HasColumnType("timestamp with time zone");
     }
 }
 
@@ -29,6 +35,12 @@ public class AccountConfig : IEntityTypeConfiguration<AccountDetailsModel>
         builder
              .ToTable("AccountDetailsInfo", SchemaNames.LeadData)
              .IsMultiTenant();
+        builder
+         .Property(e => e.CreatedOn)
+         .HasColumnType("timestamp with time zone");
+        builder
+           .Property(e => e.LastModifiedOn)
+           .HasColumnType("timestamp with time zone");
     }
 }
 
@@ -39,6 +51,12 @@ public class ContactConfig : IEntityTypeConfiguration<ContactDetailsModel>
         builder
              .ToTable("ContactDetailsInfo", SchemaNames.LeadData)
              .IsMultiTenant();
+        builder
+         .Property(e => e.CreatedOn)
+         .HasColumnType("timestamp with time zone");
+        builder
+           .Property(e => e.LastModifiedOn)
+           .HasColumnType("timestamp with time zone");
     }
 }
 
@@ -49,6 +67,12 @@ public class QuotationConfig : IEntityTypeConfiguration<QuotationDetailsModel>
         builder
              .ToTable("QuotationDetailsInfo", SchemaNames.LeadData)
              .IsMultiTenant();
+        builder
+         .Property(e => e.CreatedOn)
+         .HasColumnType("timestamp with time zone");
+        builder
+           .Property(e => e.LastModifiedOn)
+           .HasColumnType("timestamp with time zone");
     }
 }
 
@@ -60,6 +84,12 @@ public class InvoiceConfig : IEntityTypeConfiguration<InvoiceDetailsModel>
              .ToTable("InvoiceDetailsInfo", SchemaNames.LeadData)
              .IsMultiTenant();
         builder.Property(i => i.InvoiceId).ValueGeneratedOnAddOrUpdate();
+        builder
+         .Property(e => e.CreatedOn)
+         .HasColumnType("timestamp with time zone");
+        builder
+           .Property(e => e.LastModifiedOn)
+           .HasColumnType("timestamp with time zone");
     }
 }
 
@@ -70,6 +100,12 @@ public class CustomerConfig : IEntityTypeConfiguration<CustomerDetailsModel>
         builder
              .ToTable("CustomerDetailsInfo", SchemaNames.LeadData)
              .IsMultiTenant();
+        builder
+         .Property(e => e.CreatedOn)
+         .HasColumnType("timestamp with time zone");
+        builder
+           .Property(e => e.LastModifiedOn)
+           .HasColumnType("timestamp with time zone");
     }
 }
 
@@ -80,6 +116,12 @@ public class ProductDetailsConfig : IEntityTypeConfiguration<ProductDetailsModel
         builder
              .ToTable("ProductDetailsInfo", SchemaNames.LeadData)
              .IsMultiTenant();
+        builder
+         .Property(e => e.CreatedOn)
+         .HasColumnType("timestamp with time zone");
+        builder
+           .Property(e => e.LastModifiedOn)
+           .HasColumnType("timestamp with time zone");
     }
 }
 
@@ -90,6 +132,12 @@ public class DocumentConfig : IEntityTypeConfiguration<DocumentModel>
         builder
              .ToTable("Documents", SchemaNames.LeadData)
              .IsMultiTenant();
+        builder
+         .Property(e => e.CreatedOn)
+         .HasColumnType("timestamp with time zone");
+        builder
+           .Property(e => e.LastModifiedOn)
+           .HasColumnType("timestamp with time zone");
     }
 }
 
@@ -100,5 +148,11 @@ public class DocumentTypeConfig : IEntityTypeConfiguration<DocumentTypeModel>
         builder
              .ToTable("DocumentTypes", SchemaNames.LeadData)
              .IsMultiTenant();
+        builder
+         .Property(e => e.CreatedOn)
+         .HasColumnType("timestamp with time zone");
+        builder
+           .Property(e => e.LastModifiedOn) 
+           .HasColumnType("timestamp with time zone");
     }
 }

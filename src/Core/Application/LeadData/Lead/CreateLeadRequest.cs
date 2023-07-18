@@ -46,9 +46,9 @@ public class CreateLeadRequest : IRequest<DefaultIdType>
 
     public Guid? ConvertedContactId { get; set; }
     public DateTime? DateOfBirth { get; set; }
-    //[NotMapped]
+    [NotMapped]
     //public UploadRequest? UploadRequest { get; set; }
-
+    public FileUploadRequest? Image { get; set; }
 }
 
 
@@ -66,8 +66,12 @@ public class CreateLeadRequestHandler : IRequestHandler<CreateLeadRequest, Defau
 {
     // Add Domain Events automatically by using IRepositoryWithEvents
     private readonly IRepositoryWithEvents<LeadDetailsModel> _repository;
-
-    public CreateLeadRequestHandler(IRepositoryWithEvents<LeadDetailsModel> repository) => _repository = repository;
+    public IFileStorageService _file { get; }
+    public CreateLeadRequestHandler(IRepositoryWithEvents<LeadDetailsModel> repository, IFileStorageService file)
+    {
+        _repository = repository;
+        _file = file;
+    }
 
     public async Task<DefaultIdType> Handle(CreateLeadRequest request, CancellationToken cancellationToken)
     {
@@ -81,10 +85,11 @@ public class CreateLeadRequestHandler : IRequestHandler<CreateLeadRequest, Defau
         //{
         //    request.LeadImage = UploadAsync(uploadRequest1);
         //}
+        string productImagePath = await _file.UploadAsync<LeadDetailsModel>(request.Image, FileType.ProfilePic, cancellationToken);
 
         var lead = new LeadDetailsModel(request.UserId, request.CompanyName, request.FirstName, request.LastName, request.Title, request.Email,
             request.Phone, request.Fax, request.Mobile, request.Website, request.LeadSource, request.LeadStatus, request.Industry, request.NoEmployess, request.AnnualRevenue, request.Rating, request.SkypeId,
-            request.SecondEmail, request.Twitter, request.Street, request.City, request.Street, request.ZipCode, request.Country, request.Description, request.LeadImage, request.EmailOptOut,
+            request.SecondEmail, request.Twitter, request.Street, request.City, request.Street, request.ZipCode, request.Country, request.Description, productImagePath, request.EmailOptOut,
             request.ConvertedAccountId, request.ConvertedContactId, request.DateOfBirth);
 
         await _repository.AddAsync(lead, cancellationToken);
@@ -153,7 +158,7 @@ public class CreateLeadRequestHandler : IRequestHandler<CreateLeadRequest, Defau
 
     private static string numberPattern = " ({0})";
 
-
+   
 
     public static string NextAvailableFilename(string path)
     {

@@ -59,7 +59,7 @@ public class CreateInvoiceRequest : IRequest<DefaultIdType>
     public string? Description { get; set; }
 
     public string[]? ContactIds { get; set; }
-    //public int IsActive { get; set; }
+    public int IsActive { get; set; }
     public string? Reason { get; set; }
     public int InvoiceId { get; set; }
 }
@@ -75,7 +75,7 @@ public class CreateInvoiceRequestHandler : IRequestHandler<CreateInvoiceRequest,
     {
         var invoice = new InvoiceDetailsModel(request.InvoiceOwnerId, request.ContactId, request.AccountId, request.ExciseDuty, request.InvoiceStatusId, request.Subject, request.InvoiceDate, request.DueDate,
             request.SalesCommission, request.BillingStreet, request.BillingCity, request.BillingState, request.BillingCode, request.BillingCountry, request.ShippingStreet, request.ShippingCity, request.ShippingState, request.ShippingCode,
-            request.ShippingCountry, request.InvoiceItemsJson, request.SubTotal, request.TotalDiscount, request.TotalTax, request.TotalAdjustment, request.GrandTotal, request.QuoteId, request.CustomerInsuranceId, request.LeadId, request.TermsConditions, request.Description, request.ContactIds, request.Reason, request.InvoiceId);
+            request.ShippingCountry, request.InvoiceItemsJson, request.SubTotal, request.TotalDiscount, request.TotalTax, request.TotalAdjustment, request.GrandTotal, request.QuoteId, request.CustomerInsuranceId, request.LeadId, request.TermsConditions, request.Description, request.ContactIds, request.Reason, request.IsActive, request.InvoiceId);
 
         await _repository.AddAsync(invoice, cancellationToken);
 

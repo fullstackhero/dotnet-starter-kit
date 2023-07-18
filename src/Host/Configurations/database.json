@@ -1,6 +1,6 @@
 {
   "DatabaseSettings": {
     "DBProvider": "postgresql",
-    "ConnectionString": "Host=localhost;Port=5432;Database=FL_CRM;Username=postgres;Password=sa123#sa;Include Error Detail=true"
+    "ConnectionString": "Host=localhost;Port=5432;Database=FL_CRM;Username=postgres;Password=sa123#sa;Include Error Detail=true;"
   }
 }

@@ -83,7 +83,7 @@ public class CreateDocumentRequestHandler : IRequestHandler<CreateDocumentReques
     //        ? attributes[0].Description
     //        : val.ToString();
     //}
-    public string UploadAsync(UploadRequest request)
+   private string UploadAsync(UploadRequest request)
     {
         if (request.Data == null) return string.Empty;
         var streamData = new MemoryStream(request.Data);
