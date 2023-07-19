@@ -17,5 +17,6 @@ public class TenantDbContext : EFCoreStoreDbContext<FSHTenantInfo>
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<FSHTenantInfo>().ToTable("Tenants", SchemaNames.MultiTenancy);
+        modelBuilder.Entity<FSHTenantInfo>().OwnsOne(t => t.PushNotificationsSettings);
     }
 }

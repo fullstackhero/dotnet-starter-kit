@@ -1,6 +1,7 @@
 ﻿using Finbuckle.MultiTenant;
 using FSH.WebApi.Application.Common.Exceptions;
 using FSH.WebApi.Application.Common.Persistence;
+using FSH.WebApi.Application.Common.PushNotifications;
 using FSH.WebApi.Application.Multitenancy;
 using FSH.WebApi.Infrastructure.Persistence;
 using FSH.WebApi.Infrastructure.Persistence.Initialization;
@@ -110,4 +111,12 @@ internal class TenantService : ITenantService
     private async Task<FSHTenantInfo> GetTenantInfoAsync(string id) =>
         await _tenantStore.TryGetAsync(id)
             ?? throw new NotFoundException(_t["{0} {1} Not Found.", typeof(FSHTenantInfo).Name, id]);
+
+    public async Task<string> UpdatePushNotificationInfo(string id, TenantPushNotificationsSettings pushNotificationsSettings)
+    {
+        var tenant = await GetTenantInfoAsync(id);
+        tenant.UpdatePushNotificationsSettings(pushNotificationsSettings);
+        await _tenantStore.TryUpdateAsync(tenant);
+        return _t["Tenant {0}'s Push Notification Settings Updated.", id];
+    }
 }
