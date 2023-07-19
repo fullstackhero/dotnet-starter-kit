@@ -1,0 +1,25 @@
+﻿{
+  "Name": "product-updated",
+  "Messages": [
+    {
+      "Language": "tr",
+      "Heading": "Ürün Güncelleme",
+      "Content": "Sevgili kullanıcı, ürünlerimizden biri güncellendi. Detayları incelemek için lütfen uygulamamızı ziyaret edin."
+    },
+    {
+      "Language": "en",
+      "Heading": "Product Update",
+      "Content": "Dear user, one of our products has been updated. Please visit our app to review the details."
+    },
+    {
+      "Language": "es",
+      "Heading": "Actualización de Producto",
+      "Content": "Estimado usuario, uno de nuestros productos ha sido actualizado. Por favor visite nuestra aplicación para revisar los detalles."
+    },
+    {
+      "Language": "fr",
+      "Heading": "Mise à jour du produit",
+      "Content": "Cher utilisateur, l'un de nos produits a été mis à jour. Veuillez visiter notre application pour consulter les détails."
+    }
+  ]
+}

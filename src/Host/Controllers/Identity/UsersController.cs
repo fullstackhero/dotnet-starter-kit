@@ -117,5 +117,16 @@ public class UsersController : VersionNeutralApiController
         return _userService.ResetPasswordAsync(request);
     }
 
+    [HttpPost("{id}/send-push-notifications")]
+    [MustHavePermission(FSHAction.SendPushNotifications, FSHResource.Users)]
+    [OpenApiOperation("Send push notifications to a user.", "")]
+    [ApiConventionMethod(typeof(FSHApiConventions), nameof(FSHApiConventions.Register))]
+    public async Task<ActionResult> SendPushNotificationsAsync(string id, SendPushNotificationsRequest request, CancellationToken cancellationToken)
+    {
+        return id != request.UserId
+            ? BadRequest()
+            : Ok(await _userService.SendPushNotificationsAsync(request, cancellationToken));
+    }
+
     private string GetOriginFromRequest() => $"{Request.Scheme}://{Request.Host.Value}{Request.PathBase.Value}";
 }

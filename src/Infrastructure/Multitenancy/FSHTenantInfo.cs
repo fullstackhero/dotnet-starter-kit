@@ -1,4 +1,5 @@
 ﻿using Finbuckle.MultiTenant;
+using FSH.WebApi.Application.Common.PushNotifications;
 using FSH.WebApi.Shared.Multitenancy;
 
 namespace FSH.WebApi.Infrastructure.Multitenancy;
@@ -45,6 +46,8 @@ public class FSHTenantInfo : ITenantInfo
     /// </summary>
     public string? Issuer { get; set; }
 
+    public TenantPushNotificationsSettings? PushNotificationsSettings { get; private set; }
+
     public void AddValidity(int months) =>
         ValidUpto = ValidUpto.AddMonths(months);
 
@@ -72,6 +75,9 @@ public class FSHTenantInfo : ITenantInfo
 
         IsActive = false;
     }
+
+    public void UpdatePushNotificationsSettings(TenantPushNotificationsSettings pushNotificationSettings) =>
+        PushNotificationsSettings = pushNotificationSettings;
 
     string? ITenantInfo.Id { get => Id; set => Id = value ?? throw new InvalidOperationException("Id can't be null."); }
     string? ITenantInfo.Identifier { get => Identifier; set => Identifier = value ?? throw new InvalidOperationException("Identifier can't be null."); }
