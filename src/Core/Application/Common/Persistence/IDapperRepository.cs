@@ -9,7 +9,7 @@ public interface IDapperRepository : ITransientService
     /// </summary>
     /// <typeparam name="T">The type of the entity.</typeparam>
     /// <param name="sql">The sql string.</param>
-    /// <param name="param">The paramters in the sql string.</param>
+    /// <param name="param">The parameters in the sql string.</param>
     /// <param name="transaction">The transaction to be performed.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>Returns <see cref="Task"/> of <see cref="IReadOnlyCollection{T}"/>.</returns>
@@ -21,7 +21,7 @@ public interface IDapperRepository : ITransientService
     /// </summary>
     /// <typeparam name="T">The type of the entity.</typeparam>
     /// <param name="sql">The sql string.</param>
-    /// <param name="param">The paramters in the sql string.</param>
+    /// <param name="param">The parameters in the sql string.</param>
     /// <param name="transaction">The transaction to be performed.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>Returns <see cref="Task"/> of <typeparamref name="T"/>.</returns>
@@ -33,7 +33,7 @@ public interface IDapperRepository : ITransientService
     /// </summary>
     /// <typeparam name="T">The type of the entity.</typeparam>
     /// <param name="sql">The sql string.</param>
-    /// <param name="param">The paramters in the sql string.</param>
+    /// <param name="param">The parameters in the sql string.</param>
     /// <param name="transaction">The transaction to be performed.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
     /// <returns>Returns <see cref="Task"/> of <typeparamref name="T"/>.</returns>
