@@ -17,7 +17,6 @@ using FSH.WebApi.Infrastructure.Persistence;
 using FSH.WebApi.Infrastructure.Persistence.Initialization;
 using FSH.WebApi.Infrastructure.SecurityHeaders;
 using FSH.WebApi.Infrastructure.Validations;
-using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
@@ -45,7 +44,10 @@ public static class Startup
             .AddHealthCheck()
             .AddPOLocalization(config)
             .AddMailing(config)
-            .AddMediatR(Assembly.GetExecutingAssembly())
+            .AddMediatR(mediatrServiceConfig =>
+            {
+                mediatrServiceConfig.RegisterServicesFromAssemblies(Assembly.GetExecutingAssembly());
+            })
             .AddMultitenancy()
             .AddNotifications(config)
             .AddOpenApiDocumentation(config)
