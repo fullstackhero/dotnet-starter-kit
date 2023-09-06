@@ -1,9 +1,8 @@
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using FSH.WebApi.Infrastructure.Auth;
 using FSH.WebApi.Infrastructure.BackgroundJobs;
 using FSH.WebApi.Infrastructure.Caching;
 using FSH.WebApi.Infrastructure.Common;
+using FSH.WebApi.Infrastructure.Compression;
 using FSH.WebApi.Infrastructure.Cors;
 using FSH.WebApi.Infrastructure.FileStorage;
 using FSH.WebApi.Infrastructure.Localization;
@@ -23,6 +22,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("Infrastructure.Test")]
 
@@ -52,6 +53,7 @@ public static class Startup
             .AddPersistence()
             .AddRequestLogging(config)
             .AddRouting(options => options.LowercaseUrls = true)
+            .AddCompressions()
             .AddServices();
     }
 
@@ -77,6 +79,7 @@ public static class Startup
 
     public static IApplicationBuilder UseInfrastructure(this IApplicationBuilder builder, IConfiguration config) =>
         builder
+            .UseCompressions()
             .UseRequestLocalization()
             .UseStaticFiles()
             .UseSecurityHeaders(config)
