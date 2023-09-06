@@ -7,7 +7,7 @@
     <ItemGroup>
         <PackageReference Include="FluentValidation.AspNetCore" Version="10.4.0" />
         <PackageReference Include="Hangfire.Console.Extensions.Serilog" Version="1.0.2" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.4">
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.5">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
@@ -21,6 +21,7 @@
         <ProjectReference Include="..\Migrators\Migrators.Oracle\Migrators.Oracle.csproj" />
         <ProjectReference Include="..\Migrators\Migrators.PostgreSQL\Migrators.PostgreSQL.csproj" />
         <ProjectReference Include="..\Migrators\Migrators.MSSQL\Migrators.MSSQL.csproj" />
+        <ProjectReference Include="..\Migrators\Migrators.SqLite\Migrators.SqLite.csproj" />
     </ItemGroup>
     <ItemGroup>
         <Content Update="Configurations\*.json">
@@ -41,5 +42,8 @@
         <None Include="Email Templates\*.cshtml">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Databases\Host\" />
     </ItemGroup>
 </Project>

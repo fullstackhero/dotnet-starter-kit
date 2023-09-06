@@ -1,5 +1,6 @@
 ﻿using FSH.WebApi.Application.Common.Persistence;
 using FSH.WebApi.Infrastructure.Common;
+using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
@@ -40,6 +41,10 @@ internal class ConnectionStringValidator : IConnectionStringValidator
 
                 case DbProviderKeys.SqlServer:
                     var mssqlcs = new SqlConnectionStringBuilder(connectionString);
+                    break;
+
+                case DbProviderKeys.SqLite:
+                    var sqlite = new SqliteConnection(connectionString);
                     break;
             }
 

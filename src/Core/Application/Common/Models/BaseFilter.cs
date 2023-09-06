@@ -11,4 +11,9 @@ public class BaseFilter
     /// Keyword to Search in All the available columns of the Resource.
     /// </summary>
     public string? Keyword { get; set; }
+
+    /// <summary>
+    /// Advanced column filtering with logical operators and query operators is supported.
+    /// </summary>
+    public Filter? AdvancedFilter { get; set; }
 }
