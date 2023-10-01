@@ -251,6 +251,15 @@ public static class SpecificationBuilderExtensions
             return Expression.Constant(valueparsed, propertyType);
         }
 
+        if (propertyType.IsGenericType && propertyType.GetGenericTypeDefinition() == typeof(Nullable<>) && propertyType.GetGenericArguments()[0].IsEnum)
+        {
+            string? stringEnum = GetStringFromJsonElement(value);
+
+            if (!Enum.TryParse(propertyType.GetGenericArguments()[0], stringEnum, true, out object? valueparsed)) throw new CustomException(string.Format("Value {0} is not valid for {1}", value, field));
+
+            return Expression.Constant(valueparsed, propertyType);
+        }
+
         if (propertyType == typeof(Guid))
         {
             string? stringGuid = GetStringFromJsonElement(value);
