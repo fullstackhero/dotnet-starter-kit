@@ -97,7 +97,7 @@ dotnet tool install --global FSH.CLI
 fsh install
 ```
 
-This isntall the FSH CLI tools and the associated Templates. You are now ready to create your first FSH project!
+This install the FSH CLI tools and the associated Templates. You are now ready to create your first FSH project!
 
 #### FSH .NET WebAPI Boilerplate
 Here's how you would create a Solution using the FSH .NET WebAPI Boilerplate.
