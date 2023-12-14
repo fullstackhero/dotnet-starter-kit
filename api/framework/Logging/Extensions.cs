@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 
-namespace Framework;
+namespace Framework.Logging;
 
 public static class Extensions
 {
