@@ -26,6 +26,10 @@
     <PackageReference Include="Serilog.Sinks.Debug" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Swashbuckle.AspNetCore" />
+  </ItemGroup>  
+  <ItemGroup>
     <Folder Include="Abstractions\" />
   </ItemGroup>
 </Project>

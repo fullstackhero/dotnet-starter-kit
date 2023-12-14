@@ -8,7 +8,7 @@ namespace FSH.Framework.Logging;
 
 public static class Extensions
 {
-    public static WebApplicationBuilder AddFSHLogging(this WebApplicationBuilder builder)
+    public static WebApplicationBuilder AddLogging(this WebApplicationBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
         builder.Services.AddOptions<LogConfig>().BindConfiguration(nameof(LogConfig));

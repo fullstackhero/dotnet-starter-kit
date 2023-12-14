@@ -7,10 +7,6 @@
     <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
-    <PackageReference Include="Swashbuckle.AspNetCore" />
-  </ItemGroup>  
-  <ItemGroup>
     <ProjectReference Include="..\Framework\Framework.csproj" />
   </ItemGroup>
 </Project>
