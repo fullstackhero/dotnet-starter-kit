@@ -1,5 +1,0 @@
-﻿msgid "testString"
-msgstr "testString in dutch"
-
-msgid "testString2"
-msgstr "testString2 in dutch"
