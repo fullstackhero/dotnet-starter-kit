@@ -10,29 +10,29 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="8.0.0" />
-    <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="9.15.0.81779" />
-  </ItemGroup>      
+  </ItemGroup>
   <ItemGroup>
-    <PackageVersion Include="Serilog" Version="3.0.1" />
-    <PackageVersion Include="Serilog.AspNetCore" Version="7.0.0" />
+    <PackageVersion Include="Serilog" Version="3.1.1" />
+    <PackageVersion Include="Serilog.AspNetCore" Version="8.0.0" />
     <PackageVersion Include="Serilog.Enrichers.CorrelationId" Version="3.0.1" />
-    <PackageVersion Include="Serilog.Enrichers.Environment" Version="2.2.0" />
-    <PackageVersion Include="Serilog.Enrichers.Span" Version="3.0.0" />
+    <PackageVersion Include="Serilog.Enrichers.Environment" Version="2.3.0" />
+    <PackageVersion Include="Serilog.Enrichers.Span" Version="3.1.0" />
     <PackageVersion Include="Serilog.Exceptions" Version="8.4.0" />
-    <PackageVersion Include="Serilog.Extensions.Hosting" Version="7.0.0" />
+    <PackageVersion Include="Serilog.Extensions.Hosting" Version="8.0.0" />
     <PackageVersion Include="Serilog.Sinks.Elasticsearch" Version="9.0.3" />
     <PackageVersion Include="Serilog.Formatting.Elasticsearch" Version="9.0.3" />
     <PackageVersion Include="Serilog.Sinks.Async" Version="1.5.0" />
-    <PackageVersion Include="Serilog.Sinks.Console" Version="4.1.0" />
+    <PackageVersion Include="Serilog.Sinks.Console" Version="5.0.1" />
     <PackageVersion Include="Serilog.Sinks.File" Version="5.0.0" />
-    <PackageVersion Include="Serilog.Sinks.Seq" Version="5.2.2" />
+    <PackageVersion Include="Serilog.Sinks.Seq" Version="6.0.0" />
     <PackageVersion Include="Serilog.Sinks.SpectreConsole" Version="0.3.3" />
     <PackageVersion Include="SerilogAnalyzer" Version="0.15.0" />
     <PackageVersion Include="SerilogTimings" Version="3.0.1" />
     <PackageVersion Include="Serilog.OpenTelemetry.ConsoleSink" Version="2.0.0" />
     <PackageVersion Include="Serilog.Sinks.Debug" Version="2.0.0" />
-  </ItemGroup>  
+  </ItemGroup>
 </Project>

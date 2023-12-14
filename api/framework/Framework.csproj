@@ -1,4 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>FSH.Framework</RootNamespace>
+    <AssemblyName>FSH.Framework</AssemblyName>
+  </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
