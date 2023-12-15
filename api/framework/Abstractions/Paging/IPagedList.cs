@@ -2,7 +2,7 @@
 
 namespace FSH.Framework.Abstractions.Paging;
 
-public interface IPageList<T>
+public interface IPagedList<T>
     where T : class
 {
     int CurrentPageSize { get; }
@@ -16,8 +16,8 @@ public interface IPageList<T>
     int PageNumber { get; init; }
     int PageSize { get; init; }
 
-    IPageList<TR> MapTo<TR>(Func<T, TR> map)
+    IPagedList<TR> MapTo<TR>(Func<T, TR> map)
         where TR : class;
-    IPageList<TR> MapTo<TR>(IMapper mapper)
+    IPagedList<TR> MapTo<TR>()
        where TR : class;
 }
