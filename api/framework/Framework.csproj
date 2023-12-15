@@ -28,8 +28,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
-  </ItemGroup>  
-  <ItemGroup>
-    <Folder Include="Abstractions\" />
+    <PackageReference Include="Mapster" />
   </ItemGroup>
 </Project>

@@ -11,6 +11,7 @@
   <ItemGroup>
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="8.0.0" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    <PackageVersion Include="Mapster" Version="7.4.0" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="9.15.0.81779" />
