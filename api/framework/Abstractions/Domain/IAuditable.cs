@@ -3,7 +3,7 @@
 public interface IAuditable
 {
     DateTime Created { get; }
-    int? CreatedBy { get; }
+    Guid CreatedBy { get; }
     DateTime? LastModified { get; }
-    int? LastModifiedBy { get; }
+    Guid? LastModifiedBy { get; }
 }

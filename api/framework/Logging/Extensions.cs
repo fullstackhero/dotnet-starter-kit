@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Serilog;
 using Serilog.Events;
+using Serilog.Exceptions;
 
 namespace FSH.Framework.Logging;
 
@@ -12,40 +13,60 @@ public static class Extensions
     {
         ArgumentNullException.ThrowIfNull(builder);
         builder.Services.AddOptions<LogConfig>().BindConfiguration(nameof(LogConfig));
-        _ = builder.Host.UseSerilog((_, sp, serilogConfig) =>
+        _ = builder.Host.UseSerilog((_, sp, logger) =>
         {
-            var logConfig = sp.GetRequiredService<IOptions<LogConfig>>().Value;
-            serilogConfig.WriteTo.Async(wt => wt.Console());
-            SetMinimumLogLevel(serilogConfig, logConfig.MinimumLogLevel);
-            OverideMinimumLogLevel(serilogConfig);
+            var settings = sp.GetRequiredService<IOptions<LogConfig>>().Value;
+            logger.ConfigureEnrichers(settings.AppName);
+            logger.ConfigureSinks(settings);
+            logger.SetMinimumLogLevel(settings.MinimumLogLevel);
+            logger.OverideMinimumLogLevel();
 
         });
         return builder;
     }
-    private static void SetMinimumLogLevel(LoggerConfiguration serilogConfig, string minLogLevel)
+
+    private static void ConfigureSinks(this LoggerConfiguration logger, LogConfig config)
+    {
+        if (config.WriteToFile)
+        {
+            logger.WriteTo.Async(wt => wt.Console());
+        }
+    }
+
+    private static void SetMinimumLogLevel(this LoggerConfiguration logger, string minLogLevel)
     {
         switch (minLogLevel.ToUpperInvariant())
         {
             case "DEBUG":
-                serilogConfig.MinimumLevel.Debug();
+                logger.MinimumLevel.Debug();
                 break;
             case "INFORMATION":
-                serilogConfig.MinimumLevel.Information();
+                logger.MinimumLevel.Information();
                 break;
             case "WARNING":
-                serilogConfig.MinimumLevel.Warning();
+                logger.MinimumLevel.Warning();
                 break;
             default:
-                serilogConfig.MinimumLevel.Information();
+                logger.MinimumLevel.Information();
                 break;
         }
     }
-    private static void OverideMinimumLogLevel(LoggerConfiguration serilogConfig)
+    private static void OverideMinimumLogLevel(this LoggerConfiguration logger)
     {
-        serilogConfig
+        logger
                      .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                      .MinimumLevel.Override("Hangfire", LogEventLevel.Warning)
                      .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
                      .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Error);
+    }
+    private static void ConfigureEnrichers(this LoggerConfiguration logger, string appName)
+    {
+        logger
+                        .Enrich.FromLogContext()
+                        .Enrich.WithProperty("App", appName)
+                        .Enrich.WithEnvironmentName()
+                        .Enrich.WithExceptionDetails()
+                        .Enrich.WithMachineName()
+                        .Enrich.FromLogContext();
     }
 }
