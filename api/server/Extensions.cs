@@ -36,9 +36,11 @@ public static class Extensions
                     .Build();
         var endpoints = app.MapGroup("api/v{version:apiVersion}").WithApiVersionSet(versions);
 
-        //register endpoints
+        //register dummy endpoints
         endpoints.MapGet("/", () => "hello earth!").WithTags("hello").HasApiVersion(1);
         endpoints.MapGet("/", () => "hello world!").WithTags("hello").HasApiVersion(2);
+
+        //register module endpoints
         endpoints.MapCatalogEndpoints();
 
         //register open api
