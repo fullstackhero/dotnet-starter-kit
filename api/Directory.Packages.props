@@ -9,12 +9,18 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
+    <PackageVersion Include="Asp.Versioning.Http" Version="8.0.0" />    
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="8.0.0" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageVersion Include="Mapster" Version="7.4.0" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="9.15.0.81779" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageVersion Include="WolverineFx" Version="1.12.4" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="Serilog" Version="3.1.1" />

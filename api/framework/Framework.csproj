@@ -1,11 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <RootNamespace>FSH.Framework</RootNamespace>
-    <AssemblyName>FSH.Framework</AssemblyName>
+    <RootNamespace>FSH.WebApi.Framework</RootNamespace>
+    <AssemblyName>FSH.WebApi.Framework</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Asp.Versioning.Http" />
+  </ItemGroup>  
   <ItemGroup>
     <PackageReference Include="Serilog" />
     <PackageReference Include="Serilog.AspNetCore" />
@@ -29,5 +32,13 @@
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
     <PackageReference Include="Mapster" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="WolverineFx" />
+  </ItemGroup>  
+  <ItemGroup>
+    <Folder Include="Multitenancy\" />
+    <Folder Include="Multitenancy\Features\" />
+    <Folder Include="Storage\" />
   </ItemGroup>
 </Project>
