@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
@@ -14,6 +15,16 @@ public static class CreateProduct
         public static void Handle(Command command, ILogger logger)
         {
             logger.LogInformation("product created");
+        }
+    }
+    public class Validator : AbstractValidator<Command>
+    {
+        public Validator()
+        {
+            RuleFor(p => p.Name)
+                .NotEmpty()
+                .MinimumLength(10)
+                .MaximumLength(75);
         }
     }
     public static RouteHandlerBuilder MapCreateProductEndpoint(this IEndpointRouteBuilder endpoints)

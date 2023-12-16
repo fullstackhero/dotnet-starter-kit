@@ -36,6 +36,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="WolverineFx" />
+    <PackageReference Include="WolverineFx.Http.FluentValidation" />
   </ItemGroup>  
   <ItemGroup>
     <Folder Include="Multitenancy\" />

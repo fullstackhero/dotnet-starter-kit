@@ -22,6 +22,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="WolverineFx" Version="1.12.4" />
+    <PackageVersion Include="WolverineFx.Http.FluentValidation" Version="1.12.4" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="Serilog" Version="3.1.1" />

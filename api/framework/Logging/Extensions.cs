@@ -54,19 +54,21 @@ public static class Extensions
     private static void OverideMinimumLogLevel(this LoggerConfiguration logger)
     {
         logger
-                     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-                     .MinimumLevel.Override("Hangfire", LogEventLevel.Warning)
-                     .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
-                     .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Error);
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+            .MinimumLevel.Override("Hangfire", LogEventLevel.Warning)
+            .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
+            .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Error)
+            .MinimumLevel.Override("Wolverine.Configuration.HandlerDiscovery", LogEventLevel.Error)
+            .MinimumLevel.Override("Wolverine.Runtime.WolverineRuntime", LogEventLevel.Error);
     }
     private static void ConfigureEnrichers(this LoggerConfiguration logger, string appName)
     {
         logger
-                        .Enrich.FromLogContext()
-                        .Enrich.WithProperty("App", appName)
-                        .Enrich.WithEnvironmentName()
-                        .Enrich.WithExceptionDetails()
-                        .Enrich.WithMachineName()
-                        .Enrich.FromLogContext();
+            .Enrich.FromLogContext()
+            .Enrich.WithProperty("App", appName)
+            .Enrich.WithEnvironmentName()
+            .Enrich.WithExceptionDetails()
+            .Enrich.WithMachineName()
+            .Enrich.FromLogContext();
     }
 }
