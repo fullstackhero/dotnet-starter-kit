@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Swashbuckle.AspNetCore.SwaggerUI;
 
 namespace FSH.Framework.OpenApi;
 
@@ -19,7 +20,11 @@ public static class Extensions
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
-            app.UseSwaggerUI();
+            app.UseSwaggerUI(options =>
+            {
+                options.DefaultModelExpandDepth(-1);
+                options.DocExpansion(DocExpansion.List);
+            });
         }
         return app;
     }

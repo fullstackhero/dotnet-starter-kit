@@ -1,5 +1,4 @@
-﻿using FSH.WebApi.Framework;
-using FSH.WebApi.Modules.Catalog.Products.Features.v1;
+﻿using FSH.WebApi.Modules.Catalog.Products.Features.v1;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 

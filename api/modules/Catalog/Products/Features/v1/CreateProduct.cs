@@ -24,6 +24,7 @@ public static class CreateProduct
         )
         .WithName(nameof(CreateProduct))
         .WithDisplayName(nameof(CreateProduct))
-        .WithTags("products");
+        .WithTags("products")
+        .MapToApiVersion(1.0);
     }
 }

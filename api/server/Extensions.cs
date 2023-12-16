@@ -23,6 +23,11 @@ public static class Extensions
 
         //register modules
         app.UseCatalogModule();
+
+        //register endpoints
+        var endpoints = app.NewVersionedApi().MapGroup("api").HasApiVersion(1.0);
+        endpoints.MapCatalogEndpoints();
+
         return app;
     }
 }
