@@ -1,4 +1,6 @@
-﻿using FSH.WebApi.Modules.Catalog;
+﻿using Asp.Versioning.Conventions;
+using FSH.Framework.OpenApi;
+using FSH.WebApi.Modules.Catalog;
 using JasperFx.CodeGeneration;
 using Wolverine;
 
@@ -26,10 +28,21 @@ public static class Extensions
         //register modules
         app.UseCatalogModule();
 
+        //register api versions
+        var versions = app.NewApiVersionSet()
+                    .HasApiVersion(1)
+                    .HasApiVersion(2)
+                    .ReportApiVersions()
+                    .Build();
+        var endpoints = app.MapGroup("api/v{version:apiVersion}").WithApiVersionSet(versions);
+
         //register endpoints
-        var endpoints = app.NewVersionedApi().MapGroup("api").HasApiVersion(1.0);
+        endpoints.MapGet("/", () => "hello earth!").WithTags("hello").HasApiVersion(1);
+        endpoints.MapGet("/", () => "hello world!").WithTags("hello").HasApiVersion(2);
         endpoints.MapCatalogEndpoints();
 
+        //register open api
+        app.UseOpenApi();
         return app;
     }
 }

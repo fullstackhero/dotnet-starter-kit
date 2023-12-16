@@ -11,7 +11,7 @@ public static class CatalogModule
     }
     public static IEndpointRouteBuilder MapCatalogEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var catalogEndpoints = endpoints.MapGroup("v{version:apiVersion}/catalog")
+        var catalogEndpoints = endpoints.MapGroup("catalog")
             .MapProductEndpoints();
         return catalogEndpoints;
     }
