@@ -1,4 +1,5 @@
 ﻿using FSH.WebApi.Modules.Catalog;
+using JasperFx.CodeGeneration;
 using Wolverine;
 
 namespace FSH.WebApi.Server;
@@ -13,6 +14,7 @@ public static class Extensions
         builder.Host.UseWolverine(options =>
         {
             options.Discovery.IncludeAssembly(typeof(CatalogModule).Assembly);
+            options.CodeGeneration.TypeLoadMode = TypeLoadMode.Auto;
         });
         return builder;
     }
