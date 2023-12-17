@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using Serilog;
 using Serilog.Events;
 using Serilog.Exceptions;
+using Serilog.Filters;
 
 namespace FSH.Framework.Logging;
 
@@ -59,7 +60,8 @@ public static class Extensions
             .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
             .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Error)
             .MinimumLevel.Override("Wolverine.Configuration.HandlerDiscovery", LogEventLevel.Error)
-            .MinimumLevel.Override("Wolverine.Runtime.WolverineRuntime", LogEventLevel.Error);
+            .MinimumLevel.Override("Wolverine.Runtime.WolverineRuntime", LogEventLevel.Error)
+            .Filter.ByExcluding(Matching.FromSource("Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddleware"));  //since we have a global exception handler
     }
     private static void ConfigureEnrichers(this LoggerConfiguration logger, string appName)
     {
