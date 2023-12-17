@@ -1,5 +1,4 @@
-﻿using System.Collections.ObjectModel;
-using FluentValidation;
+﻿using FluentValidation;
 using FSH.WebApi.Modules.Catalog.Products.Models;
 using Mapster;
 using Microsoft.AspNetCore.Builder;
@@ -12,14 +11,15 @@ namespace FSH.WebApi.Modules.Catalog.Products.Features.v1;
 
 public static class CreateProduct
 {
-    public sealed record Command(string? Name, decimal Price, Collection<string> Tags, string? Description = null);
+    public sealed record Command(string? Name, decimal Price, string? Description = null);
     public static class Handler
     {
-        public static void Handle(Command command, ILogger logger)
+        public static IResult Handle(Command command, ILogger logger)
         {
             ArgumentNullException.ThrowIfNull(command);
             var product = command.Adapt<Product>();
             logger.LogInformation("product created {ProductId}", product.Id);
+            return Results.Created(nameof(CreateProduct), new { id = product.Id });
         }
     }
     public class Validator : AbstractValidator<Command>
@@ -32,14 +32,9 @@ public static class CreateProduct
     public static RouteHandlerBuilder MapCreateProductEndpoint(this IEndpointRouteBuilder endpoints)
     {
         return endpoints.MapPost(
-            "/", (Command command, IMessageBus bus) =>
-            {
-                bus.InvokeAsync(command);
-                return Results.Created();
-            }
+            "/", (Command command, IMessageBus bus) => bus.InvokeAsync<IResult>(command)
         )
         .WithName(nameof(CreateProduct))
-        .Produces(StatusCodes.Status204NoContent)
         .WithTags("products")
         .MapToApiVersion(1.0);
     }

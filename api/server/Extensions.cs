@@ -15,6 +15,7 @@ public static class Extensions
         //register wolverine with module assemblies
         builder.Host.UseWolverine(options =>
         {
+            options.CodeGeneration.TypeLoadMode = JasperFx.CodeGeneration.TypeLoadMode.Auto;
             options.Discovery.IncludeAssembly(typeof(CatalogModule).Assembly);
             options.UseFluentValidation();
         });
