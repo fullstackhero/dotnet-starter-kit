@@ -35,8 +35,8 @@
     <PackageReference Include="Mapster" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="WolverineFx" />
-    <PackageReference Include="WolverineFx.Http.FluentValidation" />
+    <PackageReference Include="MediatR" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
   </ItemGroup>  
   <ItemGroup>
     <Folder Include="Multitenancy\" />

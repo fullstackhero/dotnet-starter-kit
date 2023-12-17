@@ -34,8 +34,7 @@ public class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOptions>
         {
             Title = "FSH.WebApi",
             Version = description.ApiVersion.ToString(),
-            Contact = new OpenApiContact() { Name = "Mukesh Murugan", Email = "hello@codewithmukesh.com" },
-            License = new OpenApiLicense() { Name = "MIT", Url = new Uri("https://opensource.org/licenses/MIT") }
+            Contact = new OpenApiContact() { Name = "Mukesh Murugan", Email = "hello@codewithmukesh.com" }
         };
 
         if (description.IsDeprecated)

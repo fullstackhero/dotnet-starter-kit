@@ -6,7 +6,6 @@
   <ItemGroup>
     <Folder Include="Brands\" />
     <Folder Include="Products\Events\" />
-    <Folder Include="Products\Features\v2\" />
     <Folder Include="Products\Mappings\" />
     <Folder Include="Products\Services\" />
   </ItemGroup>

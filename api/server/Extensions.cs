@@ -1,8 +1,10 @@
-﻿using Asp.Versioning.Conventions;
+﻿using System.Reflection;
+using Asp.Versioning.Conventions;
+using FluentValidation;
 using FSH.Framework.OpenApi;
+using FSH.WebApi.Framework.Behaviours;
 using FSH.WebApi.Modules.Catalog;
-using Wolverine;
-using Wolverine.FluentValidation;
+using MediatR;
 
 namespace FSH.WebApi.Server;
 
@@ -12,12 +14,18 @@ public static class Extensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        //register wolverine with module assemblies
-        builder.Host.UseWolverine(options =>
+        //define module assemblies
+        var assemblies = new Assembly[]
         {
-            options.CodeGeneration.TypeLoadMode = JasperFx.CodeGeneration.TypeLoadMode.Auto;
-            options.Discovery.IncludeAssembly(typeof(CatalogModule).Assembly);
-            options.UseFluentValidation();
+            typeof(CatalogModule).Assembly
+        };
+
+        //register mediatr and fluentvalidation
+        builder.Services.AddValidatorsFromAssemblies(assemblies);
+        builder.Services.AddMediatR(cfg =>
+        {
+            cfg.RegisterServicesFromAssemblies(assemblies);
+            cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
         });
 
         //register module services

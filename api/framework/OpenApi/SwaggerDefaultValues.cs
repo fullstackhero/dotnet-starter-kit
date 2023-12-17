@@ -10,6 +10,9 @@ public class SwaggerDefaultValues : IOperationFilter
     /// <inheritdoc />
     public void Apply(OpenApiOperation operation, OperationFilterContext context)
     {
+        ArgumentNullException.ThrowIfNull(operation);
+        ArgumentNullException.ThrowIfNull(context);
+
         var apiDescription = context.ApiDescription;
 
         operation.Deprecated |= apiDescription.IsDeprecated();
