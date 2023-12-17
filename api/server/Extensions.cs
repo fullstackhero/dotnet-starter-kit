@@ -25,7 +25,9 @@ public static class Extensions
         builder.Services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssemblies(assemblies);
-            cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
+
+            //register pipeline behaviors
+            cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         });
 
         //register module services
