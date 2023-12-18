@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Asp.Versioning.Conventions;
+using Carter;
 using FluentValidation;
 using FSH.Framework.OpenApi;
 using FSH.WebApi.Framework.Behaviours;
@@ -20,24 +21,32 @@ public static class Extensions
             typeof(CatalogModule).Assembly
         };
 
-        //register mediatr and fluentvalidation
+        //register validators
         builder.Services.AddValidatorsFromAssemblies(assemblies);
+
+        //register mediatr
         builder.Services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssemblies(assemblies);
-
-            //register pipeline behaviors
             cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         });
 
         //register module services
-        builder.AddCatalogServices();
+        builder.RegisterCatalogServices();
+
+        //add carter endpoint modules
+        builder.Services.AddCarter(configurator: config =>
+        {
+            config.WithModule<CatalogModule.Endpoints>();
+        });
+
         return builder;
     }
 
     public static WebApplication UseModules(this WebApplication app)
     {
         ArgumentNullException.ThrowIfNull(app);
+
         //register modules
         app.UseCatalogModule();
 
@@ -47,17 +56,20 @@ public static class Extensions
                     .HasApiVersion(2)
                     .ReportApiVersions()
                     .Build();
+
+        //map versioned endpoint
         var endpoints = app.MapGroup("api/v{version:apiVersion}").WithApiVersionSet(versions);
 
         //register dummy endpoints
         endpoints.MapGet("/", () => "hello earth!").WithTags("hello").HasApiVersion(1);
         endpoints.MapGet("/", () => "hello world!").WithTags("hello").HasApiVersion(2);
 
-        //register module endpoints
-        endpoints.MapCatalogEndpoints();
+        //use carter
+        endpoints.MapCarter();
 
-        //register open api
+        //use open api
         app.UseOpenApi();
+
         return app;
     }
 }

@@ -1,9 +1,11 @@
 using FSH.Framework;
 using FSH.WebApi.Server;
+
 var builder = WebApplication.CreateBuilder(args);
-builder.AddFSH();
+builder.AddFSHFramework();
 builder.AddModules();
+
 var app = builder.Build();
+app.UseFSHFramework();
 app.UseModules();
-app.UseFSH();
 app.Run();

@@ -8,7 +8,7 @@ namespace FSH.Framework;
 
 public static class Extensions
 {
-    public static WebApplicationBuilder AddFSH(this WebApplicationBuilder builder)
+    public static WebApplicationBuilder AddFSHFramework(this WebApplicationBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
         builder.AddLogging();
@@ -18,7 +18,7 @@ public static class Extensions
         return builder;
     }
 
-    public static WebApplication UseFSH(this WebApplication app)
+    public static WebApplication UseFSHFramework(this WebApplication app)
     {
         app.UseHttpsRedirection();
         app.UseExceptionHandler();

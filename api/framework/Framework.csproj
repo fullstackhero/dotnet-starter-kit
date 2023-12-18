@@ -37,6 +37,7 @@
   <ItemGroup>
     <PackageReference Include="MediatR" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="Carter" />
   </ItemGroup>  
   <ItemGroup>
     <Folder Include="Multitenancy\" />
