@@ -1,6 +1,6 @@
-﻿using FSH.Framework.Domain;
+﻿using FSH.Framework.Core.Domain;
 
-namespace FSH.WebApi.Modules.Catalog.Features.Products;
+namespace FSH.WebApi.Catalog.Domain;
 public class Product : AuditableEntity
 {
     public string Name { get; private set; } = default!;

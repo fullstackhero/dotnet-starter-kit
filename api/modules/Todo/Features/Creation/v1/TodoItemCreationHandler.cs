@@ -1,9 +1,9 @@
-﻿using Mapster;
+﻿using FSH.WebApi.Todo.Models;
+using Mapster;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Todo.Models;
 
-namespace Todo.Features.TodoItemCreation.v1;
+namespace FSH.WebApi.Todo.Features.Creation.v1;
 public sealed class TodoItemCreationHandler(ILogger<TodoItemCreationHandler> logger) : IRequestHandler<TodoItemCreationCommand, Guid>
 {
     public async Task<Guid> Handle(TodoItemCreationCommand request, CancellationToken cancellationToken)

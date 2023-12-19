@@ -1,6 +1,6 @@
-﻿using FSH.Framework.Domain;
+﻿using FSH.Framework.Core.Domain;
 
-namespace Todo.Models;
+namespace FSH.WebApi.Todo.Models;
 public class TodoItem : AuditableEntity
 {
     public string? Title { get; set; }

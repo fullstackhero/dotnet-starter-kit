@@ -1,13 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <RootNamespace>FSH.WebApi.Catalog.Domain</RootNamespace>
+    <AssemblyName>FSH.WebApi.Catalog.Domain</AssemblyName>
   </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\..\framework\Core\Core.csproj" />
   </ItemGroup>
-
 </Project>

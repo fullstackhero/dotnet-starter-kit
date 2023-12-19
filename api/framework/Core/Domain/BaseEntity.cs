@@ -1,6 +1,6 @@
 ﻿using FSH.Framework.Abstractions.Domain;
 
-namespace FSH.Framework.Domain;
+namespace FSH.Framework.Core.Domain;
 
 public abstract class BaseEntity<TId> : IEntity<TId>
 {

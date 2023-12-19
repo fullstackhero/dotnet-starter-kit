@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using MediatR;
 
-namespace Todo.Features.TodoItemCreation.v1;
+namespace FSH.WebApi.Todo.Features.Creation.v1;
 public record TodoItemCreationCommand(string? Title, string? Note) : IRequest<Guid>;
 
 public class TodoItemCreationValidator : AbstractValidator<TodoItemCreationCommand>

@@ -1,6 +1,6 @@
 ﻿using FSH.Framework.Abstractions.Domain;
 
-namespace FSH.Framework.Domain;
+namespace FSH.Framework.Core.Domain;
 
 public class AuditableEntity<TId> : BaseEntity<TId>, IAuditable, ISoftDeletable
 {

@@ -1,4 +1,4 @@
-﻿namespace FSH.Framework.Abstractions.Paging;
+﻿namespace FSH.Framework.Core.Paging.Contracts;
 
 public interface IPageRequest
 {

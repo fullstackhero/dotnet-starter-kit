@@ -1,10 +1,10 @@
 ﻿using Carter;
-using Catalog.Application.Features.Products.ProductCreation.v1;
+using FSH.WebApi.Catalog.Infrastructure.Endpoints.v1;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
-namespace Catalog.Infrastructure;
+namespace FSH.WebApi.Catalog.Infrastructure;
 public static class CatalogModule
 {
     public class Endpoints : CarterModule

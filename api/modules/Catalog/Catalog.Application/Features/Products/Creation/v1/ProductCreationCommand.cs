@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using MediatR;
 
-namespace Catalog.Application.Features.Products.ProductCreation.v1;
+namespace FSH.WebApi.Catalog.Application.Features.Products.Creation.v1;
 public sealed record ProductCreationCommand(string? Name, decimal Price, string? Description = null) : IRequest<Guid>;
 
 public class ProductCreationValidator : AbstractValidator<ProductCreationCommand>

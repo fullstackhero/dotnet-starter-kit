@@ -1,8 +1,9 @@
-﻿using MediatR;
+﻿using FSH.WebApi.Catalog.Application.Features.Products.Creation.v1;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 
-namespace Catalog.Application.Features.Products.ProductCreation.v1;
+namespace FSH.WebApi.Catalog.Infrastructure.Endpoints.v1;
 public static class ProductCreationEndpoint
 {
     internal static RouteHandlerBuilder MapProductCreationEndpoint(this IEndpointRouteBuilder endpoints)

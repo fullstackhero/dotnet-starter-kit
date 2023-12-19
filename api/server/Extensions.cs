@@ -1,13 +1,13 @@
 ﻿using System.Reflection;
 using Asp.Versioning.Conventions;
 using Carter;
-using Catalog.Application;
-using Catalog.Infrastructure;
 using FluentValidation;
 using FSH.Framework.Infrastructure.Behaviours;
 using FSH.Framework.Infrastructure.OpenApi;
+using FSH.WebApi.Catalog.Application;
+using FSH.WebApi.Catalog.Infrastructure;
+using FSH.WebApi.Todo;
 using MediatR;
-using Todo;
 
 namespace FSH.WebApi.Server;
 

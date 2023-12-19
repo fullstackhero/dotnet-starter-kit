@@ -1,14 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <RootNamespace>FSH.WebApi.Todo</RootNamespace>
+    <AssemblyName>FSH.WebApi.Todo</AssemblyName>
   </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\framework\Core\Core.csproj" />
     <ProjectReference Include="..\..\Framework\Infrastructure\Infrastructure.csproj" />
   </ItemGroup>
-
 </Project>

@@ -1,9 +1,9 @@
-﻿using FSH.WebApi.Modules.Catalog.Features.Products;
+﻿using FSH.WebApi.Catalog.Domain;
 using Mapster;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace Catalog.Application.Features.Products.ProductCreation.v1;
+namespace FSH.WebApi.Catalog.Application.Features.Products.Creation.v1;
 public sealed class ProductCreationHandler(ILogger<ProductCreationHandler> logger) : IRequestHandler<ProductCreationCommand, Guid>
 {
     public async Task<Guid> Handle(ProductCreationCommand request, CancellationToken cancellationToken)
