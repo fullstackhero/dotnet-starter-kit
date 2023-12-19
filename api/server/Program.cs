@@ -1,4 +1,4 @@
-using FSH.Framework;
+using FSH.Framework.Infrastructure;
 using FSH.WebApi.Server;
 
 var builder = WebApplication.CreateBuilder(args);

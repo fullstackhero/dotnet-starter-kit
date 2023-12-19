@@ -1,10 +1,11 @@
 ﻿using System.Reflection;
 using Asp.Versioning.Conventions;
 using Carter;
+using Catalog.Application;
+using Catalog.Infrastructure;
 using FluentValidation;
-using FSH.Framework.OpenApi;
-using FSH.WebApi.Framework.Behaviours;
-using FSH.WebApi.Modules.Catalog;
+using FSH.Framework.Infrastructure.Behaviours;
+using FSH.Framework.Infrastructure.OpenApi;
 using MediatR;
 
 namespace FSH.WebApi.Server;
@@ -18,7 +19,7 @@ public static class Extensions
         //define module assemblies
         var assemblies = new Assembly[]
         {
-            typeof(CatalogModule).Assembly
+            typeof(CatalogApplication).Assembly
         };
 
         //register validators

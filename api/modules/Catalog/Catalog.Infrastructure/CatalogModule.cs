@@ -1,11 +1,10 @@
 ﻿using Carter;
-using FSH.WebApi.Modules.Catalog.Features.Products.ProductCreation.v1;
+using Catalog.Application.Features.Products.ProductCreation.v1;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
-namespace FSH.WebApi.Modules.Catalog;
-
+namespace Catalog.Infrastructure;
 public static class CatalogModule
 {
     public class Endpoints : CarterModule
@@ -15,9 +14,6 @@ public static class CatalogModule
         {
             var productGroup = app.MapGroup("products").WithTags("products");
             productGroup.MapProductCreationEndpoint();
-
-            var testGroup = app.MapGroup("test").WithTags("test");
-            testGroup.MapGet("/test", () => "hi");
         }
     }
     public static WebApplicationBuilder RegisterCatalogServices(this WebApplicationBuilder builder)
