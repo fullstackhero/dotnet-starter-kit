@@ -7,6 +7,7 @@ using FluentValidation;
 using FSH.Framework.Infrastructure.Behaviours;
 using FSH.Framework.Infrastructure.OpenApi;
 using MediatR;
+using Todo;
 
 namespace FSH.WebApi.Server;
 
@@ -19,7 +20,8 @@ public static class Extensions
         //define module assemblies
         var assemblies = new Assembly[]
         {
-            typeof(CatalogApplication).Assembly
+            typeof(CatalogApplication).Assembly,
+            typeof(TodoModule).Assembly
         };
 
         //register validators
@@ -39,6 +41,7 @@ public static class Extensions
         builder.Services.AddCarter(configurator: config =>
         {
             config.WithModule<CatalogModule.Endpoints>();
+            config.WithModule<TodoModule.Endpoints>();
         });
 
         return builder;
