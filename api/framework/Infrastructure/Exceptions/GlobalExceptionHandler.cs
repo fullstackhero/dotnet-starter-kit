@@ -12,8 +12,8 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
         var problemDetails = new ProblemDetails();
         if (exception is FluentValidation.ValidationException fluentException)
         {
-            logger.LogWarning("validation failure occured.");
-            problemDetails.Title = "validation failure";
+            problemDetails.Title = "one or more validation errors occurred.";
+            problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1";
             httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
             List<string> validationErrors = new List<string>();
             foreach (var error in fluentException.Errors)
@@ -23,6 +23,7 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
             problemDetails.Extensions.Add("errors", validationErrors);
         }
 
+        logger.LogWarning("{ProblemDetailsTitle}", problemDetails.Title);
         problemDetails.Status = httpContext.Response.StatusCode;
         await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken).ConfigureAwait(false);
         return true;
