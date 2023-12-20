@@ -1,14 +1,11 @@
 ﻿using FluentValidation;
 using FSH.WebApi.Todo.Data;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace FSH.WebApi.Todo.Features.Creation.v1;
-public record TodoItemCreationCommand(string? Title, string? Note) : IRequest<Guid>;
-
-public class TodoItemCreationValidator : AbstractValidator<TodoItemCreationCommand>
+public class TodoCreationValidator : AbstractValidator<TodoCreationCommand>
 {
-    public TodoItemCreationValidator(TodoDbContext context)
+    public TodoCreationValidator(TodoDbContext context)
     {
         RuleFor(p => p.Title)
             .NotEmpty()

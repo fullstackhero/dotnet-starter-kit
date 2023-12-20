@@ -5,15 +5,15 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace FSH.WebApi.Todo.Features.Creation.v1;
-public sealed class TodoItemCreationHandler(ILogger<TodoItemCreationHandler> logger, TodoDbContext context) : IRequestHandler<TodoItemCreationCommand, Guid>
+public sealed class TodoCreationHandler(ILogger<TodoCreationHandler> logger, TodoDbContext context) : IRequestHandler<TodoCreationCommand, TodoCreationRepsonse>
 {
-    public async Task<Guid> Handle(TodoItemCreationCommand request, CancellationToken cancellationToken)
+    public async Task<TodoCreationRepsonse> Handle(TodoCreationCommand request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
         var item = request.Adapt<TodoItem>();
         context.Todos.Add(item);
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         logger.LogInformation("todo item created {TodoItemId}", item.Id);
-        return item.Id;
+        return new TodoCreationRepsonse(item.Id);
     }
 }

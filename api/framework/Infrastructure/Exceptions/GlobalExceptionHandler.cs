@@ -10,6 +10,9 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
     {
         ArgumentNullException.ThrowIfNull(httpContext);
         var problemDetails = new ProblemDetails();
+        problemDetails.Instance = httpContext.Request.Path;
+        problemDetails.Status = httpContext.Response.StatusCode;
+
         if (exception is FluentValidation.ValidationException fluentException)
         {
             problemDetails.Title = "one or more validation errors occurred.";
@@ -24,6 +27,7 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
         }
 
         logger.LogWarning("{ProblemDetailsTitle}", problemDetails.Title);
+
         problemDetails.Status = httpContext.Response.StatusCode;
         await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken).ConfigureAwait(false);
         return true;
