@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Serilog;
 
 namespace FSH.Framework.Infrastructure.Database;
@@ -20,5 +22,19 @@ public static class Extensions
 
             });
         return builder;
+    }
+
+    public static IServiceCollection BindDbContext<T>(this IServiceCollection services) where T : DbContext
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        services.AddDbContext<T>((p, options) =>
+        {
+            var dbConfig = p.GetRequiredService<IOptions<DbConfig>>().Value;
+            if (dbConfig.UseInMemoryDb)
+            {
+                options.UseInMemoryDatabase(nameof(T).ToUpperInvariant().Replace("DBCONTEXT", "", StringComparison.InvariantCultureIgnoreCase));
+            }
+        });
+        return services;
     }
 }
