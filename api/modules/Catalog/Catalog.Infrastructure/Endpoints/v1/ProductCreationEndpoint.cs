@@ -1,4 +1,4 @@
-﻿using FSH.WebApi.Catalog.Application.Features.Products.Creation.v1;
+﻿using FSH.WebApi.Catalog.Application.Products.Creation.v1;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;

@@ -2,9 +2,6 @@
   <PropertyGroup>
     <RootNamespace>FSH.WebApi.Server</RootNamespace>
     <AssemblyName>FSH.WebApi.Server</AssemblyName>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\framework\Core\Core.csproj" />
