@@ -17,6 +17,8 @@
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="Mapster" Version="7.4.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="9.15.0.81779" />

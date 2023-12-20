@@ -1,4 +1,5 @@
-﻿using FSH.Framework.Infrastructure.Exceptions;
+﻿using FSH.Framework.Infrastructure.Database;
+using FSH.Framework.Infrastructure.Exceptions;
 using FSH.Framework.Infrastructure.Logging.Serilog;
 using FSH.Framework.Infrastructure.OpenApi;
 using Microsoft.AspNetCore.Builder;
@@ -12,6 +13,7 @@ public static class Extensions
     {
         ArgumentNullException.ThrowIfNull(builder);
         builder.AddLogging();
+        builder.AddDatabase();
         builder.Services.AddOpenApi();
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
         builder.Services.AddProblemDetails();

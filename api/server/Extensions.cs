@@ -36,6 +36,7 @@ public static class Extensions
 
         //register module services
         builder.RegisterCatalogServices();
+        builder.RegisterTodoServices();
 
         //add carter endpoint modules
         builder.Services.AddCarter(configurator: config =>
