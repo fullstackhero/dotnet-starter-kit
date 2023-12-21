@@ -1,5 +1,4 @@
 ﻿using FSH.WebApi.Catalog.Domain;
-using Mapster;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -10,7 +9,7 @@ public sealed class ProductCreationHandler(ILogger<ProductCreationHandler> logge
     {
         ArgumentNullException.ThrowIfNull(request);
         await Task.FromResult(0).ConfigureAwait(false);
-        var product = request.Adapt<Product>();
+        var product = Product.Create(request.Name!, request.Description, request.Price);
         logger.LogInformation("product created {ProductId}", product.Id);
         return new ProductCreationResponse(product.Id);
     }

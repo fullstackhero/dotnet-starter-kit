@@ -10,7 +10,6 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Domain\" />
     <Folder Include="Domain\Contracts\" />
   </ItemGroup>
 
