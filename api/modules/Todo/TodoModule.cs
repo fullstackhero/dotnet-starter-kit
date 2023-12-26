@@ -2,6 +2,7 @@
 using FSH.Framework.Infrastructure.Database;
 using FSH.WebApi.Todo.Data;
 using FSH.WebApi.Todo.Features.Creation.v1;
+using FSH.WebApi.Todo.Features.Get.v1;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -15,6 +16,7 @@ public static class TodoModule
         {
             var todoGroup = app.MapGroup("todo").WithTags("todo");
             todoGroup.MapTodoItemCreationEndpoint();
+            todoGroup.MapGetTodoEndpoint();
         }
     }
     public static WebApplicationBuilder RegisterTodoServices(this WebApplicationBuilder builder)

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Diagnostics;
+﻿using FSH.Framework.Core.Exceptions;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -11,7 +12,6 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
         ArgumentNullException.ThrowIfNull(httpContext);
         var problemDetails = new ProblemDetails();
         problemDetails.Instance = httpContext.Request.Path;
-        problemDetails.Status = httpContext.Response.StatusCode;
 
         if (exception is FluentValidation.ValidationException fluentException)
         {
@@ -24,6 +24,19 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
                 validationErrors.Add(error.ErrorMessage);
             }
             problemDetails.Extensions.Add("errors", validationErrors);
+        }
+
+        else if (exception is FshException e)
+        {
+            httpContext.Response.StatusCode = (int)e.StatusCode;
+            problemDetails.Title = e.Message;
+            if (e.ErrorMessages != null && e.ErrorMessages.Count > 0)
+            {
+                foreach (var error in e.ErrorMessages)
+                {
+                    problemDetails.Extensions.Add("errors", error);
+                }
+            }
         }
 
         logger.LogWarning("{ProblemDetailsTitle}", problemDetails.Title);
