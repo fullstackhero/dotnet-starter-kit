@@ -8,7 +8,7 @@ public sealed class GetTodoHandler(TodoDbContext context) : IRequestHandler<GetT
     public async Task<GetTodoRepsonse> Handle(GetTodoRequest request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
-        var item = await context.Todos.FindAsync(request.Id, cancellationToken).ConfigureAwait(false);
+        var item = await context.Todos.FindAsync(request.Id).ConfigureAwait(false);
         if (item == null) throw new TodoItemNotFoundException(request.Id);
         return new GetTodoRepsonse(item.Id, item.Title!, item.Note!);
     }
