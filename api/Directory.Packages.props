@@ -9,6 +9,8 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
+    <PackageVersion Include="Ardalis.Specification" Version="8.0.0" />
+    <PackageVersion Include="Ardalis.Specification.EntityFrameworkCore" Version="8.0.0" />
     <PackageVersion Include="Asp.Versioning.Http" Version="8.0.0" />
     <PackageVersion Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="8.0.0" />
@@ -21,11 +23,11 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <PackageVersion Include="SonarAnalyzer.CSharp" Version="9.15.0.81779" />
+    <PackageVersion Include="SonarAnalyzer.CSharp" Version="9.16.0.82469" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="MediatR" Version="12.2.0" />
-    <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="11.8.1" />
+    <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="11.9.0" />
     <PackageVersion Include="Carter" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>

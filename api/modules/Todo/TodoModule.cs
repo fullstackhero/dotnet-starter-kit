@@ -1,4 +1,5 @@
 ﻿using Carter;
+using FSH.Framework.Core.Persistence;
 using FSH.Framework.Infrastructure.Database;
 using FSH.WebApi.Todo.Data;
 using FSH.WebApi.Todo.Features.Creation.v1;
@@ -6,6 +7,7 @@ using FSH.WebApi.Todo.Features.Get.v1;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FSH.WebApi.Todo;
 public static class TodoModule
@@ -23,6 +25,7 @@ public static class TodoModule
     {
         ArgumentNullException.ThrowIfNull(builder);
         builder.Services.BindDbContext<TodoDbContext>();
+        builder.Services.AddScoped(typeof(IRepository<>), typeof(TodoRepository<>));
         return builder;
     }
     public static WebApplication UseTodoModule(this WebApplication app)
