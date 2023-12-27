@@ -39,6 +39,11 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
             }
         }
 
+        else
+        {
+            problemDetails.Title = exception.Message;
+        }
+
         logger.LogWarning("{ProblemDetailsTitle}", problemDetails.Title);
 
         problemDetails.Status = httpContext.Response.StatusCode;

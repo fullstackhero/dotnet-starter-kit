@@ -3,9 +3,6 @@
 public interface IPagedList<T>
     where T : class
 {
-    int CurrentPageSize { get; }
-    int CurrentStartIndex { get; }
-    int CurrentEndIndex { get; }
     int TotalPages { get; }
     bool HasPrevious { get; }
     bool HasNext { get; }
