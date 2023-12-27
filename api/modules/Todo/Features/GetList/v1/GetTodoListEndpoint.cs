@@ -7,7 +7,8 @@ public static class GetTodoListEndpoint
 {
     internal static RouteHandlerBuilder MapGetTodoListEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        return endpoints.MapGet("/", (int pageNumber, int pageSize, ISender mediator) => mediator.Send(new GetTodoListRequest(pageNumber, pageSize)))
+        return endpoints.MapGet("/", (ISender mediator, int pageNumber = 1, int pageSize = 10) =>
+                mediator.Send(new GetTodoListRequest(pageNumber, pageSize)))
                         .WithName(nameof(GetTodoListEndpoint))
                         .MapToApiVersion(1.0);
     }
