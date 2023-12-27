@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations.Schema;
 using FSH.Framework.Abstractions.Domain;
 using FSH.Framework.Core.Domain.Events;
 
@@ -8,7 +9,7 @@ public abstract class BaseEntity<TId> : IEntity<TId>
 {
     public TId Id { get; protected init; } = default!;
     [NotMapped]
-    public List<DomainEvent> DomainEvents { get; } = new List<DomainEvent>();
+    public Collection<DomainEvent> DomainEvents { get; } = new Collection<DomainEvent>();
     public void QueueDomainEvent(DomainEvent @event)
     {
         if (!DomainEvents.Contains(@event))

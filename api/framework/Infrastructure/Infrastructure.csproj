@@ -45,6 +45,6 @@
     <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Persistence\" />
+    <Folder Include="Events\" />
   </ItemGroup>
 </Project>
