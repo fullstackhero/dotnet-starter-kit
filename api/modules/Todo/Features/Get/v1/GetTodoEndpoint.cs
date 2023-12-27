@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
 namespace FSH.WebApi.Todo.Features.Get.v1;
@@ -9,6 +10,12 @@ public static class GetTodoEndpoint
     {
         return endpoints.MapGet("/{id:guid}", (Guid id, ISender mediator) => mediator.Send(new GetTodoRequest(id)))
                         .WithName(nameof(GetTodoEndpoint))
+                        .WithOpenApi(operation => new(operation)
+                        {
+                            Summary = "gets todo item by id",
+                            Description = "gets todo item by id"
+                        })
+                        .Produces<GetTodoRepsonse>()
                         .MapToApiVersion(1.0);
     }
 }

@@ -1,6 +1,7 @@
 ﻿using FSH.WebApi.Catalog.Application.Products.Creation.v1;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
 namespace FSH.WebApi.Catalog.Infrastructure.Endpoints.v1;
@@ -11,6 +12,12 @@ public static class ProductCreationEndpoint
         return endpoints
             .MapPost("/", (ProductCreationCommand request, ISender mediator) => mediator.Send(request))
             .WithName(nameof(ProductCreationEndpoint))
+            .WithOpenApi(operation => new(operation)
+            {
+                Summary = "creates a product",
+                Description = "creates a product"
+            })
+            .Produces<ProductCreationResponse>()
             .MapToApiVersion(1.0);
     }
 }

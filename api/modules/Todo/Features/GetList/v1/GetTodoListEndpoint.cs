@@ -1,5 +1,7 @@
-﻿using MediatR;
+﻿using FSH.Framework.Core.Paging;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
 namespace FSH.WebApi.Todo.Features.GetList.v1;
@@ -10,6 +12,12 @@ public static class GetTodoListEndpoint
         return endpoints.MapGet("/", (ISender mediator, int pageNumber = 1, int pageSize = 10) =>
                 mediator.Send(new GetTodoListRequest(pageNumber, pageSize)))
                         .WithName(nameof(GetTodoListEndpoint))
+                        .WithOpenApi(operation => new(operation)
+                        {
+                            Summary = "gets a list of todo items with paging support",
+                            Description = "gets a list of todo items with paging support"
+                        })
+                        .Produces<PagedList<TodoDto>>()
                         .MapToApiVersion(1.0);
     }
 }
