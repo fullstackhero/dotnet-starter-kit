@@ -12,11 +12,8 @@ public static class GetTodoListEndpoint
         return endpoints.MapGet("/", (ISender mediator, int pageNumber = 1, int pageSize = 10) =>
                 mediator.Send(new GetTodoListRequest(pageNumber, pageSize)))
                         .WithName(nameof(GetTodoListEndpoint))
-                        .WithOpenApi(operation => new(operation)
-                        {
-                            Summary = "gets a list of todo items with paging support",
-                            Description = "gets a list of todo items with paging support"
-                        })
+                        .WithSummary("gets a list of todo items with paging support")
+                        .WithDescription("gets a list of todo items with paging support")
                         .Produces<PagedList<TodoDto>>()
                         .MapToApiVersion(1.0);
     }

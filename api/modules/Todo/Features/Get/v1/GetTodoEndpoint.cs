@@ -10,11 +10,8 @@ public static class GetTodoEndpoint
     {
         return endpoints.MapGet("/{id:guid}", (Guid id, ISender mediator) => mediator.Send(new GetTodoRequest(id)))
                         .WithName(nameof(GetTodoEndpoint))
-                        .WithOpenApi(operation => new(operation)
-                        {
-                            Summary = "gets todo item by id",
-                            Description = "gets todo item by id"
-                        })
+                        .WithSummary("gets todo item by id")
+                        .WithDescription("gets todo item by id")
                         .Produces<GetTodoRepsonse>()
                         .MapToApiVersion(1.0);
     }

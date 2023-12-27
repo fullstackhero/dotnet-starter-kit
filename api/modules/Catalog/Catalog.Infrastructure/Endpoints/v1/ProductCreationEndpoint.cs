@@ -12,11 +12,8 @@ public static class ProductCreationEndpoint
         return endpoints
             .MapPost("/", (ProductCreationCommand request, ISender mediator) => mediator.Send(request))
             .WithName(nameof(ProductCreationEndpoint))
-            .WithOpenApi(operation => new(operation)
-            {
-                Summary = "creates a product",
-                Description = "creates a product"
-            })
+            .WithSummary("creates a product")
+            .WithDescription("creates a product")
             .Produces<ProductCreationResponse>()
             .MapToApiVersion(1.0);
     }
