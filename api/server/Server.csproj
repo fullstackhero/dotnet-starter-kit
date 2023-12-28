@@ -3,6 +3,11 @@
     <RootNamespace>FSH.WebApi.Server</RootNamespace>
     <AssemblyName>FSH.WebApi.Server</AssemblyName>
   </PropertyGroup>
+  <PropertyGroup>
+    <ContainerRepository>dotnet-webapi-starter-kit</ContainerRepository>
+    <ContainerImageTags>2.0.0;latest</ContainerImageTags>
+    <PublishProfile>DefaultContainer</PublishProfile>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\framework\Core\Core.csproj" />
     <ProjectReference Include="..\Framework\Infrastructure\Infrastructure.csproj" />

@@ -1,0 +1,38 @@
+version: '3.8'
+name: dotnet-webapi-starter-kit
+services:
+
+  webapi:
+    image: iammukeshm/dotnet-webapi-starter-kit:latest
+    container_name: webapi
+    pull_policy: always
+    networks:
+      - fullstackhero
+    depends_on:
+      - postgres
+
+  postgres:
+    container_name: postgres
+    image: postgres:16.1-alpine
+    networks:
+      - fullstackhero
+    environment:
+      - POSTGRES_USER=posgresqladmin
+      - POSTGRES_PASSWORD=posgresqladmin
+      - PGPORT=5433
+    ports:
+      - 5433:5433
+    volumes:
+      - postgres-data:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U posgresqladmin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres-data:
+
+networks:
+  fullstackhero:
+    name:  fullstackhero

@@ -5,8 +5,8 @@
     <EnablePackageVersionOverride>true</EnablePackageVersionOverride>
   </PropertyGroup>
   <PropertyGroup>
-    <IsPublishable>false</IsPublishable>
-    <IsPackable>false</IsPackable>
+    <IsPublishable>true</IsPublishable>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Ardalis.Specification" Version="8.0.0" />
@@ -14,6 +14,8 @@
     <PackageVersion Include="Asp.Versioning.Http" Version="8.0.0" />
     <PackageVersion Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.NET.Build.Containers" Version="8.0.100" />
+    <PackageVersion Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
   </ItemGroup>

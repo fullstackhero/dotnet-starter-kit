@@ -12,6 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 		Directory.Build.props = Directory.Build.props
 		Directory.Packages.props = Directory.Packages.props
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Catalog", "Catalog", "{93324D12-DE1B-4C1B-934A-92AA140FF6F6}"
@@ -34,7 +35,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "Framework
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{32F5383E-4201-4527-98DB-40715BB9F574}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Events", "modules\Shared\Events\Events.csproj", "{2537D27F-FD74-4A9D-8ECB-85FEFB4716D8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Events", "modules\Shared\Events\Events.csproj", "{2537D27F-FD74-4A9D-8ECB-85FEFB4716D8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,0 +1,15 @@
+version: '3.4'
+
+services:
+  webapi:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:7100;http://+:7010
+      - ASPNETCORE_HTTPS_PORT=7100
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=password!
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/cert.pfx
+    ports:
+      - 7010:7010
+      - 7100:7100
+    volumes:
+      - ~/.aspnet/https:/https:ro

@@ -10,6 +10,7 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(httpContext);
+        ArgumentNullException.ThrowIfNull(exception);
         var problemDetails = new ProblemDetails();
         problemDetails.Instance = httpContext.Request.Path;
 

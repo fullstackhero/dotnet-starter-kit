@@ -5,7 +5,7 @@ using FSH.Framework.Core.Persistence;
 using Mapster;
 
 namespace FSH.WebApi.Todo.Persistence;
-internal class TodoRepository<T> : RepositoryBase<T>, IReadRepository<T>, IRepository<T>
+internal sealed class TodoRepository<T> : RepositoryBase<T>, IReadRepository<T>, IRepository<T>
     where T : class, IAggregateRoot
 {
     public TodoRepository(TodoDbContext context)

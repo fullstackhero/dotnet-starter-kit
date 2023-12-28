@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace FSH.WebApi.Todo.Persistence.Configurations;
-internal class TodoItemConfiguration : IEntityTypeConfiguration<TodoItem>
+internal sealed class TodoItemConfiguration : IEntityTypeConfiguration<TodoItem>
 {
     public void Configure(EntityTypeBuilder<TodoItem> builder)
     {

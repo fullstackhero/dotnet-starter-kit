@@ -4,7 +4,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace FSH.WebApi.Todo.Persistence;
-public class TodoDbContext : FshDbContext
+public sealed class TodoDbContext : FshDbContext
 {
     public TodoDbContext(DbContextOptions options, IPublisher publisher)
         : base(options, publisher)

@@ -4,7 +4,7 @@ using Carter;
 using FluentValidation;
 using FSH.Framework.Infrastructure.Behaviours;
 using FSH.Framework.Infrastructure.OpenApi;
-using FSH.WebApi.Catalog.Application;
+using FSH.WebApi.Catalog.Application.Products.Creation.v1;
 using FSH.WebApi.Catalog.Infrastructure;
 using FSH.WebApi.Todo;
 using MediatR;
@@ -20,7 +20,7 @@ public static class Extensions
         //define module assemblies
         var assemblies = new Assembly[]
         {
-            typeof(CatalogApplication).Assembly,
+            typeof(ProductCreationCommand).Assembly,
             typeof(TodoModule).Assembly
         };
 

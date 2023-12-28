@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace FSH.WebApi.Catalog.Infrastructure.Persistence;
-internal class CatalogDbContext
+internal sealed class CatalogDbContext : DbContext
 {
+    public CatalogDbContext(DbContextOptions options) : base(options)
+    {
+    }
 }
