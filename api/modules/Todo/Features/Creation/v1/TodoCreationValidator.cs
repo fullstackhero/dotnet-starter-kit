@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using FSH.WebApi.Todo.Data;
+using FSH.WebApi.Todo.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace FSH.WebApi.Todo.Features.Creation.v1;

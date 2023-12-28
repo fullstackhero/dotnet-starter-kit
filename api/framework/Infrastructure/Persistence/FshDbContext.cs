@@ -1,10 +1,38 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using FSH.Framework.Abstractions.Domain;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Framework.Infrastructure.Persistence;
-internal class FshDbContext
+public class FshDbContext : DbContext
 {
+    private readonly IPublisher _publisher;
+    public FshDbContext(DbContextOptions options, IPublisher publisher)
+        : base(options)
+    {
+        _publisher = publisher;
+    }
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        int result = await base.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        await PublishDomainEventsAsync().ConfigureAwait(false);
+        return result;
+    }
+    private async Task PublishDomainEventsAsync()
+    {
+        var domainEvents = ChangeTracker.Entries<IEntity>()
+            .Select(e => e.Entity)
+            .Where(e => e.DomainEvents.Count > 0)
+            .SelectMany(e =>
+            {
+                var domainEvents = e.DomainEvents.ToList();
+                e.DomainEvents.Clear();
+                return domainEvents;
+            })
+            .ToList();
+
+        foreach (var domainEvent in domainEvents)
+        {
+            await _publisher.Publish(domainEvent).ConfigureAwait(false);
+        }
+    }
 }

@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 namespace FSH.WebApi.Todo.Domain.Events;
 public record TodoItemCreated(Guid Id, string Title) : DomainEvent;
 
-public class TodoItemCreatedHandler(ILogger<TodoItemCreatedHandler> logger) : INotificationHandler<TodoItemCreated>
+public class TodoItemCreatedEventHandler(ILogger<TodoItemCreatedEventHandler> logger) : INotificationHandler<TodoItemCreated>
 {
     public async Task Handle(TodoItemCreated notification, CancellationToken cancellationToken)
     {

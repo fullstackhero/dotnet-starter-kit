@@ -8,6 +8,6 @@
     <ProjectReference Include="..\Catalog.Application\Catalog.Application.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Data\Configurations\" />
+    <Folder Include="Persistence\Configurations\" />
   </ItemGroup>
 </Project>

@@ -4,7 +4,7 @@ using FSH.Framework.Core.Domain.Contracts;
 using FSH.Framework.Core.Persistence;
 using Mapster;
 
-namespace FSH.WebApi.Todo.Data;
+namespace FSH.WebApi.Todo.Persistence;
 internal class TodoRepository<T> : RepositoryBase<T>, IReadRepository<T>, IRepository<T>
     where T : class, IAggregateRoot
 {
