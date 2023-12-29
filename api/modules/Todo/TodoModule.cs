@@ -33,7 +33,6 @@ public static class TodoModule
     }
     public static WebApplication UseTodoModule(this WebApplication app)
     {
-        app.EnsureMigrations<TodoDbContext>();
         return app;
     }
 }

@@ -22,7 +22,6 @@ internal static class Extensions
 
         ArgumentNullException.ThrowIfNull(app);
         app.UseMultiTenant();
-        app.EnsureMigrations<TenantDbContext>();
         return app;
     }
 }

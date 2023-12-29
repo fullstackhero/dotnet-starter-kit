@@ -12,7 +12,7 @@ public static class Extensions
     {
         return dbProvider.ToUpperInvariant() switch
         {
-            DbProviderKeys.PostgreSQL => builder.UseNpgsql(connectionString, e =>
+            DbProviders.PostgreSQL => builder.UseNpgsql(connectionString, e =>
                                  e.MigrationsAssembly("FSH.WebApi.Migrations.PostgreSQL")),
             _ => throw new InvalidOperationException($"DB Provider {dbProvider} is not supported."),
         };
@@ -53,26 +53,7 @@ public static class Extensions
                 options.ConfigureDatabase(dbConfig.Provider, dbConfig.ConnectionString);
             }
         });
+        services.AddHostedService<DbMigrationService<T>>();
         return services;
-    }
-
-    public static IApplicationBuilder EnsureMigrations<T>(this IApplicationBuilder app) where T : DbContext
-    {
-
-        ArgumentNullException.ThrowIfNull(app);
-        using (var scope = app.ApplicationServices.CreateScope())
-        {
-            var config = scope.ServiceProvider.GetService<IOptions<DbConfig>>()!.Value;
-            if (config.UseInMemoryDb) return app;
-
-            var context = scope.ServiceProvider.GetService<T>();
-            ArgumentNullException.ThrowIfNull(context);
-            if (context.Database.GetPendingMigrations().Any())
-            {
-                context.Database.Migrate();
-                _logger.Information("applied database migrations for {Module} module", typeof(T).Name.ToUpperInvariant().Replace("DBCONTEXT", "", StringComparison.InvariantCultureIgnoreCase));
-            }
-        }
-        return app;
     }
 }
