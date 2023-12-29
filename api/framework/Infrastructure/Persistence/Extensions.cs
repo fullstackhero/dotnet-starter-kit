@@ -8,7 +8,7 @@ namespace FSH.Framework.Infrastructure.Persistence;
 public static class Extensions
 {
     private static readonly ILogger _logger = Log.ForContext(typeof(Extensions));
-    internal static DbContextOptionsBuilder UseDatabase(this DbContextOptionsBuilder builder, string dbProvider, string connectionString)
+    internal static DbContextOptionsBuilder ConfigureDatabase(this DbContextOptionsBuilder builder, string dbProvider, string connectionString)
     {
         return dbProvider.ToUpperInvariant() switch
         {
@@ -50,13 +50,13 @@ public static class Extensions
             }
             else
             {
-                options.UseDatabase(dbConfig.Provider, dbConfig.ConnectionString);
+                options.ConfigureDatabase(dbConfig.Provider, dbConfig.ConnectionString);
             }
         });
         return services;
     }
 
-    public static IApplicationBuilder InitDatabase<T>(this IApplicationBuilder app) where T : DbContext
+    public static IApplicationBuilder EnsureMigrations<T>(this IApplicationBuilder app) where T : DbContext
     {
 
         ArgumentNullException.ThrowIfNull(app);
@@ -70,6 +70,7 @@ public static class Extensions
             if (context.Database.GetPendingMigrations().Any())
             {
                 context.Database.Migrate();
+                _logger.Information("applied database migrations for {Module} module", typeof(T).Name.ToUpperInvariant().Replace("DBCONTEXT", "", StringComparison.InvariantCultureIgnoreCase));
             }
         }
         return app;
