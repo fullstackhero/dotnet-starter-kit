@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using FSH.Framework.Core.Persistence;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -38,22 +39,26 @@ public static class Extensions
         return builder;
     }
 
-    public static IServiceCollection BindDbContext<T>(this IServiceCollection services) where T : DbContext
+    public static IServiceCollection BindDbContext<TContext, TDb>(this IServiceCollection services)
+        where TContext : DbContext
+        where TDb : class, IDbBootstrapper
     {
         ArgumentNullException.ThrowIfNull(services);
-        services.AddDbContext<T>((p, options) =>
+
+        services.AddScoped<IDbBootstrapper, TDb>();
+
+        services.AddDbContext<TContext>((p, options) =>
         {
             var dbConfig = p.GetRequiredService<IOptions<DbConfig>>().Value;
             if (dbConfig.UseInMemoryDb)
             {
-                options.UseInMemoryDatabase(nameof(T).ToUpperInvariant().Replace("DBCONTEXT", "", StringComparison.InvariantCultureIgnoreCase));
+                options.UseInMemoryDatabase("fshdb");
             }
             else
             {
                 options.ConfigureDatabase(dbConfig.Provider, dbConfig.ConnectionString);
             }
         });
-        services.AddHostedService<DbMigrationService<T>>();
         return services;
     }
 }

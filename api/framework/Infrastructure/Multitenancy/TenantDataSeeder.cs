@@ -1,7 +1,5 @@
-﻿using FSH.Framework.Infrastructure.Persistence.Abstractions;
-
-namespace FSH.Framework.Infrastructure.Multitenancy;
-public class TenantDataSeeder(TenantDbContext context) : IDataSeeder
+﻿namespace FSH.Framework.Infrastructure.Multitenancy;
+public class TenantDataSeeder(TenantDbContext context)
 {
     public async Task SeedAsync(CancellationToken cancellationToken)
     {

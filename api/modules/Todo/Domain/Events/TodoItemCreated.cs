@@ -8,9 +8,10 @@ public record TodoItemCreated(Guid Id, string Title) : DomainEvent;
 
 public class TodoItemCreatedEventHandler(ILogger<TodoItemCreatedEventHandler> logger) : INotificationHandler<TodoItemCreated>
 {
-    public async Task Handle(TodoItemCreated notification, CancellationToken cancellationToken)
+    public Task Handle(TodoItemCreated notification, CancellationToken cancellationToken)
     {
         logger.LogInformation("handling todo item created domain event..");
         logger.LogInformation("finished handling todo item created domain event..");
+        return Task.CompletedTask;
     }
 }

@@ -2,15 +2,27 @@
 using FSH.Framework.Abstractions.Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace FSH.Framework.Infrastructure.Persistence;
 public class FshDbContext : MultiTenantDbContext
 {
     private readonly IPublisher _publisher;
-    public FshDbContext(ITenantInfo currentTenant, DbContextOptions options, IPublisher publisher)
+    private readonly DbConfig _settings;
+    public FshDbContext(ITenantInfo currentTenant, DbContextOptions options, IPublisher publisher, IOptions<DbConfig> settings)
         : base(currentTenant, options)
     {
         _publisher = publisher;
+        _settings = settings.Value;
+    }
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        optionsBuilder.EnableSensitiveDataLogging();
+
+        if (!string.IsNullOrWhiteSpace(TenantInfo?.ConnectionString))
+        {
+            optionsBuilder.ConfigureDatabase(_settings.Provider, TenantInfo.ConnectionString);
+        }
     }
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

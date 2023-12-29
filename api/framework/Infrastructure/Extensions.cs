@@ -10,7 +10,7 @@ namespace FSH.Framework.Infrastructure;
 
 public static class Extensions
 {
-    public static WebApplicationBuilder AddFSHFramework(this WebApplicationBuilder builder)
+    public static WebApplicationBuilder AddFshFramework(this WebApplicationBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
         builder.AddLogging();
@@ -22,7 +22,7 @@ public static class Extensions
         return builder;
     }
 
-    public static WebApplication UseFSHFramework(this WebApplication app)
+    public static WebApplication UseFshFramework(this WebApplication app)
     {
         app.UseHttpsRedirection();
         app.UseFshMultitenancy();

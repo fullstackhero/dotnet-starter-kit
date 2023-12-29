@@ -2,9 +2,11 @@
 using Asp.Versioning.Conventions;
 using Carter;
 using FluentValidation;
+using FSH.Framework.Core;
 using FSH.Framework.Infrastructure.Behaviours;
+using FSH.Framework.Infrastructure.Multitenancy;
 using FSH.Framework.Infrastructure.OpenApi;
-using FSH.WebApi.Catalog.Application.Products.Creation.v1;
+using FSH.WebApi.Catalog.Application;
 using FSH.WebApi.Catalog.Infrastructure;
 using FSH.WebApi.Todo;
 using MediatR;
@@ -20,8 +22,9 @@ public static class Extensions
         //define module assemblies
         var assemblies = new Assembly[]
         {
-            typeof(ProductCreationCommand).Assembly,
-            typeof(TodoModule).Assembly
+            typeof(FshCore).Assembly,
+            typeof(CatalogApplication).Assembly,
+            typeof(TodoApplication).Assembly
         };
 
         //register validators
@@ -42,6 +45,7 @@ public static class Extensions
         builder.Services.AddCarter(configurator: config =>
         {
             config.WithModule<CatalogModule.Endpoints>();
+            config.WithModule<MutitenancyModule.Endpoints>();
             config.WithModule<TodoModule.Endpoints>();
         });
 
