@@ -1,4 +1,4 @@
-﻿namespace FSH.Framework.Infrastructure.Database;
+﻿namespace FSH.Framework.Infrastructure.Persistence;
 public class DbConfig
 {
     public bool UseInMemoryDb { get; set; } = true;

@@ -390,3 +390,4 @@ indent_size = 4
 end_of_line = lf
 dotnet_diagnostic.CA1711.severity = none
 dotnet_diagnostic.CA1716.severity = none
+dotnet_diagnostic.CA1062.severity = none

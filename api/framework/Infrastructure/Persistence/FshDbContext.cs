@@ -1,13 +1,14 @@
-﻿using FSH.Framework.Abstractions.Domain;
+﻿using Finbuckle.MultiTenant;
+using FSH.Framework.Abstractions.Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Framework.Infrastructure.Persistence;
-public class FshDbContext : DbContext
+public class FshDbContext : MultiTenantDbContext
 {
     private readonly IPublisher _publisher;
-    public FshDbContext(DbContextOptions options, IPublisher publisher)
-        : base(options)
+    public FshDbContext(ITenantInfo currentTenant, DbContextOptions options, IPublisher publisher)
+        : base(currentTenant, options)
     {
         _publisher = publisher;
     }

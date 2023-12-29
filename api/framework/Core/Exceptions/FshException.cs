@@ -14,4 +14,9 @@ public class FshException : Exception
         ErrorMessages = errors;
         StatusCode = statusCode;
     }
+
+    public FshException(string message) : base(message)
+    {
+        ErrorMessages = new Collection<string>();
+    }
 }

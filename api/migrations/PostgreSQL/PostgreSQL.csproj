@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>FSH.WebApi.Migrations.PostgreSQL</RootNamespace>
+    <AssemblyName>FSH.WebApi.Migrations.PostgreSQL</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Framework\Infrastructure\Infrastructure.csproj" />
+    <ProjectReference Include="..\..\modules\Todo\Todo.csproj" />
+  </ItemGroup>
+</Project>

@@ -11,7 +11,6 @@ public class TodoItemCreatedEventHandler(ILogger<TodoItemCreatedEventHandler> lo
     public async Task Handle(TodoItemCreated notification, CancellationToken cancellationToken)
     {
         logger.LogInformation("handling todo item created domain event..");
-        await Task.Delay(1000, cancellationToken).ConfigureAwait(false);
         logger.LogInformation("finished handling todo item created domain event..");
     }
 }

@@ -54,6 +54,7 @@ public static class Extensions
 
         //register modules
         app.UseCatalogModule();
+        app.UseTodoModule();
 
         //register api versions
         var versions = app.NewApiVersionSet()
