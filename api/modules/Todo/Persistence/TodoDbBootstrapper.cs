@@ -14,9 +14,19 @@ internal sealed class TodoDbBootstrapper(
     IOptions<DbConfig> config,
     IServiceProvider serviceProvider) : IDbBootstrapper
 {
-    public async Task BootstrapAsync(FshTenantInfo? tenant, CancellationToken cancellationToken)
+    public async Task StartAsync(FshTenantInfo? tenant, CancellationToken cancellationToken)
     {
         if (!config.Value.UseInMemoryDb)
+        {
+            SetTenantConnectionString(serviceProvider, tenant);
+            if ((await context.Database.GetPendingMigrationsAsync(cancellationToken).ConfigureAwait(false)).Any())
+            {
+                await context.Database.MigrateAsync(cancellationToken).ConfigureAwait(false);
+                logger.LogInformation("applied database migrations for todo module");
+            }
+        }
+
+        static void SetTenantConnectionString(IServiceProvider serviceProvider, FshTenantInfo? tenant)
         {
             if (tenant != null)
             {
@@ -26,11 +36,6 @@ internal sealed class TodoDbBootstrapper(
                     {
                         TenantInfo = tenant
                     };
-            }
-            if ((await context.Database.GetPendingMigrationsAsync(cancellationToken).ConfigureAwait(false)).Any())
-            {
-                await context.Database.MigrateAsync(cancellationToken).ConfigureAwait(false);
-                logger.LogInformation("applied database migrations for todo module");
             }
         }
     }

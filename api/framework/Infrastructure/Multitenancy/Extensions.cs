@@ -35,7 +35,7 @@ internal static class Extensions
         //migrate primary database
         foreach (var db in services)
         {
-            db.BootstrapAsync(null, CancellationToken.None).Wait();
+            db.StartAsync(null, CancellationToken.None).Wait();
         }
 
         //get all other tenants
@@ -45,7 +45,7 @@ internal static class Extensions
         {
             foreach (var db in services)
             {
-                db.BootstrapAsync(tenant, CancellationToken.None).Wait();
+                db.StartAsync(tenant, CancellationToken.None).Wait();
             }
         }
         return app;

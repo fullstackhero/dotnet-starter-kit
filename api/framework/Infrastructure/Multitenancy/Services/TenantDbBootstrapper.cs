@@ -10,7 +10,7 @@ public sealed class TenantDbBootstrapper(
     TenantDbContext context,
     IOptions<DbConfig> config) : IDbBootstrapper
 {
-    public async Task BootstrapAsync(FshTenantInfo? tenant, CancellationToken cancellationToken)
+    public async Task StartAsync(FshTenantInfo? tenant, CancellationToken cancellationToken)
     {
         if (!config.Value.UseInMemoryDb && (await context.Database.GetPendingMigrationsAsync(cancellationToken).ConfigureAwait(false)).Any())
         {

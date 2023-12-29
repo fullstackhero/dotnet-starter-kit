@@ -71,7 +71,7 @@ public sealed class TenantService : ITenantService
         var dbServices = scope.ServiceProvider.GetServices<IDbBootstrapper>();
         foreach (var db in dbServices)
         {
-            await db.BootstrapAsync(tenant, CancellationToken.None).ConfigureAwait(false);
+            await db.StartAsync(tenant, CancellationToken.None).ConfigureAwait(false);
         }
     }
 

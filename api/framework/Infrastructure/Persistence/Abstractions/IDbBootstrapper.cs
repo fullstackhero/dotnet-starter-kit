@@ -3,5 +3,5 @@
 namespace FSH.Framework.Core.Persistence;
 public interface IDbBootstrapper
 {
-    Task BootstrapAsync(FshTenantInfo? tenant, CancellationToken cancellationToken);
+    Task StartAsync(FshTenantInfo? tenant, CancellationToken cancellationToken);
 }
