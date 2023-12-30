@@ -26,7 +26,8 @@ public static class TodoModule
     public static WebApplicationBuilder RegisterTodoServices(this WebApplicationBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
-        builder.Services.BindDbContext<TodoDbContext, TodoDbBootstrapper>();
+        builder.Services.BindDbContext<TodoDbContext>();
+        builder.Services.AddScoped<IDbInitializer, TodoDbInitializer>();
         builder.Services.AddScoped(typeof(IRepository<>), typeof(TodoRepository<>));
         builder.Services.AddScoped(typeof(IReadRepository<>), typeof(TodoRepository<>));
         return builder;

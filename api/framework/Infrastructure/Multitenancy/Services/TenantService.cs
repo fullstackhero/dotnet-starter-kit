@@ -41,6 +41,8 @@ public sealed class TenantService : ITenantService
 
     public async Task<string> CreateAsync(TenantCreationCommand request, CancellationToken cancellationToken)
     {
+        if (_config.UseInMemoryDb) throw new FshException("tenant creation is not allowed while using in-memory db");
+
         var connectionString = request.ConnectionString;
         if (request.ConnectionString?.Trim() == _config.ConnectionString.Trim())
         {
@@ -50,12 +52,12 @@ public sealed class TenantService : ITenantService
         FshTenantInfo tenant = new(request.Id, request.Name, connectionString, request.AdminEmail, request.Issuer);
         await _tenantStore.TryAddAsync(tenant).ConfigureAwait(false);
 
-        await BootstrapTenantDatabase(tenant).ConfigureAwait(false);
+        await InitializeDatabase(tenant).ConfigureAwait(false);
 
         return tenant.Id;
     }
 
-    private async Task BootstrapTenantDatabase(FshTenantInfo tenant)
+    private async Task InitializeDatabase(FshTenantInfo tenant)
     {
         // First create a new scope
         using var scope = _serviceProvider.CreateScope();
@@ -68,10 +70,11 @@ public sealed class TenantService : ITenantService
             };
 
         // using the scope, perform migrations / seeding
-        var dbServices = scope.ServiceProvider.GetServices<IDbBootstrapper>();
-        foreach (var db in dbServices)
+        var initializers = scope.ServiceProvider.GetServices<IDbInitializer>();
+        foreach (var initializer in initializers)
         {
-            await db.StartAsync(tenant, CancellationToken.None).ConfigureAwait(false);
+            await initializer.MigrateAsync(CancellationToken.None).ConfigureAwait(false);
+            await initializer.SeedAsync(CancellationToken.None).ConfigureAwait(false);
         }
     }
 

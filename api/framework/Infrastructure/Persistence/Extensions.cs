@@ -1,5 +1,4 @@
-﻿using FSH.Framework.Core.Persistence;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -39,13 +38,10 @@ public static class Extensions
         return builder;
     }
 
-    public static IServiceCollection BindDbContext<TContext, TDb>(this IServiceCollection services)
+    public static IServiceCollection BindDbContext<TContext>(this IServiceCollection services)
         where TContext : DbContext
-        where TDb : class, IDbBootstrapper
     {
         ArgumentNullException.ThrowIfNull(services);
-
-        services.AddScoped<IDbBootstrapper, TDb>();
 
         services.AddDbContext<TContext>((p, options) =>
         {

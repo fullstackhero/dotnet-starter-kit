@@ -11,8 +11,9 @@ public sealed class MutitenancyModule
     {
         public override void AddRoutes(IEndpointRouteBuilder app)
         {
-            var todoGroup = app.MapGroup("tenants").WithTags("tenants");
-            todoGroup.MapTenantCreationEndpoint();
+            var tenantGroup = app.MapGroup("tenants").WithTags("tenants");
+            tenantGroup.MapTenantCreationEndpoint();
+            tenantGroup.MapGetTenantListEndpoint();
         }
     }
 }

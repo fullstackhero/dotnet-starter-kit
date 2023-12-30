@@ -25,7 +25,7 @@ public static class Extensions
     public static WebApplication UseFshFramework(this WebApplication app)
     {
         app.UseHttpsRedirection();
-        app.UseFshMultitenancy();
+        app.UseMultitenancy();
         app.UseExceptionHandler();
         return app;
     }
