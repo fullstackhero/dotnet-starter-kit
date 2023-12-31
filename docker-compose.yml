@@ -30,6 +30,26 @@ services:
       timeout: 5s
       retries: 5
 
+  keycloak:   
+    container_name: keycloak  
+    image: quay.io/keycloak/keycloak:latest
+    entrypoint: /opt/keycloak/bin/kc.sh start-dev --hostname-strict=false --hostname-port=7011
+    networks:
+      - fullstackhero
+    environment:
+      DB_VENDOR: POSTGRES
+      DB_ADDR: postgres
+      DB_DATABASE: keycloak
+      DB_USER: posgresqladmin
+      DB_SCHEMA: public
+      DB_PASSWORD: posgresqladmin
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - 7011:8080
+    depends_on:
+      - postgres
+
 volumes:
   postgres-data:
 

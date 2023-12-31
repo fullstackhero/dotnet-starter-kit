@@ -8,6 +8,9 @@ services:
       - ASPNETCORE_HTTPS_PORT=7100
       - ASPNETCORE_Kestrel__Certificates__Default__Password=password!
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/cert.pfx
+      - DbConfig__UseInMemoryDb=false
+      - DbConfig__Provider=postgresql
+      - DbConfig__ConnectionString=Server=postgres;Port=5433;Database=fshdb;User Id=posgresqladmin;Password=posgresqladmin
     ports:
       - 7010:7010
       - 7100:7100
