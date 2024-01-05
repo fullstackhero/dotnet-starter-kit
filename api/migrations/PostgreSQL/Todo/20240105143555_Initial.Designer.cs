@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FSH.WebApi.Migrations.PostgreSQL.Todo
 {
     [DbContext(typeof(TodoDbContext))]
-    [Migration("20231230122231_Initial")]
+    [Migration("20240105143555_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -48,6 +48,11 @@ namespace FSH.WebApi.Migrations.PostgreSQL.Todo
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<string>("Title")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
@@ -55,6 +60,8 @@ namespace FSH.WebApi.Migrations.PostgreSQL.Todo
                     b.HasKey("Id");
 
                     b.ToTable("Todos", "todo");
+
+                    b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 #pragma warning restore 612, 618
         }

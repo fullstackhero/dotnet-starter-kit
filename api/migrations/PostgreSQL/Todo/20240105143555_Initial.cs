@@ -22,6 +22,7 @@ namespace FSH.WebApi.Migrations.PostgreSQL.Todo
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Title = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     Note = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
+                    TenantId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                     Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CreatedBy = table.Column<Guid>(type: "uuid", nullable: false),
                     LastModified = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),

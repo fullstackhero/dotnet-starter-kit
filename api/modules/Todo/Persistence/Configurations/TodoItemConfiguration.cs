@@ -1,4 +1,5 @@
-﻿using FSH.WebApi.Todo.Models;
+﻿using Finbuckle.MultiTenant.EntityFrameworkCore;
+using FSH.WebApi.Todo.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -7,6 +8,7 @@ internal sealed class TodoItemConfiguration : IEntityTypeConfiguration<TodoItem>
 {
     public void Configure(EntityTypeBuilder<TodoItem> builder)
     {
+        builder.IsMultiTenant();
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Title)
                 .HasMaxLength(100);
