@@ -15,6 +15,6 @@ public static class GetTodoListEndpoint
                         .WithSummary("gets a list of todo items with paging support")
                         .WithDescription("gets a list of todo items with paging support")
                         .Produces<PagedList<TodoDto>>()
-                        .MapToApiVersion(1.0);
+                        .MapToApiVersion(1);
     }
 }

@@ -15,6 +15,6 @@ public static class ProductCreationEndpoint
             .WithSummary("creates a product")
             .WithDescription("creates a product")
             .Produces<ProductCreationResponse>()
-            .MapToApiVersion(1.0);
+            .MapToApiVersion(1);
     }
 }

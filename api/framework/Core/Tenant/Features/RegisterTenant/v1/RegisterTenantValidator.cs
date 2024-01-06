@@ -2,7 +2,7 @@
 using FSH.Framework.Core.Abstraction.Persistence;
 using FSH.Framework.Core.Tenant.Abstractions;
 
-namespace FSH.Framework.Core.Tenant.Features.v1.RegisterTenant;
+namespace FSH.Framework.Core.Tenant.Features.RegisterTenant.v1;
 public class RegisterTenantValidator : AbstractValidator<RegisterTenantCommand>
 {
     public RegisterTenantValidator(

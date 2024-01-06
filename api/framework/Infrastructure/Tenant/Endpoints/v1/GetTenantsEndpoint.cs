@@ -1,4 +1,4 @@
-﻿using FSH.Framework.Core.Tenant.Features.v1.GetTenants;
+﻿using FSH.Framework.Core.Tenant.Features.GetTenants.v1;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -13,6 +13,6 @@ public static class GetTenantsEndpoint
                                 .WithName(nameof(GetTenantsEndpoint))
                                 .WithSummary("get tenants")
                                 .WithDescription("get tenants")
-                                .MapToApiVersion(1.0);
+                                .MapToApiVersion(1);
     }
 }

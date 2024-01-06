@@ -1,5 +1,5 @@
 ﻿using FSH.Framework.Core.Tenant.Dtos;
-using FSH.Framework.Core.Tenant.Features.v1.RegisterTenant;
+using FSH.Framework.Core.Tenant.Features.RegisterTenant.v1;
 
 namespace FSH.Framework.Core.Tenant.Abstractions;
 public interface ITenantService

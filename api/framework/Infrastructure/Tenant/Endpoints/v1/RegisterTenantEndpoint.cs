@@ -1,4 +1,4 @@
-﻿using FSH.Framework.Core.Tenant.Features.v1.RegisterTenant;
+﻿using FSH.Framework.Core.Tenant.Features.RegisterTenant.v1;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -13,6 +13,6 @@ public static class RegisterTenantEndpoint
                                 .WithName(nameof(MapRegisterTenantEndpoint))
                                 .WithSummary("creates a tenant")
                                 .WithDescription("creates a tenant")
-                                .MapToApiVersion(1.0);
+                                .MapToApiVersion(1);
     }
 }

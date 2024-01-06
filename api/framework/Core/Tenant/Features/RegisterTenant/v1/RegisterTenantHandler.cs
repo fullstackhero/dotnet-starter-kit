@@ -1,7 +1,7 @@
 ﻿using FSH.Framework.Core.Tenant.Abstractions;
 using MediatR;
 
-namespace FSH.Framework.Core.Tenant.Features.v1.RegisterTenant;
+namespace FSH.Framework.Core.Tenant.Features.RegisterTenant.v1;
 public sealed class RegisterTenantHandler(ITenantService service) : IRequestHandler<RegisterTenantCommand, string>
 {
     public Task<string> Handle(RegisterTenantCommand request, CancellationToken cancellationToken)

@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace FSH.Framework.Core.Tenant.Features.v1.RegisterTenant;
+namespace FSH.Framework.Core.Tenant.Features.RegisterTenant.v1;
 public sealed record RegisterTenantCommand(string Id,
     string Name,
     string? ConnectionString,

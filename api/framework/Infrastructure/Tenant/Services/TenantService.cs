@@ -4,7 +4,7 @@ using FSH.Framework.Core.Configurations;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Core.Tenant.Abstractions;
 using FSH.Framework.Core.Tenant.Dtos;
-using FSH.Framework.Core.Tenant.Features.v1.RegisterTenant;
+using FSH.Framework.Core.Tenant.Features.RegisterTenant.v1;
 using Mapster;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;

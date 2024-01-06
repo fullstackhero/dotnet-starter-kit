@@ -2,10 +2,10 @@
 using FSH.WebApi.Todo.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace FSH.WebApi.Todo.Features.Creation.v1;
-public class TodoCreationValidator : AbstractValidator<TodoCreationCommand>
+namespace FSH.WebApi.Todo.Features.CreateTodo.v1;
+public class CreateTodoValidator : AbstractValidator<CreateTodoCommand>
 {
-    public TodoCreationValidator(TodoDbContext context)
+    public CreateTodoValidator(TodoDbContext context)
     {
         RuleFor(p => p.Title)
             .NotEmpty()
