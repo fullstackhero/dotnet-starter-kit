@@ -39,9 +39,7 @@ public static class Extensions
             app.UseSwagger();
             app.UseSwaggerUI(options =>
             {
-                options.DefaultModelExpandDepth(-1);
-                options.DocExpansion(DocExpansion.List);
-                options.RoutePrefix = "docs";
+                options.DocExpansion(DocExpansion.None);
 
                 var swaggerEndpoints = app.DescribeApiVersions()
                     .Select(desc => new

@@ -2,7 +2,7 @@
   "profiles": {
     "Kestrel": {
       "commandName": "Project",
-      "launchUrl": "docs",
+      "launchUrl": "swagger",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },

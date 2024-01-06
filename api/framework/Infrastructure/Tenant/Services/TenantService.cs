@@ -4,7 +4,7 @@ using FSH.Framework.Core.Configurations;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Core.Tenant.Abstractions;
 using FSH.Framework.Core.Tenant.Dtos;
-using FSH.Framework.Core.Tenant.Features;
+using FSH.Framework.Core.Tenant.Features.v1.RegisterTenant;
 using Mapster;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -39,7 +39,7 @@ public sealed class TenantService : ITenantService
         return $"Tenant {id} is now Activated.";
     }
 
-    public async Task<string> CreateAsync(RegisterTenant.Command request, CancellationToken cancellationToken)
+    public async Task<string> CreateAsync(RegisterTenantCommand request, CancellationToken cancellationToken)
     {
         var connectionString = request.ConnectionString;
         if (request.ConnectionString?.Trim() == _config.ConnectionString.Trim())

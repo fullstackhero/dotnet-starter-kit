@@ -1,4 +1,4 @@
-﻿using FSH.Framework.Core.Tenant.Features;
+﻿using FSH.Framework.Core.Tenant.Features.v1.GetTenants;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -9,7 +9,7 @@ public static class GetTenantsEndpoint
 {
     internal static RouteHandlerBuilder MapGetTenantsEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        return endpoints.MapGet("/", (ISender mediator) => mediator.Send(new GetTenants.Query()))
+        return endpoints.MapGet("/", (ISender mediator) => mediator.Send(new GetTenantsQuery()))
                                 .WithName(nameof(GetTenantsEndpoint))
                                 .WithSummary("get tenants")
                                 .WithDescription("get tenants")
