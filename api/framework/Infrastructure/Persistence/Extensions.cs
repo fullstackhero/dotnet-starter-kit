@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using FSH.Framework.Core.Configurations;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -21,18 +22,11 @@ public static class Extensions
     public static WebApplicationBuilder AddDatabase(this WebApplicationBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
-        builder.Services.AddOptions<DbConfig>()
-            .BindConfiguration(nameof(DbConfig))
+        builder.Services.AddOptions<DatabaseOptions>()
+            .BindConfiguration(DatabaseOptions.SectionName)
             .PostConfigure(config =>
             {
-                if (config.UseInMemoryDb)
-                {
-                    _logger.Information("using in-memory database..");
-                }
-                else
-                {
-                    _logger.Information("current db provider: {dbProvider}", config.Provider);
-                }
+                _logger.Information("current db provider: {dbProvider}", config.Provider);
 
             });
         return builder;
@@ -45,15 +39,8 @@ public static class Extensions
 
         services.AddDbContext<TContext>((p, options) =>
         {
-            var dbConfig = p.GetRequiredService<IOptions<DbConfig>>().Value;
-            if (dbConfig.UseInMemoryDb)
-            {
-                options.UseInMemoryDatabase("fshdb");
-            }
-            else
-            {
-                options.ConfigureDatabase(dbConfig.Provider, dbConfig.ConnectionString);
-            }
+            var dbConfig = p.GetRequiredService<IOptions<DatabaseOptions>>().Value;
+            options.ConfigureDatabase(dbConfig.Provider, dbConfig.ConnectionString);
         });
         return services;
     }

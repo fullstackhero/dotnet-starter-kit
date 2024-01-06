@@ -1,20 +1,16 @@
-﻿using FSH.Framework.Core.Persistence;
-using FSH.Framework.Infrastructure.Persistence;
+﻿using FSH.Framework.Core.Abstraction.Persistence;
 using FSH.WebApi.Todo.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace FSH.WebApi.Todo.Persistence;
 internal sealed class TodoDbInitializer(
     ILogger<TodoDbInitializer> logger,
-    TodoDbContext context,
-    IOptions<DbConfig> config) : IDbInitializer
+    TodoDbContext context) : IDbInitializer
 {
     public async Task MigrateAsync(CancellationToken cancellationToken)
     {
-        if (!config.Value.UseInMemoryDb
-            && (await context.Database.GetPendingMigrationsAsync(cancellationToken).ConfigureAwait(false)).Any())
+        if ((await context.Database.GetPendingMigrationsAsync(cancellationToken).ConfigureAwait(false)).Any())
         {
             await context.Database.MigrateAsync(cancellationToken).ConfigureAwait(false);
             logger.LogInformation("[{Tenant}] applied database migrations for todo module", context.TenantInfo.Identifier);

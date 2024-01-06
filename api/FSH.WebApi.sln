@@ -39,7 +39,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Events", "modules\Shared\Ev
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Migrations", "Migrations", "{12F8343D-20A6-4E24-B0F5-3A66F2228CF6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostgreSQL", "migrations\PostgreSQL\PostgreSQL.csproj", "{6EB9D713-B3F6-495A-AF78-8DF2234B758C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PostgreSQL", "migrations\PostgreSQL\PostgreSQL.csproj", "{6EB9D713-B3F6-495A-AF78-8DF2234B758C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

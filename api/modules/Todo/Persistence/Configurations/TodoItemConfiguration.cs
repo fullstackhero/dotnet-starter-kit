@@ -10,9 +10,7 @@ internal sealed class TodoItemConfiguration : IEntityTypeConfiguration<TodoItem>
     {
         builder.IsMultiTenant();
         builder.HasKey(x => x.Id);
-        builder.Property(x => x.Title)
-                .HasMaxLength(100);
-        builder.Property(x => x.Note)
-                .HasMaxLength(1000);
+        builder.Property(x => x.Title).HasMaxLength(100);
+        builder.Property(x => x.Note).HasMaxLength(1000);
     }
 }

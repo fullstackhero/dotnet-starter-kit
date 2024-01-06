@@ -2,14 +2,10 @@
 using Asp.Versioning.Conventions;
 using Carter;
 using FluentValidation;
-using FSH.Framework.Core;
-using FSH.Framework.Infrastructure.Behaviours;
-using FSH.Framework.Infrastructure.Multitenancy;
 using FSH.Framework.Infrastructure.OpenApi;
 using FSH.WebApi.Catalog.Application;
 using FSH.WebApi.Catalog.Infrastructure;
 using FSH.WebApi.Todo;
-using MediatR;
 
 namespace FSH.WebApi.Server;
 
@@ -22,7 +18,6 @@ public static class Extensions
         //define module assemblies
         var assemblies = new Assembly[]
         {
-            typeof(FshCore).Assembly,
             typeof(CatalogApplication).Assembly,
             typeof(TodoApplication).Assembly
         };
@@ -34,7 +29,6 @@ public static class Extensions
         builder.Services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssemblies(assemblies);
-            cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         });
 
         //register module services
@@ -45,7 +39,6 @@ public static class Extensions
         builder.Services.AddCarter(configurator: config =>
         {
             config.WithModule<CatalogModule.Endpoints>();
-            config.WithModule<MutitenancyModule.Endpoints>();
             config.WithModule<TodoModule.Endpoints>();
         });
 
@@ -69,10 +62,6 @@ public static class Extensions
 
         //map versioned endpoint
         var endpoints = app.MapGroup("api/v{version:apiVersion}").WithApiVersionSet(versions);
-
-        //register dummy endpoints
-        endpoints.MapGet("/", () => "hello earth!").WithTags("hello").HasApiVersion(1);
-        endpoints.MapGet("/", () => "hello world!").WithTags("hello").HasApiVersion(2);
 
         //use carter
         endpoints.MapCarter();

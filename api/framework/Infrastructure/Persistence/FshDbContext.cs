@@ -1,14 +1,19 @@
 ﻿using Finbuckle.MultiTenant;
 using FSH.Framework.Abstractions.Domain;
+using FSH.Framework.Core.Configurations;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace FSH.Framework.Infrastructure.Persistence;
-public class FshDbContext(ITenantInfo currentTenant, DbContextOptions options, IPublisher publisher, IOptions<DbConfig> settings) : MultiTenantDbContext(currentTenant, options)
+public class FshDbContext(ITenantInfo currentTenant,
+    DbContextOptions options,
+    IPublisher publisher,
+    IOptions<DatabaseOptions> settings)
+    : MultiTenantDbContext(currentTenant, options)
 {
     private readonly IPublisher _publisher = publisher;
-    private readonly DbConfig _settings = settings.Value;
+    private readonly DatabaseOptions _settings = settings.Value;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

@@ -16,6 +16,8 @@
     <PackageVersion Include="Finbuckle.MultiTenant" Version="6.13.0" />
     <PackageVersion Include="Finbuckle.MultiTenant.AspNetCore" Version="6.13.0" />
     <PackageVersion Include="Finbuckle.MultiTenant.EntityFrameworkCore" Version="6.13.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="8.0.0" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0" />
     <PackageVersion Include="Microsoft.NET.Build.Containers" Version="8.0.100" />
@@ -23,6 +25,7 @@
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+    <PackageVersion Include="Swashbuckle.AspNetCore.ReDoc" Version="6.5.0" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="Mapster" Version="7.4.0" />

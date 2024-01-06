@@ -47,6 +47,8 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
 
         logger.LogWarning("{ProblemDetailsTitle}", problemDetails.Title);
 
+        logger.LogWarning("{ProblemDetailsTitle}", exception.StackTrace);
+
         problemDetails.Status = httpContext.Response.StatusCode;
         await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken).ConfigureAwait(false);
         return true;

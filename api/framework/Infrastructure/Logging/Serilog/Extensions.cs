@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using FSH.Framework.Core.Configurations;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Serilog;
@@ -13,20 +14,20 @@ public static class Extensions
     public static WebApplicationBuilder AddLogging(this WebApplicationBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
-        builder.Services.AddOptions<LogConfig>().BindConfiguration(nameof(LogConfig));
+        builder.Services.AddOptions<LoggerOptions>().BindConfiguration(LoggerOptions.SectionName);
         _ = builder.Host.UseSerilog((_, sp, logger) =>
         {
-            var settings = sp.GetRequiredService<IOptions<LogConfig>>().Value;
+            var settings = sp.GetRequiredService<IOptions<LoggerOptions>>().Value;
             logger.ConfigureEnrichers(settings.AppName);
             logger.ConfigureSinks(settings);
-            logger.SetMinimumLogLevel(settings.MinimumLogLevel);
+            logger.SetMinimumLogLevel(settings.MinimumLevel);
             logger.OverideMinimumLogLevel();
 
         });
         return builder;
     }
 
-    private static void ConfigureSinks(this LoggerConfiguration logger, LogConfig config)
+    private static void ConfigureSinks(this LoggerConfiguration logger, LoggerOptions config)
     {
         if (config.WriteToConsole)
         {

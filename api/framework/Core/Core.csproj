@@ -11,7 +11,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Abstraction\Events\" />
+    <Folder Include="Identity\Users\" />
   </ItemGroup>
 
 </Project>

@@ -1,7 +1,7 @@
 ﻿using Ardalis.Specification;
 using Ardalis.Specification.EntityFrameworkCore;
+using FSH.Framework.Core.Abstraction.Persistence;
 using FSH.Framework.Core.Domain.Contracts;
-using FSH.Framework.Core.Persistence;
 using Mapster;
 
 namespace FSH.WebApi.Todo.Persistence;

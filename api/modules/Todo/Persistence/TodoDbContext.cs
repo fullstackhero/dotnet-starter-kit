@@ -1,4 +1,5 @@
 ﻿using Finbuckle.MultiTenant;
+using FSH.Framework.Core.Configurations;
 using FSH.Framework.Infrastructure.Persistence;
 using FSH.WebApi.Todo.Models;
 using MediatR;
@@ -8,7 +9,7 @@ using Microsoft.Extensions.Options;
 namespace FSH.WebApi.Todo.Persistence;
 public sealed class TodoDbContext : FshDbContext
 {
-    public TodoDbContext(ITenantInfo currentTenant, DbContextOptions options, IPublisher publisher, IOptions<DbConfig> settings)
+    public TodoDbContext(ITenantInfo currentTenant, DbContextOptions options, IPublisher publisher, IOptions<DatabaseOptions> settings)
         : base(currentTenant, options, publisher, settings)
     {
     }
