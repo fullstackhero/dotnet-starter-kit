@@ -5,16 +5,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace FSH.Framework.Infrastructure.Persistence;
-public class FshDbContext : MultiTenantDbContext
+public class FshDbContext(ITenantInfo currentTenant, DbContextOptions options, IPublisher publisher, IOptions<DbConfig> settings) : MultiTenantDbContext(currentTenant, options)
 {
-    private readonly IPublisher _publisher;
-    private readonly DbConfig _settings;
-    public FshDbContext(ITenantInfo currentTenant, DbContextOptions options, IPublisher publisher, IOptions<DbConfig> settings)
-        : base(currentTenant, options)
-    {
-        _publisher = publisher;
-        _settings = settings.Value;
-    }
+    private readonly IPublisher _publisher = publisher;
+    private readonly DbConfig _settings = settings.Value;
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.EnableSensitiveDataLogging();
