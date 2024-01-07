@@ -1,7 +1,7 @@
 version: '3.4'
 
 services:
-  webapi:
+  api:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://+:7100;http://+:7010
@@ -11,6 +11,7 @@ services:
       - DbConfig__UseInMemoryDb=false
       - DbConfig__Provider=postgresql
       - DbConfig__ConnectionString=Server=postgres;Port=5433;Database=fshdb;User Id=posgresqladmin;Password=posgresqladmin
+      - Serilog__WriteTo__2__Args__serverUrl=http://seq:5341
     ports:
       - 7010:7010
       - 7100:7100

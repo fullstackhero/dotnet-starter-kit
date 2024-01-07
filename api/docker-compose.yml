@@ -1,0 +1,11 @@
+version: '3.8'
+name: fsh-api-infra
+services:
+    db:
+        container_name: db
+        image: postgres:16.1-alpine
+    seq:
+        container_name: seq
+        image: datalust/seq:latest
+volumes:
+  db-data:

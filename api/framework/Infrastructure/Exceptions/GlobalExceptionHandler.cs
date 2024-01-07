@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Serilog.Context;
 
 namespace FSH.Framework.Infrastructure.Exceptions;
 public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
@@ -45,9 +46,8 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
             problemDetails.Title = exception.Message;
         }
 
-        logger.LogWarning("{ProblemDetailsTitle}", problemDetails.Title);
-
-        logger.LogWarning("{ProblemDetailsTitle}", exception.StackTrace);
+        LogContext.PushProperty("StackTrace", exception.StackTrace);
+        logger.LogError("{ProblemDetailsTitle}", problemDetails.Title);
 
         problemDetails.Status = httpContext.Response.StatusCode;
         await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken).ConfigureAwait(false);

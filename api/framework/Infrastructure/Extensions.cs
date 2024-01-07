@@ -21,11 +21,11 @@ public static class Extensions
     public static WebApplicationBuilder AddFshFramework(this WebApplicationBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
-        builder.AddLogging();
+        builder.ConfigureSerilog();
         builder.AddDatabase();
         builder.Services.ConfigureMultitenancy();
         builder.Services.ConfigureIdentity();
-        builder.Services.AddOpenApi();
+        builder.Services.ConfigureOpenApi();
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
         builder.Services.AddProblemDetails();
 

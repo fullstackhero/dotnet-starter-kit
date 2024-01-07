@@ -2,17 +2,18 @@ version: '3.8'
 name: dotnet-webapi-starter-kit
 services:
 
-  webapi:
+  api:
     image: iammukeshm/dotnet-webapi-starter-kit:latest
-    container_name: webapi
+    container_name: api
     pull_policy: always
     networks:
       - fullstackhero
     depends_on:
-      - postgres
+      - db
+      - seq
 
-  postgres:
-    container_name: postgres
+  db:
+    container_name: db
     image: postgres:16.1-alpine
     networks:
       - fullstackhero
@@ -23,35 +24,22 @@ services:
     ports:
       - 5433:5433
     volumes:
-      - postgres-data:/data/db
+      - db-data:/data/db
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U posgresqladmin"]
       interval: 10s
       timeout: 5s
       retries: 5
-
-  keycloak:   
-    container_name: keycloak  
-    image: quay.io/keycloak/keycloak:latest
-    entrypoint: /opt/keycloak/bin/kc.sh start-dev --hostname-strict=false --hostname-port=7011
-    networks:
-      - fullstackhero
+  seq:
+    image: datalust/seq:latest
+    container_name: seq
     environment:
-      DB_VENDOR: POSTGRES
-      DB_ADDR: postgres
-      DB_DATABASE: keycloak
-      DB_USER: posgresqladmin
-      DB_SCHEMA: public
-      DB_PASSWORD: posgresqladmin
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
+      - ACCEPT_EULA=Y
     ports:
-      - 7011:8080
-    depends_on:
-      - postgres
-
+      - 5341:5341
+      - 8081:80
 volumes:
-  postgres-data:
+  db-data:
 
 networks:
   fullstackhero:

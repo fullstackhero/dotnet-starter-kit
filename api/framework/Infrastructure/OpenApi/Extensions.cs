@@ -10,7 +10,7 @@ namespace FSH.Framework.Infrastructure.OpenApi;
 
 public static class Extensions
 {
-    public static IServiceCollection AddOpenApi(this IServiceCollection services)
+    public static IServiceCollection ConfigureOpenApi(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
         services.AddEndpointsApiExplorer();
@@ -34,7 +34,7 @@ public static class Extensions
     public static WebApplication UseOpenApi(this WebApplication app)
     {
         ArgumentNullException.ThrowIfNull(app);
-        if (app.Environment.IsDevelopment())
+        if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Docker")
         {
             app.UseSwagger();
             app.UseSwaggerUI(options =>
