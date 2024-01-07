@@ -54,6 +54,11 @@ public static class Extensions
         app.UseMultitenancy();
         app.UseExceptionHandler();
 
+
+
+        app.MapTenantEndpoints();
+        app.MapIdentityEndpoints();
+
         //register api versions
         var versions = app.NewApiVersionSet()
                     .HasApiVersion(1)
@@ -63,8 +68,6 @@ public static class Extensions
 
         //map versioned endpoint
         var endpoints = app.MapGroup("api/v{version:apiVersion}").WithApiVersionSet(versions);
-
-        endpoints.MapTenantEndpoints();
 
         return app;
     }

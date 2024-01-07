@@ -10,8 +10,5 @@
     <PackageReference Include="Mapster" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Identity\Users\" />
-  </ItemGroup>
 
 </Project>

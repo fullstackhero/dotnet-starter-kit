@@ -1,5 +1,4 @@
-﻿using FSH.Framework.Infrastructure.Tenant.Endpoints.v1;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
