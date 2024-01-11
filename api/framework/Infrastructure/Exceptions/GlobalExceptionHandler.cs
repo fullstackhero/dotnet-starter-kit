@@ -32,12 +32,9 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
         {
             httpContext.Response.StatusCode = (int)e.StatusCode;
             problemDetails.Title = e.Message;
-            if (e.ErrorMessages != null && e.ErrorMessages.Count > 0)
+            if (e.ErrorMessages != null && e.ErrorMessages.Any())
             {
-                foreach (var error in e.ErrorMessages)
-                {
-                    problemDetails.Extensions.Add("errors", error);
-                }
+                problemDetails.Extensions.Add("errors", e.ErrorMessages);
             }
         }
 

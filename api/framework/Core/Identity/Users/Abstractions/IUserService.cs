@@ -15,7 +15,7 @@ public interface IUserService
     Task<UserDetail> GetAsync(string userId, CancellationToken cancellationToken);
     Task ToggleStatusAsync(ToggleUserStatusCommand request, CancellationToken cancellationToken);
     Task<string> GetOrCreateFromPrincipalAsync(ClaimsPrincipal principal);
-    Task<RegisterUserResponse> RegisterAsync(RegisterUserCommand request, CancellationToken cancellationToken);
+    Task<RegisterUserResponse> RegisterAsync(RegisterUserCommand request, string origin, CancellationToken cancellationToken);
     Task UpdateAsync(UpdateUserCommand request, string userId);
     Task<string> ConfirmEmailAsync(string userId, string code, string tenant, CancellationToken cancellationToken);
     Task<string> ConfirmPhoneNumberAsync(string userId, string code);

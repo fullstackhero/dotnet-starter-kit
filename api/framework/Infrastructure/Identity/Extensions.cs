@@ -18,6 +18,7 @@ internal static class Extensions
     internal static IServiceCollection ConfigureIdentity(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
+        services.AddTransient<ICurrentUser, CurrentUser>();
         services.AddTransient<IUserService, UserService>();
         services.BindDbContext<IdentityDbContext>();
         services.AddScoped<IDbInitializer, IdentityDbInitializer>();

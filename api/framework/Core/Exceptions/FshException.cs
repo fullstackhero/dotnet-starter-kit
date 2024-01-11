@@ -1,14 +1,13 @@
-﻿using System.Collections.ObjectModel;
-using System.Net;
+﻿using System.Net;
 
 namespace FSH.Framework.Core.Exceptions;
 public class FshException : Exception
 {
-    public Collection<string> ErrorMessages { get; }
+    public IEnumerable<string> ErrorMessages { get; }
 
     public HttpStatusCode StatusCode { get; }
 
-    public FshException(string message, Collection<string> errors, HttpStatusCode statusCode = HttpStatusCode.InternalServerError)
+    public FshException(string message, IEnumerable<string> errors, HttpStatusCode statusCode = HttpStatusCode.InternalServerError)
         : base(message)
     {
         ErrorMessages = errors;
@@ -17,6 +16,6 @@ public class FshException : Exception
 
     public FshException(string message) : base(message)
     {
-        ErrorMessages = new Collection<string>();
+        ErrorMessages = new List<string>();
     }
 }

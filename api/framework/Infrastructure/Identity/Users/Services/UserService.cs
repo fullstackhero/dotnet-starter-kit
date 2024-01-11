@@ -9,7 +9,8 @@ using Microsoft.AspNetCore.Identity;
 
 namespace FSH.Framework.Infrastructure.Identity.Users.Services;
 internal class UserService(
-    UserManager<FshUser> userManager
+    UserManager<FshUser> userManager,
+    SignInManager<FshUser> signInManager
     ) : IUserService
 {
     public Task<string> ConfirmEmailAsync(string userId, string code, string tenant, CancellationToken cancellationToken)
@@ -57,7 +58,7 @@ internal class UserService(
         throw new NotImplementedException();
     }
 
-    public async Task<RegisterUserResponse> RegisterAsync(RegisterUserCommand request, CancellationToken cancellationToken)
+    public async Task<RegisterUserResponse> RegisterAsync(RegisterUserCommand request, string origin, CancellationToken cancellationToken)
     {
         // create user entity
         var user = new FshUser
@@ -75,7 +76,8 @@ internal class UserService(
         var result = await userManager.CreateAsync(user, request.Password);
         if (!result.Succeeded)
         {
-            throw new FshException("something went wrong.");
+            var errors = result.Errors.Select(error => error.Description).ToList();
+            throw new FshException("error while registering a new user", errors);
         }
 
         // add basic role
@@ -91,8 +93,27 @@ internal class UserService(
         throw new NotImplementedException();
     }
 
-    public Task UpdateAsync(UpdateUserCommand request, string userId)
+    public async Task UpdateAsync(UpdateUserCommand request, string userId)
     {
-        throw new NotImplementedException();
+        var user = await userManager.FindByIdAsync(userId);
+
+        _ = user ?? throw new NotFoundException("User Not Found.");
+
+        user.FirstName = request.FirstName;
+        user.LastName = request.LastName;
+        user.PhoneNumber = request.PhoneNumber;
+        string? phoneNumber = await userManager.GetPhoneNumberAsync(user);
+        if (request.PhoneNumber != phoneNumber)
+        {
+            await userManager.SetPhoneNumberAsync(user, request.PhoneNumber);
+        }
+
+        var result = await userManager.UpdateAsync(user);
+        await signInManager.RefreshSignInAsync(user);
+
+        if (!result.Succeeded)
+        {
+            throw new FshException("Update profile failed");
+        }
     }
 }
