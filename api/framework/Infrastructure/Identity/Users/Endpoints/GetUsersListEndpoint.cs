@@ -8,7 +8,7 @@ public static class GetUsersListEndpoint
 {
     internal static RouteHandlerBuilder MapGetUsersListEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        return endpoints.MapGet("/users", (CancellationToken cancellationToken, IUserService service) =>
+        return endpoints.MapGet("/", (CancellationToken cancellationToken, IUserService service) =>
         {
             return service.GetListAsync(cancellationToken);
         })

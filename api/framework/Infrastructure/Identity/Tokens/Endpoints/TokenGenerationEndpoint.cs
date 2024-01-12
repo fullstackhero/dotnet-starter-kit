@@ -9,7 +9,7 @@ public static class TokenGenerationEndpoint
 {
     internal static RouteHandlerBuilder MapTokenGenerationEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        return endpoints.MapPost("/token", (TokenGenerationCommand request,
+        return endpoints.MapPost("/", (TokenGenerationCommand request,
             ITokenService service,
             HttpContext context,
             CancellationToken cancellationToken) =>

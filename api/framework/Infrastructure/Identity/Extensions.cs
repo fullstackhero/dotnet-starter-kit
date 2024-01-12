@@ -46,9 +46,11 @@ internal static class Extensions
 
     public static IEndpointRouteBuilder MapIdentityEndpoints(this IEndpointRouteBuilder app)
     {
-        var identity = app.MapGroup("identity").WithTags("identity");
-        identity.MapUserEndpoints();
-        identity.MapTokenEndpoints();
+        var users = app.MapGroup("api/users").WithTags("users");
+        users.MapUserEndpoints();
+
+        var tokens = app.MapGroup("api/token").WithTags("token");
+        tokens.MapTokenEndpoints();
         return app;
     }
 }
