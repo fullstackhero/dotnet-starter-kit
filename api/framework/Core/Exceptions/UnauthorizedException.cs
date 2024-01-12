@@ -8,4 +8,8 @@ public class UnauthorizedException : FshException
         : base("you are not authorized to access this resource.", new Collection<string>(), HttpStatusCode.Unauthorized)
     {
     }
+    public UnauthorizedException(string message)
+       : base(message, new Collection<string>(), HttpStatusCode.Unauthorized)
+    {
+    }
 }

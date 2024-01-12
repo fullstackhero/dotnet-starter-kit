@@ -1,7 +1,11 @@
 ﻿using FSH.Framework.Core.Abstraction.Persistence;
+using FSH.Framework.Core.Configurations;
+using FSH.Framework.Core.Identity.Tokens;
 using FSH.Framework.Core.Identity.Users.Abstractions;
 using FSH.Framework.Infrastructure.Identity.Persistence;
 using FSH.Framework.Infrastructure.Identity.Roles;
+using FSH.Framework.Infrastructure.Identity.Tokens;
+using FSH.Framework.Infrastructure.Identity.Tokens.Endpoints;
 using FSH.Framework.Infrastructure.Identity.Users;
 using FSH.Framework.Infrastructure.Identity.Users.Endpoints;
 using FSH.Framework.Infrastructure.Identity.Users.Services;
@@ -18,8 +22,11 @@ internal static class Extensions
     internal static IServiceCollection ConfigureIdentity(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
+        services.AddOptions<JwtOptions>()
+            .BindConfiguration(JwtOptions.SectionName);
         services.AddTransient<ICurrentUser, CurrentUser>();
         services.AddTransient<IUserService, UserService>();
+        services.AddTransient<ITokenService, TokenService>();
         services.BindDbContext<IdentityDbContext>();
         services.AddScoped<IDbInitializer, IdentityDbInitializer>();
         return services
@@ -39,8 +46,9 @@ internal static class Extensions
 
     public static IEndpointRouteBuilder MapIdentityEndpoints(this IEndpointRouteBuilder app)
     {
-        var userGroup = app.MapGroup("identity").WithTags("identity");
-        userGroup.MapUserEndpoints();
+        var identity = app.MapGroup("identity").WithTags("identity");
+        identity.MapUserEndpoints();
+        identity.MapTokenEndpoints();
         return app;
     }
 }

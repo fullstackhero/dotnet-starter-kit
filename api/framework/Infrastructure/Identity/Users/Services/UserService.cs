@@ -5,7 +5,9 @@ using FSH.Framework.Core.Identity.Users.Dtos;
 using FSH.Framework.Core.Identity.Users.Features.RegisterUser;
 using FSH.Framework.Core.Identity.Users.Features.ToggleUserStatus;
 using FSH.Framework.Core.Identity.Users.Features.UpdateUser;
+using Mapster;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Framework.Infrastructure.Identity.Users.Services;
 internal class UserService(
@@ -48,9 +50,10 @@ internal class UserService(
         throw new NotImplementedException();
     }
 
-    public Task<List<UserDetail>> GetListAsync(CancellationToken cancellationToken)
+    public async Task<List<UserDetail>> GetListAsync(CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var users = await userManager.Users.AsNoTracking().ToListAsync(cancellationToken);
+        return users.Adapt<List<UserDetail>>();
     }
 
     public Task<string> GetOrCreateFromPrincipalAsync(ClaimsPrincipal principal)

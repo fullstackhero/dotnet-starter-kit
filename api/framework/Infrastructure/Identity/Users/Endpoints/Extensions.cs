@@ -7,6 +7,7 @@ internal static class Extensions
     {
         app.MapRegisterUserEndpoint();
         app.MapUpdateUserEndpoint();
+        app.MapGetUsersListEndpoint();
         return app;
     }
 }
