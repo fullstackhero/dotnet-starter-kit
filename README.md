@@ -90,14 +90,14 @@ Before creating your first fullstackhero solution, ensure that your local develo
 
 #### Installation
 
-After you have installed .NET, you will need to install the `fsh` console tool.
+After you have installed .NET, you will need to install the `fsh` console tool. Run this code to install the FSH CLI tools and the associated templates. 
 
 ```bash
 dotnet tool install --global FSH.CLI
 fsh install
 ```
 
-This install the FSH CLI tools and the associated Templates. You are now ready to create your first FSH project!
+You are now ready to create your first FSH project!
 
 #### FSH .NET WebAPI Boilerplate
 Here's how you would create a Solution using the FSH .NET WebAPI Boilerplate.
