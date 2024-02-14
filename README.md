@@ -8,9 +8,9 @@
 
 ## What's fullstackhero's .NET Web API Boilerplate?
 
-fullstackhero's .NET Web API Boilerplate is a starting point for your next `.NET 7 Clean Architecture Project` that incorporates the most essential packages and features your projects will ever need including out of the box Multi-Tenancy support. This project can save well over `200+ hours` of development time for your team.
+fullstackhero's .NET Web API Boilerplate is a starting point for your next `.NET 7 Clean Architecture Project` that incorporates essential packages and features your projects, including things such as out of the box Multi-Tenancy support. This project can save well over `200+ hours` of development time for your team.
 
-> As the name suggests, this is an API / Server Boilerplate. You can find other Client Boilerplates that consume this API under `@fullstackhero` handle.
+> As the name suggests, this is an API / Server Boilerplate. You can find other Client Boilerplates that consume this API under the `@fullstackhero` handle on GitHub.
 > - Find `Blazor WebAssembly Boilerplate` here - https://github.com/fullstackhero/blazor-wasm-boilerplate
 
 
@@ -24,7 +24,7 @@ fullstackhero's .NET Web API Boilerplate is a starting point for your next `.NET
 
 ## Goals
 
-The goal of this repository is to provide a complete and feature-rich starting point for any .NET Developer / Team to kick-start their next major project using .NET 7 Web API. This also serves the purpose of learning advanced concepts and implementations such as `Multitenancy, CQRS, Onion Architecture, Clean Coding standards, Cloud Deployments with Terraform to AWS, Docker Concepts, CICD Pipelines & Workflows` and so on.
+The goal of this repository is to provide a complete and feature-rich starting point for any .NET Developer / Team to kick-start their next project using .NET 7 Web API. Plus, you'll learn all about  `Multitenancy, CQRS, Onion Architecture, Clean Coding standards, Cloud Deployments with Terraform to AWS, Docker Concepts, CICD Pipelines & Workflows` and so on.
 
 ## Features
 
@@ -83,7 +83,7 @@ To get started with this Boilerplate, here are the available options.
 
 #### Prerequisites
 
-Before creating your first fullstackhero solution, you should ensure that your local machine has:
+Before creating your first fullstackhero solution, ensure that your local development environment has:
 
 - **.NET 7** You can find the download [here](https://dotnet.microsoft.com/en-us/download/dotnet/7.0).
 - **NodeJS (16+)** You can find the download [here](https://nodejs.org/en/download).
@@ -97,14 +97,14 @@ dotnet tool install --global FSH.CLI
 fsh install
 ```
 
-This isntall the FSH CLI tools and the associated Templates. You are now ready to create your first FSH project!
+This install the FSH CLI tools and the associated Templates. You are now ready to create your first FSH project!
 
 #### FSH .NET WebAPI Boilerplate
 Here's how you would create a Solution using the FSH .NET WebAPI Boilerplate.
 
 Simply navigate to a new directory (wherever you want to place your new solution), and open up Command Prompt at the opened directory.
 
-Run the following command. Note that, in this demonstration, I am naming my new solution as FSH.Starter.
+Run the following command. In this demonstration, we are naming the new solution as FSH.Starter.
 
 ```bash
 fsh api new FSH.Starter
@@ -127,10 +127,10 @@ fsh update
 ```
 ### Forking the Repository
 
-You would probably need to take this approach if you want to keep your source code upto date with the latest changes. To get started based on this repository, you need to get a copy locally. You have three options: fork, clone, or download.
+You would probably need to take this approach if you want to keep your source code updated with the latest changes. To get started based on this repository, you need to get a copy locally. You have three options: fork, clone, or download.
 
 - Make a fork of this repository in your Github account.
-- Create your new `dotnet-webapi-boilerplate` personal project by cloning the forked repository on your personal github.
+- Create your new `dotnet-webapi-boilerplate` personal project by cloning the forked repository on your personal GitHub account.
 - Setup an upstream remote on your personal project pointing to your forked repository using command `git remote add upstream https://github.com/{githubuseraccount}/dotnet-webapi-boilerplate` and `git remote set-url --push upstream DISABLE`
 
 For step by step instructions, [follow this](https://discord.com/channels/878181478972928011/892573122186838046/933513103688224838) and [this](https://gist.github.com/0xjac/85097472043b697ab57ba1b1c7530274).
@@ -138,20 +138,20 @@ For step by step instructions, [follow this](https://discord.com/channels/878181
 
 ## Quick Start Guide
 
-So, for a better developer experience, I have added Makefile into the solution. Now that our solution is generated, let's navigate to the root folder of the solution and open up a command terminal.
+For a better developer experience, We have added Makefile into the solution. Now that our solution is generated, let's navigate to the root folder of the solution and open up a command terminal.
 
 To build the solution,
 ```
 make build
 ```
 
-By default, the solution is configured to work with postgresql database (mainly because of hte OS licensing). So, you will have to make sure that postgresql database instance is up and running on your machine. You can modify the connection string to include your username and password. Connections strings can be found at `src/Host/Configurations/database.json` and `src/Host/Configurations/hangfire.json`. Once that's done, let's start up the API server.
+By default, the solution is configured to work with PostgreSQL database. You will have to make sure that a PostgreSQL database instance is up and running on your machine. You can modify the connection string to include your username and password. Connections strings can be found at `src/Host/Configurations/database.json` and `src/Host/Configurations/hangfire.json`. Once that's done, let's start up the API server.
 
 ```
 make start
 ```
 
-That's it, the application would connect to the defined postgresql database and start creating tables, and seed required data.
+That's it, the application will connect to the defined PostgreSQL database and start creating tables, and seed required data.
 
 For testing this API, we have 3 options.
 1. Swagger @ `localhost:5001/swagger`
@@ -172,7 +172,7 @@ Open up Postman, Thunderclient or Swagger.
 
 identity -> get-token
 
-This is a POST Request. Here the body of the request will be the JSON (credentials) I specified earlier. And also, remember to pass the tenant id in the header of the request. The default tenant id is `root`.
+This is a POST Request. Here the body of the request will be in the form of a JWT. Remember to pass the tenant id in the header of the request. The default tenant id is `root`.
 
 Here is a sample CURL command for getting the tokens.
 
@@ -199,37 +199,45 @@ And here is the response.
 }
 ```
 
-You will need to pass the `token` in the request headers to authenticate calls to the fullstackhero API!
+You will need to pass the `token` in the request headers to authenticate calls to the fullstackhero API! Ensure that it is properly formatted in the header as such:
+
+```curl
+// cURL command parameters
+  --header 'Authorization: Bearer {token}' \
+// Rest of the cURL command
+}'
+```
+
 
 For further steps and details, [Read the Getting Started Guide](https://fullstackhero.net/dotnet-webapi-boilerplate/general/getting-started/)
 
 ## Containerization
 
-The API project, being .NET 7, it is configured to have built-in support for containerization. That means, you really don't need a Dockerfile to containerize the webapi.
+By default, .NET 7 is configured to have built-in support for containerization. You don't need a Dockerfile to containerize the Web API.
 
-To build a docker image, all you have to do is, ensure that docker-desktop or docker instance is running. And run the following command at the root of the solution.
+To build a docker image ensure that docker-desktop or docker instance is running, and then run the following command at the root of the solution.
 
 ```
 make publish
 ```
 
-You can also push the docker image directly to dockerhub or any supported registry by using the following command.
+You can also push the docker image directly to DockerHub or any supported registry by using the following command.
 
 ```
 make publish-to-hub
 ```
-You will have to update your docker registry / repo url in the Makefile though!.
+You will need to update your docker registry / repo url in the Makefile though!.
 
 ## Docker Compose
 
-This project also comes with examples of docker compose files, where you can spin up the webapi and database isntance in your local containers with the following commands.
+This project also comes with several examples of docker compose files. You can spin up an example WebAPI and database instance in your local containers with the following commands.
 
 ```powershell
 make dcu #docker compose up - Boots up the webapi & postgresql container
 make dcd #docker compose down - Shuts down the webapi & postgresql containers
 ```
 
-There are also examples for mysql & mssql variations of the fsh webapi. You can find the other docker-compose files under the ./docker-compose folder. Read more about [fullstackhero's docker-compose instructions & files here](./docker-compose/README.md)
+There are also examples for mySQL & MSSQL variations of the fsh WebAPI. You can find the other docker-compose files under the ./docker-compose folder. Read more about [fullstackhero's docker-compose instructions & files here](./docker-compose/README.md)
 
 ## Cloud Deployment with Terraform + AWS ECS
 
@@ -237,7 +245,7 @@ This is something you wont get to see very often with boilerplates. But, we do s
 
 ### Prerequisites
 - Install Terraform
-- Install & Configure AWS CLI profiles to allow terraform to provision resources for you. I have made a video about [AWS Credentials Management](https://www.youtube.com/watch?v=oY0-1mj4oCo&ab_channel=MukeshMurugan).
+- Install & Configure AWS CLI profiles to allow terraform to provision resources for you. We have made a video about [AWS Credentials Management](https://www.youtube.com/watch?v=oY0-1mj4oCo&ab_channel=MukeshMurugan).
 
 In brief, the terraform folder has 2 sub-folders.
 - backend
@@ -252,24 +260,24 @@ terraform apply -auto-approve
 
 This would create the required S3 Buckets and DDB table for you.
 
-Next is the `environments/staging` folder. Here too, run the following command.
+Next is the `environments/staging` folder. Run the following command.
 
 ```
 terraform init
 ```
 
-Once done, you can go the terraform.tfvars file to change the variables like,
+Once done, you can go the terraform.tfvars file to change the build variables as necessary,
 - project tags
 - docker image name
 - ecs cluster name and so on.
 
-After that, simply back to the root of the solution and run the following command.
+After that, simply change back to the root of the solution and run the following command.
 
 ```
 make ta
 ```
 
-This will evaluate your terraform files and create a provision plan for you. Once you are ok, type in `yes` and the tool will start to deploy your .NET WebAPI project as containers along with a RDS PostgreSQL intance. You will be receiving the hosted api url once the provisioning is completed!
+This will evaluate your terraform files and create a provision plan for you. Once you are satisfied with your changes, type in `yes` and the tool will deploy your .NET WebAPI project as containers along with a RDS PostgreSQL instance. You'll receive the hosted API url once the provisioning is completed!
 
 To destroy the deployed resources, run the following
 ```
