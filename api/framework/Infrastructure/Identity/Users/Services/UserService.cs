@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using Finbuckle.MultiTenant;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Core.Identity.Users.Abstractions;
 using FSH.Framework.Core.Identity.Users.Dtos;
@@ -12,9 +13,18 @@ using Microsoft.EntityFrameworkCore;
 namespace FSH.Framework.Infrastructure.Identity.Users.Services;
 internal class UserService(
     UserManager<FshUser> userManager,
-    SignInManager<FshUser> signInManager
+    SignInManager<FshUser> signInManager,
+    ITenantInfo currentTenant
     ) : IUserService
 {
+    private void EnsureValidTenant()
+    {
+        if (string.IsNullOrWhiteSpace(currentTenant?.Id))
+        {
+            throw new UnauthorizedException("Invalid Tenant.");
+        }
+    }
+
     public Task<string> ConfirmEmailAsync(string userId, string code, string tenant, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
@@ -25,30 +35,38 @@ internal class UserService(
         throw new NotImplementedException();
     }
 
-    public Task<bool> ExistsWithEmailAsync(string email, string? exceptId = null)
+    public async Task<bool> ExistsWithEmailAsync(string email, string? exceptId = null)
     {
-        throw new NotImplementedException();
+        EnsureValidTenant();
+        return await userManager.FindByEmailAsync(email.Normalize()) is FshUser user && user.Id != exceptId;
     }
 
-    public Task<bool> ExistsWithNameAsync(string name)
+    public async Task<bool> ExistsWithNameAsync(string name)
     {
-        throw new NotImplementedException();
+        EnsureValidTenant();
+        return await userManager.FindByNameAsync(name) is not null;
     }
 
-    public Task<bool> ExistsWithPhoneNumberAsync(string phoneNumber, string? exceptId = null)
+    public async Task<bool> ExistsWithPhoneNumberAsync(string phoneNumber, string? exceptId = null)
     {
-        throw new NotImplementedException();
+        EnsureValidTenant();
+        return await userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == phoneNumber) is FshUser user && user.Id != exceptId;
     }
 
-    public Task<UserDetail> GetAsync(string userId, CancellationToken cancellationToken)
+    public async Task<UserDetail> GetAsync(string userId, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var user = await userManager.Users
+            .AsNoTracking()
+            .Where(u => u.Id == userId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        _ = user ?? throw new NotFoundException("User Not Found.");
+
+        return user.Adapt<UserDetail>();
     }
 
-    public Task<int> GetCountAsync(CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
+    public Task<int> GetCountAsync(CancellationToken cancellationToken) =>
+        userManager.Users.AsNoTracking().CountAsync(cancellationToken);
 
     public async Task<List<UserDetail>> GetListAsync(CancellationToken cancellationToken)
     {
@@ -91,9 +109,23 @@ internal class UserService(
         return new RegisterUserResponse(user.Id);
     }
 
-    public Task ToggleStatusAsync(ToggleUserStatusCommand request, CancellationToken cancellationToken)
+    public async Task ToggleStatusAsync(ToggleUserStatusCommand request, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var user = await userManager.Users.Where(u => u.Id == request.UserId).FirstOrDefaultAsync(cancellationToken);
+
+        _ = user ?? throw new NotFoundException("User Not Found.");
+
+        bool isAdmin = await userManager.IsInRoleAsync(user, IdentityConstants.Roles.Admin);
+        if (isAdmin)
+        {
+            throw new Exception("Administrators Profile's Status cannot be toggled");
+        }
+
+        user.IsActive = request.ActivateUser;
+
+        await userManager.UpdateAsync(user);
+
+        //await _events.PublishAsync(new ApplicationUserUpdatedEvent(user.Id));
     }
 
     public async Task UpdateAsync(UpdateUserCommand request, string userId)

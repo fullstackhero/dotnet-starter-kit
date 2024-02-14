@@ -50,5 +50,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Events\" />
+    <Folder Include="Mailing\" />
   </ItemGroup>
 </Project>
