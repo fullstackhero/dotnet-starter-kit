@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using System.Collections;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.Json;
 
@@ -123,21 +124,21 @@ public static class SpecificationBuilderExtensions
         {
             var parameter = Expression.Parameter(typeof(T));
 
-            Expression binaryExpresioFilter;
+            Expression binaryExpressionFilter;
 
             if (!string.IsNullOrEmpty(filter.Logic))
             {
                 if (filter.Filters is null) throw new CustomException("The Filters attribute is required when declaring a logic");
-                binaryExpresioFilter = CreateFilterExpression(filter.Logic, filter.Filters, parameter);
+                binaryExpressionFilter = CreateFilterExpression(filter.Logic, filter.Filters, parameter);
             }
             else
             {
                 var filterValid = GetValidFilter(filter);
-                binaryExpresioFilter = CreateFilterExpression(filterValid.Field!, filterValid.Operator!, filterValid.Value, parameter);
+                binaryExpressionFilter = CreateFilterExpression(filterValid.Field!, filterValid.Operator!, filterValid.Value, parameter);
             }
 
             ((List<WhereExpressionInfo<T>>)specificationBuilder.Specification.WhereExpressions)
-                .Add(new WhereExpressionInfo<T>(Expression.Lambda<Func<T, bool>>(binaryExpresioFilter, parameter)));
+                .Add(new WhereExpressionInfo<T>(Expression.Lambda<Func<T, bool>>(binaryExpressionFilter, parameter)));
         }
 
         return new OrderedSpecificationBuilder<T>(specificationBuilder.Specification);
@@ -172,14 +173,48 @@ public static class SpecificationBuilderExtensions
     }
 
     private static Expression CreateFilterExpression(
-        string field,
-        string filterOperator,
-        object? value,
-        ParameterExpression parameter)
+    string field,
+    string filterOperator,
+    object? value,
+    ParameterExpression parameter)
     {
-        var propertyExpresion = GetPropertyExpression(field, parameter);
-        var valueExpresion = GeValuetExpression(field, value, propertyExpresion.Type);
-        return CreateFilterExpression(propertyExpresion, valueExpresion, filterOperator);
+        Expression binaryExpression = parameter;
+
+        for (int i = 0;  i < field.Split('.').Length; i++)
+        {
+            string member = field.Split('.')[i];
+
+            if (binaryExpression.Type.IsGenericType && binaryExpression.Type.GetGenericTypeDefinition().GetInterfaces().Contains(typeof(IEnumerable)))
+            {
+                Type collectionType = binaryExpression.Type.GetGenericArguments()[0];
+                var childParamExp = Expression.Parameter(collectionType);
+                var childExpression = CreateFilterExpression(string.Join(".", field.Split('.').Skip(i)), filterOperator, value, childParamExp);
+
+                binaryExpression = Expression.Call(
+                    typeof(Enumerable),
+                    "Any",
+                    new[] { collectionType },
+                    binaryExpression,
+                    Expression.Lambda(
+                        typeof(Func<,>).MakeGenericType(collectionType, typeof(bool)),
+                        childExpression,
+                        childParamExp));
+
+                break;
+            }
+            else
+            {
+                binaryExpression = Expression.PropertyOrField(binaryExpression, member);
+
+                if (i == field.Split('.').Length - 1)
+                {
+                    var valueExpression = GeValueExpression(field, value, binaryExpression.Type);
+                    return CreateFilterExpression(binaryExpression, valueExpression, filterOperator);
+                }
+            }
+        }
+
+        return binaryExpression;
     }
 
     private static Expression CreateFilterExpression(
@@ -235,7 +270,7 @@ public static class SpecificationBuilderExtensions
     private static string GetStringFromJsonElement(object value)
         => ((JsonElement)value).GetString()!;
 
-    private static ConstantExpression GeValuetExpression(
+    private static ConstantExpression GeValueExpression(
         string field,
         object? value,
         Type propertyType)
