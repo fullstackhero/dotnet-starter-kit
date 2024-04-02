@@ -40,7 +40,7 @@ internal class ConnectionStringValidator : IConnectionStringValidator
                     break;
 
                 case DbProviderKeys.SqlServer:
-                    var mssqlcs = new SqlConnectionStringBuilder(connectionString);
+                    var mssqlcs = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(connectionString);
                     break;
 
                 case DbProviderKeys.SqLite:

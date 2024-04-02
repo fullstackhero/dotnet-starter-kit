@@ -1,7 +1,7 @@
-﻿namespace FSH.WebApi.Host.Controllers;
+﻿using Asp.Versioning;
+
+namespace FSH.WebApi.Host.Controllers;
 
 [Route("api/[controller]")]
 [ApiVersionNeutral]
-public class VersionNeutralApiController : BaseApiController
-{
-}
+public class VersionNeutralApiController : BaseApiController;

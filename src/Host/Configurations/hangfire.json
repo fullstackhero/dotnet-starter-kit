@@ -20,8 +20,10 @@
       "WorkerCount": 5
     },
     "Storage": {
-      "StorageProvider": "postgresql",
-      "ConnectionString": "Host=localhost;Port=5432;Database=fshDb;Username=postgres;Password=admin;Include Error Detail=true",
+      //"StorageProvider": "postgresql",
+      //"ConnectionString": "Host=localhost;Port=5432;Database=fshDb;Username=postgres;Password=admin;Include Error Detail=true",
+      "StorageProvider": "sqlite",
+      "ConnectionString": "Data Source=hangfiredata.db;",
       "Options": {
         "CommandBatchMaxTimeout": "00:05:00",
         "QueuePollInterval": "00:00:01",

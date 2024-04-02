@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Asp.Versioning;
 using FSH.WebApi.Infrastructure.Auth;
 using FSH.WebApi.Infrastructure.BackgroundJobs;
 using FSH.WebApi.Infrastructure.Caching;
@@ -34,8 +35,12 @@ public static class Startup
     {
         var applicationAssembly = typeof(FSH.WebApi.Application.Startup).GetTypeInfo().Assembly;
         MapsterSettings.Configure();
-        return services
+        services
             .AddApiVersioning()
+            .AddMvc()
+            .AddApiExplorer(o => o.SubstituteApiVersionInUrl = true);
+
+        return services
             .AddAuth(config)
             .AddBackgroundJobs(config)
             .AddCaching(config)
@@ -45,7 +50,7 @@ public static class Startup
             .AddHealthCheck()
             .AddPOLocalization(config)
             .AddMailing(config)
-            .AddMediatR(Assembly.GetExecutingAssembly())
+            .AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()))
             .AddMultitenancy()
             .AddNotifications(config)
             .AddOpenApiDocumentation(config)
@@ -55,7 +60,7 @@ public static class Startup
             .AddServices();
     }
 
-    private static IServiceCollection AddApiVersioning(this IServiceCollection services) =>
+    private static IApiVersioningBuilder AddApiVersioning(this IServiceCollection services) =>
         services.AddApiVersioning(config =>
         {
             config.DefaultApiVersion = new ApiVersion(1, 0);

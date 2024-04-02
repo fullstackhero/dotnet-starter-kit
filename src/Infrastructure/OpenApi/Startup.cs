@@ -19,7 +19,7 @@ internal static class Startup
         if (settings == null) return services;
         if (settings.Enable)
         {
-            services.AddVersionedApiExplorer(o => o.SubstituteApiVersionInUrl = true);
+            // services.AddVersionedApiExplorer(o => o.SubstituteApiVersionInUrl = true);
             services.AddEndpointsApiExplorer();
 
             services.AddScoped<FluentValidationSchemaProcessor>(provider =>
@@ -87,7 +87,7 @@ internal static class Startup
                 document.OperationProcessors.Add(new AspNetCoreOperationSecurityScopeProcessor());
                 document.OperationProcessors.Add(new SwaggerGlobalAuthProcessor());
 
-                document.TypeMappers.Add(new PrimitiveTypeMapper(typeof(TimeSpan), schema =>
+                document.SchemaSettings.TypeMappers.Add(new PrimitiveTypeMapper(typeof(TimeSpan), schema =>
                 {
                     schema.Type = NJsonSchema.JsonObjectType.String;
                     schema.IsNullableRaw = true;
@@ -97,10 +97,10 @@ internal static class Startup
 
                 document.OperationProcessors.Add(new SwaggerHeaderAttributeProcessor());
 
-                document.SchemaProcessors.Add(new SwaggerGuidSchemaProcessor());
+                document.SchemaSettings.SchemaProcessors.Add(new SwaggerGuidSchemaProcessor());
 
                 var fluentValidationSchemaProcessor = serviceProvider.CreateScope().ServiceProvider.GetService<FluentValidationSchemaProcessor>();
-                document.SchemaProcessors.Add(fluentValidationSchemaProcessor);
+                document.SchemaSettings.SchemaProcessors.Add(fluentValidationSchemaProcessor!);
             });
         }
 
@@ -112,7 +112,7 @@ internal static class Startup
         if (config.GetValue<bool>("SwaggerSettings:Enable"))
         {
             app.UseOpenApi();
-            app.UseSwaggerUi3(options =>
+            app.UseSwaggerUi(options =>
             {
                 options.DefaultModelsExpandDepth = -1;
                 options.DocExpansion = "none";

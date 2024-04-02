@@ -2,6 +2,7 @@ using System.Data.SqlClient;
 using System.Runtime.InteropServices;
 using FSH.WebApi.Application.Common.Persistence;
 using FSH.WebApi.Infrastructure.Common;
+using Microsoft.Data.SqlClient;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
@@ -103,12 +104,12 @@ public class ConnectionStringSecurer : IConnectionStringSecurer
     {
         var builder = new NpgsqlConnectionStringBuilder(connectionString);
 
-        if (!string.IsNullOrEmpty(builder.Password) || !builder.IntegratedSecurity)
+        if (!string.IsNullOrEmpty(builder.Password))
         {
             builder.Password = HiddenValueDefault;
         }
 
-        if (!string.IsNullOrEmpty(builder.Username) || !builder.IntegratedSecurity)
+        if (!string.IsNullOrEmpty(builder.Username))
         {
             builder.Username = HiddenValueDefault;
         }
