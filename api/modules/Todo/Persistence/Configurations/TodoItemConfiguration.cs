@@ -1,4 +1,4 @@
-﻿using Finbuckle.MultiTenant.EntityFrameworkCore;
+﻿using Finbuckle.MultiTenant;
 using FSH.WebApi.Todo.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

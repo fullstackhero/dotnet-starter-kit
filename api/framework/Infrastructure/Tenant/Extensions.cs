@@ -1,4 +1,5 @@
 ﻿using Finbuckle.MultiTenant;
+using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Abstraction.Persistence;
 using FSH.Framework.Core.Tenant;
 using FSH.Framework.Core.Tenant.Abstractions;
@@ -48,7 +49,7 @@ internal static class Extensions
             using var tenantScope = app.ApplicationServices.CreateScope();
 
             //set current tenant so that the right connection string is used
-            tenantScope.ServiceProvider.GetRequiredService<IMultiTenantContextAccessor>()
+            tenantScope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>()
                 .MultiTenantContext = new MultiTenantContext<FshTenantInfo>()
                 {
                     TenantInfo = tenant

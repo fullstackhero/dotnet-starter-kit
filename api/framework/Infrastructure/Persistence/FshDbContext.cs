@@ -1,12 +1,13 @@
-﻿using Finbuckle.MultiTenant;
+﻿using Finbuckle.MultiTenant.EntityFrameworkCore;
 using FSH.Framework.Abstractions.Domain;
 using FSH.Framework.Core.Configurations;
+using FSH.Framework.Core.Tenant.Abstractions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace FSH.Framework.Infrastructure.Persistence;
-public class FshDbContext(ITenantInfo currentTenant,
+public class FshDbContext(IFshTenantInfo currentTenant,
     DbContextOptions options,
     IPublisher publisher,
     IOptions<DatabaseOptions> settings)
@@ -19,9 +20,9 @@ public class FshDbContext(ITenantInfo currentTenant,
     {
         optionsBuilder.EnableSensitiveDataLogging();
 
-        if (!string.IsNullOrWhiteSpace(TenantInfo?.ConnectionString))
+        if (!string.IsNullOrWhiteSpace(currentTenant?.ConnectionString))
         {
-            optionsBuilder.ConfigureDatabase(_settings.Provider, TenantInfo.ConnectionString);
+            optionsBuilder.ConfigureDatabase(_settings.Provider, currentTenant.ConnectionString);
         }
     }
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

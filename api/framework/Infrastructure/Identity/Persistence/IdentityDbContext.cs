@@ -1,5 +1,6 @@
-﻿using Finbuckle.MultiTenant;
+﻿using Finbuckle.MultiTenant.EntityFrameworkCore;
 using FSH.Framework.Core.Configurations;
+using FSH.Framework.Core.Tenant.Abstractions;
 using FSH.Framework.Infrastructure.Identity.RoleClaims;
 using FSH.Framework.Infrastructure.Identity.Roles;
 using FSH.Framework.Infrastructure.Identity.Users;
@@ -19,9 +20,11 @@ public class IdentityDbContext : MultiTenantIdentityDbContext<FshUser,
     IdentityUserToken<string>>
 {
     private readonly DatabaseOptions _settings;
-    public IdentityDbContext(ITenantInfo tenantInfo, DbContextOptions<IdentityDbContext> options, IOptions<DatabaseOptions> settings) : base(tenantInfo, options)
+    private readonly IFshTenantInfo _tenantInfo;
+    public IdentityDbContext(IFshTenantInfo tenantInfo, DbContextOptions<IdentityDbContext> options, IOptions<DatabaseOptions> settings) : base(tenantInfo, options)
     {
         _settings = settings.Value;
+        _tenantInfo = tenantInfo;
     }
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -32,9 +35,9 @@ public class IdentityDbContext : MultiTenantIdentityDbContext<FshUser,
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        if (!string.IsNullOrWhiteSpace(TenantInfo?.ConnectionString))
+        if (!string.IsNullOrWhiteSpace(_tenantInfo?.ConnectionString))
         {
-            optionsBuilder.ConfigureDatabase(_settings.Provider, TenantInfo.ConnectionString);
+            optionsBuilder.ConfigureDatabase(_settings.Provider, _tenantInfo.ConnectionString);
         }
     }
 }

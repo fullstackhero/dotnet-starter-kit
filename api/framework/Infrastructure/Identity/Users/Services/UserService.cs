@@ -1,5 +1,5 @@
 ﻿using System.Security.Claims;
-using Finbuckle.MultiTenant;
+using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Core.Identity.Users.Abstractions;
 using FSH.Framework.Core.Identity.Users.Dtos;

@@ -1,9 +1,10 @@
-﻿using Finbuckle.MultiTenant;
+﻿using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Core.Tenant;
+using FSH.Framework.Core.Tenant.Abstractions;
 
 namespace FSH.Framework.Infrastructure.Tenant;
-public sealed class FshTenantInfo : ITenantInfo
+public sealed class FshTenantInfo : IFshTenantInfo
 {
     public FshTenantInfo()
     {
@@ -75,5 +76,5 @@ public sealed class FshTenantInfo : ITenantInfo
     string? ITenantInfo.Id { get => Id; set => Id = value ?? throw new InvalidOperationException("Id can't be null."); }
     string? ITenantInfo.Identifier { get => Identifier; set => Identifier = value ?? throw new InvalidOperationException("Identifier can't be null."); }
     string? ITenantInfo.Name { get => Name; set => Name = value ?? throw new InvalidOperationException("Name can't be null."); }
-    string? ITenantInfo.ConnectionString { get => ConnectionString; set => ConnectionString = value ?? throw new InvalidOperationException("ConnectionString can't be null."); }
+    string? IFshTenantInfo.ConnectionString { get => ConnectionString; set => ConnectionString = value ?? throw new InvalidOperationException("ConnectionString can't be null."); }
 }

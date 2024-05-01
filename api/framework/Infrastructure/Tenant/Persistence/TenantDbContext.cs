@@ -1,4 +1,4 @@
-﻿using Finbuckle.MultiTenant.Stores;
+﻿using Finbuckle.MultiTenant.EntityFrameworkCore.Stores.EFCoreStore;
 using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Framework.Infrastructure.Tenant.Persistence;

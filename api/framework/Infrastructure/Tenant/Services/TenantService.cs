@@ -1,4 +1,5 @@
 ﻿using Finbuckle.MultiTenant;
+using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Abstraction.Persistence;
 using FSH.Framework.Core.Configurations;
 using FSH.Framework.Core.Exceptions;
@@ -61,7 +62,7 @@ public sealed class TenantService : ITenantService
         using var scope = _serviceProvider.CreateScope();
 
         // Then set current tenant so the right connection string is used
-        _serviceProvider.GetRequiredService<IMultiTenantContextAccessor>()
+        scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>()
             .MultiTenantContext = new MultiTenantContext<FshTenantInfo>()
             {
                 TenantInfo = tenant
