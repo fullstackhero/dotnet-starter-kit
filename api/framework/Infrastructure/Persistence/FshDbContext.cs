@@ -1,17 +1,18 @@
-﻿using Finbuckle.MultiTenant.EntityFrameworkCore;
+﻿using Finbuckle.MultiTenant.Abstractions;
+using Finbuckle.MultiTenant.EntityFrameworkCore;
 using FSH.Framework.Abstractions.Domain;
 using FSH.Framework.Core.Configurations;
-using FSH.Framework.Core.Tenant.Abstractions;
+using FSH.Framework.Infrastructure.Tenant;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace FSH.Framework.Infrastructure.Persistence;
-public class FshDbContext(IFshTenantInfo currentTenant,
+public class FshDbContext(IMultiTenantContextAccessor<FshTenantInfo> multiTenantContextAccessor,
     DbContextOptions options,
     IPublisher publisher,
     IOptions<DatabaseOptions> settings)
-    : MultiTenantDbContext(currentTenant, options)
+    : MultiTenantDbContext(multiTenantContextAccessor, options)
 {
     private readonly IPublisher _publisher = publisher;
     private readonly DatabaseOptions _settings = settings.Value;
@@ -20,9 +21,9 @@ public class FshDbContext(IFshTenantInfo currentTenant,
     {
         optionsBuilder.EnableSensitiveDataLogging();
 
-        if (!string.IsNullOrWhiteSpace(currentTenant?.ConnectionString))
+        if (!string.IsNullOrWhiteSpace(multiTenantContextAccessor?.MultiTenantContext.TenantInfo?.ConnectionString))
         {
-            optionsBuilder.ConfigureDatabase(_settings.Provider, currentTenant.ConnectionString);
+            optionsBuilder.ConfigureDatabase(_settings.Provider, multiTenantContextAccessor.MultiTenantContext.TenantInfo.ConnectionString!);
         }
     }
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

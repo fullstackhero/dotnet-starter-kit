@@ -1,10 +1,11 @@
-﻿using Finbuckle.MultiTenant.EntityFrameworkCore;
+﻿using Finbuckle.MultiTenant.Abstractions;
+using Finbuckle.MultiTenant.EntityFrameworkCore;
 using FSH.Framework.Core.Configurations;
-using FSH.Framework.Core.Tenant.Abstractions;
 using FSH.Framework.Infrastructure.Identity.RoleClaims;
 using FSH.Framework.Infrastructure.Identity.Roles;
 using FSH.Framework.Infrastructure.Identity.Users;
 using FSH.Framework.Infrastructure.Persistence;
+using FSH.Framework.Infrastructure.Tenant;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -20,11 +21,11 @@ public class IdentityDbContext : MultiTenantIdentityDbContext<FshUser,
     IdentityUserToken<string>>
 {
     private readonly DatabaseOptions _settings;
-    private readonly IFshTenantInfo _tenantInfo;
-    public IdentityDbContext(IFshTenantInfo tenantInfo, DbContextOptions<IdentityDbContext> options, IOptions<DatabaseOptions> settings) : base(tenantInfo, options)
+    private new FshTenantInfo TenantInfo { get; set; }
+    public IdentityDbContext(IMultiTenantContextAccessor<FshTenantInfo> multiTenantContextAccessor, DbContextOptions<IdentityDbContext> options, IOptions<DatabaseOptions> settings) : base(multiTenantContextAccessor, options)
     {
         _settings = settings.Value;
-        _tenantInfo = tenantInfo;
+        TenantInfo = multiTenantContextAccessor.MultiTenantContext.TenantInfo!;
     }
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -35,9 +36,9 @@ public class IdentityDbContext : MultiTenantIdentityDbContext<FshUser,
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        if (!string.IsNullOrWhiteSpace(_tenantInfo?.ConnectionString))
+        if (!string.IsNullOrWhiteSpace(TenantInfo?.ConnectionString))
         {
-            optionsBuilder.ConfigureDatabase(_settings.Provider, _tenantInfo.ConnectionString);
+            optionsBuilder.ConfigureDatabase(_settings.Provider, TenantInfo.ConnectionString);
         }
     }
 }

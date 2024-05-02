@@ -23,15 +23,7 @@ public sealed class FshTenantInfo : IFshTenantInfo
         // Add Default 1 Month Validity for all new tenants. Something like a DEMO period for tenants.
         ValidUpto = DateTime.UtcNow.AddMonths(1);
     }
-
-    /// <summary>
-    /// The actual TenantId, which is also used in the TenantId shadow property on the multitenant entities.
-    /// </summary>
     public string Id { get; set; } = default!;
-
-    /// <summary>
-    /// The identifier that is used in headers/routes/querystrings. This is set to the same as Id to avoid confusion.
-    /// </summary>
     public string Identifier { get; set; } = default!;
 
     public string Name { get; set; } = default!;
@@ -40,10 +32,6 @@ public sealed class FshTenantInfo : IFshTenantInfo
     public string AdminEmail { get; private set; } = default!;
     public bool IsActive { get; private set; }
     public DateTime ValidUpto { get; private set; }
-
-    /// <summary>
-    /// Used by AzureAd Authorization to store the AzureAd Tenant Issuer to map against.
-    /// </summary>
     public string? Issuer { get; set; }
 
     public void AddValidity(int months) =>

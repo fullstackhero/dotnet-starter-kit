@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Configurations;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Core.Identity.Tokens;
@@ -15,7 +16,7 @@ using Microsoft.IdentityModel.Tokens;
 namespace FSH.Framework.Infrastructure.Identity.Tokens;
 internal class TokenService(
         UserManager<FshUser> userManager,
-        FshTenantInfo? currentTenant,
+        IMultiTenantContextAccessor<FshTenantInfo>? multiTenantContextAccessor,
         IOptions<JwtOptions> jwtOptions) : ITokenService
 {
     private readonly JwtOptions jwt = jwtOptions.Value;
@@ -24,6 +25,7 @@ internal class TokenService(
         string ipAddress,
         CancellationToken cancellationToken)
     {
+        var currentTenant = multiTenantContextAccessor!.MultiTenantContext.TenantInfo;
         if (currentTenant == null) throw new UnauthorizedException("authentication failed.");
         if (string.IsNullOrWhiteSpace(currentTenant.Id)
            || await userManager.FindByEmailAsync(request.Email.Trim().Normalize()) is not { } user
@@ -97,7 +99,7 @@ internal class TokenService(
             new(ClaimTypes.Name, user.FirstName ?? string.Empty),
             new(ClaimTypes.Surname, user.LastName ?? string.Empty),
             new(IdentityConstants.Claims.IpAddress, ipAddress),
-            new(IdentityConstants.Claims.Tenant, currentTenant!.Id),
+            new(IdentityConstants.Claims.Tenant, multiTenantContextAccessor!.MultiTenantContext.TenantInfo!.Id),
             new(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty)
         };
     private static string GenerateRefreshToken()

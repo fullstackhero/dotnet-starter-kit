@@ -6,6 +6,7 @@ using FSH.Framework.Core.Identity.Users.Dtos;
 using FSH.Framework.Core.Identity.Users.Features.RegisterUser;
 using FSH.Framework.Core.Identity.Users.Features.ToggleUserStatus;
 using FSH.Framework.Core.Identity.Users.Features.UpdateUser;
+using FSH.Framework.Infrastructure.Tenant;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -14,12 +15,12 @@ namespace FSH.Framework.Infrastructure.Identity.Users.Services;
 internal class UserService(
     UserManager<FshUser> userManager,
     SignInManager<FshUser> signInManager,
-    ITenantInfo currentTenant
+    IMultiTenantContextAccessor<FshTenantInfo> multiTenantContextAccessor
     ) : IUserService
 {
     private void EnsureValidTenant()
     {
-        if (string.IsNullOrWhiteSpace(currentTenant?.Id))
+        if (string.IsNullOrWhiteSpace(multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id))
         {
             throw new UnauthorizedException("Invalid Tenant.");
         }

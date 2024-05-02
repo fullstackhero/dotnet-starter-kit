@@ -1,4 +1,5 @@
-﻿using FSH.Framework.Core.Abstraction.Persistence;
+﻿using Finbuckle.MultiTenant.Abstractions;
+using FSH.Framework.Core.Abstraction.Persistence;
 using FSH.Framework.Infrastructure.Identity.Roles;
 using FSH.Framework.Infrastructure.Identity.Users;
 using FSH.Framework.Infrastructure.Tenant;
@@ -12,14 +13,14 @@ internal sealed class IdentityDbInitializer(
     IdentityDbContext context,
     RoleManager<FshRole> roleManager,
     UserManager<FshUser> userManager,
-    FshTenantInfo currentTenant) : IDbInitializer
+    IMultiTenantContextAccessor<FshTenantInfo> multiTenantContextAccessor) : IDbInitializer
 {
     public async Task MigrateAsync(CancellationToken cancellationToken)
     {
         if ((await context.Database.GetPendingMigrationsAsync(cancellationToken).ConfigureAwait(false)).Any())
         {
             await context.Database.MigrateAsync(cancellationToken).ConfigureAwait(false);
-            logger.LogInformation("[{Tenant}] applied database migrations for identity module", context.TenantInfo.Identifier);
+            logger.LogInformation("[{Tenant}] applied database migrations for identity module", context.TenantInfo?.Identifier);
         }
     }
 
@@ -37,7 +38,7 @@ internal sealed class IdentityDbInitializer(
                 is not FshRole role)
             {
                 // create role
-                role = new FshRole(roleName, $"{roleName} Role for {currentTenant.Id} Tenant");
+                role = new FshRole(roleName, $"{roleName} Role for {multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id} Tenant");
                 await roleManager.CreateAsync(role);
             }
         }
@@ -45,29 +46,29 @@ internal sealed class IdentityDbInitializer(
 
     private async Task SeedAdminUserAsync()
     {
-        if (string.IsNullOrWhiteSpace(currentTenant.Id) || string.IsNullOrWhiteSpace(currentTenant.AdminEmail))
+        if (string.IsNullOrWhiteSpace(multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id) || string.IsNullOrWhiteSpace(multiTenantContextAccessor.MultiTenantContext.TenantInfo?.AdminEmail))
         {
             return;
         }
 
-        if (await userManager.Users.FirstOrDefaultAsync(u => u.Email == currentTenant.AdminEmail)
+        if (await userManager.Users.FirstOrDefaultAsync(u => u.Email == multiTenantContextAccessor.MultiTenantContext.TenantInfo!.AdminEmail)
             is not FshUser adminUser)
         {
-            string adminUserName = $"{currentTenant.Id.Trim()}.{IdentityConstants.Roles.Admin}".ToLowerInvariant();
+            string adminUserName = $"{multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id.Trim()}.{IdentityConstants.Roles.Admin}".ToUpperInvariant();
             adminUser = new FshUser
             {
-                FirstName = currentTenant.Id.Trim().ToLowerInvariant(),
+                FirstName = multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id.Trim().ToUpperInvariant(),
                 LastName = IdentityConstants.Roles.Admin,
-                Email = currentTenant.AdminEmail,
+                Email = multiTenantContextAccessor.MultiTenantContext.TenantInfo?.AdminEmail,
                 UserName = adminUserName,
                 EmailConfirmed = true,
                 PhoneNumberConfirmed = true,
-                NormalizedEmail = currentTenant.AdminEmail?.ToUpperInvariant(),
+                NormalizedEmail = multiTenantContextAccessor.MultiTenantContext.TenantInfo?.AdminEmail!.ToUpperInvariant(),
                 NormalizedUserName = adminUserName.ToUpperInvariant(),
                 IsActive = true
             };
 
-            logger.LogInformation("Seeding Default Admin User for '{tenantId}' Tenant.", currentTenant.Id);
+            logger.LogInformation("Seeding Default Admin User for '{TenantId}' Tenant.", multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id);
             var password = new PasswordHasher<FshUser>();
             adminUser.PasswordHash = password.HashPassword(adminUser, IdentityConstants.DefaultPassword);
             await userManager.CreateAsync(adminUser);
@@ -76,7 +77,7 @@ internal sealed class IdentityDbInitializer(
         // Assign role to user
         if (!await userManager.IsInRoleAsync(adminUser, IdentityConstants.Roles.Admin))
         {
-            logger.LogInformation("Assigning Admin Role to Admin User for '{tenantId}' Tenant.", currentTenant.Id);
+            logger.LogInformation("Assigning Admin Role to Admin User for '{TenantId}' Tenant.", multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id);
             await userManager.AddToRoleAsync(adminUser, IdentityConstants.Roles.Admin);
         }
     }
