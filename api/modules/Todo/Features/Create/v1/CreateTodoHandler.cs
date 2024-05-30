@@ -8,10 +8,10 @@ public sealed class CreateTodoHandler(ILogger<CreateTodoHandler> logger, IReposi
 {
     public async Task<CreateTodoRepsonse> Handle(CreateTodoCommand request, CancellationToken cancellationToken)
     {
-
         ArgumentNullException.ThrowIfNull(request);
         var item = TodoItem.Create(request.Title, request.Note);
         await repository.AddAsync(item, cancellationToken).ConfigureAwait(false);
+        await repository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         logger.LogInformation("todo item created {TodoItemId}", item.Id);
         return new CreateTodoRepsonse(item.Id);
     }

@@ -4,11 +4,15 @@
     <AssemblyName>FSH.WebApi.Catalog.Infrastructure</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Framework\Infrastructure\Infrastructure.csproj" />
-    <ProjectReference Include="..\Catalog.Application\Catalog.Application.csproj" />
+    <Compile Remove="Persistence\Configurations\**" />
+    <Compile Remove="Persistence\Repositories\**" />
+    <EmbeddedResource Remove="Persistence\Configurations\**" />
+    <EmbeddedResource Remove="Persistence\Repositories\**" />
+    <None Remove="Persistence\Configurations\**" />
+    <None Remove="Persistence\Repositories\**" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Persistence\Configurations\" />
-    <Folder Include="Persistence\Repositories\" />
+    <ProjectReference Include="..\..\..\Framework\Infrastructure\Infrastructure.csproj" />
+    <ProjectReference Include="..\Catalog.Application\Catalog.Application.csproj" />
   </ItemGroup>
 </Project>

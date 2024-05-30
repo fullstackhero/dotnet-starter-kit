@@ -10,7 +10,7 @@ using Microsoft.Extensions.Options;
 namespace FSH.WebApi.Todo.Persistence;
 public sealed class TodoDbContext : FshDbContext
 {
-    public TodoDbContext(IMultiTenantContextAccessor<FshTenantInfo> multiTenantContextAccessor, DbContextOptions options, IPublisher publisher, IOptions<DatabaseOptions> settings)
+    public TodoDbContext(IMultiTenantContextAccessor<FshTenantInfo> multiTenantContextAccessor, DbContextOptions<TodoDbContext> options, IPublisher publisher, IOptions<DatabaseOptions> settings)
         : base(multiTenantContextAccessor, options, publisher, settings)
     {
     }

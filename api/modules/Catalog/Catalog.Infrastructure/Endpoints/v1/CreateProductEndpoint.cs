@@ -5,13 +5,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
 namespace FSH.WebApi.Catalog.Infrastructure.Endpoints.v1;
-public static class ProductCreationEndpoint
+public static class CreateProductEndpoint
 {
     internal static RouteHandlerBuilder MapProductCreationEndpoint(this IEndpointRouteBuilder endpoints)
     {
         return endpoints
             .MapPost("/", (CreateProductCommand request, ISender mediator) => mediator.Send(request))
-            .WithName(nameof(ProductCreationEndpoint))
+            .WithName(nameof(CreateProductEndpoint))
             .WithSummary("creates a product")
             .WithDescription("creates a product")
             .Produces<CreateProductResponse>()
