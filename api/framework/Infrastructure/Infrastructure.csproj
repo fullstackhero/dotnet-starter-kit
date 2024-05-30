@@ -4,6 +4,14 @@
     <AssemblyName>FSH.Framework.Infrastructure</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Events\**" />
+    <Compile Remove="Mailing\**" />
+    <EmbeddedResource Remove="Events\**" />
+    <EmbeddedResource Remove="Mailing\**" />
+    <None Remove="Events\**" />
+    <None Remove="Mailing\**" />
+  </ItemGroup>
+  <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
@@ -47,9 +55,5 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Events\" />
-    <Folder Include="Mailing\" />
   </ItemGroup>
 </Project>

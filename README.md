@@ -30,5 +30,16 @@ tba
 - Minimal APIs
 - EF Core
 - Swagger UI
+- Clean Architecture Principles
 - Vertical Slice Architecture
 - Modular Monolith
+
+# Endpoints
+
+- [x] Tenants
+  - [x] Create Tenant
+  - [x] Get List of Tenants
+- [x] Users
+  - [x] Register
+  - [x] Update Profile
+  - [x] Get List of Users

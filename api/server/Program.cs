@@ -19,7 +19,7 @@ try
 catch (Exception ex) when (!ex.GetType().Name.Equals("HostAbortedException", StringComparison.Ordinal))
 {
     StaticLogger.EnsureInitialized();
-    Log.Fatal(ex, "unhandled exception");
+    Log.Fatal(ex.Message, "unhandled exception");
 }
 finally
 {

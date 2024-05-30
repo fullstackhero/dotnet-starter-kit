@@ -185,6 +185,7 @@ csharp_style_prefer_tuple_swap = true:suggestion
 csharp_style_prefer_utf8_string_literals = true:suggestion
 dotnet_diagnostic.CA1032.severity = none
 dotnet_diagnostic.CA1812.severity = none
+dotnet_diagnostic.S6667.severity = none
 
 #### Naming styles ####
 [*.{cs,vb}]

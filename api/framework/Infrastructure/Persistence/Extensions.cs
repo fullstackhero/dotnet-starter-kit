@@ -24,6 +24,8 @@ public static class Extensions
         ArgumentNullException.ThrowIfNull(builder);
         builder.Services.AddOptions<DatabaseOptions>()
             .BindConfiguration(nameof(DatabaseOptions))
+            .ValidateDataAnnotations()
+            .ValidateOnStart()
             .PostConfigure(config =>
             {
                 _logger.Information("current db provider: {DatabaseProvider}", config.Provider);

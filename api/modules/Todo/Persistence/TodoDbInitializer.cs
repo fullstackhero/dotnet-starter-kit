@@ -24,7 +24,7 @@ internal sealed class TodoDbInitializer(
         if (await context.Todos.FirstOrDefaultAsync(t => t.Title == Title, cancellationToken).ConfigureAwait(false) is null)
         {
             var todo = TodoItem.Create(Title, Note);
-            context.Todos.Add(todo);
+            await context.Todos.AddAsync(todo, cancellationToken);
             await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             logger.LogInformation("[{Tenant}] seeding default todo data", context.TenantInfo!.Identifier);
         }
