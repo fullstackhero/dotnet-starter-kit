@@ -6,6 +6,7 @@ using FSH.Framework.Infrastructure.Behaviours;
 using FSH.Framework.Infrastructure.Exceptions;
 using FSH.Framework.Infrastructure.Identity;
 using FSH.Framework.Infrastructure.Logging.Serilog;
+using FSH.Framework.Infrastructure.Mail;
 using FSH.Framework.Infrastructure.OpenApi;
 using FSH.Framework.Infrastructure.Persistence;
 using FSH.Framework.Infrastructure.Tenant;
@@ -18,14 +19,15 @@ namespace FSH.Framework.Infrastructure;
 
 public static class Extensions
 {
-    public static WebApplicationBuilder AddFshFramework(this WebApplicationBuilder builder)
+    public static WebApplicationBuilder RegisterFshFramework(this WebApplicationBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
         builder.ConfigureSerilog();
-        builder.AddDatabase();
+        builder.ConfigureDatabase();
         builder.Services.ConfigureMultitenancy();
         builder.Services.ConfigureIdentity();
         builder.Services.ConfigureOpenApi();
+        builder.Services.ConfigureMailing();
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
         builder.Services.AddProblemDetails();
 
@@ -53,8 +55,6 @@ public static class Extensions
         app.UseHttpsRedirection();
         app.UseMultitenancy();
         app.UseExceptionHandler();
-
-
 
         app.MapTenantEndpoints();
         app.MapIdentityEndpoints();

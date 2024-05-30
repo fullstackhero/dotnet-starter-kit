@@ -8,8 +8,8 @@ Log.Information("server booting up..");
 try
 {
     var builder = WebApplication.CreateBuilder(args);
-    builder.AddFshFramework();
-    builder.AddModules();
+    builder.RegisterFshFramework();
+    builder.RegisterModules();
 
     var app = builder.Build();
     app.UseFshFramework();

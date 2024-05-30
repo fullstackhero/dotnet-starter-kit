@@ -11,7 +11,7 @@ namespace FSH.WebApi.Server;
 
 public static class Extensions
 {
-    public static WebApplicationBuilder AddModules(this WebApplicationBuilder builder)
+    public static WebApplicationBuilder RegisterModules(this WebApplicationBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
