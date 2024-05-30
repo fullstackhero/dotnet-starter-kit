@@ -1,4 +1,4 @@
-﻿using FSH.Framework.Core.Configurations;
+﻿using FSH.Framework.Core.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,10 +23,10 @@ public static class Extensions
     {
         ArgumentNullException.ThrowIfNull(builder);
         builder.Services.AddOptions<DatabaseOptions>()
-            .BindConfiguration(DatabaseOptions.SectionName)
+            .BindConfiguration(nameof(DatabaseOptions))
             .PostConfigure(config =>
             {
-                _logger.Information("current db provider: {dbProvider}", config.Provider);
+                _logger.Information("current db provider: {DatabaseProvider}", config.Provider);
 
             });
         return builder;

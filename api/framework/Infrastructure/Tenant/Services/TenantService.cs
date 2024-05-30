@@ -1,8 +1,7 @@
 ﻿using Finbuckle.MultiTenant;
 using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Core.Abstraction.Persistence;
-using FSH.Framework.Core.Configurations;
 using FSH.Framework.Core.Exceptions;
+using FSH.Framework.Core.Persistence;
 using FSH.Framework.Core.Tenant.Abstractions;
 using FSH.Framework.Core.Tenant.Dtos;
 using FSH.Framework.Core.Tenant.Features.RegisterTenant;

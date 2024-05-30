@@ -1,7 +1,7 @@
-﻿using FSH.Framework.Core.Abstraction.Persistence;
-using FSH.Framework.Core.Configurations;
+﻿using FSH.Framework.Core.Identity;
 using FSH.Framework.Core.Identity.Tokens;
 using FSH.Framework.Core.Identity.Users.Abstractions;
+using FSH.Framework.Core.Persistence;
 using FSH.Framework.Infrastructure.Identity.Persistence;
 using FSH.Framework.Infrastructure.Identity.Roles;
 using FSH.Framework.Infrastructure.Identity.Tokens;
@@ -23,7 +23,7 @@ internal static class Extensions
     {
         ArgumentNullException.ThrowIfNull(services);
         services.AddOptions<JwtOptions>()
-            .BindConfiguration(JwtOptions.SectionName);
+            .BindConfiguration(nameof(JwtOptions));
         services.AddTransient<ICurrentUser, CurrentUser>();
         services.AddTransient<IUserService, UserService>();
         services.AddTransient<ITokenService, TokenService>();

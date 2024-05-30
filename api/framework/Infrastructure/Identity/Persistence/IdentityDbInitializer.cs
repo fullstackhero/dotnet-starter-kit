@@ -1,5 +1,5 @@
 ﻿using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Core.Abstraction.Persistence;
+using FSH.Framework.Core.Persistence;
 using FSH.Framework.Infrastructure.Identity.Roles;
 using FSH.Framework.Infrastructure.Identity.Users;
 using FSH.Framework.Infrastructure.Tenant;

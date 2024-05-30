@@ -1,5 +1,4 @@
-﻿using FSH.Framework.Core.Abstraction.Persistence;
-using FSH.Framework.Core.Configurations;
+﻿using FSH.Framework.Core.Persistence;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Npgsql;
@@ -32,7 +31,9 @@ internal sealed class ConnectionStringValidator(IOptions<DatabaseOptions> dbSett
         }
         catch (Exception ex)
         {
+#pragma warning disable S6667 // Logging in a catch clause should pass the caught exception as a parameter.
             _logger.LogError("Connection String Validation Exception : {Error}", ex.Message);
+#pragma warning restore S6667 // Logging in a catch clause should pass the caught exception as a parameter.
             return false;
         }
     }

@@ -1,4 +1,4 @@
-﻿namespace FSH.Framework.Core.Paging.Contracts;
+﻿namespace FSH.Framework.Core.Paging;
 
 public interface IPagedList<T>
     where T : class

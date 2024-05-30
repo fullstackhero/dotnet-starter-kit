@@ -1,5 +1,4 @@
-﻿using FSH.Framework.Core.Paging.Contracts;
-using Mapster;
+﻿using Mapster;
 
 namespace FSH.Framework.Core.Paging;
 

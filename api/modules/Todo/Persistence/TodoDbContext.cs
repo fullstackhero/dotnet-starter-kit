@@ -1,5 +1,5 @@
 ﻿using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Core.Configurations;
+using FSH.Framework.Core.Persistence;
 using FSH.Framework.Infrastructure.Persistence;
 using FSH.Framework.Infrastructure.Tenant;
 using FSH.WebApi.Todo.Models;

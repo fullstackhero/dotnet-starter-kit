@@ -1,7 +1,7 @@
 ﻿using Finbuckle.MultiTenant.Abstractions;
 using Finbuckle.MultiTenant.EntityFrameworkCore;
 using FSH.Framework.Abstractions.Domain;
-using FSH.Framework.Core.Configurations;
+using FSH.Framework.Core.Persistence;
 using FSH.Framework.Infrastructure.Tenant;
 using MediatR;
 using Microsoft.EntityFrameworkCore;

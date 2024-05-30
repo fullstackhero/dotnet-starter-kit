@@ -1,5 +1,5 @@
-﻿using FSH.Framework.Core.Abstraction.Persistence;
-using FSH.Framework.Core.Paging;
+﻿using FSH.Framework.Core.Paging;
+using FSH.Framework.Core.Persistence;
 using FSH.Framework.Core.Specifications;
 using FSH.WebApi.Todo.Models;
 using MediatR;

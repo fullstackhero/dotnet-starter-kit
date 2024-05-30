@@ -1,4 +1,4 @@
-﻿using FSH.Framework.Core.Abstraction.Persistence;
+﻿using FSH.Framework.Core.Persistence;
 using FSH.WebApi.Todo.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -13,7 +13,7 @@ internal sealed class TodoDbInitializer(
         if ((await context.Database.GetPendingMigrationsAsync(cancellationToken).ConfigureAwait(false)).Any())
         {
             await context.Database.MigrateAsync(cancellationToken).ConfigureAwait(false);
-            logger.LogInformation("[{Tenant}] applied database migrations for todo module", context.TenantInfo.Identifier);
+            logger.LogInformation("[{Tenant}] applied database migrations for todo module", context.TenantInfo!.Identifier);
         }
     }
 
@@ -26,7 +26,7 @@ internal sealed class TodoDbInitializer(
             var todo = TodoItem.Create(Title, Note);
             context.Todos.Add(todo);
             await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-            logger.LogInformation("[{Tenant}] seeding default todo data", context.TenantInfo.Identifier);
+            logger.LogInformation("[{Tenant}] seeding default todo data", context.TenantInfo!.Identifier);
         }
     }
 }

@@ -3,8 +3,8 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Core.Configurations;
 using FSH.Framework.Core.Exceptions;
+using FSH.Framework.Core.Identity;
 using FSH.Framework.Core.Identity.Tokens;
 using FSH.Framework.Core.Identity.Tokens.Features.Generate;
 using FSH.Framework.Infrastructure.Identity.Users;
@@ -38,11 +38,6 @@ internal class TokenService(
         {
             throw new UnauthorizedException("User Not Active. Please contact the administrator.");
         }
-
-        //if (_securitySettings.RequireConfirmedAccount && !user.EmailConfirmed)
-        //{
-        //    throw new UnauthorizedException("E-Mail not confirmed.");
-        //}
 
         if (currentTenant.Id != IdentityConstants.RootTenant)
         {

@@ -1,6 +1,6 @@
 ﻿using Finbuckle.MultiTenant;
 using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Core.Abstraction.Persistence;
+using FSH.Framework.Core.Persistence;
 using FSH.Framework.Core.Tenant;
 using FSH.Framework.Core.Tenant.Abstractions;
 using FSH.Framework.Infrastructure.Persistence;
