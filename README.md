@@ -43,3 +43,17 @@ tba
   - [x] Register
   - [x] Update Profile
   - [x] Get List of Users
+- [x] Token
+  - [x] Generate JWT
+- [x] Products
+  - [x] Create
+  - [x] Get
+  - [x] Get By ID
+  - [x] Update
+  - [x] Delete
+- [x] Todo
+  - [x] Create
+  - [x] Get
+  - [x] Get By ID
+  - [x] Update
+  - [x] Delete
