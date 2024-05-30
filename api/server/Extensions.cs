@@ -18,8 +18,8 @@ public static class Extensions
         //define module assemblies
         var assemblies = new Assembly[]
         {
-            typeof(CatalogApplication).Assembly,
-            typeof(TodoApplication).Assembly
+            typeof(CatalogMetadata).Assembly,
+            typeof(TodoModule).Assembly
         };
 
         //register validators

@@ -125,8 +125,6 @@ internal class UserService(
         user.IsActive = request.ActivateUser;
 
         await userManager.UpdateAsync(user);
-
-        //await _events.PublishAsync(new ApplicationUserUpdatedEvent(user.Id));
     }
 
     public async Task UpdateAsync(UpdateUserCommand request, string userId)

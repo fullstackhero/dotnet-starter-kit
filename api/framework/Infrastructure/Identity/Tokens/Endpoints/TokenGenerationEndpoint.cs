@@ -14,9 +14,15 @@ public static class TokenGenerationEndpoint
             HttpContext context,
             CancellationToken cancellationToken) =>
         {
-            string ip = context.Request.Headers.ContainsKey("X-Forwarded-For")
-            ? context.Request.Headers["X-Forwarded-For"]
-            : context.Connection.RemoteIpAddress?.MapToIPv4().ToString() ?? "N/A";
+            string ip = "N/A";
+            if (context.Request.Headers.TryGetValue("X-Forwarded-For", out var ipList))
+            {
+                ip = ipList.FirstOrDefault() ?? "N/A";
+            }
+            else if (context.Connection.RemoteIpAddress != null)
+            {
+                ip = context.Connection.RemoteIpAddress.MapToIPv4().ToString();
+            }
             return service.GenerateTokenAsync(request, ip!, cancellationToken);
         })
         .WithName(nameof(TokenGenerationEndpoint))
