@@ -12,7 +12,7 @@ public static class GetTodoEndpoint
                         .WithName(nameof(GetTodoEndpoint))
                         .WithSummary("gets todo item by id")
                         .WithDescription("gets todo item by id")
-                        .Produces<GetTodoRepsonse>()
+                        .Produces<GetTodoResponse>()
                         .MapToApiVersion(1);
     }
 }

@@ -25,11 +25,9 @@ public static class Extensions
         builder.Services.AddOptions<DatabaseOptions>()
             .BindConfiguration(nameof(DatabaseOptions))
             .ValidateDataAnnotations()
-            .ValidateOnStart()
             .PostConfigure(config =>
             {
                 _logger.Information("current db provider: {DatabaseProvider}", config.Provider);
-
             });
         return builder;
     }

@@ -1,16 +1,25 @@
-﻿using FSH.Framework.Core.Persistence;
+﻿using FSH.Framework.Core.Caching;
+using FSH.Framework.Core.Persistence;
 using FSH.WebApi.Todo.Exceptions;
 using FSH.WebApi.Todo.Models;
 using MediatR;
 
 namespace FSH.WebApi.Todo.Features.Get.v1;
-public sealed class GetTodoHandler(IRepository<TodoItem> repository) : IRequestHandler<GetTodoRequest, GetTodoRepsonse>
+public sealed class GetTodoHandler(IRepository<TodoItem> repository, ICacheService cache)
+    : IRequestHandler<GetTodoRequest, GetTodoResponse>
 {
-    public async Task<GetTodoRepsonse> Handle(GetTodoRequest request, CancellationToken cancellationToken)
+    public async Task<GetTodoResponse> Handle(GetTodoRequest request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
-        var item = await repository.GetByIdAsync(request.Id, cancellationToken).ConfigureAwait(false);
-        if (item == null) throw new TodoItemNotFoundException(request.Id);
-        return new GetTodoRepsonse(item.Id, item.Title!, item.Note!);
+        var item = await cache.GetOrSetAsync(
+            $"todo:{request.Id}",
+            async () =>
+            {
+                var todoItem = await repository.GetByIdAsync(request.Id, cancellationToken);
+                if (todoItem == null) throw new TodoItemNotFoundException(request.Id);
+                return new GetTodoResponse(todoItem.Id, todoItem.Title!, todoItem.Note!);
+            },
+            cancellationToken: cancellationToken);
+        return item!;
     }
 }

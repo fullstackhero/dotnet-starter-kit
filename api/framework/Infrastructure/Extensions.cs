@@ -3,6 +3,7 @@ using Asp.Versioning.Conventions;
 using FluentValidation;
 using FSH.Framework.Core;
 using FSH.Framework.Infrastructure.Behaviours;
+using FSH.Framework.Infrastructure.Caching;
 using FSH.Framework.Infrastructure.Exceptions;
 using FSH.Framework.Infrastructure.Identity;
 using FSH.Framework.Infrastructure.Logging.Serilog;
@@ -28,6 +29,7 @@ public static class Extensions
         builder.Services.ConfigureIdentity();
         builder.Services.ConfigureOpenApi();
         builder.Services.ConfigureMailing();
+        builder.Services.ConfigureCaching(builder.Configuration);
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
         builder.Services.AddProblemDetails();
 

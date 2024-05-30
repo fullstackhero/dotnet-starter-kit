@@ -17,7 +17,7 @@ public static class TodoModule
     {
         public override void AddRoutes(IEndpointRouteBuilder app)
         {
-            var todoGroup = app.MapGroup("todo").WithTags("todo");
+            var todoGroup = app.MapGroup("todos").WithTags("todos");
             todoGroup.MapTodoItemCreationEndpoint();
             todoGroup.MapGetTodoEndpoint();
             todoGroup.MapGetTodoListEndpoint();

@@ -23,7 +23,9 @@ internal static class Extensions
     {
         ArgumentNullException.ThrowIfNull(services);
         services.AddOptions<JwtOptions>()
-            .BindConfiguration(nameof(JwtOptions));
+            .BindConfiguration(nameof(JwtOptions))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
         services.AddTransient<ICurrentUser, CurrentUser>();
         services.AddTransient<IUserService, UserService>();
         services.AddTransient<ITokenService, TokenService>();
