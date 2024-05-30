@@ -7,6 +7,7 @@ internal static class Extensions
 {
     internal static IServiceCollection ConfigureMailing(this IServiceCollection services, IConfiguration config)
     {
+        services.AddTransient<IMailService, SmtpMailService>();
         services.Configure<MailOptions>(config.GetSection(nameof(MailOptions)));
         return services;
     }
