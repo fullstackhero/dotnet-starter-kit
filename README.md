@@ -1,6 +1,8 @@
-# 🤔 What's fullstackhero's .NET WebAPI Starter Kit?
+![FullStackHero .NET Web API](./assets/fullstackhero-banner.png)
 
-fullstackhero's .NET Web API Boilerplate is a starting point for your next `.NET 8 Clean Architecture` Project that incorporates the most essential packages and features your projects will ever need including out-of-the-box Multi-Tenancy support. This project can save well over 200+ hours of development time for your team.
+# FullStackHero .NET Web API Starter Kit
+
+FullStackHero's .NET Web API Starter Kit is a starting point for your next `.NET 8 Clean Architecture` Solution that incorporates the most essential packages and features your projects will ever need including out-of-the-box Multi-Tenancy support. This project can save well over 200+ hours of development time for your team.
 
 # 🎉 Getting Started
 
