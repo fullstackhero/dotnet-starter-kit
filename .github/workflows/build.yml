@@ -35,5 +35,4 @@ jobs:
         working-directory: ./api/
         run: |
           dotnet publish -c Release -p:ContainerRepository=${{ github.repository_owner}}/dotnet-webapi -p:RuntimeIdentifier=linux-x64
-          IMAGE_ID = ghcr.io/${{ github.repository_owner}}/dotnet-webapi --all-tags
-          docker push $IMAGE_ID
+          docker push ghcr.io/${{ github.repository_owner}}/dotnet-webapi --all-tags
