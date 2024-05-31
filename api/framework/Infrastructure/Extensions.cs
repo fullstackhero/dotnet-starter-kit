@@ -59,6 +59,7 @@ public static class Extensions
         app.UseHttpsRedirection();
         app.UseMultitenancy();
         app.UseExceptionHandler();
+        app.UseOpenApi();
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapTenantEndpoints();

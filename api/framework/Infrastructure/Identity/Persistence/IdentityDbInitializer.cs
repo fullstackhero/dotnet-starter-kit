@@ -1,5 +1,8 @@
 ﻿using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Persistence;
+using FSH.Framework.Core.Tenant;
+using FSH.Framework.Infrastructure.Auth.Permissions;
+using FSH.Framework.Infrastructure.Identity.RoleClaims;
 using FSH.Framework.Infrastructure.Identity.Roles;
 using FSH.Framework.Infrastructure.Identity.Users;
 using FSH.Framework.Infrastructure.Tenant;
@@ -41,7 +44,50 @@ internal sealed class IdentityDbInitializer(
                 role = new FshRole(roleName, $"{roleName} Role for {multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id} Tenant");
                 await roleManager.CreateAsync(role);
             }
+
+            // Assign permissions
+            if (roleName == IdentityConstants.Roles.Basic)
+            {
+                await AssignPermissionsToRoleAsync(context, FshPermissions.Basic, role);
+            }
+            else if (roleName == IdentityConstants.Roles.Admin)
+            {
+                await AssignPermissionsToRoleAsync(context, FshPermissions.Admin, role);
+
+                if (multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id == TenantConstants.Root.Id)
+                {
+                    await AssignPermissionsToRoleAsync(context, FshPermissions.Root, role);
+                }
+            }
         }
+    }
+
+    private async Task AssignPermissionsToRoleAsync(IdentityDbContext dbContext, IReadOnlyList<FshPermission> permissions, FshRole role)
+    {
+        var currentClaims = await roleManager.GetClaimsAsync(role);
+        var newClaims = permissions
+            .Where(permission => !currentClaims.Any(c => c.Type == IdentityConstants.Claims.Permission && c.Value == permission.Name))
+            .Select(permission => new FshRoleClaim
+            {
+                RoleId = role.Id,
+                ClaimType = IdentityConstants.Claims.Permission,
+                ClaimValue = permission.Name,
+                CreatedBy = "application"
+            })
+            .ToList();
+
+        foreach (var claim in newClaims)
+        {
+            logger.LogInformation("Seeding {Role} Permission '{Permission}' for '{TenantId}' Tenant.", role.Name, claim.ClaimValue, multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id);
+            await dbContext.RoleClaims.AddAsync(claim);
+        }
+
+        // Save changes to the database context
+        if (newClaims.Count != 0)
+        {
+            await dbContext.SaveChangesAsync();
+        }
+
     }
 
     private async Task SeedAdminUserAsync()

@@ -2,7 +2,6 @@
 using Asp.Versioning.Conventions;
 using Carter;
 using FluentValidation;
-using FSH.Framework.Infrastructure.OpenApi;
 using FSH.WebApi.Catalog.Application;
 using FSH.WebApi.Catalog.Infrastructure;
 using FSH.WebApi.Todo;
@@ -65,9 +64,6 @@ public static class Extensions
 
         //use carter
         endpoints.MapCarter();
-
-        //use open api
-        app.UseOpenApi();
 
         return app;
     }

@@ -19,4 +19,7 @@ public interface IUserService
     Task UpdateAsync(UpdateUserCommand request, string userId);
     Task<string> ConfirmEmailAsync(string userId, string code, string tenant, CancellationToken cancellationToken);
     Task<string> ConfirmPhoneNumberAsync(string userId, string code);
+
+    // permisions
+    Task<bool> HasPermissionAsync(string userId, string permission, CancellationToken cancellationToken = default);
 }

@@ -1,21 +1,27 @@
 ﻿using System.Security.Claims;
 using Finbuckle.MultiTenant.Abstractions;
+using FSH.Framework.Core.Caching;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Core.Identity.Users.Abstractions;
 using FSH.Framework.Core.Identity.Users.Dtos;
 using FSH.Framework.Core.Identity.Users.Features.RegisterUser;
 using FSH.Framework.Core.Identity.Users.Features.ToggleUserStatus;
 using FSH.Framework.Core.Identity.Users.Features.UpdateUser;
+using FSH.Framework.Infrastructure.Identity.Persistence;
+using FSH.Framework.Infrastructure.Identity.Roles;
 using FSH.Framework.Infrastructure.Tenant;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Framework.Infrastructure.Identity.Users.Services;
-internal class UserService(
+internal partial class UserService(
     UserManager<FshUser> userManager,
     SignInManager<FshUser> signInManager,
-    IMultiTenantContextAccessor<FshTenantInfo> multiTenantContextAccessor
+    RoleManager<FshRole> roleManager,
+    IdentityDbContext db,
+    ICacheService cache,
+IMultiTenantContextAccessor<FshTenantInfo> multiTenantContextAccessor
     ) : IUserService
 {
     private void EnsureValidTenant()
