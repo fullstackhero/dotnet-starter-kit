@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using FSH.WebApi.Shared.Authorization;
 
 namespace FSH.Framework.Infrastructure.Auth;
 
@@ -8,10 +9,10 @@ public static class ClaimsPrincipalExtensions
         => principal.FindFirstValue(ClaimTypes.Email);
 
     public static string? GetTenant(this ClaimsPrincipal principal)
-        => principal.FindFirstValue(AuthConstants.Claims.Tenant);
+        => principal.FindFirstValue(FshClaims.Tenant);
 
     public static string? GetFullName(this ClaimsPrincipal principal)
-        => principal?.FindFirst(AuthConstants.Claims.Fullname)?.Value;
+        => principal?.FindFirst(FshClaims.Fullname)?.Value;
 
     public static string? GetFirstName(this ClaimsPrincipal principal)
         => principal?.FindFirst(ClaimTypes.Name)?.Value;
@@ -27,7 +28,7 @@ public static class ClaimsPrincipalExtensions
 
     public static DateTimeOffset GetExpiration(this ClaimsPrincipal principal) =>
         DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(
-            principal.FindFirstValue(AuthConstants.Claims.Expiration)));
+            principal.FindFirstValue(FshClaims.Expiration)));
 
     private static string? FindFirstValue(this ClaimsPrincipal principal, string claimType) =>
         principal is null

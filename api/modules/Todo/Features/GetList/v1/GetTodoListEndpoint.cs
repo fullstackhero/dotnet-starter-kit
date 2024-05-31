@@ -1,4 +1,5 @@
 ﻿using FSH.Framework.Core.Paging;
+using FSH.Framework.Infrastructure.Auth.Policy;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -15,6 +16,7 @@ public static class GetTodoListEndpoint
                         .WithSummary("gets a list of todo items with paging support")
                         .WithDescription("gets a list of todo items with paging support")
                         .Produces<PagedList<TodoDto>>()
+                        .RequirePermission("perm:Products:View")
                         .MapToApiVersion(1);
     }
 }

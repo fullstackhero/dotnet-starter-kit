@@ -1,6 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <RootNamespace>FSH.WebApi.Shared.Events</RootNamespace>
-    <AssemblyName>FSH.WebApi.Shared.Events</AssemblyName>
-  </PropertyGroup>
-</Project>

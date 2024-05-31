@@ -1,6 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 
-namespace FSH.Framework.Infrastructure.Auth.Permissions;
+namespace FSH.WebApi.Shared.Authorization;
 
 public static class FshAction
 {
@@ -25,15 +25,20 @@ public static class FshResource
     public const string Roles = nameof(Roles);
     public const string RoleClaims = nameof(RoleClaims);
     public const string Products = nameof(Products);
-    public const string Brands = nameof(Brands);
+    public const string Todos = nameof(Todos);
 }
 
-internal static class FshPermissions
+public static class FshPermissions
 {
     private static readonly FshPermission[] allPermissions =
-   {
-        new("View Dashboard", FshAction.View, FshResource.Dashboard),
-        new("View Hangfire", FshAction.View, FshResource.Hangfire),
+   {     
+        //tenants
+        new("View Tenants", FshAction.View, FshResource.Tenants, IsRoot: true),
+        new("Create Tenants", FshAction.Create, FshResource.Tenants, IsRoot: true),
+        new("Update Tenants", FshAction.Update, FshResource.Tenants, IsRoot: true),
+        new("Upgrade Tenant Subscription", FshAction.UpgradeSubscription, FshResource.Tenants, IsRoot: true),
+
+        //identity
         new("View Users", FshAction.View, FshResource.Users),
         new("Search Users", FshAction.Search, FshResource.Users),
         new("Create Users", FshAction.Create, FshResource.Users),
@@ -48,23 +53,21 @@ internal static class FshPermissions
         new("Delete Roles", FshAction.Delete, FshResource.Roles),
         new("View RoleClaims", FshAction.View, FshResource.RoleClaims),
         new("Update RoleClaims", FshAction.Update, FshResource.RoleClaims),
+        
+        //products
         new("View Products", FshAction.View, FshResource.Products, IsBasic: true),
         new("Search Products", FshAction.Search, FshResource.Products, IsBasic: true),
         new("Create Products", FshAction.Create, FshResource.Products),
         new("Update Products", FshAction.Update, FshResource.Products),
         new("Delete Products", FshAction.Delete, FshResource.Products),
         new("Export Products", FshAction.Export, FshResource.Products),
-        new("View Brands", FshAction.View, FshResource.Brands, IsBasic: true),
-        new("Search Brands", FshAction.Search, FshResource.Brands, IsBasic: true),
-        new("Create Brands", FshAction.Create, FshResource.Brands),
-        new("Update Brands", FshAction.Update, FshResource.Brands),
-        new("Delete Brands", FshAction.Delete, FshResource.Brands),
-        new("Generate Brands", FshAction.Generate, FshResource.Brands),
-        new("Clean Brands", FshAction.Clean, FshResource.Brands),
-        new("View Tenants", FshAction.View, FshResource.Tenants, IsRoot: true),
-        new("Create Tenants", FshAction.Create, FshResource.Tenants, IsRoot: true),
-        new("Update Tenants", FshAction.Update, FshResource.Tenants, IsRoot: true),
-        new("Upgrade Tenant Subscription", FshAction.UpgradeSubscription, FshResource.Tenants, IsRoot: true)
+
+        //todos
+        new("View Todos", FshAction.View, FshResource.Todos, IsBasic: true),
+        new("Search Todos", FshAction.Search, FshResource.Todos, IsBasic: true),
+        new("Create Todos", FshAction.Create, FshResource.Todos),
+        new("Update Todos", FshAction.Update, FshResource.Todos),
+        new("Delete Todos", FshAction.Delete, FshResource.Todos),
    };
 
     public static IReadOnlyList<FshPermission> All { get; } = new ReadOnlyCollection<FshPermission>(allPermissions);
@@ -72,8 +75,14 @@ internal static class FshPermissions
     public static IReadOnlyList<FshPermission> Admin { get; } = new ReadOnlyCollection<FshPermission>(allPermissions.Where(p => !p.IsRoot).ToArray());
     public static IReadOnlyList<FshPermission> Basic { get; } = new ReadOnlyCollection<FshPermission>(allPermissions.Where(p => p.IsBasic).ToArray());
 }
+
 public record FshPermission(string Description, string Action, string Resource, bool IsBasic = false, bool IsRoot = false)
 {
     public string Name => NameFor(Action, Resource);
-    public static string NameFor(string? action, string? resource) => $"perm:{resource}:{action}";
+    public static string NameFor(string action, string resource)
+    {
+        return $"Permissions.{resource}.{action}";
+    }
 }
+
+

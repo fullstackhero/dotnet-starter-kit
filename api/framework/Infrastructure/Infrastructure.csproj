@@ -56,6 +56,7 @@
     <PackageReference Include="Carter" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\modules\Shared\Shared.csproj" />
     <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
 </Project>

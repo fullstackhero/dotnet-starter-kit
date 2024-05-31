@@ -1,6 +1,6 @@
 ﻿using FSH.Framework.Core.Caching;
 using FSH.Framework.Core.Exceptions;
-using FSH.Framework.Infrastructure.Auth;
+using FSH.WebApi.Shared.Authorization;
 using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Framework.Infrastructure.Identity.Users.Services;
@@ -19,7 +19,7 @@ internal partial class UserService
             .ToListAsync(cancellationToken))
         {
             permissions.AddRange(await db.RoleClaims
-                .Where(rc => rc.RoleId == role.Id && rc.ClaimType == AuthConstants.Claims.Permission)
+                .Where(rc => rc.RoleId == role.Id && rc.ClaimType == FshClaims.Permission)
                 .Select(rc => rc.ClaimValue!)
                 .ToListAsync(cancellationToken));
         }

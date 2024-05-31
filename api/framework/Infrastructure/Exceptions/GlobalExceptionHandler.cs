@@ -17,7 +17,7 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
 
         if (exception is FluentValidation.ValidationException fluentException)
         {
-            problemDetails.Title = "one or more validation errors occurred.";
+            problemDetails.Detail = "one or more validation errors occurred";
             problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1";
             httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
             List<string> validationErrors = new List<string>();
@@ -31,7 +31,7 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
         else if (exception is FshException e)
         {
             httpContext.Response.StatusCode = (int)e.StatusCode;
-            problemDetails.Title = e.Message;
+            problemDetails.Detail = e.Message;
             if (e.ErrorMessages != null && e.ErrorMessages.Any())
             {
                 problemDetails.Extensions.Add("errors", e.ErrorMessages);
@@ -40,13 +40,11 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
 
         else
         {
-            problemDetails.Title = exception.Message;
+            problemDetails.Detail = exception.Message;
         }
 
         LogContext.PushProperty("StackTrace", exception.StackTrace);
-        logger.LogError("{ProblemDetailsTitle}", problemDetails.Title);
-
-        problemDetails.Status = httpContext.Response.StatusCode;
+        logger.LogError("{ProblemDetail}", problemDetails.Detail);
         await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken).ConfigureAwait(false);
         return true;
     }

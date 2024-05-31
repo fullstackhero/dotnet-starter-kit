@@ -1,6 +1,6 @@
 ﻿using FSH.Framework.Core.Auth.Jwt;
+using FSH.Framework.Infrastructure.Auth.Policy;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -23,12 +23,10 @@ internal static class Extensions
             })
             .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, null!);
 
+        services.AddAuthorizationBuilder().AddRequiredPermissionPolicy();
         services.AddAuthorization(options =>
         {
-            options.FallbackPolicy = new AuthorizationPolicyBuilder()
-                  .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
-                  .RequireAuthenticatedUser()
-                  .Build();
+            options.FallbackPolicy = options.GetPolicy(RequiredPermissionDefaults.PolicyName);
         });
         return services;
     }

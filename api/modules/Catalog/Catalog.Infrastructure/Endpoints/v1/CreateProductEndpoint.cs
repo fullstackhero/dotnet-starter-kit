@@ -1,4 +1,5 @@
-﻿using FSH.WebApi.Catalog.Application.Products.Creation.v1;
+﻿using FSH.Framework.Infrastructure.Auth.Policy;
+using FSH.WebApi.Catalog.Application.Products.Creation.v1;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -15,6 +16,7 @@ public static class CreateProductEndpoint
             .WithSummary("creates a product")
             .WithDescription("creates a product")
             .Produces<CreateProductResponse>()
+            .RequirePermission("Permissions.Products.Create")
             .MapToApiVersion(1);
     }
 }
