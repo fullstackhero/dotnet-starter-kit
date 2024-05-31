@@ -7,10 +7,12 @@
     <ContainerRepository>dotnet-webapi-starter-kit</ContainerRepository>
     <ContainerImageTags>2.0.0;latest</ContainerImageTags>
     <PublishProfile>DefaultContainer</PublishProfile>
+  </PropertyGroup>
+  <ItemGroup>
     <ContainerLabel Include="org.opencontainers.image.authors" Value="Mukesh Murugan" />
     <ContainerLabel Include="org.opencontainers.image.licenses" Value="MIT" />
     <ContainerLabel Include="org.opencontainers.image.source" Value="https://github.com/fullstackhero/dotnet-webapi-starter-kit" />
-  </PropertyGroup>
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
       <PrivateAssets>all</PrivateAssets>
