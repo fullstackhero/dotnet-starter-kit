@@ -1,21 +1,21 @@
 name: build
 on:
   push:
-    branches: [ "v2" ]
+    branches: ["v2"]
   pull_request:
-    branches: [ "v2" ]
+    branches: ["v2"]
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: setup dotnet
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.0.x
-    - name: restore dependencies
-      run: dotnet restore
-    - name: build
-      run: dotnet build --no-restore
-    - name: test
-      run: dotnet test --no-build --verbosity normal
+      - uses: actions/checkout@v4
+      - name: setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: restore dependencies
+        run: dotnet restore ./api/FSH.WebApi.sln
+      - name: build
+        run: dotnet build ./api/FSH.WebApi.sln --no-restore
+      - name: test
+        run: dotnet test ./api/FSH.WebApi.sln --no-build --verbosity normal
