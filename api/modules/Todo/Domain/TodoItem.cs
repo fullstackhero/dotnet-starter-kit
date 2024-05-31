@@ -16,7 +16,7 @@ public class TodoItem : AuditableEntity, IAggregateRoot
         item.Title = title;
         item.Note = note;
 
-        item.QueueDomainEvent(new TodoItemCreated(item.Id, item.Title));
+        item.QueueDomainEvent(new TodoItemCreated(item.Id, item.Title, item.Note));
 
         return item;
     }

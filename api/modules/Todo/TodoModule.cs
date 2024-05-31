@@ -4,6 +4,7 @@ using FSH.Framework.Infrastructure.Persistence;
 using FSH.WebApi.Todo.Features.Creation.v1;
 using FSH.WebApi.Todo.Features.Get.v1;
 using FSH.WebApi.Todo.Features.GetList.v1;
+using FSH.WebApi.Todo.Models;
 using FSH.WebApi.Todo.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -28,8 +29,8 @@ public static class TodoModule
         ArgumentNullException.ThrowIfNull(builder);
         builder.Services.BindDbContext<TodoDbContext>();
         builder.Services.AddScoped<IDbInitializer, TodoDbInitializer>();
-        builder.Services.AddScoped(typeof(IRepository<>), typeof(TodoRepository<>));
-        builder.Services.AddScoped(typeof(IReadRepository<>), typeof(TodoRepository<>));
+        builder.Services.AddKeyedScoped<IRepository<TodoItem>, TodoRepository<TodoItem>>("todo");
+        builder.Services.AddKeyedScoped<IReadRepository<TodoItem>, TodoRepository<TodoItem>>("todo");
         return builder;
     }
     public static WebApplication UseTodoModule(this WebApplication app)

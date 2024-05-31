@@ -4,11 +4,8 @@
     <AssemblyName>FSH.WebApi.Catalog.Infrastructure</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="Persistence\Configurations\**" />
     <Compile Remove="Persistence\Repositories\**" />
-    <EmbeddedResource Remove="Persistence\Configurations\**" />
     <EmbeddedResource Remove="Persistence\Repositories\**" />
-    <None Remove="Persistence\Configurations\**" />
     <None Remove="Persistence\Repositories\**" />
   </ItemGroup>
   <ItemGroup>

@@ -40,6 +40,7 @@ public static class Extensions
             app.UseSwaggerUI(options =>
             {
                 options.DocExpansion(DocExpansion.None);
+                options.DisplayRequestDuration();
 
                 var swaggerEndpoints = app.DescribeApiVersions()
                     .Select(desc => new

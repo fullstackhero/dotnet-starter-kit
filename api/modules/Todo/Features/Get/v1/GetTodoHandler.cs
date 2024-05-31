@@ -3,9 +3,12 @@ using FSH.Framework.Core.Persistence;
 using FSH.WebApi.Todo.Exceptions;
 using FSH.WebApi.Todo.Models;
 using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FSH.WebApi.Todo.Features.Get.v1;
-public sealed class GetTodoHandler(IRepository<TodoItem> repository, ICacheService cache)
+public sealed class GetTodoHandler(
+    [FromKeyedServices("todo")] IReadRepository<TodoItem> repository,
+    ICacheService cache)
     : IRequestHandler<GetTodoRequest, GetTodoResponse>
 {
     public async Task<GetTodoResponse> Handle(GetTodoRequest request, CancellationToken cancellationToken)

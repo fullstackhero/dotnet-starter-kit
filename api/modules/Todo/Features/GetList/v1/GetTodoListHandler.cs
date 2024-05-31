@@ -3,9 +3,12 @@ using FSH.Framework.Core.Persistence;
 using FSH.Framework.Core.Specifications;
 using FSH.WebApi.Todo.Models;
 using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FSH.WebApi.Todo.Features.GetList.v1;
-public sealed class GetTodoListHandler(IReadRepository<TodoItem> repository) : IRequestHandler<GetTodoListRequest, PagedList<TodoDto>>
+public sealed class GetTodoListHandler(
+    [FromKeyedServices("todo")] IReadRepository<TodoItem> repository)
+    : IRequestHandler<GetTodoListRequest, PagedList<TodoDto>>
 {
     public async Task<PagedList<TodoDto>> Handle(GetTodoListRequest request, CancellationToken cancellationToken)
     {

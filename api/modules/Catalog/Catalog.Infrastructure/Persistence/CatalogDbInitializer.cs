@@ -10,7 +10,7 @@ internal sealed class CatalogDbInitializer(
 {
     public async Task MigrateAsync(CancellationToken cancellationToken)
     {
-        if ((await context.Database.GetPendingMigrationsAsync(cancellationToken).ConfigureAwait(false)).Any())
+        if ((await context.Database.GetPendingMigrationsAsync(cancellationToken)).Any())
         {
             await context.Database.MigrateAsync(cancellationToken).ConfigureAwait(false);
             logger.LogInformation("[{Tenant}] applied database migrations for catalog module", context.TenantInfo!.Identifier);

@@ -69,7 +69,7 @@ public static class Extensions
                     .Build();
 
         //map versioned endpoint
-        var endpoints = app.MapGroup("api/v{version:apiVersion}").WithApiVersionSet(versions);
+        app.MapGroup("api/v{version:apiVersion}").WithApiVersionSet(versions);
 
         return app;
     }
