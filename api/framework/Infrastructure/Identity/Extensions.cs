@@ -1,5 +1,4 @@
-﻿using FSH.Framework.Core.Identity;
-using FSH.Framework.Core.Identity.Tokens;
+﻿using FSH.Framework.Core.Identity.Tokens;
 using FSH.Framework.Core.Identity.Users.Abstractions;
 using FSH.Framework.Core.Persistence;
 using FSH.Framework.Infrastructure.Identity.Persistence;
@@ -22,10 +21,6 @@ internal static class Extensions
     internal static IServiceCollection ConfigureIdentity(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
-        services.AddOptions<JwtOptions>()
-            .BindConfiguration(nameof(JwtOptions))
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
         services.AddTransient<ICurrentUser, CurrentUser>();
         services.AddTransient<IUserService, UserService>();
         services.AddTransient<ITokenService, TokenService>();

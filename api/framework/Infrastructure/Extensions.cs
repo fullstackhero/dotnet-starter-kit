@@ -2,6 +2,7 @@
 using Asp.Versioning.Conventions;
 using FluentValidation;
 using FSH.Framework.Core;
+using FSH.Framework.Infrastructure.Auth.Jwt;
 using FSH.Framework.Infrastructure.Behaviours;
 using FSH.Framework.Infrastructure.Caching;
 using FSH.Framework.Infrastructure.Exceptions;
@@ -27,6 +28,7 @@ public static class Extensions
         builder.ConfigureDatabase();
         builder.Services.ConfigureMultitenancy();
         builder.Services.ConfigureIdentity();
+        builder.Services.ConfigureJwtAuth();
         builder.Services.ConfigureOpenApi();
         builder.Services.ConfigureMailing();
         builder.Services.ConfigureCaching(builder.Configuration);
@@ -57,7 +59,8 @@ public static class Extensions
         app.UseHttpsRedirection();
         app.UseMultitenancy();
         app.UseExceptionHandler();
-
+        app.UseAuthentication();
+        app.UseAuthorization();
         app.MapTenantEndpoints();
         app.MapIdentityEndpoints();
 

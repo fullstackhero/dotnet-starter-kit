@@ -5,7 +5,7 @@ namespace FSH.Framework.Core.Exceptions;
 public class UnauthorizedException : FshException
 {
     public UnauthorizedException()
-        : base("you are not authorized to access this resource.", new Collection<string>(), HttpStatusCode.Unauthorized)
+        : base("authentication failed.", new Collection<string>(), HttpStatusCode.Unauthorized)
     {
     }
     public UnauthorizedException(string message)

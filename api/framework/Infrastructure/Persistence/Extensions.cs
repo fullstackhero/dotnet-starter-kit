@@ -28,6 +28,8 @@ public static class Extensions
             .PostConfigure(config =>
             {
                 _logger.Information("current db provider: {DatabaseProvider}", config.Provider);
+                _logger.Information("for documentations and guides, visit https://www.fullstackhero.net");
+                _logger.Information("to sponsor this project, visit https://opencollective.com/fullstackhero");
             });
         return builder;
     }
