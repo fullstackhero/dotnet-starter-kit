@@ -2,7 +2,7 @@ version: "3.8"
 name: fullstackhero
 services:
   dotnet-webapi:
-    image: dotnet-webapi-starter-kit:latest
+    image: ghcr.io/fullstackhero/dotnet-webapi:latest
     container_name: dotnet-webapi
     networks:
       - fullstackhero
