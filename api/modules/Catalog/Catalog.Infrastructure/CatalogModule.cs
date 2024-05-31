@@ -18,7 +18,7 @@ public static class CatalogModule
         public override void AddRoutes(IEndpointRouteBuilder app)
         {
             var productGroup = app.MapGroup("products").WithTags("products");
-            productGroup.MapProductCreationEndpoint();
+            productGroup.MapProductCreationEndpoint().RequireAuthorization();
         }
     }
     public static WebApplicationBuilder RegisterCatalogServices(this WebApplicationBuilder builder)

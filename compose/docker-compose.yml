@@ -14,7 +14,7 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/cert.pfx
       - DatabaseOptions__ConnectionString=Server=postgres;Port=5433;Database=fshdb;User Id=posgresqladmin;Password=posgresqladmin
       - DatabaseOptions__Provider=postgresql
-      - JwtOptions__Key=S0M3RAN0MS3CR3T!1!MAG1C!1!
+      - JwtOptions__Key=QsJbczCNysv/5SGh+U7sxedX8C07TPQPBdsnSDKZ/aE=
     volumes:
       - ~/.aspnet/https:/https:ro
     ports:

@@ -1,7 +1,11 @@
-﻿using FluentValidation;
+﻿using System.ComponentModel;
+using FluentValidation;
+using FSH.Framework.Core.Tenant;
 
 namespace FSH.Framework.Core.Identity.Tokens.Features.Generate;
-public record TokenGenerationCommand(string Email, string Password);
+public record TokenGenerationCommand(
+    [property: DefaultValue(TenantConstants.Root.EmailAddress)] string Email,
+    [property: DefaultValue(TenantConstants.DefaultPassword)] string Password);
 
 public class GenerateTokenValidator : AbstractValidator<TokenGenerationCommand>
 {

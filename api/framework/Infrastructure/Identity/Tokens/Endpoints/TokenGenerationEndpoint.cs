@@ -26,7 +26,7 @@ public static class TokenGenerationEndpoint
             return service.GenerateTokenAsync(request, ip!, cancellationToken);
         })
         .WithName(nameof(TokenGenerationEndpoint))
-        .WithSummary("register user")
-        .WithDescription("register user");
+        .WithSummary("generate JWTs")
+        .WithDescription("generate JWTs").AllowAnonymous();
     }
 }
