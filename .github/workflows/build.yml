@@ -19,8 +19,8 @@ jobs:
         run: dotnet build ./api/FSH.WebApi.sln --no-restore
       - name: test
         run: dotnet test ./api/FSH.WebApi.sln --no-build --verbosity normal
-  docker:
-    name: docker
+  publish:
+    name: publish
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -31,8 +31,9 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: publish docker image
-        working-directory: ./
+      - name: publish to github container registry
+        working-directory: ./api/
         run: |
-          dotnet publish ./api/FSH.WebApi.sln -c Release -p:ContainerRepository=${{ secrets.DOCKER_USERNAME }}/dotnet-webapi-starter-kit -p:RuntimeIdentifier=linux-x64
-          docker push ${{ secrets.DOCKER_USERNAME }}/dotnet-webapi-starter-kit --all-tags
+          dotnet publish -c Release -p:ContainerRepository=${{ github.repository_owner}}/dotnet-webapi -p:RuntimeIdentifier=linux-x64
+          IMAGE_ID = ghcr.io/${{ github.repository_owner}}/dotnet-webapi --all-tags
+          docker push $IMAGE_ID
