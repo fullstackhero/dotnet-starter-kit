@@ -9,7 +9,7 @@
     <None Remove="Persistence\Repositories\**" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Framework\Infrastructure\Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\framework\Infrastructure\Infrastructure.csproj" />
     <ProjectReference Include="..\Catalog.Application\Catalog.Application.csproj" />
   </ItemGroup>
 </Project>
