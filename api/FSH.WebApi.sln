@@ -31,7 +31,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Framework", "Framework", "{
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "framework\Core\Core.csproj", "{C0E97D3D-2151-43F0-9E16-A4AD1992C4EC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "Framework\Infrastructure\Infrastructure.csproj", "{F918EDCE-0089-440D-AD7F-3606C3CC1472}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "framework\Infrastructure\Infrastructure.csproj", "{F918EDCE-0089-440D-AD7F-3606C3CC1472}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{32F5383E-4201-4527-98DB-40715BB9F574}"
 EndProject
