@@ -34,5 +34,5 @@ jobs:
       - name: publish docker image
         working-directory: ./
         run: |
-          dotnet publish -c Release -p:ContainerRepository=${{ secrets.DOCKER_USERNAME }}/dotnet-webapi-starter-kit -p:RuntimeIdentifier=linux-x64
+          dotnet publish ./api/FSH.WebApi.sln -c Release -p:ContainerRepository=${{ secrets.DOCKER_USERNAME }}/dotnet-webapi-starter-kit -p:RuntimeIdentifier=linux-x64
           docker push ${{ secrets.DOCKER_USERNAME }}/dotnet-webapi-starter-kit --all-tags
