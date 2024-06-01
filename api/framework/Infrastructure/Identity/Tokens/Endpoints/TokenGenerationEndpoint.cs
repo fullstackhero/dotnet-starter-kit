@@ -30,6 +30,7 @@ public static class TokenGenerationEndpoint
         })
         .WithName(nameof(TokenGenerationEndpoint))
         .WithSummary("generate JWTs")
-        .WithDescription("generate JWTs").AllowAnonymous();
+        .WithDescription("generate JWTs")
+        .AllowAnonymous();
     }
 }

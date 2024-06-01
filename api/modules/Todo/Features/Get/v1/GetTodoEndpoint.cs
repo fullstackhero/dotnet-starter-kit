@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using FSH.Framework.Infrastructure.Auth.Policy;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -13,6 +14,7 @@ public static class GetTodoEndpoint
                         .WithSummary("gets todo item by id")
                         .WithDescription("gets todo item by id")
                         .Produces<GetTodoResponse>()
+                        .RequirePermission("Permissions.Todos.View")
                         .MapToApiVersion(1);
     }
 }

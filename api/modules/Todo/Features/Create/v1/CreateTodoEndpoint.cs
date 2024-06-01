@@ -1,4 +1,5 @@
-﻿using FSH.WebApi.Todo.Features.CreateTodo.v1;
+﻿using FSH.Framework.Infrastructure.Auth.Policy;
+using FSH.WebApi.Todo.Features.CreateTodo.v1;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -14,6 +15,7 @@ public static class CreateTodoEndpoint
                         .WithSummary("creates a todo item")
                         .WithDescription("creates a todo item")
                         .Produces<CreateTodoRepsonse>()
+                        .RequirePermission("Permissions.Todos.Create")
                         .MapToApiVersion(1);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using FSH.Framework.Core.Identity.Users.Abstractions;
 using FSH.Framework.Core.Identity.Users.Features.RegisterUser;
+using FSH.Framework.Infrastructure.Auth.Policy;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -19,6 +20,7 @@ public static class RegisterUserEndpoint
         })
         .WithName(nameof(RegisterUserEndpoint))
         .WithSummary("register user")
+        .RequirePermission("Permissions.Users.Create")
         .WithDescription("register user");
     }
 }

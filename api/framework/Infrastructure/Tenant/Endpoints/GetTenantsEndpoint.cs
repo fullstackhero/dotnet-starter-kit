@@ -1,4 +1,5 @@
 ﻿using FSH.Framework.Core.Tenant.Features.GetTenants;
+using FSH.Framework.Infrastructure.Auth.Policy;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -12,6 +13,7 @@ public static class GetTenantsEndpoint
         return endpoints.MapGet("/", (ISender mediator) => mediator.Send(new GetTenantsQuery()))
                                 .WithName(nameof(GetTenantsEndpoint))
                                 .WithSummary("get tenants")
+                                .RequirePermission("Permissions.Tenants.View")
                                 .WithDescription("get tenants");
     }
 }
