@@ -16,6 +16,7 @@ internal sealed class IdentityDbInitializer(
     IdentityDbContext context,
     RoleManager<FshRole> roleManager,
     UserManager<FshUser> userManager,
+    TimeProvider timeProvider,
     IMultiTenantContextAccessor<FshTenantInfo> multiTenantContextAccessor) : IDbInitializer
 {
     public async Task MigrateAsync(CancellationToken cancellationToken)
@@ -72,7 +73,8 @@ internal sealed class IdentityDbInitializer(
                 RoleId = role.Id,
                 ClaimType = IdentityConstants.Claims.Permission,
                 ClaimValue = permission.Name,
-                CreatedBy = "application"
+                CreatedBy = "application",
+                CreatedOn = timeProvider.GetUtcNow()
             })
             .ToList();
 

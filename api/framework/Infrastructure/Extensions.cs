@@ -2,6 +2,7 @@
 using Asp.Versioning.Conventions;
 using FluentValidation;
 using FSH.Framework.Core;
+using FSH.Framework.Infrastructure.Auth;
 using FSH.Framework.Infrastructure.Auth.Jwt;
 using FSH.Framework.Infrastructure.Behaviours;
 using FSH.Framework.Infrastructure.Caching;
@@ -64,6 +65,9 @@ public static class Extensions
         app.UseAuthorization();
         app.MapTenantEndpoints();
         app.MapIdentityEndpoints();
+
+        //current user middleware
+        app.UseMiddleware<CurrentUserMiddleware>();
 
         //register api versions
         var versions = app.NewApiVersionSet()

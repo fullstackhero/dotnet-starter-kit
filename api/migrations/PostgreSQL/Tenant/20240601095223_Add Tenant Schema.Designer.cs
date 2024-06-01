@@ -12,15 +12,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FSH.WebApi.Migrations.PostgreSQL.Tenant
 {
     [DbContext(typeof(TenantDbContext))]
-    [Migration("20240106134226_Initial")]
-    partial class Initial
+    [Migration("20240601095223_Add Tenant Schema")]
+    partial class AddTenantSchema
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.0")
+                .HasAnnotation("ProductVersion", "8.0.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);

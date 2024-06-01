@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FSH.WebApi.Migrations.PostgreSQL.Identity
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class AddIdentitySchema : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -74,7 +74,7 @@ namespace FSH.WebApi.Migrations.PostgreSQL.Identity
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
-                    CreatedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedOn = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     TenantId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                     RoleId = table.Column<string>(type: "text", nullable: false),
                     ClaimType = table.Column<string>(type: "text", nullable: true),
@@ -121,7 +121,6 @@ namespace FSH.WebApi.Migrations.PostgreSQL.Identity
                 schema: "identity",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
                     LoginProvider = table.Column<string>(type: "text", nullable: false),
                     ProviderKey = table.Column<string>(type: "text", nullable: false),
                     ProviderDisplayName = table.Column<string>(type: "text", nullable: true),
@@ -130,7 +129,7 @@ namespace FSH.WebApi.Migrations.PostgreSQL.Identity
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UserLogins", x => x.Id);
+                    table.PrimaryKey("PK_UserLogins", x => new { x.LoginProvider, x.ProviderKey });
                     table.ForeignKey(
                         name: "FK_UserLogins_Users_UserId",
                         column: x => x.UserId,
@@ -211,13 +210,6 @@ namespace FSH.WebApi.Migrations.PostgreSQL.Identity
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserLogins_LoginProvider_ProviderKey_TenantId",
-                schema: "identity",
-                table: "UserLogins",
-                columns: new[] { "LoginProvider", "ProviderKey", "TenantId" },
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_UserLogins_UserId",
                 schema: "identity",
                 table: "UserLogins",
@@ -239,7 +231,7 @@ namespace FSH.WebApi.Migrations.PostgreSQL.Identity
                 name: "UserNameIndex",
                 schema: "identity",
                 table: "Users",
-                columns: new[] { "NormalizedUserName", "TenantId" },
+                column: "NormalizedUserName",
                 unique: true);
         }
 

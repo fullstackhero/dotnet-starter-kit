@@ -4,5 +4,5 @@ namespace FSH.Framework.Infrastructure.Identity.RoleClaims;
 public class FshRoleClaim : IdentityRoleClaim<string>
 {
     public string? CreatedBy { get; init; }
-    public DateTime CreatedOn { get; init; }
+    public DateTimeOffset CreatedOn { get; init; }
 }

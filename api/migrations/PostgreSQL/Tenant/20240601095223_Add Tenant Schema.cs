@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace FSH.WebApi.Migrations.PostgreSQL.Tenant
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class AddTenantSchema : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

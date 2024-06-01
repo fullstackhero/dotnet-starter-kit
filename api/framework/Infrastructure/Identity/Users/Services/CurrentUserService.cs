@@ -3,7 +3,7 @@ using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Core.Identity.Users.Abstractions;
 
 namespace FSH.Framework.Infrastructure.Identity.Users.Services;
-public class CurrentUser : ICurrentUser
+public class CurrentUser : ICurrentUser, ICurrentUserInitializer
 {
     private ClaimsPrincipal? _user;
 
@@ -11,10 +11,12 @@ public class CurrentUser : ICurrentUser
 
     private Guid _userId = Guid.Empty;
 
-    public Guid GetUserId() =>
-        IsAuthenticated()
+    public Guid GetUserId()
+    {
+        return IsAuthenticated()
             ? Guid.Parse(_user?.GetUserId() ?? Guid.Empty.ToString())
             : _userId;
+    }
 
     public string? GetUserEmail() =>
         IsAuthenticated()

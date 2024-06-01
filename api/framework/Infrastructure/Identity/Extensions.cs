@@ -1,6 +1,7 @@
 ﻿using FSH.Framework.Core.Identity.Tokens;
 using FSH.Framework.Core.Identity.Users.Abstractions;
 using FSH.Framework.Core.Persistence;
+using FSH.Framework.Infrastructure.Auth;
 using FSH.Framework.Infrastructure.Identity.Persistence;
 using FSH.Framework.Infrastructure.Identity.Roles;
 using FSH.Framework.Infrastructure.Identity.Tokens;
@@ -21,7 +22,9 @@ internal static class Extensions
     internal static IServiceCollection ConfigureIdentity(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
-        services.AddTransient<ICurrentUser, CurrentUser>();
+        services.AddScoped<CurrentUserMiddleware>();
+        services.AddScoped<ICurrentUser, CurrentUser>();
+        services.AddScoped(sp => (ICurrentUserInitializer)sp.GetRequiredService<ICurrentUser>());
         services.AddTransient<IUserService, UserService>();
         services.AddTransient<ITokenService, TokenService>();
         services.BindDbContext<IdentityDbContext>();

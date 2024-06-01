@@ -1,6 +1,8 @@
 ﻿using FSH.Framework.Core.Persistence;
+using FSH.Framework.Infrastructure.Persistence.Interceptors;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Serilog;
@@ -31,6 +33,7 @@ public static class Extensions
                 _logger.Information("for documentations and guides, visit https://www.fullstackhero.net");
                 _logger.Information("to sponsor this project, visit https://opencollective.com/fullstackhero");
             });
+        builder.Services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         return builder;
     }
 
@@ -39,10 +42,11 @@ public static class Extensions
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        services.AddDbContext<TContext>((p, options) =>
+        services.AddDbContext<TContext>((sp, options) =>
         {
-            var dbConfig = p.GetRequiredService<IOptions<DatabaseOptions>>().Value;
+            var dbConfig = sp.GetRequiredService<IOptions<DatabaseOptions>>().Value;
             options.ConfigureDatabase(dbConfig.Provider, dbConfig.ConnectionString);
+            options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
         });
         return services;
     }
