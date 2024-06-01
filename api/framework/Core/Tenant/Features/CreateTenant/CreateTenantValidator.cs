@@ -2,10 +2,10 @@
 using FSH.Framework.Core.Persistence;
 using FSH.Framework.Core.Tenant.Abstractions;
 
-namespace FSH.Framework.Core.Tenant.Features.RegisterTenant;
-public class RegisterTenantValidator : AbstractValidator<RegisterTenantCommand>
+namespace FSH.Framework.Core.Tenant.Features.CreateTenant;
+public class CreateTenantValidator : AbstractValidator<CreateTenantCommand>
 {
-    public RegisterTenantValidator(
+    public CreateTenantValidator(
         ITenantService tenantService,
         IConnectionStringValidator connectionStringValidator)
     {

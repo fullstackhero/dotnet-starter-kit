@@ -26,29 +26,29 @@ internal class TokenService(
         CancellationToken cancellationToken)
     {
         var currentTenant = multiTenantContextAccessor!.MultiTenantContext.TenantInfo;
-        if (currentTenant == null) throw new UnauthorizedException("authentication failed.");
+        if (currentTenant == null) throw new UnauthorizedException();
         if (string.IsNullOrWhiteSpace(currentTenant.Id)
            || await userManager.FindByEmailAsync(request.Email.Trim().Normalize()) is not { } user
            || !await userManager.CheckPasswordAsync(user, request.Password))
         {
-            throw new UnauthorizedException("authentication failed.");
+            throw new UnauthorizedException();
         }
 
         if (!user.IsActive)
         {
-            throw new UnauthorizedException("User Not Active. Please contact the administrator.");
+            throw new UnauthorizedException("user is deactivated");
         }
 
         if (currentTenant.Id != IdentityConstants.RootTenant)
         {
             if (!currentTenant.IsActive)
             {
-                throw new UnauthorizedException("Tenant is not Active. Please contact the Application Administrator.");
+                throw new UnauthorizedException($"tenant {currentTenant.Id} is deactivated");
             }
 
             if (DateTime.UtcNow > currentTenant.ValidUpto)
             {
-                throw new UnauthorizedException("Tenant Validity Has Expired. Please contact the Application Administrator.");
+                throw new UnauthorizedException($"tenant {currentTenant.Id} validity has expired");
             }
         }
 

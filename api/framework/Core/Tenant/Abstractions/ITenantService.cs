@@ -1,5 +1,5 @@
 ﻿using FSH.Framework.Core.Tenant.Dtos;
-using FSH.Framework.Core.Tenant.Features.RegisterTenant;
+using FSH.Framework.Core.Tenant.Features.CreateTenant;
 
 namespace FSH.Framework.Core.Tenant.Abstractions;
 public interface ITenantService
@@ -8,8 +8,8 @@ public interface ITenantService
     Task<bool> ExistsWithIdAsync(string id);
     Task<bool> ExistsWithNameAsync(string name);
     Task<TenantDetail> GetByIdAsync(string id);
-    Task<string> CreateAsync(RegisterTenantCommand request, CancellationToken cancellationToken);
-    Task<string> ActivateAsync(string id);
+    Task<string> CreateAsync(CreateTenantCommand request, CancellationToken cancellationToken);
+    Task<string> ActivateAsync(string id, CancellationToken cancellationToken);
     Task<string> DeactivateAsync(string id);
-    Task<string> UpdateSubscription(string id, DateTime extendedExpiryDate);
+    Task<DateTime> UpradeSubscription(string id, DateTime extendedExpiryDate);
 }

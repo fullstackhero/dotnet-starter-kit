@@ -2,4 +2,4 @@
 using MediatR;
 
 namespace FSH.Framework.Core.Tenant.Features.GetTenants;
-public sealed class GetTenantsQuery : IRequest<List<TenantDetail>>;
+public record GetTenantByIdQuery(string TenantId) : IRequest<TenantDetail>;

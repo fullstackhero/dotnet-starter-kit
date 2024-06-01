@@ -4,7 +4,7 @@ using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Core.Persistence;
 using FSH.Framework.Core.Tenant.Abstractions;
 using FSH.Framework.Core.Tenant.Dtos;
-using FSH.Framework.Core.Tenant.Features.RegisterTenant;
+using FSH.Framework.Core.Tenant.Features.CreateTenant;
 using Mapster;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -23,23 +23,23 @@ public sealed class TenantService : ITenantService
         _serviceProvider = serviceProvider;
     }
 
-    public async Task<string> ActivateAsync(string id)
+    public async Task<string> ActivateAsync(string id, CancellationToken cancellationToken)
     {
         var tenant = await GetTenantInfoAsync(id).ConfigureAwait(false);
 
         if (tenant.IsActive)
         {
-            throw new FshException("Tenant is already Activated.");
+            throw new FshException($"tenant {id} is already activated");
         }
 
         tenant.Activate();
 
         await _tenantStore.TryUpdateAsync(tenant).ConfigureAwait(false);
 
-        return $"Tenant {id} is now Activated.";
+        return $"tenant {id} is now activated";
     }
 
-    public async Task<string> CreateAsync(RegisterTenantCommand request, CancellationToken cancellationToken)
+    public async Task<string> CreateAsync(CreateTenantCommand request, CancellationToken cancellationToken)
     {
         var connectionString = request.ConnectionString;
         if (request.ConnectionString?.Trim() == _config.ConnectionString.Trim())
@@ -81,12 +81,12 @@ public sealed class TenantService : ITenantService
         var tenant = await GetTenantInfoAsync(id).ConfigureAwait(false);
         if (!tenant.IsActive)
         {
-            throw new FshException("Tenant is already Deactivated.");
+            throw new FshException($"tenant {id} is already deactivated");
         }
 
         tenant.Deactivate();
         await _tenantStore.TryUpdateAsync(tenant).ConfigureAwait(false);
-        return $"Tenant {id} is now Activated.";
+        return $"tenant {id} is now deactivated";
     }
 
     public async Task<bool> ExistsWithIdAsync(string id) =>
@@ -104,12 +104,12 @@ public sealed class TenantService : ITenantService
         (await GetTenantInfoAsync(id).ConfigureAwait(false))
             .Adapt<TenantDetail>();
 
-    public async Task<string> UpdateSubscription(string id, DateTime extendedExpiryDate)
+    public async Task<DateTime> UpradeSubscription(string id, DateTime extendedExpiryDate)
     {
         var tenant = await GetTenantInfoAsync(id).ConfigureAwait(false);
         tenant.SetValidity(extendedExpiryDate);
         await _tenantStore.TryUpdateAsync(tenant).ConfigureAwait(false);
-        return $"Tenant {id}'s Subscription Upgraded. Now Valid till {tenant.ValidUpto}.";
+        return tenant.ValidUpto;
     }
 
     private async Task<FshTenantInfo> GetTenantInfoAsync(string id) =>
