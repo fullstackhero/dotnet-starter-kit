@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using Serilog.Context;
 
 namespace FSH.Framework.Infrastructure.Exceptions;
-public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
+public class CustomExceptionHandler(ILogger<CustomExceptionHandler> logger) : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {

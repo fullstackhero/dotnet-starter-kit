@@ -32,7 +32,7 @@ public static class Extensions
         builder.Services.ConfigureOpenApi();
         builder.Services.ConfigureMailing();
         builder.Services.ConfigureCaching(builder.Configuration);
-        builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+        builder.Services.AddExceptionHandler<CustomExceptionHandler>();
         builder.Services.AddProblemDetails();
 
         //define module assemblies
