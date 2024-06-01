@@ -7,6 +7,7 @@ using FSH.Framework.Infrastructure.Persistence;
 using FSH.Framework.Infrastructure.Persistence.Services;
 using FSH.Framework.Infrastructure.Tenant.Persistence;
 using FSH.Framework.Infrastructure.Tenant.Services;
+using FSH.WebApi.Shared.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,7 +22,8 @@ internal static class Extensions
         services.AddTransient<IConnectionStringValidator, ConnectionStringValidator>();
         services.BindDbContext<TenantDbContext>();
         services.AddMultiTenant<FshTenantInfo>()
-            .WithStaticStrategy(TenantConstants.Root.Id) //dev only
+            .WithClaimStrategy(FshClaims.Tenant)
+            .WithHeaderStrategy(TenantConstants.Identifier)
             .WithEFCoreStore<TenantDbContext, FshTenantInfo>();
         services.AddScoped<ITenantService, TenantService>();
         return services;
