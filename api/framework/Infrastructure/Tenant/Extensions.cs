@@ -1,5 +1,6 @@
 ﻿using Finbuckle.MultiTenant;
 using Finbuckle.MultiTenant.Abstractions;
+using Finbuckle.MultiTenant.Stores.DistributedCacheStore;
 using FSH.Framework.Core.Persistence;
 using FSH.Framework.Core.Tenant;
 using FSH.Framework.Core.Tenant.Abstractions;
@@ -9,6 +10,7 @@ using FSH.Framework.Infrastructure.Tenant.Persistence;
 using FSH.Framework.Infrastructure.Tenant.Services;
 using FSH.WebApi.Shared.Authorization;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -21,9 +23,28 @@ internal static class Extensions
         ArgumentNullException.ThrowIfNull(services);
         services.AddTransient<IConnectionStringValidator, ConnectionStringValidator>();
         services.BindDbContext<TenantDbContext>();
-        services.AddMultiTenant<FshTenantInfo>()
+        services
+            .AddMultiTenant<FshTenantInfo>(config =>
+            {
+                // to save database calls to resolve tenant
+                // this was happening for every request earlier, leading to ineffeciency
+                config.Events.OnTenantResolved = async (context) =>
+                {
+                    if (context.StoreType != typeof(DistributedCacheStore<FshTenantInfo>))
+                    {
+                        var sp = ((HttpContext)context.Context!).RequestServices;
+                        var distributedCacheStore = sp
+                            .GetService<IEnumerable<IMultiTenantStore<FshTenantInfo>>>()!
+                            .FirstOrDefault(s => s.GetType() == typeof(DistributedCacheStore<FshTenantInfo>));
+
+                        await distributedCacheStore!.TryAddAsync((FshTenantInfo)context.TenantInfo!);
+                    }
+                    await Task.FromResult(0);
+                };
+            })
             .WithClaimStrategy(FshClaims.Tenant)
             .WithHeaderStrategy(TenantConstants.Identifier)
+            .WithDistributedCacheStore(TimeSpan.FromMinutes(60))
             .WithEFCoreStore<TenantDbContext, FshTenantInfo>();
         services.AddScoped<ITenantService, TenantService>();
         return services;
