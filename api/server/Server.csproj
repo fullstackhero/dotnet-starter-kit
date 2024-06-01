@@ -9,11 +9,6 @@
     <PublishProfile>DefaultContainer</PublishProfile>
   </PropertyGroup>
   <ItemGroup>
-    <ContainerLabel Include="org.opencontainers.image.authors" Value="Mukesh Murugan" />
-    <ContainerLabel Include="org.opencontainers.image.licenses" Value="MIT" />
-    <ContainerLabel Include="org.opencontainers.image.source" Value="https://github.com/fullstackhero/dotnet-webapi-starter-kit" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
