@@ -679,6 +679,49 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "todos",
+			"item": [
+				{
+					"name": "get-todo-by-id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/v1/todos/2ded5614-c8ab-463a-94f5-766ed4dc5473",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"v1",
+								"todos",
+								"2ded5614-c8ab-463a-94f5-766ed4dc5473"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get-todos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/v1/todos/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"v1",
+								"todos",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	],
 	"auth": {
