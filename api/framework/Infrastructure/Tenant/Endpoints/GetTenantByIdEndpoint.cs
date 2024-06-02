@@ -1,4 +1,4 @@
-﻿using FSH.Framework.Core.Tenant.Features.GetTenants;
+﻿using FSH.Framework.Core.Tenant.Features.GetTenantById;
 using FSH.Framework.Infrastructure.Auth.Policy;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
