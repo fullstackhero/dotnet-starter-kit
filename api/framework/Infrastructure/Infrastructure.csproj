@@ -20,8 +20,13 @@
     <PackageReference Include="Finbuckle.MultiTenant" />
     <PackageReference Include="Finbuckle.MultiTenant.AspNetCore" />
     <PackageReference Include="Finbuckle.MultiTenant.EntityFrameworkCore" />
+    <PackageReference Include="Hangfire" />
+    <PackageReference Include="Hangfire.MemoryStorage" />
+    <PackageReference Include="Hangfire.PostgreSql" />
+    <PackageReference Include="MailKit" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
+    <PackageReference Include="MimeKit" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
   </ItemGroup>  
   <ItemGroup>

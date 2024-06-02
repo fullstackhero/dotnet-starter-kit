@@ -16,6 +16,10 @@
     <PackageVersion Include="Finbuckle.MultiTenant" Version="7.0.1" />
     <PackageVersion Include="Finbuckle.MultiTenant.AspNetCore" Version="7.0.1" />
     <PackageVersion Include="Finbuckle.MultiTenant.EntityFrameworkCore" Version="7.0.1" />
+    <PackageVersion Include="Hangfire" Version="1.8.12" />
+    <PackageVersion Include="Hangfire.MemoryStorage" Version="1.8.1.1" />
+    <PackageVersion Include="Hangfire.PostgreSql" Version="1.20.8" />
+    <PackageVersion Include="MailKit" Version="4.6.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.6" />
     <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="8.0.6" />
@@ -23,6 +27,7 @@
     <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.6" />
     <PackageVersion Include="Microsoft.NET.Build.Containers" Version="8.0.100" />
     <PackageVersion Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
+    <PackageVersion Include="MimeKit" Version="4.6.0" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.6.2" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />

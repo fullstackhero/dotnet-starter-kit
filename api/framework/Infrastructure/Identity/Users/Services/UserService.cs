@@ -1,4 +1,6 @@
-﻿using System.Security.Claims;
+﻿using System.Collections.ObjectModel;
+using System.Security.Claims;
+using System.Text;
 using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Caching;
 using FSH.Framework.Core.Exceptions;
@@ -7,11 +9,16 @@ using FSH.Framework.Core.Identity.Users.Dtos;
 using FSH.Framework.Core.Identity.Users.Features.RegisterUser;
 using FSH.Framework.Core.Identity.Users.Features.ToggleUserStatus;
 using FSH.Framework.Core.Identity.Users.Features.UpdateUser;
+using FSH.Framework.Core.Jobs;
+using FSH.Framework.Core.Mail;
+using FSH.Framework.Core.Tenant;
+using FSH.Framework.Infrastructure.Constants;
 using FSH.Framework.Infrastructure.Identity.Persistence;
 using FSH.Framework.Infrastructure.Identity.Roles;
 using FSH.Framework.Infrastructure.Tenant;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Framework.Infrastructure.Identity.Users.Services;
@@ -21,14 +28,16 @@ internal partial class UserService(
     RoleManager<FshRole> roleManager,
     IdentityDbContext db,
     ICacheService cache,
-IMultiTenantContextAccessor<FshTenantInfo> multiTenantContextAccessor
+    IJobService jobService,
+    IMailService mailService,
+    IMultiTenantContextAccessor<FshTenantInfo> multiTenantContextAccessor
     ) : IUserService
 {
     private void EnsureValidTenant()
     {
         if (string.IsNullOrWhiteSpace(multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id))
         {
-            throw new UnauthorizedException("Invalid Tenant.");
+            throw new UnauthorizedException("invalid tenant");
         }
     }
 
@@ -67,7 +76,7 @@ IMultiTenantContextAccessor<FshTenantInfo> multiTenantContextAccessor
             .Where(u => u.Id == userId)
             .FirstOrDefaultAsync(cancellationToken);
 
-        _ = user ?? throw new NotFoundException("User Not Found.");
+        _ = user ?? throw new NotFoundException("user not found");
 
         return user.Adapt<UserDetail>();
     }
@@ -111,7 +120,16 @@ IMultiTenantContextAccessor<FshTenantInfo> multiTenantContextAccessor
         // add basic role
         await userManager.AddToRoleAsync(user, IdentityConstants.Roles.Basic);
 
-        // TODO: send confirmation mail
+        // send confirmation mail
+        if (!string.IsNullOrEmpty(user.Email))
+        {
+            string emailVerificationUri = await GetEmailVerificationUriAsync(user, origin);
+            var mailRequest = new MailRequest(
+                new Collection<string> { user.Email },
+                "Confirm Registration",
+                emailVerificationUri);
+            jobService.Enqueue(() => mailService.SendAsync(mailRequest, CancellationToken.None));
+        }
 
         return new RegisterUserResponse(user.Id);
     }
@@ -155,5 +173,21 @@ IMultiTenantContextAccessor<FshTenantInfo> multiTenantContextAccessor
         {
             throw new FshException("Update profile failed");
         }
+    }
+
+    private async Task<string> GetEmailVerificationUriAsync(FshUser user, string origin)
+    {
+        EnsureValidTenant();
+
+        string code = await userManager.GenerateEmailConfirmationTokenAsync(user);
+        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+        const string route = "api/users/confirm-email/";
+        var endpointUri = new Uri(string.Concat($"{origin}/", route));
+        string verificationUri = QueryHelpers.AddQueryString(endpointUri.ToString(), QueryStringKeys.UserId, user.Id);
+        verificationUri = QueryHelpers.AddQueryString(verificationUri, QueryStringKeys.Code, code);
+        verificationUri = QueryHelpers.AddQueryString(verificationUri,
+            TenantConstants.Identifier,
+            multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id!);
+        return verificationUri;
     }
 }

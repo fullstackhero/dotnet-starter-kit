@@ -8,6 +8,7 @@ using FSH.Framework.Infrastructure.Behaviours;
 using FSH.Framework.Infrastructure.Caching;
 using FSH.Framework.Infrastructure.Exceptions;
 using FSH.Framework.Infrastructure.Identity;
+using FSH.Framework.Infrastructure.Jobs;
 using FSH.Framework.Infrastructure.Logging.Serilog;
 using FSH.Framework.Infrastructure.Mail;
 using FSH.Framework.Infrastructure.OpenApi;
@@ -31,6 +32,7 @@ public static class Extensions
         builder.Services.ConfigureIdentity();
         builder.Services.ConfigureJwtAuth();
         builder.Services.ConfigureOpenApi();
+        builder.Services.ConfigureJobs(builder.Configuration);
         builder.Services.ConfigureMailing();
         builder.Services.ConfigureCaching(builder.Configuration);
         builder.Services.AddExceptionHandler<CustomExceptionHandler>();
@@ -61,6 +63,7 @@ public static class Extensions
         app.UseMultitenancy();
         app.UseExceptionHandler();
         app.UseOpenApi();
+        app.UseJobDashboard(app.Configuration);
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapTenantEndpoints();

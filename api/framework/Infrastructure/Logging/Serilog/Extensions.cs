@@ -18,6 +18,7 @@ public static class Extensions
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                 .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
                 .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Error)
+                .MinimumLevel.Override("Hangfire", LogEventLevel.Warning)
                 .Filter.ByExcluding(Matching.FromSource("Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddleware"));
         });
         return builder;
