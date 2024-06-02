@@ -42,7 +42,7 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.6" />
   </ItemGroup>
   <ItemGroup>
-    <PackageVersion Include="SonarAnalyzer.CSharp" Version="9.25.1.91650" />
+    <PackageVersion Include="SonarAnalyzer.CSharp" Version="9.26.0.92422" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="MediatR" Version="12.2.0" />
@@ -50,7 +50,7 @@
     <PackageVersion Include="Carter" Version="8.2.0" />
   </ItemGroup>
   <ItemGroup>
-    <PackageVersion Include="Serilog" Version="3.1.1" />
+    <PackageVersion Include="Serilog" Version="4.0.0" />
     <PackageVersion Include="Serilog.AspNetCore" Version="8.0.1" />
     <PackageVersion Include="Serilog.Enrichers.CorrelationId" Version="3.0.1" />
     <PackageVersion Include="Serilog.Enrichers.Environment" Version="2.3.0" />
