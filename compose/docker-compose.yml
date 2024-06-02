@@ -16,6 +16,8 @@ services:
       - DatabaseOptions__ConnectionString=Server=postgres;Port=5433;Database=fullstackhero;User Id=pgadmin;Password=pgadmin
       - DatabaseOptions__Provider=postgresql
       - JwtOptions__Key=QsJbczCNysv/5SGh+U7sxedX8C07TPQPBdsnSDKZ/aE=
+      - HangfireOptions__Username=admin
+      - HangfireOptions__Password=Secure1234!Me
     volumes:
       - ~/.aspnet/https:/https:ro
     ports:
