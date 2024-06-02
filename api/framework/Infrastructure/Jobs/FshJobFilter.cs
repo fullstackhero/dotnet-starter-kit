@@ -7,7 +7,7 @@ using Hangfire.Logging;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace FSH.WebApi.Infrastructure.BackgroundJobs;
+namespace FSH.Framework.Infrastructure.Jobs;
 
 public class FshJobFilter : IClientFilter
 {

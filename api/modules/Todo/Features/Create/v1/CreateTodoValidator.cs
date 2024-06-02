@@ -2,7 +2,7 @@
 using FSH.WebApi.Todo.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace FSH.WebApi.Todo.Features.CreateTodo.v1;
+namespace FSH.WebApi.Todo.Features.Create.v1;
 public class CreateTodoValidator : AbstractValidator<CreateTodoCommand>
 {
     public CreateTodoValidator(TodoDbContext context)

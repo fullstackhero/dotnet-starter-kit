@@ -1,5 +1,5 @@
 ﻿using FSH.Framework.Core.Persistence;
-using FSH.WebApi.Todo.Models;
+using FSH.WebApi.Todo.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 

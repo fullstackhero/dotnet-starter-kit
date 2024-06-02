@@ -1,4 +1,4 @@
-﻿namespace FSH.Framework.Abstractions.Domain;
+﻿namespace FSH.Framework.Core.Domain.Contracts;
 
 public interface IAuditable
 {

@@ -1,7 +1,7 @@
 ﻿using FSH.Framework.Core.Paging;
 using FSH.Framework.Core.Persistence;
 using FSH.Framework.Core.Specifications;
-using FSH.WebApi.Todo.Models;
+using FSH.WebApi.Todo.Domain;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 

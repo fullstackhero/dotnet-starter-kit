@@ -2,7 +2,7 @@
 using FSH.Framework.Core.Domain.Contracts;
 using FSH.WebApi.Todo.Domain.Events;
 
-namespace FSH.WebApi.Todo.Models;
+namespace FSH.WebApi.Todo.Domain;
 public class TodoItem : AuditableEntity, IAggregateRoot
 {
     public string? Title { get; set; }

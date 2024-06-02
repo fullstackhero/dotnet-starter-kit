@@ -1,7 +1,7 @@
 ﻿using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Core.Tenant;
-using FSH.Framework.Core.Tenant.Abstractions;
+using FSH.Framework.Infrastructure.Tenant.Abstractions;
 
 namespace FSH.Framework.Infrastructure.Tenant;
 public sealed class FshTenantInfo : IFshTenantInfo

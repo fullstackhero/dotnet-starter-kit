@@ -1,2 +1,2 @@
-﻿namespace FSH.WebApi.Todo.Features.CreateTodo.v1;
+﻿namespace FSH.WebApi.Todo.Features.Create.v1;
 public record CreateTodoRepsonse(Guid? Id);
