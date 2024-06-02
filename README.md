@@ -1,28 +1,14 @@
-![FullStackHero .NET Web API](./assets/fullstackhero-banner.png)
+![FullStackHero .NET Starter Kit](./assets/fullstackhero-dotnet-starter-kit.png)
 
-# FullStackHero .NET Web API Starter Kit
+# FullStackHero .NET 8 Starter Kit
 
-FullStackHero's .NET Web API Starter Kit is a starting point for your next `.NET 8 Clean Architecture` Solution that incorporates the most essential packages and features your projects will ever need including out-of-the-box Multi-Tenancy support. This project can save well over 200+ hours of development time for your team.
+> With ASP.NET Core & Blazor Client
 
-# 🎉 Getting Started
+FullStackHero .NET Starter Kit is a starting point for your next `.NET 8 Clean Architecture` Solution that incorporates the most essential packages and features your projects will ever need including out-of-the-box Multi-Tenancy support. This project can save well over 200+ hours of development time for your team.
 
-To install the template from NuGet.org run the following command:
+# Important
 
-```bash
-tba
-```
-
-Then create a new solution:
-
-```bash
-tba
-```
-
-Finally, to update the template to the latest version run:
-
-```bash
-tba
-```
+This project is currently work in progress. The NuGet package is not yet available for v2. For now, you can fork this repository to try it out. [Follow @iammukeshm on X](https://x.com/iammukeshm) for project related updates.
 
 # ✨ Features
 
