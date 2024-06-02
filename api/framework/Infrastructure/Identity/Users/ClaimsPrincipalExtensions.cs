@@ -24,8 +24,11 @@ public static class ClaimsPrincipalExtensions
     public static string? GetUserId(this ClaimsPrincipal principal)
        => principal.FindFirstValue(ClaimTypes.NameIdentifier);
 
-    public static string? GetImageUrl(this ClaimsPrincipal principal)
-       => principal.FindFirstValue(IdentityConstants.Claims.ImageUrl);
+    public static Uri? GetImageUrl(this ClaimsPrincipal principal)
+    {
+        var imageUrl = principal.FindFirstValue(IdentityConstants.Claims.ImageUrl);
+        return Uri.TryCreate(imageUrl, UriKind.Absolute, out var uri) ? uri : null;
+    }
 
     public static DateTimeOffset GetExpiration(this ClaimsPrincipal principal) =>
         DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(

@@ -7,6 +7,7 @@ using FSH.Framework.Core.Auth.Jwt;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Core.Identity.Tokens;
 using FSH.Framework.Core.Identity.Tokens.Features.Generate;
+using FSH.Framework.Infrastructure.Auth.Jwt;
 using FSH.Framework.Infrastructure.Identity.Users;
 using FSH.Framework.Infrastructure.Tenant;
 using Microsoft.AspNetCore.Identity;
@@ -14,7 +15,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace FSH.Framework.Infrastructure.Identity.Tokens;
-internal class TokenService(
+public sealed class TokenService(
         UserManager<FshUser> userManager,
         IMultiTenantContextAccessor<FshTenantInfo>? multiTenantContextAccessor,
         IOptions<JwtOptions> jwtOptions) : ITokenService
@@ -80,7 +81,10 @@ internal class TokenService(
         var token = new JwtSecurityToken(
            claims: claims,
            expires: DateTime.UtcNow.AddMinutes(jwt.TokenExpirationInMinutes),
-           signingCredentials: signingCredentials);
+           signingCredentials: signingCredentials,
+           issuer: JwtAuthConstants.Issuer,
+           audience: JwtAuthConstants.Audience
+           );
         var tokenHandler = new JwtSecurityTokenHandler();
         return tokenHandler.WriteToken(token);
     }

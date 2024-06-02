@@ -18,11 +18,6 @@ internal static class IdentityConstants
             Basic
         });
     }
-
-    public static class Permissions
-    {
-        public const string Basic = nameof(Basic);
-    }
     public static class Claims
     {
         public const string Tenant = "tenant";

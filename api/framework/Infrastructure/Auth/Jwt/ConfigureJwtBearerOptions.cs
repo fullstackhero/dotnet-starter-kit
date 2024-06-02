@@ -36,9 +36,11 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
         {
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(key),
-            ValidateIssuer = false,
+            ValidIssuer = JwtAuthConstants.Issuer,
+            ValidateIssuer = true,
             ValidateLifetime = true,
-            ValidateAudience = false,
+            ValidAudience = JwtAuthConstants.Audience,
+            ValidateAudience = true,
             RoleClaimType = ClaimTypes.Role,
             ClockSkew = TimeSpan.Zero
         };
@@ -60,7 +62,7 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
                 var accessToken = context.Request.Query["access_token"];
 
                 if (!string.IsNullOrEmpty(accessToken) &&
-                    context.HttpContext.Request.Path.StartsWithSegments("/notifications"))
+                    context.HttpContext.Request.Path.StartsWithSegments("/notifications", StringComparison.OrdinalIgnoreCase))
                 {
                     // Read the token out of the query string
                     context.Token = accessToken;

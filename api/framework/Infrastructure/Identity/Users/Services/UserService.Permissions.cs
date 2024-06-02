@@ -4,7 +4,7 @@ using FSH.WebApi.Shared.Authorization;
 using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Framework.Infrastructure.Identity.Users.Services;
-internal partial class UserService
+internal sealed partial class UserService
 {
     public async Task<List<string>> GetPermissionsAsync(string userId, CancellationToken cancellationToken)
     {

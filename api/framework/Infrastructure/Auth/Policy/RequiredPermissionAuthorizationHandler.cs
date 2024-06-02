@@ -1,4 +1,5 @@
 ﻿using FSH.Framework.Core.Identity.Users.Abstractions;
+using FSH.Framework.Infrastructure.Identity.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 

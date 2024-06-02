@@ -22,7 +22,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Framework.Infrastructure.Identity.Users.Services;
-internal partial class UserService(
+internal sealed partial class UserService(
     UserManager<FshUser> userManager,
     SignInManager<FshUser> signInManager,
     RoleManager<FshRole> roleManager,
@@ -143,7 +143,7 @@ internal partial class UserService(
         bool isAdmin = await userManager.IsInRoleAsync(user, IdentityConstants.Roles.Admin);
         if (isAdmin)
         {
-            throw new Exception("Administrators Profile's Status cannot be toggled");
+            throw new FshException("Administrators Profile's Status cannot be toggled");
         }
 
         user.IsActive = request.ActivateUser;
