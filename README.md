@@ -22,6 +22,15 @@ This project is currently work in progress. The NuGet package is not yet availab
 - Vertical Slice Architecture
 - Modular Monolith
 
+# What's Pending?
+
+- Few Identity Endpoints
+- Blazor Client
+- File Storage Service
+- NuGet Generation Pipeline
+- Source Code Generation
+- Searching / Sorting
+
 # Endpoints
 
 - [x] Tenants
