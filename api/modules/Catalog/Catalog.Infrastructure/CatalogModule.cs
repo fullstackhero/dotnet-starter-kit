@@ -19,6 +19,7 @@ public static class CatalogModule
         {
             var productGroup = app.MapGroup("products").WithTags("products");
             productGroup.MapProductCreationEndpoint();
+            productGroup.MapGetProductEndpoint();
         }
     }
     public static WebApplicationBuilder RegisterCatalogServices(this WebApplicationBuilder builder)

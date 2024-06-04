@@ -1,0 +1,28 @@
+using Microsoft.Extensions.DependencyInjection;
+using FSH.WebApi.Catalog.Domain.Exceptions;
+using FSH.Framework.Core.Persistence;
+using FSH.Framework.Core.Caching;
+using FSH.WebApi.Catalog.Domain;
+using MediatR;
+
+namespace FSH.WebApi.Catalog.Application.Products.Get.v1;
+public sealed class GetProductHandler(
+    [FromKeyedServices("catalog:products")] IReadRepository<Product> repository,
+    ICacheService cache)
+    : IRequestHandler<GetProductRequest, GetProductResponse>
+{
+    public async Task<GetProductResponse> Handle(GetProductRequest request, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        var item = await cache.GetOrSetAsync(
+            $"product:{request.Id}",
+            async () =>
+            {
+                var productItem = await repository.GetByIdAsync(request.Id, cancellationToken);
+                if (productItem == null) throw new ProductItemNotFoundException(request.Id);
+                return new GetProductResponse(productItem.Id, productItem.Name, productItem.Description, productItem.Price);
+            },
+            cancellationToken: cancellationToken);
+        return item!;
+    }
+}
