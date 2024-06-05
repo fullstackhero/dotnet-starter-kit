@@ -2,6 +2,6 @@
 
 public class FileUploadResponse
 {
-    public string Url { get; set; } = default!;
+    public Uri Url { get; set; } = default!;
 }
 

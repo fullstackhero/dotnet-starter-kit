@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Text.RegularExpressions;
 
 namespace FSH.Framework.Infrastructure.Common.Extensions;
@@ -18,9 +19,9 @@ public static class EnumExtensions
         return result;
     }
 
-    public static List<string> GetDescriptionList(this Enum enumValue)
+    public static ReadOnlyCollection<string> GetDescriptionList(this Enum enumValue)
     {
         string result = enumValue.GetDescription();
-        return result.Split(',').ToList();
+        return new ReadOnlyCollection<string>(result.Split(',').ToList());
     }
 }

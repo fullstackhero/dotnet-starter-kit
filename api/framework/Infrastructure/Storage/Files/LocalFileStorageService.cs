@@ -16,7 +16,7 @@ namespace FSH.Framework.Infrastructure.Storage.Files
                 return string.Empty;
             }
 
-            if (request.Extension is null || !supportedFileType.GetDescriptionList().Contains(request.Extension.ToLower()))
+            if (request.Extension is null || !supportedFileType.GetDescriptionList().Contains(request.Extension.ToLower(System.Globalization.CultureInfo.CurrentCulture)))
                 throw new InvalidOperationException("File Format Not Supported.");
             if (request.Name is null)
                 throw new InvalidOperationException("Name is required.");
@@ -29,7 +29,7 @@ namespace FSH.Framework.Infrastructure.Storage.Files
                 string folder = typeof(T).Name;
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
-                    folder = folder.Replace(@"\", "/");
+                    folder = folder.Replace(@"\", "/", StringComparison.Ordinal);
                 }
 
                 string folderName = supportedFileType switch
@@ -54,7 +54,7 @@ namespace FSH.Framework.Infrastructure.Storage.Files
 
                 using var stream = new FileStream(fullPath, FileMode.Create);
                 await streamData.CopyToAsync(stream, cancellationToken);
-                return dbPath.Replace("\\", "/");
+                return dbPath.Replace("\\", "/", StringComparison.Ordinal);
             }
             else
             {
