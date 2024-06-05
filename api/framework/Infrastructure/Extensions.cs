@@ -7,6 +7,7 @@ using FSH.Framework.Infrastructure.Auth.Jwt;
 using FSH.Framework.Infrastructure.Behaviours;
 using FSH.Framework.Infrastructure.Caching;
 using FSH.Framework.Infrastructure.Exceptions;
+using FSH.Framework.Infrastructure.FileStorage;
 using FSH.Framework.Infrastructure.Identity;
 using FSH.Framework.Infrastructure.Jobs;
 using FSH.Framework.Infrastructure.Logging.Serilog;
@@ -30,6 +31,7 @@ public static class Extensions
         builder.ConfigureDatabase();
         builder.Services.ConfigureMultitenancy();
         builder.Services.ConfigureIdentity();
+        builder.Services.ConfigureFileStorage();
         builder.Services.ConfigureJwtAuth();
         builder.Services.ConfigureOpenApi();
         builder.Services.ConfigureJobs(builder.Configuration);
