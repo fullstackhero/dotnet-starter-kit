@@ -10,6 +10,8 @@ FullStackHero .NET Starter Kit is a starting point for your next `.NET 8 Clean A
 
 This project is currently work in progress. The NuGet package is not yet available for v2. For now, you can fork this repository to try it out. [Follow @iammukeshm on X](https://x.com/iammukeshm) for project related updates.
 
+# 🔎 The Project
+
 # ✨ Features
 
 - C# 12
@@ -31,31 +33,23 @@ This project is currently work in progress. The NuGet package is not yet availab
 - Source Code Generation
 - Searching / Sorting
 
-# Endpoints
+# 📬 Service Endpoints
 
-- [x] Tenants
-  - [x] Create Tenant
-  - [x] Get List of Tenants
-- [x] Users
-  - [x] Register
-  - [x] Update Profile
-  - [x] Get List of Users
-- [x] Token
-  - [x] Generate JWT
-- [x] Products
-  - [x] Create
-  - [x] Get
-  - [x] Get By ID
-  - [x] Update
-  - [x] Delete
-- [x] Todo
-  - [x] Create
-  - [x] Get
-  - [x] Get By ID
-  - [x] Update
-  - [x] Delete
+| Endpoint | Method | Description      |
+| -------- | ------ | ---------------- |
+| `/token` | POST   | Generates Token. |
 
-# Add Migrations
+# 🧪 Running Locally
+
+# 🐳 Docker Support
+
+# 🤝 Contributing
+
+# 🍕 Community
+
+# Notes
+
+## Add Migrations
 
 Navigate to `./api/server` and run the following EF CLI commands.
 
@@ -65,3 +59,5 @@ dotnet ef migrations add "Add Tenant Schema" --project .././migrations/postgresq
 dotnet ef migrations add "Add Todo Schema" --project .././migrations/postgresql/ --context TodoDbContext -o Todo
 dotnet ef migrations add "Add Catalog Schema" --project .././migrations/postgresql/ --context CatalogDbContext -o Catalog
 ```
+
+# ⚖️ LICENSE
