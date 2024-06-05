@@ -4,7 +4,7 @@ using FSH.Framework.Core.Storage;
 using FSH.Framework.Core.Storage.File.Features;
 using FSH.Framework.Core.Storage.File;
 using FSH.Framework.Infrastructure.Common.Extensions;
-namespace FSH.Framework.Infrastructure.Storage.File
+namespace FSH.Framework.Infrastructure.Storage.Files
 {
     public class LocalFileStorageService : IStorageService
     {

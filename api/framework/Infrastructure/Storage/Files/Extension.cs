@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 
-namespace FSH.Framework.Infrastructure.Storage.File;
+namespace FSH.Framework.Infrastructure.Storage.Files;
 
 internal static class Extension
 {
