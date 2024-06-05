@@ -1,9 +1,9 @@
 using FSH.Framework.Core.Exceptions;
 
 namespace FSH.WebApi.Catalog.Domain.Exceptions;
-public sealed class ProductItemNotFoundException : NotFoundException
+public sealed class ProductNotFoundException : NotFoundException
 {
-    public ProductItemNotFoundException(Guid id)
+    public ProductNotFoundException(Guid id)
         : base($"product with id {id} not found")
     {
     }
