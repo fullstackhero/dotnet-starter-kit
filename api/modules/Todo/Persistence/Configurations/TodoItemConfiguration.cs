@@ -1,5 +1,5 @@
 ﻿using Finbuckle.MultiTenant;
-using FSH.WebApi.Todo.Models;
+using FSH.WebApi.Todo.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

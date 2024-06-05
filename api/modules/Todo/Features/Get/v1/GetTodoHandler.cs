@@ -1,7 +1,7 @@
 ﻿using FSH.Framework.Core.Caching;
 using FSH.Framework.Core.Persistence;
+using FSH.WebApi.Todo.Domain;
 using FSH.WebApi.Todo.Exceptions;
-using FSH.WebApi.Todo.Models;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 

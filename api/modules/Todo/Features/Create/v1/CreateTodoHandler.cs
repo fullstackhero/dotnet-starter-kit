@@ -1,10 +1,10 @@
 ﻿using FSH.Framework.Core.Persistence;
-using FSH.WebApi.Todo.Models;
+using FSH.WebApi.Todo.Domain;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace FSH.WebApi.Todo.Features.CreateTodo.v1;
+namespace FSH.WebApi.Todo.Features.Create.v1;
 public sealed class CreateTodoHandler(
     ILogger<CreateTodoHandler> logger,
     [FromKeyedServices("todo")] IRepository<TodoItem> repository)

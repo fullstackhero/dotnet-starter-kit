@@ -1,10 +1,10 @@
 version: "4"
 name: fullstackhero
 services:
-  dotnet-webapi:
-    image: ghcr.io/fullstackhero/dotnet-webapi:latest
+  webapi:
+    image: ghcr.io/fullstackhero/webapi:latest
     pull_policy: always
-    container_name: dotnet-webapi
+    container_name: webapi
     networks:
       - fullstackhero
     environment:

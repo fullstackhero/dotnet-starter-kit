@@ -1,11 +1,10 @@
 ﻿using FSH.Framework.Infrastructure.Auth.Policy;
-using FSH.WebApi.Todo.Features.CreateTodo.v1;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
-namespace FSH.WebApi.Todo.Features.Creation.v1;
+namespace FSH.WebApi.Todo.Features.Create.v1;
 public static class CreateTodoEndpoint
 {
     internal static RouteHandlerBuilder MapTodoItemCreationEndpoint(this IEndpointRouteBuilder endpoints)

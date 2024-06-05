@@ -8,7 +8,7 @@ using Hangfire;
 using Hangfire.Server;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace FSH.WebApi.Infrastructure.BackgroundJobs;
+namespace FSH.Framework.Infrastructure.Jobs;
 
 public class FshJobActivator : JobActivator
 {

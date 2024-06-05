@@ -1,6 +1,6 @@
 ﻿using Finbuckle.MultiTenant.Abstractions;
 using Finbuckle.MultiTenant.EntityFrameworkCore;
-using FSH.Framework.Abstractions.Domain;
+using FSH.Framework.Core.Domain.Contracts;
 using FSH.Framework.Core.Persistence;
 using FSH.Framework.Infrastructure.Tenant;
 using MediatR;

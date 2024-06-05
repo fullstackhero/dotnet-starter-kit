@@ -1,6 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations.Schema;
-using FSH.Framework.Abstractions.Domain;
+using FSH.Framework.Core.Domain.Contracts;
 using FSH.Framework.Core.Domain.Events;
 
 namespace FSH.Framework.Core.Domain;

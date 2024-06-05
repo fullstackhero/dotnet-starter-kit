@@ -1,66 +1,48 @@
-![FullStackHero .NET Web API](./assets/fullstackhero-banner.png)
+# FullStackHero .NET 8 Starter Kit 🚀
 
-# FullStackHero .NET Web API Starter Kit
+> With ASP.NET Core Web API & Blazor Client
 
-FullStackHero's .NET Web API Starter Kit is a starting point for your next `.NET 8 Clean Architecture` Solution that incorporates the most essential packages and features your projects will ever need including out-of-the-box Multi-Tenancy support. This project can save well over 200+ hours of development time for your team.
+FullStackHero .NET Starter Kit is a starting point for your next `.NET 8 Clean Architecture` Solution that incorporates the most essential packages and features your projects will ever need including out-of-the-box Multi-Tenancy support. This project can save well over 200+ hours of development time for your team.
 
-# 🎉 Getting Started
+![FullStackHero .NET Starter Kit](./assets/fullstackhero-dotnet-starter-kit.png)
 
-To install the template from NuGet.org run the following command:
+# Important
 
-```bash
-tba
-```
+This project is currently work in progress. The NuGet package is not yet available for v2. For now, you can fork this repository to try it out. [Follow @iammukeshm on X](https://x.com/iammukeshm) for project related updates.
 
-Then create a new solution:
+# 🔎 The Project
 
-```bash
-tba
-```
+# ✨ Technologies
 
-Finally, to update the template to the latest version run:
+- ASP.NET Core 8
+- Entity Framework Core 8
+- Blazor
+- MediatR
+- PostgreSQL
+- Redis
+- FluentValidation
 
-```bash
-tba
-```
+# 👨‍🚀 Architecture
 
-# ✨ Features
+# 📬 Service Endpoints
 
-- C# 12
-- .NET 8
-- ASP.NET Core
-- Minimal APIs
-- EF Core
-- Swagger UI
-- Clean Architecture Principles
-- Vertical Slice Architecture
-- Modular Monolith
+| Endpoint | Method | Description      |
+| -------- | ------ | ---------------- |
+| `/token` | POST   | Generates Token. |
 
-# Endpoints
+# 🧪 Running Locally
 
-- [x] Tenants
-  - [x] Create Tenant
-  - [x] Get List of Tenants
-- [x] Users
-  - [x] Register
-  - [x] Update Profile
-  - [x] Get List of Users
-- [x] Token
-  - [x] Generate JWT
-- [x] Products
-  - [x] Create
-  - [x] Get
-  - [x] Get By ID
-  - [x] Update
-  - [x] Delete
-- [x] Todo
-  - [x] Create
-  - [x] Get
-  - [x] Get By ID
-  - [x] Update
-  - [x] Delete
+# 🐳 Docker Support
 
-# Add Migrations
+# ☁️ Deploying to AWS
+
+# 🤝 Contributing
+
+# 🍕 Community
+
+# 📝 Notes
+
+## Add Migrations
 
 Navigate to `./api/server` and run the following EF CLI commands.
 
@@ -70,3 +52,16 @@ dotnet ef migrations add "Add Tenant Schema" --project .././migrations/postgresq
 dotnet ef migrations add "Add Todo Schema" --project .././migrations/postgresql/ --context TodoDbContext -o Todo
 dotnet ef migrations add "Add Catalog Schema" --project .././migrations/postgresql/ --context CatalogDbContext -o Catalog
 ```
+
+## What's Pending?
+
+- Few Identity Endpoints
+- Blazor Client
+- File Storage Service
+- NuGet Generation Pipeline
+- Source Code Generation
+- Searching / Sorting
+
+# ⚖️ LICENSE
+
+MIT © [fullstackhero](LICENSE)

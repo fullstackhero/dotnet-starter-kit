@@ -2,7 +2,6 @@
 using FSH.Framework.Core.Jobs;
 using FSH.Framework.Core.Persistence;
 using FSH.Framework.Infrastructure.Persistence;
-using FSH.WebApi.Infrastructure.BackgroundJobs;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Builder;

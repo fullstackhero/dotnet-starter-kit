@@ -2,6 +2,7 @@
   <PropertyGroup>
     <RootNamespace>FSH.WebApi.Server</RootNamespace>
     <AssemblyName>FSH.WebApi.Server</AssemblyName>
+    <ContainerUser>root</ContainerUser>
   </PropertyGroup>
   <PropertyGroup>
     <ContainerRepository>dotnet-webapi-starter-kit</ContainerRepository>

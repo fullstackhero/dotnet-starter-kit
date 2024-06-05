@@ -4,7 +4,7 @@ using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace FSH.WebApi.Catalog.Application.Products.Creation.v1;
+namespace FSH.WebApi.Catalog.Application.Products.Create.v1;
 public sealed class CreateProductHandler(
     ILogger<CreateProductHandler> logger,
     [FromKeyedServices("catalog:products")] IRepository<Product> repository)

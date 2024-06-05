@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace FSH.WebApi.Catalog.Application.Products.Creation.v1;
+namespace FSH.WebApi.Catalog.Application.Products.Create.v1;
 public class CreateProductCommandValidator : AbstractValidator<CreateProductCommand>
 {
     public CreateProductCommandValidator()
