@@ -34,6 +34,9 @@ internal static class Extensions
                         o.UseNpgsqlConnection(dbOptions.ConnectionString);
                     });
                     break;
+                case DbProviders.MSSQL:
+                    config.UseSqlServerStorage(dbOptions.ConnectionString);
+                    break;
                 default:
                     throw new FshException($"hangfire storage provider {dbOptions.Provider} is not supported");
             }
