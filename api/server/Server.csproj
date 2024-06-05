@@ -9,7 +9,6 @@
     <ContainerImageTags>2.0.0;latest</ContainerImageTags>
     <PublishProfile>DefaultContainer</PublishProfile>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(RunConfiguration)' == 'Kestrel' " />
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
       <PrivateAssets>all</PrivateAssets>
