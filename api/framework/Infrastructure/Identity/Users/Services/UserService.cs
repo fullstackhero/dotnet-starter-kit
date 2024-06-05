@@ -175,6 +175,21 @@ internal sealed partial class UserService(
         }
     }
 
+    public async Task DeleteAsync(string userId)
+    {
+        var user = await userManager.FindByIdAsync(userId);
+
+        _ = user ?? throw new NotFoundException("User Not Found.");
+
+        var result = await userManager.DeleteAsync(user);
+
+        if (!result.Succeeded)
+        {
+            var errors = result.Errors.Select(error => error.Description).ToList();
+            throw new FshException("Delete profile failed", errors);
+        }
+    }
+
     private async Task<string> GetEmailVerificationUriAsync(FshUser user, string origin)
     {
         EnsureValidTenant();
