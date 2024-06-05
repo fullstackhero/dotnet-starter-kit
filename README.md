@@ -1,8 +1,8 @@
 ![FullStackHero .NET Starter Kit](./assets/fullstackhero-dotnet-starter-kit.png)
 
-# FullStackHero .NET 8 Starter Kit
+# FullStackHero .NET 8 Starter Kit 🚀
 
-> With ASP.NET Core & Blazor Client
+> With ASP.NET Core Web API & Blazor Client
 
 FullStackHero .NET Starter Kit is a starting point for your next `.NET 8 Clean Architecture` Solution that incorporates the most essential packages and features your projects will ever need including out-of-the-box Multi-Tenancy support. This project can save well over 200+ hours of development time for your team.
 
@@ -12,26 +12,17 @@ This project is currently work in progress. The NuGet package is not yet availab
 
 # 🔎 The Project
 
-# ✨ Features
+# ✨ Technologies
 
-- C# 12
-- .NET 8
-- ASP.NET Core
-- Minimal APIs
-- EF Core
-- Swagger UI
-- Clean Architecture Principles
-- Vertical Slice Architecture
-- Modular Monolith
+- ASP.NET Core 8
+- Entity Framework Core 8
+- Blazor
+- MediatR
+- PostgreSQL
+- Redis
+- FluentValidation
 
-# What's Pending?
-
-- Few Identity Endpoints
-- Blazor Client
-- File Storage Service
-- NuGet Generation Pipeline
-- Source Code Generation
-- Searching / Sorting
+# 👨‍🚀 Architecture
 
 # 📬 Service Endpoints
 
@@ -43,11 +34,13 @@ This project is currently work in progress. The NuGet package is not yet availab
 
 # 🐳 Docker Support
 
+# ☁️ Deploying to AWS
+
 # 🤝 Contributing
 
 # 🍕 Community
 
-# Notes
+# 📝 Notes
 
 ## Add Migrations
 
@@ -60,4 +53,15 @@ dotnet ef migrations add "Add Todo Schema" --project .././migrations/postgresql/
 dotnet ef migrations add "Add Catalog Schema" --project .././migrations/postgresql/ --context CatalogDbContext -o Catalog
 ```
 
+## What's Pending?
+
+- Few Identity Endpoints
+- Blazor Client
+- File Storage Service
+- NuGet Generation Pipeline
+- Source Code Generation
+- Searching / Sorting
+
 # ⚖️ LICENSE
+
+MIT © [fullstackhero](LICENSE)
