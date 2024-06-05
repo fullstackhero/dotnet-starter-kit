@@ -1,11 +1,15 @@
 name: cicd
+
 on:
   push:
     branches: ["v2"]
   pull_request:
     branches: ["v2"]
+  workflow_dispatch:
+
 jobs:
   build:
+    if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,9 +23,10 @@ jobs:
         run: dotnet build ./api/FSH.WebApi.sln --no-restore
       - name: test
         run: dotnet test ./api/FSH.WebApi.sln --no-build --verbosity normal
+
   publish:
+    if: github.event_name == 'workflow_dispatch'
     name: publish
-    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: checkout
