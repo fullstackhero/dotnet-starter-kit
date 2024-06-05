@@ -18,9 +18,7 @@ public static class GetMeEndpoint
             {
                 throw new UnauthorizedException();
             }
-
-            var userDetails = await service.GetAsync(userId, cancellationToken);
-            return Results.Ok(userDetails);
+            return service.GetAsync(userId, cancellationToken);
         })
         .WithName("GetMeEndpoint")
         .WithSummary("Get current user information based on token")
