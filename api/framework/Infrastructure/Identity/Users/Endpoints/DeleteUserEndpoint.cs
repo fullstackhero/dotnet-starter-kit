@@ -1,6 +1,4 @@
-﻿using System.Security.Claims;
-using FSH.Framework.Core.Exceptions;
-using FSH.Framework.Core.Identity.Users.Abstractions;
+﻿using FSH.Framework.Core.Identity.Users.Abstractions;
 using FSH.Framework.Infrastructure.Auth.Policy;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -11,13 +9,8 @@ public static class DeleteUserEndpoint
 {
     internal static RouteHandlerBuilder MapDeleteUserEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        return endpoints.MapDelete("/{userId}", (string userId, ClaimsPrincipal user, IUserService service) =>
+        return endpoints.MapDelete("/{userId}", (string userId, IUserService service) =>
         {
-            if (user.GetUserId() is not { } loggedInUserId || string.IsNullOrEmpty(loggedInUserId))
-            {
-                throw new UnauthorizedException();
-            }
-
             return service.DeleteAsync(userId);
         })
         .WithName(nameof(DeleteUserEndpoint))
