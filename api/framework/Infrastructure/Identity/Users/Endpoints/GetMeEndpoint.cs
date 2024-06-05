@@ -5,6 +5,7 @@ using FSH.Framework.Infrastructure.Auth.Policy;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using FSH.Framework.Core.Identity.Users.Dtos;
 
 namespace FSH.Framework.Infrastructure.Identity.Users.Endpoints;
 public static class GetMeEndpoint
@@ -17,7 +18,9 @@ public static class GetMeEndpoint
             {
                 throw new UnauthorizedException();
             }
-            return service.GetAsync(userId, cancellationToken);
+
+            UserDetail userDetails = await service.GetAsync(userId, cancellationToken);
+            return Results.Ok(userDetails);
         })
         .WithName("GetMeEndpoint")
         .WithSummary("Get current user information based on token")
