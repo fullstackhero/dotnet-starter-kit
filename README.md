@@ -1,10 +1,10 @@
-![FullStackHero .NET Starter Kit](./assets/fullstackhero-dotnet-starter-kit.png)
-
 # FullStackHero .NET 8 Starter Kit 🚀
 
 > With ASP.NET Core Web API & Blazor Client
 
 FullStackHero .NET Starter Kit is a starting point for your next `.NET 8 Clean Architecture` Solution that incorporates the most essential packages and features your projects will ever need including out-of-the-box Multi-Tenancy support. This project can save well over 200+ hours of development time for your team.
+
+![FullStackHero .NET Starter Kit](./assets/fullstackhero-dotnet-starter-kit.png)
 
 # Important
 
