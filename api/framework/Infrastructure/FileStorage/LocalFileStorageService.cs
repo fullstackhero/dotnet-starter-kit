@@ -1,11 +1,12 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using FSH.Framework.Core.FileStorage;
-using FSH.Framework.Core.FileStorage.Features;
+using FSH.Framework.Core.Storage;
+using FSH.Framework.Core.Storage.File.Features;
+using FSH.Framework.Core.Storage.File;
 using FSH.Framework.Infrastructure.Common.Extensions;
 namespace FSH.Framework.Infrastructure.FileStorage
 {
-    public class LocalFileStorageService : IFileStorageService
+    public class LocalFileStorageService : IStorageService
     {
         public async Task<string> UploadAsync<T>(FileUploadRequestCommand? request, FileType supportedFileType, CancellationToken cancellationToken = default)
             where T : class

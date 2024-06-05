@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace FSH.Framework.Core.FileStorage;
+namespace FSH.Framework.Core.Storage.File;
 
 public enum FileType
 {

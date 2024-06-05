@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MediatR;
+﻿using MediatR;
 
-namespace FSH.Framework.Core.FileStorage.Features;
+namespace FSH.Framework.Core.Storage.File.Features;
 
 public class FileUploadRequestCommand : IRequest<FileUploadResponse>
 {

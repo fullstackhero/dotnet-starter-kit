@@ -1,4 +1,4 @@
-﻿using FSH.Framework.Core.FileStorage;
+﻿using FSH.Framework.Core.Storage;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,7 +11,7 @@ internal static class Extension
     internal static IServiceCollection ConfigureFileStorage(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
-        services.AddTransient<IFileStorageService, LocalFileStorageService>();
+        services.AddTransient<IStorageService, LocalFileStorageService>();
 
         return services;
     }
