@@ -1,9 +1,11 @@
 name: cicd
+
 on:
   push:
     branches: ["v2"]
   pull_request:
     branches: ["v2"]
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,9 +21,10 @@ jobs:
         run: dotnet build ./api/FSH.WebApi.sln --no-restore
       - name: test
         run: dotnet test ./api/FSH.WebApi.sln --no-build --verbosity normal
+
   publish:
-    name: publish
     needs: build
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: checkout
