@@ -11,7 +11,6 @@ public static class GetMeEndpoint
 {
     internal static RouteHandlerBuilder MapGetMeEndpoint(this IEndpointRouteBuilder endpoints)
     {
-
         return endpoints.MapGet("/me", async (ClaimsPrincipal user, IUserService service, CancellationToken cancellationToken) =>
         {
             if (user.GetUserId() is not { } userId || string.IsNullOrEmpty(userId))
