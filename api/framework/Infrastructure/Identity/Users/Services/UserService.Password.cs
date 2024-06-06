@@ -4,9 +4,7 @@ using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Core.Identity.Users.Features.ForgotPassword;
 using FSH.Framework.Core.Identity.Users.Features.ResetPassword;
 using FSH.Framework.Core.Mail;
-using MediatR;
 using Microsoft.AspNetCore.WebUtilities;
-using Org.BouncyCastle.Asn1.Ocsp;
 
 namespace FSH.Framework.Infrastructure.Identity.Users.Services;
 internal sealed partial class UserService
@@ -19,6 +17,11 @@ internal sealed partial class UserService
         if (user == null)
         {
             throw new NotFoundException("User not found.");
+        }
+
+        if (string.IsNullOrWhiteSpace(user.Email))
+        {
+            throw new InvalidOperationException("User email cannot be null or empty.");
         }
 
         var token = await userManager.GeneratePasswordResetTokenAsync(user);
