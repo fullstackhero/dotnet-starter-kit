@@ -13,6 +13,7 @@ using FSH.Framework.Infrastructure.Logging.Serilog;
 using FSH.Framework.Infrastructure.Mail;
 using FSH.Framework.Infrastructure.OpenApi;
 using FSH.Framework.Infrastructure.Persistence;
+using FSH.Framework.Infrastructure.Storage.Files;
 using FSH.Framework.Infrastructure.Tenant;
 using FSH.Framework.Infrastructure.Tenant.Endpoints;
 using MediatR;
@@ -30,6 +31,7 @@ public static class Extensions
         builder.ConfigureDatabase();
         builder.Services.ConfigureMultitenancy();
         builder.Services.ConfigureIdentity();
+        builder.Services.ConfigureFileStorage();
         builder.Services.ConfigureJwtAuth();
         builder.Services.ConfigureOpenApi();
         builder.Services.ConfigureJobs(builder.Configuration);
