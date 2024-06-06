@@ -5,7 +5,7 @@
     <ContainerUser>root</ContainerUser>
   </PropertyGroup>
   <PropertyGroup>
-    <ContainerRepository>dotnet-webapi-starter-kit</ContainerRepository>
+    <ContainerRepository>webapi</ContainerRepository>
     <ContainerImageTags>2.0.0;latest</ContainerImageTags>
     <PublishProfile>DefaultContainer</PublishProfile>
   </PropertyGroup>
