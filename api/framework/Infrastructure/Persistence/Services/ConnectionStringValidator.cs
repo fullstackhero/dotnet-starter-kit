@@ -1,4 +1,5 @@
 ﻿using FSH.Framework.Core.Persistence;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Npgsql;
@@ -22,6 +23,9 @@ internal sealed class ConnectionStringValidator(IOptions<DatabaseOptions> dbSett
             {
                 case DbProviders.PostgreSQL:
                     _ = new NpgsqlConnectionStringBuilder(connectionString);
+                    break;
+                case DbProviders.MSSQL:
+                    _ = new SqlConnectionStringBuilder(connectionString);
                     break;
                 default:
                     break;
