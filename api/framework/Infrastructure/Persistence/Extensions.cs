@@ -17,6 +17,8 @@ public static class Extensions
         {
             DbProviders.PostgreSQL => builder.UseNpgsql(connectionString, e =>
                                  e.MigrationsAssembly("FSH.WebApi.Migrations.PostgreSQL")),
+            DbProviders.MSSQL => builder.UseSqlServer(connectionString, e =>
+                                e.MigrationsAssembly("FSH.WebApi.Migrations.MSSQL")),
             _ => throw new InvalidOperationException($"DB Provider {dbProvider} is not supported."),
         };
     }
