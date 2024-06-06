@@ -1,10 +1,13 @@
-name: cicd
+name: webapi-cicd
 
 on:
   push:
     branches: ["v2"]
+    paths: ["api/**"]
+
   pull_request:
     branches: ["v2"]
+    paths: ["api/**"]
 
 jobs:
   build:

@@ -5,7 +5,7 @@
     <ContainerUser>root</ContainerUser>
   </PropertyGroup>
   <PropertyGroup>
-    <ContainerRepository>dotnet-webapi-starter-kit</ContainerRepository>
+    <ContainerRepository>webapi</ContainerRepository>
     <ContainerImageTags>2.0.0;latest</ContainerImageTags>
     <PublishProfile>DefaultContainer</PublishProfile>
   </PropertyGroup>
@@ -18,6 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\framework\Core\Core.csproj" />
     <ProjectReference Include="..\framework\Infrastructure\Infrastructure.csproj" />
+    <ProjectReference Include="..\migrations\MSSQL\MSSQL.csproj" />
     <ProjectReference Include="..\migrations\PostgreSQL\PostgreSQL.csproj" />
     <ProjectReference Include="..\modules\Catalog\Catalog.Infrastructure\Catalog.Infrastructure.csproj" />
     <ProjectReference Include="..\modules\Todo\Todo.csproj" />
