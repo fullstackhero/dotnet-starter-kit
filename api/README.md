@@ -1,4 +1,4 @@
-# Certificates
+# Certificate
 
 ## How to Publish Docker Image of the API to Hub
 
