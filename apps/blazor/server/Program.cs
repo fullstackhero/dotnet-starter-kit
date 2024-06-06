@@ -1,4 +1,4 @@
-using FSH.Blazor.Components;
+using FSH.Blazor.Server.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
