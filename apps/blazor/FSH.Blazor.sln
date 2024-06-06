@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FSH.Blazor", "FSH.Blazor\FSH.Blazor\FSH.Blazor.csproj", "{92979F60-297C-4ED5-85A7-22D5F796AC7E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server", "server\Server.csproj", "{92979F60-297C-4ED5-85A7-22D5F796AC7E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FSH.Blazor.Client", "FSH.Blazor\FSH.Blazor.Client\FSH.Blazor.Client.csproj", "{D734EC7A-0276-45EF-86EF-2A66A2109176}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Client", "client\Client.csproj", "{D734EC7A-0276-45EF-86EF-2A66A2109176}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
