@@ -22,7 +22,6 @@ public static class GetUserProfileEndpoint
         })
         .WithName("GetMeEndpoint")
         .WithSummary("Get current user information based on token")
-        .RequirePermission("Permissions.Users.View")
         .WithDescription("Get current user information based on token");
     }
 }
