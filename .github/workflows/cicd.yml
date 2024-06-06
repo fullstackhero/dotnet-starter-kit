@@ -3,31 +3,11 @@ name: cicd
 on:
   push:
     branches: ["v2"]
-    paths:
-      - "api/**"
   pull_request:
     branches: ["v2"]
-    paths:
-      - "api/**"
 
 jobs:
-  check-api-changes:
-    runs-on: ubuntu-latest
-    outputs:
-      api_changed: ${{ steps.check_api.outputs.api_changed }}
-    steps:
-      - name: Check for API changes
-        id: check_api
-        run: |
-          if git diff --name-only HEAD^ HEAD | grep -q '^api/'; then
-            echo "::set-output name=api_changed::true"
-          else
-            echo "::set-output name=api_changed::false"
-          fi
-
   build:
-    needs: check-api-changes
-    if: needs.check-api-changes.outputs.api_changed == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -44,7 +24,7 @@ jobs:
 
   publish:
     needs: build
-    if: github.event_name == 'push' && needs.check-api-changes.outputs.api_changed == 'true'
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: checkout
