@@ -40,6 +40,10 @@ This project is currently work in progress. The NuGet package is not yet availab
 
 # 🍕 Community
 
+Thanks to the community who contribute to this repository! [Submit your PR and join the elite list!](CONTRIBUTING.md)
+
+[![FullStackHero .NET Starter Kit Contributors](https://contrib.rocks/image?repo=fullstackhero/dotnet-starter-kit "FullStackHero .NET Starter Kit Contributors")](https://github.com/fullstackhero/dotnet-starter-kit/graphs/contributors)
+
 # 📝 Notes
 
 ## Add Migrations
