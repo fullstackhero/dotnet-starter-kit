@@ -4,6 +4,12 @@
 		<TargetFramework>net8.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<ContainerRepository>blazor</ContainerRepository>
+		<ContainerImageTags>2.0.0;latest</ContainerImageTags>
+		<PublishProfile>DefaultContainer</PublishProfile>
 		<RootNamespace>FSH.Blazor.Server</RootNamespace>
 		<AssemblyName>FSH.Blazor.Server</AssemblyName>
 	</PropertyGroup>
