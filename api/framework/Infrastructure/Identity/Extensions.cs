@@ -1,4 +1,5 @@
-﻿using FSH.Framework.Core.Identity.Tokens;
+﻿using FSH.Framework.Core.Identity.Roles;
+using FSH.Framework.Core.Identity.Tokens;
 using FSH.Framework.Core.Identity.Users.Abstractions;
 using FSH.Framework.Core.Persistence;
 using FSH.Framework.Infrastructure.Auth;
@@ -28,6 +29,7 @@ internal static class Extensions
         services.AddScoped(sp => (ICurrentUserInitializer)sp.GetRequiredService<ICurrentUser>());
         services.AddTransient<IUserService, UserService>();
         services.AddTransient<ITokenService, TokenService>();
+        services.AddTransient<IRoleService, RoleService>();
         services.BindDbContext<IdentityDbContext>();
         services.AddScoped<IDbInitializer, IdentityDbInitializer>();
         return services
