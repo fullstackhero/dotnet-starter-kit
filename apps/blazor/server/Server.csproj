@@ -5,6 +5,7 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 	</PropertyGroup>
+
 	<PropertyGroup>
 		<ContainerRepository>blazor</ContainerRepository>
 		<ContainerImageTags>2.0.0;latest</ContainerImageTags>
@@ -12,6 +13,7 @@
 		<RootNamespace>FSH.Blazor.Server</RootNamespace>
 		<AssemblyName>FSH.Blazor.Server</AssemblyName>
 	</PropertyGroup>
+
 	<ItemGroup>
 		<ProjectReference Include="..\client\Client.csproj" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.6" />
