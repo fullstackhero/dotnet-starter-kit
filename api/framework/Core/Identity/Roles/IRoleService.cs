@@ -1,14 +1,12 @@
-﻿using FSH.Framework.Core.Identity.Roles.Features;
-using FSH.Framework.Core.Identity.Roles.Features.CreateOrUpdateRole;
-using FSH.Framework.Core.Identity.Roles.Features.DeleteRole;
+﻿using FSH.Framework.Core.Identity.Roles.Features.CreateOrUpdateRole;
 
 namespace FSH.Framework.Core.Identity.Roles;
 
 public interface IRoleService
 {
-    Task<IEnumerable<RoleResponse>> GetAllRolesAsync();
-    Task<RoleResponse?> GetRoleByIdAsync(string id);
-    Task<RoleResponse> CreateOrUpdateRoleAsync(CreateOrUpdateRoleCommand command);
-    Task DeleteRoleAsync(DeleteRoleCommand command);
+    Task<IEnumerable<RoleDto>> GetRolesAsync();
+    Task<RoleDto?> GetRoleAsync(string id);
+    Task<RoleDto> CreateOrUpdateRoleAsync(CreateOrUpdateRoleCommand command);
+    Task DeleteRoleAsync(string id);
 }
 

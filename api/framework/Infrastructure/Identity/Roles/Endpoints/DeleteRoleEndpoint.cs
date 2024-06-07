@@ -1,5 +1,7 @@
 ﻿using FSH.Framework.Core.Identity.Roles;
+using FSH.Framework.Infrastructure.Auth.Policy;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
 namespace FSH.Framework.Infrastructure.Identity.Roles.Endpoints;
@@ -11,10 +13,11 @@ public static class DeleteRoleEndpoint
         return endpoints.MapDelete("/api/roles/{id}", async (string id, IRoleService roleService) =>
         {
             await roleService.DeleteRoleAsync(id);
-            return Results.NoContent();
         })
         .WithName("DeleteRole")
         .WithSummary("Delete a role by ID")
+        .RequirePermission("Permissions.Roles.Delete")
         .WithDescription("Remove a role from the system by its ID.");
     }
 }
+

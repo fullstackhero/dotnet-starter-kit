@@ -1,6 +1,6 @@
-﻿namespace FSH.Framework.Core.Identity.Roles.Features.CreateOrUpdateRole;
+﻿namespace FSH.Framework.Core.Identity.Roles;
 
-public class CreateOrUpdateRoleCommand
+public class RoleDto
 {
     public string Id { get; set; } = default!;
     public string Name { get; set; } = default!;

@@ -1,7 +1,6 @@
-﻿using FSH.Framework.Core.Identity.Roles;
-using FSH.Framework.Core.Identity.Roles.Features;
+﻿using FSH.Framework.Core.Exceptions;
+using FSH.Framework.Core.Identity.Roles;
 using FSH.Framework.Core.Identity.Roles.Features.CreateOrUpdateRole;
-using FSH.Framework.Core.Identity.Roles.Features.DeleteRole;
 using Microsoft.AspNetCore.Identity;
 
 namespace FSH.Framework.Infrastructure.Identity.Roles;
@@ -15,25 +14,29 @@ public class RoleService : IRoleService
         _roleManager = roleManager;
     }
 
-    public async Task<IEnumerable<RoleResponse>> GetAllRolesAsync()
+    public async Task<IEnumerable<RoleDto>> GetRolesAsync()
     {
         return await Task.Run(() => _roleManager.Roles
-            .Select(role => new RoleResponse { Id = role.Id, Name = role.Name, Description = role.Description })
+            .Select(role => new RoleDto { Id = role.Id, Name = role.Name, Description = role.Description })
             .ToList());
     }
 
-    public async Task<RoleResponse?> GetRoleByIdAsync(string id)
+    public async Task<RoleDto?> GetRoleAsync(string id)
     {
-        var role = await _roleManager.FindByIdAsync(id);
-        return role != null ? new RoleResponse { Id = role.Id, Name = role.Name, Description = role.Description } : null;
+        FshRole? role = await _roleManager.FindByIdAsync(id);
+
+        _ = role ?? throw new NotFoundException("Role Not Found.");
+
+        return new RoleDto { Id = role.Id, Name = role.Name, Description = role.Description };
     }
 
-    public async Task<RoleResponse> CreateOrUpdateRoleAsync(CreateOrUpdateRoleCommand command)
+    public async Task<RoleDto> CreateOrUpdateRoleAsync(CreateOrUpdateRoleCommand command)
     {
-        var role = await _roleManager.FindByNameAsync(command.Name);
+        FshRole? role = await _roleManager.FindByIdAsync(command.Id);
 
         if (role != null)
         {
+            role.Name = command.Name;
             role.Description = command.Description;
             await _roleManager.UpdateAsync(role);
         }
@@ -43,15 +46,15 @@ public class RoleService : IRoleService
             await _roleManager.CreateAsync(role);
         }
 
-        return new RoleResponse { Id = role.Id, Name = role.Name, Description = role.Description };
+        return new RoleDto { Id = role.Id, Name = role.Name, Description = role.Description };
     }
 
-    public async Task DeleteRoleAsync(DeleteRoleCommand command)
+    public async Task DeleteRoleAsync(string id)
     {
-        var role = await _roleManager.FindByIdAsync(command.Id);
-        if (role != null)
-        {
-            await _roleManager.DeleteAsync(role);
-        }
+        FshRole? role = await _roleManager.FindByIdAsync(id);
+
+        _ = role ?? throw new NotFoundException("Role Not Found.");
+        
+        await _roleManager.DeleteAsync(role);
     }
 }

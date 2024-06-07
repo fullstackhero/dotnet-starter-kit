@@ -4,6 +4,7 @@ using FSH.Framework.Core.Persistence;
 using FSH.Framework.Infrastructure.Auth;
 using FSH.Framework.Infrastructure.Identity.Persistence;
 using FSH.Framework.Infrastructure.Identity.Roles;
+using FSH.Framework.Infrastructure.Identity.Roles.Endpoints;
 using FSH.Framework.Infrastructure.Identity.Tokens;
 using FSH.Framework.Infrastructure.Identity.Tokens.Endpoints;
 using FSH.Framework.Infrastructure.Identity.Users;
@@ -51,6 +52,9 @@ internal static class Extensions
 
         var tokens = app.MapGroup("api/token").WithTags("token");
         tokens.MapTokenEndpoints();
+
+        var roles = app.MapGroup("api/roles").WithTags("roles");
+        roles.MapRoleEndpoints();
         return app;
     }
 }
