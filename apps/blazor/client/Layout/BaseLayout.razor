@@ -1,0 +1,25 @@
+﻿@inherits LayoutComponentBase
+
+<MudRTLProvider>
+    <MudThemeProvider />
+    <MudDialogProvider />
+    <MudSnackbarProvider />
+    <AuthorizeView>
+        <NotAuthorized>
+            <MudAppBar Elevation="0" Style="background:#6e6e6e00!important">
+            </MudAppBar>
+            <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center" Style="height: 100vh;">
+                <MudPaper Elevation="25" Class="pa-8">
+                    <Login />
+                </MudPaper>
+            </MudContainer>
+        </NotAuthorized>
+        <Authorized>
+            <MudLayout>
+                <MainLayout>
+                    @Body
+                </MainLayout>
+            </MudLayout>
+        </Authorized>
+    </AuthorizeView>
+</MudRTLProvider>
