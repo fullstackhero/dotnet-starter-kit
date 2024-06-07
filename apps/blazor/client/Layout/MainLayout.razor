@@ -1,20 +1,26 @@
-﻿
-@inherits LayoutComponentBase
+﻿@inherits LayoutComponentBase
 
-<MudThemingProvider />
-<MudLayout>
+
     <MudAppBar Elevation="1">
         <MudText Typo="Typo.h5" Class="ml-3">Application</MudText>
     </MudAppBar>
     <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
         <NavMenu />
     </MudDrawer>
-    <MudMainContent Class="mt-16 pa-4">
-        @Body
-    </MudMainContent>
-</MudLayout>
+
+<MudMainContent>
+    <MudContainer MaxWidth="MaxWidth.False" Class="mt-4">
+        @ChildContent
+        <MudScrollToTop TopOffset="400" Style="z-index:2000;">
+            <MudFab Icon="@Icons.Material.Filled.KeyboardArrowUp" Color="Color.Primary" />
+        </MudScrollToTop>
+    </MudContainer>
+</MudMainContent>
 
 @code {
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; } = default!;
     private bool _drawerOpen = true;
 
     private void DrawerToggle()

@@ -1,11 +1,23 @@
+using FSH.Blazor.Server;
 using FSH.Blazor.Server.Components;
+using Infrastructure.Auth;
+using Infrastructure.Auth.Jwt;
+using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddAuthorization();
+
+builder.Services.AddCascadingAuthenticationState();
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
+
+builder.Services.AddScoped<IAuthenticationService, JwtAuthenticationService>();
+
+builder.Services.AddScoped<AuthenticationStateProvider, PersistingAuthenticationStateProvider>();
 
 builder.Services.AddMudServices();
 
