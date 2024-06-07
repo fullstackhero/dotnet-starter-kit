@@ -6,6 +6,7 @@ using FSH.Framework.Infrastructure.Auth;
 using FSH.Framework.Infrastructure.Auth.Jwt;
 using FSH.Framework.Infrastructure.Behaviours;
 using FSH.Framework.Infrastructure.Caching;
+using FSH.Framework.Infrastructure.Cors;
 using FSH.Framework.Infrastructure.Exceptions;
 using FSH.Framework.Infrastructure.Identity;
 using FSH.Framework.Infrastructure.Jobs;
@@ -31,6 +32,7 @@ public static class Extensions
         builder.ConfigureDatabase();
         builder.Services.ConfigureMultitenancy();
         builder.Services.ConfigureIdentity();
+        builder.Services.AddCorsPolicy(builder.Configuration);
         builder.Services.ConfigureFileStorage();
         builder.Services.ConfigureJwtAuth();
         builder.Services.ConfigureOpenApi();
@@ -64,6 +66,7 @@ public static class Extensions
         app.UseHttpsRedirection();
         app.UseMultitenancy();
         app.UseExceptionHandler();
+        app.UseCorsPolicy();
         app.UseOpenApi();
         app.UseJobDashboard(app.Configuration);
         app.UseAuthentication();
