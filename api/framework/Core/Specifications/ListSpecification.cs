@@ -10,7 +10,7 @@ public class ListSpecification<T, TDto> : Specification<T, TDto> where T : class
     public ListSpecification(PaginationFilter filter)
     {
         ApplyPagination(filter.PageNumber, filter.PageSize);
-        //ApplySorting(filter.AdvancedFilter);
+        ApplySorting(filter.AdvancedFilter);
         ApplySearch(filter.AdvancedSearch);
     }
 
@@ -25,6 +25,28 @@ public class ListSpecification<T, TDto> : Specification<T, TDto> where T : class
         }
 
         Query.Take(pageSize).AsNoTracking();
+    }
+
+    private void ApplySorting(Filter? advancedFilter)
+    {
+        if (advancedFilter == null || string.IsNullOrWhiteSpace(advancedFilter.Field)) return;
+
+        // Utilisation de réflexion pour accéder aux propriétés
+        var parameter = Expression.Parameter(typeof(T), "x");
+        var property = Expression.Property(parameter, advancedFilter.Field);
+        var lambda = Expression.Lambda<Func<T, object>>(Expression.Convert(property, typeof(object)), parameter);
+
+        switch (advancedFilter.Operator)
+        {
+            case FilterOperator.EQ: // Pour l'exemple, on utilise EQ pour OrderBy
+                Query.OrderBy(lambda);
+                break;
+            case FilterOperator.NEQ: // Pour l'exemple, on utilise NEQ pour OrderByDescending
+                Query.OrderByDescending(lambda);
+                break;
+            default:
+                throw new NotSupportedException($"Operator '{advancedFilter.Operator}' is not supported for sorting.");
+        }
     }
 
     private void ApplySearch(Search? advancedSearch)
