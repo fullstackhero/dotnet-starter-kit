@@ -13,8 +13,8 @@ public sealed class GetTodoListHandler(
     public async Task<PagedList<TodoDto>> Handle(GetTodoListRequest request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
-        var spec = new ListSpecification<TodoItem, TodoDto>(request.PageNumber, request.PageSize);
-        var items = await repository.PaginatedListAsync(spec, request.PageNumber, request.PageSize, cancellationToken).ConfigureAwait(false);
+        var spec = new ListSpecification<TodoItem, TodoDto>(request.filter.PageNumber, request.filter.PageSize);
+        var items = await repository.PaginatedListAsync(spec, request.filter.PageNumber, request.filter.PageSize, cancellationToken).ConfigureAwait(false);
         return items;
     }
 }

@@ -10,8 +10,8 @@ public static class GetTodoListEndpoint
 {
     internal static RouteHandlerBuilder MapGetTodoListEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        return endpoints.MapGet("/", (ISender mediator, int pageNumber = 1, int pageSize = 10) =>
-                mediator.Send(new GetTodoListRequest(pageNumber, pageSize)))
+        return endpoints.MapPost("/search", (ISender mediator, PaginationFilter filter) =>
+                mediator.Send(new GetTodoListRequest(filter)))
                         .WithName(nameof(GetTodoListEndpoint))
                         .WithSummary("gets a list of todo items with paging support")
                         .WithDescription("gets a list of todo items with paging support")
