@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace FSH.Framework.Core.Paging;
 
-namespace FSH.Framework.Core.Paging;
-public class PaginationFilter
+public class PaginationFilter : BaseFilter
 {
     public int PageNumber { get; set; }
 
