@@ -1,6 +1,5 @@
 ﻿using FSH.Blazor.Client.Components;
 using Infrastructure.Api;
-using Infrastructure.Auth;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor;
@@ -8,12 +7,10 @@ using Shared;
 
 namespace FSH.Blazor.Client.Pages.Auth;
 
-public partial class Login
+public partial class Login()
 {
     [CascadingParameter]
     public Task<AuthenticationState> AuthState { get; set; } = default!;
-    [Inject]
-    public IAuthenticationService AuthService { get; set; } = default!;
 
     private CustomValidation? _customValidation;
 
@@ -59,16 +56,16 @@ public partial class Login
 
     private async Task SubmitAsync()
     {
-        //BusySubmitting = true;
+        BusySubmitting = true;
 
-        //if (await ApiHelper.ExecuteCallGuardedAsync(
-        //    () => AuthService.LoginAsync(TenantId, _tokenRequest),
-        //    Snackbar,
-        //    _customValidation))
-        //{
-        //    Snackbar.Add($"Logged in as {_tokenRequest.Email}", Severity.Info);
-        //}
+        if (await ApiHelper.ExecuteCallGuardedAsync(
+            () => auth.LoginAsync(TenantId, _tokenRequest),
+            Toast,
+            _customValidation))
+        {
+            Toast.Add($"Logged in as {_tokenRequest.Email}", Severity.Info);
+        }
 
-        //BusySubmitting = false;
+        BusySubmitting = false;
     }
 }

@@ -7,6 +7,8 @@ using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddMudServices();
+
 builder.Services.AddAuthorization();
 
 builder.Services.AddCascadingAuthenticationState();
@@ -18,8 +20,6 @@ builder.Services.AddRazorComponents()
 builder.Services.AddScoped<IAuthenticationService, JwtAuthenticationService>();
 
 builder.Services.AddScoped<AuthenticationStateProvider, PersistingAuthenticationStateProvider>();
-
-builder.Services.AddMudServices();
 
 var app = builder.Build();
 

@@ -1,5 +1,7 @@
 ﻿using Infrastructure.Auth.Jwt;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
+using Microsoft.AspNetCore.Components.WebAssembly.Authentication.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -10,11 +12,11 @@ public static class Extensions
     {
         services.AddAuthorizationCore();
         services.AddCascadingAuthenticationState();
-        services.AddScoped<AuthenticationStateProvider, PersistentAuthenticationStateProvider>();
-
-        //services.AddScoped(sp => (IAccessTokenProvider)sp.GetRequiredService<AuthenticationStateProvider>())
-        //        .AddScoped<IAccessTokenProviderAccessor, AccessTokenProviderAccessor>()
-        //        .AddScoped<JwtAuthenticationHeaderHandler>();
+        services.AddScoped<AuthenticationStateProvider, JwtAuthenticationService>()
+                .AddScoped(sp => (IAuthenticationService)sp.GetRequiredService<AuthenticationStateProvider>())
+                .AddScoped(sp => (IAccessTokenProvider)sp.GetRequiredService<AuthenticationStateProvider>())
+                .AddScoped<IAccessTokenProviderAccessor, AccessTokenProviderAccessor>()
+                .AddScoped<JwtAuthenticationHeaderHandler>();
 
         return services;
     }
