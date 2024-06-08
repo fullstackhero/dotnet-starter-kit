@@ -31,17 +31,16 @@ public class ListSpecification<T, TDto> : Specification<T, TDto> where T : class
     {
         if (advancedFilter == null || string.IsNullOrWhiteSpace(advancedFilter.Field)) return;
 
-        // Utilisation de réflexion pour accéder aux propriétés
         var parameter = Expression.Parameter(typeof(T), "x");
         var property = Expression.Property(parameter, advancedFilter.Field);
         var lambda = Expression.Lambda<Func<T, object>>(Expression.Convert(property, typeof(object)), parameter);
 
         switch (advancedFilter.Operator)
         {
-            case FilterOperator.EQ: // Pour l'exemple, on utilise EQ pour OrderBy
+            case FilterOperator.EQ:
                 Query.OrderBy(lambda);
                 break;
-            case FilterOperator.NEQ: // Pour l'exemple, on utilise NEQ pour OrderByDescending
+            case FilterOperator.NEQ: 
                 Query.OrderByDescending(lambda);
                 break;
             default:
