@@ -1,6 +1,8 @@
 ﻿using System.Security.Claims;
 using FSH.Framework.Core.Identity.Users.Dtos;
+using FSH.Framework.Core.Identity.Users.Features.ForgotPassword;
 using FSH.Framework.Core.Identity.Users.Features.RegisterUser;
+using FSH.Framework.Core.Identity.Users.Features.ResetPassword;
 using FSH.Framework.Core.Identity.Users.Features.ToggleUserStatus;
 using FSH.Framework.Core.Identity.Users.Features.UpdateUser;
 
@@ -17,9 +19,14 @@ public interface IUserService
     Task<string> GetOrCreateFromPrincipalAsync(ClaimsPrincipal principal);
     Task<RegisterUserResponse> RegisterAsync(RegisterUserCommand request, string origin, CancellationToken cancellationToken);
     Task UpdateAsync(UpdateUserCommand request, string userId);
+    Task DeleteAsync(string userId);
     Task<string> ConfirmEmailAsync(string userId, string code, string tenant, CancellationToken cancellationToken);
     Task<string> ConfirmPhoneNumberAsync(string userId, string code);
 
     // permisions
     Task<bool> HasPermissionAsync(string userId, string permission, CancellationToken cancellationToken = default);
+
+    // passwords
+    Task ForgotPasswordAsync(ForgotPasswordCommand request, string origin, CancellationToken cancellationToken);
+    Task ResetPasswordAsync(ResetPasswordCommand request, CancellationToken cancellationToken);
 }
