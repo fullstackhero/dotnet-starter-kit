@@ -39,7 +39,8 @@ public partial class MainLayout
 
     private async Task DrawerToggle()
     {
-        //_drawerOpen = await ClientPreferences.ToggleDrawerAsync();
+        _drawerOpen = !_drawerOpen;
+
     }
     private void Logout()
     {

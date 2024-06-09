@@ -1,11 +1,11 @@
 ﻿
 
-<MudAppBar Elevation="0">
+<MudAppBar Color="Color.Transparent" Elevation="25">
     <MudTooltip Text="Toggle Drawer">
         <MudIconButton Icon="@Icons.Material.Rounded.Notes" Color="Color.Inherit" Edge="Edge.Start"
             OnClick="@((e) => DrawerToggle())" />
     </MudTooltip>
-    <MudButton DisableElevation Variant="Variant.Filled" Color="Color.Primary"
+    <MudButton DisableElevation Variant="Variant.Filled" Color="Color.Transparent"
                 Href="/">
          fullstackhero
      </MudButton>
@@ -60,7 +60,7 @@
                 Quick-Start Guide</MudMenuItem>
         </MudMenu>
     </MudHidden>
-    <MudMenu AnchorOrigin="Origin.BottomRight" LockScroll="true" TransformOrigin="Origin.TopRight" DisableElevation = "true">
+     <MudMenu PopoverClass="mud-elevation-25" AnchorOrigin="Origin.BottomRight" LockScroll="true" TransformOrigin="Origin.TopRight" DisableElevation="true">
         <ActivatorContent>
             <MudIconButton Icon="@Icons.Material.Filled.Person" Color="Color.Inherit" />
         </ActivatorContent>

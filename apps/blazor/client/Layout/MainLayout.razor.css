@@ -75,3 +75,7 @@ main {
         padding-right: 1.5rem !important;
     }
 }
+
+.fsh-shadow {
+    box-shadow: 0 30px 60px rgba(0,0,0,0.12) !important;
+}
