@@ -1,17 +1,14 @@
-﻿
-
-<MudAppBar Color="Color.Transparent" Elevation="25">
+﻿<MudAppBar Color="Color.Transparent" Elevation="25">
     <MudTooltip Text="Toggle Drawer">
         <MudIconButton Icon="@Icons.Material.Rounded.Notes" Color="Color.Inherit" Edge="Edge.Start"
             OnClick="@((e) => DrawerToggle())" />
     </MudTooltip>
-    <MudButton DisableElevation Variant="Variant.Filled" Color="Color.Transparent"
-                Href="/">
+    <MudButton Variant="Variant.Text" Color="Color.Transparent" Href="/" DropShadow="false">
          fullstackhero
      </MudButton>
     <MudSpacer />
     <MudHidden Breakpoint="Breakpoint.MdAndUp" Invert="true">
-        <MudButton DisableElevation Variant="Variant.Filled" Color="Color.Secondary"
+        <MudButton Variant="Variant.Filled" DropShadow="false" Color="Color.Primary"
             Href="https://opencollective.com/fullstackhero" Target="_blank" StartIcon="@Icons.Material.Filled.Favorite">
             Sponsor</MudButton>
         <MudDivider Vertical="true" FlexItem="true" DividerType="DividerType.Middle" Class="mx-4 my-5" />
@@ -60,7 +57,7 @@
                 Quick-Start Guide</MudMenuItem>
         </MudMenu>
     </MudHidden>
-     <MudMenu PopoverClass="mud-elevation-25" AnchorOrigin="Origin.BottomRight" LockScroll="true" TransformOrigin="Origin.TopRight" DisableElevation="true">
+     <MudMenu PopoverClass="mud-elevation-25" AnchorOrigin="Origin.BottomRight" LockScroll="true" TransformOrigin="Origin.TopRight">
         <ActivatorContent>
             <MudIconButton Icon="@Icons.Material.Filled.Person" Color="Color.Inherit" />
         </ActivatorContent>
@@ -79,8 +76,8 @@
                     </div>
                 </MudMenuItem>
                 <div class="mt-4 mx-4">
-                    <MudButton Color="Color.Error" FullWidth="true" StartIcon="@Icons.Material.Filled.Logout"
-                        Variant="Variant.Filled" OnClick="Logout" DisableElevation>
+                    <MudButton Color="Color.Error" FullWidth="true" StartIcon="@Icons.Material.Filled.Logout" DropShadow="false"
+                        Variant="Variant.Filled" OnClick="Logout">
                         Logout
                     </MudButton>
                 </div>
@@ -94,7 +91,7 @@
 </MudDrawer>
 
 <MudMainContent>
-    <MudContainer MaxWidth="MaxWidth.False" Class="mt-4">
+    <MudContainer MaxWidth="MaxWidth.False" Class="px-6 py-6">
         @ChildContent
         <MudScrollToTop TopOffset="400" Style="z-index:2000;">
             <MudFab StartIcon="@Icons.Material.Filled.KeyboardArrowUp" Color="Color.Primary" />
