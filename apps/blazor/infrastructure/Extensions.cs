@@ -29,7 +29,7 @@ public static class Extensions
         {
             client.DefaultRequestHeaders.AcceptLanguage.Clear();
             client.DefaultRequestHeaders.AcceptLanguage.ParseAdd(CultureInfo.DefaultThreadCurrentCulture?.TwoLetterISOLanguageName);
-            client.BaseAddress = new Uri("https://localhost:7000/");
+            client.BaseAddress = new Uri(config["ApiBaseUrl"]);
         })
            .AddHttpMessageHandler<JwtAuthenticationHeaderHandler>()
            .Services

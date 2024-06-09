@@ -24,11 +24,28 @@ services:
       - MailOptions__UserName=sherman.oconnell47@ethereal.email
       - MailOptions__Password=KbuTCFv4J6Fy7256vh
       - MailOptions__DisplayName=Mukesh Murugan
+      - CorsOptions__AllowedOrigins__0=http://localhost:5020
     volumes:
       - ~/.aspnet/https:/https:ro
     ports:
       - 5100:5100
       - 5010:5010
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+  blazor:
+    image: ghcr.io/fullstackhero/blazor:latest
+    pull_policy: always
+    container_name: blazor
+    environment:
+      - ApiBaseUrl=http://localhost:5010
+    networks:
+      - fullstackhero
+    volumes:
+      - ~/.aspnet/https:/https:ro
+    ports:
+      - 5020:80
     depends_on:
       postgres:
         condition: service_healthy
