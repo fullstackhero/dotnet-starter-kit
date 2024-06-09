@@ -9,7 +9,7 @@
 		<ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
 		<ContainerRepository>blazor</ContainerRepository>
 		<ContainerImageTags>2.0.0;latest</ContainerImageTags>
-		<PublishProfile>DefaultContainer</PublishProfile>
+		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 	</PropertyGroup>
 
 	<ItemGroup>
