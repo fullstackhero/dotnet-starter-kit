@@ -1,4 +1,3 @@
-# Stage 1: Build
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
 WORKDIR /app
 
@@ -12,6 +11,7 @@ COPY --from=build-env /app/output/wwwroot .
 
 COPY nginx.conf /etc/nginx/nginx.conf
 
-EXPOSE 80
+EXPOSE 7100
+EXPOSE 5100
 
 CMD ["nginx", "-g", "daemon off;"]
