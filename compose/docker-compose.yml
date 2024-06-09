@@ -25,6 +25,8 @@ services:
       - MailOptions__Password=KbuTCFv4J6Fy7256vh
       - MailOptions__DisplayName=Mukesh Murugan
       - CorsOptions__AllowedOrigins__0=http://localhost:5010
+      - CorsOptions__AllowedOrigins__1=http://localhost:7020
+      - CorsOptions__AllowedOrigins__2=https://localhost:7020
     volumes:
       - ~/.aspnet/https:/https:ro
     ports:

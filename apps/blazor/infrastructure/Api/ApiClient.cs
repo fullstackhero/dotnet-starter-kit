@@ -1478,11 +1478,6 @@ namespace Infrastructure.Api
                     {
                         throw ex;
                     }
-                    finally
-                    {
-                        //if (disposeResponse_)
-                        //    response_.Dispose();
-                    }
                 }
             }
             finally
