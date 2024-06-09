@@ -7,9 +7,6 @@
 		<RootNamespace>FSH.Blazor.Client</RootNamespace>
 		<AssemblyName>FSH.Blazor.Client</AssemblyName>
 		<ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
-		<ContainerRepository>blazor</ContainerRepository>
-		<ContainerImageTags>2.0.0;latest</ContainerImageTags>
-		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 	</PropertyGroup>
 
 	<ItemGroup>
