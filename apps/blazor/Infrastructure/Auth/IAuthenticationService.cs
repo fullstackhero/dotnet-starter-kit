@@ -1,6 +1,6 @@
 using Infrastructure.Api;
 
-namespace Infrastructure.Auth;
+namespace FSH.Blazor.Infrastructure.Auth;
 
 public interface IAuthenticationService
 {

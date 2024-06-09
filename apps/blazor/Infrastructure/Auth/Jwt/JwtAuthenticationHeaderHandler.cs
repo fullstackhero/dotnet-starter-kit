@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication.Internal;
 using System.Net.Http.Headers;
 
-namespace Infrastructure.Auth.Jwt;
+namespace FSH.Blazor.Infrastructure.Auth.Jwt;
 public class JwtAuthenticationHeaderHandler : DelegatingHandler
 {
     private readonly IAccessTokenProviderAccessor _tokenProviderAccessor;

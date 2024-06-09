@@ -1,9 +1,9 @@
 ﻿using FSH.Blazor.Client.Components;
+using FSH.Blazor.Shared;
 using Infrastructure.Api;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor;
-using Shared;
 
 namespace FSH.Blazor.Client.Pages.Auth;
 
@@ -59,7 +59,7 @@ public partial class Login()
         BusySubmitting = true;
 
         if (await ApiHelper.ExecuteCallGuardedAsync(
-            () => auth.LoginAsync(TenantId, _tokenRequest),
+            () => authService.LoginAsync(TenantId, _tokenRequest),
             Toast,
             _customValidation))
         {

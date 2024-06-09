@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 
-namespace Infrastructure.Auth.Jwt;
+namespace FSH.Blazor.Infrastructure.Auth.Jwt;
 
 public static class AccessTokenProviderExtensions
 {

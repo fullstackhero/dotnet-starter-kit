@@ -1,4 +1,4 @@
-﻿namespace Shared;
+﻿namespace FSH.Blazor.Shared;
 public static class TenantConstants
 {
     public static class Root

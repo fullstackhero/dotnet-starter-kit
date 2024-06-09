@@ -1442,10 +1442,11 @@ namespace Infrastructure.Api
 
                     PrepareRequest(client_, request_, url_);
 
-                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
-                    var disposeResponse_ = true;
                     try
                     {
+
+                        var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                        var disposeResponse_ = true;
                         var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
                         foreach (var item_ in response_.Headers)
                             headers_[item_.Key] = item_.Value;
@@ -1473,10 +1474,14 @@ namespace Infrastructure.Api
                             throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
                         }
                     }
+                    catch(Exception ex)
+                    {
+                        throw ex;
+                    }
                     finally
                     {
-                        if (disposeResponse_)
-                            response_.Dispose();
+                        //if (disposeResponse_)
+                        //    response_.Dispose();
                     }
                 }
             }

@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace Infrastructure.Auth;
+namespace FSH.Blazor.Infrastructure.Auth;
 
 // Add properties to this class and update the server and client AuthenticationStateProviders
 // to expose more information about the authenticated user to the client.

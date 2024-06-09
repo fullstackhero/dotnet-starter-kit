@@ -1,7 +1,7 @@
-﻿using FSH.Blazor.Client.Components;
+﻿using Infrastructure.Api;
 using MudBlazor;
 
-namespace Infrastructure.Api;
+namespace FSH.Blazor.Client.Components;
 
 public static class ApiHelper
 {
