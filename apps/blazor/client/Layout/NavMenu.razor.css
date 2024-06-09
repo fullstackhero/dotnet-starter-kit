@@ -1,18 +1,5 @@
 .navbar-toggler {
-    appearance: none;
-    cursor: pointer;
-    width: 3.5rem;
-    height: 2.5rem;
-    color: white;
-    position: absolute;
-    top: 0.5rem;
-    right: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.55%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") no-repeat center/1.75rem rgba(255, 255, 255, 0.1);
-}
-
-.navbar-toggler:checked {
-    background-color: rgba(255, 255, 255, 0.5);
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .top-row {
@@ -59,16 +46,13 @@
         padding-bottom: 1rem;
     }
 
-    .nav-item ::deep .nav-link {
+    .nav-item ::deep a {
         color: #d7d7d7;
-        background: none;
-        border: none;
         border-radius: 4px;
         height: 3rem;
         display: flex;
         align-items: center;
         line-height: 3rem;
-        width: 100%;
     }
 
 .nav-item ::deep a.active {
@@ -76,17 +60,9 @@
     color: white;
 }
 
-.nav-item ::deep .nav-link:hover {
+.nav-item ::deep a:hover {
     background-color: rgba(255,255,255,0.1);
     color: white;
-}
-
-.nav-scrollable {
-    display: none;
-}
-
-.navbar-toggler:checked ~ .nav-scrollable {
-    display: block;
 }
 
 @media (min-width: 641px) {
@@ -94,10 +70,12 @@
         display: none;
     }
 
-    .nav-scrollable {
+    .collapse {
         /* Never collapse the sidebar for wide screens */
         display: block;
-
+    }
+    
+    .nav-scrollable {
         /* Allow sidebar to scroll for tall menus */
         height: calc(100vh - 3.5rem);
         overflow-y: auto;
