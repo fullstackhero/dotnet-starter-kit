@@ -9,8 +9,8 @@ services:
       - fullstackhero
     environment:
       - ASPNETCORE_ENVIRONMENT=docker
-      - ASPNETCORE_URLS=https://+:5100;http://+:5010
-      - ASPNETCORE_HTTPS_PORT=5100
+      - ASPNETCORE_URLS=https://+:7000;http://+:5000
+      - ASPNETCORE_HTTPS_PORT=7000
       - ASPNETCORE_Kestrel__Certificates__Default__Password=password!
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/cert.pfx
       - DatabaseOptions__ConnectionString=Server=postgres;Port=5433;Database=fullstackhero;User Id=pgadmin;Password=pgadmin
@@ -28,8 +28,8 @@ services:
     volumes:
       - ~/.aspnet/https:/https:ro
     ports:
-      - 5100:5100
-      - 5010:5010
+      - 7000:7000
+      - 5000:5000
     depends_on:
       postgres:
         condition: service_healthy
@@ -39,13 +39,19 @@ services:
     pull_policy: always
     container_name: blazor
     environment:
-      - ApiBaseUrl=http://localhost:5010
+      - ASPNETCORE_ENVIRONMENT=docker
+      - ASPNETCORE_URLS=https://+:7010;http://+:5010
+      - ASPNETCORE_HTTPS_PORT=7010
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=password!
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/cert.pfx
+      - ApiBaseUrl=https://localhost:7000
     networks:
       - fullstackhero
     volumes:
       - ~/.aspnet/https:/https:ro
     ports:
-      - 5020:80
+      - 7010:7010
+      - 5010:5010
     depends_on:
       postgres:
         condition: service_healthy
