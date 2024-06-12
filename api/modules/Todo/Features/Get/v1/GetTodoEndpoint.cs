@@ -9,7 +9,11 @@ public static class GetTodoEndpoint
 {
     internal static RouteHandlerBuilder MapGetTodoEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        return endpoints.MapGet("/{id:guid}", (Guid id, ISender mediator) => mediator.Send(new GetTodoRequest(id)))
+        return endpoints.MapGet("/{id:guid}", async (Guid id, ISender mediator) =>
+                        {
+                            var response = await mediator.Send(new GetTodoRequest(id));
+                            return Results.Ok(response);
+                        })
                         .WithName(nameof(GetTodoEndpoint))
                         .WithSummary("gets todo item by id")
                         .WithDescription("gets todo item by id")
