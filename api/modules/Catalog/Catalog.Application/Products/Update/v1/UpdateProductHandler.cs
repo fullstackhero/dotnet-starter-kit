@@ -8,14 +8,14 @@ namespace FSH.WebApi.Catalog.Application.Products.Update.v1;
 public sealed class UpdateProductHandler(
     ILogger<UpdateProductHandler> logger,
     [FromKeyedServices("catalog:products")] IRepository<Product> repository)
-    : IRequestHandler<UpdateProductRequest, UpdateProductResponse>
+    : IRequestHandler<UpdateProductCommand, UpdateProductResponse>
 {
-    public async Task<UpdateProductResponse> Handle(UpdateProductRequest request, CancellationToken cancellationToken)
+    public async Task<UpdateProductResponse> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
         var product = Product.Update(request.Id, request.Name!, request.Description, request.Price);
         await repository.UpdateAsync(product, cancellationToken);
-        logger.LogInformation("product udpated {ProductId}", product.Id);
-        return new UpdateProductResponse(product.Id, product.Name, product.Description, product.Price);
+        logger.LogInformation("product with id : {ProductId} updated.", product.Id);
+        return new UpdateProductResponse(product.Id);
     }
 }

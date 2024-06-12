@@ -32,7 +32,7 @@ public class Product : AuditableEntity, IAggregateRoot
             Price = price
         };
 
-        product.QueueDomainEvent(new ProductCreated() { Product = product });
+        product.QueueDomainEvent(new ProductUpdated() { Product = product });
 
         return product;
     }

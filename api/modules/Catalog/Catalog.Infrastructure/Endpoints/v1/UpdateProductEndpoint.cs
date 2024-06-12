@@ -11,7 +11,12 @@ public static class UpdateProductEndpoint
     internal static RouteHandlerBuilder MapProductUpdateEndpoint(this IEndpointRouteBuilder endpoints)
     {
         return endpoints
-            .MapPut("/{id:guid}", (Guid id, UpdateProductCommand request, ISender mediator) => mediator.Send(new UpdateProductRequest(id, request.Name, request.Description, request.Price)))
+            .MapPut("/{id:guid}", async (Guid id, UpdateProductCommand request, ISender mediator) =>
+            {
+                if (id != request.Id) return Results.BadRequest();
+                var response = await mediator.Send(request);
+                return Results.Ok(response);
+            })
             .WithName(nameof(UpdateProductEndpoint))
             .WithSummary("update a product")
             .WithDescription("update a product")
