@@ -8,6 +8,10 @@ internal static class Extensions
         app.MapRegisterUserEndpoint();
         app.MapUpdateUserEndpoint();
         app.MapGetUsersListEndpoint();
+        app.MapDeleteUserEndpoint();
+        app.MapForgotPasswordEndpoint();
+        app.MapResetPasswordEndpoint();
+        app.MapGetMeEndpoint();
         app.MapGetUserEndpoint();
         return app;
     }

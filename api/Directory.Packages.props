@@ -16,7 +16,7 @@
     <PackageVersion Include="Finbuckle.MultiTenant" Version="7.0.1" />
     <PackageVersion Include="Finbuckle.MultiTenant.AspNetCore" Version="7.0.1" />
     <PackageVersion Include="Finbuckle.MultiTenant.EntityFrameworkCore" Version="7.0.1" />
-    <PackageVersion Include="Hangfire" Version="1.8.12" />
+    <PackageVersion Include="Hangfire" Version="1.8.14" />
     <PackageVersion Include="Hangfire.MemoryStorage" Version="1.8.1.1" />
     <PackageVersion Include="Hangfire.PostgreSql" Version="1.20.8" />
     <PackageVersion Include="MailKit" Version="4.6.0" />
@@ -24,6 +24,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="8.0.6" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.6" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.6" />
     <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.6" />
     <PackageVersion Include="Microsoft.NET.Build.Containers" Version="8.0.100" />
     <PackageVersion Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
@@ -42,27 +43,27 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.6" />
   </ItemGroup>
   <ItemGroup>
-    <PackageVersion Include="SonarAnalyzer.CSharp" Version="9.26.0.92422" />
+    <PackageVersion Include="SonarAnalyzer.CSharp" Version="9.27.0.93347" />
   </ItemGroup>
   <ItemGroup>
-    <PackageVersion Include="MediatR" Version="12.2.0" />
-    <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="11.9.1" />
-    <PackageVersion Include="Carter" Version="8.2.0" />
+    <PackageVersion Include="MediatR" Version="12.3.0" />
+    <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="11.9.2" />
+    <PackageVersion Include="Carter" Version="8.2.1" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="Serilog" Version="4.0.0" />
     <PackageVersion Include="Serilog.AspNetCore" Version="8.0.1" />
     <PackageVersion Include="Serilog.Enrichers.CorrelationId" Version="3.0.1" />
-    <PackageVersion Include="Serilog.Enrichers.Environment" Version="2.3.0" />
+    <PackageVersion Include="Serilog.Enrichers.Environment" Version="3.0.0" />
     <PackageVersion Include="Serilog.Enrichers.Span" Version="3.1.0" />
     <PackageVersion Include="Serilog.Exceptions" Version="8.4.0" />
     <PackageVersion Include="Serilog.Extensions.Hosting" Version="8.0.0" />
     <PackageVersion Include="Serilog.Sinks.Elasticsearch" Version="10.0.0" />
     <PackageVersion Include="Serilog.Formatting.Elasticsearch" Version="10.0.0" />
-    <PackageVersion Include="Serilog.Sinks.Async" Version="1.5.0" />
-    <PackageVersion Include="Serilog.Sinks.Console" Version="5.0.1" />
+    <PackageVersion Include="Serilog.Sinks.Async" Version="2.0.0" />
+    <PackageVersion Include="Serilog.Sinks.Console" Version="6.0.0" />
     <PackageVersion Include="Serilog.Sinks.File" Version="5.0.0" />
-    <PackageVersion Include="Serilog.Sinks.Seq" Version="7.0.1" />
+    <PackageVersion Include="Serilog.Sinks.Seq" Version="8.0.0" />
     <PackageVersion Include="Serilog.Sinks.SpectreConsole" Version="0.3.3" />
     <PackageVersion Include="SerilogAnalyzer" Version="0.15.0" />
     <PackageVersion Include="SerilogTimings" Version="3.1.0" />
