@@ -21,4 +21,19 @@ public class Product : AuditableEntity, IAggregateRoot
 
         return product;
     }
+
+    public static Product Update(Guid id, string name, string? description, decimal price)
+    {
+        var product = new Product
+        {
+            Id = id,
+            Name = name,
+            Description = description,
+            Price = price
+        };
+
+        product.QueueDomainEvent(new ProductCreated() { Product = product });
+
+        return product;
+    }
 }
