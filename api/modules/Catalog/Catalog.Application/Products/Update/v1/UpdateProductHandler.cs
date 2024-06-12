@@ -1,5 +1,6 @@
 using FSH.Framework.Core.Persistence;
 using FSH.WebApi.Catalog.Domain;
+using FSH.WebApi.Catalog.Domain.Exceptions;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -13,8 +14,10 @@ public sealed class UpdateProductHandler(
     public async Task<UpdateProductResponse> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
-        var product = Product.Update(request.Id, request.Name!, request.Description, request.Price);
-        await repository.UpdateAsync(product, cancellationToken);
+        var product = await repository.GetByIdAsync(request.Id, cancellationToken);
+        _ = product ?? throw new ProductNotFoundException(request.Id);
+        var updatedProduct = product.Update(request.Name, request.Description, request.Price);
+        await repository.UpdateAsync(updatedProduct, cancellationToken);
         logger.LogInformation("product with id : {ProductId} updated.", product.Id);
         return new UpdateProductResponse(product.Id);
     }
