@@ -5,6 +5,7 @@ using FSH.WebApi.Todo.Domain;
 using FSH.WebApi.Todo.Features.Create.v1;
 using FSH.WebApi.Todo.Features.Get.v1;
 using FSH.WebApi.Todo.Features.GetList.v1;
+using FSH.WebApi.Todo.Features.Update.v1;
 using FSH.WebApi.Todo.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -22,6 +23,7 @@ public static class TodoModule
             todoGroup.MapTodoItemCreationEndpoint();
             todoGroup.MapGetTodoEndpoint();
             todoGroup.MapGetTodoListEndpoint();
+            todoGroup.MapTodoItemUpdationEndpoint();
         }
     }
     public static WebApplicationBuilder RegisterTodoServices(this WebApplicationBuilder builder)
