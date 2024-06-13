@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using FSH.Blazor.Infrastructure.Preferences;
+using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
 namespace FSH.Blazor.Client.Layout;
@@ -8,20 +9,22 @@ public partial class MainLayout
     [Parameter]
     public RenderFragment ChildContent { get; set; } = default!;
     [Parameter]
-    public EventCallback OnDarkModeToggle { get; set; }
+    public EventCallback<bool> OnDarkModeToggle { get; set; }
     [Parameter]
     public EventCallback<bool> OnRightToLeftToggle { get; set; }
 
     private bool _drawerOpen;
     private bool _rightToLeft;
+    private bool _isDarkMode;
 
     protected override async Task OnInitializedAsync()
     {
-        //if (await ClientPreferences.GetPreference() is ClientPreference preference)
-        //{
-        //    _rightToLeft = preference.IsRTL;
-        //    _drawerOpen = preference.IsDrawerOpen;
-        //}
+        if (await ClientPreferences.GetPreference() is ClientPreference preferences)
+        {
+            _rightToLeft = preferences.IsRTL;
+            _drawerOpen = preferences.IsDrawerOpen;
+            _isDarkMode = preferences.IsDarkMode;
+        }
     }
 
     private async Task RightToLeftToggle()
@@ -34,13 +37,13 @@ public partial class MainLayout
 
     public async Task ToggleDarkMode()
     {
-        await OnDarkModeToggle.InvokeAsync();
+        _isDarkMode = !_isDarkMode;
+        await OnDarkModeToggle.InvokeAsync(_isDarkMode);
     }
 
     private async Task DrawerToggle()
     {
-        _drawerOpen = !_drawerOpen;
-
+        _drawerOpen = await ClientPreferences.ToggleDrawerAsync();
     }
     private void Logout()
     {

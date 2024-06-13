@@ -1,7 +1,7 @@
 ﻿@inherits LayoutComponentBase
 
 <MudRTLProvider>
-    <MudThemeProvider />
+    <MudThemeProvider @bind-IsDarkMode="_isDarkMode" Theme="_theme"/>
     <MudDialogProvider />
     <MudSnackbarProvider />
     <AuthorizeView>
@@ -16,7 +16,7 @@
         </NotAuthorized>
         <Authorized>
             <MudLayout>
-                <MainLayout>
+                <MainLayout OnDarkModeToggle="ToggleDarkLightMode">
                     @Body
                 </MainLayout>
             </MudLayout>

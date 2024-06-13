@@ -84,6 +84,9 @@
             </div>
         </ChildContent>
     </MudMenu>
+    <MudToggleIconButton @bind-Toggled="@_isDarkMode" Icon="@Icons.Material.Filled.WbSunny"
+                         Color="@Color.Warning" Title="Off" Class="d-flex ml-auto" ToggledIcon="@Icons.Material.Filled.DarkMode"
+                         ToggledColor="@Color.Surface" ToggledTitle="On" style="left:8px!important" @onclick="@ToggleDarkMode" />
 </MudAppBar>
 
 <MudDrawer @bind-Open="_drawerOpen" Elevation="25" ClipMode="DrawerClipMode.Never">
