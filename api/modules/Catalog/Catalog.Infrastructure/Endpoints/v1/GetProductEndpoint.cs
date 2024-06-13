@@ -10,12 +10,17 @@ public static class GetProductEndpoint
 {
     internal static RouteHandlerBuilder MapGetProductEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        return endpoints.MapGet("/{id:guid}", (Guid id, ISender mediator) => mediator.Send(new GetProductRequest(id)))
-                        .WithName(nameof(GetProductEndpoint))
-                        .WithSummary("gets product by id")
-                        .WithDescription("gets prodct by id")
-                        .Produces<GetProductResponse>()
-                        .RequirePermission("Permissions.Products.View")
-                        .MapToApiVersion(1);
+        return endpoints
+            .MapGet("/{id:guid}", async (Guid id, ISender mediator) =>
+            {
+                var response = await mediator.Send(new GetProductRequest(id));
+                return Results.Ok(response);
+            })
+            .WithName(nameof(GetProductEndpoint))
+            .WithSummary("gets product by id")
+            .WithDescription("gets prodct by id")
+            .Produces<GetProductResponse>()
+            .RequirePermission("Permissions.Products.View")
+            .MapToApiVersion(1);
     }
 }
