@@ -22,6 +22,7 @@ public static class CatalogModule
             productGroup.MapGetProductEndpoint();
             productGroup.MapGetProductListEndpoint();
             productGroup.MapProductUpdateEndpoint();
+            productGroup.MapProductDeleteEndpoint();
         }
     }
     public static WebApplicationBuilder RegisterCatalogServices(this WebApplicationBuilder builder)

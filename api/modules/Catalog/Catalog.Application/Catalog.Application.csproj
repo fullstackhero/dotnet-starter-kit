@@ -7,4 +7,12 @@
     <ProjectReference Include="..\..\..\framework\Core\Core.csproj" />
     <ProjectReference Include="..\Catalog.Domain\Catalog.Domain.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Remove="Products\Delete\" />
+    <None Remove="Products\Delete\v1\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Products\Delete\" />
+    <Folder Include="Products\Delete\v1\" />
+  </ItemGroup>
 </Project>
