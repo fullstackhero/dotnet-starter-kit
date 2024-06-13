@@ -7,12 +7,4 @@
     <ProjectReference Include="..\..\framework\Core\Core.csproj" />
     <ProjectReference Include="..\..\framework\Infrastructure\Infrastructure.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <None Remove="Features\Delete\" />
-    <None Remove="Features\Delete\v1\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Features\Delete\" />
-    <Folder Include="Features\Delete\v1\" />
-  </ItemGroup>
 </Project>
