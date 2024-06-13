@@ -17,11 +17,11 @@ public static class UpdateTodoEndpoint
             return Results.Ok(response);
         })
             .WithName(nameof(UpdateTodoEndpoint))
-                .WithSummary("Updates a todo item")
-                .WithDescription("Updated a todo item")
-                .Produces<UpdateTodoResponse>(StatusCodes.Status200OK)
-                .RequirePermission("Permissions.Todos.Update")
-                .MapToApiVersion(new ApiVersion(1, 0));
+            .WithSummary("Updates a todo item")
+            .WithDescription("Updated a todo item")
+            .Produces<UpdateTodoResponse>(StatusCodes.Status200OK)
+            .RequirePermission("Permissions.Todos.Update")
+            .MapToApiVersion(new ApiVersion(1, 0));
 
     }
 }
