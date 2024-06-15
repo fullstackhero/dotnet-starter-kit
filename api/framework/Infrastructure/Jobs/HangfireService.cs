@@ -15,6 +15,9 @@ public class HangfireService : IJobService
     public string Enqueue(Expression<Func<Task>> methodCall) =>
         BackgroundJob.Enqueue(methodCall);
 
+    public string Enqueue(string queue, Expression<Func<Task>> methodCall) =>
+        BackgroundJob.Enqueue(queue, methodCall);
+
     public string Enqueue<T>(Expression<Action<T>> methodCall) =>
         BackgroundJob.Enqueue(methodCall);
 

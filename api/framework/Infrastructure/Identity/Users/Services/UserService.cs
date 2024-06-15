@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Framework.Infrastructure.Identity.Users.Services;
+
 internal sealed partial class UserService(
     UserManager<FshUser> userManager,
     SignInManager<FshUser> signInManager,
@@ -128,7 +129,7 @@ internal sealed partial class UserService(
                 new Collection<string> { user.Email },
                 "Confirm Registration",
                 emailVerificationUri);
-            jobService.Enqueue(() => mailService.SendAsync(mailRequest, CancellationToken.None));
+            jobService.Enqueue("email", () => mailService.SendAsync(mailRequest, CancellationToken.None));
         }
 
         return new RegisterUserResponse(user.Id);
