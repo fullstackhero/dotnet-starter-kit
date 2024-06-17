@@ -12,4 +12,8 @@
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Migrations\Application\" />
+      <Folder Include="Migrations\Tenant\" />
+    </ItemGroup>
 </Project>

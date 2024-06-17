@@ -9,11 +9,12 @@ public class FSHTenantInfo : ITenantInfo
     {
     }
 
-    public FSHTenantInfo(string id, string name, string? connectionString, string adminEmail, string? issuer = null)
+    public FSHTenantInfo(string id, string name, string? dbProvider, string? connectionString, string adminEmail, string? issuer = null)
     {
         Id = id;
         Identifier = id;
         Name = name;
+        DbProvider = dbProvider ?? string.Empty;
         ConnectionString = connectionString ?? string.Empty;
         AdminEmail = adminEmail;
         IsActive = true;
@@ -34,6 +35,7 @@ public class FSHTenantInfo : ITenantInfo
     public string Identifier { get; set; } = default!;
 
     public string Name { get; set; } = default!;
+    public string? DbProvider { get; set; }
     public string ConnectionString { get; set; } = default!;
 
     public string AdminEmail { get; private set; } = default!;

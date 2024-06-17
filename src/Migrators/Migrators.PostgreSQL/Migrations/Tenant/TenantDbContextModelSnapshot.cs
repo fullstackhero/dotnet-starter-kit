@@ -17,7 +17,7 @@ namespace Migrators.PostgreSQL.Migrations.Tenant
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.1")
+                .HasAnnotation("ProductVersion", "7.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -34,6 +34,9 @@ namespace Migrators.PostgreSQL.Migrations.Tenant
 
                     b.Property<string>("ConnectionString")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("DbProvider")
                         .HasColumnType("text");
 
                     b.Property<string>("Identifier")

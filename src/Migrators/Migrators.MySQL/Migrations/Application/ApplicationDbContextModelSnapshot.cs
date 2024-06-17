@@ -17,7 +17,7 @@ namespace Migrators.MySQL.Migrations.Application
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("Catalog")
-                .HasAnnotation("ProductVersion", "6.0.1")
+                .HasAnnotation("ProductVersion", "7.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("FSH.WebApi.Domain.Catalog.Brand", b =>
@@ -214,18 +214,6 @@ namespace Migrators.MySQL.Migrations.Application
                         .HasColumnType("longtext");
 
                     b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Group")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("LastModifiedBy")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime?>("LastModifiedOn")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("RoleId")

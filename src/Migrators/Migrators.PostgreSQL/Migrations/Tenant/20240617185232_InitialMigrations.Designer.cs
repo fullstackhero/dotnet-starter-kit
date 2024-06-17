@@ -12,14 +12,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Migrators.PostgreSQL.Migrations.Tenant
 {
     [DbContext(typeof(TenantDbContext))]
-    [Migration("20220125214553_InitialMigrations")]
+    [Migration("20240617185232_InitialMigrations")]
     partial class InitialMigrations
     {
+        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.1")
+                .HasAnnotation("ProductVersion", "7.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -36,6 +37,9 @@ namespace Migrators.PostgreSQL.Migrations.Tenant
 
                     b.Property<string>("ConnectionString")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("DbProvider")
                         .HasColumnType("text");
 
                     b.Property<string>("Identifier")

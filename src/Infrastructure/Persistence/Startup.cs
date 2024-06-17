@@ -1,6 +1,7 @@
 using FSH.WebApi.Application.Common.Persistence;
 using FSH.WebApi.Domain.Common.Contracts;
 using FSH.WebApi.Infrastructure.Common;
+using FSH.WebApi.Infrastructure.Multitenancy;
 using FSH.WebApi.Infrastructure.Persistence.ConnectionString;
 using FSH.WebApi.Infrastructure.Persistence.Context;
 using FSH.WebApi.Infrastructure.Persistence.Initialization;
@@ -10,22 +11,15 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
-using Serilog;
 
 namespace FSH.WebApi.Infrastructure.Persistence;
 
 internal static class Startup
 {
-    private static readonly ILogger _logger = Log.ForContext(typeof(Startup));
-
     internal static IServiceCollection AddPersistence(this IServiceCollection services)
     {
         services.AddOptions<DatabaseSettings>()
             .BindConfiguration(nameof(DatabaseSettings))
-            .PostConfigure(databaseSettings =>
-            {
-                _logger.Information("Current DB Provider: {dbProvider}", databaseSettings.DBProvider);
-            })
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
@@ -33,7 +27,15 @@ internal static class Startup
             .AddDbContext<ApplicationDbContext>((p, m) =>
             {
                 var databaseSettings = p.GetRequiredService<IOptions<DatabaseSettings>>().Value;
-                m.UseDatabase(databaseSettings.DBProvider, databaseSettings.ConnectionString);
+                var applicationTenantInfo = p.GetService<FSHTenantInfo>();
+                if (applicationTenantInfo is not null && !string.IsNullOrWhiteSpace(applicationTenantInfo.DbProvider) && !string.IsNullOrWhiteSpace(applicationTenantInfo.ConnectionString))
+                {
+                    m.UseDatabase(applicationTenantInfo.DbProvider, applicationTenantInfo.ConnectionString);
+                }
+                else
+                {
+                    m.UseDatabase(databaseSettings.DBProvider, databaseSettings.ConnectionString);
+                }
             })
 
             .AddTransient<IDatabaseInitializer, DatabaseInitializer>()

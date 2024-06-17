@@ -17,10 +17,10 @@ namespace Migrators.MSSQL.Migrations.Tenant
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.1")
+                .HasAnnotation("ProductVersion", "7.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("FSH.WebApi.Infrastructure.Multitenancy.FSHTenantInfo", b =>
                 {
@@ -34,6 +34,9 @@ namespace Migrators.MSSQL.Migrations.Tenant
 
                     b.Property<string>("ConnectionString")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DbProvider")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Identifier")

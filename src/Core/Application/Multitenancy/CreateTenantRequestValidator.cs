@@ -17,9 +17,13 @@ public class CreateTenantRequestValidator : CustomValidator<CreateTenantRequest>
             .MustAsync(async (name, _) => !await tenantService.ExistsWithNameAsync(name!))
                 .WithMessage((_, name) => T["Tenant {0} already exists.", name]);
 
+        RuleFor(t => t.DbProvider).Cascade(CascadeMode.Stop)
+            .Must(dbProvider => dbProvider == null || new[] { "postgresql", "mssql", "mysql", "oracle", "sqlite" }.Contains(dbProvider.ToLowerInvariant()))
+            .WithMessage("DbProvider must be one of the following: postgresql, mssql, mysql, oracle, sqlite");
+
         RuleFor(t => t.ConnectionString).Cascade(CascadeMode.Stop)
-            .Must((_, cs) => string.IsNullOrWhiteSpace(cs) || connectionStringValidator.TryValidate(cs))
-                .WithMessage(T["Connection string invalid."]);
+            .Must((request, connectionString) => request.DbProvider == null || connectionString == null || connectionStringValidator.TryValidate(connectionString, request.DbProvider))
+            .WithMessage("Invalid ConnectionString for the provided DbProvider");
 
         RuleFor(t => t.AdminEmail).Cascade(CascadeMode.Stop)
             .NotEmpty()

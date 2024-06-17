@@ -11,14 +11,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Migrators.MySQL.Migrations.Tenant
 {
     [DbContext(typeof(TenantDbContext))]
-    [Migration("20220125214540_InitialMigrations")]
+    [Migration("20240617194138_InitialMigrations")]
     partial class InitialMigrations
     {
+        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.1")
+                .HasAnnotation("ProductVersion", "7.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("FSH.WebApi.Infrastructure.Multitenancy.FSHTenantInfo", b =>
@@ -33,6 +34,9 @@ namespace Migrators.MySQL.Migrations.Tenant
 
                     b.Property<string>("ConnectionString")
                         .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("DbProvider")
                         .HasColumnType("longtext");
 
                     b.Property<string>("Identifier")

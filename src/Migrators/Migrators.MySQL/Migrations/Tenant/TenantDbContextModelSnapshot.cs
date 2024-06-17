@@ -16,7 +16,7 @@ namespace Migrators.MySQL.Migrations.Tenant
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.1")
+                .HasAnnotation("ProductVersion", "7.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("FSH.WebApi.Infrastructure.Multitenancy.FSHTenantInfo", b =>
@@ -31,6 +31,9 @@ namespace Migrators.MySQL.Migrations.Tenant
 
                     b.Property<string>("ConnectionString")
                         .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("DbProvider")
                         .HasColumnType("longtext");
 
                     b.Property<string>("Identifier")
