@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace FSH.Framework.Infrastructure.Tenant.Services;
+
 public sealed class TenantService : ITenantService
 {
     private readonly IMultiTenantStore<FshTenantInfo> _tenantStore;
@@ -94,6 +95,7 @@ public sealed class TenantService : ITenantService
 
     public async Task<bool> ExistsWithNameAsync(string name) =>
         (await _tenantStore.GetAllAsync().ConfigureAwait(false)).Any(t => t.Name == name);
+
     public async Task<List<TenantDetail>> GetAllAsync()
     {
         var tenants = (await _tenantStore.GetAllAsync().ConfigureAwait(false)).Adapt<List<TenantDetail>>();
@@ -104,7 +106,7 @@ public sealed class TenantService : ITenantService
         (await GetTenantInfoAsync(id).ConfigureAwait(false))
             .Adapt<TenantDetail>();
 
-    public async Task<DateTime> UpradeSubscription(string id, DateTime extendedExpiryDate)
+    public async Task<DateTime> UpgradeSubscription(string id, DateTime extendedExpiryDate)
     {
         var tenant = await GetTenantInfoAsync(id).ConfigureAwait(false);
         tenant.SetValidity(extendedExpiryDate);
