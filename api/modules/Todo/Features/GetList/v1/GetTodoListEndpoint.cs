@@ -11,12 +11,15 @@ public static class GetTodoListEndpoint
     internal static RouteHandlerBuilder MapGetTodoListEndpoint(this IEndpointRouteBuilder endpoints)
     {
         return endpoints.MapPost("/search", (ISender mediator, PaginationFilter filter) =>
-                mediator.Send(new GetTodoListRequest(filter)))
-                        .WithName(nameof(GetTodoListEndpoint))
-                        .WithSummary("gets a list of todo items with paging support")
-                        .WithDescription("gets a list of todo items with paging support")
-                        .Produces<PagedList<TodoDto>>()
-                        .RequirePermission("Permissions.Todos.View")
-                        .MapToApiVersion(1);
+        {
+            var response = mediator.Send(new GetTodoListRequest(filter));
+            return Results.Ok(response);
+        })
+            .WithName(nameof(GetTodoListEndpoint))
+            .WithSummary("gets a list of todo items with paging support")
+            .WithDescription("gets a list of todo items with paging support")
+            .Produces<PagedList<TodoDto>>()
+            .RequirePermission("Permissions.Todos.View")
+            .MapToApiVersion(1);
     }
 }
