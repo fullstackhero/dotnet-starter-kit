@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Asp.Versioning.Conventions;
+using AspNetCoreRateLimit;
 using FluentValidation;
 using FSH.Framework.Core;
 using FSH.Framework.Infrastructure.Auth;
@@ -41,6 +42,11 @@ public static class Extensions
         builder.Services.ConfigureCaching(builder.Configuration);
         builder.Services.AddExceptionHandler<CustomExceptionHandler>();
         builder.Services.AddProblemDetails();
+        builder.Services.AddMemoryCache();
+        builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
+        builder.Services.AddInMemoryRateLimiting();
+        builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+        builder.Services.Configure<RateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
 
         //define module assemblies
         var assemblies = new Assembly[]
@@ -71,11 +77,14 @@ public static class Extensions
         app.UseJobDashboard(app.Configuration);
         app.UseAuthentication();
         app.UseAuthorization();
+        app.UseIpRateLimiting();
+
         app.MapTenantEndpoints();
         app.MapIdentityEndpoints();
 
         //current user middleware
         app.UseMiddleware<CurrentUserMiddleware>();
+
 
         //register api versions
         var versions = app.NewApiVersionSet()

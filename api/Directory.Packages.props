@@ -13,6 +13,7 @@
     <PackageVersion Include="Ardalis.Specification.EntityFrameworkCore" Version="8.0.0" />
     <PackageVersion Include="Asp.Versioning.Http" Version="8.1.0" />
     <PackageVersion Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
+    <PackageVersion Include="AspNetCoreRateLimit" Version="5.0.0" />
     <PackageVersion Include="Finbuckle.MultiTenant" Version="7.0.1" />
     <PackageVersion Include="Finbuckle.MultiTenant.AspNetCore" Version="7.0.1" />
     <PackageVersion Include="Finbuckle.MultiTenant.EntityFrameworkCore" Version="7.0.1" />
