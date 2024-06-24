@@ -1,5 +1,12 @@
 ﻿namespace FSH.Framework.Infrastructure.Cors;
+using System.Collections.ObjectModel;
+
 public class CorsOptions
 {
-    public List<string> AllowedOrigins { get; set; }
+    public CorsOptions()
+    {
+        AllowedOrigins = [];
+    }
+
+    public Collection<string> AllowedOrigins { get; }
 }
