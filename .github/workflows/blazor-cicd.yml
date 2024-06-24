@@ -38,8 +38,8 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: publish to github container registry
+      - name: build and publish to github container registry
         working-directory: ./apps/blazor/
         run: |
-          dotnet publish -c Release -p:ContainerRepository=ghcr.io/${{ github.repository_owner}}/blazor -p:RuntimeIdentifier=linux-x64
-          docker push ghcr.io/${{ github.repository_owner}}/blazor --all-tags
+          docker build -t ghcr.io/${{ github.repository_owner }}/blazor:latest -f Dockerfile .
+          docker push ghcr.io/${{ github.repository_owner }}/blazor:latest
