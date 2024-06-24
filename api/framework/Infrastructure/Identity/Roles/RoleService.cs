@@ -5,19 +5,14 @@ using Microsoft.AspNetCore.Identity;
 
 namespace FSH.Framework.Infrastructure.Identity.Roles;
 
-public class RoleService : IRoleService
+public class RoleService(RoleManager<FshRole> roleManager) : IRoleService
 {
-    private readonly RoleManager<FshRole> _roleManager;
-
-    public RoleService(RoleManager<FshRole> roleManager)
-    {
-        _roleManager = roleManager;
-    }
+    private readonly RoleManager<FshRole> _roleManager = roleManager;
 
     public async Task<IEnumerable<RoleDto>> GetRolesAsync()
     {
         return await Task.Run(() => _roleManager.Roles
-            .Select(role => new RoleDto { Id = role.Id, Name = role.Name, Description = role.Description })
+            .Select(role => new RoleDto { Id = role.Id, Name = role.Name!, Description = role.Description })
             .ToList());
     }
 
@@ -27,7 +22,7 @@ public class RoleService : IRoleService
 
         _ = role ?? throw new NotFoundException("Role Not Found.");
 
-        return new RoleDto { Id = role.Id, Name = role.Name, Description = role.Description };
+        return new RoleDto { Id = role.Id, Name = role.Name!, Description = role.Description };
     }
 
     public async Task<RoleDto> CreateOrUpdateRoleAsync(CreateOrUpdateRoleCommand command)
@@ -46,7 +41,7 @@ public class RoleService : IRoleService
             await _roleManager.CreateAsync(role);
         }
 
-        return new RoleDto { Id = role.Id, Name = role.Name, Description = role.Description };
+        return new RoleDto { Id = role.Id, Name = role.Name!, Description = role.Description };
     }
 
     public async Task DeleteRoleAsync(string id)
@@ -54,7 +49,7 @@ public class RoleService : IRoleService
         FshRole? role = await _roleManager.FindByIdAsync(id);
 
         _ = role ?? throw new NotFoundException("Role Not Found.");
-        
+
         await _roleManager.DeleteAsync(role);
     }
 }

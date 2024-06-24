@@ -20,4 +20,14 @@ public class TodoItem : AuditableEntity, IAggregateRoot
 
         return item;
     }
+
+    public TodoItem Update(string? title, string? note)
+    {
+        if (title is not null && Title?.Equals(title, StringComparison.OrdinalIgnoreCase) is not true) Title = title;
+        if (note is not null && Note?.Equals(note, StringComparison.OrdinalIgnoreCase) is not true) Note = note;
+       
+        this.QueueDomainEvent(new TodoItemUpdated(this));
+        return this;
+
+    }
 }

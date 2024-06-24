@@ -21,4 +21,29 @@ public class Product : AuditableEntity, IAggregateRoot
 
         return product;
     }
+
+    public Product Update(string? name, string? description, decimal? price)
+    {
+        if (name is not null && Name?.Equals(name, StringComparison.OrdinalIgnoreCase) is not true) Name = name;
+        if (description is not null && Description?.Equals(description, StringComparison.OrdinalIgnoreCase) is not true) Description = description;
+        if (price.HasValue && Price != price) Price = price.Value;
+
+        this.QueueDomainEvent(new ProductUpdated() { Product = this });
+        return this;
+    }
+
+    public static Product Update(Guid id, string name, string? description, decimal price)
+    {
+        var product = new Product
+        {
+            Id = id,
+            Name = name,
+            Description = description,
+            Price = price
+        };
+
+        product.QueueDomainEvent(new ProductUpdated() { Product = product });
+
+        return product;
+    }
 }
