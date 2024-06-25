@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Ardalis.Specification" />
+    <PackageReference Include="CodegenCS.Core" />
     <PackageReference Include="MediatR" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
     <PackageReference Include="Mapster" />

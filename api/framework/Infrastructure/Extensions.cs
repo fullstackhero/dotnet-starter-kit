@@ -6,6 +6,7 @@ using FSH.Framework.Infrastructure.Auth;
 using FSH.Framework.Infrastructure.Auth.Jwt;
 using FSH.Framework.Infrastructure.Behaviours;
 using FSH.Framework.Infrastructure.Caching;
+using FSH.Framework.Infrastructure.CodeGeneration;
 using FSH.Framework.Infrastructure.Cors;
 using FSH.Framework.Infrastructure.Exceptions;
 using FSH.Framework.Infrastructure.Identity;
@@ -47,6 +48,8 @@ public static class Extensions
         {
             typeof(FshCore).Assembly
         };
+
+        builder.Services.AddSingleton<ICodeGenerationService>(provider => new CodeGenerationService(Path.Combine(Directory.GetCurrentDirectory(), "GeneratedFiles")));
 
         //register validators
         builder.Services.AddValidatorsFromAssemblies(assemblies);
