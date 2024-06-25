@@ -1,13 +1,13 @@
-name: blazor-cicd
+name: webapi
 
 on:
   push:
     branches: ["v2"]
-    paths: ["apps/blazor/**"]
+    paths: ["api/**"]
 
   pull_request:
     branches: ["v2"]
-    paths: ["apps/blazor/**"]
+    paths: ["api/**"]
 
 jobs:
   build:
@@ -19,11 +19,11 @@ jobs:
         with:
           dotnet-version: 8.0.x
       - name: restore dependencies
-        run: dotnet restore ./apps/blazor/FSH.Blazor.sln
+        run: dotnet restore ./api/FSH.WebApi.sln
       - name: build
-        run: dotnet build ./apps/blazor/FSH.Blazor.sln --no-restore
+        run: dotnet build ./api/FSH.WebApi.sln --no-restore
       - name: test
-        run: dotnet test ./apps/blazor/FSH.Blazor.sln --no-build --verbosity normal
+        run: dotnet test ./api/FSH.WebApi.sln --no-build --verbosity normal
 
   publish:
     needs: build
@@ -38,8 +38,8 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: build and publish to github container registry
-        working-directory: ./apps/blazor/
+      - name: publish to github container registry
+        working-directory: ./api/
         run: |
-          docker build -t ghcr.io/${{ github.repository_owner }}/blazor:latest -f Dockerfile .
-          docker push ghcr.io/${{ github.repository_owner }}/blazor:latest
+          dotnet publish -c Release -p:ContainerRepository=ghcr.io/${{ github.repository_owner}}/webapi -p:RuntimeIdentifier=linux-x64
+          docker push ghcr.io/${{ github.repository_owner}}/webapi --all-tags

@@ -28,6 +28,7 @@ public class FshDbContext(IMultiTenantContextAccessor<FshTenantInfo> multiTenant
     }
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
+        this.TenantNotSetMode = TenantNotSetMode.Overwrite;
         int result = await base.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         await PublishDomainEventsAsync().ConfigureAwait(false);
         return result;
