@@ -2,5 +2,5 @@
 
 public class OriginOptions
 {
-    public string OriginUrl { get; set; }
+    public Uri? OriginUrl { get; set; }
 }

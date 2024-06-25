@@ -29,7 +29,7 @@ public static class ForgotPasswordEndpoint
             // Obtain origin from appsettings
             var origin = settings.Value;
            
-            await userService.ForgotPasswordAsync(command, origin.OriginUrl, cancellationToken);
+            await userService.ForgotPasswordAsync(command, origin.OriginUrl.ToString(), cancellationToken);
             return Results.Ok("Password reset email sent.");
         })
         .WithName(nameof(ForgotPasswordEndpoint))
