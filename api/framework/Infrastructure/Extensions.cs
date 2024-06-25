@@ -2,6 +2,8 @@
 using Asp.Versioning.Conventions;
 using FluentValidation;
 using FSH.Framework.Core;
+using FSH.Framework.Core.Mail;
+using FSH.Framework.Core.Origin;
 using FSH.Framework.Infrastructure.Auth;
 using FSH.Framework.Infrastructure.Auth.Jwt;
 using FSH.Framework.Infrastructure.Behaviours;
@@ -42,6 +44,8 @@ public static class Extensions
         builder.Services.ConfigureCaching(builder.Configuration);
         builder.Services.AddExceptionHandler<CustomExceptionHandler>();
         builder.Services.AddProblemDetails();
+
+        builder.Services.AddOptions<OriginOptions>().BindConfiguration(nameof(OriginOptions));
 
         //define module assemblies
         var assemblies = new Assembly[]

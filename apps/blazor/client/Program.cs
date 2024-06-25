@@ -1,10 +1,12 @@
-using Infrastructure.Auth;
+using FSH.Blazor.Client;
+using FSH.Blazor.Infrastructure;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using MudBlazor.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
-builder.Services.AddMudServices();
+builder.RootComponents.Add<App>("#app");
+builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddAuthentication(builder.Configuration);
+builder.Services.AddClientServices(builder.Configuration);
 
 await builder.Build().RunAsync();
