@@ -2,4 +2,4 @@
 using MediatR;
 
 namespace FSH.WebApi.Todo.Features.GetList.v1;
-public record GetTodoListRequest(int PageNumber, int PageSize) : IRequest<PagedList<TodoDto>>;
+public record GetTodoListRequest(PaginationFilter filter) : IRequest<PagedList<TodoDto>>;

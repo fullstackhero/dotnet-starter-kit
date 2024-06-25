@@ -3,6 +3,8 @@ using Asp.Versioning.Conventions;
 using AspNetCoreRateLimit;
 using FluentValidation;
 using FSH.Framework.Core;
+using FSH.Framework.Core.Mail;
+using FSH.Framework.Core.Origin;
 using FSH.Framework.Infrastructure.Auth;
 using FSH.Framework.Infrastructure.Auth.Jwt;
 using FSH.Framework.Infrastructure.Behaviours;
@@ -47,6 +49,8 @@ public static class Extensions
         builder.Services.AddInMemoryRateLimiting();
         builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
         builder.Services.Configure<RateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
+
+        builder.Services.AddOptions<OriginOptions>().BindConfiguration(nameof(OriginOptions));
 
         //define module assemblies
         var assemblies = new Assembly[]

@@ -12,11 +12,16 @@ public sealed class GetProductListHandler(
     [FromKeyedServices("catalog:products")] IReadRepository<Product> repository)
     : IRequestHandler<GetProductListRequest, PagedList<GetProductResponse>>
 {
-  public async Task<PagedList<GetProductResponse>> Handle(GetProductListRequest request, CancellationToken cancellationToken)
+    public async Task<PagedList<GetProductResponse>> Handle(GetProductListRequest request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
-        var spec = new ListSpecification<Product, GetProductResponse>(request.PageNumber, request.PageSize);
-        var items = await repository.PaginatedListAsync(spec, request.PageNumber, request.PageSize, cancellationToken).ConfigureAwait(false);
-        return items;
+
+        var spec = new EntitiesByPaginationFilterSpec<Product, GetProductResponse>(request.filter);
+
+        var items = await repository.ListAsync(spec, cancellationToken).ConfigureAwait(false);
+        var totalCount = await repository.CountAsync(spec, cancellationToken).ConfigureAwait(false);
+
+        return new PagedList<GetProductResponse>(items, request.filter.PageNumber, request.filter.PageSize, totalCount);
     }
 }
+
