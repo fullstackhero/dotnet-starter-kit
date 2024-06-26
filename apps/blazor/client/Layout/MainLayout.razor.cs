@@ -49,7 +49,7 @@ public partial class MainLayout
     {
         var parameters = new DialogParameters
         {
-                { nameof(Components.Dialogs.Logout.ContentText), "Logout Confirmation"},
+                { nameof(Components.Dialogs.Logout.ContentText), "Do you want to logout from the system?"},
                 { nameof(Components.Dialogs.Logout.ButtonText), "Logout"},
                 { nameof(Components.Dialogs.Logout.Color), Color.Error}
             };
