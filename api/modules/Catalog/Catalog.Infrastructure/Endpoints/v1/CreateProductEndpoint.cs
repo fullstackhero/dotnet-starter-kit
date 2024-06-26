@@ -11,7 +11,11 @@ public static class CreateProductEndpoint
     internal static RouteHandlerBuilder MapProductCreationEndpoint(this IEndpointRouteBuilder endpoints)
     {
         return endpoints
-            .MapPost("/", (CreateProductCommand request, ISender mediator) => mediator.Send(request))
+            .MapPost("/", async (CreateProductCommand request, ISender mediator) =>
+            {
+                var response = await mediator.Send(request);
+                return Results.Ok(response);
+            })
             .WithName(nameof(CreateProductEndpoint))
             .WithSummary("creates a product")
             .WithDescription("creates a product")
