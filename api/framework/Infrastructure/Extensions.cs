@@ -28,6 +28,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Http;
+using FSH.Framework.Infrastructure.Notifications;
 
 namespace FSH.Framework.Infrastructure;
 
@@ -49,6 +50,7 @@ public static class Extensions
         builder.Services.ConfigureCaching(builder.Configuration);
         builder.Services.AddExceptionHandler<CustomExceptionHandler>();
         builder.Services.AddProblemDetails();
+        builder.Services.AddSignalR();
 
         builder.Services.AddHealthChecks();
         builder.Services.AddOptions<OriginOptions>().BindConfiguration(nameof(OriginOptions));
@@ -115,6 +117,8 @@ public static class Extensions
 
         app.MapTenantEndpoints();
         app.MapIdentityEndpoints();
+
+        app.MapNotifications();
 
         var health = app.MapGroup("api/health").WithTags("healthChecks");
         health.MapCustomHealthCheckEndpoint();
