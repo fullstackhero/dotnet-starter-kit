@@ -1,13 +1,18 @@
 ﻿using System.Reflection;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 using Asp.Versioning.Conventions;
 using FluentValidation;
 using FSH.Framework.Core;
+using FSH.Framework.Core.Mail;
+using FSH.Framework.Core.Origin;
 using FSH.Framework.Infrastructure.Auth;
 using FSH.Framework.Infrastructure.Auth.Jwt;
 using FSH.Framework.Infrastructure.Behaviours;
 using FSH.Framework.Infrastructure.Caching;
 using FSH.Framework.Infrastructure.Cors;
 using FSH.Framework.Infrastructure.Exceptions;
+using FSH.Framework.Infrastructure.HealthChecks;
 using FSH.Framework.Infrastructure.Identity;
 using FSH.Framework.Infrastructure.Jobs;
 using FSH.Framework.Infrastructure.Logging.Serilog;
@@ -19,7 +24,10 @@ using FSH.Framework.Infrastructure.Tenant;
 using FSH.Framework.Infrastructure.Tenant.Endpoints;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Http;
 
 namespace FSH.Framework.Infrastructure;
 
@@ -42,27 +50,60 @@ public static class Extensions
         builder.Services.AddExceptionHandler<CustomExceptionHandler>();
         builder.Services.AddProblemDetails();
 
-        //define module assemblies
+        builder.Services.AddHealthChecks();
+        builder.Services.AddOptions<OriginOptions>().BindConfiguration(nameof(OriginOptions));
+
+        // Define module assemblies
         var assemblies = new Assembly[]
         {
             typeof(FshCore).Assembly
         };
 
-        //register validators
+        // Register validators
         builder.Services.AddValidatorsFromAssemblies(assemblies);
 
-        //register mediatr
+        // Register MediatR
         builder.Services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssemblies(assemblies);
             cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         });
 
+        builder.Services.AddRateLimiter(options =>
+        {
+            options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+            {
+                return RateLimitPartition.GetFixedWindowLimiter(partitionKey: httpContext.Request.Headers.Host.ToString(),
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 5,
+                        Window = TimeSpan.FromSeconds(10)
+                    });
+            });
+
+            options.RejectionStatusCode = 429;
+            options.OnRejected = async (context, token) =>
+            {
+                var message = BuildRateLimitResponseMessage(context);
+
+                await context.HttpContext.Response.WriteAsync(message);
+            };
+        });
+
+        string BuildRateLimitResponseMessage(OnRejectedContext onRejectedContext)
+        {
+            var hostName = onRejectedContext.HttpContext.Request.Headers.Host.ToString();
+
+            return $"You have reached the maximum number of requests allowed for the address ({hostName}).";
+        }
+
         return builder;
     }
 
     public static WebApplication UseFshFramework(this WebApplication app)
     {
+        app.UseRateLimiter();
+
         app.UseHttpsRedirection();
         app.UseMultitenancy();
         app.UseExceptionHandler();
@@ -71,20 +112,24 @@ public static class Extensions
         app.UseJobDashboard(app.Configuration);
         app.UseAuthentication();
         app.UseAuthorization();
+
         app.MapTenantEndpoints();
         app.MapIdentityEndpoints();
 
-        //current user middleware
+        var health = app.MapGroup("api/health").WithTags("healthChecks");
+        health.MapCustomHealthCheckEndpoint();
+
+        // Current user middleware
         app.UseMiddleware<CurrentUserMiddleware>();
 
-        //register api versions
+        // Register API versions
         var versions = app.NewApiVersionSet()
                     .HasApiVersion(1)
                     .HasApiVersion(2)
                     .ReportApiVersions()
                     .Build();
 
-        //map versioned endpoint
+        // Map versioned endpoint
         app.MapGroup("api/v{version:apiVersion}").WithApiVersionSet(versions);
 
         return app;
