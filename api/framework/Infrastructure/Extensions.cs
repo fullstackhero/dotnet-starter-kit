@@ -11,6 +11,7 @@ using FSH.Framework.Infrastructure.Caching;
 using FSH.Framework.Infrastructure.CodeGeneration;
 using FSH.Framework.Infrastructure.Cors;
 using FSH.Framework.Infrastructure.Exceptions;
+using FSH.Framework.Infrastructure.HealthChecks;
 using FSH.Framework.Infrastructure.Identity;
 using FSH.Framework.Infrastructure.Jobs;
 using FSH.Framework.Infrastructure.Logging.Serilog;
@@ -22,6 +23,7 @@ using FSH.Framework.Infrastructure.Tenant;
 using FSH.Framework.Infrastructure.Tenant.Endpoints;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FSH.Framework.Infrastructure;
@@ -45,7 +47,9 @@ public static class Extensions
         builder.Services.AddExceptionHandler<CustomExceptionHandler>();
         builder.Services.AddProblemDetails();
 
+        builder.Services.AddHealthChecks();
         builder.Services.AddOptions<OriginOptions>().BindConfiguration(nameof(OriginOptions));
+
 
         //define module assemblies
         var assemblies = new Assembly[]
@@ -80,6 +84,9 @@ public static class Extensions
         app.UseAuthorization();
         app.MapTenantEndpoints();
         app.MapIdentityEndpoints();
+
+        var health = app.MapGroup("api/health").WithTags("healthChecks");
+        health.MapCustomHealthCheckEndpoint();
 
         //current user middleware
         app.UseMiddleware<CurrentUserMiddleware>();
