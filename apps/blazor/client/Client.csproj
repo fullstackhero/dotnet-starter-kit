@@ -2,18 +2,25 @@
 
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
-		<StaticWebAssetProjectMode>Default</StaticWebAssetProjectMode>
+		<ImplicitUsings>enable</ImplicitUsings>
 		<RootNamespace>FSH.Blazor.Client</RootNamespace>
 		<AssemblyName>FSH.Blazor.Client</AssemblyName>
+		<ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
 	</PropertyGroup>
 
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.6" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.6" PrivateAssets="all" />
+	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
-	  <ProjectReference Include="..\Shared\Shared.csproj" />
+		<ProjectReference Include="..\infrastructure\Infrastructure.csproj" />
+		<ProjectReference Include="..\shared\Shared.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
 	</ItemGroup>
 
 </Project>
