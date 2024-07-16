@@ -1,9 +1,9 @@
 ﻿@using MudBlazor
-
-<PageTitle>@Title</PageTitle>
-<MudText Typo="Typo.h2">@Header</MudText>
-<MudText Typo="Typo.body1">@SubHeader</MudText>
-
+<MudPaper Class="pb-6" Elevation="0">
+    <PageTitle>@Title</PageTitle>
+    <MudText Typo="Typo.h2">@Header</MudText>
+    <MudText Typo="Typo.body1" >@SubHeader</MudText>
+</MudPaper >
 @code {
     [Parameter]
     public required string Title { get; set; }

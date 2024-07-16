@@ -39,20 +39,19 @@
             </MudExpansionPanel>
         }
 
-        <FshTable @ref="_table" Elevation="25" ServerData="@ServerReloadFunc" Items="@_entityList" Filter="LocalSearch"
+        <FshTable @ref="_table" Elevation="25" Outlined ServerData="@ServerReloadFunc" Items="@_entityList" Filter="LocalSearch"
             Loading="@Loading" LoadingProgressColor="@Color.Secondary" ChildRowContent="@ChildRowContent">
 
             <ToolBarContent>
                 <div class="justify-center mud-text-align-center">
                     @if (_canCreate)
                     {
-                        <MudButton DisableElevation Variant="Variant.Filled" Color="Color.Primary"
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary"
                             OnClick="(() => InvokeModal())" StartIcon="@Icons.Material.Filled.Add"
                             IconColor="Color.Surface">Create</MudButton>
                     }
-                    <MudButton DisableElevation Variant="Variant.Filled" OnClick="ReloadDataAsync"
-                        StartIcon="@Icons.Material.Filled.Refresh" IconColor="Color.Surface" Color="Color.Secondary"
-                        Style="margin-left: 5px;">Reload</MudButton>
+                    <MudButton Variant="Variant.Filled" OnClick="ReloadDataAsync" DropShadow=false
+                               StartIcon="@Icons.Material.Filled.Refresh" IconColor="Color.Surface" Color="Color.Secondary">Reload</MudButton>
                 </div>
                 <MudSpacer />
                 @if (_canSearch && !_advancedSearchExpanded)
@@ -110,7 +109,7 @@
                     }
                     else if (HasActions)
                     {
-                        <MudMenu Label="Actions" Variant="Variant.Filled" DisableElevation="true"
+                        <MudMenu Label="Actions" Variant="Variant.Filled"
                             EndIcon="@Icons.Material.Filled.KeyboardArrowDown" IconColor="Color.Secondary" Direction="Direction.Left"
                             OffsetX="true">
                             @if (CanUpdateEntity(context))
@@ -129,7 +128,7 @@
                     }
                     else
                     {
-                        <MudButton Variant="Variant.Filled" DisableElevation="true"
+                        <MudButton Variant="Variant.Filled" DropShadow=false 
                             StartIcon="@Icons.Material.Filled.DoNotTouch" IconColor="Color.Secondary" Size="Size.Small"
                         Color="Color.Surface">
                             No Allowed Actions

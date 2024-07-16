@@ -1,7 +1,7 @@
 using FSH.Blazor.Client.Components.Common;
 using FSH.Blazor.Client.Components.Dialogs;
+using FSH.Blazor.Infrastructure.Api;
 using FSH.Blazor.Infrastructure.Auth;
-using Infrastructure.Api;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
@@ -139,7 +139,7 @@ public partial class EntityTable<TEntity, TId, TRequest>
                 is { } result)
             {
                 _totalItems = result.TotalCount;
-                _entityList = result.Data;
+                _entityList = result.Items;
             }
 
             Loading = false;

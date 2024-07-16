@@ -1,6 +1,6 @@
 using Blazored.LocalStorage;
+using FSH.Blazor.Infrastructure.Api;
 using FSH.Blazor.Infrastructure.Storage;
-using Infrastructure.Api;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;

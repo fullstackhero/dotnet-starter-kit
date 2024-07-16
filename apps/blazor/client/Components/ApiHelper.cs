@@ -1,4 +1,4 @@
-﻿using Infrastructure.Api;
+﻿using FSH.Blazor.Infrastructure.Api;
 using MudBlazor;
 
 namespace FSH.Blazor.Client.Components;

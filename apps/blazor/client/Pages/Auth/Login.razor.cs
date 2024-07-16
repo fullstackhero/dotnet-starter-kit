@@ -1,6 +1,6 @@
 ﻿using FSH.Blazor.Client.Components;
+using FSH.Blazor.Infrastructure.Api;
 using FSH.Blazor.Shared;
-using Infrastructure.Api;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor;
