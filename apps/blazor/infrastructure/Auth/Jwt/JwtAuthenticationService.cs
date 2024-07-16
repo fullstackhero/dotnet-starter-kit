@@ -116,7 +116,7 @@ public sealed class JwtAuthenticationService : AuthenticationStateProvider, IAut
             //    token = response?.Token;
             //}
 
-            return new AccessTokenResult(AccessTokenResultStatus.Success, new AccessToken() { Value = token }, string.Empty);
+            return new AccessTokenResult(AccessTokenResultStatus.Success, new AccessToken() { Value = token! }, string.Empty);
         }
         finally
         {
