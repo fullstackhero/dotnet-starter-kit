@@ -25,7 +25,12 @@ public static class ApiHelper
         }
         catch (Exception ex)
         {
-            snackbar.Add(ex.Message, Severity.Error);
+            var message = ex.Message switch
+            {
+                "TypeError: Failed to fetch" => "Unable to Reach API",
+                _ => ex.Message
+            };
+            snackbar.Add(message, Severity.Error);
         }
 
         return default;
