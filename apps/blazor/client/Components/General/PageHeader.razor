@@ -1,9 +1,9 @@
 ﻿@using MudBlazor
-<MudPaper Class="pb-6" Elevation="0">
+<div class="pb-6">
     <PageTitle>@Title</PageTitle>
     <MudText Typo="Typo.h2">@Header</MudText>
     <MudText Typo="Typo.body1" >@SubHeader</MudText>
-</MudPaper >
+</div >
 @code {
     [Parameter]
     public required string Title { get; set; }
