@@ -3,6 +3,8 @@ using FSH.Blazor.Infrastructure.Api;
 using FSH.Blazor.Infrastructure.Auth;
 using FSH.Blazor.Infrastructure.Auth.Jwt;
 using FSH.Blazor.Infrastructure.Preferences;
+using FSH.Blazor.Shared;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
@@ -25,6 +27,7 @@ public static class Extensions
         });
         services.AddBlazoredLocalStorage();
         services.AddAuthentication(config);
+        services.AddAuthorizationCore(RegisterPermissionClaims);
         services.AddTransient<IApiClient, ApiClient>();
         services.AddHttpClient(ClientName, client =>
         {
@@ -40,5 +43,12 @@ public static class Extensions
         services.AddTransient<IPreference, ClientPreference>();
         return services;
 
+    }
+    private static void RegisterPermissionClaims(AuthorizationOptions options)
+    {
+        foreach (var permission in FshPermissions.All)
+        {
+            options.AddPolicy(permission.Name, policy => policy.RequireClaim(FshClaims.Permission, permission.Name));
+        }
     }
 }

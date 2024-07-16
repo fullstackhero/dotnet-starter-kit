@@ -13,6 +13,7 @@ internal static class Extensions
         app.MapResetPasswordEndpoint();
         app.MapGetMeEndpoint();
         app.MapGetUserEndpoint();
+        app.MapGetCurrentUserPermissionsEndpoint();
         return app;
     }
 }
