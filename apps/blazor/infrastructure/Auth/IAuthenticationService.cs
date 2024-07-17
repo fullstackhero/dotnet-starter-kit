@@ -1,4 +1,4 @@
-using Infrastructure.Api;
+using FSH.Blazor.Infrastructure.Api;
 
 namespace FSH.Blazor.Infrastructure.Auth;
 

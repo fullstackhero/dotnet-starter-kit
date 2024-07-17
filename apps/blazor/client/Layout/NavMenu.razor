@@ -1,5 +1,15 @@
 ﻿<PersonCard Style="background-color: var(--mud-palette-drawer-background);color: var(--mud-palette-drawer-text); margin-bottom:0px!important" />
 <MudNavMenu>
+    <MudText Typo="Typo.subtitle2" Color="Color.Surface" Class="ml-4 my-3">Start</MudText>
     <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
     <MudNavLink Href="counter" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Add">Counter</MudNavLink>
+    <MudText Typo="Typo.subtitle2" Color="Color.Surface" Class="ml-4 my-3">Modules</MudText>
+    <MudNavGroup Title="Catalog" Icon="@Icons.Material.Filled.AddBox">
+         <MudNavLink Href="/catalog/products" Icon="@Icons.Material.Filled.ShoppingBag" Class="fsh-nav-child">Products</MudNavLink>
+    </MudNavGroup>
+    <MudNavLink Href="/todos" Icon="@Icons.Material.Filled.Checklist" Class="fsh-nav-child">Todos</MudNavLink>
+     <MudText Typo="Typo.subtitle2" Color="Color.Surface" Class="ml-4 my-3">Management</MudText>
+     <MudNavGroup Title="Users" Icon="@Icons.Material.Filled.ManageAccounts">
+        <MudNavLink Href="/manage/users" Icon="@Icons.Material.Filled.VerifiedUser" Class="fsh-nav-child">Users</MudNavLink>
+    </MudNavGroup>
 </MudNavMenu>

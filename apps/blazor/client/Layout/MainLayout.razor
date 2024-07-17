@@ -1,4 +1,4 @@
-﻿<MudAppBar Color="Color.Transparent" Elevation="25">
+﻿<MudAppBar Color="Color.Transparent" Elevation="0">
     <MudTooltip Text="Toggle Drawer">
         <MudIconButton Icon="@Icons.Material.Rounded.Notes" Color="Color.Inherit" Edge="Edge.Start"
             OnClick="@((e) => DrawerToggle())" />
@@ -11,10 +11,9 @@
         <MudButton Variant="Variant.Filled" DropShadow="false" Color="Color.Primary"
             Href="https://opencollective.com/fullstackhero" Target="_blank" StartIcon="@Icons.Material.Filled.Favorite">
             Sponsor</MudButton>
-        <MudDivider Vertical="true" FlexItem="true" DividerType="DividerType.Middle" Class="mx-4 my-5" />
         <MudToggleIconButton @bind-Toggled="@_isDarkMode" Icon="@Icons.Material.Filled.WbSunny"
                              Color="@Color.Warning" Title="Off" Class="d-flex ml-auto" ToggledIcon="@Icons.Material.Filled.DarkMode"
-                             ToggledColor="@Color.Primary" ToggledTitle="On" style="left:8px!important" @onclick="@ToggleDarkMode" />
+                             ToggledColor="@Color.Surface" ToggledTitle="On" style="left:8px!important" @onclick="@ToggleDarkMode" />
         <MudTooltip Text="Support">
              <MudMenu Icon="@Icons.Material.Filled.SupportAgent" Color="Color.Inherit" Dense="true" AnchorOrigin="Origin.CenterRight">
                 <MudText Typo="Typo.body2" Class="px-4 py-2"><b>Community</b></MudText>
@@ -88,8 +87,7 @@
         </ChildContent>
     </MudMenu>
 </MudAppBar>
-
-<MudDrawer @bind-Open="_drawerOpen" Elevation="25" ClipMode="DrawerClipMode.Never">
+<MudDrawer @bind-Open="_drawerOpen" Elevation="1" ClipMode="DrawerClipMode.Never">
     <NavMenu />
 </MudDrawer>
 

@@ -12,7 +12,7 @@
 <EditForm Model="@_tokenRequest" OnValidSubmit="SubmitAsync">
     <MudGrid>
         <DataAnnotationsValidator />
-        <CustomValidation @ref="_customValidation" />
+        <FshValidation @ref="_customValidation" />
         <MudItem xs="12">
             <MudTextField T="string" Label="E-mail" Variant="Variant.Outlined" @bind-Value="_tokenRequest.Email"
                           For="@(() => _tokenRequest.Email)" />
