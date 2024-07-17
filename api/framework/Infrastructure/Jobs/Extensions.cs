@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FSH.Framework.Infrastructure.Jobs;
+
 internal static class Extensions
 {
     internal static IServiceCollection ConfigureJobs(this IServiceCollection services, IConfiguration configuration)
@@ -19,7 +20,7 @@ internal static class Extensions
         services.AddHangfireServer(o =>
         {
             o.HeartbeatInterval = TimeSpan.FromSeconds(30);
-            o.Queues = new string[] { "default" };
+            o.Queues = new string[] { "default", "email" };
             o.WorkerCount = 5;
             o.SchedulePollingInterval = TimeSpan.FromSeconds(30);
         });
@@ -34,9 +35,11 @@ internal static class Extensions
                         o.UseNpgsqlConnection(dbOptions.ConnectionString);
                     });
                     break;
+
                 case DbProviders.MSSQL:
                     config.UseSqlServerStorage(dbOptions.ConnectionString);
                     break;
+
                 default:
                     throw new FshException($"hangfire storage provider {dbOptions.Provider} is not supported");
             }
@@ -44,7 +47,6 @@ internal static class Extensions
             config.UseFilter(new FshJobFilter(provider));
             config.UseFilter(new LogJobFilter());
         });
-
 
         services.AddTransient<IJobService, HangfireService>();
         return services;

@@ -1,10 +1,7 @@
 ﻿using System.Reflection;
-using System.Threading.RateLimiting;
-using Microsoft.AspNetCore.RateLimiting;
 using Asp.Versioning.Conventions;
 using FluentValidation;
 using FSH.Framework.Core;
-using FSH.Framework.Core.Mail;
 using FSH.Framework.Core.Origin;
 using FSH.Framework.Infrastructure.Auth;
 using FSH.Framework.Infrastructure.Auth.Jwt;
@@ -19,6 +16,8 @@ using FSH.Framework.Infrastructure.Logging.Serilog;
 using FSH.Framework.Infrastructure.Mail;
 using FSH.Framework.Infrastructure.OpenApi;
 using FSH.Framework.Infrastructure.Persistence;
+using FSH.Framework.Infrastructure.RateLimit;
+using FSH.Framework.Infrastructure.SecurityHeaders;
 using FSH.Framework.Infrastructure.Storage.Files;
 using FSH.Framework.Infrastructure.Tenant;
 using FSH.Framework.Infrastructure.Tenant.Endpoints;
@@ -70,43 +69,19 @@ public static class Extensions
             cfg.RegisterServicesFromAssemblies(assemblies);
             cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         });
-
-        builder.Services.AddRateLimiter(options =>
-        {
-            options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
-            {
-                return RateLimitPartition.GetFixedWindowLimiter(partitionKey: httpContext.Request.Headers.Host.ToString(),
-                    factory: _ => new FixedWindowRateLimiterOptions
-                    {
-                        PermitLimit = 5,
-                        Window = TimeSpan.FromSeconds(10)
-                    });
-            });
-
-            options.RejectionStatusCode = 429;
-            options.OnRejected = async (context, token) =>
-            {
-                var message = BuildRateLimitResponseMessage(context);
-
-                await context.HttpContext.Response.WriteAsync(message);
-            };
-        });
-
-        string BuildRateLimitResponseMessage(OnRejectedContext onRejectedContext)
-        {
-            var hostName = onRejectedContext.HttpContext.Request.Headers.Host.ToString();
-
-            return $"You have reached the maximum number of requests allowed for the address ({hostName}).";
-        }
+        
+        builder.Services.ConfigureRateLimit(builder.Configuration);
+        builder.Services.ConfigureSecurityHeaders(builder.Configuration);
 
         return builder;
     }
 
     public static WebApplication UseFshFramework(this WebApplication app)
     {
-        app.UseRateLimiter();
-
+        app.UseRateLimit();
+        app.UseSecurityHeaders();
         app.UseHttpsRedirection();
+        app.UseHsts();
         app.UseMultitenancy();
         app.UseExceptionHandler();
         app.UseCorsPolicy();
