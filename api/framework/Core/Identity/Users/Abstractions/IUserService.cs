@@ -29,4 +29,5 @@ public interface IUserService
     // passwords
     Task ForgotPasswordAsync(ForgotPasswordCommand request, string origin, CancellationToken cancellationToken);
     Task ResetPasswordAsync(ResetPasswordCommand request, CancellationToken cancellationToken);
+    Task<List<string>?> GetPermissionsAsync(string userId, CancellationToken cancellationToken);
 }

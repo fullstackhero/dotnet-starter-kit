@@ -69,7 +69,7 @@ public static class Extensions
             cfg.RegisterServicesFromAssemblies(assemblies);
             cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         });
-        
+
         builder.Services.ConfigureRateLimit(builder.Configuration);
         builder.Services.ConfigureSecurityHeaders(builder.Configuration);
 
@@ -96,6 +96,7 @@ public static class Extensions
         app.MapNotifications();
 
         var health = app.MapGroup("api/health").WithTags("healthChecks");
+
         health.MapCustomHealthCheckEndpoint();
 
         // Current user middleware

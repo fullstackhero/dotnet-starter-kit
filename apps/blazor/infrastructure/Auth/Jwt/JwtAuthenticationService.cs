@@ -1,6 +1,7 @@
 using Blazored.LocalStorage;
+using FSH.Blazor.Infrastructure.Api;
 using FSH.Blazor.Infrastructure.Storage;
-using Infrastructure.Api;
+using FSH.Blazor.Shared;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
@@ -42,6 +43,12 @@ public sealed class JwtAuthenticationService : AuthenticationStateProvider, IAut
         // Generate claimsIdentity from cached token
         var claimsIdentity = new ClaimsIdentity(GetClaimsFromJwt(cachedToken), "jwt");
 
+        // Add cached permissions as claims
+        if (await GetCachedPermissionsAsync() is List<string> cachedPermissions)
+        {
+            claimsIdentity.AddClaims(cachedPermissions.Select(p => new Claim(FshClaims.Permission, p)));
+        }
+
         return new AuthenticationState(new ClaimsPrincipal(claimsIdentity));
     }
 
@@ -60,8 +67,8 @@ public sealed class JwtAuthenticationService : AuthenticationStateProvider, IAut
         await CacheAuthTokens(token, refreshToken);
 
         // Get permissions for the current user and add them to the cache
-        //var permissions = await _personalClient.GetPermissionsAsync();
-        //await CachePermissions(permissions);
+        var permissions = await _client.GetUserPermissionsAsync();
+        await CachePermissions(permissions);
 
         NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
 
@@ -116,7 +123,7 @@ public sealed class JwtAuthenticationService : AuthenticationStateProvider, IAut
             //    token = response?.Token;
             //}
 
-            return new AccessTokenResult(AccessTokenResultStatus.Success, new AccessToken() { Value = token }, string.Empty);
+            return new AccessTokenResult(AccessTokenResultStatus.Success, new AccessToken() { Value = token! }, string.Empty);
         }
         finally
         {
@@ -135,6 +142,9 @@ public sealed class JwtAuthenticationService : AuthenticationStateProvider, IAut
         await _localStorage.SetItemAsync(StorageConstants.Local.RefreshToken, refreshToken);
     }
 
+    private ValueTask CachePermissions(ICollection<string> permissions) =>
+    _localStorage.SetItemAsync(StorageConstants.Local.Permissions, permissions);
+
     private async Task ClearCacheAsync()
     {
         await _localStorage.RemoveItemAsync(StorageConstants.Local.AuthToken);
@@ -145,7 +155,8 @@ public sealed class JwtAuthenticationService : AuthenticationStateProvider, IAut
     {
         return _localStorage.GetItemAsync<string?>(StorageConstants.Local.AuthToken);
     }
-
+    private ValueTask<ICollection<string>?> GetCachedPermissionsAsync() =>
+       _localStorage.GetItemAsync<ICollection<string>>(StorageConstants.Local.Permissions);
     private IEnumerable<Claim> GetClaimsFromJwt(string jwt)
     {
         var claims = new List<Claim>();
