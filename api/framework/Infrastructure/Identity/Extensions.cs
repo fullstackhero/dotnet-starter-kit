@@ -26,14 +26,13 @@ internal static class Extensions
         ArgumentNullException.ThrowIfNull(services);
         services.AddScoped<CurrentUserMiddleware>();
         services.AddScoped<ICurrentUser, CurrentUser>();
+        services.AddScoped<ITokenService, TokenService>();
         services.AddScoped(sp => (ICurrentUserInitializer)sp.GetRequiredService<ICurrentUser>());
         services.AddTransient<IUserService, UserService>();
-        services.AddTransient<ITokenService, TokenService>();
         services.AddTransient<IRoleService, RoleService>();
         services.BindDbContext<IdentityDbContext>();
         services.AddScoped<IDbInitializer, IdentityDbInitializer>();
-        return services
-           .AddIdentity<FshUser, FshRole>(options =>
+        services.AddIdentity<FshUser, FshRole>(options =>
            {
                options.Password.RequiredLength = IdentityConstants.PasswordLength;
                options.Password.RequireDigit = false;
@@ -43,8 +42,8 @@ internal static class Extensions
                options.User.RequireUniqueEmail = true;
            })
            .AddEntityFrameworkStores<IdentityDbContext>()
-           .AddDefaultTokenProviders()
-           .Services;
+           .AddDefaultTokenProviders();
+        return services;
     }
 
     public static IEndpointRouteBuilder MapIdentityEndpoints(this IEndpointRouteBuilder app)
