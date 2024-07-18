@@ -7,5 +7,10 @@ services:
     seq:
         container_name: seq
         image: datalust/seq:latest
+    redis:
+        container_name: redis
+        image: redis:7-alpine
+        ports:
+            - "6379:6379"
 volumes:
   db-data:

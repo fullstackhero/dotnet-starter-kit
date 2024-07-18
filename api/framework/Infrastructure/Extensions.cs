@@ -25,8 +25,6 @@ using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.AspNetCore.Http;
 using FSH.Framework.Infrastructure.Notifications;
 
 namespace FSH.Framework.Infrastructure;
@@ -49,7 +47,7 @@ public static class Extensions
         builder.Services.ConfigureCaching(builder.Configuration);
         builder.Services.AddExceptionHandler<CustomExceptionHandler>();
         builder.Services.AddProblemDetails();
-        builder.Services.AddSignalR();
+        builder.Services.AddNotifications(builder.Configuration);
 
         builder.Services.AddHealthChecks();
         builder.Services.AddOptions<OriginOptions>().BindConfiguration(nameof(OriginOptions));
