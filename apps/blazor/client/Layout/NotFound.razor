@@ -1,6 +1,6 @@
 ﻿@inherits LayoutComponentBase
 
-<MudThemeProvider />
+<MudThemeProvider @bind-IsDarkMode="_isDarkMode" Theme="_theme" />
 <MudSnackbarProvider />
 <MudContainer MaxWidth="MaxWidth.Small">
     <div class="d-flex flex-column">
@@ -37,7 +37,11 @@
         </svg>
         <MudText Typo="Typo.h5" Class="mt-6" Align="Align.Center">Not Found</MudText>
         <div class="mt-6" style="display: flex; justify-content: center; align-items: center;">
-            <MudButton Variant="Variant.Filled" Size="Size.Large" Href="/">Go Home</MudButton>
+            <MudButton DropShadow="false" Variant="Variant.Filled" Size="Size.Large" Href="/">Go Home</MudButton>
         </div>
     </div>
 </MudContainer>
+
+@code{
+
+}

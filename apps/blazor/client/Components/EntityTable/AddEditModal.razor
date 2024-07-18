@@ -28,18 +28,18 @@
         </DialogContent>
 
         <DialogActions>
-            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Cancel" OnClick="MudDialog.Cancel">
+            <MudButton DropShadow="false" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Cancel" OnClick="MudDialog.Cancel">
                Cancel
             </MudButton>
             @if (IsCreate)
             {
-                <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" ButtonType="ButtonType.Submit" Color="Color.Success">
+                <MudButton DropShadow="false" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" ButtonType="ButtonType.Submit" Color="Color.Success">
                     Save
                 </MudButton>
             }
             else
             {
-                <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Update" ButtonType="ButtonType.Submit" Color="Color.Secondary">
+                <MudButton DropShadow="false" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Update" ButtonType="ButtonType.Submit" Color="Color.Secondary">
                     Update
                 </MudButton>
             }
