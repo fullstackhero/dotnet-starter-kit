@@ -7,7 +7,7 @@ public static class DialogServiceExtensions
 {
     public static Task<DialogResult> ShowModalAsync<TDialog>(this IDialogService dialogService, DialogParameters parameters)
         where TDialog : ComponentBase =>
-        dialogService.ShowModal<TDialog>(parameters).Result;
+        dialogService.ShowModal<TDialog>(parameters).Result!;
 
     public static IDialogReference ShowModal<TDialog>(this IDialogService dialogService, DialogParameters parameters)
         where TDialog : ComponentBase
