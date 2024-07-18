@@ -58,7 +58,6 @@ services:
       postgres:
         condition: service_healthy
     restart: on-failure
-
   postgres:
     container_name: postgres
     image: postgres:15-alpine
@@ -77,9 +76,29 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    networks:
+      - fullstackhero
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - fullstackhero
 volumes:
   postgresdata:
+  grafana-storage:
 
 networks:
   fullstackhero:
