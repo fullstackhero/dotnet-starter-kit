@@ -245,7 +245,7 @@ public partial class EntityTable<TEntity, TId, TRequest>
 
         var result = await dialog.Result;
 
-        if (!result.Canceled)
+        if (!result!.Canceled)
         {
             await ReloadDataAsync();
         }
@@ -264,7 +264,7 @@ public partial class EntityTable<TEntity, TId, TRequest>
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, BackdropClick = false };
         var dialog = DialogService.Show<DeleteConfirmation>("Delete", parameters, options);
         var result = await dialog.Result;
-        if (!result.Canceled)
+        if (!result!.Canceled)
         {
             _ = Context.DeleteFunc ?? throw new InvalidOperationException("DeleteFunc can't be null!");
 
