@@ -1,4 +1,6 @@
 ﻿using FSH.Blazor.Infrastructure.Auth.Jwt;
+using FSH.Blazor.Shared;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication.Internal;
@@ -16,8 +18,17 @@ public static class Extensions
                 .AddScoped<IAccessTokenProviderAccessor, AccessTokenProviderAccessor>()
                 .AddScoped<JwtAuthenticationHeaderHandler>();
 
-        services.AddAuthorizationCore();
+        services.AddAuthorizationCore(RegisterPermissionClaims);
         services.AddCascadingAuthenticationState();
         return services;
+    }
+
+
+    private static void RegisterPermissionClaims(AuthorizationOptions options)
+    {
+        foreach (var permission in FshPermissions.All)
+        {
+            options.AddPolicy(permission.Name, policy => policy.RequireClaim(FshClaims.Permission, permission.Name));
+        }
     }
 }

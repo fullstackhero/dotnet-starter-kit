@@ -14,25 +14,15 @@ public partial class MainLayout
     public EventCallback<bool> OnRightToLeftToggle { get; set; }
 
     private bool _drawerOpen;
-    private bool _rightToLeft;
     private bool _isDarkMode;
 
     protected override async Task OnInitializedAsync()
     {
         if (await ClientPreferences.GetPreference() is ClientPreference preferences)
         {
-            _rightToLeft = preferences.IsRTL;
             _drawerOpen = preferences.IsDrawerOpen;
             _isDarkMode = preferences.IsDarkMode;
         }
-    }
-
-    private async Task RightToLeftToggle()
-    {
-        //bool isRtl = await ClientPreferences.ToggleLayoutDirectionAsync();
-        //_rightToLeft = isRtl;
-
-        //await OnRightToLeftToggle.InvokeAsync(isRtl);
     }
 
     public async Task ToggleDarkMode()

@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "infrastru
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared", "shared\Shared.csproj", "{2178E20D-E48B-4D67-8303-2DF465EBFDF5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "client\Client.csproj", "{B6995226-A18B-457B-9FB6-D16DC50BB818}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Client", "client\Client.csproj", "{B6995226-A18B-457B-9FB6-D16DC50BB818}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,8 +1,8 @@
 ﻿using Blazored.LocalStorage;
+using FSH.Blazor.Infrastructure.Api;
 using FSH.Blazor.Infrastructure.Auth;
 using FSH.Blazor.Infrastructure.Auth.Jwt;
 using FSH.Blazor.Infrastructure.Preferences;
-using Infrastructure.Api;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
@@ -30,7 +30,7 @@ public static class Extensions
         {
             client.DefaultRequestHeaders.AcceptLanguage.Clear();
             client.DefaultRequestHeaders.AcceptLanguage.ParseAdd(CultureInfo.DefaultThreadCurrentCulture?.TwoLetterISOLanguageName);
-            client.BaseAddress = new Uri(config["ApiBaseUrl"]);
+            client.BaseAddress = new Uri(config["ApiBaseUrl"]!);
         })
            .AddHttpMessageHandler<JwtAuthenticationHeaderHandler>()
            .Services

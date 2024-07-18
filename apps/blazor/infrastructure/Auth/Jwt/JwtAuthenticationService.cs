@@ -1,6 +1,7 @@
 using Blazored.LocalStorage;
+using FSH.Blazor.Infrastructure.Api;
 using FSH.Blazor.Infrastructure.Storage;
-using Infrastructure.Api;
+using FSH.Blazor.Shared;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
@@ -42,6 +43,12 @@ public sealed class JwtAuthenticationService : AuthenticationStateProvider, IAut
         // Generate claimsIdentity from cached token
         var claimsIdentity = new ClaimsIdentity(GetClaimsFromJwt(cachedToken), "jwt");
 
+        // Add cached permissions as claims
+        if (await GetCachedPermissionsAsync() is List<string> cachedPermissions)
+        {
+            claimsIdentity.AddClaims(cachedPermissions.Select(p => new Claim(FshClaims.Permission, p)));
+        }
+
         return new AuthenticationState(new ClaimsPrincipal(claimsIdentity));
     }
 
@@ -60,8 +67,8 @@ public sealed class JwtAuthenticationService : AuthenticationStateProvider, IAut
         await CacheAuthTokens(token, refreshToken);
 
         // Get permissions for the current user and add them to the cache
-        //var permissions = await _personalClient.GetPermissionsAsync();
-        //await CachePermissions(permissions);
+        var permissions = await _client.GetUserPermissionsAsync();
+        await CachePermissions(permissions);
 
         NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
 
@@ -87,36 +94,43 @@ public sealed class JwtAuthenticationService : AuthenticationStateProvider, IAut
         throw new NotImplementedException();
     }
 
+    public async ValueTask<AccessTokenResult> RequestAccessToken(AccessTokenRequestOptions options)
+    {
+        return await RequestAccessToken();
+
+    }
+
     public async ValueTask<AccessTokenResult> RequestAccessToken()
     {
-        var authState = await GetAuthenticationStateAsync();
-        if (authState.User.Identity?.IsAuthenticated is not true)
-        {
-            return new AccessTokenResult(AccessTokenResultStatus.RequiresRedirect, null, "/login");
-        }
-
         // We make sure the access token is only refreshed by one thread at a time. The other ones have to wait.
         await _semaphore.WaitAsync();
         try
         {
+            var authState = await GetAuthenticationStateAsync();
+            if (authState.User.Identity?.IsAuthenticated is not true)
+            {
+                return new AccessTokenResult(AccessTokenResultStatus.RequiresRedirect, new(), "/login", default);
+            }
+
             string? token = await GetCachedAuthTokenAsync();
 
             //// Check if token needs to be refreshed (when its expiration time is less than 1 minute away)
-            //var expTime = authState.User.GetExpiration();
-            //var diff = expTime - DateTime.UtcNow;
-            //if (diff.TotalMinutes <= 1)
-            //{
-            //    string? refreshToken = await GetCachedRefreshTokenAsync();
-            //    (bool succeeded, var response) = await TryRefreshTokenAsync(new RefreshTokenRequest { Token = token, RefreshToken = refreshToken });
-            //    if (!succeeded)
-            //    {
-            //        return new AccessTokenResult(AccessTokenResultStatus.RequiresRedirect, null, "/login");
-            //    }
+            var expTime = authState.User.GetExpiration();
+            var diff = expTime - DateTime.UtcNow;
+            if (diff.TotalMinutes <= 1)
+            {
+                //return new AccessTokenResult(AccessTokenResultStatus.RequiresRedirect, new(), "/login", default);
+                string? refreshToken = await GetCachedRefreshTokenAsync();
+                (bool succeeded, var response) = await TryRefreshTokenAsync(new RefreshTokenCommand { Token = token, RefreshToken = refreshToken });
+                if (!succeeded)
+                {
+                    return new AccessTokenResult(AccessTokenResultStatus.RequiresRedirect, new(), "/login", default);
+                }
 
-            //    token = response?.Token;
-            //}
+                token = response?.Token;
+            }
 
-            return new AccessTokenResult(AccessTokenResultStatus.Success, new AccessToken() { Value = token }, string.Empty);
+            return new AccessTokenResult(AccessTokenResultStatus.Success, new AccessToken() { Value = token! }, string.Empty, default);
         }
         finally
         {
@@ -124,15 +138,38 @@ public sealed class JwtAuthenticationService : AuthenticationStateProvider, IAut
         }
     }
 
-    public ValueTask<AccessTokenResult> RequestAccessToken(AccessTokenRequestOptions options)
+    private async Task<(bool Succeeded, TokenResponse? Token)> TryRefreshTokenAsync(RefreshTokenCommand request)
     {
-        throw new NotImplementedException();
+        var authState = await GetAuthenticationStateAsync();
+        string? tenantKey = authState.User.GetTenant();
+        if (string.IsNullOrWhiteSpace(tenantKey))
+        {
+            throw new InvalidOperationException("Can't refresh token when user is not logged in!");
+        }
+
+        try
+        {
+            var tokenResponse = await _client.RefreshTokenEndpointAsync(tenantKey, request);
+
+            await CacheAuthTokens(tokenResponse.Token, tokenResponse.RefreshToken);
+
+            return (true, tokenResponse);
+        }
+        catch
+        {
+            return (false, null);
+        }
     }
 
     private async ValueTask CacheAuthTokens(string? token, string? refreshToken)
     {
         await _localStorage.SetItemAsync(StorageConstants.Local.AuthToken, token);
         await _localStorage.SetItemAsync(StorageConstants.Local.RefreshToken, refreshToken);
+    }
+
+    private ValueTask CachePermissions(ICollection<string> permissions)
+    {
+        return _localStorage.SetItemAsync(StorageConstants.Local.Permissions, permissions);
     }
 
     private async Task ClearCacheAsync()
@@ -144,6 +181,16 @@ public sealed class JwtAuthenticationService : AuthenticationStateProvider, IAut
     private ValueTask<string?> GetCachedAuthTokenAsync()
     {
         return _localStorage.GetItemAsync<string?>(StorageConstants.Local.AuthToken);
+    }
+
+    private ValueTask<string?> GetCachedRefreshTokenAsync()
+    {
+        return _localStorage.GetItemAsync<string>(StorageConstants.Local.RefreshToken);
+    }
+
+    private ValueTask<ICollection<string>?> GetCachedPermissionsAsync()
+    {
+        return _localStorage.GetItemAsync<ICollection<string>>(StorageConstants.Local.Permissions);
     }
 
     private IEnumerable<Claim> GetClaimsFromJwt(string jwt)
