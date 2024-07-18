@@ -5,6 +5,9 @@ using FluentValidation;
 using FSH.WebApi.Catalog.Application;
 using FSH.WebApi.Catalog.Infrastructure;
 using FSH.WebApi.Todo;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 namespace FSH.WebApi.Server;
 
@@ -41,6 +44,31 @@ public static class Extensions
             config.WithModule<TodoModule.Endpoints>();
         });
 
+        // Configurer OpenTelemetry pour le traçage et les métriques
+        builder.Services.AddOpenTelemetry()
+            .WithTracing(tracerProviderBuilder =>
+            {
+                tracerProviderBuilder.AddAspNetCoreInstrumentation(options =>
+                {
+                    options.RecordException = true;
+                    options.Filter = (httpContext) => httpContext.Request.Path != "/swagger";
+                })
+                .AddHttpClientInstrumentation()
+                //.AddEntityFrameworkCoreInstrumentation() //beta
+                .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("TodoApi"))
+                .AddConsoleExporter(); // Optionnal: for debug
+            })
+            .WithMetrics(metricsProviderBuilder =>
+            {
+                metricsProviderBuilder
+                    .AddAspNetCoreInstrumentation()
+                    .AddHttpClientInstrumentation()
+                    .AddRuntimeInstrumentation()
+                    .AddPrometheusExporter()
+                    .AddMeter("TodoApi.Metrics");
+            });
+
+
         return builder;
     }
 
@@ -64,6 +92,9 @@ public static class Extensions
 
         //use carter
         endpoints.MapCarter();
+
+        //use Prometheus scraping 
+        app.UseOpenTelemetryPrometheusScrapingEndpoint();
 
         return app;
     }
