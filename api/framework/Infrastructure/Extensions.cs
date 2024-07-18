@@ -1,6 +1,4 @@
-﻿using System.Net.Http.Headers;
-using System.Reflection;
-using System.Text;
+﻿using System.Reflection;
 using Asp.Versioning.Conventions;
 using FluentValidation;
 using FSH.Framework.Core;
@@ -38,7 +36,7 @@ public static class Extensions
         ArgumentNullException.ThrowIfNull(builder);
         builder.ConfigureSerilog();
         builder.ConfigureDatabase();
-        builder.Services.ConfigureObservability();
+        builder.ConfigureObservability();
         builder.Services.ConfigureMultitenancy();
         builder.Services.ConfigureIdentity();
         builder.Services.AddCorsPolicy(builder.Configuration);
@@ -78,27 +76,6 @@ public static class Extensions
 
     public static WebApplication UseFshFramework(this WebApplication app)
     {
-        app.UseOpenTelemetryPrometheusScrapingEndpoint(context =>
-        {
-            if (context.Request.Path != "/metrics") return false;
-            var authHeader = context.Request.Headers.Authorization.FirstOrDefault();
-            if (authHeader == null) return false;
-            var authHeaderVal = AuthenticationHeaderValue.Parse(authHeader);
-            if (authHeaderVal == null) return false;
-            // RFC 2617 sec 1.2, "scheme" name is case-insensitive
-            if (!authHeaderVal.Scheme.Equals("basic",
-                            StringComparison.OrdinalIgnoreCase) ||
-                 authHeaderVal.Parameter == null)
-            {
-                return false;
-            }
-            var encoding = Encoding.GetEncoding("iso-8859-1");
-            var credentials = encoding.GetString(Convert.FromBase64String(authHeaderVal.Parameter));
-            int separator = credentials.IndexOf(':');
-            string name = credentials.Substring(0, separator);
-            string password = credentials.Substring(separator + 1);
-            return name == "admin" && password == "password";
-        });
         app.UseRateLimit();
         app.UseSecurityHeaders();
         app.UseHttpsRedirection();

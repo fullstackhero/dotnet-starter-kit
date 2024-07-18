@@ -38,6 +38,7 @@
     <PackageReference Include="Serilog.Enrichers.Environment" />
     <PackageReference Include="Serilog.Enrichers.Span" />
     <PackageReference Include="Serilog.Exceptions" />
+    <PackageReference Include="Serilog.Expressions" />
     <PackageReference Include="Serilog.Extensions.Hosting" />
     <PackageReference Include="Serilog.Formatting.Elasticsearch" />
     <PackageReference Include="Serilog.Sinks.Async" />
@@ -70,6 +71,8 @@
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Process" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\modules\Shared\Shared.csproj" />

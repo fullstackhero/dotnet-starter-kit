@@ -1,0 +1,24 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: otel-collector:4317
+
+exporters:
+  prometheus:
+    endpoint: otel-collector:8889
+
+processors:
+  batch:
+
+extensions:
+  health_check:
+    endpoint: otel-collector:13133
+
+service:
+  extensions: [health_check]
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheus]
