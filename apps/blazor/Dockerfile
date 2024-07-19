@@ -11,7 +11,7 @@ COPY --from=build-env /app/output/wwwroot .
 
 COPY nginx.conf /etc/nginx/nginx.conf
 
-EXPOSE 7020
-EXPOSE 5010
+EXPOSE 7100
+EXPOSE 5100
 
 CMD ["nginx", "-g", "daemon off;"]
