@@ -4,6 +4,7 @@ name: fullstackhero
 services:
   webapi:
     image: ghcr.io/fullstackhero/webapi:latest
+    pull_policy: always
     container_name: webapi
     networks:
       - fullstackhero
@@ -25,9 +26,10 @@ services:
       MailOptions__Password: KbuTCFv4J6Fy7256vh
       MailOptions__DisplayName: Mukesh Murugan
       CorsOptions__AllowedOrigins__0: http://localhost:5010
-      CorsOptions__AllowedOrigins__1: http://localhost:7020
+      CorsOptions__AllowedOrigins__1: http://localhost:7100
       CorsOptions__AllowedOrigins__2: https://localhost:7020
       OpenTelemetryOptions__Endpoint: http://otel-collector:4317
+      RateLimitOptions__EnableRateLimiting: false
     volumes:
       - ~/.aspnet/https:/https:ro
     ports:
@@ -40,6 +42,7 @@ services:
 
   blazor:
     image: ghcr.io/fullstackhero/blazor:latest
+    pull_policy: always
     container_name: blazor
     environment:
       ASPNETCORE_ENVIRONMENT: docker
