@@ -3,11 +3,11 @@ name: webapi
 on:
   push:
     branches: ["v2"]
-    paths: ["api/**"]
+    paths: ["src/api/**"]
 
   pull_request:
     branches: ["v2"]
-    paths: ["api/**"]
+    paths: ["src/api/**"]
 
 jobs:
   build:
@@ -19,11 +19,11 @@ jobs:
         with:
           dotnet-version: 8.0.x
       - name: restore dependencies
-        run: dotnet restore ./api/FSH.WebApi.sln
+        run: dotnet restore ./src/api/server/Server.csproj
       - name: build
-        run: dotnet build ./api/FSH.WebApi.sln --no-restore
+        run: dotnet build ./src/api/server/Server.csproj --no-restore
       - name: test
-        run: dotnet test ./api/FSH.WebApi.sln --no-build --verbosity normal
+        run: dotnet test ./src/api/server/Server.csproj --no-build --verbosity normal
 
   publish:
     needs: build
@@ -39,7 +39,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: publish to github container registry
-        working-directory: ./api/
+        working-directory: ./src/api/server/
         run: |
           dotnet publish -c Release -p:ContainerRepository=ghcr.io/${{ github.repository_owner}}/webapi -p:RuntimeIdentifier=linux-x64
           docker push ghcr.io/${{ github.repository_owner}}/webapi --all-tags
