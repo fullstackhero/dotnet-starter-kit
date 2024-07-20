@@ -4,7 +4,7 @@ using FSH.Framework.Core.Domain.Contracts;
 using FSH.Framework.Core.Persistence;
 using Mapster;
 
-namespace FSH.WebApi.Catalog.Infrastructure.Persistence;
+namespace FSH.Starter.WebApi.Catalog.Infrastructure.Persistence;
 internal sealed class CatalogRepository<T> : RepositoryBase<T>, IReadRepository<T>, IRepository<T>
     where T : class, IAggregateRoot
 {

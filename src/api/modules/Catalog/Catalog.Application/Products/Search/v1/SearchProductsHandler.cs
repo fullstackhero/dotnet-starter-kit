@@ -1,13 +1,13 @@
 using FSH.Framework.Core.Paging;
 using FSH.Framework.Core.Persistence;
 using FSH.Framework.Core.Specifications;
-using FSH.WebApi.Catalog.Application.Products.Get.v1;
-using FSH.WebApi.Catalog.Domain;
+using FSH.Starter.WebApi.Catalog.Application.Products.Get.v1;
+using FSH.Starter.WebApi.Catalog.Domain;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
 
-namespace FSH.WebApi.Catalog.Application.Products.Search.v1;
+namespace FSH.Starter.WebApi.Catalog.Application.Products.Search.v1;
 public sealed class SearchProductsHandler(
     [FromKeyedServices("catalog:products")] IReadRepository<Product> repository)
     : IRequestHandler<SearchProductsCommand, PagedList<ProductResponse>>

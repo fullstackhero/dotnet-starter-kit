@@ -1,11 +1,11 @@
 ﻿
 using FSH.Framework.Core.Caching;
 using FSH.Framework.Core.Domain.Events;
-using FSH.WebApi.Todo.Features.Get.v1;
+using FSH.Starter.WebApi.Todo.Features.Get.v1;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace FSH.WebApi.Todo.Domain.Events;
+namespace FSH.Starter.WebApi.Todo.Domain.Events;
 public record TodoItemCreated(Guid Id, string Title, string Notes) : DomainEvent;
 
 public class TodoItemCreatedEventHandler(

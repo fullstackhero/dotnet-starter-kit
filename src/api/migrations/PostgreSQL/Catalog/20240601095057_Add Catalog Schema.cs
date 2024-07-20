@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace FSH.WebApi.Migrations.PostgreSQL.Catalog
+namespace FSH.Starter.WebApi.Migrations.PostgreSQL.Catalog
 {
     /// <inheritdoc />
     public partial class AddCatalogSchema : Migration

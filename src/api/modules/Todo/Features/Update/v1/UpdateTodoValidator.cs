@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
-using FSH.WebApi.Todo.Persistence;
+using FSH.Starter.WebApi.Todo.Persistence;
 
-namespace FSH.WebApi.Todo.Features.Update.v1;
+namespace FSH.Starter.WebApi.Todo.Features.Update.v1;
 public class UpdateTodoValidator : AbstractValidator<UpdateTodoCommand>
 {
     public UpdateTodoValidator(TodoDbContext context)

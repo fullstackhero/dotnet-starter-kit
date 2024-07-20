@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace FSH.WebApi.Migrations.MSSQL.Tenant
+namespace FSH.Starter.WebApi.Migrations.MSSQL.Tenant
 {
     [DbContext(typeof(TenantDbContext))]
     partial class TenantDbContextModelSnapshot : ModelSnapshot

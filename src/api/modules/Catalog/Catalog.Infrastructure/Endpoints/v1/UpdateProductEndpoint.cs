@@ -1,11 +1,11 @@
 using FSH.Framework.Infrastructure.Auth.Policy;
-using FSH.WebApi.Catalog.Application.Products.Update.v1;
+using FSH.Starter.WebApi.Catalog.Application.Products.Update.v1;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
-namespace FSH.WebApi.Catalog.Infrastructure.Endpoints.v1;
+namespace FSH.Starter.WebApi.Catalog.Infrastructure.Endpoints.v1;
 public static class UpdateProductEndpoint
 {
     internal static RouteHandlerBuilder MapProductUpdateEndpoint(this IEndpointRouteBuilder endpoints)

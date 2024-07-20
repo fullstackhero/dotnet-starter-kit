@@ -1,10 +1,10 @@
 ﻿using FSH.Framework.Core.Persistence;
-using FSH.WebApi.Catalog.Domain;
+using FSH.Starter.WebApi.Catalog.Domain;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace FSH.WebApi.Catalog.Application.Products.Create.v1;
+namespace FSH.Starter.WebApi.Catalog.Application.Products.Create.v1;
 public sealed class CreateProductHandler(
     ILogger<CreateProductHandler> logger,
     [FromKeyedServices("catalog:products")] IRepository<Product> repository)

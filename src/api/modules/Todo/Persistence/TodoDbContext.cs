@@ -2,12 +2,12 @@
 using FSH.Framework.Core.Persistence;
 using FSH.Framework.Infrastructure.Persistence;
 using FSH.Framework.Infrastructure.Tenant;
-using FSH.WebApi.Todo.Domain;
+using FSH.Starter.WebApi.Todo.Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
-namespace FSH.WebApi.Todo.Persistence;
+namespace FSH.Starter.WebApi.Todo.Persistence;
 public sealed class TodoDbContext : FshDbContext
 {
     public TodoDbContext(IMultiTenantContextAccessor<FshTenantInfo> multiTenantContextAccessor, DbContextOptions<TodoDbContext> options, IPublisher publisher, IOptions<DatabaseOptions> settings)

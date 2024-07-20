@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace FSH.WebApi.Catalog.Application.Products.Update.v1;
+namespace FSH.Starter.WebApi.Catalog.Application.Products.Update.v1;
 public class UpdateProductCommandValidator : AbstractValidator<UpdateProductCommand>
 {
     public UpdateProductCommandValidator()

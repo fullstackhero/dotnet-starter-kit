@@ -1,8 +1,8 @@
-﻿using FSH.WebApi.Catalog.Domain.Events;
+﻿using FSH.Starter.WebApi.Catalog.Domain.Events;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace FSH.WebApi.Catalog.Application.Products.EventHandlers;
+namespace FSH.Starter.WebApi.Catalog.Application.Products.EventHandlers;
 
 public class ProductCreatedEventHandler(ILogger<ProductCreatedEventHandler> logger) : INotificationHandler<ProductCreated>
 {

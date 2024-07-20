@@ -1,11 +1,11 @@
 using FSH.Framework.Core.Persistence;
-using FSH.WebApi.Catalog.Domain;
-using FSH.WebApi.Catalog.Domain.Exceptions;
+using FSH.Starter.WebApi.Catalog.Domain;
+using FSH.Starter.WebApi.Catalog.Domain.Exceptions;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace FSH.WebApi.Catalog.Application.Products.Update.v1;
+namespace FSH.Starter.WebApi.Catalog.Application.Products.Update.v1;
 public sealed class UpdateProductHandler(
     ILogger<UpdateProductHandler> logger,
     [FromKeyedServices("catalog:products")] IRepository<Product> repository)

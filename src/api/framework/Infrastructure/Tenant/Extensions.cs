@@ -8,7 +8,7 @@ using FSH.Framework.Infrastructure.Persistence;
 using FSH.Framework.Infrastructure.Persistence.Services;
 using FSH.Framework.Infrastructure.Tenant.Persistence;
 using FSH.Framework.Infrastructure.Tenant.Services;
-using FSH.WebApi.Shared.Authorization;
+using FSH.Starter.WebApi.Shared.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;

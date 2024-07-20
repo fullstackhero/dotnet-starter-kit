@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace FSH.WebApi.Migrations.MSSQL.Tenant
+namespace FSH.Starter.WebApi.Migrations.MSSQL.Tenant
 {
     [DbContext(typeof(TenantDbContext))]
     [Migration("20240605195846_Add Tenant Schema")]

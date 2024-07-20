@@ -32,7 +32,7 @@ public class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOptions>
         var text = new StringBuilder(".NET 8 Starter Kit with Vertical Slice Architecture!");
         var info = new OpenApiInfo()
         {
-            Title = "FSH.WebApi",
+            Title = "FSH.Starter.WebApi",
             Version = description.ApiVersion.ToString(),
             Contact = new OpenApiContact() { Name = "Mukesh Murugan", Email = "hello@codewithmukesh.com" }
         };

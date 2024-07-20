@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
 
-namespace FSH.WebApi.Shared.Authorization;
+namespace FSH.Starter.WebApi.Shared.Authorization;
 
 public static class FshRoles
 {

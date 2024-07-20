@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace FSH.WebApi.Migrations.PostgreSQL.Tenant
+namespace FSH.Starter.WebApi.Migrations.PostgreSQL.Tenant
 {
     [DbContext(typeof(TenantDbContext))]
     [Migration("20240601095223_Add Tenant Schema")]

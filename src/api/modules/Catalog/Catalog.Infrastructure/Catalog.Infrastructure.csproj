@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <RootNamespace>FSH.WebApi.Catalog.Infrastructure</RootNamespace>
-    <AssemblyName>FSH.WebApi.Catalog.Infrastructure</AssemblyName>
+    <RootNamespace>FSH.Starter.WebApi.Catalog.Infrastructure</RootNamespace>
+    <AssemblyName>FSH.Starter.WebApi.Catalog.Infrastructure</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Persistence\Repositories\**" />

@@ -1,15 +1,15 @@
 ﻿using Carter;
 using FSH.Framework.Core.Persistence;
 using FSH.Framework.Infrastructure.Persistence;
-using FSH.WebApi.Catalog.Domain;
-using FSH.WebApi.Catalog.Infrastructure.Endpoints.v1;
-using FSH.WebApi.Catalog.Infrastructure.Persistence;
+using FSH.Starter.WebApi.Catalog.Domain;
+using FSH.Starter.WebApi.Catalog.Infrastructure.Endpoints.v1;
+using FSH.Starter.WebApi.Catalog.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace FSH.WebApi.Catalog.Infrastructure;
+namespace FSH.Starter.WebApi.Catalog.Infrastructure;
 public static class CatalogModule
 {
     public class Endpoints : CarterModule

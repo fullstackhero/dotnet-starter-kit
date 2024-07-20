@@ -1,11 +1,11 @@
 using Microsoft.Extensions.DependencyInjection;
-using FSH.WebApi.Catalog.Domain.Exceptions;
+using FSH.Starter.WebApi.Catalog.Domain.Exceptions;
 using FSH.Framework.Core.Persistence;
 using FSH.Framework.Core.Caching;
-using FSH.WebApi.Catalog.Domain;
+using FSH.Starter.WebApi.Catalog.Domain;
 using MediatR;
 
-namespace FSH.WebApi.Catalog.Application.Products.Get.v1;
+namespace FSH.Starter.WebApi.Catalog.Application.Products.Get.v1;
 public sealed class GetProductHandler(
     [FromKeyedServices("catalog:products")] IReadRepository<Product> repository,
     ICacheService cache)

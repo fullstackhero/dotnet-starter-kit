@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace FSH.WebApi.Migrations.MSSQL.Catalog
+namespace FSH.Starter.WebApi.Migrations.MSSQL.Catalog
 {
     /// <inheritdoc />
     public partial class AddCatalogSchema : Migration

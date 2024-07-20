@@ -8,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace FSH.WebApi.Migrations.PostgreSQL.Identity
+namespace FSH.Starter.WebApi.Migrations.PostgreSQL.Identity
 {
     [DbContext(typeof(IdentityDbContext))]
     partial class IdentityDbContextModelSnapshot : ModelSnapshot

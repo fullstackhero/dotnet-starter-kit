@@ -1,11 +1,11 @@
 ﻿using FSH.Framework.Core.Caching;
 using FSH.Framework.Core.Persistence;
-using FSH.WebApi.Todo.Domain;
-using FSH.WebApi.Todo.Exceptions;
+using FSH.Starter.WebApi.Todo.Domain;
+using FSH.Starter.WebApi.Todo.Exceptions;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace FSH.WebApi.Todo.Features.Get.v1;
+namespace FSH.Starter.WebApi.Todo.Features.Get.v1;
 public sealed class GetTodoHandler(
     [FromKeyedServices("todo")] IReadRepository<TodoItem> repository,
     ICacheService cache)

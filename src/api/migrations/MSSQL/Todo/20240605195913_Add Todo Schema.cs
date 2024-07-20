@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace FSH.WebApi.Migrations.MSSQL.Todo
+namespace FSH.Starter.WebApi.Migrations.MSSQL.Todo
 {
     /// <inheritdoc />
     public partial class AddTodoSchema : Migration

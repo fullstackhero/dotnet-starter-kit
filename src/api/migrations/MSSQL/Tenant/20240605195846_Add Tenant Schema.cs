@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace FSH.WebApi.Migrations.MSSQL.Tenant
+namespace FSH.Starter.WebApi.Migrations.MSSQL.Tenant
 {
     /// <inheritdoc />
     public partial class AddTenantSchema : Migration

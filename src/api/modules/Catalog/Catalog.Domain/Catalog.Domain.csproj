@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <RootNamespace>FSH.WebApi.Catalog.Domain</RootNamespace>
-    <AssemblyName>FSH.WebApi.Catalog.Domain</AssemblyName>
+    <RootNamespace>FSH.Starter.WebApi.Catalog.Domain</RootNamespace>
+    <AssemblyName>FSH.Starter.WebApi.Catalog.Domain</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\framework\Core\Core.csproj" />

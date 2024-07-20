@@ -1,9 +1,9 @@
 ﻿using FSH.Framework.Core.Persistence;
-using FSH.WebApi.Todo.Domain;
+using FSH.Starter.WebApi.Todo.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace FSH.WebApi.Todo.Persistence;
+namespace FSH.Starter.WebApi.Todo.Persistence;
 internal sealed class TodoDbInitializer(
     ILogger<TodoDbInitializer> logger,
     TodoDbContext context) : IDbInitializer

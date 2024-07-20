@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.Metrics;
 using FSH.Framework.Core.Observability;
 
-namespace FSH.WebApi.Todo.Domain;
+namespace FSH.Starter.WebApi.Todo.Domain;
 
 public static class TodoMetrics
 {

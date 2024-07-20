@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace FSH.WebApi.Migrations.MSSQL.Identity
+namespace FSH.Starter.WebApi.Migrations.MSSQL.Identity
 {
     /// <inheritdoc />
     public partial class AddIdentitySchema : Migration

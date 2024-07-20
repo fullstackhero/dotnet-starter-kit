@@ -1,11 +1,11 @@
 ﻿using FSH.Framework.Core.Paging;
 using FSH.Framework.Core.Persistence;
 using FSH.Framework.Core.Specifications;
-using FSH.WebApi.Todo.Domain;
+using FSH.Starter.WebApi.Todo.Domain;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace FSH.WebApi.Todo.Features.GetList.v1;
+namespace FSH.Starter.WebApi.Todo.Features.GetList.v1;
 
 public sealed class GetTodoListHandler(
     [FromKeyedServices("todo")] IReadRepository<TodoItem> repository)

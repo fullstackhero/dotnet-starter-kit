@@ -4,8 +4,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <RootNamespace>FSH.WebApi.Shared</RootNamespace>
-    <AssemblyName>FSH.WebApi.Shared</AssemblyName>
+    <RootNamespace>FSH.Starter.WebApi.Shared</RootNamespace>
+    <AssemblyName>FSH.Starter.WebApi.Shared</AssemblyName>
   </PropertyGroup>
 
 </Project>

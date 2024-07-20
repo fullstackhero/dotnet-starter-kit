@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 
-namespace FSH.WebApi.Todo.Features.GetList.v1;
+namespace FSH.Starter.WebApi.Todo.Features.GetList.v1;
 
 public static class GetTodoListEndpoint
 {

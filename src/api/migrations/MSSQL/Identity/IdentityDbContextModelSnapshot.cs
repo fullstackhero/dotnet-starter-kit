@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace FSH.WebApi.Migrations.MSSQL.Identity
+namespace FSH.Starter.WebApi.Migrations.MSSQL.Identity
 {
     [DbContext(typeof(IdentityDbContext))]
     partial class IdentityDbContextModelSnapshot : ModelSnapshot

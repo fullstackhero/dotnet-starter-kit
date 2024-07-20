@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
-namespace FSH.WebApi.Todo.Features.Update.v1;
+namespace FSH.Starter.WebApi.Todo.Features.Update.v1;
 public static class UpdateTodoEndpoint
 {
     internal static RouteHandlerBuilder MapTodoItemUpdationEndpoint(this IEndpointRouteBuilder endpoints)

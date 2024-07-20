@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace FSH.WebApi.Migrations.PostgreSQL.Identity
+namespace FSH.Starter.WebApi.Migrations.PostgreSQL.Identity
 {
     [DbContext(typeof(IdentityDbContext))]
     [Migration("20240601095842_Add Identity Schema")]

@@ -1,9 +1,9 @@
 ﻿using Finbuckle.MultiTenant;
-using FSH.WebApi.Todo.Domain;
+using FSH.Starter.WebApi.Todo.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace FSH.WebApi.Todo.Persistence.Configurations;
+namespace FSH.Starter.WebApi.Todo.Persistence.Configurations;
 internal sealed class TodoItemConfiguration : IEntityTypeConfiguration<TodoItem>
 {
     public void Configure(EntityTypeBuilder<TodoItem> builder)

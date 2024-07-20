@@ -1,11 +1,11 @@
 ﻿using FSH.Framework.Core.Persistence;
-using FSH.WebApi.Todo.Domain;
-using FSH.WebApi.Todo.Exceptions;
+using FSH.Starter.WebApi.Todo.Domain;
+using FSH.Starter.WebApi.Todo.Exceptions;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace FSH.WebApi.Todo.Features.Delete.v1;
+namespace FSH.Starter.WebApi.Todo.Features.Delete.v1;
 public sealed class DeleteTodoHandler(
     ILogger<DeleteTodoHandler> logger,
     [FromKeyedServices("todo")] IRepository<TodoItem> repository)

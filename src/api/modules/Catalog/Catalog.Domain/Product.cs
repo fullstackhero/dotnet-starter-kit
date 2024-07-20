@@ -1,8 +1,8 @@
 ﻿using FSH.Framework.Core.Domain;
 using FSH.Framework.Core.Domain.Contracts;
-using FSH.WebApi.Catalog.Domain.Events;
+using FSH.Starter.WebApi.Catalog.Domain.Events;
 
-namespace FSH.WebApi.Catalog.Domain;
+namespace FSH.Starter.WebApi.Catalog.Domain;
 public class Product : AuditableEntity, IAggregateRoot
 {
     public string Name { get; private set; } = default!;

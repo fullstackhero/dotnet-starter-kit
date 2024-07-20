@@ -2,9 +2,9 @@
 using Asp.Versioning.Conventions;
 using Carter;
 using FluentValidation;
-using FSH.WebApi.Catalog.Application;
-using FSH.WebApi.Catalog.Infrastructure;
-using FSH.WebApi.Todo;
+using FSH.Starter.WebApi.Catalog.Application;
+using FSH.Starter.WebApi.Catalog.Infrastructure;
+using FSH.Starter.WebApi.Todo;
 
 namespace FSH.Starter.WebApi.Host;
 

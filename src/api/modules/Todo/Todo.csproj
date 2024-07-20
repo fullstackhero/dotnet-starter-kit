@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <RootNamespace>FSH.WebApi.Todo</RootNamespace>
-    <AssemblyName>FSH.WebApi.Todo</AssemblyName>
+    <RootNamespace>FSH.Starter.WebApi.Todo</RootNamespace>
+    <AssemblyName>FSH.Starter.WebApi.Todo</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\framework\Core\Core.csproj" />

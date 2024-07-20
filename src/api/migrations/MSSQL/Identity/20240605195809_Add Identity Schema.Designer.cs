@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace FSH.WebApi.Migrations.MSSQL.Identity
+namespace FSH.Starter.WebApi.Migrations.MSSQL.Identity
 {
     [DbContext(typeof(IdentityDbContext))]
     [Migration("20240605195809_Add Identity Schema")]
