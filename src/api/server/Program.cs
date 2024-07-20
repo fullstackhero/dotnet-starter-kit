@@ -13,7 +13,6 @@ try
 
     var app = builder.Build();
 
-    app.MapGet("/", () => "hello");
     app.UseFshFramework();
     app.UseModules();
     await app.RunAsync();
