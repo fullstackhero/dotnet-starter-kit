@@ -2,7 +2,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
 WORKDIR /app
 
 COPY . ./
-RUN dotnet publish -c Release -o output
+RUN dotnet publish ./client/Client.csproj -c Release -o output
 
 FROM nginx:alpine
 WORKDIR /var/www/web
