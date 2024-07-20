@@ -9,7 +9,6 @@ using FSH.Framework.Infrastructure.Behaviours;
 using FSH.Framework.Infrastructure.Caching;
 using FSH.Framework.Infrastructure.Cors;
 using FSH.Framework.Infrastructure.Exceptions;
-using FSH.Framework.Infrastructure.HealthChecks;
 using FSH.Framework.Infrastructure.Identity;
 using FSH.Framework.Infrastructure.Jobs;
 using FSH.Framework.Infrastructure.Logging.Serilog;
@@ -24,14 +23,13 @@ using FSH.Framework.Infrastructure.Tenant.Endpoints;
 using FSH.Starter.Aspire.ServiceDefaults;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FSH.Framework.Infrastructure;
 
 public static class Extensions
 {
-    public static WebApplicationBuilder RegisterFshFramework(this WebApplicationBuilder builder)
+    public static WebApplicationBuilder ConfigureFshFramework(this WebApplicationBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
         builder.AddServiceDefaults();
@@ -76,10 +74,9 @@ public static class Extensions
 
     public static WebApplication UseFshFramework(this WebApplication app)
     {
+        app.MapDefaultEndpoints();
         app.UseRateLimit();
         app.UseSecurityHeaders();
-        app.UseHttpsRedirection();
-        app.UseHsts();
         app.UseMultitenancy();
         app.UseExceptionHandler();
         app.UseCorsPolicy();
@@ -87,11 +84,8 @@ public static class Extensions
         app.UseJobDashboard(app.Configuration);
         app.UseAuthentication();
         app.UseAuthorization();
-
         app.MapTenantEndpoints();
         app.MapIdentityEndpoints();
-        var health = app.MapGroup("api/health").WithTags("health");
-        health.MapCustomHealthCheckEndpoint();
 
         // Current user middleware
         app.UseMiddleware<CurrentUserMiddleware>();

@@ -8,10 +8,12 @@ Log.Information("server booting up..");
 try
 {
     var builder = WebApplication.CreateBuilder(args);
-    builder.RegisterFshFramework();
+    builder.ConfigureFshFramework();
     builder.RegisterModules();
 
     var app = builder.Build();
+
+    app.MapGet("/", () => "hello");
     app.UseFshFramework();
     app.UseModules();
     await app.RunAsync();

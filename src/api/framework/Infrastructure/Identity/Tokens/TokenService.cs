@@ -31,7 +31,6 @@ public sealed class TokenService : ITokenService
 
     public async Task<TokenResponse> GenerateTokenAsync(TokenGenerationCommand request, string ipAddress, CancellationToken cancellationToken)
     {
-        var testUser = await _userManager.FindByEmailAsync("admin@root.com");
         var currentTenant = _multiTenantContextAccessor!.MultiTenantContext.TenantInfo;
         if (currentTenant == null) throw new UnauthorizedException();
         if (string.IsNullOrWhiteSpace(currentTenant.Id)

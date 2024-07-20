@@ -74,7 +74,7 @@
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\aspire\ServiceDefaults\ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\..\aspire\service-defaults\ServiceDefaults.csproj" />
     <ProjectReference Include="..\..\modules\Shared\Shared.csproj" />
     <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>

@@ -18,7 +18,7 @@ public class TodoItem : AuditableEntity, IAggregateRoot
 
         item.QueueDomainEvent(new TodoItemCreated(item.Id, item.Title, item.Note));
 
-        TodoMetrics.TodoItemsCreated.Add(1);
+        TodoMetrics.Created.Add(1);
 
         return item;
     }
@@ -27,10 +27,8 @@ public class TodoItem : AuditableEntity, IAggregateRoot
     {
         if (title is not null && Title?.Equals(title, StringComparison.OrdinalIgnoreCase) is not true) Title = title;
         if (note is not null && Note?.Equals(note, StringComparison.OrdinalIgnoreCase) is not true) Note = note;
-       
+
         this.QueueDomainEvent(new TodoItemUpdated(this));
-        
-        TodoMetrics.TodoItemsUpdated.Add(1);
 
         return this;
 
