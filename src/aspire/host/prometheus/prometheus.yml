@@ -1,7 +1,0 @@
-﻿global:
-  scrape_interval: 1s # makes for a good demo
-
-scrape_configs:
-  - job_name: 'fullstackhero.api'
-    static_configs:
-      - targets: ['host.docker.internal:5000']
