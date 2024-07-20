@@ -39,7 +39,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: build and publish to github container registry
-        working-directory: ./src/blazor/
+        working-directory: ./src/blazor/client/
         run: |
           docker build -t ghcr.io/${{ github.repository_owner }}/blazor:latest -f Dockerfile .
           docker push ghcr.io/${{ github.repository_owner }}/blazor:latest

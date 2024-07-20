@@ -29,16 +29,13 @@ public partial class PersonCard
     private async Task LoadUserData()
     {
         var user = (await AuthState).User;
-        if (user.Identity?.IsAuthenticated == true)
+        if (user.Identity?.IsAuthenticated == true && string.IsNullOrEmpty(UserId))
         {
-            if (string.IsNullOrEmpty(UserId))
-            {
-                FullName = user.GetFullName();
-                UserId = user.GetUserId();
-                Email = user.GetEmail();
-                ImageUri = ""; // string.IsNullOrEmpty(user?.GetImageUrl()) ? string.Empty : Config[ConfigNames.ApiBaseUrl] + user?.GetImageUrl();
-                StateHasChanged();
-            }
+            FullName = user.GetFullName();
+            UserId = user.GetUserId();
+            Email = user.GetEmail();
+            ImageUri = "";
+            StateHasChanged();
         }
     }
 }
