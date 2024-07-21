@@ -17,7 +17,7 @@
         {
             <MudExpansionPanel @bind-bind-Expanded="_advancedSearchExpanded"
                 Style="padding:10px!important; margin-bottom:10px!important;border-radius: var(--mud-default-borderradius) !important;"
-                               Class="mud-table mud-table-outlined" Text="Advanced Search" Expanded=true>
+                               Class="mud-table mud-table-outlined" Text="Advanced Search" Expanded=false>
                 <MudTextField @bind-Value="SearchString" Immediate="true"
                     Placeholder="@($"Search for {Context.EntityNamePlural}")" Adornment="Adornment.Start"
                     AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium"
