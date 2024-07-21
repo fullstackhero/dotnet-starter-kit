@@ -3,6 +3,7 @@ using Blazored.LocalStorage;
 using FSH.Starter.Blazor.Infrastructure.Api;
 using FSH.Starter.Blazor.Infrastructure.Auth;
 using FSH.Starter.Blazor.Infrastructure.Auth.Jwt;
+using FSH.Starter.Blazor.Infrastructure.Notifications;
 using FSH.Starter.Blazor.Infrastructure.Preferences;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,6 +38,7 @@ public static class Extensions
            .AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient(ClientName));
         services.AddTransient<IClientPreferenceManager, ClientPreferenceManager>();
         services.AddTransient<IPreference, ClientPreference>();
+        services.AddNotifications();
         return services;
 
     }

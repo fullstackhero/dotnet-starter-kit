@@ -1,0 +1,16 @@
+﻿<div class="px-4 py-2 rounded-l-xl theme-button mud-elevation-25" @onclick="OnClick">
+    <MudTooltip Arrow="true" Placement="Placement.Left" Text="Theme Manager">
+        <MudIcon Icon="@Icons.Material.Filled.Brush" Style="color: #ffffff" />
+    </MudTooltip>
+</div>
+
+<style>
+    .theme-button {
+        position: fixed;
+        top: 10%;
+        background: var(--mud-palette-primary);
+        z-index: 1150;
+        right: 0;
+        cursor: pointer;
+    }
+</style>

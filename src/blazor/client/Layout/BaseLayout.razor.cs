@@ -1,5 +1,5 @@
-﻿using FSH.Starter.Blazor.Infrastructure.Themes;
-using FSH.Starter.Blazor.Infrastructure.Preferences;
+﻿using FSH.Starter.Blazor.Infrastructure.Preferences;
+using FSH.Starter.Blazor.Infrastructure.Themes;
 using MudBlazor;
 
 namespace FSH.Starter.Blazor.Client.Layout;
@@ -7,7 +7,7 @@ namespace FSH.Starter.Blazor.Client.Layout;
 public partial class BaseLayout
 {
     private ClientPreference? _themePreference;
-    private MudTheme _theme = new FshTheme();
+    private MudTheme _currentTheme = new FshTheme();
     private bool _themeDrawerOpen;
     private bool _rightToLeft;
     private bool _isDarkMode;
@@ -50,15 +50,12 @@ public partial class BaseLayout
     private void SetCurrentTheme(ClientPreference themePreference)
     {
         _isDarkMode = themePreference.IsDarkMode;
-        //_currentTheme = new FshTheme();
-        //if (themePreference.IsDarkMode)
-        //{
-        //    _currentTheme.
-        //}
-        //_currentTheme.Palette.Primary = themePreference.PrimaryColor;
-        //_currentTheme.Palette.Secondary = themePreference.SecondaryColor;
-        //_currentTheme.LayoutProperties.DefaultBorderRadius = $"{themePreference.BorderRadius}px";
-        //_currentTheme.LayoutProperties.DefaultBorderRadius = $"{themePreference.BorderRadius}px";
-        //_rightToLeft = themePreference.IsRTL;
+        _currentTheme.PaletteLight.Primary = themePreference.PrimaryColor;
+        _currentTheme.PaletteLight.Secondary = themePreference.SecondaryColor;
+        _currentTheme.PaletteDark.Primary = themePreference.PrimaryColor;
+        _currentTheme.PaletteDark.Secondary = themePreference.SecondaryColor;
+        _currentTheme.LayoutProperties.DefaultBorderRadius = $"{themePreference.BorderRadius}px";
+        _currentTheme.LayoutProperties.DefaultBorderRadius = $"{themePreference.BorderRadius}px";
+        _rightToLeft = themePreference.IsRTL;
     }
 }
