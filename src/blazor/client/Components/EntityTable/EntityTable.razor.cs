@@ -123,6 +123,15 @@ public partial class EntityTable<TEntity, TId, TRequest>
         }
     }
 
+    private static bool GetBooleanValue(object valueFunc)
+    {
+        if (valueFunc is bool boolValue)
+        {
+            return boolValue;
+        }
+        return false;
+    }
+
     private Func<TableState, CancellationToken, Task<TableData<TEntity>>>? ServerReloadFunc =>
         Context.IsServerContext ? ServerReload : null;
 

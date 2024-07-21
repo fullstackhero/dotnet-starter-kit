@@ -69,6 +69,9 @@ public static class FshPermissions
         new("Update Todos", FshAction.Update, FshResource.Todos),
         new("Delete Todos", FshAction.Delete, FshResource.Todos),
         new("Export Todos", FshAction.Export, FshResource.Todos),
+
+         new("View Hangfire", FshAction.View, FshResource.Hangfire),
+         new("View Dashboard", FshAction.View, FshResource.Dashboard),
    };
 
     public static IReadOnlyList<FshPermission> All { get; } = new ReadOnlyCollection<FshPermission>(allPermissions);

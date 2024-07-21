@@ -8,8 +8,20 @@
          <MudNavLink Href="/catalog/products" Icon="@Icons.Material.Filled.ShoppingBag" Class="fsh-nav-child">Products</MudNavLink>
     </MudNavGroup>
     <MudNavLink Href="/todos" Icon="@Icons.Material.Filled.Checklist" Class="fsh-nav-child">Todos</MudNavLink>
-     <MudText Typo="Typo.subtitle2" Color="Color.Surface" Class="ml-4 my-3">Management</MudText>
-     <MudNavGroup Title="Users" Icon="@Icons.Material.Filled.ManageAccounts">
-        <MudNavLink Href="/manage/users" Icon="@Icons.Material.Filled.VerifiedUser" Class="fsh-nav-child">Users</MudNavLink>
-    </MudNavGroup>
+    @if (CanViewAdministrationGroup)
+    {
+        <MudText Typo="Typo.subtitle2" Color="Color.Surface" Class="ml-4 my-3">Administration</MudText>
+        @if (_canViewUsers)
+        {
+            <MudNavLink Match="NavLinkMatch.Prefix" Href="/users" Icon="@Icons.Material.Filled.PeopleAlt">Users</MudNavLink>
+        }
+        @if (_canViewRoles)
+        {
+            <MudNavLink Href="/roles" Icon="@Icons.Material.Filled.EmojiPeople">Roles</MudNavLink>
+        }
+        @if (_canViewTenants)
+        {
+            <MudNavLink Href="/tenants" Icon="@Icons.Material.Filled.GroupWork" Disabled="!_canViewTenants">Tenants</MudNavLink>
+        }
+    }
 </MudNavMenu>

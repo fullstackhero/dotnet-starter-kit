@@ -94,7 +94,7 @@
                         }
                         else if (field.Type == typeof(bool))
                         {
-                            <MudCheckBox T="bool" Checked="@field.ValueFunc(context)" ReadOnly Color="Color.Secondary"></MudCheckBox>
+                            <MudCheckBox T="bool" Value="GetBooleanValue(field.ValueFunc(context))" ReadOnly Color="Color.Secondary"></MudCheckBox>
                         }
                         else
                         {
