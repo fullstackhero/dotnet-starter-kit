@@ -47,11 +47,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Catalog.Domain", "api\modul
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Catalog.Infrastructure", "api\modules\Catalog\Catalog.Infrastructure\Catalog.Infrastructure.csproj", "{89FE1C3B-29D3-48A8-8E7D-90C261D266C5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Client", "blazor\client\Client.csproj", "{BCE4A428-8B97-4B56-AE45-496EE3906667}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Client", "apps\blazor\client\Client.csproj", "{BCE4A428-8B97-4B56-AE45-496EE3906667}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "blazor\infrastructure\Infrastructure.csproj", "{27BEF279-AE73-43DC-92A9-FD7021A999D0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "apps\blazor\infrastructure\Infrastructure.csproj", "{27BEF279-AE73-43DC-92A9-FD7021A999D0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared", "blazor\shared\Shared.csproj", "{34359707-CE66-4DF0-9EF4-D7544B615564}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared", "apps\blazor\shared\Shared.csproj", "{34359707-CE66-4DF0-9EF4-D7544B615564}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Aspire", "Aspire", "{D36E77BC-4568-4BC8-9506-1EFB7B1CD335}"
 EndProject

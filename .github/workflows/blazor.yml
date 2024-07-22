@@ -3,11 +3,11 @@ name: blazor
 on:
   push:
     branches: ["v2"]
-    paths: ["src/blazor/**"]
+    paths: ["src/apps/blazor/**"]
 
   pull_request:
     branches: ["v2"]
-    paths: ["src/blazor/**"]
+    paths: ["src/apps/blazor/**"]
 
 jobs:
   build:
@@ -19,11 +19,11 @@ jobs:
         with:
           dotnet-version: 8.0.x
       - name: restore dependencies
-        run: dotnet restore ./src/blazor/client/Client.csproj
+        run: dotnet restore ./src/apps/blazor/client/Client.csproj
       - name: build
-        run: dotnet build ./src/blazor/client/Client.csproj --no-restore
+        run: dotnet build ./src/apps/blazor/client/Client.csproj --no-restore
       - name: test
-        run: dotnet test ./src/blazor/client/Client.csproj --no-build --verbosity normal
+        run: dotnet test ./src/apps/blazor/client/Client.csproj --no-build --verbosity normal
 
   publish:
     needs: build
@@ -39,7 +39,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: build and publish to github container registry
-        working-directory: ./src/blazor/
+        working-directory: ./src/apps/blazor/
         run: |
           docker build -t ghcr.io/${{ github.repository_owner }}/blazor:latest -f Dockerfile .
           docker push ghcr.io/${{ github.repository_owner }}/blazor:latest

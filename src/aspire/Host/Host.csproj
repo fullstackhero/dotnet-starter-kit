@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\api\server\Server.csproj" />
-    <ProjectReference Include="..\..\blazor\client\Client.csproj" />
+    <ProjectReference Include="..\..\apps\blazor\client\Client.csproj" />
   </ItemGroup>
 
 </Project>
