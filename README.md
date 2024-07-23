@@ -29,7 +29,7 @@ Please follow the below instructions.
    1. Aspire Dashboard (set as the default project)
    2. Web API
    3. Blazor
-4. Now we will have to set the connection string for the API. Navigate to `\src\api\server/appsettings.json` and change the `ConnectionString` under `DatabaseOptions`. Save it.
+4. Now we will have to set the connection string for the API. Navigate to `./src/api/server/appsettings.Development.json` and change the `ConnectionString` under `DatabaseOptions`. Save it.
 5. Once that is done, run the application via Visual Studio, with Aspire as the default project. This will open up Aspire Dashboard at `https://localhost:7200/`.
 6. API will be running at `https://localhost:7000/swagger/index.html`.
 7. Blazor will be running at `https://localhost:7100/`.
