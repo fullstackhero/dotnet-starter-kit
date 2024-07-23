@@ -4,7 +4,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Preferences;
 
 public class ClientPreference : IPreference
 {
-    public bool IsDarkMode { get; set; }
+    public bool IsDarkMode { get; set; } = true;
     public bool IsRTL { get; set; }
     public bool IsDrawerOpen { get; set; }
     public string PrimaryColor { get; set; } = CustomColors.Light.Primary;

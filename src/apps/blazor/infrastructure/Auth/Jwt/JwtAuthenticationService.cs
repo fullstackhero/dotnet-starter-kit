@@ -2,7 +2,6 @@ using System.Security.Claims;
 using System.Text.Json;
 using Blazored.LocalStorage;
 using FSH.Starter.Blazor.Infrastructure.Api;
-using FSH.Starter.Blazor.Shared;
 using FSH.Starter.Blazor.Infrastructure.Storage;
 using FSH.Starter.Blazor.Shared;
 using Microsoft.AspNetCore.Components;
@@ -90,9 +89,10 @@ public sealed class JwtAuthenticationService : AuthenticationStateProvider, IAut
         throw new NotImplementedException();
     }
 
-    public Task ReLoginAsync(string returnUrl)
+    public async Task ReLoginAsync(string returnUrl)
     {
-        throw new NotImplementedException();
+        await LogoutAsync();
+        _navigation.NavigateTo(returnUrl);
     }
 
     public async ValueTask<AccessTokenResult> RequestAccessToken(AccessTokenRequestOptions options)

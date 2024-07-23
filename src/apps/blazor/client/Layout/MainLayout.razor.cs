@@ -50,6 +50,6 @@ public partial class MainLayout
 
     private void Profile()
     {
-        Navigation.NavigateTo("/account");
+        Navigation.NavigateTo("/identity/account");
     }
 }

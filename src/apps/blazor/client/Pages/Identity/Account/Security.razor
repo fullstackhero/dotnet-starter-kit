@@ -1,0 +1,39 @@
+﻿<EditForm Model="@_passwordModel" OnValidSubmit="ChangePasswordAsync">
+    <MudCard Outlined>
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText>Change Password</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudGrid>
+                <DataAnnotationsValidator />
+                <FshValidation @ref="_customValidation" />
+                <MudItem xs="12" md="6">
+                    <MudTextField T="string" @bind-Value="_passwordModel.NewPassword"
+                        For="@(() => _passwordModel.NewPassword)" Label="Password" Variant="Variant.Outlined"
+                        InputType="_newPasswordInput" Adornment="Adornment.End" AdornmentIcon="@_newPasswordInputIcon"
+                        OnAdornmentClick="@(() => TogglePasswordVisibility(true))" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudTextField T="string" @bind-Value="_passwordModel.ConfirmNewPassword"
+                        For="@(() => _passwordModel.ConfirmNewPassword)" Label="Password Confirmation"
+                        Variant="Variant.Outlined" InputType="_newPasswordInput" Adornment="Adornment.End"
+                        AdornmentIcon="@_newPasswordInputIcon"
+                        OnAdornmentClick="@(() => TogglePasswordVisibility(true))" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField T="string" @bind-Value="_passwordModel.Password"
+                        For="@(() => _passwordModel.Password)" Label="Current Password" Variant="Variant.Outlined"
+                        InputType="_currentPasswordInput" Adornment="Adornment.End"
+                        AdornmentIcon="@_currentPasswordInputIcon"
+                        OnAdornmentClick="@(() => TogglePasswordVisibility(false))" />
+                </MudItem>
+            </MudGrid>
+        </MudCardContent>
+        <MudCardActions Class="pb-4 pl-4">
+            <MudButton DropShadow="false" Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit" StartIcon="@Icons.Material.Filled.Save" Class="ml-auto">
+                Change Password</MudButton>
+        </MudCardActions>
+    </MudCard>
+</EditForm>

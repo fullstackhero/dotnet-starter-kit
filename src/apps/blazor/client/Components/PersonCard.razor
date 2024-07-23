@@ -3,7 +3,7 @@
         <CardHeaderAvatar>
             @if (string.IsNullOrEmpty(this.ImageUri))
             {
-                <MudAvatar Size="Size.Medium" Color="Color.Primary" Class="ma-2">@FullName?.ToUpper().FirstOrDefault()
+                <MudAvatar Size="Size.Medium" Color="Color.Primary">@FullName?.ToUpper().FirstOrDefault()
                 </MudAvatar>
             }
             else

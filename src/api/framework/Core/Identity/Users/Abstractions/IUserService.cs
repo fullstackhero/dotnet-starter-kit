@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using FSH.Framework.Core.Identity.Users.Dtos;
+using FSH.Framework.Core.Identity.Users.Features.ChangePassword;
 using FSH.Framework.Core.Identity.Users.Features.ForgotPassword;
 using FSH.Framework.Core.Identity.Users.Features.RegisterUser;
 using FSH.Framework.Core.Identity.Users.Features.ResetPassword;
@@ -30,4 +31,6 @@ public interface IUserService
     Task ForgotPasswordAsync(ForgotPasswordCommand request, string origin, CancellationToken cancellationToken);
     Task ResetPasswordAsync(ResetPasswordCommand request, CancellationToken cancellationToken);
     Task<List<string>?> GetPermissionsAsync(string userId, CancellationToken cancellationToken);
+
+    Task ChangePasswordAsync(ChangePasswordCommand request, string userId);
 }
