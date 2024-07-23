@@ -1,6 +1,8 @@
 ﻿@page "/register"
 @attribute [AllowAnonymous]
 
+<PageTitle>Register</PageTitle>
+
 <EditForm Model="@_createUserRequest" OnValidSubmit="SubmitAsync">
     <MudCard Elevation="0">
         <MudCardHeader>
