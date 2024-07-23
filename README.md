@@ -10,6 +10,30 @@ FullStackHero .NET Starter Kit is a starting point for your next `.NET 8 Clean A
 
 This project is currently work in progress. The NuGet package is not yet available for v2. For now, you can fork this repository to try it out. [Follow @iammukeshm on X](https://x.com/iammukeshm) for project related updates.
 
+# Quick Start Guide
+
+As the project is still in beta, the NuGet packages are not yet available. You can try out the project by pulling the code directly from this repository.
+
+Prerequisites:
+
+- .NET 8 SDK installed.
+- Visual Studio IDE.
+- Docker Desktop.
+- PostgreSQL instance running on your machine or docker container.
+
+Please follow the below instructions.
+
+1. Fork this repository to your local.
+2. Open up the `./src/FSH.Starter.sln`.
+3. This would up the FSH Starter solution which has 3 main components.
+   1. Aspire Dashboard (set as the default project)
+   2. Web API
+   3. Blazor
+4. Now we will have to set the connection string for the API. Navigate to `\src\api\server/appsettings.json` and change the `ConnectionString` under `DatabaseOptions`. Save it.
+5. Once that is done, run the application via Visual Studio, with Aspire as the default project. This will open up Aspire Dashboard at `https://localhost:7200/`.
+6. API will be running at `https://localhost:7000/swagger/index.html`.
+7. Blazor will be running at `https://localhost:7100/`.
+
 # 🔎 The Project
 
 # ✨ Technologies
