@@ -10,14 +10,14 @@ public static class CustomTypography
         {
             FontFamily = new[] { "Montserrat", "Helvetica", "Arial", "sans-serif" },
             FontSize = ".875rem",
-            FontWeight = 200,
+            FontWeight = 400,
             LineHeight = 1.43,
             LetterSpacing = ".01071em"
         },
         H1 = new H1()
         {
             FontFamily = new[] { "Montserrat", "Helvetica", "Arial", "sans-serif" },
-            FontSize = "6rem",
+            FontSize = "3rem",
             FontWeight = 300,
             LineHeight = 1.167,
             LetterSpacing = "-.01562em"
@@ -25,7 +25,7 @@ public static class CustomTypography
         H2 = new H2()
         {
             FontFamily = new[] { "Montserrat", "Helvetica", "Arial", "sans-serif" },
-            FontSize = "3.75rem",
+            FontSize = "2.75rem",
             FontWeight = 300,
             LineHeight = 1.2,
             LetterSpacing = "-.00833em"
@@ -33,7 +33,7 @@ public static class CustomTypography
         H3 = new H3()
         {
             FontFamily = new[] { "Montserrat", "Helvetica", "Arial", "sans-serif" },
-            FontSize = "3rem",
+            FontSize = "2rem",
             FontWeight = 400,
             LineHeight = 1.167,
             LetterSpacing = "0"
@@ -41,7 +41,7 @@ public static class CustomTypography
         H4 = new H4()
         {
             FontFamily = new[] { "Montserrat", "Helvetica", "Arial", "sans-serif" },
-            FontSize = "2.125rem",
+            FontSize = "1.75rem",
             FontWeight = 400,
             LineHeight = 1.235,
             LetterSpacing = ".00735em"

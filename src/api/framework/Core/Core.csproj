@@ -10,4 +10,7 @@
     <PackageReference Include="Mapster" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Identity\Users\Features\GetRoles\" />
+  </ItemGroup>
 </Project>

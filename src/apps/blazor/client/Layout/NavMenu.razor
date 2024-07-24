@@ -13,11 +13,11 @@
         <MudText Typo="Typo.subtitle2" Color="Color.Surface" Class="ml-4 my-3">Administration</MudText>
         @if (_canViewUsers)
         {
-            <MudNavLink Match="NavLinkMatch.Prefix" Href="/users" Icon="@Icons.Material.Filled.PeopleAlt">Users</MudNavLink>
+            <MudNavLink Match="NavLinkMatch.Prefix" Href="/identity/users" Icon="@Icons.Material.Filled.PeopleAlt">Users</MudNavLink>
         }
         @if (_canViewRoles)
         {
-            <MudNavLink Href="/roles" Icon="@Icons.Material.Filled.EmojiPeople">Roles</MudNavLink>
+            <MudNavLink Href="/identity/roles" Icon="@Icons.Material.Filled.EmojiPeople">Roles</MudNavLink>
         }
         @if (_canViewTenants)
         {

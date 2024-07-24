@@ -11,11 +11,11 @@ public static class CreateOrUpdateRoleEndpoint
 {
     public static RouteHandlerBuilder MapCreateOrUpdateRoleEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        return endpoints.MapPost("/api/roles", async (CreateOrUpdateRoleCommand request, IRoleService roleService) =>
+        return endpoints.MapPost("/", async (CreateOrUpdateRoleCommand request, IRoleService roleService) =>
         {
             return await roleService.CreateOrUpdateRoleAsync(request);
         })
-        .WithName("CreateOrUpdateRole")
+        .WithName(nameof(CreateOrUpdateRoleEndpoint))
         .WithSummary("Create or update a role")
         .RequirePermission("Permissions.Roles.Create")
         .WithDescription("Create a new role or update an existing role.");

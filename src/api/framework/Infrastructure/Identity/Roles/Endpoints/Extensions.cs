@@ -10,6 +10,8 @@ internal static class Extensions
         app.MapGetRolesEndpoint();
         app.MapDeleteRoleEndpoint();
         app.MapCreateOrUpdateRoleEndpoint();
+        app.MapGetRolePermissionsEndpoint();
+        app.MapUpdateRolePermissionsEndpoint();
         return app;
     }
 }

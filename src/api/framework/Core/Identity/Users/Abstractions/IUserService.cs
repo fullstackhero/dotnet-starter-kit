@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using FSH.Framework.Core.Identity.Users.Dtos;
+using FSH.Framework.Core.Identity.Users.Features.AssignUserRole;
 using FSH.Framework.Core.Identity.Users.Features.ChangePassword;
 using FSH.Framework.Core.Identity.Users.Features.ForgotPassword;
 using FSH.Framework.Core.Identity.Users.Features.RegisterUser;
@@ -33,4 +34,6 @@ public interface IUserService
     Task<List<string>?> GetPermissionsAsync(string userId, CancellationToken cancellationToken);
 
     Task ChangePasswordAsync(ChangePasswordCommand request, string userId);
+    Task<string> AssignRolesAsync(string userId, AssignUserRoleCommand request, CancellationToken cancellationToken);
+    Task<List<UserRoleDetail>> GetUserRolesAsync(string userId, CancellationToken cancellationToken);
 }
