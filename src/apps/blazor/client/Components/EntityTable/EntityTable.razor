@@ -46,11 +46,11 @@
                 <div class="justify-center mud-text-align-center">
                     @if (_canCreate)
                     {
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" DropShadow=false
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" DropShadow="false"
                                    OnClick="(() => InvokeModal())" StartIcon="@Icons.Material.Filled.Add"
                             IconColor="Color.Surface" Class="mr-4">Create</MudButton>
                     }
-                    <MudButton Variant="Variant.Filled" OnClick="ReloadDataAsync" DropShadow=false
+                    <MudButton Variant="Variant.Filled" OnClick="ReloadDataAsync" DropShadow="false"
                                StartIcon="@Icons.Material.Filled.Refresh" IconColor="Color.Surface" Color="Color.Secondary">Reload</MudButton>
                 </div>
                 <MudSpacer />
@@ -110,8 +110,8 @@
                     else if (HasActions)
                     {
                         <MudMenu Label="Actions" Variant="Variant.Filled" DropShadow=false
-                            EndIcon="@Icons.Material.Filled.KeyboardArrowDown" IconColor="Color.Secondary" Direction="Direction.Left"
-                            OffsetX="true">
+                            EndIcon="@Icons.Material.Filled.KeyboardArrowDown" IconColor="Color.Secondary" direction="Direction.Left"
+                            offsetX="true">
                             @if (CanUpdateEntity(context))
                             {
                                 <MudMenuItem @onclick="@(() => InvokeModal(context))">Edit</MudMenuItem>
@@ -128,7 +128,7 @@
                     }
                     else
                     {
-                        <MudButton Variant="Variant.Filled" DropShadow=false 
+                        <MudButton Variant="Variant.Filled" DropShadow="false" 
                             StartIcon="@Icons.Material.Filled.DoNotTouch" IconColor="Color.Secondary" Size="Size.Small"
                         Color="Color.Surface">
                             No Allowed Actions
