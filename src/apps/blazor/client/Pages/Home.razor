@@ -25,8 +25,8 @@
 
         <MudItem xs="12" sm="12" md="12">
            <div class="mud-typography-align-center">
-                <MudButton DropShadow="false" Variant="Variant.Filled" Color="Color.Primary" Link="https://fullstackhero.net/basics/getting-started/" Target="_blank" StartIcon="@Icons.Material.Filled.Rocket">Get Started</MudButton>
-                <MudButton DropShadow="false" Variant="Variant.Outlined" Style="margin-left:5px" Color="Color.Default" Link="https://github.com/fullstackhero/dotnet-starter-kit/" Target="_blank" StartIcon="@Icons.Custom.Brands.GitHub">Star on GitHub</MudButton>
+                <MudButton DropShadow="false" Variant="Variant.Filled" Color="Color.Primary" Href="https://fullstackhero.net/basics/getting-started/" Target="_blank" StartIcon="@Icons.Material.Filled.Rocket">Get Started</MudButton>
+                <MudButton DropShadow="false" Variant="Variant.Outlined" Style="margin-left:5px" Color="Color.Default" Href="https://github.com/fullstackhero/dotnet-starter-kit/" Target="_blank" StartIcon="@Icons.Custom.Brands.GitHub">Star on GitHub</MudButton>
             </div>
         </MudItem>
         <MudItem xs="12" sm="12" md="12">
@@ -36,17 +36,17 @@
             <MudExpansionPanels>
                 <MudExpansionPanel Class="mud-table-outlined" Text="Getting Started" MaxHeight="150">
                     In case you are stuck anywhere or have any queries regarding this implementation, I have compiled a Quick Start Guide for you reference.
-                    <MudButton Variant="Variant.Text" DisableElevation="true" Color="Color.Secondary" Link="https://fullstackhero.net/blazor-wasm-boilerplate/general/getting-started" Target="_blank">Read The Guide</MudButton>
+                    <MudButton Variant="Variant.Text" DropShadow="false" Color="Color.Secondary" Href="https://fullstackhero.net/blazor-wasm-boilerplate/general/getting-started" Target="_blank">Read The Guide</MudButton>
                 </MudExpansionPanel>
                 <MudExpansionPanel Class="mud-table-outlined" Text="Important Links" MaxHeight="500">
-                    <MudList T="string" Clickable="true">
+                    <MudList T="string">
                         <MudListItem Text="Github Repository : Do Not Forget to Leave a Star ;)" Href="https://github.com/fullstackhero/dotnet-starter-kit/" />
                         <MudListItem Text="Quick Start Guide" Href="https://fullstackhero.net/blazor-wasm-boilerplate/general/getting-started" />
                     </MudList>
                 </MudExpansionPanel>
                 <MudExpansionPanel Class="mud-table-outlined" Text="Learning Resources" MaxHeight="1000">
                     Here are few articles that should help you get started with Blazor.
-                    <MudList T="string" Clickable="true">
+                    <MudList T="string">
                         <MudListItem Text="Blazor For Beginners – Getting Started With Blazor" Href="https://codewithmukesh.com/blog/getting-started-with-blazor/" />
                         <MudListItem Text="Onion Architecture In ASP.NET Core With CQRS – Detailed" Href="https://codewithmukesh.com/blog/onion-architecture-in-aspnet-core/" />
                         <MudListItem Text="How To Implement Blazor CRUD Using Entity Framework Core?" Href="https://codewithmukesh.com/blog/blazor-crud-with-entity-framework-core/" />
