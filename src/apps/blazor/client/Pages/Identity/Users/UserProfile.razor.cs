@@ -31,7 +31,7 @@ public partial class UserProfile
     private string? _lastName;
     private string? _phoneNumber;
     private string? _email;
-    private string? _imageUrl;
+    private Uri? _imageUrl;
     private bool _loaded;
     private bool _canToggleUserStatus;
 
@@ -48,7 +48,7 @@ public partial class UserProfile
     protected override async Task OnInitializedAsync()
     {
         if (await ApiHelper.ExecuteCallGuardedAsync(
-                () => UsersClient.GetUserEndpointAsync(Id), Toast)
+                () => UsersClient.GetUserEndpointAsync(Id!), Toast)
             is UserDetail user)
         {
             _firstName = user.FirstName;
@@ -57,7 +57,7 @@ public partial class UserProfile
             _phoneNumber = user.PhoneNumber;
             _active = user.IsActive;
             _emailConfirmed = user.EmailConfirmed;
-            //_imageUrl = string.IsNullOrEmpty(user.ImageUrl) ? string.Empty : Config[ConfigNames.ApiBaseUrl] + user.ImageUrl;
+            _imageUrl = user.ImageUrl;
             Title = $"{_firstName} {_lastName}'s Profile";
             Description = _email;
             if (_firstName?.Length > 0)

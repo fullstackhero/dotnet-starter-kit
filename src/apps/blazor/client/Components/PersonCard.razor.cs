@@ -34,7 +34,10 @@ public partial class PersonCard
             FullName = user.GetFullName();
             UserId = user.GetUserId();
             Email = user.GetEmail();
-            ImageUri = "";
+            if (user.GetImageUrl() != null)
+            {
+                ImageUri = user.GetImageUrl()!.ToString();
+            }
             StateHasChanged();
         }
     }

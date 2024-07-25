@@ -1,12 +1,12 @@
-﻿using FSH.Framework.Core.Storage.File.Features;
-using FSH.Framework.Core.Storage.File;
+﻿using FSH.Framework.Core.Storage.File;
+using FSH.Framework.Core.Storage.File.Features;
 
 namespace FSH.Framework.Core.Storage;
 
 public interface IStorageService
 {
-    public Task<string> UploadAsync<T>(FileUploadRequestCommand? request, FileType supportedFileType, CancellationToken cancellationToken = default)
+    public Task<Uri> UploadAsync<T>(FileUploadCommand? request, FileType supportedFileType, CancellationToken cancellationToken = default)
     where T : class;
 
-    public void Remove(string? path);
+    public void Remove(Uri? path);
 }

@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using FSH.Framework.Core.Storage.File.Features;
+using MediatR;
 
 namespace FSH.Framework.Core.Identity.Users.Features.UpdateUser;
 public class UpdateUserCommand : IRequest
@@ -8,4 +9,6 @@ public class UpdateUserCommand : IRequest
     public string? LastName { get; set; }
     public string? PhoneNumber { get; set; }
     public string? Email { get; set; }
+    public FileUploadCommand? Image { get; set; }
+    public bool DeleteCurrentImage { get; set; }
 }

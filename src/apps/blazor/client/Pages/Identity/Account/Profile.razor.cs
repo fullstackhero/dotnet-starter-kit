@@ -36,7 +36,10 @@ public partial class Profile
             _profileModel.FirstName = user.GetFirstName() ?? string.Empty;
             _profileModel.LastName = user.GetSurname() ?? string.Empty;
             _profileModel.PhoneNumber = user.GetPhoneNumber();
-            _imageUrl = "";
+            if (user.GetImageUrl() != null)
+            {
+                _imageUrl = user.GetImageUrl()!.ToString();
+            }
             if (_userId is not null) _profileModel.Id = _userId;
         }
 
@@ -58,26 +61,26 @@ public partial class Profile
 
     private async Task UploadFiles(InputFileChangeEventArgs e)
     {
-        //var file = e.File;
-        //if (file is not null)
-        //{
-        //    string? extension = Path.GetExtension(file.Name);
-        //    if (!ApplicationConstants.SupportedImageFormats.Contains(extension.ToLower()))
-        //    {
-        //        Snackbar.Add("Image Format Not Supported.", Severity.Error);
-        //        return;
-        //    }
+        var file = e.File;
+        if (file is not null)
+        {
+            string? extension = Path.GetExtension(file.Name);
+            if (!AppConstants.SupportedImageFormats.Contains(extension.ToLower()))
+            {
+                Toast.Add("Image Format Not Supported.", Severity.Error);
+                return;
+            }
 
-        //    string? fileName = $"{_userId}-{Guid.NewGuid():N}";
-        //    fileName = fileName[..Math.Min(fileName.Length, 90)];
-        //    var imageFile = await file.RequestImageFileAsync(ApplicationConstants.StandardImageFormat, ApplicationConstants.MaxImageWidth, ApplicationConstants.MaxImageHeight);
-        //    byte[]? buffer = new byte[imageFile.Size];
-        //    await imageFile.OpenReadStream(ApplicationConstants.MaxAllowedSize).ReadAsync(buffer);
-        //    string? base64String = $"data:{ApplicationConstants.StandardImageFormat};base64,{Convert.ToBase64String(buffer)}";
-        //    _profileModel.Image = new FileUploadRequest() { Name = fileName, Data = base64String, Extension = extension };
+            string? fileName = $"{_userId}-{Guid.NewGuid():N}";
+            fileName = fileName[..Math.Min(fileName.Length, 90)];
+            var imageFile = await file.RequestImageFileAsync(AppConstants.StandardImageFormat, AppConstants.MaxImageWidth, AppConstants.MaxImageHeight);
+            byte[]? buffer = new byte[imageFile.Size];
+            await imageFile.OpenReadStream(AppConstants.MaxAllowedSize).ReadAsync(buffer);
+            string? base64String = $"data:{AppConstants.StandardImageFormat};base64,{Convert.ToBase64String(buffer)}";
+            _profileModel.Image = new FileUploadCommand() { Name = fileName, Data = base64String, Extension = extension };
 
-        //    await UpdateProfileAsync();
-        //}
+            await UpdateProfileAsync();
+        }
     }
 
     public async Task RemoveImageAsync()
@@ -92,7 +95,7 @@ public partial class Profile
         var result = await dialog.Result;
         if (!result!.Canceled)
         {
-            //_profileModel.DeleteCurrentImage = true;
+            _profileModel.DeleteCurrentImage = true;
             await UpdateProfileAsync();
         }
     }

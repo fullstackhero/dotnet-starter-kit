@@ -23,7 +23,9 @@ using FSH.Framework.Infrastructure.Tenant.Endpoints;
 using FSH.Starter.Aspire.ServiceDefaults;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 
 namespace FSH.Framework.Infrastructure;
 
@@ -82,6 +84,13 @@ public static class Extensions
         app.UseCorsPolicy();
         app.UseOpenApi();
         app.UseJobDashboard(app.Configuration);
+        app.UseRouting();
+        app.UseStaticFiles();
+        app.UseStaticFiles(new StaticFileOptions()
+        {
+            FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "assets")),
+            RequestPath = new PathString("/assets")
+        });
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapTenantEndpoints();

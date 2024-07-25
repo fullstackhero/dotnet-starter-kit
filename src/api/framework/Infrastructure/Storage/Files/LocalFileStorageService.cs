@@ -1,19 +1,21 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using FSH.Framework.Core.Origin;
 using FSH.Framework.Core.Storage;
-using FSH.Framework.Core.Storage.File.Features;
 using FSH.Framework.Core.Storage.File;
+using FSH.Framework.Core.Storage.File.Features;
 using FSH.Framework.Infrastructure.Common.Extensions;
+using Microsoft.Extensions.Options;
 namespace FSH.Framework.Infrastructure.Storage.Files
 {
-    public class LocalFileStorageService : IStorageService
+    public class LocalFileStorageService(IOptions<OriginOptions> originSettings) : IStorageService
     {
-        public async Task<string> UploadAsync<T>(FileUploadRequestCommand? request, FileType supportedFileType, CancellationToken cancellationToken = default)
+        public async Task<Uri> UploadAsync<T>(FileUploadCommand? request, FileType supportedFileType, CancellationToken cancellationToken = default)
             where T : class
         {
             if (request == null || request.Data == null)
             {
-                return string.Empty;
+                return null!;
             }
 
             if (request.Extension is null || !supportedFileType.GetDescriptionList().Contains(request.Extension.ToLower(System.Globalization.CultureInfo.CurrentCulture)))
@@ -34,8 +36,8 @@ namespace FSH.Framework.Infrastructure.Storage.Files
 
                 string folderName = supportedFileType switch
                 {
-                    FileType.Image => Path.Combine("Files", "Images", folder),
-                    _ => Path.Combine("Files", "Others", folder),
+                    FileType.Image => Path.Combine("assets", "images", folder),
+                    _ => Path.Combine("assets", "others", folder),
                 };
                 string pathToSave = Path.Combine(Directory.GetCurrentDirectory(), folderName);
                 Directory.CreateDirectory(pathToSave);
@@ -54,11 +56,13 @@ namespace FSH.Framework.Infrastructure.Storage.Files
 
                 using var stream = new FileStream(fullPath, FileMode.Create);
                 await streamData.CopyToAsync(stream, cancellationToken);
-                return dbPath.Replace("\\", "/", StringComparison.Ordinal);
+                var path = dbPath.Replace("\\", "/", StringComparison.Ordinal);
+                var imageUri = new Uri(originSettings.Value.OriginUrl!, path);
+                return imageUri;
             }
             else
             {
-                return string.Empty;
+                return null!;
             }
         }
 
@@ -67,11 +71,12 @@ namespace FSH.Framework.Infrastructure.Storage.Files
             return Regex.Replace(str, "[^a-zA-Z0-9_.]+", string.Empty, RegexOptions.Compiled);
         }
 
-        public void Remove(string? path)
+        public void Remove(Uri? path)
         {
-            if (File.Exists(path))
+            var pathString = path!.ToString();
+            if (File.Exists(pathString))
             {
-                File.Delete(path);
+                File.Delete(pathString);
             }
         }
 

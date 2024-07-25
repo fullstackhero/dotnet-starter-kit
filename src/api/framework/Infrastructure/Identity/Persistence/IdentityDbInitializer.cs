@@ -113,6 +113,7 @@ internal sealed class IdentityDbInitializer(
                 PhoneNumberConfirmed = true,
                 NormalizedEmail = multiTenantContextAccessor.MultiTenantContext.TenantInfo?.AdminEmail!.ToUpperInvariant(),
                 NormalizedUserName = adminUserName.ToUpperInvariant(),
+                ImageUrl = new Uri(IdentityConstants.DefaultProfilePicture),
                 IsActive = true
             };
 

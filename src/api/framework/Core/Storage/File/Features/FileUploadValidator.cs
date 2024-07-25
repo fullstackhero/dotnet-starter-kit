@@ -2,7 +2,7 @@
 
 namespace FSH.Framework.Core.Storage.File.Features;
 
-public class FileUploadRequestValidator : AbstractValidator<FileUploadRequestCommand>
+public class FileUploadRequestValidator : AbstractValidator<FileUploadCommand>
 {
     public FileUploadRequestValidator()
     {

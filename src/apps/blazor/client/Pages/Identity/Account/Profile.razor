@@ -5,7 +5,9 @@
                 <div class="d-flex justify-center mb-4">
                     @if (!string.IsNullOrEmpty(_imageUrl))
                     {
-                        <MudAvatar Square="true" src="@_imageUrl" Style=" width:100%;height:auto;"> </MudAvatar>
+                        <MudAvatar Style=" width:100%;height:auto;border-radius:0px!important;">
+                            <MudImage Src="@_imageUrl.ToString()"></MudImage>
+                        </MudAvatar>
                     }
                     else
                     {
