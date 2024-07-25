@@ -17,14 +17,13 @@ else
                         <MudCardHeader>
                             <CardHeaderContent>
                                 <MudText Typo="Typo.body1">Administrator Settings.</MudText>
-                                <MudText Typo="Typo.body2">This is an Administrator Only View."</MudText>
+                                <MudText Typo="Typo.body2">This is an Administrator Only View.</MudText>
                             </CardHeaderContent>
                         </MudCardHeader>
                         <MudCardContent Class="pa-46" Style="padding:26px!important">
-                            <MudGrid>
-                                <MudSwitch T="bool" @bind-Value="@_active" Color="Color.Primary" Label="Active?"></MudSwitch>
-                                <MudCheckBox T="bool" ReadOnly @bind-Value="@_emailConfirmed" Disabled Label="Email Confirmed?" Color="Color.Secondary">
-                                    </MudCheckBox>
+                            <MudGrid Style="padding-left:14px">
+                                    <MudSwitch T="bool" @bind-Value="@_active" Color="Color.Primary" Label="Active?"></MudSwitch>
+                                <MudSwitch T="bool" ReadOnly @bind-Value="@_emailConfirmed" Disabled Label="Email Confirmed?" Color="Color.Secondary"></MudSwitch>
                                 <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto"
                             OnClick="ToggleUserStatus" ButtonType="ButtonType.Submit">Save Changes
                                 </MudButton>
@@ -38,9 +37,11 @@ else
             <MudCard Outlined>
                 <MudCardContent Style="padding:0px!important">
                     <div class="d-flex justify-center mb-4">
-                        @if (!string.IsNullOrEmpty(_imageUrl))
+                        @if (_imageUrl != null)
                         {
-                            <MudAvatar Square="true" Image="@_imageUrl" Style=" width:100%;height:auto;"> </MudAvatar>
+                            <MudAvatar Style=" width:100%;height:auto;border-radius:0px!important;">
+                                <MudImage Src="@_imageUrl.ToString()"></MudImage>
+                            </MudAvatar>
                         }
                         else
                         {
@@ -53,10 +54,10 @@ else
                 </MudCardContent>
                 <MudCardActions Class="d-flex justify-center">
                     <div style="padding-bottom:20px">
-                        @if (!string.IsNullOrEmpty(_imageUrl))
+                        @if (_imageUrl != null)
                         {
                             <MudButton HtmlTag="label" DisableElevation Variant="Variant.Filled" Color="Color.Info"
-                                       Size="Size.Small" Target="_blank" StartIcon="@Icons.Material.Filled.RemoveRedEye" Href="@_imageUrl"
+                                       Size="Size.Small" Target="_blank" StartIcon="@Icons.Material.Filled.RemoveRedEye" Href="@_imageUrl.ToString()"
                         Style="margin-left: 5px;">
                                View
                             </MudButton>

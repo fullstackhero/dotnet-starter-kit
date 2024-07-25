@@ -12,6 +12,8 @@ using FSH.Framework.Core.Identity.Users.Features.ToggleUserStatus;
 using FSH.Framework.Core.Identity.Users.Features.UpdateUser;
 using FSH.Framework.Core.Jobs;
 using FSH.Framework.Core.Mail;
+using FSH.Framework.Core.Storage;
+using FSH.Framework.Core.Storage.File;
 using FSH.Framework.Core.Tenant;
 using FSH.Framework.Infrastructure.Constants;
 using FSH.Framework.Infrastructure.Identity.Persistence;
@@ -33,7 +35,8 @@ internal sealed partial class UserService(
     ICacheService cache,
     IJobService jobService,
     IMailService mailService,
-    IMultiTenantContextAccessor<FshTenantInfo> multiTenantContextAccessor
+    IMultiTenantContextAccessor<FshTenantInfo> multiTenantContextAccessor,
+    IStorageService storageService
     ) : IUserService
 {
     private void EnsureValidTenant()
@@ -158,7 +161,17 @@ internal sealed partial class UserService(
     {
         var user = await userManager.FindByIdAsync(userId);
 
-        _ = user ?? throw new NotFoundException("User Not Found.");
+        _ = user ?? throw new NotFoundException("user not found");
+
+        Uri imageUri = user.ImageUrl ?? null!;
+        if (request.Image != null || request.DeleteCurrentImage)
+        {
+            user.ImageUrl = await storageService.UploadAsync<FshUser>(request.Image, FileType.Image);
+            if (request.DeleteCurrentImage && imageUri != null)
+            {
+                storageService.Remove(imageUri);
+            }
+        }
 
         user.FirstName = request.FirstName;
         user.LastName = request.LastName;

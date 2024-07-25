@@ -4659,6 +4659,21 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.0.7.0 (NJsonSchema v11.0.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class FileUploadCommand
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
+        public string? Name { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("extension")]
+        public string? Extension { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("data")]
+        public string? Data { get; set; } = default!;
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.0.7.0 (NJsonSchema v11.0.0.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class Filter
     {
 
@@ -5054,6 +5069,12 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
 
         [System.Text.Json.Serialization.JsonPropertyName("email")]
         public string? Email { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("image")]
+        public FileUploadCommand Image { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("deleteCurrentImage")]
+        public bool DeleteCurrentImage { get; set; } = default!;
 
     }
 

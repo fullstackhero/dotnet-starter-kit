@@ -8,7 +8,9 @@
             }
             else
             {
-                <MudAvatar Image="@ImageUri" />
+                <MudAvatar>
+                    <MudImage Src="@ImageUri.ToString()"></MudImage>
+                </MudAvatar>
             }
         </CardHeaderAvatar>
         <CardHeaderContent>

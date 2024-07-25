@@ -123,7 +123,8 @@ public sealed class TokenService : ITokenService
             new(ClaimTypes.Surname, user.LastName ?? string.Empty),
             new(IdentityConstants.Claims.IpAddress, ipAddress),
             new(IdentityConstants.Claims.Tenant, _multiTenantContextAccessor!.MultiTenantContext.TenantInfo!.Id),
-            new(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty)
+            new(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty),
+            new(IdentityConstants.Claims.ImageUrl, user.ImageUrl == null ? string.Empty : user.ImageUrl.ToString())
         };
     private static string GenerateRefreshToken()
     {
