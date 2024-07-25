@@ -29,9 +29,9 @@ public sealed class FshTenantInfo : IFshTenantInfo
     public string Name { get; set; } = default!;
     public string ConnectionString { get; set; } = default!;
 
-    public string AdminEmail { get; private set; } = default!;
-    public bool IsActive { get; private set; }
-    public DateTime ValidUpto { get; private set; }
+    public string AdminEmail { get; set; } = default!;
+    public bool IsActive { get; set; }
+    public DateTime ValidUpto { get; set; }
     public string? Issuer { get; set; }
 
     public void AddValidity(int months) =>
