@@ -11,10 +11,10 @@
         <DialogContent>
             <MudGrid>
                  <MudItem xs="12" md="6">
-                    <MudTextField For="@(() => Request.Tenant)" @bind-Value="Request.Tenant" ReadOnly DisableUnderLine Label="Tenant Id" />
+                    <MudTextField For="@(() => Request.Tenant)" @bind-Value="Request.Tenant" ReadOnly Underline="false" Label="Tenant Id" />
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudTextField Value="Request.ExtendedExpiryDate.ToLongDateString()" ReadOnly DisableUnderLine Label="Current Expiry Date" />
+                    <MudTextField Value="Request.ExtendedExpiryDate.ToLongDateString()" ReadOnly Underline="false" Label="Current Expiry Date" />
                 </MudItem>
                 <MudItem xs="12" md="12">
                     <MudDatePicker Color="Color.Secondary" Label="New Expiry Date" DateFormat="dddd, MMM dd, yyyy" @bind-Date="date"/>
@@ -22,8 +22,8 @@
             </MudGrid>
         </DialogContent>
         <DialogActions>
-            <MudButton DisableElevation Variant="Variant.Filled" OnClick="Cancel">Cancel</MudButton>
-             <MudButton DisableElevation Variant="Variant.Filled" ButtonType="ButtonType.Submit" Color="Color.Secondary">Upgrade</MudButton>
+            <MudButton DropShadow="false" Variant="Variant.Filled" OnClick="Cancel">Cancel</MudButton>
+             <MudButton DropShadow="false" Variant="Variant.Filled" ButtonType="ButtonType.Submit" Color="Color.Secondary">Upgrade</MudButton>
         </DialogActions>
     </MudDialog>
 </EditForm>

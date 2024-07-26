@@ -26,12 +26,12 @@
                 </MudButton>
                 @if(!string.IsNullOrEmpty(_imageUrl))
                 {
-                    <MudButton HtmlTag="label" DisableElevation Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" Target="_blank"
+                    <MudButton HtmlTag="label" DropShadow="false" Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" Target="_blank"
                         StartIcon="@Icons.Material.Filled.RemoveRedEye" Href="@_imageUrl" Style="margin-left: 5px;" >
                         View
                     </MudButton>
 
-                    <MudButton HtmlTag="label" DisableElevation Variant="Variant.Filled" Color="Color.Error" Size="Size.Small"
+                    <MudButton HtmlTag="label" DropShadow="false" Variant="Variant.Filled" Color="Color.Error" Size="Size.Small"
                                    StartIcon="@Icons.Material.Filled.Delete" OnClick="RemoveImageAsync" Style="margin-left: 5px;">
                         Delete
                     </MudButton>
@@ -70,7 +70,7 @@
                         <MudItem xs="12" md="6">
                             <MudTextField @bind-Value="@_profileModel.Email" Label="Email"
                                 For="@(() => _profileModel.Email)" Variant="Variant.Outlined"
-                                InputType="InputType.Email" Disabled=true />
+                                InputType="InputType.Email" Disabled="true" />
                         </MudItem>
                     </MudGrid>
                 </MudCardContent>

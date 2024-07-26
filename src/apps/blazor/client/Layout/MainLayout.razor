@@ -12,8 +12,8 @@
             Href="https://opencollective.com/fullstackhero" Target="_blank" StartIcon="@Icons.Material.Filled.Favorite">
             Sponsor</MudButton>
         <MudToggleIconButton @bind-Toggled="@_isDarkMode" Icon="@Icons.Material.Filled.WbSunny"
-                             Color="@Color.Warning" Title="Off" Class="d-flex ml-auto" ToggledIcon="@Icons.Material.Filled.DarkMode"
-                             ToggledColor="@Color.Surface" ToggledTitle="On" style="left:8px!important" @onclick="@ToggleDarkMode" />
+                             Color="@Color.Warning" title="off" Class="d-flex ml-auto" ToggledIcon="@Icons.Material.Filled.DarkMode"
+                             ToggledColor="@Color.Surface" toggledTitle="on" style="left:8px!important" @onclick="@ToggleDarkMode" />
         <MudTooltip Text="Support">
              <MudMenu Icon="@Icons.Material.Filled.SupportAgent" Color="Color.Inherit" Dense="true" AnchorOrigin="Origin.CenterRight">
                 <MudText Typo="Typo.body2" Class="px-4 py-2"><b>Community</b></MudText>
@@ -87,7 +87,7 @@
         </ChildContent>
     </MudMenu>
 </MudAppBar>
-<MudDrawer @bind-Open="_drawerOpen" Outlined ClipMode="DrawerClipMode.Never">
+<MudDrawer @bind-Open="_drawerOpen" outlined ClipMode="DrawerClipMode.Never">
     <NavMenu />
 </MudDrawer>
 
