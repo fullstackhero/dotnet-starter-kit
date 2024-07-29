@@ -24,7 +24,7 @@ public partial class Todos
             {
                 new(prod => prod.Id,"Id", "Id"),
                 new(prod => prod.Title,"Title", "Title"),
-                new(prod => prod.Notes, "Note", "Note")
+                new(prod => prod.Note, "Note", "Note")
             },
             enableAdvancedSearch: false,
             idFunc: prod => prod.Id!.Value,
