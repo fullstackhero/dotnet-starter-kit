@@ -53,7 +53,7 @@
     <PackageVersion Include="Carter" Version="8.2.1" />
   </ItemGroup>
   <ItemGroup>
-    <PackageVersion Include="Serilog" Version="4.0.0" />
+    <PackageVersion Include="Serilog" Version="4.0.1" />
     <PackageVersion Include="Serilog.AspNetCore" Version="8.0.1" />
     <PackageVersion Include="Serilog.Enrichers.CorrelationId" Version="3.0.1" />
     <PackageVersion Include="Serilog.Enrichers.Environment" Version="3.0.1" />
