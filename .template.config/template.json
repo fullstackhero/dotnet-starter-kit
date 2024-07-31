@@ -18,7 +18,7 @@
     "name": "FullStackHero .NET Starter Kit",
     "description": "The best way to start a full-stack .NET 8 Web App.",
     "shortName": "fsh",
-    "sourceName": "FSH",
+    "sourceName": "FSH.Starter",
     "preferNameDirectory": true,
     "sources": [
         {
@@ -33,6 +33,7 @@
                 "templates/**/*",
                 "**/*.filelist",
                 "**/*.user",
+                "**/images",
                 "**/*.lock.json",
                 "*.nuspec"
             ],
@@ -43,19 +44,19 @@
     ],
     "primaryOutputs": [
         {
-            "path": "./"
+            "path": "./src"
         }
     ],
     "postActions": [
         {
-            "description": "Restore NuGet packages required by this project.",
+            "description": "restore webapi project dependencies",
             "manualInstructions": [
                 {
                     "text": "Run 'dotnet restore'"
                 }
             ],
             "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
-            "continueOnError": true
+            "continueOnError": false
         }
     ]
 }
