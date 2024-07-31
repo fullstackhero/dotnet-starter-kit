@@ -1,0 +1,45 @@
+name: blazor
+
+on:
+  push:
+    branches: ["v2"]
+    paths: ["src/apps/blazor/**"]
+
+  pull_request:
+    branches: ["v2"]
+    paths: ["src/apps/blazor/**"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: restore dependencies
+        run: dotnet restore ./src/apps/blazor/client/Client.csproj
+      - name: build
+        run: dotnet build ./src/apps/blazor/client/Client.csproj --no-restore
+      - name: test
+        run: dotnet test ./src/apps/blazor/client/Client.csproj --no-build --verbosity normal
+
+  publish:
+    needs: build
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: docker login
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: build and publish to github container registry
+        working-directory: ./src/apps/blazor/
+        run: |
+          docker build -t ghcr.io/${{ github.repository_owner }}/blazor:latest -f Dockerfile .
+          docker push ghcr.io/${{ github.repository_owner }}/blazor:latest

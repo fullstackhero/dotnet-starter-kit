@@ -1,0 +1,45 @@
+name: webapi
+
+on:
+  push:
+    branches: ["v2"]
+    paths: ["src/api/**"]
+
+  pull_request:
+    branches: ["v2"]
+    paths: ["src/api/**"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: restore dependencies
+        run: dotnet restore ./src/api/server/Server.csproj
+      - name: build
+        run: dotnet build ./src/api/server/Server.csproj --no-restore
+      - name: test
+        run: dotnet test ./src/api/server/Server.csproj --no-build --verbosity normal
+
+  publish:
+    needs: build
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: docker login
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: publish to github container registry
+        working-directory: ./src/api/server/
+        run: |
+          dotnet publish -c Release -p:ContainerRepository=ghcr.io/${{ github.repository_owner}}/webapi -p:RuntimeIdentifier=linux-x64
+          docker push ghcr.io/${{ github.repository_owner}}/webapi --all-tags

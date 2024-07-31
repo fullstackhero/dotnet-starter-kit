@@ -1,0 +1,16 @@
+﻿@using MudBlazor
+<div class="pb-6">
+    <PageTitle>@Title</PageTitle>
+    <MudText Typo="Typo.h2">@Header</MudText>
+    <MudText Typo="Typo.body1" >@SubHeader</MudText>
+</div >
+@code {
+    [Parameter]
+    public required string Title { get; set; }
+
+    [Parameter]
+    public required string Header { get; set; }
+
+    [Parameter]
+    public required string SubHeader { get; set; }
+}

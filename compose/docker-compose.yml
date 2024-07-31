@@ -1,0 +1,143 @@
+version: "4"
+name: fullstackhero
+
+services:
+  webapi:
+    image: ghcr.io/fullstackhero/webapi:latest
+    pull_policy: always
+    container_name: webapi
+    networks:
+      - fullstackhero
+    environment:
+      ASPNETCORE_ENVIRONMENT: docker
+      ASPNETCORE_URLS: https://+:7000;http://+:5000
+      ASPNETCORE_HTTPS_PORT: 7000
+      ASPNETCORE_Kestrel__Certificates__Default__Password: password!
+      ASPNETCORE_Kestrel__Certificates__Default__Path: /https/cert.pfx
+      DatabaseOptions__ConnectionString: Server=postgres;Port=5433;Database=fullstackhero;User Id=pgadmin;Password=pgadmin
+      DatabaseOptions__Provider: postgresql
+      JwtOptions__Key: QsJbczCNysv/5SGh+U7sxedX8C07TPQPBdsnSDKZ/aE=
+      HangfireOptions__Username: admin
+      HangfireOptions__Password: Secure1234!Me
+      MailOptions__From: mukesh@fullstackhero.net
+      MailOptions__Host: smtp.ethereal.email
+      MailOptions__Port: 587
+      MailOptions__UserName: sherman.oconnell47@ethereal.email
+      MailOptions__Password: KbuTCFv4J6Fy7256vh
+      MailOptions__DisplayName: Mukesh Murugan
+      CorsOptions__AllowedOrigins__0: http://localhost:5010
+      CorsOptions__AllowedOrigins__1: http://localhost:7100
+      CorsOptions__AllowedOrigins__2: https://localhost:7020
+      OpenTelemetryOptions__Endpoint: http://otel-collector:4317
+      RateLimitOptions__EnableRateLimiting: false
+    volumes:
+      - ~/.aspnet/https:/https:ro
+    ports:
+      - 7000:7000
+      - 5000:5000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+
+  blazor:
+    image: ghcr.io/fullstackhero/blazor:latest
+    pull_policy: always
+    container_name: blazor
+    environment:
+      ASPNETCORE_ENVIRONMENT: docker
+      ASPNETCORE_URLS: https://+:7100;http://+:5010
+      ASPNETCORE_HTTPS_PORT: 7100
+      ASPNETCORE_Kestrel__Certificates__Default__Password: password!
+      ASPNETCORE_Kestrel__Certificates__Default__Path: /https/cert.pfx
+      ApiBaseUrl: http://webapi:7000
+    networks:
+      - fullstackhero
+    volumes:
+      - ~/.aspnet/https:/https:ro
+    ports:
+      - 7100:7100
+      - 5100:5100
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+
+  postgres:
+    container_name: postgres
+    image: postgres:15-alpine
+    networks:
+      - fullstackhero
+    environment:
+      POSTGRES_USER: pgadmin
+      POSTGRES_PASSWORD: pgadmin
+      PGPORT: 5433
+    ports:
+      - 5433:5433
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pgadmin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    networks:
+      - fullstackhero
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    ports:
+      - 9090:9090
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:latest
+    ports:
+      - 3000:3000
+    volumes:
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - fullstackhero
+
+  otel-collector:
+    image: otel/opentelemetry-collector:0.95.0
+    container_name: otel-collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - 8888:8888
+      - 8889:8889
+      - 13133:13133
+      - 4317:4317
+    networks:
+      - fullstackhero
+
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:v1.5.0
+    container_name: node_exporter
+    command: "--path.rootfs=/host"
+    pid: host
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    networks:
+      - fullstackhero
+
+volumes:
+  postgres-data:
+  grafana-data:
+  prometheus-data:
+
+networks:
+  fullstackhero:

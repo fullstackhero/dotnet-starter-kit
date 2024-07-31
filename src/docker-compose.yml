@@ -1,0 +1,28 @@
+version: '3.8'
+name: fsh-api-infra
+services:
+    db:
+        container_name: db
+        image: postgres:16.1-alpine
+    seq:
+        container_name: seq
+        image: datalust/seq:latest
+    prometheus:
+        image: prom/prometheus:latest
+        volumes:
+        - ./prometheus.yml:/etc/prometheus/prometheus.yml
+        ports:
+        - "9090:9090"
+
+    grafana:
+        image: grafana/grafana:latest
+        ports:
+        - "3000:3000"
+        volumes:
+        - grafana-storage:/var/lib/grafana
+        depends_on:
+        - prometheus
+
+volumes:
+  db-data:
+  grafana-storage:

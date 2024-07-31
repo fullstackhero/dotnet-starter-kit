@@ -1,0 +1,71 @@
+﻿@page "/register"
+@attribute [AllowAnonymous]
+
+<PageTitle>Register</PageTitle>
+
+<EditForm Model="@_createUserRequest" OnValidSubmit="SubmitAsync">
+    <MudCard Elevation="0">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudTooltip Text="Go Back">
+                    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Color="Color.Inherit" Edge="Edge.Start"
+                                   Href="/" />
+                </MudTooltip>
+                <br />
+                <div class="fsh-center-text" style="padding-top: 20px;">
+                    <MudText Typo="Typo.h4" GutterBottom="true" style="margin-bottom:5px">
+                        Register
+                    </MudText>
+                    <MudText>Enter your details below to set up your new account</MudText>
+                </div>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudGrid>
+                <DataAnnotationsValidator />
+                <FshValidation @ref="_customValidation" />
+                <MudItem xs="12" md="6">
+                    <MudTextField T="string" Label="Tenant Name" Variant="Variant.Outlined" @bind-Value="Tenant"
+                                  For="@(() => Tenant)" Required />
+                </MudItem>
+                   <MudItem xs="12" md="6">
+                    <MudTextField T="string" Label="User Name" Variant="Variant.Outlined"
+                                  @bind-Value="_createUserRequest.UserName" For="@(() => _createUserRequest.UserName)"
+                                  InputType="InputType.Text" Adornment="Adornment.End" />
+                </MudItem>
+                <MudItem xs="12" md="12">
+                    <MudTextField T="string" Label="E-mail" Variant="Variant.Outlined"
+                                  @bind-Value="_createUserRequest.Email" For="@(() => _createUserRequest.Email)"
+                                  InputType="InputType.Email" Adornment="Adornment.End" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudTextField T="string" Label="First Name" Variant="Variant.Outlined"
+                                  @bind-Value="_createUserRequest.FirstName" For="@(() => _createUserRequest.FirstName)"
+                                  InputType="InputType.Text" Adornment="Adornment.End" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudTextField T="string" Label="Last Name" Variant="Variant.Outlined"
+                                  @bind-Value="_createUserRequest.LastName" For="@(() => _createUserRequest.LastName)"
+                                  InputType="InputType.Text" Adornment="Adornment.End" />
+                </MudItem>
+
+             
+                <MudItem xs="12" md="6">
+                    <MudTextField Label="Password" Variant="Variant.Outlined" @bind-Value="_createUserRequest.Password"
+                                  For="@(() => _createUserRequest.Password)" InputType="@_passwordInput" Adornment="Adornment.End"
+                                  AdornmentIcon="@_passwordInputIcon" OnAdornmentClick="TogglePasswordVisibility" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudTextField Label="Confirm Password" Variant="Variant.Outlined" @bind-Value="_createUserRequest.ConfirmPassword"
+                                  For="@(() => _createUserRequest.ConfirmPassword)" InputType="@_passwordInput" Adornment="Adornment.End"
+                                  AdornmentIcon="@_passwordInputIcon" OnAdornmentClick="TogglePasswordVisibility" />
+                </MudItem>
+            </MudGrid>
+        </MudCardContent>
+        <MudCardActions Class="pb-4 pl-4">
+            <MudButton DropShadow="false" StartIcon="@Icons.Material.Filled.AppRegistration" Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit" Disabled="BusySubmitting" Class="ml-auto">
+                Register
+            </MudButton>
+        </MudCardActions>
+    </MudCard>
+</EditForm>

@@ -1,0 +1,95 @@
+﻿@page "/"
+@using System.Security.Claims
+
+<MudContainer>
+    <MudGrid>
+        <MudItem xs="12" sm="12" md="12">
+            <div class="d-flex justify-center mt-4">
+                 <img src="full-stack-hero-logo.png" Style="height:250px" />
+            </div>
+        </MudItem>
+        <MudItem xs="12" sm="12" md="12">
+            <MudText Align="Align.Center" Typo="Typo.h2">The best way to start a fullstack .NET 8 Web App.</MudText>
+        </MudItem>
+
+        <MudItem xs="12" sm="12" md="12">
+            <MudText Align="Align.Center" Typo="Typo.h5" Class="smaller">fullstackhero's</MudText>
+            <MudText Align="Align.Center" Typo="Typo.h4">.NET 8 Starter Kit</MudText>            
+        </MudItem>
+
+        <MudItem xs="12" sm="12" md="12">
+            <MudText Align="Align.Center">
+                Built with the goodness of <MudLink Href="https://www.mudblazor.com" Target="_blank">MudBlazor</MudLink> Component Library
+            </MudText>
+        </MudItem>
+
+        <MudItem xs="12" sm="12" md="12">
+           <div class="mud-typography-align-center">
+                <MudButton DropShadow="false" Variant="Variant.Filled" Color="Color.Primary" Href="https://fullstackhero.net/basics/getting-started/" Target="_blank" StartIcon="@Icons.Material.Filled.Rocket">Get Started</MudButton>
+                <MudButton DropShadow="false" Variant="Variant.Outlined" Style="margin-left:5px" Color="Color.Default" Href="https://github.com/fullstackhero/dotnet-starter-kit/" Target="_blank" StartIcon="@Icons.Custom.Brands.GitHub">Star on GitHub</MudButton>
+            </div>
+        </MudItem>
+        <MudItem xs="12" sm="12" md="12">
+             <MudText Align="Align.Center">Version 2.0</MudText>
+        </MudItem>
+        <MudItem xs="12" sm="12" md="12">
+            <MudExpansionPanels>
+                <MudExpansionPanel Class="mud-table-outlined" Text="Getting Started" MaxHeight="150">
+                    In case you are stuck anywhere or have any queries regarding this implementation, I have compiled a Quick Start Guide for you reference.
+                    <MudButton Variant="Variant.Text" DropShadow="false" Color="Color.Secondary" Href="https://fullstackhero.net/blazor-wasm-boilerplate/general/getting-started" Target="_blank">Read The Guide</MudButton>
+                </MudExpansionPanel>
+                <MudExpansionPanel Class="mud-table-outlined" Text="Important Links" MaxHeight="500">
+                    <MudList T="string">
+                        <MudListItem Text="Github Repository : Do Not Forget to Leave a Star ;)" Href="https://github.com/fullstackhero/dotnet-starter-kit/" />
+                        <MudListItem Text="Quick Start Guide" Href="https://fullstackhero.net/blazor-wasm-boilerplate/general/getting-started" />
+                    </MudList>
+                </MudExpansionPanel>
+                <MudExpansionPanel Class="mud-table-outlined" Text="Learning Resources" MaxHeight="1000">
+                    Here are few articles that should help you get started with Blazor.
+                    <MudList T="string">
+                        <MudListItem Text="Blazor For Beginners – Getting Started With Blazor" Href="https://codewithmukesh.com/blog/getting-started-with-blazor/" />
+                        <MudListItem Text="Onion Architecture In ASP.NET Core With CQRS – Detailed" Href="https://codewithmukesh.com/blog/onion-architecture-in-aspnet-core/" />
+                        <MudListItem Text="How To Implement Blazor CRUD Using Entity Framework Core?" Href="https://codewithmukesh.com/blog/blazor-crud-with-entity-framework-core/" />
+                        <MudListItem Text="Custom Authentication In Blazor WebAssembly – Detailed" Href="https://codewithmukesh.com/blog/authentication-in-blazor-webassembly/" />
+                        <MudListItem Text="Implementing Blazor CRUD Using Mudblazor Component Library In .NET 5" Href="https://codewithmukesh.com/blog/blazor-crud-using-mudblazor/" />
+                        <MudListItem Text="Exploring Blazor Project Structure" Href="https://codewithmukesh.com/blog/exploring-blazor-project-structure/" />
+                        <MudListItem Text="Building A Chat Application With Blazor, Identity, And SignalR" Href="https://codewithmukesh.com/blog/realtime-chat-application-with-blazor/" />
+                    </MudList>
+                </MudExpansionPanel>
+                <MudExpansionPanel Class="mud-table-outlined" Text="User Claims">
+                    Application Claims of the currently logged in user
+                     <MudList T="string" Dense="true">
+                @if (Claims is not null)
+                {
+                    @foreach (var claim in Claims)
+                    {
+                        <MudListItem>
+                            <MudChip>
+                                @claim.Type
+                            </MudChip>
+                            @claim.Value
+                        </MudListItem>
+                    }
+                }
+            </MudList>
+                </MudExpansionPanel>
+            </MudExpansionPanels>
+        </MudItem>
+        <MudItem  xs="12" sm="12" md="12">
+            <MudAlert Style="margin-top:10px;justify-content:center" Severity="Severity.Info"><MudLink Href="https://github.com/fullstackhero/blazor-wasm-boilerplate">Liked this Boilerplate? Star us on Github!</MudLink></MudAlert>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    public IEnumerable<Claim>? Claims { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthState;
+        Claims = authState.User.Claims;
+    }
+}

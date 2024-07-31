@@ -1,0 +1,17 @@
+<MudExpansionPanel HideIcon="true">
+    <TitleContent>
+        <div class="d-flex" style="align-items: center;">
+            @if (_isDarkMode)
+            {
+                <MudText Class="mt-1">Switch to Light Mode</MudText>
+            }
+            else
+            {
+                <MudText Class="mt-1">Switch to Dark Mode</MudText>
+            }
+            <MudToggleIconButton @bind-Toggled="_isDarkMode" Icon="@Icons.Material.Filled.WbSunny"
+                Color="@Color.Warning" title="off" Class="d-flex ml-auto" ToggledIcon="@Icons.Material.Filled.DarkMode"
+                ToggledColor="@Color.Surface" toggledtitle="on" style="left:8px!important" @onclick="@ToggleDarkMode" />
+        </div>
+    </TitleContent>
+</MudExpansionPanel>

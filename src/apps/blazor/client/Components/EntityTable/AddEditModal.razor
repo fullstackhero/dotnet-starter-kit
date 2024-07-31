@@ -1,0 +1,49 @@
+﻿@typeparam TRequest
+
+<EditForm Model="@RequestModel" OnValidSubmit="SaveAsync">
+    <MudDialog>
+
+        <TitleContent>
+            <MudText Typo="Typo.h6">
+                @if (IsCreate)
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-3 mb-n1" />
+                }
+                else
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.Update" Class="mr-3 mb-n1" />
+                }
+                @Title
+            </MudText>
+        </TitleContent>
+
+        <DialogContent>
+            <DataAnnotationsValidator />
+            <FshValidation @ref="_customValidation" />
+            <MudGrid>
+
+                @ChildContent(RequestModel)
+
+            </MudGrid>
+        </DialogContent>
+
+        <DialogActions>
+            <MudButton DropShadow="false" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Cancel" OnClick="MudDialog.Cancel">
+               Cancel
+            </MudButton>
+            @if (IsCreate)
+            {
+                <MudButton DropShadow="false" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" ButtonType="ButtonType.Submit" Color="Color.Success">
+                    Save
+                </MudButton>
+            }
+            else
+            {
+                <MudButton DropShadow="false" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Update" ButtonType="ButtonType.Submit" Color="Color.Secondary">
+                    Update
+                </MudButton>
+            }
+        </DialogActions>
+
+    </MudDialog>
+</EditForm>

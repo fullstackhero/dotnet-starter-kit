@@ -1,0 +1,31 @@
+﻿@page "/identity/account"
+
+<PageHeader Title="Account" Header="Account" SubHeader="Manage your Account." />
+
+<MudTabs Outlined Color="Color.Transparent" Rounded="true" PanelClass="mt-6">
+    <MudTabPanel Text="Profile">
+        <Profile />
+    </MudTabPanel>
+    @if (!SecurityTabHidden)
+    {
+        <MudTabPanel Text="Security">
+            <Security />
+        </MudTabPanel>
+    }
+</MudTabs>
+
+@code
+{
+    [Inject]
+    public IAuthenticationService AuthService { get; set; } = default!;
+
+    public bool SecurityTabHidden { get; set; } = false;
+
+    protected override void OnInitialized()
+    {
+        // if (AuthService.ProviderType == AuthProvider.AzureAd)
+        // {
+        //     SecurityTabHidden = true;
+        // }
+    }
+}

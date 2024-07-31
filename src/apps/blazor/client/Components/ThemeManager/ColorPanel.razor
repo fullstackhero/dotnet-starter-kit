@@ -1,0 +1,27 @@
+<MudExpansionPanel HideIcon="true">
+    <TitleContent>
+        <div class="d-flex">
+            <MudText Class="mt-1">@ColorType</MudText>
+            <MudAvatar Color="CurrentColor" Class="d-flex ml-auto" style="width: 30px;height:30px;">
+            </MudAvatar>
+        </div>
+    </TitleContent>
+    <ChildContent>
+        <MudGrid>
+            <MudItem xs="12">
+                <MudGrid Spacing="0">
+                    @foreach (var color in Colors)
+                    {
+                        <MudButton OnClick="@(() => ColorClicked(color))"
+                        style="padding:0px!important;border-radius:0px!important">
+                            <ChildContent>
+                                <div style="@($"background: {color};");width: 65px;height:65px">
+                                </div>
+                            </ChildContent>
+                        </MudButton>
+                    }
+                </MudGrid>
+            </MudItem>
+        </MudGrid>
+    </ChildContent>
+</MudExpansionPanel>
