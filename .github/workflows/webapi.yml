@@ -2,11 +2,11 @@ name: webapi
 
 on:
   push:
-    branches: ["v2"]
+    branches: ["main"]
     paths: ["src/api/**"]
 
   pull_request:
-    branches: ["v2"]
+    branches: ["main"]
     paths: ["src/api/**"]
 
 jobs:
