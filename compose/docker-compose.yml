@@ -82,7 +82,7 @@ services:
     ports:
       - 5433:5433
     volumes:
-      - $BASE_PATH/postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U pgadmin"]
       interval: 10s
@@ -96,8 +96,8 @@ services:
     networks:
       - fullstackhero
     volumes:
-      - $BASE_PATH/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - $BASE_PATH/prometheus-data:/prometheus
+      - prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
     ports:
       - 9090:9090
 
@@ -107,7 +107,7 @@ services:
     ports:
       - 3000:3000
     volumes:
-      - $BASE_PATH/grafana-data:/var/lib/grafana
+      - grafana-data:/var/lib/grafana
     depends_on:
       - prometheus
     restart: unless-stopped
