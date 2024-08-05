@@ -23,8 +23,8 @@ processors:
         value: service_name
 
 exporters:
-  logging:
-    # logLevel: debug
+  debug:
+    verbosity: detailed
   file/traces:
     path: /log/otel/traces.log
   file/metrics:
@@ -43,6 +43,9 @@ exporters:
       insecure: true
 
 service:
+  telemetry:
+    logs:
+      level: debug
   pipelines:
     traces:
       receivers:
@@ -50,7 +53,7 @@ service:
         - zipkin
       processors: [batch]
       exporters:
-        - logging 
+        - debug 
         - file/traces
         - otlp
     metrics:
@@ -58,7 +61,7 @@ service:
         - otlp
       processors: [batch]
       exporters:
-        - logging 
+        - debug 
         - file/metrics
         - prometheus
     logs:
@@ -66,7 +69,7 @@ service:
         - otlp
       processors: [batch, resource]
       exporters:
-        - logging 
+        - debug 
         - file/logs
         - loki
   extensions:
