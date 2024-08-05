@@ -19,8 +19,6 @@ scrape_configs:
   - job_name: 'node-exporter'
     # Override the global default and scrape targets from this job every 5 seconds.
     scrape_interval: 5s
-    dns_sd_configs:
-    - names:
-      - 'tasks.node-exporter'
-      type: 'A'
-      port: 9100
+    static_configs:
+    - targets:
+      - 'node_exporter:9100'

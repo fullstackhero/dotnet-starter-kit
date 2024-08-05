@@ -30,6 +30,7 @@ services:
       CorsOptions__AllowedOrigins__2: https://localhost:7020
       OpenTelemetryOptions__Endpoint: http://otel-collector:4317
       RateLimitOptions__EnableRateLimiting: false
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
     volumes:
       - ~/.aspnet/https:/https:ro
     ports:
@@ -41,7 +42,7 @@ services:
     restart: on-failure
 
   blazor:
-    image: ${FSH_DOTNETSTARTERKIT_WEBAPI_IMAGE}
+    image: ${FSH_DOTNETSTARTERKIT_BLAZOR_IMAGE}
     pull_policy: always
     container_name: blazor
     environment:
@@ -96,7 +97,7 @@ services:
     networks:
       - fullstackhero
     volumes:
-      - prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus-data:/prometheus
     ports:
       - 9090:9090
@@ -104,10 +105,14 @@ services:
   grafana:
     container_name: grafana
     image: grafana/grafana:latest
+    user: '472'
+    environment:
+      GF_INSTALL_PLUGINS: 'grafana-clock-panel,grafana-simple-json-datasource'
     ports:
       - 3000:3000
     volumes:
       - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
     depends_on:
       - prometheus
     restart: unless-stopped
@@ -118,15 +123,50 @@ services:
     image: otel/opentelemetry-collector-contrib:latest
     container_name: otel-collector
     command: ["--config=/etc/otel/config.yaml"]
+    environment:
+      JAEGER_ENDPOINT: "jaeger:4317"
+      LOKI_ENDPOINT: "http://loki:3100/loki/api/v1/push"
     volumes:
       - $BASE_PATH/otel-collector/otel-config.yaml:/etc/otel/config.yaml
       - $BASE_PATH/otel-collector/log:/log/otel
+    depends_on:
+      - jaeger
+      - loki
     ports:
       - 8888:8888     # Prometheus metrics exposed by the collector
       - 8889:8889     # Prometheus metrics exporter (scrape endpoint)
       - 13133:13133   # health_check extension
       - "55679:55679" # ZPages extension
       - 4317:4317     # OTLP gRPC receiver
+    networks:
+      - fullstackhero
+
+  jaeger:
+    container_name: jaeger
+    image: jaegertracing/all-in-one:latest
+    command: --query.ui-config /etc/jaeger/jaeger-ui.json
+    environment:
+      - METRICS_STORAGE_TYPE=prometheus
+      - PROMETHEUS_SERVER_URL=http://prometheus:9090
+      - COLLECTOR_OTLP_ENABLED=true
+    volumes:
+      - $BASE_PATH/jaeger/jaeger-ui.json:/etc/jaeger/jaeger-ui.json
+    depends_on:
+      - prometheus
+    ports:
+      - "16686:16686"
+      - "4317"
+    networks:
+      - fullstackhero
+
+  loki:
+    container_name: loki
+    image: grafana/loki:latest
+    command: -config.file=/mnt/config/loki-config.yml
+    volumes:
+      - $BASE_PATH/loki/loki.yml:/mnt/config/loki-config.yml
+    ports:
+      - "3100:3100"
     networks:
       - fullstackhero
 
