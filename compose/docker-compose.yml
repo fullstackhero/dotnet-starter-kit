@@ -1,4 +1,4 @@
-version: "3.8"
+version: "4" #on wsl linux replace 3.8
 name: fullstackhero #on wsl linux replace with export COMPOSE_PROJECT_NAME=fullstackhero before docker-compose up command
 
 services:

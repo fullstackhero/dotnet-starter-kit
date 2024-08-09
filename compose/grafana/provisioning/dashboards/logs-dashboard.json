@@ -24,7 +24,6 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 6,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -52,6 +51,7 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
@@ -65,6 +65,7 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "stepBefore",
             "lineStyle": {
               "fill": "solid"
@@ -124,14 +125,13 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "sum by (level) (count_over_time({service_name=\"$service_name\", level=~\"$level\"} | json [$__interval]))",
+          "expr": "sum by (level) (count_over_time({service_name=\"$service_name\", level=~\"$level\"} [$__interval]))",
           "legendFormat": "{{level}}",
           "queryType": "range",
           "refId": "A"
         }
       ],
       "title": "Log Volume",
-      "transformations": [],
       "type": "timeseries"
     },
     {
@@ -177,7 +177,7 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "{service_name=\"$service_name\", level=~\"$level\"} |=\"$search\" | json | line_format `[{{ .level }}] {{ .body }}`",
+          "expr": "{service_name=\"$service_name\", severity_text=~\"$level\"} |=\"$search\" | line_format `[{{ .severity_text }}] {{ .message_template_text }}`",
           "queryType": "range",
           "refId": "A"
         }
@@ -238,16 +238,15 @@
     }
   ],
   "refresh": "",
-  "schemaVersion": 38,
-  "style": "dark",
+  "schemaVersion": 39,
   "tags": [],
   "templating": {
     "list": [
       {
         "current": {
-          "selected": true,
-          "text": "FST.TAG.Manager",
-          "value": "FST.TAG.Manager"
+          "selected": false,
+          "text": "FSH.Starter.WebApi.Host",
+          "value": "FSH.Starter.WebApi.Host"
         },
         "datasource": {
           "type": "loki",
@@ -274,7 +273,7 @@
       },
       {
         "current": {
-          "selected": true,
+          "selected": false,
           "text": "All",
           "value": "$__all"
         },
@@ -289,7 +288,7 @@
         "name": "level",
         "options": [],
         "query": {
-          "label": "level",
+          "label": "severity_text",
           "refId": "LokiVariableQueryEditor-VariableQuery",
           "stream": "",
           "type": 1
@@ -330,6 +329,6 @@
   "timezone": "",
   "title": "Logs",
   "uid": "f4463c33-40c8-4def-aac2-95d365040f2e",
-  "version": 2,
+  "version": 1,
   "weekStart": ""
 }
