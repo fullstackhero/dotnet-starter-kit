@@ -5,7 +5,9 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
+using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 namespace FSH.Starter.Aspire.ServiceDefaults;
@@ -37,25 +39,65 @@ public static class Extensions
 
     public static IHostApplicationBuilder ConfigureOpenTelemetry(this IHostApplicationBuilder builder)
     {
+
+        #region OpenTelemetry
+
+        // Configure OpenTelemetry service resource details
+        // See https://github.com/open-telemetry/opentelemetry-specification/tree/main/specification/resource/semantic_conventions
+        var entryAssembly = System.Reflection.Assembly.GetEntryAssembly();
+        var entryAssemblyName = entryAssembly?.GetName();
+        var versionAttribute = entryAssembly?.GetCustomAttributes(false)
+            .OfType<System.Reflection.AssemblyInformationalVersionAttribute>()
+            .FirstOrDefault();
+        var resourceServiceName = entryAssemblyName?.Name;
+        var resourceServiceVersion = versionAttribute?.InformationalVersion ?? entryAssemblyName?.Version?.ToString();
+        var attributes = new Dictionary<string, object>
+        {
+            ["host.name"] = Environment.MachineName,
+            ["service.names"] = "FSH.Starter.WebApi.Host", //builder.Configuration["OpenTelemetrySettings:ServiceName"]!, //It's a WA Fix because the service.name tag is not completed automatically by Resource.Builder()...AddService(serviceName) https://github.com/open-telemetry/opentelemetry-dotnet/issues/2027
+            ["os.description"] = System.Runtime.InteropServices.RuntimeInformation.OSDescription,
+            ["deployment.environment"] = builder.Environment.EnvironmentName.ToLowerInvariant()
+        };
+        var resourceBuilder = ResourceBuilder.CreateDefault()
+            .AddService(serviceName: resourceServiceName, serviceVersion: resourceServiceVersion)
+            .AddTelemetrySdk()
+            //.AddEnvironmentVariableDetector()
+            .AddAttributes(attributes);
+
+        #endregion region
+
+
         builder.Logging.AddOpenTelemetry(logging =>
         {
             logging.IncludeFormattedMessage = true;
             logging.IncludeScopes = true;
+            logging.SetResourceBuilder(resourceBuilder);
         });
 
         builder.Services.AddOpenTelemetry()
             .WithMetrics(metrics =>
             {
-                metrics.AddAspNetCoreInstrumentation()
+                metrics.SetResourceBuilder(resourceBuilder)
+                       .AddAspNetCoreInstrumentation()
                        .AddHttpClientInstrumentation()
                        .AddRuntimeInstrumentation()
+                       .AddProcessInstrumentation()
                        .AddMeter(MetricsConstants.Todos)
                        .AddMeter(MetricsConstants.Catalog);
+                       //.AddConsoleExporter();
             })
             .WithTracing(tracing =>
             {
-                tracing.AddAspNetCoreInstrumentation()
-                       .AddHttpClientInstrumentation();
+                if (builder.Environment.IsDevelopment())
+                {
+                    tracing.SetSampler(new AlwaysOnSampler());
+                }
+
+                tracing.SetResourceBuilder(resourceBuilder)
+                       .AddAspNetCoreInstrumentation(nci => nci.RecordException = true)
+                       .AddHttpClientInstrumentation()
+                       .AddEntityFrameworkCoreInstrumentation();
+                       //.AddConsoleExporter();
             });
 
         builder.AddOpenTelemetryExporters();

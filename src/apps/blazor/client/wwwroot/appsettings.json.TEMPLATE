@@ -1,0 +1,4 @@
+﻿{
+  "ApiBaseUrl": "${FSHStarterBlazorClient_ApiBaseUrl}"
+}
+

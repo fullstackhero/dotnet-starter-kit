@@ -2,11 +2,11 @@ name: blazor
 
 on:
   push:
-    branches: ["main"]
+    branches: ["open_telemetric_and_docker_fixes"]
     paths: ["src/apps/blazor/**"]
 
   pull_request:
-    branches: ["main"]
+    branches: ["open_telemetric_and_docker_fixes"]
     paths: ["src/apps/blazor/**"]
 
 jobs:

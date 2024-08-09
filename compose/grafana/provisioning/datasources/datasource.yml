@@ -1,0 +1,103 @@
+# config file version
+apiVersion: 1
+
+# list of datasources that should be deleted from the database
+deleteDatasources:
+  - name: Prometheus
+    orgId: 1
+
+# list of datasources to insert/update depending
+# whats available in the database
+datasources:
+  # <string, required> name of the datasource. Required
+- name: Prometheus
+  uid: prom
+  # <string, required> datasource type. Required
+  type: prometheus
+  # <string, required> access mode. direct or proxy. Required
+  access: proxy
+  # <int> org id. will default to orgId 1 if not specified
+  orgId: 1
+  # <string> url
+  url: http://prometheus:9090
+  # <string> database password, if used
+  password:
+  # <string> database user, if used
+  user:
+  # <string> database name, if used
+  database:
+  # <bool> enable/disable basic auth
+  basicAuth: false
+  # <string> basic auth username, if used
+  basicAuthUser:
+  # <string> basic auth password, if used
+  basicAuthPassword:
+  # <bool> enable/disable with credentials headers
+  withCredentials:
+  # <bool> mark as default datasource. Max one per org
+  isDefault: true
+  # <map> fields that will be converted to json and stored in json_data
+  jsonData:
+     graphiteVersion: "1.1"
+     tlsAuth: false
+     tlsAuthWithCACert: false
+  # <string> json object of data that will be encrypted.
+  secureJsonData:
+    tlsCACert: "..."
+    tlsClientCert: "..."
+    tlsClientKey: "..."
+  version: 1
+  # <bool> allow users to edit datasources from the UI.
+  editable: true
+
+- name: Loki
+  uid: loki
+  type: loki
+  access: proxy
+  url: http://loki:3100
+  # <bool> allow users to edit datasources from the UI.
+  editable: true
+  jsonData:
+    derivedFields:
+      - datasourceUid: jaeger
+        matcherRegex: (?:"traceid"):"(\w+)"
+        name: TraceID
+        url: $${__value.raw}
+
+- name: Jaeger
+  type: jaeger
+  uid: jaeger
+  access: proxy
+  url: http://jaeger:16686
+  readOnly: false
+  isDefault: false
+  # <bool> allow users to edit datasources from the UI.
+  editable: true
+  jsonData:
+    tracesToLogsV2:
+      # Field with an internal link pointing to a logs data source in Grafana.
+      # datasourceUid value must match the uid value of the logs data source.
+      datasourceUid: 'loki'
+      spanStartTimeShift: '1h'
+      spanEndTimeShift: '-1h'
+      tags: [{ key: 'service.names', value: 'service_name' }]
+      filterByTraceID: false
+      filterBySpanID: false
+      customQuery: true
+      query: '{$${__tags}} |="$${__trace.traceId}"'
+    tracesToMetrics:
+      datasourceUid: 'prom'
+      spanStartTimeShift: '1h'
+      spanEndTimeShift: '-1h'
+      tags: [{ key: 'service.name', value: 'service' }, { key: 'job' }]
+      queries:
+        - name: 'Sample query'
+          query: 'sum(rate(traces_spanmetrics_latency_bucket{$$__tags}[5m]))'
+    nodeGraph:
+      enabled: true
+    traceQuery:
+      timeShiftEnabled: true
+      spanStartTimeShift: '1h'
+      spanEndTimeShift: '-1h'
+    spanBar:
+      type: 'None'
