@@ -1,14 +1,17 @@
 extensions:
   health_check:
   zpages:
-    endpoint: :55679
+    endpoint: 0.0.0.0:55679
 
 receivers:
   otlp:
     protocols:
       grpc:
+        endpoint: 0.0.0.0:4317
       http:
+        endpoint: 0.0.0.0:4318
   zipkin:
+    endpoint: 0.0.0.0:9411
 
 processors:
   batch:
@@ -37,11 +40,9 @@ exporters:
       insecure: true
   prometheus:
     endpoint: "0.0.0.0:8889"
-  loki:
-    endpoint: "${LOKI_ENDPOINT}"
-    tls:
-      insecure: true
-
+  otlphttp:
+    endpoint: "http://loki:3100/otlp"
+      
 service:
   telemetry:
     logs:
@@ -71,7 +72,7 @@ service:
       exporters:
         - debug 
         - file/logs
-        - loki
+        - otlphttp
   extensions:
     - health_check
     - zpages

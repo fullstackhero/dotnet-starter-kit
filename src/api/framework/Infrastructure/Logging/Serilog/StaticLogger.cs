@@ -1,5 +1,7 @@
 ﻿using Serilog;
 using Serilog.Core;
+using Serilog.OpenTelemetry;
+using Serilog.Sinks.OpenTelemetry;
 
 namespace FSH.Framework.Infrastructure.Logging.Serilog;
 public static class StaticLogger
@@ -11,6 +13,7 @@ public static class StaticLogger
             Log.Logger = new LoggerConfiguration()
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
+                .WriteTo.OpenTelemetry()
                 .CreateLogger();
         }
     }
