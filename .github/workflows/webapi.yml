@@ -2,11 +2,11 @@ name: webapi
 
 on:
   push:
-    branches: ["open_telemetric_and_docker_fixes"]
+    branches: ["main"]
     paths: ["src/api/**"]
 
   pull_request:
-    branches: ["open_telemetric_and_docker_fixes"]
+    branches: ["main"]
     paths: ["src/api/**"]
 
 jobs:
