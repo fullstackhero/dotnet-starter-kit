@@ -26,13 +26,13 @@ public partial class SelfRegister
         BusySubmitting = true;
 
         var response = await ApiHelper.ExecuteCallGuardedAsync(
-            () => UsersClient.RegisterUserEndpointAsync(_createUserRequest),
+            () => UsersClient.SelfRegisterUserEndpointAsync(Tenant, _createUserRequest),
             Toast,
             _customValidation);
 
         if (response != null)
         {
-            Toast.Add(response.UserId, Severity.Info);
+            Toast.Add($"user {response.UserId} registered.", Severity.Success);
             Navigation.NavigateTo("/login");
         }
 
