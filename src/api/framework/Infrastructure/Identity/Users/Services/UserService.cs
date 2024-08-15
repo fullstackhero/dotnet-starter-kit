@@ -253,22 +253,24 @@ internal sealed partial class UserService(
             }
         }
 
-        // Filter the roles that exist
-        var existingRoles = request.UserRoles
-            .Where(userRole => roleManager.FindByNameAsync(userRole.RoleName!).Result is not null);
-
-        // Add roles where Enabled is true and the user is not already in the role
-        var rolesToAdd = existingRoles
-            .Where(userRole => userRole.Enabled && !userManager.IsInRoleAsync(user, userRole.RoleName!).Result)
-            .Select(userRole => userManager.AddToRoleAsync(user, userRole.RoleName!));
-
-        // Remove roles where Enabled is false
-        var rolesToRemove = existingRoles
-            .Where(userRole => !userRole.Enabled)
-            .Select(userRole => userManager.RemoveFromRoleAsync(user, userRole.RoleName!));
-
-        // Await all tasks
-        await Task.WhenAll(rolesToAdd.Concat(rolesToRemove));
+        foreach (var userRole in request.UserRoles)
+        {
+            // Check if Role Exists
+            if (await roleManager.FindByNameAsync(userRole.RoleName!) is not null)
+            {
+                if (userRole.Enabled)
+                {
+                    if (!await userManager.IsInRoleAsync(user, userRole.RoleName!))
+                    {
+                        await userManager.AddToRoleAsync(user, userRole.RoleName!);
+                    }
+                }
+                else
+                {
+                    await userManager.RemoveFromRoleAsync(user, userRole.RoleName!);
+                }
+            }
+        }
 
         return "User Roles Updated Successfully.";
 
