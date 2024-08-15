@@ -27,7 +27,6 @@ public record EntityField<TEntity>(Func<TEntity, object?> ValueFunc, string Disp
 
     /// <summary>
     /// When supplied this template will be used for this field in stead of the default template.
-    /// For an example on how to do this, see <see cref="Pages.Personal.AuditLogs"/>.
     /// </summary>
     public RenderFragment<TEntity>? Template { get; init; } = Template;
 

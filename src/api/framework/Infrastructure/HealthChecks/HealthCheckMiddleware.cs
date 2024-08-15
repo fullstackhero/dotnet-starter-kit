@@ -6,12 +6,10 @@ namespace FSH.Framework.Infrastructure.HealthChecks;
 
 public class HealthCheckMiddleware
 {
-    private readonly RequestDelegate _next;
     private readonly HealthCheckService _healthCheckService;
 
-    public HealthCheckMiddleware(RequestDelegate next, HealthCheckService healthCheckService)
+    public HealthCheckMiddleware(HealthCheckService healthCheckService)
     {
-        _next = next;
         _healthCheckService = healthCheckService;
     }
 

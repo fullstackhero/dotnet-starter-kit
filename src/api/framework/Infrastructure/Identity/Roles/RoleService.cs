@@ -96,7 +96,7 @@ public class RoleService(RoleManager<FshRole> roleManager,
         var currentClaims = await _roleManager.GetClaimsAsync(role);
 
         // Remove permissions that were previously selected
-        foreach (var claim in currentClaims.Where(c => !request.Permissions.Any(p => p == c.Value)))
+        foreach (var claim in currentClaims.Where(c => !request.Permissions.Exists(p => p == c.Value)))
         {
             var result = await _roleManager.RemoveClaimAsync(role, claim);
             if (!result.Succeeded)

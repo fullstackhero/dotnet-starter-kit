@@ -225,7 +225,7 @@ internal sealed partial class UserService(
 
     public async Task<string> AssignRolesAsync(string userId, AssignUserRoleCommand request, CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(request, nameof(request));
+        ArgumentNullException.ThrowIfNull(request);
 
         var user = await userManager.Users.Where(u => u.Id == userId).FirstOrDefaultAsync(cancellationToken);
 
@@ -233,7 +233,7 @@ internal sealed partial class UserService(
 
         // Check if the user is an admin for which the admin role is getting disabled
         if (await userManager.IsInRoleAsync(user, FshRoles.Admin)
-            && request.UserRoles.Any(a => !a.Enabled && a.RoleName == FshRoles.Admin))
+            && request.UserRoles.Exists(a => !a.Enabled && a.RoleName == FshRoles.Admin))
         {
             // Get count of users in Admin Role
             int adminCount = (await userManager.GetUsersInRoleAsync(FshRoles.Admin)).Count;
@@ -253,24 +253,22 @@ internal sealed partial class UserService(
             }
         }
 
-        foreach (var userRole in request.UserRoles)
-        {
-            // Check if Role Exists
-            if (await roleManager.FindByNameAsync(userRole.RoleName!) is not null)
-            {
-                if (userRole.Enabled)
-                {
-                    if (!await userManager.IsInRoleAsync(user, userRole.RoleName!))
-                    {
-                        await userManager.AddToRoleAsync(user, userRole.RoleName!);
-                    }
-                }
-                else
-                {
-                    await userManager.RemoveFromRoleAsync(user, userRole.RoleName!);
-                }
-            }
-        }
+        // Filter the roles that exist
+        var existingRoles = request.UserRoles
+            .Where(userRole => roleManager.FindByNameAsync(userRole.RoleName!).Result is not null);
+
+        // Add roles where Enabled is true and the user is not already in the role
+        var rolesToAdd = existingRoles
+            .Where(userRole => userRole.Enabled && !userManager.IsInRoleAsync(user, userRole.RoleName!).Result)
+            .Select(userRole => userManager.AddToRoleAsync(user, userRole.RoleName!));
+
+        // Remove roles where Enabled is false
+        var rolesToRemove = existingRoles
+            .Where(userRole => !userRole.Enabled)
+            .Select(userRole => userManager.RemoveFromRoleAsync(user, userRole.RoleName!));
+
+        // Await all tasks
+        await Task.WhenAll(rolesToAdd.Concat(rolesToRemove));
 
         return "User Roles Updated Successfully.";
 
