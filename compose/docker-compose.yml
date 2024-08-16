@@ -54,15 +54,14 @@ services:
       ApiBaseUrl: https://localhost:7000
     networks:
       - fullstackhero
-    entrypoint:
-      [
+    entrypoint: [
         "/bin/sh",
         "-c",
         "envsubst <
-          $${Frontend_FSHStarterBlazorClient_Settings__AppSettingsTemplate} >
-          $${Frontend_FSHStarterBlazorClient_Settings__AppSettingsJson} && find
-          /usr/share/nginx/html -type f | xargs chmod +r && exec nginx -g
-          'daemon off;'"
+        $${Frontend_FSHStarterBlazorClient_Settings__AppSettingsTemplate} >
+        $${Frontend_FSHStarterBlazorClient_Settings__AppSettingsJson} && find
+        /usr/share/nginx/html -type f | xargs chmod +r && exec nginx -g
+        'daemon off;'",
       ]
     volumes:
       - ~/.aspnet/https:/https:ro
@@ -107,9 +106,9 @@ services:
   grafana:
     container_name: grafana
     image: grafana/grafana:latest
-    user: '472'
+    user: "472"
     environment:
-      GF_INSTALL_PLUGINS: 'grafana-clock-panel,grafana-simple-json-datasource'
+      GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource"
     ports:
       - 3000:3000
     volumes:
@@ -136,12 +135,12 @@ services:
       - loki
       - prometheus
     ports:
-      - 8888:8888     # Prometheus metrics exposed by the collector
-      - 8889:8889     # Prometheus metrics exporter (scrape endpoint)
-      - 13133:13133   # health_check extension
+      - 8888:8888 # Prometheus metrics exposed by the collector
+      - 8889:8889 # Prometheus metrics exporter (scrape endpoint)
+      - 13133:13133 # health_check extension
       - "55679:55679" # ZPages extension
-      - 4317:4317     # OTLP gRPC receiver
-      - 4318:4318     # OTLP Http receiver (Protobuf)
+      - 4317:4317 # OTLP gRPC receiver
+      - 4318:4318 # OTLP Http receiver (Protobuf)
     networks:
       - fullstackhero
 
