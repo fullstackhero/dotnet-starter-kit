@@ -4,7 +4,7 @@
 scrape_configs:
   - job_name: 'fullstackhero.api'
     static_configs:
-      - targets: ['webapi:5000']
+      - targets: ['host.docker.internal:5000']
 
   - job_name: otel
     static_configs:

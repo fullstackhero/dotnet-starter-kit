@@ -1,8 +1,8 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
 builder.AddContainer("grafana", "grafana/grafana")
-       .WithBindMount("../../../compose/grafana-ori/config", "/etc/grafana", isReadOnly: true)
-       .WithBindMount("../../../compose/grafana-ori/dashboards", "/var/lib/grafana/dashboards", isReadOnly: true)
+       .WithBindMount("../../../compose/grafana/config", "/etc/grafana", isReadOnly: true)
+       .WithBindMount("../../../compose/grafana/dashboards", "/var/lib/grafana/dashboards", isReadOnly: true)
        .WithHttpEndpoint(port: 3000, targetPort: 3000, name: "http");
 
 builder.AddContainer("prometheus", "prom/prometheus")
