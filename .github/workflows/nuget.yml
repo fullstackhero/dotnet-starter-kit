@@ -1,0 +1,23 @@
+name: Publish NuGet
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "FSH.StarterKit.nuspec"
+jobs:
+  publish:
+    name: publish nuget
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        name: checkout code
+      - uses: nuget/setup-nuget@v2
+        name: setup nuget
+        with:
+          nuget-version: "latest"
+          nuget-api-key: ${{ secrets.NUGET_API_KEY }}
+      - name: generate package
+        run: nuget pack FSH.StarterKit.nuspec -NoDefaultExcludes
+      - name: publish package
+        run: nuget push *.nupkg -Source 'https://api.nuget.org/v3/index.json' -SkipDuplicate

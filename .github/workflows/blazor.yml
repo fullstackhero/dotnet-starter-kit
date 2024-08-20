@@ -1,15 +1,21 @@
-name: .NET 8 Blazor
+name: Blazor
 
 on:
   workflow_dispatch:
 
   push:
-    branches: ["main"]
-    paths: ["src/apps/blazor/**"]
+    branches:
+      - main
+    paths:
+      - "src/apps/blazor/**"
+      - "src/Directory.Packages.props"
 
   pull_request:
-    branches: ["main"]
-    paths: ["src/apps/blazor/**"]
+    branches:
+      - main
+    paths:
+      - "src/apps/blazor/**"
+      - "src/Directory.Packages.props"
 
 jobs:
   build:

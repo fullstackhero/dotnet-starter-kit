@@ -1,15 +1,21 @@
-name: .NET 8 Web API
+name: WebAPI
 
 on:
   workflow_dispatch:
 
   push:
-    branches: ["main"]
-    paths: ["src/api/**"]
+    branches:
+      - main
+    paths:
+      - "src/api/**"
+      - "src/Directory.Packages.props"
 
   pull_request:
-    branches: ["main"]
-    paths: ["src/api/**"]
+    branches:
+      - main
+    paths:
+      - "src/api/**"
+      - "src/Directory.Packages.props"
 
 jobs:
   build:
