@@ -1,4 +1,4 @@
-name: webapi
+name: .NET 8 Web API
 
 on:
   workflow_dispatch:

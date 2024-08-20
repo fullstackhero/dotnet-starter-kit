@@ -1,4 +1,4 @@
-name: blazor
+name: .NET 8 Blazor
 
 on:
   workflow_dispatch:
