@@ -84,7 +84,7 @@ public static class Extensions
                        .AddProcessInstrumentation()
                        .AddMeter(MetricsConstants.Todos)
                        .AddMeter(MetricsConstants.Catalog);
-                       //.AddConsoleExporter();
+                //.AddConsoleExporter();
             })
             .WithTracing(tracing =>
             {
@@ -97,7 +97,7 @@ public static class Extensions
                        .AddAspNetCoreInstrumentation(nci => nci.RecordException = true)
                        .AddHttpClientInstrumentation()
                        .AddEntityFrameworkCoreInstrumentation();
-                       //.AddConsoleExporter();
+                //.AddConsoleExporter();
             });
 
         builder.AddOpenTelemetryExporters();
@@ -146,12 +146,11 @@ public static class Extensions
         
         // All health checks must pass for app to be considered ready to accept traffic after starting
         app.MapHealthChecks("/health").AllowAnonymous();
-
         // Only health checks tagged with the "live" tag must pass for app to be considered alive
         app.MapHealthChecks("/alive", new HealthCheckOptions
         {
             Predicate = r => r.Tags.Contains("live")
-        }).AllowAnonymous();        
+        }).AllowAnonymous();
 
         return app;
     }

@@ -10,7 +10,7 @@ terraform {
 
 provider "aws" {
   region = var.aws_region
-  # default_tags {
-  #   tags = merge(local.common_tags)
-  # }
+  default_tags {
+    tags = merge(local.common_tags)
+  }
 }
