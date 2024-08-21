@@ -143,10 +143,9 @@ public static class Extensions
                 if (context.Request.Path != "/metrics") return false;
                 return true;
             });
-
+        
         // All health checks must pass for app to be considered ready to accept traffic after starting
         app.MapHealthChecks("/health").AllowAnonymous();
-
         // Only health checks tagged with the "live" tag must pass for app to be considered alive
         app.MapHealthChecks("/alive", new HealthCheckOptions
         {
