@@ -1,26 +1,59 @@
-resource "aws_internet_gateway" "demo-vpc-internet-gateway" {
-  vpc_id = "${aws_vpc.demo-vpc.id}"
+resource "aws_vpc" "this" {
+  cidr_block           = var.cidr_block
+  enable_dns_hostnames = true
+  enable_dns_support   = true
 }
 
-resource "aws_network_acl" "demo-vpc-network-acl" {
-    vpc_id = "${aws_vpc.demo-vpc.id}"
-    subnet_ids = ["${aws_subnet.demo-vpc-subnet1.id}", "${aws_subnet.demo-vpc-subnet2.id}"]
+resource "aws_subnet" "private_a" {
+  vpc_id            = aws_vpc.this.id
+  cidr_block        = var.private_cidr_a
+  availability_zone = var.availability_zone_a
+}
 
-    egress {
-        protocol   = "-1"
-        rule_no    = 100
-        action     = "allow"
-        cidr_block = "0.0.0.0/0"
-        from_port  = 0
-        to_port    = 0
-    }
+resource "aws_subnet" "private_b" {
+  vpc_id            = aws_vpc.this.id
+  cidr_block        = var.private_cidr_b
+  availability_zone = var.availability_zone_b
+}
 
-    ingress {
-        protocol   = "-1"
-        rule_no    = 100
-        action     = "allow"
-        cidr_block = "0.0.0.0/0"
-        from_port  = 0
-        to_port    = 0
-    }
+resource "aws_network_acl" "this" {
+  vpc_id = aws_vpc.this.id
+
+  egress {
+    protocol   = "-1"
+    rule_no    = 100
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 0
+    to_port    = 0
+  }
+
+  ingress {
+    protocol   = "-1"
+    rule_no    = 100
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 0
+    to_port    = 0
+  }
+}
+
+resource "aws_network_acl_association" "private_a_association" {
+  subnet_id      = aws_subnet.private_a.id
+  network_acl_id = aws_network_acl.this.id
+}
+
+resource "aws_network_acl_association" "private_b_association" {
+  subnet_id      = aws_subnet.private_b.id
+  network_acl_id = aws_network_acl.this.id
+}
+
+resource "aws_internet_gateway" "this" {
+  vpc_id = aws_vpc.this.id
+}
+
+resource "aws_route" "internet_access" {
+  route_table_id         = aws_vpc.this.main_route_table_id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.this.id
 }

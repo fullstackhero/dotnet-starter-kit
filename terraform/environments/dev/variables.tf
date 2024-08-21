@@ -8,24 +8,24 @@ variable "environment" {
   type    = string
   default = "dev"
 }
-# variable "owner" {
-#   type = string
-# }
+variable "owner" {
+  type = string
+}
 
-# variable "project_name" {
-#   type = string
-# }
+variable "project_name" {
+  type = string
+}
 
-# variable "repository" {
-#   type = string
-# }
+variable "repository" {
+  type = string
+}
 
 
-# locals {
-#   common_tags = {
-#     Environment = var.environment
-#     Owner       = var.owner
-#     Project     = var.project_name
-#     Repository  = var.repository
-#   }
-# }
+locals {
+  common_tags = {
+    Environment = var.environment
+    Owner       = var.owner
+    Project     = var.project_name
+    Repository  = var.repository
+  }
+}
