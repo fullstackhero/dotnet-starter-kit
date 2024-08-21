@@ -7,9 +7,12 @@ categories:
   - title: 🚀 New features and improvements
     labels:
       - enhancement
+      - feat
+      - feature
   - title: 🐛 Bug fixes
     labels:
       - bug
+      - fix
   - title: 📦 Dependency updates
     labels:
       - dependencies
@@ -17,6 +20,8 @@ categories:
   - title: 📝 Documentation updates
     labels:
       - documentation
+      - docs
+      - doc
   - title: 🌐 Localization and translation
     labels:
       - localization
@@ -52,4 +57,4 @@ autolabeler:
   - label: 'enhancement'
     branch:
       - '/feature\/.+/'
- 
+      - '/feat\/.+/'
