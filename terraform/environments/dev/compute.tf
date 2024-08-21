@@ -17,6 +17,7 @@ module "webapi" {
     DatabaseOptions__Provider         = "postgresql"
     Serilog__MinimumLevel__Default    = "Error"
     CorsOptions__AllowedOrigins__0    = "http://${module.blazor.endpoint}"
+    OriginOptions__OriginUrl          = "http://${module.webapi.endpoint}:8080"
   }
 }
 
