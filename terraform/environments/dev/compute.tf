@@ -42,7 +42,4 @@ module "blazor" {
     "-c",
     "envsubst < $${Frontend_FSHStarterBlazorClient_Settings__AppSettingsTemplate} > $${Frontend_FSHStarterBlazorClient_Settings__AppSettingsJson} || echo 'envsubst failed' && find /usr/share/nginx/html -type f | xargs chmod +r || echo 'chmod failed' && echo 'Entry point execution completed' && cat /usr/share/nginx/html/appsettings.json && exec nginx -g 'daemon off;'"
   ]
-
-
-
 }
