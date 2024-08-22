@@ -30,8 +30,7 @@
 
     async Task Submit()
     {
-        await AuthService.LogoutAsync();
-        Toast.Add("Logged out", Severity.Warning);
+        Navigation.NavigateTo("/logout");
         MudDialog.Close(DialogResult.Ok(true));
     }
 

@@ -94,7 +94,7 @@ public partial class Tenants
     {
         if (await ApiHelper.ExecuteCallGuardedAsync(
             () => ApiClient.DisableTenantEndpointAsync(id),
-            Toast,
+            Toast, Navigation,
             null,
             "Tenant Deactivated.") is not null)
         {
@@ -106,7 +106,7 @@ public partial class Tenants
     {
         if (await ApiHelper.ExecuteCallGuardedAsync(
             () => ApiClient.ActivateTenantEndpointAsync(id),
-            Toast,
+            Toast, Navigation,
             null,
             "Tenant Activated.") is not null)
         {

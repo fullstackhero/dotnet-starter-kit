@@ -1,4 +1,5 @@
 ﻿using FSH.Starter.Blazor.Infrastructure.Api;
+using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
 namespace FSH.Starter.Blazor.Client.Components;
@@ -8,6 +9,7 @@ public static class ApiHelper
     public static async Task<T?> ExecuteCallGuardedAsync<T>(
         Func<Task<T>> call,
         ISnackbar snackbar,
+        NavigationManager navigationManager,
         FshValidation? customValidation = null,
         string? successMessage = null)
     {
@@ -23,8 +25,12 @@ public static class ApiHelper
 
             return result;
         }
-        catch (Exception ex)
+        catch (ApiException ex)
         {
+            if (ex.StatusCode == 401)
+            {
+                navigationManager.NavigateTo("/logout");
+            }
             var message = ex.Message switch
             {
                 "TypeError: Failed to fetch" => "Unable to Reach API",

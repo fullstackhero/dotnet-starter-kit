@@ -42,7 +42,7 @@ public partial class RolePermissions
         _canSearchRoleClaims = await AuthService.HasPermissionAsync(state.User, FshAction.View, FshResource.RoleClaims);
 
         if (await ApiHelper.ExecuteCallGuardedAsync(
-                () => RolesClient.GetRolePermissionsEndpointAsync(Id), Toast)
+                () => RolesClient.GetRolePermissionsEndpointAsync(Id), Toast, Navigation)
             is RoleDto role && role.Permissions is not null)
         {
             _title = string.Format("{0} Permissions", role.Name);

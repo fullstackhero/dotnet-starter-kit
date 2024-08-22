@@ -38,14 +38,14 @@ public partial class UserRoles
         _canSearchRoles = await AuthService.HasPermissionAsync(state.User, FshAction.View, FshResource.UserRoles);
 
         if (await ApiHelper.ExecuteCallGuardedAsync(
-                () => UsersClient.GetUserEndpointAsync(Id!), Toast)
+                () => UsersClient.GetUserEndpointAsync(Id!), Toast, Navigation)
             is UserDetail user)
         {
             _title = $"{user.FirstName} {user.LastName}'s Roles";
             _description = string.Format("Manage {0} {1}'s Roles", user.FirstName, user.LastName);
 
             if (await ApiHelper.ExecuteCallGuardedAsync(
-                    () => UsersClient.GetUserRolesEndpointAsync(user.Id.ToString()), Toast)
+                    () => UsersClient.GetUserRolesEndpointAsync(user.Id.ToString()), Toast, Navigation)
                 is ICollection<UserRoleDetail> response)
             {
                 _userRolesList = response.ToList();

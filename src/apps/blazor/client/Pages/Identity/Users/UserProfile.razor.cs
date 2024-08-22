@@ -48,7 +48,7 @@ public partial class UserProfile
     protected override async Task OnInitializedAsync()
     {
         if (await ApiHelper.ExecuteCallGuardedAsync(
-                () => UsersClient.GetUserEndpointAsync(Id!), Toast)
+                () => UsersClient.GetUserEndpointAsync(Id!), Toast, Navigation)
             is UserDetail user)
         {
             _firstName = user.FirstName;

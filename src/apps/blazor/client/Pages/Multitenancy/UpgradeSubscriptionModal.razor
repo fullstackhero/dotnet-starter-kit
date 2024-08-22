@@ -42,7 +42,7 @@
         Request.ExtendedExpiryDate = date.HasValue ? date.Value : Request.ExtendedExpiryDate;
         if (await ApiHelper.ExecuteCallGuardedAsync(
             () => TenantsClient.UpgradeSubscriptionEndpointAsync(Request),
-            Toast,
+            Toast, Navigation,
             null,
             "Upgraded Subscription.") is not null)
         {
