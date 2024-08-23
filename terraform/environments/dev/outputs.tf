@@ -1,3 +1,7 @@
-output "vpc_id" {
-  value = module.vpc.vpc_id
+output "webapi" {
+  value = "http://${module.webapi.endpoint}:8080"
+}
+
+output "blazor" {
+  value = "http://${module.blazor.endpoint}"
 }

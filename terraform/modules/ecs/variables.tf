@@ -1,7 +1,6 @@
 variable "aws_region" {
-  description = "The AWS region to deploy resources in"
-  type        = string
-  default     = "us-east-1"
+  type    = string
+  default = "us-east-1"
 }
 
 variable "cluster_id" {
@@ -9,18 +8,15 @@ variable "cluster_id" {
 }
 
 variable "service_name" {
-  description = "The name of the ECS service"
-  type        = string
+  type = string
 }
 
 variable "container_name" {
-  description = "The name of the container"
-  type        = string
+  type = string
 }
 
 variable "container_image" {
-  description = "The container image to use"
-  type        = string
+  type = string
 }
 
 variable "container_port" {
@@ -29,32 +25,27 @@ variable "container_port" {
 }
 
 variable "desired_count" {
-  description = "The desired number of tasks"
-  type        = number
-  default     = 1
+  type    = number
+  default = 1
 }
 
 variable "cpu" {
-  description = "The number of cpu units to allocate for the task"
-  type        = number
-  default     = 256
+  type    = number
+  default = 1024
 }
 
 variable "memory" {
-  description = "The amount of memory (in MiB) to allocate for the task"
-  type        = number
-  default     = 512
+  type    = number
+  default = 2048
 }
 
 variable "subnet_ids" {
-  description = "The subnets to run the ECS service in"
-  type        = list(string)
+  type = list(string)
 }
 
 variable "environment_variables" {
-  description = "A map of environment variables to pass to the container"
-  type        = map(string)
-  default     = {}
+  type    = map(string)
+  default = {}
 }
 
 variable "vpc_id" {
