@@ -17,6 +17,46 @@
 
 <body>
     <div id="app">
+        <style>
+            @keyframes slide {
+                0% {
+                    transform: translateX(-25%);
+                }
+
+                100% {
+                    transform: translateX(25%);
+                }
+            }
+
+            .fsh-wasm {
+                animation: slide 3s ease-in-out infinite alternate;
+                bottom: 0;
+                left: -50%;
+                opacity: .5;
+                position: fixed;
+                right: -50%;
+                top: 0;
+                z-index: -1
+            }
+
+            .fsh-wasm-cont {
+                left: 50%;
+                padding: 10vmin;
+                position: fixed;
+                text-align: center;
+                top: 50%;
+                transform: translate(-50%, -50%)
+            }
+        </style>
+
+        <div style="height:100%;width:100%;margin:0;position:fixed;">
+            <div class="fsh-wasm"></div>
+            <div class="fsh-wasm" style="animation-direction:alternate-reverse;animation-duration:2s;"></div>
+            <div class="fsh-wasm" style="animation-duration:5s;"></div>
+            <div class="fsh-wasm-cont ">
+                <img src="/full-stack-hero-logo.png" Style="height:350px; width:350px; opacity:0.8" />
+            </div>
+        </div>
     </div>
 
     <div id="blazor-error-ui">
