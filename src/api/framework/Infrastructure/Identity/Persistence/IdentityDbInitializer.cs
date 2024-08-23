@@ -1,4 +1,5 @@
 ﻿using Finbuckle.MultiTenant.Abstractions;
+using FSH.Framework.Core.Origin;
 using FSH.Framework.Core.Persistence;
 using FSH.Framework.Core.Tenant;
 using FSH.Framework.Infrastructure.Identity.RoleClaims;
@@ -9,6 +10,7 @@ using FSH.Starter.WebApi.Shared.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace FSH.Framework.Infrastructure.Identity.Persistence;
 internal sealed class IdentityDbInitializer(
@@ -17,7 +19,8 @@ internal sealed class IdentityDbInitializer(
     RoleManager<FshRole> roleManager,
     UserManager<FshUser> userManager,
     TimeProvider timeProvider,
-    IMultiTenantContextAccessor<FshTenantInfo> multiTenantContextAccessor) : IDbInitializer
+    IMultiTenantContextAccessor<FshTenantInfo> multiTenantContextAccessor,
+    IOptions<OriginOptions> originSettings) : IDbInitializer
 {
     public async Task MigrateAsync(CancellationToken cancellationToken)
     {
@@ -113,7 +116,7 @@ internal sealed class IdentityDbInitializer(
                 PhoneNumberConfirmed = true,
                 NormalizedEmail = multiTenantContextAccessor.MultiTenantContext.TenantInfo?.AdminEmail!.ToUpperInvariant(),
                 NormalizedUserName = adminUserName.ToUpperInvariant(),
-                ImageUrl = new Uri(IdentityConstants.DefaultProfilePicture),
+                ImageUrl = new Uri(originSettings.Value.OriginUrl! + IdentityConstants.DefaultProfilePicture),
                 IsActive = true
             };
 
