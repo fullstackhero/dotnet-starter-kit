@@ -5,14 +5,14 @@ on:
 
   push:
     branches:
-      - main
+      - develop
     paths:
       - "src/api/**"
       - "src/Directory.Packages.props"
 
   pull_request:
     branches:
-      - main
+      - develop
     paths:
       - "src/api/**"
       - "src/Directory.Packages.props"
