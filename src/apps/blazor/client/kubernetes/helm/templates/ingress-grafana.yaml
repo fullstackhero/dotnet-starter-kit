@@ -1,0 +1,26 @@
+{{- if .Values.ingress.grafana.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "maxiar-dotnetstarterkit-blazor.fullname" . }}-grafana
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  tls:
+  - hosts:
+    - {{ tpl .Values.configmaps.frontend.domainName . }}
+    secretName: {{ include "kapsch-ingress-secret.name" . }}
+  rules:
+  - host: "{{ tpl .Values.configmaps.frontend.domainName . }}"
+    http:
+      paths:
+        - path: /grafana
+          pathType: ImplementationSpecific
+          backend:
+            service:
+              name: {{ .Release.Name }}-grafana
+              port:
+                number: {{ tpl .Values.configmaps.services.grafana.port . }}
+{{- end -}}
+

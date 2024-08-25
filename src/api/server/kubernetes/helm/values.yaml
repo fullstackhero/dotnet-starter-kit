@@ -1,0 +1,224 @@
+# Default values for maxiar-security.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 2
+
+cache:
+  replicas: 1
+
+image:
+  repository: ghcr.io/maxiar/webapi
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+
+imagePullSecrets: 
+  name: artifactorycredentialsobo
+nameOverride: ""
+fullnameOverride: ""
+appRoleKapsch: microservice
+
+ktcwebingress:
+  name: "maxiar-operian-web-ingress"
+
+readinessProbe:
+  initialDelaySeconds: 5
+  failureThreshold: 3
+  periodSeconds: 10
+  timeoutSeconds: 2
+
+startupProbe:
+  initialDelaySeconds: 30
+  failureThreshold: 30
+  periodSeconds: 30
+  timeoutSeconds: 5
+
+resourceUtilizationAwareLoadBalancing:
+  enabled: false
+  categories:
+    - name: high
+      description: High resource consumption
+      weight: 5
+    - name: medium
+      description: Medium resource consumption
+      weight: 25
+    - name: low
+      description: Low resource consumption
+      weight: 70
+
+topologySpreadConstraints:
+  maxSkew: 1
+  whenUnsatisfiable: ScheduleAnyway
+  #whenUnsatisfiable: DoNotSchedule
+
+diagnostics:
+  prometheus:
+    enableScrape: false
+    releaseName: prometheus-stack
+    interval: 10s
+    dotnetmonitor:
+      endpoint:
+        port: 52320
+      metrics:
+        port: 52321
+      image:
+        name: mcr.microsoft.com/dotnet/monitor
+        version: "8.0.0"
+
+security:
+  certificate:
+    enable: false
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+#podAnnotations: {}
+  
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: ""
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls:
+    - secretName: chart-example-tls
+      hosts:
+        - chart-example.local
+
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  requests:
+    cpu: 5m
+    memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+configmaps:
+  serviceBus:
+    concurrency:
+      consumersLimit: 25
+  database:
+    credentials:
+      userName: dummy
+      password: dummy
+    connection:
+      trustServerCertificate: "true"
+      pool:
+        enabled: "true"
+        size:
+          min: 0
+          max: 2000
+    postgres:
+      credentials:
+        userName: dummy
+        password: dummy
+  corsOptions:
+    allowedOrigins_2: https://dummy2
+    allowedOrigins_3: https://dummy3
+
+  hostBuilder:
+    reloadConfigOnChange: "false"
+  logging:
+    restrictedToMinimumLevel: Warning
+  frontend:
+    domainName: dummy3
+    ingressDomainName: ingressdummy3
+  keycloak: 
+    realm: operian
+    sslRequired: external
+    resource: cfo-api
+    verifyTokenAudience: "true"
+    credentials: 
+      secret: oA9n9KMFr06qMf2jRHRmnjZXCVm4vfEV
+
+secrets:
+  serviceBus:
+    credentials:
+      userName: dummyusrsbus
+      password: dummypasssbus
+  security:
+    clientCertificate:
+      password: password
+    clientCredentials:
+      secret: secret
+
+services:
+  cache:
+    name: cache-service
+    redis:
+      name: redis
+  cir:
+    name: maxiar-operian-cir
+  elastic:
+    name: elastic-service
+    port: "9200"
+  listhandler:
+    name: maxiar-operian-listhandler
+  manualvalidation:
+    name: maxiar-operian-manualvalidation
+  security:
+    name: keycloak
+  servicebus:
+    name: rabbitmq-service
+  sqlserver:
+    name: sqlserver-service
+  postgres:
+    name: postgresql-ha-pgpool
+  vehiclemanager:
+    name: maxiar-operian-vehiclemanager
+  tracing:
+    name: tracing-service
+
+dataConfiguration:
+  path: config/dataseed/
+  dataSeed:
+    - filePath: config/data-seed/event_type.data.json
+      fileName: event_type.data.json
+

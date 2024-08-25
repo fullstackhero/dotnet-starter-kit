@@ -1,0 +1,20 @@
+{
+    "Upgrade": false,
+    "Entities": [
+        {
+            "EventTypeId": 0,
+            "Description": "Unknown",
+            "Visible": 0
+        },
+        {
+            "EventTypeId": 1,
+            "Description": "TollTransaction",
+            "Visible": 1
+        },
+        {
+            "EventTypeId": 2,
+            "Description": "SmartphoneTransaction",
+            "Visible": 1
+        }
+    ]
+}

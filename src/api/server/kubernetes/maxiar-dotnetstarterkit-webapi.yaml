@@ -1,0 +1,205 @@
+---
+# Source: maxiar-dotnetstarterkit-webapi/templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: maxiar-dotnetstarterkit-webapi
+data: 
+  DotnetStarterKit_Security__ClientSecret: c2VjcmV0
+  DotnetStarterKit_Security__ClientCertificate__Password: cGFzc3dvcmQ=
+  DotnetStarterKit_ServiceBus__Credentials__UserName: ZHVtbXl1c3JzYnVz
+  DotnetStarterKit_ServiceBus__Credentials__Password: ZHVtbXlwYXNzc2J1cw==
+---
+# Source: maxiar-dotnetstarterkit-webapi/templates/configmap-dataseed.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: maxiar-dotnetstarterkit-webapi-dataseed-files
+data:
+---
+# Source: maxiar-dotnetstarterkit-webapi/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: maxiar-dotnetstarterkit-webapi
+data: 
+  DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: "false"
+  #ASPNETCORE_ENVIRONMENT: "Development" #To enabled the /health endpoint for k8s
+  #ASPNETCORE_URLS: http://*:80
+  #ASPNETCORE_HTTPS_PORT: "80"
+  #ASPNETCORE_Kestrel__Certificates__Default__Password: password!
+  #ASPNETCORE_Kestrel__Certificates__Default__Path: /https/cert.pfx
+  Host__Health__CheckTime: "30"
+  Host__Health__UnregisterTime: "90"
+  DatabaseOptions__ConnectionString: Server=maxiar-dotnetstarterkit-webapi-postgresql-ha-pgpool;Port=5432;Database=fullstackhero;User Id=dummy33;Password=dummy33;
+  DatabaseOptions__Provider: postgresql
+  JwtOptions__Key: QsJbczCNysv/5SGh+U7sxedX8C07TPQPBdsnSDKZ/aE=
+  HangfireOptions__Username: admin
+  HangfireOptions__Password: Secure1234!Me
+  MailOptions__From: mukesh@fullstackhero.net
+  MailOptions__Host: smtp.ethereal.email
+  MailOptions__Port: "587"
+  MailOptions__UserName: sherman.oconnell47@ethereal.email
+  MailOptions__Password: KbuTCFv4J6Fy7256vh
+  MailOptions__DisplayName: Mukesh Murugan
+  CorsOptions__AllowedOrigins__0: http://localhost:5010
+  CorsOptions__AllowedOrigins__1: http://localhost:7100
+  CorsOptions__AllowedOrigins__2: https://localhost:7020
+  CorsOptions__AllowedOrigins__4: https://dummy
+  OpenTelemetryOptions__Endpoint: http://otel-collector:4317
+  RateLimitOptions__EnableRateLimiting: "false"
+---
+# Source: maxiar-dotnetstarterkit-webapi/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: maxiar-dotnetstarterkit-webapi
+  labels:
+    helm.sh/chart: maxiar-dotnetstarterkit-webapi-2.0.5
+    app.kubernetes.io/name: maxiar-dotnetstarterkit-webapi
+    app.kubernetes.io/instance: maxiar-dotnetstarterkit-webapi
+    app.kubernetes.io/version: "v2.0.5"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: microservice
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: maxiar-dotnetstarterkit-webapi
+    app.kubernetes.io/instance: maxiar-dotnetstarterkit-webapi
+---
+# Source: maxiar-dotnetstarterkit-webapi/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: maxiar-dotnetstarterkit-webapi
+  labels:
+    helm.sh/chart: maxiar-dotnetstarterkit-webapi-2.0.5
+    app.kubernetes.io/name: maxiar-dotnetstarterkit-webapi
+    app.kubernetes.io/instance: maxiar-dotnetstarterkit-webapi
+    app.kubernetes.io/version: "v2.0.5"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: microservice
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: maxiar-dotnetstarterkit-webapi
+      app.kubernetes.io/instance: maxiar-dotnetstarterkit-webapi
+  template:
+    metadata:
+      annotations:
+        checksum/config: 262afac688508a752392cef65de7b157b3e4617f127f4ddcb53e5aab91c0f766
+        checksum/secret: e4e5ec6968ce8e1ffb0b15f5623ddfef1574c67f4b47c54a71af37bb5d3e2d97
+        checksum/configdataseed: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+        kubectl.kubernetes.io/default-container: maxiar-dotnetstarterkit-webapi
+      labels:
+        app.kubernetes.io/name: maxiar-dotnetstarterkit-webapi
+        app.kubernetes.io/instance: maxiar-dotnetstarterkit-webapi
+    spec:
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: maxiar-dotnetstarterkit-webapi
+            app.kubernetes.io/instance: maxiar-dotnetstarterkit-webapi
+      imagePullSecrets:
+        - name: maxiar-dotnetstarterkit-webapi-artifactorycredentialsobo
+      serviceAccountName: default
+      securityContext:
+        {}
+      initContainers:
+        - name: "init"
+          image: cfmanteiga/alpine-bash-curl-jq
+          command: ['sh', '-c', 'echo copying files from configmap to app folder; cp /tmp/config/dataseed/*.* /config/dataseed/;']
+          volumeMounts:
+          - name: dataseedconfig
+            mountPath: /tmp/config/dataseed/
+          - name: config-dataseed-final
+            mountPath: /config/dataseed/
+      containers:
+        - name: maxiar-dotnetstarterkit-webapi
+          #command: ['sh', '-c', 'echo listing dataseed folders; ls -la /app/config ; ls -la /app/config/dataseed ; sleep 3600']
+          securityContext:
+            {}
+          image: "ghcr.io/maxiar/webapi:latest:v2.0.5"
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          env:
+          - name: SERVICE_ID
+            value: "DotnetStarterKit-WebApi"
+          - name: Global_Serilog__Properties__Environment
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          envFrom:
+          # Load the Complete ConfigMap and Secrets
+          - configMapRef:
+              name: maxiar-dotnetstarterkit-webapi
+          - secretRef:
+              name: maxiar-dotnetstarterkit-webapi
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 80
+            failureThreshold: 30
+            periodSeconds: 30
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 2
+          resources:
+            requests:
+              cpu: 5m
+              memory: 128Mi
+          volumeMounts:
+          - name: config-dataseed-final
+            mountPath: /app/config/dataseed/
+      volumes:
+        - name: config-dataseed-final
+          emptyDir: {}
+        - name: dataseedconfig
+          configMap:
+            name: maxiar-dotnetstarterkit-webapi-dataseed-files
+            defaultMode: 0777
+            items:
+---
+# Source: maxiar-dotnetstarterkit-webapi/templates/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: maxiar-dotnetstarterkit-webapi
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+spec:
+  tls:
+    - hosts:
+      - dotnetstarterkitwebapi.ingress.lab.maxiar.dev
+      secretName: dotnetstarterkitwebapi.ingress.lab.maxiar.dev-tls
+  rules:
+    - host: dotnetstarterkitwebapi.ingress.lab.maxiar.dev
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: maxiar-dotnetstarterkit-webapi
+                port:
+                  number: 80

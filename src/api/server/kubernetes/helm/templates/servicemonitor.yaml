@@ -1,0 +1,20 @@
+{{- if .Values.diagnostics.prometheus.enableScrape -}}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "maxiar-dotnetstarterkit-webapi.fullname" . }}
+  labels:
+    {{- include "maxiar-dotnetstarterkit-webapi.labels" . | nindent 4 }}
+    release: {{ .Values.diagnostics.prometheus.releaseName }}
+spec:
+  selector:
+    matchLabels:
+    {{- include "maxiar-dotnetstarterkit-webapi.selectorLabels" . | nindent 6 }}
+  endpoints:
+  - port: http
+    interval: {{ .Values.diagnostics.prometheus.interval }}
+    scheme: http
+    path: "/metrics-text"
+  - port: metrics
+    interval: {{ .Values.diagnostics.prometheus.interval }}
+{{- end -}}

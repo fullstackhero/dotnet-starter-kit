@@ -1,18 +1,25 @@
 name: Blazor
-
+permissions:
+  packages: write
+  contents: read
+env:
+  CHART_NAME: maxiar-dotnetstarterkit-blazor
+  IMAGE_TAG: 2.0.0
+  CHART_LOCATION: src/apps/blazor/client/kubernetes/helm
+  GCR_REPO: ghcr.io/${{ github.repository_owner }}/dotnetstarterkit
 on:
   workflow_dispatch:
 
   push:
     branches:
-      - develop
+      - k8s
     paths:
       - "src/apps/blazor/**"
       - "src/Directory.Packages.props"
 
   pull_request:
     branches:
-      - develop
+      - k8s
     paths:
       - "src/apps/blazor/**"
       - "src/Directory.Packages.props"
@@ -51,3 +58,32 @@ jobs:
         run: |
           docker build -t ghcr.io/${{ github.repository_owner }}/blazor:latest -f Dockerfile .
           docker push ghcr.io/${{ github.repository_owner }}/blazor:latest
+
+  publish-helm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Out
+        uses: actions/checkout@v3
+
+      - name: Set Up Helm
+        run: |
+          curl -sSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Helm Lint
+        run: |
+          helm lint $CHART_LOCATION
+
+      - name: Helm Login
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | helm registry login ghcr.io -u $ --password-stdin
+
+      - name: Helm Package
+        run: |
+          export IMAGE_TAG=$(grep 'version:' $CHART_LOCATION/Chart.yaml | tail -n1 | awk '{ print $2 }')
+          helm package $CHART_LOCATION --version $IMAGE_TAG
+
+      - name: Helm Push
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          export IMAGE_TAG=$(grep 'version:' $CHART_LOCATION/Chart.yaml | tail -n1 | awk '{ print $2 }')
+          helm push $CHART_NAME-$IMAGE_TAG.tgz oci://$GCR_REPO

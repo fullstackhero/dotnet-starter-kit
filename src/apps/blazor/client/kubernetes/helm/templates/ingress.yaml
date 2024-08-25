@@ -1,0 +1,56 @@
+{{- if .Values.ingress.enabled -}}
+{{- $fullName := include "maxiar-dotnetstarterkit-blazor.fullname" . -}}
+{{- $httpPort := .Values.service.port -}}
+{{- $ingressPath := .Values.ingress.path -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "maxiar-dotnetstarterkit-blazor.fullname" . }}
+{{- with .Values.ingress.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
+spec:
+{{- if .Values.ingress.tls }}
+  tls:
+  {{- if .ingressPath }}
+  {{- range .Values.ingress.tls }}
+  - hosts:
+      {{- range .hosts }}
+        - {{ . }}
+      {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- else }}
+{{ toYaml .Values.ingress.tls | indent 4 }}
+  {{- end }}
+{{- end }}
+  rules:
+  {{- range .Values.ingress.hosts }}
+    {{- if $ingressPath }}
+    - host: {{ . }}
+    http:
+      paths:
+          - path: {{ $ingressPath }}
+        pathType: Prefix
+        backend:
+          service:
+                name: {{ $fullName }}
+            port:
+                  number: {{ $httpPort }}
+    {{- else }}
+    - host: {{ .host }}
+      http:
+        paths:
+        {{- range .paths }}
+          - path: {{ .path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $fullName }}
+                port:
+                  number: {{ .servicePort | default $httpPort }}
+        {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}

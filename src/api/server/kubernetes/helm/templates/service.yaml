@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "maxiar-dotnetstarterkit-webapi.fullname" . }}
+  labels:
+    {{- include "maxiar-dotnetstarterkit-webapi.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+    {{- if .Values.diagnostics.prometheus.enableScrape }}
+    - name: metrics
+      port: {{ .Values.diagnostics.prometheus.dotnetmonitor.endpoint.port }}
+      protocol: TCP
+      targetPort: {{ .Values.diagnostics.prometheus.dotnetmonitor.endpoint.port }}
+    {{- end }}
+  selector:
+    {{- include "maxiar-dotnetstarterkit-webapi.selectorLabels" . | nindent 4 }}
+
+{{/*add extra services for resource aware lb*/}}
+{{- if .Values.resourceUtilizationAwareLoadBalancing.enabled -}}
+{{ $fullname := include "maxiar-dotnetstarterkit-webapi.fullname" . }}
+{{ $labels := include "maxiar-dotnetstarterkit-webapi.labels" . }}
+{{ $selectorLabels := include "maxiar-dotnetstarterkit-webapi.selectorLabels" . }}
+{{ $serviceType := .Values.service.type }}
+{{ $servicePort := .Values.service.port }}
+
+{{- range $index, $category := .Values.resourceUtilizationAwareLoadBalancing.categories }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullname }}-{{ $category.name }}
+  labels:
+    {{- $labels | nindent 4 }}
+    kapsch.io/currentnodeusage: {{ $category.name }}
+spec:
+  type: {{ $serviceType }}
+  ports:
+    - port: {{ $servicePort }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- $selectorLabels | nindent 4 }}
+    kapsch.io/currentnodeusage: {{ $category.name }}
+
+{{- end }}
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {{ $fullname }}-virtualservice
+spec:
+  hosts:
+  - {{ $fullname }}
+  gateways:
+  - mesh
+  http:
+  - route:
+{{- range $index, $category := .Values.resourceUtilizationAwareLoadBalancing.categories }}
+    - destination:
+        host: {{ printf "%s-%s" $fullname $category.name }}
+#        subset: {{ $category.name }}
+      weight: {{ $category.weight }}
+{{- end -}}
+
+{{- end -}}

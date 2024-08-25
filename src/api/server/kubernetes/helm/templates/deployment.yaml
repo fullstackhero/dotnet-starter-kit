@@ -1,0 +1,143 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "maxiar-dotnetstarterkit-webapi.fullname" . }}
+  labels:
+    {{- include "maxiar-dotnetstarterkit-webapi.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "maxiar-dotnetstarterkit-webapi.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- include "maxiar-dotnetstarterkit-webapi.podAnnotations" . | nindent 8 }}
+      labels:
+        {{- include "maxiar-dotnetstarterkit-webapi.selectorLabels" . | nindent 8 }}
+    spec:
+      topologySpreadConstraints:
+      - maxSkew: {{ .Values.topologySpreadConstraints.maxSkew }}
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: {{ .Values.topologySpreadConstraints.whenUnsatisfiable }}
+        labelSelector:
+          matchLabels:
+            {{- include "maxiar-dotnetstarterkit-webapi.selectorLabels" . | nindent 12 }}
+      imagePullSecrets:
+        - name: {{ include "maxiar-dotnetstarterkit-webapi.imagePullSecrets.name" . }}
+      serviceAccountName: {{ include "maxiar-dotnetstarterkit-webapi.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: "init"
+          image: cfmanteiga/alpine-bash-curl-jq
+          command: ['sh', '-c', 'echo copying files from configmap to app folder; cp /tmp/config/dataseed/*.* /config/dataseed/;']
+          volumeMounts:
+          - name: dataseedconfig
+            mountPath: /tmp/config/dataseed/
+          - name: config-dataseed-final
+            mountPath: /config/dataseed/
+      containers:
+        {{- if .Values.diagnostics.prometheus.enableScrape }}
+        - name: sidecar
+          image: "{{ .Values.diagnostics.prometheus.dotnetmonitor.image.name }}:{{ .Values.diagnostics.prometheus.dotnetmonitor.image.version }}"
+          ports:
+          - containerPort: {{ .Values.diagnostics.prometheus.dotnetmonitor.endpoint.port }}
+          args: ["--no-auth", "--urls", "http://*:{{ .Values.diagnostics.prometheus.dotnetmonitor.endpoint.port }}", "--metricUrls", "http://*:{{ .Values.diagnostics.prometheus.dotnetmonitor.metrics.port }}"]
+          volumeMounts:
+          - mountPath: /tmp
+            name: diagnostics
+        {{- end }}
+        - name: {{ .Chart.Name }}
+          #command: ['sh', '-c', 'echo listing dataseed folders; ls -la /app/config ; ls -la /app/config/dataseed ; sleep 3600']
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          env:
+          - name: SERVICE_ID
+            value: "DotnetStarterKit-WebApi"
+          - name: Global_Serilog__Properties__Environment
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          envFrom:
+          # Load the Complete ConfigMap and Secrets
+          - configMapRef:
+              name: {{ include "maxiar-dotnetstarterkit-webapi.fullname" . }}
+          - secretRef:
+              name: {{ include "maxiar-dotnetstarterkit-webapi.fullname" . }}
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 80
+            failureThreshold: {{ .Values.startupProbe.failureThreshold }}
+            periodSeconds: {{ .Values.startupProbe.periodSeconds }}
+            initialDelaySeconds: {{ .Values.startupProbe.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.startupProbe.timeoutSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+          {{- if .Values.diagnostics.prometheus.enableScrape }}
+          - mountPath: /tmp
+            name: diagnostics
+          {{- end }}
+          {{- if .Values.security.certificate.enable }}
+          - name: kapschcert
+            mountPath: "/usr/local/share/ca-certificates/"
+            readOnly: true
+          {{- end }}
+          - name: config-dataseed-final
+            mountPath: /app/config/dataseed/
+      volumes:
+        {{- if .Values.diagnostics.prometheus.enableScrape }}
+        - name: diagnostics
+          emptyDir: {}
+        {{- end }}
+        {{- if .Values.security.certificate.enable }}
+        - name: kapschcert
+          projected:
+            sources:
+            - secret:
+                name: {{ include "maxiar-ingress-secret.name" . }}
+                items:
+                - key: ca.crt
+                  path: ca-ingress.crt
+        {{- end }}
+        - name: config-dataseed-final
+          emptyDir: {}
+        - name: dataseedconfig
+          configMap:
+            name: {{ include "maxiar-dotnetstarterkit-webapi-dataseed-files.fullname" . }}
+            defaultMode: 0777
+            items:
+            {{- range $index, $dataseed := .Values.dataConfiguration.dataSeed }}
+            - key: {{ $dataseed.fileName }}
+              path: {{ $dataseed.fileName }}
+            {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

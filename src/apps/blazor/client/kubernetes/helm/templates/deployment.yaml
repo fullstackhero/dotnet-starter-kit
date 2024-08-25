@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "maxiar-dotnetstarterkit-blazor.fullname" . }}
+  labels: 
+    {{- include "maxiar-dotnetstarterkit-blazor.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "maxiar-dotnetstarterkit-blazor.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- include "maxiar-dotnetstarterkit-blazor.podAnnotations" . | nindent 8 }}
+      labels:
+        {{- include "maxiar-dotnetstarterkit-blazor.selectorLabels" . | nindent 8 }}
+    spec:
+      imagePullSecrets:
+        - name: {{ include "maxiar-dotnetstarterkit-blazor.imagePullSecrets.name" . }}
+      serviceAccountName: {{ include "maxiar-dotnetstarterkit-blazor.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          command: ["/bin/sh",  "-c", "envsubst < $${Frontend_FSHStarterBlazorClient_Settings__AppSettingsTemplate} > $${Frontend_FSHStarterBlazorClient_Settings__AppSettingsJson} && find /usr/share/nginx/html -type f | xargs chmod +r && exec nginx -g 'daemon off;'"]
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          envFrom:
+          # Load the Complete ConfigMap and Secrets
+          - configMapRef:
+              name: {{ include "maxiar-dotnetstarterkit-blazor.fullname" . }}
+          - secretRef:
+              name: {{ include "maxiar-dotnetstarterkit-blazor.fullname" . }}
+        {{- if .Values.logging.enabled }}
+          volumeMounts:
+            - name: nginx-logs
+              mountPath: /var/log/nginx/
+        - name: filebeat-sidecar
+          image: docker.elastic.co/beats/filebeat:{{ .Values.logging.elkStack.version }}
+          envFrom:
+          # Load the Complete ConfigMap and Secrets
+          - configMapRef:
+              name: {{ include "maxiar-dotnetstarterkit-blazor.fullname" . }}
+          volumeMounts:
+            - name: nginx-logs
+              mountPath: /var/log/nginx/
+            - name: filebeat-config
+              mountPath: /usr/share/filebeat/filebeat.yml
+              subPath: filebeat.yml
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: nginx-logs
+          emptyDir: {}
+        - name: filebeat-config
+          configMap:
+            name: {{ include "maxiar-dotnetstarterkit-blazor-logging-files.fullname" . }}
+            items:
+              - key: filebeat.yml
+                path: filebeat.yml
+        - name: envsubst-script
+          configMap:
+            name: {{ include "maxiar-dotnetstarterkit-blazor-logging-files.fullname" . }}
+            defaultMode: 0777
+            items:
+            - key: envsubst_on_yamls.sh
+              path: envsubst_on_yamls.sh
+        {{- end }}
