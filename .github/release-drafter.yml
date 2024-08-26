@@ -16,6 +16,7 @@ categories:
   - title: 📦 Dependency updates
     labels:
       - dependencies
+      - deps
     collapse-after: 15
   - title: 📝 Documentation updates
     labels:
@@ -40,7 +41,6 @@ exclude-labels:
   - skip-changelog
   - invalid
 template: |
-  <!-- Optional: add a release summary here -->
   $CHANGES
 
 autolabeler:
@@ -52,8 +52,9 @@ autolabeler:
   - label: 'bug'
     branch:
       - '/fix\/.+/'
-    title:
-      - '/fix/i'
+  - label: 'deps'
+    branch:
+      - '/deps\/.+/'
   - label: 'enhancement'
     branch:
       - '/feature\/.+/'
