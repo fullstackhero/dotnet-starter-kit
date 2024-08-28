@@ -22,6 +22,7 @@ public partial class Users
     protected EntityClientTableContext<UserDetail, Guid, RegisterUserCommand> Context { get; set; } = default!;
 
     private bool _canExportUsers;
+    private bool _canViewAuditTrails;
     private bool _canViewRoles;
 
     // Fields for editform
@@ -37,6 +38,7 @@ public partial class Users
         var user = (await AuthState).User;
         _canExportUsers = await AuthService.HasPermissionAsync(user, FshAction.Export, FshResource.Users);
         _canViewRoles = await AuthService.HasPermissionAsync(user, FshAction.View, FshResource.UserRoles);
+        _canViewAuditTrails = await AuthService.HasPermissionAsync(user, FshAction.View, FshResource.AuditTrails);
 
         Context = new(
             entityName: "User",
@@ -74,6 +76,8 @@ public partial class Users
 
     private void ManageRoles(in Guid userId) =>
         Navigation.NavigateTo($"/identity/users/{userId}/roles");
+    private void ViewAuditTrails(in Guid userId) =>
+        Navigation.NavigateTo($"/identity/users/{userId}/audit-trail");
 
     private void TogglePasswordVisibility()
     {

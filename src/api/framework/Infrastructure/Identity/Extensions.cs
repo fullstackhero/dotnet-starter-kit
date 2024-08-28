@@ -1,8 +1,10 @@
-﻿using FSH.Framework.Core.Identity.Roles;
+﻿using FSH.Framework.Core.Audit;
+using FSH.Framework.Core.Identity.Roles;
 using FSH.Framework.Core.Identity.Tokens;
 using FSH.Framework.Core.Identity.Users.Abstractions;
 using FSH.Framework.Core.Persistence;
 using FSH.Framework.Infrastructure.Auth;
+using FSH.Framework.Infrastructure.Identity.Audit;
 using FSH.Framework.Infrastructure.Identity.Persistence;
 using FSH.Framework.Infrastructure.Identity.Roles;
 using FSH.Framework.Infrastructure.Identity.Roles.Endpoints;
@@ -30,6 +32,7 @@ internal static class Extensions
         services.AddScoped(sp => (ICurrentUserInitializer)sp.GetRequiredService<ICurrentUser>());
         services.AddTransient<IUserService, UserService>();
         services.AddTransient<IRoleService, RoleService>();
+        services.AddTransient<IAuditService, AuditService>();
         services.BindDbContext<IdentityDbContext>();
         services.AddScoped<IDbInitializer, IdentityDbInitializer>();
         services.AddIdentity<FshUser, FshRole>(options =>
@@ -56,6 +59,7 @@ internal static class Extensions
 
         var roles = app.MapGroup("api/roles").WithTags("roles");
         roles.MapRoleEndpoints();
+
         return app;
     }
 }
