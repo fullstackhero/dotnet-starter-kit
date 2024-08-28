@@ -26,6 +26,7 @@ public static class FshResource
     public const string RoleClaims = nameof(RoleClaims);
     public const string Products = nameof(Products);
     public const string Todos = nameof(Todos);
+    public const string AuditTrails = nameof(AuditTrails);
 }
 
 public static class FshPermissions
@@ -72,6 +73,9 @@ public static class FshPermissions
 
          new("View Hangfire", FshAction.View, FshResource.Hangfire),
          new("View Dashboard", FshAction.View, FshResource.Dashboard),
+
+        //audit
+        new("View Audit Trails", FshAction.View, FshResource.AuditTrails),
    };
 
     public static IReadOnlyList<FshPermission> All { get; } = new ReadOnlyCollection<FshPermission>(allPermissions);
