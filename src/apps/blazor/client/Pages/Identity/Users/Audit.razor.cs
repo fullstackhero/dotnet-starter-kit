@@ -1,7 +1,9 @@
 ﻿using FSH.Starter.Blazor.Client.Components.EntityTable;
 using FSH.Starter.Blazor.Infrastructure.Api;
+using FSH.Starter.Blazor.Shared;
 using Mapster;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor;
 
 namespace FSH.Starter.Blazor.Client.Pages.Identity.Users;
@@ -10,6 +12,8 @@ public partial class Audit
 {
     [Inject]
     private IApiClient ApiClient { get; set; } = default!;
+    [CascadingParameter]
+    protected Task<AuthenticationState> AuthState { get; set; } = default!;
     [Parameter]
     public Guid Id { get; set; }
 
@@ -33,6 +37,14 @@ public partial class Audit
 
     protected override async Task OnInitializedAsync()
     {
+        if (Id == Guid.Empty)
+        {
+            var state = await AuthState;
+            if (state != null)
+            {
+                Id = new Guid(state.User.GetUserId()!);
+            }
+        }
         _subHeader = $"Audit Trail for User {Id}";
         Context = new(
             entityNamePlural: "Trails",
