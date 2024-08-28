@@ -35,7 +35,7 @@ public static class Extensions
                 _logger.Information("for documentations and guides, visit https://www.fullstackhero.net");
                 _logger.Information("to sponsor this project, visit https://opencollective.com/fullstackhero");
             });
-        builder.Services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
+        builder.Services.AddScoped<ISaveChangesInterceptor, AuditInterceptor>();
         return builder;
     }
 
