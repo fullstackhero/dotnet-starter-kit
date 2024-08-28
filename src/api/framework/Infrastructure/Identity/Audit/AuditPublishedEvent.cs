@@ -2,7 +2,7 @@
 using FSH.Framework.Core.Audit;
 using MediatR;
 
-namespace FSH.Framework.Infrastructure.Audit;
+namespace FSH.Framework.Infrastructure.Identity.Audit;
 public class AuditPublishedEvent : INotification
 {
     public AuditPublishedEvent(Collection<AuditTrail>? trails)
