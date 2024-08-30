@@ -1,4 +1,5 @@
 ﻿using Finbuckle.MultiTenant;
+using FSH.Framework.Core.Audit;
 using FSH.Framework.Infrastructure.Identity.RoleClaims;
 using FSH.Framework.Infrastructure.Identity.Roles;
 using FSH.Framework.Infrastructure.Identity.Users;
@@ -7,6 +8,18 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace FSH.Framework.Infrastructure.Identity.Persistence;
+
+public class AuditTrailConfig : IEntityTypeConfiguration<AuditTrail>
+{
+    public void Configure(EntityTypeBuilder<AuditTrail> builder)
+    {
+        builder
+            .ToTable("AuditTrails", IdentityConstants.SchemaName)
+            .IsMultiTenant();
+
+        builder.HasKey(a => a.Id);
+    }
+}
 
 public class ApplicationUserConfig : IEntityTypeConfiguration<FshUser>
 {

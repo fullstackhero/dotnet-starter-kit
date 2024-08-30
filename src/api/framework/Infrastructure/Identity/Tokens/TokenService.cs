@@ -10,8 +10,10 @@ using FSH.Framework.Core.Identity.Tokens.Features.Generate;
 using FSH.Framework.Core.Identity.Tokens.Features.Refresh;
 using FSH.Framework.Core.Identity.Tokens.Models;
 using FSH.Framework.Infrastructure.Auth.Jwt;
+using FSH.Framework.Infrastructure.Identity.Audit;
 using FSH.Framework.Infrastructure.Identity.Users;
 using FSH.Framework.Infrastructure.Tenant;
+using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -22,11 +24,13 @@ public sealed class TokenService : ITokenService
     private readonly UserManager<FshUser> _userManager;
     private readonly IMultiTenantContextAccessor<FshTenantInfo>? _multiTenantContextAccessor;
     private readonly JwtOptions _jwtOptions;
-    public TokenService(IOptions<JwtOptions> jwtOptions, UserManager<FshUser> userManager, IMultiTenantContextAccessor<FshTenantInfo>? multiTenantContextAccessor)
+    private readonly IPublisher _publisher;
+    public TokenService(IOptions<JwtOptions> jwtOptions, UserManager<FshUser> userManager, IMultiTenantContextAccessor<FshTenantInfo>? multiTenantContextAccessor, IPublisher publisher)
     {
         _jwtOptions = jwtOptions.Value;
         _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
         _multiTenantContextAccessor = multiTenantContextAccessor;
+        _publisher = publisher;
     }
 
     public async Task<TokenResponse> GenerateTokenAsync(TokenGenerationCommand request, string ipAddress, CancellationToken cancellationToken)
@@ -87,6 +91,18 @@ public sealed class TokenService : ITokenService
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenExpirationInDays);
 
         await _userManager.UpdateAsync(user);
+
+        await _publisher.Publish(new AuditPublishedEvent(new()
+        {
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Operation = "Token Generated",
+                Entity = "Identity",
+                UserId = new Guid(user.Id),
+                DateTime = DateTime.UtcNow,
+            }
+        }));
 
         return new TokenResponse(token, user.RefreshToken, user.RefreshTokenExpiryTime);
     }

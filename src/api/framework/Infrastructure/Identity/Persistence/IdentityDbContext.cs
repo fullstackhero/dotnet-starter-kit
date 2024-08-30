@@ -1,5 +1,6 @@
 ﻿using Finbuckle.MultiTenant.Abstractions;
 using Finbuckle.MultiTenant.EntityFrameworkCore;
+using FSH.Framework.Core.Audit;
 using FSH.Framework.Core.Persistence;
 using FSH.Framework.Infrastructure.Identity.RoleClaims;
 using FSH.Framework.Infrastructure.Identity.Roles;
@@ -27,6 +28,8 @@ public class IdentityDbContext : MultiTenantIdentityDbContext<FshUser,
         _settings = settings.Value;
         TenantInfo = multiTenantContextAccessor.MultiTenantContext.TenantInfo!;
     }
+
+    public DbSet<AuditTrail> AuditTrails { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

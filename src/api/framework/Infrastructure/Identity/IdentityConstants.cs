@@ -7,7 +7,7 @@ internal static class IdentityConstants
     public const string SchemaName = "identity";
     public const string RootTenant = "root";
     public const string DefaultPassword = "123Pa$$word!";
-    public const string DefaultProfilePicture = "/assets/defaults/profile-picture.webp";
+    public const string DefaultProfilePicture = "assets/defaults/profile-picture.webp";
 
     public static class Roles
     {
