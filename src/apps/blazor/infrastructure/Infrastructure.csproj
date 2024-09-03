@@ -21,4 +21,11 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\shared\Shared.csproj" />
 	</ItemGroup>
+
+  <Target Name="NSwag">
+    <Exec WorkingDirectory="$(ProjectDir)\Api"
+          EnvironmentVariables="ASPNETCORE_ENVIRONMENT=Development"
+          Command="nswag run ./nswag.json /variables:Configuration=$(Configuration)" />
+  </Target>
+  
 </Project>

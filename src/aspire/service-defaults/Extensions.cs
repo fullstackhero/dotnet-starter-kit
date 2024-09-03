@@ -5,7 +5,6 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
-using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -39,7 +38,6 @@ public static class Extensions
 
     public static IHostApplicationBuilder ConfigureOpenTelemetry(this IHostApplicationBuilder builder)
     {
-
         #region OpenTelemetry
 
         // Configure OpenTelemetry service resource details
@@ -54,7 +52,8 @@ public static class Extensions
         var attributes = new Dictionary<string, object>
         {
             ["host.name"] = Environment.MachineName,
-            ["service.names"] = "FSH.Starter.WebApi.Host", //builder.Configuration["OpenTelemetrySettings:ServiceName"]!, //It's a WA Fix because the service.name tag is not completed automatically by Resource.Builder()...AddService(serviceName) https://github.com/open-telemetry/opentelemetry-dotnet/issues/2027
+            ["service.names"] =
+                "FSH.Starter.WebApi.Host", //builder.Configuration["OpenTelemetrySettings:ServiceName"]!, //It's a WA Fix because the service.name tag is not completed automatically by Resource.Builder()...AddService(serviceName) https://github.com/open-telemetry/opentelemetry-dotnet/issues/2027
             ["os.description"] = System.Runtime.InteropServices.RuntimeInformation.OSDescription,
             ["deployment.environment"] = builder.Environment.EnvironmentName.ToLowerInvariant()
         };
@@ -78,12 +77,12 @@ public static class Extensions
             .WithMetrics(metrics =>
             {
                 metrics.SetResourceBuilder(resourceBuilder)
-                       .AddAspNetCoreInstrumentation()
-                       .AddHttpClientInstrumentation()
-                       .AddRuntimeInstrumentation()
-                       .AddProcessInstrumentation()
-                       .AddMeter(MetricsConstants.Todos)
-                       .AddMeter(MetricsConstants.Catalog);
+                    .AddAspNetCoreInstrumentation()
+                    .AddHttpClientInstrumentation()
+                    .AddRuntimeInstrumentation()
+                    .AddProcessInstrumentation()
+                    .AddMeter(MetricsConstants.Todos)
+                    .AddMeter(MetricsConstants.Catalog);
                 //.AddConsoleExporter();
             })
             .WithTracing(tracing =>
@@ -94,9 +93,9 @@ public static class Extensions
                 }
 
                 tracing.SetResourceBuilder(resourceBuilder)
-                       .AddAspNetCoreInstrumentation(nci => nci.RecordException = true)
-                       .AddHttpClientInstrumentation()
-                       .AddEntityFrameworkCoreInstrumentation();
+                    .AddAspNetCoreInstrumentation(nci => nci.RecordException = true)
+                    .AddHttpClientInstrumentation()
+                    .AddEntityFrameworkCoreInstrumentation();
                 //.AddConsoleExporter();
             });
 
@@ -116,11 +115,11 @@ public static class Extensions
 
         // The following lines enable the Prometheus exporter (requires the OpenTelemetry.Exporter.Prometheus.AspNetCore package)
         builder.Services.AddOpenTelemetry()
-           // BUG: Part of the workaround for https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1617
-           .WithMetrics(metrics => metrics.AddPrometheusExporter(options =>
-           {
-               options.DisableTotalNameSuffixForCounters = true;
-           }));
+            // BUG: Part of the workaround for https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1617
+            .WithMetrics(metrics => metrics.AddPrometheusExporter(options =>
+            {
+                options.DisableTotalNameSuffixForCounters = true;
+            }));
 
         return builder;
     }
@@ -143,14 +142,12 @@ public static class Extensions
                 if (context.Request.Path != "/metrics") return false;
                 return true;
             });
-        
+
         // All health checks must pass for app to be considered ready to accept traffic after starting
         app.MapHealthChecks("/health").AllowAnonymous();
         // Only health checks tagged with the "live" tag must pass for app to be considered alive
-        app.MapHealthChecks("/alive", new HealthCheckOptions
-        {
-            Predicate = r => r.Tags.Contains("live")
-        }).AllowAnonymous();
+        app.MapHealthChecks("/alive", new HealthCheckOptions { Predicate = r => r.Tags.Contains("live") })
+            .AllowAnonymous();
 
         return app;
     }

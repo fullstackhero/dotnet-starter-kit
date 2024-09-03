@@ -48,14 +48,14 @@ public static class Extensions
         builder.Services.ConfigureCaching(builder.Configuration);
         builder.Services.AddExceptionHandler<CustomExceptionHandler>();
         builder.Services.AddProblemDetails();
-
         builder.Services.AddHealthChecks();
         builder.Services.AddOptions<OriginOptions>().BindConfiguration(nameof(OriginOptions));
 
         // Define module assemblies
         var assemblies = new Assembly[]
         {
-            typeof(FshCore).Assembly
+            typeof(FshCore).Assembly,
+            typeof(FshInfrastructure).Assembly
         };
 
         // Register validators

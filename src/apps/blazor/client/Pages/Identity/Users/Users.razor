@@ -9,6 +9,10 @@
         {
             <MudMenuItem OnClick="(() => ManageRoles(context.Id))">Manage Roles</MudMenuItem>
         }
+        @if (_canViewAuditTrails)
+        {
+            <MudMenuItem OnClick="(() => ViewAuditTrails(context.Id))">View Audit Trails</MudMenuItem>
+        }
     </ExtraActions>
 
     <EditFormContent>

@@ -36,7 +36,7 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.Process" Version="0.5.0-beta.6" />
     <PackageVersion Include="Serilog.Expressions" Version="5.0.0" />
     <PackageVersion Include="Serilog.Sinks.OpenTelemetry" Version="4.0.0" />
-    <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.7.1" />
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.7.2" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
     <PackageVersion Include="Swashbuckle.AspNetCore.ReDoc" Version="6.5.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="4.7.0" />

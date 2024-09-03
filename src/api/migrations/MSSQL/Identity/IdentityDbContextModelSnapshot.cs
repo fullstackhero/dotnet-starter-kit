@@ -17,10 +17,52 @@ namespace FSH.Starter.WebApi.Migrations.MSSQL.Identity
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.6")
+                .HasAnnotation("ProductVersion", "8.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("FSH.Framework.Core.Audit.AuditTrail", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("DateTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Entity")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ModifiedProperties")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NewValues")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Operation")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PreviousValues")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PrimaryKey")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AuditTrails", "identity");
+
+                    b.HasAnnotation("Finbuckle:MultiTenant", true);
+                });
 
             modelBuilder.Entity("FSH.Framework.Infrastructure.Identity.RoleClaims.FshRoleClaim", b =>
                 {
