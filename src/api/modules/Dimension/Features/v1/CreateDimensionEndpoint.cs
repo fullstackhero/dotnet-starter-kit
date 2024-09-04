@@ -1,0 +1,27 @@
+﻿using Asp.Versioning;
+using FSH.Framework.Infrastructure.Auth.Policy;
+using FSH.Starter.WebApi.Setting.Dimension.Features.v1;
+using MediatR;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+
+namespace FSH.Starter.WebApi.Setting.Dimension.Features.v1;
+public static class CreateDimensionEndpoint
+{
+    internal static RouteHandlerBuilder MapDimensionCreationEndpoint(this IEndpointRouteBuilder endpoints)
+    {
+        return endpoints.MapPost("/", async (CreateDimensionCommand request, ISender mediator) =>
+                {
+                    var response = await mediator.Send(request);
+                    return Results.CreatedAtRoute(nameof(CreateDimensionEndpoint), new { id = response.Id }, response);
+                })
+                .WithName(nameof(CreateDimensionEndpoint))
+                .WithSummary("Creates a dimension item")
+                .WithDescription("Creates a dimension item")
+                .Produces<CreateDimensionResponse>(StatusCodes.Status201Created)
+                .RequirePermission("Permissions.Dimensions.Create")
+                .MapToApiVersion(new ApiVersion(1, 0));
+
+    }
+}

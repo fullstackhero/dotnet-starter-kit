@@ -5,6 +5,7 @@ using FluentValidation;
 using FSH.Starter.WebApi.Catalog.Application;
 using FSH.Starter.WebApi.Catalog.Infrastructure;
 using FSH.Starter.WebApi.Setting;
+using FSH.Starter.WebApi.Setting.Dimension;
 using FSH.Starter.WebApi.Todo;
 
 namespace FSH.Starter.WebApi.Host;
