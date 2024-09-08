@@ -18,7 +18,7 @@ public static class DimensionModule
         public Endpoints() : base("setting") { }
         public override void AddRoutes(IEndpointRouteBuilder app)
         {
-            var settingGroup = app.MapGroup("dimensions").WithTags("dimensions");
+            var settingGroup = app.MapGroup("Dimensions").WithTags("Dimensions");
             settingGroup.MapDimensionCreationEndpoint();
             settingGroup.MapGetDimensionEndpoint();
             settingGroup.MapGetDimensionListEndpoint();
