@@ -1177,10 +1177,10 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
 
                     var urlBuilder_ = new System.Text.StringBuilder();
                 
-                    // Operation Path: "api/v{version}/setting/dimensions"
+                    // Operation Path: "api/v{version}/setting/Dimensions"
                     urlBuilder_.Append("api/v");
                     urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(version, System.Globalization.CultureInfo.InvariantCulture)));
-                    urlBuilder_.Append("/setting/dimensions");
+                    urlBuilder_.Append("/setting/Dimensions");
 
                     PrepareRequest(client_, request_, urlBuilder_);
 
@@ -1277,10 +1277,10 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
 
                     var urlBuilder_ = new System.Text.StringBuilder();
                 
-                    // Operation Path: "api/v{version}/setting/dimensions/{id}"
+                    // Operation Path: "api/v{version}/setting/Dimensions/{id}"
                     urlBuilder_.Append("api/v");
                     urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(version, System.Globalization.CultureInfo.InvariantCulture)));
-                    urlBuilder_.Append("/setting/dimensions/");
+                    urlBuilder_.Append("/setting/Dimensions/");
                     urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(id, System.Globalization.CultureInfo.InvariantCulture)));
 
                     PrepareRequest(client_, request_, urlBuilder_);
@@ -1385,10 +1385,10 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
 
                     var urlBuilder_ = new System.Text.StringBuilder();
                 
-                    // Operation Path: "api/v{version}/setting/dimensions/{id}"
+                    // Operation Path: "api/v{version}/setting/Dimensions/{id}"
                     urlBuilder_.Append("api/v");
                     urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(version, System.Globalization.CultureInfo.InvariantCulture)));
-                    urlBuilder_.Append("/setting/dimensions/");
+                    urlBuilder_.Append("/setting/Dimensions/");
                     urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(id, System.Globalization.CultureInfo.InvariantCulture)));
 
                     PrepareRequest(client_, request_, urlBuilder_);
@@ -1485,10 +1485,10 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
 
                     var urlBuilder_ = new System.Text.StringBuilder();
                 
-                    // Operation Path: "api/v{version}/setting/dimensions/{id}"
+                    // Operation Path: "api/v{version}/setting/Dimensions/{id}"
                     urlBuilder_.Append("api/v");
                     urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(version, System.Globalization.CultureInfo.InvariantCulture)));
-                    urlBuilder_.Append("/setting/dimensions/");
+                    urlBuilder_.Append("/setting/Dimensions/");
                     urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(id, System.Globalization.CultureInfo.InvariantCulture)));
 
                     PrepareRequest(client_, request_, urlBuilder_);
@@ -1585,10 +1585,10 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
 
                     var urlBuilder_ = new System.Text.StringBuilder();
                 
-                    // Operation Path: "api/v{version}/setting/dimensions/search"
+                    // Operation Path: "api/v{version}/setting/Dimensions/search"
                     urlBuilder_.Append("api/v");
                     urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(version, System.Globalization.CultureInfo.InvariantCulture)));
-                    urlBuilder_.Append("/setting/dimensions/search");
+                    urlBuilder_.Append("/setting/Dimensions/search");
 
                     PrepareRequest(client_, request_, urlBuilder_);
 

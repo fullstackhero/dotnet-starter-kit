@@ -28,4 +28,50 @@
             <MudNavLink Href="/tenants" Icon="@Icons.Material.Filled.GroupWork" Disabled="!_canViewTenants">Tenants</MudNavLink>
         }
     }
+
+    @if (CanViewUserGroup || CanViewSystemGroup)
+    {
+        <MudDivider Class="my-2"/>
+        <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="ml-4 my-3">Administration</MudText>
+
+        @if (CanViewUserGroup)
+        {
+            <MudNavGroup Title="User Management" Icon="@Icons.Material.Filled.Security" Class="mt-2 mb-n2" Expanded="false">
+                @if (_canViewUserStats)
+                {
+                    <MudNavLink Href="/Dashboard/UserStats" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard" Class="fsh-nav-child">Dashboard</MudNavLink>
+                }
+                @if (_canViewUsers)
+                {
+                    <MudNavLink Match="NavLinkMatch.Prefix" Href="/identity/users" Icon="@Icons.Material.Filled.PeopleAlt" Class="fsh-nav-child">Users</MudNavLink>
+                }
+                @if (_canViewRoles)
+                {
+                    <MudNavLink Href="/identity/roles" Icon="@Icons.Material.Filled.EmojiPeople" Class="fsh-nav-child">Roles</MudNavLink>
+                }
+                @if (_canViewTenants)
+                {
+                    <MudNavLink Href="/tenants" Icon="@Icons.Material.Filled.GroupWork" Disabled="!_canViewTenants" Class="fsh-nav-child">Tenants</MudNavLink>
+                }
+                @if (_canViewChatMessages)
+                {
+                    <MudNavLink Href="/communication/chatmessages" Icon="@Icons.Material.Filled.Message" Disabled="!_canViewChatMessages" Class="fsh-nav-child">ChatMessages</MudNavLink>
+                }
+            </MudNavGroup>
+        }
+
+        @if (CanViewSystemGroup)
+        {
+            <MudNavGroup Title="System" Icon="@Icons.Material.Outlined.Settings" Class="mt-2 mb-n2" Expanded="false">
+                @if (_canViewDimensions)
+                {
+                    <MudNavLink Href="/setting/dimensions" Icon="@Icons.Material.Filled.Rule" Class="fsh-nav-child">Dimensions</MudNavLink>
+                }
+                @if (_canViewEntityCodes)
+                {
+                    <MudNavLink Href="/setting/EntityCodes" Icon="@Icons.Material.Outlined.Title" Class="fsh-nav-child">EntityCodes</MudNavLink>
+                }
+            </MudNavGroup>
+        }
+    }
 </MudNavMenu>

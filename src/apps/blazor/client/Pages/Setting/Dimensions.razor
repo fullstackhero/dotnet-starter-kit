@@ -1,0 +1,49 @@
+@page "/Setting/Dimensions"
+
+<PageHeader Title="Dimensions" Header="Dimensions" SubHeader="Manage your Dimensions." />
+
+<EntityTable @ref="_table" TEntity="GetDimensionResponse" TId="Guid" TRequest="DimensionViewModel" Context="@Context">
+    <EditFormContent>
+        @if (!Context.AddEditModal.IsCreate)
+        {
+            <MudItem xs="12" md="12">
+                <MudTextField Value="context.Id" Underline=false ReadOnly Label="Item Id" />
+            </MudItem>
+        }
+        
+        <MudItem xs="12" md="3">
+            <MudTextField Label="Order" For="@(() => context.Order)" @bind-Value="context.Order" />
+        </MudItem>
+        <MudItem xs="12" md="3">
+            <MudTextField Label="Code" For="@(() => context.Code)" @bind-Value="context.Code" />
+        </MudItem>
+        <MudItem xs="12" md="3">
+            <MudTextField Label="Name" For="@(() => context.Name)" @bind-Value="context.Name" T="string" />
+        </MudItem>
+        <MudItem xs="12" md="3">
+            <MudTextField Label="Value" For="@(() => context.Value)" @bind-Value="context.Value" />
+        </MudItem>
+
+        <MudItem xs="12" md="3">
+            <MudTextField Label="Full Name" For="@(() => context.FullName)" @bind-Value="context.FullName" T="string" />
+        </MudItem>
+        <MudItem xs="12" md="3">
+            <MudTextField Label="Native Name" For="@(() => context.NativeName)" @bind-Value="context.NativeName" T="string" />
+        </MudItem>
+        <MudItem xs="12" md="3">
+            <MudTextField Label="Full Native Name" For="@(() => context.FullNativeName)" @bind-Value="context.FullNativeName" T="string" />
+        </MudItem>
+        <MudItem xs="12" md="3">
+            <MudTextField Label="Type" For="@(() => context.Type)" @bind-Value="context.Type" T="string" />
+        </MudItem>
+        <MudItem xs="12" md="9">
+            <MudTextField Label="Description" For="@(() => context.Description)" @bind-Value="context.Description" />
+        </MudItem>
+
+        <MudItem xs="12" md="9">
+        </MudItem>
+        <MudItem xs="12" md="3">
+            <MudCheckBox @bind-Value="context.IsActive" For="@(() => context.IsActive)" Label="Active"></MudCheckBox>
+        </MudItem>
+    </EditFormContent>
+</EntityTable>

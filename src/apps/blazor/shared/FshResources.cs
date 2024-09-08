@@ -11,4 +11,8 @@ public static class FshResources
     public const string Products = nameof(Products);
     public const string Brands = nameof(Brands);
     public const string Todos = nameof(Todos);
+    
+    public const string Menus = nameof(Menus);
+    public const string Dimensions = nameof(Dimensions);
+    public const string EntityCodes = nameof(EntityCodes);
 }
