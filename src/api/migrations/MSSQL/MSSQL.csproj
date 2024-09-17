@@ -6,6 +6,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\framework\Infrastructure\Infrastructure.csproj" />
     <ProjectReference Include="..\..\modules\Catalog\Catalog.Infrastructure\Catalog.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\modules\Setting\Setting.csproj" />
     <ProjectReference Include="..\..\modules\Todo\Todo.csproj" />
   </ItemGroup>
 </Project>
