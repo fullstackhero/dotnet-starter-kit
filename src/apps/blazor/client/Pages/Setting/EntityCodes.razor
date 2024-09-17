@@ -1,6 +1,50 @@
-@page "/EntityCodes"
-<h3>EntityCodes</h3>
+@page "/Setting/EntityCodes"
 
-@code {
-    
-}
+<PageHeader Title="EntityCodes" Header="EntityCodes" SubHeader="Manage your EntityCodes." />
+
+<EntityTable @ref="_table" TEntity="GetEntityCodeResponse" TId="Guid" TRequest="EntityCodeViewModel" Context="@Context" >
+
+    <EditFormContent>
+        @if (!Context.AddEditModal.IsCreate)
+        {
+            <MudItem xs="12" md="12">
+                <MudTextField Value="context.Id" Underline=false ReadOnly Label="Item Id" />
+            </MudItem>
+        }
+        
+        <MudItem xs="12" md="3">
+            <MudTextField Label="Order" For="@(() => context.Order)" @bind-Value="context.Order" />
+        </MudItem>
+        <MudItem xs="12" md="3">
+            <MudTextField Label="Code" For="@(() => context.Code)" @bind-Value="context.Code" />
+        </MudItem>
+        <MudItem xs="12" md="3">
+            <MudTextField Label="Name" For="@(() => context.Name)" @bind-Value="context.Name" T="string" />
+        </MudItem>
+        <MudItem xs="12" md="3">
+            <MudSelect Label="Type" @bind-Value="context.Type" Variant="Variant.Filled">
+                @foreach (CodeType item in Enum.GetValues(typeof(CodeType)))
+                {
+                <MudSelectItem Value="@item">@item</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+
+
+        <MudItem xs="12" md="3">
+            <MudTextField Label="Separator" For="@(() => context.Separator)" @bind-Value="context.Separator" T="string" />
+        </MudItem>
+        <MudItem xs="12" md="3">
+            <MudTextField Label="Value" For="@(() => context.Value)" @bind-Value="context.Value" />
+        </MudItem>
+        <MudItem xs="12" md="3">
+        </MudItem>
+        <MudItem xs="12" md="3">
+            <MudCheckBox @bind-Value="context.IsActive" For="@(() => context.IsActive)" Label="Active"></MudCheckBox>
+        </MudItem>
+        
+        <MudItem xs="12" md="12">
+            <MudTextField Label="Description" For="@(() => context.Description)" @bind-Value="context.Description" />
+        </MudItem>
+    </EditFormContent>
+</EntityTable>

@@ -21,8 +21,10 @@ public static class Extensions
             typeof(CatalogMetadata).Assembly,
             typeof(TodoModule).Assembly,
             
-            typeof(DimensionModule).Assembly,
-            typeof(EntityCodeModule).Assembly
+            typeof(SettingModule).Assembly,
+            
+            // typeof(DimensionModule).Assembly,
+            // typeof(EntityCodeModule).Assembly
         };
 
         //register validators
@@ -37,9 +39,11 @@ public static class Extensions
         //register module services
         builder.RegisterCatalogServices();
         builder.RegisterTodoServices();
+
+        builder.RegisterSettingServices();
         
-        builder.RegisterDimensionServices();
-        builder.RegisterEntityCodeServices();
+        // builder.RegisterDimensionServices();
+        // builder.RegisterEntityCodeServices();
 
         //add carter endpoint modules
         builder.Services.AddCarter(configurator: config =>
@@ -47,8 +51,9 @@ public static class Extensions
             config.WithModule<CatalogModule.Endpoints>();
             config.WithModule<TodoModule.Endpoints>();
             
-            config.WithModule<DimensionModule.Endpoints>();
-            config.WithModule<EntityCodeModule.Endpoints>();
+            config.WithModule<SettingModule.Endpoints>();
+            // config.WithModule<DimensionModule.Endpoints>();
+            // config.WithModule<EntityCodeModule.Endpoints>();
         });
 
         return builder;
@@ -62,8 +67,8 @@ public static class Extensions
         app.UseCatalogModule();
         app.UseTodoModule();
 
-        app.UseDimensionModule();
-        app.UseEntityCodeModule();
+        app.UseSettingModule();
+        // app.UseEntityCodeModule();
 
         //register api versions
         var versions = app.NewApiVersionSet()

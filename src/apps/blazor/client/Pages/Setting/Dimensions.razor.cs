@@ -69,5 +69,3 @@ public partial class Dimensions : ComponentBase
 public class DimensionViewModel : UpdateDimensionCommand
 {
 }
-
-
