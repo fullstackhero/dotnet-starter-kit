@@ -2,7 +2,7 @@
 @typeparam TId
 @typeparam TRequest
 
-@inject IJSRuntime JS
+@inject IJSRuntime Js
 
 <style>
     .mud-table-container {
@@ -21,7 +21,7 @@
                 <MudTextField @bind-Value="SearchString" Immediate="true"
                     Placeholder="@($"Search for {Context.EntityNamePlural}")" Adornment="Adornment.Start"
                     AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium"
-                    Style="flex:none!important;margin:0px!important" TextChanged="OnSearchStringChanged">
+                    Style="flex:none!important;margin:0!important" TextChanged="OnSearchStringChanged">
                 </MudTextField>
                    @* @if (Context.AdvancedSearchEnabled)
                    {
