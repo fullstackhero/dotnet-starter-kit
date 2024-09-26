@@ -28,6 +28,7 @@ public partial class AddEditModal<TRequest> : IAddEditModal<TRequest>
     private MudDialogInstance MudDialog { get; set; } = default!;
 
     private FshValidation? _customValidation;
+    private bool _buttonStatus;
 
     public void ForceRender() => StateHasChanged();
 
@@ -38,10 +39,12 @@ public partial class AddEditModal<TRequest> : IAddEditModal<TRequest>
 
     private async Task SaveAsync()
     {
+        _buttonStatus = true;
         if (await ApiHelper.ExecuteCallGuardedAsync(
             () => SaveFunc(RequestModel), Toast, _customValidation, SuccessMessage))
         {
             MudDialog.Close();
         }
+        _buttonStatus = false;
     }
 }
