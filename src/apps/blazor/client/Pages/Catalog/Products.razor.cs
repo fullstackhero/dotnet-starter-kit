@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace FSH.Starter.Blazor.Client.Pages.Catalog;
 
-public partial class Products
+public partial class Products : ComponentBase
 {
     [Inject]
     protected IApiClient _client { get; set; } = default!;
@@ -29,11 +29,23 @@ public partial class Products
             },
             enableAdvancedSearch: true,
             idFunc: prod => prod.Id!.Value,
+            exportFunc: async filter =>
+            {
+                var exportFilter = filter.Adapt<BaseFilter>();
+                
+                return await _client.ExportProductsEndpointAsync("1", exportFilter);
+           
+            },
+            importFunc: async fileUploadModel =>
+            {
+               // var request = new FileUploadCommand(){ uploadFile = FileUploadRequest };
+                await _client.ImportProductsEndpointAsync("1", fileUploadModel);
+            },
             searchFunc: async filter =>
             {
-                var productFilter = filter.Adapt<PaginationFilter>();
+                var searchFilter = filter.Adapt<PaginationFilter>();
 
-                var result = await _client.SearchProductsEndpointAsync("1", productFilter);
+                var result = await _client.SearchProductsEndpointAsync("1", searchFilter);
                 return result.Adapt<PaginationResponse<ProductResponse>>();
             },
             createFunc: async prod =>
@@ -44,7 +56,8 @@ public partial class Products
             {
                 await _client.UpdateProductEndpointAsync("1", id, prod.Adapt<UpdateProductCommand>());
             },
-            deleteFunc: async id => await _client.DeleteProductEndpointAsync("1", id));
+            deleteFunc: async id => await _client.DeleteProductEndpointAsync("1", id)
+        );
 
     // Advanced Search
 

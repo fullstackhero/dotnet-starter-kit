@@ -6,6 +6,7 @@ using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.JSInterop;
 using MudBlazor;
 
 namespace FSH.Starter.Blazor.Client.Components.EntityTable;
@@ -48,13 +49,17 @@ public partial class EntityTable<TEntity, TId, TRequest>
     private bool _canUpdate;
     private bool _canDelete;
     private bool _canExport;
+    private bool _canImport;
+    
+    private bool _buttonStatus;
 
     private bool _advancedSearchExpanded;
 
     private MudTable<TEntity> _table = default!;
     private IEnumerable<TEntity>? _entityList;
     private int _totalItems;
-
+    
+    private HashSet<TEntity> _selectedItems = [];
     protected override async Task OnInitializedAsync()
     {
         var state = await AuthState;
@@ -63,7 +68,8 @@ public partial class EntityTable<TEntity, TId, TRequest>
         _canUpdate = await CanDoActionAsync(Context.UpdateAction, state);
         _canDelete = await CanDoActionAsync(Context.DeleteAction, state);
         _canExport = await CanDoActionAsync(Context.ExportAction, state);
-
+        _canImport = await CanDoActionAsync(Context.ImportAction, state);
+        
         await LocalLoadDataAsync();
     }
 
@@ -157,7 +163,6 @@ public partial class EntityTable<TEntity, TId, TRequest>
         return new TableData<TEntity> { TotalItems = _totalItems, Items = _entityList };
     }
 
-
     private PaginationFilter GetPaginationFilter(TableState state)
     {
         string[]? orderings = null;
@@ -188,7 +193,27 @@ public partial class EntityTable<TEntity, TId, TRequest>
 
         return filter;
     }
+    
+    private BaseFilter GetBaseFilter()
+    {
+        var filter = new BaseFilter
+        {
+            Keyword = SearchString,
+        };
 
+        if (!Context.AllColumnsChecked)
+        {
+            filter.AdvancedSearch = new()
+            {
+                Fields = Context.SearchFields,
+                Keyword = filter.Keyword
+            };
+            filter.Keyword = null;
+        }
+
+        return filter;
+    }
+    
     private async Task InvokeModal(TEntity? entity = default)
     {
         bool isCreate = entity is null;
@@ -283,5 +308,207 @@ public partial class EntityTable<TEntity, TId, TRequest>
 
             await ReloadDataAsync();
         }
+    }
+    
+    private async Task ExportAsync()
+    {
+        if (Loading) return;
+        Loading = true;
+        _buttonStatus = true;
+
+        var filter = GetBaseFilter();
+
+        // if (Context.ServerContext is not null && Context.ServerContext.ExportFunc is not null)
+        if (Context.ServerContext?.ExportFunc is not null)
+        {
+            if (await ApiHelper.ExecuteCallGuardedAsync(
+                    () => Context.ServerContext.ExportFunc(filter), Toast,Navigation)
+                is { } result)
+            {
+                Stream stream = new MemoryStream(result.FileStream);
+                using var streamRef = new DotNetStreamReference(stream);
+                await Js.InvokeVoidAsync("downloadFileFromStream", $"{Context.EntityNamePlural}.xlsx", streamRef);
+                
+                // await using var stream = File.Create($"{Context.EntityNamePlural}.xlsx");
+                // stream.Write(result.FileStream, 0, result.FileStream.Length);
+            }
+            
+        }
+        // (Context.ClientContext is not null && Context.ClientContext.ExportFunc is not null)
+        else if (Context.ClientContext?.ExportFunc is not null)
+        {
+            if (await ApiHelper.ExecuteCallGuardedAsync(
+                    () => Context.ClientContext.ExportFunc(filter), Toast,Navigation)
+                is { } result)
+            {
+                Stream stream = new MemoryStream(result.FileStream);
+                using var streamRef = new DotNetStreamReference(stream);
+                await Js.InvokeVoidAsync("downloadFileFromStream", $"{Context.EntityNamePlural}.xlsx", streamRef);
+                
+                // using var streamRef = new DotNetStreamReference((result.FileStream));
+                // await Js.InvokeVoidAsync("downloadFileFromStream", $"{Context.EntityNamePlural}.xlsx", streamRef);
+               // File.WriteAllBytes($"{Context.EntityNamePlural}.xlsx", result.FileStream);
+            }
+        }
+        
+        Loading = false;
+        _buttonStatus = false;
+    }
+    
+    private async Task ImportAsync(FileUploadCommand request)
+    {
+        if (Context.ServerContext == null || Context.ServerContext.ImportFunc == null) return;
+        Loading = true;
+
+        if (await ApiHelper.ExecuteCallGuardedAsync(
+                () => Context.ServerContext.ImportFunc(request), Toast)
+            is { } result)
+        { }
+
+        Loading = false;
+    }
+    
+    private async Task InvokeImportModal()
+    {
+        var parameters = new DialogParameters
+        {
+            { nameof(ImportModal.ModelName), Context.EntityName },
+            { nameof(ImportModal.OnInitializedFunc), Context.ImportFormInitializedFunc },
+        };
+
+        Func<FileUploadCommand, Task> importFunc = ImportAsync;
+
+        parameters.Add(nameof(ImportModal.ImportFunc), importFunc);
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, BackdropClick = true };
+
+        var dialog = DialogService.Show<ImportModal>("Import", parameters, options);
+
+        Context.SetImportModalRef(dialog);
+
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            await ReloadDataAsync();
+        }
+    }
+    
+    private async Task EditSelectedAsync(HashSet<TEntity> selectedItems)
+    {
+        string contentText;
+        switch (selectedItems.Count)
+        {
+            case 1:
+                await InvokeModal(selectedItems.First());
+                return;
+            case 0:
+                contentText = "You do not select any item!";
+                break;
+            default:
+                contentText = "You have to select one item only!";
+                break;
+        }
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, BackdropClick = true };
+        var parameters = new DialogParameters
+                    {
+                        { "ContentText", contentText },
+                        { "ButtonText", " OK " },
+                        { "ButtonColor", Color.Error },
+                        { "TitleIcon", Icons.Material.Filled.Warning },
+                        { "TitleText", "Warning!" }
+                    };
+        DialogService.Show<DialogNotification>("Warning", parameters, options);
+    }
+
+    private async Task DeleteSelectedAsync(HashSet<TEntity> selectedItems)
+    {
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, BackdropClick = true };
+        if (selectedItems.Count == 0)
+        {
+            var parameters = new DialogParameters
+                    {
+                        { "ContentText", "You have selected atleast one item!" },
+                        { "ButtonText", " OK " },
+                        { "ButtonColor", Color.Error},
+                        { "titleIcon", Icons.Material.Filled.Warning},
+                        { "titleText", "Warning!"}
+                    };
+            DialogService.Show<DialogNotification>("Warning", parameters, options);
+        }
+        else
+        {
+            const string contentText = "Do you really want to delete these {0} records? This process cannot be undone.";
+            var parameters = new DialogParameters
+                    {
+                        { "ContentText", string.Format(contentText, selectedItems.Count) },
+                        { "ButtonText", "Delete" },
+                        { "ButtonColor", Color.Error},
+                        { "titleIcon", Icons.Material.Filled.Delete},
+                        { "titleText", "Delete Comfirmation"}
+                    };
+            var dialog = DialogService.Show<DialogComfirmation>("Delete", parameters, options);
+
+            var result = await dialog.Result;
+            if (result is { Canceled: false })
+            {
+                int n = 0;
+                foreach (var entity in selectedItems)
+                {
+                    _ = Context.IdFunc ?? throw new InvalidOperationException("IdFunc can't be null!");
+                    TId id = Context.IdFunc(entity);
+                    _ = Context.DeleteFunc ?? throw new InvalidOperationException("DeleteFunc can't be null!");
+
+                    bool response = await ApiHelper.ExecuteCallGuardedAsync(
+                        () => Context.DeleteFunc(id),
+                        Toast);
+
+                    if (!response) break;
+
+                    n++;
+                }
+               
+                if (n > 1) Toast.Add(string.Format("{0} records were deleted", n), Severity.Success);
+                await ReloadDataAsync();
+            }
+        }
+    }
+
+    private async Task ClearAllAsync()
+    {
+        const string contentText = "Do you really want to erase all data? This process cannot be recovered.";
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, BackdropClick = true };
+        var parameters = new DialogParameters
+                    {
+                        { "ContentText", contentText},
+                        { "ButtonText", "Erase All" },
+                        { "ButtonColor", Color.Error},
+                        { "titleIcon", Icons.Material.Filled.Delete},
+                        { "titleText", "Erase"}
+                    };
+        var dialog = DialogService.Show<DialogComfirmation>("Delete", parameters, options);
+
+        var result = await dialog.Result;
+        if (result is { Canceled: false })
+        {
+            parameters = new DialogParameters
+                    {
+                        { "ContentText", "This is coming soon!" },
+                        { "ButtonText", " OK " },
+                        { "ButtonColor", Color.Error},
+                        { "titleIcon", Icons.Material.Filled.Warning},
+                        { "titleText", "Warning!"}
+                    };
+             DialogService.Show<DialogNotification>("Warning", parameters, options);
+
+            await ReloadDataAsync();
+        }
+    }
+    
+    
+    private bool _openAdvancedSearch;
+    private void AdvanceSearchDrawer()
+    {
+        _openAdvancedSearch = !_openAdvancedSearch;
     }
 }

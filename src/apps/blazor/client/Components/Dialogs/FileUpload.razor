@@ -1,0 +1,68 @@
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.CloudUpload" Class="mr-3 mb-n1" />
+            File Upload 
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText>@ContentText</MudText>
+        <InputFile id="fileInput" OnChange="OnInputFileChange" hidden accept= "@MimeType" />
+        @if (file != null)
+        {
+            <MudText>
+                <MudIcon Icon="@Icons.Material.Filled.AttachFile" Class="mr-3 mb-n1" />
+                @file.Name <code>@file.Size bytes</code>
+            </MudText>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Primary"
+                   StartIcon="@Icons.Custom.FileFormats.FileExcel"
+                   for="fileInput"> Choose File
+        </MudButton>
+        @if (file != null)
+        {
+            <MudButton Variant="Variant.Filled" Color="Color.Error" StartIcon="@Icons.Material.Filled.UploadFile"
+                OnClick="Submit">Upload</MudButton>
+        }
+        else
+        {
+            <MudButton Variant="Variant.Filled" Color="Color.Error" StartIcon="@Icons.Material.Filled.UploadFile"
+                Disabled="true"
+                OnClick="Submit">Upload]</MudButton>
+        }
+    </DialogActions>
+</MudDialog>
+
+@code 
+{
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public string? ContentText { get; set; }
+    [Parameter] public string? MimeType { get; set; }
+    public IBrowserFile? file { get; set; }
+
+    void Cancel() => MudDialog.Cancel();
+    private async Task Submit()
+    {   if(file != null)
+        {
+            var buffer = new byte[file.Size];
+            await file.OpenReadStream(file.Size).ReadAsync(buffer);
+            MudDialog.Close(DialogResult.Ok <Byte[]>(buffer)); 
+        }
+    }
+
+    private void OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        if (e.File.Size >=512000)
+        {
+            Toast.Add("File have size too big!", Severity.Error);
+            file = null;
+        }
+        else
+        {
+            file = e.File;
+        }
+    }
+}

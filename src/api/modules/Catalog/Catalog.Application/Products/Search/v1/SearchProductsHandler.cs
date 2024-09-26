@@ -6,7 +6,6 @@ using FSH.Starter.WebApi.Catalog.Domain;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
-
 namespace FSH.Starter.WebApi.Catalog.Application.Products.Search.v1;
 public sealed class SearchProductsHandler(
     [FromKeyedServices("catalog:products")] IReadRepository<Product> repository)
@@ -16,12 +15,11 @@ public sealed class SearchProductsHandler(
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        var spec = new EntitiesByPaginationFilterSpec<Product, ProductResponse>(request.filter);
+        var spec = new EntitiesByPaginationFilterSpec<Product, ProductResponse>(request.Filter);
 
         var items = await repository.ListAsync(spec, cancellationToken).ConfigureAwait(false);
         var totalCount = await repository.CountAsync(spec, cancellationToken).ConfigureAwait(false);
 
-        return new PagedList<ProductResponse>(items, request.filter.PageNumber, request.filter.PageSize, totalCount);
+        return new PagedList<ProductResponse>(items, request.Filter.PageNumber, request.Filter.PageSize, totalCount);
     }
 }
-
