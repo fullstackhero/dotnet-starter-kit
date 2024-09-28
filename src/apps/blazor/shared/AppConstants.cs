@@ -38,4 +38,7 @@ public static class AppConstants
     ];
     public static readonly string StandardDocumentFormat = "document/pdf";
     public static readonly long MaxDocumentFileSize = 20000000;
+
+    public static readonly string ExcelMineType = "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64";
+    public static readonly string CsvMineType = "data:text/csv;base64";
 }

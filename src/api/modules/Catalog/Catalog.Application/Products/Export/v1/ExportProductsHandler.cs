@@ -11,17 +11,18 @@ using System.IO;
 namespace FSH.Starter.WebApi.Catalog.Application.Products.Export.v1;
 
 public class ExportProductsHandler(
-    [FromKeyedServices("catalog:products")]  IReadRepository<Product> repository, IExcelWriter excelWriter)
-    : IRequestHandler<ExportProductsCommand, Stream>
+    [FromKeyedServices("catalog:products")]  IReadRepository<Product> repository, IDataExport dataExport)
+    : IRequestHandler<ExportProductsCommand, byte[]>
 {
-    public async Task<Stream> Handle(ExportProductsCommand request, CancellationToken cancellationToken)
+    public async Task<byte[]> Handle(ExportProductsCommand request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
         
         var spec = new EntitiesByBaseFilterSpec<Product, ProductResponse>(request.Filter);
         var items = await repository.ListAsync(spec, cancellationToken);
         
-        var response = excelWriter.WriteToStream(items);
+        // var response = excelWriter.WriteToStream(items);
+        var response = dataExport.ListToByteArray(items);
         
         return response;
     }

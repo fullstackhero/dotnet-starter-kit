@@ -7,8 +7,8 @@ internal static class Extensions
 {
     internal static IServiceCollection ConfigureDataImportExport(this IServiceCollection services)
     {
-        services.AddTransient<IExcelWriter, ExcelWriter>();
-        services.AddTransient<IExcelReader, ExcelReader>();
+        services.AddTransient<IDataExport, DataExport>();
+        services.AddTransient<IDataImport, DataImport>();
 
         return services;
     }

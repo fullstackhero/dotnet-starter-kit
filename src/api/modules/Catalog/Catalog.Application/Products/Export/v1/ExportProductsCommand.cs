@@ -5,4 +5,4 @@ using MediatR;
 
 namespace FSH.Starter.WebApi.Catalog.Application.Products.Export.v1;
 
-public record ExportProductsCommand(BaseFilter Filter) : IRequest<Stream>;
+public record ExportProductsCommand(BaseFilter Filter) : IRequest<byte[]>;

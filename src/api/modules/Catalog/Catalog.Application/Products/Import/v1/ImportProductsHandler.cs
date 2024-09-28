@@ -9,14 +9,14 @@ using Microsoft.Extensions.DependencyInjection;
 namespace FSH.Starter.WebApi.Catalog.Application.Products.Import.v1;
 
 public class ImportProductsHandler(
-    [FromKeyedServices("catalog:products")]  IRepository<Product> repository, IExcelReader excelReader)
+    [FromKeyedServices("catalog:products")]  IRepository<Product> repository, IDataImport dataImport)
     : IRequestHandler<ImportProductsCommand, int>
 {
     public async Task<int> Handle(ImportProductsCommand request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
         
-        var items = await excelReader.ToListAsync<Product>(request.UploadFile, FileType.Excel);
+        var items = await dataImport.ToListAsync<Product>(request.UploadFile, FileType.Excel);
 
         if (items == null || items.Count == 0) throw new CustomException("Excel file error or empty!");
 
