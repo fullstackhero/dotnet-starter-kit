@@ -7,7 +7,7 @@ using FSH.Framework.Core.Storage.File.Features;
 
 namespace FSH.Framework.Infrastructure.DataIO;
 
-public class ExcelReader : IExcelReader
+public class DataImport : IDataImport
 {
    public async Task<IList<T>> ToListAsync<T>(FileUploadCommand request, FileType supportedFileType, string sheetName = "Sheet1")
     {

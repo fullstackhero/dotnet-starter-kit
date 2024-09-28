@@ -20,7 +20,7 @@ public static class ImportProductsEndpoint
              
             })
             .WithName(nameof(ImportProductsEndpoint))
-            .WithSummary("Imports a list of entities")
+            .WithSummary("Imports a list of products")
             .WithDescription("Imports a list of entities from excel files")
             .Produces(StatusCodes.Status200OK)
             .RequirePermission("Permissions.Products.Import")

@@ -54,7 +54,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         /// gets product by id
         /// </summary>
         /// <remarks>
-        /// gets prodct by id
+        /// gets product by id
         /// </remarks>
         /// <param name="version">The requested API version</param>
         /// <returns>OK</returns>
@@ -66,7 +66,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         /// gets product by id
         /// </summary>
         /// <remarks>
-        /// gets prodct by id
+        /// gets product by id
         /// </remarks>
         /// <param name="version">The requested API version</param>
         /// <returns>OK</returns>
@@ -123,6 +123,29 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         /// Gets a list of products
         /// </summary>
         /// <remarks>
+        /// Gets a list of products with filtering support
+        /// </remarks>
+        /// <param name="version">The requested API version</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ProductResponse>> GetProductsEndpointAsync(string version, BaseFilter body);
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Gets a list of products
+        /// </summary>
+        /// <remarks>
+        /// Gets a list of products with filtering support
+        /// </remarks>
+        /// <param name="version">The requested API version</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ProductResponse>> GetProductsEndpointAsync(string version, BaseFilter body, System.Threading.CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Gets a pagination of products
+        /// </summary>
+        /// <remarks>
         /// Gets a list of products with pagination and filtering support
         /// </remarks>
         /// <param name="version">The requested API version</param>
@@ -132,7 +155,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>
-        /// Gets a list of products
+        /// Gets a pagination of products
         /// </summary>
         /// <remarks>
         /// Gets a list of products with pagination and filtering support
@@ -151,7 +174,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         /// <param name="version">The requested API version</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<FileStreamHttpResult> ExportProductsEndpointAsync(string version, BaseFilter body);
+        System.Threading.Tasks.Task<byte[]> ExportProductsEndpointAsync(string version, BaseFilter body);
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>
@@ -163,10 +186,10 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         /// <param name="version">The requested API version</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<FileStreamHttpResult> ExportProductsEndpointAsync(string version, BaseFilter body, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<byte[]> ExportProductsEndpointAsync(string version, BaseFilter body, System.Threading.CancellationToken cancellationToken);
 
         /// <summary>
-        /// Imports a list of entities
+        /// Imports a list of products
         /// </summary>
         /// <remarks>
         /// Imports a list of entities from excel files
@@ -178,7 +201,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>
-        /// Imports a list of entities
+        /// Imports a list of products
         /// </summary>
         /// <remarks>
         /// Imports a list of entities from excel files
@@ -1054,7 +1077,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         /// gets product by id
         /// </summary>
         /// <remarks>
-        /// gets prodct by id
+        /// gets product by id
         /// </remarks>
         /// <param name="version">The requested API version</param>
         /// <returns>OK</returns>
@@ -1069,7 +1092,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         /// gets product by id
         /// </summary>
         /// <remarks>
-        /// gets prodct by id
+        /// gets product by id
         /// </remarks>
         /// <param name="version">The requested API version</param>
         /// <returns>OK</returns>
@@ -1358,6 +1381,110 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         /// Gets a list of products
         /// </summary>
         /// <remarks>
+        /// Gets a list of products with filtering support
+        /// </remarks>
+        /// <param name="version">The requested API version</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ProductResponse>> GetProductsEndpointAsync(string version, BaseFilter body)
+        {
+            return GetProductsEndpointAsync(version, body, System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Gets a list of products
+        /// </summary>
+        /// <remarks>
+        /// Gets a list of products with filtering support
+        /// </remarks>
+        /// <param name="version">The requested API version</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ProductResponse>> GetProductsEndpointAsync(string version, BaseFilter body, System.Threading.CancellationToken cancellationToken)
+        {
+            if (version == null)
+                throw new System.ArgumentNullException("version");
+
+            if (body == null)
+                throw new System.ArgumentNullException("body");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    var json_ = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(body, JsonSerializerSettings);
+                    var content_ = new System.Net.Http.ByteArrayContent(json_);
+                    content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
+                    request_.Content = content_;
+                    request_.Method = new System.Net.Http.HttpMethod("POST");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                
+                    // Operation Path: "api/v{version}/catalog/products/getlist"
+                    urlBuilder_.Append("api/v");
+                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(version, System.Globalization.CultureInfo.InvariantCulture)));
+                    urlBuilder_.Append("/catalog/products/getlist");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<ProductResponse>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Gets a pagination of products
+        /// </summary>
+        /// <remarks>
         /// Gets a list of products with pagination and filtering support
         /// </remarks>
         /// <param name="version">The requested API version</param>
@@ -1370,7 +1497,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>
-        /// Gets a list of products
+        /// Gets a pagination of products
         /// </summary>
         /// <remarks>
         /// Gets a list of products with pagination and filtering support
@@ -1467,7 +1594,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         /// <param name="version">The requested API version</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<FileStreamHttpResult> ExportProductsEndpointAsync(string version, BaseFilter body)
+        public virtual System.Threading.Tasks.Task<byte[]> ExportProductsEndpointAsync(string version, BaseFilter body)
         {
             return ExportProductsEndpointAsync(version, body, System.Threading.CancellationToken.None);
         }
@@ -1482,7 +1609,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         /// <param name="version">The requested API version</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<FileStreamHttpResult> ExportProductsEndpointAsync(string version, BaseFilter body, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<byte[]> ExportProductsEndpointAsync(string version, BaseFilter body, System.Threading.CancellationToken cancellationToken)
         {
             if (version == null)
                 throw new System.ArgumentNullException("version");
@@ -1535,7 +1662,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<FileStreamHttpResult>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<byte[]>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -1563,7 +1690,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         }
 
         /// <summary>
-        /// Imports a list of entities
+        /// Imports a list of products
         /// </summary>
         /// <remarks>
         /// Imports a list of entities from excel files
@@ -1578,7 +1705,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>
-        /// Imports a list of entities
+        /// Imports a list of products
         /// </summary>
         /// <remarks>
         /// Imports a list of entities from excel files
@@ -5198,45 +5325,6 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.1.0.0 (NJsonSchema v11.0.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class EntityTagHeaderValue
-    {
-
-        [System.Text.Json.Serialization.JsonPropertyName("tag")]
-        public StringSegment Tag { get; set; } = default!;
-
-        [System.Text.Json.Serialization.JsonPropertyName("isWeak")]
-        public bool IsWeak { get; set; } = default!;
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.1.0.0 (NJsonSchema v11.0.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class FileStreamHttpResult
-    {
-
-        [System.Text.Json.Serialization.JsonPropertyName("contentType")]
-        public string? ContentType { get; set; } = default!;
-
-        [System.Text.Json.Serialization.JsonPropertyName("fileDownloadName")]
-        public string? FileDownloadName { get; set; } = default!;
-
-        [System.Text.Json.Serialization.JsonPropertyName("lastModified")]
-        public System.DateTime? LastModified { get; set; } = default!;
-
-        [System.Text.Json.Serialization.JsonPropertyName("entityTag")]
-        public EntityTagHeaderValue EntityTag { get; set; } = default!;
-
-        [System.Text.Json.Serialization.JsonPropertyName("enableRangeProcessing")]
-        public bool EnableRangeProcessing { get; set; } = default!;
-
-        [System.Text.Json.Serialization.JsonPropertyName("fileLength")]
-        public long? FileLength { get; set; } = default!;
-
-        [System.Text.Json.Serialization.JsonPropertyName("fileStream")]
-        public byte[]? FileStream { get; set; } = default!;
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.1.0.0 (NJsonSchema v11.0.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class FileUploadCommand
     {
 
@@ -5455,27 +5543,6 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
 
         [System.Text.Json.Serialization.JsonPropertyName("keyword")]
         public string? Keyword { get; set; } = default!;
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.1.0.0 (NJsonSchema v11.0.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class StringSegment
-    {
-
-        [System.Text.Json.Serialization.JsonPropertyName("buffer")]
-        public string? Buffer { get; set; } = default!;
-
-        [System.Text.Json.Serialization.JsonPropertyName("offset")]
-        public int Offset { get; set; } = default!;
-
-        [System.Text.Json.Serialization.JsonPropertyName("length")]
-        public int Length { get; set; } = default!;
-
-        [System.Text.Json.Serialization.JsonPropertyName("value")]
-        public string? Value { get; set; } = default!;
-
-        [System.Text.Json.Serialization.JsonPropertyName("hasValue")]
-        public bool HasValue { get; set; } = default!;
 
     }
 

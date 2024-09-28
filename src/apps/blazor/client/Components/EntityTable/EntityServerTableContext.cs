@@ -18,7 +18,7 @@ public class EntityServerTableContext<TEntity, TId, TRequest>
     /// <summary>
     /// A function that exports the specified data from the API.
     /// </summary>
-    public Func<BaseFilter, Task<FileStreamHttpResult>>? ExportFunc { get; }
+    public Func<BaseFilter, Task<byte[]>>? ExportFunc { get; }
 
     /// <summary>
     /// A function that import the specified data from the API.
@@ -37,7 +37,7 @@ public class EntityServerTableContext<TEntity, TId, TRequest>
         Func<TId, Task<TRequest>>? getDetailsFunc = null,
         Func<TId, TRequest, Task>? updateFunc = null,
         Func<TId, Task>? deleteFunc = null,
-        Func<BaseFilter, Task<FileStreamHttpResult>>? exportFunc = null,
+        Func<BaseFilter, Task<byte[]>>? exportFunc = null,
         Func<FileUploadCommand, Task>? importFunc = null,
         string? entityName = null,
         string? entityNamePlural = null,

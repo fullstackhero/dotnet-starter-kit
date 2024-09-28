@@ -15,10 +15,10 @@ public static class ExportProductsEndpoint
     internal static RouteHandlerBuilder MapExportProductsEndpoint(this IEndpointRouteBuilder endpoints)
     {
         return endpoints
-            .MapPost("/export", async Task<FileStreamHttpResult> (ISender mediator, [FromBody] BaseFilter filter) =>
+            .MapPost("/export", async Task<byte[]> (ISender mediator, [FromBody] BaseFilter filter) =>
             {
-                var fileStream = await mediator.Send(new ExportProductsCommand(filter));
-                var response = TypedResults.File(fileStream, "application/octet-stream", "ProductExports");
+                var response = await mediator.Send(new ExportProductsCommand(filter));
+
                 return response;
                 
                //return TypedResults.File(fileStream, "application/octet-stream", "ProductExports");
@@ -27,7 +27,7 @@ public static class ExportProductsEndpoint
             .WithName(nameof(ExportProductsEndpoint))
             .WithSummary("Exports a list of products")
             .WithDescription("Exports a list of products with filtering support")
-            .Produces <FileStreamHttpResult>()
+            .Produces <byte[]>()
             .RequirePermission("Permissions.Products.Export")
             .MapToApiVersion(1);
     }

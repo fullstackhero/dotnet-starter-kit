@@ -2,6 +2,7 @@ using FSH.Starter.Blazor.Client.Components.Common;
 using FSH.Starter.Blazor.Client.Components.Dialogs;
 using FSH.Starter.Blazor.Infrastructure.Api;
 using FSH.Starter.Blazor.Infrastructure.Auth;
+using FSH.Starter.Blazor.Shared;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
@@ -325,30 +326,26 @@ public partial class EntityTable<TEntity, TId, TRequest>
                     () => Context.ServerContext.ExportFunc(filter), Toast,Navigation)
                 is { } result)
             {
-                Stream stream = new MemoryStream(result.FileStream);
-                using var streamRef = new DotNetStreamReference(stream);
-                await Js.InvokeVoidAsync("downloadFileFromStream", $"{Context.EntityNamePlural}.xlsx", streamRef);
-                
-                // await using var stream = File.Create($"{Context.EntityNamePlural}.xlsx");
-                // stream.Write(result.FileStream, 0, result.FileStream.Length);
+                await Js.InvokeAsync<object>(
+                    "DownloadFile",
+                    $"{Context.EntityNamePlural}{'_'}{DateTime.Now:yyyyMMdd_HH-mm-ss}.xlsx",
+                    AppConstants.ExcelMineType,
+                    Convert.ToBase64String(result)
+                );
             }
             
         }
         // (Context.ClientContext is not null && Context.ClientContext.ExportFunc is not null)
-        else if (Context.ClientContext?.ExportFunc is not null)
+        else if (Context.ClientContext?.ExportFunc is not null && await ApiHelper.ExecuteCallGuardedAsync(
+                         () => Context.ClientContext.ExportFunc(filter), Toast,Navigation)
+                     is { } result)
         {
-            if (await ApiHelper.ExecuteCallGuardedAsync(
-                    () => Context.ClientContext.ExportFunc(filter), Toast,Navigation)
-                is { } result)
-            {
-                Stream stream = new MemoryStream(result.FileStream);
-                using var streamRef = new DotNetStreamReference(stream);
-                await Js.InvokeVoidAsync("downloadFileFromStream", $"{Context.EntityNamePlural}.xlsx", streamRef);
-                
-                // using var streamRef = new DotNetStreamReference((result.FileStream));
-                // await Js.InvokeVoidAsync("downloadFileFromStream", $"{Context.EntityNamePlural}.xlsx", streamRef);
-               // File.WriteAllBytes($"{Context.EntityNamePlural}.xlsx", result.FileStream);
-            }
+            await Js.InvokeAsync<object>(
+                "DownloadFile",
+                $"{Context.EntityNamePlural}{'_'}{DateTime.Now:yyyyMMdd_HH-mm-ss}.xlsx",
+                AppConstants.ExcelMineType,
+                Convert.ToBase64String(result)
+            );
         }
         
         Loading = false;
