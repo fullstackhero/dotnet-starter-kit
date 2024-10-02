@@ -31,8 +31,9 @@ public partial class Products
             idFunc: prod => prod.Id!.Value,
             searchFunc: async filter =>
             {
-                var productFilter = filter.Adapt<PaginationFilter>();
-
+                var productFilter = filter.Adapt<SearchProductsCommand>();
+                productFilter.MinimumRate = Convert.ToDouble(SearchMinimumRate);
+                productFilter.MaximumRate = Convert.ToDouble(SearchMaximumRate);
                 var result = await _client.SearchProductsEndpointAsync("1", productFilter);
                 return result.Adapt<PaginationResponse<ProductResponse>>();
             },

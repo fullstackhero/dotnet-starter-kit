@@ -1,6 +1,5 @@
 using FSH.Framework.Core.Paging;
 using FSH.Framework.Core.Persistence;
-using FSH.Framework.Core.Specifications;
 using FSH.Starter.WebApi.Catalog.Application.Products.Get.v1;
 using FSH.Starter.WebApi.Catalog.Domain;
 using MediatR;
@@ -16,12 +15,12 @@ public sealed class SearchProductsHandler(
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        var spec = new EntitiesByPaginationFilterSpec<Product, ProductResponse>(request.filter);
+        var spec = new SearchProductSpecs(request);
 
         var items = await repository.ListAsync(spec, cancellationToken).ConfigureAwait(false);
         var totalCount = await repository.CountAsync(spec, cancellationToken).ConfigureAwait(false);
 
-        return new PagedList<ProductResponse>(items, request.filter.PageNumber, request.filter.PageSize, totalCount);
+        return new PagedList<ProductResponse>(items, request!.PageNumber, request!.PageSize, totalCount);
     }
 }
 
