@@ -1,12 +1,13 @@
 ﻿@page "/catalog/products"
+@using System.Globalization
 
 <PageHeader Title="Products" Header="Products" SubHeader="Manage your Products." />
 
-<EntityTable @ref="_table" TEntity="ProductResponse" TId="Guid" TRequest="ProductViewModel" Context="@Context">
+<EntityTable @ref="_table" TEntity="ProductDto" TId="Guid" TRequest="ProductViewModel" Context="@Context">
 
     <AdvancedSearchContent>
-        <MudSlider T="decimal" @bind-value="SearchMinimumRate" Min="0" Max="9999" Step="100">Minimum Rate: @_searchMinimumRate.ToString()</MudSlider>
-        <MudSlider T="decimal" @bind-value="SearchMaximumRate" Min="0" Max="9999" Step="100">Maximum Rate: @_searchMaximumRate.ToString()</MudSlider>
+        <MudSlider T="decimal" @bind-value="SearchMinimumRate" Min="0" Max="9999" Step="100">Minimum Rate: @_searchMinimumRate.ToString(CultureInfo.CurrentCulture)</MudSlider>
+        <MudSlider T="decimal" @bind-value="SearchMaximumRate" Min="0" Max="9999" Step="100">Maximum Rate: @_searchMaximumRate.ToString(CultureInfo.CurrentCulture)</MudSlider>
     </AdvancedSearchContent>
 
     <EditFormContent>
@@ -15,7 +16,6 @@
             <MudItem xs="12" md="6">
                 <MudTextField Value="context.Id" Underline=false ReadOnly Label="Product Id" />
             </MudItem>
-            <MudItem xs="12" md="6"></MudItem>
         }
         <MudItem xs="12" md="6">
             <MudTextField Label="Name" For="@(() => context.Name)" @bind-Value="context.Name" />

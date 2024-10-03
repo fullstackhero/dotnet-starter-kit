@@ -17,13 +17,13 @@ public static class SearchProductsEndpoint
         return endpoints
             .MapPost("/search", async (ISender mediator, [FromBody] PaginationFilter filter) =>
             {
-                var response = await mediator.Send(new SearchProductsCommand(filter));
+                var response = await mediator.Send(new SearchProductsRequest(filter));
                 return Results.Ok(response);
             })
             .WithName(nameof(SearchProductsEndpoint))
             .WithSummary("Gets a pagination of products")
             .WithDescription("Gets a list of products with pagination and filtering support")
-            .Produces<PagedList<ProductResponse>>()
+            .Produces<PagedList<ProductDto>>()
             .RequirePermission("Permissions.Products.Search")
             .MapToApiVersion(1);
     }

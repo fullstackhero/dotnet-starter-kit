@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 
 namespace FSH.Starter.Blazor.Client.Pages.Identity.Roles;
 
-public partial class Roles
+public partial class Roles : ComponentBase
 {
     [CascadingParameter]
     protected Task<AuthenticationState> AuthState { get; set; } = default!;

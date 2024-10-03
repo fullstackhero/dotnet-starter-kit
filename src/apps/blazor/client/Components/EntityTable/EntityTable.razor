@@ -1,5 +1,6 @@
 ﻿@typeparam TEntity
 @typeparam TId
+@using FSH.Starter.Blazor.Shared
 @typeparam TRequest
 
 @inject IJSRuntime Js
@@ -15,7 +16,7 @@
         <MudDrawerContainer>
             <MudDrawer @bind-Open="@_openAdvancedSearch" Anchor="Anchor.Right" Elevation="5" Variant="@DrawerVariant.Persistent" Class="pa-2" Height="auto" Width="300px" Fixed="false">
                 <MudDrawerHeader>
-                    <MudText Typo="Typo.button">"Advanced Search"</MudText>
+                    <MudText Typo="Typo.button">Advanced Search</MudText>
                 </MudDrawerHeader>
                 <MudNavMenu>
                     <MudTextField @bind-Value="SearchString" Immediate="true"
@@ -91,18 +92,23 @@
                                     <ChildContent>
                                         @if (_canExport)
                                         {
-                                            <MudMenuItem OnClick="@(ExportAsync)" Disabled="@_buttonStatus">Excel Export</MudMenuItem>
+                                            <MudMenuItem IconSize="Size.Small" IconColor="Color.Primary" Icon="@Icons.Material.Filled.Output"
+                                                OnClick="@(ExportAsync)" Disabled="@Loading">Excel Export</MudMenuItem>
                                             <MudDivider />
                                         }
 
                                         @if (_canImport)
                                         {
-                                            <MudMenuItem OnClick="@(InvokeImportModal)" Disabled="@_buttonStatus">Excel Import</MudMenuItem>
+                                            <MudMenuItem
+                                                IconSize="Size.Small" IconColor="Color.Secondary" Icon="@Icons.Material.Filled.Input"
+                                                OnClick="@(InvokeImportModal)" Disabled="@Loading">Excel Import</MudMenuItem>
                                             <MudDivider />
                                         }
                                         @if (_canDelete)
                                         {
-                                            <MudMenuItem Style="color:red!important" OnClick="@(ClearAllAsync)" Disabled="@_buttonStatus">Clear All</MudMenuItem>
+                                            <MudMenuItem
+                                                IconSize="Size.Small" IconColor="Color.Error" Icon="@Icons.Material.Filled.Clear"
+                                                OnClick="@(ClearAllAsync)" Disabled="@Loading">Clear All</MudMenuItem>
                                         }
                                     </ChildContent>
 

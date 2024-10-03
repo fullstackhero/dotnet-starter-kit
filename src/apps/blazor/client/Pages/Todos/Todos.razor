@@ -7,8 +7,9 @@
         @if (!Context.AddEditModal.IsCreate)
         {
             <MudItem xs="12" md="6">
-                <MudTextField Value="context.Id" Underline=false ReadOnly Label="Product Id" />
+                <MudTextField Value="context.Id" Underline=false ReadOnly Label="Todo Id" />
             </MudItem>
+            <MudItem xs="12" md="6"></MudItem>
         }
         <MudItem xs="12" md="6">
             <MudTextField Label="Name" For="@(() => context.Title)" @bind-Value="context.Title" />

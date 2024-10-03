@@ -1,27 +1,26 @@
 using FSH.Framework.Core.DataIO;
 using FSH.Framework.Core.Persistence;
 using FSH.Framework.Core.Storage.File;
-using FSH.Starter.WebApi.Catalog.Domain;
+using FSH.Starter.WebApi.Todo.Domain;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace FSH.Starter.WebApi.Catalog.Application.Products.Import.v1;
+namespace FSH.Starter.WebApi.Todo.Features.Import.v1;
 
-public class ImportProductsHandler(
-    [FromKeyedServices("catalog:products")]  IRepository<Product> repository, IDataImport dataImport)
-    : IRequestHandler<ImportProductsCommand, ImportResponse>
+public class ImportTodoListHandler(
+    [FromKeyedServices("todo")]  IRepository<TodoItem> repository, IDataImport dataImport)
+    : IRequestHandler<ImportTodoListCommand, ImportResponse>
 {
-    public async Task<ImportResponse> Handle(ImportProductsCommand request, CancellationToken cancellationToken)
+    public async Task<ImportResponse> Handle(ImportTodoListCommand request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
         
-        var items = await dataImport.ToListAsync<Product>(request.UploadFile, FileType.Excel);
+        var items = await dataImport.ToListAsync<TodoItem>(request.UploadFile, FileType.Excel);
         
         ImportResponse response = new()
         {
             TotalRecords = items.Count, 
             Message = ""
-    
         };
 
         if (response.TotalRecords <= 0)

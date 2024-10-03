@@ -4,4 +4,4 @@ using MediatR;
 
 namespace FSH.Starter.WebApi.Catalog.Application.Products.Search.v1;
 
-public record SearchProductsCommand(PaginationFilter Filter) : IRequest<PagedList<ProductResponse>>;
+public record SearchProductsRequest(PaginationFilter Filter) : IRequest<PagedList<ProductDto>>;
