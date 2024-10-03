@@ -7,23 +7,21 @@ using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
+using FSH.Starter.WebApi.Catalog.Application.Products.Search.v1;
 
 namespace FSH.Starter.WebApi.Catalog.Application.Products.Export.v1;
 
 public class ExportProductsHandler(
     [FromKeyedServices("catalog:products")]  IReadRepository<Product> repository, IDataExport dataExport)
-    : IRequestHandler<ExportProductsCommand, byte[]>
+    : IRequestHandler<ExportProductsRequest, byte[]>
 {
-    public async Task<byte[]> Handle(ExportProductsCommand request, CancellationToken cancellationToken)
+    public async Task<byte[]> Handle(ExportProductsRequest request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
         
-        var spec = new EntitiesByBaseFilterSpec<Product, ProductResponse>(request.Filter);
+        var spec = new EntitiesByBaseFilterSpec<Product, ProductDto>(request.Filter);
         var items = await repository.ListAsync(spec, cancellationToken);
         
-        // var response = excelWriter.WriteToStream(items);
-        var response = dataExport.ListToByteArray(items);
-        
-        return response;
+        return dataExport.ListToByteArray(items);
     }
 }

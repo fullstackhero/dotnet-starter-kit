@@ -3,8 +3,8 @@
 
         <TitleContent>
             <MudText Typo="Typo.h6">
-                <MudIcon Icon="@Icons.Material.Filled.ImportExport" Class="mr-3 mb-n1" />
-                Import: @ModelName
+                <MudIcon Icon="@Icons.Material.Filled.ImportExport" Class="mr-3 mb-n1" Color="@Color.Primary"/>
+                @ModelName Importing
             </MudText>
         </TitleContent>
 
@@ -12,16 +12,26 @@
             <DataAnnotationsValidator />
             <FshValidation @ref="_customValidation" />
             <MudGrid>
-                <MudItem xs="12">
-                    <InputFile id="fileInput" hidden OnChange="UploadFiles" accept=".xlsx" />
-                    <br />
+                <MudItem xs="12" md="12">
+                    <MudToggleIconButton @bind-Toggled="IsUpdate"
+                                         Icon="@Icons.Material.Filled.Add"
+                                         Color="@Color.Primary"
+                                         ToggledIcon="@Icons.Material.Filled.Edit"
+                                         ToggledColor="@Color.Tertiary"
+                                         title="@(IsUpdate ? "Update" : "Add")" />
+                    
+                    <span>As @(IsUpdate ? "Update Items" : "New Items")</span>
+                </MudItem>
+                <MudItem xs="12" md="12">
+                    <InputFile id="fileInput" hidden OnChange="UploadFiles" accept=".xlsx"/>
+                    <br/>
                     @if (_file != null)
                     {
                         <MudAlert ShowCloseIcon="true" CloseIconClicked="(() => _file = null)" OnClick="(() => _file = null)">@_file.Name</MudAlert>
                     }
                     else
                     {
-                        <MudAlert Severity="Severity.Info">"Please click to UPLOAD button for selecting a excel file!"</MudAlert>
+                        <MudAlert Severity="Severity.Normal">Please click to UPLOAD button for selecting a excel file!</MudAlert>
                     }
                 </MudItem>
             </MudGrid>

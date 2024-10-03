@@ -52,8 +52,6 @@ public partial class EntityTable<TEntity, TId, TRequest>
     private bool _canExport;
     private bool _canImport;
     
-    private bool _buttonStatus;
-
     private bool _advancedSearchExpanded;
 
     private MudTable<TEntity> _table = default!;
@@ -105,7 +103,7 @@ public partial class EntityTable<TEntity, TId, TRequest>
 
         if (await ApiHelper.ExecuteCallGuardedAsync(
                 () => Context.ClientContext.LoadDataFunc(), Toast, Navigation)
-            is List<TEntity> result)
+            is { } result)
         {
             _entityList = result;
         }
@@ -310,15 +308,15 @@ public partial class EntityTable<TEntity, TId, TRequest>
             await ReloadDataAsync();
         }
     }
+
     
     private async Task ExportAsync()
     {
         if (Loading) return;
         Loading = true;
-        _buttonStatus = true;
-
+    
         var filter = GetBaseFilter();
-
+    
         // if (Context.ServerContext is not null && Context.ServerContext.ExportFunc is not null)
         if (Context.ServerContext?.ExportFunc is not null)
         {
@@ -326,6 +324,7 @@ public partial class EntityTable<TEntity, TId, TRequest>
                     () => Context.ServerContext.ExportFunc(filter), Toast,Navigation)
                 is { } result)
             {
+                // Export as Excel Workbook via JavaScript
                 await Js.InvokeAsync<object>(
                     "DownloadFile",
                     $"{Context.EntityNamePlural}{'_'}{DateTime.Now:yyyyMMdd_HH-mm-ss}.xlsx",
@@ -349,20 +348,32 @@ public partial class EntityTable<TEntity, TId, TRequest>
         }
         
         Loading = false;
-        _buttonStatus = false;
     }
     
-    private async Task ImportAsync(FileUploadCommand request)
-    {
-        if (Context.ServerContext == null || Context.ServerContext.ImportFunc == null) return;
+    private async Task ImportAsync(FileUploadCommand request, bool isUpdate)
+    { 
         Loading = true;
-
-        if (await ApiHelper.ExecuteCallGuardedAsync(
-                () => Context.ServerContext.ImportFunc(request), Toast)
-            is { } result)
-        { }
-
-        Loading = false;
+        if (Context.ServerContext?.ImportFunc is not null && await ApiHelper.ExecuteCallGuardedAsync(
+                   () => Context.ServerContext.ImportFunc(request, isUpdate), Toast, Navigation)
+               is { } result1)
+       {
+           if (result1.TotalRecords <= 0)
+               Toast.Add(result1.Message, Severity.Error);
+           else
+               Toast.Add($"{result1.TotalRecords} :  {result1.Message} ", Severity.Success);
+       }
+      
+       if (Context.ClientContext?.ImportFunc is not null && await ApiHelper.ExecuteCallGuardedAsync(
+                   () => Context.ClientContext.ImportFunc(request, isUpdate), Toast, Navigation)
+               is { } result)
+       {
+           if (result.TotalRecords <= 0)
+               Toast.Add(result.Message, Severity.Error);
+           else
+               Toast.Add($"{result.TotalRecords} :  {result.Message} ", Severity.Success);
+       }
+       
+       Loading = false;
     }
     
     private async Task InvokeImportModal()
@@ -373,7 +384,7 @@ public partial class EntityTable<TEntity, TId, TRequest>
             { nameof(ImportModal.OnInitializedFunc), Context.ImportFormInitializedFunc },
         };
 
-        Func<FileUploadCommand, Task> importFunc = ImportAsync;
+        Func<FileUploadCommand, bool, Task> importFunc = ImportAsync;
 
         parameters.Add(nameof(ImportModal.ImportFunc), importFunc);
         var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, BackdropClick = true };
@@ -465,7 +476,7 @@ public partial class EntityTable<TEntity, TId, TRequest>
                     n++;
                 }
                
-                if (n > 1) Toast.Add(string.Format("{0} records were deleted", n), Severity.Success);
+                if (n > 1) Toast.Add($"{n} records were deleted", Severity.Success);
                 await ReloadDataAsync();
             }
         }

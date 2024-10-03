@@ -4,7 +4,6 @@ using FSH.Starter.WebApi.Catalog.Application.Products.Export.v1;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 
@@ -17,12 +16,9 @@ public static class ExportProductsEndpoint
         return endpoints
             .MapPost("/export", async Task<byte[]> (ISender mediator, [FromBody] BaseFilter filter) =>
             {
-                var response = await mediator.Send(new ExportProductsCommand(filter));
+                var response = await mediator.Send(new ExportProductsRequest(filter));
 
                 return response;
-                
-               //return TypedResults.File(fileStream, "application/octet-stream", "ProductExports");
-               //return TypedResults.File(fileStream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ProductExports.xlsx");
             })
             .WithName(nameof(ExportProductsEndpoint))
             .WithSummary("Exports a list of products")
