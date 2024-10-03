@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Starter.WebApi.Catalog.Infrastructure.Endpoints.v1;
 
@@ -14,9 +15,9 @@ public static class ExportProductsEndpoint
     internal static RouteHandlerBuilder MapExportProductsEndpoint(this IEndpointRouteBuilder endpoints)
     {
         return endpoints
-            .MapPost("/export", async Task<byte[]> (ISender mediator, [FromBody] BaseFilter filter) =>
+            .MapPost("/export", async Task<byte[]> (ISender mediator, [FromBody] ExportProductsRequest command) =>
             {
-                var response = await mediator.Send(new ExportProductsRequest(filter));
+                var response = await mediator.Send(command);
 
                 return response;
             })

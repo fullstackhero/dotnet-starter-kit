@@ -128,7 +128,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         /// <param name="version">The requested API version</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ProductDto>> GetProductsEndpointAsync(string version, BaseFilter body);
+        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ProductDto>> GetProductsEndpointAsync(string version, GetProductsRequest body);
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>
@@ -140,7 +140,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         /// <param name="version">The requested API version</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ProductDto>> GetProductsEndpointAsync(string version, BaseFilter body, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ProductDto>> GetProductsEndpointAsync(string version, GetProductsRequest body, System.Threading.CancellationToken cancellationToken);
 
         /// <summary>
         /// Gets a pagination of products
@@ -151,7 +151,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         /// <param name="version">The requested API version</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<ProductDtoPagedList> SearchProductsEndpointAsync(string version, PaginationFilter body);
+        System.Threading.Tasks.Task<ProductDtoPagedList> SearchProductsEndpointAsync(string version, SearchProductsRequest body);
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>
@@ -163,7 +163,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         /// <param name="version">The requested API version</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<ProductDtoPagedList> SearchProductsEndpointAsync(string version, PaginationFilter body, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<ProductDtoPagedList> SearchProductsEndpointAsync(string version, SearchProductsRequest body, System.Threading.CancellationToken cancellationToken);
 
         /// <summary>
         /// Exports a list of products
@@ -174,7 +174,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         /// <param name="version">The requested API version</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<byte[]> ExportProductsEndpointAsync(string version, BaseFilter body);
+        System.Threading.Tasks.Task<byte[]> ExportProductsEndpointAsync(string version, ExportProductsRequest body);
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>
@@ -186,7 +186,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         /// <param name="version">The requested API version</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<byte[]> ExportProductsEndpointAsync(string version, BaseFilter body, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<byte[]> ExportProductsEndpointAsync(string version, ExportProductsRequest body, System.Threading.CancellationToken cancellationToken);
 
         /// <summary>
         /// Imports a list of products
@@ -1455,7 +1455,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         /// <param name="version">The requested API version</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ProductDto>> GetProductsEndpointAsync(string version, BaseFilter body)
+        public virtual System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ProductDto>> GetProductsEndpointAsync(string version, GetProductsRequest body)
         {
             return GetProductsEndpointAsync(version, body, System.Threading.CancellationToken.None);
         }
@@ -1470,7 +1470,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         /// <param name="version">The requested API version</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ProductDto>> GetProductsEndpointAsync(string version, BaseFilter body, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ProductDto>> GetProductsEndpointAsync(string version, GetProductsRequest body, System.Threading.CancellationToken cancellationToken)
         {
             if (version == null)
                 throw new System.ArgumentNullException("version");
@@ -1559,7 +1559,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         /// <param name="version">The requested API version</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<ProductDtoPagedList> SearchProductsEndpointAsync(string version, PaginationFilter body)
+        public virtual System.Threading.Tasks.Task<ProductDtoPagedList> SearchProductsEndpointAsync(string version, SearchProductsRequest body)
         {
             return SearchProductsEndpointAsync(version, body, System.Threading.CancellationToken.None);
         }
@@ -1574,7 +1574,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         /// <param name="version">The requested API version</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<ProductDtoPagedList> SearchProductsEndpointAsync(string version, PaginationFilter body, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<ProductDtoPagedList> SearchProductsEndpointAsync(string version, SearchProductsRequest body, System.Threading.CancellationToken cancellationToken)
         {
             if (version == null)
                 throw new System.ArgumentNullException("version");
@@ -1663,7 +1663,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         /// <param name="version">The requested API version</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<byte[]> ExportProductsEndpointAsync(string version, BaseFilter body)
+        public virtual System.Threading.Tasks.Task<byte[]> ExportProductsEndpointAsync(string version, ExportProductsRequest body)
         {
             return ExportProductsEndpointAsync(version, body, System.Threading.CancellationToken.None);
         }
@@ -1678,7 +1678,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         /// <param name="version">The requested API version</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<byte[]> ExportProductsEndpointAsync(string version, BaseFilter body, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<byte[]> ExportProductsEndpointAsync(string version, ExportProductsRequest body, System.Threading.CancellationToken cancellationToken)
         {
             if (version == null)
                 throw new System.ArgumentNullException("version");
@@ -5724,6 +5724,30 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.1.0.0 (NJsonSchema v11.0.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ExportProductsRequest
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("advancedSearch")]
+        public Search AdvancedSearch { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("keyword")]
+        public string? Keyword { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("advancedFilter")]
+        public Filter AdvancedFilter { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("brandId")]
+        public System.Guid? BrandId { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("minimumRate")]
+        public double? MinimumRate { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("maximumRate")]
+        public double? MaximumRate { get; set; } = default!;
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.1.0.0 (NJsonSchema v11.0.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class FileUploadCommand
     {
 
@@ -5783,6 +5807,30 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
 
         [System.Text.Json.Serialization.JsonPropertyName("price")]
         public double Price { get; set; } = default!;
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.1.0.0 (NJsonSchema v11.0.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class GetProductsRequest
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("advancedSearch")]
+        public Search AdvancedSearch { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("keyword")]
+        public string? Keyword { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("advancedFilter")]
+        public Filter AdvancedFilter { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("brandId")]
+        public System.Guid? BrandId { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("minimumRate")]
+        public double? MinimumRate { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("maximumRate")]
+        public double? MaximumRate { get; set; } = default!;
 
     }
 
@@ -5972,6 +6020,39 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
 
         [System.Text.Json.Serialization.JsonPropertyName("keyword")]
         public string? Keyword { get; set; } = default!;
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.1.0.0 (NJsonSchema v11.0.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class SearchProductsRequest
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("advancedSearch")]
+        public Search AdvancedSearch { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("keyword")]
+        public string? Keyword { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("advancedFilter")]
+        public Filter AdvancedFilter { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("pageNumber")]
+        public int PageNumber { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("pageSize")]
+        public int PageSize { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("orderBy")]
+        public System.Collections.Generic.ICollection<string>? OrderBy { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("brandId")]
+        public System.Guid? BrandId { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("minimumRate")]
+        public double? MinimumRate { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("maximumRate")]
+        public double? MaximumRate { get; set; } = default!;
 
     }
 

@@ -1,6 +1,4 @@
-using FSH.Framework.Core.Paging;
 using FSH.Framework.Infrastructure.Auth.Policy;
-using FSH.Starter.WebApi.Catalog.Application.Products.Get.v1;
 using FSH.Starter.WebApi.Catalog.Application.Products.GetList.v1;
 using FSH.Starter.WebApi.Catalog.Application.Products.Search.v1;
 using MediatR;
@@ -16,9 +14,9 @@ public static class GetProductsEndpoint
     internal static RouteHandlerBuilder MapGetProductsEndpoint(this IEndpointRouteBuilder endpoints)
     {
         return endpoints
-            .MapPost("/getlist", async (ISender mediator, [FromBody] BaseFilter filter) =>
+            .MapPost("/getlist", async (ISender mediator, [FromBody] GetProductsRequest command) =>
             {
-                var response = await mediator.Send(new GetProductsRequest(filter));
+                var response = await mediator.Send(command);
                 return Results.Ok(response);
             })
             .WithName(nameof(GetProductsEndpoint))

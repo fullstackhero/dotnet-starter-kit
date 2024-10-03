@@ -18,9 +18,9 @@ public class ExportProductsHandler(
     public async Task<byte[]> Handle(ExportProductsRequest request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
-        
-        var spec = new EntitiesByBaseFilterSpec<Product, ProductDto>(request.Filter);
-        var items = await repository.ListAsync(spec, cancellationToken);
+        var spec = new ExportProductsSpecs(request);
+
+        var items = await repository.ListAsync(spec, cancellationToken).ConfigureAwait(false);
         
         return dataExport.ListToByteArray(items);
     }
