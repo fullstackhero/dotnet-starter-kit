@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace FSH.Starter.Blazor.Client.Pages.Todos;
 
-public partial class Todos
+public partial class Todos : ComponentBase
 {
     [Inject]
     protected IApiClient ApiClient { get; set; } = default!;
@@ -28,11 +28,18 @@ public partial class Todos
             },
             enableAdvancedSearch: false,
             idFunc: prod => prod.Id!.Value,
+            exportFunc: async filter =>
+            {
+                var exportFilter = filter.Adapt<BaseFilter>();
+                
+                return await ApiClient.ExportTodoListEndpointAsync("1", exportFilter);
+            },
+            importFunc: async (fileUploadModel, isUpdate) => await ApiClient.ImportTodolistEndpointAsync("1", isUpdate, fileUploadModel),
             searchFunc: async filter =>
             {
-                var todoFilter = filter.Adapt<PaginationFilter>();
-
-                var result = await ApiClient.GetTodoListEndpointAsync("1", todoFilter);
+                var searchFilter = filter.Adapt<PaginationFilter>();
+                var result = await ApiClient.SearchTodoListEndpointAsync("1", searchFilter);
+                
                 return result.Adapt<PaginationResponse<GetTodoResponse>>();
             },
             createFunc: async todo =>

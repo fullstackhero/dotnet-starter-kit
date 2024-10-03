@@ -11,7 +11,7 @@ using MudBlazor;
 
 namespace FSH.Starter.Blazor.Client.Pages.Multitenancy;
 
-public partial class Tenants
+public partial class Tenants : ComponentBase
 {
     [Inject]
     private IApiClient ApiClient { get; set; } = default!;
@@ -36,6 +36,7 @@ public partial class Tenants
             searchAction: FshAction.View,
             deleteAction: string.Empty,
             updateAction: string.Empty,
+            exportAction: string.Empty,
             fields: new()
             {
                 new(tenant => tenant.Id, "Id"),
@@ -46,11 +47,10 @@ public partial class Tenants
             },
             loadDataFunc: async () => _tenants = (await ApiClient.GetTenantsEndpointAsync()).Adapt<List<TenantViewModel>>(),
             searchFunc: (searchString, tenantDto) =>
-                string.IsNullOrWhiteSpace(searchString)
-                    || tenantDto.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase),
+                tenantDto.Name != null && (string.IsNullOrWhiteSpace(searchString)
+                                           || tenantDto.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase)),
             createFunc: tenant => ApiClient.CreateTenantEndpointAsync(tenant.Adapt<CreateTenantCommand>()),
-            hasExtraActionsFunc: () => true,
-            exportAction: string.Empty);
+            hasExtraActionsFunc: () => true);
 
         var state = await AuthState;
         _canUpgrade = await AuthService.HasPermissionAsync(state.User, FshAction.UpgradeSubscription, FshResource.Tenants);

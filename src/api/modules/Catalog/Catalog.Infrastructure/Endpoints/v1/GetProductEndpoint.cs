@@ -18,8 +18,8 @@ public static class GetProductEndpoint
             })
             .WithName(nameof(GetProductEndpoint))
             .WithSummary("gets product by id")
-            .WithDescription("gets prodct by id")
-            .Produces<ProductResponse>()
+            .WithDescription("gets product by id")
+            .Produces<GetProductResponse>()
             .RequirePermission("Permissions.Products.View")
             .MapToApiVersion(1);
     }

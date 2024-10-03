@@ -10,6 +10,7 @@ public static class FshAction
     public const string Update = nameof(Update);
     public const string Delete = nameof(Delete);
     public const string Export = nameof(Export);
+    public const string Import = nameof(Import);
     public const string Generate = nameof(Generate);
     public const string Clean = nameof(Clean);
     public const string UpgradeSubscription = nameof(UpgradeSubscription);
@@ -32,11 +33,16 @@ public static class FshResource
 public static class FshPermissions
 {
     private static readonly FshPermission[] allPermissions =
-   {     
+   {
         //tenants
         new("View Tenants", FshAction.View, FshResource.Tenants, IsRoot: true),
+        new("Search Tenants", FshAction.Search, FshResource.Tenants, IsRoot: true),
         new("Create Tenants", FshAction.Create, FshResource.Tenants, IsRoot: true),
         new("Update Tenants", FshAction.Update, FshResource.Tenants, IsRoot: true),
+        new("Delete Tenants", FshAction.Delete, FshResource.Tenants, IsRoot: true),
+        new("Export Tenants", FshAction.Export, FshResource.Tenants, IsRoot: true),
+        new("Import Tenants", FshAction.Import, FshResource.Tenants, IsRoot: true),
+        
         new("Upgrade Tenant Subscription", FshAction.UpgradeSubscription, FshResource.Tenants, IsRoot: true),
 
         //identity
@@ -46,12 +52,19 @@ public static class FshPermissions
         new("Update Users", FshAction.Update, FshResource.Users),
         new("Delete Users", FshAction.Delete, FshResource.Users),
         new("Export Users", FshAction.Export, FshResource.Users),
+        new("Import Users", FshAction.Import, FshResource.Users),
+        
         new("View UserRoles", FshAction.View, FshResource.UserRoles),
         new("Update UserRoles", FshAction.Update, FshResource.UserRoles),
+        
         new("View Roles", FshAction.View, FshResource.Roles),
+        new("Search Roles", FshAction.Search, FshResource.Roles),
         new("Create Roles", FshAction.Create, FshResource.Roles),
         new("Update Roles", FshAction.Update, FshResource.Roles),
         new("Delete Roles", FshAction.Delete, FshResource.Roles),
+        new("Export Roles", FshAction.Export, FshResource.Roles),
+        new("Import Roles", FshAction.Import, FshResource.Roles),
+        
         new("View RoleClaims", FshAction.View, FshResource.RoleClaims),
         new("Update RoleClaims", FshAction.Update, FshResource.RoleClaims),
         
@@ -62,6 +75,7 @@ public static class FshPermissions
         new("Update Products", FshAction.Update, FshResource.Products),
         new("Delete Products", FshAction.Delete, FshResource.Products),
         new("Export Products", FshAction.Export, FshResource.Products),
+        new("Import Products", FshAction.Import, FshResource.Products),
 
         //todos
         new("View Todos", FshAction.View, FshResource.Todos, IsBasic: true),
@@ -70,7 +84,8 @@ public static class FshPermissions
         new("Update Todos", FshAction.Update, FshResource.Todos),
         new("Delete Todos", FshAction.Delete, FshResource.Todos),
         new("Export Todos", FshAction.Export, FshResource.Todos),
-
+        new("Import Todos", FshAction.Import, FshResource.Todos),
+        
          new("View Hangfire", FshAction.View, FshResource.Hangfire),
          new("View Dashboard", FshAction.View, FshResource.Dashboard),
 

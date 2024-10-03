@@ -4,8 +4,11 @@ using FSH.Framework.Infrastructure.Persistence;
 using FSH.Starter.WebApi.Todo.Domain;
 using FSH.Starter.WebApi.Todo.Features.Create.v1;
 using FSH.Starter.WebApi.Todo.Features.Delete.v1;
+using FSH.Starter.WebApi.Todo.Features.Export.v1;
 using FSH.Starter.WebApi.Todo.Features.Get.v1;
 using FSH.Starter.WebApi.Todo.Features.GetList.v1;
+using FSH.Starter.WebApi.Todo.Features.Import.v1;
+using FSH.Starter.WebApi.Todo.Features.Search.v1;
 using FSH.Starter.WebApi.Todo.Features.Update.v1;
 using FSH.Starter.WebApi.Todo.Persistence;
 using Microsoft.AspNetCore.Builder;
@@ -22,11 +25,14 @@ public static class TodoModule
         public override void AddRoutes(IEndpointRouteBuilder app)
         {
             var todoGroup = app.MapGroup("todos").WithTags("todos");
-            todoGroup.MapTodoItemCreationEndpoint();
+            todoGroup.MapTodoItemCreateEndpoint();
             todoGroup.MapGetTodoEndpoint();
             todoGroup.MapGetTodoListEndpoint();
+            todoGroup.MapSearchTodoListEndpoint();
             todoGroup.MapTodoItemUpdationEndpoint();
             todoGroup.MapTodoItemDeletionEndpoint();
+            todoGroup.MapExportTodoListEndpoint();
+            todoGroup.MapImportTodoListEndpoint();
         }
     }
     public static WebApplicationBuilder RegisterTodoServices(this WebApplicationBuilder builder)

@@ -105,6 +105,17 @@ public abstract class EntityTableContext<TEntity, TId, TRequest>
     /// The permission name of the export permission. This is FSHAction.Export by default.
     /// </summary>
     public string ExportAction { get; }
+    
+    /// <summary>
+    /// The permission name of the import permission. This is FSHAction.Import by default.
+    /// </summary>
+    public string ImportAction { get; }
+    
+    /// <summary>
+    /// Use this if you want to run initialization during OnInitialized of the Import form.
+    /// </summary>
+
+    public Func<Task>? ImportFormInitializedFunc { get; }
 
     /// <summary>
     /// Use this if you want to run initialization during OnInitialized of the AddEdit form.
@@ -143,7 +154,9 @@ public abstract class EntityTableContext<TEntity, TId, TRequest>
         string? updateAction,
         string? deleteAction,
         string? exportAction,
+        string? importAction,
         Func<Task>? editFormInitializedFunc,
+        Func<Task>? importFormInitializedFunc,
         Func<bool>? hasExtraActionsFunc,
         Func<TEntity, bool>? canUpdateEntityFunc,
         Func<TEntity, bool>? canDeleteEntityFunc)
@@ -163,6 +176,8 @@ public abstract class EntityTableContext<TEntity, TId, TRequest>
         UpdateAction = updateAction ?? FshActions.Update;
         DeleteAction = deleteAction ?? FshActions.Delete;
         ExportAction = exportAction ?? FshActions.Export;
+        ImportAction = importAction ?? FshActions.Import;
+        ImportFormInitializedFunc = importFormInitializedFunc;
         EditFormInitializedFunc = editFormInitializedFunc;
         HasExtraActionsFunc = hasExtraActionsFunc;
         CanUpdateEntityFunc = canUpdateEntityFunc;
@@ -179,6 +194,15 @@ public abstract class EntityTableContext<TEntity, TId, TRequest>
         _addEditModalRef?.Dialog as IAddEditModal<TRequest>
         ?? throw new InvalidOperationException("AddEditModal is only available when the modal is shown.");
 
+    // Import modal
+    private IDialogReference? _importModalRef;
+    internal void SetImportModalRef(IDialogReference dialog) =>
+        _importModalRef = dialog;
+
+    public IImportModal<TRequest> ImportModal =>
+        _importModalRef?.Dialog as IImportModal<TRequest>
+        ?? throw new InvalidOperationException("ImportModal is only available when the modal is shown.");
+    
     // Shortcuts
     public EntityClientTableContext<TEntity, TId, TRequest>? ClientContext => this as EntityClientTableContext<TEntity, TId, TRequest>;
     public EntityServerTableContext<TEntity, TId, TRequest>? ServerContext => this as EntityServerTableContext<TEntity, TId, TRequest>;

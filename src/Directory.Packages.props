@@ -13,6 +13,8 @@
     <PackageVersion Include="Ardalis.Specification.EntityFrameworkCore" Version="8.0.0" />
     <PackageVersion Include="Asp.Versioning.Http" Version="8.1.0" />
     <PackageVersion Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
+    <PackageVersion Include="ClosedXML" Version="0.102.3" />
+    <PackageVersion Include="ClosedXML.Report" Version="0.2.10" />
     <PackageVersion Include="Finbuckle.MultiTenant" Version="7.0.2" />
     <PackageVersion Include="Finbuckle.MultiTenant.AspNetCore" Version="7.0.2" />
     <PackageVersion Include="Finbuckle.MultiTenant.EntityFrameworkCore" Version="7.0.2" />
@@ -36,7 +38,7 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.Process" Version="0.5.0-beta.6" />
     <PackageVersion Include="Serilog.Expressions" Version="5.0.0" />
     <PackageVersion Include="Serilog.Sinks.OpenTelemetry" Version="4.0.0" />
-    <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.7.2" />
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.8.0" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
     <PackageVersion Include="Swashbuckle.AspNetCore.ReDoc" Version="6.5.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="4.7.0" />

@@ -9,11 +9,11 @@ namespace FSH.Starter.Blazor.Client.Pages.Catalog;
 public partial class Products
 {
     [Inject]
-    protected IApiClient _client { get; set; } = default!;
+    protected IApiClient ApiClient { get; set; } = default!;
 
-    protected EntityServerTableContext<ProductResponse, Guid, ProductViewModel> Context { get; set; } = default!;
+    protected EntityServerTableContext<ProductDto, Guid, ProductViewModel> Context { get; set; } = default!;
 
-    private EntityTable<ProductResponse, Guid, ProductViewModel> _table = default!;
+    private EntityTable<ProductDto, Guid, ProductViewModel> _table = default!;
 
     protected override void OnInitialized() =>
         Context = new(
@@ -29,23 +29,33 @@ public partial class Products
             },
             enableAdvancedSearch: true,
             idFunc: prod => prod.Id!.Value,
+            exportFunc: async filter =>
+            {
+                var dataFilter = filter.Adapt<ExportProductsRequest>();
+                dataFilter.MinimumRate = Convert.ToDouble(SearchMinimumRate);
+                dataFilter.MaximumRate = Convert.ToDouble(SearchMaximumRate);
+                
+                return await ApiClient.ExportProductsEndpointAsync("1", dataFilter);
+
+            },
+            importFunc: async (fileUploadModel, isUpdate) => await ApiClient.ImportProductsEndpointAsync("1", isUpdate, fileUploadModel),
             searchFunc: async filter =>
             {
-                var productFilter = filter.Adapt<SearchProductsCommand>();
-                productFilter.MinimumRate = Convert.ToDouble(SearchMinimumRate);
-                productFilter.MaximumRate = Convert.ToDouble(SearchMaximumRate);
-                var result = await _client.SearchProductsEndpointAsync("1", productFilter);
-                return result.Adapt<PaginationResponse<ProductResponse>>();
+                var dataFilter = filter.Adapt<SearchProductsRequest>();
+                dataFilter.MinimumRate = Convert.ToDouble(SearchMinimumRate);
+                dataFilter.MaximumRate = Convert.ToDouble(SearchMaximumRate);
+                var result = await ApiClient.SearchProductsEndpointAsync("1", dataFilter);
+                return result.Adapt<PaginationResponse<ProductDto>>();
             },
             createFunc: async prod =>
             {
-                await _client.CreateProductEndpointAsync("1", prod.Adapt<CreateProductCommand>());
+                await ApiClient.CreateProductEndpointAsync("1", prod.Adapt<CreateProductCommand>());
             },
             updateFunc: async (id, prod) =>
             {
-                await _client.UpdateProductEndpointAsync("1", id, prod.Adapt<UpdateProductCommand>());
+                await ApiClient.UpdateProductEndpointAsync("1", id, prod.Adapt<UpdateProductCommand>());
             },
-            deleteFunc: async id => await _client.DeleteProductEndpointAsync("1", id));
+            deleteFunc: async id => await ApiClient.DeleteProductEndpointAsync("1", id));
 
     // Advanced Search
 
