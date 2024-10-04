@@ -1,4 +1,4 @@
-using FSH.Framework.Core.Paging;
+﻿using FSH.Framework.Core.Paging;
 using FSH.Framework.Infrastructure.Auth.Policy;
 using FSH.Starter.WebApi.Todo.Features.Search.v1;
 using MediatR;
@@ -11,7 +11,7 @@ namespace FSH.Starter.WebApi.Todo.Features.GetList.v1;
 
 public static class GetTodoListEndpoint
 {
-    internal static RouteHandlerBuilder MapGetTodoListEndpoint(this IEndpointRouteBuilder endpoints)
+    internal static RouteHandlerBuilder MapGetTodoItemsEndpoint(this IEndpointRouteBuilder endpoints)
     {
         return endpoints
             .MapPost("/getlist", async (ISender mediator, [FromBody] BaseFilter filter) =>

@@ -2,7 +2,7 @@
 
 <PageHeader Title="Todos" Header="Todos" SubHeader="Manage your Todos." />
 
-<EntityTable @ref="_table" TEntity="GetTodoResponse" TId="Guid" TRequest="TodoViewModel" Context="@Context">
+<EntityTable @ref="_table" TEntity="TodoDto" TId="Guid" TRequest="TodoViewModel" Context="@Context">
     <EditFormContent>
         @if (!Context.AddEditModal.IsCreate)
         {

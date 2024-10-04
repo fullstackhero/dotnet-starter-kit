@@ -2,7 +2,7 @@
 
 <PageHeader Title="Dimensions" Header="Dimensions" SubHeader="Manage your Dimensions." />
 
-<EntityTable @ref="_table" TEntity="GetDimensionResponse" TId="Guid" TRequest="DimensionViewModel" Context="@Context">
+<EntityTable @ref="_table" TEntity="DimensionDto" TId="Guid" TRequest="DimensionViewModel" Context="@Context">
     <EditFormContent>
         @if (!Context.AddEditModal.IsCreate)
         {

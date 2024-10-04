@@ -2,7 +2,7 @@
 
 <PageHeader Title="EntityCodes" Header="EntityCodes" SubHeader="Manage your EntityCodes." />
 
-<EntityTable @ref="_table" TEntity="GetEntityCodeResponse" TId="Guid" TRequest="EntityCodeViewModel" Context="@Context" >
+<EntityTable @ref="_table" TEntity="EntityCodeDto" TId="Guid" TRequest="EntityCodeViewModel" Context="@Context" >
 
     <EditFormContent>
         @if (!Context.AddEditModal.IsCreate)

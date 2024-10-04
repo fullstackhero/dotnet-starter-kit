@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Routing;
 namespace FSH.Starter.WebApi.Setting.Features.v1.EntityCodes;
 public static class CreateEntityCodeEndpoint
 {
-    internal static RouteHandlerBuilder MapEntityCodeCreationEndpoint(this IEndpointRouteBuilder endpoints)
+    internal static RouteHandlerBuilder MapCreateEntityCodeEndpoint(this IEndpointRouteBuilder endpoints)
     {
         return endpoints.MapPost("/", async (CreateEntityCodeCommand request, ISender mediator) =>
                 {

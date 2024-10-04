@@ -25,14 +25,14 @@ public static class TodoModule
         public override void AddRoutes(IEndpointRouteBuilder app)
         {
             var todoGroup = app.MapGroup("todos").WithTags("todos");
-            todoGroup.MapTodoItemCreateEndpoint();
-            todoGroup.MapGetTodoEndpoint();
-            todoGroup.MapGetTodoListEndpoint();
-            todoGroup.MapSearchTodoListEndpoint();
-            todoGroup.MapTodoItemUpdationEndpoint();
-            todoGroup.MapTodoItemDeletionEndpoint();
-            todoGroup.MapExportTodoListEndpoint();
-            todoGroup.MapImportTodoListEndpoint();
+            todoGroup.MapCreateTodoItemEndpoint();
+            todoGroup.MapGetTodoItemEndpoint();
+            todoGroup.MapGetTodoItemsEndpoint();
+            todoGroup.MapSearchTodoItemsEndpoint();
+            todoGroup.MapUpdateTodoItemEndpoint();
+            todoGroup.MapDeleteTodoItemEndpoint();
+            todoGroup.MapExportTodoItemsEndpoint();
+            todoGroup.MapImportTodoItemsEndpoint();
         }
     }
     public static WebApplicationBuilder RegisterTodoServices(this WebApplicationBuilder builder)

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Routing;
 namespace FSH.Starter.WebApi.Todo.Features.Create.v1;
 public static class CreateTodoEndpoint
 {
-    internal static RouteHandlerBuilder MapTodoItemCreateEndpoint(this IEndpointRouteBuilder endpoints)
+    internal static RouteHandlerBuilder MapCreateTodoItemEndpoint(this IEndpointRouteBuilder endpoints)
     {
         return endpoints.MapPost("/", async (CreateTodoCommand request, ISender mediator) =>
                 {

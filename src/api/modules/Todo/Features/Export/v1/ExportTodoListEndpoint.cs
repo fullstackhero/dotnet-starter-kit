@@ -10,7 +10,7 @@ namespace FSH.Starter.WebApi.Todo.Features.Export.v1;
 
 public static class ExportTodoListEndpoint
 {
-    internal static RouteHandlerBuilder MapExportTodoListEndpoint(this IEndpointRouteBuilder endpoints)
+    internal static RouteHandlerBuilder MapExportTodoItemsEndpoint(this IEndpointRouteBuilder endpoints)
     {
         return endpoints.MapPost("/export", async (ISender mediator, [FromBody] BaseFilter filter) =>
         {

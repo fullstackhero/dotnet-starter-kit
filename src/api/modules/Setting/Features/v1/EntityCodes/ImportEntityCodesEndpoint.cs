@@ -6,24 +6,24 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
-namespace FSH.Starter.WebApi.Todo.Features.Import.v1;
+namespace FSH.Starter.WebApi.Setting.Features.v1.EntityCodes;
 
-public static class ImportTodolistEndpoint
+public static class ImportEntityCodesEndpoint
 {
-    internal static RouteHandlerBuilder MapImportTodoItemsEndpoint(this IEndpointRouteBuilder endpoints)
+    internal static RouteHandlerBuilder MapImportEntityCodesEndpoint(this IEndpointRouteBuilder endpoints)
     {
         return endpoints
             .MapPost("/Import", async (FileUploadCommand uploadFile, bool isUpdate, ISender mediator) =>
             {
-                var response = await mediator.Send(new ImportTodoListCommand(uploadFile, isUpdate));
+                var response = await mediator.Send(new EntityCodes.ImportEntityCodesCommand(uploadFile, isUpdate));
                 return Results.Ok(response);
              
             })
-            .WithName(nameof(ImportTodolistEndpoint))
-            .WithSummary("Imports a list of Todo")
+            .WithName(nameof(ImportEntityCodesEndpoint))
+            .WithSummary("Imports a list of EntityCodes")
             .WithDescription("Imports a list of entities from excel files")
             .Produces<ImportResponse>()
-            .RequirePermission("Permissions.Todos.Import")
+            .RequirePermission("Permissions.EntityCodes.Import")
             .MapToApiVersion(1);
     }
 }

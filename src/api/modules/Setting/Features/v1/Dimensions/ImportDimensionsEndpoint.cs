@@ -6,24 +6,24 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
-namespace FSH.Starter.WebApi.Todo.Features.Import.v1;
+namespace FSH.Starter.WebApi.Setting.Features.v1.Dimensions;
 
-public static class ImportTodolistEndpoint
+public static class ImportDimensionsEndpoint
 {
-    internal static RouteHandlerBuilder MapImportTodoItemsEndpoint(this IEndpointRouteBuilder endpoints)
+    internal static RouteHandlerBuilder MapImportDimensionsEndpoint(this IEndpointRouteBuilder endpoints)
     {
         return endpoints
             .MapPost("/Import", async (FileUploadCommand uploadFile, bool isUpdate, ISender mediator) =>
             {
-                var response = await mediator.Send(new ImportTodoListCommand(uploadFile, isUpdate));
+                var response = await mediator.Send(new ImportDimensionsCommand(uploadFile, isUpdate));
                 return Results.Ok(response);
              
             })
-            .WithName(nameof(ImportTodolistEndpoint))
-            .WithSummary("Imports a list of Todo")
+            .WithName(nameof(ImportDimensionsEndpoint))
+            .WithSummary("Imports a list of Dimensions")
             .WithDescription("Imports a list of entities from excel files")
             .Produces<ImportResponse>()
-            .RequirePermission("Permissions.Todos.Import")
+            .RequirePermission("Permissions.Dimensions.Import")
             .MapToApiVersion(1);
     }
 }

@@ -11,9 +11,9 @@ public partial class Todos : ComponentBase
     [Inject]
     protected IApiClient ApiClient { get; set; } = default!;
 
-    protected EntityServerTableContext<GetTodoResponse, Guid, TodoViewModel> Context { get; set; } = default!;
+    protected EntityServerTableContext<TodoDto, Guid, TodoViewModel> Context { get; set; } = default!;
 
-    private EntityTable<GetTodoResponse, Guid, TodoViewModel> _table = default!;
+    private EntityTable<TodoDto, Guid, TodoViewModel> _table = default!;
 
     protected override void OnInitialized() =>
         Context = new(
@@ -40,7 +40,7 @@ public partial class Todos : ComponentBase
                 var searchFilter = filter.Adapt<PaginationFilter>();
                 var result = await ApiClient.SearchTodoListEndpointAsync("1", searchFilter);
                 
-                return result.Adapt<PaginationResponse<GetTodoResponse>>();
+                return result.Adapt<PaginationResponse<TodoDto>>();
             },
             createFunc: async todo =>
             {

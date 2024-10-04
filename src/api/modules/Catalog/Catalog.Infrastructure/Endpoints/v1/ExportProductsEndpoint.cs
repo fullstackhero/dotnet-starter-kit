@@ -1,4 +1,3 @@
-using FSH.Framework.Core.Paging;
 using FSH.Framework.Infrastructure.Auth.Policy;
 using FSH.Starter.WebApi.Catalog.Application.Products.Export.v1;
 using MediatR;
@@ -6,7 +5,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Starter.WebApi.Catalog.Infrastructure.Endpoints.v1;
 
@@ -29,4 +27,3 @@ public static class ExportProductsEndpoint
             .MapToApiVersion(1);
     }
 }
-

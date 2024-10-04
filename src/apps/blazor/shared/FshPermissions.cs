@@ -11,6 +11,7 @@ public static class FshAction
     public const string Delete = nameof(Delete);
     public const string Export = nameof(Export);
     public const string Import = nameof(Import);
+    public const string Unlock = nameof(Unlock);
     public const string Generate = nameof(Generate);
     public const string Clean = nameof(Clean);
     public const string UpgradeSubscription = nameof(UpgradeSubscription);
@@ -28,12 +29,16 @@ public static class FshResource
     public const string Products = nameof(Products);
     public const string Todos = nameof(Todos);
     public const string AuditTrails = nameof(AuditTrails);
+    
+    public const string Menus = nameof(Menus);
+    public const string Dimensions = nameof(Dimensions);
+    public const string EntityCodes = nameof(EntityCodes);
 }
 
 public static class FshPermissions
 {
     private static readonly FshPermission[] allPermissions =
-   {
+   { 
         //tenants
         new("View Tenants", FshAction.View, FshResource.Tenants, IsRoot: true),
         new("Search Tenants", FshAction.Search, FshResource.Tenants, IsRoot: true),
@@ -76,7 +81,7 @@ public static class FshPermissions
         new("Delete Products", FshAction.Delete, FshResource.Products),
         new("Export Products", FshAction.Export, FshResource.Products),
         new("Import Products", FshAction.Import, FshResource.Products),
-
+        
         //todos
         new("View Todos", FshAction.View, FshResource.Todos, IsBasic: true),
         new("Search Todos", FshAction.Search, FshResource.Todos, IsBasic: true),
@@ -86,11 +91,35 @@ public static class FshPermissions
         new("Export Todos", FshAction.Export, FshResource.Todos),
         new("Import Todos", FshAction.Import, FshResource.Todos),
         
-         new("View Hangfire", FshAction.View, FshResource.Hangfire),
-         new("View Dashboard", FshAction.View, FshResource.Dashboard),
-
         //audit
         new("View Audit Trails", FshAction.View, FshResource.AuditTrails),
+        
+        #region Settings
+        new("View Menus", FshAction.View, FshResource.Menus, IsBasic: true),
+        new("Search Menus", FshAction.Search, FshResource.Menus, IsBasic: true),
+        new("Create Menus", FshAction.Create, FshResource.Menus),
+        new("Update Menus", FshAction.Update, FshResource.Menus),
+        new("Delete Menus", FshAction.Delete, FshResource.Menus),
+        new("Export Menus", FshAction.Export, FshResource.Menus),
+        new("Import Menus", FshAction.Import, FshResource.Menus),
+
+        new("View Dimensions", FshAction.View, FshResource.Dimensions, IsBasic: true),
+        new("Search Dimensions", FshAction.Search, FshResource.Dimensions, IsBasic: true),
+        new("Create Dimensions", FshAction.Create, FshResource.Dimensions),
+        new("Update Dimensions", FshAction.Update, FshResource.Dimensions),
+        new("Delete Dimensions", FshAction.Delete, FshResource.Dimensions),
+        new("Export Dimensions", FshAction.Export, FshResource.Dimensions),
+        new("Import Dimensions", FshAction.Import, FshResource.Dimensions),
+
+        new("View EntityCodes", FshAction.View, FshResource.EntityCodes, IsBasic: true),
+        new("Search EntityCodes", FshAction.Search, FshResource.EntityCodes, IsBasic: true),
+        new("Create EntityCodes", FshAction.Create, FshResource.EntityCodes),
+        new("Update EntityCodes", FshAction.Update, FshResource.EntityCodes),
+        new("Delete EntityCodes", FshAction.Delete, FshResource.EntityCodes),
+        new("Export EntityCodes", FshAction.Export, FshResource.EntityCodes),
+        new("Import EntityCodes", FshAction.Import, FshResource.EntityCodes),
+
+        #endregion
    };
 
     public static IReadOnlyList<FshPermission> All { get; } = new ReadOnlyCollection<FshPermission>(allPermissions);
@@ -107,5 +136,3 @@ public record FshPermission(string Description, string Action, string Resource, 
         return $"Permissions.{resource}.{action}";
     }
 }
-
-

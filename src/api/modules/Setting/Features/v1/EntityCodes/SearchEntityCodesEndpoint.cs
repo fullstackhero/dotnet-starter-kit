@@ -8,16 +8,16 @@ using Microsoft.AspNetCore.Routing;
 
 namespace FSH.Starter.WebApi.Setting.Features.v1.EntityCodes;
 
-public static class GetEntityCodeListEndpoint
+public static class SearchEntityCodesEndpoint
 {
-    internal static RouteHandlerBuilder MapGetEntityCodeListEndpoint(this IEndpointRouteBuilder endpoints)
+    internal static RouteHandlerBuilder MapSearchEntityCodeEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        return endpoints.MapPost("/search", async (ISender mediator, [FromBody] PaginationFilter filter) =>
+        return endpoints.MapPost("/search", async (ISender mediator, [FromBody] SearchEntityCodesRequest command) =>
         {
-            var response = await mediator.Send(new GetEntityCodeListRequest(filter));
+            var response = await mediator.Send(command);
             return Results.Ok(response);
         })
-        .WithName(nameof(GetEntityCodeListEndpoint))
+        .WithName(nameof(SearchEntityCodesEndpoint))
         .WithSummary("Gets a list of EntityCode items with paging support")
         .WithDescription("Gets a list of EntityCode items with paging support")
         .Produces<PagedList<EntityCodeDto>>()

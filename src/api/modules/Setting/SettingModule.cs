@@ -19,18 +19,24 @@ public static class SettingModule
         public override void AddRoutes(IEndpointRouteBuilder app)
         {
             var dimensionGroup = app.MapGroup("Dimensions").WithTags("Dimensions");
-            dimensionGroup.MapDimensionCreationEndpoint();
+            dimensionGroup.MapCreateDimensionEndpoint();
             dimensionGroup.MapGetDimensionEndpoint();
-            dimensionGroup.MapGetDimensionListEndpoint();
-            dimensionGroup.MapDimensionUpdationEndpoint();
-            dimensionGroup.MapDimensionDeletionEndpoint();
+            dimensionGroup.MapGetDimensionsEndpoint();
+            dimensionGroup.MapSearchDimensionsEndpoint();
+            dimensionGroup.MapUpdateDimensionEndpoint();
+            dimensionGroup.MapDeleteDimensionEndpoint();
+            dimensionGroup.MapExportDimensionsEndpoint();
+            dimensionGroup.MapImportDimensionsEndpoint();
             
             var entityCodeGroup = app.MapGroup("EntityCodes").WithTags("EntityCodes");
-            entityCodeGroup.MapEntityCodeCreationEndpoint();
+            entityCodeGroup.MapCreateEntityCodeEndpoint();
             entityCodeGroup.MapGetEntityCodeEndpoint();
-            entityCodeGroup.MapGetEntityCodeListEndpoint();
-            entityCodeGroup.MapEntityCodeUpdationEndpoint();
-            entityCodeGroup.MapEntityCodeDeletionEndpoint();
+            entityCodeGroup.MapGetEntityCodesEndpoint();
+            entityCodeGroup.MapSearchEntityCodeEndpoint();
+            entityCodeGroup.MapUpdateEntityCodeEndpoint();
+            entityCodeGroup.MapDeleteEntityCodeEndpoint();
+            entityCodeGroup.MapExportEntityCodesEndpoint();
+            entityCodeGroup.MapImportEntityCodesEndpoint();
         }
     }
     

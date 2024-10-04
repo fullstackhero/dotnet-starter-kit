@@ -8,16 +8,16 @@ using Microsoft.AspNetCore.Routing;
 
 namespace FSH.Starter.WebApi.Setting.Features.v1.Dimensions;
 
-public static class GetDimensionListEndpoint
+public static class SearchDimensionsEndpoint
 {
-    internal static RouteHandlerBuilder MapGetDimensionListEndpoint(this IEndpointRouteBuilder endpoints)
+    internal static RouteHandlerBuilder MapSearchDimensionsEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        return endpoints.MapPost("/search", async (ISender mediator, [FromBody] PaginationFilter filter) =>
+        return endpoints.MapPost("/search", async (ISender mediator, [FromBody] SearchDimensionsRequest command) =>
         {
-            var response = await mediator.Send(new GetDimensionListRequest(filter));
+            var response = await mediator.Send(command);
             return Results.Ok(response);
         })
-        .WithName(nameof(GetDimensionListEndpoint))
+        .WithName(nameof(SearchDimensionsEndpoint))
         .WithSummary("Gets a list of dimension items with paging support")
         .WithDescription("Gets a list of dimension items with paging support")
         .Produces<PagedList<DimensionDto>>()

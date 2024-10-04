@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Routing;
 namespace FSH.Starter.WebApi.Setting.Features.v1.EntityCodes;
 public static class UpdateEntityCodeEndpoint
 {
-    internal static RouteHandlerBuilder MapEntityCodeUpdationEndpoint(this IEndpointRouteBuilder endpoints)
+    internal static RouteHandlerBuilder MapUpdateEntityCodeEndpoint(this IEndpointRouteBuilder endpoints)
     {
         return endpoints.
             MapPut("/{id:guid}", async (Guid id, UpdateEntityCodeCommand request, ISender mediator) =>

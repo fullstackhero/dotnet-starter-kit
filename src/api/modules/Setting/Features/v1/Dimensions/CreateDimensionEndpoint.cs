@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Routing;
 namespace FSH.Starter.WebApi.Setting.Features.v1.Dimensions;
 public static class CreateDimensionEndpoint
 {
-    internal static RouteHandlerBuilder MapDimensionCreationEndpoint(this IEndpointRouteBuilder endpoints)
+    internal static RouteHandlerBuilder MapCreateDimensionEndpoint(this IEndpointRouteBuilder endpoints)
     {
         return endpoints.MapPost("/", async (CreateDimensionCommand request, ISender mediator) =>
                 {

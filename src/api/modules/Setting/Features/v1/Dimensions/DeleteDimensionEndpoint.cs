@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Routing;
 namespace FSH.Starter.WebApi.Setting.Features.v1.Dimensions;
 public static class DeleteDimensionEndpoint
 {
-    internal static RouteHandlerBuilder MapDimensionDeletionEndpoint(this IEndpointRouteBuilder endpoints)
+    internal static RouteHandlerBuilder MapDeleteDimensionEndpoint(this IEndpointRouteBuilder endpoints)
     {
         return endpoints
             .MapDelete("/{id:guid}", async (Guid id, ISender mediator) =>

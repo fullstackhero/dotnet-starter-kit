@@ -10,7 +10,7 @@ namespace FSH.Starter.WebApi.Todo.Features.Search.v1;
 
 public static class SearchTodoListEndpoint
 {
-    internal static RouteHandlerBuilder MapSearchTodoListEndpoint(this IEndpointRouteBuilder endpoints)
+    internal static RouteHandlerBuilder MapSearchTodoItemsEndpoint(this IEndpointRouteBuilder endpoints)
     {
         return endpoints.MapPost("/search", async (ISender mediator, [FromBody] PaginationFilter filter) =>
         {
