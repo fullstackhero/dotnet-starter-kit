@@ -73,6 +73,17 @@ public partial class Dimensions : ComponentBase
     {
         _ = _table?.ReloadDataAsync();
     }
+    
+    private Guid _searchFatherId;
+    private Guid SearchFatherId
+    {
+        get => _searchFatherId;
+        set
+        {
+            _searchFatherId = value;
+        }
+    }
+
     #endregion
 }
 

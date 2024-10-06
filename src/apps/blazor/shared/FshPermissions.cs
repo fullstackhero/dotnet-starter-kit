@@ -94,6 +94,11 @@ public static class FshPermissions
         //audit
         new("View Audit Trails", FshAction.View, FshResource.AuditTrails),
         
+        #region BackgroundJobs
+        new("View Hangfire", FshAction.View, FshResource.Hangfire),
+
+        #endregion
+        
         #region Settings
         new("View Menus", FshAction.View, FshResource.Menus, IsBasic: true),
         new("Search Menus", FshAction.Search, FshResource.Menus, IsBasic: true),

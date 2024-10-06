@@ -3,6 +3,7 @@
 <PageHeader Title="Dimensions" Header="Dimensions" SubHeader="Manage your Dimensions." />
 
 <EntityTable @ref="_table" TEntity="DimensionDto" TId="Guid" TRequest="DimensionViewModel" Context="@Context">
+   
     <EditFormContent>
         @if (!Context.AddEditModal.IsCreate)
         {
@@ -36,8 +37,12 @@
         <MudItem xs="12" md="3">
             <MudTextField Label="Type" For="@(() => context.Type)" @bind-Value="context.Type" T="string" />
         </MudItem>
+
         <MudItem xs="12" md="9">
             <MudTextField Label="Description" For="@(() => context.Description)" @bind-Value="context.Description" />
+        </MudItem>
+        <MudItem xs="12" md="3">
+
         </MudItem>
 
         <MudItem xs="12" md="9">
