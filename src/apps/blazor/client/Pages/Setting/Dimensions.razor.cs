@@ -28,12 +28,15 @@ public partial class Dimensions : ComponentBase
                 new(item => item.Name, "Name", "Name"),
                 new(item => item.Value, "Value", "Value" ),
                 new(item => item.Type, "Type", "Type" ),
-                // new(item => item.FatherName, "Father item", "FatherName"),
+
                 new(item => item.FullName, "Full Name", "FullName"),
                 new(item => item.NativeName, "Native Name", "NativeName"),
 
                 // new(item => item.FullNativeName, "Full Native", "FullNativeName"),
                 // new(item => item.Description, "Description", "Description"),
+                new(item => item.FatherName, "Father", "Father.Name"),
+                // new(item => item.FatherId, "Father", "FatherId"),
+                
                 new(item => item.IsActive,  "Active", Type: typeof(bool)),
             },
             enableAdvancedSearch: false,

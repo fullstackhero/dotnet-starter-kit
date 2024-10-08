@@ -13,7 +13,7 @@ public sealed record UpdateDimensionCommand(
     string? FullNativeName,
     int? Value,
     string Type,
-    Guid? FatherId
+    Guid FatherId
     ) : IRequest<UpdateDimensionResponse>;
 
 

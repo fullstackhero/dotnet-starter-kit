@@ -7576,7 +7576,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("status")]
-        public string? Status { get; set; } = default!;
+        public string Status { get; set; } = default!;
 
     }
 
@@ -7585,7 +7585,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("userRoles")]
-        public System.Collections.Generic.ICollection<UserRoleDetail>? UserRoles { get; set; } = default!;
+        public System.Collections.Generic.ICollection<UserRoleDetail> UserRoles { get; set; } = default!;
 
     }
 
@@ -7627,13 +7627,13 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("advancedSearch")]
-        public Search AdvancedSearch { get; set; } = default!;
+        public Search? AdvancedSearch { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("keyword")]
         public string? Keyword { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("advancedFilter")]
-        public Filter AdvancedFilter { get; set; } = default!;
+        public Filter? AdvancedFilter { get; set; } = default!;
 
     }
 
@@ -7642,13 +7642,13 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("password")]
-        public string? Password { get; set; } = default!;
+        public string Password { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("newPassword")]
-        public string? NewPassword { get; set; } = default!;
+        public string NewPassword { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("confirmNewPassword")]
-        public string? ConfirmNewPassword { get; set; } = default!;
+        public string ConfirmNewPassword { get; set; } = default!;
 
     }
 
@@ -7676,10 +7676,10 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         public int Order { get; set; } = 0;
 
         [System.Text.Json.Serialization.JsonPropertyName("code")]
-        public string? Code { get; set; } = "string.Empty";
+        public string Code { get; set; } = "string.Empty";
 
         [System.Text.Json.Serialization.JsonPropertyName("name")]
-        public string? Name { get; set; } = "string.Empty";
+        public string Name { get; set; } = "string.Empty";
 
         [System.Text.Json.Serialization.JsonPropertyName("description")]
         public string? Description { get; set; } = default!;
@@ -7700,7 +7700,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         public int? Value { get; set; } = 0;
 
         [System.Text.Json.Serialization.JsonPropertyName("type")]
-        public string? Type { get; set; } = "string.Empty";
+        public string Type { get; set; } = "string.Empty";
 
         [System.Text.Json.Serialization.JsonPropertyName("fatherId")]
         public System.Guid? FatherId { get; set; } = default!;
@@ -7724,10 +7724,10 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         public int Order { get; set; } = 0;
 
         [System.Text.Json.Serialization.JsonPropertyName("code")]
-        public string? Code { get; set; } = "string.Empty";
+        public string Code { get; set; } = "string.Empty";
 
         [System.Text.Json.Serialization.JsonPropertyName("name")]
-        public string? Name { get; set; } = "";
+        public string Name { get; set; } = "";
 
         [System.Text.Json.Serialization.JsonPropertyName("description")]
         public string? Description { get; set; } = default!;
@@ -7742,7 +7742,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         public int? Value { get; set; } = 0;
 
         [System.Text.Json.Serialization.JsonPropertyName("type")]
-        public CodeType Type { get; set; } = default!;
+        public CodeType Type { get; set; } = FSH.Starter.Blazor.Infrastructure.Api.CodeType._1;
 
     }
 
@@ -7760,10 +7760,10 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("id")]
-        public string? Id { get; set; } = default!;
+        public string Id { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("name")]
-        public string? Name { get; set; } = default!;
+        public string Name { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("description")]
         public string? Description { get; set; } = default!;
@@ -7799,16 +7799,16 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("id")]
-        public string? Id { get; set; } = default!;
+        public string Id { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("name")]
-        public string? Name { get; set; } = default!;
+        public string Name { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("connectionString")]
         public string? ConnectionString { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("adminEmail")]
-        public string? AdminEmail { get; set; } = default!;
+        public string AdminEmail { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("issuer")]
         public string? Issuer { get; set; } = default!;
@@ -7820,7 +7820,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("id")]
-        public string? Id { get; set; } = default!;
+        public string Id { get; set; } = default!;
 
     }
 
@@ -7829,10 +7829,10 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("title")]
-        public string? Title { get; set; } = "Hello World!";
+        public string Title { get; set; } = "Hello World!";
 
         [System.Text.Json.Serialization.JsonPropertyName("note")]
-        public string? Note { get; set; } = "Important Note.";
+        public string Note { get; set; } = "Important Note.";
 
     }
 
@@ -7856,10 +7856,10 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         public int? Order { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("code")]
-        public string? Code { get; set; } = default!;
+        public string Code { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("name")]
-        public string? Name { get; set; } = default!;
+        public string Name { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("description")]
         public string? Description { get; set; } = default!;
@@ -7880,10 +7880,13 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         public int? Value { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("type")]
-        public string? Type { get; set; } = default!;
+        public string Type { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("fatherId")]
         public System.Guid? FatherId { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("fatherName")]
+        public string? FatherName { get; set; } = default!;
 
     }
 
@@ -7892,7 +7895,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("items")]
-        public System.Collections.Generic.ICollection<DimensionDto>? Items { get; set; } = default!;
+        public System.Collections.Generic.ICollection<DimensionDto> Items { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("pageNumber")]
         public int PageNumber { get; set; } = default!;
@@ -7919,7 +7922,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("status")]
-        public string? Status { get; set; } = default!;
+        public string Status { get; set; } = default!;
 
     }
 
@@ -7934,10 +7937,10 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         public int? Order { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("code")]
-        public string? Code { get; set; } = default!;
+        public string Code { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("name")]
-        public string? Name { get; set; } = default!;
+        public string Name { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("description")]
         public string? Description { get; set; } = default!;
@@ -7961,7 +7964,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("items")]
-        public System.Collections.Generic.ICollection<EntityCodeDto>? Items { get; set; } = default!;
+        public System.Collections.Generic.ICollection<EntityCodeDto> Items { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("pageNumber")]
         public int PageNumber { get; set; } = default!;
@@ -7988,13 +7991,13 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("advancedSearch")]
-        public Search AdvancedSearch { get; set; } = default!;
+        public Search? AdvancedSearch { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("keyword")]
         public string? Keyword { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("advancedFilter")]
-        public Filter AdvancedFilter { get; set; } = default!;
+        public Filter? AdvancedFilter { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("type")]
         public string? Type { get; set; } = default!;
@@ -8012,16 +8015,16 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("advancedSearch")]
-        public Search AdvancedSearch { get; set; } = default!;
+        public Search? AdvancedSearch { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("keyword")]
         public string? Keyword { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("advancedFilter")]
-        public Filter AdvancedFilter { get; set; } = default!;
+        public Filter? AdvancedFilter { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("type")]
-        public CodeType Type { get; set; } = default!;
+        public CodeType? Type { get; set; } = default!;
 
     }
 
@@ -8030,13 +8033,13 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("advancedSearch")]
-        public Search AdvancedSearch { get; set; } = default!;
+        public Search? AdvancedSearch { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("keyword")]
         public string? Keyword { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("advancedFilter")]
-        public Filter AdvancedFilter { get; set; } = default!;
+        public Filter? AdvancedFilter { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("brandId")]
         public System.Guid? BrandId { get; set; } = default!;
@@ -8054,13 +8057,13 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("name")]
-        public string? Name { get; set; } = default!;
+        public string Name { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("extension")]
-        public string? Extension { get; set; } = default!;
+        public string Extension { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("data")]
-        public string? Data { get; set; } = default!;
+        public string Data { get; set; } = default!;
 
     }
 
@@ -8090,7 +8093,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("email")]
-        public string? Email { get; set; } = default!;
+        public string Email { get; set; } = default!;
 
     }
 
@@ -8105,10 +8108,10 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         public int? Order { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("code")]
-        public string? Code { get; set; } = default!;
+        public string Code { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("name")]
-        public string? Name { get; set; } = default!;
+        public string Name { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("description")]
         public string? Description { get; set; } = default!;
@@ -8129,7 +8132,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         public int? Value { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("type")]
-        public string? Type { get; set; } = default!;
+        public string Type { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("fatherId")]
         public System.Guid? FatherId { get; set; } = default!;
@@ -8141,13 +8144,13 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("advancedSearch")]
-        public Search AdvancedSearch { get; set; } = default!;
+        public Search? AdvancedSearch { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("keyword")]
         public string? Keyword { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("advancedFilter")]
-        public Filter AdvancedFilter { get; set; } = default!;
+        public Filter? AdvancedFilter { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("type")]
         public string? Type { get; set; } = default!;
@@ -8171,10 +8174,10 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         public int? Order { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("code")]
-        public string? Code { get; set; } = default!;
+        public string Code { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("name")]
-        public string? Name { get; set; } = default!;
+        public string Name { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("description")]
         public string? Description { get; set; } = default!;
@@ -8198,16 +8201,16 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("advancedSearch")]
-        public Search AdvancedSearch { get; set; } = default!;
+        public Search? AdvancedSearch { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("keyword")]
         public string? Keyword { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("advancedFilter")]
-        public Filter AdvancedFilter { get; set; } = default!;
+        public Filter? AdvancedFilter { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("type")]
-        public CodeType Type { get; set; } = default!;
+        public CodeType? Type { get; set; } = default!;
 
     }
 
@@ -8219,7 +8222,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         public System.Guid? Id { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("name")]
-        public string? Name { get; set; } = default!;
+        public string Name { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("description")]
         public string? Description { get; set; } = default!;
@@ -8234,13 +8237,13 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("advancedSearch")]
-        public Search AdvancedSearch { get; set; } = default!;
+        public Search? AdvancedSearch { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("keyword")]
         public string? Keyword { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("advancedFilter")]
-        public Filter AdvancedFilter { get; set; } = default!;
+        public Filter? AdvancedFilter { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("brandId")]
         public System.Guid? BrandId { get; set; } = default!;
@@ -8285,13 +8288,13 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("advancedSearch")]
-        public Search AdvancedSearch { get; set; } = default!;
+        public Search? AdvancedSearch { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("keyword")]
         public string? Keyword { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("advancedFilter")]
-        public Filter AdvancedFilter { get; set; } = default!;
+        public Filter? AdvancedFilter { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("pageNumber")]
         public int PageNumber { get; set; } = default!;
@@ -8312,7 +8315,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         public System.Guid? Id { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("name")]
-        public string? Name { get; set; } = default!;
+        public string Name { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("description")]
         public string? Description { get; set; } = default!;
@@ -8327,7 +8330,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("items")]
-        public System.Collections.Generic.ICollection<ProductDto>? Items { get; set; } = default!;
+        public System.Collections.Generic.ICollection<ProductDto> Items { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("pageNumber")]
         public int PageNumber { get; set; } = default!;
@@ -8354,10 +8357,10 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("token")]
-        public string? Token { get; set; } = default!;
+        public string Token { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("refreshToken")]
-        public string? RefreshToken { get; set; } = default!;
+        public string RefreshToken { get; set; } = default!;
 
     }
 
@@ -8366,22 +8369,22 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("firstName")]
-        public string? FirstName { get; set; } = default!;
+        public string FirstName { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("lastName")]
-        public string? LastName { get; set; } = default!;
+        public string LastName { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("email")]
-        public string? Email { get; set; } = default!;
+        public string Email { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("userName")]
-        public string? UserName { get; set; } = default!;
+        public string UserName { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("password")]
-        public string? Password { get; set; } = default!;
+        public string Password { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("confirmPassword")]
-        public string? ConfirmPassword { get; set; } = default!;
+        public string ConfirmPassword { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("phoneNumber")]
         public string? PhoneNumber { get; set; } = default!;
@@ -8393,7 +8396,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("userId")]
-        public string? UserId { get; set; } = default!;
+        public string UserId { get; set; } = default!;
 
     }
 
@@ -8402,13 +8405,13 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("email")]
-        public string? Email { get; set; } = default!;
+        public string Email { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("password")]
-        public string? Password { get; set; } = default!;
+        public string Password { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("token")]
-        public string? Token { get; set; } = default!;
+        public string Token { get; set; } = default!;
 
     }
 
@@ -8417,10 +8420,10 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("id")]
-        public string? Id { get; set; } = default!;
+        public string Id { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("name")]
-        public string? Name { get; set; } = default!;
+        public string Name { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("description")]
         public string? Description { get; set; } = default!;
@@ -8435,7 +8438,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("fields")]
-        public System.Collections.Generic.ICollection<string>? Fields { get; set; } = default!;
+        public System.Collections.Generic.ICollection<string> Fields { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("keyword")]
         public string? Keyword { get; set; } = default!;
@@ -8447,13 +8450,13 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("advancedSearch")]
-        public Search AdvancedSearch { get; set; } = default!;
+        public Search? AdvancedSearch { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("keyword")]
         public string? Keyword { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("advancedFilter")]
-        public Filter AdvancedFilter { get; set; } = default!;
+        public Filter? AdvancedFilter { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("pageNumber")]
         public int PageNumber { get; set; } = default!;
@@ -8480,13 +8483,13 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("advancedSearch")]
-        public Search AdvancedSearch { get; set; } = default!;
+        public Search? AdvancedSearch { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("keyword")]
         public string? Keyword { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("advancedFilter")]
-        public Filter AdvancedFilter { get; set; } = default!;
+        public Filter? AdvancedFilter { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("pageNumber")]
         public int PageNumber { get; set; } = default!;
@@ -8498,7 +8501,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         public System.Collections.Generic.ICollection<string>? OrderBy { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("type")]
-        public CodeType Type { get; set; } = default!;
+        public CodeType? Type { get; set; } = default!;
 
     }
 
@@ -8507,13 +8510,13 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("advancedSearch")]
-        public Search AdvancedSearch { get; set; } = default!;
+        public Search? AdvancedSearch { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("keyword")]
         public string? Keyword { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("advancedFilter")]
-        public Filter AdvancedFilter { get; set; } = default!;
+        public Filter? AdvancedFilter { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("pageNumber")]
         public int PageNumber { get; set; } = default!;
@@ -8540,16 +8543,16 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("id")]
-        public string? Id { get; set; } = default!;
+        public string Id { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("name")]
-        public string? Name { get; set; } = default!;
+        public string Name { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("connectionString")]
         public string? ConnectionString { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("adminEmail")]
-        public string? AdminEmail { get; set; } = default!;
+        public string AdminEmail { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("isActive")]
         public bool IsActive { get; set; } = default!;
@@ -8570,10 +8573,10 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         public System.Guid? Id { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("title")]
-        public string? Title { get; set; } = default!;
+        public string Title { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("note")]
-        public string? Note { get; set; } = default!;
+        public string Note { get; set; } = default!;
 
     }
 
@@ -8582,7 +8585,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("items")]
-        public System.Collections.Generic.ICollection<TodoDto>? Items { get; set; } = default!;
+        public System.Collections.Generic.ICollection<TodoDto> Items { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("pageNumber")]
         public int PageNumber { get; set; } = default!;
@@ -8621,10 +8624,10 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("email")]
-        public string? Email { get; set; } = "admin@root.com";
+        public string Email { get; set; } = "admin@root.com";
 
         [System.Text.Json.Serialization.JsonPropertyName("password")]
-        public string? Password { get; set; } = "123Pa$$word!";
+        public string Password { get; set; } = "123Pa$$word!";
 
     }
 
@@ -8633,10 +8636,10 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("token")]
-        public string? Token { get; set; } = default!;
+        public string Token { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("refreshToken")]
-        public string? RefreshToken { get; set; } = default!;
+        public string RefreshToken { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("refreshTokenExpiryTime")]
         public System.DateTime RefreshTokenExpiryTime { get; set; } = default!;
@@ -8654,10 +8657,10 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         public int? Order { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("code")]
-        public string? Code { get; set; } = default!;
+        public string Code { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("name")]
-        public string? Name { get; set; } = default!;
+        public string Name { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("description")]
         public string? Description { get; set; } = default!;
@@ -8678,10 +8681,10 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         public int? Value { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("type")]
-        public string? Type { get; set; } = default!;
+        public string Type { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("fatherId")]
-        public System.Guid? FatherId { get; set; } = default!;
+        public System.Guid FatherId { get; set; } = default!;
 
     }
 
@@ -8705,10 +8708,10 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         public int? Order { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("code")]
-        public string? Code { get; set; } = default!;
+        public string Code { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("name")]
-        public string? Name { get; set; } = default!;
+        public string Name { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("description")]
         public string? Description { get; set; } = default!;
@@ -8741,10 +8744,10 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("roleId")]
-        public string? RoleId { get; set; } = default!;
+        public string RoleId { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("permissions")]
-        public System.Collections.Generic.ICollection<string>? Permissions { get; set; } = default!;
+        public System.Collections.Generic.ICollection<string> Permissions { get; set; } = default!;
 
     }
 
@@ -8804,7 +8807,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("id")]
-        public string? Id { get; set; } = default!;
+        public string Id { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("firstName")]
         public string? FirstName { get; set; } = default!;
@@ -8819,7 +8822,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         public string? Email { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("image")]
-        public FileUploadCommand Image { get; set; } = default!;
+        public FileUploadCommand? Image { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("deleteCurrentImage")]
         public bool DeleteCurrentImage { get; set; } = default!;
@@ -8831,7 +8834,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("tenant")]
-        public string? Tenant { get; set; } = default!;
+        public string Tenant { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("extendedExpiryDate")]
         public System.DateTime ExtendedExpiryDate { get; set; } = default!;
@@ -8846,7 +8849,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         public System.DateTime NewValidity { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("tenant")]
-        public string? Tenant { get; set; } = default!;
+        public string Tenant { get; set; } = default!;
 
     }
 

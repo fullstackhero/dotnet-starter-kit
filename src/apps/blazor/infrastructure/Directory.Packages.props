@@ -18,6 +18,6 @@
     <PackageVersion Include="Blazored.LocalStorage" Version="4.5.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="8.0.8" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="8.0.0" />
-    <PackageVersion Include="MudBlazor" Version="7.6.0" />
+    <PackageVersion Include="MudBlazor" Version="7.8.0" />
   </ItemGroup>
 </Project>

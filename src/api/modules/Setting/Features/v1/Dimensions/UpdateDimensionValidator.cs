@@ -8,5 +8,6 @@ public class UpdateDimensionValidator : AbstractValidator<UpdateDimensionCommand
     {
         RuleFor(p => p.Code).NotEmpty();
         RuleFor(p => p.Name).NotEmpty();
+        RuleFor(p => p.Type).NotEmpty();
     }
 }

@@ -27,7 +27,7 @@ public class Dimension : AuditableEntity, IAggregateRoot
     string code,
     string name,
     string? description,
-    bool? isActive,
+    bool isActive,
     string? fullname,
     string? nativeName,
     string? fullNativeName,
@@ -39,7 +39,7 @@ public class Dimension : AuditableEntity, IAggregateRoot
         Code = code;
         Name = name;
         Description = description;
-        IsActive = isActive ?? true;
+        IsActive = isActive;
         FullName = fullname;
         NativeName = nativeName;
         FullNativeName = fullNativeName;

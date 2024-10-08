@@ -20,7 +20,7 @@ public class EntityCode : AuditableEntity, IAggregateRoot
     string code,
     string name,
     string? description,
-    bool? isActive,
+    bool isActive,
     string separator,
     int? value,
     CodeType? type)
@@ -29,7 +29,7 @@ public class EntityCode : AuditableEntity, IAggregateRoot
         Code = code;
         Name = name;
         Description = description;
-        IsActive = isActive ?? true;
+        IsActive = isActive;
         Separator = separator;
         Value = value ?? 0;
         Type = type ?? CodeType.MasterData;
@@ -59,7 +59,7 @@ public class EntityCode : AuditableEntity, IAggregateRoot
             IsActive = isActive ?? true,
             Separator = separator ?? string.Empty,
             Value = value ?? 0,
-            Type = type ?? CodeType.MasterData
+            Type = type is null or CodeType.All ? CodeType.MasterData : type.Value
         };
 
         item.QueueDomainEvent(new EntityCodeCreated(item.Id, item.Order, item.Code, item.Name, item.Description, item.IsActive, item.Separator, item.Value, item.Type));
@@ -88,7 +88,7 @@ public class EntityCode : AuditableEntity, IAggregateRoot
         
         if (separator is not null && Separator?.Equals(separator, StringComparison.Ordinal) is not true) Separator = separator;
         if (value is not null && Value != value) Value = value.Value;
-        if (type is not null && !Type.Equals(CodeType.All) && !Type.Equals(type)) Type = type.Value;
+        if (type is not null && !type.Equals(CodeType.All) && !Type.Equals(type)) Type = type.Value;
 
         QueueDomainEvent(new EntityCodeUpdated(this));
 
@@ -116,7 +116,7 @@ public class EntityCode : AuditableEntity, IAggregateRoot
             IsActive = isActive ?? true,
             Separator = separator ?? string.Empty,
             Value = value ?? 0,
-            Type = type?? CodeType.MasterData
+            Type = type is null or CodeType.All ? CodeType.MasterData : type.Value
         };
 
         item.QueueDomainEvent(new EntityCodeUpdated(item));

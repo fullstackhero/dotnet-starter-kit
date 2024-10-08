@@ -1,78 +1,77 @@
-using FSH.Starter.Blazor.Client.Components.EntityTable;
+using FSH.Starter.Blazor.Client.Components;
 using FSH.Starter.Blazor.Infrastructure.Api;
-using Mapster;
 using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Localization;
 using MudBlazor;
 
 namespace FSH.Starter.Blazor.Client.Pages.Setting;
 
 public class DimensionAutocomplete : MudAutocomplete<Guid>
 {
-    [Inject]
-    private IStringLocalizer<DimensionAutocomplete> L { get; set; } = default!;
-    
-    [Inject]
-    private ISnackbar Toast { get; set; } = default!;
-    
-    [Inject]
-    protected IApiClient ApiClient { get; set; } = default!;
+    // [Inject]
+    // private IStringLocalizer<DimensionAutocomplete> L { get; set; } = default!
 
-    private List<DimensionDto> _entityList = [];
+    [Inject] private ISnackbar Toast { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    [Inject] protected IApiClient ApiClient { get; set; } = default!;
+
+    private List<DimensionDto> _itemList = [];
 
     // supply default parameters, but leave the possibility to override them
     [Parameter]
     public string? DimensionType { get; set; }
     public override Task SetParametersAsync(ParameterView parameters)
     {
-        Label = L["Father Dimension"];
+        Label = "Father Dimension";
         Variant = Variant.Filled;
         Dense = true;
         Margin = Margin.None;
         ResetValueOnEmptyText = true;
-        SearchFunc = SearchEntities;
-        ToStringFunc = GetEntityName;
+        SearchFunc = SearchItems;
+        ToStringFunc = GetItemName;
         Clearable = true;
         return base.SetParametersAsync(parameters);
     }
-    
+
     // when the value parameter is set, we have to load that one Dimension to be able to show the name
     // we can't do that in OnInitialized because of a strange bug (https://github.com/MudBlazor/MudBlazor/issues/3818)
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && _value != Guid.Empty)
+        if (firstRender 
+            && _value != Guid.Empty
+            && await ApiHelper.ExecuteCallGuardedAsync(
+                    () => ApiClient.GetDimensionEndpointAsync("1", _value), Toast, Navigation) 
+                is { }  itemDto)
         {
-            var result = await ApiClient.GetDimensionEndpointAsync("1", _value);
-            var entity = new DimensionDto
+            var item = new DimensionDto
             {
-                Id = result.Id,
-                Code = result.Code,
-                Name = result.Name
+                Id = itemDto.Id,
+                Code = itemDto.Code,
+                Name = itemDto.Name
             };
-            _entityList.Add(entity);
+            _itemList.Add(item);
             ForceRender(true);
         }
     }
 
-    private async Task<IEnumerable<Guid>> SearchEntities(string value, CancellationToken cancellationToken)
+    private async Task<IEnumerable<Guid>> SearchItems(string searchString, CancellationToken cancellationToken)
     {
         var dataFilter = new SearchDimensionsRequest
         {
             Type = DimensionType,
             PageSize = 10,
-            AdvancedSearch = new() { Fields = new[] { "Code", "Name" }, Keyword = value }
+            AdvancedSearch = new() { Fields = new[] { "Code", "Name" }, Keyword = searchString }
         };
         
-        var result = await ApiClient.SearchDimensionsEndpointAsync("1", dataFilter, cancellationToken);
-        var paginationResponse = result.Adapt<PaginationResponse<DimensionDto>>();
-        _entityList = paginationResponse.Items;
+        if (await ApiHelper.ExecuteCallGuardedAsync(
+                () => ApiClient.SearchDimensionsEndpointAsync("1", dataFilter, cancellationToken), Toast, Navigation) 
+                    is { }  response)
+        {
+            _itemList = response.Items!.ToList();
+        }
 
-        return _entityList.Select(x => x.Id);
+        return _itemList.Select(x => x.Id);
     }
 
-    private string GetEntityName(Guid id)
-    {
-        var entity = _entityList.Find(e => e.Id == id);
-        return (entity != null ? entity.Name : string.Empty)!;
-    }
+    private string GetItemName(Guid id) => _itemList.Find(e => e.Id == id)?.Name ?? string.Empty;
 }

@@ -33,12 +33,12 @@ public partial class EntityCodes : ComponentBase
                 new(item => item.Description, "Description", "Description"),
                 new(item => item.IsActive,  "Active", Type: typeof(bool)),
             },
-            enableAdvancedSearch: false,
+            enableAdvancedSearch: true,
             idFunc: item => item.Id,
             exportFunc: async filter =>
             {
                 var dataFilter = filter.Adapt<ExportEntityCodesRequest>();
-                dataFilter.Type = SearchCodeType;
+                dataFilter.Type = SearchCodeType == default ? null : SearchCodeType;
                 
                 return await ApiClient.ExportEntityCodesEndpointAsync("1", dataFilter);
 
@@ -47,7 +47,7 @@ public partial class EntityCodes : ComponentBase
             searchFunc: async filter =>
             {
                 var dataFilter = filter.Adapt<SearchEntityCodesRequest>();
-                dataFilter.Type = SearchCodeType;
+                dataFilter.Type = SearchCodeType == default ? null : SearchCodeType;
                 
                 var result = await ApiClient.SearchEntityCodesEndpointAsync("1", dataFilter);
                 
@@ -73,7 +73,7 @@ public partial class EntityCodes : ComponentBase
         set
         {
             _searchCodeType = value;
-            _ = _table?.ReloadDataAsync();
+            _ = _table.ReloadDataAsync();
         }
     }
     #endregion

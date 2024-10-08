@@ -7,7 +7,7 @@ public record CreateDimensionCommand(
     [property: DefaultValue("string.Empty")] string Code,
     [property: DefaultValue("string.Empty")] string Name,
     [property: DefaultValue(null)] string? Description,
-    [property: DefaultValue(true)] bool? IsActive,
+    [property: DefaultValue(true)] bool IsActive,
     [property: DefaultValue(null)] string? FullName,
     [property: DefaultValue(null)] string? NativeName,
     [property: DefaultValue(null)] string? FullNativeName,

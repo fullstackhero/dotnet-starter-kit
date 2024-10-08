@@ -37,6 +37,9 @@ public static class Extensions
                         Array.Empty<string>()
                     }
                 });
+                // Add for nullable enum
+                options.UseAllOfToExtendReferenceSchemas();
+                options.SupportNonNullableReferenceTypes();
             });
         services
             .AddApiVersioning(options =>

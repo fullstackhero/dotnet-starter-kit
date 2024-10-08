@@ -3,6 +3,16 @@
 <PageHeader Title="EntityCodes" Header="EntityCodes" SubHeader="Manage your EntityCodes." />
 
 <EntityTable @ref="_table" TEntity="EntityCodeDto" TId="Guid" TRequest="EntityCodeViewModel" Context="@Context" >
+    <AdvancedSearchContent>
+
+        <MudSelect Label="Type" @bind-Value="SearchCodeType" Variant="Variant.Filled">
+            @foreach (CodeType item in Enum.GetValues(typeof(CodeType)))
+            {
+            <MudSelectItem Value="@item">@item</MudSelectItem>
+            }
+        </MudSelect>
+
+    </AdvancedSearchContent>
 
     <EditFormContent>
         @if (!Context.AddEditModal.IsCreate)
