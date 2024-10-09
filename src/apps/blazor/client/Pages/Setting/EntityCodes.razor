@@ -33,7 +33,7 @@
         </MudItem>
         <MudItem xs="12" md="3">
             <MudSelect Label="Type" @bind-Value="context.Type" Variant="Variant.Filled">
-                @foreach (CodeType item in Enum.GetValues(typeof(CodeType)))
+                @foreach (CodeType item in Enum.GetValues(typeof(CodeType)).Cast<CodeType>())
                 {
                 <MudSelectItem Value="@item">@item</MudSelectItem>
                 }

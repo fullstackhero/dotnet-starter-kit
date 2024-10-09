@@ -37,9 +37,11 @@ public static class Extensions
                         Array.Empty<string>()
                     }
                 });
-                // Add for nullable enum
+                // Add for nullable enum generate
                 options.UseAllOfToExtendReferenceSchemas();
                 options.SupportNonNullableReferenceTypes();
+                // Add for enum name generate
+                options.SchemaFilter<EnumSchemaFilter>();
             });
         services
             .AddApiVersioning(options =>
@@ -54,6 +56,10 @@ public static class Extensions
                 options.GroupNameFormat = "'v'VVV";
             })
             .EnableApiVersionBinding();
+
+        // services.Configure<JsonOptions>(options =>
+        //     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()))
+        
         return services;
     }
     public static WebApplication UseOpenApi(this WebApplication app)

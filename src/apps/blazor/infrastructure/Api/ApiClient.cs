@@ -7656,15 +7656,15 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
     public enum CodeType
     {
 
-        _0 = 0,
+        All = 0,
 
-        _1 = 1,
+        MasterData = 1,
 
-        _2 = 2,
+        Transaction = 2,
 
-        _3 = 3,
+        FastTransaction = 3,
 
-        _4 = 4,
+        IntCode = 4,
 
     }
 
@@ -7685,7 +7685,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         public string? Description { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("isActive")]
-        public bool? IsActive { get; set; } = true;
+        public bool IsActive { get; set; } = true;
 
         [System.Text.Json.Serialization.JsonPropertyName("fullName")]
         public string? FullName { get; set; } = default!;
@@ -7742,7 +7742,7 @@ namespace FSH.Starter.Blazor.Infrastructure.Api
         public int? Value { get; set; } = 0;
 
         [System.Text.Json.Serialization.JsonPropertyName("type")]
-        public CodeType Type { get; set; } = FSH.Starter.Blazor.Infrastructure.Api.CodeType._1;
+        public CodeType Type { get; set; } = FSH.Starter.Blazor.Infrastructure.Api.CodeType.MasterData;
 
     }
 

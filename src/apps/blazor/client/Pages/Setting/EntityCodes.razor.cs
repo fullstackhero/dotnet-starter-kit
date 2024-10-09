@@ -66,7 +66,7 @@ public partial class EntityCodes : ComponentBase
   
     #region Advanced Search
 
-    private CodeType _searchCodeType = CodeType._0;
+    private CodeType _searchCodeType;
     private CodeType SearchCodeType
     {
         get => _searchCodeType;
