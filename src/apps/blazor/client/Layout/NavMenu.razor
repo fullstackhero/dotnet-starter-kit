@@ -1,31 +1,69 @@
-﻿<PersonCard Style="background-color: var(--mud-palette-drawer-background);color: var(--mud-palette-drawer-text); margin-bottom:0px!important" />
+﻿<PersonCard Style="background-color: var(--mud-palette-drawer-background);color: var(--mud-palette-drawer-text); margin-bottom:0!important" />
 <MudNavMenu>
-    <MudText Typo="Typo.subtitle2" Color="Color.Surface" Class="ml-4 my-3">Start</MudText>
+    <MudText Typo="Typo.subtitle2" Color="Color.Surface" Class="ml-4 my-3">START</MudText>
     <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-    <MudNavLink Href="counter" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Add">Counter</MudNavLink>
+
+    <MudDivider Class="my-2"/>
+    <MudText Typo="Typo.subtitle2" Color="Color.Surface" Class="ml-4 my-3">MODULES</MudText>
+
+    @if (CanViewDemoGroup)
+    {
+        <MudNavGroup Title="DEMO" Icon="@Icons.Material.Outlined.Settings" Class="mt-2 mb-n2" Expanded="false">
+            @if (_canViewProducts)
+            {
+            <MudNavLink Href="/catalog/products" Icon="@Icons.Material.Filled.ShoppingBag" Class="fsh-nav-child">Products</MudNavLink>
+            }
+            @if (_canViewTodos)
+            {
+            <MudNavLink Href="/todos" Icon="@Icons.Material.Filled.Checklist" Class="fsh-nav-child">Todos</MudNavLink>
+            }
+            <MudNavLink Href="counter" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Add">Counter</MudNavLink>
+        </MudNavGroup>
+    }
+
+    @if (CanViewUserGroup || CanViewSettingGroup)
+    {
+        <MudDivider Class="my-2"/>
+        <MudText Typo="Typo.subtitle2" Color="Color.Surface" Class="ml-4 my-3">ADMIN</MudText>
+
+        @if (CanViewUserGroup)
+        {
+            <MudNavGroup Title="User Management" Icon="@Icons.Material.Filled.Security" Class="mt-2 mb-n2" Expanded="false">
+                @if (_canViewUsers)
+                {
+                    <MudNavLink Match="NavLinkMatch.Prefix" Href="/identity/users" Icon="@Icons.Material.Filled.PeopleAlt">Users</MudNavLink>
+                }
+                @if (_canViewRoles)
+                {
+                    <MudNavLink Href="/identity/roles" Icon="@Icons.Material.Filled.EmojiPeople">Roles</MudNavLink>
+                }
+                @if (_canViewTenants)
+                {
+                    <MudNavLink Href="/tenants" Icon="@Icons.Material.Filled.GroupWork" Disabled="!_canViewTenants">Tenants</MudNavLink>
+                }
+
+            </MudNavGroup>
+        }
+
+        @if (CanViewSettingGroup)
+        {
+            <MudNavGroup Title="App Setting" Icon="@Icons.Material.Outlined.Settings" Class="mt-2 mb-n2" Expanded="false">
+                @if (_canViewDimensions)
+                {
+                    <MudNavLink Href="/setting/dimensions" Icon="@Icons.Material.Filled.Rule" Class="fsh-nav-child">Dimensions</MudNavLink>
+                }
+                @if (_canViewEntityCodes)
+                {
+                    <MudNavLink Href="/setting/EntityCodes" Icon="@Icons.Material.Outlined.Title" Class="fsh-nav-child">EntityCodes</MudNavLink>
+                }
+            </MudNavGroup>
+        }
+
+    }
+
     @if (_canViewAuditTrails)
     {
-        <MudNavLink Match="NavLinkMatch.Prefix" Href="/identity/audit-trail" Icon="@Icons.Material.Filled.WorkHistory">Audit Trail</MudNavLink>
+    <MudNavLink Match="NavLinkMatch.Prefix" Href="/identity/audit-trail" Icon="@Icons.Material.Filled.WorkHistory">Audit Trail</MudNavLink>
     }
-    <MudText Typo="Typo.subtitle2" Color="Color.Surface" Class="ml-4 my-3">Modules</MudText>
-    <MudNavGroup Title="Catalog" Icon="@Icons.Material.Filled.AddBox">
-         <MudNavLink Href="/catalog/products" Icon="@Icons.Material.Filled.ShoppingBag" Class="fsh-nav-child">Products</MudNavLink>
-    </MudNavGroup>
-    <MudNavLink Href="/todos" Icon="@Icons.Material.Filled.Checklist" Class="fsh-nav-child">Todos</MudNavLink>
-    @if (CanViewAdministrationGroup)
-    {
-        <MudText Typo="Typo.subtitle2" Color="Color.Surface" Class="ml-4 my-3">Administration</MudText>
-        @if (_canViewUsers)
-        {
-            <MudNavLink Match="NavLinkMatch.Prefix" Href="/identity/users" Icon="@Icons.Material.Filled.PeopleAlt">Users</MudNavLink>
-        }
-        @if (_canViewRoles)
-        {
-            <MudNavLink Href="/identity/roles" Icon="@Icons.Material.Filled.EmojiPeople">Roles</MudNavLink>
-        }
-        @if (_canViewTenants)
-        {
-            <MudNavLink Href="/tenants" Icon="@Icons.Material.Filled.GroupWork" Disabled="!_canViewTenants">Tenants</MudNavLink>
-        }
-    }
+
 </MudNavMenu>

@@ -6,14 +6,14 @@ using Microsoft.AspNetCore.Components;
 
 namespace FSH.Starter.Blazor.Client.Pages.Todos;
 
-public partial class Todos
+public partial class Todos : ComponentBase
 {
     [Inject]
     protected IApiClient ApiClient { get; set; } = default!;
 
-    protected EntityServerTableContext<GetTodoResponse, Guid, TodoViewModel> Context { get; set; } = default!;
+    protected EntityServerTableContext<TodoDto, Guid, TodoViewModel> Context { get; set; } = default!;
 
-    private EntityTable<GetTodoResponse, Guid, TodoViewModel> _table = default!;
+    private EntityTable<TodoDto, Guid, TodoViewModel> _table = default!;
 
     protected override void OnInitialized() =>
         Context = new(
@@ -28,12 +28,19 @@ public partial class Todos
             },
             enableAdvancedSearch: false,
             idFunc: prod => prod.Id!.Value,
+            exportFunc: async filter =>
+            {
+                var exportFilter = filter.Adapt<BaseFilter>();
+                
+                return await ApiClient.ExportTodoListEndpointAsync("1", exportFilter);
+            },
+            importFunc: async (fileUploadModel, isUpdate) => await ApiClient.ImportTodolistEndpointAsync("1", isUpdate, fileUploadModel),
             searchFunc: async filter =>
             {
-                var todoFilter = filter.Adapt<PaginationFilter>();
-
-                var result = await ApiClient.GetTodoListEndpointAsync("1", todoFilter);
-                return result.Adapt<PaginationResponse<GetTodoResponse>>();
+                var searchFilter = filter.Adapt<PaginationFilter>();
+                var result = await ApiClient.SearchTodoListEndpointAsync("1", searchFilter);
+                
+                return result.Adapt<PaginationResponse<TodoDto>>();
             },
             createFunc: async todo =>
             {

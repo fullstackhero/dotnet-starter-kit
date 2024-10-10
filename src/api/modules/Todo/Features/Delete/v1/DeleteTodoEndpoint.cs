@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Routing;
 namespace FSH.Starter.WebApi.Todo.Features.Delete.v1;
 public static class DeleteTodoEndpoint
 {
-    internal static RouteHandlerBuilder MapTodoItemDeletionEndpoint(this IEndpointRouteBuilder endpoints)
+    internal static RouteHandlerBuilder MapDeleteTodoItemEndpoint(this IEndpointRouteBuilder endpoints)
     {
         return endpoints
             .MapDelete("/{id:guid}", async (Guid id, ISender mediator) =>

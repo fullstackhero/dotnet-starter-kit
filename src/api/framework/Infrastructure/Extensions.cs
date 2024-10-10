@@ -8,6 +8,7 @@ using FSH.Framework.Infrastructure.Auth.Jwt;
 using FSH.Framework.Infrastructure.Behaviours;
 using FSH.Framework.Infrastructure.Caching;
 using FSH.Framework.Infrastructure.Cors;
+using FSH.Framework.Infrastructure.DataIO;
 using FSH.Framework.Infrastructure.Exceptions;
 using FSH.Framework.Infrastructure.Identity;
 using FSH.Framework.Infrastructure.Jobs;
@@ -49,6 +50,7 @@ public static class Extensions
         builder.Services.AddExceptionHandler<CustomExceptionHandler>();
         builder.Services.AddProblemDetails();
         builder.Services.AddHealthChecks();
+        builder.Services.ConfigureDataImportExport();
         builder.Services.AddOptions<OriginOptions>().BindConfiguration(nameof(OriginOptions));
 
         // Define module assemblies

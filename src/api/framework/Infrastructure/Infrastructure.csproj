@@ -18,6 +18,8 @@
   <ItemGroup>
     <PackageReference Include="Asp.Versioning.Http" />
     <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" />
+    <PackageReference Include="ClosedXML" />
+    <PackageReference Include="ClosedXML.Report" />
     <PackageReference Include="Finbuckle.MultiTenant" />
     <PackageReference Include="Finbuckle.MultiTenant.AspNetCore" />
     <PackageReference Include="Finbuckle.MultiTenant.EntityFrameworkCore" />

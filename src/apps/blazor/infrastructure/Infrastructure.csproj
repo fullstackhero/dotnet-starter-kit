@@ -16,6 +16,10 @@
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" />
 		<PackageReference Include="Microsoft.Extensions.Http" />
 		<PackageReference Include="MudBlazor" />
+		<PackageReference Include="NSwag.MSBuild">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -23,9 +27,7 @@
 	</ItemGroup>
 
   <Target Name="NSwag">
-    <Exec WorkingDirectory="$(ProjectDir)\Api"
-          EnvironmentVariables="ASPNETCORE_ENVIRONMENT=Development"
-          Command="nswag run ./nswag.json /variables:Configuration=$(Configuration)" />
+    <Exec WorkingDirectory="$(ProjectDir)\Api" EnvironmentVariables="ASPNETCORE_ENVIRONMENT=Development" Command="$(NSwagExe_Net80) run ./nswag.json /variables:Configuration=$(Configuration)" />
   </Target>
   
 </Project>

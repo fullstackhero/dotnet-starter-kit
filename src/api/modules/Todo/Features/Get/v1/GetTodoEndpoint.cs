@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Routing;
 namespace FSH.Starter.WebApi.Todo.Features.Get.v1;
 public static class GetTodoEndpoint
 {
-    internal static RouteHandlerBuilder MapGetTodoEndpoint(this IEndpointRouteBuilder endpoints)
+    internal static RouteHandlerBuilder MapGetTodoItemEndpoint(this IEndpointRouteBuilder endpoints)
     {
         return endpoints.MapGet("/{id:guid}", async (Guid id, ISender mediator) =>
                         {

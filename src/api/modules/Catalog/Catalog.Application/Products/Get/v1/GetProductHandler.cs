@@ -9,9 +9,9 @@ namespace FSH.Starter.WebApi.Catalog.Application.Products.Get.v1;
 public sealed class GetProductHandler(
     [FromKeyedServices("catalog:products")] IReadRepository<Product> repository,
     ICacheService cache)
-    : IRequestHandler<GetProductRequest, ProductResponse>
+    : IRequestHandler<GetProductRequest, GetProductResponse>
 {
-    public async Task<ProductResponse> Handle(GetProductRequest request, CancellationToken cancellationToken)
+    public async Task<GetProductResponse> Handle(GetProductRequest request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
         var item = await cache.GetOrSetAsync(
@@ -20,7 +20,7 @@ public sealed class GetProductHandler(
             {
                 var productItem = await repository.GetByIdAsync(request.Id, cancellationToken);
                 if (productItem == null) throw new ProductNotFoundException(request.Id);
-                return new ProductResponse(productItem.Id, productItem.Name, productItem.Description, productItem.Price);
+                return new GetProductResponse(productItem.Id, productItem.Name, productItem.Description, productItem.Price);
             },
             cancellationToken: cancellationToken);
         return item!;
