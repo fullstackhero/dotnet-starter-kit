@@ -15,9 +15,9 @@ public static class SearchProductsEndpoint
     internal static RouteHandlerBuilder MapGetProductListEndpoint(this IEndpointRouteBuilder endpoints)
     {
         return endpoints
-            .MapPost("/search", async (ISender mediator, [FromBody] PaginationFilter filter) =>
+            .MapPost("/search", async (ISender mediator, [FromBody] SearchProductsCommand command) =>
             {
-                var response = await mediator.Send(new SearchProductsCommand(filter));
+                var response = await mediator.Send(command);
                 return Results.Ok(response);
             })
             .WithName(nameof(SearchProductsEndpoint))
