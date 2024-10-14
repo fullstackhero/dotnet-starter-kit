@@ -6,10 +6,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor;
-
+using System.Security.Claims;
 namespace FSH.Starter.Blazor.Client.Pages.Identity.Users;
 
-public partial class Users
+public partial class Users : ComponentBase
 {
     [CascadingParameter]
     protected Task<AuthenticationState> AuthState { get; set; } = default!;

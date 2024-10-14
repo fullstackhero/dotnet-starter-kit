@@ -25,7 +25,7 @@ public partial class MainLayout
         }
     }
 
-    public async Task ToggleDarkMode()
+    private async Task ToggleDarkMode()
     {
         _isDarkMode = !_isDarkMode;
         await OnDarkModeToggle.InvokeAsync(_isDarkMode);

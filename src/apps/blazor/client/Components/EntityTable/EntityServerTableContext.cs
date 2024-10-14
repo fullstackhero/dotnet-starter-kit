@@ -14,6 +14,16 @@ public class EntityServerTableContext<TEntity, TId, TRequest>
     /// and returns a PaginatedResult of TEntity.
     /// </summary>
     public Func<PaginationFilter, Task<PaginationResponse<TEntity>>> SearchFunc { get; }
+    
+    /// <summary>
+    /// A function that exports the specified data from the API.
+    /// </summary>
+    public Func<BaseFilter, Task<byte[]>>? ExportFunc { get; }
+
+    /// <summary>
+    /// A function that import the specified data from the API.
+    /// </summary>
+    public Func<FileUploadCommand, bool, Task<ImportResponse>>? ImportFunc { get; }
 
     public bool EnableAdvancedSearch { get; }
 
@@ -27,6 +37,8 @@ public class EntityServerTableContext<TEntity, TId, TRequest>
         Func<TId, Task<TRequest>>? getDetailsFunc = null,
         Func<TId, TRequest, Task>? updateFunc = null,
         Func<TId, Task>? deleteFunc = null,
+        Func<BaseFilter, Task<byte[]>>? exportFunc = null,
+        Func<FileUploadCommand, bool, Task<ImportResponse>>? importFunc = null,
         string? entityName = null,
         string? entityNamePlural = null,
         string? entityResource = null,
@@ -35,7 +47,9 @@ public class EntityServerTableContext<TEntity, TId, TRequest>
         string? updateAction = null,
         string? deleteAction = null,
         string? exportAction = null,
+        string? importAction = null,
         Func<Task>? editFormInitializedFunc = null,
+        Func<Task>? importFormInitializedFunc = null,
         Func<bool>? hasExtraActionsFunc = null,
         Func<TEntity, bool>? canUpdateEntityFunc = null,
         Func<TEntity, bool>? canDeleteEntityFunc = null)
@@ -55,12 +69,16 @@ public class EntityServerTableContext<TEntity, TId, TRequest>
             updateAction,
             deleteAction,
             exportAction,
+            importAction,
             editFormInitializedFunc,
+            importFormInitializedFunc,
             hasExtraActionsFunc,
             canUpdateEntityFunc,
             canDeleteEntityFunc)
     {
         SearchFunc = searchFunc;
+        ExportFunc = exportFunc;
+        ImportFunc = importFunc;
         EnableAdvancedSearch = enableAdvancedSearch;
     }
 }
