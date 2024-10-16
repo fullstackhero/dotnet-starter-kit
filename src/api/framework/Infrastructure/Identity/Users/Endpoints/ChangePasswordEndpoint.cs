@@ -3,6 +3,7 @@ using FluentValidation.Results;
 using FSH.Framework.Core.Identity.Users.Abstractions;
 using FSH.Framework.Core.Identity.Users.Features.ChangePassword;
 using FSH.Framework.Core.Origin;
+using FSH.Starter.Shared.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;

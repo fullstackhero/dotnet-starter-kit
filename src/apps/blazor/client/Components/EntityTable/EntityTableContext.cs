@@ -1,4 +1,4 @@
-﻿using FSH.Starter.Blazor.Shared;
+﻿using FSH.Starter.Shared.Authorization;
 using MudBlazor;
 
 namespace FSH.Starter.Blazor.Client.Components.EntityTable;
@@ -158,11 +158,11 @@ public abstract class EntityTableContext<TEntity, TId, TRequest>
         GetDetailsFunc = getDetailsFunc;
         UpdateFunc = updateFunc;
         DeleteFunc = deleteFunc;
-        SearchAction = searchAction ?? FshActions.Search;
-        CreateAction = createAction ?? FshActions.Create;
-        UpdateAction = updateAction ?? FshActions.Update;
-        DeleteAction = deleteAction ?? FshActions.Delete;
-        ExportAction = exportAction ?? FshActions.Export;
+        SearchAction = searchAction ?? FshAction.Search;
+        CreateAction = createAction ?? FshAction.Create;
+        UpdateAction = updateAction ?? FshAction.Update;
+        DeleteAction = deleteAction ?? FshAction.Delete;
+        ExportAction = exportAction ?? FshAction.Export;
         EditFormInitializedFunc = editFormInitializedFunc;
         HasExtraActionsFunc = hasExtraActionsFunc;
         CanUpdateEntityFunc = canUpdateEntityFunc;

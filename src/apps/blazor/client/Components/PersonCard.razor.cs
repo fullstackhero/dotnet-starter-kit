@@ -1,4 +1,4 @@
-﻿using FSH.Starter.Blazor.Shared;
+﻿using FSH.Starter.Shared.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 namespace FSH.Starter.Blazor.Client.Components;

@@ -1,5 +1,5 @@
-﻿namespace FSH.Starter.Blazor.Shared;
-public static class FshResources
+﻿namespace FSH.Starter.Shared.Authorization;
+public static class FshResource
 {
     public const string Tenants = nameof(Tenants);
     public const string Dashboard = nameof(Dashboard);
@@ -11,4 +11,5 @@ public static class FshResources
     public const string Products = nameof(Products);
     public const string Brands = nameof(Brands);
     public const string Todos = nameof(Todos);
+    public const string AuditTrails = nameof(AuditTrails);
 }

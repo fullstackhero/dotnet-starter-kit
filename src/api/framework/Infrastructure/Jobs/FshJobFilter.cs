@@ -1,7 +1,6 @@
 ﻿using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Core.Tenant;
 using FSH.Framework.Infrastructure.Constants;
-using FSH.Framework.Infrastructure.Identity.Users;
+using FSH.Starter.Shared.Authorization;
 using Hangfire.Client;
 using Hangfire.Logging;
 using Microsoft.AspNetCore.Http;

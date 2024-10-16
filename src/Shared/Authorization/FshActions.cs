@@ -1,5 +1,5 @@
-﻿namespace FSH.Starter.Blazor.Shared;
-public static class FshActions
+﻿namespace FSH.Starter.Shared.Authorization;
+public static class FshAction
 {
     public const string View = nameof(View);
     public const string Search = nameof(Search);
