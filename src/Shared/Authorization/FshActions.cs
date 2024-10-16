@@ -1,5 +1,5 @@
 ﻿namespace FSH.Starter.Shared.Authorization;
-public static class FshAction
+public static class FshActions
 {
     public const string View = nameof(View);
     public const string Search = nameof(Search);

@@ -7,48 +7,48 @@ public static class FshPermissions
     private static readonly FshPermission[] allPermissions =
    {     
         //tenants
-        new("View Tenants", FshAction.View, FshResource.Tenants, IsRoot: true),
-        new("Create Tenants", FshAction.Create, FshResource.Tenants, IsRoot: true),
-        new("Update Tenants", FshAction.Update, FshResource.Tenants, IsRoot: true),
-        new("Upgrade Tenant Subscription", FshAction.UpgradeSubscription, FshResource.Tenants, IsRoot: true),
+        new("View Tenants", FshActions.View, FshResources.Tenants, IsRoot: true),
+        new("Create Tenants", FshActions.Create, FshResources.Tenants, IsRoot: true),
+        new("Update Tenants", FshActions.Update, FshResources.Tenants, IsRoot: true),
+        new("Upgrade Tenant Subscription", FshActions.UpgradeSubscription, FshResources.Tenants, IsRoot: true),
 
         //identity
-        new("View Users", FshAction.View, FshResource.Users),
-        new("Search Users", FshAction.Search, FshResource.Users),
-        new("Create Users", FshAction.Create, FshResource.Users),
-        new("Update Users", FshAction.Update, FshResource.Users),
-        new("Delete Users", FshAction.Delete, FshResource.Users),
-        new("Export Users", FshAction.Export, FshResource.Users),
-        new("View UserRoles", FshAction.View, FshResource.UserRoles),
-        new("Update UserRoles", FshAction.Update, FshResource.UserRoles),
-        new("View Roles", FshAction.View, FshResource.Roles),
-        new("Create Roles", FshAction.Create, FshResource.Roles),
-        new("Update Roles", FshAction.Update, FshResource.Roles),
-        new("Delete Roles", FshAction.Delete, FshResource.Roles),
-        new("View RoleClaims", FshAction.View, FshResource.RoleClaims),
-        new("Update RoleClaims", FshAction.Update, FshResource.RoleClaims),
+        new("View Users", FshActions.View, FshResources.Users),
+        new("Search Users", FshActions.Search, FshResources.Users),
+        new("Create Users", FshActions.Create, FshResources.Users),
+        new("Update Users", FshActions.Update, FshResources.Users),
+        new("Delete Users", FshActions.Delete, FshResources.Users),
+        new("Export Users", FshActions.Export, FshResources.Users),
+        new("View UserRoles", FshActions.View, FshResources.UserRoles),
+        new("Update UserRoles", FshActions.Update, FshResources.UserRoles),
+        new("View Roles", FshActions.View, FshResources.Roles),
+        new("Create Roles", FshActions.Create, FshResources.Roles),
+        new("Update Roles", FshActions.Update, FshResources.Roles),
+        new("Delete Roles", FshActions.Delete, FshResources.Roles),
+        new("View RoleClaims", FshActions.View, FshResources.RoleClaims),
+        new("Update RoleClaims", FshActions.Update, FshResources.RoleClaims),
         
         //products
-        new("View Products", FshAction.View, FshResource.Products, IsBasic: true),
-        new("Search Products", FshAction.Search, FshResource.Products, IsBasic: true),
-        new("Create Products", FshAction.Create, FshResource.Products),
-        new("Update Products", FshAction.Update, FshResource.Products),
-        new("Delete Products", FshAction.Delete, FshResource.Products),
-        new("Export Products", FshAction.Export, FshResource.Products),
+        new("View Products", FshActions.View, FshResources.Products, IsBasic: true),
+        new("Search Products", FshActions.Search, FshResources.Products, IsBasic: true),
+        new("Create Products", FshActions.Create, FshResources.Products),
+        new("Update Products", FshActions.Update, FshResources.Products),
+        new("Delete Products", FshActions.Delete, FshResources.Products),
+        new("Export Products", FshActions.Export, FshResources.Products),
 
         //todos
-        new("View Todos", FshAction.View, FshResource.Todos, IsBasic: true),
-        new("Search Todos", FshAction.Search, FshResource.Todos, IsBasic: true),
-        new("Create Todos", FshAction.Create, FshResource.Todos),
-        new("Update Todos", FshAction.Update, FshResource.Todos),
-        new("Delete Todos", FshAction.Delete, FshResource.Todos),
-        new("Export Todos", FshAction.Export, FshResource.Todos),
+        new("View Todos", FshActions.View, FshResources.Todos, IsBasic: true),
+        new("Search Todos", FshActions.Search, FshResources.Todos, IsBasic: true),
+        new("Create Todos", FshActions.Create, FshResources.Todos),
+        new("Update Todos", FshActions.Update, FshResources.Todos),
+        new("Delete Todos", FshActions.Delete, FshResources.Todos),
+        new("Export Todos", FshActions.Export, FshResources.Todos),
 
-         new("View Hangfire", FshAction.View, FshResource.Hangfire),
-         new("View Dashboard", FshAction.View, FshResource.Dashboard),
+         new("View Hangfire", FshActions.View, FshResources.Hangfire),
+         new("View Dashboard", FshActions.View, FshResources.Dashboard),
 
         //audit
-        new("View Audit Trails", FshAction.View, FshResource.AuditTrails),
+        new("View Audit Trails", FshActions.View, FshResources.AuditTrails),
    };
 
     public static IReadOnlyList<FshPermission> All { get; } = new ReadOnlyCollection<FshPermission>(allPermissions);

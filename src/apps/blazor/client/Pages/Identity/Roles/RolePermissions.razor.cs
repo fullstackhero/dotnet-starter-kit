@@ -38,8 +38,8 @@ public partial class RolePermissions
     {
         var state = await AuthState;
 
-        _canEditRoleClaims = await AuthService.HasPermissionAsync(state.User, FshAction.Update, FshResource.RoleClaims);
-        _canSearchRoleClaims = await AuthService.HasPermissionAsync(state.User, FshAction.View, FshResource.RoleClaims);
+        _canEditRoleClaims = await AuthService.HasPermissionAsync(state.User, FshActions.Update, FshResources.RoleClaims);
+        _canSearchRoleClaims = await AuthService.HasPermissionAsync(state.User, FshActions.View, FshResources.RoleClaims);
 
         if (await ApiHelper.ExecuteCallGuardedAsync(
                 () => RolesClient.GetRolePermissionsEndpointAsync(Id), Toast, Navigation)

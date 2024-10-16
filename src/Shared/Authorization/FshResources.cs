@@ -1,5 +1,5 @@
 ﻿namespace FSH.Starter.Shared.Authorization;
-public static class FshResource
+public static class FshResources
 {
     public const string Tenants = nameof(Tenants);
     public const string Dashboard = nameof(Dashboard);

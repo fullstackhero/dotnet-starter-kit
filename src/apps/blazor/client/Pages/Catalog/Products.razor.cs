@@ -19,7 +19,7 @@ public partial class Products
         Context = new(
             entityName: "Product",
             entityNamePlural: "Products",
-            entityResource: FshResource.Products,
+            entityResource: FshResources.Products,
             fields: new()
             {
                 new(prod => prod.Id,"Id", "Id"),
