@@ -1,4 +1,4 @@
-﻿using FSH.Starter.Blazor.Shared;
+﻿using FSH.Starter.Shared.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 
