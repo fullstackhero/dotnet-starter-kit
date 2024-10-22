@@ -1,6 +1,6 @@
 ﻿using FSH.Framework.Core.Caching;
 using FSH.Framework.Core.Exceptions;
-using FSH.Starter.WebApi.Shared.Authorization;
+using FSH.Starter.Shared.Authorization;
 using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Framework.Infrastructure.Identity.Users.Services;

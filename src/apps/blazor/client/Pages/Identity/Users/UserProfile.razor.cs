@@ -1,7 +1,7 @@
 ﻿using FSH.Starter.Blazor.Client.Components;
 using FSH.Starter.Blazor.Infrastructure.Api;
 using FSH.Starter.Blazor.Infrastructure.Auth;
-using FSH.Starter.Blazor.Shared;
+using FSH.Starter.Shared.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -67,7 +67,7 @@ public partial class UserProfile
         }
 
         var state = await AuthState;
-        _canToggleUserStatus = await AuthService.HasPermissionAsync(state.User, FshAction.Update, FshResource.Users);
+        _canToggleUserStatus = await AuthService.HasPermissionAsync(state.User, FshActions.Update, FshResources.Users);
         _loaded = true;
     }
 }

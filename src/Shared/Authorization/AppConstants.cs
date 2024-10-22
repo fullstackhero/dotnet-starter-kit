@@ -1,6 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 
-namespace FSH.Starter.Blazor.Shared;
+namespace FSH.Starter.Shared.Authorization;
 public static class AppConstants
 {
     public static readonly Collection<string> SupportedImageFormats = new()

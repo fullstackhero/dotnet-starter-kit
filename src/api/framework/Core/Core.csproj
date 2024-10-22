@@ -13,4 +13,7 @@
   <ItemGroup>
     <Folder Include="Identity\Users\Features\GetRoles\" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Shared\Shared.csproj" />
+  </ItemGroup>
 </Project>
