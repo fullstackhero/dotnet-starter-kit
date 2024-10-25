@@ -1,4 +1,4 @@
-name: WebAPI
+name: webapi
 
 on:
   workflow_dispatch:

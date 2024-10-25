@@ -6,6 +6,7 @@ using FSH.Framework.Infrastructure.Identity.Users;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using IdentityConstants = FSH.Starter.Shared.Authorization.IdentityConstants;
 
 namespace FSH.Framework.Infrastructure.Identity.Persistence;
 

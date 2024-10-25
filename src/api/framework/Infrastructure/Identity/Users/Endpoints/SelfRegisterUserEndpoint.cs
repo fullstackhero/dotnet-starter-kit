@@ -1,7 +1,7 @@
 ﻿using FSH.Framework.Core.Identity.Users.Abstractions;
 using FSH.Framework.Core.Identity.Users.Features.RegisterUser;
-using FSH.Framework.Core.Tenant;
 using FSH.Framework.Infrastructure.Auth.Policy;
+using FSH.Starter.Shared.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
