@@ -55,7 +55,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceDefaults", "aspire\s
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Host", "aspire\host\Host.csproj", "{2119CE89-308D-4932-BFCE-8CDC0A05EB9E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Shared\Shared.csproj", "{49AA63BF-3DBA-4490-9470-5AE0EB7F49F0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared", "Shared\Shared.csproj", "{49AA63BF-3DBA-4490-9470-5AE0EB7F49F0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AcademicYear", "AcademicYear", "{6FF95A67-DD86-4771-B652-16D1C7C70BE0}"
+	ProjectSection(SolutionItems) = preProject
+		AcademicYear.cs = AcademicYear.cs
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -271,6 +276,7 @@ Global
 		{34359707-CE66-4DF0-9EF4-D7544B615564} = {2B1F75CE-07A6-4C19-A2E3-F9E062CFDDFB}
 		{990CA37A-86D3-4FE6-B777-3CF0DDAC6BF6} = {D36E77BC-4568-4BC8-9506-1EFB7B1CD335}
 		{2119CE89-308D-4932-BFCE-8CDC0A05EB9E} = {D36E77BC-4568-4BC8-9506-1EFB7B1CD335}
+		{6FF95A67-DD86-4771-B652-16D1C7C70BE0} = {F3DF5AC5-8CDC-46D4-969D-1245A6880215}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EA8248C2-3877-4AF7-8777-A17E7881E030}
