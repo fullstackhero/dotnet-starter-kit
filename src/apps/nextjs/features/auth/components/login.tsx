@@ -9,10 +9,12 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
 import { loginAction } from "../server/login";
+
 
 // Zod schema for validation
 const loginSchema = z.object({
@@ -23,8 +25,8 @@ const loginSchema = z.object({
 export function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const { toast } = useToast()
 
   const clientAction = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,18 +34,28 @@ export function Login() {
     // Validate form data
     const result = loginSchema.safeParse({ email, password });
     if (!result.success) {
-      setError(result.error.errors[0].message);
+      toast({
+        title: "Login Failed!",
+        description: result.error.errors[0].message,
+        variant: "destructive"
+      })
       return;
     }
 
-    // Clear error and attempt login
-    setError(null);
-
     const response = await loginAction({ email, password });
     if (response?.success) {
-      router.push("/dashboard");
+      router.push("/");
+      toast({
+        title: "Welcome Back!",
+        description: "You are logged in successfully.",
+        duration: 5000
+      })
     } else {
-      setError("Login failed. Please check your credentials.");
+      toast({
+        title: "Login Failed!",
+        description: "Please check your credentials.",
+        variant: "destructive"
+      })
     }
   };
   return (
@@ -78,11 +90,6 @@ export function Login() {
               onChange={(e) => setPassword(e.target.value)}
               required />
           </div>
-          {error &&
-            <CardDescription className="text-center">
-              {error}
-            </CardDescription>
-          }
           <Button type="submit" className="w-full">
             Login
           </Button>
