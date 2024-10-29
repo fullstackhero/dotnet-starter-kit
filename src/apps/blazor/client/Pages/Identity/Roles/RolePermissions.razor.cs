@@ -1,7 +1,7 @@
 ﻿using FSH.Starter.Blazor.Client.Components;
 using FSH.Starter.Blazor.Infrastructure.Api;
 using FSH.Starter.Blazor.Infrastructure.Auth;
-using FSH.Starter.Blazor.Shared;
+using FSH.Starter.Shared.Authorization;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
@@ -38,8 +38,8 @@ public partial class RolePermissions
     {
         var state = await AuthState;
 
-        _canEditRoleClaims = await AuthService.HasPermissionAsync(state.User, FshAction.Update, FshResource.RoleClaims);
-        _canSearchRoleClaims = await AuthService.HasPermissionAsync(state.User, FshAction.View, FshResource.RoleClaims);
+        _canEditRoleClaims = await AuthService.HasPermissionAsync(state.User, FshActions.Update, FshResources.RoleClaims);
+        _canSearchRoleClaims = await AuthService.HasPermissionAsync(state.User, FshActions.View, FshResources.RoleClaims);
 
         if (await ApiHelper.ExecuteCallGuardedAsync(
                 () => RolesClient.GetRolePermissionsEndpointAsync(Id), Toast, Navigation)

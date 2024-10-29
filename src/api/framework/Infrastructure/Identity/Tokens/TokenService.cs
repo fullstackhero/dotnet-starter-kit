@@ -13,6 +13,7 @@ using FSH.Framework.Infrastructure.Auth.Jwt;
 using FSH.Framework.Infrastructure.Identity.Audit;
 using FSH.Framework.Infrastructure.Identity.Users;
 using FSH.Framework.Infrastructure.Tenant;
+using FSH.Starter.Shared.Authorization;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
@@ -49,7 +50,7 @@ public sealed class TokenService : ITokenService
             throw new UnauthorizedException("user is deactivated");
         }
 
-        if (currentTenant.Id != IdentityConstants.RootTenant)
+        if (currentTenant.Id != TenantConstants.Root.Id)
         {
             if (!currentTenant.IsActive)
             {
@@ -132,15 +133,15 @@ public sealed class TokenService : ITokenService
     private List<Claim> GetClaims(FshUser user, string ipAddress) =>
         new List<Claim>
         {
-            new(ClaimTypes.NameIdentifier, user.Id),
-            new(ClaimTypes.Email, user.Email!),
-            new(IdentityConstants.Claims.Fullname, $"{user.FirstName} {user.LastName}"),
-            new(ClaimTypes.Name, user.FirstName ?? string.Empty),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new(JwtRegisteredClaimNames.Sub, user.Id),
+            new(JwtRegisteredClaimNames.Email, user.Email!),
+            new(JwtRegisteredClaimNames.Name, user.FirstName ?? string.Empty),
+            new(FshClaims.Fullname, $"{user.FirstName} {user.LastName}"),
             new(ClaimTypes.Surname, user.LastName ?? string.Empty),
-            new(IdentityConstants.Claims.IpAddress, ipAddress),
-            new(IdentityConstants.Claims.Tenant, _multiTenantContextAccessor!.MultiTenantContext.TenantInfo!.Id),
-            new(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty),
-            new(IdentityConstants.Claims.ImageUrl, user.ImageUrl == null ? string.Empty : user.ImageUrl.ToString())
+            new(FshClaims.IpAddress, ipAddress),
+            new(FshClaims.Tenant, _multiTenantContextAccessor!.MultiTenantContext.TenantInfo!.Id),
+            new(FshClaims.ImageUrl, user.ImageUrl == null ? string.Empty : user.ImageUrl.ToString())
         };
     private static string GenerateRefreshToken()
     {

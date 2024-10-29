@@ -1,6 +1,6 @@
 ﻿using FSH.Framework.Core.Identity.Tokens;
 using FSH.Framework.Core.Identity.Tokens.Features.Refresh;
-using FSH.Framework.Core.Tenant;
+using FSH.Starter.Shared.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

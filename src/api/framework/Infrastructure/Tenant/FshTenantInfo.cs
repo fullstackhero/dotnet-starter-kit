@@ -1,7 +1,7 @@
 ﻿using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Exceptions;
-using FSH.Framework.Core.Tenant;
 using FSH.Framework.Infrastructure.Tenant.Abstractions;
+using FSH.Starter.Shared.Authorization;
 
 namespace FSH.Framework.Infrastructure.Tenant;
 public sealed class FshTenantInfo : IFshTenantInfo

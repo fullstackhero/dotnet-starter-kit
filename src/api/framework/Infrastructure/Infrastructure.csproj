@@ -76,7 +76,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\aspire\service-defaults\ServiceDefaults.csproj" />
-    <ProjectReference Include="..\..\modules\Shared\Shared.csproj" />
     <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
   

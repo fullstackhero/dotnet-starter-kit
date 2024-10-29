@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using IdentityConstants = FSH.Starter.Shared.Authorization.IdentityConstants;
 
 namespace FSH.Framework.Infrastructure.Identity;
 internal static class Extensions

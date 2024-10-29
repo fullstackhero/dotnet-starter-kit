@@ -1,14 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-using FSH.Framework.Core.Identity.Users.Abstractions;
-using FSH.Framework.Infrastructure.Auth.Policy;
-using FSH.Framework.Infrastructure.Identity.Users.Endpoints;
+﻿using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
