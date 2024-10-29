@@ -2,13 +2,12 @@
 using Finbuckle.MultiTenant.Abstractions;
 using Finbuckle.MultiTenant.Stores.DistributedCacheStore;
 using FSH.Framework.Core.Persistence;
-using FSH.Framework.Core.Tenant;
 using FSH.Framework.Core.Tenant.Abstractions;
 using FSH.Framework.Infrastructure.Persistence;
 using FSH.Framework.Infrastructure.Persistence.Services;
 using FSH.Framework.Infrastructure.Tenant.Persistence;
 using FSH.Framework.Infrastructure.Tenant.Services;
-using FSH.Starter.WebApi.Shared.Authorization;
+using FSH.Starter.Shared.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;

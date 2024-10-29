@@ -1,7 +1,7 @@
 ﻿using FSH.Starter.Blazor.Client.Components.EntityTable;
 using FSH.Starter.Blazor.Infrastructure.Api;
 using FSH.Starter.Blazor.Infrastructure.Auth;
-using FSH.Starter.Blazor.Shared;
+using FSH.Starter.Shared.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -36,15 +36,15 @@ public partial class Users
     protected override async Task OnInitializedAsync()
     {
         var user = (await AuthState).User;
-        _canExportUsers = await AuthService.HasPermissionAsync(user, FshAction.Export, FshResource.Users);
-        _canViewRoles = await AuthService.HasPermissionAsync(user, FshAction.View, FshResource.UserRoles);
-        _canViewAuditTrails = await AuthService.HasPermissionAsync(user, FshAction.View, FshResource.AuditTrails);
+        _canExportUsers = await AuthService.HasPermissionAsync(user, FshActions.Export, FshResources.Users);
+        _canViewRoles = await AuthService.HasPermissionAsync(user, FshActions.View, FshResources.UserRoles);
+        _canViewAuditTrails = await AuthService.HasPermissionAsync(user, FshActions.View, FshResources.AuditTrails);
 
         Context = new(
             entityName: "User",
             entityNamePlural: "Users",
-            entityResource: FshResource.Users,
-            searchAction: FshAction.View,
+            entityResource: FshResources.Users,
+            searchAction: FshActions.View,
             updateAction: string.Empty,
             deleteAction: string.Empty,
             fields: new()

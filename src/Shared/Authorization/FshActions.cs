@@ -1,4 +1,4 @@
-﻿namespace FSH.Starter.Blazor.Shared;
+﻿namespace FSH.Starter.Shared.Authorization;
 public static class FshActions
 {
     public const string View = nameof(View);

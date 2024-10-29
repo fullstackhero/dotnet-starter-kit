@@ -3,7 +3,7 @@ using System.Text.Json;
 using Blazored.LocalStorage;
 using FSH.Starter.Blazor.Infrastructure.Api;
 using FSH.Starter.Blazor.Infrastructure.Storage;
-using FSH.Starter.Blazor.Shared;
+using FSH.Starter.Shared.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;

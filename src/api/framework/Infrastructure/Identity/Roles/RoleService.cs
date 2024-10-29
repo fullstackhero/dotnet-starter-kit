@@ -4,11 +4,10 @@ using FSH.Framework.Core.Identity.Roles;
 using FSH.Framework.Core.Identity.Roles.Features.CreateOrUpdateRole;
 using FSH.Framework.Core.Identity.Roles.Features.UpdatePermissions;
 using FSH.Framework.Core.Identity.Users.Abstractions;
-using FSH.Framework.Core.Tenant;
 using FSH.Framework.Infrastructure.Identity.Persistence;
 using FSH.Framework.Infrastructure.Identity.RoleClaims;
 using FSH.Framework.Infrastructure.Tenant;
-using FSH.Starter.WebApi.Shared.Authorization;
+using FSH.Starter.Shared.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 

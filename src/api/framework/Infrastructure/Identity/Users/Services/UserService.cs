@@ -14,12 +14,11 @@ using FSH.Framework.Core.Jobs;
 using FSH.Framework.Core.Mail;
 using FSH.Framework.Core.Storage;
 using FSH.Framework.Core.Storage.File;
-using FSH.Framework.Core.Tenant;
 using FSH.Framework.Infrastructure.Constants;
 using FSH.Framework.Infrastructure.Identity.Persistence;
 using FSH.Framework.Infrastructure.Identity.Roles;
 using FSH.Framework.Infrastructure.Tenant;
-using FSH.Starter.WebApi.Shared.Authorization;
+using FSH.Starter.Shared.Authorization;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
@@ -124,7 +123,7 @@ internal sealed partial class UserService(
         }
 
         // add basic role
-        await userManager.AddToRoleAsync(user, IdentityConstants.Roles.Basic);
+        await userManager.AddToRoleAsync(user, FshRoles.Basic);
 
         // send confirmation mail
         if (!string.IsNullOrEmpty(user.Email))
@@ -146,7 +145,7 @@ internal sealed partial class UserService(
 
         _ = user ?? throw new NotFoundException("User Not Found.");
 
-        bool isAdmin = await userManager.IsInRoleAsync(user, IdentityConstants.Roles.Admin);
+        bool isAdmin = await userManager.IsInRoleAsync(user, FshRoles.Admin);
         if (isAdmin)
         {
             throw new FshException("Administrators Profile's Status cannot be toggled");

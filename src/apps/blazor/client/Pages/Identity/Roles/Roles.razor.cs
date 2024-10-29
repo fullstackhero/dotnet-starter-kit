@@ -1,7 +1,7 @@
 ﻿using FSH.Starter.Blazor.Client.Components.EntityTable;
 using FSH.Starter.Blazor.Infrastructure.Api;
 using FSH.Starter.Blazor.Infrastructure.Auth;
-using FSH.Starter.Blazor.Shared;
+using FSH.Starter.Shared.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -24,13 +24,13 @@ public partial class Roles
     protected override async Task OnInitializedAsync()
     {
         var state = await AuthState;
-        _canViewRoleClaims = await AuthService.HasPermissionAsync(state.User, FshAction.View, FshResource.RoleClaims);
+        _canViewRoleClaims = await AuthService.HasPermissionAsync(state.User, FshActions.View, FshResources.RoleClaims);
 
         Context = new(
             entityName: "Role",
             entityNamePlural: "Roles",
-            entityResource: FshResource.Roles,
-            searchAction: FshAction.View,
+            entityResource: FshResources.Roles,
+            searchAction: FshActions.View,
             fields: new()
             {
                 new(role => role.Id, "Id"),

@@ -1,4 +1,4 @@
-name: Blazor
+name: blazor
 permissions:
   packages: write
   contents: read
@@ -7,6 +7,7 @@ env:
   IMAGE_TAG: 2.0.0
   CHART_LOCATION: src/apps/blazor/client/kubernetes/helm
   GCR_REPO: ghcr.io/${{ github.repository_owner }}/dotnetstarterkit
+  
 on:
   workflow_dispatch:
 
@@ -16,6 +17,7 @@ on:
     paths:
       - "src/apps/blazor/**"
       - "src/Directory.Packages.props"
+      - "src/Dockerfile.Blazor"
 
   pull_request:
     branches:
@@ -23,6 +25,7 @@ on:
     paths:
       - "src/apps/blazor/**"
       - "src/Directory.Packages.props"
+      - "src/Dockerfile.Blazor"
 
 jobs:
   build:
@@ -54,9 +57,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: build and publish to github container registry
-        working-directory: ./src/apps/blazor/
+        working-directory: ./src/
         run: |
-          docker build -t ghcr.io/${{ github.repository_owner }}/blazor:latest -f Dockerfile .
+          docker build -t ghcr.io/${{ github.repository_owner }}/blazor:latest -f Dockerfile.Blazor .
           docker push ghcr.io/${{ github.repository_owner }}/blazor:latest
 
   publish-helm:
