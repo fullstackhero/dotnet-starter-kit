@@ -67,7 +67,7 @@ public static class Extensions
                 var swaggerEndpoints = app.DescribeApiVersions()
                     .Select(desc => new
                     {
-                        Url = $"/swagger/{desc.GroupName}/swagger.json",
+                        Url = $"../swagger/{desc.GroupName}/swagger.json",
                         Name = desc.GroupName.ToUpperInvariant()
                     });
 
