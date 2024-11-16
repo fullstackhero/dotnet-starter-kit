@@ -26,6 +26,14 @@
         <MudItem xs="12" md="6">
             <MudTextField Label="Price" For="@(() => context.Price)" @bind-Value="context.Price" />
         </MudItem>
+        <MudItem xs="12" md="6">
+            <MudSelect T="Guid?" Label="Brand" @bind-Value="context.BrandId">
+                @foreach (var brand in _brands)
+                {
+                    <MudSelectItem T="Guid?" Value="brand.Id">@brand.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
         <MudItem xs="12" md="12">
             <MudItem>
                 <div>

@@ -15,7 +15,10 @@ public partial class Products
 
     private EntityTable<ProductResponse, Guid, ProductViewModel> _table = default!;
 
-    protected override void OnInitialized() =>
+    private List<BrandResponse> _brands = new();
+
+    protected override async Task OnInitializedAsync()
+    {
         Context = new(
             entityName: "Product",
             entityNamePlural: "Products",
@@ -25,7 +28,8 @@ public partial class Products
                 new(prod => prod.Id,"Id", "Id"),
                 new(prod => prod.Name,"Name", "Name"),
                 new(prod => prod.Description, "Description", "Description"),
-                new(prod => prod.Price, "Price", "Price")
+                new(prod => prod.Price, "Price", "Price"),
+                new(prod => prod.Brand?.Name, "Brand", "Brand")
             },
             enableAdvancedSearch: true,
             idFunc: prod => prod.Id!.Value,
@@ -46,6 +50,21 @@ public partial class Products
                 await _client.UpdateProductEndpointAsync("1", id, prod.Adapt<UpdateProductCommand>());
             },
             deleteFunc: async id => await _client.DeleteProductEndpointAsync("1", id));
+
+        await LoadBrandsAsync();
+    }
+
+    private async Task LoadBrandsAsync()
+    {
+        if (_brands.Count == 0)
+        {
+            var response = await _client.SearchBrandsEndpointAsync("1", new SearchBrandsCommand());
+            if (response?.Items != null)
+            {
+                _brands = response.Items.ToList();
+            }
+        }
+    }
 
     // Advanced Search
 
