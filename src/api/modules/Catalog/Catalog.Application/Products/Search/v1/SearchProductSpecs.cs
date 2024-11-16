@@ -12,6 +12,7 @@ public class SearchProductSpecs : EntitiesByPaginationFilterSpec<Product, Produc
         Query
             .Include(p => p.Brand)
             .OrderBy(c => c.Name, !command.HasOrderBy())
+            .Where(p => p.BrandId == command.BrandId!.Value, command.BrandId.HasValue)
             .Where(p => p.Price >= command.MinimumRate!.Value, command.MinimumRate.HasValue)
             .Where(p => p.Price <= command.MaximumRate!.Value, command.MaximumRate.HasValue);
 }
