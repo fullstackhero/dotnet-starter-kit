@@ -38,6 +38,7 @@ public partial class Products
                 var productFilter = filter.Adapt<SearchProductsCommand>();
                 productFilter.MinimumRate = Convert.ToDouble(SearchMinimumRate);
                 productFilter.MaximumRate = Convert.ToDouble(SearchMaximumRate);
+                productFilter.BrandId = SearchBrandId;
                 var result = await _client.SearchProductsEndpointAsync("1", productFilter);
                 return result.Adapt<PaginationResponse<ProductResponse>>();
             },
@@ -68,8 +69,8 @@ public partial class Products
 
     // Advanced Search
 
-    private Guid _searchBrandId;
-    private Guid SearchBrandId
+    private Guid? _searchBrandId;
+    private Guid? SearchBrandId
     {
         get => _searchBrandId;
         set
