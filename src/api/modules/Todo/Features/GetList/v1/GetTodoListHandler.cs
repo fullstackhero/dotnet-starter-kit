@@ -15,11 +15,11 @@ public sealed class GetTodoListHandler(
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        var spec = new EntitiesByPaginationFilterSpec<TodoItem, TodoDto>(request.filter);
+        var spec = new EntitiesByPaginationFilterSpec<TodoItem, TodoDto>(request.Filter);
 
         var items = await repository.ListAsync(spec, cancellationToken).ConfigureAwait(false);
         var totalCount = await repository.CountAsync(spec, cancellationToken).ConfigureAwait(false);
 
-        return new PagedList<TodoDto>(items, request.filter.PageNumber, request.filter.PageSize, totalCount);
+        return new PagedList<TodoDto>(items, request.Filter.PageNumber, request.Filter.PageSize, totalCount);
     }
 }
