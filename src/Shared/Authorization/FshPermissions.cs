@@ -4,8 +4,8 @@ namespace FSH.Starter.Shared.Authorization;
 
 public static class FshPermissions
 {
-    private static readonly FshPermission[] allPermissions =
-   {     
+    private static readonly FshPermission[] AllPermissions =
+    [     
         //tenants
         new("View Tenants", FshActions.View, FshResources.Tenants, IsRoot: true),
         new("Create Tenants", FshActions.Create, FshResources.Tenants, IsRoot: true),
@@ -57,12 +57,12 @@ public static class FshPermissions
 
         //audit
         new("View Audit Trails", FshActions.View, FshResources.AuditTrails),
-   };
+    ];
 
-    public static IReadOnlyList<FshPermission> All { get; } = new ReadOnlyCollection<FshPermission>(allPermissions);
-    public static IReadOnlyList<FshPermission> Root { get; } = new ReadOnlyCollection<FshPermission>(allPermissions.Where(p => p.IsRoot).ToArray());
-    public static IReadOnlyList<FshPermission> Admin { get; } = new ReadOnlyCollection<FshPermission>(allPermissions.Where(p => !p.IsRoot).ToArray());
-    public static IReadOnlyList<FshPermission> Basic { get; } = new ReadOnlyCollection<FshPermission>(allPermissions.Where(p => p.IsBasic).ToArray());
+    public static IReadOnlyList<FshPermission> All { get; } = new ReadOnlyCollection<FshPermission>(AllPermissions);
+    public static IReadOnlyList<FshPermission> Root { get; } = new ReadOnlyCollection<FshPermission>(AllPermissions.Where(p => p.IsRoot).ToArray());
+    public static IReadOnlyList<FshPermission> Admin { get; } = new ReadOnlyCollection<FshPermission>(AllPermissions.Where(p => !p.IsRoot).ToArray());
+    public static IReadOnlyList<FshPermission> Basic { get; } = new ReadOnlyCollection<FshPermission>(AllPermissions.Where(p => p.IsBasic).ToArray());
 }
 
 public record FshPermission(string Description, string Action, string Resource, bool IsBasic = false, bool IsRoot = false)

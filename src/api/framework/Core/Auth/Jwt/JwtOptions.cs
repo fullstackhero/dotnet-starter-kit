@@ -13,7 +13,7 @@ public class JwtOptions : IValidatableObject
     {
         if (string.IsNullOrEmpty(Key))
         {
-            yield return new ValidationResult("No Key defined in JwtSettings config", new[] { nameof(Key) });
+            yield return new ValidationResult("No Key defined in JwtSettings config", [nameof(Key)]);
         }
     }
 }
