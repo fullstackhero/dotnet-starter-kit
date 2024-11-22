@@ -18,9 +18,10 @@ public sealed class GetProductHandler(
             $"product:{request.Id}",
             async () =>
             {
-                var productItem = await repository.GetByIdAsync(request.Id, cancellationToken);
+                var spec = new GetProductSpecs(request.Id);
+                var productItem = await repository.FirstOrDefaultAsync(spec, cancellationToken);
                 if (productItem == null) throw new ProductNotFoundException(request.Id);
-                return new ProductResponse(productItem.Id, productItem.Name, productItem.Description, productItem.Price);
+                return productItem;
             },
             cancellationToken: cancellationToken);
         return item!;
