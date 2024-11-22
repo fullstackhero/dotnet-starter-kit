@@ -16,7 +16,7 @@
     },
     "identity": "FullStackHero.NET.StarterKit",
     "name": "FullStackHero .NET Starter Kit",
-    "description": "The best way to start a full-stack .NET 8 Web App.",
+    "description": "The best way to start a full-stack .NET 9 Web App.",
     "shortName": "fsh",
     "sourceName": "FSH.Starter",
     "preferNameDirectory": true,
