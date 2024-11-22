@@ -199,7 +199,7 @@ namespace FSH.Starter.WebApi.Migrations.PostgreSQL.Identity
                 name: "RoleNameIndex",
                 schema: "identity",
                 table: "Roles",
-                columns: new[] { "NormalizedName", "TenantId" },
+                columns: ["NormalizedName", "TenantId"],
                 unique: true);
 
             migrationBuilder.CreateIndex(
