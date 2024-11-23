@@ -29,7 +29,8 @@ internal static class Extensions
                 // this was happening for every request earlier, leading to ineffeciency
                 config.Events.OnTenantResolveCompleted = async (context) =>
                 {
-                    if (context.MultiTenantContext.StoreInfo!.StoreType != typeof(DistributedCacheStore<FshTenantInfo>))
+                    if (context.MultiTenantContext.StoreInfo is null) return;
+                    if (context.MultiTenantContext.StoreInfo.StoreType != typeof(DistributedCacheStore<FshTenantInfo>))
                     {
                         var sp = ((HttpContext)context.Context!).RequestServices;
                         var distributedCacheStore = sp
