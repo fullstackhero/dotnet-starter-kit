@@ -1,4 +1,4 @@
-name: webapi
+name: Build / Publish .NET WebAPI Project
 
 on:
   workflow_dispatch:
