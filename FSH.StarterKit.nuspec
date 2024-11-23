@@ -3,7 +3,7 @@
   <metadata>
     <id>FullStackHero.NET.StarterKit</id>
     <title>FullStackHero .NET Starter Kit</title>
-    <version>2.0.3-rc</version>
+    <version>2.0.4-rc</version>
     <authors>Mukesh Murugan</authors>
     <description>The best way to start a full-stack Multi-tenant .NET 9 Web App.</description>
     <language>en-US</language>
