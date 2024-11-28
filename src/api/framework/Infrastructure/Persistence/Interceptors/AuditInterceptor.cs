@@ -38,11 +38,12 @@ public class AuditInterceptor(ICurrentUser currentUser, TimeProvider timeProvide
         var utcNow = timeProvider.GetUtcNow();
         foreach (var entry in eventData.Context.ChangeTracker.Entries<IAuditable>().Where(x => x.State is EntityState.Added or EntityState.Deleted or EntityState.Modified).ToList())
         {
+            var userId = currentUser.GetUserId();
             var trail = new TrailDto()
             {
                 Id = Guid.NewGuid(),
                 TableName = entry.Entity.GetType().Name,
-                UserId = currentUser.GetUserId(),
+                UserId = userId,
                 DateTime = utcNow
             };
 
@@ -72,19 +73,26 @@ public class AuditInterceptor(ICurrentUser currentUser, TimeProvider timeProvide
                         break;
 
                     case EntityState.Modified:
-                        if (property.IsModified && property.OriginalValue == null && property.CurrentValue != null)
+                        if (property.IsModified)
                         {
-                            trail.ModifiedProperties.Add(propertyName);
-                            trail.Type = TrailType.Delete;
-                            trail.OldValues[propertyName] = property.OriginalValue;
-                            trail.NewValues[propertyName] = property.CurrentValue;
-                        }
-                        else if (property.IsModified && property.OriginalValue?.Equals(property.CurrentValue) == false)
-                        {
-                            trail.ModifiedProperties.Add(propertyName);
-                            trail.Type = TrailType.Update;
-                            trail.OldValues[propertyName] = property.OriginalValue;
-                            trail.NewValues[propertyName] = property.CurrentValue;
+                            if (entry.Entity is ISoftDeletable && property.OriginalValue == null && property.CurrentValue != null)
+                            {
+                                trail.ModifiedProperties.Add(propertyName);
+                                trail.Type = TrailType.Delete;
+                                trail.OldValues[propertyName] = property.OriginalValue;
+                                trail.NewValues[propertyName] = property.CurrentValue;
+                            }
+                            else if (property.OriginalValue?.Equals(property.CurrentValue) == false)
+                            {
+                                trail.ModifiedProperties.Add(propertyName);
+                                trail.Type = TrailType.Update;
+                                trail.OldValues[propertyName] = property.OriginalValue;
+                                trail.NewValues[propertyName] = property.CurrentValue;
+                            }
+                            else
+                            {
+                                property.IsModified = false;
+                            }
                         }
                         break;
                 }
@@ -106,9 +114,9 @@ public class AuditInterceptor(ICurrentUser currentUser, TimeProvider timeProvide
         if (context == null) return;
         foreach (var entry in context.ChangeTracker.Entries<AuditableEntity>())
         {
+            var utcNow = timeProvider.GetUtcNow();
             if (entry.State is EntityState.Added or EntityState.Modified || entry.HasChangedOwnedEntities())
             {
-                var utcNow = timeProvider.GetUtcNow();
                 if (entry.State == EntityState.Added)
                 {
                     entry.Entity.CreatedBy = currentUser.GetUserId();
@@ -116,6 +124,12 @@ public class AuditInterceptor(ICurrentUser currentUser, TimeProvider timeProvide
                 }
                 entry.Entity.LastModifiedBy = currentUser.GetUserId();
                 entry.Entity.LastModified = utcNow;
+            }
+            if(entry.State is EntityState.Deleted && entry.Entity is ISoftDeletable softDelete)
+            {
+                softDelete.DeletedBy = currentUser.GetUserId();
+                softDelete.Deleted = utcNow;
+                entry.State = EntityState.Modified;
             }
         }
     }

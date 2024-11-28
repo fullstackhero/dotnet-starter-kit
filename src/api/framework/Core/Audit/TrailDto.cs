@@ -7,14 +7,14 @@ public class TrailDto()
     public Guid Id { get; set; }
     public DateTimeOffset DateTime { get; set; }
     public Guid UserId { get; set; }
-    public Dictionary<string, object?> KeyValues { get; } = new();
-    public Dictionary<string, object?> OldValues { get; } = new();
-    public Dictionary<string, object?> NewValues { get; } = new();
-    public Collection<string> ModifiedProperties { get; } = new();
+    public Dictionary<string, object?> KeyValues { get; } = [];
+    public Dictionary<string, object?> OldValues { get; } = [];
+    public Dictionary<string, object?> NewValues { get; } = [];
+    public Collection<string> ModifiedProperties { get; } = [];
     public TrailType Type { get; set; }
     public string? TableName { get; set; }
 
-    private static readonly JsonSerializerOptions serializerOptions = new()
+    private static readonly JsonSerializerOptions SerializerOptions = new()
     {
         WriteIndented = false,
     };
@@ -28,10 +28,10 @@ public class TrailDto()
             Operation = Type.ToString(),
             Entity = TableName,
             DateTime = DateTime,
-            PrimaryKey = JsonSerializer.Serialize(KeyValues, serializerOptions),
-            PreviousValues = OldValues.Count == 0 ? null : JsonSerializer.Serialize(OldValues, serializerOptions),
-            NewValues = NewValues.Count == 0 ? null : JsonSerializer.Serialize(NewValues, serializerOptions),
-            ModifiedProperties = ModifiedProperties.Count == 0 ? null : JsonSerializer.Serialize(ModifiedProperties, serializerOptions)
+            PrimaryKey = JsonSerializer.Serialize(KeyValues, SerializerOptions),
+            PreviousValues = OldValues.Count == 0 ? null : JsonSerializer.Serialize(OldValues, SerializerOptions),
+            NewValues = NewValues.Count == 0 ? null : JsonSerializer.Serialize(NewValues, SerializerOptions),
+            ModifiedProperties = ModifiedProperties.Count == 0 ? null : JsonSerializer.Serialize(ModifiedProperties, SerializerOptions)
         };
     }
 }

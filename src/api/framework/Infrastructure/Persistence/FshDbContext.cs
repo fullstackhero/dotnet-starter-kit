@@ -17,6 +17,12 @@ public class FshDbContext(IMultiTenantContextAccessor<FshTenantInfo> multiTenant
     private readonly IPublisher _publisher = publisher;
     private readonly DatabaseOptions _settings = settings.Value;
 
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        // QueryFilters need to be applied before base.OnModelCreating
+        modelBuilder.AppendGlobalQueryFilter<ISoftDeletable>(s => s.Deleted == null);
+        base.OnModelCreating(modelBuilder);
+    }
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.EnableSensitiveDataLogging();

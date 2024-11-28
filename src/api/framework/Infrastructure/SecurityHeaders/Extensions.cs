@@ -13,11 +13,11 @@ public static class Extensions
 
         return services;
     }
-    
+
     internal static IApplicationBuilder UseSecurityHeaders(this IApplicationBuilder app)
     {
         var options = app.ApplicationServices.GetRequiredService<IOptions<SecurityHeaderOptions>>().Value;
-        
+
         if (options.Enable)
         {
             app.Use(async (context, next) =>
@@ -48,22 +48,22 @@ public static class Extensions
                     {
                         context.Response.Headers.XXSSProtection = options.Headers.XXSSProtection;
                     }
-                
+
                     if (!string.IsNullOrWhiteSpace(options.Headers.ContentSecurityPolicy))
                     {
                         context.Response.Headers.ContentSecurityPolicy = options.Headers.ContentSecurityPolicy;
                     }
-                
+
                     if (!string.IsNullOrWhiteSpace(options.Headers.StrictTransportSecurity))
                     {
                         context.Response.Headers.StrictTransportSecurity = options.Headers.StrictTransportSecurity;
                     }
                 }
-            
+
                 await next.Invoke();
             });
         }
-        
+
         return app;
     }
 }

@@ -10,9 +10,10 @@ using Serilog;
 namespace FSH.Framework.Infrastructure.Persistence;
 public static class Extensions
 {
-    private static readonly ILogger _logger = Log.ForContext(typeof(Extensions));
+    private static readonly ILogger Logger = Log.ForContext(typeof(Extensions));
     internal static DbContextOptionsBuilder ConfigureDatabase(this DbContextOptionsBuilder builder, string dbProvider, string connectionString)
     {
+        builder.ConfigureWarnings(warnings => warnings.Log(RelationalEventId.PendingModelChangesWarning));
         return dbProvider.ToUpperInvariant() switch
         {
             DbProviders.PostgreSQL => builder.UseNpgsql(connectionString, e =>
@@ -31,9 +32,9 @@ public static class Extensions
             .ValidateDataAnnotations()
             .PostConfigure(config =>
             {
-                _logger.Information("current db provider: {DatabaseProvider}", config.Provider);
-                _logger.Information("for documentations and guides, visit https://www.fullstackhero.net");
-                _logger.Information("to sponsor this project, visit https://opencollective.com/fullstackhero");
+                Logger.Information("current db provider: {DatabaseProvider}", config.Provider);
+                Logger.Information("for documentations and guides, visit https://www.fullstackhero.net");
+                Logger.Information("to sponsor this project, visit https://opencollective.com/fullstackhero");
             });
         builder.Services.AddScoped<ISaveChangesInterceptor, AuditInterceptor>();
         return builder;
