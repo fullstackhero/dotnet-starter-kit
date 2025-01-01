@@ -89,6 +89,7 @@ dotnet ef migrations add "Add Catalog Schema" --project .././migrations/postgres
 - NuGet Generation Pipeline
 - Source Code Generation
 - Searching / Sorting
+- Add other stuff here...
 
 # ⚖️ LICENSE
 
