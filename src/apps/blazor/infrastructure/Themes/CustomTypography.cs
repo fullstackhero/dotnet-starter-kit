@@ -8,7 +8,7 @@ public static class CustomTypography
     {
         Default = new Default()
         {
-            FontFamily = new[] { "Montserrat", "Helvetica", "Arial", "sans-serif" },
+            FontFamily = ["Montserrat", "Helvetica", "Arial", "sans-serif"],
             FontSize = ".875rem",
             FontWeight = 400,
             LineHeight = 1.43,
@@ -16,7 +16,7 @@ public static class CustomTypography
         },
         H1 = new H1()
         {
-            FontFamily = new[] { "Montserrat", "Helvetica", "Arial", "sans-serif" },
+            FontFamily = ["Montserrat", "Helvetica", "Arial", "sans-serif"],
             FontSize = "3rem",
             FontWeight = 300,
             LineHeight = 1.167,
@@ -24,7 +24,7 @@ public static class CustomTypography
         },
         H2 = new H2()
         {
-            FontFamily = new[] { "Montserrat", "Helvetica", "Arial", "sans-serif" },
+            FontFamily = ["Montserrat", "Helvetica", "Arial", "sans-serif"],
             FontSize = "2.75rem",
             FontWeight = 300,
             LineHeight = 1.2,
@@ -32,7 +32,7 @@ public static class CustomTypography
         },
         H3 = new H3()
         {
-            FontFamily = new[] { "Montserrat", "Helvetica", "Arial", "sans-serif" },
+            FontFamily = ["Montserrat", "Helvetica", "Arial", "sans-serif"],
             FontSize = "2rem",
             FontWeight = 400,
             LineHeight = 1.167,
@@ -40,7 +40,7 @@ public static class CustomTypography
         },
         H4 = new H4()
         {
-            FontFamily = new[] { "Montserrat", "Helvetica", "Arial", "sans-serif" },
+            FontFamily = ["Montserrat", "Helvetica", "Arial", "sans-serif"],
             FontSize = "1.75rem",
             FontWeight = 400,
             LineHeight = 1.235,
@@ -48,7 +48,7 @@ public static class CustomTypography
         },
         H5 = new H5()
         {
-            FontFamily = new[] { "Montserrat", "Helvetica", "Arial", "sans-serif" },
+            FontFamily = ["Montserrat", "Helvetica", "Arial", "sans-serif"],
             FontSize = "1.5rem",
             FontWeight = 400,
             LineHeight = 1.334,
@@ -56,7 +56,7 @@ public static class CustomTypography
         },
         H6 = new H6()
         {
-            FontFamily = new[] { "Montserrat", "Helvetica", "Arial", "sans-serif" },
+            FontFamily = ["Montserrat", "Helvetica", "Arial", "sans-serif"],
             FontSize = "1.25rem",
             FontWeight = 400,
             LineHeight = 1.6,
@@ -64,7 +64,7 @@ public static class CustomTypography
         },
         Button = new Button()
         {
-            FontFamily = new[] { "Montserrat", "Helvetica", "Arial", "sans-serif" },
+            FontFamily = ["Montserrat", "Helvetica", "Arial", "sans-serif"],
             FontSize = ".875rem",
             FontWeight = 400,
             LineHeight = 1.75,
@@ -72,7 +72,7 @@ public static class CustomTypography
         },
         Body1 = new Body1()
         {
-            FontFamily = new[] { "Montserrat", "Helvetica", "Arial", "sans-serif" },
+            FontFamily = ["Montserrat", "Helvetica", "Arial", "sans-serif"],
             FontSize = "1rem",
             FontWeight = 400,
             LineHeight = 1.5,
@@ -80,7 +80,7 @@ public static class CustomTypography
         },
         Body2 = new Body2()
         {
-            FontFamily = new[] { "Montserrat", "Helvetica", "Arial", "sans-serif" },
+            FontFamily = ["Montserrat", "Helvetica", "Arial", "sans-serif"],
             FontSize = ".875rem",
             FontWeight = 400,
             LineHeight = 1.43,
@@ -88,7 +88,7 @@ public static class CustomTypography
         },
         Caption = new Caption()
         {
-            FontFamily = new[] { "Montserrat", "Helvetica", "Arial", "sans-serif" },
+            FontFamily = ["Montserrat", "Helvetica", "Arial", "sans-serif"],
             FontSize = ".75rem",
             FontWeight = 200,
             LineHeight = 1.66,
@@ -96,7 +96,7 @@ public static class CustomTypography
         },
         Subtitle1 = new Subtitle1()
         {
-            FontFamily = new[] { "Montserrat", "Helvetica", "Arial", "sans-serif" },
+            FontFamily = ["Montserrat", "Helvetica", "Arial", "sans-serif"],
             FontSize = "1rem",
             FontWeight = 400,
             LineHeight = 1.57,
@@ -104,7 +104,7 @@ public static class CustomTypography
         },
         Subtitle2 = new Subtitle2()
         {
-            FontFamily = new[] { "Montserrat", "Helvetica", "Arial", "sans-serif" },
+            FontFamily = ["Montserrat", "Helvetica", "Arial", "sans-serif"],
             FontSize = ".875rem",
             FontWeight = 400,
             LineHeight = 1.57,

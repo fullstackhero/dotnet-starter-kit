@@ -1,4 +1,4 @@
-name: blazor
+name: Build / Publish Blazor WebAssembly Project
 
 on:
   workflow_dispatch:
@@ -27,7 +27,7 @@ jobs:
       - name: setup dotnet
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.108
+          dotnet-version: 9.x
       - name: restore dependencies
         run: dotnet restore ./src/apps/blazor/client/Client.csproj
       - name: build

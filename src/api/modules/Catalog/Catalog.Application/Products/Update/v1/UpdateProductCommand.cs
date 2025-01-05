@@ -5,4 +5,5 @@ public sealed record UpdateProductCommand(
     Guid Id,
     string? Name,
     decimal Price,
-    string? Description = null) : IRequest<UpdateProductResponse>;
+    string? Description = null,
+    Guid? BrandId = null) : IRequest<UpdateProductResponse>;

@@ -1,8 +1,8 @@
-# FullStackHero .NET 8 Starter Kit 🚀
+# FullStackHero .NET 9 Starter Kit 🚀
 
 > With ASP.NET Core Web API & Blazor Client
 
-FullStackHero .NET Starter Kit is a starting point for your next `.NET 8 Clean Architecture` Solution that incorporates the most essential packages and features your projects will ever need including out-of-the-box Multi-Tenancy support. This project can save well over 200+ hours of development time for your team.
+FullStackHero .NET Starter Kit is a starting point for your next `.NET 9 Clean Architecture` Solution that incorporates the most essential packages and features your projects will ever need including out-of-the-box Multi-Tenancy support. This project can save well over 200+ hours of development time for your team.
 
 ![FullStackHero .NET Starter Kit](./assets/fullstackhero-dotnet-starter-kit.png)
 
@@ -16,7 +16,7 @@ As the project is still in beta, the NuGet packages are not yet available. You c
 
 Prerequisites:
 
-- .NET 8 SDK installed.
+- .NET 9 SDK installed.
 - Visual Studio IDE.
 - Docker Desktop.
 - PostgreSQL instance running on your machine or docker container.
@@ -38,8 +38,8 @@ Please follow the below instructions.
 
 # ✨ Technologies
 
-- ASP.NET Core 8
-- Entity Framework Core 8
+- .NET 9
+- Entity Framework Core 9
 - Blazor
 - MediatR
 - PostgreSQL

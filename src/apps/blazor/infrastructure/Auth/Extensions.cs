@@ -1,11 +1,11 @@
 ﻿using FSH.Starter.Blazor.Infrastructure.Auth.Jwt;
+using FSH.Starter.Shared.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using FSH.Starter.Shared.Authorization;
 
 namespace FSH.Starter.Blazor.Infrastructure.Auth;
 public static class Extensions
@@ -26,9 +26,9 @@ public static class Extensions
 
     private static void RegisterPermissionClaims(AuthorizationOptions options)
     {
-        foreach (var permission in FshPermissions.All)
+        foreach (var permission in FshPermissions.All.Select(p => p.Name))
         {
-            options.AddPolicy(permission.Name, policy => policy.RequireClaim(FshClaims.Permission, permission.Name));
+            options.AddPolicy(permission, policy => policy.RequireClaim(FshClaims.Permission, permission));
         }
     }
 }
