@@ -20,16 +20,16 @@ public partial class Products
     protected override async Task OnInitializedAsync()
     {
         Context = new(
-            entityName: "Product",
-            entityNamePlural: "Products",
+            entityName: _localizer["Product"],
+            entityNamePlural: _localizer["Products"],
             entityResource: FshResources.Products,
             fields: new()
             {
-                new(prod => prod.Id,"Id", "Id"),
-                new(prod => prod.Name,"Name", "Name"),
-                new(prod => prod.Description, "Description", "Description"),
-                new(prod => prod.Price, "Price", "Price"),
-                new(prod => prod.Brand?.Name, "Brand", "Brand")
+                new(prod => prod.Id,_localizer["Id"], "Id"),
+                new(prod => prod.Name,_localizer["Name"], "Name"),
+                new(prod => prod.Description, _localizer["Description"], "Description"),
+                new(prod => prod.Price, _localizer["Price"], "Price"),
+                new(prod => prod.Brand?.Name, _localizer["Brand"], "Brand")
             },
             enableAdvancedSearch: true,
             idFunc: prod => prod.Id!.Value,
@@ -70,6 +70,7 @@ public partial class Products
     // Advanced Search
 
     private Guid? _searchBrandId;
+
     private Guid? SearchBrandId
     {
         get => _searchBrandId;
@@ -81,6 +82,7 @@ public partial class Products
     }
 
     private decimal _searchMinimumRate;
+
     private decimal SearchMinimumRate
     {
         get => _searchMinimumRate;
@@ -92,6 +94,7 @@ public partial class Products
     }
 
     private decimal _searchMaximumRate = 9999;
+
     private decimal SearchMaximumRate
     {
         get => _searchMaximumRate;

@@ -11,9 +11,11 @@ using MudBlazor;
 using MudBlazor.Services;
 
 namespace FSH.Starter.Blazor.Infrastructure;
+
 public static class Extensions
 {
     private const string ClientName = "FullStackHero.API";
+
     public static IServiceCollection AddClientServices(this IServiceCollection services, IConfiguration config)
     {
         services.AddMudServices(configuration =>
@@ -25,6 +27,10 @@ public static class Extensions
             configuration.SnackbarConfiguration.ShowCloseIcon = false;
         });
         services.AddBlazoredLocalStorage();
+        services.AddLocalization(options =>
+         {
+             options.ResourcesPath = "Resources";
+         });
         services.AddAuthentication(config);
         services.AddTransient<IApiClient, ApiClient>();
         services.AddHttpClient(ClientName, client =>

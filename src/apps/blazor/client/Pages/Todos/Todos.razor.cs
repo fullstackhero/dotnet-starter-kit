@@ -22,9 +22,9 @@ public partial class Todos
             entityResource: FshResources.Todos,
             fields: new()
             {
-                new(prod => prod.Id,"Id", "Id"),
-                new(prod => prod.Title,"Title", "Title"),
-                new(prod => prod.Note, "Note", "Note")
+                new(prod => prod.Id, _localizer["Id"], "Id"),
+                new(prod => prod.Title, _localizer["Title"], "Title" ),
+                new(prod => prod.Note, _localizer["Note"], "Note")
             },
             enableAdvancedSearch: false,
             idFunc: prod => prod.Id!.Value,

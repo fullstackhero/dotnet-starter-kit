@@ -1,16 +1,17 @@
-﻿<MudDialog>
+﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<DeleteConfirmation> _localizer
+<MudDialog>
     <TitleContent>
         <MudText Typo="Typo.h6">
             <MudIcon Icon="@Icons.Material.Filled.Delete" Class="mr-3 mb-n1" />
-            Delete Confirmation
+            @_localizer["Delete Confirmation"]
         </MudText>
     </TitleContent>
     <DialogContent>
         <MudText>@ContentText</MudText>
     </DialogContent>
     <DialogActions>
-        <MudButton DropShadow=false StartIcon="@Icons.Material.Filled.Cancel" OnClick="Cancel">Cancel</MudButton>
-            <MudButton DropShadow=false StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" Variant="Variant.Filled" OnClick="Submit">Confirm</MudButton>
+        <MudButton DropShadow=false StartIcon="@Icons.Material.Filled.Cancel" OnClick="Cancel">@_localizer["Cancel"]</MudButton>
+        <MudButton DropShadow=false StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" Variant="Variant.Filled" OnClick="Submit">@_localizer["Confirm"]</MudButton>
     </DialogActions>
 </MudDialog>
 

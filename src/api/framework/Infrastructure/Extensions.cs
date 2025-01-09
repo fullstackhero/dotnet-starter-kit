@@ -37,6 +37,10 @@ public static class Extensions
         builder.AddServiceDefaults();
         builder.ConfigureSerilog();
         builder.ConfigureDatabase();
+        builder.Services.AddLocalization(options =>
+        {
+            options.ResourcesPath = "Resources";
+        });
         builder.Services.ConfigureMultitenancy();
         builder.Services.ConfigureIdentity();
         builder.Services.AddCorsPolicy(builder.Configuration);

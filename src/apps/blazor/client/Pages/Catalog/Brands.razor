@@ -1,6 +1,7 @@
 ﻿@page "/catalog/brands"
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Brands> _localizer
 
-<PageHeader Title="Brands" Header="Brands" SubHeader="Manage your Brands." />
+<PageHeader Title="@_localizer["Brands"]" Header="@_localizer["Brands"]" SubHeader="@_localizer["Manage your Brands."]" />
 
 <EntityTable @ref="_table" TEntity="BrandResponse" TId="Guid" TRequest="BrandViewModel" Context="@Context">
 
@@ -12,16 +13,16 @@
         @if (!Context.AddEditModal.IsCreate)
         {
             <MudItem xs="12" md="6">
-                <MudTextField Value="context.Id" Underline=false ReadOnly Label="Brand Id" />
+                <MudTextField Label="@_localizer["Id"]" Value="context.Id" Underline=false ReadOnly />
             </MudItem>
         }
         <MudItem xs="12" md="6">
-            <MudTextField Label="Name" For="@(() => context.Name)" @bind-Value="context.Name" />
+            <MudTextField Label="@_localizer["Name"]" For="@(() => context.Name)" @bind-Value="context.Name" />
         </MudItem>
         <MudItem xs="12" md="6">
-            <MudTextField Label="Description" For="@(() => context.Description)" @bind-Value="context.Description" />
+            <MudTextField Label="@_localizer["Description"]" For="@(() => context.Description)" @bind-Value="context.Description" />
         </MudItem>
-        <MudItem xs="12" md="12">
+@*         <MudItem xs="12" md="12">
             <MudItem>
                 <div>
                     @if(!Context.AddEditModal.IsCreate)
@@ -38,7 +39,7 @@
                     }
                 </div>
             </MudItem>
-        </MudItem>
+        </MudItem> *@
     </EditFormContent>
 
 </EntityTable>

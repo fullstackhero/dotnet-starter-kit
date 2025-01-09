@@ -1,20 +1,21 @@
 ﻿@page "/todos"
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Todos> _localizer
 
-<PageHeader Title="Todos" Header="Todos" SubHeader="Manage your Todos." />
+<PageHeader Title="@_localizer["Title"]" Header="@_localizer["Header"]" SubHeader="@_localizer["SubHeader"]" />
 
 <EntityTable @ref="_table" TEntity="GetTodoResponse" TId="Guid" TRequest="TodoViewModel" Context="@Context">
     <EditFormContent>
         @if (!Context.AddEditModal.IsCreate)
         {
             <MudItem xs="12" md="6">
-                <MudTextField Value="context.Id" Underline=false ReadOnly Label="Product Id" />
+                <MudTextField Value="context.Id" Underline=false ReadOnly Label="@_localizer["Id"]"></MudTextField>
             </MudItem>
         }
         <MudItem xs="12" md="6">
-            <MudTextField Label="Name" For="@(() => context.Title)" @bind-Value="context.Title" />
+            <MudTextField Label="@_localizer["Name"]" For="@(() => context.Title)" @bind-Value="context.Title" />
         </MudItem>
         <MudItem xs="12" md="6">
-            <MudTextField Label="Note" For="@(() => context.Note)" @bind-Value="context.Note" />
+            <MudTextField Label="@_localizer["Note"]" For="@(() => context.Note)" @bind-Value="context.Note" />
         </MudItem>
         <MudItem xs="12" md="12">
             <MudItem>
@@ -23,12 +24,12 @@
                     {
                         <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" Target="_blank"
                             StartIcon="@Icons.Material.Filled.RemoveRedEye" Style="margin-left: 5px;" >
-                            View
+                            @_localizer["View"]
                         </MudButton>
 
                         <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Error" Size="Size.Small"
                                    StartIcon="@Icons.Material.Filled.Delete" Style="margin-left: 5px;">
-                            Delete
+                            @_localizer["Delete"]
                         </MudButton>
                     }
                 </div>

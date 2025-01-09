@@ -1,4 +1,5 @@
-﻿@typeparam TEntity
+﻿
+@typeparam TEntity
 @typeparam TId
 @typeparam TRequest
 
@@ -12,7 +13,6 @@
 
 <ErrorBoundary>
     <ChildContent>
-
         @if (_canSearch && (Context.AdvancedSearchEnabled || AdvancedSearchContent is not null))
         {
             <MudExpansionPanel @bind-bind-Expanded="_advancedSearchExpanded"
@@ -35,13 +35,11 @@
                        </div>
                    } *@
                 @AdvancedSearchContent
-
             </MudExpansionPanel>
         }
 
         <FshTable @ref="_table" Outlined ServerData="@ServerReloadFunc" Items="@_entityList" Filter="LocalSearch"
             Loading="@Loading" LoadingProgressColor="@Color.Secondary" ChildRowContent="@ChildRowContent">
-
             <ToolBarContent>
                 <div class="justify-center mud-text-align-center">
                     @if (_canCreate)
@@ -136,13 +134,10 @@
                     }
                 </MudTd>
             </RowTemplate>
-
             <PagerContent>
                 <TablePager />
             </PagerContent>
-
         </FshTable>
-
     </ChildContent>
     <ErrorContent>
         <FshCustomError />

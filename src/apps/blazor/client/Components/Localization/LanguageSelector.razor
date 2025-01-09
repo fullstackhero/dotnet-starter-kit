@@ -1,0 +1,42 @@
+﻿@using FSH.Starter.Shared.Constants
+@using FSH.Starter.Blazor.Infrastructure.Preferences;
+@inject Microsoft.Extensions.Localization.IStringLocalizer<LanguageSelector> L
+<MudTooltip Text="@CurrentLanguage">
+    <MudMenu Icon="@Icons.Material.Outlined.Translate" Color="Color.Inherit" Direction="Direction.Bottom" OffsetY="true"
+             Dense="true">
+        @foreach (var language in LocalizationConstants.SupportedLanguages)
+        {
+            if (language.Code == CurrentLanguage)
+            {
+                <MudMenuItem style="background:var(--mud-palette-primary); color:white">@L[language.DisplayName]</MudMenuItem>
+            }
+            else
+            {
+                <MudMenuItem OnClick="(()=> ChangeLanguageAsync(language.Code))">@L[language.DisplayName]</MudMenuItem>
+            }
+        }
+    </MudMenu>
+</MudTooltip>
+
+@code {
+    public string? CurrentLanguage { get; set; } = "en-US";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var currentPreference = await ClientPreferences.GetPreference() as ClientPreference;
+        if (currentPreference != null)
+        {
+            CurrentLanguage = currentPreference.LanguageCode;
+        }
+        else
+        {
+            CurrentLanguage = "en-US";
+        }
+
+    }
+    private async Task ChangeLanguageAsync(string languageCode)
+    {
+        var result = await ClientPreferences.ChangeLanguageAsync(languageCode);
+        Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+    }
+}
