@@ -117,8 +117,14 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Administration" xml:space="preserve">
+    <value>Administration</value>
+  </data>
   <data name="Audit Trail" xml:space="preserve">
     <value>Audit Trail</value>
+  </data>
+  <data name="Brands" xml:space="preserve">
+    <value>Brands</value>
   </data>
   <data name="Catalog" xml:space="preserve">
     <value>Catalog</value>
@@ -129,8 +135,22 @@
   <data name="Modules" xml:space="preserve">
     <value>Modules</value>
   </data>
+  <data name="Products" xml:space="preserve">
+    <value>Products</value>
+  </data>
+  <data name="Roles" xml:space="preserve">
+    <value>Roles</value>
+  </data>
   <data name="Start" xml:space="preserve">
     <value>Start</value>
-    <comment>Start</comment>
+  </data>
+  <data name="Tenants" xml:space="preserve">
+    <value>Tenants</value>
+  </data>
+  <data name="Todos" xml:space="preserve">
+    <value>Todos</value>
+  </data>
+  <data name="Users" xml:space="preserve">
+    <value>Users</value>
   </data>
 </root>

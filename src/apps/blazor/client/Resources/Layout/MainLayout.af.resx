@@ -117,13 +117,22 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Cancel" xml:space="preserve">
-    <value>Kanseleer</value>
+  <data name="Account" xml:space="preserve">
+    <value>Rekening</value>
   </data>
-  <data name="Save" xml:space="preserve">
-    <value>Stoor</value>
+  <data name="Community" xml:space="preserve">
+    <value>Gemeenskap</value>
   </data>
-  <data name="Update" xml:space="preserve">
-    <value>Bywerking</value>
+  <data name="Logout" xml:space="preserve">
+    <value>Meld af</value>
+  </data>
+  <data name="Sponsor" xml:space="preserve">
+    <value>Borg</value>
+  </data>
+  <data name="Support" xml:space="preserve">
+    <value>Ondersteuning</value>
+  </data>
+  <data name="Toggle Drawer" xml:space="preserve">
+    <value>Wissel laai</value>
   </data>
 </root>

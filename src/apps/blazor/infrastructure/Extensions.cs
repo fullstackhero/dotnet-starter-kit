@@ -46,6 +46,5 @@ public static class Extensions
         services.AddTransient<IPreference, ClientPreference>();
         services.AddNotifications();
         return services;
-
     }
 }

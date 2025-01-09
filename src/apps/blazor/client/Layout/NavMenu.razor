@@ -10,24 +10,24 @@
     }
     <MudText Typo="Typo.subtitle2" Color="Color.Surface" Class="ml-4 my-3">@_localizer["Modules"]</MudText>
     <MudNavGroup Title="@_localizer["Catalog"]" Icon="@Icons.Material.Filled.AddBox">
-         <MudNavLink Href="/catalog/products" Icon="@Icons.Material.Filled.ShoppingBag" Class="fsh-nav-child">Products</MudNavLink>
-        <MudNavLink Href="/catalog/brands" Icon="@Icons.Material.Filled.Label" Class="fsh-nav-child">Brands</MudNavLink>
+        <MudNavLink Href="/catalog/products" Icon="@Icons.Material.Filled.ShoppingBag" Class="fsh-nav-child">@_localizer["Products"]</MudNavLink>
+        <MudNavLink Href="/catalog/brands" Icon="@Icons.Material.Filled.Label" Class="fsh-nav-child">@_localizer["Brands"]</MudNavLink>
     </MudNavGroup>
-    <MudNavLink Href="/todos" Icon="@Icons.Material.Filled.Checklist" Class="fsh-nav-child">Todos</MudNavLink>
+    <MudNavLink Href="/todos" Icon="@Icons.Material.Filled.Checklist" Class="fsh-nav-child">@_localizer["Todos"]</MudNavLink>
     @if (CanViewAdministrationGroup)
     {
-        <MudText Typo="Typo.subtitle2" Color="Color.Surface" Class="ml-4 my-3">Administration</MudText>
+        <MudText Typo="Typo.subtitle2" Color="Color.Surface" Class="ml-4 my-3">@_localizer["Administration"]</MudText>
         @if (_canViewUsers)
         {
-            <MudNavLink Match="NavLinkMatch.Prefix" Href="/identity/users" Icon="@Icons.Material.Filled.PeopleAlt">Users</MudNavLink>
+            <MudNavLink Match="NavLinkMatch.Prefix" Href="/identity/users" Icon="@Icons.Material.Filled.PeopleAlt">@_localizer["Users"]</MudNavLink>
         }
         @if (_canViewRoles)
         {
-            <MudNavLink Href="/identity/roles" Icon="@Icons.Material.Filled.EmojiPeople">Roles</MudNavLink>
+            <MudNavLink Href="/identity/roles" Icon="@Icons.Material.Filled.EmojiPeople">@_localizer["Roles"]</MudNavLink>
         }
         @if (_canViewTenants)
         {
-            <MudNavLink Href="/tenants" Icon="@Icons.Material.Filled.GroupWork" Disabled="!_canViewTenants">Tenants</MudNavLink>
+            <MudNavLink Href="/tenants" Icon="@Icons.Material.Filled.GroupWork" Disabled="!_canViewTenants">@_localizer["Tenants"]</MudNavLink>
         }
     }
 </MudNavMenu>

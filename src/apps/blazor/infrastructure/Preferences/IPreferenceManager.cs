@@ -6,5 +6,5 @@ public interface IPreferenceManager
 
     Task<IPreference> GetPreference();
 
-    Task<bool> ChangeLanguageAsync(string languageCode);
+    //Task<bool> ChangeLanguageAsync(string languageCode);
 }
