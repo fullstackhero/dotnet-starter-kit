@@ -1,5 +1,5 @@
 ﻿@page "/identity/roles/{Id}/permissions"
-
+@inject Microsoft.Extensions.Localization.IStringLocalizer<RolePermissions> _localizer
 <PageHeader Title="@_title" Header="@_title" SubHeader="@_description" />
 
 @if (!_loaded)

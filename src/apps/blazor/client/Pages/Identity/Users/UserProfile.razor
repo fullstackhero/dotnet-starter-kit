@@ -1,6 +1,6 @@
 ﻿@page "/identity/users/{Id}/profile"
 
-
+@inject Microsoft.Extensions.Localization.IStringLocalizer<UserProfile> _localizer
 <PageHeader Title="@Title" Header="@Title" SubHeader="@Description" />
 @if (!_loaded)
 {

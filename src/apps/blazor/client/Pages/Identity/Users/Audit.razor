@@ -1,6 +1,6 @@
 ﻿@page "/identity/users/{Id:guid}/audit-trail"
 @page "/identity/audit-trail"
-
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Audit> _localizer
 
 <PageHeader Title="Audit Trail" Header="Audit Trail" SubHeader="@_subHeader" />
 

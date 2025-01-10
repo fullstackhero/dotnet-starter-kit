@@ -15,12 +15,15 @@ public partial class Tenants
 {
     [Inject]
     private IApiClient ApiClient { get; set; } = default!;
+
     private string? _searchString;
     protected EntityClientTableContext<TenantViewModel, Guid, CreateTenantCommand> Context { get; set; } = default!;
     private List<TenantViewModel> _tenants = new();
     public EntityTable<TenantViewModel, Guid, CreateTenantCommand> EntityTable { get; set; } = default!;
+
     [CascadingParameter]
     protected Task<AuthenticationState> AuthState { get; set; } = default!;
+
     [Inject]
     protected IAuthorizationService AuthService { get; set; } = default!;
 
@@ -30,19 +33,19 @@ public partial class Tenants
     protected override async Task OnInitializedAsync()
     {
         Context = new(
-            entityName: "Tenant",
-            entityNamePlural: "Tenants",
+            entityName: _localizer["Tenant"],
+            entityNamePlural: _localizer["Tenants"],
             entityResource: FshResources.Tenants,
             searchAction: FshActions.View,
             deleteAction: string.Empty,
             updateAction: string.Empty,
             fields: new()
             {
-                new(tenant => tenant.Id, "Id"),
-                new(tenant => tenant.Name, "Name"),
-                new(tenant => tenant.AdminEmail, "Admin Email"),
-                new(tenant => tenant.ValidUpto.ToString("MMM dd, yyyy"), "Valid Upto"),
-                new(tenant => tenant.IsActive, "Active", Type: typeof(bool))
+                new(tenant => tenant.Id, _localizer["Id"]),
+                new(tenant => tenant.Name, _localizer["Name"]),
+                new(tenant => tenant.AdminEmail, _localizer["Admin Email"]),
+                new(tenant => tenant.ValidUpto.ToString("MMM dd, yyyy"), _localizer["Valid Upto"]),
+                new(tenant => tenant.IsActive, _localizer["Active"], Type: typeof(bool))
             },
             loadDataFunc: async () => _tenants = (await ApiClient.GetTenantsEndpointAsync()).Adapt<List<TenantViewModel>>(),
             searchFunc: (searchString, tenantDto) =>
@@ -82,7 +85,7 @@ public partial class Tenants
             }
         };
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, BackdropClick = false };
-        var dialog = DialogService.Show<UpgradeSubscriptionModal>("Upgrade Subscription", parameters, options);
+        var dialog = DialogService.Show<UpgradeSubscriptionModal>(_localizer["Upgrade Subscription"], parameters, options);
         var result = await dialog.Result;
         if (!result.Canceled)
         {
@@ -96,7 +99,7 @@ public partial class Tenants
             () => ApiClient.DisableTenantEndpointAsync(id),
             Toast, Navigation,
             null,
-            "Tenant Deactivated.") is not null)
+            _localizer["Tenant Deactivated."]) is not null)
         {
             await EntityTable.ReloadDataAsync();
         }
@@ -108,7 +111,7 @@ public partial class Tenants
             () => ApiClient.ActivateTenantEndpointAsync(id),
             Toast, Navigation,
             null,
-            "Tenant Activated.") is not null)
+            _localizer["Tenant Activated."]) is not null)
         {
             await EntityTable.ReloadDataAsync();
         }

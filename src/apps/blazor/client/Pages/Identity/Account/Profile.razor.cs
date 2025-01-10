@@ -14,8 +14,10 @@ public partial class Profile
 {
     [CascadingParameter]
     protected Task<AuthenticationState> AuthState { get; set; } = default!;
+
     [Inject]
     protected IAuthenticationService AuthService { get; set; } = default!;
+
     [Inject]
     protected IApiClient PersonalClient { get; set; } = default!;
 
@@ -54,7 +56,7 @@ public partial class Profile
         if (await ApiHelper.ExecuteCallGuardedAsync(
             () => PersonalClient.UpdateUserEndpointAsync(_profileModel), Toast, _customValidation))
         {
-            Toast.Add("Your Profile has been updated. Please Login again to Continue.", Severity.Success);
+            Toast.Add(_localizer["Your Profile has been updated. Please Login again to Continue."], Severity.Success);
             await AuthService.ReLoginAsync(Navigation.Uri);
         }
     }
@@ -67,7 +69,7 @@ public partial class Profile
             string? extension = Path.GetExtension(file.Name);
             if (!AppConstants.SupportedImageFormats.Contains(extension.ToLower()))
             {
-                Toast.Add("Image Format Not Supported.", Severity.Error);
+                Toast.Add(_localizer["Image Format Not Supported."], Severity.Error);
                 return;
             }
 
@@ -85,13 +87,13 @@ public partial class Profile
 
     public async Task RemoveImageAsync()
     {
-        string deleteContent = "You're sure you want to delete your Profile Image?";
+        string deleteContent = _localizer["You're sure you want to delete your Profile Image?"];
         var parameters = new DialogParameters
         {
             { nameof(DeleteConfirmation.ContentText), deleteContent }
         };
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, BackdropClick = false };
-        var dialog = await DialogService.ShowAsync<DeleteConfirmation>("Delete", parameters, options);
+        var dialog = await DialogService.ShowAsync<DeleteConfirmation>(_localizer["Delete"], parameters, options);
         var result = await dialog.Result;
         if (!result!.Canceled)
         {

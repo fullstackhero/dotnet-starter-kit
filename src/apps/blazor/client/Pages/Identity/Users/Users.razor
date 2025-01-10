@@ -1,5 +1,5 @@
 ﻿@page "/identity/users"
-
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Users> _localizer
 <PageHeader Title="Users" Header="Users" SubHeader="Manage Users." />
 
 <EntityTable TEntity="UserDetail" TId="Guid" TRequest="RegisterUserCommand" Context="@Context">

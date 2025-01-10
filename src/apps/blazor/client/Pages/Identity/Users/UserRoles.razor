@@ -1,5 +1,5 @@
 ﻿@page "/identity/users/{Id}/roles"
-
+@inject Microsoft.Extensions.Localization.IStringLocalizer<UserRoles> _localizer
 <PageHeader Title="@_title" Header="@_title" SubHeader="@_description" />
 
 @if (!_loaded)

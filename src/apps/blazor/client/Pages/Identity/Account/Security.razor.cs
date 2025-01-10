@@ -20,7 +20,7 @@ public partial class Security
             () => PersonalClient.ChangePasswordEndpointAsync(_passwordModel),
             Toast,
             _customValidation,
-            "Password Changed!"))
+            _localizer["Password Changed!"]))
         {
             _passwordModel.Password = string.Empty;
             _passwordModel.NewPassword = string.Empty;
