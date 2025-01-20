@@ -117,16 +117,52 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Actions" xml:space="preserve">
+    <value>Actions</value>
+    <comment>Actions</comment>
+  </data>
+  <data name="Advanced Search" xml:space="preserve">
+    <value>Advanced Search</value>
+    <comment>Advanced Search</comment>
+  </data>
   <data name="Cancel" xml:space="preserve">
     <value>Cancel</value>
     <comment>Cancel</comment>
+  </data>
+  <data name="Create" xml:space="preserve">
+    <value>Create</value>
+    <comment>Create</comment>
+  </data>
+  <data name="Created" xml:space="preserve">
+    <value>Created</value>
+    <comment>Created</comment>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Edit</value>
+    <comment>Edit</comment>
+  </data>
+  <data name="No Allowed Actions" xml:space="preserve">
+    <value>No Allowed Actions</value>
+    <comment>No Allowed Actions</comment>
+  </data>
+  <data name="Reload" xml:space="preserve">
+    <value>Reload</value>
+    <comment>Reload</comment>
   </data>
   <data name="Save" xml:space="preserve">
     <value>Save</value>
     <comment>Save</comment>
   </data>
+  <data name="Todos" xml:space="preserve">
+    <value>Todos</value>
+    <comment>Todos</comment>
+  </data>
   <data name="Update" xml:space="preserve">
     <value>Update</value>
     <comment>Update</comment>
+  </data>
+  <data name="Updated" xml:space="preserve">
+    <value>Updated</value>
+    <comment>Updated</comment>
   </data>
 </root>

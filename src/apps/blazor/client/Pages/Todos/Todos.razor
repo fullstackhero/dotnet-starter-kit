@@ -1,7 +1,7 @@
 ﻿@page "/todos"
 @inject Microsoft.Extensions.Localization.IStringLocalizer<Todos> _localizer
 
-<PageHeader Title="@_localizer["Title"]" Header="@_localizer["Header"]" SubHeader="@_localizer["SubHeader"]" />
+<PageHeader Title="@_localizer["Todos"]" Header="@_localizer["Todos"]" SubHeader="@_localizer["Manage your Todos."]" />
 
 <EntityTable @ref="_table" TEntity="GetTodoResponse" TId="Guid" TRequest="TodoViewModel" Context="@Context">
     <EditFormContent>
@@ -17,7 +17,7 @@
         <MudItem xs="12" md="6">
             <MudTextField Label="@_localizer["Note"]" For="@(() => context.Note)" @bind-Value="context.Note" />
         </MudItem>
-        <MudItem xs="12" md="12">
+        @* <MudItem xs="12" md="12">
             <MudItem>
                 <div>
                     @if(!Context.AddEditModal.IsCreate)
@@ -34,7 +34,7 @@
                     }
                 </div>
             </MudItem>
-        </MudItem>
+        </MudItem> *@
     </EditFormContent>
 
 </EntityTable>

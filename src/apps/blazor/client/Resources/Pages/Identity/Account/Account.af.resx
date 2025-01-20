@@ -117,40 +117,16 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Audit Trail" xml:space="preserve">
-    <value>Audit Trail</value>
-    <comment>Audit Trail</comment>
+  <data name="Account" xml:space="preserve">
+    <value>Rekening</value>
   </data>
-  <data name="Current Values" xml:space="preserve">
-    <value>Current Values</value>
-    <comment>Current Values</comment>
+  <data name="Manage your Account." xml:space="preserve">
+    <value>Bestuur jou rekening.</value>
   </data>
-  <data name="Details for Audit Trail with Id :" xml:space="preserve">
-    <value>Details for Audit Trail with Id :</value>
-    <comment>Details for Audit Trail with Id :</comment>
+  <data name="Profile" xml:space="preserve">
+    <value>Profiel</value>
   </data>
-  <data name="Hide" xml:space="preserve">
-    <value>Hide</value>
-    <comment>Hide</comment>
-  </data>
-  <data name="Modified Properties" xml:space="preserve">
-    <value>Modified Properties</value>
-    <comment>Modified Properties</comment>
-  </data>
-  <data name="Previous Values" xml:space="preserve">
-    <value>Previous Values</value>
-    <comment>Previous Values</comment>
-  </data>
-  <data name="Primary Key" xml:space="preserve">
-    <value>Primary Key</value>
-    <comment>Primary Key</comment>
-  </data>
-  <data name="Show" xml:space="preserve">
-    <value>Show</value>
-    <comment>Show</comment>
-  </data>
-  <data name="Trail Details" xml:space="preserve">
-    <value>Trail Details</value>
-    <comment>Trail Details</comment>
+  <data name="Security" xml:space="preserve">
+    <value>Sekuriteit</value>
   </data>
 </root>

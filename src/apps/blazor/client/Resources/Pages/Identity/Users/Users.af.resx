@@ -117,40 +117,49 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Audit Trail" xml:space="preserve">
-    <value>Audit Trail</value>
-    <comment>Audit Trail</comment>
+  <data name="Active" xml:space="preserve">
+    <value>Aktief</value>
   </data>
-  <data name="Current Values" xml:space="preserve">
-    <value>Current Values</value>
-    <comment>Current Values</comment>
+  <data name="Confirm Password" xml:space="preserve">
+    <value>Bevestig wagwoord</value>
   </data>
-  <data name="Details for Audit Trail with Id :" xml:space="preserve">
-    <value>Details for Audit Trail with Id :</value>
-    <comment>Details for Audit Trail with Id :</comment>
+  <data name="Email" xml:space="preserve">
+    <value>E-pos</value>
   </data>
-  <data name="Hide" xml:space="preserve">
-    <value>Hide</value>
-    <comment>Hide</comment>
+  <data name="Email Confirmation" xml:space="preserve">
+    <value>E-pos bevestig</value>
   </data>
-  <data name="Modified Properties" xml:space="preserve">
-    <value>Modified Properties</value>
-    <comment>Modified Properties</comment>
+  <data name="First Name" xml:space="preserve">
+    <value>Voornaam/Voorname</value>
   </data>
-  <data name="Previous Values" xml:space="preserve">
-    <value>Previous Values</value>
-    <comment>Previous Values</comment>
+  <data name="Last Name" xml:space="preserve">
+    <value>Van</value>
   </data>
-  <data name="Primary Key" xml:space="preserve">
-    <value>Primary Key</value>
-    <comment>Primary Key</comment>
+  <data name="Manage Roles" xml:space="preserve">
+    <value>Bestuur rolle</value>
   </data>
-  <data name="Show" xml:space="preserve">
-    <value>Show</value>
-    <comment>Show</comment>
+  <data name="Manage Users." xml:space="preserve">
+    <value>Bestuur gebruikers.</value>
   </data>
-  <data name="Trail Details" xml:space="preserve">
-    <value>Trail Details</value>
-    <comment>Trail Details</comment>
+  <data name="Password" xml:space="preserve">
+    <value>Wagwoord</value>
+  </data>
+  <data name="PhoneNumber" xml:space="preserve">
+    <value>Telefoon nommer</value>
+  </data>
+  <data name="User" xml:space="preserve">
+    <value>Gebruiker</value>
+  </data>
+  <data name="UserName" xml:space="preserve">
+    <value>Gebruiker naam</value>
+  </data>
+  <data name="Users" xml:space="preserve">
+    <value>Gebruikers</value>
+  </data>
+  <data name="View Audit Trails" xml:space="preserve">
+    <value>Bekyk ouditroetes</value>
+  </data>
+  <data name="View Profile" xml:space="preserve">
+    <value>Bekyk profiel</value>
   </data>
 </root>

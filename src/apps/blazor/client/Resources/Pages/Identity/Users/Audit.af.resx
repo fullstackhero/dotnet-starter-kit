@@ -118,39 +118,30 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="Audit Trail" xml:space="preserve">
-    <value>Audit Trail</value>
-    <comment>Audit Trail</comment>
+    <value>Ouditspoor</value>
   </data>
   <data name="Current Values" xml:space="preserve">
-    <value>Current Values</value>
-    <comment>Current Values</comment>
+    <value>Huidige waardes</value>
   </data>
   <data name="Details for Audit Trail with Id :" xml:space="preserve">
-    <value>Details for Audit Trail with Id :</value>
-    <comment>Details for Audit Trail with Id :</comment>
+    <value>Besonderhede vir ouditroete met Id:</value>
   </data>
   <data name="Hide" xml:space="preserve">
-    <value>Hide</value>
-    <comment>Hide</comment>
+    <value>Versteek</value>
   </data>
   <data name="Modified Properties" xml:space="preserve">
-    <value>Modified Properties</value>
-    <comment>Modified Properties</comment>
+    <value>Gewysigde Eienskappe</value>
   </data>
   <data name="Previous Values" xml:space="preserve">
-    <value>Previous Values</value>
-    <comment>Previous Values</comment>
+    <value>Vorige waardes</value>
   </data>
   <data name="Primary Key" xml:space="preserve">
-    <value>Primary Key</value>
-    <comment>Primary Key</comment>
+    <value>Primere sleutel</value>
   </data>
   <data name="Show" xml:space="preserve">
-    <value>Show</value>
-    <comment>Show</comment>
+    <value>Wys</value>
   </data>
   <data name="Trail Details" xml:space="preserve">
-    <value>Trail Details</value>
-    <comment>Trail Details</comment>
+    <value>Oudit detail</value>
   </data>
 </root>

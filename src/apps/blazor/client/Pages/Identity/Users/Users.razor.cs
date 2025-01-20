@@ -41,21 +41,21 @@ public partial class Users
         _canViewAuditTrails = await AuthService.HasPermissionAsync(user, FshActions.View, FshResources.AuditTrails);
 
         Context = new(
-            entityName: "User",
-            entityNamePlural: "Users",
+            entityName: _localizer["User"],
+            entityNamePlural: _localizer["Users"] ,
             entityResource: FshResources.Users,
             searchAction: FshActions.View,
             updateAction: string.Empty,
             deleteAction: string.Empty,
             fields: new()
             {
-                new(user => user.FirstName,"First Name"),
-                new(user => user.LastName, "Last Name"),
-                new(user => user.UserName, "UserName"),
-                new(user => user.Email, "Email"),
-                new(user => user.PhoneNumber, "PhoneNumber"),
-                new(user => user.EmailConfirmed, "Email Confirmation", Type: typeof(bool)),
-                new(user => user.IsActive, "Active", Type: typeof(bool))
+                new(user => user.FirstName,_localizer["First Name"],"First Name"),
+                new(user => user.LastName, _localizer["Last Name"],"Last Name"),
+                new(user => user.UserName, _localizer["UserName"], "UserName"),
+                new(user => user.Email, _localizer["Email"], "Email"),
+                new(user => user.PhoneNumber, _localizer["PhoneNumber"], "PhoneNumber"),
+                new(user => user.EmailConfirmed, _localizer["Email Confirmation"], "Email Confirmation"),
+                new(user => user.IsActive, _localizer["Active"],"Active", Type: typeof(bool))
             },
             idFunc: user => user.Id,
             loadDataFunc: async () => (await UsersClient.GetUsersListEndpointAsync()).ToList(),

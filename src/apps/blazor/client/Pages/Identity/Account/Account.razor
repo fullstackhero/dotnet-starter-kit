@@ -1,14 +1,14 @@
 ﻿@page "/identity/account"
 @inject Microsoft.Extensions.Localization.IStringLocalizer<Account> _localizer
-<PageHeader Title="Account" Header="Account" SubHeader="Manage your Account." />
+<PageHeader Title="@_localizer["Account"]" Header="@_localizer["Account"]" SubHeader="@_localizer["Manage your Account."]" />
 
 <MudTabs Outlined Color="Color.Transparent" Rounded="true" PanelClass="mt-6">
-    <MudTabPanel Text="Profile">
+    <MudTabPanel Text="@_localizer["Profile"]">
         <Profile />
     </MudTabPanel>
     @if (!SecurityTabHidden)
     {
-        <MudTabPanel Text="Security">
+        <MudTabPanel Text="@_localizer["Security"]">
             <Security />
         </MudTabPanel>
     }

@@ -117,40 +117,37 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Audit Trail" xml:space="preserve">
-    <value>Audit Trail</value>
-    <comment>Audit Trail</comment>
+  <data name="Active?" xml:space="preserve">
+    <value>Aktief?</value>
   </data>
-  <data name="Current Values" xml:space="preserve">
-    <value>Current Values</value>
-    <comment>Current Values</comment>
+  <data name="Administrator Settings." xml:space="preserve">
+    <value>Administreerder verstellings.</value>
   </data>
-  <data name="Details for Audit Trail with Id :" xml:space="preserve">
-    <value>Details for Audit Trail with Id :</value>
-    <comment>Details for Audit Trail with Id :</comment>
+  <data name="Email Confirmed?" xml:space="preserve">
+    <value>E-pos bevestig?</value>
   </data>
-  <data name="Hide" xml:space="preserve">
-    <value>Hide</value>
-    <comment>Hide</comment>
+  <data name="Email" xml:space="preserve">
+    <value>E-pos</value>
   </data>
-  <data name="Modified Properties" xml:space="preserve">
-    <value>Modified Properties</value>
-    <comment>Modified Properties</comment>
+  <data name="First Name" xml:space="preserve">
+    <value>Voornaam/Voorname</value>
   </data>
-  <data name="Previous Values" xml:space="preserve">
-    <value>Previous Values</value>
-    <comment>Previous Values</comment>
+  <data name="Last Name" xml:space="preserve">
+    <value>Van</value>
   </data>
-  <data name="Primary Key" xml:space="preserve">
-    <value>Primary Key</value>
-    <comment>Primary Key</comment>
+  <data name="Public Profile" xml:space="preserve">
+    <value>Publieke profiel</value>
   </data>
-  <data name="Show" xml:space="preserve">
-    <value>Show</value>
-    <comment>Show</comment>
+  <data name="Save Changes" xml:space="preserve">
+    <value>Stoor verandering</value>
   </data>
-  <data name="Trail Details" xml:space="preserve">
-    <value>Trail Details</value>
-    <comment>Trail Details</comment>
+  <data name="This is an Administrator Only View." xml:space="preserve">
+    <value>Slegs Administreerder permissie.</value>
+  </data>
+  <data name="View" xml:space="preserve">
+    <value>Bekyk</value>
+  </data>
+  <data name="PhoneNumber" xml:space="preserve">
+    <value>Telefoon nommer</value>
   </data>
 </root>

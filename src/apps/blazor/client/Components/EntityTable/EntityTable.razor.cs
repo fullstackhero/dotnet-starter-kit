@@ -218,8 +218,8 @@ public partial class EntityTable<TEntity, TId, TRequest>
                 ? defaultsResult
                 : new TRequest();
 
-            title = $"Create {Context.EntityName}";
-            successMessage = $"{Context.EntityName} Created";
+            title = $"{_localizer["Create"]} {Context.EntityName}";
+            successMessage = $"{Context.EntityName} {_localizer["Created"]}";
         }
         else
         {
@@ -239,8 +239,8 @@ public partial class EntityTable<TEntity, TId, TRequest>
                 ? detailsResult
                 : entity!.Adapt<TRequest>();
 
-            title = $"Edit {Context.EntityName}";
-            successMessage = $"{Context.EntityName}Updated";
+            title = $"{_localizer["Update"]} {Context.EntityName}";
+            successMessage = $"{Context.EntityName} {_localizer["Updated"]}";
         }
 
         parameters.Add(nameof(AddEditModal<TRequest>.SaveFunc), saveFunc);

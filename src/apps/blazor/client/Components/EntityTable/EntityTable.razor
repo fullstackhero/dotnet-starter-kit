@@ -1,9 +1,8 @@
-﻿@typeparam TEntity
+﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<Modals> _localizer
+@typeparam TEntity
 @typeparam TId
 @typeparam TRequest
-
 @inject IJSRuntime JS
-
 <style>
     .mud-table-container {
         overflow: auto;
@@ -16,7 +15,7 @@
         {
             <MudExpansionPanel @bind-bind-Expanded="_advancedSearchExpanded"
                 Style="padding:10px!important; margin-bottom:10px!important;border-radius: var(--mud-default-borderradius) !important;"
-                               Class="mud-table mud-table-outlined" Text="Advanced Search" Expanded=false>
+                               Class="mud-table mud-table-outlined" Text="@_localizer["Advanced Search"]" Expanded=false>
                 <MudTextField @bind-Value="SearchString" Immediate="true"
                     Placeholder="@($"Search for {Context.EntityNamePlural}")" Adornment="Adornment.Start"
                     AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium"
@@ -45,10 +44,10 @@
                     {
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" DropShadow="false"
                                    OnClick="(() => InvokeModal())" StartIcon="@Icons.Material.Filled.Add"
-                            IconColor="Color.Surface" Class="mr-4">Create</MudButton>
+                                   IconColor="Color.Surface" Class="mr-4">@_localizer["Create"]</MudButton>
                     }
                     <MudButton Variant="Variant.Filled" OnClick="ReloadDataAsync" DropShadow="false"
-                               StartIcon="@Icons.Material.Filled.Refresh" IconColor="Color.Surface" Color="Color.Secondary">Reload</MudButton>
+                               StartIcon="@Icons.Material.Filled.Refresh" IconColor="Color.Surface" Color="Color.Secondary">@_localizer["Reload"]</MudButton>
                 </div>
                 <MudSpacer />
                 @if (_canSearch && !_advancedSearchExpanded)
@@ -78,7 +77,7 @@
                         </MudTh>
                     }
                 }
-                <MudTh Style="text-align:right">Actions</MudTh>
+                <MudTh Style="text-align:right">@_localizer["Actions"]</MudTh>
             </HeaderContent>
 
             <RowTemplate>
@@ -106,16 +105,16 @@
                     }
                     else if (HasActions)
                     {
-                        <MudMenu Label="Actions" Variant="Variant.Filled" DropShadow=false
+                        <MudMenu Label="@_localizer["Actions"]" Variant="Variant.Filled" DropShadow=false
                             EndIcon="@Icons.Material.Filled.KeyboardArrowDown" IconColor="Color.Secondary" direction="Direction.Left"
                             offsetX="true">
                             @if (CanUpdateEntity(context))
                             {
-                                <MudMenuItem @onclick="@(() => InvokeModal(context))">Edit</MudMenuItem>
+                                <MudMenuItem @onclick="@(() => InvokeModal(context))">@_localizer["Edit"]</MudMenuItem>
                             }
                             @if (CanDeleteEntity(context))
                             {
-                                <MudMenuItem Style="color:red!important" @onclick="@(() => Delete(context))">Delete</MudMenuItem>
+                                <MudMenuItem Style="color:red!important" @onclick="@(() => Delete(context))">@_localizer["Delete"]</MudMenuItem>
                             }
                             @if (ExtraActions is not null)
                             {
@@ -128,7 +127,7 @@
                         <MudButton Variant="Variant.Filled" DropShadow="false" 
                             StartIcon="@Icons.Material.Filled.DoNotTouch" IconColor="Color.Secondary" Size="Size.Small"
                         Color="Color.Surface">
-                            No Allowed Actions
+                            @_localizer["No Allowed Actions"]
                         </MudButton>
                     }
                 </MudTd>

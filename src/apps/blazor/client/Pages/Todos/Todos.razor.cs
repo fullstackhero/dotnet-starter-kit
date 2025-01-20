@@ -17,8 +17,8 @@ public partial class Todos
 
     protected override void OnInitialized() =>
         Context = new(
-            entityName: "Todos",
-            entityNamePlural: "Todos",
+            entityName: _localizer["Todos"],
+            entityNamePlural: _localizer["Todos"],
             entityResource: FshResources.Todos,
             fields: new()
             {

@@ -27,15 +27,15 @@ public partial class Roles
         _canViewRoleClaims = await AuthService.HasPermissionAsync(state.User, FshActions.View, FshResources.RoleClaims);
 
         Context = new(
-            entityName: "Role",
-            entityNamePlural: "Roles",
+            entityName: _localizer["Role"],
+            entityNamePlural: _localizer["Roles"],
             entityResource: FshResources.Roles,
             searchAction: FshActions.View,
             fields: new()
             {
-                new(role => role.Id, "Id"),
-                new(role => role.Name,"Name"),
-                new(role => role.Description, "Description")
+                new(role => role.Id, _localizer["Id"], "Id"),
+                new(role => role.Name,_localizer["Name"], "Name"),
+                new(role => role.Description, _localizer["Description"], "Description")
             },
             idFunc: role => role.Id,
             loadDataFunc: async () => (await RolesClient.GetRolesEndpointAsync()).ToList(),

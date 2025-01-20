@@ -117,13 +117,25 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Cancel" xml:space="preserve">
-    <value>Kanseleer</value>
+  <data name="Description" xml:space="preserve">
+    <value>Beskrywing</value>
   </data>
-  <data name="Save" xml:space="preserve">
-    <value>Stoor</value>
+  <data name="Id" xml:space="preserve">
+    <value>Id</value>
   </data>
-  <data name="Update" xml:space="preserve">
-    <value>Bywerking</value>
+  <data name="Manage Permission" xml:space="preserve">
+    <value>Bestuur toestemming</value>
+  </data>
+  <data name="Manage Roles." xml:space="preserve">
+    <value>Bestuur rolle</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Naam</value>
+  </data>
+  <data name="Role" xml:space="preserve">
+    <value>Rol</value>
+  </data>
+  <data name="Roles" xml:space="preserve">
+    <value>Rolle</value>
   </data>
 </root>

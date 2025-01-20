@@ -2,13 +2,13 @@
 @page "/identity/audit-trail"
 @inject Microsoft.Extensions.Localization.IStringLocalizer<Audit> _localizer
 
-<PageHeader Title="Audit Trail" Header="Audit Trail" SubHeader="@_subHeader" />
+<PageHeader Title="@_localizer["Audit Trail"]" Header="@_localizer["Audit Trail"]" SubHeader="@_subHeader" />
 
 <EntityTable TEntity="RelatedAuditTrail" TId="Guid" TRequest="object" Context="@Context">
 
     <ActionsContent>
         <MudButton Variant="Variant.Filled" DropShadow="false" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" IconColor="Color.Secondary"
-                   OnClick="@(() => ShowBtnPress(context.Id))">@((context.ShowDetails == true) ? "Hide" : "Show") Trail Details</MudButton>
+                   OnClick="@(() => ShowBtnPress(context.Id))">@((context.ShowDetails == true) ? _localizer["Hide"] : _localizer["Show"]) @_localizer["Trail Details"]</MudButton>
     </ActionsContent>
 
     <ChildRowContent>
@@ -19,7 +19,7 @@
                     <MudCard Outlined style="margin: 10px !important;">
                         <MudCardHeader>
                             <CardHeaderContent>
-                                <MudAlert Severity="Severity.Success" Typo="Typo.body1">Details for Audit Trail with Id : <strong>@context.Id</strong></MudAlert>
+                                <MudAlert Severity="Severity.Success" Typo="Typo.body1">@_localizer["Details for Audit Trail with Id :"] <strong>@context.Id</strong></MudAlert>
                             </CardHeaderContent>
                         </MudCardHeader>
                         <MudCardContent>
@@ -28,7 +28,7 @@
                                     @if (!string.IsNullOrEmpty(context.ModifiedProperties))
                                     {
                                         <tr class="mud-table-row" style="padding:10px!important">
-                                            <td>Modified Properties</td>
+                                            <td>@_localizer["Modified Properties"]</td>
                                             <td>
                                                 <MudItem>
                                                     @foreach (var column in context.ModifiedProperties.Trim('[').Trim(']').Split(','))
@@ -42,7 +42,7 @@
                                     @if (!string.IsNullOrEmpty(context.PrimaryKey))
                                     {
                                         <tr class="mud-table-row">
-                                            <td>Primary Key</td>
+                                            <td>@_localizer["Primary Key"]</td>
                                             <td>
                                                 <MudItem>
                                                     <MudChip T=string Label="true" Color="Color.Surface">@context.PrimaryKey?.Trim('{').Trim('}').Replace('"', ' ').Trim()</MudChip>
@@ -53,7 +53,7 @@
                                     @if (!string.IsNullOrEmpty(context.PreviousValues))
                                     {
                                         <tr class="mud-table-row">
-                                            <td>Previous Values</td>
+                                            <td>@_localizer["Previous Values"]</td>
                                             <td>
 
                                                 <MudItem>
@@ -77,7 +77,7 @@
                                     @if (!string.IsNullOrEmpty(context.NewValues))
                                     {
                                         <tr class="mud-table-row">
-                                            <td>Current Values</td>
+                                            <td>@_localizer["Current Values"]</td>
                                             <td>
 
                                                 <MudItem>

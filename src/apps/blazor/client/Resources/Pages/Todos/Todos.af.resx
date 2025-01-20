@@ -132,7 +132,7 @@
   <data name="Note" xml:space="preserve">
     <value>Nota</value>
   </data>
-  <data name="SubHeader" xml:space="preserve">
+  <data name="Manage your Todos." xml:space="preserve">
     <value>Bestuur Te-Doens.</value>
   </data>
   <data name="Title" xml:space="preserve">
@@ -140,5 +140,8 @@
   </data>
   <data name="View" xml:space="preserve">
     <value>Bekyk</value>
+  </data>
+  <data name="Todos" xml:space="preserve">
+    <value>Te Doen</value>
   </data>
 </root>

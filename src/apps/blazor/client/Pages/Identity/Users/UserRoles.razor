@@ -1,5 +1,6 @@
 ﻿@page "/identity/users/{Id}/roles"
 @inject Microsoft.Extensions.Localization.IStringLocalizer<UserRoles> _localizer
+
 <PageHeader Title="@_title" Header="@_title" SubHeader="@_description" />
 
 @if (!_loaded)
@@ -33,18 +34,13 @@ else
         </ToolBarContent>
         <HeaderContent>
             <MudTh>
-                <MudTableSortLabel SortBy="new Func<UserRoleDetail, object?>(x => x.RoleName)">Role Name
-                </MudTableSortLabel>
+                <MudTableSortLabel SortBy="new Func<UserRoleDetail, object?>(x => x.RoleName)">Role Name</MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortBy="new Func<UserRoleDetail, object?>(x => x.Description)">
-                    Description
-                </MudTableSortLabel>
+                <MudTableSortLabel SortBy="new Func<UserRoleDetail, object?>(x => x.Description)">Description</MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortBy="new Func<UserRoleDetail, object>(x => x.Enabled)">
-                    Status
-                </MudTableSortLabel>
+                <MudTableSortLabel SortBy="new Func<UserRoleDetail, object>(x => x.Enabled)">Status</MudTableSortLabel>
             </MudTh>
         </HeaderContent>
         <RowTemplate>
