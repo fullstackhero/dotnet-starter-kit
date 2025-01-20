@@ -121,21 +121,41 @@
     <value>Audit Trail</value>
     <comment>Audit Trail</comment>
   </data>
+  <data name="Audit Trail for User" xml:space="preserve">
+    <value>Audit Trail for User</value>
+    <comment>Audit Trail for User</comment>
+  </data>
   <data name="Current Values" xml:space="preserve">
     <value>Current Values</value>
     <comment>Current Values</comment>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Date</value>
+    <comment>Date</comment>
   </data>
   <data name="Details for Audit Trail with Id :" xml:space="preserve">
     <value>Details for Audit Trail with Id :</value>
     <comment>Details for Audit Trail with Id :</comment>
   </data>
+  <data name="Entity" xml:space="preserve">
+    <value>Entity</value>
+    <comment>Entity</comment>
+  </data>
   <data name="Hide" xml:space="preserve">
     <value>Hide</value>
     <comment>Hide</comment>
   </data>
+  <data name="Id" xml:space="preserve">
+    <value>Id</value>
+    <comment>Id</comment>
+  </data>
   <data name="Modified Properties" xml:space="preserve">
     <value>Modified Properties</value>
     <comment>Modified Properties</comment>
+  </data>
+  <data name="Operation" xml:space="preserve">
+    <value>Operation</value>
+    <comment>Operation</comment>
   </data>
   <data name="Previous Values" xml:space="preserve">
     <value>Previous Values</value>
@@ -152,5 +172,9 @@
   <data name="Trail Details" xml:space="preserve">
     <value>Trail Details</value>
     <comment>Trail Details</comment>
+  </data>
+  <data name="Trails" xml:space="preserve">
+    <value>Trails</value>
+    <comment>Trails</comment>
   </data>
 </root>

@@ -120,17 +120,32 @@
   <data name="Audit Trail" xml:space="preserve">
     <value>Ouditspoor</value>
   </data>
+  <data name="Audit Trail for User" xml:space="preserve">
+    <value>Ouditspoor vir gebruiker</value>
+  </data>
   <data name="Current Values" xml:space="preserve">
     <value>Huidige waardes</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Datum</value>
   </data>
   <data name="Details for Audit Trail with Id :" xml:space="preserve">
     <value>Besonderhede vir ouditroete met Id:</value>
   </data>
+  <data name="Entity" xml:space="preserve">
+    <value>Tafel</value>
+  </data>
   <data name="Hide" xml:space="preserve">
     <value>Versteek</value>
   </data>
+  <data name="Id" xml:space="preserve">
+    <value>Id</value>
+  </data>
   <data name="Modified Properties" xml:space="preserve">
     <value>Gewysigde Eienskappe</value>
+  </data>
+  <data name="Operation" xml:space="preserve">
+    <value>Operasie</value>
   </data>
   <data name="Previous Values" xml:space="preserve">
     <value>Vorige waardes</value>
@@ -143,5 +158,8 @@
   </data>
   <data name="Trail Details" xml:space="preserve">
     <value>Oudit detail</value>
+  </data>
+  <data name="Trails" xml:space="preserve">
+    <value>Oudits</value>
   </data>
 </root>

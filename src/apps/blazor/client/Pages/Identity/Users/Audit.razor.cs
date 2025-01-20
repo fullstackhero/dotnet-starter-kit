@@ -45,16 +45,16 @@ public partial class Audit
                 Id = new Guid(state.User.GetUserId()!);
             }
         }
-        _subHeader = $"Audit Trail for User {Id}";
+        _subHeader = $"{_localizer["Audit Trail for User"]} : {Id}";
         Context = new(
-            entityNamePlural: "Trails",
+            entityNamePlural: _localizer["Trails"],
             searchAction: true.ToString(),
             fields: new()
             {
-                new(audit => audit.Id,"Id"),
-                new(audit => audit.Entity, "Entity"),
-                new(audit => audit.DateTime, "Date", Template: DateFieldTemplate),
-                new(audit => audit.Operation, "Operation")
+                new(audit => audit.Id,_localizer["Id"], "Id"),
+                new(audit => audit.Entity, _localizer["Id"],"Entity"),
+                new(audit => audit.DateTime, _localizer["Date"],"Date", Template: DateFieldTemplate),
+                new(audit => audit.Operation,_localizer["Operation"], "Operation")
             },
             loadDataFunc: async () => _trails = (await ApiClient.GetUserAuditTrailEndpointAsync(Id)).Adapt<List<RelatedAuditTrail>>(),
             searchFunc: (searchString, trail) =>
