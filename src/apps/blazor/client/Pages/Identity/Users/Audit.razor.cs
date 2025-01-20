@@ -52,8 +52,8 @@ public partial class Audit
             fields: new()
             {
                 new(audit => audit.Id,_localizer["Id"], "Id"),
-                new(audit => audit.Entity, _localizer["Id"],"Entity"),
-                new(audit => audit.DateTime, _localizer["Date"],"Date", Template: DateFieldTemplate),
+                new(audit => audit.Entity, _localizer["Entity"], "Entity"),
+                new(audit => audit.DateTime, _localizer["Date"], "Date", Template: DateFieldTemplate),
                 new(audit => audit.Operation,_localizer["Operation"], "Operation")
             },
             loadDataFunc: async () => _trails = (await ApiClient.GetUserAuditTrailEndpointAsync(Id)).Adapt<List<RelatedAuditTrail>>(),
