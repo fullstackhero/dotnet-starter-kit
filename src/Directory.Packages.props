@@ -31,7 +31,7 @@
     <PackageVersion Include="Microsoft.NET.Build.Containers" Version="8.0.100" />
     <PackageVersion Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
     <PackageVersion Include="MimeKit" Version="4.9.0" />
-    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.2" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.3" />
     <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.11.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" Version="1.0.0-beta.12" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Process" Version="0.5.0-beta.6" />

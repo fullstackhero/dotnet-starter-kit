@@ -20,6 +20,7 @@ public sealed class TodoDbContext : FshDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
+        base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(TodoDbContext).Assembly);
         modelBuilder.HasDefaultSchema(SchemaNames.Todo);
     }
