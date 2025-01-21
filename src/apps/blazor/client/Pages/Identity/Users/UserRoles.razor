@@ -13,13 +13,13 @@ else
         <ToolBarContent>
             <div class="justify-center mud-text-align-center">
                 <MudButton Variant="Variant.Filled" DropShadow="false" Color="Color.Info" Class="ml-auto" StartIcon="@Icons.Material.Filled.ArrowBack" Href="/identity/users">
-                    Back
+                    @_localizer["Back"]
                 </MudButton>
                 @if (_canEditUsers)
                 {
                     <MudButton Variant="Variant.Filled" DropShadow="false" Color="Color.Primary" Class="ml-auto" OnClick="SaveAsync" StartIcon="@Icons.Material.Filled.Save"
                         ButtonType="ButtonType.Submit" Style="margin-left: 5px!important;">
-                        Update
+                        @_localizer["Update"]
                     </MudButton>
                 }
             </div>
@@ -27,30 +27,30 @@ else
             @if (_canSearchRoles)
             {
                 <MudTextField @bind-Value="_searchString" Immediate="true" FullWidth=false
-                    Placeholder="Search For User Roles" Adornment="Adornment.End"
+                              Placeholder="@_localizer["Search For User Roles"]" Adornment="Adornment.End"
                     AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0 mb-3">
                 </MudTextField>
             }
         </ToolBarContent>
         <HeaderContent>
             <MudTh>
-                <MudTableSortLabel SortBy="new Func<UserRoleDetail, object?>(x => x.RoleName)">Role Name</MudTableSortLabel>
+                <MudTableSortLabel SortBy="new Func<UserRoleDetail, object?>(x => x.RoleName)">@_localizer["Role Name"]</MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortBy="new Func<UserRoleDetail, object?>(x => x.Description)">Description</MudTableSortLabel>
+                <MudTableSortLabel SortBy="new Func<UserRoleDetail, object?>(x => x.Description)">@_localizer["Description"]</MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortBy="new Func<UserRoleDetail, object>(x => x.Enabled)">Status</MudTableSortLabel>
+                <MudTableSortLabel SortBy="new Func<UserRoleDetail, object>(x => x.Enabled)">@_localizer["Status"]</MudTableSortLabel>
             </MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="Role Name">
+            <MudTd DataLabel="@_localizer["Role Name"]">
                 <MudHighlighter Text="@context.RoleName" HighlightedText="@_searchString" />
             </MudTd>
-            <MudTd DataLabel="Description">
+            <MudTd DataLabel="@_localizer["Description"]">
                 <MudHighlighter Text="@context.Description" HighlightedText="@_searchString" />
             </MudTd>
-            <MudTd DataLabel="Status">
+            <MudTd DataLabel="@_localizer["Status"]">
                 <MudCheckBox T="bool" @bind-Value="@context.Enabled" Disabled="@(!_canEditUsers)" Color="Color.Secondary">
                 </MudCheckBox>
             </MudTd>
