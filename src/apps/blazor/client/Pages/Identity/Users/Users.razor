@@ -1,46 +1,46 @@
 ﻿@page "/identity/users"
-
-<PageHeader Title="Users" Header="Users" SubHeader="Manage Users." />
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Users> _localizer
+<PageHeader Title="@_localizer["Users"]" Header="@_localizer["Users"]" SubHeader="@_localizer["Manage Users."]" />
 
 <EntityTable TEntity="UserDetail" TId="Guid" TRequest="RegisterUserCommand" Context="@Context">
     <ExtraActions>
-        <MudMenuItem OnClick="(() => ViewProfile(context.Id))">View Profile</MudMenuItem>
+        <MudMenuItem OnClick="(() => ViewProfile(context.Id))">@_localizer["View Profile"]</MudMenuItem>
         @if (_canViewRoles)
         {
-            <MudMenuItem OnClick="(() => ManageRoles(context.Id))">Manage Roles</MudMenuItem>
+            <MudMenuItem OnClick="(() => ManageRoles(context.Id))">@_localizer["Manage Roles"]</MudMenuItem>
         }
         @if (_canViewAuditTrails)
         {
-            <MudMenuItem OnClick="(() => ViewAuditTrails(context.Id))">View Audit Trails</MudMenuItem>
+            <MudMenuItem OnClick="(() => ViewAuditTrails(context.Id))">@_localizer["View Audit Trails"]</MudMenuItem>
         }
     </ExtraActions>
 
     <EditFormContent>
         <MudItem xs="12" md="6">
-            <MudTextField For="@(() => context.UserName)" @bind-Value="context.UserName" Label="User Name" />
+            <MudTextField For="@(() => context.UserName)" @bind-Value="context.UserName" Label="@_localizer["UserName"]" />
         </MudItem>
         <MudItem xs="12" md="6">
-            <MudTextField For="@(() => context.FirstName)" @bind-Value="context.FirstName" Label="First Name" />
+            <MudTextField For="@(() => context.FirstName)" @bind-Value="context.FirstName" Label="@_localizer["First Name"]" />
         </MudItem>
         <MudItem xs="12" md="6">
-            <MudTextField For="@(() => context.LastName)" @bind-Value="context.LastName" Label="Last Name" />
+            <MudTextField For="@(() => context.LastName)" @bind-Value="context.LastName" Label="@_localizer["Last Name"]" />
         </MudItem>
         <MudItem xs="12" md="6">
             <MudTextField For="@(() => context.Email)" InputType="InputType.Email" @bind-Value="context.Email"
-                Label="Email" />
+                          Label="@_localizer["Email"]" />
         </MudItem>
         <MudItem xs="12" md="12">
             <MudTextField For="@(() => context.PhoneNumber)" @bind-Value="context.PhoneNumber"
-                Label="Phone Number" />
+                          Label="@_localizer["Phone Number"]" />
         </MudItem>
         <MudItem xs="12" md="6">
-            <MudTextField For="@(() => context.Password)" @bind-Value="context.Password" Label="Password"
+            <MudTextField For="@(() => context.Password)" @bind-Value="context.Password" Label="@_localizer["Password"]"
                 InputType="@_passwordInput" Adornment="Adornment.End" AdornmentIcon="@_passwordInputIcon"
                 OnAdornmentClick="TogglePasswordVisibility" />
         </MudItem>
         <MudItem xs="12" md="6">
             <MudTextField For="@(() => context.ConfirmPassword)" @bind-Value="context.ConfirmPassword"
-                Label="Confirm Password" InputType="InputType.Password" />
+                          Label="@_localizer["Confirm Password"]" InputType="InputType.Password" />
         </MudItem>
     </EditFormContent>
 

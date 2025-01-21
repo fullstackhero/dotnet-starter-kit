@@ -17,14 +17,14 @@ public partial class Brands
 
     protected override void OnInitialized() =>
         Context = new(
-            entityName: "Brand",
-            entityNamePlural: "Brands",
+            entityName: @_localizer["Brand"],
+            entityNamePlural: @_localizer["Brands"],
             entityResource: FshResources.Brands,
             fields: new()
             {
-                new(brand => brand.Id, "Id", "Id"),
-                new(brand => brand.Name, "Name", "Name"),
-                new(brand => brand.Description, "Description", "Description")
+                new(brand => brand.Id,_localizer["Id"], "Id"),
+                new(brand => brand.Name, _localizer["Name"], "Name"),
+                new(brand => brand.Description, _localizer["Description"], "Description")
             },
             enableAdvancedSearch: true,
             idFunc: brand => brand.Id!.Value,

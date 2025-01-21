@@ -1,6 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using Blazored.LocalStorage;
 using FSH.Starter.Blazor.Infrastructure.Themes;
+using FSH.Starter.Shared.Constants;
 using MudBlazor;
 
 namespace FSH.Starter.Blazor.Infrastructure.Preferences;
@@ -53,23 +54,23 @@ public class ClientPreferenceManager : IClientPreferenceManager
 
     public async Task<bool> ChangeLanguageAsync(string languageCode)
     {
-        //if (await GetPreference() is ClientPreference preference)
-        //{
-        //    var language = Array.Find(LocalizationConstants.SupportedLanguages, a => a.Code == languageCode);
-        //    if (language?.Code is not null)
-        //    {
-        //        preference.LanguageCode = language.Code;
-        //        preference.IsRTL = language.IsRTL;
-        //    }
-        //    else
-        //    {
-        //        preference.LanguageCode = "en-EN";
-        //        preference.IsRTL = false;
-        //    }
+        if (await GetPreference() is ClientPreference preference)
+        {
+            var language = Array.Find(LocalizationConstants.SupportedLanguages, a => a.Code == languageCode);
+            if (language?.Code is not null)
+            {
+                preference.LanguageCode = language.Code;
+                //preference.IsRTL = language.IsRTL;
+            }
+            else
+            {
+                preference.LanguageCode = "en-US";
+                //preference.IsRTL = false;
+            }
 
-        //    await SetPreference(preference);
-        //    return true;
-        //}
+            await SetPreference(preference);
+            return true;
+        }
 
         return false;
     }

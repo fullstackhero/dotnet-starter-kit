@@ -1,4 +1,5 @@
-﻿<MudGrid>
+﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<Profile> _localizer
+<MudGrid>
     <MudItem xs="12" sm="12" md="4">
         <MudCard Outlined>
             <MudCardContent Style="padding:0px!important">
@@ -22,18 +23,18 @@
                 <div style="padding-bottom:20px">
                     <MudButton DropShadow="false" HtmlTag="label" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small"
                                StartIcon="@Icons.Material.Filled.CloudUpload" for="fileInput">
-                    Upload Profile Picture
+                        @_localizer["Upload Profile Picture"]
                 </MudButton>
                 @if(!string.IsNullOrEmpty(_imageUrl))
                 {
                     <MudButton HtmlTag="label" DropShadow="false" Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" Target="_blank"
                         StartIcon="@Icons.Material.Filled.RemoveRedEye" Href="@_imageUrl" Style="margin-left: 5px;" >
-                        View
+                            @_localizer["View"]
                     </MudButton>
 
                     <MudButton HtmlTag="label" DropShadow="false" Variant="Variant.Filled" Color="Color.Error" Size="Size.Small"
                                    StartIcon="@Icons.Material.Filled.Delete" OnClick="RemoveImageAsync" Style="margin-left: 5px;">
-                        Delete
+                            @_localizer["Delete"]
                     </MudButton>
                 }
 
@@ -47,7 +48,7 @@
             <MudCard Outlined>
                 <MudCardHeader>
                     <CardHeaderContent>
-                        <MudText>Profile Details</MudText>
+                        <MudText>@_localizer["Profile Details"]</MudText>
                     </CardHeaderContent>
                 </MudCardHeader>
                 <MudCardContent>
@@ -56,19 +57,19 @@
                         <FshValidation @ref="_customValidation" />
                         <MudItem xs="12" md="6">
                             <MudTextField @bind-Value="@_profileModel.FirstName" For="@(() => _profileModel.FirstName)"
-                                Label="First Name" Variant="Variant.Outlined" />
+                                          Label="@_localizer["First Name"]" Variant="Variant.Outlined" />
                         </MudItem>
                         <MudItem xs="12" md="6">
                             <MudTextField @bind-Value="@_profileModel.LastName" For="@(() => _profileModel.LastName)"
-                                Label="Last Name" Variant="Variant.Outlined" />
+                                          Label="@_localizer["Last Name"]" Variant="Variant.Outlined" />
                         </MudItem>
                         <MudItem xs="12" md="6">
                             <MudTextField @bind-Value="@_profileModel.PhoneNumber"
-                                For="@(() => _profileModel.PhoneNumber)" Label="Phone Number"
+                                          For="@(() => _profileModel.PhoneNumber)" Label="@_localizer["Phone Number"]"
                                 Variant="Variant.Outlined" />
                         </MudItem>
                         <MudItem xs="12" md="6">
-                            <MudTextField @bind-Value="@_profileModel.Email" Label="Email"
+                            <MudTextField @bind-Value="@_profileModel.Email" Label="@_localizer["Email"]"
                                 For="@(() => _profileModel.Email)" Variant="Variant.Outlined"
                                 InputType="InputType.Email" Disabled="true" />
                         </MudItem>
@@ -76,7 +77,7 @@
                 </MudCardContent>
                 <MudCardActions Class="pb-4 pl-4">
                     <MudButton DropShadow="false" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" StartIcon="@Icons.Material.Filled.Save"
-                        ButtonType="ButtonType.Submit">Save Changes</MudButton>
+                               ButtonType="ButtonType.Submit">@_localizer["Save Changes"]</MudButton>
                 </MudCardActions>
             </MudCard>
         </EditForm>

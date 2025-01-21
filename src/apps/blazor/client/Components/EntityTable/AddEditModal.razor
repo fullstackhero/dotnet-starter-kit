@@ -1,4 +1,5 @@
-﻿@typeparam TRequest
+﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<Modals> _localizer
+@typeparam TRequest
 
 <EditForm Model="@RequestModel" OnValidSubmit="SaveAsync">
     <MudDialog>
@@ -29,21 +30,20 @@
 
         <DialogActions>
             <MudButton DropShadow="false" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Cancel" OnClick="MudDialog.Cancel">
-               Cancel
+                @_localizer["Cancel"]
             </MudButton>
             @if (IsCreate)
             {
                 <MudButton DropShadow="false" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" ButtonType="ButtonType.Submit" Color="Color.Success">
-                    Save
+                    @_localizer["Save"]
                 </MudButton>
             }
             else
             {
                 <MudButton DropShadow="false" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Update" ButtonType="ButtonType.Submit" Color="Color.Secondary">
-                    Update
+                    @_localizer["Update"]
                 </MudButton>
             }
         </DialogActions>
-
     </MudDialog>
 </EditForm>

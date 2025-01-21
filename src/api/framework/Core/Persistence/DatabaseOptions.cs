@@ -1,9 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
 namespace FSH.Framework.Core.Persistence;
+
 public class DatabaseOptions : IValidatableObject
 {
-    public string Provider { get; set; } = "postgresql";
+    public string Provider { get; set; } = "mssql";
     public string ConnectionString { get; set; } = string.Empty;
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)

@@ -10,5 +10,7 @@ public interface IClientPreferenceManager : IPreferenceManager
 
     Task<bool> ToggleDrawerAsync();
 
+    Task<bool> ChangeLanguageAsync(string languageCode);
+
     Task<bool> ToggleLayoutDirectionAsync();
 }

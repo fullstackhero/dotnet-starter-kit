@@ -45,8 +45,8 @@ public partial class RolePermissions
                 () => RolesClient.GetRolePermissionsEndpointAsync(Id), Toast, Navigation)
             is RoleDto role && role.Permissions is not null)
         {
-            _title = string.Format("{0} Permissions", role.Name);
-            _description = string.Format("Manage {0} Role Permissions", role.Name);
+            _title = $"{role.Name} {_localizer["Permissions"]}";
+            _description = $"{_localizer["Manage"]} {role.Name} {_localizer["Role Permissions"]}";
 
             var permissions = state.User.GetTenant() == TenantConstants.Root.Id
                 ? FshPermissions.All
@@ -88,7 +88,7 @@ public partial class RolePermissions
         await ApiHelper.ExecuteCallGuardedAsync(
                 () => RolesClient.UpdateRolePermissionsEndpointAsync(request.RoleId, request),
                 Toast,
-                successMessage: "Updated Permissions.");
+                successMessage: _localizer["Updated Permissions."]);
         Navigation.NavigateTo("/identity/roles");
     }
 

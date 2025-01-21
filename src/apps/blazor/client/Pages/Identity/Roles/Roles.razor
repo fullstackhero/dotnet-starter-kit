@@ -1,28 +1,29 @@
 ﻿@page "/identity/roles"
-
-<PageHeader Title="Roles" Header="Roles" SubHeader="Manage Roles." />
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Roles> _localizer
+<PageHeader Title="@_localizer["Roles"]" Header="@_localizer["Roles"]" SubHeader="@_localizer["Manage Roles."]" />
 
 <EntityTable TEntity="RoleDto" TId="string" TRequest="CreateOrUpdateRoleCommand" Context="@Context">
     <ExtraActions>
         @if (_canViewRoleClaims)
         {
-            <MudMenuItem @onclick="@(() => ManagePermissions(context.Id))">Manage Permission</MudMenuItem>
+            <MudMenuItem @onclick="@(() => ManagePermissions(context.Id))">@_localizer["Manage Permission"]</MudMenuItem>
         }
     </ExtraActions>
     <EditFormContent>
         @if (!Context.AddEditModal.IsCreate)
         {
             <MudItem xs="12" md="6">
-                <MudTextField Value="context.Id" ReadOnly Underline="false" Label="Role Id]" />
+                <MudTextField Value="context.Id" ReadOnly Underline="false" Label="@_localizer["Id"]" />
             </MudItem>
         }
         <MudItem xs="12" md="6">
-            <MudTextField For="@(() => context.Name)" @bind-Value="context.Name" Label="Role Name" />
+            <MudTextField For="@(() => context.Name)" @bind-Value="context.Name" Label="@_localizer["Name"]" />
         </MudItem>
         <MudItem xs="12" md="6">
-            <MudTextField For="@(() => context.Description)" @bind-Value="context.Description"
-                Label="Description" />
+            <MudTextField For="@(() => context.Description)" @bind-Value="context.Description" Label="@_localizer["Description"]" />
         </MudItem>
     </EditFormContent>
 
 </EntityTable>
+
+            

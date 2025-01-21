@@ -1,4 +1,5 @@
 ﻿@page "/identity/roles/{Id}/permissions"
+@inject Microsoft.Extensions.Localization.IStringLocalizer<RolePermissions> _localizer
 
 <PageHeader Title="@_title" Header="@_title" SubHeader="@_description" />
 
@@ -19,12 +20,13 @@ else
                     <ToolBarContent>
                         <div class="justify-center mud-text-align-center">
                             <MudButton Variant="Variant.Filled" DropShadow="false" Color="Color.Info" Class="ml-auto" StartIcon="@Icons.Material.Filled.ArrowBack" Href="/identity/roles">
-                                Back
+                                @_localizer["Back"]
                             </MudButton>
                             @if (_canEditRoleClaims)
                             {
                                 <MudButton Variant="Variant.Filled" DropShadow="false" Color="Color.Primary" Class="ml-auto" OnClick="SaveAsync"
-                                    ButtonType="ButtonType.Submit" Style="margin-left: 5px!important;" StartIcon="@Icons.Material.Filled.Save">Update Permissions
+                                           ButtonType="ButtonType.Submit" Style="margin-left: 5px!important;" StartIcon="@Icons.Material.Filled.Save">
+                                    @_localizer["Update Permissions"]
                                 </MudButton>
                             }
                         </div>
@@ -32,33 +34,30 @@ else
                         @if (_canSearchRoleClaims)
                         {
                             <MudTextField @bind-Value="_searchString" Immediate="true" FullWidth=false
-                                Placeholder="Search For Role Permissions" Adornment="Adornment.End"
+                                          Placeholder="@_localizer["Search For Role Permissions"]" Adornment="Adornment.End"
                                 AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0 mb-3">
                             </MudTextField>
                         }
                     </ToolBarContent>
                     <HeaderContent>
                         <MudTh>
-                            <MudTableSortLabel SortBy="new Func<PermissionViewModel, object?>(x => x.Name)">
-                                Permission Name</MudTableSortLabel>
+                            <MudTableSortLabel SortBy="new Func<PermissionViewModel, object?>(x => x.Name)">@_localizer["Permission Name"]</MudTableSortLabel>
                         </MudTh>
                         <MudTh>
-                            <MudTableSortLabel SortBy="new Func<PermissionViewModel, object?>(x => x.Description)">
-                                Description</MudTableSortLabel>
+                            <MudTableSortLabel SortBy="new Func<PermissionViewModel, object?>(x => x.Description)">@_localizer["Description"]</MudTableSortLabel>
                         </MudTh>
                         <MudTh>
-                            <MudTableSortLabel SortBy="new Func<PermissionViewModel, object>(x => x.Enabled)">Status
-                            </MudTableSortLabel>
+                            <MudTableSortLabel SortBy="new Func<PermissionViewModel, object>(x => x.Enabled)">@_localizer["Status"]</MudTableSortLabel>
                         </MudTh>
                     </HeaderContent>
                     <RowTemplate>
-                        <MudTd DataLabel="Permission Name">
+                        <MudTd DataLabel="@_localizer["Permission Name"]">
                             <MudHighlighter Text="@context.Name" HighlightedText="@_searchString" />
                         </MudTd>
-                        <MudTd DataLabel="Description">
+                        <MudTd DataLabel="@_localizer["Description"]">
                             <MudHighlighter Text="@context.Description" HighlightedText="@_searchString" />
                         </MudTd>
-                        <MudTd DataLabel="Permission">
+                        <MudTd DataLabel="@_localizer["Permission"]">
                             <MudCheckBox T="bool" @bind-Value="@context.Enabled" Disabled="@(!_canEditRoleClaims)" Color="Color.Secondary">
                             </MudCheckBox>
                         </MudTd>

@@ -41,8 +41,8 @@ public partial class UserRoles
                 () => UsersClient.GetUserEndpointAsync(Id!), Toast, Navigation)
             is UserDetail user)
         {
-            _title = $"{user.FirstName} {user.LastName}'s Roles";
-            _description = string.Format("Manage {0} {1}'s Roles", user.FirstName, user.LastName);
+            _title = $"{user.FirstName} {user.LastName}'s {_localizer["Roles"]}";
+            _description = $"{_localizer["Manage"]} {user.FirstName} {user.LastName}'s {_localizer["Roles"]}";
 
             if (await ApiHelper.ExecuteCallGuardedAsync(
                     () => UsersClient.GetUserRolesEndpointAsync(user.Id.ToString()), Toast, Navigation)
@@ -67,7 +67,7 @@ public partial class UserRoles
         await ApiHelper.ExecuteCallGuardedAsync(
                 () => UsersClient.AssignRolesToUserEndpointAsync(Id, request),
                 Toast,
-                successMessage: "updated user roles");
+                successMessage: _localizer["updated user roles"]);
 
         Navigation.NavigateTo("/identity/users");
     }
