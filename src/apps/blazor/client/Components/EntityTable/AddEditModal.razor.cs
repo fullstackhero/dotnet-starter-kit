@@ -25,7 +25,7 @@ public partial class AddEditModal<TRequest> : IAddEditModal<TRequest>
     public string? SuccessMessage { get; set; }
 
     [CascadingParameter]
-    private MudDialogInstance MudDialog { get; set; } = default!;
+    private IMudDialogInstance MudDialog { get; set; } = default!;
 
     private FshValidation? _customValidation;
 
