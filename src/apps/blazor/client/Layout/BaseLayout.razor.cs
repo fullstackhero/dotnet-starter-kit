@@ -24,7 +24,7 @@ public partial class BaseLayout
             config.Icon = Icons.Custom.Brands.GitHub;
             config.Action = "Star us on Github!";
             config.ActionColor = Color.Info;
-            config.Onclick = snackbar =>
+            config.OnClick = snackbar =>
             {
                 Navigation.NavigateTo("https://github.com/fullstackhero/dotnet-starter-kit");
                 return Task.CompletedTask;
