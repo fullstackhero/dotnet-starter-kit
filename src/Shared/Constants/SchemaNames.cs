@@ -1,4 +1,4 @@
-﻿namespace FSH.Framework.Infrastructure.Persistence;
+﻿namespace Shared.Constants;
 public static class SchemaNames
 {
     public const string Todo = "todo";
