@@ -5,44 +5,47 @@ using FSH.Starter.WebApi.Catalog.Domain.Events;
 namespace FSH.Starter.WebApi.Catalog.Domain;
 public class Brand : AuditableEntity, IAggregateRoot
 {
-    public string Name { get; private set; } = default!;
+    public string Name { get; private set; } = string.Empty;
     public string? Description { get; private set; }
+
+    private Brand() { }
+
+    private Brand(Guid id, string name, string? description)
+    {
+        Id = id;
+        Name = name;
+        Description = description;
+        QueueDomainEvent(new BrandCreated { Brand = this });
+    }
 
     public static Brand Create(string name, string? description)
     {
-        var brand = new Brand
-        {
-            Name = name,
-            Description = description
-        };
-
-        brand.QueueDomainEvent(new BrandCreated() { Brand = brand });
-
-        return brand;
+        return new Brand(Guid.NewGuid(), name, description);
     }
 
     public Brand Update(string? name, string? description)
     {
-        if (name is not null && Name?.Equals(name, StringComparison.OrdinalIgnoreCase) is not true) Name = name;
-        if (description is not null && Description?.Equals(description, StringComparison.OrdinalIgnoreCase) is not true) Description = description;
+        bool isUpdated = false;
 
-        this.QueueDomainEvent(new BrandUpdated() { Brand = this });
+        if (!string.IsNullOrWhiteSpace(name) && !string.Equals(Name, name, StringComparison.OrdinalIgnoreCase))
+        {
+            Name = name;
+            isUpdated = true;
+        }
+
+        if (!string.Equals(Description, description, StringComparison.OrdinalIgnoreCase))
+        {
+            Description = description;
+            isUpdated = true;
+        }
+
+        if (isUpdated)
+        {
+            QueueDomainEvent(new BrandUpdated { Brand = this });
+        }
 
         return this;
     }
-
-    public static Brand Update(Guid id, string name, string? description)
-    {
-        var brand = new Brand
-        {
-            Id = id,
-            Name = name,
-            Description = description
-        };
-
-        brand.QueueDomainEvent(new BrandUpdated() { Brand = brand });
-
-        return brand;
-    }
 }
+
 

@@ -3,34 +3,44 @@ using FSH.Framework.Core.Domain.Contracts;
 using FSH.Starter.WebApi.Todo.Domain.Events;
 
 namespace FSH.Starter.WebApi.Todo.Domain;
-public class TodoItem : AuditableEntity, IAggregateRoot
+public sealed class TodoItem : AuditableEntity, IAggregateRoot
 {
-    public string? Title { get; set; }
+    public string Title { get; private set; } = string.Empty;
+    public string Note { get; private set; } = string.Empty;
 
-    public string? Note { get; set; }
+    private TodoItem() { }
 
-    public static TodoItem Create(string title, string note)
+    private TodoItem(string title, string note)
     {
-        var item = new TodoItem();
-
-        item.Title = title;
-        item.Note = note;
-
-        item.QueueDomainEvent(new TodoItemCreated(item.Id, item.Title, item.Note));
-
+        Title = title;
+        Note = note;
+        QueueDomainEvent(new TodoItemCreated(Id, Title, Note));
         TodoMetrics.Created.Add(1);
-
-        return item;
     }
+
+    public static TodoItem Create(string title, string note) => new(title, note);
 
     public TodoItem Update(string? title, string? note)
     {
-        if (title is not null && Title?.Equals(title, StringComparison.OrdinalIgnoreCase) is not true) Title = title;
-        if (note is not null && Note?.Equals(note, StringComparison.OrdinalIgnoreCase) is not true) Note = note;
+        bool isUpdated = false;
 
-        this.QueueDomainEvent(new TodoItemUpdated(this));
+        if (!string.IsNullOrWhiteSpace(title) && !string.Equals(Title, title, StringComparison.OrdinalIgnoreCase))
+        {
+            Title = title;
+            isUpdated = true;
+        }
+
+        if (!string.IsNullOrWhiteSpace(note) && !string.Equals(Note, note, StringComparison.OrdinalIgnoreCase))
+        {
+            Note = note;
+            isUpdated = true;
+        }
+
+        if (isUpdated)
+        {
+            QueueDomainEvent(new TodoItemUpdated(this));
+        }
 
         return this;
-
     }
 }
