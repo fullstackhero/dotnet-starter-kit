@@ -46,9 +46,22 @@ internal sealed partial class UserService(
         }
     }
 
-    public Task<string> ConfirmEmailAsync(string userId, string code, string tenant, CancellationToken cancellationToken)
+    public async Task<string> ConfirmEmailAsync(string userId, string code, string tenant, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        EnsureValidTenant();
+
+        var user = await userManager.Users
+            .Where(u => u.Id == userId && !u.EmailConfirmed)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        _ = user ?? throw new FshException("An error occurred while confirming E-Mail.");
+
+        code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
+        var result = await userManager.ConfirmEmailAsync(user, code);
+
+        return result.Succeeded
+            ? string.Format("Account Confirmed for E-Mail {0}. You can now use the /api/tokens endpoint to generate JWT.", user.Email)
+            : throw new FshException(string.Format("An error occurred while confirming {0}", user.Email));
     }
 
     public Task<string> ConfirmPhoneNumberAsync(string userId, string code)
@@ -111,7 +124,8 @@ internal sealed partial class UserService(
             UserName = request.UserName,
             PhoneNumber = request.PhoneNumber,
             IsActive = true,
-            EmailConfirmed = true
+            EmailConfirmed = false,
+            PhoneNumberConfirmed = false,
         };
 
         // register user

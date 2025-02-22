@@ -44,6 +44,14 @@ internal static class Extensions
             })
             .WithClaimStrategy(FshClaims.Tenant)
             .WithHeaderStrategy(TenantConstants.Identifier)
+            .WithDelegateStrategy(async context =>
+            {
+                if (context is not HttpContext httpContext)
+                    return null;
+                if (!httpContext.Request.Query.TryGetValue("tenant", out var tenantIdentifier) || string.IsNullOrEmpty(tenantIdentifier))
+                    return null;
+                return await Task.FromResult(tenantIdentifier.ToString());
+            })
             .WithDistributedCacheStore(TimeSpan.FromMinutes(60))
             .WithEFCoreStore<TenantDbContext, FshTenantInfo>();
         services.AddScoped<ITenantService, TenantService>();

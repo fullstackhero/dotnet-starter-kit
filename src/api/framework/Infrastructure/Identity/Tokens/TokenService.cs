@@ -50,6 +50,11 @@ public sealed class TokenService : ITokenService
             throw new UnauthorizedException("user is deactivated");
         }
 
+        if (!user.EmailConfirmed)
+        {
+            throw new UnauthorizedException("email not confirmed");
+        }
+
         if (currentTenant.Id != TenantConstants.Root.Id)
         {
             if (!currentTenant.IsActive)
