@@ -36,7 +36,7 @@ public class AuditInterceptor(ICurrentUser currentUser, TimeProvider timeProvide
         eventData.Context.ChangeTracker.DetectChanges();
         var trails = new List<TrailDto>();
         var utcNow = timeProvider.GetUtcNow();
-        foreach (var entry in eventData.Context.ChangeTracker.Entries<IAuditable>().Where(x => x.State is EntityState.Added or EntityState.Deleted or EntityState.Modified).ToList())
+        foreach (var entry in eventData.Context.ChangeTracker.Entries<IAuditable>().Where(x => x.State is EntityState.Added or EntityState.Deleted or EntityState.Modified && x.Entity.GetType().GetCustomAttributes(typeof(IgnoreAuditTrailAttribute), false).Length == 0).ToList())
         {
             var userId = currentUser.GetUserId();
             var trail = new TrailDto()
@@ -47,7 +47,7 @@ public class AuditInterceptor(ICurrentUser currentUser, TimeProvider timeProvide
                 DateTime = utcNow
             };
 
-            foreach (var property in entry.Properties)
+            foreach (var property in entry.Properties.Where(p => p.Metadata.PropertyInfo?.GetCustomAttributes(typeof(IgnoreAuditTrailAttribute), false).Length == 0))
             {
                 if (property.IsTemporary)
                 {

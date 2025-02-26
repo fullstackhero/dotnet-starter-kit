@@ -4,9 +4,13 @@ namespace FSH.Framework.Core.Domain;
 
 public class AuditableEntity<TId> : BaseEntity<TId>, IAuditable, ISoftDeletable
 {
+    [IgnoreAuditTrail]
     public DateTimeOffset Created { get; set; }
+    [IgnoreAuditTrail] 
     public Guid CreatedBy { get; set; }
+    [IgnoreAuditTrail] 
     public DateTimeOffset LastModified { get; set; }
+    [IgnoreAuditTrail] 
     public Guid? LastModifiedBy { get; set; }
     public DateTimeOffset? Deleted { get; set; }
     public Guid? DeletedBy { get; set; }
