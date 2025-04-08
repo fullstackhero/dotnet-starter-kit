@@ -1,11 +1,10 @@
 ﻿using FluentValidation;
+using FSH.Framework.Identity.Core.Dtos;
 
 namespace FSH.Framework.Identity.Endpoints.v1.Tokens.Refresh;
-public record RefreshTokenCommand(string Token, string RefreshToken);
-
-public class RefreshTokenValidator : AbstractValidator<RefreshTokenCommand>
+public class TokenRefreshRequestValidator : AbstractValidator<TokenRefreshRequest>
 {
-    public RefreshTokenValidator()
+    public TokenRefreshRequestValidator()
     {
         RuleFor(p => p.Token).Cascade(CascadeMode.Stop).NotEmpty();
 

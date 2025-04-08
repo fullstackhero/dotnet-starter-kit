@@ -1,11 +1,9 @@
-﻿using FSH.Framework.Core.Identity.Tokens.Features.Generate;
-using FSH.Framework.Core.Identity.Tokens.Features.Refresh;
-using FSH.Framework.Core.Identity.Tokens.Models;
+﻿using FSH.Framework.Identity.Core.Dtos;
 
 namespace FSH.Framework.Identity.Core.Tokens;
 public interface ITokenService
 {
-    Task<TokenResponse> GenerateTokenAsync(TokenGenerationCommand request, string ipAddress, CancellationToken cancellationToken);
-    Task<TokenResponse> RefreshTokenAsync(RefreshTokenCommand request, string ipAddress, CancellationToken cancellationToken);
+    Task<TokenDto> GenerateTokenAsync(TokenGenerationRequest request, string ipAddress, CancellationToken cancellationToken);
+    Task<TokenDto> RefreshTokenAsync(TokenRefreshRequest request, string ipAddress, CancellationToken cancellationToken);
 
 }

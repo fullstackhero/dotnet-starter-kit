@@ -1,15 +1,8 @@
 ﻿using System.Security.Claims;
 using FSH.Framework.Core.Identity.Users.Dtos;
-using FSH.Framework.Core.Identity.Users.Features.AssignUserRole;
-using FSH.Framework.Core.Identity.Users.Features.ChangePassword;
-using FSH.Framework.Core.Identity.Users.Features.ForgotPassword;
-using FSH.Framework.Core.Identity.Users.Features.RegisterUser;
-using FSH.Framework.Core.Identity.Users.Features.ResetPassword;
-using FSH.Framework.Core.Identity.Users.Features.ToggleUserStatus;
-using FSH.Framework.Core.Identity.Users.Features.UpdateUser;
 using FSH.Framework.Identity.Core.Dtos;
 
-namespace FSH.Framework.Core.Identity.Users.Abstractions;
+namespace FSH.Framework.Identity.Core.Abstractions;
 public interface IUserService
 {
     Task<bool> ExistsWithNameAsync(string name);

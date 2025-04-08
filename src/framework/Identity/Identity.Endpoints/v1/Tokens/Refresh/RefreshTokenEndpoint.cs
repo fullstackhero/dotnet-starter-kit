@@ -1,18 +1,17 @@
-﻿using FSH.Framework.Core.Identity.Tokens;
-using FSH.Framework.Core.Identity.Tokens.Features.Refresh;
-using FSH.Starter.Shared.Authorization;
+﻿using FSH.Framework.Identity.Core.Dtos;
+using FSH.Framework.Identity.Core.Tokens;
+using FSH.Framework.Shared.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 
-namespace FSH.Framework.Infrastructure.Identity.Tokens.Endpoints;
+namespace FSH.Framework.Identity.Endpoints.v1.Tokens.Refresh;
 public static class RefreshTokenEndpoint
 {
     internal static RouteHandlerBuilder MapRefreshTokenEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        return endpoints.MapPost("/refresh", (RefreshTokenCommand request,
-            [FromHeader(Name = TenantConstants.Identifier)] string tenant,
+        return endpoints.MapPost("/refresh", (TokenRefreshRequest request,
+            string tenant,
             ITokenService service,
             HttpContext context,
             CancellationToken cancellationToken) =>
