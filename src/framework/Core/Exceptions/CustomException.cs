@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace FSH.Framework.Application.Exceptions;
+namespace FSH.Framework.Core.Exceptions;
 
 /// <summary>
 /// FullStackHero exception used for consistent error handling across the stack.

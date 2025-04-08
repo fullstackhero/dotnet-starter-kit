@@ -16,27 +16,29 @@ public static class SpecificationBuilderExtensions
             .AdvancedSearch(filter.AdvancedSearch)
             .AdvancedFilter(filter.AdvancedFilter);
 
-    public static ISpecificationBuilder<T> PaginateBy<T>(this ISpecificationBuilder<T> query, PaginationFilter filter)
+    public static ISpecificationBuilder<T> PaginateBy<T>(
+        this ISpecificationBuilder<T> query,
+        PaginationFilter filter)
     {
-        if (filter.PageNumber <= 0)
+        var pageNumber = filter.PageNumber <= 0 ? 1 : filter.PageNumber;
+        var pageSize = filter.PageSize <= 0 ? 10 : filter.PageSize;
+
+        if (pageNumber > 1)
         {
-            filter.PageNumber = 1;
+            query = query.Skip((pageNumber - 1) * pageSize);
         }
 
-        if (filter.PageSize <= 0)
+        query = query.Take(pageSize);
+
+        if (filter.OrderBy is { Count: > 0 })
         {
-            filter.PageSize = 10;
+            query = query.OrderBy(filter.OrderBy);
         }
 
-        if (filter.PageNumber > 1)
-        {
-            query = query.Skip((filter.PageNumber - 1) * filter.PageSize);
-        }
-
-        return query
-            .Take(filter.PageSize)
-            .OrderBy(filter.OrderBy);
+        return query;
     }
+
+
 
     public static IOrderedSpecificationBuilder<T> SearchByKeyword<T>(
         this ISpecificationBuilder<T> specificationBuilder,
@@ -84,19 +86,19 @@ public static class SpecificationBuilderExtensions
         Expression propertyExpr,
         ParameterExpression paramExpr,
         string keyword,
-        string operatorSearch = FilterOperator.CONTAINS)
+        FilterOperator operatorSearch = FilterOperator.Contains)
     {
         if (propertyExpr is not MemberExpression memberExpr || memberExpr.Member is not PropertyInfo property)
         {
             throw new ArgumentException("propertyExpr must be a property expression.", nameof(propertyExpr));
         }
 
-        string searchTerm = operatorSearch switch
+        var searchTerm = operatorSearch switch
         {
-            FilterOperator.STARTSWITH => $"{keyword.ToLower()}%",
-            FilterOperator.ENDSWITH => $"%{keyword.ToLower()}",
-            FilterOperator.CONTAINS => $"%{keyword.ToLower()}%",
-            _ => throw new ArgumentException("operatorSearch is not valid.", nameof(operatorSearch))
+            FilterOperator.StartsWith => $"{keyword.ToLower()}%",
+            FilterOperator.EndsWith => $"%{keyword.ToLower()}",
+            FilterOperator.Contains => $"%{keyword.ToLower()}%",
+            _ => throw new CustomException($"Unsupported filter operator: {operatorSearch}")
         };
 
         // Generate lambda [ x => x.Property ] for string properties
@@ -188,39 +190,44 @@ public static class SpecificationBuilderExtensions
     private static Expression CreateFilterExpression(
         Expression memberExpression,
         Expression constantExpression,
-        string filterOperator)
+        FilterOperator filterOperator)
     {
         if (memberExpression.Type == typeof(string))
         {
-            constantExpression = Expression.Call(constantExpression, "ToLower", null);
-            memberExpression = Expression.Call(memberExpression, "ToLower", null);
+            constantExpression = Expression.Call(constantExpression, nameof(string.ToLower), null);
+            memberExpression = Expression.Call(memberExpression, nameof(string.ToLower), null);
         }
 
         return filterOperator switch
         {
-            FilterOperator.EQ => Expression.Equal(memberExpression, constantExpression),
-            FilterOperator.NEQ => Expression.NotEqual(memberExpression, constantExpression),
-            FilterOperator.LT => Expression.LessThan(memberExpression, constantExpression),
-            FilterOperator.LTE => Expression.LessThanOrEqual(memberExpression, constantExpression),
-            FilterOperator.GT => Expression.GreaterThan(memberExpression, constantExpression),
-            FilterOperator.GTE => Expression.GreaterThanOrEqual(memberExpression, constantExpression),
-            FilterOperator.CONTAINS => Expression.Call(memberExpression, "Contains", null, constantExpression),
-            FilterOperator.STARTSWITH => Expression.Call(memberExpression, "StartsWith", null, constantExpression),
-            FilterOperator.ENDSWITH => Expression.Call(memberExpression, "EndsWith", null, constantExpression),
-            _ => throw new CustomException("Filter Operator is not valid."),
+            FilterOperator.Eq => Expression.Equal(memberExpression, constantExpression),
+            FilterOperator.Neq => Expression.NotEqual(memberExpression, constantExpression),
+            FilterOperator.Lt => Expression.LessThan(memberExpression, constantExpression),
+            FilterOperator.Lte => Expression.LessThanOrEqual(memberExpression, constantExpression),
+            FilterOperator.Gt => Expression.GreaterThan(memberExpression, constantExpression),
+            FilterOperator.Gte => Expression.GreaterThanOrEqual(memberExpression, constantExpression),
+            FilterOperator.Contains => Expression.Call(memberExpression, nameof(string.Contains), null, constantExpression),
+            FilterOperator.StartsWith => Expression.Call(memberExpression, nameof(string.StartsWith), null, constantExpression),
+            FilterOperator.EndsWith => Expression.Call(memberExpression, nameof(string.EndsWith), null, constantExpression),
+            _ => throw new CustomException("Filter operator is not valid.")
         };
     }
 
+
     private static Expression CombineFilter(
-        string filterOperator,
-        Expression bExpresionBase,
-        Expression bExpresion) => filterOperator switch
+        FilterLogic logic,
+        Expression left,
+        Expression right)
+    {
+        return logic switch
         {
-            FilterLogic.AND => Expression.And(bExpresionBase, bExpresion),
-            FilterLogic.OR => Expression.Or(bExpresionBase, bExpresion),
-            FilterLogic.XOR => Expression.ExclusiveOr(bExpresionBase, bExpresion),
-            _ => throw new ArgumentException("FilterLogic is not valid."),
+            FilterLogic.And => Expression.And(left, right),
+            FilterLogic.Or => Expression.Or(left, right),
+            FilterLogic.Xor => Expression.ExclusiveOr(left, right),
+            _ => throw new ArgumentOutOfRangeException(nameof(logic), "Invalid filter logic.")
         };
+    }
+
 
     private static MemberExpression GetPropertyExpression(
         string propertyName,
@@ -298,8 +305,13 @@ public static class SpecificationBuilderExtensions
 
     private static Filter GetValidFilter(Filter filter)
     {
-        if (string.IsNullOrEmpty(filter.Field)) throw new CustomException("The field attribute is required when declaring a filter");
-        if (string.IsNullOrEmpty(filter.Operator)) throw new CustomException("The Operator attribute is required when declaring a filter");
+        if (string.IsNullOrWhiteSpace(filter.Field))
+            throw new CustomException("The 'Field' property is required when declaring a filter.");
+
+        // Optional: check if Operator is defined in the enum (defensive)
+        if (!Enum.IsDefined(typeof(FilterOperator), filter.Operator!))
+            throw new CustomException($"Invalid filter operator: {filter.Operator}");
+
         return filter;
     }
 
