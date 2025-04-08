@@ -1,2 +1,2 @@
-﻿namespace FSH.Framework.Identity.Core.Dtos;
+﻿namespace FSH.Framework.Identity.Core.Tokens;
 public record TokenGenerationRequest(string Email, string Password);

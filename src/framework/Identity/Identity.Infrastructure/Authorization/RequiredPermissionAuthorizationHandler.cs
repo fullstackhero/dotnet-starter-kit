@@ -1,4 +1,4 @@
-﻿using FSH.Framework.Identity.Core.Abstractions;
+﻿using FSH.Framework.Identity.Core.Users;
 using FSH.Framework.Shared.Authorization;
 using FSH.Framework.Shared.Extensions;
 using Microsoft.AspNetCore.Authorization;

@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using FSH.Framework.Identity.Core.Dtos;
+using FSH.Framework.Identity.Core.Tokens;
 
 namespace FSH.Framework.Identity.Endpoints.v1.Tokens.Generate;
 public class TokenGenerationRequestValidator : AbstractValidator<TokenGenerationRequest>

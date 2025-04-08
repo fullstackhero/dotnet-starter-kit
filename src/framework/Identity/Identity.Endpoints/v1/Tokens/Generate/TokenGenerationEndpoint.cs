@@ -1,5 +1,4 @@
-﻿using FSH.Framework.Identity.Core.Dtos;
-using FSH.Framework.Identity.Core.Tokens;
+﻿using FSH.Framework.Identity.Core.Tokens;
 using FSH.Framework.Shared.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;

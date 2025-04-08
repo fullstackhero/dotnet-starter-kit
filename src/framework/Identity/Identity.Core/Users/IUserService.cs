@@ -2,7 +2,7 @@
 using FSH.Framework.Core.Identity.Users.Dtos;
 using FSH.Framework.Identity.Core.Dtos;
 
-namespace FSH.Framework.Identity.Core.Abstractions;
+namespace FSH.Framework.Identity.Core.Users;
 public interface IUserService
 {
     Task<bool> ExistsWithNameAsync(string name);
