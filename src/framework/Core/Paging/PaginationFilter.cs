@@ -1,15 +1,11 @@
 ﻿namespace FSH.Framework.Core.Paging;
 
-public class PaginationFilter : BaseFilter
+public class PaginationFilter : BaseFilter, IPageRequest
 {
-    public int PageNumber { get; set; }
+    public int PageNumber { get; init; } = 1;
+    public int PageSize { get; init; } = 10;
+    public IReadOnlyList<string>? OrderBy { get; init; }
 
-    public int PageSize { get; set; } = int.MaxValue;
-    public string[]? OrderBy { get; set; }
-}
-
-public static class PaginationFilterExtensions
-{
-    public static bool HasOrderBy(this PaginationFilter filter) =>
-        filter.OrderBy?.Any() is true;
+    public string? Filters { get; init; }
+    public string? SortOrder { get; init; }
 }
