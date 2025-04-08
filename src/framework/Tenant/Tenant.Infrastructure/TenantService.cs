@@ -9,7 +9,7 @@ using Mapster;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-namespace FSH.Framework.Infrastructure.Tenant.Services;
+namespace FSH.Framework.Tenant.Infrastructure;
 
 public sealed class TenantService : ITenantService
 {
@@ -30,7 +30,7 @@ public sealed class TenantService : ITenantService
 
         if (tenant.IsActive)
         {
-            throw new FshException($"tenant {id} is already activated");
+            throw new CustomException($"tenant {id} is already activated");
         }
 
         tenant.Activate();
@@ -82,7 +82,7 @@ public sealed class TenantService : ITenantService
         var tenant = await GetTenantInfoAsync(id).ConfigureAwait(false);
         if (!tenant.IsActive)
         {
-            throw new FshException($"tenant {id} is already deactivated");
+            throw new CustomException($"tenant {id} is already deactivated");
         }
 
         tenant.Deactivate();

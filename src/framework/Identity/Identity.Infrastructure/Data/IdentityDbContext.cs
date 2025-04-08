@@ -1,17 +1,13 @@
 ﻿using Finbuckle.MultiTenant.Abstractions;
 using Finbuckle.MultiTenant.EntityFrameworkCore;
-using FSH.Framework.Core.Audit;
 using FSH.Framework.Core.Persistence;
-using FSH.Framework.Infrastructure.Identity.RoleClaims;
-using FSH.Framework.Infrastructure.Identity.Roles;
-using FSH.Framework.Infrastructure.Identity.Users;
-using FSH.Framework.Infrastructure.Persistence;
-using FSH.Framework.Infrastructure.Tenant;
+using FSH.Framework.Identity.Infrastructure.Roles;
+using FSH.Framework.Identity.Infrastructure.Users;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
-namespace FSH.Framework.Infrastructure.Identity.Persistence;
+namespace FSH.Framework.Identity.Infrastructure.Data;
 public class IdentityDbContext : MultiTenantIdentityDbContext<FshUser,
     FshRole,
     string,
@@ -28,8 +24,6 @@ public class IdentityDbContext : MultiTenantIdentityDbContext<FshUser,
         _settings = settings.Value;
         TenantInfo = multiTenantContextAccessor.MultiTenantContext.TenantInfo!;
     }
-
-    public DbSet<AuditTrail> AuditTrails { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

@@ -5,13 +5,14 @@ using FSH.Framework.Core.Persistence;
 using FSH.Framework.Core.Tenant.Abstractions;
 using FSH.Framework.Infrastructure.Persistence;
 using FSH.Framework.Infrastructure.Persistence.Services;
+using FSH.Framework.Shared.Constants;
+using FSH.Framework.Tenant.Infrastructure.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Serilog;
 
-namespace FSH.Framework.Infrastructure.Tenant;
+namespace FSH.Framework.Tenant.Infrastructure;
 internal static class Extensions
 {
     public static IServiceCollection ConfigureMultitenancy(this IServiceCollection services)
@@ -45,7 +46,7 @@ internal static class Extensions
             {
                 if (context is not HttpContext httpContext)
                     return null;
-                if (!httpContext.Request.Query.TryGetValue("tenant", out var tenantIdentifier) || string.IsNullOrEmpty(tenantIdentifier))
+                if (!httpContext.Request.Query.TryGetValue(FshClaims.Tenant, out var tenantIdentifier) || string.IsNullOrEmpty(tenantIdentifier))
                     return null;
                 return await Task.FromResult(tenantIdentifier.ToString());
             })
@@ -103,7 +104,6 @@ internal static class Extensions
         if (tenantDbContext.Database.GetPendingMigrations().Any())
         {
             tenantDbContext.Database.Migrate();
-            Log.Information("applied database migrations for tenant module");
         }
 
         // default tenant seeding
@@ -118,7 +118,6 @@ internal static class Extensions
             rootTenant.SetValidity(DateTime.UtcNow.AddYears(1));
             tenantDbContext.TenantInfo.Add(rootTenant);
             tenantDbContext.SaveChanges();
-            Log.Information("configured default tenant data");
         }
 
         // get all tenants from store

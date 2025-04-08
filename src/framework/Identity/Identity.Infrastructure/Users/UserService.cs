@@ -1,25 +1,17 @@
 ﻿using System.Collections.ObjectModel;
 using System.Security.Claims;
 using System.Text;
-using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Caching;
 using FSH.Framework.Core.Exceptions;
-using FSH.Framework.Core.Identity.Users.Abstractions;
 using FSH.Framework.Core.Identity.Users.Dtos;
-using FSH.Framework.Core.Identity.Users.Features.AssignUserRole;
-using FSH.Framework.Core.Identity.Users.Features.RegisterUser;
-using FSH.Framework.Core.Identity.Users.Features.ToggleUserStatus;
-using FSH.Framework.Core.Identity.Users.Features.UpdateUser;
 using FSH.Framework.Core.Jobs;
 using FSH.Framework.Core.Mail;
 using FSH.Framework.Core.Storage;
-using FSH.Framework.Core.Storage.File;
-using FSH.Framework.Infrastructure.Constants;
-using FSH.Framework.Infrastructure.Identity.Persistence;
-using FSH.Framework.Infrastructure.Identity.Roles;
-using FSH.Framework.Infrastructure.Tenant;
-using FSH.Starter.Shared.Authorization;
-using Mapster;
+using FSH.Framework.Identity.Core.Dtos;
+using FSH.Framework.Identity.Core.Users;
+using FSH.Framework.Identity.Infrastructure.Roles;
+using FSH.Framework.Identity.Infrastructure.Users;
+using FSH.Framework.Shared.Constants;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
@@ -54,14 +46,14 @@ internal sealed partial class UserService(
             .Where(u => u.Id == userId && !u.EmailConfirmed)
             .FirstOrDefaultAsync(cancellationToken);
 
-        _ = user ?? throw new FshException("An error occurred while confirming E-Mail.");
+        _ = user ?? throw new CustomException("An error occurred while confirming E-Mail.");
 
         code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
         var result = await userManager.ConfirmEmailAsync(user, code);
 
         return result.Succeeded
             ? string.Format("Account Confirmed for E-Mail {0}. You can now use the /api/tokens endpoint to generate JWT.", user.Email)
-            : throw new FshException(string.Format("An error occurred while confirming {0}", user.Email));
+            : throw new CustomException(string.Format("An error occurred while confirming {0}", user.Email));
     }
 
     public Task<string> ConfirmPhoneNumberAsync(string userId, string code)
@@ -96,7 +88,16 @@ internal sealed partial class UserService(
 
         _ = user ?? throw new NotFoundException("user not found");
 
-        return user.Adapt<UserDetail>();
+        return new UserDetail
+        {
+            Id = user.Id,
+            Email = user.Email,
+            UserName = user.UserName,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            ImageUrl = user.ImageUrl?.ToString(),
+            IsActive = user.IsActive
+        };
     }
 
     public Task<int> GetCountAsync(CancellationToken cancellationToken) =>
@@ -105,7 +106,22 @@ internal sealed partial class UserService(
     public async Task<List<UserDetail>> GetListAsync(CancellationToken cancellationToken)
     {
         var users = await userManager.Users.AsNoTracking().ToListAsync(cancellationToken);
-        return users.Adapt<List<UserDetail>>();
+        var result = new List<UserDetail>(users.Count);
+        foreach (var user in users)
+        {
+            result.Add(new UserDetail
+            {
+                Id = user.Id,
+                Email = user.Email,
+                UserName = user.UserName,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                ImageUrl = user.ImageUrl?.ToString(),
+                IsActive = user.IsActive
+            });
+        }
+
+        return result;
     }
 
     public Task<string> GetOrCreateFromPrincipalAsync(ClaimsPrincipal principal)
@@ -133,7 +149,7 @@ internal sealed partial class UserService(
         if (!result.Succeeded)
         {
             var errors = result.Errors.Select(error => error.Description).ToList();
-            throw new FshException("error while registering a new user", errors);
+            throw new CustomException("error while registering a new user", errors);
         }
 
         // add basic role
@@ -162,7 +178,7 @@ internal sealed partial class UserService(
         bool isAdmin = await userManager.IsInRoleAsync(user, FshRoles.Admin);
         if (isAdmin)
         {
-            throw new FshException("Administrators Profile's Status cannot be toggled");
+            throw new CustomException("Administrators Profile's Status cannot be toggled");
         }
 
         user.IsActive = request.ActivateUser;
@@ -182,7 +198,7 @@ internal sealed partial class UserService(
             user.ImageUrl = await storageService.UploadAsync<FshUser>(request.Image, FileType.Image);
             if (request.DeleteCurrentImage && imageUri != null)
             {
-                storageService.Remove(imageUri);
+                await storageService.RemoveAsync(imageUri.ToString());
             }
         }
 
@@ -200,7 +216,7 @@ internal sealed partial class UserService(
 
         if (!result.Succeeded)
         {
-            throw new FshException("Update profile failed");
+            throw new CustomException("Update profile failed");
         }
     }
 
@@ -216,7 +232,7 @@ internal sealed partial class UserService(
         if (!result.Succeeded)
         {
             List<string> errors = result.Errors.Select(error => error.Description).ToList();
-            throw new FshException("Delete profile failed", errors);
+            throw new CustomException("Delete profile failed", errors);
         }
     }
 
@@ -257,12 +273,12 @@ internal sealed partial class UserService(
             {
                 if (multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id == TenantConstants.Root.Id)
                 {
-                    throw new FshException("action not permitted");
+                    throw new CustomException("action not permitted");
                 }
             }
             else if (adminCount <= 2)
             {
-                throw new FshException("tenant should have at least 2 admins.");
+                throw new CustomException("tenant should have at least 2 admins.");
             }
         }
 

@@ -3,7 +3,7 @@ using FSH.Framework.Auditing.Core.Dtos;
 using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Framework.Auditing.Infrastructure.Services;
-public class AuditService(IAuditTrailDbContext context) : IAuditService
+public class AuditService(IAuditingDbContext context) : IAuditService
 {
     public async Task<List<AuditTrail>> GetUserTrailsAsync(Guid userId)
     {

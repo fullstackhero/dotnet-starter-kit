@@ -1,5 +1,4 @@
 ﻿using FSH.Framework.Core.Persistence;
-using FSH.Framework.Infrastructure.Persistence.Interceptors;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -36,7 +35,6 @@ public static class Extensions
                 Logger.Information("for documentations and guides, visit https://www.fullstackhero.net");
                 Logger.Information("to sponsor this project, visit https://opencollective.com/fullstackhero");
             });
-        builder.Services.AddScoped<ISaveChangesInterceptor, AuditInterceptor>();
         return builder;
     }
 

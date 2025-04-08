@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 using Npgsql;
 
 namespace FSH.Framework.Infrastructure.Persistence.Services;
-internal sealed class ConnectionStringValidator(IOptions<DatabaseOptions> dbSettings, ILogger<ConnectionStringValidator> logger) : IConnectionStringValidator
+public sealed class ConnectionStringValidator(IOptions<DatabaseOptions> dbSettings, ILogger<ConnectionStringValidator> logger) : IConnectionStringValidator
 {
     private readonly DatabaseOptions _dbSettings = dbSettings.Value;
     private readonly ILogger<ConnectionStringValidator> _logger = logger;

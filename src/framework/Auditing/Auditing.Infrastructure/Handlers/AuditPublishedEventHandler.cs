@@ -8,7 +8,7 @@ namespace FSH.Framework.Auditing.Infrastructure.Handlers;
 
 public class AuditPublishedEventHandler(
     ILogger<AuditPublishedEventHandler> logger,
-    IAuditTrailDbContext context)
+    IAuditingDbContext context)
     : INotificationHandler<AuditPublishedEvent>
 {
     public async Task Handle(AuditPublishedEvent notification, CancellationToken cancellationToken)

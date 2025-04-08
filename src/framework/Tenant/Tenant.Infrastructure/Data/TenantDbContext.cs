@@ -1,7 +1,7 @@
 ﻿using Finbuckle.MultiTenant.EntityFrameworkCore.Stores.EFCoreStore;
 using Microsoft.EntityFrameworkCore;
 
-namespace FSH.Framework.Infrastructure.Tenant.Persistence;
+namespace FSH.Framework.Tenant.Infrastructure.Data;
 public class TenantDbContext : EFCoreStoreDbContext<FshTenantInfo>
 {
     public const string Schema = "tenant";

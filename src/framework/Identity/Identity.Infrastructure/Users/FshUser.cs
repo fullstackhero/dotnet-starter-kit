@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-namespace FSH.Framework.Infrastructure.Identity.Users;
+namespace FSH.Framework.Identity.Infrastructure.Users;
 public class FshUser : IdentityUser
 {
     public string? FirstName { get; set; }

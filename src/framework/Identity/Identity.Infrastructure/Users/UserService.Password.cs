@@ -1,9 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Text;
 using FSH.Framework.Core.Exceptions;
-using FSH.Framework.Core.Identity.Users.Features.ChangePassword;
-using FSH.Framework.Core.Identity.Users.Features.ForgotPassword;
-using FSH.Framework.Core.Identity.Users.Features.ResetPassword;
 using FSH.Framework.Core.Mail;
 using Microsoft.AspNetCore.WebUtilities;
 
@@ -53,7 +50,7 @@ internal sealed partial class UserService
         if (!result.Succeeded)
         {
             var errors = result.Errors.Select(e => e.Description).ToList();
-            throw new FshException("error resetting password", errors);
+            throw new CustomException("error resetting password", errors);
         }
     }
 
@@ -68,7 +65,7 @@ internal sealed partial class UserService
         if (!result.Succeeded)
         {
             var errors = result.Errors.Select(e => e.Description).ToList();
-            throw new FshException("failed to change password", errors);
+            throw new CustomException("failed to change password", errors);
         }
     }
 }

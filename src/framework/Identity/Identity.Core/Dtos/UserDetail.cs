@@ -1,7 +1,7 @@
 ﻿namespace FSH.Framework.Identity.Core.Dtos;
 public class UserDetail
 {
-    public Guid Id { get; set; }
+    public string? Id { get; set; }
 
     public string? UserName { get; set; }
 
@@ -17,5 +17,5 @@ public class UserDetail
 
     public string? PhoneNumber { get; set; }
 
-    public Uri? ImageUrl { get; set; }
+    public string? ImageUrl { get; set; }
 }
