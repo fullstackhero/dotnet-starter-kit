@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <RootNamespace>FSH.Framework.Application</RootNamespace>
-    <AssemblyName>FSH.Framework.Application</AssemblyName>
+    <RootNamespace>FSH.Framework.Identity.Endpoints</RootNamespace>
+    <AssemblyName>FSH.Framework.Identity.Endpoints</AssemblyName>
   </PropertyGroup>
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -9,14 +9,11 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MediatR" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
-    <PackageReference Include="Mapster" />
+    <PackageReference Include="MediatR" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Core\Core.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Storage\" />
+    <ProjectReference Include="..\..\Core\Core.csproj" />
+    <ProjectReference Include="..\Identity.Core\Identity.Core.csproj" />
   </ItemGroup>
 </Project>

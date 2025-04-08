@@ -58,7 +58,7 @@
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.6.0.109712" />
   </ItemGroup>
   <ItemGroup>
-    <PackageVersion Include="MediatR" Version="12.4.1" />
+    <PackageVersion Include="MediatR" Version="12.5.0" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
     <PackageVersion Include="Carter" Version="9.0.0" />
   </ItemGroup>
