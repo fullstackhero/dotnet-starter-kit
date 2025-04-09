@@ -1,4 +1,4 @@
-﻿namespace FSH.Framework.Core.CQRS;
+﻿namespace FSH.Framework.Core.Messaging.CQRS;
 public interface IQueryDispatcher
 {
     /// <summary>

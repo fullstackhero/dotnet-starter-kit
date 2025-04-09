@@ -9,4 +9,7 @@
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Domain\Events\" />
+  </ItemGroup>
 </Project>

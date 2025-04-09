@@ -1,4 +1,4 @@
-﻿namespace FSH.Framework.Core.CQRS;
+﻿namespace FSH.Framework.Core.Messaging.CQRS;
 
 /// <summary>
 /// Handles a query and returns a result.

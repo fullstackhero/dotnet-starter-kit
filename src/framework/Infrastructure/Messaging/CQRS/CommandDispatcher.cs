@@ -1,7 +1,7 @@
-﻿using FSH.Framework.Core.CQRS;
+﻿using FSH.Framework.Core.Messaging.CQRS;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace FSH.Framework.Infrastructure.CQRS;
+namespace FSH.Framework.Infrastructure.Messaging.CQRS;
 public class CommandDispatcher : ICommandDispatcher
 {
     private readonly IServiceProvider _serviceProvider;
