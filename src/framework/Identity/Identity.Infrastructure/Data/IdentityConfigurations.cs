@@ -1,22 +1,10 @@
-﻿using FSH.Framework.Auditing.Core.Dtos;
+﻿using Finbuckle.MultiTenant;
+using FSH.Framework.Identity.Infrastructure.Roles;
 using FSH.Framework.Identity.Infrastructure.Users;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace FSH.Framework.Identity.Infrastructure.Data;
-
-public class AuditTrailConfig : IEntityTypeConfiguration<AuditTrail>
-{
-    public void Configure(EntityTypeBuilder<AuditTrail> builder)
-    {
-        builder
-            .ToTable("AuditTrails", IdentityConstants.SchemaName)
-            .IsMultiTenant();
-
-        builder.HasKey(a => a.Id);
-    }
-}
 
 public class ApplicationUserConfig : IEntityTypeConfiguration<FshUser>
 {

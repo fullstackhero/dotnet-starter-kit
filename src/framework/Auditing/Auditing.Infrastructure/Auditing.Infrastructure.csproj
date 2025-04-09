@@ -12,5 +12,7 @@
     <ProjectReference Include="..\..\Core\Core.csproj" />
     <ProjectReference Include="..\Auditing.Core\Auditing.Core.csproj" />
   </ItemGroup>
-
+  <ItemGroup>
+    <PackageReference Include="Finbuckle.MultiTenant.EntityFrameworkCore" />
+  </ItemGroup>
 </Project>

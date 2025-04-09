@@ -1,6 +1,10 @@
 ﻿using System.Reflection;
-using FSH.Framework.Auditing.Endpoints.v1.GetUserAudits;
+using Asp.Versioning;
+using Asp.Versioning.Builder;
+using FSH.Framework.Auditing.Endpoints.v1;
 using FSH.Framework.Infrastructure.Messaging.CQRS;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -19,8 +23,19 @@ public static class AuditingModule
 
     public static IEndpointRouteBuilder MapAuditingEndpoints(this IEndpointRouteBuilder endpoints)
     {
+        ApiVersionSet apiVersionSet = endpoints.NewApiVersionSet()
+            .HasApiVersion(new ApiVersion(1))
+            .ReportApiVersions()
+            .Build();
+
+        RouteGroupBuilder group = endpoints
+            .MapGroup("api/v{version:apiVersion}/auditing")
+            .WithTags("Auditing")
+            .WithOpenApi()
+            .WithApiVersionSet(apiVersionSet);
+
         // v1 endpoints
-        endpoints.MapGetUserAuditsEndpoint();
+        GetUserAudits.MapEndpoint(group);
 
         return endpoints;
     }
