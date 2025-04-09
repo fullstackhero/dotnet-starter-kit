@@ -4,13 +4,13 @@ using FSH.Framework.Auditing.Core.Events;
 using FSH.Framework.Core.Domain;
 using FSH.Framework.Core.Domain.Contracts;
 using FSH.Framework.Core.ExecutionContext;
-using MediatR;
+using FSH.Framework.Core.Messaging.Events;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace FSH.Framework.Auditing.Infrastructure.Interceptors;
-public class AuditInterceptor(ICurrentUser currentUser, TimeProvider timeProvider, IPublisher publisher) : SaveChangesInterceptor
+public class AuditInterceptor(ICurrentUser currentUser, TimeProvider timeProvider, IEventPublisher publisher) : SaveChangesInterceptor
 {
     public override ValueTask<int> SavedChangesAsync(SaveChangesCompletedEventData eventData, int result, CancellationToken cancellationToken = default)
     {
@@ -25,20 +25,20 @@ public class AuditInterceptor(ICurrentUser currentUser, TimeProvider timeProvide
     public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
     {
         UpdateEntities(eventData.Context);
-        await PublishAuditTrailsAsync(eventData);
+        await PublishAuditTrailsAsync(eventData, cancellationToken);
         return await base.SavingChangesAsync(eventData, result, cancellationToken);
     }
 
-    private async Task PublishAuditTrailsAsync(DbContextEventData eventData)
+    private async Task PublishAuditTrailsAsync(DbContextEventData eventData, CancellationToken cancellationToken)
     {
         if (eventData.Context == null) return;
         eventData.Context.ChangeTracker.DetectChanges();
-        var trails = new List<AuditTrail>();
+        var trails = new List<Trail>();
         var utcNow = timeProvider.GetUtcNow();
         foreach (var entry in eventData.Context.ChangeTracker.Entries<IAuditable>().Where(x => x.State is EntityState.Added or EntityState.Deleted or EntityState.Modified).ToList())
         {
             var userId = currentUser.GetUserId();
-            var audit = new AuditTrail()
+            var audit = new Trail()
             {
                 Id = Guid.NewGuid(),
                 EntityName = entry.Entity.GetType().Name,
@@ -100,7 +100,7 @@ public class AuditInterceptor(ICurrentUser currentUser, TimeProvider timeProvide
             trails.Add(audit);
         }
         if (trails.Count == 0) return;
-        await publisher.Publish(new AuditPublishedEvent(trails));
+        await publisher.PublishAsync(new AuditPublishedEvent(trails), cancellationToken);
     }
 
     public void UpdateEntities(DbContext? context)

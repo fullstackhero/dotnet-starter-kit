@@ -3,5 +3,5 @@
 namespace FSH.Framework.Auditing.Core.Abstractions;
 public interface IAuditService
 {
-    Task<List<AuditTrail>> GetUserTrailsAsync(Guid userId);
+    Task<List<Trail>> GetUserTrailsAsync(Guid userId);
 }

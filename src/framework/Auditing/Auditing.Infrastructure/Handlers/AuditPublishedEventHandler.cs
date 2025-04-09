@@ -21,7 +21,7 @@ public class AuditPublishedEventHandler(
 
         try
         {
-            await context.AuditTrails.AddRangeAsync(notification.Trails, cancellationToken);
+            await context.Trails.AddRangeAsync(notification.Trails, cancellationToken);
             await context.SaveChangesAsync(cancellationToken);
             logger.LogInformation("Persisted {Count} audit trail(s).", notification.Trails.Count);
         }

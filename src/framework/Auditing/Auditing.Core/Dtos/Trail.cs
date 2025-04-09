@@ -5,7 +5,7 @@ using FSH.Framework.Auditing.Core.Enums;
 
 namespace FSH.Framework.Auditing.Core.Dtos;
 
-public class AuditTrail
+public class Trail
 {
     public Guid Id { get; set; }
     public Guid UserId { get; set; }

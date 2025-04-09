@@ -5,9 +5,9 @@ using Microsoft.EntityFrameworkCore;
 namespace FSH.Framework.Auditing.Infrastructure.Services;
 public class AuditService(IAuditingDbContext context) : IAuditService
 {
-    public async Task<List<AuditTrail>> GetUserTrailsAsync(Guid userId)
+    public async Task<List<Trail>> GetUserTrailsAsync(Guid userId)
     {
-        var trails = await context.AuditTrails
+        var trails = await context.Trails
            .Where(a => a.UserId == userId)
            .OrderByDescending(a => a.DateTime)
            .Take(250)

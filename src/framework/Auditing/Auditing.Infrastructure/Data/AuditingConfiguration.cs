@@ -4,12 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace FSH.Framework.Auditing.Infrastructure.Data;
-public class AuditTrailConfig : IEntityTypeConfiguration<AuditTrail>
+public class TrailConfig : IEntityTypeConfiguration<Trail>
 {
-    public void Configure(EntityTypeBuilder<AuditTrail> builder)
+    public void Configure(EntityTypeBuilder<Trail> builder)
     {
         builder
-            .ToTable("AuditTrails", AuditingConstants.SchemaName)
+            .ToTable("Trails", AuditingConstants.SchemaName)
             .IsMultiTenant();
 
         builder.HasKey(a => a.Id);

@@ -4,6 +4,6 @@ using Microsoft.EntityFrameworkCore;
 namespace FSH.Framework.Auditing.Core.Abstractions;
 public interface IAuditingDbContext
 {
-    DbSet<AuditTrail> AuditTrails { get; }
+    DbSet<Trail> Trails { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

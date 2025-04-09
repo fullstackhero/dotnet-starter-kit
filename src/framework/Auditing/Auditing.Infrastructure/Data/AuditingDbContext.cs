@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace FSH.Framework.Auditing.Infrastructure.Data;
 public class AuditingDbContext : DbContext, IAuditingDbContext
 {
-    public DbSet<AuditTrail> AuditTrails { get; set; }
+    public DbSet<Trail> Trails { get; set; }
 
     public AuditingDbContext(DbContextOptions<AuditingDbContext> options) : base(options) { }
 

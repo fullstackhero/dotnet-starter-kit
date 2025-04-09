@@ -9,10 +9,10 @@ using Microsoft.AspNetCore.Routing;
 
 namespace FSH.Framework.Auditing.Endpoints.v1;
 
-public static class GetUserAudits
+public static class GetUserTrails
 {
     public sealed record Query(Guid UserId) : IQuery<Response>;
-    public sealed record Response(IReadOnlyList<AuditTrail> AuditTrails);
+    public sealed record Response(IReadOnlyList<Trail> AuditTrails);
     public sealed class Validator : AbstractValidator<Query>
     {
         public Validator()
@@ -22,7 +22,7 @@ public static class GetUserAudits
     }
     public static RouteHandlerBuilder MapEndpoint(IEndpointRouteBuilder endpoints)
     {
-        return endpoints.MapGet("/auditing/users/{userId:guid}/trails", async (
+        return endpoints.MapGet("/users/{userId:guid}/trails", async (
             Guid id,
             IQueryDispatcher dispatcher,
             CancellationToken cancellationToken) =>
@@ -30,7 +30,7 @@ public static class GetUserAudits
             var result = await dispatcher.SendAsync<Query, Response>(new Query(id), cancellationToken);
             return TypedResults.Ok(result);
         })
-        .WithName(nameof(GetUserAudits))
+        .WithName(nameof(GetUserTrails))
         .WithSummary("Get user's audit trail details")
         .RequirePermission("Permissions.AuditTrails.View")
         .WithDescription("Get user's audit trail details.");

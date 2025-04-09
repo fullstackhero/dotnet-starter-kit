@@ -5,9 +5,9 @@ namespace FSH.Framework.Auditing.Core.Events;
 
 public class AuditPublishedEvent : INotification
 {
-    public IReadOnlyCollection<AuditTrail> Trails { get; }
+    public IReadOnlyCollection<Trail> Trails { get; }
 
-    public AuditPublishedEvent(IReadOnlyCollection<AuditTrail> trails)
+    public AuditPublishedEvent(IReadOnlyCollection<Trail> trails)
     {
         Trails = trails;
     }
