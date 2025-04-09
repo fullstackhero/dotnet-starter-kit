@@ -1,4 +1,4 @@
-﻿using FSH.Framework.Auditing.Core.Dtos;
+﻿using FSH.Framework.Auditing.Contracts;
 
 namespace FSH.Framework.Auditing.Core.Abstractions;
 public interface IAuditService

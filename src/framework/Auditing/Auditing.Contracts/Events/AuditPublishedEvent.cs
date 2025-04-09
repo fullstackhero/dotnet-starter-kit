@@ -1,7 +1,6 @@
-﻿using FSH.Framework.Auditing.Core.Dtos;
-using FSH.Framework.Core.Messaging.Events;
+﻿using FSH.Framework.Core.Messaging.Events;
 
-namespace FSH.Framework.Auditing.Core.Events;
+namespace FSH.Framework.Auditing.Contracts.Events;
 
 public class AuditPublishedEvent : INotification
 {

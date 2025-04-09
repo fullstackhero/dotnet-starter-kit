@@ -3,5 +3,4 @@ public interface ITokenService
 {
     Task<TokenDto> GenerateTokenAsync(TokenGenerationRequest request, string ipAddress, CancellationToken cancellationToken);
     Task<TokenDto> RefreshTokenAsync(TokenRefreshRequest request, string ipAddress, CancellationToken cancellationToken);
-
 }

@@ -1,9 +1,9 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
-using FSH.Framework.Auditing.Core.Enums;
+using FSH.Framework.Auditing.Contracts.Enums;
 
-namespace FSH.Framework.Auditing.Core.Dtos;
+namespace FSH.Framework.Auditing.Contracts;
 
 public class Trail
 {
@@ -11,6 +11,7 @@ public class Trail
     public Guid UserId { get; set; }
     public DateTimeOffset DateTime { get; set; }
     public AuditOperation Operation { get; set; } // e.g., "Create", "Update", "Delete"
+    public required string Description { get; set; }
     public string? EntityName { get; set; } // Name of the entity/table affected
 
     // Store dictionaries as JSON in the database

@@ -1,5 +1,4 @@
-﻿using FSH.Framework.Identity.Core.Tokens;
-using FSH.Framework.Shared.Extensions;
+﻿using FSH.Framework.Core.Messaging.CQRS;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -9,18 +8,19 @@ public static class TokenGenerationEndpoint
 {
     internal static RouteHandlerBuilder MapTokenGenerationEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        return endpoints.MapPost("/", (TokenGenerationRequest request,
+        return endpoints.MapPost("/", async (
+            TokenGenerationCommand command,
             string tenant,
-            ITokenService service,
+            ICommandDispatcher dispatcher,
             HttpContext context,
             CancellationToken cancellationToken) =>
         {
-            string ip = context.GetIpAddress();
-            return service.GenerateTokenAsync(request, ip!, cancellationToken);
+            var result = await dispatcher.SendAsync<TokenGenerationCommand, TokenGenerationResponse>(command, cancellationToken);
+            return TypedResults.Ok(result);
         })
-        .WithName(nameof(TokenGenerationEndpoint))
-        .WithSummary("generate JWTs")
-        .WithDescription("generate JWTs")
+        .WithName("TokenGeneration")
+        .WithSummary("Generate JWTs")
+        .WithDescription("Generates access and refresh tokens.")
         .AllowAnonymous();
     }
 }

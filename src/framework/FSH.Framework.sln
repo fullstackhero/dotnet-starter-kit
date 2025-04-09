@@ -37,6 +37,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tenant.Infrastructure", "Te
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Auditing.Contracts", "Auditing\Auditing.Contracts\Auditing.Contracts.csproj", "{7A14CE7C-8D6A-4AF2-9F28-5E981C77DE55}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -95,6 +97,10 @@ Global
 		{F8AE32F3-31B9-4962-BE7A-1326BD13B739}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F8AE32F3-31B9-4962-BE7A-1326BD13B739}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F8AE32F3-31B9-4962-BE7A-1326BD13B739}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A14CE7C-8D6A-4AF2-9F28-5E981C77DE55}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A14CE7C-8D6A-4AF2-9F28-5E981C77DE55}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A14CE7C-8D6A-4AF2-9F28-5E981C77DE55}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A14CE7C-8D6A-4AF2-9F28-5E981C77DE55}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -112,6 +118,7 @@ Global
 		{AD14C8C7-7A0A-40E1-88C9-3F535B89C7E6} = {24E922E3-8C91-43A1-A110-D8F5276566BA}
 		{86BC889E-322A-460E-81B6-601EE65B37C1} = {24E922E3-8C91-43A1-A110-D8F5276566BA}
 		{F8AE32F3-31B9-4962-BE7A-1326BD13B739} = {24E922E3-8C91-43A1-A110-D8F5276566BA}
+		{7A14CE7C-8D6A-4AF2-9F28-5E981C77DE55} = {E5141F38-2D08-44DA-9A6C-B96890515168}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A2A6BABD-325C-4482-8830-41058E5D509D}
