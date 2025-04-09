@@ -3,11 +3,6 @@
     <RootNamespace>FSH.Framework.Tenant.Endpoints</RootNamespace>
     <AssemblyName>FSH.Framework.Tenant.Endpoints</AssemblyName>
   </PropertyGroup>
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
   </ItemGroup>

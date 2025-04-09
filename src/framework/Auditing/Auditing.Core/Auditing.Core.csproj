@@ -3,11 +3,6 @@
     <RootNamespace>FSH.Framework.Auditing.Core</RootNamespace>
     <AssemblyName>FSH.Framework.Auditing.Core</AssemblyName>
   </PropertyGroup>
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
   </ItemGroup>
@@ -15,5 +10,4 @@
     <ProjectReference Include="..\..\Core\Core.csproj" />
     <ProjectReference Include="..\Auditing.Contracts\Auditing.Contracts.csproj" />
   </ItemGroup>
-
 </Project>

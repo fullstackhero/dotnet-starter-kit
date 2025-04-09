@@ -3,14 +3,7 @@
     <RootNamespace>FSH.Framework.Auditing.Contracts</RootNamespace>
     <AssemblyName>FSH.Framework.Auditing.Contracts</AssemblyName>
   </PropertyGroup>
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Core.csproj" />
   </ItemGroup>
-
 </Project>

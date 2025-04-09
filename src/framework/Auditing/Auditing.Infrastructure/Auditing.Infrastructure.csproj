@@ -3,11 +3,6 @@
     <RootNamespace>FSH.Framework.Auditing.Infrastructure</RootNamespace>
     <AssemblyName>FSH.Framework.Auditing.Infrastructure</AssemblyName>
   </PropertyGroup>
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Core.csproj" />
     <ProjectReference Include="..\Auditing.Core\Auditing.Core.csproj" />
