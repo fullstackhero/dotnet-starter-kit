@@ -1,5 +1,5 @@
 ﻿using FSH.Framework.Auditing.Core.Dtos;
-using MediatR;
+using FSH.Framework.Core.Messaging.Events;
 
 namespace FSH.Framework.Auditing.Core.Events;
 

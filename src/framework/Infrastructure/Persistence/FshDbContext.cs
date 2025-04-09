@@ -1,20 +1,19 @@
 ﻿using Finbuckle.MultiTenant.Abstractions;
 using Finbuckle.MultiTenant.EntityFrameworkCore;
 using FSH.Framework.Core.Domain.Contracts;
+using FSH.Framework.Core.Messaging.Events;
 using FSH.Framework.Core.Persistence;
-using FSH.Framework.Infrastructure.Tenant;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace FSH.Framework.Infrastructure.Persistence;
 public class FshDbContext(IMultiTenantContextAccessor<FshTenantInfo> multiTenantContextAccessor,
     DbContextOptions options,
-    IPublisher publisher,
+    IEventPublisher publisher,
     IOptions<DatabaseOptions> settings)
     : MultiTenantDbContext(multiTenantContextAccessor, options)
 {
-    private readonly IPublisher _publisher = publisher;
+    private readonly IEventPublisher _publisher = publisher;
     private readonly DatabaseOptions _settings = settings.Value;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -36,10 +35,12 @@ public class FshDbContext(IMultiTenantContextAccessor<FshTenantInfo> multiTenant
     {
         this.TenantNotSetMode = TenantNotSetMode.Overwrite;
         int result = await base.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-        await PublishDomainEventsAsync().ConfigureAwait(false);
+        await PublishDomainEventsAsync(cancellationToken).ConfigureAwait(false);
         return result;
     }
-    private async Task PublishDomainEventsAsync()
+
+    // todo: move this to interceptor
+    private async Task PublishDomainEventsAsync(CancellationToken cancellationToken = default)
     {
         var domainEvents = ChangeTracker.Entries<IEntity>()
             .Select(e => e.Entity)
@@ -54,7 +55,7 @@ public class FshDbContext(IMultiTenantContextAccessor<FshTenantInfo> multiTenant
 
         foreach (var domainEvent in domainEvents)
         {
-            await _publisher.Publish(domainEvent).ConfigureAwait(false);
+            await _publisher.PublishAsync(domainEvent, cancellationToken).ConfigureAwait(false);
         }
     }
 }

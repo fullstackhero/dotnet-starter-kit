@@ -1,4 +1,5 @@
 ﻿using Finbuckle.MultiTenant.EntityFrameworkCore.Stores.EFCoreStore;
+using FSH.Framework.Shared.Multitenancy;
 using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Framework.Tenant.Infrastructure.Data;

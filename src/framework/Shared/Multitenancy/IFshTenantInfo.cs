@@ -1,4 +1,4 @@
-﻿namespace FSH.Framework.Tenant.Core.Abstractions;
+﻿namespace FSH.Framework.Shared.Multitenancy;
 public interface IFshTenantInfo
 {
     string? ConnectionString { get; set; }

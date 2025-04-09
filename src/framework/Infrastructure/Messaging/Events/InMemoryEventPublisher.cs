@@ -3,11 +3,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FSH.Framework.Infrastructure.Messaging.Events;
 
-public class InMemoryEventBus : IEventBus
+public class InMemoryEventPublisher : IEventPublisher
 {
     private readonly IServiceProvider _serviceProvider;
 
-    public InMemoryEventBus(IServiceProvider serviceProvider) =>
+    public InMemoryEventPublisher(IServiceProvider serviceProvider) =>
         _serviceProvider = serviceProvider;
 
     public async Task PublishAsync<TEvent>(TEvent @event, CancellationToken cancellationToken = default)
@@ -34,7 +34,7 @@ public class InMemoryEventBus : IEventBus
                 {
                     if (attempt == maxAttempts)
                     {
-                        Console.WriteLine($"❌ Handler for {typeof(TEvent).Name} failed after {attempt} attempts: {ex.Message}");
+                        Console.WriteLine($"Handler for {typeof(TEvent).Name} failed after {attempt} attempts: {ex.Message}");
                         // Optionally: Add to dead-letter queue
                     }
                     else

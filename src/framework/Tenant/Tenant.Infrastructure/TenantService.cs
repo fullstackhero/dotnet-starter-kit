@@ -5,6 +5,7 @@ using FSH.Framework.Core.Persistence;
 using FSH.Framework.Core.Tenant.Abstractions;
 using FSH.Framework.Core.Tenant.Dtos;
 using FSH.Framework.Core.Tenant.Features.CreateTenant;
+using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Tenant.Core.Abstractions;
 using Mapster;
 using Microsoft.Extensions.DependencyInjection;

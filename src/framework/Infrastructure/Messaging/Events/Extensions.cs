@@ -7,7 +7,7 @@ public static class Extensions
 {
     public static IServiceCollection RegisterInMemoryEventBus(this IServiceCollection services, params Assembly[] assemblies)
     {
-        services.AddScoped<IEventBus, InMemoryEventBus>();
+        services.AddScoped<IEventPublisher, InMemoryEventPublisher>();
 
         services.Scan(scan => scan
             .FromAssemblies(assemblies)

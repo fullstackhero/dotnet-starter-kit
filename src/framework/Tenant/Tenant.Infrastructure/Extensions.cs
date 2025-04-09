@@ -6,6 +6,7 @@ using FSH.Framework.Core.Tenant.Abstractions;
 using FSH.Framework.Infrastructure.Persistence;
 using FSH.Framework.Infrastructure.Persistence.Services;
 using FSH.Framework.Shared.Constants;
+using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Tenant.Core.Abstractions;
 using FSH.Framework.Tenant.Infrastructure.Data;
 using Microsoft.AspNetCore.Builder;

@@ -1,9 +1,7 @@
 ﻿using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Shared.Constants;
-using FSH.Framework.Tenant.Core.Abstractions;
 
-namespace FSH.Framework.Tenant.Infrastructure;
+namespace FSH.Framework.Shared.Multitenancy;
 public class FshTenantInfo : ITenantInfo, IFshTenantInfo
 {
     public FshTenantInfo()
@@ -40,7 +38,7 @@ public class FshTenantInfo : ITenantInfo, IFshTenantInfo
     public void SetValidity(in DateTime validTill) =>
         ValidUpto = ValidUpto < validTill
             ? validTill
-            : throw new CustomException("Subscription cannot be backdated.");
+            : throw new InvalidOperationException("Subscription cannot be backdated.");
 
     public void Activate()
     {
