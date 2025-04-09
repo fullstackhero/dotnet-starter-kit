@@ -1,40 +1,38 @@
-﻿using System.Reflection;
-using Asp.Versioning;
-using Asp.Versioning.Builder;
+﻿using Asp.Versioning;
 using FSH.Framework.Auditing.Endpoints.v1.GetUserTrails;
 using FSH.Framework.Infrastructure.Messaging.CQRS;
+using FSH.Framework.Infrastructure.Modules;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace FSH.Framework.Auditing.Endpoints;
-
-public static class AuditingModule
+public class AuditingModule : IEndpointModule
 {
-    public static IServiceCollection AddAuditingModule(this IServiceCollection services)
+    public IServiceCollection AddModuleServices(IServiceCollection services, IConfiguration config)
     {
         services.RegisterCommandAndQueryHandlers(Assembly.GetExecutingAssembly());
 
-        // Add infrastructure, services, mappings, etc.
-
+        // other registrations
         return services;
     }
 
-    public static IEndpointRouteBuilder MapAuditingEndpoints(this IEndpointRouteBuilder endpoints)
+    public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints)
     {
-        ApiVersionSet apiVersionSet = endpoints.NewApiVersionSet()
+        var apiVersionSet = endpoints.NewApiVersionSet()
             .HasApiVersion(new ApiVersion(1))
             .ReportApiVersions()
             .Build();
 
-        RouteGroupBuilder group = endpoints
+        var group = endpoints
             .MapGroup("api/v{version:apiVersion}/auditing")
             .WithTags("Auditing")
             .WithOpenApi()
             .WithApiVersionSet(apiVersionSet);
 
-        // v1 endpoints
         GetUserTrails.MapEndpoint(group);
 
         return endpoints;

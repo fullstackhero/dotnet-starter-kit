@@ -1,17 +1,20 @@
-﻿using FSH.Framework.Auditing.Core.Abstractions;
-using FSH.Framework.Auditing.Core.Events;
-using MediatR;
+﻿using FSH.Framework.Auditing.Contracts.Events;
+using FSH.Framework.Auditing.Core.Abstractions;
+using FSH.Framework.Core.Messaging.Events;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics.CodeAnalysis;
 
 namespace FSH.Framework.Auditing.Infrastructure.Handlers;
 
+[SuppressMessage("Performance", "CA1848")]
+[SuppressMessage("Design", "CA1031")]
 public class AuditPublishedEventHandler(
     ILogger<AuditPublishedEventHandler> logger,
     IAuditingDbContext context)
-    : INotificationHandler<AuditPublishedEvent>
+    : IEventHandler<AuditPublishedEvent>
 {
-    public async Task Handle(AuditPublishedEvent notification, CancellationToken cancellationToken)
+    public async Task HandleAsync(AuditPublishedEvent notification, CancellationToken cancellationToken = default)
     {
         if (notification.Trails == null || notification.Trails.Count == 0)
         {

@@ -1,5 +1,5 @@
 ﻿using Finbuckle.MultiTenant;
-using FSH.Framework.Auditing.Core.Dtos;
+using FSH.Framework.Auditing.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

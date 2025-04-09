@@ -1,7 +1,7 @@
-﻿using System.Collections.ObjectModel;
+﻿using FSH.Framework.Auditing.Contracts.Enums;
+using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
-using FSH.Framework.Auditing.Contracts.Enums;
 
 namespace FSH.Framework.Auditing.Contracts;
 
@@ -35,21 +35,62 @@ public class Trail
         set => KeyValuesJson = JsonSerializer.Serialize(value);
     }
 
-    public Dictionary<string, object?> OldValues
+    [NotMapped]
+    public IReadOnlyDictionary<string, object?> OldValues =>
+     JsonSerializer.Deserialize<Dictionary<string, object?>>(OldValuesJson)
+     ?? new Dictionary<string, object?>();
+
+    public void SetOldValues(Dictionary<string, object?> values) =>
+        OldValuesJson = JsonSerializer.Serialize(values);
+    public void SetOldValue(string key, object? value)
     {
-        get => JsonSerializer.Deserialize<Dictionary<string, object?>>(OldValuesJson) ?? new Dictionary<string, object?>();
-        set => OldValuesJson = JsonSerializer.Serialize(value);
+        var dict = JsonSerializer.Deserialize<Dictionary<string, object?>>(OldValuesJson)
+                    ?? new Dictionary<string, object?>();
+
+        dict[key] = value;
+
+        OldValuesJson = JsonSerializer.Serialize(dict);
     }
 
-    public Dictionary<string, object?> NewValues
+    // --- NewValues ---
+
+    [NotMapped]
+    public IReadOnlyDictionary<string, object?> NewValues =>
+        JsonSerializer.Deserialize<Dictionary<string, object?>>(NewValuesJson)
+        ?? new Dictionary<string, object?>();
+
+    public void SetNewValues(Dictionary<string, object?> values) =>
+        NewValuesJson = JsonSerializer.Serialize(values);
+
+    public void SetNewValue(string key, object? value)
     {
-        get => JsonSerializer.Deserialize<Dictionary<string, object?>>(NewValuesJson) ?? new Dictionary<string, object?>();
-        set => NewValuesJson = JsonSerializer.Serialize(value);
+        var dict = JsonSerializer.Deserialize<Dictionary<string, object?>>(NewValuesJson)
+                    ?? new Dictionary<string, object?>();
+
+        dict[key] = value;
+
+        NewValuesJson = JsonSerializer.Serialize(dict);
     }
 
-    public Collection<string> ModifiedProperties
+    // --- ModifiedProperties ---
+
+    [NotMapped]
+    public IReadOnlyCollection<string> ModifiedProperties =>
+        JsonSerializer.Deserialize<Collection<string>>(ModifiedPropertiesJson)
+        ?? new Collection<string>();
+
+    public void SetModifiedProperties(Collection<string> values) =>
+        ModifiedPropertiesJson = JsonSerializer.Serialize(values);
+
+    public void AddModifiedProperty(string propertyName)
     {
-        get => JsonSerializer.Deserialize<Collection<string>>(ModifiedPropertiesJson) ?? new Collection<string>();
-        set => ModifiedPropertiesJson = JsonSerializer.Serialize(value);
+        var list = JsonSerializer.Deserialize<Collection<string>>(ModifiedPropertiesJson)
+                   ?? new Collection<string>();
+
+        if (!list.Contains(propertyName))
+            list.Add(propertyName);
+
+        ModifiedPropertiesJson = JsonSerializer.Serialize(list);
     }
+
 }

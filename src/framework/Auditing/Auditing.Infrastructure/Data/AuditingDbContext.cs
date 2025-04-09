@@ -1,5 +1,5 @@
-﻿using FSH.Framework.Auditing.Core.Abstractions;
-using FSH.Framework.Auditing.Core.Dtos;
+﻿using FSH.Framework.Auditing.Contracts;
+using FSH.Framework.Auditing.Core.Abstractions;
 using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Framework.Auditing.Infrastructure.Data;
