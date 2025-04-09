@@ -1,11 +1,9 @@
-﻿using FSH.Framework.Core.Tenant.Features.ActivateTenant;
-using FSH.Framework.Infrastructure.Auth.Policy;
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
-namespace FSH.Framework.Infrastructure.Tenant.Endpoints;
+namespace FSH.Framework.Tenant.Endpoints.v1.Activate;
 public static class ActivateTenantEndpoint
 {
     internal static RouteHandlerBuilder MapActivateTenantEndpoint(this IEndpointRouteBuilder endpoints)

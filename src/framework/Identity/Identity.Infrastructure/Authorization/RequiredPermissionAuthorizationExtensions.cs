@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using FSH.Framework.Shared.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -21,7 +21,7 @@ public static class RequiredPermissionAuthorizationExtensions
         builder.AddPolicy(RequiredPermissionDefaults.PolicyName, policy =>
         {
             policy.RequireAuthenticatedUser();
-            policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme);
+            policy.AddAuthenticationSchemes(AuthenticationConstants.AuthenticationScheme);
             policy.RequireRequiredPermissions();
         });
 
