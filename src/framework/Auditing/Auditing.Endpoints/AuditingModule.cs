@@ -35,7 +35,7 @@ public static class AuditingModule
             .WithApiVersionSet(apiVersionSet);
 
         // v1 endpoints
-        GetUserTrailsEndpoint.MapEndpoint(group);
+        GetUserTrails.MapEndpoint(group);
 
         return endpoints;
     }

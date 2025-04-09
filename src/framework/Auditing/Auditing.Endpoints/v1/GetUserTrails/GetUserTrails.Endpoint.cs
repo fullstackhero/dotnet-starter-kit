@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
 namespace FSH.Framework.Auditing.Endpoints.v1.GetUserTrails;
-public static class GetUserTrailsEndpoint
+public static partial class GetUserTrails
 {
     public static RouteHandlerBuilder MapEndpoint(this IEndpointRouteBuilder endpoints)
     {
@@ -14,8 +14,8 @@ public static class GetUserTrailsEndpoint
             IQueryDispatcher dispatcher,
             CancellationToken cancellationToken) =>
         {
-            var result = await dispatcher.SendAsync<GetUserTrailsQuery, GetUserTrailsResponse>(
-                new GetUserTrailsQuery(userId), cancellationToken);
+            var result = await dispatcher.SendAsync<Query, Response>(
+                new Query(userId), cancellationToken);
 
             return TypedResults.Ok(result);
         })
