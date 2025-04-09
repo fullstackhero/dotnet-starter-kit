@@ -20,7 +20,7 @@ public static class AuditingModule
     public static IEndpointRouteBuilder MapAuditingEndpoints(this IEndpointRouteBuilder endpoints)
     {
         // v1 endpoints
-        endpoints.MapGetUserAuditTrailEndpoint();
+        endpoints.MapGetUserAuditsEndpoint();
 
         return endpoints;
     }
