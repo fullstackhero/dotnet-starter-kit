@@ -1,6 +1,7 @@
-﻿namespace FSH.Framework.Infrastructure.Storage;
+﻿using FSH.Framework.Core.Storage;
 using System.Text.RegularExpressions;
-using FSH.Framework.Core.Storage;
+
+namespace FSH.Framework.Infrastructure.Storage;
 
 public class LocalStorageService : IStorageService
 {

@@ -9,7 +9,7 @@
     <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Ardalis.Specification" Version="8.0.0" />
+    <PackageVersion Include="Ardalis.Specification" Version="9.0.1" />
     <PackageVersion Include="Ardalis.Specification.EntityFrameworkCore" Version="8.0.0" />
     <PackageVersion Include="Asp.Versioning.Http" Version="8.1.0" />
     <PackageVersion Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
@@ -43,7 +43,7 @@
     <PackageVersion Include="Serilog.Expressions" Version="5.0.0" />
     <PackageVersion Include="Serilog.Sinks.OpenTelemetry" Version="4.1.1" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="7.2.0" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.3" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.4" />
     <PackageVersion Include="Swashbuckle.AspNetCore.ReDoc" Version="6.5.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="4.12.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.12.0" />
@@ -58,12 +58,10 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.2" />
   </ItemGroup>
   <ItemGroup>
-    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.6.0.109712" />
+    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.8.0.113526" />
   </ItemGroup>
   <ItemGroup>
-    <PackageVersion Include="MediatR" Version="12.5.0" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
-    <PackageVersion Include="Carter" Version="9.0.0" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="Serilog" Version="4.2.0" />
