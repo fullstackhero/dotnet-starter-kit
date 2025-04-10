@@ -1,4 +1,6 @@
-﻿namespace FSH.Framework.Tenant.Core.Abstractions;
+﻿using FSH.Framework.Core.Tenant;
+
+namespace FSH.Framework.Tenant.Core.Abstractions;
 
 public interface ITenantService
 {
@@ -10,7 +12,7 @@ public interface ITenantService
 
     Task<TenantDetail> GetByIdAsync(string id);
 
-    Task<string> CreateAsync(CreateTenantCommand request, CancellationToken cancellationToken);
+    Task<string> CreateAsync(string id, string name, string? connectionString, string adminEmail, string? issuer, CancellationToken cancellationToken);
 
     Task<string> ActivateAsync(string id, CancellationToken cancellationToken);
 

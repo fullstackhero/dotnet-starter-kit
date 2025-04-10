@@ -1,4 +1,4 @@
-﻿namespace FSH.Framework.Core.Tenant.Dtos;
+﻿namespace FSH.Framework.Core.Tenant;
 public class TenantDetail
 {
     public string Id { get; set; } = default!;
