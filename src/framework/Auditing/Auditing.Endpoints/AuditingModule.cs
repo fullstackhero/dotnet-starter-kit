@@ -1,5 +1,5 @@
 ﻿using Asp.Versioning;
-using FSH.Framework.Auditing.Endpoints.v1.GetUserTrails;
+using FSH.Framework.Auditing.Endpoints.v1;
 using FSH.Framework.Infrastructure.Messaging.CQRS;
 using FSH.Framework.Infrastructure.Modules;
 using Microsoft.AspNetCore.Builder;
