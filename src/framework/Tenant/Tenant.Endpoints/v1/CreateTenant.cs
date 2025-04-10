@@ -3,7 +3,6 @@ using FSH.Framework.Core.Messaging.CQRS;
 using FSH.Framework.Core.Persistence;
 using FSH.Framework.Shared.Authorization;
 using FSH.Framework.Tenant.Core.Abstractions;
-using FSH.Framework.Tenant.Endpoints.v1.Activate;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;

@@ -3,8 +3,6 @@ using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Core.Persistence;
 using FSH.Framework.Core.Tenant;
-using FSH.Framework.Core.Tenant.Abstractions;
-using FSH.Framework.Core.Tenant.Features.CreateTenant;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Tenant.Core.Abstractions;
 using Mapster;
@@ -42,15 +40,17 @@ public sealed class TenantService : ITenantService
         return $"tenant {id} is now activated";
     }
 
-    public async Task<string> CreateAsync(CreateTenantCommand request, CancellationToken cancellationToken)
+    public async Task<string> CreateAsync(string id,
+        string name,
+        string? connectionString,
+        string adminEmail, string? issuer, CancellationToken cancellationToken)
     {
-        var connectionString = request.ConnectionString;
-        if (request.ConnectionString?.Trim() == _config.ConnectionString.Trim())
+        if (connectionString?.Trim() == _config.ConnectionString.Trim())
         {
             connectionString = string.Empty;
         }
 
-        FshTenantInfo tenant = new(request.Id, request.Name, connectionString, request.AdminEmail, request.Issuer);
+        FshTenantInfo tenant = new(id, name, connectionString, adminEmail, issuer);
         await _tenantStore.TryAddAsync(tenant).ConfigureAwait(false);
 
         await InitializeDatabase(tenant).ConfigureAwait(false);

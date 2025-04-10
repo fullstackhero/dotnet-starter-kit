@@ -2,7 +2,6 @@
 using Finbuckle.MultiTenant.Abstractions;
 using Finbuckle.MultiTenant.Stores.DistributedCacheStore;
 using FSH.Framework.Core.Persistence;
-using FSH.Framework.Core.Tenant.Abstractions;
 using FSH.Framework.Infrastructure.Persistence;
 using FSH.Framework.Infrastructure.Persistence.Services;
 using FSH.Framework.Shared.Constants;

@@ -16,7 +16,7 @@ public class DistributedCacheService : ICacheService
         (_cache, _logger) = (cache, logger);
     }
 
-    public T? Get<T>(string key) =>
+    public T? GetItem<T>(string key) =>
         Get(key) is { } data
             ? Deserialize<T>(data)
             : default;
@@ -35,7 +35,7 @@ public class DistributedCacheService : ICacheService
         }
     }
 
-    public async Task<T?> GetAsync<T>(string key, CancellationToken token = default) =>
+    public async Task<T?> GetItemAsync<T>(string key, CancellationToken token = default) =>
         await GetAsync(key, token) is { } data
             ? Deserialize<T>(data)
             : default;
@@ -53,7 +53,7 @@ public class DistributedCacheService : ICacheService
         }
     }
 
-    public void Refresh(string key)
+    public void RefreshItem(string key)
     {
         try
         {
@@ -65,7 +65,7 @@ public class DistributedCacheService : ICacheService
         }
     }
 
-    public async Task RefreshAsync(string key, CancellationToken token = default)
+    public async Task RefreshItemAsync(string key, CancellationToken token = default)
     {
         try
         {
@@ -78,7 +78,7 @@ public class DistributedCacheService : ICacheService
         }
     }
 
-    public void Remove(string key)
+    public void RemoveItem(string key)
     {
         try
         {
@@ -90,7 +90,7 @@ public class DistributedCacheService : ICacheService
         }
     }
 
-    public async Task RemoveAsync(string key, CancellationToken token = default)
+    public async Task RemoveItemAsync(string key, CancellationToken token = default)
     {
         try
         {
@@ -102,7 +102,7 @@ public class DistributedCacheService : ICacheService
         }
     }
 
-    public void Set<T>(string key, T value, TimeSpan? slidingExpiration = null) =>
+    public void SetItem<T>(string key, T value, TimeSpan? slidingExpiration = null) =>
         Set(key, Serialize(value), slidingExpiration);
 
     private void Set(string key, byte[] value, TimeSpan? slidingExpiration = null)
@@ -118,7 +118,7 @@ public class DistributedCacheService : ICacheService
         }
     }
 
-    public Task SetAsync<T>(string key, T value, TimeSpan? slidingExpiration = null, CancellationToken cancellationToken = default) =>
+    public Task SetItemAsync<T>(string key, T value, TimeSpan? slidingExpiration = null, CancellationToken cancellationToken = default) =>
         SetAsync(key, Serialize(value), slidingExpiration, cancellationToken);
 
     private async Task SetAsync(string key, byte[] value, TimeSpan? slidingExpiration = null, CancellationToken token = default)

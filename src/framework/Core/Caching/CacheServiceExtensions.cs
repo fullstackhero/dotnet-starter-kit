@@ -4,7 +4,7 @@ public static class CacheServiceExtensions
 {
     public static T? GetOrSet<T>(this ICacheService cache, string key, Func<T?> getItemCallback, TimeSpan? slidingExpiration = null)
     {
-        T? value = cache.Get<T>(key);
+        T? value = cache.GetItem<T>(key);
 
         if (value is not null)
         {
@@ -15,7 +15,7 @@ public static class CacheServiceExtensions
 
         if (value is not null)
         {
-            cache.Set(key, value, slidingExpiration);
+            cache.SetItem(key, value, slidingExpiration);
         }
 
         return value;
@@ -23,7 +23,7 @@ public static class CacheServiceExtensions
 
     public static async Task<T?> GetOrSetAsync<T>(this ICacheService cache, string key, Func<Task<T>> task, TimeSpan? slidingExpiration = null, CancellationToken cancellationToken = default)
     {
-        T? value = await cache.GetAsync<T>(key, cancellationToken);
+        T? value = await cache.GetItemAsync<T>(key, cancellationToken);
 
         if (value is not null)
         {
@@ -34,7 +34,7 @@ public static class CacheServiceExtensions
 
         if (value is not null)
         {
-            await cache.SetAsync(key, value, slidingExpiration, cancellationToken);
+            await cache.SetItemAsync(key, value, slidingExpiration, cancellationToken);
         }
 
         return value;

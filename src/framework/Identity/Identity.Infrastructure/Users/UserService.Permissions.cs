@@ -46,6 +46,6 @@ internal sealed partial class UserService
 
     public Task InvalidatePermissionCacheAsync(string userId, CancellationToken cancellationToken)
     {
-        return cache.RemoveAsync(GetPermissionCacheKey(userId), cancellationToken);
+        return cache.RemoveItemAsync(GetPermissionCacheKey(userId), cancellationToken);
     }
 }
