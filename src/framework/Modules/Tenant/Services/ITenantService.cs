@@ -1,14 +1,16 @@
-﻿namespace FSH.Framework.Tenant.Services;
+﻿using FSH.Framework.Tenant.Contracts.Dtos;
+
+namespace FSH.Framework.Tenant.Services;
 
 public interface ITenantService
 {
-    Task<List<TenantDetail>> GetAllAsync();
+    Task<List<TenantDto>> GetAllAsync();
 
     Task<bool> ExistsWithIdAsync(string id);
 
     Task<bool> ExistsWithNameAsync(string name);
 
-    Task<TenantDetail> GetByIdAsync(string id);
+    Task<TenantDto> GetByIdAsync(string id);
 
     Task<string> CreateAsync(string id, string name, string? connectionString, string adminEmail, string? issuer, CancellationToken cancellationToken);
 

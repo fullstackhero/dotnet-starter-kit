@@ -6,9 +6,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
 namespace FSH.Framework.Auditing.Features.v1.GetUserTrails;
-public static class GetUserTrailsQueryEndpoint
+public static class GetUserTrailsEndpoint
 {
-    public static RouteHandlerBuilder Map(IEndpointRouteBuilder endpoints)
+    public static RouteHandlerBuilder Map(this IEndpointRouteBuilder endpoints)
     {
         return endpoints.MapGet("/users/{userId:guid}/trails", async (
             Guid userId,
@@ -19,7 +19,7 @@ public static class GetUserTrailsQueryEndpoint
             var result = await dispatcher.SendAsync(query, cancellationToken);
             return TypedResults.Ok(result);
         })
-        .WithName(nameof(GetUserTrailsQueryEndpoint))
+        .WithName(nameof(GetUserTrailsEndpoint))
         .WithSummary("Get user's audit trail details")
         .WithDescription("Returns the audit trail details for a specific user.")
         .RequirePermission("Permissions.AuditTrails.View");

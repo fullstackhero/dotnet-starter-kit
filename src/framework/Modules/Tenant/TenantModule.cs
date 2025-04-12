@@ -1,7 +1,12 @@
 ﻿using Asp.Versioning;
 using FSH.Framework.Infrastructure.Messaging.CQRS;
 using FSH.Framework.Infrastructure.Modules;
-using FSH.Framework.Tenant.Features.v1;
+using FSH.Framework.Tenant.Features.v1.ActivateTenant;
+using FSH.Framework.Tenant.Features.v1.CreateTenant;
+using FSH.Framework.Tenant.Features.v1.DisableTenant;
+using FSH.Framework.Tenant.Features.v1.GetTenantById;
+using FSH.Framework.Tenant.Features.v1.GetTenants;
+using FSH.Framework.Tenant.Features.v1.UpgradeTenant;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -33,12 +38,12 @@ public class TenantModule : IModule
             .WithOpenApi()
             .WithApiVersionSet(apiVersionSet);
 
-        ActivateTenant.MapEndpoint(group);
-        CreateTenant.MapEndpoint(group);
-        DisableTenant.MapEndpoint(group);
-        GetTenantById.MapEndpoint(group);
-        GetTenants.MapEndpoint(group);
-        UpgradeSubscription.MapEndpoint(group);
+        CreateTenantEndpoint.Map(group);
+        DisableTenantEndpoint.Map(group);
+        GetTenantByIdEndpoint.Map(group);
+        GetTenantsEndpoint.Map(group);
+        UpgradeTenantEndpoint.Map(group);
+        ActivateTenantEndpoint.Map(group);
 
         return endpoints;
     }

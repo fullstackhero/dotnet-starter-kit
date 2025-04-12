@@ -11,6 +11,10 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Infrastructure\Infrastructure.csproj" />
     <ProjectReference Include="..\..\Shared\Shared.csproj" />
+    <ProjectReference Include="..\Tenant.Contracts\Tenant.Contracts.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Features\Entities\" />
   </ItemGroup>
 
 </Project>

@@ -3,6 +3,7 @@ using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Core.Persistence;
 using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Tenant.Contracts.Dtos;
 using Mapster;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -96,15 +97,15 @@ public sealed class TenantService : ITenantService
     public async Task<bool> ExistsWithNameAsync(string name) =>
         (await _tenantStore.GetAllAsync().ConfigureAwait(false)).Any(t => t.Name == name);
 
-    public async Task<List<TenantDetail>> GetAllAsync()
+    public async Task<List<TenantDto>> GetAllAsync()
     {
-        var tenants = (await _tenantStore.GetAllAsync().ConfigureAwait(false)).Adapt<List<TenantDetail>>();
+        var tenants = (await _tenantStore.GetAllAsync().ConfigureAwait(false)).Adapt<List<TenantDto>>();
         return tenants;
     }
 
-    public async Task<TenantDetail> GetByIdAsync(string id) =>
+    public async Task<TenantDto> GetByIdAsync(string id) =>
         (await GetTenantInfoAsync(id).ConfigureAwait(false))
-            .Adapt<TenantDetail>();
+            .Adapt<TenantDto>();
 
     public async Task<DateTime> UpgradeSubscription(string id, DateTime extendedExpiryDate)
     {

@@ -5,7 +5,7 @@ namespace FSH.Framework.Core.Domain.Contracts;
 
 public interface IEntity
 {
-    Collection<DomainEvent> DomainEvents { get; }
+    Collection<AppEvent> DomainEvents { get; }
 }
 
 public interface IEntity<out TId> : IEntity

@@ -32,7 +32,7 @@ public class AuditingModule : IModule
             .WithOpenApi()
             .WithApiVersionSet(apiVersionSet);
 
-        GetUserTrailsQueryEndpoint.Map(group);
+        GetUserTrailsEndpoint.Map(group);
 
         return endpoints;
     }
