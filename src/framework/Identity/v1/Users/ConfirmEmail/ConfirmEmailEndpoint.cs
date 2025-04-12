@@ -1,4 +1,4 @@
-﻿using FSH.Framework.Core.Identity.Users.Abstractions;
+﻿using FSH.Framework.Identity.Core.Users;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;

@@ -1,8 +1,7 @@
-﻿using System.Security.Claims;
-using FSH.Framework.Core.Exceptions;
+﻿using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Core.ExecutionContext;
-using FSH.Framework.Identity.Core.Users;
 using FSH.Framework.Shared.Extensions;
+using System.Security.Claims;
 
 namespace FSH.Framework.Identity.Infrastructure.Users;
 public class CurrentUser : ICurrentUser, ICurrentUserInitializer

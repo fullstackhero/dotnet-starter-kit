@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 
-namespace FSH.Framework.Identity.Core.Users;
+namespace FSH.Framework.Core.ExecutionContext;
 public interface ICurrentUserInitializer
 {
     void SetCurrentUser(ClaimsPrincipal user);

@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using FSH.Framework.Identity.Contracts.v1.Users.ChangePassword;
 
 namespace FSH.Framework.Identity.Endpoints.v1.Users.ChangePassword;
 
