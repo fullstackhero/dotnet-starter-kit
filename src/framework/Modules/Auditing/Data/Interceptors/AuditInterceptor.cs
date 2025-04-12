@@ -1,6 +1,6 @@
-﻿using FSH.Framework.Auditing.Contracts.DomainEvents;
+﻿using FSH.Framework.Auditing.Contracts.Dtos;
 using FSH.Framework.Auditing.Contracts.Enums;
-using FSH.Framework.Auditing.Features.Entities;
+using FSH.Framework.Auditing.Contracts.Events.IntegrationEvents;
 using FSH.Framework.Core.Domain;
 using FSH.Framework.Core.Domain.Contracts;
 using FSH.Framework.Core.ExecutionContext;
@@ -33,12 +33,12 @@ public class AuditInterceptor(ICurrentUser currentUser, TimeProvider timeProvide
     {
         if (eventData.Context == null) return;
         eventData.Context.ChangeTracker.DetectChanges();
-        var trails = new List<Trail>();
+        var trails = new List<TrailDto>();
         var utcNow = timeProvider.GetUtcNow();
         foreach (var entry in eventData.Context.ChangeTracker.Entries<IAuditable>().Where(x => x.State is EntityState.Added or EntityState.Deleted or EntityState.Modified).ToList())
         {
             var userId = currentUser.GetUserId();
-            var audit = new Trail()
+            var audit = new TrailDto()
             {
                 Id = Guid.NewGuid(),
                 EntityName = entry.Entity.GetType().Name,

@@ -1,15 +1,11 @@
-﻿using System.Reflection;
-using Asp.Versioning.Conventions;
+﻿using Asp.Versioning.Conventions;
 using FluentValidation;
 using FSH.Framework.Core;
 using FSH.Framework.Core.Origin;
-using FSH.Framework.Infrastructure.Auth;
 using FSH.Framework.Infrastructure.Auth.Jwt;
-using FSH.Framework.Infrastructure.Behaviours;
 using FSH.Framework.Infrastructure.Caching;
 using FSH.Framework.Infrastructure.Cors;
 using FSH.Framework.Infrastructure.Exceptions;
-using FSH.Framework.Infrastructure.Identity;
 using FSH.Framework.Infrastructure.Jobs;
 using FSH.Framework.Infrastructure.Logging.Serilog;
 using FSH.Framework.Infrastructure.Mail;
@@ -17,15 +13,12 @@ using FSH.Framework.Infrastructure.OpenApi;
 using FSH.Framework.Infrastructure.Persistence;
 using FSH.Framework.Infrastructure.RateLimit;
 using FSH.Framework.Infrastructure.SecurityHeaders;
-using FSH.Framework.Infrastructure.Storage.Files;
-using FSH.Framework.Infrastructure.Tenant;
-using FSH.Framework.Infrastructure.Tenant.Endpoints;
-using FSH.Starter.Aspire.ServiceDefaults;
-using MediatR;
+using FSH.Framework.Infrastructure.Storage;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using System.Reflection;
 
 namespace FSH.Framework.Infrastructure;
 
@@ -34,13 +27,10 @@ public static class Extensions
     public static WebApplicationBuilder ConfigureFshFramework(this WebApplicationBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
-        builder.AddServiceDefaults();
         builder.ConfigureSerilog();
         builder.ConfigureDatabase();
-        builder.Services.ConfigureMultitenancy();
-        builder.Services.ConfigureIdentity();
         builder.Services.AddCorsPolicy(builder.Configuration);
-        builder.Services.ConfigureFileStorage();
+        builder.Services.ConfigureLocalFileStorage();
         builder.Services.ConfigureJwtAuth();
         builder.Services.ConfigureOpenApi();
         builder.Services.ConfigureJobs(builder.Configuration);
@@ -61,13 +51,6 @@ public static class Extensions
         // Register validators
         builder.Services.AddValidatorsFromAssemblies(assemblies);
 
-        // Register MediatR
-        builder.Services.AddMediatR(cfg =>
-        {
-            cfg.RegisterServicesFromAssemblies(assemblies);
-            cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
-        });
-
         builder.Services.ConfigureRateLimit(builder.Configuration);
         builder.Services.ConfigureSecurityHeaders(builder.Configuration);
 
@@ -76,10 +59,8 @@ public static class Extensions
 
     public static WebApplication UseFshFramework(this WebApplication app)
     {
-        app.MapDefaultEndpoints();
         app.UseRateLimit();
         app.UseSecurityHeaders();
-        app.UseMultitenancy();
         app.UseExceptionHandler();
         app.UseCorsPolicy();
         app.UseOpenApi();
@@ -93,11 +74,6 @@ public static class Extensions
         });
         app.UseAuthentication();
         app.UseAuthorization();
-        app.MapTenantEndpoints();
-        app.MapIdentityEndpoints();
-
-        // Current user middleware
-        app.UseMiddleware<CurrentUserMiddleware>();
 
         // Register API versions
         var versions = app.NewApiVersionSet()

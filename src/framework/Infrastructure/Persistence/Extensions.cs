@@ -10,7 +10,7 @@ namespace FSH.Framework.Infrastructure.Persistence;
 public static class Extensions
 {
     private static readonly ILogger Logger = Log.ForContext(typeof(Extensions));
-    internal static DbContextOptionsBuilder ConfigureDatabase(this DbContextOptionsBuilder builder, string dbProvider, string connectionString)
+    public static DbContextOptionsBuilder ConfigureDatabase(this DbContextOptionsBuilder builder, string dbProvider, string connectionString)
     {
         builder.ConfigureWarnings(warnings => warnings.Log(RelationalEventId.PendingModelChangesWarning));
         return dbProvider.ToUpperInvariant() switch

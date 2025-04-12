@@ -10,12 +10,12 @@ public class InMemoryEventPublisher : IEventPublisher
     public InMemoryEventPublisher(IServiceProvider serviceProvider) =>
         _serviceProvider = serviceProvider;
 
-    public async Task PublishAsync<TEvent>(TEvent @event, CancellationToken cancellationToken = default)
+    public async Task PublishAsync(IEvent appEvent, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(@event);
+        ArgumentNullException.ThrowIfNull(appEvent);
 
         using var scope = _serviceProvider.CreateScope();
-        var handlers = scope.ServiceProvider.GetServices<IEventHandler<TEvent>>();
+        var handlers = scope.ServiceProvider.GetServices<IEventHandler<IEvent>>();
 
         foreach (var handler in handlers)
         {
@@ -27,14 +27,14 @@ public class InMemoryEventPublisher : IEventPublisher
                 try
                 {
                     attempt++;
-                    await handler.HandleAsync(@event, cancellationToken);
+                    await handler.HandleAsync(appEvent, cancellationToken);
                     break; // Success
                 }
                 catch (Exception ex)
                 {
                     if (attempt == maxAttempts)
                     {
-                        Console.WriteLine($"Handler for {typeof(TEvent).Name} failed after {attempt} attempts: {ex.Message}");
+                        Console.WriteLine($"Handler for {typeof(IEvent).Name} failed after {attempt} attempts: {ex.Message}");
                         // Optionally: Add to dead-letter queue
                     }
                     else

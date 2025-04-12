@@ -3,7 +3,7 @@ using FSH.Framework.Core.Messaging.Events;
 
 namespace FSH.Framework.Auditing.Contracts.Events.IntegrationEvents;
 
-public class AuditPublishedEvent : INotification
+public class AuditPublishedEvent : IEvent
 {
     public IReadOnlyCollection<TrailDto> Trails { get; }
 

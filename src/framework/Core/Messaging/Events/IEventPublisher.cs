@@ -1,5 +1,5 @@
 ﻿namespace FSH.Framework.Core.Messaging.Events;
-public interface IEventPublisher<in TEvent> where TEvent : IEvent
+public interface IEventPublisher
 {
-    Task PublishAsync(TEvent appEvent, CancellationToken cancellationToken = default);
+    Task PublishAsync(IEvent appEvent, CancellationToken cancellationToken = default);
 }

@@ -1,9 +1,9 @@
-﻿using System.Linq.Expressions;
-using System.Reflection;
-using System.Text.Json;
-using Ardalis.Specification;
+﻿using Ardalis.Specification;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Core.Paging;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Text.Json;
 
 namespace FSH.Framework.Core.Specifications;
 
@@ -32,7 +32,7 @@ public static class SpecificationBuilderExtensions
 
         if (filter.OrderBy is { Count: > 0 })
         {
-            query = query.OrderBy(filter.OrderBy);
+            query = query.OrderBy(filter.OrderBy.ToArray());
         }
 
         return query;

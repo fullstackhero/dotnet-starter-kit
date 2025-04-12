@@ -9,7 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FSH.Framework.Auditing.Endpoints;
-public class AuditingModule : IModule
+public class AuditingModule : IFrameworkModule
 {
     public IServiceCollection AddModuleServices(IServiceCollection services, IConfiguration config)
     {
