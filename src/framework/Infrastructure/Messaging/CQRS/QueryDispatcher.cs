@@ -9,12 +9,13 @@ public class QueryDispatcher : IQueryDispatcher
     public QueryDispatcher(IServiceProvider serviceProvider) =>
         _serviceProvider = serviceProvider;
 
-    public Task<TResponse> SendAsync<TQuery, TResponse>(TQuery query, CancellationToken ct = default)
-        where TQuery : IQuery<TResponse>
+    public Task<TResponse> SendAsync<TResponse>(IQuery<TResponse> query, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        var handler = _serviceProvider.GetRequiredService<IQueryHandler<TQuery, TResponse>>();
-        return handler.HandleAsync(query, ct);
+        var handlerType = typeof(IQueryHandler<,>).MakeGenericType(query.GetType(), typeof(TResponse));
+        dynamic handler = _serviceProvider.GetRequiredService(handlerType);
+
+        return handler.HandleAsync((dynamic)query, ct);
     }
 }

@@ -9,12 +9,14 @@ public class CommandDispatcher : ICommandDispatcher
     public CommandDispatcher(IServiceProvider serviceProvider) =>
         _serviceProvider = serviceProvider;
 
-    public Task<TResponse> SendAsync<TCommand, TResponse>(TCommand command, CancellationToken ct = default)
-        where TCommand : ICommand<TResponse>
+    public Task<TResponse> SendAsync<TResponse>(ICommand<TResponse> command, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        var handler = _serviceProvider.GetRequiredService<ICommandHandler<TCommand, TResponse>>();
-        return handler.HandleAsync(command, ct);
+        var handlerType = typeof(ICommandHandler<,>).MakeGenericType(command.GetType(), typeof(TResponse));
+        dynamic handler = _serviceProvider.GetRequiredService(handlerType);
+
+        // dynamic dispatch to call HandleAsync(command, ct)
+        return handler.HandleAsync((dynamic)command, ct);
     }
 }

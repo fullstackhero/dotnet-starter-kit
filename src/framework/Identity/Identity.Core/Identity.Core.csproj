@@ -1,6 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <RootNamespace>FSH.Framework.Identity.Core</RootNamespace>
-    <AssemblyName>FSH.Framework.Identity.Core</AssemblyName>
-  </PropertyGroup>
-</Project>

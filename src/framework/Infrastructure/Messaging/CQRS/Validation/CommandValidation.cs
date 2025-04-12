@@ -13,12 +13,9 @@ public class CommandValidation : ICommandDispatcher
         _validators = validators;
     }
 
-    public async Task<TResponse> SendAsync<TCommand, TResponse>(TCommand command, CancellationToken ct = default)
-        where TCommand : ICommand<TResponse>
+    public async Task<TResponse> SendAsync<TResponse>(ICommand<TResponse> command, CancellationToken ct = default)
     {
-        var typedValidators = _validators.OfType<IValidator<TCommand>>();
-        await ValidationHelper.ValidateAsync(command, typedValidators, ct);
-
-        return await _inner.SendAsync<TCommand, TResponse>(command, ct);
+        await ValidationHelper.ValidateAsync(command, _validators, ct);
+        return await _inner.SendAsync(command, ct);
     }
 }

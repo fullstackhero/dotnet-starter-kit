@@ -13,12 +13,9 @@ internal class QueryValidation : IQueryDispatcher
         _validators = validators;
     }
 
-    public async Task<TResponse> SendAsync<TQuery, TResponse>(TQuery query, CancellationToken ct = default)
-        where TQuery : IQuery<TResponse>
+    public async Task<TResponse> SendAsync<TResponse>(IQuery<TResponse> query, CancellationToken ct = default)
     {
-        var typedValidators = _validators.OfType<IValidator<TQuery>>();
-        await ValidationHelper.ValidateAsync(query, typedValidators, ct);
-
-        return await _inner.SendAsync<TQuery, TResponse>(query, ct);
+        await ValidationHelper.ValidateAsync(query, _validators, ct);
+        return await _inner.SendAsync(query, ct);
     }
 }

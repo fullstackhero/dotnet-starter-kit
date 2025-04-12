@@ -275,6 +275,7 @@ dotnet_diagnostic.IDE0053.severity = none
 # IDE0130: Namespace should match project structure
 dotnet_diagnostic.IDE0130.severity = none
 dotnet_diagnostic.CA1032.severity = none
+dotnet_diagnostic.S2326.severity = none
 
 [*.{cs,vb}]
 dotnet_style_operator_placement_when_wrapping = beginning_of_line

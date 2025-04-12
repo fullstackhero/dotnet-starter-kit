@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>FSH.Framework.Identity.Core</RootNamespace>
+    <AssemblyName>FSH.Framework.Identity.Core</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\Core.csproj" />
+  </ItemGroup>
+</Project>
