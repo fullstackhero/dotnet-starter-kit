@@ -2,10 +2,10 @@
 
 public class PaginationFilter : BaseFilter, IPageRequest
 {
-    public int PageNumber { get; init; } = 1;
-    public int PageSize { get; init; } = 10;
-    public IReadOnlyList<string>? OrderBy { get; init; }
+    public int PageNumber { get; set; } = 1;
+    public int PageSize { get; set; } = 10;
+    public string[] OrderBy { get; set; }
 
-    public string? Filters { get; init; }
-    public string? SortOrder { get; init; }
+    public string? Filters { get; set; }
+    public string? SortOrder { get; set; }
 }

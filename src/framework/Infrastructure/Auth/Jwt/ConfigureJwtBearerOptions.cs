@@ -1,10 +1,9 @@
-﻿using System.Security.Claims;
-using System.Text;
-using FSH.Framework.Core.Auth.Jwt;
-using FSH.Framework.Core.Exceptions;
+﻿using FSH.Framework.Core.Exceptions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
+using System.Text;
 
 namespace FSH.Framework.Infrastructure.Auth.Jwt;
 public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions>

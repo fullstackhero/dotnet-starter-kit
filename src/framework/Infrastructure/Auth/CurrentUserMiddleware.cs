@@ -1,4 +1,4 @@
-﻿using FSH.Framework.Core.Identity.Users.Abstractions;
+﻿using FSH.Framework.Core.ExecutionContext;
 using Microsoft.AspNetCore.Http;
 
 namespace FSH.Framework.Infrastructure.Auth;

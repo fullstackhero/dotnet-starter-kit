@@ -7,53 +7,50 @@ using System.Text.Json;
 
 namespace FSH.Framework.Core.Specifications;
 
-// See https://github.com/ardalis/Specification/issues/53
 public static class SpecificationBuilderExtensions
 {
-    public static ISpecificationBuilder<T> SearchBy<T>(this ISpecificationBuilder<T> query, BaseFilter filter) =>
+    public static ISpecificationBuilder<T> SearchBy<T>(this ISpecificationBuilder<T> query, BaseFilter filter) where T : class =>
         query
             .SearchByKeyword(filter.Keyword)
             .AdvancedSearch(filter.AdvancedSearch)
             .AdvancedFilter(filter.AdvancedFilter);
 
-    public static ISpecificationBuilder<T> PaginateBy<T>(
-        this ISpecificationBuilder<T> query,
-        PaginationFilter filter)
+    public static ISpecificationBuilder<T> PaginateBy<T>(this ISpecificationBuilder<T> query, PaginationFilter filter)
     {
-        var pageNumber = filter.PageNumber <= 0 ? 1 : filter.PageNumber;
-        var pageSize = filter.PageSize <= 0 ? 10 : filter.PageSize;
-
-        if (pageNumber > 1)
+        if (filter.PageNumber <= 0)
         {
-            query = query.Skip((pageNumber - 1) * pageSize);
+            filter.PageNumber = 1;
         }
 
-        query = query.Take(pageSize);
-
-        if (filter.OrderBy is { Count: > 0 })
+        if (filter.PageSize <= 0)
         {
-            query = query.OrderBy(filter.OrderBy.ToArray());
+            filter.PageSize = 10;
         }
 
-        return query;
+        if (filter.PageNumber > 1)
+        {
+            query = query.Skip((filter.PageNumber - 1) * filter.PageSize);
+        }
+
+        return query
+            .Take(filter.PageSize)
+            .OrderBy(filter.OrderBy);
     }
 
-
-
-    public static IOrderedSpecificationBuilder<T> SearchByKeyword<T>(
+    public static ISpecificationBuilder<T> SearchByKeyword<T>(
         this ISpecificationBuilder<T> specificationBuilder,
-        string? keyword) =>
+        string? keyword) where T : class =>
         specificationBuilder.AdvancedSearch(new Search { Keyword = keyword });
 
-    public static IOrderedSpecificationBuilder<T> AdvancedSearch<T>(
+    public static ISpecificationBuilder<T> AdvancedSearch<T>(
         this ISpecificationBuilder<T> specificationBuilder,
-        Search? search)
+        Search? search) where T : class
     {
         if (!string.IsNullOrEmpty(search?.Keyword))
         {
             if (search.Fields?.Any() is true)
             {
-                // search seleted fields (can contain deeper nested fields)
+                // search selected fields (can contain deeper nested fields)
                 foreach (string field in search.Fields)
                 {
                     var paramExpr = Expression.Parameter(typeof(T));
@@ -78,7 +75,7 @@ public static class SpecificationBuilderExtensions
             }
         }
 
-        return new OrderedSpecificationBuilder<T>(specificationBuilder.Specification);
+        return specificationBuilder;
     }
 
     private static void AddSearchPropertyByKeyword<T>(
@@ -86,19 +83,19 @@ public static class SpecificationBuilderExtensions
         Expression propertyExpr,
         ParameterExpression paramExpr,
         string keyword,
-        FilterOperator operatorSearch = FilterOperator.Contains)
+        FilterOperator operatorSearch = FilterOperator.Contains) where T : class
     {
         if (propertyExpr is not MemberExpression memberExpr || memberExpr.Member is not PropertyInfo property)
         {
             throw new ArgumentException("propertyExpr must be a property expression.", nameof(propertyExpr));
         }
 
-        var searchTerm = operatorSearch switch
+        string searchTerm = operatorSearch switch
         {
             FilterOperator.StartsWith => $"{keyword.ToLower()}%",
             FilterOperator.EndsWith => $"%{keyword.ToLower()}",
             FilterOperator.Contains => $"%{keyword.ToLower()}%",
-            _ => throw new CustomException($"Unsupported filter operator: {operatorSearch}")
+            _ => throw new ArgumentException("operatorSearch is not valid.", nameof(operatorSearch))
         };
 
         // Generate lambda [ x => x.Property ] for string properties
@@ -114,13 +111,12 @@ public static class SpecificationBuilderExtensions
         var toLowerMethod = typeof(string).GetMethod("ToLower", Type.EmptyTypes);
         Expression callToLowerMethod = Expression.Call(selectorExpr, toLowerMethod!);
 
-        var selector = Expression.Lambda<Func<T, string>>(callToLowerMethod, paramExpr);
+        var selector = Expression.Lambda<Func<T, string?>>(callToLowerMethod, paramExpr);
 
-        ((List<SearchExpressionInfo<T>>)specificationBuilder.Specification.SearchCriterias)
-            .Add(new SearchExpressionInfo<T>(selector, searchTerm, 1));
+        specificationBuilder.Search(selector, searchTerm, 1);
     }
 
-    public static IOrderedSpecificationBuilder<T> AdvancedFilter<T>(
+    public static ISpecificationBuilder<T> AdvancedFilter<T>(
         this ISpecificationBuilder<T> specificationBuilder,
         Filter? filter)
     {
@@ -128,28 +124,28 @@ public static class SpecificationBuilderExtensions
         {
             var parameter = Expression.Parameter(typeof(T));
 
-            Expression binaryExpresioFilter;
+            Expression binaryExpressionFilter;
 
-            if (!string.IsNullOrEmpty(filter.Logic))
+            if (filter.Logic.HasValue)
             {
                 if (filter.Filters is null) throw new CustomException("The Filters attribute is required when declaring a logic");
-                binaryExpresioFilter = CreateFilterExpression(filter.Logic, filter.Filters, parameter);
+                binaryExpressionFilter = CreateFilterExpression(filter.Logic, filter.Filters, parameter);
             }
             else
             {
                 var filterValid = GetValidFilter(filter);
-                binaryExpresioFilter = CreateFilterExpression(filterValid.Field!, filterValid.Operator!, filterValid.Value, parameter);
+                binaryExpressionFilter = CreateFilterExpression(filterValid.Field!, filterValid.Operator!.Value, filterValid.Value, parameter);
             }
 
-            ((List<WhereExpressionInfo<T>>)specificationBuilder.Specification.WhereExpressions)
-                .Add(new WhereExpressionInfo<T>(Expression.Lambda<Func<T, bool>>(binaryExpresioFilter, parameter)));
+            var expr = Expression.Lambda<Func<T, bool>>(binaryExpressionFilter, parameter);
+            specificationBuilder.Where(expr);
         }
 
-        return new OrderedSpecificationBuilder<T>(specificationBuilder.Specification);
+        return specificationBuilder;
     }
 
     private static Expression CreateFilterExpression(
-        string logic,
+        FilterLogic? logic,
         IEnumerable<Filter> filters,
         ParameterExpression parameter)
     {
@@ -157,20 +153,20 @@ public static class SpecificationBuilderExtensions
 
         foreach (var filter in filters)
         {
-            Expression bExpresionFilter;
+            Expression bExpressionFilter;
 
-            if (!string.IsNullOrEmpty(filter.Logic))
+            if (filter.Logic.HasValue)
             {
                 if (filter.Filters is null) throw new CustomException("The Filters attribute is required when declaring a logic");
-                bExpresionFilter = CreateFilterExpression(filter.Logic, filter.Filters, parameter);
+                bExpressionFilter = CreateFilterExpression(filter.Logic, filter.Filters, parameter);
             }
             else
             {
                 var filterValid = GetValidFilter(filter);
-                bExpresionFilter = CreateFilterExpression(filterValid.Field!, filterValid.Operator!, filterValid.Value, parameter);
+                bExpressionFilter = CreateFilterExpression(filterValid.Field!, filterValid.Operator!.Value, filterValid.Value, parameter);
             }
 
-            filterExpression = filterExpression is null ? bExpresionFilter : CombineFilter(logic, filterExpression, bExpresionFilter);
+            filterExpression = filterExpression is null ? bExpressionFilter : CombineFilter(logic, filterExpression, bExpressionFilter);
         }
 
         return filterExpression;
@@ -178,13 +174,13 @@ public static class SpecificationBuilderExtensions
 
     private static Expression CreateFilterExpression(
         string field,
-        string filterOperator,
+        FilterOperator filterOperator,
         object? value,
         ParameterExpression parameter)
     {
-        var propertyExpresion = GetPropertyExpression(field, parameter);
-        var valueExpresion = GeValuetExpression(field, value, propertyExpresion.Type);
-        return CreateFilterExpression(propertyExpresion, valueExpresion, filterOperator);
+        var propertyExpression = GetPropertyExpression(field, parameter);
+        var valueExpression = GeValueExpression(field, value, propertyExpression.Type);
+        return CreateFilterExpression(propertyExpression, valueExpression, filterOperator);
     }
 
     private static Expression CreateFilterExpression(
@@ -194,8 +190,8 @@ public static class SpecificationBuilderExtensions
     {
         if (memberExpression.Type == typeof(string))
         {
-            constantExpression = Expression.Call(constantExpression, nameof(string.ToLower), null);
-            memberExpression = Expression.Call(memberExpression, nameof(string.ToLower), null);
+            constantExpression = Expression.Call(constantExpression, "ToLower", null);
+            memberExpression = Expression.Call(memberExpression, "ToLower", null);
         }
 
         return filterOperator switch
@@ -206,28 +202,23 @@ public static class SpecificationBuilderExtensions
             FilterOperator.Lte => Expression.LessThanOrEqual(memberExpression, constantExpression),
             FilterOperator.Gt => Expression.GreaterThan(memberExpression, constantExpression),
             FilterOperator.Gte => Expression.GreaterThanOrEqual(memberExpression, constantExpression),
-            FilterOperator.Contains => Expression.Call(memberExpression, nameof(string.Contains), null, constantExpression),
-            FilterOperator.StartsWith => Expression.Call(memberExpression, nameof(string.StartsWith), null, constantExpression),
-            FilterOperator.EndsWith => Expression.Call(memberExpression, nameof(string.EndsWith), null, constantExpression),
-            _ => throw new CustomException("Filter operator is not valid.")
+            FilterOperator.Contains => Expression.Call(memberExpression, "Contains", null, constantExpression),
+            FilterOperator.StartsWith => Expression.Call(memberExpression, "StartsWith", null, constantExpression),
+            FilterOperator.EndsWith => Expression.Call(memberExpression, "EndsWith", null, constantExpression),
+            _ => throw new CustomException("Filter Operator is not valid."),
         };
     }
 
-
-    private static Expression CombineFilter(
-        FilterLogic logic,
-        Expression left,
-        Expression right)
-    {
-        return logic switch
+    private static BinaryExpression CombineFilter(
+        FilterLogic? filterOperator,
+        Expression bExpressionBase,
+        Expression bExpression) => filterOperator switch
         {
-            FilterLogic.And => Expression.And(left, right),
-            FilterLogic.Or => Expression.Or(left, right),
-            FilterLogic.Xor => Expression.ExclusiveOr(left, right),
-            _ => throw new ArgumentOutOfRangeException(nameof(logic), "Invalid filter logic.")
+            FilterLogic.And => Expression.And(bExpressionBase, bExpression),
+            FilterLogic.Or => Expression.Or(bExpressionBase, bExpression),
+            FilterLogic.Xor => Expression.ExclusiveOr(bExpressionBase, bExpression),
+            _ => throw new ArgumentException("FilterLogic is not valid."),
         };
-    }
-
 
     private static MemberExpression GetPropertyExpression(
         string propertyName,
@@ -245,7 +236,7 @@ public static class SpecificationBuilderExtensions
     private static string GetStringFromJsonElement(object value)
         => ((JsonElement)value).GetString()!;
 
-    private static ConstantExpression GeValuetExpression(
+    private static ConstantExpression GeValueExpression(
         string field,
         object? value,
         Type propertyType)
@@ -305,20 +296,17 @@ public static class SpecificationBuilderExtensions
 
     private static Filter GetValidFilter(Filter filter)
     {
-        if (string.IsNullOrWhiteSpace(filter.Field))
-            throw new CustomException("The 'Field' property is required when declaring a filter.");
-
-        // Optional: check if Operator is defined in the enum (defensive)
-        if (!Enum.IsDefined(typeof(FilterOperator), filter.Operator!))
-            throw new CustomException($"Invalid filter operator: {filter.Operator}");
-
+        if (string.IsNullOrEmpty(filter.Field)) throw new CustomException("The field attribute is required when declaring a filter");
+        if (string.IsNullOrEmpty(filter.Operator.Value.ToString())) throw new CustomException("The Operator attribute is required when declaring a filter");
         return filter;
     }
 
-    public static IOrderedSpecificationBuilder<T> OrderBy<T>(
+    public static ISpecificationBuilder<T> OrderBy<T>(
         this ISpecificationBuilder<T> specificationBuilder,
         string[]? orderByFields)
     {
+        IOrderedSpecificationBuilder<T> orderedBuilder = null!;
+
         if (orderByFields is not null)
         {
             foreach (var field in ParseOrderBy(orderByFields))
@@ -335,12 +323,18 @@ public static class SpecificationBuilderExtensions
                     Expression.Convert(propertyExpr, typeof(object)),
                     paramExpr);
 
-                ((List<OrderExpressionInfo<T>>)specificationBuilder.Specification.OrderExpressions)
-                    .Add(new OrderExpressionInfo<T>(keySelector, field.Value));
+                orderedBuilder = field.Value switch
+                {
+                    OrderTypeEnum.OrderBy => specificationBuilder.OrderBy(keySelector),
+                    OrderTypeEnum.OrderByDescending => specificationBuilder.OrderByDescending(keySelector),
+                    OrderTypeEnum.ThenBy => orderedBuilder.ThenBy(keySelector),
+                    OrderTypeEnum.ThenByDescending => orderedBuilder.ThenByDescending(keySelector),
+                    _ => throw new CustomException("OrderTypeEnum is not valid."),
+                };
             }
         }
 
-        return new OrderedSpecificationBuilder<T>(specificationBuilder.Specification);
+        return specificationBuilder;
     }
 
     private static Dictionary<string, OrderTypeEnum> ParseOrderBy(string[] orderByFields) =>
