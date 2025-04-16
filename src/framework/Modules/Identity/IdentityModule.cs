@@ -31,14 +31,7 @@ public static class IdentityModule
     public static IServiceCollection RegisterIdentityModule(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
-
-        var assemblies = new Assembly[]
-       {
-            typeof(IdentityModule).Assembly,
-            typeof(IdentityModuleConstants).Assembly
-       };
-
-        services.RegisterCommandAndQueryHandlers(assemblies);
+        services.RegisterCommandAndQueryHandlers(Assembly.GetExecutingAssembly());
         services.AddScoped<CurrentUserMiddleware>();
         services.AddSingleton<IAuthorizationMiddlewareResultHandler, PathAwareAuthorizationHandler>();
         services.AddScoped<ICurrentUser, CurrentUser>();

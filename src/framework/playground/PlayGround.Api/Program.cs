@@ -5,7 +5,6 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
-
 builder.ConfigureFshFramework();
 builder.Services.RegisterTenantModuleServices();
 builder.Services.RegisterIdentityModule();

@@ -27,6 +27,7 @@ public static class Extensions
     public static WebApplicationBuilder ConfigureFshFramework(this WebApplicationBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
+        builder.Services.AddHttpContextAccessor();
         builder.Services.RegisterInMemoryEventBus();
         builder.ConfigureSerilog();
         builder.ConfigureDatabase();
@@ -69,15 +70,15 @@ public static class Extensions
         app.UseRouting();
         app.UseStaticFiles();
 
-        var assetsPath = Path.Combine(Directory.GetCurrentDirectory(), "assets");
+        var assetsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
         if (!Directory.Exists(assetsPath))
         {
             Directory.CreateDirectory(assetsPath);
         }
         app.UseStaticFiles(new StaticFileOptions()
         {
-            FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "assets")),
-            RequestPath = new PathString("/assets")
+            FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")),
+            RequestPath = new PathString("/wwwroot")
         });
 
         app.UseAuthentication();

@@ -12,7 +12,6 @@ public class CommandDispatcher : ICommandDispatcher
     public Task<TResponse> SendAsync<TResponse>(ICommand<TResponse> command, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(command);
-
         var handlerType = typeof(ICommandHandler<,>).MakeGenericType(command.GetType(), typeof(TResponse));
         dynamic handler = _serviceProvider.GetRequiredService(handlerType);
 
