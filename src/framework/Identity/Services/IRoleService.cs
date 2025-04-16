@@ -1,6 +1,4 @@
-﻿using System.Collections.ObjectModel;
-
-namespace FSH.Framework.Identity.Core.Roles;
+﻿namespace FSH.Framework.Identity.Core.Roles;
 
 public interface IRoleService
 {
@@ -10,6 +8,6 @@ public interface IRoleService
     Task DeleteRoleAsync(string id);
     Task<RoleDto> GetWithPermissionsAsync(string id, CancellationToken cancellationToken);
 
-    Task<string> UpdatePermissionsAsync(string roleId, Collection<string> permissions);
+    Task<string> UpdatePermissionsAsync(string roleId, List<string> permissions);
 }
 

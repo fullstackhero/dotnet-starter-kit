@@ -5,5 +5,5 @@ namespace FSH.Framework.Identity.Contracts.v1.Users.AssignUserRoles;
 public sealed class AssignUserRolesCommand : ICommand<string>
 {
     public required string UserId { get; init; }
-    public IReadOnlyList<UserRoleDto> UserRoles { get; init; } = Array.Empty<UserRoleDto>();
+    public List<UserRoleDto> UserRoles { get; init; } = new();
 }

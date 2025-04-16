@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
-using FSH.Framework.Core.Identity.Roles;
-using FSH.Framework.Core.Identity.Roles.Features.UpdatePermissions;
-using FSH.Framework.Infrastructure.Auth.Policy;
+using FSH.Framework.Identity.Core.Roles;
+using FSH.Framework.Identity.Endpoints.v1.Roles.UpdatePermissions;
+using FSH.Framework.Shared.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +19,7 @@ public static class UpdateRolePermissionsEndpoint
             [FromServices] IValidator<UpdatePermissionsCommand> validator) =>
         {
             if (id != request.RoleId) return Results.BadRequest();
-            var response = await roleService.UpdatePermissionsAsync(request);
+            var response = await roleService.UpdatePermissionsAsync(request.RoleId, request.Permissions);
             return Results.Ok(response);
         })
         .WithName(nameof(UpdateRolePermissionsEndpoint))

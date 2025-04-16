@@ -1,6 +1,6 @@
-﻿using FSH.Framework.Core.Identity.Roles;
-using FSH.Framework.Core.Identity.Roles.Features.CreateOrUpdateRole;
-using FSH.Framework.Infrastructure.Auth.Policy;
+﻿using FSH.Framework.Identity.Core.Roles;
+using FSH.Framework.Identity.Endpoints.v1.Roles.CreateOrUpdateRole;
+using FSH.Framework.Shared.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -11,9 +11,9 @@ public static class CreateOrUpdateRoleEndpoint
 {
     public static RouteHandlerBuilder MapCreateOrUpdateRoleEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        return endpoints.MapPost("/", async (CreateOrUpdateRoleCommand request, IRoleService roleService) =>
+        return endpoints.MapPost("/", async (UpsertRoleCommand request, IRoleService roleService) =>
         {
-            return await roleService.CreateOrUpdateRoleAsync(request);
+            return await roleService.CreateOrUpdateRoleAsync(request.Id, request.Name, request.Description);
         })
         .WithName(nameof(CreateOrUpdateRoleEndpoint))
         .WithSummary("Create or update a role")

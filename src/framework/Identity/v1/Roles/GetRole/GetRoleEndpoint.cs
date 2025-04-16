@@ -1,5 +1,5 @@
-﻿using FSH.Framework.Core.Identity.Roles;
-using FSH.Framework.Infrastructure.Auth.Policy;
+﻿using FSH.Framework.Identity.Core.Roles;
+using FSH.Framework.Shared.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;

@@ -1,6 +1,9 @@
 ﻿using Finbuckle.MultiTenant;
+using FSH.Framework.Identity.Contracts;
 using FSH.Framework.Identity.Infrastructure.Roles;
 using FSH.Framework.Identity.Infrastructure.Users;
+using FSH.Framework.Identity.v1.RoleClaims;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -11,7 +14,7 @@ public class ApplicationUserConfig : IEntityTypeConfiguration<FshUser>
     public void Configure(EntityTypeBuilder<FshUser> builder)
     {
         builder
-            .ToTable("Users", IdentityConstants.SchemaName)
+            .ToTable("Users", IdentityModuleConstants.SchemaName)
             .IsMultiTenant();
 
         builder
@@ -24,7 +27,7 @@ public class ApplicationRoleConfig : IEntityTypeConfiguration<FshRole>
 {
     public void Configure(EntityTypeBuilder<FshRole> builder) =>
         builder
-            .ToTable("Roles", IdentityConstants.SchemaName)
+            .ToTable("Roles", IdentityModuleConstants.SchemaName)
             .IsMultiTenant()
                 .AdjustUniqueIndexes();
 }
@@ -33,7 +36,7 @@ public class ApplicationRoleClaimConfig : IEntityTypeConfiguration<FshRoleClaim>
 {
     public void Configure(EntityTypeBuilder<FshRoleClaim> builder) =>
         builder
-            .ToTable("RoleClaims", IdentityConstants.SchemaName)
+            .ToTable("RoleClaims", IdentityModuleConstants.SchemaName)
             .IsMultiTenant();
 }
 
@@ -41,7 +44,7 @@ public class IdentityUserRoleConfig : IEntityTypeConfiguration<IdentityUserRole<
 {
     public void Configure(EntityTypeBuilder<IdentityUserRole<string>> builder) =>
         builder
-            .ToTable("UserRoles", IdentityConstants.SchemaName)
+            .ToTable("UserRoles", IdentityModuleConstants.SchemaName)
             .IsMultiTenant();
 }
 
@@ -49,7 +52,7 @@ public class IdentityUserClaimConfig : IEntityTypeConfiguration<IdentityUserClai
 {
     public void Configure(EntityTypeBuilder<IdentityUserClaim<string>> builder) =>
         builder
-            .ToTable("UserClaims", IdentityConstants.SchemaName)
+            .ToTable("UserClaims", IdentityModuleConstants.SchemaName)
             .IsMultiTenant();
 }
 
@@ -57,7 +60,7 @@ public class IdentityUserLoginConfig : IEntityTypeConfiguration<IdentityUserLogi
 {
     public void Configure(EntityTypeBuilder<IdentityUserLogin<string>> builder) =>
         builder
-            .ToTable("UserLogins", IdentityConstants.SchemaName)
+            .ToTable("UserLogins", IdentityModuleConstants.SchemaName)
             .IsMultiTenant();
 }
 
@@ -65,6 +68,6 @@ public class IdentityUserTokenConfig : IEntityTypeConfiguration<IdentityUserToke
 {
     public void Configure(EntityTypeBuilder<IdentityUserToken<string>> builder) =>
         builder
-            .ToTable("UserTokens", IdentityConstants.SchemaName)
+            .ToTable("UserTokens", IdentityModuleConstants.SchemaName)
             .IsMultiTenant();
 }

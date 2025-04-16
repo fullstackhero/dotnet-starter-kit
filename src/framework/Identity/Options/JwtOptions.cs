@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace FSH.Framework.Identity.Infrastructure;
+namespace FSH.Framework.Identity.Options;
 public class JwtOptions : IValidatableObject
 {
     public string Key { get; set; } = string.Empty;

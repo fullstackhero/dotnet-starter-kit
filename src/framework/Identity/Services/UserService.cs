@@ -1,20 +1,24 @@
-﻿using System.Collections.ObjectModel;
-using System.Security.Claims;
-using System.Text;
+﻿using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Caching;
 using FSH.Framework.Core.Exceptions;
-using FSH.Framework.Core.Identity.Users.Dtos;
 using FSH.Framework.Core.Jobs;
 using FSH.Framework.Core.Mail;
 using FSH.Framework.Core.Storage;
+using FSH.Framework.Identity.Contracts.v1.Users.AssignUserRoles;
 using FSH.Framework.Identity.Core.Roles;
 using FSH.Framework.Identity.Core.Users;
+using FSH.Framework.Identity.Infrastructure.Data;
 using FSH.Framework.Identity.Infrastructure.Roles;
 using FSH.Framework.Identity.Infrastructure.Users;
+using FSH.Framework.Infrastructure.Constants;
 using FSH.Framework.Shared.Constants;
+using FSH.Framework.Shared.Multitenancy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.ObjectModel;
+using System.Security.Claims;
+using System.Text;
 
 namespace FSH.Framework.Infrastructure.Identity.Users.Services;
 
@@ -79,7 +83,7 @@ internal sealed partial class UserService(
         return await userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == phoneNumber) is FshUser user && user.Id != exceptId;
     }
 
-    public async Task<UserDetailDto> GetAsync(string userId, CancellationToken cancellationToken)
+    public async Task<UserDto> GetAsync(string userId, CancellationToken cancellationToken)
     {
         var user = await userManager.Users
             .AsNoTracking()
@@ -88,7 +92,7 @@ internal sealed partial class UserService(
 
         _ = user ?? throw new NotFoundException("user not found");
 
-        return new UserDetailDto
+        return new UserDto
         {
             Id = user.Id,
             Email = user.Email,
@@ -103,13 +107,13 @@ internal sealed partial class UserService(
     public Task<int> GetCountAsync(CancellationToken cancellationToken) =>
         userManager.Users.AsNoTracking().CountAsync(cancellationToken);
 
-    public async Task<List<UserDetailDto>> GetListAsync(CancellationToken cancellationToken)
+    public async Task<List<UserDto>> GetListAsync(CancellationToken cancellationToken)
     {
         var users = await userManager.Users.AsNoTracking().ToListAsync(cancellationToken);
-        var result = new List<UserDetailDto>(users.Count);
+        var result = new List<UserDto>(users.Count);
         foreach (var user in users)
         {
-            result.Add(new UserDetailDto
+            result.Add(new UserDto
             {
                 Id = user.Id,
                 Email = user.Email,
@@ -129,23 +133,25 @@ internal sealed partial class UserService(
         throw new NotImplementedException();
     }
 
-    public async Task<RegisterUserResponse> RegisterAsync(RegisterUserCommand request, string origin, CancellationToken cancellationToken)
+    public async Task<string> RegisterAsync(string firstName, string lastName, string email, string userName, string password, string confirmPassword, string phoneNumber, string origin, CancellationToken cancellationToken)
     {
+        if (password != confirmPassword) throw new CustomException("password mismatch.");
+
         // create user entity
         var user = new FshUser
         {
-            Email = request.Email,
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            UserName = request.UserName,
-            PhoneNumber = request.PhoneNumber,
+            Email = email,
+            FirstName = firstName,
+            LastName = lastName,
+            UserName = userName,
+            PhoneNumber = phoneNumber,
             IsActive = true,
             EmailConfirmed = false,
             PhoneNumberConfirmed = false,
         };
 
         // register user
-        var result = await userManager.CreateAsync(user, request.Password);
+        var result = await userManager.CreateAsync(user, password);
         if (!result.Succeeded)
         {
             var errors = result.Errors.Select(error => error.Description).ToList();
@@ -163,15 +169,15 @@ internal sealed partial class UserService(
                 new Collection<string> { user.Email },
                 "Confirm Registration",
                 emailVerificationUri);
-            jobService.Enqueue("email", () => mailService.SendAsync(mailRequest, CancellationToken.None));
+            jobService.Enqueue("email", () => mailService.SendAsync(mailRequest, cancellationToken));
         }
 
-        return new RegisterUserResponse(user.Id);
+        return user.Id;
     }
 
-    public async Task ToggleStatusAsync(ToggleUserStatusCommand request, CancellationToken cancellationToken)
+    public async Task ToggleStatusAsync(bool activateUser, string userId, CancellationToken cancellationToken)
     {
-        var user = await userManager.Users.Where(u => u.Id == request.UserId).FirstOrDefaultAsync(cancellationToken);
+        var user = await userManager.Users.Where(u => u.Id == userId).FirstOrDefaultAsync(cancellationToken);
 
         _ = user ?? throw new NotFoundException("User Not Found.");
 
@@ -181,34 +187,34 @@ internal sealed partial class UserService(
             throw new CustomException("Administrators Profile's Status cannot be toggled");
         }
 
-        user.IsActive = request.ActivateUser;
+        user.IsActive = activateUser;
 
         await userManager.UpdateAsync(user);
     }
 
-    public async Task UpdateAsync(UpdateUserCommand request, string userId)
+    public async Task UpdateAsync(string userId, string firstName, string lastName, string phoneNumber, FileUploadRequest image, bool deleteCurrentImage)
     {
         var user = await userManager.FindByIdAsync(userId);
 
         _ = user ?? throw new NotFoundException("user not found");
 
         Uri imageUri = user.ImageUrl ?? null!;
-        if (request.Image != null || request.DeleteCurrentImage)
+        if (image.Data != null || deleteCurrentImage)
         {
-            user.ImageUrl = await storageService.UploadAsync<FshUser>(request.Image, FileType.Image);
-            if (request.DeleteCurrentImage && imageUri != null)
+            var imageString = await storageService.UploadAsync<FshUser>(image, FileType.Image);
+            user.ImageUrl = new Uri(imageString);
+            if (deleteCurrentImage && imageUri != null)
             {
                 await storageService.RemoveAsync(imageUri.ToString());
             }
         }
 
-        user.FirstName = request.FirstName;
-        user.LastName = request.LastName;
-        user.PhoneNumber = request.PhoneNumber;
-        string? phoneNumber = await userManager.GetPhoneNumberAsync(user);
-        if (request.PhoneNumber != phoneNumber)
+        user.FirstName = firstName;
+        user.LastName = lastName;
+        string? currentPhoneNumber = await userManager.GetPhoneNumberAsync(user);
+        if (phoneNumber != currentPhoneNumber)
         {
-            await userManager.SetPhoneNumberAsync(user, request.PhoneNumber);
+            await userManager.SetPhoneNumberAsync(user, phoneNumber);
         }
 
         var result = await userManager.UpdateAsync(user);
@@ -252,7 +258,7 @@ internal sealed partial class UserService(
         return verificationUri;
     }
 
-    public async Task<string> AssignRolesAsync(string userId, AssignUserRoleCommand request, CancellationToken cancellationToken)
+    public async Task<string> AssignRolesAsync(string userId, AssignUserRolesCommand request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
 

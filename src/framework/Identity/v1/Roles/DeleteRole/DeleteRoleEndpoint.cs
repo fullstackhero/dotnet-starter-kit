@@ -1,10 +1,10 @@
-﻿using FSH.Framework.Core.Identity.Roles;
-using FSH.Framework.Infrastructure.Auth.Policy;
+﻿using FSH.Framework.Identity.Core.Roles;
+using FSH.Framework.Shared.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
-namespace FSH.Framework.Infrastructure.Identity.Roles.Endpoints;
+namespace FSH.Framework.Identity.v1.Roles.DeleteRole;
 
 public static class DeleteRoleEndpoint
 {

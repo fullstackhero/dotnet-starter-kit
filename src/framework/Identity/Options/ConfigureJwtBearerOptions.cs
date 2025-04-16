@@ -5,7 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.Text;
 
-namespace FSH.Framework.Infrastructure.Auth.Jwt;
+namespace FSH.Framework.Identity.Options;
 public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions>
 {
     private readonly JwtOptions _options;
@@ -35,10 +35,10 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
         {
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(key),
-            ValidIssuer = JwtAuthConstants.Issuer,
+            ValidIssuer = _options.Issuer,
             ValidateIssuer = true,
             ValidateLifetime = true,
-            ValidAudience = JwtAuthConstants.Audience,
+            ValidAudience = _options.Audience,
             ValidateAudience = true,
             RoleClaimType = ClaimTypes.Role,
             ClockSkew = TimeSpan.Zero
