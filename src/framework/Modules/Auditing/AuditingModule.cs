@@ -1,5 +1,4 @@
 ﻿using Asp.Versioning;
-using FSH.Framework.Auditing.Features.v1.GetUserTrails;
 using FSH.Framework.Infrastructure.Messaging.CQRS;
 using FSH.Framework.Infrastructure.Modules;
 using Microsoft.AspNetCore.Builder;
@@ -32,7 +31,7 @@ public class AuditingModule : IFrameworkModule
             .WithOpenApi()
             .WithApiVersionSet(apiVersionSet);
 
-        GetUserTrailsEndpoint.Map(group);
+        //GetUserTrailsEndpoint.Map(group);
 
         return endpoints;
     }

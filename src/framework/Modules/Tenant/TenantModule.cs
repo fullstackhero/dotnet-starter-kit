@@ -9,12 +9,7 @@ using FSH.Framework.Infrastructure.Persistence.Services;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Tenant.Data;
-using FSH.Framework.Tenant.Features.v1.ActivateTenant;
 using FSH.Framework.Tenant.Features.v1.CreateTenant;
-using FSH.Framework.Tenant.Features.v1.DisableTenant;
-using FSH.Framework.Tenant.Features.v1.GetTenantById;
-using FSH.Framework.Tenant.Features.v1.GetTenants;
-using FSH.Framework.Tenant.Features.v1.UpgradeTenant;
 using FSH.Framework.Tenant.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -159,12 +154,12 @@ public static class TenantModule
             .WithOpenApi()
             .WithApiVersionSet(apiVersionSet);
 
-        CreateTenantEndpoint.Map(group);
-        DisableTenantEndpoint.Map(group);
-        GetTenantByIdEndpoint.Map(group);
-        GetTenantsEndpoint.Map(group);
-        UpgradeTenantEndpoint.Map(group);
-        ActivateTenantEndpoint.Map(group);
+        CreateTenantEndpoint.Map(group).AllowAnonymous();
+        //DisableTenantEndpoint.Map(group);
+        //GetTenantByIdEndpoint.Map(group);
+        //GetTenantsEndpoint.Map(group);
+        //UpgradeTenantEndpoint.Map(group);
+        //ActivateTenantEndpoint.Map(group);
 
         return endpoints;
     }

@@ -1,10 +1,10 @@
 ﻿using FluentValidation;
+using FSH.Framework.Core.Storage;
 
-namespace FSH.Framework.Core.Storage;
-
-public class FileUploadRequestValidator : AbstractValidator<FileUploadRequest>
+namespace FSH.Framework.Identity.v1.Users;
+public class UserImageValidator : AbstractValidator<FileUploadRequest>
 {
-    public FileUploadRequestValidator(FileType fileType)
+    public UserImageValidator(FileType fileType)
     {
         var rules = FileTypeMetadata.GetRules(fileType);
 

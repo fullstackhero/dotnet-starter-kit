@@ -10,13 +10,16 @@ namespace FSH.Framework.Infrastructure.Persistence;
 public static class Extensions
 {
     private static readonly ILogger Logger = Log.ForContext(typeof(Extensions));
-    public static DbContextOptionsBuilder ConfigureDatabase(this DbContextOptionsBuilder builder, string dbProvider, string connectionString)
+    public static DbContextOptionsBuilder ConfigureDatabase(this DbContextOptionsBuilder builder,
+        string dbProvider,
+        string connectionString
+        )
     {
         builder.ConfigureWarnings(warnings => warnings.Log(RelationalEventId.PendingModelChangesWarning));
         return dbProvider.ToUpperInvariant() switch
         {
             DbProviders.PostgreSQL => builder.UseNpgsql(connectionString, e =>
-                                 e.MigrationsAssembly("FSH.Starter.WebApi.Migrations.PostgreSQL")).EnableSensitiveDataLogging(),
+                                 e.MigrationsAssembly("FSH.PlayGround.Migrations.PostgreSQL")).EnableSensitiveDataLogging(),
             DbProviders.MSSQL => builder.UseSqlServer(connectionString, e =>
                                 e.MigrationsAssembly("FSH.Starter.WebApi.Migrations.MSSQL")),
             _ => throw new InvalidOperationException($"DB Provider {dbProvider} is not supported."),

@@ -1,5 +1,4 @@
-﻿using Asp.Versioning.Conventions;
-using FluentValidation;
+﻿using FluentValidation;
 using FSH.Framework.Core;
 using FSH.Framework.Core.Origin;
 using FSH.Framework.Infrastructure.Caching;
@@ -8,6 +7,8 @@ using FSH.Framework.Infrastructure.Exceptions;
 using FSH.Framework.Infrastructure.Jobs;
 using FSH.Framework.Infrastructure.Logging.Serilog;
 using FSH.Framework.Infrastructure.Mail;
+using FSH.Framework.Infrastructure.Messaging.CQRS;
+using FSH.Framework.Infrastructure.Messaging.Events;
 using FSH.Framework.Infrastructure.OpenApi;
 using FSH.Framework.Infrastructure.Persistence;
 using FSH.Framework.Infrastructure.RateLimit;
@@ -26,6 +27,7 @@ public static class Extensions
     public static WebApplicationBuilder ConfigureFshFramework(this WebApplicationBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
+        builder.Services.RegisterInMemoryEventBus();
         builder.ConfigureSerilog();
         builder.ConfigureDatabase();
         builder.Services.AddCorsPolicy(builder.Configuration);
@@ -39,7 +41,7 @@ public static class Extensions
         builder.Services.AddHealthChecks();
         builder.Services.AddOptions<OriginOptions>().BindConfiguration(nameof(OriginOptions));
 
-        // Define module assemblies
+        // Define framework assemblies
         var assemblies = new Assembly[]
         {
             typeof(FshCore).Assembly,
@@ -49,6 +51,7 @@ public static class Extensions
         // Register validators
         builder.Services.AddValidatorsFromAssemblies(assemblies);
 
+        builder.Services.RegisterCommandAndQueryDispatchers();
         builder.Services.ConfigureRateLimit(builder.Configuration);
         builder.Services.ConfigureSecurityHeaders(builder.Configuration);
 
@@ -61,28 +64,24 @@ public static class Extensions
         app.UseSecurityHeaders();
         app.UseExceptionHandler();
         app.UseCorsPolicy();
-        app.UseOpenApi();
+        //app.UseOpenApi();
         app.UseJobDashboard(app.Configuration);
         app.UseRouting();
         app.UseStaticFiles();
+
+        var assetsPath = Path.Combine(Directory.GetCurrentDirectory(), "assets");
+        if (!Directory.Exists(assetsPath))
+        {
+            Directory.CreateDirectory(assetsPath);
+        }
         app.UseStaticFiles(new StaticFileOptions()
         {
             FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "assets")),
             RequestPath = new PathString("/assets")
         });
+
         app.UseAuthentication();
         app.UseAuthorization();
-
-        // Register API versions
-        var versions = app.NewApiVersionSet()
-                    .HasApiVersion(1)
-                    .HasApiVersion(2)
-                    .ReportApiVersions()
-                    .Build();
-
-        // Map versioned endpoint
-        app.MapGroup("api/v{version:apiVersion}").WithApiVersionSet(versions);
-
         return app;
     }
 }

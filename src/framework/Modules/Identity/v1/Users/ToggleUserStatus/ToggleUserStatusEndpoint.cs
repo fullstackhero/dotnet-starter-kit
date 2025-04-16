@@ -13,8 +13,8 @@ public static class ToggleUserStatusEndpoint
     internal static RouteHandlerBuilder ToggleUserStatusEndpointEndpoint(this IEndpointRouteBuilder endpoints)
     {
         return endpoints.MapPost("/{id:guid}/toggle-status", async (
-            string id,
-            ToggleUserStatusCommand command,
+            [FromQuery] string id,
+            [FromBody] ToggleUserStatusCommand command,
             [FromServices] IUserService userService,
             CancellationToken cancellationToken) =>
         {

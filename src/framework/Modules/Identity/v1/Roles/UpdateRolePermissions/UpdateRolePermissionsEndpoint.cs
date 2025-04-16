@@ -13,7 +13,7 @@ public static class UpdateRolePermissionsEndpoint
     public static RouteHandlerBuilder MapUpdateRolePermissionsEndpoint(this IEndpointRouteBuilder endpoints)
     {
         return endpoints.MapPut("/{id}/permissions", async (
-            UpdatePermissionsCommand request,
+            [FromBody] UpdatePermissionsCommand request,
             IRoleService roleService,
             string id,
             [FromServices] IValidator<UpdatePermissionsCommand> validator) =>

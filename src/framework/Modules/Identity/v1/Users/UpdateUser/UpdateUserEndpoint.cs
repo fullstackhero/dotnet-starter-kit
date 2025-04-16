@@ -5,6 +5,7 @@ using FSH.Framework.Shared.Authorization;
 using FSH.Framework.Shared.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using System.Security.Claims;
 
@@ -13,7 +14,7 @@ public static class UpdateUserEndpoint
 {
     internal static RouteHandlerBuilder MapUpdateUserEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        return endpoints.MapPut("/profile", (UpdateUserCommand request, ClaimsPrincipal user, IUserService service) =>
+        return endpoints.MapPut("/profile", ([FromBody] UpdateUserCommand request, ClaimsPrincipal user, IUserService service) =>
         {
             if (user.GetUserId() is not { } userId || string.IsNullOrEmpty(userId))
             {

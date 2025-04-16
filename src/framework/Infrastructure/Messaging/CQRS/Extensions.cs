@@ -1,7 +1,7 @@
-﻿using System.Reflection;
-using FSH.Framework.Core.Messaging.CQRS;
+﻿using FSH.Framework.Core.Messaging.CQRS;
 using FSH.Framework.Infrastructure.Messaging.CQRS.Validation;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace FSH.Framework.Infrastructure.Messaging.CQRS;
 public static class Extensions
