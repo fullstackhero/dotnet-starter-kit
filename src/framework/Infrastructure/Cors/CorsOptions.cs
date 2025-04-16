@@ -1,6 +1,5 @@
-﻿namespace FSH.Framework.Infrastructure.Cors;
-using System.Collections.ObjectModel;
-
+﻿using System.Collections.ObjectModel;
+namespace FSH.Framework.Infrastructure.Cors;
 public class CorsOptions
 {
     public CorsOptions()

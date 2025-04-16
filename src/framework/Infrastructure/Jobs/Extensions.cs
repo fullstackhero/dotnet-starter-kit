@@ -15,7 +15,7 @@ internal static class Extensions
     internal static IServiceCollection ConfigureJobs(this IServiceCollection services, IConfiguration configuration)
     {
         var dbOptions = configuration.GetSection(nameof(DatabaseOptions)).Get<DatabaseOptions>() ??
-            throw new FshException("database options cannot be null");
+            throw new CustomException("database options cannot be null");
 
         services.AddHangfireServer(o =>
         {
@@ -41,7 +41,7 @@ internal static class Extensions
                     break;
 
                 default:
-                    throw new FshException($"hangfire storage provider {dbOptions.Provider} is not supported");
+                    throw new CustomException($"hangfire storage provider {dbOptions.Provider} is not supported");
             }
 
             config.UseFilter(new FshJobFilter(provider));

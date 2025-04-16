@@ -20,7 +20,7 @@ public class CustomExceptionHandler(ILogger<CustomExceptionHandler> logger) : IE
             problemDetails.Detail = "one or more validation errors occurred";
             problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1";
             httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
-            List<string> validationErrors = new List<string>();
+            List<string> validationErrors = new();
             foreach (var error in fluentException.Errors)
             {
                 validationErrors.Add(error.ErrorMessage);
@@ -28,7 +28,7 @@ public class CustomExceptionHandler(ILogger<CustomExceptionHandler> logger) : IE
             problemDetails.Extensions.Add("errors", validationErrors);
         }
 
-        else if (exception is FshException e)
+        else if (exception is CustomException e)
         {
             httpContext.Response.StatusCode = (int)e.StatusCode;
             problemDetails.Detail = e.Message;

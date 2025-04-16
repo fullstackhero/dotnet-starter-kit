@@ -5,6 +5,7 @@ using FSH.Framework.Identity.Core.Roles;
 using FSH.Framework.Identity.Core.Tokens;
 using FSH.Framework.Identity.Core.Users;
 using FSH.Framework.Identity.Infrastructure.Data;
+using FSH.Framework.Identity.Infrastructure.Roles;
 using FSH.Framework.Identity.Infrastructure.Tokens;
 using FSH.Framework.Identity.Infrastructure.Users;
 using FSH.Framework.Identity.v1.Tokens.TokenGeneration;
@@ -14,13 +15,12 @@ using FSH.Framework.Infrastructure.Identity.Users.Services;
 using FSH.Framework.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FSH.Framework.Identity;
 public static class IdentityModule
 {
-    public static IServiceCollection RegisterIdentityModule(this IServiceCollection services, IConfiguration config)
+    public static IServiceCollection RegisterIdentityModule(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
         services.AddScoped<CurrentUserMiddleware>();

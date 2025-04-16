@@ -8,19 +8,21 @@ public static class TrailMappings
 {
     public static TrailDto ToDto(this Trail trail)
     {
-        return new(
-            Id: trail.Id,
-            DateTime: trail.DateTime,
-            UserId: trail.UserId,
-            Operation: trail.Operation,
-            Description: trail.Description,
-            EntityName: trail.EntityName ?? string.Empty,
-            KeyValues: new Dictionary<string, object?>(trail.KeyValues),
-            OldValues: new Dictionary<string, object?>(trail.OldValues),
-            NewValues: new Dictionary<string, object?>(trail.NewValues),
-            ModifiedProperties: new Collection<string>(trail.ModifiedProperties.ToList())
-        );
+        return new TrailDto
+        {
+            Id = trail.Id,
+            DateTime = trail.DateTime,
+            UserId = trail.UserId,
+            Operation = trail.Operation,
+            Description = trail.Description,
+            EntityName = trail.EntityName ?? string.Empty,
+            KeyValues = new Dictionary<string, object?>(trail.KeyValues),
+            OldValues = new Dictionary<string, object?>(trail.OldValues),
+            NewValues = new Dictionary<string, object?>(trail.NewValues),
+            ModifiedProperties = new Collection<string>(trail.ModifiedProperties.ToList())
+        };
     }
+
 
     public static IReadOnlyList<TrailDto> ToDtoList(this IEnumerable<Trail> trails)
     {

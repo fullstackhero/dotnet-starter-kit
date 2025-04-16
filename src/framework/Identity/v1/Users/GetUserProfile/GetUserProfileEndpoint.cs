@@ -1,10 +1,10 @@
 ﻿using FSH.Framework.Core.Exceptions;
-using System.Security.Claims;
-using FSH.Framework.Core.Identity.Users.Abstractions;
+using FSH.Framework.Identity.Core.Users;
+using FSH.Framework.Shared.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using FSH.Starter.Shared.Authorization;
+using System.Security.Claims;
 
 namespace FSH.Framework.Infrastructure.Identity.Users.Endpoints;
 public static class GetUserProfileEndpoint

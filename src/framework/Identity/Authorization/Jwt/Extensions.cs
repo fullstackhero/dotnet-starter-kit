@@ -1,5 +1,5 @@
-﻿using FSH.Framework.Core.Auth.Jwt;
-using FSH.Framework.Infrastructure.Auth.Policy;
+﻿using FSH.Framework.Identity.Infrastructure.Authorization;
+using FSH.Framework.Identity.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;

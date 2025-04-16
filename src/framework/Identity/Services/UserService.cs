@@ -4,7 +4,6 @@ using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Core.Jobs;
 using FSH.Framework.Core.Mail;
 using FSH.Framework.Core.Storage;
-using FSH.Framework.Identity.Contracts.v1.Users.AssignUserRoles;
 using FSH.Framework.Identity.Core.Roles;
 using FSH.Framework.Identity.Core.Users;
 using FSH.Framework.Identity.Infrastructure.Data;
@@ -258,17 +257,15 @@ internal sealed partial class UserService(
         return verificationUri;
     }
 
-    public async Task<string> AssignRolesAsync(string userId, AssignUserRolesCommand request, CancellationToken cancellationToken)
+    public async Task<string> AssignRolesAsync(string userId, List<UserRoleDto> userRoles, CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(request);
-
         var user = await userManager.Users.Where(u => u.Id == userId).FirstOrDefaultAsync(cancellationToken);
 
         _ = user ?? throw new NotFoundException("user not found");
 
         // Check if the user is an admin for which the admin role is getting disabled
         if (await userManager.IsInRoleAsync(user, FshRoles.Admin)
-            && request.UserRoles.Exists(a => !a.Enabled && a.RoleName == FshRoles.Admin))
+            && userRoles.Exists(a => !a.Enabled && a.RoleName == FshRoles.Admin))
         {
             // Get count of users in Admin Role
             int adminCount = (await userManager.GetUsersInRoleAsync(FshRoles.Admin)).Count;
@@ -288,7 +285,7 @@ internal sealed partial class UserService(
             }
         }
 
-        foreach (var userRole in request.UserRoles)
+        foreach (var userRole in userRoles)
         {
             // Check if Role Exists
             if (await roleManager.FindByNameAsync(userRole.RoleName!) is not null)

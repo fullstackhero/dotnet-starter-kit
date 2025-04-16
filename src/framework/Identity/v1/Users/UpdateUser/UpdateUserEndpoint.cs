@@ -1,26 +1,30 @@
-﻿using System.Security.Claims;
-using FSH.Framework.Core.Exceptions;
-using FSH.Framework.Core.Identity.Users.Abstractions;
-using FSH.Framework.Core.Identity.Users.Features.UpdateUser;
-using FSH.Framework.Infrastructure.Auth.Policy;
-using FSH.Starter.Shared.Authorization;
-using MediatR;
+﻿using FSH.Framework.Core.Exceptions;
+using FSH.Framework.Identity.Contracts.v1.Users.UpdateUser;
+using FSH.Framework.Identity.Core.Users;
+using FSH.Framework.Shared.Authorization;
+using FSH.Framework.Shared.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using System.Security.Claims;
 
 namespace FSH.Framework.Infrastructure.Identity.Users.Endpoints;
 public static class UpdateUserEndpoint
 {
     internal static RouteHandlerBuilder MapUpdateUserEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        return endpoints.MapPut("/profile", (UpdateUserCommand request, ISender mediator, ClaimsPrincipal user, IUserService service) =>
+        return endpoints.MapPut("/profile", (UpdateUserCommand request, ClaimsPrincipal user, IUserService service) =>
         {
             if (user.GetUserId() is not { } userId || string.IsNullOrEmpty(userId))
             {
                 throw new UnauthorizedException();
             }
-            return service.UpdateAsync(request, userId);
+            return service.UpdateAsync(request.Id,
+                request.FirstName,
+                request.LastName,
+                request.PhoneNumber,
+                request.Image,
+                request.DeleteCurrentImage);
         })
         .WithName(nameof(UpdateUserEndpoint))
         .WithSummary("update user profile")

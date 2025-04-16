@@ -1,7 +1,7 @@
-﻿using FSH.Framework.Core.Identity.Users.Abstractions;
-using FSH.Framework.Core.Identity.Users.Features.RegisterUser;
-using FSH.Framework.Infrastructure.Auth.Policy;
-using FSH.Starter.Shared.Authorization;
+﻿using FSH.Framework.Identity.Core.Users;
+using FSH.Framework.Identity.Endpoints.v1.Users.RegisterUser;
+using FSH.Framework.Shared.Authorization;
+using FSH.Framework.Shared.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +19,15 @@ public static class SelfRegisterUserEndpoint
             CancellationToken cancellationToken) =>
         {
             var origin = $"{context.Request.Scheme}://{context.Request.Host.Value}{context.Request.PathBase.Value}";
-            return service.RegisterAsync(request, origin, cancellationToken);
+            return service.RegisterAsync(request.FirstName,
+                request.LastName,
+                request.Email,
+                request.UserName,
+                request.Password,
+                request.ConfirmPassword,
+                request.PhoneNumber,
+                origin,
+                cancellationToken);
         })
         .WithName(nameof(SelfRegisterUserEndpoint))
         .WithSummary("self register user")

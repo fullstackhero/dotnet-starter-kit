@@ -64,12 +64,12 @@ public class AuditInterceptor(ICurrentUser currentUser, TimeProvider timeProvide
                 {
                     case EntityState.Added:
                         audit.Operation = AuditOperation.Create;
-                        audit.SetNewValue(propertyName, property.CurrentValue);
+                        audit.NewValues[propertyName] = property.CurrentValue;
                         break;
 
                     case EntityState.Deleted:
                         audit.Operation = AuditOperation.Delete;
-                        audit.SetOldValue(propertyName, property.OriginalValue);
+                        audit.OldValues[propertyName] = property.OriginalValue;
                         break;
 
                     case EntityState.Modified:
@@ -77,17 +77,17 @@ public class AuditInterceptor(ICurrentUser currentUser, TimeProvider timeProvide
                         {
                             if (entry.Entity is ISoftDeletable && property.OriginalValue == null && property.CurrentValue != null)
                             {
-                                audit.AddModifiedProperty(propertyName);
+                                audit.ModifiedProperties.Add(propertyName);
                                 audit.Operation = AuditOperation.Delete;
-                                audit.SetOldValue(propertyName, property.OriginalValue);
-                                audit.SetNewValue(propertyName, property.CurrentValue);
+                                audit.OldValues[propertyName] = property.OriginalValue;
+                                audit.NewValues[propertyName] = property.CurrentValue;
                             }
                             else if (property.OriginalValue?.Equals(property.CurrentValue) == false)
                             {
-                                audit.AddModifiedProperty(propertyName);
+                                audit.ModifiedProperties.Add(propertyName);
                                 audit.Operation = AuditOperation.Update;
-                                audit.SetOldValue(propertyName, property.OriginalValue);
-                                audit.SetNewValue(propertyName, property.CurrentValue);
+                                audit.OldValues[propertyName] = property.OriginalValue;
+                                audit.NewValues[propertyName] = property.CurrentValue;
                             }
                             else
                             {

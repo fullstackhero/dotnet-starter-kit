@@ -1,8 +1,8 @@
 ﻿using FluentValidation;
 using FluentValidation.Results;
-using FSH.Framework.Core.Identity.Users.Abstractions;
-using FSH.Framework.Core.Identity.Users.Features.ResetPassword;
-using FSH.Starter.Shared.Authorization;
+using FSH.Framework.Identity.Core.Users;
+using FSH.Framework.Identity.Endpoints.v1.Users.ResetPassword;
+using FSH.Framework.Shared.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -14,7 +14,11 @@ public static class ResetPasswordEndpoint
 {
     internal static RouteHandlerBuilder MapResetPasswordEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        return endpoints.MapPost("/reset-password", async (ResetPasswordCommand command, [FromHeader(Name = TenantConstants.Identifier)] string tenant, IValidator<ResetPasswordCommand> validator, IUserService userService, CancellationToken cancellationToken) =>
+        return endpoints.MapPost("/reset-password",
+            async (ResetPasswordCommand command,
+            [FromHeader(Name = TenantConstants.Identifier)] string tenant,
+            IValidator<ResetPasswordCommand> validator,
+            IUserService userService, CancellationToken cancellationToken) =>
         {
             ValidationResult result = await validator.ValidateAsync(command, cancellationToken);
             if (!result.IsValid)
@@ -22,7 +26,7 @@ public static class ResetPasswordEndpoint
                 return Results.ValidationProblem(result.ToDictionary());
             }
 
-            await userService.ResetPasswordAsync(command, cancellationToken);
+            await userService.ResetPasswordAsync(command.Email, command.Password, command.Token, cancellationToken);
             return Results.Ok("Password has been reset.");
         })
         .WithName(nameof(ResetPasswordEndpoint))

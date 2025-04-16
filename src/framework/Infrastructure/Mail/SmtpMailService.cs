@@ -1,15 +1,12 @@
-﻿namespace FSH.Framework.Infrastructure.Mail;
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+﻿
 using FSH.Framework.Core.Mail;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
+
+namespace FSH.Framework.Infrastructure.Mail;
 
 public class SmtpMailService(IOptions<MailOptions> settings, ILogger<SmtpMailService> logger) : IMailService
 {
@@ -63,12 +60,10 @@ public class SmtpMailService(IOptions<MailOptions> settings, ILogger<SmtpMailSer
         {
             foreach (var attachmentInfo in request.AttachmentData)
             {
-                using (var stream = new MemoryStream())
-                {
-                    await stream.WriteAsync(attachmentInfo.Value, ct);
-                    stream.Position = 0;
-                    await builder.Attachments.AddAsync(attachmentInfo.Key, stream, ct);
-                }
+                using var stream = new MemoryStream();
+                await stream.WriteAsync(attachmentInfo.Value, ct);
+                stream.Position = 0;
+                await builder.Attachments.AddAsync(attachmentInfo.Key, stream, ct);
             }
         }
 

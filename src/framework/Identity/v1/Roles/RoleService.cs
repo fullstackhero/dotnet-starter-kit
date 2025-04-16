@@ -2,11 +2,9 @@
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Core.ExecutionContext;
 using FSH.Framework.Identity.Core.Roles;
-using FSH.Framework.Identity.Endpoints.v1.Roles.CreateOrUpdateRole;
-using FSH.Framework.Identity.Endpoints.v1.Roles.UpdatePermissions;
 using FSH.Framework.Identity.Infrastructure.Data;
 using FSH.Framework.Identity.Infrastructure.Roles;
-using FSH.Framework.Infrastructure.Identity.RoleClaims;
+using FSH.Framework.Identity.v1.RoleClaims;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Shared.Multitenancy;
 using Microsoft.AspNetCore.Identity;
@@ -37,19 +35,19 @@ public class RoleService(RoleManager<FshRole> roleManager,
         return new RoleDto { Id = role.Id, Name = role.Name!, Description = role.Description };
     }
 
-    public async Task<RoleDto> CreateOrUpdateRoleAsync(UpsertRoleCommand command)
+    public async Task<RoleDto> CreateOrUpdateRoleAsync(string roleId, string name, string description)
     {
-        FshRole? role = await _roleManager.FindByIdAsync(command.Id);
+        FshRole? role = await _roleManager.FindByIdAsync(roleId);
 
         if (role != null)
         {
-            role.Name = command.Name;
-            role.Description = command.Description;
+            role.Name = name;
+            role.Description = description;
             await _roleManager.UpdateAsync(role);
         }
         else
         {
-            role = new FshRole(command.Name, command.Description);
+            role = new FshRole(name, description);
             await _roleManager.CreateAsync(role);
         }
 
@@ -78,9 +76,9 @@ public class RoleService(RoleManager<FshRole> roleManager,
         return role;
     }
 
-    public async Task<string> UpdatePermissionsAsync(UpdatePermissionsCommand command)
+    public async Task<string> UpdatePermissionsAsync(string roleId, List<string> permissions)
     {
-        var role = await _roleManager.FindByIdAsync(command.RoleId);
+        var role = await _roleManager.FindByIdAsync(roleId);
         _ = role ?? throw new NotFoundException("role not found");
         if (role.Name == FshRoles.Admin)
         {
@@ -90,13 +88,13 @@ public class RoleService(RoleManager<FshRole> roleManager,
         if (multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id != TenantConstants.Root.Id)
         {
             // Remove Root Permissions if the Role is not created for Root Tenant.
-            command.Permissions.RemoveAll(u => u.StartsWith("Permissions.Root.", StringComparison.InvariantCultureIgnoreCase));
+            permissions.RemoveAll(u => u.StartsWith("Permissions.Root.", StringComparison.InvariantCultureIgnoreCase));
         }
 
         var currentClaims = await _roleManager.GetClaimsAsync(role);
 
         // Remove permissions that were previously selected
-        foreach (var claim in currentClaims.Where(c => !command.Permissions.Exists(p => p == c.Value)))
+        foreach (var claim in currentClaims.Where(c => !permissions.Exists(p => p == c.Value)))
         {
             var result = await _roleManager.RemoveClaimAsync(role, claim);
             if (!result.Succeeded)
@@ -107,7 +105,7 @@ public class RoleService(RoleManager<FshRole> roleManager,
         }
 
         // Add all permissions that were not previously selected
-        foreach (string permission in command.Permissions.Where(c => !currentClaims.Any(p => p.Value == c)))
+        foreach (string permission in permissions.Where(c => !currentClaims.Any(p => p.Value == c)))
         {
             if (!string.IsNullOrEmpty(permission))
             {

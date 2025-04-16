@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
-using FSH.Framework.Core.Identity.Users.Abstractions;
-using FSH.Framework.Core.Identity.Users.Features.ToggleUserStatus;
+using FSH.Framework.Identity.Core.Users;
+using FSH.Framework.Identity.Endpoints.v1.Users.ToggleUserStatus;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -23,7 +23,7 @@ public static class ToggleUserStatusEndpoint
                 return Results.BadRequest();
             }
 
-            await userService.ToggleStatusAsync(command, cancellationToken);
+            await userService.ToggleStatusAsync(command.ActivateUser, command.UserId, cancellationToken);
             return Results.Ok();
         })
         .WithName(nameof(ToggleUserStatusEndpoint))

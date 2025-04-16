@@ -6,6 +6,7 @@ using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Core.Messaging.Events;
 using FSH.Framework.Identity.Core.Tokens;
 using FSH.Framework.Identity.Infrastructure.Users;
+using FSH.Framework.Identity.Options;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Shared.Multitenancy;
 using Microsoft.AspNetCore.Identity;
@@ -109,15 +110,20 @@ public sealed class TokenService : ITokenService
 
         await _userManager.UpdateAsync(user);
 
-        await _publisher.PublishAsync(new AuditPublishedEvent(new List<TrailDto>
+        var trailDtos = new List<TrailDto>
         {
-            new(Guid.NewGuid(),
-                DateTime.UtcNow,
-                new Guid(user.Id),
-                AuditOperation.Create,
-                "Token Generated",
-                "Identity")
-        }));
+            new() {
+                Id = Guid.NewGuid(),
+                DateTime = DateTimeOffset.UtcNow,
+                UserId = new Guid(user.Id),
+                Operation = AuditOperation.Create,
+                Description = "Token Generated",
+                EntityName = "Identity"
+            }
+        };
+
+        await _publisher.PublishAsync(new AuditPublishedEvent(trailDtos));
+
 
         return new TokenDto(token, user.RefreshToken, user.RefreshTokenExpiryTime);
     }

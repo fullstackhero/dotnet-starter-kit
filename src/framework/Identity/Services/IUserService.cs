@@ -28,6 +28,6 @@ public interface IUserService
     Task<List<string>?> GetPermissionsAsync(string userId, CancellationToken cancellationToken);
 
     Task ChangePasswordAsync(string password, string newPassword, string confirmNewPassword, string userId);
-    Task<string> AssignRolesAsync(string userId, IReadOnlyList<UserRoleDto> userRoles, CancellationToken cancellationToken);
+    Task<string> AssignRolesAsync(string userId, List<UserRoleDto> userRoles, CancellationToken cancellationToken);
     Task<List<UserRoleDto>> GetUserRolesAsync(string userId, CancellationToken cancellationToken);
 }
