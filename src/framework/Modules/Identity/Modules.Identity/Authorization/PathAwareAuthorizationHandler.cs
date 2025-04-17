@@ -39,4 +39,3 @@ public class PathAwareAuthorizationHandler : IAuthorizationMiddlewareResultHandl
         await _fallback.HandleAsync(next, context, policy, authorizeResult);
     }
 }
-

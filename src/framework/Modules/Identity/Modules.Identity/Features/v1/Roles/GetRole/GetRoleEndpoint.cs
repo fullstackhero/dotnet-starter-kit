@@ -20,4 +20,3 @@ public static class GetRoleByIdEndpoint
         .WithDescription("Retrieve the details of a role by its ID.");
     }
 }
-

@@ -10,4 +10,3 @@ public interface IRoleService
 
     Task<string> UpdatePermissionsAsync(string roleId, List<string> permissions);
 }
-

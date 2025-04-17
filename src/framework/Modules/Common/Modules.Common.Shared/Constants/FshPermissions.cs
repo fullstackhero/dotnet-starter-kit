@@ -62,5 +62,3 @@ public record FshPermission(string Description, string Action, string Resource, 
         return $"Permissions.{resource}.{action}";
     }
 }
-
-

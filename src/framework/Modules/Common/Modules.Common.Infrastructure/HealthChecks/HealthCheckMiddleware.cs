@@ -33,4 +33,3 @@ public class HealthCheckMiddleware
         await context.Response.WriteAsync(JsonSerializer.Serialize(response));
     }
 }
-

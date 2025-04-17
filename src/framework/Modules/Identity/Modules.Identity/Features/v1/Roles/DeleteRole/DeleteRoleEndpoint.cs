@@ -20,4 +20,3 @@ public static class DeleteRoleEndpoint
         .WithDescription("Remove a role from the system by its ID.");
     }
 }
-

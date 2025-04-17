@@ -56,4 +56,3 @@ public class LocalStorageService : IStorageService
         return Regex.Replace(fileName, @"[^a-zA-Z0-9_\.-]", "_");
     }
 }
-
