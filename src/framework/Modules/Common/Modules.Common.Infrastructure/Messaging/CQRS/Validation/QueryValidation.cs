@@ -1,7 +1,7 @@
 ﻿using FSH.Framework.Core.Messaging.CQRS;
 
 namespace FSH.Framework.Infrastructure.Messaging.CQRS.Validation;
-internal class QueryValidation : IQueryDispatcher
+internal sealed class QueryValidation : IQueryDispatcher
 {
     private readonly IQueryDispatcher _inner;
     private readonly IServiceProvider _serviceProvider;

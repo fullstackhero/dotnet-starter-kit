@@ -5,7 +5,7 @@ using FSH.Framework.Tenant.Services;
 using Mapster;
 
 namespace FSH.Framework.Tenant.Features.v1.GetTenantById;
-internal class GetTenantByIdQueryHandler(ITenantService service)
+internal sealed class GetTenantByIdQueryHandler(ITenantService service)
     : IQueryHandler<GetTenantByIdQuery, GetTenantByIdQueryResponse>
 {
     public async Task<GetTenantByIdQueryResponse> HandleAsync(GetTenantByIdQuery query, CancellationToken cancellationToken = default)

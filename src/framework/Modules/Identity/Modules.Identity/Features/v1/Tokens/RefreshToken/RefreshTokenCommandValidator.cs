@@ -2,7 +2,7 @@
 using FSH.Framework.Identity.Core.Tokens;
 
 namespace FSH.Framework.Identity.v1.Tokens.RefreshToken;
-internal class RefreshTokenCommandValidator : AbstractValidator<RefreshTokenCommand>
+internal sealed class RefreshTokenCommandValidator : AbstractValidator<RefreshTokenCommand>
 {
     public RefreshTokenCommandValidator()
     {

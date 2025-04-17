@@ -3,7 +3,7 @@ using FSH.Framework.Identity.Contracts.v1.Users.AssignUserRoles;
 using FSH.Framework.Identity.Core.Users;
 
 namespace FSH.Framework.Identity.v1.Users.AssignUserRoles;
-internal class AssignUserRolesCommandHandler(IUserService _userService)
+internal sealed class AssignUserRolesCommandHandler(IUserService _userService)
     : ICommandHandler<AssignUserRolesCommand, string>
 {
     public async Task<string> HandleAsync(

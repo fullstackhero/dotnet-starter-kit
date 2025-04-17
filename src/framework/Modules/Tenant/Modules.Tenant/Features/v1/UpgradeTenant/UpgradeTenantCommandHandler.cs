@@ -3,7 +3,7 @@ using FSH.Framework.Tenant.Contracts.v1.UpgradeTenant;
 using FSH.Framework.Tenant.Services;
 
 namespace FSH.Framework.Tenant.Features.v1.UpgradeTenant;
-internal class UpgradeTenantCommandHandler(ITenantService service)
+internal sealed class UpgradeTenantCommandHandler(ITenantService service)
     : ICommandHandler<UpgradeTenantCommand, UpgradeTenantCommandResponse>
 {
     public async Task<UpgradeTenantCommandResponse> HandleAsync(

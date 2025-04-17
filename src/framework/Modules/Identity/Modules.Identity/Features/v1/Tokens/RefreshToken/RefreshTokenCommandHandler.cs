@@ -5,7 +5,7 @@ using FSH.Framework.Shared.Extensions;
 using Microsoft.AspNetCore.Http;
 
 namespace FSH.Framework.Identity.v1.Tokens.RefreshToken;
-internal class RefreshTokenCommandHandler(
+internal sealed class RefreshTokenCommandHandler(
     ITokenService tokenService,
     HttpContext context)
     : ICommandHandler<RefreshTokenCommand, RefreshTokenCommandResponse>

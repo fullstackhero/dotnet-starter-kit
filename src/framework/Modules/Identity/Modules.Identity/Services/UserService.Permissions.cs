@@ -1,6 +1,6 @@
-﻿using FSH.Framework.Core.Caching;
-using FSH.Framework.Core.Exceptions;
+﻿using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Shared.Constants;
+using FSH.Modules.Common.Core.Caching;
 using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Framework.Infrastructure.Identity.Users.Services;

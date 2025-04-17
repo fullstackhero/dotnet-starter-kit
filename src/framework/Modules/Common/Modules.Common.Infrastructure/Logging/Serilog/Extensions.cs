@@ -22,7 +22,7 @@ public static class Extensions
                     {
                         var (key, value) = header.Split('=') switch
                         {
-                            [string k, string v] => (k, v),
+                        [string k, string v] => (k, v),
                             var v => throw new Exception($"Invalid header format {v}")
                         };
 
@@ -32,7 +32,7 @@ public static class Extensions
                     //To remove the duplicate issue, we can use the below code to get the key and value from the configuration
                     var (otelResourceAttribute, otelResourceAttributeValue) = builder.Configuration["OTEL_RESOURCE_ATTRIBUTES"]?.Split('=') switch
                     {
-                        [string k, string v] => (k, v),
+                    [string k, string v] => (k, v),
                         _ => throw new Exception($"Invalid header format {builder.Configuration["OTEL_RESOURCE_ATTRIBUTES"]}")
                     };
                     options.ResourceAttributes.Add(otelResourceAttribute, otelResourceAttributeValue);

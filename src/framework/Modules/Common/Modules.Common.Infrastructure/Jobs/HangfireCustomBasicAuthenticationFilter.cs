@@ -24,7 +24,7 @@ public class HangfireCustomBasicAuthenticationFilter : IDashboardAuthorizationFi
     public bool Authorize(DashboardContext context)
     {
         var httpContext = context.GetHttpContext();
-        var header = httpContext.Request.Headers["Authorization"]!;
+        var header = httpContext.Request.Headers.Authorization!;
 
         if (MissingAuthorizationHeader(header))
         {

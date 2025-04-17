@@ -3,7 +3,7 @@ using FSH.Framework.Auditing.Services;
 using FSH.Framework.Core.Messaging.CQRS;
 
 namespace FSH.Framework.Auditing.Features.v1.GetUserTrails;
-internal class GetUserTrailsQueryHandler(IAuditService auditService)
+internal sealed class GetUserTrailsQueryHandler(IAuditService auditService)
         : IQueryHandler<GetUserTrailsQuery, GetUserTrailsQueryResponse>
 {
     public async Task<GetUserTrailsQueryResponse> HandleAsync(GetUserTrailsQuery query, CancellationToken cancellationToken = default)

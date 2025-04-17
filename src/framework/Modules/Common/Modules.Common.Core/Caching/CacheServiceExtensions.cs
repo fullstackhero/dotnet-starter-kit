@@ -1,4 +1,6 @@
-namespace FSH.Framework.Core.Caching;
+using FSH.Framework.Core.Caching;
+
+namespace FSH.Modules.Common.Core.Caching;
 
 public static class CacheServiceExtensions
 {

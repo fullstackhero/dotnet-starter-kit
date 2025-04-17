@@ -8,6 +8,8 @@ namespace FSH.PlayGround.Migrations.PostgreSQL.Identity;
 /// <inheritdoc />
 public partial class AddIdentitySchema : Migration
 {
+    private static readonly string[] columns = new[] { "NormalizedName", "TenantId" };
+
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
@@ -199,7 +201,7 @@ public partial class AddIdentitySchema : Migration
             name: "RoleNameIndex",
             schema: "identity",
             table: "Roles",
-            columns: new[] { "NormalizedName", "TenantId" },
+            columns: columns,
             unique: true);
 
         migrationBuilder.CreateIndex(
