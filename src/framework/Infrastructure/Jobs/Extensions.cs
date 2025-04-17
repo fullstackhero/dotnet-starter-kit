@@ -20,7 +20,7 @@ internal static class Extensions
         services.AddHangfireServer(o =>
         {
             o.HeartbeatInterval = TimeSpan.FromSeconds(30);
-            o.Queues = new string[] { "default", "email" };
+            o.Queues = ["default", "email"];
             o.WorkerCount = 5;
             o.SchedulePollingInterval = TimeSpan.FromSeconds(30);
         });

@@ -14,8 +14,13 @@ public class PathAwareAuthorizationHandler : IAuthorizationMiddlewareResultHandl
         PolicyAuthorizationResult authorizeResult)
     {
         var path = context.Request.Path;
-
-        if (path.StartsWithSegments("/scalar") || path.StartsWithSegments("/openapi"))
+        var allowedPaths = new[]
+        {
+            new PathString("/scalar"),
+            new PathString("/openapi"),
+            new PathString("/favicon.ico")
+        };
+        if (allowedPaths.Any(p => path.StartsWithSegments(p, StringComparison.OrdinalIgnoreCase)))
         {
             // ✅ Respect routing + continue the pipeline
             var endpoint = context.GetEndpoint();

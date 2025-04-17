@@ -28,7 +28,6 @@ public static class Extensions
     {
         ArgumentNullException.ThrowIfNull(builder);
         builder.Services.AddHttpContextAccessor();
-        builder.Services.RegisterInMemoryEventBus();
         builder.ConfigureSerilog();
         builder.ConfigureDatabase();
         builder.Services.AddCorsPolicy(builder.Configuration);
@@ -52,7 +51,10 @@ public static class Extensions
         // Register validators
         builder.Services.AddValidatorsFromAssemblies(assemblies);
 
+        // register messaging services
         builder.Services.RegisterCommandAndQueryDispatchers();
+        builder.Services.RegisterInMemoryEventBus();
+
         builder.Services.ConfigureRateLimit(builder.Configuration);
         builder.Services.ConfigureSecurityHeaders(builder.Configuration);
 
@@ -78,7 +80,7 @@ public static class Extensions
         app.UseStaticFiles(new StaticFileOptions()
         {
             FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")),
-            RequestPath = new PathString("/wwwroot")
+            RequestPath = new PathString("/wwwroot"),
         });
 
         app.UseAuthentication();

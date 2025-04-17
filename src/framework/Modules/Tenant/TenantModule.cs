@@ -22,7 +22,7 @@ using System.Reflection;
 namespace FSH.Framework.Tenant;
 public static class TenantModule
 {
-    public static IServiceCollection RegisterTenantModuleServices(this IServiceCollection services)
+    public static IServiceCollection ConfigureTenantModule(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
         services.RegisterCommandAndQueryHandlers(Assembly.GetExecutingAssembly());
@@ -63,7 +63,7 @@ public static class TenantModule
         services.AddScoped<ITenantService, TenantService>();
         return services;
     }
-    public static WebApplication UseTenantModule(this WebApplication app)
+    public static WebApplication UseFshMultiTenancy(this WebApplication app)
     {
         ArgumentNullException.ThrowIfNull(app);
         app.UseMultiTenant();

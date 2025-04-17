@@ -28,7 +28,7 @@ using System.Reflection;
 namespace FSH.Framework.Identity;
 public static class IdentityModule
 {
-    public static IServiceCollection RegisterIdentityModule(this IServiceCollection services)
+    public static IServiceCollection ConfigureIdentityModule(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
         services.RegisterCommandAndQueryHandlers(Assembly.GetExecutingAssembly());

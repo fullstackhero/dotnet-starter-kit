@@ -48,9 +48,14 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
             OnChallenge = context =>
             {
                 context.HandleResponse();
+
                 if (!context.Response.HasStarted)
                 {
-                    throw new UnauthorizedException();
+                    var path = context.HttpContext.Request.Path;
+                    var method = context.HttpContext.Request.Method;
+
+                    // You can include more details if needed like headers, etc.
+                    throw new UnauthorizedException($"Unauthorized access to {method} {path}");
                 }
 
                 return Task.CompletedTask;
