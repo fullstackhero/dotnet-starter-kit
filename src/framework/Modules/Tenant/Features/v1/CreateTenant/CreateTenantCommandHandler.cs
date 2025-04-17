@@ -3,7 +3,7 @@ using FSH.Framework.Tenant.Contracts.v1.CreateTenant;
 using FSH.Framework.Tenant.Services;
 
 namespace FSH.Framework.Tenant.Features.v1.CreateTenant;
-internal class CreateTenantCommandHandler(ITenantService service)
+public class CreateTenantCommandHandler(ITenantService service)
     : ICommandHandler<CreateTenantCommand, CreateTenantCommandResponse>
 {
     public async Task<CreateTenantCommandResponse> HandleAsync(

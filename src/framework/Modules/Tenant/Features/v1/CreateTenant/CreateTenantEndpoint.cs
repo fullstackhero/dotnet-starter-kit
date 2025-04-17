@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Routing;
 namespace FSH.Framework.Tenant.Features.v1.CreateTenant;
 public static class CreateTenantEndpoint
 {
-    internal static RouteHandlerBuilder Map(this IEndpointRouteBuilder endpoints)
+    public static RouteHandlerBuilder Map(this IEndpointRouteBuilder endpoints)
     {
         return endpoints.MapPost("/", async (
             [FromBody] CreateTenantCommand command,

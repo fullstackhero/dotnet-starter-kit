@@ -1,11 +1,15 @@
 using FSH.Framework.Auditing.Endpoints;
 using FSH.Framework.Identity;
 using FSH.Framework.Infrastructure;
+using FSH.Framework.Infrastructure.OpenApi;
 using FSH.Framework.Tenant;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi("v1", options =>
+{
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+});
 builder.ConfigureFshFramework();
 builder.Services.ConfigureTenantModule();
 builder.Services.ConfigureIdentityModule();

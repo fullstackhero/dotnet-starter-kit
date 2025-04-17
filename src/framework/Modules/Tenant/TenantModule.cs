@@ -2,6 +2,7 @@
 using Finbuckle.MultiTenant;
 using Finbuckle.MultiTenant.Abstractions;
 using Finbuckle.MultiTenant.Stores.DistributedCacheStore;
+using FluentValidation;
 using FSH.Framework.Core.Persistence;
 using FSH.Framework.Infrastructure.Messaging.CQRS;
 using FSH.Framework.Infrastructure.Persistence;
@@ -26,6 +27,13 @@ public static class TenantModule
     {
         ArgumentNullException.ThrowIfNull(services);
         services.RegisterCommandAndQueryHandlers(Assembly.GetExecutingAssembly());
+
+        var assemblies = new Assembly[]
+        {
+            typeof(TenantModule).Assembly
+        };
+        services.AddValidatorsFromAssemblies(assemblies, includeInternalTypes: true);
+
         services.AddTransient<IConnectionStringValidator, ConnectionStringValidator>();
         services.BindDbContext<TenantDbContext>();
         services

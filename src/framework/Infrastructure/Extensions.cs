@@ -72,6 +72,8 @@ public static class Extensions
         app.UseRouting();
         app.UseStaticFiles();
 
+        app.MapHealthChecks("/health").AllowAnonymous();
+
         var assetsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
         if (!Directory.Exists(assetsPath))
         {
