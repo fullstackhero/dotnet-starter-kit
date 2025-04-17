@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>FSH.Modules.Common.Shared</RootNamespace>
+    <AssemblyName>FSH.Modules.Common.Shared</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Finbuckle.MultiTenant" />
+  </ItemGroup>
+</Project>

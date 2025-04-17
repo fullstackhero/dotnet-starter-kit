@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<RootNamespace>FSH.Modules.Tenant.Contracts</RootNamespace>
+		<AssemblyName>FSH.Modules.Tenant.Contracts</AssemblyName>
+	</PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\Modules.Common.Core\Modules.Common.Core.csproj" />
+  </ItemGroup>
+
+</Project>

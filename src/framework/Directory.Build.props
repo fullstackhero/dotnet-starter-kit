@@ -33,4 +33,16 @@
         <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
   </ItemGroup>
+
+    <PropertyGroup>
+	    <!-- Default NuGet metadata -->
+	    <Authors>Mukesh Murugan</Authors>
+	    <Company>FullStackHero</Company>
+	    <Version>3.0.0</Version>
+	    <RepositoryUrl>https://github.com/fullstackhero/dotnet-starter-kit</RepositoryUrl>
+	    <PackageTags>FSH;Modular;CQRS;VerticalSlice</PackageTags>
+
+	    <!-- Enable NuGet pack globally -->
+	    <IsPackable>true</IsPackable>
+    </PropertyGroup>
 </Project>

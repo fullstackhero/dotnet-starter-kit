@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>FSH.Framework.Auditing.Contracts</RootNamespace>
+    <AssemblyName>FSH.Framework.Auditing.Contracts</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="Events\DomainEvents\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\Modules.Common.Core\Modules.Common.Core.csproj" />
+  </ItemGroup>
+</Project>

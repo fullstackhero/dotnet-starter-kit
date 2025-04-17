@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>FSH.Modules.Common.Core</RootNamespace>
+    <AssemblyName>FSH.Modules.Common.Core</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Ardalis.Specification" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Domain\Events\" />
+  </ItemGroup>
+</Project>
