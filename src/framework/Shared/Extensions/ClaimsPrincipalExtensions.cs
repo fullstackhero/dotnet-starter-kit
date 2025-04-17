@@ -1,5 +1,5 @@
-﻿using System.Security.Claims;
-using FSH.Framework.Shared.Authorization;
+﻿using FSH.Framework.Shared.Authorization;
+using System.Security.Claims;
 
 namespace FSH.Framework.Shared.Extensions;
 

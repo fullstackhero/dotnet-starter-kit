@@ -1,7 +1,7 @@
-﻿using System.Collections.ObjectModel;
-using System.ComponentModel.DataAnnotations.Schema;
-using FSH.Framework.Core.Domain.Contracts;
+﻿using FSH.Framework.Core.Domain.Contracts;
 using FSH.Framework.Core.Messaging.Events;
+using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FSH.Framework.Core.Domain;
 

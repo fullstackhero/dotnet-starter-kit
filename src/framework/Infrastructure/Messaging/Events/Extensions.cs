@@ -1,6 +1,6 @@
-﻿using System.Reflection;
-using FSH.Framework.Core.Messaging.Events;
+﻿using FSH.Framework.Core.Messaging.Events;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace FSH.Framework.Infrastructure.Messaging.Events;
 public static class Extensions

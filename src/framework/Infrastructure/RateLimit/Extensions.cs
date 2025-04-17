@@ -1,10 +1,10 @@
-﻿using System.Threading.RateLimiting;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using System.Threading.RateLimiting;
 
 namespace FSH.Framework.Infrastructure.RateLimit;
 
@@ -41,11 +41,11 @@ public static class Extensions
 
         return services;
     }
-    
+
     internal static IApplicationBuilder UseRateLimit(this IApplicationBuilder app)
     {
         var options = app.ApplicationServices.GetRequiredService<IOptions<RateLimitOptions>>().Value;
-        
+
         if (options.EnableRateLimiting)
         {
             app.UseRateLimiter();

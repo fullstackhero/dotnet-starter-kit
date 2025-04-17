@@ -1,9 +1,9 @@
-﻿using System.Text.Json;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using System.Text.Json;
 
 namespace FSH.Framework.Infrastructure.HealthChecks;
 public static class HealthCheckEndpoint
@@ -14,7 +14,7 @@ public static class HealthCheckEndpoint
         {
             var healthCheckService = context.RequestServices.GetRequiredService<HealthCheckService>();
             var report = healthCheckService.CheckHealthAsync().Result;
-            
+
             var response = new
             {
                 status = report.Status.ToString(),
@@ -24,10 +24,10 @@ public static class HealthCheckEndpoint
                     status = entry.Value.Status.ToString(),
                     description = entry.Value.Description
                 }),
-                
+
                 duration = report.TotalDuration
             };
-            
+
             context.Response.ContentType = "application/json";
             return JsonSerializer.Serialize(response);
         })

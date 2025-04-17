@@ -1,9 +1,9 @@
-﻿using System.Text;
-using Asp.Versioning.ApiExplorer;
+﻿using Asp.Versioning.ApiExplorer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Text;
 
 namespace FSH.Framework.Infrastructure.OpenApi;
 public class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOptions>
