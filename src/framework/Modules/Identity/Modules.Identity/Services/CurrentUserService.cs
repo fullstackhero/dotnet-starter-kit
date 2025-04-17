@@ -1,6 +1,6 @@
-﻿using FSH.Framework.Core.Exceptions;
-using FSH.Framework.Core.ExecutionContext;
+﻿using FSH.Framework.Core.ExecutionContext;
 using FSH.Framework.Shared.Extensions;
+using FSH.Modules.Common.Core.Exceptions;
 using System.Security.Claims;
 
 namespace FSH.Framework.Identity.Infrastructure.Users;

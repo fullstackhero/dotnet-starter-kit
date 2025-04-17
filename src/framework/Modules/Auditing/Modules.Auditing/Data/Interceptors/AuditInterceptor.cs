@@ -2,9 +2,9 @@
 using FSH.Framework.Auditing.Contracts.Enums;
 using FSH.Framework.Auditing.Contracts.Events.IntegrationEvents;
 using FSH.Framework.Core.Domain;
-using FSH.Framework.Core.Domain.Contracts;
 using FSH.Framework.Core.ExecutionContext;
 using FSH.Framework.Core.Messaging.Events;
+using FSH.Modules.Common.Core.Domain.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;

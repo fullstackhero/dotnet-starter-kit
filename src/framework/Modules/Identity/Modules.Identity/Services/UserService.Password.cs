@@ -1,5 +1,6 @@
 ﻿using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Core.Mail;
+using FSH.Modules.Common.Core.Exceptions;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Collections.ObjectModel;
 using System.Text;

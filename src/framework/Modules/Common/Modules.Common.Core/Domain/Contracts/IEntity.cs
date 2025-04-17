@@ -1,7 +1,7 @@
 ﻿using FSH.Framework.Core.Messaging.Events;
 using System.Collections.ObjectModel;
 
-namespace FSH.Framework.Core.Domain.Contracts;
+namespace FSH.Modules.Common.Core.Domain.Contracts;
 
 public interface IEntity
 {

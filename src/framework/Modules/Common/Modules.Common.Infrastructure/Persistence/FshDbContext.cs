@@ -1,9 +1,9 @@
 ﻿using Finbuckle.MultiTenant.Abstractions;
 using Finbuckle.MultiTenant.EntityFrameworkCore;
-using FSH.Framework.Core.Domain.Contracts;
 using FSH.Framework.Core.Messaging.Events;
 using FSH.Framework.Core.Persistence;
 using FSH.Framework.Shared.Multitenancy;
+using FSH.Modules.Common.Core.Domain.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 

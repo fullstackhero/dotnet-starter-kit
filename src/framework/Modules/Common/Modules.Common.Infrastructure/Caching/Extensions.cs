@@ -1,5 +1,4 @@
-﻿using FSH.Framework.Core.Caching;
-using FSH.Modules.Common.Core.Caching;
+﻿using FSH.Modules.Common.Core.Caching;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;

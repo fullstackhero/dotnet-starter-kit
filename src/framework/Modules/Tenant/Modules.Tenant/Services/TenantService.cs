@@ -4,6 +4,7 @@ using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Core.Persistence;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Tenant.Contracts.Dtos;
+using FSH.Modules.Common.Core.Exceptions;
 using Mapster;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;

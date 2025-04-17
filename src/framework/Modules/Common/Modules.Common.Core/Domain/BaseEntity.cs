@@ -1,5 +1,5 @@
-﻿using FSH.Framework.Core.Domain.Contracts;
-using FSH.Framework.Core.Messaging.Events;
+﻿using FSH.Framework.Core.Messaging.Events;
+using FSH.Modules.Common.Core.Domain.Contracts;
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations.Schema;
 

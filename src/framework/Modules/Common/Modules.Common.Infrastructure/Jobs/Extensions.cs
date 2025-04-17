@@ -1,7 +1,7 @@
-﻿using FSH.Framework.Core.Exceptions;
-using FSH.Framework.Core.Jobs;
+﻿using FSH.Framework.Core.Jobs;
 using FSH.Framework.Core.Persistence;
 using FSH.Framework.Infrastructure.Persistence;
+using FSH.Modules.Common.Core.Exceptions;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Builder;

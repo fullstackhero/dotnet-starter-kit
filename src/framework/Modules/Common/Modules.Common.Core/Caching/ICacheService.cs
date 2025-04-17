@@ -1,4 +1,4 @@
-namespace FSH.Framework.Core.Caching;
+namespace FSH.Modules.Common.Core.Caching;
 
 public interface ICacheService
 {

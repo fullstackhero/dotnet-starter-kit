@@ -1,5 +1,4 @@
 ﻿using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Core.Caching;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Core.Jobs;
 using FSH.Framework.Core.Mail;
@@ -12,6 +11,8 @@ using FSH.Framework.Identity.Infrastructure.Users;
 using FSH.Framework.Infrastructure.Constants;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Shared.Multitenancy;
+using FSH.Modules.Common.Core.Caching;
+using FSH.Modules.Common.Core.Exceptions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;

@@ -1,4 +1,4 @@
-using FSH.Framework.Core.Caching;
+using FSH.Modules.Common.Core.Caching;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using System.Text;

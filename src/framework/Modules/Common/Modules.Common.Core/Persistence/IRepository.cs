@@ -1,5 +1,5 @@
 ﻿using Ardalis.Specification;
-using FSH.Framework.Core.Domain.Contracts;
+using FSH.Modules.Common.Core.Domain.Contracts;
 
 namespace FSH.Framework.Core.Persistence;
 public interface IRepository<T> : IRepositoryBase<T>

@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using FSH.Modules.Common.Core.Exceptions;
+using System.Net;
 
 namespace FSH.Framework.Core.Exceptions;
 

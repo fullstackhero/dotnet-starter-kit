@@ -1,4 +1,4 @@
-﻿namespace FSH.Framework.Core.Domain.Contracts;
+﻿namespace FSH.Modules.Common.Core.Domain.Contracts;
 
 // Apply this marker interface only to aggregate root entities
 // Repositories will only work with aggregate roots, not their children

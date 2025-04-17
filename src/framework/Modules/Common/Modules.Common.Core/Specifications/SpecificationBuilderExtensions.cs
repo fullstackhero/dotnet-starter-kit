@@ -1,6 +1,6 @@
 ﻿using Ardalis.Specification;
-using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Core.Paging;
+using FSH.Modules.Common.Core.Exceptions;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.Json;
