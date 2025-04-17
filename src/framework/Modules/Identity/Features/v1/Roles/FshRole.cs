@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+
 namespace FSH.Framework.Identity.Infrastructure.Roles;
 public class FshRole : IdentityRole
 {
