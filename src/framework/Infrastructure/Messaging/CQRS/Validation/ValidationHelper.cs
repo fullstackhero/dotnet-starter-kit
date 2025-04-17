@@ -1,26 +1,24 @@
 ﻿using FluentValidation;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FSH.Framework.Infrastructure.Messaging.CQRS.Validation;
 
 internal static class ValidationHelper
 {
-    public static async Task ValidateAsync(object request, IEnumerable<IValidator> validators, CancellationToken ct = default)
+    public static async Task ValidateAsync<T>(T request, IServiceProvider provider, CancellationToken ct = default)
     {
         var requestType = request.GetType();
-        var applicableValidators = validators
-            .Where(v => v.GetType().GetInterfaces()
-                .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IValidator<>) &&
-                          i.GetGenericArguments()[0].IsAssignableFrom(requestType)))
-            .ToList();
+        var validatorType = typeof(IValidator<>).MakeGenericType(requestType);
+        var validators = provider.GetServices(validatorType).Cast<IValidator>().ToList();
 
-        if (applicableValidators.Count == 0) return;
+        if (validators.Count == 0) return;
 
         var contextType = typeof(ValidationContext<>).MakeGenericType(requestType);
         var context = Activator.CreateInstance(contextType, request)!;
 
         var failures = new List<FluentValidation.Results.ValidationFailure>();
 
-        foreach (var validator in applicableValidators)
+        foreach (var validator in validators)
         {
             var validateAsyncMethod = validator.GetType()
                 .GetMethod("ValidateAsync", new[] { contextType, typeof(CancellationToken) })!;

@@ -2,7 +2,7 @@
 using FSH.Framework.Identity.Contracts.v1.Tokens.TokenGeneration;
 
 namespace FSH.Framework.Identity.v1.Tokens.TokenGeneration;
-internal class TokenGenerationCommandValidator : AbstractValidator<TokenGenerationCommand>
+public class TokenGenerationCommandValidator : AbstractValidator<TokenGenerationCommand>
 {
     public TokenGenerationCommandValidator()
     {

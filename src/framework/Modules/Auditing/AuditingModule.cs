@@ -1,24 +1,28 @@
 ﻿using Asp.Versioning;
+using FSH.Framework.Auditing.Data;
+using FSH.Framework.Auditing.Features.v1.GetUserTrails;
+using FSH.Framework.Auditing.Services;
 using FSH.Framework.Infrastructure.Messaging.CQRS;
-using FSH.Framework.Infrastructure.Modules;
+using FSH.Framework.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FSH.Framework.Auditing.Endpoints;
-public class AuditingModule : IFrameworkModule
+public static class AuditingModule
 {
-    public IServiceCollection AddModuleServices(IServiceCollection services, IConfiguration config)
+    public static IServiceCollection ConfigureAuditingModule(this IServiceCollection services)
     {
+        ArgumentNullException.ThrowIfNull(services);
         services.RegisterCommandAndQueryHandlers(typeof(AuditingModule).Assembly);
-
-        // other registrations
+        services.AddScoped<IAuditService, AuditService>();
+        services.BindDbContext<AuditingDbContext>();
+        services.AddScoped<IAuditingDbContext>(provider => provider.GetRequiredService<AuditingDbContext>());
         return services;
     }
 
-    public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints)
+    public static IEndpointRouteBuilder MapAuditingEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var apiVersionSet = endpoints.NewApiVersionSet()
             .HasApiVersion(new ApiVersion(1))
@@ -31,7 +35,7 @@ public class AuditingModule : IFrameworkModule
             .WithOpenApi()
             .WithApiVersionSet(apiVersionSet);
 
-        //GetUserTrailsEndpoint.Map(group);
+        GetUserTrailsEndpoint.Map(group);
 
         return endpoints;
     }

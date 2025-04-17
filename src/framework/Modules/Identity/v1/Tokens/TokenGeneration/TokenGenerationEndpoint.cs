@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using System.ComponentModel;
 
 namespace FSH.Framework.Identity.v1.Tokens.TokenGeneration;
 public static class TokenGenerationEndpoint
@@ -12,7 +13,7 @@ public static class TokenGenerationEndpoint
     {
         return endpoints.MapPost("/tokens", async (
             [FromBody] TokenGenerationCommand command,
-            string tenant,
+            [DefaultValue("root")] string tenant,
             [FromServices] ICommandDispatcher dispatcher,
             HttpContext context,
             CancellationToken cancellationToken) =>

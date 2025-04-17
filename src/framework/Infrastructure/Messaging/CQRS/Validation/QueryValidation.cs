@@ -1,21 +1,20 @@
-﻿using FluentValidation;
-using FSH.Framework.Core.Messaging.CQRS;
+﻿using FSH.Framework.Core.Messaging.CQRS;
 
 namespace FSH.Framework.Infrastructure.Messaging.CQRS.Validation;
 internal class QueryValidation : IQueryDispatcher
 {
     private readonly IQueryDispatcher _inner;
-    private readonly IEnumerable<IValidator<object>> _validators;
+    private readonly IServiceProvider _serviceProvider;
 
-    public QueryValidation(IQueryDispatcher inner, IEnumerable<IValidator<object>> validators)
+    public QueryValidation(IQueryDispatcher inner, IServiceProvider serviceProvider)
     {
         _inner = inner;
-        _validators = validators;
+        _serviceProvider = serviceProvider;
     }
 
     public async Task<TResponse> SendAsync<TResponse>(IQuery<TResponse> query, CancellationToken ct = default)
     {
-        await ValidationHelper.ValidateAsync(query, _validators, ct);
+        await ValidationHelper.ValidateAsync(query, _serviceProvider, ct);
         return await _inner.SendAsync(query, ct);
     }
 }

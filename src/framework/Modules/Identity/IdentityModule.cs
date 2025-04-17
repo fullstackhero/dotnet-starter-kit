@@ -1,4 +1,5 @@
 ﻿using Asp.Versioning;
+using FluentValidation;
 using FSH.Framework.Core.ExecutionContext;
 using FSH.Framework.Core.Persistence;
 using FSH.Framework.Identity.Authorization;
@@ -11,6 +12,7 @@ using FSH.Framework.Identity.Infrastructure.Roles;
 using FSH.Framework.Identity.Infrastructure.Tokens;
 using FSH.Framework.Identity.Infrastructure.Users;
 using FSH.Framework.Identity.v1.Tokens.TokenGeneration;
+using FSH.Framework.Identity.v1.Users;
 using FSH.Framework.Infrastructure.Auth;
 using FSH.Framework.Infrastructure.Auth.Jwt;
 using FSH.Framework.Infrastructure.Identity.Roles;
@@ -31,7 +33,23 @@ public static class IdentityModule
     public static IServiceCollection ConfigureIdentityModule(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
-        services.RegisterCommandAndQueryHandlers(Assembly.GetExecutingAssembly());
+
+        var assemblies = new Assembly[]
+        {
+            typeof(IdentityModule).Assembly
+        };
+        services.RegisterCommandAndQueryHandlers(assemblies);
+        var scanResults = AssemblyScanner
+            .FindValidatorsInAssemblies(assemblies, true)
+            .Where(r => r.ValidatorType != typeof(UserImageValidator))
+            .ToList();
+
+        foreach (var result in scanResults)
+        {
+            services.AddScoped(result.InterfaceType, result.ValidatorType);
+        }
+
+
         services.AddScoped<CurrentUserMiddleware>();
         services.AddSingleton<IAuthorizationMiddlewareResultHandler, PathAwareAuthorizationHandler>();
         services.AddScoped<ICurrentUser, CurrentUser>();

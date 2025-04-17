@@ -3,6 +3,7 @@ using FSH.Framework.Core.Messaging.CQRS;
 using FSH.Framework.Shared.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 
 namespace FSH.Framework.Auditing.Features.v1.GetUserTrails;
@@ -12,7 +13,7 @@ public static class GetUserTrailsEndpoint
     {
         return endpoints.MapGet("/users/{userId:guid}/trails", async (
             Guid userId,
-            IQueryDispatcher dispatcher,
+            [FromServices] IQueryDispatcher dispatcher,
             CancellationToken cancellationToken) =>
         {
             var query = new GetUserTrailsQuery(userId);
