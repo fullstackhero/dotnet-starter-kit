@@ -18,8 +18,14 @@ public static class Extensions
         builder.ConfigureWarnings(warnings => warnings.Log(RelationalEventId.PendingModelChangesWarning));
         return dbProvider.ToUpperInvariant() switch
         {
-            DbProviders.PostgreSQL => builder.UseNpgsql(connectionString, e =>
-                                 e.MigrationsAssembly("FSH.PlayGround.Migrations.PostgreSQL")).EnableSensitiveDataLogging(),
+            DbProviders.PostgreSQL => builder
+                .UseNpgsql(
+                    connectionString,
+                    e =>
+                    {
+                        e.MigrationsAssembly("FSH.PlayGround.Migrations.PostgreSQL");
+                    })
+                .EnableSensitiveDataLogging(),
             DbProviders.MSSQL => builder.UseSqlServer(connectionString, e =>
                                 e.MigrationsAssembly("FSH.Starter.WebApi.Migrations.MSSQL")),
             _ => throw new InvalidOperationException($"DB Provider {dbProvider} is not supported."),
