@@ -15,7 +15,10 @@ public class InMemoryEventPublisher : IEventPublisher
         ArgumentNullException.ThrowIfNull(appEvent);
 
         using var scope = _serviceProvider.CreateScope();
-        var handlers = scope.ServiceProvider.GetServices<IEventHandler<IEvent>>();
+
+        // Get handler type dynamically based on the event's runtime type
+        var handlerType = typeof(IEventHandler<>).MakeGenericType(appEvent.GetType());
+        var handlers = scope.ServiceProvider.GetServices(handlerType);
 
         foreach (var handler in handlers)
         {
@@ -27,7 +30,13 @@ public class InMemoryEventPublisher : IEventPublisher
                 try
                 {
                     attempt++;
-                    await handler.HandleAsync(appEvent, cancellationToken);
+                    var method = handlerType.GetMethod("HandleAsync");
+
+                    if (method is not null)
+                    {
+                        await (Task)method.Invoke(handler, new object[] { appEvent, cancellationToken })!;
+                    }
+
                     break; // Success
                 }
                 catch (Exception ex)

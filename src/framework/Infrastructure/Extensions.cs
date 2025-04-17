@@ -53,7 +53,7 @@ public static class Extensions
 
         // register messaging services
         builder.Services.RegisterCommandAndQueryDispatchers();
-        builder.Services.RegisterInMemoryEventBus();
+        builder.Services.RegisterInMemoryEventBus(assemblies);
 
         builder.Services.ConfigureRateLimit(builder.Configuration);
         builder.Services.ConfigureSecurityHeaders(builder.Configuration);
