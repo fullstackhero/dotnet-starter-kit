@@ -29,7 +29,7 @@ public class FshDbContext(IMultiTenantContextAccessor<FshTenantInfo> multiTenant
 
         if (!string.IsNullOrWhiteSpace(multiTenantContextAccessor?.MultiTenantContext.TenantInfo?.ConnectionString))
         {
-            optionsBuilder.ConfigureDatabase(_settings.Provider, multiTenantContextAccessor.MultiTenantContext.TenantInfo.ConnectionString!);
+            optionsBuilder.ConfigureDatabase(_settings.Provider, multiTenantContextAccessor.MultiTenantContext.TenantInfo.ConnectionString!, _settings.MigrationsAssembly);
         }
     }
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
