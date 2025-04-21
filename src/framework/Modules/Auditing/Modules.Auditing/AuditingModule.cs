@@ -2,7 +2,6 @@
 using FSH.Framework.Auditing.Data;
 using FSH.Framework.Auditing.Features.v1.GetUserTrails;
 using FSH.Framework.Auditing.Services;
-using FSH.Framework.Core.Persistence;
 using FSH.Framework.Infrastructure.Messaging.CQRS;
 using FSH.Framework.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
@@ -16,11 +15,11 @@ public static class AuditingModule
     public static IServiceCollection ConfigureAuditingModule(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
-        services.AddScoped<IDbInitializer, AuditingDbInitializer>();
+
+        services.AddScoped<IAuditingDbContext>(provider => provider.GetRequiredService<AuditingDbContext>());
         services.RegisterCommandAndQueryHandlers(typeof(AuditingModule).Assembly);
         services.AddScoped<IAuditService, AuditService>();
         services.BindDbContext<AuditingDbContext>();
-        services.AddScoped<IAuditingDbContext>(provider => provider.GetRequiredService<AuditingDbContext>());
         return services;
     }
 

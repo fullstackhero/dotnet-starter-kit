@@ -15,7 +15,7 @@ public class AuditingDbContext : FshDbContext, IAuditingDbContext
     public AuditingDbContext(
         IMultiTenantContextAccessor<FshTenantInfo> multiTenantContextAccessor,
         DbContextOptions<AuditingDbContext> options,
-         IEventPublisher publisher,
+        IEventPublisher publisher,
         IOptions<DatabaseOptions> settings) : base(multiTenantContextAccessor, options, publisher, settings) { }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
