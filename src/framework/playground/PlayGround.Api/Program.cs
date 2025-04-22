@@ -1,9 +1,9 @@
-using FSH.Framework.Auditing.Endpoints;
-using FSH.Framework.Identity;
+using FSH.Framework.Auditing;
 using FSH.Framework.Infrastructure;
 using FSH.Framework.Infrastructure.Messaging.Events;
 using FSH.Framework.Infrastructure.OpenApi;
-using FSH.Framework.Tenant;
+using FSH.Modules.Identity;
+using FSH.Modules.Tenant;
 using Scalar.AspNetCore;
 using System.Reflection;
 

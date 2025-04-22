@@ -1,5 +1,6 @@
 ﻿using FSH.Framework.Core.Messaging.CQRS;
 using FSH.Framework.Infrastructure.Messaging.CQRS.Validation;
+using FSH.Modules.Common.Core.Messaging.CQRS;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 

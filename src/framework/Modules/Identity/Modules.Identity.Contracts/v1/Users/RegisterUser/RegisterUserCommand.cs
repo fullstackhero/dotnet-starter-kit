@@ -1,4 +1,4 @@
-﻿using FSH.Framework.Core.Messaging.CQRS;
+﻿using FSH.Modules.Common.Core.Messaging.CQRS;
 using System.Text.Json.Serialization;
 
 namespace FSH.Framework.Identity.Endpoints.v1.Users.RegisterUser;

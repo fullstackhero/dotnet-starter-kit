@@ -27,7 +27,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace FSH.Framework.Identity;
+namespace FSH.Modules.Identity;
 public static class IdentityModule
 {
     public static IServiceCollection ConfigureIdentityModule(this IServiceCollection services)
@@ -87,7 +87,7 @@ public static class IdentityModule
             .WithOpenApi()
             .WithApiVersionSet(apiVersionSet);
 
-        TokenGenerationEndpoint.Map(group);
+        group.Map();
         return endpoints;
     }
 }

@@ -1,4 +1,5 @@
 ﻿using FSH.Framework.Core.Messaging.CQRS;
+using FSH.Modules.Common.Core.Messaging.CQRS;
 
 namespace FSH.Framework.Infrastructure.Messaging.CQRS.Validation;
 public class CommandValidation : ICommandDispatcher

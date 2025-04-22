@@ -1,6 +1,6 @@
-﻿using FSH.Framework.Core.Messaging.CQRS;
-using FSH.Framework.Tenant.Contracts.v1.UpgradeTenant;
+﻿using FSH.Framework.Tenant.Contracts.v1.UpgradeTenant;
 using FSH.Framework.Tenant.Services;
+using FSH.Modules.Common.Core.Messaging.CQRS;
 
 namespace FSH.Framework.Tenant.Features.v1.UpgradeTenant;
 internal sealed class UpgradeTenantCommandHandler(ITenantService service)

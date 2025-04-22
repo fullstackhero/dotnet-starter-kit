@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<RootNamespace>FSH.Framework.Auditing</RootNamespace>
-		<AssemblyName>FSH.Framework.Auditing</AssemblyName>
+		<RootNamespace>FSH.Modules.Auditing</RootNamespace>
+		<AssemblyName>FSH.Modules.Auditing</AssemblyName>
 	</PropertyGroup>
 	<PropertyGroup>
-		<PackageId>FSH.Framework.Auditing</PackageId>
+		<PackageId>FSH.Modules.Auditing</PackageId>
 		<Description>Auditing module for FullStackHero</Description>
 	</PropertyGroup>
 	<PropertyGroup>

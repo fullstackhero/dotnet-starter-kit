@@ -1,7 +1,7 @@
-﻿using FSH.Framework.Core.Messaging.CQRS;
-using FSH.Framework.Identity.Contracts.v1.Tokens.RefreshToken;
+﻿using FSH.Framework.Identity.Contracts.v1.Tokens.RefreshToken;
 using FSH.Framework.Identity.Core.Tokens;
 using FSH.Framework.Shared.Extensions;
+using FSH.Modules.Common.Core.Messaging.CQRS;
 using Microsoft.AspNetCore.Http;
 
 namespace FSH.Framework.Identity.v1.Tokens.RefreshToken;

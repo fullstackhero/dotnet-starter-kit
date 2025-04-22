@@ -1,4 +1,5 @@
 ﻿using FSH.Framework.Core.Messaging.CQRS;
+using FSH.Modules.Common.Core.Messaging.CQRS;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FSH.Framework.Infrastructure.Messaging.CQRS;

@@ -1,4 +1,4 @@
-﻿using FSH.Framework.Core.Messaging.CQRS;
+﻿using FSH.Modules.Common.Core.Messaging.CQRS;
 
 namespace FSH.Framework.Tenant.Contracts.v1.CreateTenant;
 public sealed record CreateTenantCommand(

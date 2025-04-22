@@ -1,4 +1,6 @@
-﻿namespace FSH.Framework.Core.Messaging.CQRS;
+﻿using FSH.Modules.Common.Core.Messaging.CQRS;
+
+namespace FSH.Framework.Core.Messaging.CQRS;
 public interface ICommandDispatcher
 {
     /// <summary>

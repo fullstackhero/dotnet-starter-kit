@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace FSH.Framework.Auditing.Endpoints;
+namespace FSH.Modules.Auditing;
 public static class AuditingModule
 {
     public static IServiceCollection ConfigureAuditingModule(this IServiceCollection services)
@@ -36,7 +36,7 @@ public static class AuditingModule
             .WithOpenApi()
             .WithApiVersionSet(apiVersionSet);
 
-        GetUserTrailsEndpoint.Map(group);
+        group.Map();
 
         return endpoints;
     }

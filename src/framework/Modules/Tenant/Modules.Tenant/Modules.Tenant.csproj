@@ -9,7 +9,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <Folder Include="Features\Entities\" />
+    <Compile Remove="Features\Entities\**" />
+    <EmbeddedResource Remove="Features\Entities\**" />
+    <None Remove="Features\Entities\**" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Common\Modules.Common.Infrastructure\Modules.Common.Infrastructure.csproj" />

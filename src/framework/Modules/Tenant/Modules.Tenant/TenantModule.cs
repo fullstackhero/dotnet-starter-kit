@@ -20,7 +20,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using System.Reflection;
 
-namespace FSH.Framework.Tenant;
+namespace FSH.Modules.Tenant;
 public static class TenantModule
 {
     public static IServiceCollection ConfigureTenantModule(this IServiceCollection services)
@@ -162,7 +162,7 @@ public static class TenantModule
             .WithOpenApi()
             .WithApiVersionSet(apiVersionSet);
 
-        CreateTenantEndpoint.Map(group).AllowAnonymous();
+        group.Map().AllowAnonymous();
         //DisableTenantEndpoint.Map(group);
         //GetTenantByIdEndpoint.Map(group);
         //GetTenantsEndpoint.Map(group);

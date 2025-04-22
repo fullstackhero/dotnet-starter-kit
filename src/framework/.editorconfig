@@ -294,3 +294,4 @@ dotnet_style_prefer_conditional_expression_over_assignment = true:suggestion
 dotnet_style_prefer_conditional_expression_over_return = true:suggestion
 dotnet_diagnostic.CA1711.severity = none
 dotnet_diagnostic.CA1040.severity = none
+dotnet_diagnostic.CA1707.severity = none

@@ -1,5 +1,5 @@
-﻿using FSH.Framework.Core.Messaging.CQRS;
-using FSH.Framework.Identity.Core.Roles;
+﻿using FSH.Framework.Identity.Core.Roles;
+using FSH.Modules.Common.Core.Messaging.CQRS;
 
 namespace FSH.Framework.Identity.Contracts.v1.Users.AssignUserRoles;
 public sealed class AssignUserRolesCommand : ICommand<string>
