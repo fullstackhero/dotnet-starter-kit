@@ -11,7 +11,11 @@ using FSH.Framework.Shared.Constants;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Tenant;
 using FSH.Framework.Tenant.Data;
+using FSH.Framework.Tenant.Features.v1.CreateTenant;
+using FSH.Framework.Tenant.Features.v1.DisableTenant;
 using FSH.Framework.Tenant.Features.v1.GetTenantById;
+using FSH.Framework.Tenant.Features.v1.GetTenants;
+using FSH.Framework.Tenant.Features.v1.UpgradeTenant;
 using FSH.Framework.Tenant.Services;
 using FSH.Modules.Common.Infrastructure.Modules;
 using FSH.Modules.Tenant.Features.v1.ActivateTenant;
@@ -87,10 +91,11 @@ public class TenantModule : IModule
             .WithOpenApi()
             .WithApiVersionSet(versionSet);
 
-        //DisableTenantEndpoint.Map(group);
+        DisableTenantEndpoint.Map(group);
         GetTenantByIdEndpoint.Map(group);
-        //GetTenantsEndpoint.Map(group);
-        //UpgradeTenantEndpoint.Map(group);
+        GetTenantsEndpoint.Map(group);
+        UpgradeTenantEndpoint.Map(group);
         ActivateTenantEndpoint.Map(group);
+        CreateTenantEndpoint.Map(group);
     }
 }
