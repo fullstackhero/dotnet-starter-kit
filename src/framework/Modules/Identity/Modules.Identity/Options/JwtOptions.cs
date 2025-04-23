@@ -17,5 +17,15 @@ public class JwtOptions : IValidatableObject
         {
             yield return new ValidationResult("No Key defined in JwtOptions config", [nameof(Key)]);
         }
+
+        if (string.IsNullOrEmpty(Issuer))
+        {
+            yield return new ValidationResult("No Issuer defined in JwtOptions config", [nameof(Key)]);
+        }
+
+        if (string.IsNullOrEmpty(Audience))
+        {
+            yield return new ValidationResult("No Audience defined in JwtOptions config", [nameof(Key)]);
+        }
     }
 }

@@ -5,13 +5,12 @@ using FSH.Framework.Tenant.Services;
 using Mapster;
 
 namespace FSH.Framework.Tenant.Features.v1.GetTenantById;
-internal sealed class GetTenantByIdQueryHandler(ITenantService service)
-    : IQueryHandler<GetTenantByIdQuery, GetTenantByIdQueryResponse>
+public sealed class GetTenantByIdQueryHandler(ITenantService service)
+    : IQueryHandler<GetTenantByIdQuery, TenantDto>
 {
-    public async Task<GetTenantByIdQueryResponse> HandleAsync(GetTenantByIdQuery query, CancellationToken cancellationToken = default)
+    public async Task<TenantDto> HandleAsync(GetTenantByIdQuery query, CancellationToken cancellationToken = default)
     {
         var tenant = await service.GetByIdAsync(query.TenantId);
-        var tenantDto = tenant.Adapt<TenantDto>();
-        return new GetTenantByIdQueryResponse(tenantDto);
+        return tenant.Adapt<TenantDto>();
     }
 }
