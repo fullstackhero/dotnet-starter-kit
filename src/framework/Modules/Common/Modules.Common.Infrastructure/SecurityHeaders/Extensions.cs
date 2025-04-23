@@ -7,7 +7,7 @@ namespace FSH.Framework.Infrastructure.SecurityHeaders;
 
 public static class Extensions
 {
-    internal static IServiceCollection ConfigureSecurityHeaders(this IServiceCollection services, IConfiguration config)
+    internal static IServiceCollection AddSecurityHeaders(this IServiceCollection services, IConfiguration config)
     {
         services.Configure<SecurityHeaderOptions>(config.GetSection(nameof(SecurityHeaderOptions)));
 

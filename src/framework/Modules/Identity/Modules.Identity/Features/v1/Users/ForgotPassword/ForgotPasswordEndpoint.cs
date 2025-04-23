@@ -1,9 +1,9 @@
 ﻿using FluentValidation;
 using FluentValidation.Results;
-using FSH.Framework.Core.Origin;
 using FSH.Framework.Identity.Core.Users;
 using FSH.Framework.Identity.Endpoints.v1.Users.ForgotPassword;
 using FSH.Framework.Shared.Constants;
+using FSH.Modules.Common.Core.Origin;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

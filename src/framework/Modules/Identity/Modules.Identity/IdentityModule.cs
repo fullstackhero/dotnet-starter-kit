@@ -15,22 +15,24 @@ using FSH.Framework.Identity.v1.Users;
 using FSH.Framework.Infrastructure.Auth;
 using FSH.Framework.Infrastructure.Auth.Jwt;
 using FSH.Framework.Infrastructure.Identity.Roles;
+using FSH.Framework.Infrastructure.Identity.Roles.Endpoints;
 using FSH.Framework.Infrastructure.Identity.Users.Services;
 using FSH.Framework.Infrastructure.Messaging.CQRS;
 using FSH.Framework.Infrastructure.Persistence;
 using FSH.Framework.Modules.Identity.Contracts;
+using FSH.Modules.Common.Infrastructure.Modules;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
 namespace FSH.Modules.Identity;
-public static class IdentityModule
+public class IdentityModule : IModule
 {
-    public static IServiceCollection ConfigureIdentityModule(this IServiceCollection services)
+    public void AddModule(IServiceCollection services, IConfiguration config)
     {
         ArgumentNullException.ThrowIfNull(services);
 
@@ -48,8 +50,6 @@ public static class IdentityModule
         {
             services.AddScoped(result.InterfaceType, result.ValidatorType);
         }
-
-
         services.AddScoped<CurrentUserMiddleware>();
         services.AddSingleton<IAuthorizationMiddlewareResultHandler, PathAwareAuthorizationHandler>();
         services.AddScoped<ICurrentUser, CurrentUser>();
@@ -71,23 +71,23 @@ public static class IdentityModule
            .AddEntityFrameworkStores<IdentityDbContext>()
            .AddDefaultTokenProviders();
         services.ConfigureJwtAuth();
-        return services;
     }
 
-    public static IEndpointRouteBuilder MapIdentityEndpoints(this IEndpointRouteBuilder endpoints)
+    public void ConfigureModule(WebApplication app)
     {
-        var apiVersionSet = endpoints.NewApiVersionSet()
+        var apiVersionSet = app.NewApiVersionSet()
             .HasApiVersion(new ApiVersion(1))
             .ReportApiVersions()
             .Build();
 
-        var group = endpoints
+        var group = app
             .MapGroup("api/v{version:apiVersion}/identity")
             .WithTags("Identity")
             .WithOpenApi()
             .WithApiVersionSet(apiVersionSet);
 
-        group.Map();
-        return endpoints;
+        TokenGenerationEndpoint.Map(group).AllowAnonymous();
+        GetRolesEndpoint.MapGetRolesEndpoint(group);
+        GetRoleByIdEndpoint.MapGetRoleEndpoint(group);
     }
 }

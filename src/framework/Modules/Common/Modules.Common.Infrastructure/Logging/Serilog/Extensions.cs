@@ -7,7 +7,7 @@ namespace FSH.Framework.Infrastructure.Logging.Serilog;
 
 public static class Extensions
 {
-    public static WebApplicationBuilder ConfigureSerilog(this WebApplicationBuilder builder)
+    public static WebApplicationBuilder AddFshSerilog(this WebApplicationBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
         builder.Host.UseSerilog((context, logger) =>

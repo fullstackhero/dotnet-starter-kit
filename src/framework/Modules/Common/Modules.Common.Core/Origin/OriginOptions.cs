@@ -1,4 +1,4 @@
-﻿namespace FSH.Framework.Core.Origin;
+﻿namespace FSH.Modules.Common.Core.Origin;
 
 public class OriginOptions
 {

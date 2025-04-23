@@ -7,7 +7,7 @@ namespace FSH.Framework.Infrastructure.Caching;
 internal static class Extensions
 {
     private static readonly ILogger _logger = Log.ForContext(typeof(Extensions));
-    internal static IServiceCollection ConfigureCaching(this IServiceCollection services, IConfiguration configuration)
+    internal static IServiceCollection AddFshCaching(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddTransient<ICacheService, DistributedCacheService>();
         var cacheOptions = configuration.GetSection(nameof(CacheOptions)).Get<CacheOptions>();

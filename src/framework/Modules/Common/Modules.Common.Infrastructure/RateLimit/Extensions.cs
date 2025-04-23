@@ -10,7 +10,7 @@ namespace FSH.Framework.Infrastructure.RateLimit;
 
 public static class Extensions
 {
-    internal static IServiceCollection ConfigureRateLimit(this IServiceCollection services, IConfiguration config)
+    internal static IServiceCollection AddRateLimiting(this IServiceCollection services, IConfiguration config)
     {
         services.Configure<RateLimitOptions>(config.GetSection(nameof(RateLimitOptions)));
 

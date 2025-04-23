@@ -1,9 +1,11 @@
-using FSH.Framework.Auditing;
-using FSH.Framework.Infrastructure;
 using FSH.Framework.Infrastructure.Messaging.Events;
 using FSH.Framework.Infrastructure.OpenApi;
+using FSH.Framework.Tenant;
+using FSH.Modules.Auditing;
+using FSH.Modules.Common.Infrastructure;
 using FSH.Modules.Identity;
 using FSH.Modules.Tenant;
+using FSH.PlayGround.Api.Extensions;
 using Scalar.AspNetCore;
 using System.Reflection;
 
@@ -12,10 +14,9 @@ builder.Services.AddOpenApi("v1", options =>
 {
     options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
 });
-builder.ConfigureFshFramework();
-builder.Services.ConfigureTenantModule();
-builder.Services.ConfigureIdentityModule();
-builder.Services.ConfigureAuditingModule();
+
+builder.AddFshFramework();
+builder.Services.AddModules(builder.Configuration);
 
 var assemblies = new Assembly[]
         {
@@ -23,7 +24,7 @@ var assemblies = new Assembly[]
             typeof(IdentityModule).Assembly,
             typeof(AuditingModule).Assembly
         };
-builder.Services.RegisterInMemoryEventBus(assemblies);
+builder.Services.AddInMemoryEventBus(assemblies);
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
@@ -33,11 +34,10 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference(options => options.AddDocuments(versions));
 }
 
-app.UseFshMultiTenancy();
-app.UseFshFramework();
 
-app.MapIdentityEndpoints();
-app.MapAuditingEndpoints();
+app.ConfigureMultiTenantDatabases();
+app.ConfigureFshFramework();
+app.ConfigureModules();
 
 app.UseHttpsRedirection();
 await app.RunAsync();

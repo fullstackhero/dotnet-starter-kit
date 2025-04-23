@@ -1,9 +1,9 @@
 ﻿using FluentValidation;
 using FluentValidation.Results;
-using FSH.Framework.Core.Origin;
 using FSH.Framework.Identity.Contracts.v1.Users.ChangePassword;
 using FSH.Framework.Identity.Core.Users;
 using FSH.Framework.Shared.Extensions;
+using FSH.Modules.Common.Core.Origin;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;

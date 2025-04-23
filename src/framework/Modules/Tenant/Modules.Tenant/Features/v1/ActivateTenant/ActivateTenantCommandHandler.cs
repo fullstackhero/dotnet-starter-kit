@@ -2,7 +2,7 @@
 using FSH.Framework.Tenant.Services;
 using FSH.Modules.Common.Core.Messaging.CQRS;
 
-namespace FSH.Framework.Tenant.Features.v1.ActivateTenant;
+namespace FSH.Modules.Tenant.Features.v1.ActivateTenant;
 public sealed class ActivateTenantCommandHandler(ITenantService tenantService)
     : ICommandHandler<ActivateTenantCommand, ActivateTenantCommandResponse>
 {

@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 
-namespace FSH.Framework.Tenant.Features.v1.ActivateTenant;
+namespace FSH.Modules.Tenant.Features.v1.ActivateTenant;
 public static class ActivateTenantEndpoint
 {
     public static RouteHandlerBuilder Map(this IEndpointRouteBuilder endpoints)

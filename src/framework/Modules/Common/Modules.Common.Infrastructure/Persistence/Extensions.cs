@@ -36,7 +36,7 @@ public static class Extensions
         };
     }
 
-    public static WebApplicationBuilder ConfigureDatabase(this WebApplicationBuilder builder)
+    public static WebApplicationBuilder AddDatabaseOption(this WebApplicationBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
         builder.Services.AddOptions<DatabaseOptions>()

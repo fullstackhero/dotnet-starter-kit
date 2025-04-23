@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace FSH.Framework.Core.Modules;
+namespace FSH.Modules.Common.Core.Modules;
 
 public interface ICoreModule
 {
-    IServiceCollection AddModuleServices(IServiceCollection services, IConfiguration config);
+    void AddModule(IServiceCollection services, IConfiguration config);
 }

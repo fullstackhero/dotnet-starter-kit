@@ -5,7 +5,7 @@ using System.Reflection;
 namespace FSH.Framework.Infrastructure.Messaging.Events;
 public static class Extensions
 {
-    public static IServiceCollection RegisterInMemoryEventBus(this IServiceCollection services, params Assembly[] assemblies)
+    public static IServiceCollection AddInMemoryEventBus(this IServiceCollection services, params Assembly[] assemblies)
     {
         services.AddScoped<IEventPublisher, InMemoryEventPublisher>();
 

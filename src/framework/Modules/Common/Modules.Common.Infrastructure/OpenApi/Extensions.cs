@@ -8,7 +8,7 @@ namespace FSH.Framework.Infrastructure.OpenApi;
 
 public static class Extensions
 {
-    public static IServiceCollection ConfigureOpenApi(this IServiceCollection services)
+    public static IServiceCollection AddFshOpenApi(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
         //services.AddEndpointsApiExplorer();

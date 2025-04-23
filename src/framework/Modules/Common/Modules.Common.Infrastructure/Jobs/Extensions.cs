@@ -12,21 +12,23 @@ namespace FSH.Framework.Infrastructure.Jobs;
 
 internal static class Extensions
 {
-    internal static IServiceCollection ConfigureJobs(this IServiceCollection services, IConfiguration configuration)
+    internal static IServiceCollection AddFshJobs(this IServiceCollection services)
     {
-        var dbOptions = configuration.GetSection(nameof(DatabaseOptions)).Get<DatabaseOptions>() ??
-            throw new CustomException("database options cannot be null");
-
-        services.AddHangfireServer(o =>
+        services.AddHangfireServer(options =>
         {
-            o.HeartbeatInterval = TimeSpan.FromSeconds(30);
-            o.Queues = ["default", "email"];
-            o.WorkerCount = 5;
-            o.SchedulePollingInterval = TimeSpan.FromSeconds(30);
+            options.HeartbeatInterval = TimeSpan.FromSeconds(30);
+            options.Queues = ["default", "email"];
+            options.WorkerCount = 5;
+            options.SchedulePollingInterval = TimeSpan.FromSeconds(30);
         });
 
         services.AddHangfire((provider, config) =>
         {
+            var dbOptions = provider
+                .GetRequiredService<IConfiguration>()
+                .GetSection(nameof(DatabaseOptions))
+                .Get<DatabaseOptions>() ?? throw new CustomException("Database options not found");
+
             switch (dbOptions.Provider.ToUpperInvariant())
             {
                 case DbProviders.PostgreSQL:
@@ -41,7 +43,7 @@ internal static class Extensions
                     break;
 
                 default:
-                    throw new CustomException($"hangfire storage provider {dbOptions.Provider} is not supported");
+                    throw new CustomException($"Hangfire storage provider {dbOptions.Provider} is not supported");
             }
 
             config.UseFilter(new FshJobFilter(provider));
@@ -49,8 +51,10 @@ internal static class Extensions
         });
 
         services.AddTransient<IJobService, HangfireService>();
+
         return services;
     }
+
 
     internal static IApplicationBuilder UseJobDashboard(this IApplicationBuilder app, IConfiguration config)
     {

@@ -44,6 +44,7 @@ public sealed class TokenService : ITokenService
     {
         var currentTenant = _multiTenantContextAccessor!.MultiTenantContext.TenantInfo;
         if (currentTenant == null) throw new UnauthorizedException();
+
         if (string.IsNullOrWhiteSpace(currentTenant.Id)
            || await _userManager.FindByEmailAsync(email.Trim().Normalize()) is not { } user
            || !await _userManager.CheckPasswordAsync(user, password))

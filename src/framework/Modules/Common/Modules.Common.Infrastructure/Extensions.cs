@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 using FSH.Framework.Core;
-using FSH.Framework.Core.Origin;
+using FSH.Framework.Infrastructure;
 using FSH.Framework.Infrastructure.Caching;
 using FSH.Framework.Infrastructure.Cors;
 using FSH.Framework.Infrastructure.Exceptions;
@@ -14,28 +14,29 @@ using FSH.Framework.Infrastructure.Persistence;
 using FSH.Framework.Infrastructure.RateLimit;
 using FSH.Framework.Infrastructure.SecurityHeaders;
 using FSH.Framework.Infrastructure.Storage;
+using FSH.Modules.Common.Core.Origin;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using System.Reflection;
 
-namespace FSH.Framework.Infrastructure;
+namespace FSH.Modules.Common.Infrastructure;
 
 public static class Extensions
 {
-    public static WebApplicationBuilder ConfigureFshFramework(this WebApplicationBuilder builder)
+    public static WebApplicationBuilder AddFshFramework(this WebApplicationBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
         builder.Services.AddHttpContextAccessor();
-        builder.ConfigureSerilog();
-        builder.ConfigureDatabase();
+        builder.AddFshSerilog();
+        builder.AddDatabaseOption();
         builder.Services.AddCorsPolicy(builder.Configuration);
-        builder.Services.ConfigureLocalFileStorage();
-        builder.Services.ConfigureOpenApi();
-        builder.Services.ConfigureJobs(builder.Configuration);
-        builder.Services.ConfigureMailing();
-        builder.Services.ConfigureCaching(builder.Configuration);
+        builder.Services.AddLocalFileStorage();
+        builder.Services.AddFshOpenApi();
+        builder.Services.AddFshJobs();
+        builder.Services.AddFshMailing();
+        builder.Services.AddFshCaching(builder.Configuration);
         builder.Services.AddExceptionHandler<CustomExceptionHandler>();
         builder.Services.AddProblemDetails();
         builder.Services.AddHealthChecks();
@@ -52,16 +53,16 @@ public static class Extensions
         builder.Services.AddValidatorsFromAssemblies(assemblies);
 
         // register messaging services
-        builder.Services.RegisterCommandAndQueryDispatchers();
-        builder.Services.RegisterInMemoryEventBus(assemblies);
+        builder.Services.AddCommandAndQueryDispatchers();
+        builder.Services.AddInMemoryEventBus(assemblies);
 
-        builder.Services.ConfigureRateLimit(builder.Configuration);
-        builder.Services.ConfigureSecurityHeaders(builder.Configuration);
+        builder.Services.AddRateLimiting(builder.Configuration);
+        builder.Services.AddSecurityHeaders(builder.Configuration);
 
         return builder;
     }
 
-    public static WebApplication UseFshFramework(this WebApplication app)
+    public static WebApplication ConfigureFshFramework(this WebApplication app)
     {
         app.UseRateLimit();
         app.UseSecurityHeaders();

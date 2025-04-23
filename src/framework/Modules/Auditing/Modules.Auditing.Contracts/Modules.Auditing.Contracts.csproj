@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <RootNamespace>FSH.Framework.Auditing.Contracts</RootNamespace>
-    <AssemblyName>FSH.Framework.Auditing.Contracts</AssemblyName>
+    <RootNamespace>FSH.Modules.Auditing.Contracts</RootNamespace>
+    <AssemblyName>FSH.Modules.Auditing.Contracts</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="Events\DomainEvents\" />

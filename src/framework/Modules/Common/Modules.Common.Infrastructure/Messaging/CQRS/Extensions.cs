@@ -7,7 +7,7 @@ using System.Reflection;
 namespace FSH.Framework.Infrastructure.Messaging.CQRS;
 public static class Extensions
 {
-    public static IServiceCollection RegisterCommandAndQueryDispatchers(this IServiceCollection services)
+    public static IServiceCollection AddCommandAndQueryDispatchers(this IServiceCollection services)
     {
         // Register dispatchers
         services.AddScoped<ICommandDispatcher, CommandDispatcher>();

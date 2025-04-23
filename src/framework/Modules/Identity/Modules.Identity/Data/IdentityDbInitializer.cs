@@ -1,11 +1,11 @@
 ﻿using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Core.Origin;
 using FSH.Framework.Core.Persistence;
 using FSH.Framework.Identity.Infrastructure.Roles;
 using FSH.Framework.Identity.Infrastructure.Users;
 using FSH.Framework.Identity.v1.RoleClaims;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Shared.Multitenancy;
+using FSH.Modules.Common.Core.Origin;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
