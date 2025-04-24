@@ -1,5 +1,5 @@
 ﻿using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Shared.Constants;
+using FSH.Modules.Common.Shared.Constants;
 
 namespace FSH.Framework.Shared.Multitenancy;
 public class FshTenantInfo : ITenantInfo, IFshTenantInfo
@@ -42,7 +42,7 @@ public class FshTenantInfo : ITenantInfo, IFshTenantInfo
 
     public void Activate()
     {
-        if (Id == TenantConstants.Root.Id)
+        if (Id == MutiTenancyConstants.Root.Id)
         {
             throw new InvalidOperationException("Invalid Tenant");
         }
@@ -52,7 +52,7 @@ public class FshTenantInfo : ITenantInfo, IFshTenantInfo
 
     public void Deactivate()
     {
-        if (Id == TenantConstants.Root.Id)
+        if (Id == MutiTenancyConstants.Root.Id)
         {
             throw new InvalidOperationException("Invalid Tenant");
         }

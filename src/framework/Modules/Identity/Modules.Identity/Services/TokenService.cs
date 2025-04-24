@@ -9,6 +9,7 @@ using FSH.Framework.Identity.Infrastructure.Users;
 using FSH.Framework.Identity.Options;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Shared.Multitenancy;
+using FSH.Modules.Common.Shared.Constants;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -62,7 +63,7 @@ public sealed class TokenService : ITokenService
             throw new UnauthorizedException("email not confirmed");
         }
 
-        if (currentTenant.Id != TenantConstants.Root.Id)
+        if (currentTenant.Id != MutiTenancyConstants.Root.Id)
         {
             if (!currentTenant.IsActive)
             {

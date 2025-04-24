@@ -18,6 +18,7 @@ using FSH.Framework.Tenant.Features.v1.GetTenants;
 using FSH.Framework.Tenant.Features.v1.UpgradeTenant;
 using FSH.Framework.Tenant.Services;
 using FSH.Modules.Common.Infrastructure.Modules;
+using FSH.Modules.Common.Shared.Constants;
 using FSH.Modules.Tenant.Features.v1.ActivateTenant;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -60,7 +61,7 @@ public class TenantModule : IModule
                 };
             })
             .WithClaimStrategy(FshClaims.Tenant)
-            .WithHeaderStrategy(TenantConstants.Identifier)
+            .WithHeaderStrategy(MutiTenancyConstants.Identifier)
             .WithDelegateStrategy(async context =>
             {
                 if (context is not HttpContext httpContext) return null;

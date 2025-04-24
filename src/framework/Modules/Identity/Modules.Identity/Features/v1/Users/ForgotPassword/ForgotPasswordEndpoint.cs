@@ -2,8 +2,8 @@
 using FluentValidation.Results;
 using FSH.Framework.Identity.Core.Users;
 using FSH.Framework.Identity.Endpoints.v1.Users.ForgotPassword;
-using FSH.Framework.Shared.Constants;
 using FSH.Modules.Common.Core.Origin;
+using FSH.Modules.Common.Shared.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +16,7 @@ public static class ForgotPasswordEndpoint
 {
     internal static RouteHandlerBuilder MapForgotPasswordEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        return endpoints.MapPost("/forgot-password", async (HttpRequest request, [FromHeader(Name = TenantConstants.Identifier)] string tenant, [FromBody] ForgotPasswordCommand command, IOptions<OriginOptions> settings, IValidator<ForgotPasswordCommand> validator, IUserService userService, CancellationToken cancellationToken) =>
+        return endpoints.MapPost("/forgot-password", async (HttpRequest request, [FromHeader(Name = MutiTenancyConstants.Identifier)] string tenant, [FromBody] ForgotPasswordCommand command, IOptions<OriginOptions> settings, IValidator<ForgotPasswordCommand> validator, IUserService userService, CancellationToken cancellationToken) =>
         {
             ValidationResult result = await validator.ValidateAsync(command, cancellationToken);
             if (!result.IsValid)

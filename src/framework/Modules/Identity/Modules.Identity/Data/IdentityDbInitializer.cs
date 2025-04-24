@@ -6,6 +6,7 @@ using FSH.Framework.Identity.v1.RoleClaims;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Common.Core.Origin;
+using FSH.Modules.Common.Shared.Constants;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -57,7 +58,7 @@ internal sealed class IdentityDbInitializer(
             {
                 await AssignPermissionsToRoleAsync(context, FshPermissions.Admin, role);
 
-                if (multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id == TenantConstants.Root.Id)
+                if (multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id == MutiTenancyConstants.Root.Id)
                 {
                     await AssignPermissionsToRoleAsync(context, FshPermissions.Root, role);
                 }
@@ -115,13 +116,13 @@ internal sealed class IdentityDbInitializer(
                 PhoneNumberConfirmed = true,
                 NormalizedEmail = multiTenantContextAccessor.MultiTenantContext.TenantInfo?.AdminEmail!.ToUpperInvariant(),
                 NormalizedUserName = adminUserName.ToUpperInvariant(),
-                ImageUrl = new Uri(originSettings.Value.OriginUrl! + TenantConstants.Root.DefaultProfilePicture),
+                ImageUrl = new Uri(originSettings.Value.OriginUrl! + MutiTenancyConstants.Root.DefaultProfilePicture),
                 IsActive = true
             };
 
             logger.LogInformation("Seeding Default Admin User for '{TenantId}' Tenant.", multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id);
             var password = new PasswordHasher<FshUser>();
-            adminUser.PasswordHash = password.HashPassword(adminUser, TenantConstants.DefaultPassword);
+            adminUser.PasswordHash = password.HashPassword(adminUser, MutiTenancyConstants.DefaultPassword);
             await userManager.CreateAsync(adminUser);
         }
 

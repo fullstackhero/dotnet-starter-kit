@@ -2,7 +2,7 @@
 using FluentValidation.Results;
 using FSH.Framework.Identity.Core.Users;
 using FSH.Framework.Identity.Endpoints.v1.Users.ResetPassword;
-using FSH.Framework.Shared.Constants;
+using FSH.Modules.Common.Shared.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +16,7 @@ public static class ResetPasswordEndpoint
     {
         return endpoints.MapPost("/reset-password",
             async ([FromBody] ResetPasswordCommand command,
-            [FromHeader(Name = TenantConstants.Identifier)] string tenant,
+            [FromHeader(Name = MutiTenancyConstants.Identifier)] string tenant,
             IValidator<ResetPasswordCommand> validator,
             IUserService userService, CancellationToken cancellationToken) =>
         {

@@ -1,9 +1,9 @@
 ﻿using Finbuckle.MultiTenant;
 using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Persistence;
-using FSH.Framework.Shared.Constants;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Tenant.Data;
+using FSH.Modules.Common.Shared.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,13 +25,13 @@ public static class Extensions
         }
 
         // default tenant seeding
-        if (tenantDbContext.TenantInfo.Find(TenantConstants.Root.Id) is null)
+        if (tenantDbContext.TenantInfo.Find(MutiTenancyConstants.Root.Id) is null)
         {
             var rootTenant = new FshTenantInfo(
-                TenantConstants.Root.Id,
-                TenantConstants.Root.Name,
+                MutiTenancyConstants.Root.Id,
+                MutiTenancyConstants.Root.Name,
                 string.Empty,
-                TenantConstants.Root.EmailAddress);
+                MutiTenancyConstants.Root.EmailAddress);
 
             rootTenant.SetValidity(DateTime.UtcNow.AddYears(1));
             tenantDbContext.TenantInfo.Add(rootTenant);

@@ -13,6 +13,7 @@ using FSH.Framework.Shared.Constants;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Common.Core.Caching;
 using FSH.Modules.Common.Core.Exceptions;
+using FSH.Modules.Common.Shared.Constants;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
@@ -253,7 +254,7 @@ internal sealed partial class UserService(
         string verificationUri = QueryHelpers.AddQueryString(endpointUri.ToString(), QueryStringKeys.UserId, user.Id);
         verificationUri = QueryHelpers.AddQueryString(verificationUri, QueryStringKeys.Code, code);
         verificationUri = QueryHelpers.AddQueryString(verificationUri,
-            TenantConstants.Identifier,
+            MutiTenancyConstants.Identifier,
             multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id!);
         return verificationUri;
     }
@@ -273,9 +274,9 @@ internal sealed partial class UserService(
 
             // Check if user is not Root Tenant Admin
             // Edge Case : there are chances for other tenants to have users with the same email as that of Root Tenant Admin. Probably can add a check while User Registration
-            if (user.Email == TenantConstants.Root.EmailAddress)
+            if (user.Email == MutiTenancyConstants.Root.EmailAddress)
             {
-                if (multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id == TenantConstants.Root.Id)
+                if (multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id == MutiTenancyConstants.Root.Id)
                 {
                     throw new CustomException("action not permitted");
                 }

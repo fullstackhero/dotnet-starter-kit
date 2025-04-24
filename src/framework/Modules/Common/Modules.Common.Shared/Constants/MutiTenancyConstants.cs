@@ -1,5 +1,5 @@
-﻿namespace FSH.Framework.Shared.Constants;
-public static class TenantConstants
+﻿namespace FSH.Modules.Common.Shared.Constants;
+public static class MutiTenancyConstants
 {
     public static class Root
     {

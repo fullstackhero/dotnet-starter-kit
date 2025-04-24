@@ -9,7 +9,10 @@ namespace FSH.Framework.Tenant.Features.v1.GetTenants;
 public sealed class GetTenantsQueryHandler(ITenantService service)
     : IQueryHandler<GetTenantsQuery, IReadOnlyCollection<TenantDto>>
 {
-    public async Task<IReadOnlyCollection<TenantDto>> HandleAsync(GetTenantsQuery query, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<TenantDto>> HandleAsync(
+        GetTenantsQuery query,
+        CancellationToken cancellationToken = default
+        )
     {
         var tenants = await service.GetAllAsync();
         return tenants.Adapt<List<TenantDto>>();

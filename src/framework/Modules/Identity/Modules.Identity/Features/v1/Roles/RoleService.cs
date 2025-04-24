@@ -8,6 +8,7 @@ using FSH.Framework.Identity.v1.RoleClaims;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Common.Core.Exceptions;
+using FSH.Modules.Common.Shared.Constants;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -86,7 +87,7 @@ public class RoleService(RoleManager<FshRole> roleManager,
             throw new CustomException("operation not permitted");
         }
 
-        if (multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id != TenantConstants.Root.Id)
+        if (multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id != MutiTenancyConstants.Root.Id)
         {
             // Remove Root Permissions if the Role is not created for Root Tenant.
             permissions.RemoveAll(u => u.StartsWith("Permissions.Root.", StringComparison.InvariantCultureIgnoreCase));
