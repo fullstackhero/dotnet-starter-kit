@@ -2,6 +2,9 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
 namespace FSH.Framework.Infrastructure.OpenApi;
@@ -11,30 +14,30 @@ public static class Extensions
     public static IServiceCollection AddFshOpenApi(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
-        //services.AddEndpointsApiExplorer();
-        //services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
-        //services
-        //    .AddSwaggerGen(options =>
-        //    {
-        //        options.OperationFilter<SwaggerDefaultValues>();
-        //        options.AddSecurityDefinition("bearerAuth", new OpenApiSecurityScheme
-        //        {
-        //            Type = SecuritySchemeType.Http,
-        //            Scheme = "bearer",
-        //            BearerFormat = "JWT",
-        //            Description = "JWT Authorization header using the Bearer scheme."
-        //        });
-        //        options.AddSecurityRequirement(new OpenApiSecurityRequirement
-        //        {
-        //            {
-        //                new OpenApiSecurityScheme
-        //                {
-        //                    Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "bearerAuth" }
-        //                },
-        //                Array.Empty<string>()
-        //            }
-        //        });
-        //    });
+        services.AddEndpointsApiExplorer();
+        services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
+        services
+            .AddSwaggerGen(options =>
+            {
+                options.OperationFilter<SwaggerDefaultValues>();
+                options.AddSecurityDefinition("bearerAuth", new OpenApiSecurityScheme
+                {
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT",
+                    Description = "JWT Authorization header using the Bearer scheme."
+                });
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "bearerAuth" }
+                        },
+                        Array.Empty<string>()
+                    }
+                });
+            });
         services
             .AddApiVersioning(options =>
             {
@@ -46,6 +49,7 @@ public static class Extensions
             .AddApiExplorer(options =>
             {
                 options.GroupNameFormat = "'v'VVV";
+                options.SubstituteApiVersionInUrl = true;
             })
             .EnableApiVersionBinding();
         return services;

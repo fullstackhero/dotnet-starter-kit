@@ -68,7 +68,7 @@ public static class Extensions
         app.UseSecurityHeaders();
         app.UseExceptionHandler();
         app.UseCorsPolicy();
-        //app.UseOpenApi();
+        app.UseOpenApi();
         app.UseJobDashboard(app.Configuration);
         app.UseRouting();
         app.UseStaticFiles();
