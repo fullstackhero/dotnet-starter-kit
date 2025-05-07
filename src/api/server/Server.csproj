@@ -16,6 +16,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Category\Category.csproj" />
     <ProjectReference Include="..\framework\Core\Core.csproj" />
     <ProjectReference Include="..\framework\Infrastructure\Infrastructure.csproj" />
     <ProjectReference Include="..\migrations\MSSQL\MSSQL.csproj" />
