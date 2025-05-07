@@ -6,4 +6,5 @@ public sealed record CreateAgencyCommand(
     string Name,
     string Email,
     string Telephone,
-    string Address) : IRequest<CreateAgencyResponse>;
+    string Address,
+    string Description) : IRequest<CreateAgencyResponse>;

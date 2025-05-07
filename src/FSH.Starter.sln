@@ -20,6 +20,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Framework", "_Framework", "{05248A38-0F34-4E59-A3D1-B07097987AFB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Migrations", "Migrations", "{12F8343D-20A6-4E24-B0F5-3A66F2228CF6}"
+	ProjectSection(SolutionItems) = preProject
+		migratio_command.txt = migratio_command.txt
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WebApi", "WebApi", "{CE64E92B-E088-46FB-9028-7FB6B67DEC55}"
 EndProject

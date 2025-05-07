@@ -13,19 +13,20 @@ public class Agency : AuditableEntity, IAggregateRoot
 
     private Agency() { }
 
-    private Agency(Guid id, string name, string email, string telephone, string address)
+    private Agency(Guid id, string name, string email, string telephone, string address, string description)
     {
         Id = id;
         Name = name;
         Email = email;
         Telephone = telephone;
         Address = address;
-        QueueDomainEvent(new AgencyCreated { Agency = this });
+        Description = description;
+        //QueueDomainEvent(new AgencyCreated { Agency = this });
     }
 
-    public static Agency Create(string name, string email, string telephone, string address)
+    public static Agency Create(string name, string email, string telephone, string address, string description)
     {
-        return new Agency(Guid.NewGuid(), name, email, telephone, address);
+        return new Agency(Guid.NewGuid(), name, email, telephone, address, description);
     }
 
     public Agency Update(string? name, string? email, string? telephone, string? address)
@@ -58,7 +59,7 @@ public class Agency : AuditableEntity, IAggregateRoot
 
         if (isUpdated)
         {
-            QueueDomainEvent(new AgencyUpdated { Agency = this });
+            //QueueDomainEvent(new AgencyUpdated { Agency = this });
         }
 
         return this;

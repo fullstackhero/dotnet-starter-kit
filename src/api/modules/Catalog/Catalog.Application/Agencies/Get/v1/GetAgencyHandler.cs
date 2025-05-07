@@ -20,7 +20,7 @@ public sealed class GetAgencyHandler(
             {
                 var agencyItem = await repository.GetByIdAsync(request.Id, cancellationToken);
                 if (agencyItem == null) throw new AgencyNotFoundException(request.Id);
-                return new AgencyResponse(agencyItem.Id, agencyItem.Name);
+                return new AgencyResponse(agencyItem.Id, agencyItem.Name, agencyItem.Email, agencyItem.Telephone, agencyItem.Address, agencyItem.Description);
             },
             cancellationToken: cancellationToken);
         return item!;

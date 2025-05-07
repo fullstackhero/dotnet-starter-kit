@@ -8,19 +8,22 @@ public class Brand : AuditableEntity, IAggregateRoot
     public string Name { get; private set; } = string.Empty;
     public string? Description { get; private set; }
 
+    public string? LogoUrl { get; private set; } = string.Empty;
+
     private Brand() { }
 
-    private Brand(Guid id, string name, string? description)
+    private Brand(Guid id, string name, string? description, string? logourl)
     {
         Id = id;
         Name = name;
         Description = description;
+        LogoUrl = logourl;
         QueueDomainEvent(new BrandCreated { Brand = this });
     }
 
-    public static Brand Create(string name, string? description)
+    public static Brand Create(string name, string? description, string? logourl)
     {
-        return new Brand(Guid.NewGuid(), name, description);
+        return new Brand(Guid.NewGuid(), name, description, logourl);
     }
 
     public Brand Update(string? name, string? description)

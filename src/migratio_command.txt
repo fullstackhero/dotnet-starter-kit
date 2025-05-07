@@ -1,0 +1,2 @@
+PS C:\github\dotnet-starter-org\src\api\server> 
+dotnet ef migrations add "update Brand Schema" --project .././migrations/postgresql/ --context CatalogDbContext -o Catalog

@@ -14,9 +14,9 @@ public sealed class CreateAgencyHandler(
     public async Task<CreateAgencyResponse> Handle(CreateAgencyCommand request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
-        var agency = Agency.Create(request.Name!, request.Email!, request.Telephone!, request.Address!);
+        var agency = Agency.Create(request.Name!, request.Email!, request.Telephone!, request.Address!, request.Description);
         await repository.AddAsync(agency, cancellationToken);
         logger.LogInformation("Agency created {AgencyId}", agency.Id);
-        return new CreateAgencyResponse(agency.Id, agency.Name);
+        return new CreateAgencyResponse(agency.Id, agency.Name, agency.Email, agency.Telephone, agency.Address, agency.Description);
     }
 }
