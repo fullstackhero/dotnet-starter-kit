@@ -22,6 +22,17 @@ public sealed class CatalogDbContext : FshDbContext
 
     public DbSet<Agency> Agencies { get; set; } = null!;
 
+    public DbSet<Region> Regions { get; set; } = null!;
+
+    public DbSet<City> Cities { get; set; } = null!;
+
+    public DbSet<Neighborhood> Neighborhoods { get; set; } = null!;
+
+    public DbSet<Review> Reviews { get; set; } = null!;
+
+    public DbSet<PropertyType> PropertyTypes { get; set; } = null!;
+    public DbSet<Property> Properties { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);

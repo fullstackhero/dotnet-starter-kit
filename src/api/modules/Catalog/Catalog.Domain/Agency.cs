@@ -21,7 +21,7 @@ public class Agency : AuditableEntity, IAggregateRoot
         Telephone = telephone;
         Address = address;
         Description = description;
-        //QueueDomainEvent(new AgencyCreated { Agency = this });
+        QueueDomainEvent(new AgencyCreated { Agency = this });
     }
 
     public static Agency Create(string name, string email, string telephone, string address, string description)
@@ -59,7 +59,7 @@ public class Agency : AuditableEntity, IAggregateRoot
 
         if (isUpdated)
         {
-            //QueueDomainEvent(new AgencyUpdated { Agency = this });
+            QueueDomainEvent(new AgencyUpdated { Agency = this });
         }
 
         return this;
