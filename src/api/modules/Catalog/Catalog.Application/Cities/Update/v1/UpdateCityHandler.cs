@@ -2,13 +2,13 @@ using FSH.Framework.Core.Persistence;
 using FSH.Starter.WebApi.Catalog.Domain;
 using FSH.Starter.WebApi.Catalog.Domain.Exceptions;
 using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace FSH.Starter.WebApi.Catalog.Application.Cities.Update.v1;
-
 public sealed class UpdateCityHandler(
     ILogger<UpdateCityHandler> logger,
-    IRepository<City> repository)
+    [FromKeyedServices("catalog:cities")] IRepository<City> repository)
     : IRequestHandler<UpdateCityCommand, UpdateCityResponse>
 {
     public async Task<UpdateCityResponse> Handle(UpdateCityCommand request, CancellationToken cancellationToken)

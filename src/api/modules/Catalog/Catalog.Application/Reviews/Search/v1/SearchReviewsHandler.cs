@@ -3,11 +3,11 @@ using FSH.Framework.Core.Persistence;
 using FSH.Starter.WebApi.Catalog.Application.Reviews.Get.v1;
 using FSH.Starter.WebApi.Catalog.Domain;
 using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FSH.Starter.WebApi.Catalog.Application.Reviews.Search.v1;
-
 public sealed class SearchReviewsHandler(
-    IReadRepository<Review> repository)
+    [FromKeyedServices("catalog:reviews")] IReadRepository<Review> repository)
     : IRequestHandler<SearchReviewsCommand, PagedList<ReviewResponse>>
 {
     public async Task<PagedList<ReviewResponse>> Handle(SearchReviewsCommand request, CancellationToken cancellationToken)

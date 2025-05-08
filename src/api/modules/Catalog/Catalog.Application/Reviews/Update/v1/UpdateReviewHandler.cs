@@ -2,13 +2,13 @@ using FSH.Framework.Core.Persistence;
 using FSH.Starter.WebApi.Catalog.Domain;
 using FSH.Starter.WebApi.Catalog.Domain.Exceptions;
 using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace FSH.Starter.WebApi.Catalog.Application.Reviews.Update.v1;
-
 public sealed class UpdateReviewHandler(
     ILogger<UpdateReviewHandler> logger,
-    IRepository<Review> repository)
+    [FromKeyedServices("catalog:reviews")] IRepository<Review> repository)
     : IRequestHandler<UpdateReviewCommand, UpdateReviewResponse>
 {
     public async Task<UpdateReviewResponse> Handle(UpdateReviewCommand request, CancellationToken cancellationToken)

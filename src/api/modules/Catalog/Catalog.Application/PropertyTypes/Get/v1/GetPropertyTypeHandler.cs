@@ -1,13 +1,13 @@
-using FSH.Framework.Core.Caching;
-using FSH.Framework.Core.Persistence;
-using FSH.Starter.WebApi.Catalog.Domain;
+using Microsoft.Extensions.DependencyInjection;
 using FSH.Starter.WebApi.Catalog.Domain.Exceptions;
+using FSH.Framework.Core.Persistence;
+using FSH.Framework.Core.Caching;
+using FSH.Starter.WebApi.Catalog.Domain;
 using MediatR;
 
 namespace FSH.Starter.WebApi.Catalog.Application.PropertyTypes.Get.v1;
-
 public sealed class GetPropertyTypeHandler(
-    IReadRepository<PropertyType> repository,
+    [FromKeyedServices("catalog:propertytypes")] IReadRepository<PropertyType> repository,
     ICacheService cache)
     : IRequestHandler<GetPropertyTypeRequest, PropertyTypeResponse>
 {
@@ -15,12 +15,12 @@ public sealed class GetPropertyTypeHandler(
     {
         ArgumentNullException.ThrowIfNull(request);
         var item = await cache.GetOrSetAsync(
-            $"propertytype:{request.Id}",
+            $"PropertyType:{request.Id}",
             async () =>
             {
-                var propertyTypeItem = await repository.GetByIdAsync(request.Id, cancellationToken);
-                if (propertyTypeItem == null) throw new PropertyTypeNotFoundException(request.Id);
-                return new PropertyTypeResponse(propertyTypeItem.Id, propertyTypeItem.Name, propertyTypeItem.Description);
+                var PropertyTypeItem = await repository.GetByIdAsync(request.Id, cancellationToken);
+                if (PropertyTypeItem == null) throw new PropertyTypeNotFoundException(request.Id);
+                return new PropertyTypeResponse(PropertyTypeItem.Id, PropertyTypeItem.Name, PropertyTypeItem.Description);
             },
             cancellationToken: cancellationToken);
         return item!;

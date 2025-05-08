@@ -1,13 +1,13 @@
-using FSH.Framework.Core.Caching;
-using FSH.Framework.Core.Persistence;
-using FSH.Starter.WebApi.Catalog.Domain;
+using Microsoft.Extensions.DependencyInjection;
 using FSH.Starter.WebApi.Catalog.Domain.Exceptions;
+using FSH.Framework.Core.Persistence;
+using FSH.Framework.Core.Caching;
+using FSH.Starter.WebApi.Catalog.Domain;
 using MediatR;
 
 namespace FSH.Starter.WebApi.Catalog.Application.Cities.Get.v1;
-
 public sealed class GetCityHandler(
-    IReadRepository<City> repository,
+    [FromKeyedServices("catalog:cities")] IReadRepository<City> repository,
     ICacheService cache)
     : IRequestHandler<GetCityRequest, CityResponse>
 {
@@ -15,12 +15,12 @@ public sealed class GetCityHandler(
     {
         ArgumentNullException.ThrowIfNull(request);
         var item = await cache.GetOrSetAsync(
-            $"city:{request.Id}",
+            $"City:{request.Id}",
             async () =>
             {
-                var cityItem = await repository.GetByIdAsync(request.Id, cancellationToken);
-                if (cityItem == null) throw new CityNotFoundException(request.Id);
-                return new CityResponse(cityItem.Id, cityItem.Name, cityItem.Description, cityItem.RegionId);
+                var CityItem = await repository.GetByIdAsync(request.Id, cancellationToken);
+                if (CityItem == null) throw new CityNotFoundException(request.Id);
+                return new CityResponse(CityItem.Id, CityItem.Name, CityItem.Description, CityItem.RegionId);
             },
             cancellationToken: cancellationToken);
         return item!;

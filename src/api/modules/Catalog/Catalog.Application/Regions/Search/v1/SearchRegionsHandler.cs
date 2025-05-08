@@ -3,11 +3,11 @@ using FSH.Framework.Core.Persistence;
 using FSH.Starter.WebApi.Catalog.Application.Regions.Get.v1;
 using FSH.Starter.WebApi.Catalog.Domain;
 using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FSH.Starter.WebApi.Catalog.Application.Regions.Search.v1;
-
 public sealed class SearchRegionsHandler(
-    IReadRepository<Region> repository)
+    [FromKeyedServices("catalog:regions")] IReadRepository<Region> repository)
     : IRequestHandler<SearchRegionsCommand, PagedList<RegionResponse>>
 {
     public async Task<PagedList<RegionResponse>> Handle(SearchRegionsCommand request, CancellationToken cancellationToken)

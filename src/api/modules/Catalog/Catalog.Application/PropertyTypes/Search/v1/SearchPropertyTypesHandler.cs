@@ -3,11 +3,11 @@ using FSH.Framework.Core.Persistence;
 using FSH.Starter.WebApi.Catalog.Application.PropertyTypes.Get.v1;
 using FSH.Starter.WebApi.Catalog.Domain;
 using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FSH.Starter.WebApi.Catalog.Application.PropertyTypes.Search.v1;
-
 public sealed class SearchPropertyTypesHandler(
-    IReadRepository<PropertyType> repository)
+    [FromKeyedServices("catalog:propertytypes")] IReadRepository<PropertyType> repository)
     : IRequestHandler<SearchPropertyTypesCommand, PagedList<PropertyTypeResponse>>
 {
     public async Task<PagedList<PropertyTypeResponse>> Handle(SearchPropertyTypesCommand request, CancellationToken cancellationToken)

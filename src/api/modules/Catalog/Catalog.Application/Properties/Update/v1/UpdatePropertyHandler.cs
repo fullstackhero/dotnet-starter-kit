@@ -2,13 +2,13 @@ using FSH.Framework.Core.Persistence;
 using FSH.Starter.WebApi.Catalog.Domain;
 using FSH.Starter.WebApi.Catalog.Domain.Exceptions;
 using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace FSH.Starter.WebApi.Catalog.Application.Properties.Update.v1;
-
-public sealed class UpdatePropertyHandler(
-    ILogger<UpdatePropertyHandler> logger,
-    IRepository<Property> repository)
+public sealed class UpdateProprtyHandler(
+    ILogger<UpdateProprtyHandler> logger,
+    [FromKeyedServices("catalog:properties")] IRepository<Property> repository)
     : IRequestHandler<UpdatePropertyCommand, UpdatePropertyResponse>
 {
     public async Task<UpdatePropertyResponse> Handle(UpdatePropertyCommand request, CancellationToken cancellationToken)

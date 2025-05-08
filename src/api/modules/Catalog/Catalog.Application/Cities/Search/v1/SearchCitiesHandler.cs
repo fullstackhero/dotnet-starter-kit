@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FSH.Starter.WebApi.Catalog.Application.Cities.Search.v1;
 public sealed class SearchCitiesHandler(
-    [FromKeyedServices("catalog:Cities")] IReadRepository<City> repository)
+    [FromKeyedServices("catalog:cities")] IReadRepository<City> repository)
     : IRequestHandler<SearchCitiesCommand, PagedList<CityResponse>>
 {
     public async Task<PagedList<CityResponse>> Handle(SearchCitiesCommand request, CancellationToken cancellationToken)
