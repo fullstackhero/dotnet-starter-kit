@@ -15,8 +15,6 @@ public partial class SelfRegister
     [Inject]
     private IApiClient UsersClient { get; set; } = default!;
 
-    private string Tenant { get; set; } = TenantConstants.Root.Id;
-
     private bool _passwordVisibility;
     private InputType _passwordInput = InputType.Password;
     private string _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
@@ -26,7 +24,7 @@ public partial class SelfRegister
         BusySubmitting = true;
 
         var response = await ApiHelper.ExecuteCallGuardedAsync(
-            () => UsersClient.SelfRegisterUserEndpointAsync(Tenant, _createUserRequest),
+            () => UsersClient.SelfRegisterUserEndpointAsync(_createUserRequest),
             Toast, Navigation,
             _customValidation);
 

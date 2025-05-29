@@ -24,10 +24,7 @@ internal static class Extensions
             .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, null!);
 
         services.AddAuthorizationBuilder().AddRequiredPermissionPolicy();
-        services.AddAuthorization(options =>
-        {
-            options.FallbackPolicy = options.GetPolicy(RequiredPermissionDefaults.PolicyName);
-        });
+        services.AddAuthorization();
         return services;
     }
 }

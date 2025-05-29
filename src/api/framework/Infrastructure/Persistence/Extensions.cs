@@ -1,32 +1,22 @@
 ﻿using FSH.Framework.Core.Persistence;
-using FSH.Framework.Infrastructure.Persistence.Interceptors;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Serilog;
+using System.Data;
+using Npgsql;
+using Microsoft.Data.SqlClient;
+using FSH.Framework.Infrastructure.Persistence.Migrations;
 
 namespace FSH.Framework.Infrastructure.Persistence;
 public static class Extensions
 {
     private static readonly ILogger Logger = Log.ForContext(typeof(Extensions));
-    internal static DbContextOptionsBuilder ConfigureDatabase(this DbContextOptionsBuilder builder, string dbProvider, string connectionString)
-    {
-        builder.ConfigureWarnings(warnings => warnings.Log(RelationalEventId.PendingModelChangesWarning));
-        return dbProvider.ToUpperInvariant() switch
-        {
-            DbProviders.PostgreSQL => builder.UseNpgsql(connectionString, e =>
-                                 e.MigrationsAssembly("FSH.Starter.WebApi.Migrations.PostgreSQL")).EnableSensitiveDataLogging(),
-            DbProviders.MSSQL => builder.UseSqlServer(connectionString, e =>
-                                e.MigrationsAssembly("FSH.Starter.WebApi.Migrations.MSSQL")),
-            _ => throw new InvalidOperationException($"DB Provider {dbProvider} is not supported."),
-        };
-    }
 
     public static WebApplicationBuilder ConfigureDatabase(this WebApplicationBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
+
         builder.Services.AddOptions<DatabaseOptions>()
             .BindConfiguration(nameof(DatabaseOptions))
             .ValidateDataAnnotations()
@@ -36,21 +26,40 @@ public static class Extensions
                 Logger.Information("for documentations and guides, visit https://www.fullstackhero.net");
                 Logger.Information("to sponsor this project, visit https://opencollective.com/fullstackhero");
             });
-        builder.Services.AddScoped<ISaveChangesInterceptor, AuditInterceptor>();
+
+        builder.Services.AddScoped<IDbConnection>(sp =>
+        {
+            var dbConfig = sp.GetRequiredService<IOptions<DatabaseOptions>>().Value;
+            return dbConfig.Provider.ToUpperInvariant() switch
+            {
+                DbProviders.PostgreSQL => new NpgsqlConnection(dbConfig.ConnectionString),
+                DbProviders.MSSQL => new SqlConnection(dbConfig.ConnectionString),
+                _ => throw new InvalidOperationException($"DB Provider {dbConfig.Provider} is not supported."),
+            };
+        });
+
+        // Register migration runner
+        builder.Services.AddScoped<MigrationRunner>();
+
         return builder;
     }
 
-    public static IServiceCollection BindDbContext<TContext>(this IServiceCollection services)
-        where TContext : DbContext
+    public static async Task<WebApplication> RunMigrationsAsync(this WebApplication app)
     {
-        ArgumentNullException.ThrowIfNull(services);
-
-        services.AddDbContext<TContext>((sp, options) =>
+        using var scope = app.Services.CreateScope();
+        var migrationRunner = scope.ServiceProvider.GetRequiredService<MigrationRunner>();
+        
+        try
         {
-            var dbConfig = sp.GetRequiredService<IOptions<DatabaseOptions>>().Value;
-            options.ConfigureDatabase(dbConfig.Provider, dbConfig.ConnectionString);
-            options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
-        });
-        return services;
+            await migrationRunner.RunMigrationsAsync();
+            Logger.Information("Database migrations completed successfully");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Failed to run database migrations");
+            throw;
+        }
+
+        return app;
     }
 }

@@ -48,11 +48,7 @@ public partial class RolePermissions
             _title = string.Format("{0} Permissions", role.Name);
             _description = string.Format("Manage {0} Role Permissions", role.Name);
 
-            var permissions = state.User.GetTenant() == TenantConstants.Root.Id
-                ? FshPermissions.All
-                : FshPermissions.Admin;
-
-            _groupedRoleClaims = permissions
+            _groupedRoleClaims = FshPermissions.All
                 .GroupBy(p => p.Resource)
                 .ToDictionary(g => g.Key, g => g.Select(p =>
                 {

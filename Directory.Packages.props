@@ -1,0 +1,6 @@
+<ItemGroup>
+  <PackageVersion Include="Dapper" Version="2.1.38" />
+  <PackageVersion Include="Npgsql" Version="7.0.5" />
+  <PackageVersion Include="Microsoft.Data.SqlClient" Version="5.2.0" />
+  <PackageVersion Include="BCrypt.Net-Next" Version="4.0.3" />
+</ItemGroup> 

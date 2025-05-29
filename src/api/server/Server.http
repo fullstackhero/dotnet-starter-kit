@@ -4,3 +4,121 @@ GET {{Server_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+
+### Test Auth Controller
+GET {{Server_HostAddress}}/api/v1/auth/test
+
+### Login - Test User 1 (test@example.com)
+POST {{Server_HostAddress}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "Test123!"
+}
+
+### Login - Test User 2 (test2@example.com) 
+POST {{Server_HostAddress}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "test2@example.com",
+  "password": "Test123!"
+}
+
+### Login - New User (newuser@example.com)
+POST {{Server_HostAddress}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "newuser@example.com",
+  "password": "testpass123"
+}
+
+### Register Test User 1
+POST {{Server_HostAddress}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "phoneNumber": "05551234567",
+  "tckn": "12345678901",
+  "password": "Test123!",
+  "firstName": "Test",
+  "lastName": "User",
+  "birthDate": "1990-01-01T00:00:00Z"
+}
+
+### Register Test User 2
+POST {{Server_HostAddress}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "email": "testuser@example.com",
+  "phoneNumber": "5551234569",
+  "tckn": "12345678903",
+  "password": "testpass123",
+  "firstName": "Test",
+  "lastName": "User",
+  "birthDate": "1990-01-01T00:00:00Z"
+}
+
+### Register New User 3
+POST {{Server_HostAddress}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "email": "new2user@example.com",
+  "phoneNumber": "5551234567",
+  "tckn": "12345678904",
+  "password": "testpass123",
+  "firstName": "New",
+  "lastName": "User",
+  "birthDate": "1990-01-01T00:00:00Z"
+}
+
+### Register New User 4
+POST {{Server_HostAddress}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "email": "testuser4@example.com",
+  "phoneNumber": "5551234568",
+  "tckn": "12345678905",
+  "password": "newpass123",
+  "firstName": "Test4",
+  "lastName": "User4",
+  "birthDate": "1992-05-15T00:00:00Z"
+}
+
+### Register New User 5
+POST {{Server_HostAddress}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "email": "user5@example.com",
+  "phoneNumber": "5551234570",
+  "tckn": "12345678906",
+  "password": "password123",
+  "firstName": "User5",
+  "lastName": "Test5",
+  "birthDate": "1995-03-20T00:00:00Z"
+}
+
+### Login with newly registered user 4
+POST {{Server_HostAddress}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "testuser4@example.com",
+  "password": "newpass123"
+}
+
+### Login with newly registered user 5
+POST {{Server_HostAddress}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "user5@example.com",
+  "password": "password123"
+}

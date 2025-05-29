@@ -17,7 +17,6 @@ public partial class Login()
     public bool BusySubmitting { get; set; }
 
     private readonly TokenGenerationCommand _tokenRequest = new();
-    private string TenantId { get; set; } = string.Empty;
     private bool _passwordVisibility;
     private InputType _passwordInput = InputType.Password;
     private string _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
@@ -49,9 +48,8 @@ public partial class Login()
 
     private void FillAdministratorCredentials()
     {
-        _tokenRequest.Email = TenantConstants.Root.EmailAddress;
-        _tokenRequest.Password = TenantConstants.DefaultPassword;
-        TenantId = TenantConstants.Root.Id;
+        _tokenRequest.Email = "admin@root.com";
+        _tokenRequest.Password = "123Pa$$word!";
     }
 
     private async Task SubmitAsync()
@@ -59,7 +57,7 @@ public partial class Login()
         BusySubmitting = true;
 
         if (await ApiHelper.ExecuteCallGuardedAsync(
-            () => authService.LoginAsync(TenantId, _tokenRequest),
+            () => authService.LoginAsync(_tokenRequest),
             Toast,
             _customValidation))
         {

@@ -52,9 +52,9 @@ public sealed class JwtAuthenticationService : AuthenticationStateProvider, IAut
         return new AuthenticationState(new ClaimsPrincipal(claimsIdentity));
     }
 
-    public async Task<bool> LoginAsync(string tenantId, TokenGenerationCommand request)
+    public async Task<bool> LoginAsync(TokenGenerationCommand request)
     {
-        var tokenResponse = await _client.TokenGenerationEndpointAsync(tenantId, request);
+        var tokenResponse = await _client.TokenGenerationEndpointAsync(request);
 
         string? token = tokenResponse.Token;
         string? refreshToken = tokenResponse.RefreshToken;
@@ -141,16 +141,9 @@ public sealed class JwtAuthenticationService : AuthenticationStateProvider, IAut
 
     private async Task<(bool Succeeded, TokenResponse? Token)> TryRefreshTokenAsync(RefreshTokenCommand request)
     {
-        var authState = await GetAuthenticationStateAsync();
-        string? tenantKey = authState.User.GetTenant();
-        if (string.IsNullOrWhiteSpace(tenantKey))
-        {
-            throw new InvalidOperationException("Can't refresh token when user is not logged in!");
-        }
-
         try
         {
-            var tokenResponse = await _client.RefreshTokenEndpointAsync(tenantKey, request);
+            var tokenResponse = await _client.RefreshTokenEndpointAsync(request);
 
             await CacheAuthTokens(tokenResponse.Token, tokenResponse.RefreshToken);
 

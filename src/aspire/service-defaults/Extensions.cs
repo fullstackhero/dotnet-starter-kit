@@ -80,9 +80,7 @@ public static class Extensions
                     .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddRuntimeInstrumentation()
-                    .AddProcessInstrumentation()
-                    .AddMeter(MetricsConstants.Todos)
-                    .AddMeter(MetricsConstants.Catalog);
+                    .AddProcessInstrumentation();
             })
             .WithTracing(tracing =>
             {

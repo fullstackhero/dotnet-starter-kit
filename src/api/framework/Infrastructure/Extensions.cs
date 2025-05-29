@@ -9,7 +9,6 @@ using FSH.Framework.Infrastructure.Behaviours;
 using FSH.Framework.Infrastructure.Caching;
 using FSH.Framework.Infrastructure.Cors;
 using FSH.Framework.Infrastructure.Exceptions;
-using FSH.Framework.Infrastructure.Identity;
 using FSH.Framework.Infrastructure.Jobs;
 using FSH.Framework.Infrastructure.Logging.Serilog;
 using FSH.Framework.Infrastructure.Mail;
@@ -18,8 +17,6 @@ using FSH.Framework.Infrastructure.Persistence;
 using FSH.Framework.Infrastructure.RateLimit;
 using FSH.Framework.Infrastructure.SecurityHeaders;
 using FSH.Framework.Infrastructure.Storage.Files;
-using FSH.Framework.Infrastructure.Tenant;
-using FSH.Framework.Infrastructure.Tenant.Endpoints;
 using FSH.Starter.Aspire.ServiceDefaults;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
@@ -37,8 +34,6 @@ public static class Extensions
         builder.AddServiceDefaults();
         builder.ConfigureSerilog();
         builder.ConfigureDatabase();
-        builder.Services.ConfigureMultitenancy();
-        builder.Services.ConfigureIdentity();
         builder.Services.AddCorsPolicy(builder.Configuration);
         builder.Services.ConfigureFileStorage();
         builder.Services.ConfigureJwtAuth();
@@ -79,7 +74,6 @@ public static class Extensions
         app.MapDefaultEndpoints();
         app.UseRateLimit();
         app.UseSecurityHeaders();
-        app.UseMultitenancy();
         app.UseExceptionHandler();
         app.UseCorsPolicy();
         app.UseOpenApi();
@@ -93,11 +87,6 @@ public static class Extensions
         });
         app.UseAuthentication();
         app.UseAuthorization();
-        app.MapTenantEndpoints();
-        app.MapIdentityEndpoints();
-
-        // Current user middleware
-        app.UseMiddleware<CurrentUserMiddleware>();
 
         // Register API versions
         var versions = app.NewApiVersionSet()

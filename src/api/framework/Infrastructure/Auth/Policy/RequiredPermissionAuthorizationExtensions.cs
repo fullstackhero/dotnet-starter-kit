@@ -25,8 +25,6 @@ public static class RequiredPermissionAuthorizationExtensions
             policy.RequireRequiredPermissions();
         });
 
-        builder.Services.TryAddEnumerable(ServiceDescriptor.Scoped<IAuthorizationHandler, RequiredPermissionAuthorizationHandler>());
-
         return builder;
     }
 }

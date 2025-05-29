@@ -25,10 +25,6 @@
                 <DataAnnotationsValidator />
                 <FshValidation @ref="_customValidation" />
                 <MudItem xs="12" md="6">
-                    <MudTextField T="string" Label="Tenant Name" Variant="Variant.Outlined" @bind-Value="Tenant"
-                                  For="@(() => Tenant)" Required />
-                </MudItem>
-                   <MudItem xs="12" md="6">
                     <MudTextField T="string" Label="User Name" Variant="Variant.Outlined"
                                   @bind-Value="_createUserRequest.UserName" For="@(() => _createUserRequest.UserName)"
                                   InputType="InputType.Text" Adornment="Adornment.End" />

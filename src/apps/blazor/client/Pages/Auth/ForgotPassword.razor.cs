@@ -14,14 +14,12 @@ public partial class ForgotPassword
     [Inject]
     private IApiClient UsersClient { get; set; } = default!;
 
-    private string Tenant { get; set; } = TenantConstants.Root.Id;
-
     private async Task SubmitAsync()
     {
         BusySubmitting = true;
 
         await ApiHelper.ExecuteCallGuardedAsync(
-            () => UsersClient.ForgotPasswordEndpointAsync(Tenant, _forgotPasswordRequest),
+            () => UsersClient.ForgotPasswordEndpointAsync(_forgotPasswordRequest),
             Toast,
             _customValidation);
 

@@ -1,0 +1,96 @@
+a) Yeni migration eklemek için:
+API projesinin kökünde terminal aç.
+Aşağıdaki komutu çalıştır:
+Apply
+Run
+star
+(Burada migration ismini ve proje yollarını kendi yapına göre ayarla.)
+b) Migration’ı veritabanına uygulamak için:
+Apply
+Run
+server
+> Not: dotnet-ef yüklü değilse, önce yükle:
+> ```bash
+> dotnet tool install --global dotnet-ef
+> ```
+
+compose klasöründeki docker-compose.yml dosyasına göre bütün servisleri tek komutla ayağa kaldırabilirsin:
+
+docker-compose up -d
+
+veya yeni sürümlerde:
+
+docker compose up -d
+
+Bu komut ile aşağıdaki servisler başlar:
+
+webapi (API sunucusu, 5001/7010 portları)
+blazor (Blazor frontend, 7100 portu)
+postgres (PostgreSQL veritabanı, 5433 portu)
+prometheus (Monitoring, 9090 portu)
+grafana (Dashboard, 3000 portu)
+otel-collector (OpenTelemetry Collector, 4317/4318/8888/8889/13133/55679 portları)
+jaeger (Tracing, 16686 portu)
+loki (Log toplama, 3100 portu)
+node_exporter (Node metrics, 9100 portu)
+
+Notlar:
+Tüm servisler aynı anda ayağa kalkar ve kendi aralarında network ile haberleşir.
+Sadece docker-compose.yml dosyasındaki servisler başlatılır.
+Gerekli volume ve network tanımları da otomatik yapılır.
+
+Kısacası:
+compose klasöründe docker compose up -d komutunu çalıştırırsan, bu dosyada tanımlı tüm servisler otomatik olarak başlar.
+Başka bir servis eklemek veya çıkarmak istersen, sadece docker-compose.yml dosyasını düzenlemen yeterli.
+Sorunun olursa veya bir servisi özel olarak başlatmak istersen, detaylı yardımcı olabilirim!
+
+
+Web API servisinin (webapi container’ının) sağlığını ve düzgün çalışıp çalışmadığını kontrol etmek için birkaç yöntem kullanabilirsin:
+1. Docker Healthcheck (Container Sağlığı)
+Öncelikle, container’ın Docker seviyesinde “healthy” olup olmadığını görebilirsin:
+
+docker ps
+
+Çıktıda webapi container’ının “STATUS” sütununda “(healthy)” yazıyorsa, temel sağlık kontrolü geçilmiş demektir.
+
+2. Container Loglarını Kontrol Et
+Container’ın düzgün başlatılıp başlatılmadığını görmek için:
+
+docker logs webapi
+
+Burada hata veya exception yoksa, servis büyük ihtimalle sağlıklıdır.
+
+3. Web API Health Endpoint’i
+Çoğu .NET projesinde /health veya /api/health gibi bir endpoint bulunur.
+Tarayıcında veya terminalde şunu dene:
+
+http://localhost:5001/health
+
+veya
+
+https://localhost:7010/health
+
+Eğer yanıt olarak Healthy veya benzeri bir çıktı alırsan, servis sağlıklıdır.
+
+4. Swagger UI ile Test
+Tarayıcında:
+
+http://localhost:5001/swagger
+
+veya
+
+https://localhost:7010/swagger
+
+adresine git. Swagger arayüzü açılıyorsa, API çalışıyor demektir.
+
+5. Prometheus ve Grafana ile İzleme
+Eğer Prometheus ve Grafana da ayağa kalktıysa:
+Prometheus: http://localhost:9090
+Grafana: http://localhost:3000 (default kullanıcı: admin / admin)
+
+Buradan da servislerin metriklerini görebilirsin.
+
+
+{"email": "test@example.com", "phoneNumber": "05551234567", "tckn": "12345678901", "password": "Test123!", "firstName": "Test", "lastName": "User", "birthDate": "1990-01-01T00:00:00"}'
+'{"email": "testuser@example.com", "phoneNumber": "5551234569", "tckn": "12345678903", "password": "testpass123", "firstName": "Test", "lastName": "User", "birthDate": "1990-01-01T00:00:00Z"}'
+'{"email": "newuser@example.com", "phoneNumber": "5551234567", "tckn": "12345678904", "password": "testpass123", "firstName": "New", "lastName": "User", "birthDate": "1990-01-01T00:00:00Z"}'

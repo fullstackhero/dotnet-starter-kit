@@ -1,6 +1,4 @@
-﻿using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Infrastructure.Constants;
-using FSH.Starter.Shared.Authorization;
+﻿using FSH.Framework.Infrastructure.Constants;
 using Hangfire.Client;
 using Hangfire.Logging;
 using Microsoft.AspNetCore.Http;
@@ -20,17 +18,14 @@ public class FshJobFilter : IClientFilter
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        Logger.InfoFormat("Set TenantId and UserId parameters to job {0}.{1}...", context.Job.Method.ReflectedType?.FullName, context.Job.Method.Name);
+        Logger.InfoFormat("Set UserId parameter to job {0}.{1}...", context.Job.Method.ReflectedType?.FullName, context.Job.Method.Name);
 
         using var scope = _services.CreateScope();
 
         var httpContext = scope.ServiceProvider.GetRequiredService<IHttpContextAccessor>()?.HttpContext;
-        _ = httpContext ?? throw new InvalidOperationException("Can't create a TenantJob without HttpContext.");
+        _ = httpContext ?? throw new InvalidOperationException("Can't create a Job without HttpContext.");
 
-        var tenantInfo = scope.ServiceProvider.GetRequiredService<IMultiTenantContextAccessor>().MultiTenantContext.TenantInfo;
-        context.SetJobParameter(TenantConstants.Identifier, tenantInfo);
-
-        string? userId = httpContext.User.GetUserId();
+        string? userId = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         context.SetJobParameter(QueryStringKeys.UserId, userId);
     }
 

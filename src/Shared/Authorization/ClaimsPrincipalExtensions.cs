@@ -6,9 +6,6 @@ public static class ClaimsPrincipalExtensions
     public static string? GetEmail(this ClaimsPrincipal principal)
         => principal.FindFirstValue(ClaimTypes.Email);
 
-    public static string? GetTenant(this ClaimsPrincipal principal)
-        => principal.FindFirstValue(FshClaims.Tenant);
-
     public static string? GetFullName(this ClaimsPrincipal principal)
         => principal?.FindFirst(FshClaims.Fullname)?.Value;
 

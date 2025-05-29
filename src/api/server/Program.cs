@@ -1,5 +1,6 @@
 using FSH.Framework.Infrastructure;
 using FSH.Framework.Infrastructure.Logging.Serilog;
+using FSH.Framework.Infrastructure.Persistence;
 using FSH.Starter.WebApi.Host;
 using Serilog;
 
@@ -13,8 +14,12 @@ try
 
     var app = builder.Build();
 
+    // Run database migrations BEFORE configuring middleware
+    await app.RunMigrationsAsync();
+    
     app.UseFshFramework();
     app.UseModules();
+    
     await app.RunAsync();
 }
 catch (Exception ex) when (!ex.GetType().Name.Equals("HostAbortedException", StringComparison.Ordinal))

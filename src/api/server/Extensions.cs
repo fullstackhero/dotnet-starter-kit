@@ -2,9 +2,6 @@
 using Asp.Versioning.Conventions;
 using Carter;
 using FluentValidation;
-using FSH.Starter.WebApi.Catalog.Application;
-using FSH.Starter.WebApi.Catalog.Infrastructure;
-using FSH.Starter.WebApi.Todo;
 
 namespace FSH.Starter.WebApi.Host;
 
@@ -17,8 +14,7 @@ public static class Extensions
         //define module assemblies
         var assemblies = new Assembly[]
         {
-            typeof(CatalogMetadata).Assembly,
-            typeof(TodoModule).Assembly
+            typeof(Program).Assembly
         };
 
         //register validators
@@ -30,15 +26,16 @@ public static class Extensions
             cfg.RegisterServicesFromAssemblies(assemblies);
         });
 
+        //register controllers
+        builder.Services.AddControllers();
+
         //register module services
-        builder.RegisterCatalogServices();
-        builder.RegisterTodoServices();
+        // Remove any builder.RegisterTodoServices();
 
         //add carter endpoint modules
         builder.Services.AddCarter(configurator: config =>
         {
-            config.WithModule<CatalogModule.Endpoints>();
-            config.WithModule<TodoModule.Endpoints>();
+            // Remove any config.WithModule<TodoModule.Endpoints>();
         });
 
         return builder;
@@ -49,8 +46,7 @@ public static class Extensions
         ArgumentNullException.ThrowIfNull(app);
 
         //register modules
-        app.UseCatalogModule();
-        app.UseTodoModule();
+        // Remove any app.UseTodoModule();
 
         //register api versions
         var versions = app.NewApiVersionSet()
@@ -64,6 +60,9 @@ public static class Extensions
 
         //use carter
         endpoints.MapCarter();
+
+        //map controllers
+        app.MapControllers();
 
         return app;
     }

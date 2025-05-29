@@ -18,19 +18,15 @@
   <ItemGroup>
     <PackageReference Include="Asp.Versioning.Http" />
     <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" />
-    <PackageReference Include="Finbuckle.MultiTenant" />
-    <PackageReference Include="Finbuckle.MultiTenant.AspNetCore" />
-    <PackageReference Include="Finbuckle.MultiTenant.EntityFrameworkCore" />
+    <PackageReference Include="BCrypt.Net-Next" />
     <PackageReference Include="Hangfire" />
     <PackageReference Include="Hangfire.MemoryStorage" />
     <PackageReference Include="Hangfire.PostgreSql" />
     <PackageReference Include="MailKit" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" />
     <PackageReference Include="MimeKit" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
   </ItemGroup>  
   <ItemGroup>
     <PackageReference Include="Serilog" />
@@ -56,9 +52,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
-    <PackageReference Include="Ardalis.Specification.EntityFrameworkCore" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MediatR" />
@@ -78,5 +71,9 @@
     <ProjectReference Include="..\..\..\aspire\service-defaults\ServiceDefaults.csproj" />
     <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
-  
+  <ItemGroup>
+    <PackageReference Include="Dapper" />
+    <PackageReference Include="Npgsql" />
+    <PackageReference Include="Microsoft.Data.SqlClient" />
+  </ItemGroup>
 </Project>
