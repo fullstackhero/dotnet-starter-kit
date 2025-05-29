@@ -56,6 +56,28 @@ public class DapperUserRepository
             FROM users WHERE id = @Id", new { Id = id });
     }
 
+    public async Task<List<User>> GetAllUsersAsync()
+    {
+        var users = await _db.QueryAsync<User>(
+            @"SELECT 
+                id,
+                email,
+                phone_number,
+                tckn,
+                password_hash,
+                first_name,
+                last_name,
+                birth_date,
+                is_identity_verified,
+                is_phone_verified,
+                is_email_verified,
+                status,
+                created_at,
+                updated_at
+            FROM users ORDER BY created_at DESC");
+        return users.ToList();
+    }
+
     public async Task<bool> ValidatePasswordAsync(string email, string password)
     {
         var user = await GetByEmailAsync(email);
@@ -69,6 +91,27 @@ public class DapperUserRepository
         await _db.ExecuteAsync(
             @"INSERT INTO users (id, email, phone_number, tckn, password_hash, first_name, last_name, birth_date, is_identity_verified, is_phone_verified, is_email_verified, status, created_at, updated_at)
               VALUES (@id, @email, @phone_number, @tckn, @password_hash, @first_name, @last_name, @birth_date, @is_identity_verified, @is_phone_verified, @is_email_verified, @status, @created_at, @updated_at)",
+            user);
+    }
+
+    public async Task UpdatePasswordAsync(Guid userId, string newPassword)
+    {
+        var hashedPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        await _db.ExecuteAsync(
+            @"UPDATE users SET password_hash = @PasswordHash, updated_at = @UpdatedAt WHERE id = @Id",
+            new { PasswordHash = hashedPassword, UpdatedAt = DateTime.UtcNow, Id = userId });
+    }
+
+    public async Task UpdateAsync(User user)
+    {
+        await _db.ExecuteAsync(
+            @"UPDATE users SET 
+                email = @email,
+                phone_number = @phone_number,
+                first_name = @first_name,
+                last_name = @last_name,
+                updated_at = @updated_at
+              WHERE id = @id",
             user);
     }
 

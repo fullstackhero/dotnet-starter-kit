@@ -53,6 +53,16 @@
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.6.0.109712" />
+    <PackageVersion Include="StyleCop.Analyzers" Version="1.1.118" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Analyzers" Version="9.0.2" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.11.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.11.0" />
+    <PackageVersion Include="Roslynator.Analyzers" Version="4.12.9" />
+    <PackageVersion Include="Roslynator.CodeAnalysis.Analyzers" Version="4.12.9" />
+    <PackageVersion Include="Roslynator.Formatting.Analyzers" Version="4.12.9" />
+    <PackageVersion Include="SecurityCodeScan" Version="3.5.4" />
+    <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.11.20" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="MediatR" Version="12.4.1" />
@@ -92,8 +102,10 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.11.0" />
   </ItemGroup>
   <ItemGroup>
-    <PackageVersion Include="Dapper" Version="2.1.38" />
+    <PackageVersion Include="Dapper" Version="2.1.42" />
     <PackageVersion Include="Npgsql" Version="8.0.3" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="5.2.0" />
+    <PackageVersion Include="Azure.Identity" Version="1.13.1" />
+    <PackageVersion Include="Microsoft.Identity.Client" Version="4.69.0" />
   </ItemGroup>
 </Project>

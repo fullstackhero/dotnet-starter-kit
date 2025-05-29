@@ -395,3 +395,39 @@ dotnet_diagnostic.CA1062.severity = none
 dotnet_diagnostic.CA1031.severity = none
 dotnet_diagnostic.CA1861.severity = none
 dotnet_diagnostic.CA2007.severity = none
+
+# StyleCop Rules
+dotnet_diagnostic.SA1633.severity = none         # File should have header
+dotnet_diagnostic.SA1200.severity = none         # Using directives should be placed correctly
+dotnet_diagnostic.SA1101.severity = none         # Prefix local calls with this
+dotnet_diagnostic.SA1309.severity = none         # Field names should not begin with underscore
+dotnet_diagnostic.SA1413.severity = none         # Use trailing comma in multi-line initializers
+dotnet_diagnostic.SA1600.severity = suggestion   # Elements should be documented
+dotnet_diagnostic.SA1602.severity = suggestion   # Enumeration items should be documented
+dotnet_diagnostic.SA1615.severity = suggestion   # Element return value should be documented
+dotnet_diagnostic.SA1618.severity = suggestion   # Generic type parameters should be documented
+dotnet_diagnostic.SA1028.severity = none         # Code should not contain trailing whitespace
+
+# Security Rules
+dotnet_diagnostic.SCS0005.severity = warning     # Weak random generator
+dotnet_diagnostic.SCS0018.severity = warning     # Potential Path Traversal
+dotnet_diagnostic.SCS0026.severity = warning     # SQL Injection
+dotnet_diagnostic.SCS0027.severity = warning     # Open Redirect
+dotnet_diagnostic.SCS0029.severity = warning     # XSS vulnerability
+dotnet_diagnostic.SCS0031.severity = warning     # Potential LDAP injection
+dotnet_diagnostic.SCS0007.severity = warning     # XML External Entity (XXE)
+dotnet_diagnostic.SCS0002.severity = warning     # SQL Injection: Dynamic query
+dotnet_diagnostic.SCS0014.severity = warning     # SQL Injection: WebControls
+
+# Code Analysis Rules
+dotnet_diagnostic.CA1031.severity = suggestion   # Do not catch general exception types
+dotnet_diagnostic.CA1062.severity = suggestion   # Validate arguments of public methods
+dotnet_diagnostic.CA1303.severity = none         # Do not pass literals as localized parameters
+dotnet_diagnostic.CA1822.severity = suggestion   # Mark members as static
+dotnet_diagnostic.CA2007.severity = none         # Consider calling ConfigureAwait on the awaited task
+
+# Threading Rules  
+dotnet_diagnostic.VSTHRD200.severity = warning   # Use Async suffix for async methods
+dotnet_diagnostic.VSTHRD010.severity = warning   # Invoke single-threaded types on Main thread
+dotnet_diagnostic.VSTHRD100.severity = warning   # Avoid async void
+dotnet_diagnostic.VSTHRD110.severity = warning   # Observe result of async calls
