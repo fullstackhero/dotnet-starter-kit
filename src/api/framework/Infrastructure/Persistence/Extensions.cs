@@ -57,7 +57,7 @@ public static class Extensions
         catch (Exception ex)
         {
             Logger.Error(ex, "Failed to run database migrations");
-            throw;
+            throw new InvalidOperationException("Database migration failed during application startup", ex);
         }
 
         return app;

@@ -54,7 +54,7 @@
   <ItemGroup>
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.6.0.109712" />
     <PackageVersion Include="StyleCop.Analyzers" Version="1.1.118" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Analyzers" Version="9.0.2" />
     <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.11.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.11.0" />
@@ -106,6 +106,6 @@
     <PackageVersion Include="Npgsql" Version="8.0.3" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="5.2.0" />
     <PackageVersion Include="Azure.Identity" Version="1.13.1" />
-    <PackageVersion Include="Microsoft.Identity.Client" Version="4.69.0" />
+    <PackageVersion Include="Microsoft.Identity.Client" Version="4.69.1" />
   </ItemGroup>
 </Project>

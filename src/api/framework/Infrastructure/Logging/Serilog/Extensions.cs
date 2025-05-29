@@ -20,26 +20,28 @@ public static class Extensions
                     var headers = builder.Configuration["OTEL_EXPORTER_OTLP_HEADERS"]?.Split(',') ?? [];
                     foreach (var header in headers)
                     {
-                        var (key, value) = header.Split('=') switch
+                        var parts = header.Split('=');
+                        if (parts.Length != 2)
                         {
-                        [string k, string v] => (k, v),
-                            var v => throw new Exception($"Invalid header format {v}")
-                        };
-
-                        options.Headers.Add(key, value);
+                            throw new ArgumentException($"Invalid header format: {header}. Expected format: 'key=value'");
+                        }
+                        options.Headers.Add(parts[0], parts[1]);
                     }
                     options.ResourceAttributes.Add("service.name", "apiservice");
-                    //To remove the duplicate issue, we can use the below code to get the key and value from the configuration
-                    var (otelResourceAttribute, otelResourceAttributeValue) = builder.Configuration["OTEL_RESOURCE_ATTRIBUTES"]?.Split('=') switch
+                    
+                    var resourceAttributeConfig = builder.Configuration["OTEL_RESOURCE_ATTRIBUTES"];
+                    if (!string.IsNullOrEmpty(resourceAttributeConfig))
                     {
-                    [string k, string v] => (k, v),
-                        _ => throw new Exception($"Invalid header format {builder.Configuration["OTEL_RESOURCE_ATTRIBUTES"]}")
-                    };
-                    options.ResourceAttributes.Add(otelResourceAttribute, otelResourceAttributeValue);
+                        var attributeParts = resourceAttributeConfig.Split('=');
+                        if (attributeParts.Length == 2)
+                        {
+                            options.ResourceAttributes.Add(attributeParts[0], attributeParts[1]);
+                        }
+                    }
                 }
                 catch
                 {
-                    //ignore
+                    // Ignore OpenTelemetry configuration errors
                 }
             });
             logger.ReadFrom.Configuration(context.Configuration);

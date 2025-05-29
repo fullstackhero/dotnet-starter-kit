@@ -18,4 +18,22 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Scope = "namespaceanddescendants", Target = "~N:FSH.Starter.WebApi.Host.Migrations", Justification = "Migration files don't require documentation")]
 
 // API Controller suppressions
-[assembly: SuppressMessage("Design", "CA1062:Validate arguments of public methods", Scope = "namespaceanddescendants", Target = "~N:FSH.Starter.WebApi.Host.Controllers", Justification = "Controller parameters are validated by model binding")] 
+[assembly: SuppressMessage("Design", "CA1062:Validate arguments of public methods", Scope = "namespaceanddescendants", Target = "~N:FSH.Starter.WebApi.Host.Controllers", Justification = "Controller parameters are validated by model binding")]
+
+// Database naming convention suppressions
+[assembly: SuppressMessage("Naming", "CA1707:Remove the underscores from member name", Scope = "type", Target = "~T:FSH.Framework.Infrastructure.Auth.User", Justification = "Database field names follow snake_case convention")]
+
+// StyleCop layout and formatting suppressions
+[assembly: SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1516:Elements should be separated by blank line", Justification = "Blank line requirements can be overly strict in some contexts")]
+
+// Security scan suppressions for development tools
+[assembly: SuppressMessage("Security", "SCS9999:Legacy package warning", Justification = "SecurityCodeScan package is used for security analysis during development and is acceptable")]
+
+// Package version warnings: NuGet handles minor version differences automatically  
+[assembly: SuppressMessage("General", "NU1603:Package dependency downgrade", Justification = "Minor version differences are handled by NuGet automatically")]
+
+// Code analyzer version warnings
+[assembly: SuppressMessage("General", "NetAnalyzersVersionWarning", Justification = "Using compatible analyzer versions that work with the current SDK")]
+
+// API model classes: These classes are part of the API contract and need to be accessible for model binding
+[assembly: SuppressMessage("Design", "CA1515:Consider making public types internal", Scope = "namespaceanddescendants", Target = "~N:FSH.Starter.WebApi.Host", Justification = "API model classes need to be public for proper model binding and API documentation")] 

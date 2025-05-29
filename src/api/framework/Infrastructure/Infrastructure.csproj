@@ -26,6 +26,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" />
+    <PackageReference Include="Microsoft.Identity.Client" />
     <PackageReference Include="MimeKit" />
   </ItemGroup>  
   <ItemGroup>

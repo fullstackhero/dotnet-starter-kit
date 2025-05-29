@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using System.Globalization;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.Json;
 using Ardalis.Specification;
@@ -49,7 +50,7 @@ public static class SpecificationBuilderExtensions
     {
         if (!string.IsNullOrEmpty(search?.Keyword))
         {
-            if (search.Fields?.Any() is true)
+            if (search.Fields?.Length > 0)
             {
                 // search seleted fields (can contain deeper nested fields)
                 foreach (string field in search.Fields)
@@ -93,9 +94,9 @@ public static class SpecificationBuilderExtensions
 
         string searchTerm = operatorSearch switch
         {
-            FilterOperator.STARTSWITH => $"{keyword.ToLower()}%",
-            FilterOperator.ENDSWITH => $"%{keyword.ToLower()}",
-            FilterOperator.CONTAINS => $"%{keyword.ToLower()}%",
+            FilterOperator.STARTSWITH => $"{keyword.ToLower(CultureInfo.InvariantCulture)}%",
+            FilterOperator.ENDSWITH => $"%{keyword.ToLower(CultureInfo.InvariantCulture)}",
+            FilterOperator.CONTAINS => $"%{keyword.ToLower(CultureInfo.InvariantCulture)}%",
             _ => throw new ArgumentException("operatorSearch is not valid.", nameof(operatorSearch))
         };
 
@@ -109,8 +110,8 @@ public static class SpecificationBuilderExtensions
                     Expression.Constant(null, typeof(string)),
                     Expression.Call(propertyExpr, "ToString", null, null));
 
-        var toLowerMethod = typeof(string).GetMethod("ToLower", Type.EmptyTypes);
-        Expression callToLowerMethod = Expression.Call(selectorExpr, toLowerMethod!);
+        var toLowerMethod = typeof(string).GetMethod("ToLower", new[] { typeof(CultureInfo) });
+        Expression callToLowerMethod = Expression.Call(selectorExpr, toLowerMethod!, Expression.Constant(CultureInfo.InvariantCulture));
 
         var selector = Expression.Lambda<Func<T, string>>(callToLowerMethod, paramExpr);
 
@@ -192,8 +193,9 @@ public static class SpecificationBuilderExtensions
     {
         if (memberExpression.Type == typeof(string))
         {
-            constantExpression = Expression.Call(constantExpression, "ToLower", null);
-            memberExpression = Expression.Call(memberExpression, "ToLower", null);
+            var toLowerMethodInfo = typeof(string).GetMethod("ToLower", new[] { typeof(CultureInfo) });
+            constantExpression = Expression.Call(constantExpression, toLowerMethodInfo!, Expression.Constant(CultureInfo.InvariantCulture));
+            memberExpression = Expression.Call(memberExpression, toLowerMethodInfo!, Expression.Constant(CultureInfo.InvariantCulture));
         }
 
         return filterOperator switch
@@ -211,7 +213,7 @@ public static class SpecificationBuilderExtensions
         };
     }
 
-    private static Expression CombineFilter(
+    private static BinaryExpression CombineFilter(
         string filterOperator,
         Expression bExpresionBase,
         Expression bExpresion) => filterOperator switch
@@ -337,11 +339,16 @@ public static class SpecificationBuilderExtensions
             string[] fieldParts = orderByfield.Split(' ');
             string field = fieldParts[0];
             bool descending = fieldParts.Length > 1 && fieldParts[1].StartsWith("Desc", StringComparison.OrdinalIgnoreCase);
-            var orderBy = index == 0
-                ? descending ? OrderTypeEnum.OrderByDescending
-                                : OrderTypeEnum.OrderBy
-                : descending ? OrderTypeEnum.ThenByDescending
-                                : OrderTypeEnum.ThenBy;
+            
+            OrderTypeEnum orderBy;
+            if (index == 0)
+            {
+                orderBy = descending ? OrderTypeEnum.OrderByDescending : OrderTypeEnum.OrderBy;
+            }
+            else
+            {
+                orderBy = descending ? OrderTypeEnum.ThenByDescending : OrderTypeEnum.ThenBy;
+            }
 
             return new KeyValuePair<string, OrderTypeEnum>(field, orderBy);
         }));

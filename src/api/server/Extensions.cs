@@ -5,38 +5,32 @@ using FluentValidation;
 
 namespace FSH.Starter.WebApi.Host;
 
-public static class Extensions
+internal static class Extensions
 {
     public static WebApplicationBuilder RegisterModules(this WebApplicationBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        //define module assemblies
+        // Define module assemblies
         var assemblies = new Assembly[]
         {
             typeof(Program).Assembly
         };
 
-        //register validators
+        // Register validators
         builder.Services.AddValidatorsFromAssemblies(assemblies);
 
-        //register mediatr
+        // Register mediatr
         builder.Services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssemblies(assemblies);
         });
 
-        //register controllers
+        // Register controllers
         builder.Services.AddControllers();
 
-        //register module services
-        // Remove any builder.RegisterTodoServices();
-
-        //add carter endpoint modules
-        builder.Services.AddCarter(configurator: config =>
-        {
-            // Remove any config.WithModule<TodoModule.Endpoints>();
-        });
+        // Add carter endpoint modules
+        builder.Services.AddCarter();
 
         return builder;
     }
@@ -45,23 +39,20 @@ public static class Extensions
     {
         ArgumentNullException.ThrowIfNull(app);
 
-        //register modules
-        // Remove any app.UseTodoModule();
-
-        //register api versions
+        // Register api versions
         var versions = app.NewApiVersionSet()
                     .HasApiVersion(1)
                     .HasApiVersion(2)
                     .ReportApiVersions()
                     .Build();
 
-        //map versioned endpoint
+        // Map versioned endpoint
         var endpoints = app.MapGroup("api/v{version:apiVersion}").WithApiVersionSet(versions);
 
-        //use carter
+        // Use carter
         endpoints.MapCarter();
 
-        //map controllers
+        // Map controllers
         app.MapControllers();
 
         return app;

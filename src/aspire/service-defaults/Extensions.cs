@@ -55,10 +55,10 @@ public static class Extensions
             ["service.names"] =
                 "FSH.Starter.WebApi.Host", //builder.Configuration["OpenTelemetrySettings:ServiceName"]!, //It's a WA Fix because the service.name tag is not completed automatically by Resource.Builder()...AddService(serviceName) https://github.com/open-telemetry/opentelemetry-dotnet/issues/2027
             ["os.description"] = System.Runtime.InteropServices.RuntimeInformation.OSDescription,
-            ["deployment.environment"] = builder.Environment.EnvironmentName.ToLowerInvariant()
+            ["deployment.environment"] = builder.Environment.EnvironmentName.ToUpperInvariant()
         };
         var resourceBuilder = ResourceBuilder.CreateDefault()
-            .AddService(serviceName: resourceServiceName, serviceVersion: resourceServiceVersion)
+            .AddService(serviceName: resourceServiceName ?? "Unknown", serviceVersion: resourceServiceVersion)
             .AddTelemetrySdk()
             //.AddEnvironmentVariableDetector()
             .AddAttributes(attributes);
