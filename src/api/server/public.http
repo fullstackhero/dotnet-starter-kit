@@ -28,7 +28,7 @@ POST {{Server_HostAddress}}/api/v1/auth/login
 Content-Type: application/json
 
 {
-  "email": "admin@system.com",
+  "tckn": "24256590788",
   "password": "Admin123!"
 }
 
@@ -37,8 +37,8 @@ POST {{Server_HostAddress}}/api/v1/auth/login
 Content-Type: application/json
 
 {
-  "email": "furkan.new@example.com",
-  "password": "Furkan_731"
+  "tckn": "68593147632",
+  "password": "Furkan_732"
 }
 
 ### Generate Token
@@ -46,8 +46,8 @@ POST {{Server_HostAddress}}/api/v1/auth/token
 Content-Type: application/json
 
 {
-  "email": "furkan@example.com",
-  "password": "Test123!"
+  "tckn": "68593147632",
+  "password": "Furkan_730"
 }
 
 ### Refresh Token

@@ -1,86 +1,85 @@
 @Server_HostAddress = https://localhost:7000
 
-# Option 1: Manual Token Update (copy from login response)
-@admin_token = UPDATE_WITH_FRESH_TOKEN_FROM_LOGIN
+# Option 1: Manual Token Update (copy from login response in public.http)
+@admin_token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.COPY_TOKEN_FROM_ADMIN_LOGIN
 
-# Option 2: Environment Variable (recommended for automated testing)
-# Set environment variable: ADMIN_TOKEN=your_jwt_token_here
-# @admin_token = {{$dotenv ADMIN_TOKEN}}
-
-# Option 3: Use response from public.http login (if using same workspace)
+# Option 2: Use response from public.http admin login (if using same workspace)
 # @admin_token = {{adminLogin.response.body.token}}
 
 ### ===== TOKEN SETUP INSTRUCTIONS =====
 # 1. Go to public.http and run "Login - Admin User" request
-# 2. Copy the JWT token from response  
-# 3. Replace "UPDATE_WITH_FRESH_TOKEN_FROM_LOGIN" above with the token
+# 2. Copy the JWT token from response
+# 3. Replace "COPY_TOKEN_FROM_ADMIN_LOGIN" above with the token
 # 4. Or set ADMIN_TOKEN environment variable
-# 5. Default admin credentials: admin@system.com / Admin123!
 
-### ===== ADMIN ENDPOINTS (Admin Authorization Required) =====
+### ===== ADMIN ENDPOINTS (Authentication Required - Admin/Customer Admin Only) =====
 
 ### Get All Users
-GET {{Server_HostAddress}}/api/v1/auth/users
+GET {{Server_HostAddress}}/api/v1/admin/users
 Authorization: Bearer {{admin_token}}
 
-### Create User (Admin can set all fields including roles)
-POST {{Server_HostAddress}}/api/v1/auth/users/register
+### Create New User (Admin Only)
+POST {{Server_HostAddress}}/api/v1/admin/users
 Authorization: Bearer {{admin_token}}
 Content-Type: application/json
 
 {
-  "email": "admintest@example.com",
-  "username": "admintest",
-  "phoneNumber": "05551234999",
-  "password": "AdminTest123!",
-  "firstName": "Admin",
-  "lastName": "Test",
-  "profession": "System Administrator",
-  "role": "customer_admin",
+  "email": "newuser@example.com",
+  "username": "newuser123",
+  "phoneNumber": "+905551234567",
+  "password": "NewUser123!",
+  "firstName": "New",
+  "lastName": "User",
+  "profession": "Software Developer",
+  "role": "base_user",
   "status": "ACTIVE",
-  "isIdentityVerified": true,
-  "isPhoneVerified": true,
-  "isEmailVerified": true
+  "isIdentityVerified": false,
+  "isPhoneVerified": false,
+  "isEmailVerified": false
 }
 
-### Get User By ID
-GET {{Server_HostAddress}}/api/v1/auth/users/00000000-0000-0000-0000-000000000001
+### Get Specific User
+GET {{Server_HostAddress}}/api/v1/admin/users/ca3b76a4-abb2-4fe8-9a42-a717196f02e6
 Authorization: Bearer {{admin_token}}
 
-### Update User (Admin can update ALL fields including first/last name)
-PUT {{Server_HostAddress}}/api/v1/auth/users/00000000-0000-0000-0000-000000000001
+### Update User (Admin Only)
+PUT {{Server_HostAddress}}/api/v1/admin/users/ca3b76a4-abb2-4fe8-9a42-a717196f02e6
 Authorization: Bearer {{admin_token}}
 Content-Type: application/json
 
 {
   "email": "updated@example.com",
-  "username": "updated_username",
+  "username": "updateduser",
   "firstName": "Updated",
-  "lastName": "Name",
-  "phoneNumber": "05559999999",
-  "profession": "Updated Profession",
+  "lastName": "User",
+  "phoneNumber": "+905559876543",
+  "profession": "Senior Developer",
   "status": "ACTIVE",
   "isIdentityVerified": true,
   "isPhoneVerified": true,
   "isEmailVerified": true
 }
 
-### Delete User (Soft Delete)
-DELETE {{Server_HostAddress}}/api/v1/auth/users/00000000-0000-0000-0000-000000000001
+### Soft Delete User
+DELETE {{Server_HostAddress}}/api/v1/admin/users/ca3b76a4-abb2-4fe8-9a42-a717196f02e6
 Authorization: Bearer {{admin_token}}
 
-### Hard Delete User (Permanent - Admin Only)
-DELETE {{Server_HostAddress}}/api/v1/auth/users/00000000-0000-0000-0000-000000000001/hard
+### Permanent Delete User (Super Admin Only)
+DELETE {{Server_HostAddress}}/api/v1/admin/users/ca3b76a4-abb2-4fe8-9a42-a717196f02e6/permanent
 Authorization: Bearer {{admin_token}}
 
 ### ===== ROLE MANAGEMENT =====
 
+### Get Available Roles
+GET {{Server_HostAddress}}/api/v1/admin/roles
+Authorization: Bearer {{admin_token}}
+
 ### Get User Roles
-GET {{Server_HostAddress}}/api/v1/auth/users/00000000-0000-0000-0000-000000000001/roles
+GET {{Server_HostAddress}}/api/v1/admin/users/ca3b76a4-abb2-4fe8-9a42-a717196f02e6/roles
 Authorization: Bearer {{admin_token}}
 
 ### Assign Role to User
-POST {{Server_HostAddress}}/api/v1/auth/users/00000000-0000-0000-0000-000000000001/roles
+POST {{Server_HostAddress}}/api/v1/admin/users/ca3b76a4-abb2-4fe8-9a42-a717196f02e6/roles
 Authorization: Bearer {{admin_token}}
 Content-Type: application/json
 

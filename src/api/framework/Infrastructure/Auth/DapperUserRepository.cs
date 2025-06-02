@@ -83,6 +83,29 @@ public class DapperUserRepository
             FROM users WHERE id = @Id", new { Id = id });
     }
 
+    public async Task<User?> GetByTcknAsync(string tckn)
+    {
+        return await _db.QueryFirstOrDefaultAsync<User>(
+            @"SELECT 
+                id,
+                email,
+                username,
+                phone_number,
+                tckn,
+                password_hash,
+                first_name,
+                last_name,
+                profession,
+                birth_date,
+                is_identity_verified,
+                is_phone_verified,
+                is_email_verified,
+                status,
+                created_at,
+                updated_at
+            FROM users WHERE tckn = @Tckn", new { Tckn = tckn });
+    }
+
     public async Task<List<User>> GetAllUsersAsync()
     {
         var users = await _db.QueryAsync<User>(
@@ -124,6 +147,15 @@ public class DapperUserRepository
     public async Task<(bool IsValid, User? User)> ValidatePasswordAndGetUserAsync(string email, string password)
     {
         var user = await GetByEmailAsync(email);
+        if (user == null) return (false, null);
+        
+        var isValid = BCrypt.Net.BCrypt.Verify(password, user.password_hash);
+        return (isValid, isValid ? user : null);
+    }
+
+    public async Task<(bool IsValid, User? User)> ValidatePasswordAndGetUserByTcknAsync(string tckn, string password)
+    {
+        var user = await GetByTcknAsync(tckn);
         if (user == null) return (false, null);
         
         var isValid = BCrypt.Net.BCrypt.Verify(password, user.password_hash);

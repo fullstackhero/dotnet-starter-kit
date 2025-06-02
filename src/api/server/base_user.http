@@ -59,8 +59,8 @@ Authorization: Bearer {{base_user_token}}
 Content-Type: application/json
 
 {
-  "currentPassword": "Furkan_730",
-  "newPassword": "Furkan_731"
+  "currentPassword": "Furkan_731",
+  "newPassword": "Furkan_732"
 }
 
 ### Verify Email
