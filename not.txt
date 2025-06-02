@@ -25,7 +25,6 @@ docker compose up -d
 Bu komut ile aşağıdaki servisler başlar:
 
 webapi (API sunucusu, 5001/7010 portları)
-blazor (Blazor frontend, 7100 portu)
 postgres (PostgreSQL veritabanı, 5433 portu)
 prometheus (Monitoring, 9090 portu)
 grafana (Dashboard, 3000 portu)

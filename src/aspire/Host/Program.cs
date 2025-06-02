@@ -16,10 +16,8 @@ var database = builder.AddPostgres("db", username, password, port: 5432)
     .WithDataVolume()
     .AddDatabase("fullstackhero");
 
-var api = builder.AddProject<Projects.Server>("webapi")
+builder.AddProject<Projects.Server>("webapi")
     .WaitFor(database);
-
-var blazor = builder.AddProject<Projects.Client>("blazor");
 
 using var app = builder.Build();
 

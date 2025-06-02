@@ -44,36 +44,6 @@ services:
         condition: service_healthy
     restart: on-failure
 
-  blazor:
-    image: ${FSH_DOTNETSTARTERKIT_BLAZOR_IMAGE}
-    pull_policy: always
-    container_name: blazor
-    platform: linux/amd64
-    environment:
-      Frontend_FSHStarterBlazorClient_Settings__AppSettingsTemplate: /usr/share/nginx/html/appsettings.json.TEMPLATE
-      Frontend_FSHStarterBlazorClient_Settings__AppSettingsJson: /usr/share/nginx/html/appsettings.json
-      FSHStarterBlazorClient_ApiBaseUrl: https://localhost:7000
-      ApiBaseUrl: https://localhost:7000
-    networks:
-      - fullstackhero
-    entrypoint: [
-        "/bin/sh",
-        "-c",
-        "envsubst <
-        $${Frontend_FSHStarterBlazorClient_Settings__AppSettingsTemplate} >
-        $${Frontend_FSHStarterBlazorClient_Settings__AppSettingsJson} && find
-        /usr/share/nginx/html -type f | xargs chmod +r && exec nginx -g
-        'daemon off;'",
-      ]
-    volumes:
-      - ~/.aspnet/https:/https:ro
-    ports:
-      - 7100:80
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: on-failure
-
   postgres:
     container_name: postgres
     image: postgres:15-alpine
