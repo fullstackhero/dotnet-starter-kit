@@ -32,6 +32,15 @@ internal static class Extensions
         // Add carter endpoint modules
         builder.Services.AddCarter();
 
+        // Register HttpClient for MERNİS service
+        builder.Services.AddHttpClient<IMernisService, MernisService>();
+
+        // Register MERNİS service
+        builder.Services.AddSingleton<IMernisService, MernisService>();
+
+        // Register Password Reset service
+        builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
+
         return builder;
     }
 

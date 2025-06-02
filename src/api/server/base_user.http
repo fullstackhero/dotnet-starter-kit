@@ -1,0 +1,116 @@
+@Server_HostAddress = https://localhost:7000
+
+# Option 1: Manual Token Update (copy from login response)
+@base_user_token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiI3OGRmYWRjZC04MzFiLTQ3N2YtYjQyMS04MDQ4ZTc1Njc0YzgiLCJlbWFpbCI6ImZ1cmthbi5uZXdAZXhhbXBsZS5jb20iLCJ1bmlxdWVfbmFtZSI6Im11aGFtbWVkIGZ1cmthbiBoYXlkYXJpIiwicm9sZSI6ImJhc2VfdXNlciIsIm5iZiI6MTc0ODg3NzkwNSwiZXhwIjoxNzQ4OTY0MzA1LCJpYXQiOjE3NDg4Nzc5MDUsImlzcyI6Imh0dHBzOi8vZnVsbHN0YWNraGVyby5uZXQiLCJhdWQiOiJmdWxsc3RhY2toZXJvIn0.wI01Uy03TuunTFf7judqPMVHuxkmzMurAOuU_T3G9xY
+
+# Option 2: Environment Variable (recommended for automated testing)
+# Set environment variable: BASE_USER_TOKEN=your_jwt_token_here
+# @base_user_token = {{$dotenv BASE_USER_TOKEN}}
+
+# Option 3: Use response from public.http login (if using same workspace)
+# @base_user_token = {{adminLogin.response.body.token}}
+
+### ===== TOKEN SETUP INSTRUCTIONS =====
+# 1. Go to public.http and run "Login - Regular User" request
+# 2. Copy the JWT token from response
+# 3. Replace "UPDATE_WITH_FRESH_TOKEN_FROM_LOGIN" above with the token
+# 4. Or set BASE_USER_TOKEN environment variable
+
+### ===== BASE USER ENDPOINTS (Authentication Required) =====
+
+### Get Current User Profile
+GET {{Server_HostAddress}}/api/v1/auth/profile
+Authorization: Bearer {{base_user_token}}
+
+### Update Profile (RESTRICTED: Only username, profession)
+# CANNOT update: firstName, lastName, email, phoneNumber
+PUT {{Server_HostAddress}}/api/v1/auth/profile
+Authorization: Bearer {{base_user_token}}
+Content-Type: application/json
+
+{
+  "username": "furkanhaydari_updated",
+  "profession": "Senior Software Engineer"
+}
+
+### Update Email (Separate secure endpoint)
+# Resets email verification status
+PUT {{Server_HostAddress}}/api/v1/auth/profile/email
+Authorization: Bearer {{base_user_token}}
+Content-Type: application/json
+
+{
+  "newEmail": "furkan.new@example.com"
+}
+
+### Update Phone (Separate secure endpoint)
+# Resets phone verification status
+PUT {{Server_HostAddress}}/api/v1/auth/profile/phone
+Authorization: Bearer {{base_user_token}}
+Content-Type: application/json
+
+{
+  "newPhoneNumber": "05551234567"
+}
+
+### Change Password
+POST {{Server_HostAddress}}/api/v1/auth/change-password
+Authorization: Bearer {{base_user_token}}
+Content-Type: application/json
+
+{
+  "currentPassword": "Furkan_730",
+  "newPassword": "Furkan_731"
+}
+
+### Verify Email
+# Requires 6-digit verification code
+POST {{Server_HostAddress}}/api/v1/auth/verify-email
+Authorization: Bearer {{base_user_token}}
+Content-Type: application/json
+
+{
+  "verificationCode": "123456"
+}
+
+### Verify Phone
+# Requires 6-digit verification code
+POST {{Server_HostAddress}}/api/v1/auth/verify-phone
+Authorization: Bearer {{base_user_token}}
+Content-Type: application/json
+
+{
+  "verificationCode": "123456"
+}
+
+### Get User Permissions
+GET {{Server_HostAddress}}/api/v1/auth/permissions
+Authorization: Bearer {{base_user_token}}
+
+### Get Available Roles
+GET {{Server_HostAddress}}/api/v1/auth/roles
+Authorization: Bearer {{base_user_token}}
+
+### ===== NOTES =====
+# PROFILE UPDATE RESTRICTIONS:
+# Base Users CAN update:
+# ✅ username (with uniqueness check)
+# ✅ profession 
+# 
+# Base Users CANNOT update:
+# ❌ firstName (immutable after registration)
+# ❌ lastName (immutable after registration)  
+# ❌ email (requires separate secure endpoint /profile/email)
+# ❌ phoneNumber (requires separate secure endpoint /profile/phone)
+#
+# SECURITY FEATURES:
+# - Username format validation (3-20 chars, alphanumeric + underscore)
+# - Separate endpoints for email/phone updates (resets verification status)
+# - Password strength validation (8+ chars, upper, lower, digit, special)
+# - Email/phone verification with 6-digit codes
+# - JWT token required for all endpoints
+#
+# HOW TO GET FRESH TOKEN:
+# 1. Use public.http to login
+# 2. Copy JWT token from response
+# 3. Update @base_user_token variable above 

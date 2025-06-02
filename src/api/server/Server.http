@@ -1,124 +1,102 @@
-@Server_HostAddress = http://localhost:5000
+@Server_HostAddress = https://localhost:7000
 
-GET {{Server_HostAddress}}/weatherforecast/
-Accept: application/json
+### ===== AUTH API DOCUMENTATION =====
+# 
+# 🚀 Production-Ready Authentication System
+# Built with .NET 9, JWT, MERNİS Integration, and Advanced Security
+#
+# 📁 API ENDPOINT FILES (Role-Based Organization):
+# 
+# 📖 public.http         - Public endpoints (registration, login, password reset)
+# 👤 base_user.http      - Regular user endpoints (profile, verification)  
+# 👑 admin.http          - Admin endpoints (user management, roles)
+#
+# Usage: Open the appropriate file based on your role and testing needs
 
-###
+### ===== QUICK START =====
 
-### Test Auth Controller
+### Health Check
 GET {{Server_HostAddress}}/api/v1/auth/test
 
-### Login - Test User 1 (test@example.com)
+### Default Admin Login (copy token for admin.http)
 POST {{Server_HostAddress}}/api/v1/auth/login
 Content-Type: application/json
 
 {
-  "email": "test@example.com",
-  "password": "Test123!"
+  "email": "admin@system.com",
+  "password": "Admin123!"
 }
 
-### Login - Test User 2 (test2@example.com) 
-POST {{Server_HostAddress}}/api/v1/auth/login
-Content-Type: application/json
-
-{
-  "email": "test2@example.com",
-  "password": "Test123!"
-}
-
-### Login - New User (newuser@example.com)
-POST {{Server_HostAddress}}/api/v1/auth/login
-Content-Type: application/json
-
-{
-  "email": "newuser@example.com",
-  "password": "testpass123"
-}
-
-### Register Test User 1
-POST {{Server_HostAddress}}/api/v1/auth/register
-Content-Type: application/json
-
-{
-  "email": "test@example.com",
-  "phoneNumber": "05551234567",
-  "tckn": "12345678901",
-  "password": "Test123!",
-  "firstName": "Test",
-  "lastName": "User",
-  "birthDate": "1990-01-01T00:00:00Z"
-}
-
-### Register Test User 2
-POST {{Server_HostAddress}}/api/v1/auth/register
-Content-Type: application/json
-
-{
-  "email": "testuser@example.com",
-  "phoneNumber": "5551234569",
-  "tckn": "12345678903",
-  "password": "testpass123",
-  "firstName": "Test",
-  "lastName": "User",
-  "birthDate": "1990-01-01T00:00:00Z"
-}
-
-### Register New User 3
-POST {{Server_HostAddress}}/api/v1/auth/register
-Content-Type: application/json
-
-{
-  "email": "new2user@example.com",
-  "phoneNumber": "5551234567",
-  "tckn": "12345678904",
-  "password": "testpass123",
-  "firstName": "New",
-  "lastName": "User",
-  "birthDate": "1990-01-01T00:00:00Z"
-}
-
-### Register New User 4
-POST {{Server_HostAddress}}/api/v1/auth/register
-Content-Type: application/json
-
-{
-  "email": "testuser4@example.com",
-  "phoneNumber": "5551234568",
-  "tckn": "12345678905",
-  "password": "newpass123",
-  "firstName": "Test4",
-  "lastName": "User4",
-  "birthDate": "1992-05-15T00:00:00Z"
-}
-
-### Register New User 5
-POST {{Server_HostAddress}}/api/v1/auth/register
-Content-Type: application/json
-
-{
-  "email": "user5@example.com",
-  "phoneNumber": "5551234570",
-  "tckn": "12345678906",
-  "password": "password123",
-  "firstName": "User5",
-  "lastName": "Test5",
-  "birthDate": "1995-03-20T00:00:00Z"
-}
-
-### Login with newly registered user 4
-POST {{Server_HostAddress}}/api/v1/auth/login
-Content-Type: application/json
-
-{
-  "email": "testuser4@example.com",
-  "password": "newpass123"
-}
-
-### Login with newly registered user 5
-POST {{Server_HostAddress}}/api/v1/auth/login
-Content-Type: application/json
-
-{
-  "email": "user5@example.com",
-  "password": "password123"
-}
+### ===== SYSTEM OVERVIEW =====
+#
+# 🔐 SECURITY FEATURES:
+# ✅ JWT Authentication with role-based authorization
+# ✅ MERNİS identity verification (Turkish government integration)
+# ✅ Production-grade password reset with secure tokens
+# ✅ Rate limiting and account security measures
+# ✅ Input validation and SQL injection prevention
+# ✅ Password strength validation
+# ✅ TCKN and username format validation
+# ✅ Separate endpoints for sensitive updates (email/phone)
+# ✅ Email enumeration protection
+# ✅ Single-use tokens with expiration
+#
+# 🎯 ROLE HIERARCHY:
+# admin > customer_admin > customer_support > base_user
+#
+# 📋 AVAILABLE ROLES:
+# - admin: Full system access
+# - customer_admin: Customer organization admin  
+# - customer_support: Customer support access
+# - base_user: Standard user access
+#
+# 🗄️ DATABASE FEATURES:
+# - PostgreSQL with Dapper ORM
+# - Migration system (004_AddUsernameAndProfession.sql)
+# - Soft delete support
+# - Audit trails and logging
+# - Distributed caching (Redis/Memory)
+#
+# 🌍 TURKISH FEATURES:
+# - MERNİS TC Kimlik No doğrulama
+# - Turkish phone number validation (05XXXXXXXXX)
+# - TCKN algorithm validation
+# - Turkish character support
+#
+# ⚙️ CONFIGURATION:
+# - Environment-based settings
+# - Configurable token expiration
+# - Configurable rate limiting
+# - Configurable MERNİS integration
+# - Production/Development modes
+#
+# 📧 EMAIL & VERIFICATION:
+# - Ready for email service integration
+# - Phone SMS verification support
+# - Email/phone verification codes
+# - Password reset via email (console for development)
+#
+# 🔧 DEVELOPMENT SETUP:
+# 1. Run database migrations: 004_AddUsernameAndProfession.sql
+# 2. Configure appsettings.Development.json
+# 3. Start the API server
+# 4. Use public.http to register/login
+# 5. Copy tokens to base_user.http or admin.http
+# 6. Test role-specific endpoints
+#
+# 🚀 PRODUCTION CHECKLIST:
+# ✅ Enable MERNİS verification (MernisVerification:Enabled = true)
+# ✅ Configure real email service (replace console logging)
+# ✅ Set up Redis for distributed caching
+# ✅ Configure proper SSL certificates
+# ✅ Remove bootstrap endpoint
+# ✅ Set strong JWT secrets
+# ✅ Configure rate limiting
+# ✅ Set up monitoring and alerting
+#
+# 📞 SUPPORT:
+# Default Admin: admin@system.com / Admin123!
+# Database: PostgreSQL (localhost:5433)
+# API Base URL: https://localhost:7000
+# 
+# Built with .NET 9 and modern security practices

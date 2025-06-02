@@ -1,95 +1,304 @@
-# FullStackHero .NET 9 Starter Kit 🚀
+# FullStackHero .NET 9 Starter Kit - Simplified Architecture 🚀
 
-> With ASP.NET Core Web API & Blazor Client
+> Clean Architecture Solution with ASP.NET Core Web API, Dapper ORM & Role-Based Authentication
 
-FullStackHero .NET Starter Kit is a starting point for your next `.NET 9 Clean Architecture` Solution that incorporates the most essential packages and features your projects will ever need including out-of-the-box Multi-Tenancy support. This project can save well over 200+ hours of development time for your team.
+A simplified .NET 9 starter kit focused on essential features with a clean, maintainable architecture. This project has been streamlined from the original FullStackHero template to provide a focused foundation for building scalable web APIs.
 
-![FullStackHero .NET Starter Kit](./assets/fullstackhero-dotnet-starter-kit.png)
+## 🏗️ Architecture Overview
 
-# Important
+This starter kit implements a **simplified clean architecture** with the following key design decisions:
 
-This project is currently work in progress. The NuGet package is not yet available for v2. For now, you can fork this repository to try it out. [Follow @iammukeshm on X](https://x.com/iammukeshm) for project related updates.
+- **Single Database**: PostgreSQL with Dapper for data access
+- **No Multi-Tenancy**: Simplified for single-tenant applications  
+- **Role-Based Auth**: JWT authentication with 4 predefined roles
+- **Minimal Dependencies**: Focused on essential packages only
+- **Direct Repository Pattern**: Simple data access without complex abstractions
 
-# Quick Start Guide
+## 🚀 Quick Start Guide
 
-As the project is still in beta, the NuGet packages are not yet available. You can try out the project by pulling the code directly from this repository.
+### Prerequisites
 
-Prerequisites:
+- .NET 9 SDK
+- PostgreSQL (local or Docker)
+- Visual Studio Code or JetBrains Rider
 
-- .NET 9 SDK installed.
-- Visual Studio IDE.
-- Docker Desktop.
-- PostgreSQL instance running on your machine or docker container.
+### Setup Instructions
 
-Please follow the below instructions.
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd dotnet-starter-kit
+   ```
 
-1. Fork this repository to your local.
-2. Open up the `./src/FSH.Starter.sln`.
-3. This would up the FSH Starter solution which has 3 main components.
-   1. Aspire Dashboard (set as the default project)
-   2. Web API
-   3. Blazor
-4. Now we will have to set the connection string for the API. Navigate to `./src/api/server/appsettings.Development.json` and change the `ConnectionString` under `DatabaseOptions`. Save it.
-5. Once that is done, run the application via Visual Studio, with Aspire as the default project. This will open up Aspire Dashboard at `https://localhost:7200/`.
-6. API will be running at `https://localhost:7000/swagger/index.html`.
-7. Blazor will be running at `https://localhost:7100/`.
+2. **Configure Database**
+   Update connection string in `src/api/server/appsettings.Development.json`:
+   ```json
+   {
+     "DatabaseOptions": {
+       "Provider": "postgresql",
+       "ConnectionString": "Server=localhost;Port=5433;Database=fsh;User Id=pgadmin;Password=pgadmin"
+     }
+   }
+   ```
 
-# 🔎 The Project
+3. **Run Database Migrations**
+   ```bash
+   cd src/api/server
+   # Migrations will run automatically on startup
+   dotnet run
+   ```
 
-# ✨ Technologies
+4. **Access the API**
+   - HTTP: `http://localhost:5000`
+   - HTTPS: `https://localhost:7000`
+   - Swagger: `http://localhost:5000/swagger` or `https://localhost:7000/swagger`
 
-- .NET 9
-- Entity Framework Core 9
-- Blazor
-- MediatR
-- PostgreSQL
-- Redis
-- FluentValidation
+## 🔐 Authentication System
 
-# 👨‍🚀 Architecture
+### Roles & Permissions
 
-# 📬 Service Endpoints
+| Role | Description | Permissions |
+|------|-------------|-------------|
+| `admin` | System Administrator | Full access to all endpoints |
+| `customer_admin` | Customer Administrator | User management within organization |
+| `customer_support` | Customer Support | Read access to user data |
+| `base_user` | Standard User | Profile management, password change |
 
-| Endpoint | Method | Description      |
-| -------- | ------ | ---------------- |
-| `/token` | POST   | Generates Token. |
+### Default Admin Account
 
-# 🧪 Running Locally
+- **Email**: `admin@system.com`
+- **Password**: `Admin123!`
 
-# 🐳 Docker Support
+## 📬 API Endpoints
 
-# ☁️ Deploying to AWS
-
-# 🤝 Contributing
-
-# 🍕 Community
-
-Thanks to the community who contribute to this repository! [Submit your PR and join the elite list!](CONTRIBUTING.md)
-
-[![FullStackHero .NET Starter Kit Contributors](https://contrib.rocks/image?repo=fullstackhero/dotnet-starter-kit "FullStackHero .NET Starter Kit Contributors")](https://github.com/fullstackhero/dotnet-starter-kit/graphs/contributors)
-
-# 📝 Notes
-
-## Add Migrations
-
-Navigate to `./api/server` and run the following EF CLI commands.
-
-```bash
-dotnet ef migrations add "Add Identity Schema" --project .././migrations/postgresql/ --context IdentityDbContext -o Identity
-dotnet ef migrations add "Add Tenant Schema" --project .././migrations/postgresql/ --context TenantDbContext -o Tenant
-dotnet ef migrations add "Add Todo Schema" --project .././migrations/postgresql/ --context TodoDbContext -o Todo
-dotnet ef migrations add "Add Catalog Schema" --project .././migrations/postgresql/ --context CatalogDbContext -o Catalog
+### Public Endpoints (No Authentication Required)
+```
+GET  /api/v1/auth/test             - Health check
+POST /api/v1/auth/register         - User registration
+POST /api/v1/auth/login            - User authentication
+POST /api/v1/auth/token            - Generate JWT token
+POST /api/v1/auth/refresh          - Refresh JWT token
+POST /api/v1/auth/forgot-password  - Password reset
 ```
 
-## What's Pending?
+### Base User Endpoints (Any authenticated user)
+```
+GET  /api/v1/auth/profile          - Get current user profile
+PUT  /api/v1/auth/profile          - Update profile
+POST /api/v1/auth/change-password  - Change password
+GET  /api/v1/auth/permissions      - Get user permissions
+GET  /api/v1/auth/roles            - Get all roles
+```
 
-- Few Identity Endpoints
-- Blazor Client
-- File Storage Service
-- NuGet Generation Pipeline
-- Source Code Generation
-- Searching / Sorting
+### Admin & Customer Admin Endpoints (admin, customer_admin roles)
+```
+GET    /api/v1/auth/users                    - List all users
+POST   /api/v1/auth/users/register           - Register new user
+PUT    /api/v1/auth/users/{id}               - Update user
+DELETE /api/v1/auth/users/{id}               - Soft delete user
+POST   /api/v1/auth/users/{id}/roles         - Assign role to user
+DELETE /api/v1/auth/users/{id}/roles/{roleId} - Remove role from user
+GET    /api/v1/auth/users/by-role/{roleId}   - List users by role
+```
 
-# ⚖️ LICENSE
+### Admin, Customer Admin & Support Endpoints
+```
+GET /api/v1/auth/users/{id}          - Get user by ID
+GET /api/v1/auth/users/{id}/roles    - Get user roles
+```
+
+### Admin Only Endpoints
+```
+DELETE /api/v1/auth/users/{id}/hard  - Hard delete user
+```
+
+### Bootstrap Endpoint (Temporary, Anonymous Access)
+```
+POST /api/v1/auth/bootstrap/assign-admin/{userId} - Assign admin role
+```
+
+## 🛠️ Technology Stack
+
+- **.NET 9** - Latest .NET framework
+- **ASP.NET Core** - Web API framework
+- **Dapper** - Lightweight ORM for data access
+- **PostgreSQL** - Primary database
+- **JWT Bearer** - Authentication tokens
+- **BCrypt** - Password hashing
+- **FluentValidation** - Input validation
+- **Serilog** - Structured logging
+- **Swagger/OpenAPI** - API documentation
+- **Carter** - Minimal API endpoints
+
+## 🗄️ Database Schema
+
+### Core Tables
+- `users` - User accounts and profile information
+- `roles` - System roles (admin, customer_admin, customer_support, base_user)
+- `user_roles` - Many-to-many relationship between users and roles
+
+### Default Roles
+The system includes 4 predefined roles created during migration:
+- `admin` - Full system access
+- `customer_admin` - Customer management
+- `customer_support` - Customer support functions
+- `base_user` - Basic user access
+
+## 🧪 Testing
+
+### Using Server.http File
+Use the provided `server.http` file for quick API testing:
+
+1. **Test the API**:
+   ```http
+   GET http://localhost:5000/api/v1/auth/test
+   ```
+
+2. **Login as admin**:
+   ```http
+   POST http://localhost:5000/api/v1/auth/login
+   Content-Type: application/json
+
+   {
+     "email": "admin@system.com",
+     "password": "Admin123!"
+   }
+   ```
+
+3. **Copy the JWT token from response**
+
+4. **Test protected endpoints**:
+   ```http
+   GET http://localhost:5000/api/v1/auth/profile
+   Authorization: Bearer YOUR_JWT_TOKEN_HERE
+   ```
+
+### Using Swagger UI
+Navigate to `http://localhost:5000/swagger` for interactive API documentation.
+
+### Using cURL
+```bash
+# Test endpoint
+curl -X GET "http://localhost:5000/api/v1/auth/test"
+
+# Login
+curl -X POST "http://localhost:5000/api/v1/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@system.com","password":"Admin123!"}'
+```
+
+## 🔧 Configuration
+
+### JWT Settings
+```json
+{
+  "JwtOptions": {
+    "Key": "QsJbczCNysv/5SGh+U7sxedX8C07TPQPBdsnSDKZ/aE=",
+    "TokenExpirationInMinutes": 60,
+    "RefreshTokenExpirationInDays": 7
+  }
+}
+```
+
+### Database Options
+```json
+{
+  "DatabaseOptions": {
+    "Provider": "postgresql",
+    "ConnectionString": "Server=localhost;Port=5433;Database=fsh;User Id=pgadmin;Password=pgadmin"
+  }
+}
+```
+
+### CORS Configuration
+```json
+{
+  "CorsOptions": {
+    "AllowedOrigins": [
+      "https://localhost:7100",
+      "http://localhost:7100",
+      "http://localhost:5010"
+    ]
+  }
+}
+```
+
+## 📁 Project Structure
+
+```
+src/
+├── api/
+│   ├── server/
+│   │   ├── AuthController.cs           # Authentication endpoints
+│   │   ├── DapperUserRepository.cs     # Data access layer
+│   │   ├── JwtHelper.cs                # JWT token management
+│   │   ├── RoleConstants.cs            # Role definitions
+│   │   ├── Models/                     # Data models
+│   │   └── Scripts/                    # Database migrations
+│   └── framework/
+│       └── Infrastructure/             # Framework components
+└── aspire/                             # Aspire service defaults
+```
+
+## 🚧 Development Notes
+
+### Adding New Endpoints
+1. Add method to `AuthController.cs`
+2. Implement authorization with `[Authorize(Roles = "admin,customer_admin")]`
+3. Add data access methods to `DapperUserRepository.cs` if needed
+4. Update `server.http` with new endpoint examples
+
+### Database Migrations
+1. Create SQL scripts in `Scripts/` folder
+2. Follow naming convention: `XXX_DescriptiveName.sql`
+3. Migrations run automatically on application startup
+4. Current migrations:
+   - `001_CreateUsersTable.sql` - User table schema
+   - `002_CreateRolesAndUserRoles.sql` - Roles and user-role relationships
+   - `003_CreateDefaultAdmin.sql` - Default admin user
+
+### Role-Based Security
+- Roles are defined in `RoleConstants.cs`
+- Use `[Authorize(Roles = RoleConstants.Admin)]` for single role
+- Use `[Authorize(Roles = "admin,customer_admin")]` for multiple roles
+- JWT tokens include role claims for authorization
+- Roles are assigned through the user management endpoints
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new endpoints in `server.http`
+5. Submit a pull request
+
+## 📝 Migration from Original FullStackHero
+
+This version has been simplified from the original FullStackHero template:
+
+### ✅ Completed Simplifications
+- **Removed**: Entity Framework Core (replaced with Dapper)
+- **Removed**: Multi-tenancy support
+- **Removed**: Complex module system (ToDo/Catalog modules)
+- **Removed**: Unnecessary packages and dependencies
+- **Added**: Role-based authentication with 4 predefined roles
+- **Added**: Comprehensive user management API
+- **Simplified**: Database schema to essential tables only
+- **Simplified**: Architecture to focus on core features
+
+### 🎯 Current Status
+- ✅ PostgreSQL with Dapper integration
+- ✅ JWT authentication system
+- ✅ Role-based authorization (admin, customer_admin, customer_support, base_user)
+- ✅ Complete user management CRUD operations
+- ✅ Database migrations system
+- ✅ API documentation with Swagger
+- ✅ Ready for development and testing
+
+## 📞 Support
+
+If you encounter any issues or have questions, please create an issue in the repository or refer to the comprehensive API documentation available at `/swagger` when the application is running.
+
+## ⚖️ License
 
 MIT © [fullstackhero](LICENSE)

@@ -1,0 +1,139 @@
+@Server_HostAddress = https://localhost:7000
+
+# Option 1: Manual Token Update (copy from login response)
+@admin_token = UPDATE_WITH_FRESH_TOKEN_FROM_LOGIN
+
+# Option 2: Environment Variable (recommended for automated testing)
+# Set environment variable: ADMIN_TOKEN=your_jwt_token_here
+# @admin_token = {{$dotenv ADMIN_TOKEN}}
+
+# Option 3: Use response from public.http login (if using same workspace)
+# @admin_token = {{adminLogin.response.body.token}}
+
+### ===== TOKEN SETUP INSTRUCTIONS =====
+# 1. Go to public.http and run "Login - Admin User" request
+# 2. Copy the JWT token from response  
+# 3. Replace "UPDATE_WITH_FRESH_TOKEN_FROM_LOGIN" above with the token
+# 4. Or set ADMIN_TOKEN environment variable
+# 5. Default admin credentials: admin@system.com / Admin123!
+
+### ===== ADMIN ENDPOINTS (Admin Authorization Required) =====
+
+### Get All Users
+GET {{Server_HostAddress}}/api/v1/auth/users
+Authorization: Bearer {{admin_token}}
+
+### Create User (Admin can set all fields including roles)
+POST {{Server_HostAddress}}/api/v1/auth/users/register
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "email": "admintest@example.com",
+  "username": "admintest",
+  "phoneNumber": "05551234999",
+  "password": "AdminTest123!",
+  "firstName": "Admin",
+  "lastName": "Test",
+  "profession": "System Administrator",
+  "role": "customer_admin",
+  "status": "ACTIVE",
+  "isIdentityVerified": true,
+  "isPhoneVerified": true,
+  "isEmailVerified": true
+}
+
+### Get User By ID
+GET {{Server_HostAddress}}/api/v1/auth/users/00000000-0000-0000-0000-000000000001
+Authorization: Bearer {{admin_token}}
+
+### Update User (Admin can update ALL fields including first/last name)
+PUT {{Server_HostAddress}}/api/v1/auth/users/00000000-0000-0000-0000-000000000001
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "email": "updated@example.com",
+  "username": "updated_username",
+  "firstName": "Updated",
+  "lastName": "Name",
+  "phoneNumber": "05559999999",
+  "profession": "Updated Profession",
+  "status": "ACTIVE",
+  "isIdentityVerified": true,
+  "isPhoneVerified": true,
+  "isEmailVerified": true
+}
+
+### Delete User (Soft Delete)
+DELETE {{Server_HostAddress}}/api/v1/auth/users/00000000-0000-0000-0000-000000000001
+Authorization: Bearer {{admin_token}}
+
+### Hard Delete User (Permanent - Admin Only)
+DELETE {{Server_HostAddress}}/api/v1/auth/users/00000000-0000-0000-0000-000000000001/hard
+Authorization: Bearer {{admin_token}}
+
+### ===== ROLE MANAGEMENT =====
+
+### Get User Roles
+GET {{Server_HostAddress}}/api/v1/auth/users/00000000-0000-0000-0000-000000000001/roles
+Authorization: Bearer {{admin_token}}
+
+### Assign Role to User
+POST {{Server_HostAddress}}/api/v1/auth/users/00000000-0000-0000-0000-000000000001/roles
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "roleId": "customer_admin"
+}
+
+### Remove Role from User
+DELETE {{Server_HostAddress}}/api/v1/auth/users/00000000-0000-0000-0000-000000000001/roles/customer_admin
+Authorization: Bearer {{admin_token}}
+
+### Get Users by Role
+GET {{Server_HostAddress}}/api/v1/auth/users/by-role/admin
+Authorization: Bearer {{admin_token}}
+
+### Get Users by Role - Customer Admin
+GET {{Server_HostAddress}}/api/v1/auth/users/by-role/customer_admin
+Authorization: Bearer {{admin_token}}
+
+### Get Users by Role - Customer Support
+GET {{Server_HostAddress}}/api/v1/auth/users/by-role/customer_support
+Authorization: Bearer {{admin_token}}
+
+### Get Users by Role - Base User
+GET {{Server_HostAddress}}/api/v1/auth/users/by-role/base_user
+Authorization: Bearer {{admin_token}}
+
+### ===== NOTES =====
+# ADMIN CAPABILITIES:
+# ✅ Create users with any role
+# ✅ Update ALL user fields (including firstName, lastName)
+# ✅ Delete users (soft delete)
+# ✅ Hard delete users (permanent removal)
+# ✅ Assign/remove roles
+# ✅ View all users and filter by role
+# ✅ Bypass all profile update restrictions
+#
+# AVAILABLE ROLES:
+# - admin: Full system access
+# - customer_admin: Customer organization admin
+# - customer_support: Customer support access  
+# - base_user: Standard user access
+#
+# PERMISSION HIERARCHY:
+# admin > customer_admin > customer_support > base_user
+#
+# SECURITY NOTES:
+# - Admin token required for all endpoints
+# - Hard delete is admin-only (most destructive operation)
+# - Role assignment follows business rules
+# - All admin actions are logged
+#
+# HOW TO GET FRESH ADMIN TOKEN:
+# 1. Use public.http to login with admin credentials
+# 2. Copy JWT token from response
+# 3. Update @admin_token variable above 

@@ -1,0 +1,200 @@
+@Server_HostAddress = https://localhost:7000
+@reset_token = DHNFfUaSLL4e4zvxBN8mfXHh8JokF7byHguOBusGg4
+
+### ===== PUBLIC ENDPOINTS (No Authentication Required) =====
+
+### Health Check
+GET {{Server_HostAddress}}/api/v1/auth/test
+
+### Register New User (with MERNİS verification)
+POST {{Server_HostAddress}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "email": "testuser@example.com",
+  "username": "testuser",
+  "phoneNumber": "05447627858",
+  "tckn": "11111111110",
+  "password": "Test123!",
+  "firstName": "TEST",
+  "lastName": "USER",
+  "profession": "Software Engineer",
+  "birthDate": "1990-01-01T00:00:00Z"
+}
+
+### Login - Admin User
+# @name adminLogin
+POST {{Server_HostAddress}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@system.com",
+  "password": "Admin123!"
+}
+
+### Login - Regular User
+POST {{Server_HostAddress}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "furkan.new@example.com",
+  "password": "Furkan_731"
+}
+
+### Generate Token
+POST {{Server_HostAddress}}/api/v1/auth/token
+Content-Type: application/json
+
+{
+  "email": "furkan@example.com",
+  "password": "Test123!"
+}
+
+### Refresh Token
+POST {{Server_HostAddress}}/api/v1/auth/refresh
+Content-Type: application/json
+
+{
+  "token": "current-jwt-token",
+  "refreshToken": "refresh-token-here"
+}
+
+### Forgot Password (Production-Grade with Rate Limiting)
+# STEP 1: Request password reset token
+# Token will be logged to console (in production, sent via email)
+POST {{Server_HostAddress}}/api/v1/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "furkanhydri2@gmail.com"
+}
+
+### Reset Password (Production-Grade with Token Validation)
+# STEP 2: Copy token from console output and paste into @reset_token variable above
+# Look for: "Password reset token for furkan@example.com: AbC123XyZ..."
+# Token expires in 15 minutes and is single-use only
+POST {{Server_HostAddress}}/api/v1/auth/reset-password
+Content-Type: application/json
+
+{
+  "email": "furkanhydri2@gmail.com",
+  "token": "{{reset_token}}",
+  "newPassword": "Furkan_731"
+}
+
+### Bootstrap Assign Admin Role (Development Only)
+POST {{Server_HostAddress}}/api/v1/auth/bootstrap-assign-admin/00000000-0000-0000-0000-000000000001
+
+### ===== TEST SCENARIOS =====
+
+### Test Username Uniqueness
+POST {{Server_HostAddress}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "email": "test2@example.com",
+  "username": "furkanhaydari",
+  "phoneNumber": "05551111111",
+  "tckn": "11111111111",
+  "password": "Test123!",
+  "firstName": "Test",
+  "lastName": "User",
+  "profession": "Tester"
+}
+
+### Test Email Uniqueness
+POST {{Server_HostAddress}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "email": "furkan@example.com",
+  "username": "different_username",
+  "phoneNumber": "05552222222",
+  "tckn": "22222222222",
+  "password": "Test123!",
+  "firstName": "Test",
+  "lastName": "User2",
+  "profession": "Tester"
+}
+
+### Register Test Users
+POST {{Server_HostAddress}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "email": "customer1@example.com",
+  "username": "customer1",
+  "phoneNumber": "05551111111",
+  "tckn": "11111111111",
+  "password": "Customer123!",
+  "firstName": "Customer",
+  "lastName": "One",
+  "profession": "Customer Service",
+  "birthDate": "1992-03-15T00:00:00Z"
+}
+
+###
+POST {{Server_HostAddress}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "email": "support1@example.com",
+  "username": "support1",
+  "phoneNumber": "05552222222",
+  "tckn": "22222222222",
+  "password": "Support123!",
+  "firstName": "Support",
+  "lastName": "One",
+  "profession": "Technical Support",
+  "birthDate": "1988-07-20T00:00:00Z"
+}
+
+### ===== MERNİS TEST WITH TURKISH CHARACTERS =====
+### Test Turkish Character Conversion (i -> İ, ı -> I, etc.)
+POST {{Server_HostAddress}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "email": "turkishtest@example.com",
+  "username": "turkishtest",
+  "phoneNumber": "05447627890",
+  "tckn": "11111111110",
+  "password": "Test123!",
+  "firstName": "ibrahim",
+  "lastName": "köklü",
+  "profession": "Software Engineer",
+  "birthDate": "1990-01-01T00:00:00Z"
+}
+
+### Test Case 2: Mixed Turkish Characters
+POST {{Server_HostAddress}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "email": "turkishtest2@example.com",
+  "username": "turkishtest2",
+  "phoneNumber": "05447627891",
+  "tckn": "11111111111",
+  "password": "Test123!",
+  "firstName": "özgür",
+  "lastName": "şahin",
+  "profession": "Software Engineer",
+  "birthDate": "1985-05-15T00:00:00Z"
+}
+
+### ===== MERNİS TEST WITH CORRECT DATA =====
+### Test MERNİS Verification with REAL VERIFIED Data
+POST {{Server_HostAddress}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "email": "furkanhydri2@gmail.com",
+  "username": "furkan_baba",
+  "phoneNumber": "+905447627896",
+  "tckn": "68593147632",
+  "password": "Furkan_730",
+  "firstName": "muhammed furkan",
+  "lastName": "haydari",
+  "profession": "Software Engineer",
+  "birthDate": "1998-01-01T00:00:00Z"
+} 
