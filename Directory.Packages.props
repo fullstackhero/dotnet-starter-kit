@@ -3,4 +3,6 @@
   <PackageVersion Include="Npgsql" Version="7.0.5" />
   <PackageVersion Include="Microsoft.Data.SqlClient" Version="5.2.0" />
   <PackageVersion Include="BCrypt.Net-Next" Version="4.0.3" />
+  <PackageVersion Include="Microsoft.Extensions.Options.Abstractions" Version="7.0.0" />
+  <PackageVersion Include="Microsoft.Extensions.Options" Version="7.0.0" />
 </ItemGroup> 

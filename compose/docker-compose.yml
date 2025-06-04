@@ -2,47 +2,47 @@ version: "4" #on wsl linux replace 3.8
 name: fullstackhero #on wsl linux replace with export COMPOSE_PROJECT_NAME=fullstackhero before docker-compose up command
 
 services:
-  webapi:
-    image: ${FSH_DOTNETSTARTERKIT_WEBAPI_IMAGE}
-    pull_policy: always
-    platform: linux/amd64
-    container_name: webapi
-    networks:
-      - fullstackhero
-    environment:
-      ASPNETCORE_ENVIRONMENT: docker
-      ASPNETCORE_URLS: https://+:7000;http://+:5000
-      ASPNETCORE_HTTPS_PORT: 7000
-      ASPNETCORE_Kestrel__Certificates__Default__Password: password!
-      ASPNETCORE_Kestrel__Certificates__Default__Path: /https/cert.pfx
-      DatabaseOptions__ConnectionString: Server=postgres;Port=5433;Database=fullstackhero;User Id=pgadmin;Password=pgadmin
-      DatabaseOptions__Provider: postgresql
-      JwtOptions__Key: QsJbczCNysv/5SGh+U7sxedX8C07TPQPBdsnSDKZ/aE=
-      HangfireOptions__Username: admin
-      HangfireOptions__Password: Secure1234!Me
-      MailOptions__From: mukesh@fullstackhero.net
-      MailOptions__Host: smtp.ethereal.email
-      MailOptions__Port: 587
-      MailOptions__UserName: sherman.oconnell47@ethereal.email
-      MailOptions__Password: KbuTCFv4J6Fy7256vh
-      MailOptions__DisplayName: Mukesh Murugan
-      CorsOptions__AllowedOrigins__0: http://localhost:5010
-      CorsOptions__AllowedOrigins__1: http://localhost:7100
-      CorsOptions__AllowedOrigins__2: https://localhost:7020
-      OpenTelemetryOptions__Endpoint: http://otel-collector:4317
-      RateLimitOptions__EnableRateLimiting: "false"
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
-      OTEL_SERVICE_NAME: FSH.Starter.WebApi.Host
-    volumes:
-      - ~/.aspnet/https:/https:ro #on wsl linux
-      #- /mnt/c/Users/eduar/.aspnet/https:/https:ro
-    ports:
-      - 5001:5000
-      - 7010:7000
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: on-failure
+  # webapi:
+  #   image: ${FSH_DOTNETSTARTERKIT_WEBAPI_IMAGE}
+  #   pull_policy: always
+  #   platform: linux/amd64
+  #   container_name: webapi
+  #   networks:
+  #     - fullstackhero
+  #   environment:
+  #     ASPNETCORE_ENVIRONMENT: docker
+  #     ASPNETCORE_URLS: https://+:7000;http://+:5000
+  #     ASPNETCORE_HTTPS_PORT: 7000
+  #     ASPNETCORE_Kestrel__Certificates__Default__Password: password!
+  #     ASPNETCORE_Kestrel__Certificates__Default__Path: /https/cert.pfx
+  #     DatabaseOptions__ConnectionString: Server=postgres;Port=5433;Database=fullstackhero;User Id=pgadmin;Password=pgadmin
+  #     DatabaseOptions__Provider: postgresql
+  #     JwtOptions__Key: QsJbczCNysv/5SGh+U7sxedX8C07TPQPBdsnSDKZ/aE=
+  #     HangfireOptions__Username: admin
+  #     HangfireOptions__Password: Secure1234!Me
+  #     MailOptions__From: mukesh@fullstackhero.net
+  #     MailOptions__Host: smtp.ethereal.email
+  #     MailOptions__Port: 587
+  #     MailOptions__UserName: sherman.oconnell47@ethereal.email
+  #     MailOptions__Password: KbuTCFv4J6Fy7256vh
+  #     MailOptions__DisplayName: Mukesh Murugan
+  #     CorsOptions__AllowedOrigins__0: http://localhost:5010
+  #     CorsOptions__AllowedOrigins__1: http://localhost:7100
+  #     CorsOptions__AllowedOrigins__2: https://localhost:7020
+  #     OpenTelemetryOptions__Endpoint: http://otel-collector:4317
+  #     RateLimitOptions__EnableRateLimiting: "false"
+  #     OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+  #     OTEL_SERVICE_NAME: FSH.Starter.WebApi.Host
+  #   volumes:
+  #     - ~/.aspnet/https:/https:ro #on wsl linux
+  #     #- /mnt/c/Users/eduar/.aspnet/https:/https:ro
+  #   ports:
+  #     - 5001:5000
+  #     - 7010:7000
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   restart: on-failure
 
   postgres:
     container_name: postgres

@@ -1,218 +1,265 @@
-# HTTP API Test Configuration Guide
+# 🌐 API Testing Suite - Enterprise HTTP Collection
 
-## 📁 File Structure
+> Comprehensive HTTP request collection for FSH Starter API testing with role-based organization and enterprise-grade structure.
 
-```
-src/api/server/
-├── Server.http         # Main configuration & quick start
-├── public.http         # Public endpoints (no auth required)
-├── base_user.http      # Regular user endpoints  
-├── admin.http          # Admin endpoints
-└── README-HTTP.md      # This guide
-```
+## 📁 File Organization
 
-## 🚀 Quick Start
+### 🔧 Core Files
+| File | Purpose | Authentication | Scope |
+|------|---------|----------------|-------|
+| `_variables.http` | **Global Variables** | None | Shared configuration, tokens, test data |
+| `public.http` | **Public Endpoints** | None | Registration, login, password reset |
+| `base_user.http` | **User Operations** | JWT Required | Profile management, verification |
+| `admin.http` | **Admin Operations** | Admin JWT | User management, system admin |
 
-### 1. Start the API Server
+### 📚 Documentation
+| File | Purpose |
+|------|---------|
+| `README-HTTP.md` | This documentation |
+| `Server.http` | API overview and quick start |
+
+## 🚀 Quick Start Guide
+
+### 1. Environment Setup
 ```bash
-cd src/api/server
-dotnet run
-```
-Server will start at: `https://localhost:7000`
+# Option A: Use _variables.http (manual token management)
+# Edit _variables.http and update tokens after login
 
-### 2. Test Health Check
-Open `Server.http` and run the health check:
-```http
-GET https://localhost:7000/api/v1/auth/test
+# Option B: Environment variables (CI/CD recommended)
+export ADMIN_TOKEN="eyJhbGciOiJIUzI1NiIs..."
+export BASE_USER_TOKEN="eyJhbGciOiJIUzI1NiIs..."
 ```
 
-### 3. Login and Get Tokens
-Open `public.http` and run:
-- **Admin Login**: Get admin token for `admin.http`
-- **Regular User Login**: Get user token for `base_user.http`
+### 2. Authentication Flow
+```
+Step 1: public.http → Admin Login → Copy accessToken
+Step 2: Update _variables.http → @admin_token = copied_token
+Step 3: Use admin.http with admin operations
+```
 
-### 4. Update Token Variables
-Copy JWT tokens from login responses and update:
-- `@admin_token` in `admin.http`
-- `@base_user_token` in `base_user.http`
+### 3. Testing Workflow
+```
+1. Health Check (public.http)
+2. Register Test Users (public.http)  
+3. Login as Different Roles (public.http)
+4. Role-based Operations (admin.http, base_user.http)
+5. Validation Testing (error scenarios)
+```
 
-## 🔐 Authentication Setup
+## 🎯 Role-Based Testing
 
-### Method 1: Manual Token Update (Recommended for Development)
-1. Run login request in `public.http`
-2. Copy `token` from response
-3. Update variable in respective HTTP file:
+### 👤 Base User Testing (`base_user.http`)
+**Required Token**: `base_user` role or higher
+```
+✅ Profile management (limited fields)
+✅ Password changes
+✅ Email/Phone verification
+✅ Contact information updates
+❌ Cannot access admin functions
+❌ Cannot modify other users
+```
+
+### 👑 Admin Testing (`admin.http`) 
+**Required Token**: `admin` or `customer_admin` role
+```
+✅ Full user management (CRUD)
+✅ Role assignment/removal
+✅ System administration
+✅ User analytics and reporting
+✅ Override all restrictions
+```
+
+### 🌐 Public Testing (`public.http`)
+**No Authentication Required**
+```
+✅ User registration with MERNİS verification
+✅ Authentication (login/token generation)
+✅ Password reset workflows
+✅ Health checks and API information
+✅ Input validation testing
+```
+
+## 🎫 Token Management
+
+### Automatic Token Handling
 ```http
+# In public.http - Named requests for token capture
+# @name adminLogin
+POST {{Base_Auth_URL}}/login
+
+# In admin.http - Automatic token usage
+@admin_token = {{adminLogin.response.body.accessToken}}
+```
+
+### Manual Token Management
+```http
+# Copy from login response and paste
 @admin_token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+# Use in requests
+Authorization: Bearer {{admin_token}}
 ```
 
-### Method 2: Environment Variables (Recommended for CI/CD)
-Set environment variables:
+### Environment Variables (Production/CI)
 ```bash
-export ADMIN_TOKEN="your_admin_jwt_token"
-export BASE_USER_TOKEN="your_user_jwt_token"
-```
+# Set environment variables
+export ADMIN_TOKEN="your_admin_token"
+export BASE_USER_TOKEN="your_user_token"
 
-Then uncomment in HTTP files:
-```http
+# Use in .http files
 @admin_token = {{$dotenv ADMIN_TOKEN}}
 ```
 
-### Method 3: Response References (Advanced)
-Use response from previous requests:
+## 🧪 Test Scenarios
+
+### ✅ Positive Testing
+- User registration with valid data
+- Successful authentication flows
+- Profile updates within role permissions
+- Role-based access validation
+
+### ⚠️ Negative Testing
+- Invalid credentials
+- Malformed input data
+- Unauthorized access attempts
+- Role escalation prevention
+
+### 🔐 Security Testing
+- Token expiration handling
+- Permission boundary testing
+- Input validation bypass attempts
+- SQL injection prevention
+
+## 📊 Advanced Features
+
+### Variable Inheritance
 ```http
-@admin_token = {{adminLogin.response.body.token}}
+# Global variables in _variables.http
+@Server_HostAddress = https://localhost:7000
+@Base_Auth_URL = {{Server_HostAddress}}/api/v1/auth
+
+# Used across all files
+POST {{Base_Auth_URL}}/login
 ```
 
-## 👤 Default Users
+### Response Chaining
+```http
+# Capture response in public.http
+# @name createUser
+POST {{Base_Auth_URL}}/register
 
-### Admin User
-- **Email**: `admin@system.com`
-- **Password**: `Admin123!`
-- **Roles**: `admin`
-- **Access**: All endpoints
+# Use response in admin.http
+GET {{Base_Auth_URL}}/users/{{createUser.response.body.userId}}
+```
 
-### Test Users (Create via public.http)
-Register new users for testing different scenarios.
+### Dynamic Test Data
+```http
+# Parameterized requests with test data
+POST {{Base_Auth_URL}}/register
+{
+  "email": "test-{{$randomInt}}@example.com",
+  "tckn": "{{test_tckn_1}}",
+  "phoneNumber": "{{test_phone_1}}"
+}
+```
 
-## 📋 Endpoint Categories
+## 🔧 Configuration Options
 
-### Public Endpoints (`public.http`)
-- ✅ Registration with MERNİS verification
-- ✅ Login (admin & user)
-- ✅ Password reset flow
-- ✅ Token refresh
-- ✅ Health check
-
-### Base User Endpoints (`base_user.http`)
-- ✅ Profile management (limited fields)
-- ✅ Email/phone update (separate secure endpoints)
-- ✅ Password change
-- ✅ Email/phone verification
-- ✅ Permission checking
-
-### Admin Endpoints (`admin.http`)
-- ✅ User management (CRUD)
-- ✅ Role assignment/removal
-- ✅ User filtering by role
-- ✅ Soft/hard delete operations
-- ✅ Full profile updates (all fields)
-
-## 🔧 Configuration Notes
-
-### Server Configuration
+### Development Environment
 ```http
 @Server_HostAddress = https://localhost:7000
-```
-Change this if your server runs on different port/host.
-
-### SSL/HTTPS
-- Development uses self-signed certificates
-- Accept certificate warnings in your HTTP client
-- For production, configure proper SSL certificates
-
-### MERNİS Integration
-- Currently uses mock verification for development
-- Enable real MERNİS in production via configuration
-- Test TCKN format: `11111111110` (development)
-- **Turkish Character Support**: Automatic conversion for proper MERNİS verification
-  - `i` → `İ` (Turkish capital i with dot)
-  - `ı` → `I` (Turkish capital i without dot)  
-  - `ç` → `Ç`, `ğ` → `Ğ`, `ö` → `Ö`, `ş` → `Ş`, `ü` → `Ü`
-  - Uses Turkish culture (`tr-TR`) for accurate character conversion
-  - Example: `ibrahim` becomes `İBRAHİM` for MERNİS API
-
-## 🛡️ Security Features
-
-### Implemented
-- ✅ JWT authentication with role-based authorization
-- ✅ Password strength validation
-- ✅ Rate limiting for sensitive endpoints
-- ✅ MERNİS identity verification
-- ✅ Email enumeration protection
-- ✅ Single-use password reset tokens
-- ✅ Separate endpoints for email/phone updates
-
-### Token Management
-- **Expiration**: Configurable (default varies by endpoint)
-- **Refresh**: Automatic refresh token rotation
-- **Security**: HMAC-SHA256 signing with secure secrets
-
-## 📱 Turkish Localization
-
-### TCKN Validation
-- Algorithm-based validation
-- MERNİS government API integration
-- Format: 11-digit Turkish ID number
-
-### Phone Numbers
-- Format: `05XXXXXXXXX` (Turkish mobile)
-- Validation for Turkish phone number patterns
-
-### Character Support
-- Full Turkish character support (ç, ğ, ı, ö, ş, ü)
-- UTF-8 encoding throughout
-
-## 🧪 Testing Workflow
-
-### 1. Development Testing
-```
-public.http → register/login → copy tokens → base_user.http/admin.http
+# MERNİS verification disabled
+# Console logging enabled
+# Relaxed validation
 ```
 
-### 2. Role Testing
-- Test each role's access restrictions
-- Verify permission boundaries
-- Test role assignment/removal
+### Production Environment  
+```http
+@Server_HostAddress = https://api.yourcompany.com
+# MERNİS verification enabled
+# Email service configured
+# Strict validation
+```
 
-### 3. Security Testing
-- Test with expired tokens
-- Test with invalid/malformed requests
-- Test rate limiting behavior
+### Test Environment
+```http
+@Server_HostAddress = https://test-api.yourcompany.com
+# Mock services
+# Seeded test data
+# Automated test runners
+```
+
+## 📋 Best Practices
+
+### 🎯 Organization
+- ✅ Group related requests by functionality
+- ✅ Use descriptive request names
+- ✅ Include clear comments and documentation
+- ✅ Separate test scenarios from functional tests
+
+### 🔐 Security
+- ✅ Never commit real tokens to version control
+- ✅ Use environment variables for sensitive data
+- ✅ Rotate test credentials regularly
+- ✅ Validate all security boundaries
+
+### 🧪 Testing
+- ✅ Test both positive and negative scenarios
+- ✅ Include edge cases and boundary conditions
+- ✅ Validate error responses and status codes
+- ✅ Document expected behaviors
+
+### 📝 Documentation
+- ✅ Comment complex request scenarios
+- ✅ Document required permissions
+- ✅ Include usage examples
+- ✅ Maintain up-to-date endpoint documentation
 
 ## 🚨 Troubleshooting
 
 ### Common Issues
 
-**"Unauthorized" Responses**
-- Check if token is valid and not expired
-- Ensure correct token is used for endpoint
-- Verify token includes required claims
+**401 Unauthorized**
+```
+• Token expired (check expiration)
+• Token malformed (copy-paste errors)
+• Wrong token for endpoint role requirement
+```
 
-**SSL Certificate Errors**
-- Accept self-signed certificate in HTTP client
-- Or configure proper certificates for production
+**403 Forbidden**
+```
+• Insufficient role permissions
+• Trying admin endpoint with user token
+• Role hierarchy violation
+```
 
-**MERNİS Verification Failures**
-- Use test TCKN: `11111111110` in development
-- Check if MERNİS service is enabled in configuration
+**400 Bad Request**
+```
+• Invalid request format
+• Missing required fields
+• Validation errors
+```
 
-**Rate Limiting**
-- Wait for rate limit window to reset
-- Check rate limiting configuration
-- Use different user accounts for testing
+**Connection Issues**
+```
+• Check server is running on correct port
+• Verify base URL configuration
+• Check for proxy/firewall issues
+```
 
-### Getting Help
-- Check server console logs for detailed errors
-- Verify database connection and migrations
-- Review API documentation in `Server.http`
+### Debug Steps
+1. Verify server is running (`public.http` health check)
+2. Check token validity (login again if needed)
+3. Validate request format against API documentation
+4. Check server logs for detailed error information
 
-## 🔄 Updates and Maintenance
+## 📞 Support
 
-### Token Refresh
-Tokens expire regularly. When you get 401 responses:
-1. Run login requests in `public.http`
-2. Update token variables
-3. Resume testing
+- **API Documentation**: `/swagger` when server is running
+- **Health Check**: `GET /api/v1/auth/test`
+- **Base URL**: `{{Server_HostAddress}}/api/v1/auth`
+- **Default Admin**: `admin@system.com` / `Admin123!`
 
-### Version Updates
-- Keep HTTP files synchronized with API changes
-- Update documentation when adding new endpoints
-- Test all endpoints after API updates
+---
 
-## 📞 Support Information
-
-- **API Base URL**: `https://localhost:7000`
-- **Database**: PostgreSQL (localhost:5433)
-- **Documentation**: Inline comments in HTTP files
-- **Admin Contact**: Default admin user credentials above 
+Built with ❤️ for enterprise-grade API testing 

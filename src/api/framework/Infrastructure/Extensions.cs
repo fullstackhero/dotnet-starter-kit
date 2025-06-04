@@ -66,6 +66,25 @@ public static class Extensions
         builder.Services.ConfigureRateLimit(builder.Configuration);
         builder.Services.ConfigureSecurityHeaders(builder.Configuration);
 
+        // Register repositories & services
+        builder.Services.AddScoped<FSH.Framework.Core.Auth.Repositories.IUserRepository, Auth.DapperUserRepository>();
+        builder.Services.AddSingleton<FSH.Framework.Core.Auth.Services.IJwtTokenGenerator, Auth.Jwt.JwtTokenGenerator>();
+        builder.Services.AddScoped<FSH.Framework.Core.Auth.Services.IValidationService, Auth.ValidationService>();
+        builder.Services.AddScoped<FSH.Framework.Core.Auth.Features.Login.ITokenService, Auth.Jwt.TokenService>();
+        builder.Services.AddScoped<FSH.Framework.Core.Auth.Services.ISmsService, Services.SmsService>();
+        builder.Services.AddScoped<FSH.Framework.Core.Auth.Services.IVerificationService, Auth.VerificationService>();
+        builder.Services.AddOptions<Auth.VerificationOptions>().BindConfiguration(nameof(Auth.VerificationOptions));
+        
+        // Register MERNİS Identity Verification Service with HttpClient
+        builder.Services.AddHttpClient<FSH.Framework.Core.Auth.Services.IIdentityVerificationService, Auth.MernisIdentityVerificationService>(client =>
+        {
+            var timeoutSecondsString = builder.Configuration["MernisService:TimeoutSeconds"];
+            var timeoutSeconds = int.TryParse(timeoutSecondsString, out var parsed) ? parsed : 30;
+            client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
+        });
+
+        builder.Services.AddSingleton<FSH.Framework.Core.Auth.Repositories.IRefreshTokenRepository, Auth.InMemoryRefreshTokenRepository>();
+
         return builder;
     }
 
@@ -87,16 +106,6 @@ public static class Extensions
         });
         app.UseAuthentication();
         app.UseAuthorization();
-
-        // Register API versions
-        var versions = app.NewApiVersionSet()
-                    .HasApiVersion(1)
-                    .HasApiVersion(2)
-                    .ReportApiVersions()
-                    .Build();
-
-        // Map versioned endpoint
-        app.MapGroup("api/v{version:apiVersion}").WithApiVersionSet(versions);
 
         return app;
     }

@@ -1,39 +1,35 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
+using FSH.Framework.Core.Auth.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace FSH.Starter.WebApi.Host;
+namespace FSH.Framework.Infrastructure.Auth;
 
-public interface IPasswordResetService
+public sealed class PasswordResetService : IPasswordResetService
 {
-    Task<string> GenerateResetTokenAsync(string email);
-    Task<bool> ValidateResetTokenAsync(string email, string token);
-    Task InvalidateResetTokenAsync(string email);
-    Task<bool> IsRateLimitedAsync(string email);
-}
-
-public class PasswordResetService : IPasswordResetService
-{
-    private static readonly ConcurrentDictionary<string, string> _resetTokens = new ();
-    private static readonly ConcurrentDictionary<string, DateTime> _tokenExpiry = new ();
-    private static readonly ConcurrentDictionary<string, (int Count, DateTime FirstAttempt)> _rateLimitTracker = new ();
+    private static readonly ConcurrentDictionary<string, string> _resetTokens = new();
+    private static readonly ConcurrentDictionary<string, DateTime> _tokenExpiry = new();
+    private static readonly ConcurrentDictionary<string, (int Count, DateTime FirstAttempt)> _rateLimitTracker = new();
 
     private readonly ILogger<PasswordResetService> _logger;
+    private readonly DapperUserRepository _userRepository;
     private readonly int _tokenExpirationMinutes;
     private readonly int _maxAttemptsPerHour;
 
-    public PasswordResetService(ILogger<PasswordResetService> logger, IConfiguration configuration)
+    public PasswordResetService(
+        ILogger<PasswordResetService> logger, 
+        IConfiguration configuration,
+        DapperUserRepository userRepository)
     {
-        _logger = logger;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         _tokenExpirationMinutes = configuration.GetValue<int>("PasswordReset:TokenExpirationMinutes", 15);
         _maxAttemptsPerHour = configuration.GetValue<int>("PasswordReset:MaxAttemptsPerHour", 3);
         
-        Console.WriteLine($"[DEBUG] PasswordResetService configured: TokenExpiration={_tokenExpirationMinutes}min, MaxAttempts={_maxAttemptsPerHour}/hour");
+        _logger.LogDebug("PasswordResetService configured: TokenExpiration={TokenExpiration}min, MaxAttempts={MaxAttempts}/hour", 
+            _tokenExpirationMinutes, _maxAttemptsPerHour);
     }
 
     public async Task<string> GenerateResetTokenAsync(string email)
@@ -60,19 +56,18 @@ public class PasswordResetService : IPasswordResetService
             await TrackResetAttemptAsync(email);
 
             _logger.LogInformation("Password reset token generated for email: {Email}, expires at: {ExpiryTime}", email, expiryTime);
-            Console.WriteLine($"Password reset token for {email}: {token}");
-            Console.WriteLine($"Token expires at: {expiryTime:yyyy-MM-dd HH:mm:ss} UTC");
+            _logger.LogDebug("Password reset token for {Email}: {Token}", email, token);
 
             return token;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to generate password reset token for email: {Email}. Exception: {Message}", email, ex.Message);
+            _logger.LogError(ex, "Failed to generate password reset token for email: {Email}", email);
             throw new InvalidOperationException($"Failed to generate password reset token for email: {email}", ex);
         }
     }
 
-    public async Task<bool> ValidateResetTokenAsync(string email, string token)
+    public Task<bool> ValidateResetTokenAsync(string email, string token)
     {
         try
         {
@@ -83,29 +78,29 @@ public class PasswordResetService : IPasswordResetService
             if (!_resetTokens.TryGetValue(emailKey, out var storedToken) ||
                 !_tokenExpiry.TryGetValue(emailKey, out var expiryTime))
             {
-                Console.WriteLine($"[DEBUG] No token found for email: {email}");
-                return false;
+                _logger.LogDebug("No token found for email: {Email}", email);
+                return Task.FromResult(false);
             }
 
             if (DateTime.UtcNow > expiryTime)
             {
-                Console.WriteLine($"[DEBUG] Token expired for email: {email} (expired at: {expiryTime})");
-                return false;
+                _logger.LogDebug("Token expired for email: {Email} (expired at: {ExpiryTime})", email, expiryTime);
+                return Task.FromResult(false);
             }
 
             var isValid = string.Equals(storedToken, token, StringComparison.Ordinal);
-            Console.WriteLine($"[DEBUG] Token validation for {email}: {isValid}");
+            _logger.LogDebug("Token validation for {Email}: {IsValid}", email, isValid);
             
-            return await Task.FromResult(isValid);
+            return Task.FromResult(isValid);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error validating password reset token for email: {Email}. Exception: {Message}", email, ex.Message);
-            return false;
+            _logger.LogError(ex, "Error validating password reset token for email: {Email}", email);
+            return Task.FromResult(false);
         }
     }
 
-    public async Task InvalidateResetTokenAsync(string email)
+    public Task InvalidateResetTokenAsync(string email)
     {
         try
         {
@@ -114,19 +109,18 @@ public class PasswordResetService : IPasswordResetService
             _resetTokens.TryRemove(emailKey, out _);
             _tokenExpiry.TryRemove(emailKey, out _);
             
-            Console.WriteLine($"[DEBUG] Password reset token invalidated for email: {email}");
+            _logger.LogDebug("Password reset token invalidated for email: {Email}", email);
             _logger.LogInformation("Password reset token invalidated for email: {Email}", email);
-            
-            await Task.CompletedTask;
+            return Task.CompletedTask;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error invalidating password reset token for email: {Email}. Exception: {Message}", email, ex.Message);
+            _logger.LogError(ex, "Error invalidating password reset token for email: {Email}", email);
             throw new InvalidOperationException($"Error invalidating password reset token for email: {email}", ex);
         }
     }
 
-    public async Task<bool> IsRateLimitedAsync(string email)
+    public Task<bool> IsRateLimitedAsync(string email)
     {
         try
         {
@@ -139,26 +133,26 @@ public class PasswordResetService : IPasswordResetService
                 if (now.Subtract(attempts.FirstAttempt).TotalHours >= 1)
                 {
                     _rateLimitTracker.TryRemove(emailKey, out _);
-                    return false;
+                    return Task.FromResult(false);
                 }
                 
                 if (attempts.Count >= _maxAttemptsPerHour)
                 {
-                    Console.WriteLine($"[DEBUG] Rate limit exceeded for email: {email} ({attempts.Count}/{_maxAttemptsPerHour})");
-                    return true;
+                    _logger.LogDebug("Rate limit exceeded for email: {Email} ({Count}/{Max})", email, attempts.Count, _maxAttemptsPerHour);
+                    return Task.FromResult(true);
                 }
             }
             
-            return await Task.FromResult(false);
+            return Task.FromResult(false);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error checking rate limit for email: {Email}. Exception: {Message}", email, ex.Message);
+            _logger.LogError(ex, "Error checking rate limit for email: {Email}", email);
             throw new InvalidOperationException($"Error checking rate limit for email: {email}", ex);
         }
     }
 
-    private static async Task TrackResetAttemptAsync(string email)
+    private static Task TrackResetAttemptAsync(string email)
     {
         var emailKey = email.ToUpperInvariant();
         var now = DateTime.UtcNow;
@@ -176,8 +170,8 @@ public class PasswordResetService : IPasswordResetService
 
                 return (existing.Count + 1, existing.FirstAttempt);
             });
-            
-        await Task.CompletedTask;
+
+        return Task.CompletedTask;
     }
 
     private static string GenerateSecureToken()
@@ -198,20 +192,38 @@ public class PasswordResetService : IPasswordResetService
     private static void CleanupExpiredTokens()
     {
         var now = DateTime.UtcNow;
-        var expiredKeys = new List<string>();
-        
+        var keysToRemove = new List<string>();
+
         foreach (var kvp in _tokenExpiry)
         {
             if (now > kvp.Value)
             {
-                expiredKeys.Add(kvp.Key);
+                keysToRemove.Add(kvp.Key);
             }
         }
-        
-        foreach (var key in expiredKeys)
+
+        foreach (var key in keysToRemove)
         {
             _resetTokens.TryRemove(key, out _);
             _tokenExpiry.TryRemove(key, out _);
+        }
+    }
+
+    public async Task ResetUserPasswordAsync(string email, string newPassword)
+    {
+        try
+        {
+            _logger.LogInformation("Resetting password for email: {Email}", email);
+            
+            // Use Dapper repository to reset password by email
+            await _userRepository.ResetPasswordAsync(email, newPassword);
+            
+            _logger.LogInformation("Password successfully reset for email: {Email}", email);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to reset password for email: {Email}", email);
+            throw new InvalidOperationException($"Failed to reset password for email: {email}", ex);
         }
     }
 } 

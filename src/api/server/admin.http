@@ -1,49 +1,64 @@
+# ===================================================================
+# 👑 ADMIN ENDPOINTS - Administrative Operations
+# ===================================================================
+# Required: Valid JWT token with 'admin' or 'customer_admin' role
+# Scope: User management, role assignment, system administration
+
 @Server_HostAddress = https://localhost:7000
+@API_Version = v1
+@Base_Auth_URL = {{Server_HostAddress}}/api/{{API_Version}}/auth
+@Admin_URL = {{Server_HostAddress}}/api/{{API_Version}}/admin
 
-# Option 1: Manual Token Update (copy from login response in public.http)
-@admin_token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.COPY_TOKEN_FROM_ADMIN_LOGIN
+# ===================================================================
+# 🎫 TOKEN MANAGEMENT
+# ===================================================================
 
-# Option 2: Use response from public.http admin login (if using same workspace)
-# @admin_token = {{adminLogin.response.body.token}}
+# Option 1: From public.http admin login
+@admin_token = {{adminLogin.response.body.accessToken}}
 
-### ===== TOKEN SETUP INSTRUCTIONS =====
-# 1. Go to public.http and run "Login - Admin User" request
-# 2. Copy the JWT token from response
-# 3. Replace "COPY_TOKEN_FROM_ADMIN_LOGIN" above with the token
-# 4. Or set ADMIN_TOKEN environment variable
+# Option 2: Environment variable (CI/CD)
+# @admin_token = {{$dotenv ADMIN_TOKEN}}
 
-### ===== ADMIN ENDPOINTS (Authentication Required - Admin/Customer Admin Only) =====
+# Option 3: Manual token (for quick testing)
+# @admin_token = eyJhbGciOiJIUzI1NiIs...
 
-### Get All Users
-GET {{Server_HostAddress}}/api/v1/admin/users
+# ===================================================================
+# 👥 USER MANAGEMENT - CRUD Operations
+# ===================================================================
+
+### List All Users (Paginated)
+GET {{Base_Auth_URL}}/users
 Authorization: Bearer {{admin_token}}
 
-### Create New User (Admin Only)
-POST {{Server_HostAddress}}/api/v1/admin/users
+### List Users with Pagination
+GET {{Base_Auth_URL}}/users?page=1&size=10
+Authorization: Bearer {{admin_token}}
+
+### Get Specific User by ID
+# @name getUser
+GET {{Base_Auth_URL}}/users/{{$guid}}
+Authorization: Bearer {{admin_token}}
+
+### Create New User
+# @name createUser
+POST {{Base_Auth_URL}}/users/register
 Authorization: Bearer {{admin_token}}
 Content-Type: application/json
 
 {
-  "email": "newuser@example.com",
-  "username": "newuser123",
-  "phoneNumber": "+905551234567",
-  "password": "NewUser123!",
-  "firstName": "New",
+  "email": "adminuser@example.com",
+  "username": "adminuser",
+  "phoneNumber": "5551234567",
+  "tckn": "55555555555",
+  "password": "AdminUser123!",
+  "firstName": "Admin",
   "lastName": "User",
-  "profession": "Software Developer",
-  "role": "base_user",
-  "status": "ACTIVE",
-  "isIdentityVerified": false,
-  "isPhoneVerified": false,
-  "isEmailVerified": false
+  "profession": "System Administrator",
+  "birthDate": "1985-01-01T00:00:00Z"
 }
 
-### Get Specific User
-GET {{Server_HostAddress}}/api/v1/admin/users/ca3b76a4-abb2-4fe8-9a42-a717196f02e6
-Authorization: Bearer {{admin_token}}
-
-### Update User (Admin Only)
-PUT {{Server_HostAddress}}/api/v1/admin/users/ca3b76a4-abb2-4fe8-9a42-a717196f02e6
+### Update User (Full Admin Access)
+PUT {{Base_Auth_URL}}/users/{{$guid}}
 Authorization: Bearer {{admin_token}}
 Content-Type: application/json
 
@@ -52,8 +67,8 @@ Content-Type: application/json
   "username": "updateduser",
   "firstName": "Updated",
   "lastName": "User",
-  "phoneNumber": "+905559876543",
-  "profession": "Senior Developer",
+  "phoneNumber": "5559876543",
+  "profession": "Senior Administrator",
   "status": "ACTIVE",
   "isIdentityVerified": true,
   "isPhoneVerified": true,
@@ -61,61 +76,196 @@ Content-Type: application/json
 }
 
 ### Soft Delete User
-DELETE {{Server_HostAddress}}/api/v1/admin/users/ca3b76a4-abb2-4fe8-9a42-a717196f02e6
+DELETE {{Base_Auth_URL}}/users/{{$guid}}
 Authorization: Bearer {{admin_token}}
 
-### Permanent Delete User (Super Admin Only)
-DELETE {{Server_HostAddress}}/api/v1/admin/users/ca3b76a4-abb2-4fe8-9a42-a717196f02e6/permanent
+### Hard Delete User (Permanent - Admin Only)
+DELETE {{Base_Auth_URL}}/users/{{$guid}}/hard
 Authorization: Bearer {{admin_token}}
 
-### ===== ROLE MANAGEMENT =====
+# ===================================================================
+# 🎭 ROLE MANAGEMENT
+# ===================================================================
 
-### Get Available Roles
-GET {{Server_HostAddress}}/api/v1/admin/roles
+### Get All Available Roles
+GET {{Base_Auth_URL}}/roles
 Authorization: Bearer {{admin_token}}
 
-### Get User Roles
-GET {{Server_HostAddress}}/api/v1/admin/users/ca3b76a4-abb2-4fe8-9a42-a717196f02e6/roles
+### Get User's Roles
+GET {{Base_Auth_URL}}/users/{{$guid}}/roles
 Authorization: Bearer {{admin_token}}
 
 ### Assign Role to User
-POST {{Server_HostAddress}}/api/v1/admin/users/ca3b76a4-abb2-4fe8-9a42-a717196f02e6/roles
+POST {{Base_Auth_URL}}/users/{{$guid}}/roles
 Authorization: Bearer {{admin_token}}
 Content-Type: application/json
 
 {
-  "roleId": "customer_admin"
+  "role": "customer_admin"
 }
 
 ### Remove Role from User
-DELETE {{Server_HostAddress}}/api/v1/auth/users/00000000-0000-0000-0000-000000000001/roles/customer_admin
+DELETE {{Base_Auth_URL}}/users/{{$guid}}/roles/customer_admin
 Authorization: Bearer {{admin_token}}
 
-### Get Users by Role
-GET {{Server_HostAddress}}/api/v1/auth/users/by-role/admin
+# ===================================================================
+# 🔍 USER FILTERING & SEARCH
+# ===================================================================
+
+### Get Users by Role - Admins
+GET {{Base_Auth_URL}}/users/by-role/admin
 Authorization: Bearer {{admin_token}}
 
-### Get Users by Role - Customer Admin
-GET {{Server_HostAddress}}/api/v1/auth/users/by-role/customer_admin
+### Get Users by Role - Customer Admins
+GET {{Base_Auth_URL}}/users/by-role/customer_admin
 Authorization: Bearer {{admin_token}}
 
-### Get Users by Role - Customer Support
-GET {{Server_HostAddress}}/api/v1/auth/users/by-role/customer_support
+### Get Users by Role - Support Staff
+GET {{Base_Auth_URL}}/users/by-role/customer_support
 Authorization: Bearer {{admin_token}}
 
-### Get Users by Role - Base User
-GET {{Server_HostAddress}}/api/v1/auth/users/by-role/base_user
+### Get Users by Role - Base Users
+GET {{Base_Auth_URL}}/users/by-role/base_user
 Authorization: Bearer {{admin_token}}
 
-### ===== NOTES =====
+### Search Users by Email
+GET {{Base_Auth_URL}}/users/search?email=admin@example.com
+Authorization: Bearer {{admin_token}}
+
+### Search Users by Username
+GET {{Base_Auth_URL}}/users/search?username=admin
+Authorization: Bearer {{admin_token}}
+
+### Filter Users by Status
+GET {{Base_Auth_URL}}/users?status=ACTIVE
+Authorization: Bearer {{admin_token}}
+
+### Filter Verified Users
+GET {{Base_Auth_URL}}/users?verified=true
+Authorization: Bearer {{admin_token}}
+
+# ===================================================================
+# 📊 ANALYTICS & REPORTING
+# ===================================================================
+
+### Get User Statistics
+GET {{Admin_URL}}/stats/users
+Authorization: Bearer {{admin_token}}
+
+### Get Role Distribution
+GET {{Admin_URL}}/stats/roles
+Authorization: Bearer {{admin_token}}
+
+### Get Registration Statistics
+GET {{Admin_URL}}/stats/registrations?period=30days
+Authorization: Bearer {{admin_token}}
+
+### Get Login Activity
+GET {{Admin_URL}}/stats/activity?period=7days
+Authorization: Bearer {{admin_token}}
+
+# ===================================================================
+# ⚙️ SYSTEM ADMINISTRATION
+# ===================================================================
+
+### System Health Check
+GET {{Admin_URL}}/health
+Authorization: Bearer {{admin_token}}
+
+### Get System Configuration
+GET {{Admin_URL}}/config
+Authorization: Bearer {{admin_token}}
+
+### Update System Settings
+PUT {{Admin_URL}}/settings
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "maintenanceMode": false,
+  "registrationEnabled": true,
+  "mernisVerificationRequired": true
+}
+
+### Clear System Cache
+POST {{Admin_URL}}/cache/clear
+Authorization: Bearer {{admin_token}}
+
+# ===================================================================
+# 🧪 TESTING SCENARIOS
+# ===================================================================
+
+### Test Invalid Role Assignment
+POST {{Base_Auth_URL}}/users/{{$guid}}/roles
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "role": "invalid_role"
+}
+
+### Test User Creation with Duplicate Email
+POST {{Base_Auth_URL}}/users/register
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "username": "duplicatetest",
+  "phoneNumber": "5556666666",
+  "tckn": "66666666666",
+  "password": "Test123!",
+  "firstName": "Duplicate",
+  "lastName": "Test",
+  "profession": "Tester",
+  "birthDate": "1990-01-01T00:00:00Z"
+}
+
+### Test Insufficient Permissions (Customer Admin accessing Hard Delete)
+DELETE {{Base_Auth_URL}}/users/{{$guid}}/hard
+Authorization: Bearer {{customer_admin_token}}
+
+# ===================================================================
+# 🔐 SECURITY TESTING
+# ===================================================================
+
+### Test Admin Access with Base User Token
+GET {{Base_Auth_URL}}/users
+Authorization: Bearer {{base_user_token}}
+
+### Test Role Escalation Prevention
+POST {{Base_Auth_URL}}/users/{{$guid}}/roles
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "role": "admin"
+}
+
+# ===================================================================
+# 📋 USAGE NOTES
+# ===================================================================
+#
 # ADMIN CAPABILITIES:
-# ✅ Create users with any role
-# ✅ Update ALL user fields (including firstName, lastName)
-# ✅ Delete users (soft delete)
-# ✅ Hard delete users (permanent removal)
-# ✅ Assign/remove roles
-# ✅ View all users and filter by role
-# ✅ Bypass all profile update restrictions
+# ✅ Create users with any initial role
+# ✅ Update ALL user fields (no restrictions)
+# ✅ Soft delete users (recoverable)
+# ✅ Hard delete users (permanent - admin only)
+# ✅ Assign/remove roles from users
+# ✅ View all users and filter by criteria
+# ✅ Access user analytics and statistics
+# ✅ System administration functions
+# ✅ Override profile update restrictions
+#
+# CUSTOMER ADMIN CAPABILITIES:
+# ✅ Manage users within their organization
+# ✅ Assign roles (except admin)
+# ✅ View user statistics
+# ❌ Hard delete users
+# ❌ System configuration changes
+#
+# ROLE HIERARCHY:
+# admin > customer_admin > customer_support > base_user
 #
 # AVAILABLE ROLES:
 # - admin: Full system access
@@ -123,16 +273,28 @@ Authorization: Bearer {{admin_token}}
 # - customer_support: Customer support access  
 # - base_user: Standard user access
 #
-# PERMISSION HIERARCHY:
-# admin > customer_admin > customer_support > base_user
-#
-# SECURITY NOTES:
-# - Admin token required for all endpoints
-# - Hard delete is admin-only (most destructive operation)
+# SECURITY FEATURES:
+# - All endpoints require admin/customer_admin token
+# - Hard delete restricted to admin role only
 # - Role assignment follows business rules
-# - All admin actions are logged
+# - All admin actions are audited and logged
+# - Input validation on all operations
 #
-# HOW TO GET FRESH ADMIN TOKEN:
-# 1. Use public.http to login with admin credentials
-# 2. Copy JWT token from response
-# 3. Update @admin_token variable above 
+# TOKEN SETUP:
+# 1. Run public.http → "Admin Login"
+# 2. Token automatically available as {{adminLogin.response.body.accessToken}}
+# 3. Or set ADMIN_TOKEN environment variable
+#
+# ERROR HANDLING:
+# - 401: Invalid or expired token
+# - 403: Insufficient permissions (role hierarchy)
+# - 400: Validation errors
+# - 409: Conflict (duplicate email/username)
+# - 422: Business rule violations
+#
+# BEST PRACTICES:
+# - Use soft delete by default
+# - Hard delete only for GDPR compliance
+# - Regular audit of admin actions
+# - Monitor role assignments
+# - Implement approval workflows for sensitive operations 

@@ -1,30 +1,30 @@
+# ===================================================================
+# 🌐 PUBLIC ENDPOINTS - Authentication & Registration
+# ===================================================================
+# No authentication required for these endpoints
+# Used for: Registration, Login, Password Reset, Health Checks
+
 @Server_HostAddress = https://localhost:7000
-@reset_token = DHNFfUaSLL4e4zvxBN8mfXHh8JokF7byHguOBusGg4
+@API_Version = v1
+@Base_Auth_URL = {{Server_HostAddress}}/api/{{API_Version}}/auth
 
-### ===== PUBLIC ENDPOINTS (No Authentication Required) =====
+# ===================================================================
+# 🏥 HEALTH & STATUS CHECKS
+# ===================================================================
 
-### Health Check
-GET {{Server_HostAddress}}/api/v1/auth/test
+### API Health Check
+GET {{Base_Auth_URL}}/test
 
-### Register New User (with MERNİS verification)
-POST {{Server_HostAddress}}/api/v1/auth/register
-Content-Type: application/json
+### API Information
+GET {{Server_HostAddress}}/api
 
-{
-  "email": "testuser@example.com",
-  "username": "testuser",
-  "phoneNumber": "05447627858",
-  "tckn": "11111111110",
-  "password": "Test123!",
-  "firstName": "TEST",
-  "lastName": "USER",
-  "profession": "Software Engineer",
-  "birthDate": "1990-01-01T00:00:00Z"
-}
+# ===================================================================
+# 🔐 AUTHENTICATION FLOWS
+# ===================================================================
 
-### Login - Admin User
+### Admin Login (Copy token for admin.http)
 # @name adminLogin
-POST {{Server_HostAddress}}/api/v1/auth/login
+POST {{Base_Auth_URL}}/login
 Content-Type: application/json
 
 {
@@ -32,169 +32,237 @@ Content-Type: application/json
   "password": "Admin123!"
 }
 
-### Login - Regular User
-POST {{Server_HostAddress}}/api/v1/auth/login
+### Standard User Login
+# @name userLogin
+POST {{Base_Auth_URL}}/login
 Content-Type: application/json
 
 {
-  "tckn": "68593147632",
-  "password": "Furkan_732"
+  "tckn": "11111111110",
+  "password": "User123!"
 }
 
-### Generate Token
-POST {{Server_HostAddress}}/api/v1/auth/token
+### Generate Token (Alternative method)
+POST {{Base_Auth_URL}}/token
 Content-Type: application/json
 
 {
-  "tckn": "68593147632",
-  "password": "Furkan_730"
+  "tckn": "11111111110",
+  "password": "User123!"
 }
 
 ### Refresh Token
-POST {{Server_HostAddress}}/api/v1/auth/refresh
+POST {{Base_Auth_URL}}/refresh
 Content-Type: application/json
 
 {
-  "token": "current-jwt-token",
-  "refreshToken": "refresh-token-here"
+  "token": "{{userLogin.response.body.accessToken}}",
+  "refreshToken": "{{userLogin.response.body.refreshToken}}"
 }
 
-### Forgot Password (Production-Grade with Rate Limiting)
-# STEP 1: Request password reset token
-# Token will be logged to console (in production, sent via email)
-POST {{Server_HostAddress}}/api/v1/auth/forgot-password
+# ===================================================================
+# 👤 USER REGISTRATION
+# ===================================================================
+
+### Standard User Registration
+POST {{Base_Auth_URL}}/register
 Content-Type: application/json
 
 {
-  "email": "furkanhydri2@gmail.com"
-}
-
-### Reset Password (Production-Grade with Token Validation)
-# STEP 2: Copy token from console output and paste into @reset_token variable above
-# Look for: "Password reset token for furkan@example.com: AbC123XyZ..."
-# Token expires in 15 minutes and is single-use only
-POST {{Server_HostAddress}}/api/v1/auth/reset-password
-Content-Type: application/json
-
-{
-  "email": "furkanhydri2@gmail.com",
-  "token": "{{reset_token}}",
-  "newPassword": "Furkan_731"
-}
-
-### Bootstrap Assign Admin Role (Development Only)
-POST {{Server_HostAddress}}/api/v1/auth/bootstrap-assign-admin/00000000-0000-0000-0000-000000000001
-
-### ===== TEST SCENARIOS =====
-
-### Test Username Uniqueness
-POST {{Server_HostAddress}}/api/v1/auth/register
-Content-Type: application/json
-
-{
-  "email": "test2@example.com",
-  "username": "furkanhaydari",
-  "phoneNumber": "05551111111",
-  "tckn": "11111111111",
-  "password": "Test123!",
-  "firstName": "Test",
-  "lastName": "User",
-  "profession": "Tester"
-}
-
-### Test Email Uniqueness
-POST {{Server_HostAddress}}/api/v1/auth/register
-Content-Type: application/json
-
-{
-  "email": "furkan@example.com",
-  "username": "different_username",
-  "phoneNumber": "05552222222",
-  "tckn": "22222222222",
-  "password": "Test123!",
-  "firstName": "Test",
-  "lastName": "User2",
-  "profession": "Tester"
-}
-
-### Register Test Users
-POST {{Server_HostAddress}}/api/v1/auth/register
-Content-Type: application/json
-
-{
-  "email": "customer1@example.com",
-  "username": "customer1",
-  "phoneNumber": "05551111111",
-  "tckn": "11111111111",
-  "password": "Customer123!",
-  "firstName": "Customer",
-  "lastName": "One",
-  "profession": "Customer Service",
-  "birthDate": "1992-03-15T00:00:00Z"
-}
-
-###
-POST {{Server_HostAddress}}/api/v1/auth/register
-Content-Type: application/json
-
-{
-  "email": "support1@example.com",
-  "username": "support1",
-  "phoneNumber": "05552222222",
-  "tckn": "22222222222",
-  "password": "Support123!",
-  "firstName": "Support",
-  "lastName": "One",
-  "profession": "Technical Support",
-  "birthDate": "1988-07-20T00:00:00Z"
-}
-
-### ===== MERNİS TEST WITH TURKISH CHARACTERS =====
-### Test Turkish Character Conversion (i -> İ, ı -> I, etc.)
-POST {{Server_HostAddress}}/api/v1/auth/register
-Content-Type: application/json
-
-{
-  "email": "turkishtest@example.com",
-  "username": "turkishtest",
-  "phoneNumber": "05447627890",
+  "email": "user@example.com",
+  "username": "standarduser",
+  "phoneNumber": "5447627858",
   "tckn": "11111111110",
-  "password": "Test123!",
-  "firstName": "ibrahim",
-  "lastName": "köklü",
+  "password": "User123!",
+  "firstName": "John",
+  "lastName": "Doe",
   "profession": "Software Engineer",
   "birthDate": "1990-01-01T00:00:00Z"
 }
 
-### Test Case 2: Mixed Turkish Characters
-POST {{Server_HostAddress}}/api/v1/auth/register
+### Customer Admin Registration
+POST {{Base_Auth_URL}}/register
 Content-Type: application/json
 
 {
-  "email": "turkishtest2@example.com",
-  "username": "turkishtest2",
-  "phoneNumber": "05447627891",
+  "email": "customeradmin@example.com",
+  "username": "customeradmin",
+  "phoneNumber": "5447627859",
   "tckn": "11111111111",
-  "password": "Test123!",
-  "firstName": "özgür",
-  "lastName": "şahin",
-  "profession": "Software Engineer",
-  "birthDate": "1985-05-15T00:00:00Z"
+  "password": "Admin123!",
+  "firstName": "Jane",
+  "lastName": "Smith",
+  "profession": "Customer Manager",
+  "birthDate": "1985-03-15T00:00:00Z"
 }
 
-### ===== MERNİS TEST WITH CORRECT DATA =====
-### Test MERNİS Verification with REAL VERIFIED Data
-POST {{Server_HostAddress}}/api/v1/auth/register
+### Support User Registration
+POST {{Base_Auth_URL}}/register
 Content-Type: application/json
 
 {
-  "email": "furkanhydri2@gmail.com",
-  "username": "furkan_baba",
-  "phoneNumber": "+905447627896",
-  "tckn": "68593147632",
-  "password": "Furkan_730",
-  "firstName": "muhammed furkan",
-  "lastName": "haydari",
-  "profession": "Software Engineer",
-  "birthDate": "1998-01-01T00:00:00Z"
-} 
+  "email": "support@example.com",
+  "username": "supportuser",
+  "phoneNumber": "5447627860",
+  "tckn": "22222222222",
+  "password": "Support123!",
+  "firstName": "Mike",
+  "lastName": "Johnson",
+  "profession": "Technical Support",
+  "birthDate": "1988-07-20T00:00:00Z"
+}
+
+# ===================================================================
+# 🔄 PASSWORD MANAGEMENT
+# ===================================================================
+
+### Request Password Reset
+POST {{Base_Auth_URL}}/forgot-password
+Content-Type: application/json
+
+{
+  "TcKimlikNo": "11111111110"
+}
+
+### Validate TC/Phone for Password Reset
+POST {{Base_Auth_URL}}/validate-tc-phone
+Content-Type: application/json
+
+{
+  "tckn": "11111111110",
+  "phoneNumber": "5447627858"
+}
+
+### Reset Password with Token
+POST {{Base_Auth_URL}}/reset-password
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "token": "RESET_TOKEN_FROM_EMAIL",
+  "newPassword": "NewPassword123!"
+}
+
+# ===================================================================
+# 🆔 IDENTITY VERIFICATION (MERNİS)
+# ===================================================================
+
+### Test MERNİS Integration
+POST {{Base_Auth_URL}}/test-mernis
+Content-Type: application/json
+
+{
+  "tckn": "11111111110",
+  "firstName": "John",
+  "lastName": "Doe",
+  "birthYear": 1990
+}
+
+### Test Turkish Characters
+POST {{Base_Auth_URL}}/test-mernis
+Content-Type: application/json
+
+{
+  "tckn": "11111111110", 
+  "firstName": "özgür",
+  "lastName": "şahin",
+  "birthYear": 1985
+}
+
+# ===================================================================
+# 🐛 DEVELOPMENT & DEBUG ENDPOINTS
+# ===================================================================
+
+### Debug User Information
+POST {{Base_Auth_URL}}/debug-user
+Content-Type: application/json
+
+{
+  "tckn": "11111111110",
+  "password": "User123!"
+}
+
+### Bootstrap Admin Role (Development Only)
+POST {{Base_Auth_URL}}/bootstrap/assign-admin/00000000-0000-0000-0000-000000000001
+
+# ===================================================================
+# 📝 VALIDATION TEST SCENARIOS
+# ===================================================================
+
+### Test Email Uniqueness Validation
+POST {{Base_Auth_URL}}/register
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "username": "differentuser",
+  "phoneNumber": "5551111111",
+  "tckn": "33333333333",
+  "password": "Test123!",
+  "firstName": "Test",
+  "lastName": "User",
+  "profession": "Tester",
+  "birthDate": "1992-01-01T00:00:00Z"
+}
+
+### Test Username Uniqueness Validation
+POST {{Base_Auth_URL}}/register
+Content-Type: application/json
+
+{
+  "email": "different@example.com",
+  "username": "standarduser",
+  "phoneNumber": "5552222222",
+  "tckn": "44444444444",
+  "password": "Test123!",
+  "firstName": "Test",
+  "lastName": "User2",
+  "profession": "Tester",
+  "birthDate": "1992-01-01T00:00:00Z"
+}
+
+### Test TCKN Validation
+POST {{Base_Auth_URL}}/register
+Content-Type: application/json
+
+{
+  "email": "invalid@example.com",
+  "username": "invaliduser",
+  "phoneNumber": "5553333333",
+  "tckn": "12345678901",
+  "password": "Test123!",
+  "firstName": "Invalid",
+  "lastName": "User",
+  "profession": "Tester",
+  "birthDate": "1992-01-01T00:00:00Z"
+}
+
+# ===================================================================
+# 📋 USAGE NOTES
+# ===================================================================
+#
+# AUTHENTICATION FLOW:
+# 1. Register → Get user created
+# 2. Login → Get JWT + Refresh tokens
+# 3. Use tokens in base_user.http or admin.http
+#
+# TOKEN MANAGEMENT:
+# - Access tokens expire in 60 minutes
+# - Refresh tokens expire in 7 days
+# - Use refresh endpoint to get new tokens
+#
+# ROLE ASSIGNMENT:
+# - New users get 'base_user' role by default
+# - Use admin.http to assign other roles
+# - Admin accounts must be created via bootstrap or admin endpoints
+#
+# DEVELOPMENT SETUP:
+# 1. Ensure database is running
+# 2. Run this file's endpoints to create test users
+# 3. Copy tokens to appropriate role-based .http files
+#
+# PRODUCTION NOTES:
+# - Remove bootstrap endpoints
+# - Enable MERNİS verification
+# - Set strong JWT secrets
+# - Configure real email service 

@@ -1,4 +1,4 @@
-namespace FSH.Starter.WebApi.Host;
+namespace FSH.Framework.Core.Auth;
 
 public static class RoleConstants
 {

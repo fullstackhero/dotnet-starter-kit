@@ -1,0 +1,75 @@
+# ===================================================================
+# 🌐 GLOBAL VARIABLES - Shared across all .http files
+# ===================================================================
+# This file contains all shared variables for the API testing suite
+# Import this file in other .http files or use in VS Code REST Client
+
+# ===================================================================
+# 🔧 ENVIRONMENT CONFIGURATION
+# ===================================================================
+
+@Server_HostAddress = https://localhost:7000
+@API_Version = v1
+@Base_Auth_URL = {{Server_HostAddress}}/api/{{API_Version}}/auth
+@Admin_URL = {{Server_HostAddress}}/api/{{API_Version}}/admin
+
+# ===================================================================
+# 🎫 AUTHENTICATION TOKENS
+# ===================================================================
+# These will be populated by login responses from public.http
+
+# Main tokens (populated from login responses)
+@admin_token = 
+@base_user_token = 
+@customer_admin_token = 
+@customer_support_token = 
+
+# Environment variables (for CI/CD)
+# @admin_token = {{$dotenv ADMIN_TOKEN}}
+# @base_user_token = {{$dotenv BASE_USER_TOKEN}}
+# @customer_admin_token = {{$dotenv CUSTOMER_ADMIN_TOKEN}}
+# @customer_support_token = {{$dotenv CUSTOMER_SUPPORT_TOKEN}}
+
+# ===================================================================
+# 🧪 TEST DATA
+# ===================================================================
+
+# Test User IDs (replace with actual GUIDs from your database)
+@test_user_id = 00000000-0000-0000-0000-000000000001
+@test_admin_id = 00000000-0000-0000-0000-000000000002
+
+# Test Credentials
+@test_admin_email = admin@system.com
+@test_admin_password = Admin123!
+@test_user_email = user@example.com
+@test_user_password = User123!
+
+# Test Phone Numbers
+@test_phone_1 = 5447627858
+@test_phone_2 = 5447627859
+@test_phone_3 = 5447627860
+
+# Test TCKNs (use valid format for testing)
+@test_tckn_1 = 11111111110
+@test_tckn_2 = 22222222222
+@test_tckn_3 = 33333333333
+
+# ===================================================================
+# 📋 USAGE INSTRUCTIONS
+# ===================================================================
+#
+# HOW TO USE:
+# 1. Run login requests in public.http first
+# 2. Copy tokens from responses to update token variables above
+# 3. Use these variables in role-specific .http files
+# 4. For automated testing, set environment variables
+#
+# TOKEN FLOW:
+# public.http (login) → copy tokens → use in admin.http/base_user.http
+#
+# ENVIRONMENT VARIABLES:
+# Set these for CI/CD pipelines:
+# - ADMIN_TOKEN=eyJhbGciOiJIUzI1NiIs...
+# - BASE_USER_TOKEN=eyJhbGciOiJIUzI1NiIs...
+# - CUSTOMER_ADMIN_TOKEN=eyJhbGciOiJIUzI1NiIs...
+# - CUSTOMER_SUPPORT_TOKEN=eyJhbGciOiJIUzI1NiIs... 
