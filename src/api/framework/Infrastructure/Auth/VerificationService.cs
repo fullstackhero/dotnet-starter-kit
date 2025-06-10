@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Collections.Concurrent;
 using FSH.Framework.Core.Auth.Services;
 using FSH.Framework.Core.Mail;
 using Microsoft.Extensions.Logging;
@@ -13,6 +14,9 @@ public class VerificationService : IVerificationService
     private readonly IMailService _mailService;
     private readonly ISmsService _smsService;
     private readonly IOptions<VerificationOptions> _options;
+    
+    // In-memory storage for email tokens (production'da Redis kullanılmalı)
+    private static readonly ConcurrentDictionary<string, EmailTokenInfo> _emailTokens = new();
 
     public VerificationService(
         ILogger<VerificationService> logger,
@@ -29,7 +33,17 @@ public class VerificationService : IVerificationService
     public async Task<string> GenerateEmailVerificationTokenAsync(string email)
     {
         var token = await Task.Run(() => GenerateSecureToken());
-        // TODO: Store token in database with expiration
+        
+        // Token'ı kaydet (config'ten süreyi al)
+        var expirationMinutes = _options.Value.EmailTokenExpirationMinutes;
+        var tokenInfo = new EmailTokenInfo(token, DateTime.UtcNow.AddMinutes(expirationMinutes));
+        _emailTokens.AddOrUpdate(email, tokenInfo, (key, oldValue) => tokenInfo);
+        
+        _logger.LogInformation("Email verification token generated for {Email}, expires in {Minutes} minutes", email, expirationMinutes);
+        
+        // Development: Log token for testing
+        _logger.LogWarning("🔧 DEV: Email verification token for {Email}: {Token}", email, token);
+        
         return token;
     }
 
@@ -41,8 +55,33 @@ public class VerificationService : IVerificationService
 
     public async Task<bool> VerifyEmailAsync(string email, string token)
     {
-        // TODO: Validate token from database
-        return await Task.FromResult(true);
+        await Task.CompletedTask;
+        
+        if (!_emailTokens.TryGetValue(email, out var tokenInfo))
+        {
+            _logger.LogWarning("No email verification token found for: {Email}", email);
+            return false;
+        }
+
+        // Token süresi dolmuş mu kontrol et
+        if (DateTime.UtcNow > tokenInfo.ExpiresAt)
+        {
+            _emailTokens.TryRemove(email, out _);
+            _logger.LogWarning("Email verification token expired for: {Email}", email);
+            return false;
+        }
+
+        // Token eşleşiyor mu?
+        if (tokenInfo.Token != token)
+        {
+            _logger.LogWarning("Invalid email verification token for: {Email}", email);
+            return false;
+        }
+
+        // Kullanıldıktan sonra sil
+        _emailTokens.TryRemove(email, out _);
+        _logger.LogInformation("Email verification successful for: {Email}", email);
+        return true;
     }
 
     public async Task<bool> VerifyPhoneAsync(string phoneNumber, string token)
@@ -58,7 +97,7 @@ public class VerificationService : IVerificationService
             <h2>Email Doğrulama</h2>
             <p>Email adresinizi doğrulamak için aşağıdaki linke tıklayın:</p>
             <p><a href='{verificationLink}'>Email Adresimi Doğrula</a></p>
-            <p>Bu link {_options.Value.EmailTokenExpirationHours} saat boyunca geçerlidir.</p>
+            <p>Bu link {_options.Value.EmailTokenExpirationMinutes} dakika boyunca geçerlidir.</p>
             <p>Eğer bu işlemi siz yapmadıysanız, lütfen bu emaili dikkate almayın.</p>";
 
         var mailRequest = new MailRequest(
@@ -83,11 +122,13 @@ public class VerificationService : IVerificationService
         rng.GetBytes(randomBytes);
         return Convert.ToBase64String(randomBytes);
     }
+
+    private sealed record EmailTokenInfo(string Token, DateTime ExpiresAt);
 }
 
 public class VerificationOptions
 {
     public Uri BaseUrl { get; set; } = default!;
-    public int EmailTokenExpirationHours { get; set; } = 24;
+    public int EmailTokenExpirationMinutes { get; set; } = 60;
     public int PhoneTokenExpirationMinutes { get; set; } = 15;
 } 

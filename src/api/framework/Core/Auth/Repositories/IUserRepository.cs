@@ -9,6 +9,8 @@ public interface IUserRepository
     Task<IReadOnlyList<string>> GetUserRolesAsync(Guid userId);
     Task<bool> EmailExistsAsync(string email, Guid? excludeId = null);
     Task<bool> UsernameExistsAsync(string username, Guid? excludeId = null);
+    // Added for phone number update validation in profile management
+    Task<bool> PhoneExistsAsync(string phoneNumber, Guid? excludeId = null);
     Task<Guid> CreateUserAsync(AppUser user);
     Task<AppUser?> GetByIdAsync(Guid id);
     Task UpdatePasswordAsync(Guid userId, string hashedPassword);

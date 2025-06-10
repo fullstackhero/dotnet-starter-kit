@@ -225,6 +225,92 @@ public sealed class AuthController : ControllerBase
         return Ok(ApiResponse<string>.SuccessResult(result));
     }
 
+    /// <summary>
+    /// Initiates email update process by sending verification code to new email.
+    /// SECURITY: Email is NOT updated until verification is completed.
+    /// TODO: Integrate with email service to send verification codes.
+    /// </summary>
+    [HttpPut("profile/email")]
+    [Authorize]
+    [ProducesResponseType(typeof(ApiResponse<string>), 200)]
+    [ProducesResponseType(400)]
+    public async Task<IActionResult> UpdateEmailAsync([FromBody] UpdateEmailCommand command)
+    {
+        var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(currentUserId) || !Guid.TryParse(currentUserId, out var userId))
+        {
+            return Ok(ApiResponse<string>.FailureResult("Unable to determine current user"));
+        }
+
+        command.UserId = userId;
+        var result = await _mediator.Send(command);
+        return Ok(ApiResponse<string>.SuccessResult(result));
+    }
+
+    /// <summary>
+    /// Completes email update by verifying email code.
+    /// SECURITY: Only updates email address after successful email verification.
+    /// </summary>
+    [HttpPost("profile/verify-email")]
+    [Authorize]
+    [ProducesResponseType(typeof(ApiResponse<string>), 200)]
+    [ProducesResponseType(400)]
+    public async Task<IActionResult> VerifyEmailUpdateAsync([FromBody] VerifyEmailUpdateCommand command)
+    {
+        var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(currentUserId) || !Guid.TryParse(currentUserId, out var userId))
+        {
+            return Ok(ApiResponse<string>.FailureResult("Unable to determine current user"));
+        }
+
+        command.UserId = userId;
+        var result = await _mediator.Send(command);
+        return Ok(ApiResponse<string>.SuccessResult(result));
+    }
+
+    /// <summary>
+    /// Initiates phone update process by sending verification code to new phone.
+    /// SECURITY: Phone is NOT updated until verification is completed.
+    /// TODO: Integrate with SMS service to send verification codes.
+    /// </summary>
+    [HttpPut("profile/phone")]
+    [Authorize]
+    [ProducesResponseType(typeof(ApiResponse<string>), 200)]
+    [ProducesResponseType(400)]
+    public async Task<IActionResult> UpdatePhoneAsync([FromBody] UpdatePhoneCommand command)
+    {
+        var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(currentUserId) || !Guid.TryParse(currentUserId, out var userId))
+        {
+            return Ok(ApiResponse<string>.FailureResult("Unable to determine current user"));
+        }
+
+        command.UserId = userId;
+        var result = await _mediator.Send(command);
+        return Ok(ApiResponse<string>.SuccessResult(result));
+    }
+
+    /// <summary>
+    /// Completes phone update by verifying SMS code.
+    /// SECURITY: Only updates phone number after successful SMS verification.
+    /// </summary>
+    [HttpPost("profile/verify-phone")]
+    [Authorize]
+    [ProducesResponseType(typeof(ApiResponse<string>), 200)]
+    [ProducesResponseType(400)]
+    public async Task<IActionResult> VerifyPhoneUpdateAsync([FromBody] VerifyPhoneUpdateCommand command)
+    {
+        var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(currentUserId) || !Guid.TryParse(currentUserId, out var userId))
+        {
+            return Ok(ApiResponse<string>.FailureResult("Unable to determine current user"));
+        }
+
+        command.UserId = userId;
+        var result = await _mediator.Send(command);
+        return Ok(ApiResponse<string>.SuccessResult(result));
+    }
+
     [HttpPost("test-mernis")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(ApiResponse<TestMernisResult>), 200)]
@@ -281,6 +367,37 @@ public sealed class AuthController : ControllerBase
                     isValid = isValid,
                     foundUserFromValidation = userFromValidation != null
                 }
+            });
+        }
+        catch (Exception ex)
+        {
+            return Ok(new { 
+                error = true, 
+                message = ex.Message,
+                type = ex.GetType().Name
+            });
+        }
+    }
+
+    /// <summary>
+    /// Development: Get current verification tokens for testing
+    /// </summary>
+    [HttpGet("debug-tokens")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(object), 200)]
+    public IActionResult GetDebugTokens()
+    {
+        try
+        {
+            var verificationService = HttpContext.RequestServices.GetRequiredService<IVerificationService>();
+            
+            // Note: Bu sadece development için. Production'da kaldırılmalı.
+            return Ok(new {
+                message = "Check console logs for email verification tokens",
+                instruction = "Look for '🔧 DEV: Email verification token' in logs",
+                currentTime = DateTime.UtcNow,
+                emailTokenExpiryMinutes = 60,
+                phoneTokenExpiryMinutes = 15
             });
         }
         catch (Exception ex)

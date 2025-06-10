@@ -77,13 +77,19 @@ public class SmtpMailService(IOptions<MailOptions> settings, ILogger<SmtpMailSer
         using var client = new SmtpClient();
         try
         {
+            // Development: Skip SSL certificate validation for ethereal.email
+            client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+            
             await client.ConnectAsync(_settings.Host, _settings.Port, SecureSocketOptions.StartTls, ct);
             await client.AuthenticateAsync(_settings.UserName, _settings.Password, ct);
             await client.SendAsync(email, ct);
+            
+            _logger.LogInformation("Email sent successfully to: {Recipients}", string.Join(", ", request.To));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "An error occurred while sending email: {Message}", ex.Message);
+            throw; // Re-throw to properly handle in calling code
         }
         finally
         {

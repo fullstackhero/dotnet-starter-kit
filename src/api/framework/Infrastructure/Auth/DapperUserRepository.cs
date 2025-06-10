@@ -183,6 +183,33 @@ public sealed class DapperUserRepository : IUserRepository
         }
     }
 
+    public async Task<bool> PhoneExistsAsync(string phoneNumber, Guid? excludeId = null)
+    {
+        ArgumentNullException.ThrowIfNull(phoneNumber);
+
+        try
+        {
+            var normalizedPhone = phoneNumber.Trim();
+            var sql = "SELECT COUNT(1) FROM users WHERE phone_number = @PhoneNumber";
+            var parameters = new DynamicParameters();
+            parameters.Add("@PhoneNumber", normalizedPhone);
+            
+            if (excludeId.HasValue)
+            {
+                sql += " AND id != @ExcludeId";
+                parameters.Add("@ExcludeId", excludeId.Value);
+            }
+
+            var count = await _connection.ExecuteScalarAsync<int>(sql, parameters);
+            return count > 0;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error checking if phone exists {Phone}", phoneNumber);
+            throw new FshException($"Error checking if phone exists {phoneNumber}", ex);
+        }
+    }
+
     public async Task<Guid> CreateUserAsync(AppUser user)
     {
         ArgumentNullException.ThrowIfNull(user);

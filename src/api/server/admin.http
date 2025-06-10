@@ -22,6 +22,10 @@
 # Option 3: Manual token (for quick testing)
 # @admin_token = eyJhbGciOiJIUzI1NiIs...
 
+# For testing different role endpoints  
+@customer_admin_token = {{customerAdminLogin.response.body.accessToken}}
+@base_user_token = {{userLogin.response.body.accessToken}}
+
 # ===================================================================
 # 👥 USER MANAGEMENT - CRUD Operations
 # ===================================================================

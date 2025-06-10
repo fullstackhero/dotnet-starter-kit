@@ -14,13 +14,16 @@
 # Get token from public.http login responses
 
 # Option 1: From public.http user login
-@base_user_token = {{userLogin.response.body.accessToken}}
+@base_user_token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlN2EzOGQ4OC02NGUwLTQ1ZTYtODZkMi03MWU0ZmE1YTIxMTgiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6ImU3YTM4ZDg4LTY0ZTAtNDVlNi04NmQyLTcxZTRmYTVhMjExOCIsImVtYWlsIjpbInVzZXJAZXhhbXBsZS5jb20iLCJ1c2VyQGV4YW1wbGUuY29tIl0sInVzZXJuYW1lIjoidXBkYXRlZF91c2VybmFtZSIsImZpcnN0X25hbWUiOiJNdWhhbW1lZCBGdXJrYW4iLCJsYXN0X25hbWUiOiJIYXlkYXJpIiwicGhvbmVfbnVtYmVyIjoiNTQ0NzYyNzg1OCIsInByb2Zlc3Npb24iOiJTZW5pb3IgU29mdHdhcmUgRW5naW5lZXIiLCJzdGF0dXMiOiJBQ1RJVkUiLCJpYXQiOjE3NDk1NDYzOTMsImp0aSI6ImMyZWJiNDNjLThmOGQtNDUzNy04OTkwLTc4ZDQzN2MyZjgzNiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6ImJhc2VfdXNlciIsInJvbGUiOiJiYXNlX3VzZXIiLCJleHAiOjE3NTAxNTExOTMsImlzcyI6Imh0dHBzOi8vZnVsbHN0YWNraGVyby5uZXQiLCJhdWQiOiJmdWxsc3RhY2toZXJvIn0.ajZQLRWDzR4oVqV1d-656pks8gEUH5WpuBHZQATffhQ
 
 # Option 2: Environment variable (CI/CD)
 # @base_user_token = {{$dotenv BASE_USER_TOKEN}}
 
 # Option 3: Manual token (for quick testing)
-# @base_user_token = eyJhbGciOiJIUzI1NiIs...
+# @base_user_token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlN2EzOGQ4OC02NGUwLTQ1ZTYtODZkMi03MWU0ZmE1YTIxMTgiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6ImU3YTM4ZDg4LTY0ZTAtNDVlNi04NmQyLTcxZTRmYTVhMjExOCIsImVtYWlsIjpbInVzZXJAZXhhbXBsZS5jb20iLCJ1c2VyQGV4YW1wbGUuY29tIl0sInVzZXJuYW1lIjoic3RhbmRhcmR1c2VyIiwiZmlyc3RfbmFtZSI6Ik11aGFtbWVkIEZ1cmthbiIsImxhc3RfbmFtZSI6IkhheWRhcmkiLCJwaG9uZV9udW1iZXIiOiI1NDQ3NjI3ODU4IiwicHJvZmVzc2lvbiI6IlNvZnR3YXJlIEVuZ2luZWVyIiwic3RhdHVzIjoiQUNUSVZFIiwiaWF0IjoxNzQ5NTQ1OTA5LCJqdGkiOiIxYWRmODNjNS0xOGU5LTQ5NjUtODQzNy1hMDNjMTc2MDg2YmYiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJiYXNlX3VzZXIiLCJyb2xlIjoiYmFzZV91c2VyIiwiZXhwIjoxNzUwMTUwNzA5LCJpc3MiOiJodHRwczovL2Z1bGxzdGFja2hlcm8ubmV0IiwiYXVkIjoiZnVsbHN0YWNraGVybyJ9.Y1XBAQYCslbLO0Bnc1njZe5-qwJlbmTY8_aDbEeiQLs
+
+# For testing different role endpoints
+@customer_admin_token = {{customerAdminLogin.response.body.accessToken}}
 
 # ===================================================================
 # 👤 PROFILE MANAGEMENT
@@ -51,7 +54,17 @@ Authorization: Bearer {{base_user_token}}
 Content-Type: application/json
 
 {
-  "newEmail": "newemail@example.com"
+  "newEmail": "2newemail@example.com"
+}
+
+### Verify Email Update (Complete email change with verification code)
+POST {{Base_Auth_URL}}/profile/verify-email
+Authorization: Bearer {{base_user_token}}
+Content-Type: application/json
+
+{
+  "newEmail": "2newemail@example.com",
+  "verificationCode": "Y7dHMl1Fh/AT5njr6zaStXuSM2bnGr9GTXcmDLSlq6E="
 }
 
 ### Update Phone Number (Resets verification status)
@@ -60,7 +73,17 @@ Authorization: Bearer {{base_user_token}}
 Content-Type: application/json
 
 {
-  "newPhoneNumber": "5551234567"
+  "newPhoneNumber": "5553624567"
+}
+
+### Verify Phone Update (Complete phone change with SMS code)
+POST {{Base_Auth_URL}}/profile/verify-phone
+Authorization: Bearer {{base_user_token}}
+Content-Type: application/json
+
+{
+  "newPhoneNumber": "5553624567",
+  "verificationCode": "156465"
 }
 
 # ===================================================================
