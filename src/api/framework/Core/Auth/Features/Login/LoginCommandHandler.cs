@@ -43,14 +43,24 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<LoginRes
         {
             _logger.LogInformation("Login attempt for TCKN: {Tckn}", request.Tckn.Value);
 
-            var (isValid, user) = await _userRepository.ValidatePasswordAndGetByTcknAsync(
+            // First, check if user exists
+            var user = await _userRepository.GetByTcknAsync(request.Tckn);
+            
+            if (user == null)
+            {
+                _logger.LogWarning("User not found for TCKN: {Tckn}", request.Tckn.Value);
+                return Result<LoginResponseDto>.Failure("User not found");
+            }
+
+            // Then validate password
+            var (isPasswordValid, _) = await _userRepository.ValidatePasswordAndGetByTcknAsync(
                 request.Tckn.Value,
                 request.Password.Value);
 
-            if (!isValid || user == null)
+            if (!isPasswordValid)
             {
-                _logger.LogWarning("Invalid login attempt for TCKN: {Tckn}", request.Tckn.Value);
-                return Result<LoginResponseDto>.Failure("Invalid TCKN or password");
+                _logger.LogWarning("Invalid password for TCKN: {Tckn}", request.Tckn.Value);
+                return Result<LoginResponseDto>.Failure("Invalid password");
             }
 
             var roles = await _userRepository.GetUserRolesAsync(user.Id);
