@@ -146,9 +146,19 @@ public sealed class AuthController : ControllerBase
 
     [HttpPost("forgot-password")]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(ApiResponse<string>), 200)]
+    [ProducesResponseType(typeof(ApiResponse<FSH.Framework.Core.Auth.Features.PasswordReset.ForgotPasswordResponse>), 200)]
     [ProducesResponseType(400)]
     public async Task<IActionResult> ForgotPasswordAsync([FromBody] FSH.Framework.Core.Auth.Features.PasswordReset.ForgotPasswordCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return Ok(ApiResponse<FSH.Framework.Core.Auth.Features.PasswordReset.ForgotPasswordResponse>.SuccessResult(result));
+    }
+
+    [HttpPost("select-reset-method")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ApiResponse<string>), 200)]
+    [ProducesResponseType(400)]
+    public async Task<IActionResult> SelectResetMethodAsync([FromBody] FSH.Framework.Core.Auth.Features.PasswordReset.SelectResetMethodCommand command)
     {
         var result = await _mediator.Send(command);
         return Ok(ApiResponse<string>.SuccessResult(result));
@@ -164,6 +174,16 @@ public sealed class AuthController : ControllerBase
         return Ok(ApiResponse<string>.SuccessResult(result));
     }
 
+    [HttpPost("validate-reset-token")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ApiResponse<FSH.Framework.Core.Auth.Features.PasswordReset.ValidateResetTokenResponse>), 200)]
+    [ProducesResponseType(400)]
+    public async Task<IActionResult> ValidateResetTokenAsync([FromBody] FSH.Framework.Core.Auth.Features.PasswordReset.ValidateResetTokenCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return Ok(ApiResponse<FSH.Framework.Core.Auth.Features.PasswordReset.ValidateResetTokenResponse>.SuccessResult(result.Value));
+    }
+
     [HttpPost("reset-password")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(ApiResponse<string>), 200)]
@@ -172,6 +192,23 @@ public sealed class AuthController : ControllerBase
     {
         var result = await _mediator.Send(command);
         return Ok(ApiResponse<string>.SuccessResult(result));
+    }
+
+    [HttpPost("reset-password-with-token")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ApiResponse<string>), 200)]
+    [ProducesResponseType(400)]
+    public async Task<IActionResult> ResetPasswordWithTokenAsync([FromBody] FSH.Framework.Core.Auth.Features.PasswordReset.ResetPasswordWithTokenCommand command)
+    {
+        try
+        {
+            var result = await _mediator.Send(command);
+            return Ok(ApiResponse<string>.SuccessResult(result));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ApiResponse<string>.FailureResult(ex.Message));
+        }
     }
 
     [HttpPost("change-password")]

@@ -121,7 +121,28 @@ POST {{Base_Auth_URL}}/forgot-password
 Content-Type: application/json
 
 {
-  "TcKimlikNo": "11111111110"
+  "TcKimlikNo": "11111111110",
+  "BirthDate": "1990-01-01T00:00:00Z"
+}
+
+### Select Reset Method (Email)
+POST {{Base_Auth_URL}}/select-reset-method
+Content-Type: application/json
+
+{
+  "TcKimlikNo": "11111111110",
+  "BirthDate": "1990-01-01T00:00:00Z",
+  "Method": 1
+}
+
+### Select Reset Method (SMS)
+POST {{Base_Auth_URL}}/select-reset-method
+Content-Type: application/json
+
+{
+  "TcKimlikNo": "11111111110",
+  "BirthDate": "1990-01-01T00:00:00Z",
+  "Method": 2
 }
 
 ### Validate TC/Phone for Password Reset

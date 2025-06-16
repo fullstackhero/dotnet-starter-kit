@@ -23,4 +23,10 @@ public interface IUserRepository
     Task DeleteUserAsync(Guid userId);
     Task AssignRoleAsync(Guid userId, string role);
     Task<AppUser?> GetByTcknAsync(Tckn tckn);
+    
+    // Password Reset Methods
+    Task<(bool IsValid, AppUser? User)> ValidateTcKimlikAndBirthDateAsync(string tcKimlik, DateTime birthDate);
+    Task<(string? Email, string? Phone)> GetUserContactInfoAsync(string tcKimlik);
+    Task ResetPasswordAsync(string email, string newPassword);
+    Task ResetPasswordByTcknAsync(string tcKimlik, string newPassword);
 } 

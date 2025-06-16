@@ -1,12 +1,15 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using FSH.Framework.Core.Auth.Repositories;
 using FSH.Framework.Core.Auth.Services;
 using FSH.Framework.Core.Common.Exceptions;
+using FSH.Framework.Core.Common.Options;
+using System.ComponentModel.DataAnnotations;
 
 namespace FSH.Framework.Core.Auth.Features.PasswordReset;
 
-public sealed class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordCommand, string>
+public sealed class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordCommand, ForgotPasswordResponse>
 {
     private readonly IUserRepository _userRepository;
     private readonly ILogger<ForgotPasswordCommandHandler> _logger;
@@ -19,22 +22,215 @@ public sealed class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswor
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task<string> Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
+    public async Task<ForgotPasswordResponse> Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
 
         _logger.LogInformation("Processing forgot password request for TC Kimlik: {TcKimlik}", request.TcKimlikNo);
 
         // Domain validation
+        if (!request.IsValid())
+        {
+            throw new ValidationException("Geçersiz TC Kimlik No veya Doğum Tarihi");
+        }
+
         var tcKimlik = request.GetTcKimlik();
         
-        // Check if TC Kimlik exists in system (but don't reveal if it exists or not for security)
-        await _userRepository.TcKimlikExistsAsync(tcKimlik.Value).ConfigureAwait(false);
+        try
+        {
+            // Validate TC Kimlik and Birth Date
+            var (isValid, user) = await _userRepository.ValidateTcKimlikAndBirthDateAsync(tcKimlik.Value, request.BirthDate);
+            
+            if (!isValid || user == null)
+            {
+                // Return specific error messages as per document
+                var tcExists = await _userRepository.TcKimlikExistsAsync(tcKimlik.Value);
+                if (!tcExists)
+                {
+                    return new ForgotPasswordResponse
+                    {
+                        Success = false,
+                        Message = "Böyle bir kullanıcı bulunmamaktadır. Lütfen kontrol edip tekrar deneyiniz."
+                    };
+                }
+                else
+                {
+                    return new ForgotPasswordResponse
+                    {
+                        Success = false,
+                        Message = "Kimlik bilgileriniz sistemdeki bilgilerle eşleşmiyor. Lütfen kontrol edip tekrar deneyiniz."
+                    };
+                }
+            }
+
+            // Get user contact information
+            var (email, phone) = await _userRepository.GetUserContactInfoAsync(tcKimlik.Value);
+
+            _logger.LogInformation("TC Kimlik and birth date validation successful for: {TcKimlik}", request.TcKimlikNo);
+
+            return new ForgotPasswordResponse
+            {
+                Success = true,
+                Message = "Bilgileriniz doğrulandı. Lütfen şifre sıfırlama yöntemini seçiniz.",
+                MaskedEmail = !string.IsNullOrEmpty(email) ? MaskEmail(email) : null,
+                MaskedPhone = !string.IsNullOrEmpty(phone) ? MaskPhone(phone) : null,
+                HasEmail = !string.IsNullOrEmpty(email),
+                HasPhone = !string.IsNullOrEmpty(phone)
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing forgot password request for TC Kimlik: {TcKimlik}", request.TcKimlikNo);
+            throw new FshException("Şifre sıfırlama talebiniz işlenirken bir hata oluştu. Lütfen tekrar deneyiniz.");
+        }
+    }
+
+    private static string MaskEmail(string email)
+    {
+        var parts = email.Split('@');
+        if (parts.Length != 2) return email;
         
-        _logger.LogInformation("TC Kimlik existence check completed for: {TcKimlik}", request.TcKimlikNo);
+        var username = parts[0];
+        var domain = parts[1];
         
-        // Always return success message (security: don't reveal if TC exists)
-        return "Eğer bu TC kimlik numarası sistemde kayıtlı ise, telefon numarası girmeniz için sonraki adıma geçebilirsiniz.";
+        if (username.Length <= 2) return email;
+        
+        var maskedUsername = username[0] + new string('*', username.Length - 2) + username[^1];
+        return $"{maskedUsername}@{domain}";
+    }
+
+    private static string MaskPhone(string phone)
+    {
+        // Remove any non-digit characters
+        var digits = new string(phone.Where(char.IsDigit).ToArray());
+        
+        if (digits.Length < 10) return phone;
+        
+        // Format as masked phone: 0(5**) *** ** **
+        return $"0({digits[1]}{new string('*', 2)}) {new string('*', 3)} {new string('*', 2)} {digits[^2..]}";
+    }
+}
+
+public sealed class SelectResetMethodCommandHandler : IRequestHandler<SelectResetMethodCommand, string>
+{
+    private readonly IUserRepository _userRepository;
+    private readonly IPasswordResetService _passwordResetService;
+    private readonly ISmsService _smsService;
+    private readonly IEmailService _emailService;
+    private readonly ILogger<SelectResetMethodCommandHandler> _logger;
+    private readonly FrontendOptions _frontendOptions;
+
+    public SelectResetMethodCommandHandler(
+        IUserRepository userRepository,
+        IPasswordResetService passwordResetService,
+        ISmsService smsService,
+        IEmailService emailService,
+        ILogger<SelectResetMethodCommandHandler> logger,
+        IOptions<FrontendOptions> frontendOptions)
+    {
+        _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+        _passwordResetService = passwordResetService ?? throw new ArgumentNullException(nameof(passwordResetService));
+        _smsService = smsService ?? throw new ArgumentNullException(nameof(smsService));
+        _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _frontendOptions = frontendOptions?.Value ?? throw new ArgumentNullException(nameof(frontendOptions));
+    }
+
+    public async Task<string> Handle(SelectResetMethodCommand request, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        if (!request.IsValid())
+        {
+            throw new ValidationException("Geçersiz istek parametreleri");
+        }
+
+        var tcKimlik = request.GetTcKimlik();
+        
+        // Re-validate TC and birth date
+        var (isValid, user) = await _userRepository.ValidateTcKimlikAndBirthDateAsync(tcKimlik.Value, request.BirthDate);
+        
+        if (!isValid || user == null)
+        {
+            throw new FshException("Kimlik bilgileri doğrulanamadı");
+        }
+
+        // Get contact info
+        var (email, phone) = await _userRepository.GetUserContactInfoAsync(tcKimlik.Value);
+
+        string target;
+        string maskedTarget;
+        
+        if (request.Method == ResetMethod.Email)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                throw new FshException("Bu kullanıcı için email adresi kayıtlı değil");
+            }
+            target = email;
+            maskedTarget = MaskEmail(email);
+        }
+        else // SMS
+        {
+            if (string.IsNullOrEmpty(phone))
+            {
+                throw new FshException("Bu kullanıcı için telefon numarası kayıtlı değil");
+            }
+            target = phone;
+            maskedTarget = MaskPhone(phone);
+        }
+
+        // Generate reset token
+        var resetToken = await _passwordResetService.GenerateResetTokenAsync(tcKimlik.Value);
+
+        try
+        {
+            if (request.Method == ResetMethod.Email)
+            {
+                var resetLink = $"{_frontendOptions.BaseUrl}/auth/reset-password?token={resetToken}";
+                await _emailService.SendPasswordResetEmailAsync(target, resetLink);
+                _logger.LogInformation("Password reset email sent to masked address: {MaskedEmail}", maskedTarget);
+                return $"Şifre sıfırlama bağlantısı {maskedTarget} adresine gönderildi.";
+            }
+            else
+            {
+                var resetLink = $"{_frontendOptions.BaseUrl}/auth/reset-password?token={resetToken}";
+                var smsMessage = $"Şifre sıfırlama bağlantınız: {resetLink}";
+                await _smsService.SendSmsAsync(target, smsMessage);
+                _logger.LogInformation("Password reset SMS sent to masked phone: {MaskedPhone}", maskedTarget);
+                return $"Şifre sıfırlama bağlantısı {maskedTarget} numarasına gönderildi.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send password reset via {Method} to {Target}", request.Method, maskedTarget);
+            throw new FshException($"Şifre sıfırlama {(request.Method == ResetMethod.Email ? "e-postası" : "SMS'i")} gönderilemedi. Lütfen tekrar deneyiniz.");
+        }
+    }
+
+    private static string MaskEmail(string email)
+    {
+        var parts = email.Split('@');
+        if (parts.Length != 2) return email;
+        
+        var username = parts[0];
+        var domain = parts[1];
+        
+        if (username.Length <= 2) return email;
+        
+        var maskedUsername = username[0] + new string('*', username.Length - 2) + username[^1];
+        return $"{maskedUsername}@{domain}";
+    }
+
+    private static string MaskPhone(string phone)
+    {
+        // Remove any non-digit characters
+        var digits = new string(phone.Where(char.IsDigit).ToArray());
+        
+        if (digits.Length < 10) return phone;
+        
+        // Format as masked phone: 0(5**) *** ** **
+        return $"0({digits[1]}{new string('*', 2)}) {new string('*', 3)} {new string('*', 2)} {digits[^2..]}";
     }
 }
 
@@ -65,8 +261,7 @@ public sealed class ValidateTcPhoneCommandHandler : IRequestHandler<ValidateTcPh
         var phoneNumber = request.GetPhoneNumber();
         
         // Check if TC Kimlik + Phone match
-        var (isValid, user) = await _userRepository.ValidateTcKimlikAndPhoneAsync(tcKimlik.Value, phoneNumber.Value)
-            .ConfigureAwait(false);
+        var (isValid, user) = await _userRepository.ValidateTcKimlikAndPhoneAsync(tcKimlik.Value, phoneNumber.Value);
         
         if (!isValid || user == null)
         {
@@ -80,11 +275,10 @@ public sealed class ValidateTcPhoneCommandHandler : IRequestHandler<ValidateTcPh
         }
 
         // Generate and send SMS code
-        await _smsService.GenerateAndStoreSmsCodeAsync(phoneNumber.Value)
-            .ConfigureAwait(false);
+        await _smsService.GenerateAndStoreSmsCodeAsync(phoneNumber.Value);
         
         _logger.LogInformation("SMS code sent for password reset to: {Phone}", phoneNumber.Value);
         
         return "SMS kodu telefon numaranıza gönderildi. Kodu kullanarak yeni şifrenizi belirleyebilirsiniz.";
     }
-} 
+}

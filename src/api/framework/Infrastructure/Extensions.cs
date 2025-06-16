@@ -45,6 +45,7 @@ public static class Extensions
         builder.Services.AddProblemDetails();
         builder.Services.AddHealthChecks();
         builder.Services.AddOptions<OriginOptions>().BindConfiguration(nameof(OriginOptions));
+        builder.Services.AddOptions<FSH.Framework.Core.Common.Options.FrontendOptions>().BindConfiguration(nameof(FSH.Framework.Core.Common.Options.FrontendOptions));
 
         // Define module assemblies
         var assemblies = new Assembly[]
@@ -74,6 +75,10 @@ public static class Extensions
         builder.Services.AddScoped<FSH.Framework.Core.Auth.Services.ISmsService, Services.SmsService>();
         builder.Services.AddScoped<FSH.Framework.Core.Auth.Services.IVerificationService, Auth.VerificationService>();
         builder.Services.AddOptions<Auth.VerificationOptions>().BindConfiguration(nameof(Auth.VerificationOptions));
+        
+        // Register Password Reset Services
+        builder.Services.AddScoped<FSH.Framework.Core.Auth.Services.IPasswordResetService, Auth.PasswordResetService>();
+        builder.Services.AddScoped<FSH.Framework.Core.Auth.Services.IEmailService, Auth.EmailService>();
         
         // Register MERNİS Identity Verification Service with HttpClient
         builder.Services.AddHttpClient<FSH.Framework.Core.Auth.Services.IIdentityVerificationService, Auth.MernisIdentityVerificationService>(client =>

@@ -347,6 +347,35 @@ public sealed class DapperUserRepository : IUserRepository
         }
     }
 
+    public async Task ResetPasswordByTcknAsync(string tcKimlik, string newPassword)
+    {
+        ArgumentNullException.ThrowIfNull(tcKimlik);
+        ArgumentNullException.ThrowIfNull(newPassword);
+
+        try
+        {
+            // Hash the password before saving
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            
+            var rowsAffected = await _connection.ExecuteAsync(
+                "UPDATE users SET password_hash = @PasswordHash WHERE tckn = @Tckn",
+                new { Tckn = tcKimlik, PasswordHash = hashedPassword });
+
+            if (rowsAffected == 0)
+            {
+                _logger.LogWarning("No user found with TCKN {Tckn} for password reset", tcKimlik);
+                throw new FshException($"Kullanıcı bulunamadı: {tcKimlik}");
+            }
+
+            _logger.LogInformation("Password successfully reset for TCKN: {Tckn}", tcKimlik);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error resetting password for TCKN {Tckn}", tcKimlik);
+            throw new FshException($"Error resetting password for TCKN {tcKimlik}", ex);
+        }
+    }
+
     // INTERFACE IMPLEMENTATIONS FOR CLEAN ARCHITECTURE
 
     public async Task<(bool IsValid, AppUser? User)> ValidatePasswordAndGetByTcknAsync(string tckn, string password)
@@ -536,6 +565,51 @@ public sealed class DapperUserRepository : IUserRepository
         {
             _logger.LogError(ex, "Error assigning role {Role} to user {UserId}", role, userId);
             throw new FshException($"Error assigning role {role} to user {userId}", ex);
+        }
+    }
+
+    // Password Reset Methods
+    public async Task<(bool IsValid, AppUser? User)> ValidateTcKimlikAndBirthDateAsync(string tcKimlik, DateTime birthDate)
+    {
+        ArgumentNullException.ThrowIfNull(tcKimlik);
+
+        try
+        {
+            var user = await _connection.QueryFirstOrDefaultAsync<dynamic>(
+                "SELECT * FROM users WHERE tckn = @Tckn AND DATE(birth_date) = DATE(@BirthDate)",
+                new { Tckn = tcKimlik, BirthDate = birthDate.Date });
+
+            if (user == null)
+                return (false, null);
+
+            return (true, MapToAppUser(user));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error validating TCKN and birth date {Tckn}, {BirthDate}", tcKimlik, birthDate);
+            throw new FshException($"Error validating TCKN and birth date {tcKimlik}, {birthDate}", ex);
+        }
+    }
+
+    public async Task<(string? Email, string? Phone)> GetUserContactInfoAsync(string tcKimlik)
+    {
+        ArgumentNullException.ThrowIfNull(tcKimlik);
+
+        try
+        {
+            var result = await _connection.QueryFirstOrDefaultAsync<dynamic>(
+                "SELECT email, phone_number FROM users WHERE tckn = @Tckn",
+                new { Tckn = tcKimlik });
+
+            if (result == null)
+                return (null, null);
+
+            return (result.email, result.phone_number);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting contact info for TCKN {Tckn}", tcKimlik);
+            throw new FshException($"Error getting contact info for TCKN {tcKimlik}", ex);
         }
     }
 

@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using System.Text;
 using FSH.Framework.Core.Auth.Services;
+using FSH.Framework.Core.Auth.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -14,14 +15,14 @@ public sealed class PasswordResetService : IPasswordResetService
     private static readonly ConcurrentDictionary<string, (int Count, DateTime FirstAttempt)> _rateLimitTracker = new();
 
     private readonly ILogger<PasswordResetService> _logger;
-    private readonly DapperUserRepository _userRepository;
+    private readonly IUserRepository _userRepository;
     private readonly int _tokenExpirationMinutes;
     private readonly int _maxAttemptsPerHour;
 
     public PasswordResetService(
         ILogger<PasswordResetService> logger, 
         IConfiguration configuration,
-        DapperUserRepository userRepository)
+        IUserRepository userRepository)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
@@ -97,6 +98,82 @@ public sealed class PasswordResetService : IPasswordResetService
         {
             _logger.LogError(ex, "Error validating password reset token for email: {Email}", email);
             return Task.FromResult(false);
+        }
+    }
+
+    public Task<bool> ValidateResetTokenAsync(string token)
+    {
+        try
+        {
+            CleanupExpiredTokens();
+            
+            // Search through all stored tokens to find a match
+            foreach (var kvp in _resetTokens)
+            {
+                if (string.Equals(kvp.Value, token, StringComparison.Ordinal))
+                {
+                    // Check if token is expired
+                    if (_tokenExpiry.TryGetValue(kvp.Key, out var expiryTime))
+                    {
+                        if (DateTime.UtcNow <= expiryTime)
+                        {
+                            _logger.LogDebug("Token validation successful for token: {Token}", token[..8] + "...");
+                            return Task.FromResult(true);
+                        }
+                        else
+                        {
+                            _logger.LogDebug("Token expired: {Token}", token[..8] + "...");
+                        }
+                    }
+                }
+            }
+            
+            _logger.LogDebug("Token not found or invalid: {Token}", token[..8] + "...");
+            return Task.FromResult(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error validating password reset token: {Token}", token[..8] + "...");
+            return Task.FromResult(false);
+        }
+    }
+
+    public Task<string?> GetTcknFromTokenAsync(string token)
+    {
+        try
+        {
+            CleanupExpiredTokens();
+            
+            // Search through all stored tokens to find the TCKN associated with this token
+            foreach (var kvp in _resetTokens)
+            {
+                if (string.Equals(kvp.Value, token, StringComparison.Ordinal))
+                {
+                    // Check if token is expired
+                    if (_tokenExpiry.TryGetValue(kvp.Key, out var expiryTime))
+                    {
+                        if (DateTime.UtcNow <= expiryTime)
+                        {
+                            // The key is the TCKN (stored as uppercase)
+                            var tckn = kvp.Key;
+                            _logger.LogDebug("Found TCKN for token: {Token}", token[..8] + "...");
+                            return Task.FromResult<string?>(tckn);
+                        }
+                        else
+                        {
+                            _logger.LogDebug("Token expired when getting TCKN: {Token}", token[..8] + "...");
+                        }
+                    }
+                }
+            }
+            
+            _logger.LogDebug("No TCKN found for token: {Token}", token[..8] + "...");
+            return Task.FromResult<string?>(null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting TCKN from token: {Token}", token[..8] + "...");
+            return Task.FromResult<string?>(null);
         }
     }
 
@@ -224,6 +301,24 @@ public sealed class PasswordResetService : IPasswordResetService
         {
             _logger.LogError(ex, "Failed to reset password for email: {Email}", email);
             throw new InvalidOperationException($"Failed to reset password for email: {email}", ex);
+        }
+    }
+
+    public async Task ResetUserPasswordByTcknAsync(string tcKimlik, string newPassword)
+    {
+        try
+        {
+            _logger.LogInformation("Resetting password for TCKN: {Tckn}", tcKimlik);
+            
+            // Use Dapper repository to reset password by TCKN
+            await _userRepository.ResetPasswordByTcknAsync(tcKimlik, newPassword);
+            
+            _logger.LogInformation("Password successfully reset for TCKN: {Tckn}", tcKimlik);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to reset password for TCKN: {Tckn}", tcKimlik);
+            throw new InvalidOperationException($"Failed to reset password for TCKN: {tcKimlik}", ex);
         }
     }
 } 

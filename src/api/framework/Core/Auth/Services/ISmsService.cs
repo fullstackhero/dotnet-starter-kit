@@ -16,4 +16,9 @@ public interface ISmsService
     /// Yeni SMS kodu oluşturur ve saklarız
     /// </summary>
     Task<string> GenerateAndStoreSmsCodeAsync(string phoneNumber);
+    
+    /// <summary>
+    /// Telefon numarasına özel SMS metni gönderir
+    /// </summary>
+    Task SendSmsAsync(string phoneNumber, string message);
 } 

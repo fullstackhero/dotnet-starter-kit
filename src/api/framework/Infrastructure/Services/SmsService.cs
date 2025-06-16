@@ -68,6 +68,16 @@ public class SmsService : ISmsService
         return code;
     }
 
+    public async Task SendSmsAsync(string phoneNumber, string message)
+    {
+        // TODO: Gerçek SMS API entegrasyonu (Netgsm, Iletimerkezi, vb.)
+        // Şimdilik console'a yazdırıyoruz
+        Console.WriteLine($"SMS sent to {phoneNumber}: {message}");
+        
+        // Simulated delay
+        await Task.Delay(100);
+    }
+
     private static string GenerateSmsCode()
     {
         var randomBytes = new byte[4];
