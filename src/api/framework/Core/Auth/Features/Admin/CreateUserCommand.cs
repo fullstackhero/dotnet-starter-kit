@@ -25,6 +25,7 @@ public record CreateUserResult
 {
     public Guid UserId { get; init; }
     public string Email { get; init; } = default!;
-    public string Username { get; init; } = default!;
+    public string Username { get; init; } = default!;  
+    public string? MemberNumber { get; init; }
     public string Message { get; init; } = default!;
 } 

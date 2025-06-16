@@ -36,7 +36,7 @@ public sealed class DapperUserRepository : IUserRepository
             const string sql = @"
                 SELECT 
                     id, email, username, tckn, first_name, last_name, 
-                    phone_number, profession, birth_date, password_hash,
+                    phone_number, profession, birth_date, member_number, password_hash,
                     is_identity_verified, is_phone_verified, is_email_verified,
                     status, created_at, updated_at
                 FROM users 
@@ -61,7 +61,7 @@ public sealed class DapperUserRepository : IUserRepository
             const string sql = @"
                 SELECT 
                     id, email, username, tckn, first_name, last_name, 
-                    phone_number, profession, birth_date, password_hash,
+                    phone_number, profession, birth_date, member_number, password_hash,
                     is_identity_verified, is_phone_verified, is_email_verified,
                     status, created_at, updated_at
                 FROM users 
@@ -87,7 +87,7 @@ public sealed class DapperUserRepository : IUserRepository
             const string sql = @"
                 SELECT 
                     id, email, username, tckn, first_name, last_name, 
-                    phone_number, profession, birth_date, password_hash,
+                    phone_number, profession, birth_date, member_number, password_hash,
                     is_identity_verified, is_phone_verified, is_email_verified,
                     status, created_at, updated_at
                 FROM users 
@@ -112,7 +112,7 @@ public sealed class DapperUserRepository : IUserRepository
             const string sql = @"
                 SELECT 
                     id, email, username, tckn, first_name, last_name, 
-                    phone_number, profession, birth_date, password_hash,
+                    phone_number, profession, birth_date, member_number, password_hash,
                     is_identity_verified, is_phone_verified, is_email_verified,
                     status, created_at, updated_at
                 FROM users 
@@ -219,12 +219,12 @@ public sealed class DapperUserRepository : IUserRepository
             var sql = @"
                 INSERT INTO users (
                     id, email, username, phone_number, tckn, password_hash,
-                    first_name, last_name, profession, birth_date,
+                    first_name, last_name, profession, birth_date, member_number,
                     is_identity_verified, is_phone_verified, is_email_verified,
                     status, created_at, updated_at
                 ) VALUES (
                     @Id, @Email, @Username, @PhoneNumber, @Tckn, @PasswordHash,
-                    @FirstName, @LastName, @Profession, @BirthDate,
+                    @FirstName, @LastName, @Profession, @BirthDate, @MemberNumber,
                     @IsIdentityVerified, @IsPhoneVerified, @IsEmailVerified,
                     @Status, @CreatedAt, @UpdatedAt
                 )";
@@ -241,6 +241,7 @@ public sealed class DapperUserRepository : IUserRepository
                 user.LastName,
                 user.Profession,
                 user.BirthDate,
+                user.MemberNumber,
                 user.IsIdentityVerified,
                 user.IsPhoneVerified,
                 user.IsEmailVerified,
@@ -624,7 +625,8 @@ public sealed class DapperUserRepository : IUserRepository
             lastName: user.last_name,
             phoneNumber: user.phone_number,
             profession: user.profession,
-            birthDate: user.birth_date)
+            birthDate: user.birth_date,
+            memberNumber: user.member_number)
         .WithPasswordHash(user.password_hash)
         .WithVerificationStatus(
             isIdentityVerified: user.is_identity_verified,

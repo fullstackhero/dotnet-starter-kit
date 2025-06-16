@@ -81,13 +81,17 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Resul
             // Assign default base_user role (admin can change this later if needed)
             await _userRepository.AssignRoleAsync(userId, "base_user");
 
-            _logger.LogInformation("Admin created new user with ID {UserId}", userId);
+            // Get the user back from database to retrieve the auto-generated member number
+            var createdUser = await _userRepository.GetByIdAsync(userId);
+
+            _logger.LogInformation("Admin created new user with ID {UserId} and Member Number {MemberNumber}", userId, createdUser?.MemberNumber);
 
             return Result<CreateUserResult>.Success(new CreateUserResult 
             { 
                 UserId = userId,
                 Email = request.Email.Value,
                 Username = request.Username.Value,
+                MemberNumber = createdUser?.MemberNumber,
                 Message = "User created successfully" 
             });
         }

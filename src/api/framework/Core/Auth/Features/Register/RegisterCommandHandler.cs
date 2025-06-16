@@ -98,13 +98,17 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Re
             // Assign default base_user role to new users
             await _userRepository.AssignRoleAsync(userId, "base_user");
 
-            _logger.LogInformation("User registered successfully with ID {UserId}", userId);
+            // Get the user back from database to retrieve the auto-generated member number
+            var createdUser = await _userRepository.GetByIdAsync(userId);
+
+            _logger.LogInformation("User registered successfully with ID {UserId} and Member Number {MemberNumber}", userId, createdUser?.MemberNumber);
 
             return Result<RegisterResponseDto>.Success(new RegisterResponseDto 
             { 
                 UserId = userId,
                 Email = request.Email,
                 Username = request.Username,
+                MemberNumber = createdUser?.MemberNumber,
                 Message = "User registered successfully" 
             });
         }

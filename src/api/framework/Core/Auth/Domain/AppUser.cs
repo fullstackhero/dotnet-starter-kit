@@ -17,6 +17,7 @@ public sealed class AppUser
     public string LastName { get; private init; } = default!;
     public string? Profession { get; private init; }
     public DateTime BirthDate { get; private init; }
+    public string? MemberNumber { get; private init; }
     public bool IsIdentityVerified { get; private init; }
     public bool IsPhoneVerified { get; private init; }
     public bool IsEmailVerified { get; private init; }
@@ -85,7 +86,8 @@ public sealed class AppUser
         string lastName,
         string? phoneNumber,
         string? profession,
-        DateTime? birthDate)
+        DateTime? birthDate,
+        string? memberNumber = null)
     {
         ArgumentNullException.ThrowIfNull(email);
         ArgumentNullException.ThrowIfNull(username);
@@ -110,6 +112,7 @@ public sealed class AppUser
             LastName = lastName,
             Profession = profession,
             BirthDate = birthDate ?? DateTime.MinValue,
+            MemberNumber = memberNumber,
             Status = "ACTIVE", // Default status for backward compatibility
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -131,6 +134,7 @@ public sealed class AppUser
             LastName = LastName,
             Profession = Profession,
             BirthDate = BirthDate,
+            MemberNumber = MemberNumber,
             IsIdentityVerified = IsIdentityVerified,
             IsPhoneVerified = IsPhoneVerified,
             IsEmailVerified = IsEmailVerified,
@@ -154,6 +158,7 @@ public sealed class AppUser
             LastName = LastName,
             Profession = Profession,
             BirthDate = BirthDate,
+            MemberNumber = MemberNumber,
             IsIdentityVerified = isIdentityVerified,
             IsPhoneVerified = isPhoneVerified,
             IsEmailVerified = isEmailVerified,
@@ -178,6 +183,7 @@ public sealed class AppUser
             LastName = LastName,
             Profession = Profession,
             BirthDate = BirthDate,
+            MemberNumber = MemberNumber,
             IsIdentityVerified = IsIdentityVerified,
             IsPhoneVerified = IsPhoneVerified,
             IsEmailVerified = IsEmailVerified,
@@ -201,6 +207,7 @@ public sealed class AppUser
             LastName = LastName,
             Profession = Profession,
             BirthDate = BirthDate,
+            MemberNumber = MemberNumber,
             IsIdentityVerified = IsIdentityVerified,
             IsPhoneVerified = IsPhoneVerified,
             IsEmailVerified = IsEmailVerified,
@@ -248,6 +255,7 @@ public sealed class AppUser
                     LastName = LastName,
                     Profession = Profession,
                     BirthDate = BirthDate,
+                    MemberNumber = MemberNumber,
                     IsIdentityVerified = IsIdentityVerified,
                     IsPhoneVerified = IsPhoneVerified,
                     IsEmailVerified = IsEmailVerified,
@@ -275,6 +283,7 @@ public sealed class AppUser
                     LastName = updatedUser.LastName,
                     Profession = updatedUser.Profession,
                     BirthDate = updatedUser.BirthDate,
+                    MemberNumber = updatedUser.MemberNumber,
                     IsIdentityVerified = updatedUser.IsIdentityVerified,
                     IsPhoneVerified = updatedUser.IsPhoneVerified,
                     IsEmailVerified = updatedUser.IsEmailVerified,
@@ -298,6 +307,7 @@ public sealed class AppUser
                     LastName = lastName ?? updatedUser.LastName,
                     Profession = profession ?? updatedUser.Profession,
                     BirthDate = updatedUser.BirthDate,
+                    MemberNumber = updatedUser.MemberNumber,
                     IsIdentityVerified = updatedUser.IsIdentityVerified,
                     IsPhoneVerified = updatedUser.IsPhoneVerified,
                     IsEmailVerified = updatedUser.IsEmailVerified,
@@ -330,6 +340,7 @@ public sealed class AppUser
             LastName = LastName,
             Profession = Profession,
             BirthDate = BirthDate,
+            MemberNumber = MemberNumber,
             IsIdentityVerified = isIdentityVerified,
             IsPhoneVerified = isPhoneVerified,
             IsEmailVerified = isEmailVerified,
@@ -354,6 +365,7 @@ public sealed class AppUser
             LastName = LastName,
             Profession = Profession,
             BirthDate = BirthDate,
+            MemberNumber = MemberNumber,
             IsIdentityVerified = IsIdentityVerified,
             IsPhoneVerified = IsPhoneVerified,
             IsEmailVerified = IsEmailVerified,
