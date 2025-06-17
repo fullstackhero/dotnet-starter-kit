@@ -77,7 +77,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Re
                 tckn: request.Tckn,
                 firstName: request.FirstName,
                 lastName: request.LastName,
-                profession: request.Profession ?? string.Empty,
+                professionId: request.ProfessionId,
                 birthDate: request.BirthDate ?? DateTime.MinValue
             );
 

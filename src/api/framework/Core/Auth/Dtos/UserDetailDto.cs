@@ -10,8 +10,6 @@ public class UserDetailDto
     public string PhoneNumber { get; init; } = string.Empty;
     public string? Profession { get; init; }
     public bool IsEmailVerified { get; init; }
-    public bool IsPhoneVerified { get; init; }
-    public bool IsIdentityVerified { get; init; }
     public bool IsActive { get; init; }
     public IReadOnlyList<string> Roles { get; init; } = new List<string>();
 } 

@@ -14,8 +14,6 @@ public class User
     public string last_name { get; set; } = default!;
     public string? profession { get; set; }
     public DateTime birth_date { get; set; }
-    public bool is_identity_verified { get; set; }
-    public bool is_phone_verified { get; set; }
     public bool is_email_verified { get; set; }
     public string status { get; set; } = default!;
     public DateTime created_at { get; set; }

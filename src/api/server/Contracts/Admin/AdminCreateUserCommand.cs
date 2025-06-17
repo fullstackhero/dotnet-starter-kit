@@ -33,11 +33,5 @@ public sealed class AdminCreateUserCommand
     public string? Status { get; init; }
 
     [Required]
-    public bool IsIdentityVerified { get; init; }
-
-    [Required]
-    public bool IsPhoneVerified { get; init; }
-
-    [Required]
     public bool IsEmailVerified { get; init; }
 }

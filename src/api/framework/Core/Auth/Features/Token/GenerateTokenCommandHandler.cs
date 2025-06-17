@@ -48,7 +48,7 @@ public class GenerateTokenCommandHandler : IRequestHandler<GenerateTokenCommand,
             user.FirstName, 
             user.LastName, 
             user.PhoneNumber.Value, 
-            user.Profession, 
+            user.ProfessionId?.ToString() ?? string.Empty, 
             user.Status, 
             roles);
 

@@ -25,11 +25,5 @@ public sealed class AdminUpdateUserCommand
     public string Status { get; init; } = default!;
 
     [Required]
-    public bool IsIdentityVerified { get; init; }
-
-    [Required]
-    public bool IsPhoneVerified { get; init; }
-
-    [Required]
     public bool IsEmailVerified { get; init; }
 }

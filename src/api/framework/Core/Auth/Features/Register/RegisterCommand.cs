@@ -12,7 +12,7 @@ public record RegisterCommand : IRequest<Result<RegisterResponseDto>>
     public string Password { get; init; } = default!;
     public string FirstName { get; init; } = default!;
     public string LastName { get; init; } = default!;
-    public string? Profession { get; init; }
+    public int? ProfessionId { get; init; }
     public DateTime? BirthDate { get; init; }
 }
 

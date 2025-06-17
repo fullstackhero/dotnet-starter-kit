@@ -29,4 +29,8 @@ public interface IUserRepository
     Task<(string? Email, string? Phone)> GetUserContactInfoAsync(string tcKimlik);
     Task ResetPasswordAsync(string email, string newPassword);
     Task ResetPasswordByTcknAsync(string tcKimlik, string newPassword);
+    
+    // Profile Update Verification Methods
+    Task<bool> VerifyEmailUpdateAsync(Guid userId, string verificationCode);
+    Task<bool> VerifyPhoneUpdateAsync(Guid userId, string verificationCode);
 } 

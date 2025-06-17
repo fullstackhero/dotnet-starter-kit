@@ -55,6 +55,41 @@ This starter kit implements a **simplified clean architecture** with the followi
 
 ## 🔐 Authentication System
 
+### SMS OTP Registration Flow
+
+The system implements a secure two-step registration process with SMS OTP verification:
+
+1. **Registration Request** (`POST /api/v1/auth/register-request`)
+   - User submits registration form with required fields
+   - System validates data and stores temporarily in cache (15 minutes)
+   - SMS OTP (4-digit code) is sent to provided phone number
+   - No database storage until phone verification
+
+2. **OTP Verification** (`POST /api/v1/auth/verify-registration`)
+   - User submits phone number and OTP code
+   - System validates OTP (3 attempts max)
+   - Upon successful verification, user is created in database
+   - Cache is cleared and registration is complete
+
+#### Registration Fields
+- **Ad** (First Name) - Required
+- **Soyad** (Last Name) - Required
+- **TC Kimlik No** (Turkish ID Number) - Required, 11 digits
+- **Doğum Tarihi** (Birth Date) - Required
+- **E-posta** (Email) - Required, unique
+- **Telefon** (Phone) - Required, unique, Turkish format
+- **Meslek** (Profession) - Required, profession ID
+- **Şifre** (Password) - Required, strong password
+- **Şifre Tekrar** (Confirm Password) - Required, must match
+- **Contract Acceptance** - Required, must be true
+
+#### Security Features
+- Cache-based temporary storage (no DB until verified)
+- 15-minute expiration for pending registrations
+- 3 OTP attempt limit with lockout
+- IP address and device info collection
+- Phone number uniqueness validation
+
 ### Roles & Permissions
 
 | Role | Description | Permissions |
@@ -74,7 +109,9 @@ This starter kit implements a **simplified clean architecture** with the followi
 ### Public Endpoints (No Authentication Required)
 ```
 GET  /api/v1/auth/test             - Health check
-POST /api/v1/auth/register         - User registration
+POST /api/v1/auth/register         - User registration (legacy)
+POST /api/v1/auth/register-request - SMS OTP registration (step 1)
+POST /api/v1/auth/verify-registration - Verify SMS OTP and complete registration (step 2)
 POST /api/v1/auth/login            - User authentication
 POST /api/v1/auth/token            - Generate JWT token
 POST /api/v1/auth/refresh          - Refresh JWT token
@@ -129,13 +166,17 @@ POST /api/v1/auth/bootstrap/assign-admin/{userId} - Assign admin role
 - **Serilog** - Structured logging
 - **Swagger/OpenAPI** - API documentation
 - **Carter** - Minimal API endpoints
+- **Memory Cache** - In-memory caching for pending registrations
+- **SMS Service** - SMS OTP delivery (development mode logs to console)
 
 ## 🗄️ Database Schema
 
 ### Core Tables
-- `users` - User accounts and profile information
+- `users` - User accounts and profile information (includes Turkish fields: TC Kimlik No, address, IBAN)
 - `roles` - System roles (admin, customer_admin, customer_support, base_user)
 - `user_roles` - Many-to-many relationship between users and roles
+- `professions` - Reference table for user professions
+- **Cache Storage** - Temporary registration data (15-minute expiration)
 
 ### Default Roles
 The system includes 4 predefined roles created during migration:
@@ -154,7 +195,36 @@ Use the provided `server.http` file for quick API testing:
    GET http://localhost:5000/api/v1/auth/test
    ```
 
-2. **Login as admin**:
+2. **Test SMS OTP Registration Flow**:
+   ```http
+   # Step 1: Request registration with SMS OTP
+   POST http://localhost:5000/api/v1/auth/register-request
+   Content-Type: application/json
+
+   {
+     "firstName": "Ahmet",
+     "lastName": "Yılmaz",
+     "tcKimlikNo": "12345678901",
+     "birthDate": "1990-01-01",
+     "email": "ahmet@example.com",
+     "phoneNumber": "+905551234567",
+     "professionId": 1,
+     "password": "SecurePass123!",
+     "confirmPassword": "SecurePass123!",
+     "acceptContract": true
+   }
+
+   # Step 2: Verify SMS OTP (check console for OTP code)
+   POST http://localhost:5000/api/v1/auth/verify-registration
+   Content-Type: application/json
+
+   {
+     "phoneNumber": "+905551234567",
+     "otpCode": "1234"
+   }
+   ```
+
+3. **Login as admin**:
    ```http
    POST http://localhost:5000/api/v1/auth/login
    Content-Type: application/json
@@ -165,9 +235,9 @@ Use the provided `server.http` file for quick API testing:
    }
    ```
 
-3. **Copy the JWT token from response**
+4. **Copy the JWT token from response**
 
-4. **Test protected endpoints**:
+5. **Test protected endpoints**:
    ```http
    GET http://localhost:5000/api/v1/auth/profile
    Authorization: Bearer YOUR_JWT_TOKEN_HERE
@@ -256,6 +326,12 @@ src/
    - `001_CreateUsersTable.sql` - User table schema
    - `002_CreateRolesAndUserRoles.sql` - Roles and user-role relationships
    - `003_CreateDefaultAdmin.sql` - Default admin user
+   - `004_CreateProfessionsTable.sql` - Professions reference table
+   - `005_UpdateUsersTableForProfessions.sql` - Add profession_id to users
+   - `006_AddProfessionData.sql` - Insert profession data
+   - `007_RemoveVerificationColumns.sql` - Remove old verification columns
+   - `008_RemoveVerificationColumns.sql` - Clean up verification columns
+   - `009_AddAdditionalUserFields.sql` - Add address, IBAN, IP tracking fields
 
 ### Role-Based Security
 - Roles are defined in `RoleConstants.cs`

@@ -16,8 +16,6 @@ public record CreateUserCommand : IRequest<Result<CreateUserResult>>
     public Profession? Profession { get; init; }
     public BirthDate BirthDate { get; init; } = default!;
     public string? Status { get; init; }
-    public bool IsIdentityVerified { get; init; }
-    public bool IsPhoneVerified { get; init; }
     public bool IsEmailVerified { get; init; }
 }
 

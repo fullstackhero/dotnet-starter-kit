@@ -45,7 +45,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, T
             user.FirstName, 
             user.LastName, 
             user.PhoneNumber.Value, 
-            user.Profession, 
+            user.ProfessionId?.ToString() ?? string.Empty, 
             user.Status, 
             roles);
 

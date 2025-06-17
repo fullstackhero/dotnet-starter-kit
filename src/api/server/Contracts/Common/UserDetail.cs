@@ -28,12 +28,6 @@ internal sealed class UserDetail
     public bool IsEmailVerified { get; init; }
 
     [Required]
-    public bool IsPhoneVerified { get; init; }
-
-    [Required]
-    public bool IsIdentityVerified { get; init; }
-
-    [Required]
     public bool EmailConfirmed { get; init; }
 
     [Required]

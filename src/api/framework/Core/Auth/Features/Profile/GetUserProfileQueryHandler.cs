@@ -51,10 +51,10 @@ public sealed class GetUserProfileQueryHandler : IRequestHandler<GetUserProfileQ
             FirstName = user.FirstName,
             LastName = user.LastName,
             PhoneNumber = user.PhoneNumber.Value,
-            Profession = user.Profession,
+            Profession = user.ProfessionId?.ToString() ?? string.Empty,
             IsEmailVerified = user.IsEmailVerified,
-            IsPhoneVerified = user.IsPhoneVerified,
-            IsIdentityVerified = user.IsIdentityVerified,
+            // IsPhoneVerified removed - SMS OTP verification happens during registration
+            // IsIdentityVerified removed - MERNIS verification happens during registration
             IsActive = user.Status == "ACTIVE",
             Roles = roles
         };

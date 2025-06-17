@@ -41,7 +41,7 @@ Content-Type: application/json
 
 {
   "username": "updated_username",
-  "profession": "Senior Software Engineer"
+  "professionId": 6
 }
 
 # ===================================================================

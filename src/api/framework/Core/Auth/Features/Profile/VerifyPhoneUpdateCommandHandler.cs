@@ -4,6 +4,7 @@ using FSH.Framework.Core.Auth.Repositories;
 using FSH.Framework.Core.Common.Exceptions;
 using FSH.Framework.Core.Auth.Domain.ValueObjects;
 using FSH.Framework.Core.Auth.Services;
+using FSH.Framework.Core.Auth.Domain;
 
 namespace FSH.Framework.Core.Auth.Features.Profile;
 
@@ -77,15 +78,12 @@ public sealed class VerifyPhoneUpdateCommandHandler : IRequestHandler<VerifyPhon
         // Update the user's phone number
         try
         {
-            var updatedUser = user.UpdateProfile(phoneNumber: request.NewPhoneNumber);
-            if (!updatedUser.IsSuccess)
+            var isUpdated = await _userRepository.VerifyPhoneUpdateAsync(request.UserId, request.VerificationCode);
+            if (!isUpdated)
             {
-                _logger.LogError("Failed to update user phone: {Error}", updatedUser.Error);
-                throw new FshException($"Failed to update phone: {updatedUser.Error}");
+                _logger.LogWarning("Phone verification failed for user: {UserId}", request.UserId);
+                throw new FshException("Phone verification failed or expired");
             }
-
-            // Update in database
-            await _userRepository.UpdateUserAsync(updatedUser.Value!);
 
             _logger.LogInformation(
                 "Phone number successfully updated for user: {UserId}, new phone: {NewPhone}",
@@ -93,6 +91,11 @@ public sealed class VerifyPhoneUpdateCommandHandler : IRequestHandler<VerifyPhon
                 request.NewPhoneNumber);
 
             return "Phone number updated successfully";
+        }
+        catch (FshException)
+        {
+            // Rethrow FshException as-is
+            throw;
         }
         catch (Exception ex)
         {

@@ -74,30 +74,32 @@ public sealed class VerifyEmailUpdateCommandHandler : IRequestHandler<VerifyEmai
             throw new FshException("Email address is already in use");
         }
 
-        // Update the user's email address
+        // Update the user's email
         try
         {
-            var updatedUser = user.UpdateProfile(email: request.NewEmail);
-            if (!updatedUser.IsSuccess)
+            var isUpdated = await _userRepository.VerifyEmailUpdateAsync(request.UserId, request.VerificationCode);
+            if (!isUpdated)
             {
-                _logger.LogError("Failed to update user email: {Error}", updatedUser.Error);
-                throw new FshException($"Failed to update email: {updatedUser.Error}");
+                _logger.LogWarning("Email verification failed for user: {UserId}", request.UserId);
+                throw new FshException("Email verification failed or expired");
             }
 
-            // Update in database
-            await _userRepository.UpdateUserAsync(updatedUser.Value!);
-
             _logger.LogInformation(
-                "Email address successfully updated for user: {UserId}, new email: {NewEmail}",
+                "Email successfully updated for user: {UserId}, new email: {NewEmail}",
                 request.UserId,
                 request.NewEmail);
 
-            return "Email address updated successfully";
+            return "Email updated successfully";
+        }
+        catch (FshException)
+        {
+            // Rethrow FshException as-is
+            throw;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to update email address for user: {UserId}", request.UserId);
-            throw new FshException("Failed to update email address. Please try again.");
+            _logger.LogError(ex, "Failed to update email for user: {UserId}", request.UserId);
+            throw new FshException("Failed to update email. Please try again.");
         }
     }
 } 

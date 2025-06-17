@@ -65,19 +65,27 @@ Content-Type: application/json
 # ===================================================================
 
 ### Standard User Registration
-POST {{Base_Auth_URL}}/register
+### Step 1: Send SMS OTP (Register Request)
+POST {{Base_Auth_URL}}/register-request
 Content-Type: application/json
 
 {
   "email": "user@example.com",
   "username": "standarduser",
   "phoneNumber": "5447627858",
-  "tckn": "11111111110",
-  "password": "User123!",
-  "firstName": "John",
-  "lastName": "Doe",
-  "profession": "Software Engineer",
-  "birthDate": "1990-01-01T00:00:00Z"
+  "professionId": 1,
+  "birthDate": "1998-01-01T00:00:00Z"
+}
+
+###
+
+### Step 2: Verify OTP and Complete Registration
+POST {{Base_Auth_URL}}/verify-registration
+Content-Type: application/json
+
+{
+  "phoneNumber": "5447627858",
+  "otpCode": "5752"
 }
 
 ### Customer Admin Registration
@@ -92,7 +100,7 @@ Content-Type: application/json
   "password": "Admin123!",
   "firstName": "Jane",
   "lastName": "Smith",
-  "profession": "Customer Manager",
+  "professionId": 1,
   "birthDate": "1985-03-15T00:00:00Z"
 }
 
@@ -108,7 +116,7 @@ Content-Type: application/json
   "password": "Support123!",
   "firstName": "Mike",
   "lastName": "Johnson",
-  "profession": "Technical Support",
+  "professionId": 2,
   "birthDate": "1988-07-20T00:00:00Z"
 }
 

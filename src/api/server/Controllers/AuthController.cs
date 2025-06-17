@@ -81,35 +81,48 @@ public sealed class AuthController : ControllerBase
         }
     }
 
-    [HttpPost("register")]
+    [HttpPost("register-request")]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(ApiResponse<RegisterResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<FSH.Framework.Core.Auth.Features.RegisterRequest.RegisterRequestResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequest request)
+    public async Task<IActionResult> RegisterRequestAsync([FromBody] RegisterRequest request)
     {
+        // Get client IP and device info
+        var registrationIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var deviceInfo = HttpContext.Request.Headers.UserAgent.ToString();
+
         // Clean Architecture: Map presentation DTO to domain command
-        var command = new RegisterCommand
-        {
-            Email = request.Email,
-            Username = request.Username,
-            PhoneNumber = request.PhoneNumber,
-            Tckn = request.Tckn,
-            Password = request.Password,
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            Profession = request.Profession,
-            BirthDate = request.BirthDate
-        };
+        var command = new FSH.Framework.Core.Auth.Features.RegisterRequest.RegisterRequestCommand(
+            request.Email,
+            request.Username,
+            request.PhoneNumber,
+            request.Tckn,
+            request.Password,
+            request.FirstName,
+            request.LastName,
+            request.ProfessionId,
+            request.BirthDate,
+            registrationIp,
+            deviceInfo
+        );
 
         var result = await _mediator.Send(command);
-        if (result.IsSuccess)
-        {
-            return Ok(ApiResponse<RegisterResponseDto>.SuccessResult(result.Value!));
-        }
-        else
-        {
-            return Ok(ApiResponse<RegisterResponseDto>.FailureResult(result.Error ?? "Unknown error"));
-        }
+        return Ok(ApiResponse<FSH.Framework.Core.Auth.Features.RegisterRequest.RegisterRequestResponse>.SuccessResult(result));
+    }
+
+    [HttpPost("verify-registration")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ApiResponse<FSH.Framework.Core.Auth.Features.VerifyRegistration.VerifyRegistrationResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> VerifyRegistrationAsync([FromBody] VerifyRegistrationRequest request)
+    {
+        var command = new FSH.Framework.Core.Auth.Features.VerifyRegistration.VerifyRegistrationCommand(
+            request.PhoneNumber,
+            request.OtpCode
+        );
+
+        var result = await _mediator.Send(command);
+        return Ok(ApiResponse<FSH.Framework.Core.Auth.Features.VerifyRegistration.VerifyRegistrationResponse>.SuccessResult(result));
     }
 
     [HttpPost("token")]
@@ -397,8 +410,8 @@ public sealed class AuthController : ControllerBase
                     passwordHashLength = user.PasswordHash?.Length ?? 0,
                     status = user.Status,
                     isEmailVerified = user.IsEmailVerified,
-                    isPhoneVerified = user.IsPhoneVerified,
-                    isIdentityVerified = user.IsIdentityVerified
+                    // isPhoneVerified removed - SMS OTP verification happens during registration
+                    // isIdentityVerified removed - MERNIS verification happens during registration
                 },
                 passwordValidation = new {
                     isValid = isValid,

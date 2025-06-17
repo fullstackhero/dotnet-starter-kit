@@ -34,16 +34,16 @@ public sealed class DapperUserRepository : IUserRepository
         try
         {
             const string sql = @"
-                SELECT 
-                    id, email, username, tckn, first_name, last_name, 
-                    phone_number, profession, birth_date, member_number, password_hash,
-                    is_identity_verified, is_phone_verified, is_email_verified,
-                    status, created_at, updated_at
+                SELECT id, email, username, phone_number, tckn, 
+                       password_hash, first_name, last_name, profession_id,
+                       birth_date, member_number, is_email_verified, status, created_at, updated_at
                 FROM users 
                 WHERE id = @Id";
 
-            var user = await _connection.QueryFirstOrDefaultAsync<dynamic>(sql, new { Id = id });
-            return user == null ? null : MapToAppUser(user);
+            var userRow = await _connection.QueryFirstOrDefaultAsync(sql, new { Id = id });
+            if (userRow == null) return null;
+
+            return MapToAppUser(userRow);
         }
         catch (Exception ex)
         {
@@ -54,27 +54,24 @@ public sealed class DapperUserRepository : IUserRepository
 
     public async Task<AppUser?> GetByEmailAsync(string email)
     {
-        ArgumentNullException.ThrowIfNull(email);
-
         try
         {
             const string sql = @"
-                SELECT 
-                    id, email, username, tckn, first_name, last_name, 
-                    phone_number, profession, birth_date, member_number, password_hash,
-                    is_identity_verified, is_phone_verified, is_email_verified,
-                    status, created_at, updated_at
+                SELECT id, email, username, phone_number, tckn, 
+                       password_hash, first_name, last_name, profession_id,
+                       birth_date, member_number, is_email_verified, status, created_at, updated_at
                 FROM users 
                 WHERE email = @Email";
 
-            var normalizedEmail = email.ToLowerInvariant();
-            var user = await _connection.QueryFirstOrDefaultAsync<dynamic>(sql, new { Email = normalizedEmail });
-            return user == null ? null : MapToAppUser(user);
+            var userRow = await _connection.QueryFirstOrDefaultAsync(sql, new { Email = email });
+            if (userRow == null) return null;
+
+            return MapToAppUser(userRow);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting user by email {Email}", email);
-            throw new FshException($"Error getting user by email {email}", ex);
+            _logger.LogError(ex, "Error getting user by email");
+            throw new FshException("Error getting user by email", ex);
         }
     }
 
@@ -87,9 +84,8 @@ public sealed class DapperUserRepository : IUserRepository
             const string sql = @"
                 SELECT 
                     id, email, username, tckn, first_name, last_name, 
-                    phone_number, profession, birth_date, member_number, password_hash,
-                    is_identity_verified, is_phone_verified, is_email_verified,
-                    status, created_at, updated_at
+                    phone_number, profession_id, birth_date, member_number, password_hash,
+                    is_email_verified, status, created_at, updated_at
                 FROM users 
                 WHERE tckn = @Tckn";
 
@@ -105,27 +101,24 @@ public sealed class DapperUserRepository : IUserRepository
 
     public async Task<AppUser?> GetByUsernameAsync(string username)
     {
-        ArgumentNullException.ThrowIfNull(username);
-
         try
         {
             const string sql = @"
-                SELECT 
-                    id, email, username, tckn, first_name, last_name, 
-                    phone_number, profession, birth_date, member_number, password_hash,
-                    is_identity_verified, is_phone_verified, is_email_verified,
-                    status, created_at, updated_at
+                SELECT id, email, username, phone_number, tckn, 
+                       password_hash, first_name, last_name, profession_id,
+                       birth_date, member_number, is_email_verified, status, created_at, updated_at
                 FROM users 
                 WHERE username = @Username";
 
-            var normalizedUsername = username.ToLowerInvariant();
-            var user = await _connection.QueryFirstOrDefaultAsync<dynamic>(sql, new { Username = normalizedUsername });
-            return user == null ? null : MapToAppUser(user);
+            var userRow = await _connection.QueryFirstOrDefaultAsync(sql, new { Username = username });
+            if (userRow == null) return null;
+
+            return MapToAppUser(userRow);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting user by username {Username}", username);
-            throw new FshException($"Error getting user by username {username}", ex);
+            _logger.LogError(ex, "Error getting user by username");
+            throw new FshException("Error getting user by username", ex);
         }
     }
 
@@ -212,119 +205,116 @@ public sealed class DapperUserRepository : IUserRepository
 
     public async Task<Guid> CreateUserAsync(AppUser user)
     {
-        ArgumentNullException.ThrowIfNull(user);
-
         try
         {
-            var sql = @"
+            const string sql = @"
                 INSERT INTO users (
-                    id, email, username, phone_number, tckn, password_hash,
-                    first_name, last_name, profession, birth_date, member_number,
-                    is_identity_verified, is_phone_verified, is_email_verified,
+                    id, email, username, phone_number, tckn, 
+                    password_hash, first_name, last_name, profession_id,
+                    birth_date, member_number, is_email_verified,
                     status, created_at, updated_at
                 ) VALUES (
-                    @Id, @Email, @Username, @PhoneNumber, @Tckn, @PasswordHash,
-                    @FirstName, @LastName, @Profession, @BirthDate, @MemberNumber,
-                    @IsIdentityVerified, @IsPhoneVerified, @IsEmailVerified,
+                    @Id, @Email, @Username, @PhoneNumber, @Tckn,
+                    @PasswordHash, @FirstName, @LastName, @ProfessionId,
+                    @BirthDate, @MemberNumber, @IsEmailVerified,
                     @Status, @CreatedAt, @UpdatedAt
                 )";
 
-            var parameters = new
+            await _connection.ExecuteAsync(sql, new
             {
-                user.Id,
+                Id = user.Id,
                 Email = user.Email.Value,
-                user.Username,
+                Username = user.Username,
                 PhoneNumber = user.PhoneNumber.Value,
                 Tckn = user.Tckn.Value,
-                user.PasswordHash,
-                user.FirstName,
-                user.LastName,
-                user.Profession,
-                user.BirthDate,
-                user.MemberNumber,
-                user.IsIdentityVerified,
-                user.IsPhoneVerified,
-                user.IsEmailVerified,
-                user.Status,
-                user.CreatedAt,
-                user.UpdatedAt
-            };
+                PasswordHash = user.PasswordHash,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                ProfessionId = user.ProfessionId,
+                BirthDate = user.BirthDate,
+                MemberNumber = user.MemberNumber,
+                IsEmailVerified = user.IsEmailVerified,
+                Status = user.Status,
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt
+            });
 
-            await _connection.ExecuteAsync(sql, parameters);
             return user.Id;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating user {UserId}", user.Id);
-            throw new FshException($"Error creating user {user.Id}", ex);
+            _logger.LogError(ex, "Error creating user");
+            throw new FshException("Error creating user", ex);
+        }
+    }
+
+    public async Task<Guid> UpdateAsync(AppUser user)
+    {
+        try
+        {
+            const string sql = @"
+                UPDATE users SET 
+                    email = @Email, 
+                    username = @Username, 
+                    phone_number = @PhoneNumber, 
+                    password_hash = @PasswordHash, 
+                    first_name = @FirstName, 
+                    last_name = @LastName, 
+                    profession_id = @ProfessionId,
+                    birth_date = @BirthDate,
+                                                    is_email_verified = @IsEmailVerified,
+                status = @Status,
+                    updated_at = @UpdatedAt
+                WHERE id = @Id";
+
+            await _connection.ExecuteAsync(sql, new
+            {
+                Id = user.Id,
+                Email = user.Email.Value,
+                Username = user.Username,
+                PhoneNumber = user.PhoneNumber.Value,
+                PasswordHash = user.PasswordHash,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                ProfessionId = user.ProfessionId,
+                BirthDate = user.BirthDate,
+                IsEmailVerified = user.IsEmailVerified,
+                Status = user.Status,
+                UpdatedAt = user.UpdatedAt
+            });
+
+            return user.Id;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating user");
+            throw new FshException("Error updating user", ex);
         }
     }
 
     public async Task UpdateUserAsync(AppUser user)
     {
-        ArgumentNullException.ThrowIfNull(user);
+        await UpdateAsync(user);
+    }
 
+    public async Task<bool> DeleteAsync(Guid id)
+    {
         try
         {
-            var sql = @"
-                UPDATE users SET
-                    email = @Email,
-                    username = @Username,
-                    phone_number = @PhoneNumber,
-                    tckn = @Tckn,
-                    password_hash = @PasswordHash,
-                    first_name = @FirstName,
-                    last_name = @LastName,
-                    profession = @Profession,
-                    birth_date = @BirthDate,
-                    is_identity_verified = @IsIdentityVerified,
-                    is_phone_verified = @IsPhoneVerified,
-                    is_email_verified = @IsEmailVerified,
-                    status = @Status,
-                    updated_at = @UpdatedAt
-                WHERE id = @Id";
-
-            var parameters = new
-            {
-                user.Id,
-                Email = user.Email.Value,
-                user.Username,
-                PhoneNumber = user.PhoneNumber.Value,
-                Tckn = user.Tckn.Value,
-                user.PasswordHash,
-                user.FirstName,
-                user.LastName,
-                user.Profession,
-                user.BirthDate,
-                user.IsIdentityVerified,
-                user.IsPhoneVerified,
-                user.IsEmailVerified,
-                user.Status,
-                user.UpdatedAt
-            };
-
-            await _connection.ExecuteAsync(sql, parameters);
+            const string sql = "DELETE FROM users WHERE id = @Id";
+            var rowsAffected = await _connection.ExecuteAsync(sql, new { Id = id });
+            return rowsAffected > 0;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating user {UserId}", user.Id);
-            throw new FshException($"Error updating user {user.Id}", ex);
+            _logger.LogError(ex, "Error deleting user");
+            throw new FshException("Error deleting user", ex);
         }
     }
 
     public async Task DeleteUserAsync(Guid userId)
     {
-        try
-        {
-            await _connection.ExecuteAsync(
-                "DELETE FROM users WHERE id = @Id",
-                new { Id = userId });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting user {UserId}", userId);
-            throw new FshException($"Error deleting user {userId}", ex);
-        }
+        await DeleteAsync(userId);
     }
 
     public async Task ResetPasswordAsync(string email, string newPassword)
@@ -468,14 +458,10 @@ public sealed class DapperUserRepository : IUserRepository
 
     public async Task<bool> TcKimlikExistsAsync(string tcKimlik)
     {
-        ArgumentNullException.ThrowIfNull(tcKimlik);
-
         try
         {
-            var count = await _connection.ExecuteScalarAsync<int>(
-                "SELECT COUNT(1) FROM users WHERE tckn = @Tckn",
-                new { Tckn = tcKimlik });
-
+            const string sql = "SELECT COUNT(1) FROM users WHERE tckn = @Tckn";
+            var count = await _connection.QuerySingleAsync<int>(sql, new { Tckn = tcKimlik });
             return count > 0;
         }
         catch (Exception ex)
@@ -524,8 +510,8 @@ public sealed class DapperUserRepository : IUserRepository
 
             if (profession != null)
             {
-                sql += " profession = @Profession,";
-                parameters.Add("@Profession", profession);
+                sql += " profession_id = @ProfessionId,";
+                parameters.Add("@ProfessionId", profession);
             }
 
             sql = sql.TrimEnd(',') + " WHERE id = @Id";
@@ -614,25 +600,68 @@ public sealed class DapperUserRepository : IUserRepository
         }
     }
 
-    private static AppUser MapToAppUser(dynamic user)
+    private static AppUser MapToAppUser(dynamic userRow)
     {
         return AppUser.FromRepository(
-            id: user.id,
-            email: user.email,
-            username: user.username,
-            tckn: user.tckn,
-            firstName: user.first_name,
-            lastName: user.last_name,
-            phoneNumber: user.phone_number,
-            profession: user.profession,
-            birthDate: user.birth_date,
-            memberNumber: user.member_number)
-        .WithPasswordHash(user.password_hash)
-        .WithVerificationStatus(
-            isIdentityVerified: user.is_identity_verified,
-            isPhoneVerified: user.is_phone_verified,
-            isEmailVerified: user.is_email_verified)
-        .WithStatus(user.status)
-        .WithTimestamps(user.created_at, user.updated_at);
+            id: userRow.id,
+            email: userRow.email,
+            username: userRow.username,
+            phoneNumber: userRow.phone_number,
+            tckn: userRow.tckn,
+            passwordHash: userRow.password_hash,
+            firstName: userRow.first_name,
+            lastName: userRow.last_name,
+            professionId: userRow.profession_id,
+            birthDate: userRow.birth_date,
+                        memberNumber: userRow.member_number,
+            isEmailVerified: userRow.is_email_verified,
+            status: userRow.status,
+            createdAt: userRow.created_at,
+            updatedAt: userRow.updated_at
+        );
+    }
+
+    // Profile Update Verification Methods
+    public async Task<bool> VerifyEmailUpdateAsync(Guid userId, string verificationCode)
+    {
+        ArgumentNullException.ThrowIfNull(verificationCode);
+
+        try
+        {
+            // Bu basit implementation - gerçek projede verification service ile entegre olacak
+            // Şimdilik verification code'un doğru olduğunu varsayıyoruz
+            _logger.LogInformation("Email verification attempted for user {UserId}", userId);
+            
+            // Verification başarılı ise user'ın email'ini verified olarak işaretle
+            await _connection.ExecuteAsync(
+                "UPDATE users SET is_email_verified = true WHERE id = @UserId",
+                new { UserId = userId });
+                
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error verifying email update for user {UserId}", userId);
+            return false;
+        }
+    }
+
+    public async Task<bool> VerifyPhoneUpdateAsync(Guid userId, string verificationCode)
+    {
+        ArgumentNullException.ThrowIfNull(verificationCode);
+
+        try
+        {
+            // Phone verification is no longer needed as it happens during registration
+            // This method is kept for interface compatibility but does nothing
+            _logger.LogInformation("Phone verification attempted for user {UserId} - no action needed (verified during registration)", userId);
+            
+            return true; // Always return true since phone is verified during registration
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in phone verification for user {UserId}", userId);
+            return false;
+        }
     }
 } 

@@ -69,10 +69,11 @@ public static class Extensions
 
         // Register repositories & services
         builder.Services.AddScoped<FSH.Framework.Core.Auth.Repositories.IUserRepository, Auth.DapperUserRepository>();
+        builder.Services.AddScoped<FSH.Framework.Core.Common.Interfaces.IProfessionRepository, Common.DapperProfessionRepository>();
         builder.Services.AddSingleton<FSH.Framework.Core.Auth.Services.IJwtTokenGenerator, Auth.Jwt.JwtTokenGenerator>();
         builder.Services.AddScoped<FSH.Framework.Core.Auth.Services.IValidationService, Auth.ValidationService>();
         builder.Services.AddScoped<FSH.Framework.Core.Auth.Features.Login.ITokenService, Auth.Jwt.TokenService>();
-        builder.Services.AddScoped<FSH.Framework.Core.Auth.Services.ISmsService, Services.SmsService>();
+        builder.Services.AddScoped<FSH.Framework.Core.Auth.Services.ISmsService, Services.DevelopmentSmsService>();
         builder.Services.AddScoped<FSH.Framework.Core.Auth.Services.IVerificationService, Auth.VerificationService>();
         builder.Services.AddOptions<Auth.VerificationOptions>().BindConfiguration(nameof(Auth.VerificationOptions));
         

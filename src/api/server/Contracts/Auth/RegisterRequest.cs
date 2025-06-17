@@ -61,10 +61,11 @@ public sealed class RegisterRequest
     public string LastName { get; init; } = default!;
 
     /// <summary>
-    /// Profession (optional)
+    /// Profession ID (required)
     /// </summary>
-    [StringLength(100, ErrorMessage = "Meslek en fazla 100 karakter olabilir")]
-    public string? Profession { get; init; }
+    [Required(ErrorMessage = "Meslek alanı zorunludur")]
+    [Range(1, int.MaxValue, ErrorMessage = "Meslek alanı seçilmelidir")]
+    public int ProfessionId { get; init; }
 
     /// <summary>
     /// Birth date (optional)

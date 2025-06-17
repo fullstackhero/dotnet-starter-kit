@@ -36,8 +36,8 @@ public class RegisterCommandValidator : AbstractValidator<RegisterCommand>
             .NotEmpty().WithMessage("Soyad gereklidir")
             .MaximumLength(50).WithMessage("Soyad en fazla 50 karakter olabilir");
 
-        RuleFor(x => x.Profession)
-            .MaximumLength(100).WithMessage("Meslek en fazla 100 karakter olabilir")
-            .When(x => !string.IsNullOrEmpty(x.Profession));
+        RuleFor(x => x.ProfessionId)
+            .NotNull().WithMessage("Meslek alanı zorunludur")
+            .GreaterThan(0).WithMessage("Geçerli bir meslek alanı seçiniz");
     }
 } 

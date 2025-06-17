@@ -57,7 +57,7 @@ Content-Type: application/json
   "password": "AdminUser123!",
   "firstName": "Admin",
   "lastName": "User",
-  "profession": "System Administrator",
+  "professionId": 4,
   "birthDate": "1985-01-01T00:00:00Z"
 }
 
@@ -72,7 +72,7 @@ Content-Type: application/json
   "firstName": "Updated",
   "lastName": "User",
   "phoneNumber": "5559876543",
-  "profession": "Senior Administrator",
+  "professionId": 5,
   "status": "ACTIVE",
   "isIdentityVerified": true,
   "isPhoneVerified": true,

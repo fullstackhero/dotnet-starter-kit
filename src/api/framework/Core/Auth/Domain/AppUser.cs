@@ -1,4 +1,6 @@
+using System.ComponentModel.DataAnnotations;
 using FSH.Framework.Core.Common.Models;
+using FSH.Framework.Core.Domain;
 using EmailVO = FSH.Framework.Core.Auth.Domain.ValueObjects.Email;
 using PhoneNumberVO = FSH.Framework.Core.Auth.Domain.ValueObjects.PhoneNumber;
 using TcknVO = FSH.Framework.Core.Auth.Domain.ValueObjects.Tckn;
@@ -15,11 +17,9 @@ public sealed class AppUser
     public string PasswordHash { get; private init; } = default!;
     public string FirstName { get; private init; } = default!;
     public string LastName { get; private init; } = default!;
-    public string? Profession { get; private init; }
+    public int? ProfessionId { get; private init; }
     public DateTime BirthDate { get; private init; }
     public string? MemberNumber { get; private init; }
-    public bool IsIdentityVerified { get; private init; }
-    public bool IsPhoneVerified { get; private init; }
     public bool IsEmailVerified { get; private init; }
     public string Status { get; private init; } = default!;
     public DateTime CreatedAt { get; private init; }
@@ -27,7 +27,7 @@ public sealed class AppUser
 
     private AppUser() { }
 
-    // Domain factory method for new users
+    // Factory method for creating new users during registration
     public static Result<AppUser> Create(
         string email,
         string username,
@@ -35,91 +35,95 @@ public sealed class AppUser
         string tckn,
         string firstName,
         string lastName,
-        string profession,
+        int? professionId,
         DateTime birthDate)
     {
-        try
+        // Validation
+        var emailResult = EmailVO.Create(email);
+        if (!emailResult.IsSuccess)
+            return Result<AppUser>.Failure($"Email error: {emailResult.Error}");
+
+        var phoneResult = PhoneNumberVO.Create(phoneNumber);
+        if (!phoneResult.IsSuccess)
+            return Result<AppUser>.Failure($"Phone error: {phoneResult.Error}");
+
+        var tcknResult = TcknVO.Create(tckn);
+        if (!tcknResult.IsSuccess)
+            return Result<AppUser>.Failure($"TCKN error: {tcknResult.Error}");
+
+        if (string.IsNullOrWhiteSpace(firstName))
+            return Result<AppUser>.Failure("Ad boş olamaz");
+
+        if (string.IsNullOrWhiteSpace(lastName))
+            return Result<AppUser>.Failure("Soyad boş olamaz");
+
+        if (string.IsNullOrWhiteSpace(username))
+            return Result<AppUser>.Failure("Kullanıcı adı boş olamaz");
+
+        if (birthDate >= DateTime.Today)
+            return Result<AppUser>.Failure("Doğum tarihi geçerli olmalıdır");
+
+        var user = new AppUser
         {
-            var emailResult = EmailVO.Create(email);
-            if (!emailResult.IsSuccess)
-                return Result<AppUser>.Failure($"Email error: {emailResult.Error}");
+            Id = Guid.NewGuid(),
+            Email = emailResult.Value,
+            Username = username,
+            PhoneNumber = phoneResult.Value,
+            Tckn = tcknResult.Value,
+            PasswordHash = string.Empty, // Will be set later
+            FirstName = firstName,
+            LastName = lastName,
+            ProfessionId = professionId,
+            BirthDate = birthDate,
+            MemberNumber = null, // Will be generated later
+            IsEmailVerified = false, // Email verification happens after registration
+            Status = "ACTIVE",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
 
-            var phoneResult = PhoneNumberVO.Create(phoneNumber);
-            if (!phoneResult.IsSuccess)
-                return Result<AppUser>.Failure($"Phone error: {phoneResult.Error}");
-
-            var tcknResult = TcknVO.Create(tckn);
-            if (!tcknResult.IsSuccess)
-                return Result<AppUser>.Failure($"TCKN error: {tcknResult.Error}");
-
-            var user = new AppUser
-            {
-                Id = Guid.NewGuid(),
-                Email = emailResult.Value!,
-                Username = username,
-                PhoneNumber = phoneResult.Value!,
-                Tckn = tcknResult.Value!,
-                FirstName = firstName,
-                LastName = lastName,
-                Profession = profession,
-                BirthDate = birthDate,
-                Status = "ACTIVE",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
-
-            return Result<AppUser>.Success(user);
-        }
-        catch (ArgumentException ex)
-        {
-            return Result<AppUser>.Failure(ex.Message);
-        }
+        return Result<AppUser>.Success(user);
     }
 
-    // Domain factory method for existing users from repository
+    // Factory method for hydrating from repository
     public static AppUser FromRepository(
         Guid id,
         string email,
         string username,
+        string phoneNumber,
         string tckn,
+        string passwordHash,
         string firstName,
         string lastName,
-        string? phoneNumber,
-        string? profession,
-        DateTime? birthDate,
-        string? memberNumber = null)
+        int? professionId,
+        DateTime birthDate,
+        string? memberNumber,
+        bool isEmailVerified,
+        string status,
+        DateTime createdAt,
+        DateTime updatedAt)
     {
-        ArgumentNullException.ThrowIfNull(email);
-        ArgumentNullException.ThrowIfNull(username);
-        ArgumentNullException.ThrowIfNull(tckn);
-        ArgumentNullException.ThrowIfNull(firstName);
-        ArgumentNullException.ThrowIfNull(lastName);
-
-        var emailVO = EmailVO.CreateUnsafe(email);
-        var tcknVO = TcknVO.CreateUnsafe(tckn);
-        var phoneVO = string.IsNullOrEmpty(phoneNumber) 
-            ? PhoneNumberVO.CreateUnsafe("5000000000") // Default phone for backward compatibility
-            : PhoneNumberVO.CreateUnsafe(phoneNumber);
-
         return new AppUser
         {
             Id = id,
-            Email = emailVO,
+            Email = EmailVO.Create(email).Value, // Assume valid from DB
             Username = username,
-            PhoneNumber = phoneVO,
-            Tckn = tcknVO,
+            PhoneNumber = PhoneNumberVO.Create(phoneNumber).Value, // Assume valid from DB
+            Tckn = TcknVO.Create(tckn).Value, // Assume valid from DB
+            PasswordHash = passwordHash,
             FirstName = firstName,
             LastName = lastName,
-            Profession = profession,
-            BirthDate = birthDate ?? DateTime.MinValue,
+            ProfessionId = professionId,
+            BirthDate = birthDate,
             MemberNumber = memberNumber,
-            Status = "ACTIVE", // Default status for backward compatibility
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            IsEmailVerified = isEmailVerified,
+            Status = status,
+            CreatedAt = createdAt,
+            UpdatedAt = updatedAt
         };
     }
 
-    // Fluent builder methods for repository mapping
+    // Builder pattern methods for fluent configuration
     public AppUser WithPasswordHash(string passwordHash)
     {
         return new AppUser
@@ -132,19 +136,17 @@ public sealed class AppUser
             PasswordHash = passwordHash,
             FirstName = FirstName,
             LastName = LastName,
-            Profession = Profession,
+            ProfessionId = ProfessionId,
             BirthDate = BirthDate,
             MemberNumber = MemberNumber,
-            IsIdentityVerified = IsIdentityVerified,
-            IsPhoneVerified = IsPhoneVerified,
             IsEmailVerified = IsEmailVerified,
             Status = Status,
             CreatedAt = CreatedAt,
-            UpdatedAt = UpdatedAt
+            UpdatedAt = DateTime.UtcNow
         };
     }
 
-    public AppUser WithVerificationStatus(bool isIdentityVerified, bool isPhoneVerified, bool isEmailVerified)
+    public AppUser WithEmailVerificationStatus(bool isEmailVerified)
     {
         return new AppUser
         {
@@ -156,11 +158,9 @@ public sealed class AppUser
             PasswordHash = PasswordHash,
             FirstName = FirstName,
             LastName = LastName,
-            Profession = Profession,
+            ProfessionId = ProfessionId,
             BirthDate = BirthDate,
             MemberNumber = MemberNumber,
-            IsIdentityVerified = isIdentityVerified,
-            IsPhoneVerified = isPhoneVerified,
             IsEmailVerified = isEmailVerified,
             Status = Status,
             CreatedAt = CreatedAt,
@@ -170,7 +170,6 @@ public sealed class AppUser
 
     public AppUser WithStatus(string status)
     {
-        ArgumentNullException.ThrowIfNull(status);
         return new AppUser
         {
             Id = Id,
@@ -181,11 +180,9 @@ public sealed class AppUser
             PasswordHash = PasswordHash,
             FirstName = FirstName,
             LastName = LastName,
-            Profession = Profession,
+            ProfessionId = ProfessionId,
             BirthDate = BirthDate,
             MemberNumber = MemberNumber,
-            IsIdentityVerified = IsIdentityVerified,
-            IsPhoneVerified = IsPhoneVerified,
             IsEmailVerified = IsEmailVerified,
             Status = status,
             CreatedAt = CreatedAt,
@@ -193,7 +190,7 @@ public sealed class AppUser
         };
     }
 
-    public AppUser WithTimestamps(DateTime createdAt, DateTime updatedAt)
+    public AppUser WithMemberNumber(string memberNumber)
     {
         return new AppUser
         {
@@ -205,128 +202,48 @@ public sealed class AppUser
             PasswordHash = PasswordHash,
             FirstName = FirstName,
             LastName = LastName,
-            Profession = Profession,
+            ProfessionId = ProfessionId,
             BirthDate = BirthDate,
-            MemberNumber = MemberNumber,
-            IsIdentityVerified = IsIdentityVerified,
-            IsPhoneVerified = IsPhoneVerified,
+            MemberNumber = memberNumber,
             IsEmailVerified = IsEmailVerified,
             Status = Status,
-            CreatedAt = createdAt,
-            UpdatedAt = updatedAt
+            CreatedAt = CreatedAt,
+            UpdatedAt = DateTime.UtcNow
         };
     }
 
-    // Domain method for password handling
-    public AppUser WithPassword(string password)
+    // Business logic methods
+    public AppUser SetPassword(string password)
     {
-        ArgumentNullException.ThrowIfNull(password);
-        return WithPasswordHash(BCrypt.Net.BCrypt.HashPassword(password));
+        // Hash the password using BCrypt
+        var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
+        
+        return new AppUser
+        {
+            Id = Id,
+            Email = Email,
+            Username = Username,
+            PhoneNumber = PhoneNumber,
+            Tckn = Tckn,
+            PasswordHash = hashedPassword,
+            FirstName = FirstName,
+            LastName = LastName,
+            ProfessionId = ProfessionId,
+            BirthDate = BirthDate,
+            MemberNumber = MemberNumber,
+            IsEmailVerified = IsEmailVerified,
+            Status = Status,
+            CreatedAt = CreatedAt,
+            UpdatedAt = DateTime.UtcNow
+        };
     }
 
-    // Domain method for updating user profile
-    public Result<AppUser> UpdateProfile(
-        string? email = null,
-        string? phoneNumber = null,
-        string? username = null,
-        string? firstName = null,
-        string? lastName = null,
-        string? profession = null)
+    public bool VerifyPassword(string password)
     {
-        try
-        {
-            var updatedUser = this;
-
-            if (email != null)
-            {
-                var emailResult = EmailVO.Create(email);
-                if (!emailResult.IsSuccess)
-                    return Result<AppUser>.Failure($"Email error: {emailResult.Error}");
-
-                updatedUser = new AppUser
-                {
-                    Id = Id,
-                    Email = emailResult.Value!,
-                    Username = Username,
-                    PhoneNumber = PhoneNumber,
-                    Tckn = Tckn,
-                    PasswordHash = PasswordHash,
-                    FirstName = FirstName,
-                    LastName = LastName,
-                    Profession = Profession,
-                    BirthDate = BirthDate,
-                    MemberNumber = MemberNumber,
-                    IsIdentityVerified = IsIdentityVerified,
-                    IsPhoneVerified = IsPhoneVerified,
-                    IsEmailVerified = IsEmailVerified,
-                    Status = Status,
-                    CreatedAt = CreatedAt,
-                    UpdatedAt = DateTime.UtcNow
-                };
-            }
-
-            if (phoneNumber != null)
-            {
-                var phoneResult = PhoneNumberVO.Create(phoneNumber);
-                if (!phoneResult.IsSuccess)
-                    return Result<AppUser>.Failure($"Phone error: {phoneResult.Error}");
-
-                updatedUser = new AppUser
-                {
-                    Id = updatedUser.Id,
-                    Email = updatedUser.Email,
-                    Username = updatedUser.Username,
-                    PhoneNumber = phoneResult.Value!,
-                    Tckn = updatedUser.Tckn,
-                    PasswordHash = updatedUser.PasswordHash,
-                    FirstName = updatedUser.FirstName,
-                    LastName = updatedUser.LastName,
-                    Profession = updatedUser.Profession,
-                    BirthDate = updatedUser.BirthDate,
-                    MemberNumber = updatedUser.MemberNumber,
-                    IsIdentityVerified = updatedUser.IsIdentityVerified,
-                    IsPhoneVerified = updatedUser.IsPhoneVerified,
-                    IsEmailVerified = updatedUser.IsEmailVerified,
-                    Status = updatedUser.Status,
-                    CreatedAt = updatedUser.CreatedAt,
-                    UpdatedAt = DateTime.UtcNow
-                };
-            }
-
-            if (username != null || firstName != null || lastName != null || profession != null)
-            {
-                updatedUser = new AppUser
-                {
-                    Id = updatedUser.Id,
-                    Email = updatedUser.Email,
-                    Username = username ?? updatedUser.Username,
-                    PhoneNumber = updatedUser.PhoneNumber,
-                    Tckn = updatedUser.Tckn,
-                    PasswordHash = updatedUser.PasswordHash,
-                    FirstName = firstName ?? updatedUser.FirstName,
-                    LastName = lastName ?? updatedUser.LastName,
-                    Profession = profession ?? updatedUser.Profession,
-                    BirthDate = updatedUser.BirthDate,
-                    MemberNumber = updatedUser.MemberNumber,
-                    IsIdentityVerified = updatedUser.IsIdentityVerified,
-                    IsPhoneVerified = updatedUser.IsPhoneVerified,
-                    IsEmailVerified = updatedUser.IsEmailVerified,
-                    Status = updatedUser.Status,
-                    CreatedAt = updatedUser.CreatedAt,
-                    UpdatedAt = DateTime.UtcNow
-                };
-            }
-
-            return Result<AppUser>.Success(updatedUser);
-        }
-        catch (ArgumentException ex)
-        {
-            return Result<AppUser>.Failure(ex.Message);
-        }
+        return !string.IsNullOrEmpty(PasswordHash) && BCrypt.Net.BCrypt.Verify(password, PasswordHash);
     }
 
-    // Domain methods for admin operations
-    public AppUser UpdateVerificationStatus(bool isIdentityVerified, bool isPhoneVerified, bool isEmailVerified)
+    public AppUser UpdateEmailVerificationStatus(bool isEmailVerified)
     {
         return new AppUser
         {
@@ -338,11 +255,9 @@ public sealed class AppUser
             PasswordHash = PasswordHash,
             FirstName = FirstName,
             LastName = LastName,
-            Profession = Profession,
+            ProfessionId = ProfessionId,
             BirthDate = BirthDate,
             MemberNumber = MemberNumber,
-            IsIdentityVerified = isIdentityVerified,
-            IsPhoneVerified = isPhoneVerified,
             IsEmailVerified = isEmailVerified,
             Status = Status,
             CreatedAt = CreatedAt,
@@ -352,7 +267,6 @@ public sealed class AppUser
 
     public AppUser UpdateStatus(string status)
     {
-        ArgumentNullException.ThrowIfNull(status);
         return new AppUser
         {
             Id = Id,
@@ -363,11 +277,9 @@ public sealed class AppUser
             PasswordHash = PasswordHash,
             FirstName = FirstName,
             LastName = LastName,
-            Profession = Profession,
+            ProfessionId = ProfessionId,
             BirthDate = BirthDate,
             MemberNumber = MemberNumber,
-            IsIdentityVerified = IsIdentityVerified,
-            IsPhoneVerified = IsPhoneVerified,
             IsEmailVerified = IsEmailVerified,
             Status = status,
             CreatedAt = CreatedAt,
@@ -375,9 +287,77 @@ public sealed class AppUser
         };
     }
 
-    public AppUser SetPassword(string password)
+    public AppUser UpdateProfile(string firstName, string lastName)
     {
-        ArgumentNullException.ThrowIfNull(password);
-        return WithPassword(password);
+        return new AppUser
+        {
+            Id = Id,
+            Email = Email,
+            Username = Username,
+            PhoneNumber = PhoneNumber,
+            Tckn = Tckn,
+            PasswordHash = PasswordHash,
+            FirstName = firstName,
+            LastName = lastName,
+            ProfessionId = ProfessionId,
+            BirthDate = BirthDate,
+            MemberNumber = MemberNumber,
+            IsEmailVerified = IsEmailVerified,
+            Status = Status,
+            CreatedAt = CreatedAt,
+            UpdatedAt = DateTime.UtcNow
+        };
+    }
+
+    public AppUser UpdateEmail(string email)
+    {
+        var emailResult = EmailVO.Create(email);
+        if (!emailResult.IsSuccess)
+            throw new ArgumentException($"Invalid email: {emailResult.Error}");
+
+        return new AppUser
+        {
+            Id = Id,
+            Email = emailResult.Value,
+            Username = Username,
+            PhoneNumber = PhoneNumber,
+            Tckn = Tckn,
+            PasswordHash = PasswordHash,
+            FirstName = FirstName,
+            LastName = LastName,
+            ProfessionId = ProfessionId,
+            BirthDate = BirthDate,
+            MemberNumber = MemberNumber,
+            IsEmailVerified = false, // Reset verification when email changes
+            Status = Status,
+            CreatedAt = CreatedAt,
+            UpdatedAt = DateTime.UtcNow
+        };
+    }
+
+    public AppUser UpdatePhoneNumber(string phoneNumber)
+    {
+        var phoneResult = PhoneNumberVO.Create(phoneNumber);
+        if (!phoneResult.IsSuccess)
+            throw new ArgumentException($"Invalid phone number: {phoneResult.Error}");
+
+        return new AppUser
+        {
+            Id = Id,
+            Email = Email,
+            Username = Username,
+            PhoneNumber = phoneResult.Value,
+            Tckn = Tckn,
+            PasswordHash = PasswordHash,
+            FirstName = FirstName,
+            LastName = LastName,
+            ProfessionId = ProfessionId,
+            BirthDate = BirthDate,
+            MemberNumber = MemberNumber,
+            IsEmailVerified = IsEmailVerified,
+            Status = Status,
+            CreatedAt = CreatedAt,
+            UpdatedAt = DateTime.UtcNow
+        };
     }
 } 

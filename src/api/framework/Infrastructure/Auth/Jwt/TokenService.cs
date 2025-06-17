@@ -35,7 +35,7 @@ public class TokenService : ITokenService
                 user.FirstName,
                 user.LastName,
                 user.PhoneNumber.Value,
-                user.Profession,
+                user.ProfessionId?.ToString() ?? string.Empty,
                 user.Status,
                 roles);
 

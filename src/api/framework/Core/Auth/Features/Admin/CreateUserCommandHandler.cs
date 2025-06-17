@@ -47,7 +47,7 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Resul
                 tckn: request.Tckn.Value,
                 firstName: request.FirstName.Value,
                 lastName: request.LastName.Value,
-                profession: request.Profession?.Value ?? string.Empty,
+                professionId: null, // Admin create için şimdilik null, gelecekte profession seçimi eklenebilir
                 birthDate: request.BirthDate.Value
             );
 
@@ -62,12 +62,8 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Resul
             // Set password - SetPassword returns a new instance with hashed password
             user = user.SetPassword(request.Password.Value);
 
-            // Set verification status - UpdateVerificationStatus returns a new instance
-            user = user.UpdateVerificationStatus(
-                isIdentityVerified: request.IsIdentityVerified,
-                isPhoneVerified: request.IsPhoneVerified,
-                isEmailVerified: request.IsEmailVerified
-            );
+            // Set verification status - WithEmailVerificationStatus returns a new instance
+            user = user.WithEmailVerificationStatus(request.IsEmailVerified);
 
             // Set status if provided - UpdateStatus returns a new instance
             if (!string.IsNullOrEmpty(request.Status))

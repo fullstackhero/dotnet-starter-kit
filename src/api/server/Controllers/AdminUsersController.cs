@@ -87,8 +87,6 @@ public sealed class AdminUsersController : ControllerBase
             Profession = professionResult.Value,
             BirthDate = birthDateResult.Value!,
             Status = request.Status,
-            IsIdentityVerified = request.IsIdentityVerified,
-            IsPhoneVerified = request.IsPhoneVerified,
             IsEmailVerified = request.IsEmailVerified
         };
 
@@ -145,8 +143,6 @@ public sealed class AdminUsersController : ControllerBase
             PhoneNumber = phoneResult.Value!,
             Profession = professionResult.Value,
             Status = request.Status,
-            IsIdentityVerified = request.IsIdentityVerified,
-            IsPhoneVerified = request.IsPhoneVerified,
             IsEmailVerified = request.IsEmailVerified
         };
 
