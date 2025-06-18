@@ -81,20 +81,12 @@ public sealed class DapperUserRepository : IUserRepository
 
     public async Task<AppUser?> GetByTcknAsync(TcknVO tckn)
     {
-        ArgumentNullException.ThrowIfNull(tckn);
-
         try
         {
-            const string sql = @"
-                SELECT 
-                    id, email, username, tckn, first_name, last_name, 
-                    phone_number, profession_id, birth_date, member_number, password_hash,
-                    is_email_verified, marketing_consent, electronic_communication_consent, membership_agreement_consent,
-                    status, created_at, updated_at
-                FROM users 
-                WHERE tckn = @Tckn";
+            var user = await _connection.QueryFirstOrDefaultAsync<dynamic>(
+                "SELECT * FROM users WHERE tckn = @Tckn",
+                new { Tckn = tckn.Value });
 
-            var user = await _connection.QueryFirstOrDefaultAsync<dynamic>(sql, new { Tckn = tckn.Value });
             return user == null ? null : MapToAppUser(user);
         }
         catch (Exception ex)
@@ -410,6 +402,34 @@ public sealed class DapperUserRepository : IUserRepository
         }
     }
 
+    public async Task<(bool IsValid, AppUser? User)> ValidatePasswordAndGetByMemberNumberAsync(string memberNumber, string password)
+    {
+        ArgumentNullException.ThrowIfNull(memberNumber);
+        ArgumentNullException.ThrowIfNull(password);
+
+        try
+        {
+            var user = await _connection.QueryFirstOrDefaultAsync<dynamic>(
+                "SELECT * FROM users WHERE member_number = @MemberNumber",
+                new { MemberNumber = memberNumber });
+
+            if (user == null)
+                return (false, null);
+
+            if (string.IsNullOrEmpty(user.password_hash))
+                return (false, null);
+
+            // Use BCrypt to verify password against hash
+            var isValid = BCrypt.Net.BCrypt.Verify(password, user.password_hash);
+            return (isValid, isValid ? MapToAppUser(user) : null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error validating password for member number {MemberNumber}", memberNumber);
+            throw new FshException($"Error validating password for member number {memberNumber}", ex);
+        }
+    }
+
     public async Task<IReadOnlyList<string>> GetUserRolesAsync(Guid userId)
     {
         try
@@ -610,6 +630,23 @@ public sealed class DapperUserRepository : IUserRepository
         {
             _logger.LogError(ex, "Error getting contact info for TCKN {Tckn}", tcKimlik);
             throw new FshException($"Error getting contact info for TCKN {tcKimlik}", ex);
+        }
+    }
+
+    public async Task<AppUser?> GetByMemberNumberAsync(string memberNumber)
+    {
+        try
+        {
+            var user = await _connection.QueryFirstOrDefaultAsync<dynamic>(
+                "SELECT * FROM users WHERE member_number = @MemberNumber",
+                new { MemberNumber = memberNumber });
+
+            return user == null ? null : MapToAppUser(user);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting user by member number {MemberNumber}", memberNumber);
+            throw new FshException($"Error getting user by member number {memberNumber}", ex);
         }
     }
 

@@ -7,7 +7,7 @@ namespace FSH.Framework.Core.Auth.Features.Login;
 
 public record LoginCommand : IRequest<Result<LoginResponseDto>>
 {
-    public Tckn Tckn { get; init; } = default!;
+    public string TcknOrMemberNumber { get; init; } = default!;
     public Password Password { get; init; } = default!;
 }
 

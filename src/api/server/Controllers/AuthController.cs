@@ -52,12 +52,6 @@ public sealed class AuthController : ControllerBase
     public async Task<IActionResult> LoginAsync([FromBody] LoginRequest request)
     {
         // Clean Architecture: Map presentation DTO to domain command
-        var tcknResult = Tckn.Create(request.Tckn);
-        if (!tcknResult.IsSuccess)
-        {
-            return BadRequest(ApiResponse.FailureResult($"TC Kimlik No hatası: {tcknResult.Error}"));
-        }
-
         var passwordResult = Password.Create(request.Password);
         if (!passwordResult.IsSuccess)
         {
@@ -66,7 +60,7 @@ public sealed class AuthController : ControllerBase
 
         var command = new LoginCommand
         {
-            Tckn = tcknResult.Value!,
+            TcknOrMemberNumber = request.TcknOrMemberNumber,
             Password = passwordResult.Value!
         };
 

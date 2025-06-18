@@ -9,12 +9,10 @@ namespace FSH.Starter.WebApi.Contracts.Auth;
 public sealed class LoginRequest
 {
     /// <summary>
-    /// Turkish Citizen ID (TC Kimlik No)
+    /// Turkish Citizen ID (TC Kimlik No) or Member Number
     /// </summary>
-    [Required(ErrorMessage = "TC Kimlik No gereklidir")]
-    [StringLength(11, MinimumLength = 11, ErrorMessage = "TC Kimlik No 11 haneli olmalıdır")]
-    [RegularExpression(@"^\d{11}$", ErrorMessage = "TC Kimlik No sadece rakamlardan oluşmalıdır")]
-    public string Tckn { get; init; } = default!;
+    [Required(ErrorMessage = "TC Kimlik No veya Üye No gereklidir")]
+    public string TcknOrMemberNumber { get; init; } = default!;
 
     /// <summary>
     /// User password

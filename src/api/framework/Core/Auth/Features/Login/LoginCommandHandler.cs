@@ -41,26 +41,37 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<LoginRes
     {
         try
         {
-            _logger.LogInformation("Login attempt for TCKN: {Tckn}", request.Tckn.Value);
+            _logger.LogInformation("Login attempt for TC/Member Number: {TcknOrMemberNumber}", request.TcknOrMemberNumber);
 
-            // First, check if user exists
-            var user = await _userRepository.GetByTcknAsync(request.Tckn);
-            
-            if (user == null)
+            AppUser? user = null;
+            bool isPasswordValid = false;
+
+            // Determine if input is TCKN (11 digits) or Member Number
+            if (request.TcknOrMemberNumber.Length == 11 && request.TcknOrMemberNumber.All(char.IsDigit))
             {
-                _logger.LogWarning("User not found for TCKN: {Tckn}", request.Tckn.Value);
-                return Result<LoginResponseDto>.Failure("User not found");
+                // Try login with TCKN
+                var (isValid, foundUser) = await _userRepository.ValidatePasswordAndGetByTcknAsync(
+                    request.TcknOrMemberNumber,
+                    request.Password.Value);
+                
+                isPasswordValid = isValid;
+                user = foundUser;
+            }
+            else
+            {
+                // Try login with Member Number
+                var (isValid, foundUser) = await _userRepository.ValidatePasswordAndGetByMemberNumberAsync(
+                    request.TcknOrMemberNumber,
+                    request.Password.Value);
+                
+                isPasswordValid = isValid;
+                user = foundUser;
             }
 
-            // Then validate password
-            var (isPasswordValid, _) = await _userRepository.ValidatePasswordAndGetByTcknAsync(
-                request.Tckn.Value,
-                request.Password.Value);
-
-            if (!isPasswordValid)
+            if (!isPasswordValid || user == null)
             {
-                _logger.LogWarning("Invalid password for TCKN: {Tckn}", request.Tckn.Value);
-                return Result<LoginResponseDto>.Failure("Invalid password");
+                _logger.LogWarning("Invalid credentials for: {TcknOrMemberNumber}", request.TcknOrMemberNumber);
+                return Result<LoginResponseDto>.Failure("Geçersiz kimlik bilgileri. Lütfen TC Kimlik No/Üye No ve şifrenizi kontrol ediniz.");
             }
 
             var roles = await _userRepository.GetUserRolesAsync(user.Id);
@@ -87,7 +98,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<LoginRes
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred during login for TCKN: {Tckn}", request.Tckn.Value);
+            _logger.LogError(ex, "Error occurred during login for: {TcknOrMemberNumber}", request.TcknOrMemberNumber);
             return Result<LoginResponseDto>.Failure("An error occurred during login. Please try again later.");
         }
     }
