@@ -36,7 +36,9 @@ public sealed class DapperUserRepository : IUserRepository
             const string sql = @"
                 SELECT id, email, username, phone_number, tckn, 
                        password_hash, first_name, last_name, profession_id,
-                       birth_date, member_number, is_email_verified, status, created_at, updated_at
+                       birth_date, member_number, is_email_verified,
+                       marketing_consent, electronic_communication_consent, membership_agreement_consent,
+                       status, created_at, updated_at
                 FROM users 
                 WHERE id = @Id";
 
@@ -59,7 +61,9 @@ public sealed class DapperUserRepository : IUserRepository
             const string sql = @"
                 SELECT id, email, username, phone_number, tckn, 
                        password_hash, first_name, last_name, profession_id,
-                       birth_date, member_number, is_email_verified, status, created_at, updated_at
+                       birth_date, member_number, is_email_verified,
+                       marketing_consent, electronic_communication_consent, membership_agreement_consent,
+                       status, created_at, updated_at
                 FROM users 
                 WHERE email = @Email";
 
@@ -85,7 +89,8 @@ public sealed class DapperUserRepository : IUserRepository
                 SELECT 
                     id, email, username, tckn, first_name, last_name, 
                     phone_number, profession_id, birth_date, member_number, password_hash,
-                    is_email_verified, status, created_at, updated_at
+                    is_email_verified, marketing_consent, electronic_communication_consent, membership_agreement_consent,
+                    status, created_at, updated_at
                 FROM users 
                 WHERE tckn = @Tckn";
 
@@ -106,7 +111,9 @@ public sealed class DapperUserRepository : IUserRepository
             const string sql = @"
                 SELECT id, email, username, phone_number, tckn, 
                        password_hash, first_name, last_name, profession_id,
-                       birth_date, member_number, is_email_verified, status, created_at, updated_at
+                       birth_date, member_number, is_email_verified,
+                       marketing_consent, electronic_communication_consent, membership_agreement_consent,
+                       status, created_at, updated_at
                 FROM users 
                 WHERE username = @Username";
 
@@ -212,12 +219,14 @@ public sealed class DapperUserRepository : IUserRepository
                     id, email, username, phone_number, tckn, 
                     password_hash, first_name, last_name, profession_id,
                     birth_date, member_number, is_email_verified,
-                    status, created_at, updated_at
+                    marketing_consent, electronic_communication_consent, membership_agreement_consent,
+                    status, registration_ip, created_at, updated_at
                 ) VALUES (
                     @Id, @Email, @Username, @PhoneNumber, @Tckn,
                     @PasswordHash, @FirstName, @LastName, @ProfessionId,
                     @BirthDate, @MemberNumber, @IsEmailVerified,
-                    @Status, @CreatedAt, @UpdatedAt
+                    @MarketingConsent, @ElectronicCommunicationConsent, @MembershipAgreementConsent,
+                    @Status, @RegistrationIp::inet, @CreatedAt, @UpdatedAt
                 )";
 
             await _connection.ExecuteAsync(sql, new
@@ -234,7 +243,11 @@ public sealed class DapperUserRepository : IUserRepository
                 BirthDate = user.BirthDate,
                 MemberNumber = user.MemberNumber,
                 IsEmailVerified = user.IsEmailVerified,
+                MarketingConsent = user.MarketingConsent,
+                ElectronicCommunicationConsent = user.ElectronicCommunicationConsent,
+                MembershipAgreementConsent = user.MembershipAgreementConsent,
                 Status = user.Status,
+                RegistrationIp = user.RegistrationIp,
                 CreatedAt = user.CreatedAt,
                 UpdatedAt = user.UpdatedAt
             });
@@ -613,9 +626,13 @@ public sealed class DapperUserRepository : IUserRepository
             lastName: userRow.last_name,
             professionId: userRow.profession_id,
             birthDate: userRow.birth_date,
-                        memberNumber: userRow.member_number,
+            memberNumber: userRow.member_number,
             isEmailVerified: userRow.is_email_verified,
+            marketingConsent: userRow.marketing_consent ?? false,
+            electronicCommunicationConsent: userRow.electronic_communication_consent ?? false,
+            membershipAgreementConsent: userRow.membership_agreement_consent ?? false,
             status: userRow.status,
+            registrationIp: userRow.registration_ip?.ToString(),
             createdAt: userRow.created_at,
             updatedAt: userRow.updated_at
         );

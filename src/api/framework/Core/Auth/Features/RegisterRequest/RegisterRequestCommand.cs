@@ -5,7 +5,6 @@ namespace FSH.Framework.Core.Auth.Features.RegisterRequest;
 
 public record RegisterRequestCommand(
     string Email,
-    string Username,
     string PhoneNumber,
     string Tckn,
     string Password,
@@ -13,6 +12,9 @@ public record RegisterRequestCommand(
     string LastName,
     int ProfessionId,
     DateTime? BirthDate,
+    bool MarketingConsent,
+    bool ElectronicCommunicationConsent,
+    bool MembershipAgreementConsent,
     string RegistrationIp,
     string DeviceInfo
 ) : IRequest<RegisterRequestResponse>;

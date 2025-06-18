@@ -37,10 +37,14 @@ public class RegisterRequestCommandHandler : IRequestHandler<RegisterRequestComm
                 return new RegisterRequestResponse(false, "Bu email adresi zaten kullanılmaktadır.");
             }
 
-            var usernameExists = await _userRepository.UsernameExistsAsync(request.Username);
+            // Generate unique username automatically
+            var username = await GenerateUniqueUsernameAsync(request.LastName);
+
+            var usernameExists = await _userRepository.UsernameExistsAsync(username);
             if (usernameExists)
             {
-                return new RegisterRequestResponse(false, "Bu kullanıcı adı zaten kullanılmaktadır.");
+                // If generated username exists, try with more numbers
+                username = await GenerateUniqueUsernameAsync(request.LastName, true);
             }
 
             var phoneExists = await _userRepository.PhoneExistsAsync(request.PhoneNumber);
@@ -59,14 +63,17 @@ public class RegisterRequestCommandHandler : IRequestHandler<RegisterRequestComm
             var registrationData = new PendingRegistrationData
             {
                 Email = request.Email,
-                Username = request.Username,
+                Username = username, // Use generated username
                 PhoneNumber = request.PhoneNumber,
                 Tckn = request.Tckn,
                 Password = request.Password,
                 FirstName = request.FirstName,
                 LastName = request.LastName,
                 ProfessionId = request.ProfessionId,
-                BirthDate = request.BirthDate
+                BirthDate = request.BirthDate,
+                MarketingConsent = request.MarketingConsent,
+                ElectronicCommunicationConsent = request.ElectronicCommunicationConsent,
+                MembershipAgreementConsent = request.MembershipAgreementConsent
             };
 
             // 3. Create pending registration with OTP
@@ -74,6 +81,8 @@ public class RegisterRequestCommandHandler : IRequestHandler<RegisterRequestComm
 
             // 4. Store in cache
             var cacheKey = $"pending_reg_{request.PhoneNumber}";
+            _logger.LogInformation("Storing pending registration in cache. Phone: {PhoneNumber}, Cache Key: {CacheKey}, OTP: {OtpCode}", 
+                request.PhoneNumber, cacheKey, pendingRegistration.OtpCode);
             await _cacheService.SetAsync(cacheKey, pendingRegistration, TimeSpan.FromMinutes(15), cancellationToken);
 
             // 5. Send SMS OTP
@@ -98,5 +107,50 @@ public class RegisterRequestCommandHandler : IRequestHandler<RegisterRequestComm
             _logger.LogError(ex, "Error handling register request for phone: {PhoneNumber}", request.PhoneNumber);
             return new RegisterRequestResponse(false, "Kayıt işlemi sırasında bir hata oluştu. Lütfen tekrar deneyiniz.");
         }
+    }
+
+    private async Task<string> GenerateUniqueUsernameAsync(string lastName, bool useMoreNumbers = false)
+    {
+        // Clean lastName and make it lowercase
+        var baseName = lastName.ToLowerInvariant()
+            .Replace("ç", "c")
+            .Replace("ğ", "g")
+            .Replace("ı", "i")
+            .Replace("ö", "o")
+            .Replace("ş", "s")
+            .Replace("ü", "u")
+            .Replace(" ", "");
+
+        // Remove any non-alphanumeric characters
+        baseName = new string(baseName.Where(char.IsLetterOrDigit).ToArray());
+
+        // Ensure it's not too long
+        if (baseName.Length > 15)
+        {
+            baseName = baseName.Substring(0, 15);
+        }
+
+        var random = new Random();
+        string username;
+        int attempts = 0;
+        int maxAttempts = useMoreNumbers ? 100 : 10;
+
+        do
+        {
+            var numberLength = useMoreNumbers ? 4 : 3;
+            var randomNumber = random.Next((int)Math.Pow(10, numberLength - 1), (int)Math.Pow(10, numberLength));
+            username = $"{baseName}{randomNumber}";
+            attempts++;
+
+            var exists = await _userRepository.UsernameExistsAsync(username);
+            if (!exists)
+            {
+                return username;
+            }
+        } while (attempts < maxAttempts);
+
+        // If all attempts failed, use timestamp
+        var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+        return $"{baseName}{timestamp.Substring(timestamp.Length - 6)}";
     }
 } 

@@ -39,7 +39,7 @@ Content-Type: application/json
 
 {
   "tckn": "11111111110",
-  "password": "User123!"
+  "password": "test123"
 }
 
 ### Generate Token (Alternative method)
@@ -64,17 +64,41 @@ Content-Type: application/json
 # 👤 USER REGISTRATION
 # ===================================================================
 
-### Standard User Registration
+### Standard User Registration (18+ Valid)
 ### Step 1: Send SMS OTP (Register Request)
 POST {{Base_Auth_URL}}/register-request
 Content-Type: application/json
 
 {
   "email": "user@example.com",
-  "username": "standarduser",
-  "phoneNumber": "5447627858",
+  "phoneNumber": "+905551234567",
+  "tckn": "11111111110",
+  "password": "test123",
+  "firstName": "john",
+  "lastName": "doe",
   "professionId": 1,
-  "birthDate": "1998-01-01T00:00:00Z"
+  "birthDate": "1990-01-01T00:00:00Z",
+  "marketingConsent": true,
+  "electronicCommunicationConsent": true,
+  "membershipAgreementConsent": true
+}
+
+### Test: Under 18 Registration (Should Fail)
+POST {{Base_Auth_URL}}/register-request
+Content-Type: application/json
+
+{
+  "email": "young@example.com",
+  "phoneNumber": "+905447627859",
+  "tckn": "12345678901",
+  "password": "Test123!",
+  "firstName": "Genç",
+  "lastName": "Kullanıcı",
+  "professionId": 1,
+  "birthDate": "2010-01-01T00:00:00Z",
+  "marketingConsent": false,
+  "electronicCommunicationConsent": true,
+  "membershipAgreementConsent": true
 }
 
 ###
@@ -84,8 +108,17 @@ POST {{Base_Auth_URL}}/verify-registration
 Content-Type: application/json
 
 {
-  "phoneNumber": "5447627858",
-  "otpCode": "5752"
+  "phoneNumber": "+905551234567",
+  "otpCode": "1234"
+}
+
+### Test: Verify with 5XX format (should also work)
+POST {{Base_Auth_URL}}/verify-registration
+Content-Type: application/json
+
+{
+  "phoneNumber": "5551234567",
+  "otpCode": "1234"
 }
 
 ### Customer Admin Registration
@@ -159,7 +192,7 @@ Content-Type: application/json
 
 {
   "tckn": "11111111110",
-  "phoneNumber": "5447627858"
+  "phoneNumber": "5551234567"
 }
 
 ### Reset Password with Token

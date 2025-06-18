@@ -45,7 +45,7 @@
 @test_user_password = User123!
 
 # Test Phone Numbers
-@test_phone_1 = 5447627858
+@test_phone_1 = 5551234567
 @test_phone_2 = 5447627859
 @test_phone_3 = 5447627860
 

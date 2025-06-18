@@ -21,7 +21,11 @@ public sealed class AppUser
     public DateTime BirthDate { get; private init; }
     public string? MemberNumber { get; private init; }
     public bool IsEmailVerified { get; private init; }
+    public bool MarketingConsent { get; private init; }
+    public bool ElectronicCommunicationConsent { get; private init; }
+    public bool MembershipAgreementConsent { get; private init; }
     public string Status { get; private init; } = default!;
+    public string? RegistrationIp { get; private init; }
     public DateTime CreatedAt { get; private init; }
     public DateTime UpdatedAt { get; private init; }
 
@@ -36,7 +40,11 @@ public sealed class AppUser
         string firstName,
         string lastName,
         int? professionId,
-        DateTime birthDate)
+        DateTime birthDate,
+        bool marketingConsent = false,
+        bool electronicCommunicationConsent = false,
+        bool membershipAgreementConsent = false,
+        string? registrationIp = null)
     {
         // Validation
         var emailResult = EmailVO.Create(email);
@@ -77,7 +85,11 @@ public sealed class AppUser
             BirthDate = birthDate,
             MemberNumber = null, // Will be generated later
             IsEmailVerified = false, // Email verification happens after registration
+            MarketingConsent = marketingConsent,
+            ElectronicCommunicationConsent = electronicCommunicationConsent,
+            MembershipAgreementConsent = membershipAgreementConsent,
             Status = "ACTIVE",
+            RegistrationIp = registrationIp,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -99,7 +111,11 @@ public sealed class AppUser
         DateTime birthDate,
         string? memberNumber,
         bool isEmailVerified,
+        bool marketingConsent,
+        bool electronicCommunicationConsent,
+        bool membershipAgreementConsent,
         string status,
+        string? registrationIp,
         DateTime createdAt,
         DateTime updatedAt)
     {
@@ -117,7 +133,11 @@ public sealed class AppUser
             BirthDate = birthDate,
             MemberNumber = memberNumber,
             IsEmailVerified = isEmailVerified,
+            MarketingConsent = marketingConsent,
+            ElectronicCommunicationConsent = electronicCommunicationConsent,
+            MembershipAgreementConsent = membershipAgreementConsent,
             Status = status,
+            RegistrationIp = registrationIp,
             CreatedAt = createdAt,
             UpdatedAt = updatedAt
         };
@@ -140,7 +160,11 @@ public sealed class AppUser
             BirthDate = BirthDate,
             MemberNumber = MemberNumber,
             IsEmailVerified = IsEmailVerified,
+            MarketingConsent = MarketingConsent,
+            ElectronicCommunicationConsent = ElectronicCommunicationConsent,
+            MembershipAgreementConsent = MembershipAgreementConsent,
             Status = Status,
+            RegistrationIp = RegistrationIp,
             CreatedAt = CreatedAt,
             UpdatedAt = DateTime.UtcNow
         };
@@ -162,7 +186,11 @@ public sealed class AppUser
             BirthDate = BirthDate,
             MemberNumber = MemberNumber,
             IsEmailVerified = isEmailVerified,
+            MarketingConsent = MarketingConsent,
+            ElectronicCommunicationConsent = ElectronicCommunicationConsent,
+            MembershipAgreementConsent = MembershipAgreementConsent,
             Status = Status,
+            RegistrationIp = RegistrationIp,
             CreatedAt = CreatedAt,
             UpdatedAt = DateTime.UtcNow
         };
@@ -184,7 +212,11 @@ public sealed class AppUser
             BirthDate = BirthDate,
             MemberNumber = MemberNumber,
             IsEmailVerified = IsEmailVerified,
+            MarketingConsent = MarketingConsent,
+            ElectronicCommunicationConsent = ElectronicCommunicationConsent,
+            MembershipAgreementConsent = MembershipAgreementConsent,
             Status = status,
+            RegistrationIp = RegistrationIp,
             CreatedAt = CreatedAt,
             UpdatedAt = DateTime.UtcNow
         };
@@ -206,7 +238,11 @@ public sealed class AppUser
             BirthDate = BirthDate,
             MemberNumber = memberNumber,
             IsEmailVerified = IsEmailVerified,
+            MarketingConsent = MarketingConsent,
+            ElectronicCommunicationConsent = ElectronicCommunicationConsent,
+            MembershipAgreementConsent = MembershipAgreementConsent,
             Status = Status,
+            RegistrationIp = RegistrationIp,
             CreatedAt = CreatedAt,
             UpdatedAt = DateTime.UtcNow
         };
@@ -232,7 +268,11 @@ public sealed class AppUser
             BirthDate = BirthDate,
             MemberNumber = MemberNumber,
             IsEmailVerified = IsEmailVerified,
+            MarketingConsent = MarketingConsent,
+            ElectronicCommunicationConsent = ElectronicCommunicationConsent,
+            MembershipAgreementConsent = MembershipAgreementConsent,
             Status = Status,
+            RegistrationIp = RegistrationIp,
             CreatedAt = CreatedAt,
             UpdatedAt = DateTime.UtcNow
         };
@@ -259,7 +299,11 @@ public sealed class AppUser
             BirthDate = BirthDate,
             MemberNumber = MemberNumber,
             IsEmailVerified = isEmailVerified,
+            MarketingConsent = MarketingConsent,
+            ElectronicCommunicationConsent = ElectronicCommunicationConsent,
+            MembershipAgreementConsent = MembershipAgreementConsent,
             Status = Status,
+            RegistrationIp = RegistrationIp,
             CreatedAt = CreatedAt,
             UpdatedAt = DateTime.UtcNow
         };
@@ -281,7 +325,11 @@ public sealed class AppUser
             BirthDate = BirthDate,
             MemberNumber = MemberNumber,
             IsEmailVerified = IsEmailVerified,
+            MarketingConsent = MarketingConsent,
+            ElectronicCommunicationConsent = ElectronicCommunicationConsent,
+            MembershipAgreementConsent = MembershipAgreementConsent,
             Status = status,
+            RegistrationIp = RegistrationIp,
             CreatedAt = CreatedAt,
             UpdatedAt = DateTime.UtcNow
         };
@@ -303,7 +351,11 @@ public sealed class AppUser
             BirthDate = BirthDate,
             MemberNumber = MemberNumber,
             IsEmailVerified = IsEmailVerified,
+            MarketingConsent = MarketingConsent,
+            ElectronicCommunicationConsent = ElectronicCommunicationConsent,
+            MembershipAgreementConsent = MembershipAgreementConsent,
             Status = Status,
+            RegistrationIp = RegistrationIp,
             CreatedAt = CreatedAt,
             UpdatedAt = DateTime.UtcNow
         };
@@ -329,7 +381,11 @@ public sealed class AppUser
             BirthDate = BirthDate,
             MemberNumber = MemberNumber,
             IsEmailVerified = false, // Reset verification when email changes
+            MarketingConsent = MarketingConsent,
+            ElectronicCommunicationConsent = ElectronicCommunicationConsent,
+            MembershipAgreementConsent = MembershipAgreementConsent,
             Status = Status,
+            RegistrationIp = RegistrationIp,
             CreatedAt = CreatedAt,
             UpdatedAt = DateTime.UtcNow
         };
@@ -355,7 +411,11 @@ public sealed class AppUser
             BirthDate = BirthDate,
             MemberNumber = MemberNumber,
             IsEmailVerified = IsEmailVerified,
+            MarketingConsent = MarketingConsent,
+            ElectronicCommunicationConsent = ElectronicCommunicationConsent,
+            MembershipAgreementConsent = MembershipAgreementConsent,
             Status = Status,
+            RegistrationIp = RegistrationIp,
             CreatedAt = CreatedAt,
             UpdatedAt = DateTime.UtcNow
         };

@@ -17,10 +17,22 @@ public class DevelopmentSmsService : ISmsService
 
     public Task<bool> SendSmsCodeAsync(string phoneNumber, string code)
     {
-        _logger.LogInformation("📱 SMS OTP Gönderildi (Development Mode)");
-        _logger.LogInformation("📞 Telefon: {PhoneNumber}", phoneNumber);
-        _logger.LogInformation("🔐 OTP Kodu: {Code}", code);
-        _logger.LogInformation("💬 Mesaj: 'Doğrulama kodunuz: {Code}. Bu kodu kimseyle paylaşmayın.'", code);
+        _logger.LogWarning("=== 📱 SMS OTP GÖNDERİLDİ (DEVELOPMENT MODE) ===");
+        _logger.LogWarning("📞 Telefon: {PhoneNumber}", phoneNumber);
+        _logger.LogWarning("🔐 OTP KODU: {Code}", code);
+        _logger.LogWarning("💬 Mesaj: 'Doğrulama kodunuz: {Code}. Bu kodu kimseyle paylaşmayın.'", code);
+        _logger.LogWarning("=============================================");
+        
+        // Console'a da yazdır (daha görünür olması için)
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("=== 📱 SMS OTP GÖNDERİLDİ ===");
+        Console.WriteLine($"📞 Telefon: {phoneNumber}");
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine($"🔐 OTP KODU: {code}");
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.WriteLine($"💬 Mesaj: 'Doğrulama kodunuz: {code}. Bu kodu kimseyle paylaşmayın.'");
+        Console.WriteLine("===========================");
+        Console.ResetColor();
         
         return Task.FromResult(true);
     }

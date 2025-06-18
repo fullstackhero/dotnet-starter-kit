@@ -11,6 +11,9 @@ public class PendingRegistrationData
     public string LastName { get; set; } = string.Empty;
     public int ProfessionId { get; set; }
     public DateTime? BirthDate { get; set; }
+    public bool MarketingConsent { get; set; }
+    public bool ElectronicCommunicationConsent { get; set; }
+    public bool MembershipAgreementConsent { get; set; }
 }
 
 public class PendingRegistration

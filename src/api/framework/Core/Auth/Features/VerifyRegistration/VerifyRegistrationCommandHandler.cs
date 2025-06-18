@@ -29,12 +29,20 @@ public class VerifyRegistrationCommandHandler : IRequestHandler<VerifyRegistrati
         {
             // 1. Get pending registration from cache
             var cacheKey = $"pending_reg_{request.PhoneNumber}";
+            _logger.LogInformation("Verifying OTP for phone: {PhoneNumber}, Cache Key: {CacheKey}, Provided OTP: {OtpCode}", 
+                request.PhoneNumber, cacheKey, request.OtpCode);
+                
             var pendingRegistration = await _cacheService.GetAsync<PendingRegistration>(cacheKey, cancellationToken);
 
             if (pendingRegistration == null)
             {
+                _logger.LogWarning("Pending registration not found in cache for phone: {PhoneNumber}, Cache Key: {CacheKey}", 
+                    request.PhoneNumber, cacheKey);
                 return new VerifyRegistrationResponse(false, "Doğrulama kodu bulunamadı veya süresi dolmuş. Lütfen tekrar kayıt olmayı deneyiniz.");
             }
+
+            _logger.LogInformation("Found pending registration. Stored OTP: {StoredOtp}, Provided OTP: {ProvidedOtp}, Attempts: {Attempts}, IsExpired: {IsExpired}", 
+                pendingRegistration.OtpCode, request.OtpCode, pendingRegistration.Attempts, pendingRegistration.IsExpired);
 
             // 2. Validate OTP
             if (!pendingRegistration.ValidateOtp(request.OtpCode))
@@ -61,7 +69,11 @@ public class VerifyRegistrationCommandHandler : IRequestHandler<VerifyRegistrati
                 data.FirstName,
                 data.LastName,
                 data.ProfessionId,
-                data.BirthDate.GetValueOrDefault(DateTime.Today.AddYears(-18))
+                data.BirthDate.GetValueOrDefault(DateTime.Today.AddYears(-18)),
+                data.MarketingConsent,
+                data.ElectronicCommunicationConsent,
+                data.MembershipAgreementConsent,
+                pendingRegistration.RegistrationIp
             );
 
             if (!userResult.IsSuccess)

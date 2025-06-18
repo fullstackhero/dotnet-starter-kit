@@ -1,18 +1,18 @@
 using FluentValidation;
+using FSH.Framework.Core.Auth.Services;
 
 namespace FSH.Framework.Core.Auth.Features.RegisterRequest;
 
 public class RegisterRequestCommandValidator : AbstractValidator<RegisterRequestCommand>
 {
-    public RegisterRequestCommandValidator()
+    private readonly IIdentityVerificationService _identityVerificationService;
+
+    public RegisterRequestCommandValidator(IIdentityVerificationService identityVerificationService)
     {
+        _identityVerificationService = identityVerificationService;
         RuleFor(x => x.Email)
             .NotEmpty().WithMessage("Email gereklidir")
             .EmailAddress().WithMessage("Geçerli bir email adresi giriniz");
-
-        RuleFor(x => x.Username)
-            .NotEmpty().WithMessage("Kullanıcı adı gereklidir")
-            .Length(3, 50).WithMessage("Kullanıcı adı 3-50 karakter arasında olmalıdır");
 
         RuleFor(x => x.PhoneNumber)
             .NotEmpty().WithMessage("Telefon numarası gereklidir")
@@ -42,7 +42,27 @@ public class RegisterRequestCommandValidator : AbstractValidator<RegisterRequest
             .GreaterThan(0).WithMessage("Meslek alanı seçilmelidir");
 
         RuleFor(x => x.BirthDate)
+            .NotNull().WithMessage("Doğum tarihi gereklidir")
             .LessThan(DateTime.Today).WithMessage("Doğum tarihi geçerli olmalıdır")
+            .Must(BeAtLeast18YearsOld).WithMessage("18 yaşından küçük kullanıcılar kayıt olamaz");
+
+        RuleFor(x => x.MembershipAgreementConsent)
+            .Equal(true).WithMessage("Üyelik sözleşmesi onayı zorunludur");
+
+        // TCKN-Ad-Soyad-DoğumYılı MERNİS kontrolü
+        RuleFor(x => x)
+            .MustAsync(async (command, cancellation) => 
+            {
+                if (!command.BirthDate.HasValue) return false;
+                
+                var birthYear = command.BirthDate.Value.Year;
+                return await _identityVerificationService.VerifyIdentityAsync(
+                    command.Tckn, 
+                    command.FirstName, 
+                    command.LastName, 
+                    birthYear);
+            })
+            .WithMessage("TC Kimlik No, Ad, Soyad ve Doğum Yılı bilgileri MERNİS kayıtları ile eşleşmiyor")
             .When(x => x.BirthDate.HasValue);
 
         RuleFor(x => x.RegistrationIp)
@@ -50,5 +70,19 @@ public class RegisterRequestCommandValidator : AbstractValidator<RegisterRequest
 
         RuleFor(x => x.DeviceInfo)
             .NotEmpty().WithMessage("Cihaz bilgisi gereklidir");
+    }
+
+    private static bool BeAtLeast18YearsOld(DateTime? birthDate)
+    {
+        if (!birthDate.HasValue) return false;
+        
+        var today = DateTime.Today;
+        var age = today.Year - birthDate.Value.Year;
+        
+        // Doğum günü henüz gelmemişse yaşı bir azalt
+        if (birthDate.Value.Date > today.AddYears(-age))
+            age--;
+            
+        return age >= 18;
     }
 } 

@@ -94,7 +94,6 @@ public sealed class AuthController : ControllerBase
         // Clean Architecture: Map presentation DTO to domain command
         var command = new FSH.Framework.Core.Auth.Features.RegisterRequest.RegisterRequestCommand(
             request.Email,
-            request.Username,
             request.PhoneNumber,
             request.Tckn,
             request.Password,
@@ -102,12 +101,24 @@ public sealed class AuthController : ControllerBase
             request.LastName,
             request.ProfessionId,
             request.BirthDate,
+            request.MarketingConsent,
+            request.ElectronicCommunicationConsent,
+            request.MembershipAgreementConsent,
             registrationIp,
             deviceInfo
         );
 
         var result = await _mediator.Send(command);
-        return Ok(ApiResponse<FSH.Framework.Core.Auth.Features.RegisterRequest.RegisterRequestResponse>.SuccessResult(result));
+        
+        // Check if the operation was successful
+        if (result.Success)
+        {
+            return Ok(ApiResponse<FSH.Framework.Core.Auth.Features.RegisterRequest.RegisterRequestResponse>.SuccessResult(result));
+        }
+        else
+        {
+            return BadRequest(ApiResponse<FSH.Framework.Core.Auth.Features.RegisterRequest.RegisterRequestResponse>.FailureResult(result.Message));
+        }
     }
 
     [HttpPost("verify-registration")]
@@ -122,7 +133,16 @@ public sealed class AuthController : ControllerBase
         );
 
         var result = await _mediator.Send(command);
-        return Ok(ApiResponse<FSH.Framework.Core.Auth.Features.VerifyRegistration.VerifyRegistrationResponse>.SuccessResult(result));
+        
+        // Check if the operation was successful
+        if (result.Success)
+        {
+            return Ok(ApiResponse<FSH.Framework.Core.Auth.Features.VerifyRegistration.VerifyRegistrationResponse>.SuccessResult(result));
+        }
+        else
+        {
+            return BadRequest(ApiResponse<FSH.Framework.Core.Auth.Features.VerifyRegistration.VerifyRegistrationResponse>.FailureResult(result.Message));
+        }
     }
 
     [HttpPost("token")]

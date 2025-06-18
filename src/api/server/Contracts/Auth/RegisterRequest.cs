@@ -16,13 +16,6 @@ public sealed class RegisterRequest
     public string Email { get; init; } = default!;
 
     /// <summary>
-    /// Username
-    /// </summary>
-    [Required(ErrorMessage = "Kullanıcı adı gereklidir")]
-    [StringLength(50, MinimumLength = 3, ErrorMessage = "Kullanıcı adı 3-50 karakter arasında olmalıdır")]
-    public string Username { get; init; } = default!;
-
-    /// <summary>
     /// Phone number (Turkish format)
     /// </summary>
     [Required(ErrorMessage = "Telefon numarası gereklidir")]
@@ -71,4 +64,22 @@ public sealed class RegisterRequest
     /// Birth date (optional)
     /// </summary>
     public DateTime? BirthDate { get; init; }
+
+    /// <summary>
+    /// Marketing communications consent
+    /// </summary>
+    [Required(ErrorMessage = "Pazarlama iletişimi onayı gereklidir")]
+    public bool MarketingConsent { get; init; }
+
+    /// <summary>
+    /// Electronic communication consent (email, SMS)
+    /// </summary>
+    [Required(ErrorMessage = "Elektronik iletişim onayı gereklidir")]
+    public bool ElectronicCommunicationConsent { get; init; }
+
+    /// <summary>
+    /// Membership agreement consent
+    /// </summary>
+    [Required(ErrorMessage = "Üyelik sözleşmesi onayı gereklidir")]
+    public bool MembershipAgreementConsent { get; init; }
 } 
