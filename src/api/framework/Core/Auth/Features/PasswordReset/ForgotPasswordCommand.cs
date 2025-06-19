@@ -7,17 +7,40 @@ namespace FSH.Framework.Core.Auth.Features.PasswordReset;
 
 public class ForgotPasswordCommand : IRequest<ForgotPasswordResponse>
 {
-    [JsonPropertyName("tckn")]
-    public string TcKimlikNo { get; set; } = string.Empty;
+    [JsonPropertyName("tcknOrMemberNumber")]
+    public string TcknOrMemberNumber { get; set; } = string.Empty;
     
     [JsonPropertyName("birthDate")]
     public DateTime BirthDate { get; set; }
     
     // Domain validation method
-    public bool IsValid() => Tckn.IsValid(TcKimlikNo) && BirthDate != default;
+    public bool IsValid() => IsValidTcknOrMemberNumber(TcknOrMemberNumber) && BirthDate != default;
     
-    // Get domain value object
-    public Tckn GetTcKimlik() => Tckn.CreateUnsafe(TcKimlikNo);
+    // Get domain value object for TCKN (only if it's a TCKN)
+    public Tckn? GetTcKimlik() => 
+        TcknOrMemberNumber.Length == 11 && TcknOrMemberNumber.All(char.IsDigit) 
+            ? Tckn.CreateUnsafe(TcknOrMemberNumber) 
+            : null;
+    
+    private bool IsValidTcknOrMemberNumber(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return false;
+            
+        // TC Kimlik numarası kontrolü (11 haneli)
+        if (input.Length == 11 && input.All(char.IsDigit))
+        {
+            return Tckn.IsValid(input);
+        }
+        
+        // Üye numarası kontrolü (alfanumerik, 6-20 karakter)
+        if (input.Length >= 6 && input.Length <= 20)
+        {
+            return input.All(c => char.IsLetterOrDigit(c));
+        }
+        
+        return false;
+    }
 }
 
 public class ForgotPasswordResponse
@@ -32,8 +55,8 @@ public class ForgotPasswordResponse
 
 public class SelectResetMethodCommand : IRequest<string>
 {
-    [JsonPropertyName("tckn")]
-    public string TcKimlikNo { get; set; } = string.Empty;
+    [JsonPropertyName("tcknOrMemberNumber")]
+    public string TcknOrMemberNumber { get; set; } = string.Empty;
     
     [JsonPropertyName("birthDate")]
     public DateTime BirthDate { get; set; }
@@ -41,9 +64,32 @@ public class SelectResetMethodCommand : IRequest<string>
     [JsonPropertyName("method")]
     public ResetMethod Method { get; set; }
     
-    public bool IsValid() => Tckn.IsValid(TcKimlikNo) && BirthDate != default && Enum.IsDefined(typeof(ResetMethod), Method);
+    public bool IsValid() => IsValidTcknOrMemberNumber(TcknOrMemberNumber) && BirthDate != default && Enum.IsDefined(typeof(ResetMethod), Method);
     
-    public Tckn GetTcKimlik() => Tckn.CreateUnsafe(TcKimlikNo);
+    public Tckn? GetTcKimlik() => 
+        TcknOrMemberNumber.Length == 11 && TcknOrMemberNumber.All(char.IsDigit) 
+            ? Tckn.CreateUnsafe(TcknOrMemberNumber) 
+            : null;
+    
+    private bool IsValidTcknOrMemberNumber(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return false;
+            
+        // TC Kimlik numarası kontrolü (11 haneli)
+        if (input.Length == 11 && input.All(char.IsDigit))
+        {
+            return Tckn.IsValid(input);
+        }
+        
+        // Üye numarası kontrolü (alfanumerik, 6-20 karakter)
+        if (input.Length >= 6 && input.Length <= 20)
+        {
+            return input.All(c => char.IsLetterOrDigit(c));
+        }
+        
+        return false;
+    }
 }
 
 public enum ResetMethod

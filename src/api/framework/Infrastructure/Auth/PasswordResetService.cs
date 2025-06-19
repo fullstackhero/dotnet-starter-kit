@@ -177,6 +177,45 @@ public sealed class PasswordResetService : IPasswordResetService
         }
     }
 
+    public Task<string?> GetIdentifierFromTokenAsync(string token)
+    {
+        try
+        {
+            CleanupExpiredTokens();
+            
+            // Search through all stored tokens to find the identifier (TCKN or Member Number) associated with this token
+            foreach (var kvp in _resetTokens)
+            {
+                if (string.Equals(kvp.Value, token, StringComparison.Ordinal))
+                {
+                    // Check if token is expired
+                    if (_tokenExpiry.TryGetValue(kvp.Key, out var expiryTime))
+                    {
+                        if (DateTime.UtcNow <= expiryTime)
+                        {
+                            // The key is the identifier (TCKN or Member Number, stored as uppercase)
+                            var identifier = kvp.Key;
+                            _logger.LogDebug("Found identifier for token: {Token}", token[..8] + "...");
+                            return Task.FromResult<string?>(identifier);
+                        }
+                        else
+                        {
+                            _logger.LogDebug("Token expired when getting identifier: {Token}", token[..8] + "...");
+                        }
+                    }
+                }
+            }
+            
+            _logger.LogDebug("No identifier found for token: {Token}", token[..8] + "...");
+            return Task.FromResult<string?>(null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting identifier from token: {Token}", token[..8] + "...");
+            return Task.FromResult<string?>(null);
+        }
+    }
+
     public Task InvalidateResetTokenAsync(string email)
     {
         try
@@ -319,6 +358,51 @@ public sealed class PasswordResetService : IPasswordResetService
         {
             _logger.LogError(ex, "Failed to reset password for TCKN: {Tckn}", tcKimlik);
             throw new InvalidOperationException($"Failed to reset password for TCKN: {tcKimlik}", ex);
+        }
+    }
+
+    public async Task ResetUserPasswordByMemberNumberAsync(string memberNumber, string newPassword)
+    {
+        try
+        {
+            _logger.LogInformation("Resetting password for Member Number: {MemberNumber}", memberNumber);
+            
+            // Use Dapper repository to reset password by Member Number
+            await _userRepository.ResetPasswordByMemberNumberAsync(memberNumber, newPassword);
+            
+            _logger.LogInformation("Password successfully reset for Member Number: {MemberNumber}", memberNumber);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to reset password for Member Number: {MemberNumber}", memberNumber);
+            throw new InvalidOperationException($"Failed to reset password for Member Number: {memberNumber}", ex);
+        }
+    }
+
+    public async Task ResetUserPasswordByIdentifierAsync(string identifier, string newPassword)
+    {
+        try
+        {
+            _logger.LogInformation("Resetting password for identifier: {Identifier}", identifier);
+            
+            // Determine if identifier is TCKN (11 digits) or Member Number
+            if (identifier.Length == 11 && identifier.All(char.IsDigit))
+            {
+                // Reset by TCKN
+                await _userRepository.ResetPasswordByTcknAsync(identifier, newPassword);
+                _logger.LogInformation("Password successfully reset for TCKN: {Identifier}", identifier);
+            }
+            else
+            {
+                // Reset by Member Number
+                await _userRepository.ResetPasswordByMemberNumberAsync(identifier, newPassword);
+                _logger.LogInformation("Password successfully reset for Member Number: {Identifier}", identifier);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to reset password for identifier: {Identifier}", identifier);
+            throw new InvalidOperationException($"Failed to reset password for identifier: {identifier}", ex);
         }
     }
 } 

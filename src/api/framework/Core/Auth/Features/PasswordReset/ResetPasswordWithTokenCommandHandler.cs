@@ -45,25 +45,25 @@ public sealed class ResetPasswordWithTokenCommandHandler : IRequestHandler<Reset
                 throw new FshException("Token geçersiz veya süresi dolmuş. Lütfen yeni bir şifre sıfırlama talebinde bulunun.");
             }
 
-            // Get TCKN from token (we need to find which TCKN this token belongs to)
-            var tckn = await _passwordResetService.GetTcknFromTokenAsync(request.Token);
+            // Get identifier (TCKN or Member Number) from token
+            var identifier = await _passwordResetService.GetIdentifierFromTokenAsync(request.Token);
             
-            if (string.IsNullOrEmpty(tckn))
+            if (string.IsNullOrEmpty(identifier))
             {
-                _logger.LogError("Could not find TCKN for token: {Token}", request.Token[..8] + "...");
+                _logger.LogError("Could not find identifier for token: {Token}", request.Token[..8] + "...");
                 throw new FshException("Token ile ilişkili kullanıcı bulunamadı.");
             }
 
             // Get password domain object
             var password = request.GetPassword();
 
-            // Reset password using the service
-            await _passwordResetService.ResetUserPasswordByTcknAsync(tckn, password.Value);
+            // Reset password using the service (automatically detects TCKN vs Member Number)
+            await _passwordResetService.ResetUserPasswordByIdentifierAsync(identifier, password.Value);
 
             // Invalidate the token after successful password reset
-            await _passwordResetService.InvalidateResetTokenAsync(tckn);
+            await _passwordResetService.InvalidateResetTokenAsync(identifier);
 
-            _logger.LogInformation("Password successfully reset for TCKN: {Tckn}", tckn);
+            _logger.LogInformation("Password successfully reset for identifier: {Identifier}", identifier);
 
             return "Şifreniz başarıyla güncellendi. Artık yeni şifrenizle giriş yapabilirsiniz.";
         }

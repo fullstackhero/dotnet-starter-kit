@@ -372,6 +372,35 @@ public sealed class DapperUserRepository : IUserRepository
         }
     }
 
+    public async Task ResetPasswordByMemberNumberAsync(string memberNumber, string newPassword)
+    {
+        ArgumentNullException.ThrowIfNull(memberNumber);
+        ArgumentNullException.ThrowIfNull(newPassword);
+
+        try
+        {
+            // Hash the password before saving
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            
+            var rowsAffected = await _connection.ExecuteAsync(
+                "UPDATE users SET password_hash = @PasswordHash WHERE member_number = @MemberNumber",
+                new { MemberNumber = memberNumber, PasswordHash = hashedPassword });
+
+            if (rowsAffected == 0)
+            {
+                _logger.LogWarning("No user found with Member Number {MemberNumber} for password reset", memberNumber);
+                throw new FshException($"Kullanıcı bulunamadı: {memberNumber}");
+            }
+
+            _logger.LogInformation("Password successfully reset for Member Number: {MemberNumber}", memberNumber);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error resetting password for Member Number {MemberNumber}", memberNumber);
+            throw new FshException($"Error resetting password for Member Number {memberNumber}", ex);
+        }
+    }
+
     // INTERFACE IMPLEMENTATIONS FOR CLEAN ARCHITECTURE
 
     public async Task<(bool IsValid, AppUser? User)> ValidatePasswordAndGetByTcknAsync(string tckn, string password)
@@ -591,12 +620,10 @@ public sealed class DapperUserRepository : IUserRepository
     // Password Reset Methods
     public async Task<(bool IsValid, AppUser? User)> ValidateTcKimlikAndBirthDateAsync(string tcKimlik, DateTime birthDate)
     {
-        ArgumentNullException.ThrowIfNull(tcKimlik);
-
         try
         {
             var user = await _connection.QueryFirstOrDefaultAsync<dynamic>(
-                "SELECT * FROM users WHERE tckn = @Tckn AND DATE(birth_date) = DATE(@BirthDate)",
+                "SELECT * FROM users WHERE tckn = @Tckn AND birth_date::date = @BirthDate::date",
                 new { Tckn = tcKimlik, BirthDate = birthDate.Date });
 
             if (user == null)
@@ -606,30 +633,68 @@ public sealed class DapperUserRepository : IUserRepository
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error validating TCKN and birth date {Tckn}, {BirthDate}", tcKimlik, birthDate);
-            throw new FshException($"Error validating TCKN and birth date {tcKimlik}, {birthDate}", ex);
+            _logger.LogError(ex, "Error validating TC Kimlik and birth date for {TcKimlik}", tcKimlik);
+            throw new FshException($"Error validating TC Kimlik and birth date for {tcKimlik}", ex);
+        }
+    }
+
+    public async Task<(bool IsValid, AppUser? User)> ValidateMemberNumberAndBirthDateAsync(string memberNumber, DateTime birthDate)
+    {
+        try
+        {
+            var user = await _connection.QueryFirstOrDefaultAsync<dynamic>(
+                "SELECT * FROM users WHERE member_number = @MemberNumber AND birth_date::date = @BirthDate::date",
+                new { MemberNumber = memberNumber, BirthDate = birthDate.Date });
+
+            if (user == null)
+                return (false, null);
+
+            return (true, MapToAppUser(user));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error validating member number and birth date for {MemberNumber}", memberNumber);
+            throw new FshException($"Error validating member number and birth date for {memberNumber}", ex);
+        }
+    }
+
+    public async Task<(bool IsValid, AppUser? User)> ValidateMemberNumberAndPhoneAsync(string memberNumber, string phoneNumber)
+    {
+        try
+        {
+            var user = await _connection.QueryFirstOrDefaultAsync<dynamic>(
+                "SELECT * FROM users WHERE member_number = @MemberNumber AND phone_number = @PhoneNumber",
+                new { MemberNumber = memberNumber, PhoneNumber = phoneNumber });
+
+            if (user == null)
+                return (false, null);
+
+            return (true, MapToAppUser(user));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error validating member number and phone for {MemberNumber}", memberNumber);
+            throw new FshException($"Error validating member number and phone for {memberNumber}", ex);
         }
     }
 
     public async Task<(string? Email, string? Phone)> GetUserContactInfoAsync(string tcKimlik)
     {
-        ArgumentNullException.ThrowIfNull(tcKimlik);
-
         try
         {
-            var result = await _connection.QueryFirstOrDefaultAsync<dynamic>(
+            var user = await _connection.QueryFirstOrDefaultAsync<dynamic>(
                 "SELECT email, phone_number FROM users WHERE tckn = @Tckn",
                 new { Tckn = tcKimlik });
 
-            if (result == null)
+            if (user == null)
                 return (null, null);
 
-            return (result.email, result.phone_number);
+            return (user.email, user.phone_number);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting contact info for TCKN {Tckn}", tcKimlik);
-            throw new FshException($"Error getting contact info for TCKN {tcKimlik}", ex);
+            _logger.LogError(ex, "Error getting contact info for TC Kimlik {TcKimlik}", tcKimlik);
+            throw new FshException($"Error getting contact info for TC Kimlik {tcKimlik}", ex);
         }
     }
 
@@ -716,6 +781,26 @@ public sealed class DapperUserRepository : IUserRepository
         {
             _logger.LogError(ex, "Error in phone verification for user {UserId}", userId);
             return false;
+        }
+    }
+
+    public async Task<(string? Email, string? Phone)> GetUserContactInfoByMemberNumberAsync(string memberNumber)
+    {
+        try
+        {
+            var user = await _connection.QueryFirstOrDefaultAsync<dynamic>(
+                "SELECT email, phone_number FROM users WHERE member_number = @MemberNumber",
+                new { MemberNumber = memberNumber });
+
+            if (user == null)
+                return (null, null);
+
+            return (user.email, user.phone_number);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting contact info for member number {MemberNumber}", memberNumber);
+            throw new FshException($"Error getting contact info for member number {memberNumber}", ex);
         }
     }
 } 

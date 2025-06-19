@@ -19,6 +19,8 @@ public interface IUserRepository
     Task<bool> ValidateCurrentPasswordAsync(Guid userId, string currentPassword);
     Task<bool> TcKimlikExistsAsync(string tcKimlik);
     Task<(bool IsValid, AppUser? User)> ValidateTcKimlikAndPhoneAsync(string tcKimlik, string phoneNumber);
+    Task<(bool IsValid, AppUser? User)> ValidateMemberNumberAndBirthDateAsync(string memberNumber, DateTime birthDate);
+    Task<(bool IsValid, AppUser? User)> ValidateMemberNumberAndPhoneAsync(string memberNumber, string phoneNumber);
     Task UpdateProfileAsync(Guid userId, string? username, string? profession);
     Task<IReadOnlyList<AppUser>> GetAllAsync();
     Task UpdateUserAsync(AppUser user);
@@ -29,8 +31,10 @@ public interface IUserRepository
     // Password Reset Methods
     Task<(bool IsValid, AppUser? User)> ValidateTcKimlikAndBirthDateAsync(string tcKimlik, DateTime birthDate);
     Task<(string? Email, string? Phone)> GetUserContactInfoAsync(string tcKimlik);
+    Task<(string? Email, string? Phone)> GetUserContactInfoByMemberNumberAsync(string memberNumber);
     Task ResetPasswordAsync(string email, string newPassword);
     Task ResetPasswordByTcknAsync(string tcKimlik, string newPassword);
+    Task ResetPasswordByMemberNumberAsync(string memberNumber, string newPassword);
     
     // Profile Update Verification Methods
     Task<bool> VerifyEmailUpdateAsync(Guid userId, string verificationCode);

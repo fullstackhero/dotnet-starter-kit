@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using FSH.Framework.Core.Auth.Repositories;
 using FSH.Framework.Core.Auth.Services;
+using FSH.Framework.Core.Auth.Domain;
 using FSH.Framework.Core.Common.Exceptions;
 using FSH.Framework.Core.Common.Options;
 using System.ComponentModel.DataAnnotations;
@@ -26,26 +27,49 @@ public sealed class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswor
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        _logger.LogInformation("Processing forgot password request for TC Kimlik: {TcKimlik}", request.TcKimlikNo);
+        _logger.LogInformation("Processing forgot password request for: {TcknOrMemberNumber}", request.TcknOrMemberNumber);
 
         // Domain validation
         if (!request.IsValid())
         {
-            throw new ValidationException("Geçersiz TC Kimlik No veya Doğum Tarihi");
+            throw new ValidationException("Geçersiz TC Kimlik No/Üye No veya Doğum Tarihi");
         }
 
-        var tcKimlik = request.GetTcKimlik();
-        
         try
         {
-            // Validate TC Kimlik and Birth Date
-            var (isValid, user) = await _userRepository.ValidateTcKimlikAndBirthDateAsync(tcKimlik.Value, request.BirthDate);
-            
-            if (!isValid || user == null)
+            (bool isValid, AppUser? user) validationResult;
+            (string? email, string? phone) contactInfo;
+
+            // Determine if input is TCKN (11 digits) or Member Number
+            if (request.TcknOrMemberNumber.Length == 11 && request.TcknOrMemberNumber.All(char.IsDigit))
             {
-                // Return specific error messages as per document
-                var tcExists = await _userRepository.TcKimlikExistsAsync(tcKimlik.Value);
-                if (!tcExists)
+                // Validate with TCKN
+                validationResult = await _userRepository.ValidateTcKimlikAndBirthDateAsync(request.TcknOrMemberNumber, request.BirthDate);
+                contactInfo = await _userRepository.GetUserContactInfoAsync(request.TcknOrMemberNumber);
+            }
+            else
+            {
+                // Validate with Member Number
+                validationResult = await _userRepository.ValidateMemberNumberAndBirthDateAsync(request.TcknOrMemberNumber, request.BirthDate);
+                contactInfo = await _userRepository.GetUserContactInfoByMemberNumberAsync(request.TcknOrMemberNumber);
+            }
+
+            if (!validationResult.isValid || validationResult.user == null)
+            {
+                // Return specific error messages
+                bool userExists;
+                
+                if (request.TcknOrMemberNumber.Length == 11 && request.TcknOrMemberNumber.All(char.IsDigit))
+                {
+                    userExists = await _userRepository.TcKimlikExistsAsync(request.TcknOrMemberNumber);
+                }
+                else
+                {
+                    var memberUser = await _userRepository.GetByMemberNumberAsync(request.TcknOrMemberNumber);
+                    userExists = memberUser != null;
+                }
+
+                if (!userExists)
                 {
                     return new ForgotPasswordResponse
                     {
@@ -63,24 +87,21 @@ public sealed class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswor
                 }
             }
 
-            // Get user contact information
-            var (email, phone) = await _userRepository.GetUserContactInfoAsync(tcKimlik.Value);
-
-            _logger.LogInformation("TC Kimlik and birth date validation successful for: {TcKimlik}", request.TcKimlikNo);
+            _logger.LogInformation("TC Kimlik/Member Number and birth date validation successful for: {TcknOrMemberNumber}", request.TcknOrMemberNumber);
 
             return new ForgotPasswordResponse
             {
                 Success = true,
                 Message = "Bilgileriniz doğrulandı. Lütfen şifre sıfırlama yöntemini seçiniz.",
-                MaskedEmail = !string.IsNullOrEmpty(email) ? MaskEmail(email) : null,
-                MaskedPhone = !string.IsNullOrEmpty(phone) ? MaskPhone(phone) : null,
-                HasEmail = !string.IsNullOrEmpty(email),
-                HasPhone = !string.IsNullOrEmpty(phone)
+                MaskedEmail = !string.IsNullOrEmpty(contactInfo.email) ? MaskEmail(contactInfo.email) : null,
+                MaskedPhone = !string.IsNullOrEmpty(contactInfo.phone) ? MaskPhone(contactInfo.phone) : null,
+                HasEmail = !string.IsNullOrEmpty(contactInfo.email),
+                HasPhone = !string.IsNullOrEmpty(contactInfo.phone)
             };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing forgot password request for TC Kimlik: {TcKimlik}", request.TcKimlikNo);
+            _logger.LogError(ex, "Error processing forgot password request for: {TcknOrMemberNumber}", request.TcknOrMemberNumber);
             throw new FshException("Şifre sıfırlama talebiniz işlenirken bir hata oluştu. Lütfen tekrar deneyiniz.");
         }
     }
@@ -145,43 +166,51 @@ public sealed class SelectResetMethodCommandHandler : IRequestHandler<SelectRese
             throw new ValidationException("Geçersiz istek parametreleri");
         }
 
-        var tcKimlik = request.GetTcKimlik();
+        // Re-validate identity and birth date
+        (bool isValid, AppUser? user) validationResult;
+        (string? email, string? phone) contactInfo;
+
+        // Determine if input is TCKN (11 digits) or Member Number
+        if (request.TcknOrMemberNumber.Length == 11 && request.TcknOrMemberNumber.All(char.IsDigit))
+        {
+            validationResult = await _userRepository.ValidateTcKimlikAndBirthDateAsync(request.TcknOrMemberNumber, request.BirthDate);
+            contactInfo = await _userRepository.GetUserContactInfoAsync(request.TcknOrMemberNumber);
+        }
+        else
+        {
+            validationResult = await _userRepository.ValidateMemberNumberAndBirthDateAsync(request.TcknOrMemberNumber, request.BirthDate);
+            contactInfo = await _userRepository.GetUserContactInfoByMemberNumberAsync(request.TcknOrMemberNumber);
+        }
         
-        // Re-validate TC and birth date
-        var (isValid, user) = await _userRepository.ValidateTcKimlikAndBirthDateAsync(tcKimlik.Value, request.BirthDate);
-        
-        if (!isValid || user == null)
+        if (!validationResult.isValid || validationResult.user == null)
         {
             throw new FshException("Kimlik bilgileri doğrulanamadı");
         }
-
-        // Get contact info
-        var (email, phone) = await _userRepository.GetUserContactInfoAsync(tcKimlik.Value);
 
         string target;
         string maskedTarget;
         
         if (request.Method == ResetMethod.Email)
         {
-            if (string.IsNullOrEmpty(email))
+            if (string.IsNullOrEmpty(contactInfo.email))
             {
                 throw new FshException("Bu kullanıcı için email adresi kayıtlı değil");
             }
-            target = email;
-            maskedTarget = MaskEmail(email);
+            target = contactInfo.email;
+            maskedTarget = MaskEmail(contactInfo.email);
         }
         else // SMS
         {
-            if (string.IsNullOrEmpty(phone))
+            if (string.IsNullOrEmpty(contactInfo.phone))
             {
                 throw new FshException("Bu kullanıcı için telefon numarası kayıtlı değil");
             }
-            target = phone;
-            maskedTarget = MaskPhone(phone);
+            target = contactInfo.phone;
+            maskedTarget = MaskPhone(contactInfo.phone);
         }
 
-        // Generate reset token
-        var resetToken = await _passwordResetService.GenerateResetTokenAsync(tcKimlik.Value);
+        // Generate reset token using the identifier (TC or Member Number)
+        var resetToken = await _passwordResetService.GenerateResetTokenAsync(request.TcknOrMemberNumber);
 
         try
         {
