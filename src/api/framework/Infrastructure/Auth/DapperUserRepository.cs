@@ -58,6 +58,7 @@ public sealed class DapperUserRepository : IUserRepository
     {
         try
         {
+            var normalizedEmail = email.ToLowerInvariant();
             const string sql = @"
                 SELECT id, email, username, phone_number, tckn, 
                        password_hash, first_name, last_name, profession_id,
@@ -67,7 +68,7 @@ public sealed class DapperUserRepository : IUserRepository
                 FROM users 
                 WHERE email = @Email";
 
-            var userRow = await _connection.QueryFirstOrDefaultAsync(sql, new { Email = email });
+            var userRow = await _connection.QueryFirstOrDefaultAsync(sql, new { Email = normalizedEmail });
             if (userRow == null) return null;
 
             return MapToAppUser(userRow);
@@ -224,7 +225,7 @@ public sealed class DapperUserRepository : IUserRepository
             await _connection.ExecuteAsync(sql, new
             {
                 Id = user.Id,
-                Email = user.Email.Value,
+                Email = user.Email.Value.ToLowerInvariant(),
                 Username = user.Username,
                 PhoneNumber = user.PhoneNumber.Value,
                 Tckn = user.Tckn.Value,
@@ -275,7 +276,7 @@ public sealed class DapperUserRepository : IUserRepository
             await _connection.ExecuteAsync(sql, new
             {
                 Id = user.Id,
-                Email = user.Email.Value,
+                Email = user.Email.Value.ToLowerInvariant(),
                 Username = user.Username,
                 PhoneNumber = user.PhoneNumber.Value,
                 PasswordHash = user.PasswordHash,
@@ -332,9 +333,18 @@ public sealed class DapperUserRepository : IUserRepository
             // Hash the password before saving
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
             var normalizedEmail = email.ToLowerInvariant();
-            await _connection.ExecuteAsync(
+            
+            var rowsAffected = await _connection.ExecuteAsync(
                 "UPDATE users SET password_hash = @PasswordHash WHERE email = @Email",
                 new { Email = normalizedEmail, PasswordHash = hashedPassword });
+
+            if (rowsAffected == 0)
+            {
+                _logger.LogWarning("No user found with email {Email} for password reset", email);
+                throw new FshException($"Kullanıcı bulunamadı: {email}");
+            }
+
+            _logger.LogInformation("Password successfully reset for email: {Email}", email);
         }
         catch (Exception ex)
         {

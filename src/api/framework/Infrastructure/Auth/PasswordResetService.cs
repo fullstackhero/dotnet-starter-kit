@@ -46,7 +46,7 @@ public sealed class PasswordResetService : IPasswordResetService
                 throw new InvalidOperationException("Rate limit exceeded. Too many password reset attempts.");
             }
 
-            var emailKey = email.ToUpperInvariant();
+            var emailKey = email.ToLowerInvariant();
             var token = GenerateSecureToken();
             var expiryTime = DateTime.UtcNow.AddMinutes(_tokenExpirationMinutes);
 
@@ -74,7 +74,7 @@ public sealed class PasswordResetService : IPasswordResetService
         {
             CleanupExpiredTokens();
             
-            var emailKey = email.ToUpperInvariant();
+            var emailKey = email.ToLowerInvariant();
             
             if (!_resetTokens.TryGetValue(emailKey, out var storedToken) ||
                 !_tokenExpiry.TryGetValue(emailKey, out var expiryTime))
@@ -220,7 +220,7 @@ public sealed class PasswordResetService : IPasswordResetService
     {
         try
         {
-            var emailKey = email.ToUpperInvariant();
+            var emailKey = email.ToLowerInvariant();
             
             _resetTokens.TryRemove(emailKey, out _);
             _tokenExpiry.TryRemove(emailKey, out _);
@@ -240,7 +240,7 @@ public sealed class PasswordResetService : IPasswordResetService
     {
         try
         {
-            var emailKey = email.ToUpperInvariant();
+            var emailKey = email.ToLowerInvariant();
             var now = DateTime.UtcNow;
             
             if (_rateLimitTracker.TryGetValue(emailKey, out var attempts))
@@ -270,7 +270,7 @@ public sealed class PasswordResetService : IPasswordResetService
 
     private static Task TrackResetAttemptAsync(string email)
     {
-        var emailKey = email.ToUpperInvariant();
+        var emailKey = email.ToLowerInvariant();
         var now = DateTime.UtcNow;
         
         _rateLimitTracker.AddOrUpdate(
@@ -385,8 +385,14 @@ public sealed class PasswordResetService : IPasswordResetService
         {
             _logger.LogInformation("Resetting password for identifier: {Identifier}", identifier);
             
-            // Determine if identifier is TCKN (11 digits) or Member Number
-            if (identifier.Length == 11 && identifier.All(char.IsDigit))
+            // Determine identifier type: Email, TCKN (11 digits), or Member Number
+            if (identifier.Contains('@') && identifier.Contains('.'))
+            {
+                // Reset by Email
+                await _userRepository.ResetPasswordAsync(identifier, newPassword);
+                _logger.LogInformation("Password successfully reset for Email: {Identifier}", identifier);
+            }
+            else if (identifier.Length == 11 && identifier.All(char.IsDigit))
             {
                 // Reset by TCKN
                 await _userRepository.ResetPasswordByTcknAsync(identifier, newPassword);
