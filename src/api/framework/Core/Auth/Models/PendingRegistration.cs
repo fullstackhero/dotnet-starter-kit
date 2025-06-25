@@ -22,7 +22,7 @@ public class PendingRegistration
     public PendingRegistrationData RegistrationData { get; set; } = new();
     public string OtpCode { get; set; } = string.Empty;
     public DateTime ExpiresAt { get; set; }
-    public int Attempts { get; set; } = 0;
+    public int Attempts { get; set; }
     public string RegistrationIp { get; set; } = string.Empty;
     public string DeviceInfo { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

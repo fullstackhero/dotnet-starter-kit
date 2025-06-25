@@ -36,6 +36,10 @@ public interface IUserRepository
     Task ResetPasswordByTcknAsync(string tcKimlik, string newPassword);
     Task ResetPasswordByMemberNumberAsync(string memberNumber, string newPassword);
     
+    // Password History Methods for Change Password Feature
+    Task<bool> IsPasswordRecentlyUsedAsync(string tcKimlik, string newPassword);
+    Task UpdatePasswordWithHistoryAsync(string tcKimlik, string newPassword);
+    
     // Profile Update Verification Methods
     Task<bool> VerifyEmailUpdateAsync(Guid userId, string verificationCode);
     Task<bool> VerifyPhoneUpdateAsync(Guid userId, string verificationCode);

@@ -1,64 +1,55 @@
 using MediatR;
-using Microsoft.Extensions.Logging;
-using FSH.Framework.Core.Auth.Services;
 using FSH.Framework.Core.Auth.Repositories;
-using FSH.Framework.Core.Auth.Domain;
 using FSH.Framework.Core.Common.Exceptions;
+using System.ComponentModel.DataAnnotations;
 
 namespace FSH.Framework.Core.Auth.Features.PasswordReset;
 
 public sealed class ChangePasswordCommandHandler : IRequestHandler<ChangePasswordCommand, string>
 {
     private readonly IUserRepository _userRepository;
-    private readonly ILogger<ChangePasswordCommandHandler> _logger;
 
-    public ChangePasswordCommandHandler(
-        IUserRepository userRepository,
-        ILogger<ChangePasswordCommandHandler> logger)
+    public ChangePasswordCommandHandler(IUserRepository userRepository)
     {
         _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public async Task<string> Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        _logger.LogInformation("Processing password change for user: {UserId}", request.UserId);
-
-        // Get user
-        var user = await _userRepository.GetByIdAsync(request.UserId)
-            .ConfigureAwait(false);
-
-        if (user == null)
+        // Domain validation
+        if (!request.IsValid())
         {
-            _logger.LogWarning("Password change attempted for non-existent user: {UserId}", request.UserId);
-            throw new FshException("User not found");
+            throw new ValidationException("Geçersiz TC Kimlik No veya şifre formatı");
         }
 
-        // Validate current password
-        var isCurrentPasswordValid = await _userRepository.ValidateCurrentPasswordAsync(request.UserId, request.CurrentPassword)
+        var tcKimlik = request.GetTcKimlik();
+        var currentPassword = request.GetCurrentPassword();
+        var newPassword = request.GetPassword();
+
+        // Validate current password first
+        var (isValidCredentials, user) = await _userRepository.ValidatePasswordAndGetByTcknAsync(tcKimlik.Value, currentPassword.Value)
             .ConfigureAwait(false);
 
-        if (!isCurrentPasswordValid)
+        if (!isValidCredentials || user == null)
         {
-            _logger.LogWarning("Incorrect current password provided for user: {UserId}", request.UserId);
-            throw new FshException("Current password is incorrect");
+            throw new FshException("Mevcut şifreniz yanlış. Lütfen kontrol edip tekrar deneyiniz.");
         }
-        
-        // Set new password using domain logic
-        user.SetPassword(request.NewPassword);
 
-        // Update password in repository  
-        await _userRepository.UpdatePasswordAsync(user.Id, user.PasswordHash)
+        // Check if new password was recently used
+        var isPasswordRecentlyUsed = await _userRepository.IsPasswordRecentlyUsedAsync(tcKimlik.Value, newPassword.Value)
             .ConfigureAwait(false);
 
-        _logger.LogInformation(
-            "Password successfully changed for user: {UserId}, {Email}, {Username}",
-            request.UserId,
-            user.Email.Value,
-            user.Username);
+        if (isPasswordRecentlyUsed)
+        {
+            throw new FshException("Yeni şifreniz son üç (3) şifrenizden farklı olmalıdır!");
+        }
 
-        return "Password changed successfully";
+        // Update password with history tracking
+        await _userRepository.UpdatePasswordWithHistoryAsync(tcKimlik.Value, newPassword.Value)
+            .ConfigureAwait(false);
+
+        return "Şifreniz başarılı bir şekilde değiştirilmiştir.";
     }
 } 

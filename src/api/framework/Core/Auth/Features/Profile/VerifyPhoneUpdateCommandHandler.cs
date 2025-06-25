@@ -1,46 +1,32 @@
 using MediatR;
-using Microsoft.Extensions.Logging;
 using FSH.Framework.Core.Auth.Repositories;
-using FSH.Framework.Core.Common.Exceptions;
 using FSH.Framework.Core.Auth.Domain.ValueObjects;
-using FSH.Framework.Core.Auth.Services;
-using FSH.Framework.Core.Auth.Domain;
+using FSH.Framework.Core.Common.Exceptions;
 
 namespace FSH.Framework.Core.Auth.Features.Profile;
 
 /// <summary>
-/// Handles phone number verification and update completion.
-/// SECURITY: Only updates phone after successful verification of SMS code.
-/// This completes the secure phone update process.
+/// Handler for verifying phone update with verification code.
+/// SECURITY: Validates code before updating phone in database.
 /// </summary>
 public sealed class VerifyPhoneUpdateCommandHandler : IRequestHandler<VerifyPhoneUpdateCommand, string>
 {
     private readonly IUserRepository _userRepository;
-    private readonly IVerificationService _verificationService;
-    private readonly ILogger<VerifyPhoneUpdateCommandHandler> _logger;
 
-    public VerifyPhoneUpdateCommandHandler(
-        IUserRepository userRepository,
-        IVerificationService verificationService,
-        ILogger<VerifyPhoneUpdateCommandHandler> logger)
+    public VerifyPhoneUpdateCommandHandler(IUserRepository userRepository)
     {
         _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
-        _verificationService = verificationService ?? throw new ArgumentNullException(nameof(verificationService));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public async Task<string> Handle(VerifyPhoneUpdateCommand request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        _logger.LogInformation("Processing phone verification for user: {UserId}", request.UserId);
-
         // Validate phone format
         var phoneResult = PhoneNumber.Create(request.NewPhoneNumber);
         if (!phoneResult.IsSuccess)
         {
-            _logger.LogWarning("Invalid phone format during verification: {Phone}", request.NewPhoneNumber);
-            throw new FshException($"Invalid phone format: {phoneResult.Error}");
+            throw new FshException("Geçersiz telefon numarası formatı");
         }
 
         var user = await _userRepository.GetByIdAsync(request.UserId)
@@ -48,59 +34,27 @@ public sealed class VerifyPhoneUpdateCommandHandler : IRequestHandler<VerifyPhon
 
         if (user == null)
         {
-            _logger.LogWarning("Phone verification attempted for non-existent user: {UserId}", request.UserId);
-            throw new FshException("User not found");
+            throw new FshException("Kullanıcı bulunamadı");
         }
 
-        // Verify the SMS code
-        var isCodeValid = await _verificationService.VerifyPhoneAsync(request.NewPhoneNumber, request.VerificationCode);
-        if (!isCodeValid)
+        // Check if phone is already in use by another user
+        var phoneExists = await _userRepository.PhoneExistsAsync(request.NewPhoneNumber, request.UserId)
+            .ConfigureAwait(false);
+
+        if (phoneExists)
         {
-            _logger.LogWarning(
-                "Invalid verification code provided for user: {UserId}, phone: {Phone}",
-                request.UserId,
-                request.NewPhoneNumber);
-            
-            throw new FshException("Invalid verification code");
+            throw new FshException("Bu telefon numarası zaten kullanılıyor");
         }
 
-        // Check if phone is already in use by another user (double-check)
-        if (await _userRepository.PhoneExistsAsync(request.NewPhoneNumber, request.UserId))
+        // Verify the code and update phone
+        var isVerified = await _userRepository.VerifyPhoneUpdateAsync(request.UserId, request.VerificationCode)
+            .ConfigureAwait(false);
+
+        if (!isVerified)
         {
-            _logger.LogWarning(
-                "Phone already exists during verification: {Phone}, requested by user: {UserId}",
-                request.NewPhoneNumber,
-                request.UserId);
-
-            throw new FshException("Phone number is already in use");
+            throw new FshException("Geçersiz doğrulama kodu");
         }
 
-        // Update the user's phone number
-        try
-        {
-            var isUpdated = await _userRepository.VerifyPhoneUpdateAsync(request.UserId, request.VerificationCode);
-            if (!isUpdated)
-            {
-                _logger.LogWarning("Phone verification failed for user: {UserId}", request.UserId);
-                throw new FshException("Phone verification failed or expired");
-            }
-
-            _logger.LogInformation(
-                "Phone number successfully updated for user: {UserId}, new phone: {NewPhone}",
-                request.UserId,
-                request.NewPhoneNumber);
-
-            return "Phone number updated successfully";
-        }
-        catch (FshException)
-        {
-            // Rethrow FshException as-is
-            throw;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to update phone number for user: {UserId}", request.UserId);
-            throw new FshException("Failed to update phone number. Please try again.");
-        }
+        return "Telefon numaranız başarıyla güncellendi";
     }
 } 

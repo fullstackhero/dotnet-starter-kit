@@ -15,7 +15,7 @@ public class LoginCommandValidator : AbstractValidator<LoginCommand>
             .NotEmpty().WithMessage("Şifre gereklidir");
     }
     
-    private bool IsValidTcknOrMemberNumber(string input)
+    private static bool IsValidTcknOrMemberNumber(string input)
     {
         if (string.IsNullOrWhiteSpace(input))
             return false;

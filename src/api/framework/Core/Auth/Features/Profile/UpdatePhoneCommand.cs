@@ -5,7 +5,7 @@ namespace FSH.Framework.Core.Auth.Features.Profile;
 /// <summary>
 /// Command for initiating phone update process.
 /// SECURITY: Only sends verification code, does NOT update phone immediately.
-/// TODO: Add verification code generation and SMS service integration.
+/// NOTE: Verification code generation and SMS service integration implemented in handler.
 /// </summary>
 public class UpdatePhoneCommand : IRequest<string>
 {

@@ -1,5 +1,4 @@
 using MediatR;
-using Microsoft.Extensions.Logging;
 using FSH.Framework.Core.Common.Models;
 using FSH.Framework.Core.Auth.Domain;
 using FSH.Framework.Core.Auth.Repositories;
@@ -25,24 +24,19 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<LoginRes
 {
     private readonly IUserRepository _userRepository;
     private readonly ITokenService _tokenService;
-    private readonly ILogger<LoginCommandHandler> _logger;
 
     public LoginCommandHandler(
         IUserRepository userRepository,
-        ITokenService tokenService,
-        ILogger<LoginCommandHandler> logger)
+        ITokenService tokenService)
     {
         _userRepository = userRepository;
         _tokenService = tokenService;
-        _logger = logger;
     }
 
     public async Task<Result<LoginResponseDto>> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
         try
         {
-            _logger.LogInformation("Login attempt for TC/Member Number: {TcknOrMemberNumber}", request.TcknOrMemberNumber);
-
             AppUser? user = null;
             bool isPasswordValid = false;
 
@@ -62,15 +56,14 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<LoginRes
                 // Try login with Member Number
                 var (isValid, foundUser) = await _userRepository.ValidatePasswordAndGetByMemberNumberAsync(
                     request.TcknOrMemberNumber,
-                    request.Password.Value);
-                
+                request.Password.Value);
+
                 isPasswordValid = isValid;
                 user = foundUser;
             }
 
             if (!isPasswordValid || user == null)
             {
-                _logger.LogWarning("Invalid credentials for: {TcknOrMemberNumber}", request.TcknOrMemberNumber);
                 return Result<LoginResponseDto>.Failure("Geçersiz kimlik bilgileri. Lütfen TC Kimlik No/Üye No ve şifrenizi kontrol ediniz.");
             }
 
@@ -79,11 +72,8 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<LoginRes
 
             if (!tokenResult.IsSuccess)
             {
-                _logger.LogError("Token generation failed for user {UserId}", user.Id);
                 return Result<LoginResponseDto>.Failure("Failed to generate authentication token");
             }
-
-            _logger.LogInformation("User {UserId} logged in successfully", user.Id);
 
             return Result<LoginResponseDto>.Success(new LoginResponseDto
             {
@@ -98,7 +88,6 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<LoginRes
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred during login for: {TcknOrMemberNumber}", request.TcknOrMemberNumber);
             return Result<LoginResponseDto>.Failure("An error occurred during login. Please try again later.");
         }
     }

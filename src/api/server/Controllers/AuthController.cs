@@ -107,7 +107,7 @@ public sealed class AuthController : ControllerBase
         // Check if the operation was successful
         if (result.Success)
         {
-            return Ok(ApiResponse<FSH.Framework.Core.Auth.Features.RegisterRequest.RegisterRequestResponse>.SuccessResult(result));
+        return Ok(ApiResponse<FSH.Framework.Core.Auth.Features.RegisterRequest.RegisterRequestResponse>.SuccessResult(result));
         }
         else
         {
@@ -131,7 +131,7 @@ public sealed class AuthController : ControllerBase
         // Check if the operation was successful
         if (result.Success)
         {
-            return Ok(ApiResponse<FSH.Framework.Core.Auth.Features.VerifyRegistration.VerifyRegistrationResponse>.SuccessResult(result));
+        return Ok(ApiResponse<FSH.Framework.Core.Auth.Features.VerifyRegistration.VerifyRegistrationResponse>.SuccessResult(result));
         }
         else
         {
@@ -239,18 +239,11 @@ public sealed class AuthController : ControllerBase
     }
 
     [HttpPost("change-password")]
-    [Authorize]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(ApiResponse<string>), 200)]
     [ProducesResponseType(400)]
     public async Task<IActionResult> ChangePasswordAsync([FromBody] FSH.Framework.Core.Auth.Features.PasswordReset.ChangePasswordCommand command)
     {
-        var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(currentUserId) || !Guid.TryParse(currentUserId, out var userId))
-        {
-            return Ok(ApiResponse<string>.FailureResult("Unable to determine current user"));
-        }
-
-        command.UserId = userId;
         var result = await _mediator.Send(command);
         return Ok(ApiResponse<string>.SuccessResult(result));
     }

@@ -1,9 +1,9 @@
 using MediatR;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using FSH.Framework.Core.Auth.Repositories;
 using FSH.Framework.Core.Auth.Services;
 using FSH.Framework.Core.Auth.Domain;
+using FSH.Framework.Core.Auth.Domain.ValueObjects;
 using FSH.Framework.Core.Common.Exceptions;
 using FSH.Framework.Core.Common.Options;
 using System.ComponentModel.DataAnnotations;
@@ -13,21 +13,15 @@ namespace FSH.Framework.Core.Auth.Features.PasswordReset;
 public sealed class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordCommand, ForgotPasswordResponse>
 {
     private readonly IUserRepository _userRepository;
-    private readonly ILogger<ForgotPasswordCommandHandler> _logger;
 
-    public ForgotPasswordCommandHandler(
-        IUserRepository userRepository,
-        ILogger<ForgotPasswordCommandHandler> logger)
+    public ForgotPasswordCommandHandler(IUserRepository userRepository)
     {
         _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public async Task<ForgotPasswordResponse> Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
-
-        _logger.LogInformation("Processing forgot password request for: {TcknOrMemberNumber}", request.TcknOrMemberNumber);
 
         // Domain validation
         if (!request.IsValid())
@@ -42,7 +36,7 @@ public sealed class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswor
 
             // Determine if input is TCKN (11 digits) or Member Number
             if (request.TcknOrMemberNumber.Length == 11 && request.TcknOrMemberNumber.All(char.IsDigit))
-            {
+        {
                 // Validate with TCKN
                 validationResult = await _userRepository.ValidateTcKimlikAndBirthDateAsync(request.TcknOrMemberNumber, request.BirthDate);
                 contactInfo = await _userRepository.GetUserContactInfoAsync(request.TcknOrMemberNumber);
@@ -53,7 +47,7 @@ public sealed class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswor
                 validationResult = await _userRepository.ValidateMemberNumberAndBirthDateAsync(request.TcknOrMemberNumber, request.BirthDate);
                 contactInfo = await _userRepository.GetUserContactInfoByMemberNumberAsync(request.TcknOrMemberNumber);
             }
-
+            
             if (!validationResult.isValid || validationResult.user == null)
             {
                 // Return specific error messages
@@ -87,8 +81,6 @@ public sealed class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswor
                 }
             }
 
-            _logger.LogInformation("TC Kimlik/Member Number and birth date validation successful for: {TcknOrMemberNumber}", request.TcknOrMemberNumber);
-
             return new ForgotPasswordResponse
             {
                 Success = true,
@@ -101,7 +93,6 @@ public sealed class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswor
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing forgot password request for: {TcknOrMemberNumber}", request.TcknOrMemberNumber);
             throw new FshException("Şifre sıfırlama talebiniz işlenirken bir hata oluştu. Lütfen tekrar deneyiniz.");
         }
     }
@@ -138,7 +129,6 @@ public sealed class SelectResetMethodCommandHandler : IRequestHandler<SelectRese
     private readonly IPasswordResetService _passwordResetService;
     private readonly ISmsService _smsService;
     private readonly IEmailService _emailService;
-    private readonly ILogger<SelectResetMethodCommandHandler> _logger;
     private readonly FrontendOptions _frontendOptions;
 
     public SelectResetMethodCommandHandler(
@@ -146,14 +136,12 @@ public sealed class SelectResetMethodCommandHandler : IRequestHandler<SelectRese
         IPasswordResetService passwordResetService,
         ISmsService smsService,
         IEmailService emailService,
-        ILogger<SelectResetMethodCommandHandler> logger,
         IOptions<FrontendOptions> frontendOptions)
     {
         _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         _passwordResetService = passwordResetService ?? throw new ArgumentNullException(nameof(passwordResetService));
         _smsService = smsService ?? throw new ArgumentNullException(nameof(smsService));
         _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _frontendOptions = frontendOptions?.Value ?? throw new ArgumentNullException(nameof(frontendOptions));
     }
 
@@ -169,7 +157,7 @@ public sealed class SelectResetMethodCommandHandler : IRequestHandler<SelectRese
         // Re-validate identity and birth date
         (bool isValid, AppUser? user) validationResult;
         (string? email, string? phone) contactInfo;
-
+        
         // Determine if input is TCKN (11 digits) or Member Number
         if (request.TcknOrMemberNumber.Length == 11 && request.TcknOrMemberNumber.All(char.IsDigit))
         {
@@ -209,31 +197,40 @@ public sealed class SelectResetMethodCommandHandler : IRequestHandler<SelectRese
             maskedTarget = MaskPhone(contactInfo.phone);
         }
 
-        // Generate reset token using the identifier (TC or Member Number)
-        var resetToken = await _passwordResetService.GenerateResetTokenAsync(request.TcknOrMemberNumber);
-
         try
         {
+        // Generate reset token
+            string token;
             if (request.Method == ResetMethod.Email)
             {
-                var resetLink = $"{_frontendOptions.BaseUrl}/auth/reset-password?token={resetToken}";
+                token = await _passwordResetService.GenerateResetTokenAsync(target);
+            }
+            else
+            {
+                // For SMS, we might need a different approach or use the same token system
+                token = await _passwordResetService.GenerateResetTokenAsync(target);
+            }
+
+            if (request.Method == ResetMethod.Email)
+            {
+                // Send reset email
+                var resetLink = $"{_frontendOptions.BaseUrl}/auth/reset-password?token={token}";
                 await _emailService.SendPasswordResetEmailAsync(target, resetLink);
-                _logger.LogInformation("Password reset email sent to masked address: {MaskedEmail}", maskedTarget);
+                
                 return $"Şifre sıfırlama bağlantısı {maskedTarget} adresine gönderildi.";
             }
             else
             {
-                var resetLink = $"{_frontendOptions.BaseUrl}/auth/reset-password?token={resetToken}";
-                var smsMessage = $"Şifre sıfırlama bağlantınız: {resetLink}";
-                await _smsService.SendSmsAsync(target, smsMessage);
-                _logger.LogInformation("Password reset SMS sent to masked phone: {MaskedPhone}", maskedTarget);
-                return $"Şifre sıfırlama bağlantısı {maskedTarget} numarasına gönderildi.";
+                // Send SMS with reset link
+                var resetLink = $"{_frontendOptions.BaseUrl}/auth/reset-password?token={token}";
+                await _smsService.SendSmsAsync(target, $"Şifre sıfırlama bağlantınız: {resetLink}");
+                
+                return $"Şifre sıfırlama bağlantısı {maskedTarget} numarasına SMS ile gönderildi.";
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send password reset via {Method} to {Target}", request.Method, maskedTarget);
-            throw new FshException($"Şifre sıfırlama {(request.Method == ResetMethod.Email ? "e-postası" : "SMS'i")} gönderilemedi. Lütfen tekrar deneyiniz.");
+            throw new FshException($"Şifre sıfırlama bağlantısı gönderilirken bir hata oluştu. Lütfen tekrar deneyiniz.");
         }
     }
 
@@ -267,47 +264,41 @@ public sealed class ValidateTcPhoneCommandHandler : IRequestHandler<ValidateTcPh
 {
     private readonly IUserRepository _userRepository;
     private readonly ISmsService _smsService;
-    private readonly ILogger<ValidateTcPhoneCommandHandler> _logger;
 
     public ValidateTcPhoneCommandHandler(
         IUserRepository userRepository,
-        ISmsService smsService,
-        ILogger<ValidateTcPhoneCommandHandler> logger)
+        ISmsService smsService)
     {
         _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         _smsService = smsService ?? throw new ArgumentNullException(nameof(smsService));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public async Task<string> Handle(ValidateTcPhoneCommand request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        _logger.LogInformation("Processing TC Kimlik + Phone validation for: {TcKimlik}", request.TcKimlikNo);
-
-        // Domain validation
-        var tcKimlik = request.GetTcKimlik();
-        var phoneNumber = request.GetPhoneNumber();
+        var tcKimlik = Tckn.CreateUnsafe(request.TcKimlikNo);
+        var phoneNumber = PhoneNumber.CreateUnsafe(request.PhoneNumber);
         
-        // Check if TC Kimlik + Phone match
+        // Validate TC Kimlik and Phone Number combination
         var (isValid, user) = await _userRepository.ValidateTcKimlikAndPhoneAsync(tcKimlik.Value, phoneNumber.Value);
         
         if (!isValid || user == null)
         {
-            _logger.LogWarning(
-                "TC Kimlik and Phone validation failed for: {TcKimlik}, {PhoneNumber}",
-                request.TcKimlikNo,
-                request.PhoneNumber);
-
-            // Security: Don't reveal specific error
-            throw new FshException("TC Kimlik ve telefon numarası eşleşmiyor.");
+            throw new FshException(
+                "TC Kimlik No ve Telefon numarası eşleşmiyor. Lütfen bilgilerinizi kontrol edip tekrar deneyiniz.");
         }
 
         // Generate and send SMS code
-        await _smsService.GenerateAndStoreSmsCodeAsync(phoneNumber.Value);
+        var smsCode = GenerateSmsCode();
+        await _smsService.SendSmsAsync(phoneNumber.Value, $"Şifre sıfırlama kodunuz: {smsCode}");
         
-        _logger.LogInformation("SMS code sent for password reset to: {Phone}", phoneNumber.Value);
+        return "SMS kodu telefon numaranıza gönderildi.";
+    }
         
-        return "SMS kodu telefon numaranıza gönderildi. Kodu kullanarak yeni şifrenizi belirleyebilirsiniz.";
+    private static string GenerateSmsCode()
+    {
+        var random = new Random();
+        return random.Next(100000, 999999).ToString();
     }
 }

@@ -803,4 +803,145 @@ public sealed class DapperUserRepository : IUserRepository
             throw new FshException($"Error getting contact info for member number {memberNumber}", ex);
         }
     }
+
+    // Password History Methods for Change Password Feature
+    public async Task<bool> IsPasswordRecentlyUsedAsync(string tcKimlik, string newPassword)
+    {
+        try
+        {
+            // Ensure connection is open
+            if (_connection.State != ConnectionState.Open)
+            {
+                _connection.Open();
+            }
+
+            var passwordHashes = new List<string>();
+            
+            // Get current password from users table
+            var currentPassword = await _connection.QueryFirstOrDefaultAsync<string>(
+                "SELECT password_hash FROM users WHERE tckn = @Tckn",
+                new { Tckn = tcKimlik });
+                
+            if (!string.IsNullOrEmpty(currentPassword))
+            {
+                passwordHashes.Add(currentPassword);
+            }
+            
+            // Get last 2 passwords from password_history table
+            var historyPasswords = await _connection.QueryAsync<string>(
+                @"SELECT password_hash FROM password_history 
+                  WHERE tckn = @Tckn 
+                  ORDER BY created_at DESC 
+                  LIMIT 2",
+                new { Tckn = tcKimlik });
+                
+            passwordHashes.AddRange(historyPasswords);
+
+            // Check if new password matches any of the recent passwords
+            foreach (var hash in passwordHashes)
+            {
+                if (!string.IsNullOrEmpty(hash) && BCrypt.Net.BCrypt.Verify(newPassword, hash))
+                {
+                    return true; // Password was recently used
+                }
+            }
+
+            return false; // Password is not recently used
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error checking password history for TCKN {TcKimlik}", tcKimlik);
+            throw new FshException($"Error checking password history for TCKN {tcKimlik}", ex);
+        }
+    }
+
+    public async Task UpdatePasswordWithHistoryAsync(string tcKimlik, string newPassword)
+    {
+        ArgumentNullException.ThrowIfNull(tcKimlik);
+        ArgumentNullException.ThrowIfNull(newPassword);
+
+        try
+        {
+            // Ensure connection is open
+            if (_connection.State != ConnectionState.Open)
+            {
+                _connection.Open();
+            }
+
+            // Start transaction
+            using var transaction = _connection.BeginTransaction();
+            
+            try
+            {
+                // Get current password hash to save to history
+                var currentPasswordHash = await _connection.QueryFirstOrDefaultAsync<string>(
+                    "SELECT password_hash FROM users WHERE tckn = @Tckn",
+                    new { Tckn = tcKimlik }, transaction);
+
+                // Hash the new password
+                var newPasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+
+                // Update user's password
+                var rowsAffected = await _connection.ExecuteAsync(
+                    "UPDATE users SET password_hash = @PasswordHash, updated_at = @UpdatedAt WHERE tckn = @Tckn",
+                    new { 
+                        Tckn = tcKimlik, 
+                        PasswordHash = newPasswordHash,
+                        UpdatedAt = DateTime.UtcNow
+                    }, transaction);
+
+                if (rowsAffected == 0)
+                {
+                    throw new FshException($"Kullanıcı bulunamadı: {tcKimlik}");
+                }
+
+                // Save old password to history (if exists)
+                if (!string.IsNullOrEmpty(currentPasswordHash))
+                {
+                    await _connection.ExecuteAsync(
+                        @"INSERT INTO password_history (tckn, password_hash, created_at) 
+                          VALUES (@Tckn, @PasswordHash, @CreatedAt)",
+                        new { 
+                            Tckn = tcKimlik, 
+                            PasswordHash = currentPasswordHash,
+                            CreatedAt = DateTime.UtcNow
+                        }, transaction);
+                }
+
+                // Clean up old password history (keep only last 2)
+                // First, get IDs of records to keep (most recent 2)
+                var recordsToKeep = await _connection.QueryAsync<int>(
+                    @"SELECT id FROM password_history 
+                      WHERE tckn = @Tckn 
+                      ORDER BY created_at DESC 
+                      LIMIT 2",
+                    new { Tckn = tcKimlik }, transaction);
+
+                // Delete all records except the ones to keep
+                if (recordsToKeep.Any())
+                {
+                    var idsToKeep = string.Join(",", recordsToKeep);
+                    await _connection.ExecuteAsync(
+                        $@"DELETE FROM password_history 
+                          WHERE tckn = @Tckn 
+                          AND id NOT IN ({idsToKeep})",
+                        new { Tckn = tcKimlik }, transaction);
+                }
+
+                transaction.Commit();
+                
+                _logger.LogInformation("Password successfully updated with history for TCKN: {TcKimlik}", tcKimlik);
+            }
+            catch (Exception)
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating password with history for TCKN {TcKimlik}", tcKimlik);
+            throw new FshException($"Error updating password with history for TCKN {tcKimlik}", ex);
+        }
+    }
 } 

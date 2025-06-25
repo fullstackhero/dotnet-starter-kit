@@ -5,7 +5,7 @@ namespace FSH.Framework.Core.Auth.Features.Profile;
 /// <summary>
 /// Command for initiating email update process.
 /// SECURITY: Only sends verification code, does NOT update email immediately.
-/// TODO: Add verification code generation and email service integration.
+/// NOTE: Verification code generation and email service integration implemented in handler.
 /// </summary>
 public class UpdateEmailCommand : IRequest<string>
 {

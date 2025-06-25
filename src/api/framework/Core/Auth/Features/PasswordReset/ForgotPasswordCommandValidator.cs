@@ -12,7 +12,7 @@ public class ForgotPasswordCommandValidator : AbstractValidator<ForgotPasswordCo
             .Must(IsValidTcknOrMemberNumber).WithMessage("Geçerli bir TC kimlik numarası (11 haneli) veya üye numarası giriniz");
     }
     
-    private bool IsValidTcknOrMemberNumber(string input)
+    private static bool IsValidTcknOrMemberNumber(string input)
     {
         if (string.IsNullOrWhiteSpace(input))
             return false;

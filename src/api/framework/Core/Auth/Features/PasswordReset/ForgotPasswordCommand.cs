@@ -22,7 +22,7 @@ public class ForgotPasswordCommand : IRequest<ForgotPasswordResponse>
             ? Tckn.CreateUnsafe(TcknOrMemberNumber) 
             : null;
     
-    private bool IsValidTcknOrMemberNumber(string input)
+    private static bool IsValidTcknOrMemberNumber(string input)
     {
         if (string.IsNullOrWhiteSpace(input))
             return false;
@@ -64,14 +64,14 @@ public class SelectResetMethodCommand : IRequest<string>
     [JsonPropertyName("method")]
     public ResetMethod Method { get; set; }
     
-    public bool IsValid() => IsValidTcknOrMemberNumber(TcknOrMemberNumber) && BirthDate != default && Enum.IsDefined(typeof(ResetMethod), Method);
+    public bool IsValid() => IsValidTcknOrMemberNumber(TcknOrMemberNumber) && BirthDate != default && Enum.IsDefined<ResetMethod>(Method);
     
     public Tckn? GetTcKimlik() => 
         TcknOrMemberNumber.Length == 11 && TcknOrMemberNumber.All(char.IsDigit) 
             ? Tckn.CreateUnsafe(TcknOrMemberNumber) 
             : null;
     
-    private bool IsValidTcknOrMemberNumber(string input)
+    private static bool IsValidTcknOrMemberNumber(string input)
     {
         if (string.IsNullOrWhiteSpace(input))
             return false;
@@ -94,6 +94,7 @@ public class SelectResetMethodCommand : IRequest<string>
 
 public enum ResetMethod
 {
+    None = 0,
     Email = 1,
     Sms = 2
 }

@@ -7,14 +7,22 @@ public class ChangePasswordCommandValidator : AbstractValidator<ChangePasswordCo
 {
     public ChangePasswordCommandValidator()
     {
-        RuleFor(x => x.UserId)
-            .NotEmpty().WithMessage("Kullanıcı ID gereklidir");
+        RuleFor(x => x.TcKimlikNo)
+            .NotEmpty().WithMessage("TC Kimlik numarası gereklidir")
+            .Must(Tckn.IsValid).WithMessage("Geçerli bir TC kimlik numarası giriniz");
 
         RuleFor(x => x.CurrentPassword)
             .NotEmpty().WithMessage("Mevcut şifre gereklidir");
 
         RuleFor(x => x.NewPassword)
             .NotEmpty().WithMessage("Yeni şifre gereklidir")
-            .Must(Password.IsValid).WithMessage("Şifre güçlü olmalıdır (en az 8 karakter, büyük/küçük harf, rakam ve özel karakter)");
+            .Must(Password.IsValid).WithMessage("Geçersiz şifre. Şifre en az 8 karakter olmalı ve büyük harf, küçük harf, rakam ve özel karakter içermelidir.");
+
+        RuleFor(x => x.ConfirmNewPassword)
+            .NotEmpty().WithMessage("Şifre tekrarı gereklidir")
+            .Equal(x => x.NewPassword).WithMessage("Lütfen aynı şifreleri giriniz.");
+            
+        RuleFor(x => x.NewPassword)
+            .NotEqual(x => x.CurrentPassword).WithMessage("Yeni şifre mevcut şifreden farklı olmalıdır.");
     }
 } 
