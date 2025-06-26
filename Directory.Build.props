@@ -1,0 +1,55 @@
+<Project>
+  <!-- 🚀 GLOBAL ENTERPRISE ANALYZER SETUP -->
+  <!-- Applies to ALL projects in the solution -->
+  
+  <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
+    <!-- 🔍 Enhanced Code Quality Analysis -->
+    <PackageReference Include="Meziantou.Analyzer">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    
+    <!-- ⚡ Async/Threading Analysis -->
+    <PackageReference Include="AsyncFixer">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    
+    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    
+    <!-- 🧠 Error-Prone Pattern Detection -->
+    <PackageReference Include="ErrorProne.NET.CoreAnalyzers">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    
+    <PackageReference Include="ErrorProne.NET.Structs">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  
+  <!-- 🎯 BETTING PLATFORM SPECIFIC SETTINGS -->
+  <PropertyGroup>
+    <!-- Enable all nullable features for financial precision -->
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    
+    <!-- Performance optimizations -->
+    <Optimize Condition="'$(Configuration)' == 'Release'">true</Optimize>
+    <DebugType>portable</DebugType>
+    
+    <!-- Culture settings for financial calculations -->
+    <InvariantGlobalization>false</InvariantGlobalization>
+  </PropertyGroup>
+  
+  <!-- 💰 PRODUCTION: FINANCIAL PRECISION ENFORCEMENT -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <!-- Zero tolerance for financial precision issues -->
+    <TreatSpecificWarningsAsErrors>CA1305;CA1304;CA1307;CA1309</TreatSpecificWarningsAsErrors>
+  </PropertyGroup>
+  
+</Project> 

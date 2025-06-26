@@ -13,5 +13,5 @@ public static class FshRoles
         Basic
     });
 
-    public static bool IsDefault(string roleName) => DefaultRoles.Any(r => r == roleName);
+    public static bool IsDefault(string roleName) => DefaultRoles.Any(r => string.Equals(r, roleName, StringComparison.Ordinal));
 }

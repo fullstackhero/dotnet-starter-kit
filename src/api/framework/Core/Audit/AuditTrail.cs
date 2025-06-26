@@ -1,4 +1,6 @@
-﻿namespace FSH.Framework.Core.Audit;
+﻿using System;
+
+namespace FSH.Framework.Core.Audit;
 public class AuditTrail
 {
     public Guid Id { get; set; }

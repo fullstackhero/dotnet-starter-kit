@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <!-- Configuration for data collectors -->
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="Code Coverage" uri="datacollector://Microsoft/CodeCoverage/2.0" assemblyQualifiedName="Microsoft.VisualStudio.Coverage.DynamicCoverageDataCollector, Microsoft.VisualStudio.TraceCollector, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+        <Configuration>
+          <CodeCoverage>
+            <!-- Match assembly file paths: -->
+            <ModulePaths>
+              <Include>
+                <ModulePath>.*\.dll$</ModulePath>
+              </Include>
+              <Exclude>
+                <ModulePath>.*testhost\.dll</ModulePath>
+                <ModulePath>.*tests\.dll</ModulePath>
+                <ModulePath>.*test.*\.dll</ModulePath>
+                <ModulePath>.*Microsoft\..*\.dll</ModulePath>
+                <ModulePath>.*System\..*\.dll</ModulePath>
+                <ModulePath>.*xunit\..*\.dll</ModulePath>
+                <ModulePath>.*FluentAssertions\..*\.dll</ModulePath>
+                <ModulePath>.*Bogus\..*\.dll</ModulePath>
+                <ModulePath>.*Newtonsoft\..*\.dll</ModulePath>
+              </Exclude>
+            </ModulePaths>
+
+            <!-- Match attributes on any code element: -->
+            <Attributes>
+              <Exclude>
+                <Attribute>^System\.Diagnostics\.DebuggerHiddenAttribute$</Attribute>
+                <Attribute>^System\.Diagnostics\.DebuggerNonUserCodeAttribute$</Attribute>
+                <Attribute>^System\.CodeDom\.Compiler\.GeneratedCodeAttribute$</Attribute>
+                <Attribute>^System\.Diagnostics\.CodeAnalysis\.ExcludeFromCodeCoverageAttribute$</Attribute>
+              </Exclude>
+            </Attributes>
+
+            <!-- Match the source file paths: -->
+            <Sources>
+              <Exclude>
+                <Source>.*\\tests\\.*</Source>
+                <Source>.*\\obj\\.*</Source>
+                <Source>.*\\bin\\.*</Source>
+              </Exclude>
+            </Sources>
+
+            <!-- We recommend you do not change the following values: -->
+            <UseVerifiableInstrumentation>True</UseVerifiableInstrumentation>
+            <AllowLowIntegrityProcesses>True</AllowLowIntegrityProcesses>
+            <CollectFromChildProcesses>True</CollectFromChildProcesses>
+            <CollectAspDotNet>False</CollectAspDotNet>
+          </CodeCoverage>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+
+  <!-- Configurations for test runs -->
+  <RunConfiguration>
+    <!-- Use the x64 process for test runs -->
+    <TargetPlatform>x64</TargetPlatform>
+    <!-- Framework version for test runs -->
+    <TargetFrameworkVersion>net8.0</TargetFrameworkVersion>
+    <!-- Maximum time before a test run times out -->
+    <TestSessionTimeout>180000</TestSessionTimeout>
+    <!-- Maximum number of test assemblies that can run in parallel -->
+    <MaxCpuCount>1</MaxCpuCount>
+    <!-- Run tests in parallel -->
+    <ExecutionThreadApartmentState>MTA</ExecutionThreadApartmentState>
+    <!-- Treat adapter source warnings as errors -->
+    <TreatTestAdapterErrorsAsWarnings>false</TreatTestAdapterErrorsAsWarnings>
+  </RunConfiguration>
+
+  <!-- Configurations for loggers -->
+  <LoggerRunSettings>
+    <Loggers>
+      <!-- TRX Logger -->
+      <Logger friendlyName="trx" enabled="True">
+        <Configuration>
+          <LogFileName>TestResults.trx</LogFileName>
+        </Configuration>
+      </Logger>
+      <!-- Console Logger -->
+      <Logger friendlyName="console" enabled="True">
+        <Configuration>
+          <Verbosity>normal</Verbosity>
+        </Configuration>
+      </Logger>
+    </Loggers>
+  </LoggerRunSettings>
+
+  <!-- MSTest configuration -->
+  <MSTest>
+    <!-- Parallel execution settings -->
+    <Parallelize>
+      <Workers>4</Workers>
+      <Scope>method</Scope>
+    </Parallelize>
+    <!-- Time out for individual tests (in milliseconds) -->
+    <TestTimeout>60000</TestTimeout>
+    <!-- Treat class cleanup exceptions as warnings -->
+    <TreatClassAndAssemblyCleanupWarningsAsErrors>false</TreatClassAndAssemblyCleanupWarningsAsErrors>
+  </MSTest>
+
+  <!-- Environment variables -->
+  <TestRunParameters>
+    <Parameter name="Environment" value="Testing" />
+    <Parameter name="TestDatabasePort" value="5434" />
+    <Parameter name="UseFakeData" value="true" />
+  </TestRunParameters>
+</RunSettings> 

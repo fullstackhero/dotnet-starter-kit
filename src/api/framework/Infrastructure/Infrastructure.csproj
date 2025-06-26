@@ -1,5 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
     <RootNamespace>FSH.Framework.Infrastructure</RootNamespace>
     <AssemblyName>FSH.Framework.Infrastructure</AssemblyName>
     <IsAspireSharedProject>true</IsAspireSharedProject>

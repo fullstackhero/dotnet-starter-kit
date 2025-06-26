@@ -28,8 +28,10 @@ public static class ClaimsPrincipalExtensions
     }
 
     public static DateTimeOffset GetExpiration(this ClaimsPrincipal principal) =>
-        DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(
-            principal.FindFirstValue(FshClaims.Expiration)));
+        DateTimeOffset.FromUnixTimeSeconds(
+            Convert.ToInt64(
+                principal.FindFirstValue(FshClaims.Expiration),
+                System.Globalization.CultureInfo.InvariantCulture));
 
     private static string? FindFirstValue(this ClaimsPrincipal principal, string claimType) =>
         principal is null

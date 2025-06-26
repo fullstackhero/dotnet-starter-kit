@@ -1,5 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
     <RootNamespace>FSH.Starter.WebApi.Migrations.PostgreSQL</RootNamespace>
     <AssemblyName>FSH.Starter.WebApi.Migrations.PostgreSQL</AssemblyName>
   </PropertyGroup>

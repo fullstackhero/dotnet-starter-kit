@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-<Sdk Name="Aspire.AppHost.Sdk" Version="9.0.0" />
+<!-- Sdk Name="Aspire.AppHost.Sdk" /-->
   <PropertyGroup>
     <RootNamespace>FSH.Starter.Aspire</RootNamespace>
     <AssemblyName>FSH.Starter.Aspire</AssemblyName>

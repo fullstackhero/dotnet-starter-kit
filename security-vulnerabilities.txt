@@ -1,0 +1,11 @@
+
+The following sources were used:
+   https://api.nuget.org/v3/index.json
+
+The given project `Infrastructure` has no vulnerable packages given the current sources.
+The given project `Core` has no vulnerable packages given the current sources.
+The given project `Server` has no vulnerable packages given the current sources.
+The given project `PostgreSQL` has no vulnerable packages given the current sources.
+The given project `ServiceDefaults` has no vulnerable packages given the current sources.
+The given project `Host` has no vulnerable packages given the current sources.
+The given project `Shared` has no vulnerable packages given the current sources.

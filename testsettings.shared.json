@@ -1,0 +1,97 @@
+{
+  "TestConfiguration": {
+    "Environment": "Testing",
+    "UseRealData": false,
+    "LogLevel": "Warning"
+  },
+  "DatabaseSettings": {
+    "UseTestContainers": true,
+    "ConnectionString": "Server=localhost;Port=5434;Database=fsh_test;User Id=testuser;Password=testpass;",
+    "Provider": "postgresql"
+  },
+  "MernisService": {
+    "UseDevelopmentMode": true,
+    "SimulationDelayMs": 100,
+    "TestTcknFailures": ["11111111110", "00000000000", "99999999999"]
+  },
+  "JwtOptions": {
+    "Key": "QsJbczCNysv/5SGh+U7sxedX8C07TPQPBdsnSDKZ/aE=",
+    "Issuer": "FSH.Starter.Test",
+    "Audience": "FSH.Starter.Test",
+    "AccessTokenExpirationMinutes": 60,
+    "RefreshTokenExpirationDays": 7
+  },
+  "SmsService": {
+    "UseDevelopmentMode": true,
+    "MockOtpCode": "123456"
+  },
+  "EmailService": {
+    "UseDevelopmentMode": true,
+    "SendActualEmails": false
+  },
+  "TestData": {
+    "RealPersons": [
+      {
+        "Tckn": "12345678901",
+        "FirstName": "AHMET", 
+        "LastName": "YILMAZ",
+        "BirthDate": "1990-01-15",
+        "PhoneNumber": "5551234567",
+        "Email": "test@example.com",
+        "Password": "TestPass123!",
+        "ProfessionId": 1,
+        "ExpectedMernisResult": true
+      },
+      {
+        "Tckn": "12345678902",
+        "FirstName": "AYŞE",
+        "LastName": "KAYA", 
+        "BirthDate": "1985-03-22",
+        "PhoneNumber": "5551234568",
+        "Email": "test2@example.com",
+        "Password": "TestPass123!",
+        "ProfessionId": 2,
+        "ExpectedMernisResult": true
+      }
+    ],
+    "InvalidPersons": [
+      {
+        "Tckn": "11111111110",
+        "FirstName": "INVALID",
+        "LastName": "PERSON",
+        "BirthDate": "1990-01-01",
+        "PhoneNumber": "5551234569",
+        "Email": "invalid@example.com", 
+        "Password": "TestPass123!",
+        "ProfessionId": 1,
+        "ExpectedMernisResult": false
+      }
+    ],
+    "TestUsers": [
+      {
+        "Email": "admin@test.com",
+        "Username": "testadmin",
+        "PhoneNumber": "5551234570",
+        "Tckn": "12345678903",
+        "Password": "AdminPass123!",
+        "FirstName": "Test",
+        "LastName": "Admin",
+        "ProfessionId": 1,
+        "BirthDate": "1988-05-10",
+        "Roles": ["Admin", "User"]
+      },
+      {
+        "Email": "user@test.com", 
+        "Username": "testuser",
+        "PhoneNumber": "5551234571",
+        "Tckn": "12345678904",
+        "Password": "UserPass123!",
+        "FirstName": "Test",
+        "LastName": "User", 
+        "ProfessionId": 2,
+        "BirthDate": "1992-08-15",
+        "Roles": ["User"]
+      }
+    ]
+  }
+} 

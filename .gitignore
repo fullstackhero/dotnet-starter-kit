@@ -198,6 +198,17 @@ publish/
 # in these scripts will be unencrypted
 PublishScripts/
 
+# Test configuration files with sensitive data
+**/testsettings.json
+!**/testsettings.example.json
+
+# Test results and coverage
+TestResults/
+coverage/
+**/testsettings.json
+testsettings.json
+*.trx
+
 # NuGet Packages
 *.nupkg
 # NuGet Symbol Packages
