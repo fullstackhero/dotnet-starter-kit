@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using FSH.Framework.Core.Common.Models;
 
 namespace FSH.Framework.Core.Common.Interfaces;
@@ -14,4 +16,4 @@ public class ProfessionDto
     public string Name { get; init; } = default!;
     public bool IsActive { get; init; }
     public int SortOrder { get; init; }
-} 
+}

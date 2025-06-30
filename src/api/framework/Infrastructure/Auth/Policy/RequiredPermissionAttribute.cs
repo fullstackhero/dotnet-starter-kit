@@ -17,7 +17,7 @@ public sealed class RequiredPermissionAttribute(string? requiredPermission, para
 
     private static HashSet<string> CreatePermissionSet(string? requiredPermission, string[]? additionalRequiredPermissions)
     {
-        var permissions = new HashSet<string>();
+        var permissions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         
         if (!string.IsNullOrEmpty(requiredPermission))
         {

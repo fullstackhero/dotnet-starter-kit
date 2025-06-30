@@ -1,3 +1,4 @@
+using System;
 using FluentValidation;
 using FSH.Framework.Core.Auth.Services;
 
@@ -85,4 +86,4 @@ public class RegisterRequestCommandValidator : AbstractValidator<RegisterRequest
             
         return age >= 18;
     }
-} 
+}

@@ -24,13 +24,13 @@ public class DistributedCacheService : ICacheService
     private byte[]? Get(string key)
     {
         ArgumentNullException.ThrowIfNull(key);
-
         try
         {
             return _cache.Get(key);
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogWarning(ex, "Exception in Get for key {Key}", key);
             return null;
         }
     }
@@ -48,7 +48,7 @@ public class DistributedCacheService : ICacheService
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex);
+            _logger.LogWarning(ex, "Exception in GetAsync for key {Key}", key);
             return null;
         }
     }
@@ -59,9 +59,9 @@ public class DistributedCacheService : ICacheService
         {
             _cache.Refresh(key);
         }
-        catch
+        catch (Exception ex)
         {
-            // can be ignored
+            _logger.LogWarning(ex, "Exception in Refresh for key {Key}", key);
         }
     }
 
@@ -72,9 +72,9 @@ public class DistributedCacheService : ICacheService
             await _cache.RefreshAsync(key, token);
             _logger.LogDebug("refreshed cache with key : {Key}", key);
         }
-        catch
+        catch (Exception ex)
         {
-            // can be ignored
+            _logger.LogWarning(ex, "Exception in RefreshAsync for key {Key}", key);
         }
     }
 
@@ -84,9 +84,9 @@ public class DistributedCacheService : ICacheService
         {
             _cache.Remove(key);
         }
-        catch
+        catch (Exception ex)
         {
-            // can be ignored
+            _logger.LogWarning(ex, "Exception in Remove for key {Key}", key);
         }
     }
 
@@ -96,9 +96,9 @@ public class DistributedCacheService : ICacheService
         {
             await _cache.RemoveAsync(key, token);
         }
-        catch
+        catch (Exception ex)
         {
-            // can be ignored
+            _logger.LogWarning(ex, "Exception in RemoveAsync for key {Key}", key);
         }
     }
 
@@ -112,9 +112,9 @@ public class DistributedCacheService : ICacheService
             _cache.Set(key, value, GetOptions(slidingExpiration));
             _logger.LogDebug("cached data with key : {Key}", key);
         }
-        catch
+        catch (Exception ex)
         {
-            // can be ignored
+            _logger.LogWarning(ex, "Exception in Set for key {Key}", key);
         }
     }
 
@@ -128,9 +128,9 @@ public class DistributedCacheService : ICacheService
             await _cache.SetAsync(key, value, GetOptions(slidingExpiration), token);
             _logger.LogDebug("cached data with key : {Key}", key);
         }
-        catch
+        catch (Exception ex)
         {
-            // can be ignored
+            _logger.LogWarning(ex, "Exception in SetAsync for key {Key}", key);
         }
     }
 

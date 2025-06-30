@@ -1,3 +1,4 @@
+using System.Linq;
 using FluentValidation;
 using FSH.Framework.Core.Auth.Domain.ValueObjects;
 
@@ -34,4 +35,4 @@ public class LoginCommandValidator : AbstractValidator<LoginCommand>
         
         return false;
     }
-} 
+}

@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using FSH.Framework.Core.Origin;
 using FSH.Framework.Core.Storage;
@@ -18,18 +19,18 @@ namespace FSH.Framework.Infrastructure.Storage.Files
                 return null!;
             }
 
-            if (request.Extension is null || !supportedFileType.GetDescriptionList().Contains(request.Extension.ToLower(System.Globalization.CultureInfo.CurrentCulture)))
+            if (request.Extension is null || !supportedFileType.GetDescriptionList().Contains(request.Extension, StringComparer.OrdinalIgnoreCase))
                 throw new InvalidOperationException("File Format Not Supported.");
             if (request.Name is null)
                 throw new InvalidOperationException("Name is required.");
 
-            string base64Data = Regex.Match(request.Data, "data:image/(?<type>.+?),(?<data>.+)").Groups["data"].Value;
+            string base64Data = Regex.Match(request.Data, "data:image/(?<type>[a-zA-Z0-9]+);base64,(?<data>[A-Za-z0-9+/=]+)", RegexOptions.None, TimeSpan.FromSeconds(1)).Groups["data"].Value;
 
             var streamData = new MemoryStream(Convert.FromBase64String(base64Data));
             if (streamData.Length > 0)
             {
                 string folder = typeof(T).Name;
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                if (OperatingSystem.IsMacOS())
                 {
                     folder = folder.Replace(@"\", "/", StringComparison.Ordinal);
                 }
@@ -68,7 +69,7 @@ namespace FSH.Framework.Infrastructure.Storage.Files
 
         public static string RemoveSpecialCharacters(string str)
         {
-            return Regex.Replace(str, "[^a-zA-Z0-9_.]+", string.Empty, RegexOptions.Compiled);
+            return Regex.Replace(str, "[^a-zA-Z0-9_.]+", string.Empty, RegexOptions.Compiled, TimeSpan.FromSeconds(1));
         }
 
         public void Remove(Uri? path)
@@ -99,7 +100,7 @@ namespace FSH.Framework.Infrastructure.Storage.Files
 
         private static string GetNextFilename(string pattern)
         {
-            string tmp = string.Format(pattern, 1);
+            string tmp = string.Format(CultureInfo.InvariantCulture, pattern, 1);
 
             if (!File.Exists(tmp))
             {
@@ -108,7 +109,7 @@ namespace FSH.Framework.Infrastructure.Storage.Files
 
             int min = 1, max = 2;
 
-            while (File.Exists(string.Format(pattern, max)))
+            while (File.Exists(string.Format(CultureInfo.InvariantCulture, pattern, max)))
             {
                 min = max;
                 max *= 2;
@@ -117,7 +118,7 @@ namespace FSH.Framework.Infrastructure.Storage.Files
             while (max != min + 1)
             {
                 int pivot = (max + min) / 2;
-                if (File.Exists(string.Format(pattern, pivot)))
+                if (File.Exists(string.Format(CultureInfo.InvariantCulture, pattern, pivot)))
                 {
                     min = pivot;
                 }
@@ -127,7 +128,7 @@ namespace FSH.Framework.Infrastructure.Storage.Files
                 }
             }
 
-            return string.Format(pattern, max);
+            return string.Format(CultureInfo.InvariantCulture, pattern, max);
         }
     }
 }

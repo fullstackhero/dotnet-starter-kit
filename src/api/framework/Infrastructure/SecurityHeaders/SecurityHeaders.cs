@@ -1,6 +1,6 @@
 ﻿namespace FSH.Framework.Infrastructure.SecurityHeaders;
 
-public class SecurityHeaders
+public class AppSecurityHeaders
 {
     public string? XContentTypeOptions { get; set; }
     public string? ReferrerPolicy { get; set; }

@@ -6,6 +6,9 @@ using FSH.Framework.Core.Auth.Repositories;
 using FSH.Framework.Core.Auth.Domain.ValueObjects;
 using EmailVO = FSH.Framework.Core.Auth.Domain.ValueObjects.Email;
 using PhoneNumberVO = FSH.Framework.Core.Auth.Domain.ValueObjects.PhoneNumber;
+using System.Threading;
+using System.Threading.Tasks;
+using System;
 
 namespace FSH.Framework.Core.Auth.Features.Admin;
 
@@ -37,7 +40,7 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, Resul
             }
 
             // Check if email is being changed and if it's already in use
-            if (user.Email.Value != request.Email.Value)
+            if (!string.Equals(user.Email.Value, request.Email.Value, StringComparison.OrdinalIgnoreCase))
             {
                 if (await _userRepository.EmailExistsAsync(request.Email.Value))
                 {
@@ -47,7 +50,7 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, Resul
             }
 
             // Check if username is being changed and if it's already in use
-            if (user.Username != request.Username.Value)
+            if (!string.Equals(user.Username, request.Username.Value, StringComparison.OrdinalIgnoreCase))
             {
                 if (await _userRepository.UsernameExistsAsync(request.Username.Value))
                 {
@@ -79,4 +82,4 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, Resul
             return Result<UpdateUserResult>.Failure("An error occurred while updating the user");
         }
     }
-} 
+}

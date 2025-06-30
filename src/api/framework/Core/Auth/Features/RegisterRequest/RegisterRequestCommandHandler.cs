@@ -4,6 +4,10 @@ using FSH.Framework.Core.Caching;
 using FSH.Framework.Core.Auth.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using System.Threading;
+using System.Threading.Tasks;
+using System;
+using System.Linq;
 
 namespace FSH.Framework.Core.Auth.Features.RegisterRequest;
 
@@ -112,14 +116,14 @@ public class RegisterRequestCommandHandler : IRequestHandler<RegisterRequestComm
     private async Task<string> GenerateUniqueUsernameAsync(string lastName, bool useMoreNumbers = false)
     {
         // Clean lastName and make it lowercase
-        var baseName = lastName.ToLowerInvariant()
-            .Replace("ç", "c")
-            .Replace("ğ", "g")
-            .Replace("ı", "i")
-            .Replace("ö", "o")
-            .Replace("ş", "s")
-            .Replace("ü", "u")
-            .Replace(" ", "");
+        var baseName = lastName.ToUpperInvariant()
+            .Replace("ç", "c", StringComparison.OrdinalIgnoreCase)
+            .Replace("ğ", "g", StringComparison.OrdinalIgnoreCase)
+            .Replace("ı", "i", StringComparison.OrdinalIgnoreCase)
+            .Replace("ö", "o", StringComparison.OrdinalIgnoreCase)
+            .Replace("ş", "s", StringComparison.OrdinalIgnoreCase)
+            .Replace("ü", "u", StringComparison.OrdinalIgnoreCase)
+            .Replace(" ", "", StringComparison.Ordinal);
 
         // Remove any non-alphanumeric characters
         baseName = new string(baseName.Where(char.IsLetterOrDigit).ToArray());
@@ -138,8 +142,10 @@ public class RegisterRequestCommandHandler : IRequestHandler<RegisterRequestComm
         do
         {
             var numberLength = useMoreNumbers ? 4 : 3;
-            var randomNumber = random.Next((int)Math.Pow(10, numberLength - 1), (int)Math.Pow(10, numberLength));
-            username = $"{baseName}{randomNumber}";
+            var randomBytes = new byte[4];
+            System.Security.Cryptography.RandomNumberGenerator.Fill(randomBytes);
+            int randomNumber = Math.Abs(BitConverter.ToInt32(randomBytes, 0)) % (int)Math.Pow(10, numberLength) / (int)Math.Pow(10, numberLength - 1);
+            username = $"{baseName}{randomNumber.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
             attempts++;
 
             var exists = await _userRepository.UsernameExistsAsync(username);
@@ -150,7 +156,7 @@ public class RegisterRequestCommandHandler : IRequestHandler<RegisterRequestComm
         } while (attempts < maxAttempts);
 
         // If all attempts failed, use timestamp
-        var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+        var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(System.Globalization.CultureInfo.InvariantCulture);
         return $"{baseName}{timestamp.Substring(timestamp.Length - 6)}";
     }
-} 
+}

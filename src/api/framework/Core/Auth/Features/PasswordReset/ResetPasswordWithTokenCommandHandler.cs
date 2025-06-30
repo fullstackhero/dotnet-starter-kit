@@ -2,6 +2,9 @@ using MediatR;
 using FSH.Framework.Core.Auth.Services;
 using FSH.Framework.Core.Common.Exceptions;
 using System.ComponentModel.DataAnnotations;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace FSH.Framework.Core.Auth.Features.PasswordReset;
 
@@ -56,9 +59,9 @@ public sealed class ResetPasswordWithTokenCommandHandler : IRequestHandler<Reset
         {
             throw; // Re-throw business exceptions
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             throw new FshException("Şifre sıfırlanırken bir hata oluştu. Lütfen tekrar deneyiniz.");
         }
     }
-} 
+}

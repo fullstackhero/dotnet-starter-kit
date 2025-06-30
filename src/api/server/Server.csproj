@@ -12,11 +12,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" />
     <!-- Enterprise Quality Tools - .NET 9 Compatible -->
-    <!-- Basic .NET Analysis -->
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <!-- Security Analysis -->
     <PackageReference Include="SecurityCodeScan">
       <PrivateAssets>all</PrivateAssets>

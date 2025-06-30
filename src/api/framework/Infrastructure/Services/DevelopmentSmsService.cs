@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Security.Cryptography;
 using FSH.Framework.Core.Auth.Services;
 using Microsoft.Extensions.Logging;
 
@@ -49,7 +51,11 @@ public class DevelopmentSmsService : ISmsService
 
     public Task<string> GenerateAndStoreSmsCodeAsync(string phoneNumber)
     {
-        var code = new Random().Next(1000, 9999).ToString();
+        // Use cryptographically secure random number for OTP
+        var bytes = new byte[2];
+        RandomNumberGenerator.Fill(bytes);
+        int codeInt = (BitConverter.ToUInt16(bytes, 0) % 9000) + 1000; // 1000-9999
+        var code = codeInt.ToString(CultureInfo.InvariantCulture);
         _logger.LogInformation("📱 SMS OTP Oluşturuldu (Development Mode)");
         _logger.LogInformation("📞 Telefon: {PhoneNumber}", phoneNumber);
         _logger.LogInformation("🔐 Oluşturulan Kod: {Code}", code);
@@ -65,4 +71,4 @@ public class DevelopmentSmsService : ISmsService
         
         return Task.CompletedTask;
     }
-} 
+}

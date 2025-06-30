@@ -2,6 +2,9 @@ using MediatR;
 using FSH.Framework.Core.Auth.Repositories;
 using FSH.Framework.Core.Auth.Domain.ValueObjects;
 using FSH.Framework.Core.Common.Exceptions;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace FSH.Framework.Core.Auth.Features.Profile;
 
@@ -57,4 +60,4 @@ public sealed class VerifyEmailUpdateCommandHandler : IRequestHandler<VerifyEmai
 
         return "Email adresiniz başarıyla güncellendi";
     }
-} 
+}

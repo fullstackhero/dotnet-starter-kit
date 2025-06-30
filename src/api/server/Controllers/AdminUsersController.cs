@@ -152,8 +152,8 @@ public sealed class AdminUsersController : ControllerBase
             return Ok(ApiResponse<UpdateUserResult>.SuccessResult(result.Value));
         }
 
-        return result.Error == "User not found"
-            ? NotFound(ApiResponse.FailureResult(result.Error))
+        return string.Equals(result.Error, "User not found", StringComparison.Ordinal)
+            ? NotFound(ApiResponse.FailureResult(result.Error ?? "User not found"))
             : BadRequest(ApiResponse.FailureResult(result.Error ?? "Failed to update user"));
     }
 

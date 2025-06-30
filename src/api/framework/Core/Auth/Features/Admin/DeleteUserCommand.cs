@@ -1,3 +1,4 @@
+using System;
 using MediatR;
 
 namespace FSH.Framework.Core.Auth.Features.Admin;
@@ -11,4 +12,4 @@ public class DeleteUserResult
 {
     public Guid UserId { get; init; }
     public string Message { get; init; } = default!;
-} 
+}

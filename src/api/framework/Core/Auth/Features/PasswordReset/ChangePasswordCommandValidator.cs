@@ -11,7 +11,7 @@ public class ChangePasswordCommandValidator : AbstractValidator<ChangePasswordCo
             .NotEmpty().WithMessage("TC Kimlik numarası gereklidir")
             .Must(Tckn.IsValid).WithMessage("Geçerli bir TC kimlik numarası giriniz");
 
-        RuleFor(x => x.CurrentPassword)
+        RuleFor(x => x.CurrentPasswordValue)
             .NotEmpty().WithMessage("Mevcut şifre gereklidir");
 
         RuleFor(x => x.NewPassword)
@@ -23,6 +23,6 @@ public class ChangePasswordCommandValidator : AbstractValidator<ChangePasswordCo
             .Equal(x => x.NewPassword).WithMessage("Lütfen aynı şifreleri giriniz.");
             
         RuleFor(x => x.NewPassword)
-            .NotEqual(x => x.CurrentPassword).WithMessage("Yeni şifre mevcut şifreden farklı olmalıdır.");
+            .NotEqual(x => x.CurrentPasswordValue).WithMessage("Yeni şifre mevcut şifreden farklı olmalıdır.");
     }
-} 
+}

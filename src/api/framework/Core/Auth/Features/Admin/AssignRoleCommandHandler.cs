@@ -1,3 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using FSH.Framework.Core.Auth.Repositories;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -30,7 +35,7 @@ public class AssignRoleCommandHandler : IRequestHandler<AssignRoleCommand, Assig
         var currentRoles = await _userRepository.GetUserRolesAsync(request.UserId);
 
         // If role is already assigned, return success
-        if (currentRoles.Contains(request.Role))
+        if (currentRoles.Contains(request.Role, StringComparer.Ordinal))
         {
             return new AssignRoleResult
             {
@@ -52,4 +57,4 @@ public class AssignRoleCommandHandler : IRequestHandler<AssignRoleCommand, Assig
             Message = "Role assigned successfully"
         };
     }
-} 
+}

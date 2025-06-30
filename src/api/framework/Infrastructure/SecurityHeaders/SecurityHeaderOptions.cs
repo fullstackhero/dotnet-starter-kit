@@ -3,5 +3,5 @@
 public class SecurityHeaderOptions
 {
     public bool Enable { get; set; }
-    public SecurityHeaders Headers { get; set; } = default!;
+    public AppSecurityHeaders Headers { get; set; } = default!;
 }

@@ -58,7 +58,7 @@ public sealed class DapperUserRepository : IUserRepository
     {
         try
         {
-            var normalizedEmail = email.ToLowerInvariant();
+            var normalizedEmail = email.ToUpperInvariant();
             const string sql = @"
                 SELECT id, email, username, phone_number, tckn, 
                        password_hash, first_name, last_name, profession_id,
@@ -128,7 +128,7 @@ public sealed class DapperUserRepository : IUserRepository
 
         try
         {
-            var normalizedEmail = email.ToLowerInvariant();
+            var normalizedEmail = email.ToUpperInvariant();
             var sql = "SELECT COUNT(1) FROM users WHERE email = @Email";
             var parameters = new DynamicParameters();
             parameters.Add("@Email", normalizedEmail);
@@ -155,7 +155,7 @@ public sealed class DapperUserRepository : IUserRepository
 
         try
         {
-            var normalizedUsername = username.ToLowerInvariant();
+            var normalizedUsername = username.ToUpperInvariant();
             var sql = "SELECT COUNT(1) FROM users WHERE username = @Username";
             var parameters = new DynamicParameters();
             parameters.Add("@Username", normalizedUsername);
@@ -225,7 +225,7 @@ public sealed class DapperUserRepository : IUserRepository
             await _connection.ExecuteAsync(sql, new
             {
                 Id = user.Id,
-                Email = user.Email.Value.ToLowerInvariant(),
+                Email = user.Email.Value.ToUpperInvariant(),
                 Username = user.Username,
                 PhoneNumber = user.PhoneNumber.Value,
                 Tckn = user.Tckn.Value,
@@ -276,7 +276,7 @@ public sealed class DapperUserRepository : IUserRepository
             await _connection.ExecuteAsync(sql, new
             {
                 Id = user.Id,
-                Email = user.Email.Value.ToLowerInvariant(),
+                Email = user.Email.Value.ToUpperInvariant(),
                 Username = user.Username,
                 PhoneNumber = user.PhoneNumber.Value,
                 PasswordHash = user.PasswordHash,
@@ -332,7 +332,7 @@ public sealed class DapperUserRepository : IUserRepository
         {
             // Hash the password before saving
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
-            var normalizedEmail = email.ToLowerInvariant();
+            var normalizedEmail = email.ToUpperInvariant();
             
             var rowsAffected = await _connection.ExecuteAsync(
                 "UPDATE users SET password_hash = @PasswordHash WHERE email = @Email",
@@ -775,7 +775,7 @@ public sealed class DapperUserRepository : IUserRepository
         }
     }
 
-    public async Task<bool> VerifyPhoneUpdateAsync(Guid userId, string verificationCode)
+    public Task<bool> VerifyPhoneUpdateAsync(Guid userId, string verificationCode)
     {
         ArgumentNullException.ThrowIfNull(verificationCode);
 
@@ -785,12 +785,12 @@ public sealed class DapperUserRepository : IUserRepository
             // This method is kept for interface compatibility but does nothing
             _logger.LogInformation("Phone verification attempted for user {UserId} - no action needed (verified during registration)", userId);
             
-            return true; // Always return true since phone is verified during registration
+            return Task.FromResult(true); // Always return true since phone is verified during registration
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error in phone verification for user {UserId}", userId);
-            return false;
+            return Task.FromResult(false);
         }
     }
 
@@ -954,4 +954,4 @@ public sealed class DapperUserRepository : IUserRepository
             throw new FshException($"Error updating password with history for TCKN {tcKimlik}", ex);
         }
     }
-} 
+}

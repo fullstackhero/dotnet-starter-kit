@@ -1,3 +1,5 @@
+using System;
+
 namespace FSH.Framework.Core.Auth.Models;
 
 public class PendingRegistrationData
@@ -54,12 +56,14 @@ public class PendingRegistration
     public bool ValidateOtp(string providedOtp)
     {
         Attempts++;
-        return !IsExpired && !HasExceededMaxAttempts && OtpCode == providedOtp;
+        return !IsExpired && !HasExceededMaxAttempts && string.Equals(OtpCode, providedOtp, StringComparison.Ordinal);
     }
     
     private static string GenerateOtpCode()
     {
-        var random = new Random();
-        return random.Next(1000, 9999).ToString();
+        var bytes = new byte[2];
+        System.Security.Cryptography.RandomNumberGenerator.Fill(bytes);
+        int code = (bytes[0] << 8 | bytes[1]) % 9000 + 1000;
+        return code.ToString(System.Globalization.CultureInfo.InvariantCulture);
     }
-} 
+}

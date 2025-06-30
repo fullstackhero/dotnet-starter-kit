@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 namespace FSH.Framework.Core.Auth.Services;
 
 public interface IVerificationService
@@ -8,4 +10,4 @@ public interface IVerificationService
     Task<bool> VerifyPhoneAsync(string phoneNumber, string token);
     Task SendVerificationEmailAsync(string email, string token);
     Task SendVerificationSmsAsync(string phoneNumber, string token);
-} 
+}

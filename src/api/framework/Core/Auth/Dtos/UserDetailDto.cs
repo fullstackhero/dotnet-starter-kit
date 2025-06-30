@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace FSH.Framework.Core.Auth.Dtos;
 
 public class UserDetailDto
@@ -16,4 +19,4 @@ public class UserDetailDto
     public bool IsEmailVerified { get; init; }
     public bool IsActive { get; init; }
     public IReadOnlyList<string> Roles { get; init; } = new List<string>();
-} 
+}

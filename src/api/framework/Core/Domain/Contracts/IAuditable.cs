@@ -1,4 +1,6 @@
-﻿namespace FSH.Framework.Core.Domain.Contracts;
+﻿using System;
+
+namespace FSH.Framework.Core.Domain.Contracts;
 
 public interface IAuditable
 {

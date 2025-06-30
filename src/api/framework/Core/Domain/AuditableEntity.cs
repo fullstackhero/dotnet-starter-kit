@@ -1,4 +1,5 @@
-﻿using FSH.Framework.Core.Domain.Contracts;
+﻿using System;
+using FSH.Framework.Core.Domain.Contracts;
 
 namespace FSH.Framework.Core.Domain;
 

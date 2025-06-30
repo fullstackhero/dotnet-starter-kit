@@ -1,5 +1,7 @@
 using FSH.Framework.Core.Auth.Repositories;
 using MediatR;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace FSH.Framework.Core.Auth.Features.User;
 
@@ -16,4 +18,4 @@ public class EmailExistsQueryHandler : IRequestHandler<EmailExistsQuery, bool>
     {
         return await _users.EmailExistsAsync(request.Email, request.ExcludeId);
     }
-} 
+}

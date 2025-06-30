@@ -3,13 +3,14 @@ using FSH.Framework.Core.Auth.Services;
 using System.Security.Cryptography;
 using Microsoft.Extensions.Options;
 using FSH.Framework.Infrastructure.Auth;
+using System.Globalization;
 
 namespace FSH.Framework.Infrastructure.Services;
 
 public class SmsService : ISmsService
 {
     // In-memory storage for SMS codes (production'da Redis kullanılmalı)
-    private static readonly ConcurrentDictionary<string, SmsCodeInfo> _smsCodes = new();
+    private static readonly ConcurrentDictionary<string, SmsCodeInfo> _smsCodes = new(StringComparer.Ordinal);
     private readonly IOptions<VerificationOptions> _options;
 
     public SmsService(IOptions<VerificationOptions> options)
@@ -44,7 +45,7 @@ public class SmsService : ISmsService
         }
 
         // Kod eşleşiyor mu?
-        if (smsInfo.Code != code)
+        if (!string.Equals(smsInfo.Code, code, StringComparison.Ordinal))
             return false;
 
         // Kullanıldıktan sonra sil
@@ -84,8 +85,8 @@ public class SmsService : ISmsService
         using var rng = RandomNumberGenerator.Create();
         rng.GetBytes(randomBytes);
         var code = Math.Abs(BitConverter.ToInt32(randomBytes, 0)) % 1000000;
-        return code.ToString("D6");
+        return code.ToString("D6", CultureInfo.InvariantCulture);
     }
 
     private sealed record SmsCodeInfo(string Code, DateTime ExpiresAt);
-} 
+}

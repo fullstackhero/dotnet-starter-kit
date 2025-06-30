@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 namespace FSH.Framework.Core.Auth.Services;
 
 public interface IPasswordResetService
@@ -13,4 +15,4 @@ public interface IPasswordResetService
     Task ResetUserPasswordByTcknAsync(string tcKimlik, string newPassword);
     Task ResetUserPasswordByMemberNumberAsync(string memberNumber, string newPassword);
     Task ResetUserPasswordByIdentifierAsync(string identifier, string newPassword);
-} 
+}

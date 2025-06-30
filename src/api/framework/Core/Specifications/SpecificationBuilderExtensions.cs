@@ -1,4 +1,7 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.Json;
@@ -221,7 +224,7 @@ public static class SpecificationBuilderExtensions
             FilterLogic.AND => Expression.And(bExpresionBase, bExpresion),
             FilterLogic.OR => Expression.Or(bExpresionBase, bExpresion),
             FilterLogic.XOR => Expression.ExclusiveOr(bExpresionBase, bExpresion),
-            _ => throw new ArgumentException("FilterLogic is not valid."),
+            _ => throw new ArgumentException("FilterLogic is not valid.", nameof(filterOperator)),
         };
 
     private static MemberExpression GetPropertyExpression(
@@ -251,7 +254,7 @@ public static class SpecificationBuilderExtensions
         {
             string? stringEnum = GetStringFromJsonElement(value);
 
-            if (!Enum.TryParse(propertyType, stringEnum, true, out object? valueparsed)) throw new CustomException(string.Format("Value {0} is not valid for {1}", value, field));
+            if (!Enum.TryParse(propertyType, stringEnum, true, out object? valueparsed)) throw new CustomException(string.Format(CultureInfo.InvariantCulture, "Value {0} is not valid for {1}", value, field));
 
             return Expression.Constant(valueparsed, propertyType);
         }
@@ -260,7 +263,7 @@ public static class SpecificationBuilderExtensions
         {
             string? stringGuid = GetStringFromJsonElement(value);
 
-            if (!Guid.TryParse(stringGuid, out Guid valueparsed)) throw new CustomException(string.Format("Value {0} is not valid for {1}", value, field));
+            if (!Guid.TryParse(stringGuid, out Guid valueparsed)) throw new CustomException(string.Format(CultureInfo.InvariantCulture, "Value {0} is not valid for {1}", value, field));
 
             return Expression.Constant(valueparsed, propertyType);
         }
@@ -295,7 +298,7 @@ public static class SpecificationBuilderExtensions
             t = Nullable.GetUnderlyingType(t);
         }
 
-        return Convert.ChangeType(value, t!);
+        return Convert.ChangeType(value, t!, CultureInfo.InvariantCulture);
     }
 
     private static Filter GetValidFilter(Filter filter)
@@ -325,31 +328,45 @@ public static class SpecificationBuilderExtensions
                     Expression.Convert(propertyExpr, typeof(object)),
                     paramExpr);
 
+                var orderType = field.Value == OrderDirection.Descending ? OrderTypeEnum.Descending : OrderTypeEnum.Ascending;
                 ((List<OrderExpressionInfo<T>>)specificationBuilder.Specification.OrderExpressions)
-                    .Add(new OrderExpressionInfo<T>(keySelector, field.Value));
+                    .Add(new OrderExpressionInfo<T>(keySelector, orderType));
             }
         }
 
         return new OrderedSpecificationBuilder<T>(specificationBuilder.Specification);
     }
 
-    private static Dictionary<string, OrderTypeEnum> ParseOrderBy(string[] orderByFields) =>
-        new(orderByFields.Select((orderByfield, index) =>
+    private static Dictionary<string, OrderDirection> ParseOrderBy(string[] orderByFields) =>
+        new(orderByFields.Select(orderByfield =>
         {
             string[] fieldParts = orderByfield.Split(' ');
             string field = fieldParts[0];
-            bool descending = fieldParts.Length > 1 && fieldParts[1].StartsWith("Desc", StringComparison.OrdinalIgnoreCase);
-            
-            OrderTypeEnum orderBy;
-            if (index == 0)
-            {
-                orderBy = descending ? OrderTypeEnum.OrderByDescending : OrderTypeEnum.OrderBy;
-            }
-            else
-            {
-                orderBy = descending ? OrderTypeEnum.ThenByDescending : OrderTypeEnum.ThenBy;
-            }
+            bool descending = fieldParts.Length > 1 && fieldParts[1].Equals("desc", StringComparison.OrdinalIgnoreCase);
+            return new KeyValuePair<string, OrderDirection>(field, descending ? OrderDirection.Descending : OrderDirection.Ascending);
+        }), StringComparer.OrdinalIgnoreCase);
+}
 
-            return new KeyValuePair<string, OrderTypeEnum>(field, orderBy);
-        }));
+public enum OrderDirection
+{
+    Ascending,
+    Descending
+}
+
+public enum OrderTypeEnum
+{
+    Ascending,
+    Descending
+}
+
+public class OrderExpressionInfo<T>
+{
+    public LambdaExpression KeySelector { get; }
+    public OrderTypeEnum OrderType { get; }
+
+    public OrderExpressionInfo(LambdaExpression keySelector, OrderTypeEnum orderType)
+    {
+        KeySelector = keySelector;
+        OrderType = orderType;
+    }
 }

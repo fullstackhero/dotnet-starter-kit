@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using FSH.Framework.Core.Domain.ValueObjects;
 using FSH.Framework.Core.Common.Models;
 
@@ -57,4 +58,4 @@ public sealed class Profession : ValueObject
     {
         yield return Value ?? string.Empty;
     }
-} 
+}

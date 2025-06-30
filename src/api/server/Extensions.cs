@@ -89,7 +89,7 @@ internal static class Extensions
             }
             catch (Exception ex)
             {
-                return Results.Ok(new { error = ex.Message });
+                return Results.Ok(new { error = ex.ToString() });
             }
         }).AllowAnonymous();
 

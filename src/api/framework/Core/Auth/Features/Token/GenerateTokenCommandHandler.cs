@@ -1,3 +1,6 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using MediatR;
 using FSH.Framework.Core.Auth.Repositories;
 using FSH.Framework.Core.Auth.Services;
@@ -34,7 +37,7 @@ public class GenerateTokenCommandHandler : IRequestHandler<GenerateTokenCommand,
             throw new UnauthorizedAccessException("Invalid credentials");
         }
 
-        if (user.Status != "ACTIVE")
+        if (!string.Equals(user.Status, "ACTIVE", StringComparison.Ordinal))
         {
             throw new UnauthorizedAccessException("Account is not active");
         }
@@ -48,7 +51,7 @@ public class GenerateTokenCommandHandler : IRequestHandler<GenerateTokenCommand,
             user.FirstName, 
             user.LastName, 
             user.PhoneNumber.Value, 
-            user.ProfessionId?.ToString() ?? string.Empty, 
+            user.ProfessionId?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty, 
             user.Status, 
             roles);
 
@@ -64,4 +67,4 @@ public class GenerateTokenCommandHandler : IRequestHandler<GenerateTokenCommand,
             RefreshTokenExpiryTime = refreshTokenExpiry
         };
     }
-} 
+}

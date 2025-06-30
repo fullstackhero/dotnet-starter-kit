@@ -4,7 +4,7 @@ namespace FSH.Framework.Infrastructure.Auth;
 
 public class InMemoryRefreshTokenRepository : IRefreshTokenRepository
 {
-    private readonly Dictionary<string, (Guid UserId, DateTime Expiry)> _store = new();
+    private readonly Dictionary<string, (Guid UserId, DateTime Expiry)> _store = new(StringComparer.Ordinal);
 
     public Task SaveAsync(Guid userId, string refreshToken, DateTime expiryTime)
     {
@@ -25,4 +25,4 @@ public class InMemoryRefreshTokenRepository : IRefreshTokenRepository
         }
         return Task.FromResult((false, Guid.Empty));
     }
-} 
+}

@@ -1,4 +1,7 @@
-﻿namespace FSH.Framework.Core.Persistence;
+﻿using System.Threading;
+using System.Threading.Tasks;
+
+namespace FSH.Framework.Core.Persistence;
 public interface IDbInitializer
 {
     Task MigrateAsync(CancellationToken cancellationToken);

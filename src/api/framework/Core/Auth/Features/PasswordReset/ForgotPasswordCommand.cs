@@ -2,6 +2,8 @@ using MediatR;
 using FSH.Framework.Core.Auth.Domain.ValueObjects;
 using System.Text.Json.Serialization;
 using PhoneNumberVO = FSH.Framework.Core.Auth.Domain.ValueObjects.PhoneNumber;
+using System;
+using System.Linq;
 
 namespace FSH.Framework.Core.Auth.Features.PasswordReset;
 
@@ -102,12 +104,12 @@ public enum ResetMethod
 public class ValidateTcPhoneCommand : IRequest<string>
 {
     public string TcKimlikNo { get; set; } = string.Empty;
-    public string PhoneNumber { get; set; } = string.Empty;
+    public string PhoneNumberValue { get; set; } = string.Empty;
     
     // Domain validation methods
-    public bool IsValid() => Tckn.IsValid(TcKimlikNo) && PhoneNumberVO.IsValid(PhoneNumber);
+    public bool IsValid() => Tckn.IsValid(TcKimlikNo) && PhoneNumberVO.IsValid(PhoneNumberValue);
     
     // Get domain value objects
     public Tckn GetTcKimlik() => Tckn.CreateUnsafe(TcKimlikNo);
-    public PhoneNumberVO GetPhoneNumber() => PhoneNumberVO.CreateUnsafe(PhoneNumber);
-} 
+    public PhoneNumberVO GetPhoneNumber() => PhoneNumberVO.CreateUnsafe(PhoneNumberValue);
+}

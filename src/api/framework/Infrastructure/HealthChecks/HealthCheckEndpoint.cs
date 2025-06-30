@@ -10,11 +10,10 @@ public static class HealthCheckEndpoint
 {
     internal static RouteHandlerBuilder MapCustomHealthCheckEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        return endpoints.MapGet("/", (HttpContext context) =>
+        return endpoints.MapGet("/", async (HttpContext context) =>
         {
             var healthCheckService = context.RequestServices.GetRequiredService<HealthCheckService>();
-            var report = healthCheckService.CheckHealthAsync().Result;
-            
+            var report = await healthCheckService.CheckHealthAsync();
             var response = new
             {
                 status = report.Status.ToString(),
@@ -24,10 +23,8 @@ public static class HealthCheckEndpoint
                     status = entry.Value.Status.ToString(),
                     description = entry.Value.Description
                 }),
-                
                 duration = report.TotalDuration
             };
-            
             context.Response.ContentType = "application/json";
             return JsonSerializer.Serialize(response);
         })

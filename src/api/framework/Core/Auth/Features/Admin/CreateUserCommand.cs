@@ -1,3 +1,4 @@
+using System;
 using MediatR;
 using FSH.Framework.Core.Common.Models;
 using FSH.Framework.Core.Auth.Domain.ValueObjects;
@@ -26,4 +27,4 @@ public record CreateUserResult
     public string Username { get; init; } = default!;  
     public string? MemberNumber { get; init; }
     public string Message { get; init; } = default!;
-} 
+}

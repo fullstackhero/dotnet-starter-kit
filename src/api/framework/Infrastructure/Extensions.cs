@@ -23,6 +23,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using System.Globalization;
+using System.Numerics;
 
 namespace FSH.Framework.Infrastructure;
 
@@ -85,7 +87,7 @@ public static class Extensions
         builder.Services.AddHttpClient<FSH.Framework.Core.Auth.Services.IIdentityVerificationService, Auth.MernisIdentityVerificationService>(client =>
         {
             var timeoutSecondsString = builder.Configuration["MernisService:TimeoutSeconds"];
-            var timeoutSeconds = int.TryParse(timeoutSecondsString, out var parsed) ? parsed : 30;
+            var timeoutSeconds = int.TryParse(timeoutSecondsString, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) ? parsed : 30;
             client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
         });
 

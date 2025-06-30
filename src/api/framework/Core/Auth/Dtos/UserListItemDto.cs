@@ -1,3 +1,5 @@
+using System;
+
 namespace FSH.Framework.Core.Auth.Dtos;
 
 public class UserListItemDto
@@ -9,4 +11,4 @@ public class UserListItemDto
     public string LastName { get; init; } = default!;
     public string PhoneNumber { get; init; } = string.Empty;
     public bool IsActive { get; init; }
-} 
+}

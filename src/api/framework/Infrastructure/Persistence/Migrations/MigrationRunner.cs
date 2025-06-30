@@ -84,8 +84,9 @@ public class MigrationRunner
                 "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = '__migrations'");
             return count > 0;
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogWarning(ex, "Exception in MigrationTableExistsAsync");
             return false;
         }
     }
@@ -100,7 +101,7 @@ public class MigrationRunner
         }
 
         var sqlFiles = Directory.GetFiles(scriptsPath, "*.sql")
-            .OrderBy(f => Path.GetFileName(f))
+            .OrderBy(f => Path.GetFileName(f), StringComparer.Ordinal)
             .ToArray();
 
         if (sqlFiles.Length == 0)
@@ -150,8 +151,9 @@ public class MigrationRunner
             var count = await _connection.QuerySingleAsync<int>(sql, new { MigrationName = migrationName });
             return count > 0;
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogWarning(ex, "Exception in HasMigrationBeenAppliedAsync");
             return false;
         }
     }
@@ -170,9 +172,10 @@ public class MigrationRunner
             var count = await _connection.QuerySingleAsync<int>(sql);
             return count > 0;
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogWarning(ex, "Exception in HasAppliedMigrationsAsync");
             return false;
         }
     }
-} 
+}

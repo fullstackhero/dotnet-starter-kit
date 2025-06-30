@@ -49,11 +49,10 @@ public static class Extensions
             .FirstOrDefault();
         var resourceServiceName = entryAssemblyName?.Name;
         var resourceServiceVersion = versionAttribute?.InformationalVersion ?? entryAssemblyName?.Version?.ToString();
-        var attributes = new Dictionary<string, object>
+        var attributes = new Dictionary<string, object>(StringComparer.Ordinal)
         {
             ["host.name"] = Environment.MachineName,
-            ["service.names"] =
-                "FSH.Starter.WebApi.Host", //builder.Configuration["OpenTelemetrySettings:ServiceName"]!, //It's a WA Fix because the service.name tag is not completed automatically by Resource.Builder()...AddService(serviceName) https://github.com/open-telemetry/opentelemetry-dotnet/issues/2027
+            ["service.names"] = "FSH.Starter.WebApi.Host",
             ["os.description"] = System.Runtime.InteropServices.RuntimeInformation.OSDescription,
             ["deployment.environment"] = builder.Environment.EnvironmentName.ToUpperInvariant()
         };
@@ -71,6 +70,7 @@ public static class Extensions
             logging.IncludeFormattedMessage = true;
             logging.IncludeScopes = true;
             logging.SetResourceBuilder(resourceBuilder);
+            // No OTLP exporter for logging in this context
         });
 
         builder.Services.AddOpenTelemetry()
@@ -81,6 +81,18 @@ public static class Extensions
                     .AddHttpClientInstrumentation()
                     .AddRuntimeInstrumentation()
                     .AddProcessInstrumentation();
+                var otlpEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
+                if (!string.IsNullOrWhiteSpace(otlpEndpoint))
+                {
+                    metrics.AddOtlpExporter(options =>
+                    {
+                        options.Endpoint = new Uri(otlpEndpoint!);
+                    });
+                }
+                metrics.AddPrometheusExporter(options =>
+                {
+                    options.DisableTotalNameSuffixForCounters = true;
+                });
             })
             .WithTracing(tracing =>
             {
@@ -93,29 +105,15 @@ public static class Extensions
                     .AddAspNetCoreInstrumentation(nci => nci.RecordException = true)
                     .AddHttpClientInstrumentation()
                     .AddEntityFrameworkCoreInstrumentation();
+                var otlpEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
+                if (!string.IsNullOrWhiteSpace(otlpEndpoint))
+                {
+                    tracing.AddOtlpExporter(options =>
+                    {
+                        options.Endpoint = new Uri(otlpEndpoint!);
+                    });
+                }
             });
-
-        builder.AddOpenTelemetryExporters();
-
-        return builder;
-    }
-
-    private static IHostApplicationBuilder AddOpenTelemetryExporters(this IHostApplicationBuilder builder)
-    {
-        var useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
-
-        if (useOtlpExporter)
-        {
-            builder.Services.AddOpenTelemetry().UseOtlpExporter();
-        }
-
-        // The following lines enable the Prometheus exporter (requires the OpenTelemetry.Exporter.Prometheus.AspNetCore package)
-        builder.Services.AddOpenTelemetry()
-            // BUG: Part of the workaround for https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1617
-            .WithMetrics(metrics => metrics.AddPrometheusExporter(options =>
-            {
-                options.DisableTotalNameSuffixForCounters = true;
-            }));
 
         return builder;
     }

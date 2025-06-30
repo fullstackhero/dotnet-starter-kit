@@ -15,6 +15,7 @@
   </ItemGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <!-- <FrameworkReference Include="Microsoft.NETCore.App" /> kaldırıldı, SDK tarafından otomatik ekleniyor -->
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Asp.Versioning.Http" />

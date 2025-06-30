@@ -1,5 +1,7 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
+using System.Collections.Generic;
+using System;
 using FSH.Framework.Core.Domain.ValueObjects;
 using FSH.Framework.Core.Common.Models;
 
@@ -26,20 +28,16 @@ public sealed class Email : ValueObject
             // Normalize the domain
             value = Regex.Replace(
                 value,
-                @"(@)(.+)$", 
+                @"(@)(.+)$",
                 DomainMapper,
-                RegexOptions.None, 
+                RegexOptions.None | RegexOptions.ExplicitCapture,
                 TimeSpan.FromMilliseconds(200));
 
             // Examines the domain part of the email and normalizes it.
             static string DomainMapper(Match match)
             {
-                // Use IdnMapping class to convert Unicode domain names.
                 var idn = new IdnMapping();
-
-                // Pull out and process domain name (throws ArgumentException on invalid)
                 string domainName = idn.GetAscii(match.Groups[2].Value);
-
                 return match.Groups[1].Value + domainName;
             }
         }
@@ -57,14 +55,14 @@ public sealed class Email : ValueObject
             if (!Regex.IsMatch(
                 value,
                 @"^[^@\s]+@[^@\s]+\.[^@\s]+$",
-                RegexOptions.IgnoreCase, 
+                RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture,
                 TimeSpan.FromMilliseconds(250)))
             {
                 return Result<Email>.Failure("Invalid email format");
             }
 
-            // Normalize email to lowercase for consistent storage
-            var normalizedEmail = value.ToLowerInvariant();
+            // Normalize email to uppercase for consistent storage (per analyzer)
+            var normalizedEmail = value.ToUpperInvariant();
             return Result<Email>.Success(new Email(normalizedEmail));
         }
         catch (RegexMatchTimeoutException)
@@ -76,12 +74,11 @@ public sealed class Email : ValueObject
     public static Email CreateUnsafe(string value)
     {
         ArgumentNullException.ThrowIfNull(value);
-        value = value.Trim().ToLowerInvariant();
+        value = value.Trim().ToUpperInvariant();
         if (!IsValid(value))
         {
             throw new ArgumentException("Geçersiz email adresi", nameof(value));
         }
-
         return new Email(value);
     }
 
@@ -89,26 +86,18 @@ public sealed class Email : ValueObject
     {
         if (string.IsNullOrWhiteSpace(email))
             return false;
-
         try
         {
-            // Normalize the domain
             email = Regex.Replace(
                 email,
-                @"(@)(.+)$", 
+                @"(@)(.+)$",
                 DomainMapper,
-                RegexOptions.None, 
+                RegexOptions.None | RegexOptions.ExplicitCapture,
                 TimeSpan.FromMilliseconds(200));
-
-            // Examines the domain part of the email and normalizes it.
             static string DomainMapper(Match match)
             {
-                // Use IdnMapping class to convert Unicode domain names.
                 var idn = new IdnMapping();
-
-                // Pull out and process domain name (throws ArgumentException on invalid)
                 string domainName = idn.GetAscii(match.Groups[2].Value);
-
                 return match.Groups[1].Value + domainName;
             }
         }
@@ -120,13 +109,12 @@ public sealed class Email : ValueObject
         {
             return false;
         }
-
         try
         {
             return Regex.IsMatch(
                 email,
                 @"^[^@\s]+@[^@\s]+\.[^@\s]+$",
-                RegexOptions.IgnoreCase, 
+                RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture,
                 TimeSpan.FromMilliseconds(250));
         }
         catch (RegexMatchTimeoutException)
@@ -143,4 +131,4 @@ public sealed class Email : ValueObject
     {
         yield return Value;
     }
-} 
+}

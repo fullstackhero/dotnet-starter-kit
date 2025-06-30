@@ -1,3 +1,4 @@
+using System.Globalization;
 using FSH.Framework.Core.Auth.Domain;
 using FSH.Framework.Core.Auth.Features.Login;
 using FSH.Framework.Core.Auth.Jwt;
@@ -35,7 +36,7 @@ public class TokenService : ITokenService
                 user.FirstName,
                 user.LastName,
                 user.PhoneNumber.Value,
-                user.ProfessionId?.ToString() ?? string.Empty,
+                user.ProfessionId?.ToString(CultureInfo.InvariantCulture) ?? string.Empty,
                 user.Status,
                 roles);
 
@@ -53,7 +54,7 @@ public class TokenService : ITokenService
         }
         catch (Exception ex)
         {
-            return Result<TokenGenerationResult>.Failure($"Failed to generate token: {ex.Message}");
+            return Result<TokenGenerationResult>.Failure($"Failed to generate token: {ex}");
         }
     }
-} 
+}

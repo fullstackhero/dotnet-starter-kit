@@ -2,6 +2,9 @@ using MediatR;
 using FSH.Framework.Core.Auth.Repositories;
 using FSH.Framework.Core.Auth.Dtos;
 using FSH.Framework.Core.Common.Exceptions;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace FSH.Framework.Core.Auth.Features.Profile;
 
@@ -37,7 +40,7 @@ public sealed class GetUserProfileQueryHandler : IRequestHandler<GetUserProfileQ
             FirstName = user.FirstName,
             LastName = user.LastName,
             PhoneNumber = user.PhoneNumber.Value,
-            Profession = user.ProfessionId?.ToString() ?? string.Empty,
+            Profession = user.ProfessionId?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty,
             Tckn = user.Tckn.Value,
             MemberNumber = user.MemberNumber,
             BirthDate = user.BirthDate,
@@ -45,8 +48,8 @@ public sealed class GetUserProfileQueryHandler : IRequestHandler<GetUserProfileQ
             IsEmailVerified = user.IsEmailVerified,
             // IsPhoneVerified removed - SMS OTP verification happens during registration
             // IsIdentityVerified removed - MERNIS verification happens during registration
-            IsActive = user.Status == "ACTIVE",
+            IsActive = string.Equals(user.Status, "ACTIVE", StringComparison.OrdinalIgnoreCase),
             Roles = roles
         };
     }
-} 
+}

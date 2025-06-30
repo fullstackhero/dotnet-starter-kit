@@ -77,9 +77,18 @@ public class SmtpMailService(IOptions<MailOptions> settings, ILogger<SmtpMailSer
         using var client = new SmtpClient();
         try
         {
-            // Development: Skip SSL certificate validation for ethereal.email
-            client.ServerCertificateValidationCallback = (s, c, h, e) => true;
-            
+            // Only skip SSL validation for known dev/test hosts
+            if (!string.IsNullOrEmpty(_settings.Host) &&
+                (_settings.Host.Contains("ethereal.email", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "Development", StringComparison.Ordinal)))
+            {
+#pragma warning disable CA5359 // Do not disable certificate validation
+                // CA5359: This is only allowed for ethereal.email or Development environment for local testing.
+                client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+#pragma warning restore CA5359
+            }
+            if (string.IsNullOrEmpty(_settings.Host))
+                throw new InvalidOperationException("SMTP Host is not configured.");
             await client.ConnectAsync(_settings.Host, _settings.Port, SecureSocketOptions.StartTls, ct);
             await client.AuthenticateAsync(_settings.UserName, _settings.Password, ct);
             await client.SendAsync(email, ct);

@@ -1,3 +1,4 @@
+using System;
 using FluentValidation;
 using FSH.Framework.Core.Auth.Domain.ValueObjects;
 
@@ -52,7 +53,7 @@ public class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
             .WithMessage("Invalid birth date format");
 
         RuleFor(x => x.Status)
-            .Must(status => string.IsNullOrEmpty(status) || status == "ACTIVE" || status == "INACTIVE" || status == "SUSPENDED")
+            .Must(status => string.IsNullOrEmpty(status) || string.Equals(status, "ACTIVE", StringComparison.Ordinal) || string.Equals(status, "INACTIVE", StringComparison.Ordinal) || string.Equals(status, "SUSPENDED", StringComparison.Ordinal))
             .WithMessage("Status must be one of: ACTIVE, INACTIVE, SUSPENDED");
     }
-} 
+}

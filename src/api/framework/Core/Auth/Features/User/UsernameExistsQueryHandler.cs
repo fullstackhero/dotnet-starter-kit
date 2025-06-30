@@ -1,5 +1,7 @@
 using FSH.Framework.Core.Auth.Repositories;
 using MediatR;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace FSH.Framework.Core.Auth.Features.User;
 
@@ -16,4 +18,4 @@ public class UsernameExistsQueryHandler : IRequestHandler<UsernameExistsQuery, b
     {
         return await _users.UsernameExistsAsync(request.Username, request.ExcludeId);
     }
-} 
+}

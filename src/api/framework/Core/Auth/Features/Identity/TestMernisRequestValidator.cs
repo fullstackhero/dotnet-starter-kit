@@ -1,3 +1,4 @@
+using System;
 using FluentValidation;
 using FSH.Framework.Core.Auth.Features.Identity;
 
@@ -26,4 +27,4 @@ public class TestMernisRequestValidator : AbstractValidator<TestMernisRequest>
             .NotEmpty().WithMessage("Birth year is required")
             .InclusiveBetween(1900, DateTime.Now.Year).WithMessage("Birth year must be between 1900 and current year");
     }
-} 
+}

@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Globalization;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.OpenApi.Models;
@@ -21,12 +22,12 @@ public class SwaggerDefaultValues : IOperationFilter
         foreach (var responseType in context.ApiDescription.SupportedResponseTypes)
         {
             // REF: https://github.com/domaindrivendev/Swashbuckle.AspNetCore/blob/b7cf75e7905050305b115dd96640ddd6e74c7ac9/src/Swashbuckle.AspNetCore.SwaggerGen/SwaggerGenerator/SwaggerGenerator.cs#L383-L387
-            var responseKey = responseType.IsDefaultResponse ? "default" : responseType.StatusCode.ToString();
+            var responseKey = responseType.IsDefaultResponse ? "default" : responseType.StatusCode.ToString(CultureInfo.InvariantCulture);
             var response = operation.Responses[responseKey];
 
             foreach (var contentType in response.Content.Keys)
             {
-                if (!responseType.ApiResponseFormats.Any(x => x.MediaType == contentType))
+                if (!responseType.ApiResponseFormats.Any(x => string.Equals(x.MediaType, contentType, StringComparison.Ordinal)))
                 {
                     response.Content.Remove(contentType);
                 }
@@ -42,7 +43,7 @@ public class SwaggerDefaultValues : IOperationFilter
         // REF: https://github.com/domaindrivendev/Swashbuckle.AspNetCore/pull/413
         foreach (var parameter in operation.Parameters)
         {
-            var description = apiDescription.ParameterDescriptions.First(p => p.Name == parameter.Name);
+            var description = apiDescription.ParameterDescriptions.First(p => string.Equals(p.Name, parameter.Name, StringComparison.Ordinal));
 
             parameter.Description ??= description.ModelMetadata?.Description;
 

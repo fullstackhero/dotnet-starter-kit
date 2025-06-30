@@ -1,3 +1,4 @@
+using System;
 using MediatR;
 
 namespace FSH.Framework.Core.Auth.Features.Profile;
@@ -11,4 +12,4 @@ public class UpdatePhoneCommand : IRequest<string>
 {
     public Guid UserId { get; set; }
     public string NewPhoneNumber { get; set; } = default!;
-} 
+}

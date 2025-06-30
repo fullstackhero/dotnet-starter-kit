@@ -30,7 +30,7 @@ public class ProfessionsController : ControllerBase
         }
         catch (Exception ex)
         {
-            return Ok(ApiResponse<IReadOnlyList<ProfessionDto>>.FailureResult($"Error getting professions: {ex.Message}"));
+            return Ok(ApiResponse<IReadOnlyList<ProfessionDto>>.FailureResult($"Error getting professions: {ex}"));
         }
     }
 
@@ -55,7 +55,7 @@ public class ProfessionsController : ControllerBase
         }
         catch (Exception ex)
         {
-            return Ok(ApiResponse<ProfessionDto>.FailureResult($"Error getting profession: {ex.Message}"));
+            return Ok(ApiResponse<ProfessionDto>.FailureResult($"Error getting profession: {ex}"));
         }
     }
-} 
+}

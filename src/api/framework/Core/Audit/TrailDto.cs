@@ -1,16 +1,21 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace FSH.Framework.Core.Audit;
-public class TrailDto()
+public class TrailDto
 {
     public Guid Id { get; set; }
     public DateTimeOffset DateTime { get; set; }
     public Guid UserId { get; set; }
-    public Dictionary<string, object?> KeyValues { get; } = [];
-    public Dictionary<string, object?> OldValues { get; } = [];
-    public Dictionary<string, object?> NewValues { get; } = [];
-    public Collection<string> ModifiedProperties { get; } = [];
+    public Dictionary<string, object?> KeyValues { get; } = new(StringComparer.Ordinal);
+    public Dictionary<string, object?> OldValues { get; } = new(StringComparer.Ordinal);
+    public Dictionary<string, object?> NewValues { get; } = new(StringComparer.Ordinal);
+    public Collection<string> ModifiedProperties { get; } = new();
     public TrailType Type { get; set; }
     public string? TableName { get; set; }
 

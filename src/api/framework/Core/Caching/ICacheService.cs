@@ -1,3 +1,7 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
 namespace FSH.Framework.Core.Caching;
 
 public interface ICacheService

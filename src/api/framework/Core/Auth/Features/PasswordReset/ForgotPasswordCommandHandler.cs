@@ -7,6 +7,10 @@ using FSH.Framework.Core.Auth.Domain.ValueObjects;
 using FSH.Framework.Core.Common.Exceptions;
 using FSH.Framework.Core.Common.Options;
 using System.ComponentModel.DataAnnotations;
+using System.Threading;
+using System.Threading.Tasks;
+using System;
+using System.Linq;
 
 namespace FSH.Framework.Core.Auth.Features.PasswordReset;
 
@@ -91,7 +95,7 @@ public sealed class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswor
                 HasPhone = !string.IsNullOrEmpty(contactInfo.phone)
             };
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             throw new FshException("Şifre sıfırlama talebiniz işlenirken bir hata oluştu. Lütfen tekrar deneyiniz.");
         }
@@ -199,17 +203,8 @@ public sealed class SelectResetMethodCommandHandler : IRequestHandler<SelectRese
 
         try
         {
-        // Generate reset token
-            string token;
-            if (request.Method == ResetMethod.Email)
-            {
-                token = await _passwordResetService.GenerateResetTokenAsync(target);
-            }
-            else
-            {
-                // For SMS, we might need a different approach or use the same token system
-                token = await _passwordResetService.GenerateResetTokenAsync(target);
-            }
+            // Generate reset token
+            string token = await _passwordResetService.GenerateResetTokenAsync(target);
 
             if (request.Method == ResetMethod.Email)
             {
@@ -228,7 +223,7 @@ public sealed class SelectResetMethodCommandHandler : IRequestHandler<SelectRese
                 return $"Şifre sıfırlama bağlantısı {maskedTarget} numarasına SMS ile gönderildi.";
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             throw new FshException($"Şifre sıfırlama bağlantısı gönderilirken bir hata oluştu. Lütfen tekrar deneyiniz.");
         }
@@ -278,7 +273,7 @@ public sealed class ValidateTcPhoneCommandHandler : IRequestHandler<ValidateTcPh
         ArgumentNullException.ThrowIfNull(request);
 
         var tcKimlik = Tckn.CreateUnsafe(request.TcKimlikNo);
-        var phoneNumber = PhoneNumber.CreateUnsafe(request.PhoneNumber);
+        var phoneNumber = PhoneNumber.CreateUnsafe(request.PhoneNumberValue);
         
         // Validate TC Kimlik and Phone Number combination
         var (isValid, user) = await _userRepository.ValidateTcKimlikAndPhoneAsync(tcKimlik.Value, phoneNumber.Value);
@@ -298,7 +293,10 @@ public sealed class ValidateTcPhoneCommandHandler : IRequestHandler<ValidateTcPh
         
     private static string GenerateSmsCode()
     {
-        var random = new Random();
-        return random.Next(100000, 999999).ToString();
+        var bytes = new byte[4];
+        System.Security.Cryptography.RandomNumberGenerator.Fill(bytes);
+        int code = BitConverter.ToInt32(bytes, 0);
+        code = Math.Abs(code % 900000) + 100000;
+        return code.ToString(System.Globalization.CultureInfo.InvariantCulture);
     }
 }

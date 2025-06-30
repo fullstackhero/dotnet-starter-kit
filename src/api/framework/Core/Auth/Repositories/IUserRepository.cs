@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using FSH.Framework.Core.Auth.Domain;
 using FSH.Framework.Core.Auth.Domain.ValueObjects;
 
@@ -43,4 +46,4 @@ public interface IUserRepository
     // Profile Update Verification Methods
     Task<bool> VerifyEmailUpdateAsync(Guid userId, string verificationCode);
     Task<bool> VerifyPhoneUpdateAsync(Guid userId, string verificationCode);
-} 
+}

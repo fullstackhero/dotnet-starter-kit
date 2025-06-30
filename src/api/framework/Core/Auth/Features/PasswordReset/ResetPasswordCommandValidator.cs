@@ -1,3 +1,4 @@
+using System.Linq;
 using FluentValidation;
 using FSH.Framework.Core.Auth.Domain.ValueObjects;
 
@@ -11,7 +12,7 @@ public class ResetPasswordCommandValidator : AbstractValidator<ResetPasswordComm
             .NotEmpty().WithMessage("TC Kimlik numarası gereklidir")
             .Must(Tckn.IsValid).WithMessage("Geçerli bir TC kimlik numarası giriniz");
 
-        RuleFor(x => x.PhoneNumber)
+        RuleFor(x => x.UserPhoneNumber)
             .NotEmpty().WithMessage("Telefon numarası gereklidir")
             .Must(PhoneNumber.IsValid).WithMessage("Geçerli bir Türkiye telefon numarası giriniz");
 
@@ -24,4 +25,4 @@ public class ResetPasswordCommandValidator : AbstractValidator<ResetPasswordComm
             .NotEmpty().WithMessage("Yeni şifre gereklidir")
             .Must(Password.IsValid).WithMessage("Şifre güçlü olmalıdır (en az 8 karakter, büyük/küçük harf, rakam ve özel karakter)");
     }
-} 
+}

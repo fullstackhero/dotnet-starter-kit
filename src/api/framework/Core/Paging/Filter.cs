@@ -1,4 +1,6 @@
-﻿namespace FSH.Framework.Core.Paging;
+﻿using System.Collections.Generic;
+
+namespace FSH.Framework.Core.Paging;
 
 public static class FilterOperator
 {

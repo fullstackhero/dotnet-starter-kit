@@ -1,6 +1,8 @@
+using System;
+
 namespace FSH.Framework.Core.Common.Options;
 
 public sealed class FrontendOptions
 {
-    public string BaseUrl { get; set; } = "http://localhost:3001";
-} 
+    public Uri BaseUrl { get; set; } = new Uri("http://localhost:3001");
+}

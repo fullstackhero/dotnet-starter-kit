@@ -1,3 +1,4 @@
+using System;
 using MediatR;
 using FSH.Framework.Core.Common.Models;
 
@@ -13,4 +14,4 @@ public sealed record ValidateResetTokenResponse
     public bool IsValid { get; init; }
     public string? Message { get; init; }
     public DateTime? ExpiresAt { get; init; }
-} 
+}

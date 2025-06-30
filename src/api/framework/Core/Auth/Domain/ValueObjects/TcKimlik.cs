@@ -1,6 +1,9 @@
+using System;
+using System.Linq;
 using System.Text.RegularExpressions;
 using FSH.Framework.Core.Domain.ValueObjects;
 using FSH.Framework.Core.Common.Models;
+using System.Collections.Generic;
 
 namespace FSH.Framework.Core.Auth.Domain.ValueObjects;
 
@@ -21,7 +24,7 @@ public sealed class Tckn : ValueObject
         if (value.Length != 11)
             return Result<Tckn>.Failure("TCKN must be 11 digits");
 
-        if (!Regex.IsMatch(value, "^[0-9]*$"))
+        if (!Regex.IsMatch(value, "^[0-9]*$", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture, TimeSpan.FromMilliseconds(250)))
             return Result<Tckn>.Failure("TCKN must contain only digits");
 
         // TCKN algoritma kontrolü
@@ -49,7 +52,7 @@ public sealed class Tckn : ValueObject
         if (tckn.Length != 11)
             return false;
 
-        if (!Regex.IsMatch(tckn, "^[0-9]*$"))
+        if (!Regex.IsMatch(tckn, "^[0-9]*$", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture, TimeSpan.FromMilliseconds(250)))
             return false;
 
         return IsValidTckn(tckn);
@@ -87,4 +90,4 @@ public sealed class Tckn : ValueObject
     {
         yield return Value;
     }
-} 
+}

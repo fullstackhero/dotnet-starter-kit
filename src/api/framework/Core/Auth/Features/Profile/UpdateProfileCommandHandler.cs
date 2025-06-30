@@ -1,6 +1,9 @@
 using MediatR;
 using FSH.Framework.Core.Auth.Repositories;
 using FSH.Framework.Core.Common.Exceptions;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace FSH.Framework.Core.Auth.Features.Profile;
 
@@ -27,7 +30,7 @@ public sealed class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileC
 
         // Check if username is being updated and if it's available
         if (!string.IsNullOrEmpty(request.Username) && 
-            request.Username != user.Username)
+            !string.Equals(request.Username, user.Username, StringComparison.OrdinalIgnoreCase))
         {
             var usernameExists = await _userRepository.UsernameExistsAsync(request.Username, request.UserId)
                 .ConfigureAwait(false);
@@ -46,4 +49,4 @@ public sealed class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileC
 
         return "Profil bilgileriniz başarıyla güncellendi.";
     }
-} 
+}

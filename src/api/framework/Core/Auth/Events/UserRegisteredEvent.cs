@@ -1,3 +1,4 @@
+using System;
 using FSH.Framework.Core.Common.Events;
 
 namespace FSH.Framework.Core.Auth.Events;
@@ -23,4 +24,4 @@ public class UserRegisteredEvent : DomainEvent
         FirstName = firstName;
         LastName = lastName;
     }
-} 
+}

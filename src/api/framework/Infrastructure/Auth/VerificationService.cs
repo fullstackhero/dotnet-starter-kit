@@ -16,7 +16,7 @@ public class VerificationService : IVerificationService
     private readonly IOptions<VerificationOptions> _options;
     
     // In-memory storage for email tokens (production'da Redis kullanılmalı)
-    private static readonly ConcurrentDictionary<string, EmailTokenInfo> _emailTokens = new();
+    private static readonly ConcurrentDictionary<string, EmailTokenInfo> _emailTokens = new(StringComparer.OrdinalIgnoreCase);
 
     public VerificationService(
         ILogger<VerificationService> logger,
@@ -72,7 +72,7 @@ public class VerificationService : IVerificationService
         }
 
         // Token eşleşiyor mu?
-        if (tokenInfo.Token != token)
+        if (!string.Equals(tokenInfo.Token, token, StringComparison.Ordinal))
         {
             _logger.LogWarning("Invalid email verification token for: {Email}", email);
             return false;
@@ -131,4 +131,4 @@ public class VerificationOptions
     public Uri BaseUrl { get; set; } = default!;
     public int EmailTokenExpirationMinutes { get; set; } = 60;
     public int PhoneTokenExpirationMinutes { get; set; } = 15;
-} 
+}

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace FSH.Framework.Core.Persistence;
 public class DatabaseOptions : IValidatableObject

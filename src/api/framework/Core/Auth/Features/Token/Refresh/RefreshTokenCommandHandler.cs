@@ -1,3 +1,6 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using MediatR;
 using FSH.Framework.Core.Auth.Repositories;
 using FSH.Framework.Core.Auth.Services;
@@ -31,7 +34,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, T
         }
 
         var user = await _users.GetByIdAsync(userId) ?? throw new UnauthorizedAccessException("User not found");
-        if (user.Status != "ACTIVE")
+        if (!string.Equals(user.Status, "ACTIVE", StringComparison.Ordinal))
         {
             throw new UnauthorizedAccessException("Account is not active");
         }
@@ -45,7 +48,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, T
             user.FirstName, 
             user.LastName, 
             user.PhoneNumber.Value, 
-            user.ProfessionId?.ToString() ?? string.Empty, 
+            user.ProfessionId?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty, 
             user.Status, 
             roles);
 
@@ -61,4 +64,4 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, T
             RefreshTokenExpiryTime = expiry
         };
     }
-} 
+}

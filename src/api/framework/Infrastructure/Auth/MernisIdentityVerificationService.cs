@@ -123,8 +123,8 @@ public sealed class MernisIdentityVerificationService : IIdentityVerificationSer
     {
         try
         {
-            var pattern = @"<TCKimlikNoDogrulaResult>(.+?)</TCKimlikNoDogrulaResult>";
-            var match = System.Text.RegularExpressions.Regex.Match(responseXml, pattern);
+            var pattern = @"<TCKimlikNoDogrulaResult>(true|false)</TCKimlikNoDogrulaResult>";
+            var match = System.Text.RegularExpressions.Regex.Match(responseXml, pattern, RegexOptions.None, TimeSpan.FromSeconds(1));
             
             return match.Success && bool.Parse(match.Groups[1].Value);
         }
@@ -142,7 +142,7 @@ public sealed class MernisIdentityVerificationService : IIdentityVerificationSer
             return false;
         }
 
-        var digits = tckn.Select(c => int.Parse(c.ToString())).ToArray();
+        var digits = tckn.Select(c => int.Parse(c.ToString(), CultureInfo.InvariantCulture)).ToArray();
 
         var sumOdd = digits[0] + digits[2] + digits[4] + digits[6] + digits[8];
         var sumEven = digits[1] + digits[3] + digits[5] + digits[7];
@@ -160,5 +160,5 @@ public sealed class MernisServiceOptions
     public Uri ServiceUrl { get; init; } = new Uri("http://localhost");
     public string SoapAction { get; init; } = string.Empty;
     public int SimulationDelayMs { get; init; } = 200;
-    public HashSet<string> TestTcknFailures { get; init; } = new() { "12345678901" };
-} 
+    public HashSet<string> TestTcknFailures { get; init; } = new(StringComparer.Ordinal) { "12345678901" };
+}

@@ -1,3 +1,4 @@
+using System;
 using MediatR;
 
 namespace FSH.Framework.Core.Auth.Features.Profile;
@@ -12,4 +13,4 @@ public class VerifyPhoneUpdateCommand : IRequest<string>
     public Guid UserId { get; set; }
     public string NewPhoneNumber { get; set; } = default!;
     public string VerificationCode { get; set; } = default!;
-} 
+}

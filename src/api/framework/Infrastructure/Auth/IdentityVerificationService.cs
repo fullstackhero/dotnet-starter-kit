@@ -1,4 +1,5 @@
 using FSH.Framework.Core.Auth.Services;
+using System.Globalization;
 
 namespace FSH.Framework.Infrastructure.Auth;
 
@@ -40,7 +41,7 @@ public class IdentityVerificationService : IIdentityVerificationService
         }
 
         // Algorithm for Turkish National ID validation
-        var digits = tckn.Select(c => int.Parse(c.ToString())).ToArray();
+        var digits = tckn.Select(c => int.Parse(c.ToString(), CultureInfo.InvariantCulture)).ToArray();
 
         var sumOdd = digits[0] + digits[2] + digits[4] + digits[6] + digits[8];
         var sumEven = digits[1] + digits[3] + digits[5] + digits[7];
@@ -50,4 +51,4 @@ public class IdentityVerificationService : IIdentityVerificationService
 
         return check1 == digits[9] && check2 == digits[10];
     }
-} 
+}

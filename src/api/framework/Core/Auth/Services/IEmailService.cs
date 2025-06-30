@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 namespace FSH.Framework.Core.Auth.Services;
 
 public interface IEmailService
@@ -11,4 +13,4 @@ public interface IEmailService
     /// Genel email gönderme metodu
     /// </summary>
     Task SendEmailAsync(string to, string subject, string body);
-} 
+}

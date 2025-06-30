@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using FSH.Framework.Core.Domain.Contracts;
 using FSH.Framework.Core.Domain.Events;

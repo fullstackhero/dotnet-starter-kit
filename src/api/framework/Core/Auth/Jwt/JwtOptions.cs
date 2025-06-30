@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace FSH.Framework.Core.Auth.Jwt;
 public class JwtOptions : IValidatableObject

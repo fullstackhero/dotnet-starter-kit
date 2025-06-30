@@ -10,9 +10,9 @@ namespace FSH.Framework.Infrastructure.Auth;
 
 public sealed class PasswordResetService : IPasswordResetService
 {
-    private static readonly ConcurrentDictionary<string, string> _resetTokens = new();
-    private static readonly ConcurrentDictionary<string, DateTime> _tokenExpiry = new();
-    private static readonly ConcurrentDictionary<string, (int Count, DateTime FirstAttempt)> _rateLimitTracker = new();
+    private static readonly ConcurrentDictionary<string, string> _resetTokens = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly ConcurrentDictionary<string, DateTime> _tokenExpiry = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly ConcurrentDictionary<string, (int Count, DateTime FirstAttempt)> _rateLimitTracker = new(StringComparer.OrdinalIgnoreCase);
 
     private readonly ILogger<PasswordResetService> _logger;
     private readonly IUserRepository _userRepository;
@@ -46,7 +46,7 @@ public sealed class PasswordResetService : IPasswordResetService
                 throw new InvalidOperationException("Rate limit exceeded. Too many password reset attempts.");
             }
 
-            var emailKey = email.ToLowerInvariant();
+            var emailKey = email.ToUpperInvariant();
             var token = GenerateSecureToken();
             var expiryTime = DateTime.UtcNow.AddMinutes(_tokenExpirationMinutes);
 
@@ -74,7 +74,7 @@ public sealed class PasswordResetService : IPasswordResetService
         {
             CleanupExpiredTokens();
             
-            var emailKey = email.ToLowerInvariant();
+            var emailKey = email.ToUpperInvariant();
             
             if (!_resetTokens.TryGetValue(emailKey, out var storedToken) ||
                 !_tokenExpiry.TryGetValue(emailKey, out var expiryTime))
@@ -220,7 +220,7 @@ public sealed class PasswordResetService : IPasswordResetService
     {
         try
         {
-            var emailKey = email.ToLowerInvariant();
+            var emailKey = email.ToUpperInvariant();
             
             _resetTokens.TryRemove(emailKey, out _);
             _tokenExpiry.TryRemove(emailKey, out _);
@@ -240,7 +240,7 @@ public sealed class PasswordResetService : IPasswordResetService
     {
         try
         {
-            var emailKey = email.ToLowerInvariant();
+            var emailKey = email.ToUpperInvariant();
             var now = DateTime.UtcNow;
             
             if (_rateLimitTracker.TryGetValue(emailKey, out var attempts))
@@ -270,7 +270,7 @@ public sealed class PasswordResetService : IPasswordResetService
 
     private static Task TrackResetAttemptAsync(string email)
     {
-        var emailKey = email.ToLowerInvariant();
+        var emailKey = email.ToUpperInvariant();
         var now = DateTime.UtcNow;
         
         _rateLimitTracker.AddOrUpdate(
@@ -386,7 +386,7 @@ public sealed class PasswordResetService : IPasswordResetService
             _logger.LogInformation("Resetting password for identifier: {Identifier}", identifier);
             
             // Determine identifier type: Email, TCKN (11 digits), or Member Number
-            if (identifier.Contains('@') && identifier.Contains('.'))
+            if (identifier.Contains('@', StringComparison.Ordinal) && identifier.Contains('.', StringComparison.Ordinal))
             {
                 // Reset by Email
                 await _userRepository.ResetPasswordAsync(identifier, newPassword);
@@ -411,4 +411,4 @@ public sealed class PasswordResetService : IPasswordResetService
             throw new InvalidOperationException($"Failed to reset password for identifier: {identifier}", ex);
         }
     }
-} 
+}

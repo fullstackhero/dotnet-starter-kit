@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 using FSH.Framework.Core.Common.Models;
 using FSH.Framework.Core.Domain;
@@ -74,10 +75,10 @@ public sealed class AppUser
         var user = new AppUser
         {
             Id = Guid.NewGuid(),
-            Email = emailResult.Value,
+            Email = emailResult.Value!,
             Username = username,
-            PhoneNumber = phoneResult.Value,
-            Tckn = tcknResult.Value,
+            PhoneNumber = phoneResult.Value!,
+            Tckn = tcknResult.Value!,
             PasswordHash = string.Empty, // Will be set later
             FirstName = firstName,
             LastName = lastName,
@@ -122,10 +123,10 @@ public sealed class AppUser
         return new AppUser
         {
             Id = id,
-            Email = EmailVO.Create(email).Value, // Assume valid from DB
+            Email = EmailVO.Create(email).Value!, // Assume valid from DB
             Username = username,
-            PhoneNumber = PhoneNumberVO.Create(phoneNumber).Value, // Assume valid from DB
-            Tckn = TcknVO.Create(tckn).Value, // Assume valid from DB
+            PhoneNumber = PhoneNumberVO.Create(phoneNumber).Value!, // Assume valid from DB
+            Tckn = TcknVO.Create(tckn).Value!, // Assume valid from DB
             PasswordHash = passwordHash,
             FirstName = firstName,
             LastName = lastName,
@@ -365,12 +366,12 @@ public sealed class AppUser
     {
         var emailResult = EmailVO.Create(email);
         if (!emailResult.IsSuccess)
-            throw new ArgumentException($"Invalid email: {emailResult.Error}");
+            throw new ArgumentException($"Invalid email: {emailResult.Error}", nameof(email));
 
         return new AppUser
         {
             Id = Id,
-            Email = emailResult.Value,
+            Email = emailResult.Value!,
             Username = Username,
             PhoneNumber = PhoneNumber,
             Tckn = Tckn,
@@ -395,14 +396,14 @@ public sealed class AppUser
     {
         var phoneResult = PhoneNumberVO.Create(phoneNumber);
         if (!phoneResult.IsSuccess)
-            throw new ArgumentException($"Invalid phone number: {phoneResult.Error}");
+            throw new ArgumentException($"Invalid phone number: {phoneResult.Error}", nameof(phoneNumber));
 
         return new AppUser
         {
             Id = Id,
             Email = Email,
             Username = Username,
-            PhoneNumber = phoneResult.Value,
+            PhoneNumber = phoneResult.Value!,
             Tckn = Tckn,
             PasswordHash = PasswordHash,
             FirstName = FirstName,
@@ -420,4 +421,4 @@ public sealed class AppUser
             UpdatedAt = DateTime.UtcNow
         };
     }
-} 
+}

@@ -1,4 +1,5 @@
-﻿using Serilog;
+﻿using System.Globalization;
+using Serilog;
 using Serilog.Core;
 
 namespace FSH.Framework.Infrastructure.Logging.Serilog;
@@ -11,8 +12,8 @@ public static class StaticLogger
         {
             Log.Logger = new LoggerConfiguration()
                 .Enrich.FromLogContext()
-                .WriteTo.Console()
-                .WriteTo.OpenTelemetry()
+                .WriteTo.Console(formatProvider: CultureInfo.InvariantCulture)
+                .WriteTo.OpenTelemetry(formatProvider: CultureInfo.InvariantCulture)
                 .CreateLogger();
         }
     }

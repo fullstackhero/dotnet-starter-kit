@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 namespace FSH.Framework.Core.Auth.Services;
 
 public interface ISmsService
@@ -21,4 +23,4 @@ public interface ISmsService
     /// Telefon numarasına özel SMS metni gönderir
     /// </summary>
     Task SendSmsAsync(string phoneNumber, string message);
-} 
+}

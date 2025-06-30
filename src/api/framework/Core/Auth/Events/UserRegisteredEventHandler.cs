@@ -1,3 +1,6 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using FSH.Framework.Core.Mail;
@@ -63,4 +66,4 @@ public class UserRegisteredEventHandler : INotificationHandler<UserRegisteredEve
             // The user can request a new verification email later
         }
     }
-} 
+}

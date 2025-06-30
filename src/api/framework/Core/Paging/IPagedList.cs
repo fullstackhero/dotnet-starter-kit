@@ -1,4 +1,7 @@
-﻿namespace FSH.Framework.Core.Paging;
+﻿using System;
+using System.Collections.Generic;
+
+namespace FSH.Framework.Core.Paging;
 
 public interface IPagedList<T>
     where T : class

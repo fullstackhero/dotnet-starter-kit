@@ -1,3 +1,4 @@
+using System;
 using FSH.Framework.Core.Auth.Models;
 using MediatR;
 
@@ -23,4 +24,4 @@ public record RegisterRequestResponse(
     bool Success,
     string Message,
     string? PhoneNumber = null
-); 
+);

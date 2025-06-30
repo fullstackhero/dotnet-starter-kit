@@ -1,3 +1,4 @@
+using System;
 using MediatR;
 using FSH.Framework.Core.Common.Models;
 using FSH.Framework.Core.Auth.Domain.ValueObjects;
@@ -21,4 +22,4 @@ public record UpdateUserResult
 {
     public Guid UserId { get; init; }
     public string Message { get; init; } = default!;
-} 
+}

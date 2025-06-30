@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using FSH.Framework.Core.Common.Models;
@@ -58,6 +62,11 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Resul
             }
 
             var user = userResult.Value;
+            if (user == null)
+            {
+                _logger.LogError("User object is null after userResult.Value");
+                return Result<CreateUserResult>.Failure("User object is null.");
+            }
 
             // Set password - SetPassword returns a new instance with hashed password
             user = user.SetPassword(request.Password.Value);
@@ -97,4 +106,4 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Resul
             return Result<CreateUserResult>.Failure("An error occurred while creating the user");
         }
     }
-} 
+}

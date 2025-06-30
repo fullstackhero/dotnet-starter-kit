@@ -2,10 +2,50 @@
 The following sources were used:
    https://api.nuget.org/v3/index.json
 
-The given project `Infrastructure` has no vulnerable packages given the current sources.
+Project `Infrastructure` has the following vulnerable packages
+   [net9.0]: 
+   Top-level Package                               Requested   Resolved   Severity   Advisory URL                                     
+   > Microsoft.Identity.Client                     4.58.0      4.58.0     Low        https://github.com/advisories/GHSA-x674-v45j-fwxw
+                                                                          Moderate   https://github.com/advisories/GHSA-m5vv-6r4h-3vj9
+   > OpenTelemetry.Instrumentation.AspNetCore      1.8.0       1.8.0      Moderate   https://github.com/advisories/GHSA-vh2m-22xx-q94f
+   > OpenTelemetry.Instrumentation.Http            1.8.0       1.8.0      Moderate   https://github.com/advisories/GHSA-vh2m-22xx-q94f
+
+   Transitive Package      Resolved   Severity   Advisory URL                                     
+   > Azure.Identity        1.10.3     Moderate   https://github.com/advisories/GHSA-wvxc-855f-jvrv
+                                      Moderate   https://github.com/advisories/GHSA-m5vv-6r4h-3vj9
+   > System.Text.Json      8.0.0      High       https://github.com/advisories/GHSA-hh2w-p6rv-4g7w
+                                      High       https://github.com/advisories/GHSA-8g4q-xg66-9fp4
+
 The given project `Core` has no vulnerable packages given the current sources.
-The given project `Server` has no vulnerable packages given the current sources.
-The given project `PostgreSQL` has no vulnerable packages given the current sources.
-The given project `ServiceDefaults` has no vulnerable packages given the current sources.
+Project `Server` has the following vulnerable packages
+   [net9.0]: 
+   Transitive Package                              Resolved   Severity   Advisory URL                                     
+   > Azure.Identity                                1.10.3     Moderate   https://github.com/advisories/GHSA-wvxc-855f-jvrv
+                                                              Moderate   https://github.com/advisories/GHSA-m5vv-6r4h-3vj9
+   > Microsoft.Identity.Client                     4.58.0     Low        https://github.com/advisories/GHSA-x674-v45j-fwxw
+                                                              Moderate   https://github.com/advisories/GHSA-m5vv-6r4h-3vj9
+   > OpenTelemetry.Instrumentation.AspNetCore      1.8.0      Moderate   https://github.com/advisories/GHSA-vh2m-22xx-q94f
+   > OpenTelemetry.Instrumentation.Http            1.8.0      Moderate   https://github.com/advisories/GHSA-vh2m-22xx-q94f
+   > System.Text.Json                              8.0.0      High       https://github.com/advisories/GHSA-hh2w-p6rv-4g7w
+                                                              High       https://github.com/advisories/GHSA-8g4q-xg66-9fp4
+
+Project `PostgreSQL` has the following vulnerable packages
+   [net9.0]: 
+   Transitive Package                              Resolved   Severity   Advisory URL                                     
+   > Azure.Identity                                1.10.3     Moderate   https://github.com/advisories/GHSA-wvxc-855f-jvrv
+                                                              Moderate   https://github.com/advisories/GHSA-m5vv-6r4h-3vj9
+   > Microsoft.Identity.Client                     4.58.0     Low        https://github.com/advisories/GHSA-x674-v45j-fwxw
+                                                              Moderate   https://github.com/advisories/GHSA-m5vv-6r4h-3vj9
+   > OpenTelemetry.Instrumentation.AspNetCore      1.8.0      Moderate   https://github.com/advisories/GHSA-vh2m-22xx-q94f
+   > OpenTelemetry.Instrumentation.Http            1.8.0      Moderate   https://github.com/advisories/GHSA-vh2m-22xx-q94f
+   > System.Text.Json                              8.0.0      High       https://github.com/advisories/GHSA-hh2w-p6rv-4g7w
+                                                              High       https://github.com/advisories/GHSA-8g4q-xg66-9fp4
+
+Project `ServiceDefaults` has the following vulnerable packages
+   [net9.0]: 
+   Top-level Package                               Requested   Resolved   Severity   Advisory URL                                     
+   > OpenTelemetry.Instrumentation.AspNetCore      1.8.0       1.8.0      Moderate   https://github.com/advisories/GHSA-vh2m-22xx-q94f
+   > OpenTelemetry.Instrumentation.Http            1.8.0       1.8.0      Moderate   https://github.com/advisories/GHSA-vh2m-22xx-q94f
+
 The given project `Host` has no vulnerable packages given the current sources.
 The given project `Shared` has no vulnerable packages given the current sources.

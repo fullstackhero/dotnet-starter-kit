@@ -4,6 +4,9 @@ using FSH.Framework.Core.Auth.Repositories;
 using FSH.Framework.Core.Caching;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace FSH.Framework.Core.Auth.Features.VerifyRegistration;
 
@@ -82,7 +85,7 @@ public class VerifyRegistrationCommandHandler : IRequestHandler<VerifyRegistrati
             }
 
             // Set password and finalize user
-            var user = userResult.Value.SetPassword(data.Password);
+            var user = userResult.Value!.SetPassword(data.Password);
 
             // 4. Save user to database
             var userId = await _userRepository.CreateUserAsync(user);
@@ -105,4 +108,4 @@ public class VerifyRegistrationCommandHandler : IRequestHandler<VerifyRegistrati
             return new VerifyRegistrationResponse(false, "Doğrulama işlemi sırasında bir hata oluştu. Lütfen tekrar deneyiniz.");
         }
     }
-} 
+}

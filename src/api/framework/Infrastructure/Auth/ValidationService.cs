@@ -22,7 +22,7 @@ public sealed class ValidationService : IValidationService
                 email,
                 @"(@)(.+)$", 
                 DomainMapper,
-                RegexOptions.None, 
+                RegexOptions.None | RegexOptions.ExplicitCapture, 
                 TimeSpan.FromMilliseconds(200));
 
             // Examines the domain part of the email and normalizes it.
@@ -51,7 +51,7 @@ public sealed class ValidationService : IValidationService
             return Regex.IsMatch(
                 email,
                 @"^[^@\s]+@[^@\s]+\.[^@\s]+$",
-                RegexOptions.IgnoreCase, 
+                RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture, 
                 TimeSpan.FromMilliseconds(250));
         }
         catch (RegexMatchTimeoutException)
@@ -69,7 +69,7 @@ public sealed class ValidationService : IValidationService
 
         // Turkish phone number pattern: +90 followed by 10 digits
         const string pattern = @"^\+90[0-9]{10}$";
-        return Regex.IsMatch(phoneNumber, pattern);
+        return Regex.IsMatch(phoneNumber, pattern, RegexOptions.ExplicitCapture, TimeSpan.FromMilliseconds(250));
     }
 
     public bool IsValidTCKN(string tckn)
@@ -79,7 +79,7 @@ public sealed class ValidationService : IValidationService
             return false;
         }
 
-        var digits = tckn.Select(c => int.Parse(c.ToString())).ToArray();
+        var digits = tckn.Select(c => int.Parse(c.ToString(), CultureInfo.InvariantCulture)).ToArray();
 
         var sumOdd = digits[0] + digits[2] + digits[4] + digits[6] + digits[8];
         var sumEven = digits[1] + digits[3] + digits[5] + digits[7];
@@ -104,7 +104,7 @@ public sealed class ValidationService : IValidationService
 
         // Username can contain letters, numbers, and underscores
         const string pattern = @"^[a-zA-Z0-9_]+$";
-        return Regex.IsMatch(username, pattern);
+        return Regex.IsMatch(username, pattern, RegexOptions.ExplicitCapture, TimeSpan.FromMilliseconds(250));
     }
 
     public (bool IsValid, string ErrorMessage) ValidatePassword(string password)
@@ -141,4 +141,4 @@ public sealed class ValidationService : IValidationService
 
         return (true, string.Empty);
     }
-} 
+}

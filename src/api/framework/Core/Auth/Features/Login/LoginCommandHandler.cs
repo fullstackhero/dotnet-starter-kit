@@ -5,6 +5,11 @@ using FSH.Framework.Core.Auth.Repositories;
 using FSH.Framework.Core.Auth.Services;
 using FSH.Framework.Core.Auth.Domain.ValueObjects;
 using System.Collections.ObjectModel;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Linq;
 
 namespace FSH.Framework.Core.Auth.Features.Login;
 
@@ -67,7 +72,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<LoginRes
                 return Result<LoginResponseDto>.Failure("Geçersiz kimlik bilgileri. Lütfen TC Kimlik No/Üye No ve şifrenizi kontrol ediniz.");
             }
 
-            var roles = await _userRepository.GetUserRolesAsync(user.Id);
+            var roles = await _userRepository.GetUserRolesAsync(user!.Id);
             var tokenResult = await _tokenService.GenerateTokenAsync(user, roles, cancellationToken);
 
             if (!tokenResult.IsSuccess)
@@ -80,7 +85,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<LoginRes
                 UserId = user.Id,
                 Email = user.Email.Value,
                 Username = user.Username,
-                AccessToken = tokenResult.Value.AccessToken,
+                AccessToken = tokenResult.Value!.AccessToken,
                 RefreshToken = tokenResult.Value.RefreshToken,
                 ExpiresAt = tokenResult.Value.ExpiresAt,
                 Roles = new ReadOnlyCollection<string>(roles.ToList())
@@ -88,7 +93,8 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<LoginRes
         }
         catch (Exception ex)
         {
+            await Console.Error.WriteLineAsync($"[ERROR] {ex}");
             return Result<LoginResponseDto>.Failure("An error occurred during login. Please try again later.");
         }
     }
-} 
+}

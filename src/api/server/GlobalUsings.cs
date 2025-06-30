@@ -1,0 +1,37 @@
+// Global usings for common .NET types used throughout the Server project
+
+global using System;
+global using System.Collections.Generic;
+global using System.Collections.ObjectModel;
+global using System.Collections.Concurrent;
+global using System.Collections.Immutable;
+global using System.ComponentModel.DataAnnotations;
+global using System.Globalization;
+global using System.IO;
+global using System.Linq;
+global using System.Net;
+global using System.Net.Http;
+global using System.Net.Mail;
+global using System.Net.Security;
+global using System.Security.Claims;
+global using System.Security.Cryptography;
+global using System.Text;
+global using System.Text.RegularExpressions;
+global using System.Threading;
+global using System.Threading.Tasks;
+global using Microsoft.AspNetCore.Builder;
+global using Microsoft.AspNetCore.Hosting;
+global using Microsoft.AspNetCore.Http;
+global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.AspNetCore.Mvc.Filters;
+global using Microsoft.AspNetCore.Mvc.ModelBinding;
+global using Microsoft.AspNetCore.Mvc.RazorPages;
+global using Microsoft.AspNetCore.Mvc.Rendering;
+global using Microsoft.AspNetCore.Mvc.ViewFeatures;
+global using Microsoft.Extensions.Configuration;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Hosting;
+global using Microsoft.Extensions.Logging;
+global using Microsoft.OpenApi.Models;
+global using WebApplication = Microsoft.AspNetCore.Builder.WebApplication;
+global using WebApplicationBuilder = Microsoft.AspNetCore.Builder.WebApplicationBuilder;

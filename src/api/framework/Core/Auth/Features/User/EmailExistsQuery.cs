@@ -1,3 +1,4 @@
+using System;
 using MediatR;
 
 namespace FSH.Framework.Core.Auth.Features.User;
@@ -12,4 +13,4 @@ public class EmailExistsQuery : IRequest<bool>
         Email = email;
         ExcludeId = excludeId;
     }
-} 
+}

@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using System;
+using System.Collections.Generic;
+using System.Net;
 
 namespace FSH.Framework.Core.Exceptions;
 public class FshException : Exception

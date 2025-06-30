@@ -1,3 +1,4 @@
+using System;
 using MediatR;
 
 namespace FSH.Framework.Core.Common.Events;
@@ -12,4 +13,4 @@ public abstract class DomainEvent : INotification
         Id = Guid.NewGuid();
         OccurredOn = DateTime.UtcNow;
     }
-} 
+}

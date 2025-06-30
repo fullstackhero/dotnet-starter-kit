@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using System;
+using MediatR;
 
 namespace FSH.Framework.Core.Domain.Events;
 public abstract record DomainEvent : IDomainEvent, INotification

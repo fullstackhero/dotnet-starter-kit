@@ -1,3 +1,4 @@
+using System;
 using FluentValidation;
 using FSH.Framework.Core.Auth.Domain.ValueObjects;
 
@@ -41,7 +42,7 @@ public class UpdateUserCommandValidator : AbstractValidator<UpdateUserCommand>
 
         RuleFor(x => x.Status)
             .NotEmpty().WithMessage("Status is required")
-            .Must(x => x == "ACTIVE" || x == "INACTIVE" || x == "SUSPENDED")
+            .Must(x => string.Equals(x, "ACTIVE", StringComparison.Ordinal) || string.Equals(x, "INACTIVE", StringComparison.Ordinal) || string.Equals(x, "SUSPENDED", StringComparison.Ordinal))
             .WithMessage("Status must be one of: ACTIVE, INACTIVE, SUSPENDED");
     }
-} 
+}

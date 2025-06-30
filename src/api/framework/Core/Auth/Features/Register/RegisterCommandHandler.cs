@@ -5,6 +5,9 @@ using FSH.Framework.Core.Auth.Domain;
 using FSH.Framework.Core.Auth.Repositories;
 using FSH.Framework.Core.Auth.Services;
 using FSH.Framework.Core.Auth.Domain.ValueObjects;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace FSH.Framework.Core.Auth.Features.Register;
 
@@ -88,6 +91,11 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Re
             }
 
             var user = userResult.Value;
+            if (user == null)
+            {
+                _logger.LogError("User object is null after userResult.Value");
+                return Result<RegisterResponseDto>.Failure("User object is null.");
+            }
 
             // Set password - SetPassword returns a new instance with hashed password
             user = user.SetPassword(request.Password);
@@ -118,4 +126,4 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Re
             return Result<RegisterResponseDto>.Failure("An error occurred while registering the user");
         }
     }
-} 
+}

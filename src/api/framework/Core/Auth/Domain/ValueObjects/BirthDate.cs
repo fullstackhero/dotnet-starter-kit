@@ -1,5 +1,8 @@
+using System;
+using System.Collections.Generic;
 using FSH.Framework.Core.Domain.ValueObjects;
 using FSH.Framework.Core.Common.Models;
+using System.Globalization;
 
 namespace FSH.Framework.Core.Auth.Domain.ValueObjects;
 
@@ -35,11 +38,11 @@ public sealed class BirthDate : ValueObject
     }
 
     public static implicit operator DateTime(BirthDate birthDate) => birthDate.Value;
-
-    public override string ToString() => Value.ToString("yyyy-MM-dd");
+    public DateTime ToDateTime() => Value;
+    public override string ToString() => Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 
     protected override IEnumerable<object> GetEqualityComponents()
     {
         yield return Value;
     }
-} 
+}

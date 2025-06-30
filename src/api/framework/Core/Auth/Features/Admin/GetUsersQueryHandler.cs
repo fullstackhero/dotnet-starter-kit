@@ -1,3 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using FSH.Framework.Core.Auth.Repositories;
@@ -35,11 +40,11 @@ public sealed class GetUsersQueryHandler : IRequestHandler<GetUsersQuery, IReadO
             FirstName = u.FirstName,
             LastName = u.LastName,
             PhoneNumber = u.PhoneNumber.Value,
-            IsActive = u.Status == "ACTIVE"
+            IsActive = string.Equals(u.Status, "ACTIVE", StringComparison.Ordinal)
         }).ToList();
 
         _logger.LogInformation("Retrieved {Count} users", userDtos.Count);
 
         return userDtos;
     }
-} 
+}

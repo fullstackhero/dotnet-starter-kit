@@ -1,3 +1,4 @@
+using System;
 using MediatR;
 
 namespace FSH.Framework.Core.Auth.Features.VerifyRegistration;
@@ -11,4 +12,4 @@ public record VerifyRegistrationResponse(
     bool Success,
     string Message,
     Guid? UserId = null
-); 
+);

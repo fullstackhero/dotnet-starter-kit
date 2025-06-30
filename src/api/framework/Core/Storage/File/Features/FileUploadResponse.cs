@@ -1,4 +1,6 @@
-﻿namespace FSH.Framework.Core.Storage.File.Features;
+﻿using System;
+
+namespace FSH.Framework.Core.Storage.File.Features;
 
 public class FileUploadResponse
 {

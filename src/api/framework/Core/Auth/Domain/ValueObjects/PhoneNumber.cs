@@ -1,6 +1,8 @@
+using System;
 using System.Text.RegularExpressions;
 using FSH.Framework.Core.Domain.ValueObjects;
 using FSH.Framework.Core.Common.Models;
+using System.Collections.Generic;
 
 namespace FSH.Framework.Core.Auth.Domain.ValueObjects;
 
@@ -92,4 +94,4 @@ public sealed class PhoneNumber : ValueObject
     {
         yield return Value;
     }
-} 
+}

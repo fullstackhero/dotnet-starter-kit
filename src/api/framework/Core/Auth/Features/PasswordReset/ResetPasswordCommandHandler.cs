@@ -3,6 +3,9 @@ using Microsoft.Extensions.Logging;
 using FSH.Framework.Core.Auth.Services;
 using FSH.Framework.Core.Auth.Repositories;
 using FSH.Framework.Core.Common.Exceptions;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace FSH.Framework.Core.Auth.Features.PasswordReset;
 
@@ -42,7 +45,7 @@ public sealed class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordC
             _logger.LogWarning(
                 "Invalid SMS code used for password reset: {TcKimlik}, {PhoneNumber}",
                 request.TcKimlikNo,
-                request.PhoneNumber);
+                request.UserPhoneNumber);
 
             throw new FshException("SMS kodu geçersiz veya süresi dolmuş.");
         }
@@ -56,7 +59,7 @@ public sealed class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordC
             _logger.LogWarning(
                 "TC Kimlik and Phone validation failed during password reset: {TcKimlik}, {PhoneNumber}",
                 request.TcKimlikNo,
-                request.PhoneNumber);
+                request.UserPhoneNumber);
 
             throw new FshException("TC Kimlik ve telefon numarası eşleşmiyor.");
         }
@@ -70,8 +73,8 @@ public sealed class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordC
             "Password successfully reset for user: {UserId}, {TcKimlik}, {PhoneNumber}",
             user.Id,
             request.TcKimlikNo,
-            request.PhoneNumber);
+            request.UserPhoneNumber);
 
         return "Şifreniz başarıyla sıfırlandı. Yeni şifrenizle giriş yapabilirsiniz.";
     }
-} 
+}

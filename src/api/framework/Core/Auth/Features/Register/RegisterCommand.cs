@@ -1,3 +1,4 @@
+using System;
 using MediatR;
 using FSH.Framework.Core.Common.Models;
 
@@ -23,4 +24,4 @@ public class RegisterResponseDto
     public string Username { get; init; } = default!;
     public string? MemberNumber { get; init; }
     public string Message { get; init; } = default!;
-} 
+}

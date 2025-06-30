@@ -4,6 +4,9 @@ using FSH.Framework.Core.Auth.Repositories;
 using FSH.Framework.Core.Common.Exceptions;
 using FSH.Framework.Core.Auth.Domain.ValueObjects;
 using FSH.Framework.Core.Auth.Services;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace FSH.Framework.Core.Auth.Features.Profile;
 
@@ -87,4 +90,4 @@ public sealed class UpdatePhoneCommandHandler : IRequestHandler<UpdatePhoneComma
         // NOTE: Actual phone update will happen in VerifyPhoneUpdateCommand
         // after user provides the verification code from their SMS
     }
-} 
+}

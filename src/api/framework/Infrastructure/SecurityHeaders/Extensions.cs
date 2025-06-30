@@ -36,7 +36,7 @@ public static class Extensions
 
                     if (!string.IsNullOrWhiteSpace(options.Headers.ReferrerPolicy))
                     {
-                        context.Response.Headers.Referer = options.Headers.ReferrerPolicy;
+                        context.Response.Headers["Referrer-Policy"] = options.Headers.ReferrerPolicy;
                     }
 
                     if (!string.IsNullOrWhiteSpace(options.Headers.PermissionsPolicy))
@@ -46,17 +46,17 @@ public static class Extensions
 
                     if (!string.IsNullOrWhiteSpace(options.Headers.XXSSProtection))
                     {
-                        context.Response.Headers.XXSSProtection = options.Headers.XXSSProtection;
+                        context.Response.Headers["X-XSS-Protection"] = options.Headers.XXSSProtection;
                     }
 
                     if (!string.IsNullOrWhiteSpace(options.Headers.ContentSecurityPolicy))
                     {
-                        context.Response.Headers.ContentSecurityPolicy = options.Headers.ContentSecurityPolicy;
+                        context.Response.Headers["Content-Security-Policy"] = options.Headers.ContentSecurityPolicy;
                     }
 
                     if (!string.IsNullOrWhiteSpace(options.Headers.StrictTransportSecurity))
                     {
-                        context.Response.Headers.StrictTransportSecurity = options.Headers.StrictTransportSecurity;
+                        context.Response.Headers["Strict-Transport-Security"] = options.Headers.StrictTransportSecurity;
                     }
                 }
 

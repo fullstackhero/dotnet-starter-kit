@@ -1,3 +1,4 @@
+using System;
 using FluentValidation;
 
 namespace FSH.Framework.Core.Auth.Features.Admin;
@@ -11,7 +12,7 @@ public class AssignRoleCommandValidator : AbstractValidator<AssignRoleCommand>
 
         RuleFor(x => x.Role)
             .NotEmpty().WithMessage("Role is required")
-            .Must(role => role == "admin" || role == "customer_admin" || role == "customer_support" || role == "base_user")
+            .Must(role => string.Equals(role, "admin", StringComparison.Ordinal) || string.Equals(role, "customer_admin", StringComparison.Ordinal) || string.Equals(role, "customer_support", StringComparison.Ordinal) || string.Equals(role, "base_user", StringComparison.Ordinal))
             .WithMessage("Invalid role. Must be one of: admin, customer_admin, customer_support, base_user");
     }
-} 
+}

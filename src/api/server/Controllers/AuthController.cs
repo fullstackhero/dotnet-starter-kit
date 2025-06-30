@@ -20,7 +20,9 @@ using FSH.Starter.WebApi.Contracts.Auth;
 using FSH.Starter.WebApi.Contracts.Common;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace FSH.Starter.WebApi.Host;
@@ -208,7 +210,7 @@ public sealed class AuthController : ControllerBase
     public async Task<IActionResult> ValidateResetTokenAsync([FromBody] FSH.Framework.Core.Auth.Features.PasswordReset.ValidateResetTokenCommand command)
     {
         var result = await _mediator.Send(command);
-        return Ok(ApiResponse<FSH.Framework.Core.Auth.Features.PasswordReset.ValidateResetTokenResponse>.SuccessResult(result.Value));
+        return Ok(ApiResponse<FSH.Framework.Core.Auth.Features.PasswordReset.ValidateResetTokenResponse>.SuccessResult(result.Value!));
     }
 
     [HttpPost("reset-password")]
@@ -234,7 +236,8 @@ public sealed class AuthController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiResponse<string>.FailureResult(ex.Message));
+            await Console.Error.WriteLineAsync($"[ERROR] {ex}");
+            return BadRequest(ApiResponse<string>.FailureResult($"{ex}"));
         }
     }
 
@@ -430,7 +433,7 @@ public sealed class AuthController : ControllerBase
         {
             return Ok(new { 
                 error = true, 
-                message = ex.Message,
+                message = $"{ex}",
                 type = ex.GetType().Name
             });
         }
@@ -461,7 +464,7 @@ public sealed class AuthController : ControllerBase
         {
             return Ok(new { 
                 error = true, 
-                message = ex.Message,
+                message = $"{ex}",
                 type = ex.GetType().Name
             });
         }

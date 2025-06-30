@@ -1,3 +1,4 @@
+using System.Linq;
 using FluentValidation;
 using FSH.Framework.Core.Auth.Domain.ValueObjects;
 
@@ -41,8 +42,8 @@ public class ValidateTcPhoneCommandValidator : AbstractValidator<ValidateTcPhone
             .NotEmpty().WithMessage("TC Kimlik numarası gereklidir")
             .Must(Tckn.IsValid).WithMessage("Geçerli bir TC kimlik numarası giriniz");
 
-        RuleFor(x => x.PhoneNumber)
+        RuleFor(x => x.PhoneNumberValue)
             .NotEmpty().WithMessage("Telefon numarası gereklidir")
             .Must(PhoneNumber.IsValid).WithMessage("Geçerli bir Türkiye telefon numarası giriniz");
     }
-} 
+}

@@ -1,4 +1,6 @@
+using System;
 using System.Text.RegularExpressions;
+using System.Collections.Generic;
 using FSH.Framework.Core.Domain.ValueObjects;
 using FSH.Framework.Core.Common.Models;
 
@@ -18,7 +20,7 @@ public sealed class Username : ValueObject
         if (value.Length < 3 || value.Length > 50)
             return Result<Username>.Failure("Username must be between 3 and 50 characters");
             
-        if (!Regex.IsMatch(value, @"^[a-zA-Z0-9_-]+$"))
+        if (!Regex.IsMatch(value, @"^[a-zA-Z0-9_-]+$", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture, TimeSpan.FromMilliseconds(250)))
             return Result<Username>.Failure("Username can only contain letters, numbers, underscore and dash");
             
         return Result<Username>.Success(new Username(value));
@@ -32,7 +34,7 @@ public sealed class Username : ValueObject
         if (value.Length < 3 || value.Length > 50)
             return false;
             
-        return Regex.IsMatch(value, @"^[a-zA-Z0-9_-]+$");
+        return Regex.IsMatch(value, @"^[a-zA-Z0-9_-]+$", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture, TimeSpan.FromMilliseconds(250));
     }
 
     public static implicit operator string(Username username) => username.Value;
@@ -43,4 +45,4 @@ public sealed class Username : ValueObject
     {
         yield return Value;
     }
-} 
+}
