@@ -469,3 +469,7 @@ $RECYCLE.BIN/
 !.vscode/extensions.json
 
 **/Internal/Generated
+
+# log files
+*.log
+*.txt

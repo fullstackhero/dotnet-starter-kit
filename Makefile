@@ -127,12 +127,16 @@ analyze: analyze-code
 	@echo ""
 	@echo "📊 DEVELOPMENT ANALYSIS SUMMARY"
 	@echo "==============================="
-	@if [ -f "code-analysis.txt" ] && grep -q "Build FAILED\|Build failed" code-analysis.txt; then \
+	@if grep -q "BUILD STATUS: FAILED" code-analysis.txt; then \
 		echo "❌ BUILD STATUS: FAILED"; \
 		ERROR_COUNT=$$(grep -o "[0-9]\\+ Error(s)" code-analysis.txt | head -1 | grep -o "[0-9]\\+" || echo "0"); \
 		WARNING_COUNT=$$(grep -o "[0-9]\\+ Warning(s)" code-analysis.txt | head -1 | grep -o "[0-9]\\+" || echo "0"); \
 		echo "🚨 Errors: $$ERROR_COUNT"; \
 		echo "⚠️  Warnings: $$WARNING_COUNT"; \
+		echo ""; \
+		echo "🔎 Full error log:"; \
+		cat code-analysis.txt; \
+		exit 1; \
 	else \
 		echo "✅ BUILD STATUS: SUCCESS"; \
 		WARNING_COUNT=$$(grep -o "[0-9]\\+ Warning(s)" code-analysis.txt | head -1 | grep -o "[0-9]\\+" || echo "0"); \
