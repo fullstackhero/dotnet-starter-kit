@@ -1,4 +1,4 @@
-name: Analyze & Build
+name: Code Quality & Coverage Gate
 
 on:
   push:
@@ -7,8 +7,8 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  analyze:
-    name: Analyze & Build
+  quality-gate:
+    name: Quality & Coverage Gate
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -28,8 +28,159 @@ jobs:
             ${{ runner.os }}-nuget-
       - name: Restore dependencies
         run: make restore
-      - name: Build & Analyze
-        run: make analyze
+      
+      - name: Code Analysis
+        id: analyze
+        run: |
+          echo "🔍 Running static code analysis..."
+          if ! make analyze; then
+            echo "❌ Code analysis failed!"
+            echo "analysis_failed=true" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          echo "✅ Code analysis passed"
+          echo "analysis_failed=false" >> $GITHUB_OUTPUT
+      
       - name: Show code analysis errors if failed
-        if: failure()
-        run: cat code-analysis.txt || true
+        if: failure() && steps.analyze.outputs.analysis_failed == 'true'
+        run: |
+          echo "📋 Code Analysis Error Details:"
+          echo "==============================="
+          cat code-analysis.txt || echo "No analysis file found"
+      
+      - name: Run unit tests with coverage
+        id: tests
+        run: |
+          echo "🧪 Running unit tests with coverage..."
+          if ! make test-unit-coverage; then
+            echo "❌ Unit tests failed!"
+            echo "tests_failed=true" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          echo "✅ Unit tests passed"
+          echo "tests_failed=false" >> $GITHUB_OUTPUT
+
+      - name: Extract coverage percentage
+        id: coverage
+        run: |
+          if [ ! -f "coverage-report/index.html" ]; then
+            echo "❌ Coverage report not found!"
+            exit 1
+          fi
+          
+          # Extract coverage percentage from HTML
+          COVERAGE=$(grep -o 'cardpercentagebar[0-9]*">[0-9]*%' coverage-report/index.html | grep -o '[0-9]*%' | grep -o '[0-9]*' | head -1)
+          
+          if [ -z "$COVERAGE" ]; then
+            echo "❌ Could not extract coverage percentage!"
+            exit 1
+          fi
+          
+          echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
+          echo "📊 Current coverage: $COVERAGE%"
+
+      - name: Check coverage threshold
+        id: coverage_gate
+        run: |
+          COVERAGE=${{ steps.coverage.outputs.coverage }}
+          THRESHOLD=70
+          
+          echo "📊 Coverage Analysis:"
+          echo "====================="
+          echo "Current Coverage: $COVERAGE%"
+          echo "Required Threshold: $THRESHOLD%"
+          echo ""
+          
+          if [ "$COVERAGE" -lt "$THRESHOLD" ]; then
+            echo "❌ COVERAGE GATE FAILED!"
+            echo "Coverage $COVERAGE% is below required threshold of $THRESHOLD%"
+            echo ""
+            echo "🔧 Actions needed:"
+            echo "- Add more unit tests"
+            echo "- Improve test coverage for existing code"
+            echo "- Check coverage report: coverage-report/index.html"
+            echo "coverage_failed=true" >> $GITHUB_OUTPUT
+            exit 1
+          else
+            echo "✅ COVERAGE GATE PASSED!"
+            echo "Coverage $COVERAGE% meets the required threshold of $THRESHOLD%"
+            echo "coverage_failed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage-report/
+          retention-days: 7
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const coverage = ${{ steps.coverage.outputs.coverage || 0 }};
+            const threshold = 70;
+            const analysisStatus = '${{ steps.analyze.outputs.analysis_failed }}' !== 'true' ? '✅ PASSED' : '❌ FAILED';
+            const testsStatus = '${{ steps.tests.outputs.tests_failed }}' !== 'true' ? '✅ PASSED' : '❌ FAILED';
+            const coverageStatus = '${{ steps.coverage_gate.outputs.coverage_failed }}' !== 'true' ? '✅ PASSED' : '❌ FAILED';
+            
+            const overallStatus = analysisStatus.includes('❌') || testsStatus.includes('❌') || coverageStatus.includes('❌') ? '❌' : '✅';
+            const emoji = overallStatus === '✅' ? '🎉' : '⚠️';
+            
+            const comment = `## ${emoji} Code Quality & Coverage Report
+            
+            ### 📊 Quality Gates Status
+            | Gate | Status |
+            |------|--------|
+            | **Code Analysis** | **${analysisStatus}** |
+            | **Unit Tests** | **${testsStatus}** |
+            | **Coverage** | **${coverageStatus}** (${coverage}%) |
+            | **Threshold** | ${threshold}% |
+            
+            ### � Summary
+            ${overallStatus === '✅'
+              ? '🎯 **All quality gates passed!** Ready to merge.' 
+              : '🚫 **Quality gates failed.** Please fix the issues before merging.'}
+            
+            ${overallStatus === '❌' 
+              ? `
+            #### 🔧 Required Actions:
+            ${analysisStatus.includes('❌') ? '- Fix code analysis errors\n' : ''}${testsStatus.includes('❌') ? '- Fix failing unit tests\n' : ''}${coverageStatus.includes('❌') ? `- Increase test coverage to at least ${threshold}%\n` : ''}
+            ` : ''}
+            
+            📊 [View detailed reports](../actions/runs/${{ github.run_id }})`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+      - name: Final status check
+        if: always()
+        run: |
+          echo "🔍 Final Pipeline Status Check"
+          echo "============================="
+          
+          ANALYSIS_FAILED="${{ steps.analyze.outputs.analysis_failed }}"
+          TESTS_FAILED="${{ steps.tests.outputs.tests_failed }}"
+          COVERAGE_FAILED="${{ steps.coverage_gate.outputs.coverage_failed }}"
+          COVERAGE=${{ steps.coverage.outputs.coverage }}
+          
+          echo "📊 Gate Results:"
+          echo "- Code Analysis: $([ "$ANALYSIS_FAILED" = "true" ] && echo "❌ FAILED" || echo "✅ PASSED")"
+          echo "- Unit Tests: $([ "$TESTS_FAILED" = "true" ] && echo "❌ FAILED" || echo "✅ PASSED")"
+          echo "- Coverage Gate: $([ "$COVERAGE_FAILED" = "true" ] && echo "❌ FAILED ($COVERAGE%)" || echo "✅ PASSED ($COVERAGE%)")"
+          echo ""
+          
+          if [ "$ANALYSIS_FAILED" = "true" ] || [ "$TESTS_FAILED" = "true" ] || [ "$COVERAGE_FAILED" = "true" ]; then
+            echo "❌ PIPELINE FAILED - Quality gates not met"
+            echo "🚫 Commit/PR will be rejected"
+            exit 1
+          else
+            echo "✅ ALL QUALITY GATES PASSED"
+            echo "🎉 Pipeline completed successfully"
+          fi

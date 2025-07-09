@@ -1,5 +1,9 @@
 # FullStackHero .NET 9 Starter Kit - Simplified Architecture 🚀
 
+[![Code Quality & Coverage](https://github.com/FurkanHaydari/dotnet-starter-kit/actions/workflows/analyze.yml/badge.svg)](https://github.com/FurkanHaydari/dotnet-starter-kit/actions/workflows/analyze.yml)
+[![Test Coverage](https://img.shields.io/badge/coverage-74%25-green)](https://github.com/FurkanHaydari/dotnet-starter-kit/actions/workflows/test-coverage.yml)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 > Clean Architecture Solution with ASP.NET Core Web API, Dapper ORM & Role-Based Authentication
 
 A simplified .NET 9 starter kit focused on essential features with a clean, maintainable architecture. This project has been streamlined from the original FullStackHero template to provide a focused foundation for building scalable web APIs.

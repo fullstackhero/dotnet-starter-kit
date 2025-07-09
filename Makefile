@@ -163,7 +163,7 @@ analyze-code: restore
 	@echo "🧹 Cleaning for fresh analysis..."
 	@dotnet clean $(API_PROJECT) --configuration $(BUILD_CONFIG) > /dev/null 2>&1
 	@dotnet build $(API_PROJECT) --no-restore --configuration $(BUILD_CONFIG) \
-		--verbosity normal --no-incremental --force > code-analysis.txt 2>&1 || true
+		--verbosity normal --no-incremental --force > code-analysis.txt 2>&1
 	@echo "📄 Code analysis report: code-analysis.txt"
 	@echo ""
 
