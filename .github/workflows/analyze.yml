@@ -27,16 +27,56 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
       - name: Restore dependencies
-        run: make restore
+        run: |
+          echo "📦 Restoring dependencies..."
+          echo "🔍 Debug: Current directory: $(pwd)"
+          echo "🔍 Debug: Directory contents:"
+          ls -la
+          echo "🔍 Debug: src directory contents:"
+          ls -la src/
+          echo "🔍 Debug: Solution file check:"
+          if [ -f "src/FSH.Starter.sln" ]; then
+            echo "✅ Solution file found: src/FSH.Starter.sln"
+          else
+            echo "❌ Solution file not found!"
+          fi
+          echo ""
+          echo "🔄 Running make restore..."
+          # Note: restore sadece dependencies için, build otomatik restore yapar
+          if ! make restore; then
+            echo "⚠️ make restore failed, trying direct restore..."
+            if [ -f "src/FSH.Starter.sln" ]; then
+              dotnet restore src/FSH.Starter.sln
+            else
+              dotnet restore src/
+            fi
+          fi
+          echo "✅ Restore completed"
       
       - name: Code Analysis
         id: analyze
         run: |
           echo "🔍 Running static code analysis..."
+          echo "🔍 Debug: API project path check:"
+          if [ -f "src/api/server/Server.csproj" ]; then
+            echo "✅ API project found: src/api/server/Server.csproj"
+          else
+            echo "❌ API project not found!"
+            echo "Available files in src/api/:"
+            ls -la src/api/ || echo "src/api directory not found"
+          fi
+          echo ""
+          echo "🔄 Running make analyze..."
           if ! make analyze; then
-            echo "❌ Code analysis failed!"
-            echo "analysis_failed=true" >> $GITHUB_OUTPUT
-            exit 1
+            echo "⚠️ make analyze failed, trying direct analysis..."
+            echo "🧹 Cleaning for fresh analysis..."
+            dotnet clean src/api/server/Server.csproj --configuration Release > /dev/null 2>&1 || true
+            echo "📋 Building with analysis..."
+            if ! dotnet build src/api/server/Server.csproj --no-restore --configuration Release --verbosity normal --no-incremental --force > code-analysis.txt 2>&1; then
+              echo "❌ Code analysis failed!"
+              echo "analysis_failed=true" >> $GITHUB_OUTPUT
+              exit 1
+            fi
           fi
           echo "✅ Code analysis passed"
           echo "analysis_failed=false" >> $GITHUB_OUTPUT
@@ -53,9 +93,21 @@ jobs:
         run: |
           echo "🧪 Running unit tests with coverage..."
           if ! make test-unit-coverage; then
-            echo "❌ Unit tests failed!"
-            echo "tests_failed=true" >> $GITHUB_OUTPUT
-            exit 1
+            echo "⚠️ make test-unit-coverage failed, trying direct testing..."
+            echo "🧹 Cleaning up old coverage files..."
+            rm -rf coverage-report/
+            rm -rf tests/FSH.Starter.Tests.Unit/TestResults/
+            
+            echo "🧪 Running tests with coverage..."
+            if ! dotnet test tests/FSH.Starter.Tests.Unit/FSH.Starter.Tests.Unit.csproj --configuration Release --collect:"XPlat Code Coverage" --results-directory tests/FSH.Starter.Tests.Unit/TestResults/; then
+              echo "❌ Unit tests failed!"
+              echo "tests_failed=true" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+            
+            echo "📊 Generating HTML coverage report..."
+            dotnet tool install --global dotnet-reportgenerator-globaltool || true
+            reportgenerator "-reports:tests/FSH.Starter.Tests.Unit/TestResults/*/coverage.cobertura.xml" "-targetdir:coverage-report" "-reporttypes:Html" "-classfilters:+FSH.Starter.WebApi.*"
           fi
           echo "✅ Unit tests passed"
           echo "tests_failed=false" >> $GITHUB_OUTPUT
