@@ -25,7 +25,7 @@ public sealed class AdminCreateUserCommand
     [Required]
     public string LastName { get; init; } = default!;
 
-    public string? Profession { get; init; }
+    public int? ProfessionId { get; init; }
 
     [Required]
     public DateTime BirthDate { get; init; }

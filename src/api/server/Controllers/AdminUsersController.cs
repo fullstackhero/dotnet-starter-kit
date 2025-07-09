@@ -10,6 +10,8 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace FSH.Framework.Server.Controllers;
 
@@ -19,10 +21,12 @@ namespace FSH.Framework.Server.Controllers;
 public sealed class AdminUsersController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly ILogger<AdminUsersController> _logger;
 
-    public AdminUsersController(IMediator mediator)
+    public AdminUsersController(IMediator mediator, ILogger<AdminUsersController> logger)
     {
         _mediator = mediator;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -38,42 +42,32 @@ public sealed class AdminUsersController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
     public async Task<IActionResult> CreateUserAsync([FromBody] AdminCreateUserCommand request)
     {
-        // Validate all Value Objects
+        _logger.LogInformation("Attempting to create user with email {email}", request.Email);
+
         var emailResult = Email.Create(request.Email);
-        if (!emailResult.IsSuccess)
-            return BadRequest(ApiResponse.FailureResult($"Email error: {emailResult.Error}"));
-
         var usernameResult = Username.Create(request.Username);
-        if (!usernameResult.IsSuccess)
-            return BadRequest(ApiResponse.FailureResult($"Username error: {usernameResult.Error}"));
-
         var phoneResult = PhoneNumber.Create(request.PhoneNumber);
-        if (!phoneResult.IsSuccess)
-            return BadRequest(ApiResponse.FailureResult($"Phone error: {phoneResult.Error}"));
-
         var tcknResult = Tckn.Create(request.Tckn);
-        if (!tcknResult.IsSuccess)
-            return BadRequest(ApiResponse.FailureResult($"TCKN error: {tcknResult.Error}"));
-
         var passwordResult = Password.Create(request.Password);
-        if (!passwordResult.IsSuccess)
-            return BadRequest(ApiResponse.FailureResult($"Password error: {passwordResult.Error}"));
-
         var firstNameResult = Name.Create(request.FirstName);
-        if (!firstNameResult.IsSuccess)
-            return BadRequest(ApiResponse.FailureResult($"First name error: {firstNameResult.Error}"));
-
         var lastNameResult = Name.Create(request.LastName);
-        if (!lastNameResult.IsSuccess)
-            return BadRequest(ApiResponse.FailureResult($"Last name error: {lastNameResult.Error}"));
-
-        var professionResult = Profession.Create(request.Profession);
-        if (!professionResult.IsSuccess)
-            return BadRequest(ApiResponse.FailureResult($"Profession error: {professionResult.Error}"));
-
         var birthDateResult = BirthDate.Create(request.BirthDate);
-        if (!birthDateResult.IsSuccess)
-            return BadRequest(ApiResponse.FailureResult($"Birth date error: {birthDateResult.Error}"));
+
+        var errors = new List<string>();
+        if (!emailResult.IsSuccess) errors.Add(emailResult.Error!);
+        if (!usernameResult.IsSuccess) errors.Add(usernameResult.Error!);
+        if (!phoneResult.IsSuccess) errors.Add(phoneResult.Error!);
+        if (!tcknResult.IsSuccess) errors.Add(tcknResult.Error!);
+        if (!passwordResult.IsSuccess) errors.Add(passwordResult.Error!);
+        if (!firstNameResult.IsSuccess) errors.Add(firstNameResult.Error!);
+        if (!lastNameResult.IsSuccess) errors.Add(lastNameResult.Error!);
+        if (!birthDateResult.IsSuccess) errors.Add(birthDateResult.Error!);
+
+        if (errors.Any())
+        {
+            _logger.LogWarning("User creation validation failed: {errors}", string.Join(", ", errors));
+            return BadRequest(ApiResponse.FailureResult("Validation failed", errors));
+        }
 
         var command = new CreateUserCommand
         {
@@ -84,25 +78,23 @@ public sealed class AdminUsersController : ControllerBase
             Password = passwordResult.Value!,
             FirstName = firstNameResult.Value!,
             LastName = lastNameResult.Value!,
-            Profession = professionResult.Value,
             BirthDate = birthDateResult.Value!,
-            Status = request.Status,
-            IsEmailVerified = request.IsEmailVerified
+            IsEmailVerified = request.IsEmailVerified,
+            ProfessionId = request.ProfessionId,
+            Status = request.Status
         };
 
         var result = await _mediator.Send(command);
-        if (result.IsSuccess && result.Value is not null)
+
+        if (result.IsSuccess)
         {
-            return CreatedAtAction(
-                nameof(GetUsersAsync),
-                new { id = result.Value.UserId },
-                ApiResponse<CreateUserResult>.SuccessResult(result.Value));
+            return CreatedAtAction(nameof(GetUsersAsync), new { id = result.Value!.UserId }, ApiResponse<CreateUserResult>.SuccessResult(result.Value!));
         }
 
-        return BadRequest(ApiResponse.FailureResult(result.Error ?? "Failed to create user"));
+        return BadRequest(ApiResponse.FailureResult(result.Error!));
     }
 
-    [HttpPut("{id}")]
+    [HttpPut("{id:guid}")]
     [ProducesResponseType(typeof(ApiResponse<UpdateUserResult>), (int)HttpStatusCode.OK)]
     [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
@@ -129,10 +121,6 @@ public sealed class AdminUsersController : ControllerBase
         if (!phoneResult.IsSuccess)
             return BadRequest(ApiResponse.FailureResult($"Phone error: {phoneResult.Error}"));
 
-        var professionResult = Profession.Create(request.Profession);
-        if (!professionResult.IsSuccess)
-            return BadRequest(ApiResponse.FailureResult($"Profession error: {professionResult.Error}"));
-
         var command = new UpdateUserCommand
         {
             UserId = id,
@@ -141,7 +129,7 @@ public sealed class AdminUsersController : ControllerBase
             FirstName = firstNameResult.Value!,
             LastName = lastNameResult.Value!,
             PhoneNumber = phoneResult.Value!,
-            Profession = professionResult.Value,
+            ProfessionId = request.ProfessionId,
             Status = request.Status,
             IsEmailVerified = request.IsEmailVerified
         };

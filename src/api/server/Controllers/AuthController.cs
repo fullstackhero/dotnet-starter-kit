@@ -29,7 +29,7 @@ namespace FSH.Starter.WebApi.Host;
 
 [ApiController]
 [Route("api/v1/auth")]
-public sealed class AuthController : ControllerBase
+public class AuthController : ControllerBase
 {
     private readonly IMediator _mediator;
 
@@ -83,11 +83,10 @@ public sealed class AuthController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> RegisterRequestAsync([FromBody] RegisterRequest request)
     {
-        // Get client IP and device info
-        var registrationIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        var deviceInfo = HttpContext.Request.Headers.UserAgent.ToString();
+        // Sadece HttpContext kullan (test ve prod için güvenli)
+        string registrationIp = HttpContext?.Connection?.RemoteIpAddress?.ToString() ?? "unknown";
+        string deviceInfo = HttpContext?.Request?.Headers?["User-Agent"].ToString() ?? "unknown";
 
-        // Clean Architecture: Map presentation DTO to domain command
         var command = new FSH.Framework.Core.Auth.Features.RegisterRequest.RegisterRequestCommand(
             request.Email,
             request.PhoneNumber,
@@ -105,16 +104,10 @@ public sealed class AuthController : ControllerBase
         );
 
         var result = await _mediator.Send(command);
-        
-        // Check if the operation was successful
         if (result.Success)
-        {
-        return Ok(ApiResponse<FSH.Framework.Core.Auth.Features.RegisterRequest.RegisterRequestResponse>.SuccessResult(result));
-        }
+            return Ok(ApiResponse<FSH.Framework.Core.Auth.Features.RegisterRequest.RegisterRequestResponse>.SuccessResult(result));
         else
-        {
             return BadRequest(ApiResponse<FSH.Framework.Core.Auth.Features.RegisterRequest.RegisterRequestResponse>.FailureResult(result.Message));
-        }
     }
 
     [HttpPost("verify-registration")]
@@ -123,22 +116,17 @@ public sealed class AuthController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> VerifyRegistrationAsync([FromBody] VerifyRegistrationRequest request)
     {
+        // Sadece HttpContext kullan (test ve prod için güvenli)
         var command = new FSH.Framework.Core.Auth.Features.VerifyRegistration.VerifyRegistrationCommand(
             request.PhoneNumber,
             request.OtpCode
         );
 
         var result = await _mediator.Send(command);
-        
-        // Check if the operation was successful
         if (result.Success)
-        {
-        return Ok(ApiResponse<FSH.Framework.Core.Auth.Features.VerifyRegistration.VerifyRegistrationResponse>.SuccessResult(result));
-        }
+            return Ok(ApiResponse<FSH.Framework.Core.Auth.Features.VerifyRegistration.VerifyRegistrationResponse>.SuccessResult(result));
         else
-        {
             return BadRequest(ApiResponse<FSH.Framework.Core.Auth.Features.VerifyRegistration.VerifyRegistrationResponse>.FailureResult(result.Message));
-        }
     }
 
     [HttpPost("token")]
@@ -229,15 +217,14 @@ public sealed class AuthController : ControllerBase
     [ProducesResponseType(400)]
     public async Task<IActionResult> ResetPasswordWithTokenAsync([FromBody] FSH.Framework.Core.Auth.Features.PasswordReset.ResetPasswordWithTokenCommand command)
     {
-        try
+        var result = await _mediator.Send(command);
+        if (result.Contains("Success", StringComparison.OrdinalIgnoreCase))
         {
-            var result = await _mediator.Send(command);
             return Ok(ApiResponse<string>.SuccessResult(result));
         }
-        catch (Exception ex)
+        else
         {
-            await Console.Error.WriteLineAsync($"[ERROR] {ex}");
-            return BadRequest(ApiResponse<string>.FailureResult($"{ex}"));
+            return Ok(ApiResponse<string>.FailureResult(result));
         }
     }
 

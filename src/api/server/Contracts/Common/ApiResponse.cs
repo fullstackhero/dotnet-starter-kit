@@ -1,4 +1,7 @@
 using System.Collections.ObjectModel;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("FSH.Starter.Tests.Unit")]
 
 namespace FSH.Starter.WebApi.Contracts.Common;
 

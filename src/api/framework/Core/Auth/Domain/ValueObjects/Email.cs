@@ -23,23 +23,27 @@ public sealed class Email : ValueObject
             return Result<Email>.Failure("Email cannot be empty");
         }
 
+        string normalizedEmail = value.Trim();
         try
         {
-            // Normalize the domain
-            value = Regex.Replace(
-                value,
+            // Normalize the domain (IDN) - exception fırlarsa orijinal domaini kullan
+            normalizedEmail = Regex.Replace(
+                normalizedEmail,
                 @"(@)(.+)$",
-                DomainMapper,
+                match => {
+                    try {
+                        var idn = new IdnMapping();
+                        string domainName = idn.GetAscii(match.Groups[2].Value);
+                        return match.Groups[1].Value + domainName;
+                    } catch (Exception ex) {
+                        // Exception swallow is intentional for IDN domain normalization fallback
+                        // Log the full exception for better debugging
+                        System.Diagnostics.Debug.WriteLine($"[Email] Domain normalization failed: {ex}");
+                        return match.Groups[0].Value;
+                    }
+                },
                 RegexOptions.None | RegexOptions.ExplicitCapture,
                 TimeSpan.FromMilliseconds(200));
-
-            // Examines the domain part of the email and normalizes it.
-            static string DomainMapper(Match match)
-            {
-                var idn = new IdnMapping();
-                string domainName = idn.GetAscii(match.Groups[2].Value);
-                return match.Groups[1].Value + domainName;
-            }
         }
         catch (RegexMatchTimeoutException)
         {
@@ -53,7 +57,7 @@ public sealed class Email : ValueObject
         try
         {
             if (!Regex.IsMatch(
-                value,
+                normalizedEmail,
                 @"^[^@\s]+@[^@\s]+\.[^@\s]+$",
                 RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture,
                 TimeSpan.FromMilliseconds(250)))
@@ -61,8 +65,8 @@ public sealed class Email : ValueObject
                 return Result<Email>.Failure("Invalid email format");
             }
 
-            // Normalize email to uppercase for consistent storage (per analyzer)
-            var normalizedEmail = value.ToUpperInvariant();
+            // Email normalization: büyük harfli olarak sakla (test ve domain uyumu için)
+            normalizedEmail = normalizedEmail.ToUpperInvariant();
             return Result<Email>.Success(new Email(normalizedEmail));
         }
         catch (RegexMatchTimeoutException)

@@ -51,7 +51,7 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Resul
                 tckn: request.Tckn.Value,
                 firstName: request.FirstName.Value,
                 lastName: request.LastName.Value,
-                professionId: null, // Admin create için şimdilik null, gelecekte profession seçimi eklenebilir
+                professionId: request.ProfessionId,
                 birthDate: request.BirthDate.Value
             );
 

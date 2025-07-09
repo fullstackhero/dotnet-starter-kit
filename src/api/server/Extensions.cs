@@ -1,8 +1,11 @@
 ﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 using Asp.Versioning;
 using Carter;
 using FluentValidation;
 using FSH.Starter.WebApi.Host;
+
+[assembly: InternalsVisibleTo("FSH.Starter.Tests.Unit")]
 
 namespace FSH.Starter.WebApi.Host;
 

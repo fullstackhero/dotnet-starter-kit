@@ -1,5 +1,8 @@
 using System.ComponentModel.DataAnnotations;
+using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
+
+[assembly: InternalsVisibleTo("FSH.Starter.Tests.Unit")]
 
 namespace FSH.Starter.WebApi.Contracts.Auth;
 

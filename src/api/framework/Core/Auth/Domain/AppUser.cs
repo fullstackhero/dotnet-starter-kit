@@ -249,6 +249,32 @@ public sealed class AppUser
         };
     }
 
+    public AppUser WithProfessionId(int? professionId)
+    {
+        return new AppUser
+        {
+            Id = this.Id,
+            Email = this.Email,
+            Username = this.Username,
+            PhoneNumber = this.PhoneNumber,
+            Tckn = this.Tckn,
+            PasswordHash = this.PasswordHash,
+            FirstName = this.FirstName,
+            LastName = this.LastName,
+            ProfessionId = professionId,
+            BirthDate = this.BirthDate,
+            MemberNumber = this.MemberNumber,
+            IsEmailVerified = this.IsEmailVerified,
+            MarketingConsent = this.MarketingConsent,
+            ElectronicCommunicationConsent = this.ElectronicCommunicationConsent,
+            MembershipAgreementConsent = this.MembershipAgreementConsent,
+            Status = this.Status,
+            RegistrationIp = this.RegistrationIp,
+            CreatedAt = this.CreatedAt,
+            UpdatedAt = this.UpdatedAt
+        };
+    }
+
     // Business logic methods
     public AppUser SetPassword(string password)
     {

@@ -43,9 +43,9 @@ public class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
             .Must(name => Name.Create(name.Value).IsSuccess)
             .WithMessage("Invalid last name format");
 
-        RuleFor(x => x.Profession)
-            .Must(profession => profession == null || Profession.Create(profession.Value).IsSuccess)
-            .WithMessage("Invalid profession format");
+        RuleFor(x => x.ProfessionId)
+            .Must(professionId => !professionId.HasValue || professionId > 0)
+            .WithMessage("Invalid profession id");
 
         RuleFor(x => x.BirthDate)
             .NotEmpty().WithMessage("Birth date is required")

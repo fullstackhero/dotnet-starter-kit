@@ -14,7 +14,7 @@ public record CreateUserCommand : IRequest<Result<CreateUserResult>>
     public Password Password { get; init; } = default!;
     public Name FirstName { get; init; } = default!;
     public Name LastName { get; init; } = default!;
-    public Profession? Profession { get; init; }
+    public int? ProfessionId { get; set; }
     public BirthDate BirthDate { get; init; } = default!;
     public string? Status { get; init; }
     public bool IsEmailVerified { get; init; }

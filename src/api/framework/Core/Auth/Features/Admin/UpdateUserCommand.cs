@@ -14,6 +14,7 @@ public record UpdateUserCommand : IRequest<Result<UpdateUserResult>>
     public Name LastName { get; init; } = default!;
     public PhoneNumber PhoneNumber { get; init; } = default!;
     public Profession? Profession { get; init; }
+    public int? ProfessionId { get; set; }
     public string Status { get; init; } = default!;
     public bool IsEmailVerified { get; init; }
 }

@@ -747,3 +747,38 @@ evaluate-security:
 		echo "✅ Security evaluation passed"; \
 	fi; \
 	exit $$EXIT_CODE
+
+## Unit Test Coverage - Run unit tests and generate coverage report
+test-unit-coverage:
+	@echo "🔬 Running unit tests with coverage..."
+	@echo ""
+	@echo "🧹 Cleaning up old coverage files..."
+	@rm -rf coverage-report/*
+	@find . -name 'coverage.cobertura.xml' -type f -delete 2>/dev/null || true
+	@find . -name 'TestResults' -type d -exec rm -rf {} + 2>/dev/null || true
+	@find . -name 'coverage-results' -type d -exec rm -rf {} + 2>/dev/null || true
+	@if [ -d "tests/FSH.Starter.Tests.Unit" ]; then \
+		echo "📋 Unit Test Coverage Results:"; \
+		echo "============================="; \
+		dotnet test tests/FSH.Starter.Tests.Unit --configuration $(BUILD_CONFIG) --collect:"XPlat Code Coverage" --logger "console;verbosity=detailed" --verbosity normal; \
+		COVERAGE_FILE=$$(find . -name 'coverage.cobertura.xml' | head -1); \
+		if [ -n "$$COVERAGE_FILE" ]; then \
+			dotnet tool install -g dotnet-reportgenerator-globaltool 2>/dev/null || true; \
+			reportgenerator -reports:"$$COVERAGE_FILE" -targetdir:"coverage-report" -reporttypes:Html -classfilters:"+FSH.Starter.WebApi.*"; \
+			echo "📂 HTML report: coverage-report/index.html"; \
+		else \
+			echo "⚠️ Coverage XML bulunamadı!"; \
+		fi; \
+	else \
+		echo "⚠️ Unit test project not found"; \
+	fi
+	@echo ""
+	@echo "✅ Unit test coverage completed"
+
+## Coverage HTML - Generate HTML report from coverage
+coverage-html:
+	@echo "📊 Generating HTML coverage report..."
+	@rm -rf coverage-report/*
+	@dotnet tool install -g dotnet-reportgenerator-globaltool 2>/dev/null || true
+	@reportgenerator -reports:"$(shell find . -name 'coverage.cobertura.xml' | head -1)" -targetdir:"coverage-report" -reporttypes:Html -classfilters:"+FSH.Starter.WebApi.*"
+	@echo "📂 HTML report: coverage-report/index.html"

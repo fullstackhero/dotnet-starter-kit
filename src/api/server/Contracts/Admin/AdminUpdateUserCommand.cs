@@ -19,7 +19,7 @@ public sealed class AdminUpdateUserCommand
     [Required]
     public string PhoneNumber { get; init; } = default!;
 
-    public string? Profession { get; init; }
+    public int? ProfessionId { get; init; }
 
     [Required]
     public string Status { get; init; } = default!;

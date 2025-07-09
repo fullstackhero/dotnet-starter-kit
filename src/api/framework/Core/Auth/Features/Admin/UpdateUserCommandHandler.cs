@@ -63,7 +63,8 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, Resul
             var updatedUser = user
                 .WithPasswordHash(user.PasswordHash) // Keep existing password
                 .WithEmailVerificationStatus(request.IsEmailVerified)
-                .WithStatus(request.Status);
+                .WithStatus(request.Status)
+                .WithProfessionId(request.ProfessionId);
 
             // Save changes
             await _userRepository.UpdateUserAsync(updatedUser);
