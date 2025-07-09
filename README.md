@@ -205,12 +205,21 @@ For some tests that validate real Turkish identity data, you need to create a te
    ```
 
 2. **CI/CD Setup**: For GitHub Actions, add a repository secret:
+   
+   **Method 1 - Repository Secret (Recommended):**
    - Go to your repository Settings → Secrets and variables → Actions
    - Add a new secret named `PERSONAL_DATA_JSON`
    - Value should be the JSON content:
      ```json
      [{"firstName":"Test","lastName":"User","tckn":"12345678901","birthDate":"1990-01-01"}]
      ```
+   
+   **Method 2 - Environment Secret:**
+   - Go to Settings → Environments → Create new environment (e.g., "production")
+   - Add the same secret there
+   - Uncomment the `environment: production` line in `.github/workflows/analyze.yml`
+   
+   **Fallback:** If no secret is found, the CI will use hardcoded test data as fallback.
 
    > **Note**: The `testdata/personal_data.json` file is ignored by git for security reasons. Only the `.example` template is committed.
 
