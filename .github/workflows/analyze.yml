@@ -2,9 +2,9 @@ name: Code Quality & Coverage Gate
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ "**" ]  # Her branch'te çalışır
   pull_request:
-    branches: [ main, develop ]
+    branches: [ "**" ]  # Her branch'e PR'da çalışır
 
 jobs:
   quality-gate:
@@ -44,12 +44,22 @@ jobs:
           echo "🔄 Running make restore..."
           # Note: restore sadece dependencies için, build otomatik restore yapar
           if ! make restore; then
-            echo "⚠️ make restore failed, trying direct restore..."
+            echo "⚠️ make restore failed, trying comprehensive restore..."
+            echo "🔍 Debug: Make restore error details:"
+            make restore 2>&1 | head -20 || true
+            echo ""
+            
+            echo "🔄 Step 1: Trying solution restore..."
             if [ -f "src/FSH.Starter.sln" ]; then
-              dotnet restore src/FSH.Starter.sln
-            else
-              dotnet restore src/
+              dotnet restore src/FSH.Starter.sln --verbosity normal --force --no-cache 2>&1 | head -15 || true
             fi
+            
+            echo "🔄 Step 2: Trying project-specific restore..."
+            dotnet restore src/api/server/Server.csproj --verbosity normal --force --no-cache 2>&1 | head -15 || true
+            
+            echo "🔄 Step 3: Trying global NuGet clear and restore..."
+            dotnet nuget locals all --clear
+            dotnet restore src/FSH.Starter.sln --verbosity normal || dotnet restore src/ --verbosity normal
           fi
           echo "✅ Restore completed"
       
@@ -72,10 +82,22 @@ jobs:
             echo "🧹 Cleaning for fresh analysis..."
             dotnet clean src/api/server/Server.csproj --configuration Release > /dev/null 2>&1 || true
             echo "📋 Building with analysis..."
-            if ! dotnet build src/api/server/Server.csproj --no-restore --configuration Release --verbosity normal --no-incremental --force > code-analysis.txt 2>&1; then
-              echo "❌ Code analysis failed!"
-              echo "analysis_failed=true" >> $GITHUB_OUTPUT
-              exit 1
+            echo "🔍 Debug: Attempting direct build..."
+            
+            # Try build with restore first (assets file might be missing)
+            echo "🔄 First attempt: Build with restore..."
+            if ! dotnet build src/api/server/Server.csproj --configuration Release --verbosity normal --no-incremental --force > code-analysis.txt 2>&1; then
+              echo "⚠️ Build with restore failed, trying without no-restore..."
+              if ! dotnet build src/api/server/Server.csproj --no-restore --configuration Release --verbosity normal --no-incremental --force > code-analysis.txt 2>&1; then
+                echo "❌ Code analysis failed!"
+                echo "📋 Error details from build:"
+                cat code-analysis.txt || echo "No code-analysis.txt file found"
+                echo ""
+                echo "🔍 Final debug - checking project structure:"
+                ls -la src/api/server/ || true
+                echo "analysis_failed=true" >> $GITHUB_OUTPUT
+                exit 1
+              fi
             fi
           fi
           echo "✅ Code analysis passed"
@@ -88,6 +110,19 @@ jobs:
           echo "==============================="
           cat code-analysis.txt || echo "No analysis file found"
       
+      - name: Setup test data
+        run: |
+          echo "📁 Setting up test data..."
+          mkdir -p testdata
+          if [ -n "${{ secrets.PERSONAL_DATA_JSON }}" ]; then
+            echo "✅ Creating personal_data.json from GitHub secrets"
+            echo '${{ secrets.PERSONAL_DATA_JSON }}' > testdata/personal_data.json
+          else
+            echo "⚠️ PERSONAL_DATA_JSON secret not found - some tests may be skipped"
+            echo "[]" > testdata/personal_data.json  # Create empty file to prevent errors
+          fi
+          echo "📋 Test data file created (size: $(wc -c < testdata/personal_data.json) bytes)"
+
       - name: Run unit tests with coverage
         id: tests
         run: |
@@ -98,8 +133,26 @@ jobs:
             rm -rf coverage-report/
             rm -rf tests/FSH.Starter.Tests.Unit/TestResults/
             
+            echo "🔍 Debug: Checking test data and environment..."
+            echo "📂 Current working directory:"
+            pwd
+            echo "📁 Test data files in workspace:"
+            find . -name "personal_data.json" -type f 2>/dev/null || echo "No personal_data.json found"
+            echo "📁 Content of testdata directory:"
+            ls -la testdata/ 2>/dev/null || echo "testdata directory not found"
+            echo "📋 Test project configuration:"
+            cat tests/FSH.Starter.Tests.Unit/FSH.Starter.Tests.Unit.csproj
+            
+            echo "🔨 Building test project first..."
+            dotnet build tests/FSH.Starter.Tests.Unit/FSH.Starter.Tests.Unit.csproj --configuration Release --verbosity minimal
+            
+            echo "📁 Test output directories after build:"
+            find tests/FSH.Starter.Tests.Unit/bin -type d -name "*net9.0*" 2>/dev/null || echo "No test output directories found"
+            echo "📁 Test data in output directory:"
+            find tests/FSH.Starter.Tests.Unit/bin -name "personal_data.json" -type f 2>/dev/null || echo "Test data not found in output"
+            
             echo "🧪 Running tests with coverage..."
-            if ! dotnet test tests/FSH.Starter.Tests.Unit/FSH.Starter.Tests.Unit.csproj --configuration Release --collect:"XPlat Code Coverage" --results-directory tests/FSH.Starter.Tests.Unit/TestResults/; then
+            if ! dotnet test tests/FSH.Starter.Tests.Unit/FSH.Starter.Tests.Unit.csproj --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory tests/FSH.Starter.Tests.Unit/TestResults/; then
               echo "❌ Unit tests failed!"
               echo "tests_failed=true" >> $GITHUB_OUTPUT
               exit 1

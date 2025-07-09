@@ -1,5 +1,7 @@
 namespace FSH.Starter.Tests.Unit.Controllers
 {
+    using System;
+    using System.IO;
     using System.Text.Json;
     using Xunit;
 
@@ -8,10 +10,22 @@ namespace FSH.Starter.Tests.Unit.Controllers
         [Fact]
         public void Should_Read_Personal_Data_From_Json()
         {
-            // Arrange
-            var json = System.IO.File.ReadAllText("testdata/personal_data.json");
-            var data = JsonSerializer.Deserialize<PersonalData[]>(json);
+            var testDataPath = "testdata/personal_data.json";
+            
+            if (!File.Exists(testDataPath))
+            {
+                throw new FileNotFoundException(
+                    $"Test data file not found: {testDataPath}\n" +
+                    "This file contains sensitive test data and is not committed to git.\n" +
+                    "For local development, create the file manually.\n" +
+                    "For CI/CD, this should be provided via GitHub secrets."
+                );
+            }
 
+            var jsonContent = File.ReadAllText(testDataPath);
+
+            var data = JsonSerializer.Deserialize<PersonalData[]>(jsonContent);
+            
             // Assert
             Assert.NotNull(data);
             Assert.NotEmpty(data);

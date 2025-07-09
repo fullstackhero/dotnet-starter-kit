@@ -191,6 +191,38 @@ The system includes 4 predefined roles created during migration:
 
 ## 🧪 Testing
 
+### Test Data Setup
+For some tests that validate real Turkish identity data, you need to create a test data file:
+
+1. **Local Development**:
+   ```bash
+   # Copy the example template and modify with your test data
+   cp testdata/personal_data.json.example testdata/personal_data.json
+   
+   # Or create from scratch:
+   mkdir -p testdata
+   echo '[{"firstName":"Test","lastName":"User","tckn":"12345678901","birthDate":"1990-01-01"}]' > testdata/personal_data.json
+   ```
+
+2. **CI/CD Setup**: For GitHub Actions, add a repository secret:
+   - Go to your repository Settings → Secrets and variables → Actions
+   - Add a new secret named `PERSONAL_DATA_JSON`
+   - Value should be the JSON content:
+     ```json
+     [{"firstName":"Test","lastName":"User","tckn":"12345678901","birthDate":"1990-01-01"}]
+     ```
+
+   > **Note**: The `testdata/personal_data.json` file is ignored by git for security reasons. Only the `.example` template is committed.
+
+3. **Run Tests**:
+   ```bash
+   # Run all tests (includes test data setup)
+   make test-unit-coverage
+   
+   # Or just setup test data manually
+   make setup-test-data
+   ```
+
 ### Using Server.http File
 Use the provided `server.http` file for quick API testing:
 

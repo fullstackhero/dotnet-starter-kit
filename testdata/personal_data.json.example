@@ -1,0 +1,14 @@
+[
+  {
+    "firstName": "Ahmet",
+    "lastName": "Yılmaz", 
+    "tckn": "12345678901",
+    "birthDate": "1990-01-01"
+  },
+  {
+    "firstName": "Ayşe",
+    "lastName": "Demir",
+    "tckn": "98765432109", 
+    "birthDate": "1985-05-15"
+  }
+]

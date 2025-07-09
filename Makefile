@@ -162,7 +162,7 @@ analyze-code: restore
 	@echo ""
 	@echo "🧹 Cleaning for fresh analysis..."
 	@dotnet clean $(API_PROJECT) --configuration $(BUILD_CONFIG) > /dev/null 2>&1
-	@dotnet build $(API_PROJECT) --no-restore --configuration $(BUILD_CONFIG) \
+	@dotnet build $(API_PROJECT) --configuration $(BUILD_CONFIG) \
 		--verbosity normal --no-incremental --force > code-analysis.txt 2>&1
 	@echo "📄 Code analysis report: code-analysis.txt"
 	@echo ""
@@ -748,8 +748,22 @@ evaluate-security:
 	fi; \
 	exit $$EXIT_CODE
 
+## Setup Test Data - Create test data directory and files
+setup-test-data:
+	@echo "📁 Setting up test data..."
+	@mkdir -p testdata
+	@if [ -f "testdata/personal_data.json" ]; then \
+		echo "✅ Test data already exists"; \
+	else \
+		echo "⚠️ personal_data.json not found"; \
+		echo "📋 Creating empty test data file..."; \
+		echo "[]" > testdata/personal_data.json; \
+		echo "📖 For local development, create testdata/personal_data.json manually"; \
+		echo "📖 For CI/CD, this is provided via GitHub secrets"; \
+	fi
+
 ## Unit Test Coverage - Run unit tests and generate coverage report
-test-unit-coverage:
+test-unit-coverage: setup-test-data
 	@echo "🔬 Running unit tests with coverage..."
 	@echo ""
 	@echo "🧹 Cleaning up old coverage files..."
@@ -760,7 +774,10 @@ test-unit-coverage:
 	@if [ -d "tests/FSH.Starter.Tests.Unit" ]; then \
 		echo "📋 Unit Test Coverage Results:"; \
 		echo "============================="; \
-		dotnet test tests/FSH.Starter.Tests.Unit --configuration $(BUILD_CONFIG) --collect:"XPlat Code Coverage" --logger "console;verbosity=detailed" --verbosity normal; \
+		if ! dotnet test tests/FSH.Starter.Tests.Unit --configuration $(BUILD_CONFIG) --collect:"XPlat Code Coverage" --logger "console;verbosity=detailed" --verbosity normal; then \
+			echo "❌ Unit tests failed!"; \
+			exit 1; \
+		fi; \
 		COVERAGE_FILE=$$(find . -name 'coverage.cobertura.xml' | head -1); \
 		if [ -n "$$COVERAGE_FILE" ]; then \
 			dotnet tool install -g dotnet-reportgenerator-globaltool 2>/dev/null || true; \
@@ -768,6 +785,7 @@ test-unit-coverage:
 			echo "📂 HTML report: coverage-report/index.html"; \
 		else \
 			echo "⚠️ Coverage XML bulunamadı!"; \
+			exit 1; \
 		fi; \
 	else \
 		echo "⚠️ Unit test project not found"; \
