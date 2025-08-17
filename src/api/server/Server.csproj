@@ -4,10 +4,12 @@
     <AssemblyName>FSH.Starter.WebApi.Host</AssemblyName>
     <ContainerUser>root</ContainerUser>
   </PropertyGroup>
+
   <PropertyGroup>
     <ContainerRepository>webapi</ContainerRepository>
     <PublishProfile>DefaultContainer</PublishProfile>
   </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
@@ -15,9 +17,10 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.0" />
-    <PackageReference Include="Twilio" Version="6.6.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <PackageReference Include="Twilio" />
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\framework\Core\Core.csproj" />
     <ProjectReference Include="..\framework\Infrastructure\Infrastructure.csproj" />
@@ -26,6 +29,7 @@
     <ProjectReference Include="..\modules\Catalog\Catalog.Infrastructure\Catalog.Infrastructure.csproj" />
     <ProjectReference Include="..\modules\Todo\Todo.csproj" />
   </ItemGroup>
+
   <ItemGroup>
     <Content Update="appsettings.Development.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
