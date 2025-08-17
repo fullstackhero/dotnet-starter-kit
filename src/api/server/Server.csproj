@@ -16,8 +16,8 @@
     </PackageReference>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.0" />
-    <PackageReference Include="Twilio" Version="6.6.2" />
-  </ItemGroup>
+      <PackageReference Include="Twilio" />
+    </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\framework\Core\Core.csproj" />
     <ProjectReference Include="..\framework\Infrastructure\Infrastructure.csproj" />
