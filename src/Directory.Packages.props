@@ -47,6 +47,7 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.12.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="4.12.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.12.0" />
+    <PackageVersion Include="Twilio" Version="6.6.2" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="Mapster" Version="7.4.0" />
