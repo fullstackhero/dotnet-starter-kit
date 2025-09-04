@@ -174,7 +174,12 @@ services:
       - fullstackhero
 
   node_exporter:
+read_only: true
+    read_only: true
+    tmpfs:
+      - /tmp
     image: quay.io/prometheus/node-exporter:v1.5.0
+    read_only: true
     container_name: node_exporter
     command: "--path.rootfs=/host"
     pid: host
