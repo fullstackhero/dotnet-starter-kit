@@ -7,7 +7,6 @@
 	  <Folder Include="Identity\" />
 	  <Folder Include="Auditing\" />
 	  <Folder Include="Caching\" />
-	  <Folder Include="Runtime\" />
 	  <Folder Include="Tenancy\" />
 	</ItemGroup>
 </Project>

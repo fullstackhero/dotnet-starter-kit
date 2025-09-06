@@ -7,8 +7,15 @@
 	  <Folder Include="Mail\" />
 	  <Folder Include="Cache\" />
 	  <Folder Include="Jobs\" />
-	  <Folder Include="Mediator\" />
 	  <Folder Include="Storage\" />
 	  <Folder Include="Persistence\" />
+	</ItemGroup>
+	<ItemGroup>
+	  <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+	  <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+	  <PackageReference Include="Scrutor" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\Core\Core.csproj" />
 	</ItemGroup>
 </Project>
