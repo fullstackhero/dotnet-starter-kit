@@ -1,0 +1,11 @@
+﻿@page "/logout"
+@attribute [AllowAnonymous]
+@inject IAuthenticationService AuthService
+
+@code{
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthService.LogoutAsync();
+        Toast.Add("Logged out", Severity.Error);
+    }
+}

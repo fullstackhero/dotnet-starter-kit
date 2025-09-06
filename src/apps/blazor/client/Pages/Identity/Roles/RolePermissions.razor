@@ -1,0 +1,73 @@
+﻿@page "/identity/roles/{Id}/permissions"
+
+<PageHeader Title="@_title" Header="@_title" SubHeader="@_description" />
+
+@if (!_loaded)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else
+{
+    <MudTabs Outlined Rounded="true" Centered="true" ApplyEffectsToContainer="true" AlwaysShowScrollButtons="true">
+        @foreach (var group in _groupedRoleClaims.Keys)
+        {
+            var selectedRoleClaimsInGroup = _groupedRoleClaims[group].Where(c => c.Enabled).ToList();
+            var allRoleClaimsInGroup = _groupedRoleClaims[group].ToList();
+            <MudTabPanel Text="@group" BadgeData="@($"{selectedRoleClaimsInGroup.Count}/{allRoleClaimsInGroup.Count}")" Style="padding-right: 43px;"
+                BadgeColor="@GetGroupBadgeColor(selectedRoleClaimsInGroup.Count, allRoleClaimsInGroup.Count)">
+                <MudTable Hover="true" Dense="false" Outlined Items="@allRoleClaimsInGroup" Style="margin-bottom:0px!important" Filter="new Func<PermissionViewModel, bool>(Search)">
+                    <ToolBarContent>
+                        <div class="justify-center mud-text-align-center">
+                            <MudButton Variant="Variant.Filled" DropShadow="false" Color="Color.Info" Class="ml-auto" StartIcon="@Icons.Material.Filled.ArrowBack" Href="/identity/roles">
+                                Back
+                            </MudButton>
+                            @if (_canEditRoleClaims)
+                            {
+                                <MudButton Variant="Variant.Filled" DropShadow="false" Color="Color.Primary" Class="ml-auto" OnClick="SaveAsync"
+                                    ButtonType="ButtonType.Submit" Style="margin-left: 5px!important;" StartIcon="@Icons.Material.Filled.Save">Update Permissions
+                                </MudButton>
+                            }
+                        </div>
+                        <MudSpacer />
+                        @if (_canSearchRoleClaims)
+                        {
+                            <MudTextField @bind-Value="_searchString" Immediate="true" FullWidth=false
+                                Placeholder="Search For Role Permissions" Adornment="Adornment.End"
+                                AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0 mb-3">
+                            </MudTextField>
+                        }
+                    </ToolBarContent>
+                    <HeaderContent>
+                        <MudTh>
+                            <MudTableSortLabel SortBy="new Func<PermissionViewModel, object?>(x => x.Name)">
+                                Permission Name</MudTableSortLabel>
+                        </MudTh>
+                        <MudTh>
+                            <MudTableSortLabel SortBy="new Func<PermissionViewModel, object?>(x => x.Description)">
+                                Description</MudTableSortLabel>
+                        </MudTh>
+                        <MudTh>
+                            <MudTableSortLabel SortBy="new Func<PermissionViewModel, object>(x => x.Enabled)">Status
+                            </MudTableSortLabel>
+                        </MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Permission Name">
+                            <MudHighlighter Text="@context.Name" HighlightedText="@_searchString" />
+                        </MudTd>
+                        <MudTd DataLabel="Description">
+                            <MudHighlighter Text="@context.Description" HighlightedText="@_searchString" />
+                        </MudTd>
+                        <MudTd DataLabel="Permission">
+                            <MudCheckBox T="bool" @bind-Value="@context.Enabled" Disabled="@(!_canEditRoleClaims)" Color="Color.Secondary">
+                            </MudCheckBox>
+                        </MudTd>
+                    </RowTemplate>
+                    <PagerContent>
+                        <TablePager />
+                    </PagerContent>
+                </MudTable>
+            </MudTabPanel>
+        }
+    </MudTabs>
+}

@@ -1,0 +1,10 @@
+﻿@Host = https://localhost:7000
+
+POST {{Host}}/api/token/
+Accept: application/json
+Content-Type: application/json
+tenant: root
+{
+  "email":"admin@root.com",
+  "password":"123Pa$$word!"
+}

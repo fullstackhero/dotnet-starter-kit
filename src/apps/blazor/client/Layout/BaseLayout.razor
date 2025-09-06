@@ -1,0 +1,29 @@
+﻿@inherits LayoutComponentBase
+
+<MudRTLProvider>
+    <MudThemeProvider @bind-IsDarkMode="_isDarkMode" Theme="_currentTheme" />
+    <MudDialogProvider />
+    <MudSnackbarProvider />
+    <MudPopoverProvider />
+    <AuthorizeView>
+        <NotAuthorized>
+            <MudLayout>
+                <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center" Style="height: 100vh;">
+                    <MudPaper Elevation="25" Class="pa-8" Outlined>
+                        @Body
+                    </MudPaper>
+                </MudContainer>
+            </MudLayout>
+        </NotAuthorized>
+        <Authorized>
+            <MudLayout>
+                <ThemeDrawer @bind-ThemeDrawerOpen="_themeDrawerOpen" ThemePreference="_themePreference"
+                        ThemePreferenceChanged="ThemePreferenceChanged" />
+                    <ThemeButton OnClick="@(() => _themeDrawerOpen = true)" />
+                <MainLayout OnDarkModeToggle="ToggleDarkLightMode">
+                    @Body
+                </MainLayout>
+            </MudLayout>
+        </Authorized>
+    </AuthorizeView>
+</MudRTLProvider>

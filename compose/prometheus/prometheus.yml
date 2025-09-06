@@ -1,0 +1,24 @@
+﻿global:
+  scrape_interval: 10s
+
+scrape_configs:
+  - job_name: 'fullstackhero.api'
+    static_configs:
+      - targets: ['host.docker.internal:5000']
+
+  - job_name: otel
+    static_configs:
+    - targets:
+      - 'otel-collector:8889'
+
+  - job_name: otel-collector
+    static_configs:
+    - targets:
+      - 'otel-collector:8888'
+
+  - job_name: 'node-exporter'
+    # Override the global default and scrape targets from this job every 5 seconds.
+    scrape_interval: 5s
+    static_configs:
+    - targets:
+      - 'node_exporter:9100'

@@ -1,0 +1,46 @@
+﻿@page "/login"
+@attribute [AllowAnonymous]
+@inject IAuthenticationService authService
+
+<PageTitle>Login</PageTitle>
+
+<div class="fsh-center-text">
+    <MudText Typo="Typo.h4" GutterBottom="true">Sign In</MudText>
+    <MudText>
+        Enter your credentials to get started.
+    </MudText>
+</div>
+<br />
+<EditForm Model="@_tokenRequest" OnValidSubmit="SubmitAsync">
+    <MudGrid>
+        <DataAnnotationsValidator />
+        <FshValidation @ref="_customValidation" />
+        <MudItem xs="12">
+            <MudTextField T="string" Label="E-mail" Variant="Variant.Outlined" @bind-Value="_tokenRequest.Email"
+                          For="@(() => _tokenRequest.Email)" />
+        </MudItem>
+        <MudItem xs="12">
+            <MudTextField Label="Password" Variant="Variant.Outlined" @bind-Value="_tokenRequest.Password"
+                          For="@(() => _tokenRequest.Password)" InputType="@_passwordInput" Adornment="Adornment.End"
+                          AdornmentIcon="@_passwordInputIcon" OnAdornmentClick="TogglePasswordVisibility" />
+        </MudItem>
+        <MudItem xs="12">
+            <MudTextField T="string" Label="Tenant" Variant="Variant.Outlined" @bind-Value="TenantId"
+                          For="@(() => TenantId)" Required />
+         </MudItem>
+
+         <MudItem xs="12" md="6">
+             <MudButton StartIcon="@Icons.Material.Filled.AppRegistration" Href="/register">Register?</MudButton>
+            </MudItem>
+            <MudItem xs="12" md="6">
+             <MudButton StartIcon="@Icons.Material.Filled.LockReset" Href="/forgot-password">Forgot password?</MudButton>
+            </MudItem>
+            <MudItem xs="12" Class="d-flex justify-center">
+                <MudButton ButtonType="ButtonType.Submit" Disabled="BusySubmitting" Variant="Variant.Filled"
+                        Color="Color.Primary" DropShadow="false" Size="Size.Large" StartIcon="@Icons.Material.Filled.Login" Style="width: 100%;">Sign In</MudButton>
+            </MudItem>
+        <MudItem xs="12" Class="d-flex justify-center">
+            <MudButton DropShadow="false" StartIcon="@Icons.Material.Filled.Password" OnClick="FillAdministratorCredentials">Fill Administrator Credentials</MudButton>
+            </MudItem>
+        </MudGrid>
+    </EditForm>

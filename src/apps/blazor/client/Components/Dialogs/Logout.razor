@@ -1,0 +1,39 @@
+﻿@namespace FSH.Starter.Blazor.Client.Components.Dialogs
+
+
+@inject IAuthenticationService AuthService
+
+<MudDialog Class="py-4 px-4">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Logout" Class="mr-3 mb-n1" />
+            Logout Confirmation
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText>@ContentText</MudText>
+    </DialogContent>
+    <DialogActions>
+            <MudButton DropShadow=false StartIcon="@Icons.Material.Filled.Cancel" Variant="Variant.Filled" OnClick="Cancel">Cancel</MudButton>
+            <MudButton DropShadow=false StartIcon="@Icons.Material.Filled.Logout" Color="@Color" Variant="Variant.Filled" OnClick="Submit">@ButtonText</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public string? ContentText { get; set; }
+
+    [Parameter] public string? ButtonText { get; set; }
+
+    [Parameter] public Color Color { get; set; }
+
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+    async Task Submit()
+    {
+        Navigation.NavigateTo("/logout");
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    void Cancel() =>
+    MudDialog.Cancel();
+}

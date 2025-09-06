@@ -1,0 +1,62 @@
+{
+    "$schema": "http://json.schemastore.org/template",
+    "author": "Mukesh Murugan",
+    "classifications": [
+        "WebAPI",
+        "Clean Architecture",
+        "Boilerplate",
+        "ASP.NET Core",
+        "Starter Kit",
+        "Cloud",
+        "Web"
+    ],
+    "tags": {
+        "language": "C#",
+        "type": "project"
+    },
+    "identity": "FullStackHero.NET.StarterKit",
+    "name": "FullStackHero .NET Starter Kit",
+    "description": "The best way to start a full-stack .NET 9 Web App.",
+    "shortName": "fsh",
+    "sourceName": "FSH.Starter",
+    "preferNameDirectory": true,
+    "sources": [
+        {
+            "source": "./",
+            "target": "./",
+            "exclude": [
+                ".template.config/**",
+                ".idea/**",
+                ".vscode/**",
+                ".vs/**",
+                ".github/**",
+                "templates/**/*",
+                "**/*.filelist",
+                "**/*.user",
+                "**/images",
+                "**/*.lock.json",
+                "*.nuspec"
+            ],
+            "rename": {
+                "README-template.md": "README.md"
+            }
+        }
+    ],
+    "primaryOutputs": [
+        {
+            "path": "./src"
+        }
+    ],
+    "postActions": [
+        {
+            "description": "restore webapi project dependencies",
+            "manualInstructions": [
+                {
+                    "text": "Run 'dotnet restore'"
+                }
+            ],
+            "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+            "continueOnError": false
+        }
+    ]
+}

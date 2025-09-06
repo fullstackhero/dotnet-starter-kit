@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<RootNamespace>FSH.Starter.Blazor.Infrastructure</RootNamespace>
+		<AssemblyName>FSH.Starter.Blazor.Infrastructure</AssemblyName>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Blazored.LocalStorage" />
+		<PackageReference Include="MediatR" />
+		<PackageReference Include="MediatR.Courier" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" />
+		<PackageReference Include="Microsoft.Extensions.Http" />
+		<PackageReference Include="MudBlazor" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\..\Shared\Shared.csproj" />
+	  <ProjectReference Include="..\shared\Shared.csproj" />
+	</ItemGroup>
+
+  <Target Name="NSwag">
+    <Exec WorkingDirectory="$(ProjectDir)\Api" EnvironmentVariables="ASPNETCORE_ENVIRONMENT=Development" Command="nswag run ./nswag.json /variables:Configuration=$(Configuration)" />
+  </Target>
+  
+</Project>

@@ -1,0 +1,47 @@
+﻿@page "/identity/users"
+
+<PageHeader Title="Users" Header="Users" SubHeader="Manage Users." />
+
+<EntityTable TEntity="UserDetail" TId="Guid" TRequest="RegisterUserCommand" Context="@Context">
+    <ExtraActions>
+        <MudMenuItem OnClick="(() => ViewProfile(context.Id))">View Profile</MudMenuItem>
+        @if (_canViewRoles)
+        {
+            <MudMenuItem OnClick="(() => ManageRoles(context.Id))">Manage Roles</MudMenuItem>
+        }
+        @if (_canViewAuditTrails)
+        {
+            <MudMenuItem OnClick="(() => ViewAuditTrails(context.Id))">View Audit Trails</MudMenuItem>
+        }
+    </ExtraActions>
+
+    <EditFormContent>
+        <MudItem xs="12" md="6">
+            <MudTextField For="@(() => context.UserName)" @bind-Value="context.UserName" Label="User Name" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField For="@(() => context.FirstName)" @bind-Value="context.FirstName" Label="First Name" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField For="@(() => context.LastName)" @bind-Value="context.LastName" Label="Last Name" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField For="@(() => context.Email)" InputType="InputType.Email" @bind-Value="context.Email"
+                Label="Email" />
+        </MudItem>
+        <MudItem xs="12" md="12">
+            <MudTextField For="@(() => context.PhoneNumber)" @bind-Value="context.PhoneNumber"
+                Label="Phone Number" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField For="@(() => context.Password)" @bind-Value="context.Password" Label="Password"
+                InputType="@_passwordInput" Adornment="Adornment.End" AdornmentIcon="@_passwordInputIcon"
+                OnAdornmentClick="TogglePasswordVisibility" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField For="@(() => context.ConfirmPassword)" @bind-Value="context.ConfirmPassword"
+                Label="Confirm Password" InputType="InputType.Password" />
+        </MudItem>
+    </EditFormContent>
+
+</EntityTable>

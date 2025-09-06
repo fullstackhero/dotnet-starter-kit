@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>FSH.Starter.WebApi.Catalog.Infrastructure</RootNamespace>
+    <AssemblyName>FSH.Starter.WebApi.Catalog.Infrastructure</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Persistence\Repositories\**" />
+    <EmbeddedResource Remove="Persistence\Repositories\**" />
+    <None Remove="Persistence\Repositories\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\framework\Infrastructure\Infrastructure.csproj" />
+    <ProjectReference Include="..\Catalog.Application\Catalog.Application.csproj" />
+  </ItemGroup>
+</Project>

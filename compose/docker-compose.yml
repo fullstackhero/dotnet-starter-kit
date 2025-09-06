@@ -1,0 +1,195 @@
+version: "4" #on wsl linux replace 3.8
+name: fullstackhero #on wsl linux replace with export COMPOSE_PROJECT_NAME=fullstackhero before docker-compose up command
+
+services:
+  webapi:
+    image: ${FSH_DOTNETSTARTERKIT_WEBAPI_IMAGE}
+    pull_policy: always
+    container_name: webapi
+    networks:
+      - fullstackhero
+    environment:
+      ASPNETCORE_ENVIRONMENT: docker
+      ASPNETCORE_URLS: https://+:7000;http://+:5000
+      ASPNETCORE_HTTPS_PORT: 7000
+      ASPNETCORE_Kestrel__Certificates__Default__Password: password!
+      ASPNETCORE_Kestrel__Certificates__Default__Path: /https/cert.pfx
+      DatabaseOptions__ConnectionString: Server=postgres;Port=5433;Database=fullstackhero;User Id=pgadmin;Password=pgadmin
+      DatabaseOptions__Provider: postgresql
+      JwtOptions__Key: QsJbczCNysv/5SGh+U7sxedX8C07TPQPBdsnSDKZ/aE=
+      HangfireOptions__Username: admin
+      HangfireOptions__Password: Secure1234!Me
+      MailOptions__From: mukesh@fullstackhero.net
+      MailOptions__Host: smtp.ethereal.email
+      MailOptions__Port: 587
+      MailOptions__UserName: sherman.oconnell47@ethereal.email
+      MailOptions__Password: KbuTCFv4J6Fy7256vh
+      MailOptions__DisplayName: Mukesh Murugan
+      CorsOptions__AllowedOrigins__0: http://localhost:5010
+      CorsOptions__AllowedOrigins__1: http://localhost:7100
+      CorsOptions__AllowedOrigins__2: https://localhost:7020
+      OpenTelemetryOptions__Endpoint: http://otel-collector:4317
+      RateLimitOptions__EnableRateLimiting: "false"
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_SERVICE_NAME: FSH.Starter.WebApi.Host
+    volumes:
+      - ~/.aspnet/https:/https:ro #on wsl linux
+      #- /mnt/c/Users/eduar/.aspnet/https:/https:ro
+    ports:
+      - 7000:7000
+      - 5000:5000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+
+  blazor:
+    image: ${FSH_DOTNETSTARTERKIT_BLAZOR_IMAGE}
+    pull_policy: always
+    container_name: blazor
+    environment:
+      Frontend_FSHStarterBlazorClient_Settings__AppSettingsTemplate: /usr/share/nginx/html/appsettings.json.TEMPLATE
+      Frontend_FSHStarterBlazorClient_Settings__AppSettingsJson: /usr/share/nginx/html/appsettings.json
+      FSHStarterBlazorClient_ApiBaseUrl: https://localhost:7000
+      ApiBaseUrl: https://localhost:7000
+    networks:
+      - fullstackhero
+    entrypoint: [
+        "/bin/sh",
+        "-c",
+        "envsubst <
+        $${Frontend_FSHStarterBlazorClient_Settings__AppSettingsTemplate} >
+        $${Frontend_FSHStarterBlazorClient_Settings__AppSettingsJson} && find
+        /usr/share/nginx/html -type f | xargs chmod +r && exec nginx -g
+        'daemon off;'",
+      ]
+    volumes:
+      - ~/.aspnet/https:/https:ro
+    ports:
+      - 7100:80
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+
+  postgres:
+    container_name: postgres
+    image: postgres:15-alpine
+    networks:
+      - fullstackhero
+    environment:
+      POSTGRES_USER: pgadmin
+      POSTGRES_PASSWORD: pgadmin
+      PGPORT: 5433
+    ports:
+      - 5433:5433
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pgadmin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    networks:
+      - fullstackhero
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    ports:
+      - 9090:9090
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:latest
+    user: "472"
+    environment:
+      GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource"
+    ports:
+      - 3000:3000
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/config/:/etc/grafana/
+      - ./grafana/dashboards/:/var/lib/grafana/dashboards
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - fullstackhero
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector
+    command: --config /etc/otel/config.yaml
+    environment:
+      JAEGER_ENDPOINT: "jaeger:4317"
+      LOKI_ENDPOINT: "http://loki:3100/loki/api/v1/push"
+    volumes:
+      - $BASE_PATH/otel-collector/otel-config.yaml:/etc/otel/config.yaml
+      - $BASE_PATH/otel-collector/log:/log/otel
+    depends_on:
+      - jaeger
+      - loki
+      - prometheus
+    ports:
+      - 8888:8888 # Prometheus metrics exposed by the collector
+      - 8889:8889 # Prometheus metrics exporter (scrape endpoint)
+      - 13133:13133 # health_check extension
+      - "55679:55679" # ZPages extension
+      - 4317:4317 # OTLP gRPC receiver
+      - 4318:4318 # OTLP Http receiver (Protobuf)
+    networks:
+      - fullstackhero
+
+  jaeger:
+    container_name: jaeger
+    image: jaegertracing/all-in-one:latest
+    command: --query.ui-config /etc/jaeger/jaeger-ui.json
+    environment:
+      - METRICS_STORAGE_TYPE=prometheus
+      - PROMETHEUS_SERVER_URL=http://prometheus:9090
+      - COLLECTOR_OTLP_ENABLED=true
+    volumes:
+      - $BASE_PATH/jaeger/jaeger-ui.json:/etc/jaeger/jaeger-ui.json
+    depends_on:
+      - prometheus
+    ports:
+      - "16686:16686"
+    networks:
+      - fullstackhero
+
+  loki:
+    container_name: loki
+    image: grafana/loki:3.1.0
+    command: -config.file=/mnt/config/loki-config.yml
+    volumes:
+      - $BASE_PATH/loki/loki.yml:/mnt/config/loki-config.yml
+    ports:
+      - "3100:3100"
+    networks:
+      - fullstackhero
+
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:v1.5.0
+    container_name: node_exporter
+    command: "--path.rootfs=/host"
+    pid: host
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    networks:
+      - fullstackhero
+
+volumes:
+  postgres-data:
+  grafana-data:
+  prometheus-data:
+
+networks:
+  fullstackhero:

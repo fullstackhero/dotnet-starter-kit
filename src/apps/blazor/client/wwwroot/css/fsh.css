@@ -1,0 +1,7 @@
+﻿.mud-navmenu.mud-navmenu-default .mud-nav-link.active:not(.mud-nav-link-disabled) {
+    color: inherit;
+}
+
+.mud-list {
+    border: 1px solid var(--mud-palette-lines-default)
+}

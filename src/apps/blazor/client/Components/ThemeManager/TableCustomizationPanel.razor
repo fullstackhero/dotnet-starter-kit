@@ -1,0 +1,19 @@
+<MudExpansionPanel HideIcon="true">
+    <TitleContent>
+        <div class="d-flex">
+            <MudText Class="mt-1">Table Customization</MudText>
+            <MudAvatar Color="Color.Primary" Class="d-flex ml-auto"
+                style="width: 30px;height:30px;font-size:small!important">T
+            </MudAvatar>
+        </div>
+    </TitleContent>
+    <ChildContent>
+        <MudSwitch T="bool" Label="Dense" Color="Color.Info" @oninput="@ToggleDenseSwitch" @bind-Value="@IsDense" />
+        <MudSwitch T="bool" Label="Striped" Color="Color.Info" @oninput="@ToggleStripedSwitch"
+                   @bind-Value="@IsStriped" />
+        <MudSwitch T="bool" Label="Bordered" Color="Color.Info" @oninput="@ToggleBorderedSwitch"
+                   @bind-Value="@HasBorder" />
+        <MudSwitch T="bool" Label="Hoverable" Color="Color.Info" @oninput="@ToggleHoverableSwitch"
+                   @bind-Value="@IsHoverable" />
+    </ChildContent>
+</MudExpansionPanel>

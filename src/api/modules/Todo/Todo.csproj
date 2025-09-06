@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>FSH.Starter.WebApi.Todo</RootNamespace>
+    <AssemblyName>FSH.Starter.WebApi.Todo</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\framework\Core\Core.csproj" />
+    <ProjectReference Include="..\..\framework\Infrastructure\Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,28 @@
+﻿@page "/identity/roles"
+
+<PageHeader Title="Roles" Header="Roles" SubHeader="Manage Roles." />
+
+<EntityTable TEntity="RoleDto" TId="string" TRequest="CreateOrUpdateRoleCommand" Context="@Context">
+    <ExtraActions>
+        @if (_canViewRoleClaims)
+        {
+            <MudMenuItem @onclick="@(() => ManagePermissions(context.Id))">Manage Permission</MudMenuItem>
+        }
+    </ExtraActions>
+    <EditFormContent>
+        @if (!Context.AddEditModal.IsCreate)
+        {
+            <MudItem xs="12" md="6">
+                <MudTextField Value="context.Id" ReadOnly Underline="false" Label="Role Id]" />
+            </MudItem>
+        }
+        <MudItem xs="12" md="6">
+            <MudTextField For="@(() => context.Name)" @bind-Value="context.Name" Label="Role Name" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField For="@(() => context.Description)" @bind-Value="context.Description"
+                Label="Description" />
+        </MudItem>
+    </EditFormContent>
+
+</EntityTable>

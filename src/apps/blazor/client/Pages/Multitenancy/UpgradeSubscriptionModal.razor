@@ -1,0 +1,57 @@
+﻿@inject IApiClient TenantsClient
+
+<EditForm Model="@Request" OnValidSubmit="UpgradeSubscriptionAsync">
+    <MudDialog>
+        <TitleContent>
+            <MudText Typo="Typo.h6">
+                <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-3 mb-n1" />
+                Upgrade Subscription
+            </MudText>
+        </TitleContent>
+        <DialogContent>
+            <MudGrid>
+                 <MudItem xs="12" md="6">
+                    <MudTextField For="@(() => Request.Tenant)" @bind-Value="Request.Tenant" ReadOnly Underline="false" Label="Tenant Id" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudTextField Value="Request.ExtendedExpiryDate.ToLongDateString()" ReadOnly Underline="false" Label="Current Expiry Date" />
+                </MudItem>
+                <MudItem xs="12" md="12">
+                    <MudDatePicker Color="Color.Secondary" Label="New Expiry Date" DateFormat="dddd, MMM dd, yyyy" @bind-Date="date"/>
+                </MudItem>
+            </MudGrid>
+        </DialogContent>
+        <DialogActions>
+            <MudButton DropShadow="false" Variant="Variant.Filled" OnClick="Cancel">Cancel</MudButton>
+             <MudButton DropShadow="false" Variant="Variant.Filled" ButtonType="ButtonType.Submit" Color="Color.Secondary">Upgrade</MudButton>
+        </DialogActions>
+    </MudDialog>
+</EditForm>
+
+@code
+{
+    [Parameter] public UpgradeSubscriptionCommand Request { get; set; } = new();
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    DateTime? date = DateTime.Today;
+
+    protected override void OnInitialized() =>
+        date = Request.ExtendedExpiryDate;
+
+    private async Task UpgradeSubscriptionAsync()
+    {
+        Request.ExtendedExpiryDate = date.HasValue ? date.Value : Request.ExtendedExpiryDate;
+        if (await ApiHelper.ExecuteCallGuardedAsync(
+            () => TenantsClient.UpgradeSubscriptionEndpointAsync(Request),
+            Toast, Navigation,
+            null,
+            "Upgraded Subscription.") is not null)
+        {
+            MudDialog.Close();
+        }
+    }
+
+    public void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}

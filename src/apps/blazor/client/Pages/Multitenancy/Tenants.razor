@@ -1,0 +1,86 @@
+﻿@page "/tenants"
+
+@inject IAuthenticationService Authentication
+
+<PageHeader Title="Tenants" Header="Tenants" SubHeader="Manage your Tenants." />
+
+<EntityTable @ref="EntityTable" TEntity="TenantViewModel" TId="Guid" TRequest="CreateTenantCommand" Context="@Context"
+    @bind-SearchString="_searchString">
+    <EditFormContent>
+        <MudItem xs="12" md="6">
+            <MudTextField T="string" For="@(() => context.Id)" @bind-Value="context.Id" Label="Key" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField T="string" For="@(() => context.Name)" @bind-Value="context.Name" Label="Name" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField T="string" For="@(() => context.ConnectionString)" HelperText="To use default connection string, leave this field blank." @bind-Value="context.ConnectionString"
+                Label="Connection String" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField T="string" For="@(() => context.AdminEmail)" @bind-Value="context.AdminEmail"
+                Label="Admin Email" />
+        </MudItem>
+    </EditFormContent>
+    <ExtraActions>
+        @if(_canUpgrade)
+        {
+            <MudMenuItem OnClick="@(() => ViewUpgradeSubscriptionModalAsync(context.Id))">Upgrade Subscription</MudMenuItem>
+        }
+        <MudMenuItem OnClick="@(() => ViewTenantDetails(context.Id))">
+            @((context.ShowDetails == true) ? "Hide" : "Show") Tenant Details
+        </MudMenuItem>
+        @if (_canModify)
+        {
+            @if (!context.IsActive)
+            {
+                <MudMenuItem Style="color:limegreen!important" OnClick="@(() => ActivateTenantAsync(context.Id))">Activate Tenant</MudMenuItem>
+            }
+            else
+            {
+                <MudMenuItem Style="color:red!important" OnClick="@(() => DeactivateTenantAsync(context.Id))">Deactivate Tenant</MudMenuItem>
+            }
+        }
+    </ExtraActions>
+
+    <ChildRowContent>
+        @if (context.ShowDetails)
+        {
+            <MudTr>
+                <td colspan="6">
+                    <MudCard Outlined style="margin: 10px !important;">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudAlert Severity="Severity.Info" typo="Typo.body1">Details for Tenant :
+                                    <strong>@context.Id</strong>
+                                </MudAlert>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <table class="mud-table-root">
+                                <tbody class="mud-table-body">
+                                    <tr class="mud-table-row">
+                                        @if(string.IsNullOrEmpty(context.ConnectionString?.Trim()))
+                                        {
+                                            <MudChip T="string" Label="true" Color="Color.Secondary">Shared Database</MudChip>
+                                        }
+                                        else
+                                        {
+                                            <td>Connection String</td>
+                                            <td>
+                                                <MudItem>
+                                                    <MudChip T="string" Label="true" Color="Color.Primary">@context.ConnectionString?.Trim()</MudChip>
+                                                </MudItem>
+                                            </td>
+                                        }
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </MudCardContent>
+                    </MudCard>
+                </td>
+            </MudTr>
+        }
+    </ChildRowContent>
+
+</EntityTable>
