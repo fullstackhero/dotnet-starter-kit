@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<RootNamespace>FSH.Modules.Tenant</RootNamespace>
+		<AssemblyName>FSH.Modules.Tenant</AssemblyName>
+	</PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Features\Entities\**" />
+    <EmbeddedResource Remove="Features\Entities\**" />
+    <None Remove="Features\Entities\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\Modules.Common.Infrastructure\Modules.Common.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Common\Modules.Common.Shared\Modules.Common.Shared.csproj" />
+    <ProjectReference Include="..\Modules.Tenant.Contracts\Modules.Tenant.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

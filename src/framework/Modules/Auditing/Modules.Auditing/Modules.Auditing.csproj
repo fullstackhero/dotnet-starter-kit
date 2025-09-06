@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<RootNamespace>FSH.Modules.Auditing</RootNamespace>
+		<AssemblyName>FSH.Modules.Auditing</AssemblyName>
+	</PropertyGroup>
+	<PropertyGroup>
+		<PackageId>FSH.Modules.Auditing</PackageId>
+		<Description>Auditing module for FullStackHero</Description>
+	</PropertyGroup>
+	<PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\..\Common\Modules.Common.Infrastructure\Modules.Common.Infrastructure.csproj" />
+	  <ProjectReference Include="..\..\Common\Modules.Common.Shared\Modules.Common.Shared.csproj" />
+	  <ProjectReference Include="..\Modules.Auditing.Contracts\Modules.Auditing.Contracts.csproj" />
+	</ItemGroup>
+</Project>

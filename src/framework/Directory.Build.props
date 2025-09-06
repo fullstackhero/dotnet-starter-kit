@@ -1,0 +1,47 @@
+<Project>
+  <PropertyGroup>
+    <!-- Target framework -->
+    <TargetFramework>net9.0</TargetFramework>
+
+    <!-- Enable latest C# features and diagnostics -->
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- Code quality & analysis -->
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <AnalysisMode>AllEnabledByDefault</AnalysisMode>
+
+    <!-- Docs -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>1591</NoWarn> <!-- Suppress warning about missing XML docs -->
+
+    <!-- Container tags (if using container builds) -->
+    <ContainerImageTags>3.0.0-alpha;latest</ContainerImageTags>
+
+    <!-- Prevent MSBuild from excluding common folders (optional) -->
+    <NoDefaultExcludes>true</NoDefaultExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Sonar Analyzer for deep static analysis -->
+    <PackageReference Include="SonarAnalyzer.CSharp">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+    <PropertyGroup>
+	    <!-- Default NuGet metadata -->
+	    <Authors>Mukesh Murugan</Authors>
+	    <Company>FullStackHero</Company>
+	    <Version>3.0.0</Version>
+	    <RepositoryUrl>https://github.com/fullstackhero/dotnet-starter-kit</RepositoryUrl>
+	    <PackageTags>FSH;Modular;CQRS;VerticalSlice</PackageTags>
+	    <!-- Enable NuGet pack globally -->
+	    <IsPackable>true</IsPackable>
+    </PropertyGroup>
+</Project>

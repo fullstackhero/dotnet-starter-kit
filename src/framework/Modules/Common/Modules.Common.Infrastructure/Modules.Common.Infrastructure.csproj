@@ -1,0 +1,63 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>FSH.Modules.Common.Infrastructure</RootNamespace>
+    <AssemblyName>FSH.Modules.Common.Infrastructure</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Mapster" />
+    <PackageReference Include="Asp.Versioning.Http" />
+    <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" />
+    <PackageReference Include="Finbuckle.MultiTenant" />
+    <PackageReference Include="Finbuckle.MultiTenant.AspNetCore" />
+    <PackageReference Include="Finbuckle.MultiTenant.EntityFrameworkCore" />
+    <PackageReference Include="Hangfire" />
+    <PackageReference Include="Hangfire.MemoryStorage" />
+    <PackageReference Include="Hangfire.PostgreSql" />
+    <PackageReference Include="MailKit" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" />
+    <PackageReference Include="MimeKit" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Scrutor" />
+  </ItemGroup>  
+  <ItemGroup>
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Serilog.Enrichers.CorrelationId" />
+    <PackageReference Include="Serilog.Enrichers.Environment" />
+    <PackageReference Include="Serilog.Enrichers.Span" />
+    <PackageReference Include="Serilog.Exceptions" />
+    <PackageReference Include="Serilog.Expressions" />
+    <PackageReference Include="Serilog.Extensions.Hosting" />
+    <PackageReference Include="Serilog.Formatting.Elasticsearch" />
+    <PackageReference Include="Serilog.Sinks.Async" />
+    <PackageReference Include="Serilog.Sinks.Console" />
+    <PackageReference Include="Serilog.Sinks.Elasticsearch" />
+    <PackageReference Include="Serilog.Sinks.File" />
+    <PackageReference Include="Serilog.Sinks.OpenTelemetry" />
+    <PackageReference Include="Serilog.Sinks.Seq" />
+    <PackageReference Include="Serilog.Sinks.SpectreConsole" />
+    <PackageReference Include="SerilogTimings" />
+    <PackageReference Include="Serilog.OpenTelemetry.ConsoleSink" />
+    <PackageReference Include="Serilog.Sinks.Debug" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Swashbuckle.AspNetCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+    <PackageReference Include="Ardalis.Specification.EntityFrameworkCore" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Modules.Common.Core\Modules.Common.Core.csproj" />
+    <ProjectReference Include="..\Modules.Common.Shared\Modules.Common.Shared.csproj" />
+  </ItemGroup>  
+</Project>

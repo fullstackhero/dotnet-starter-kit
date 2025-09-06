@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<RootNamespace>FSH.PlayGround.Migrations.PostgreSQL</RootNamespace>
+		<AssemblyName>FSH.PlayGround.Migrations.PostgreSQL</AssemblyName>
+	</PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Modules\Auditing\Modules.Auditing\Modules.Auditing.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Common\Modules.Common.Infrastructure\Modules.Common.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Identity\Modules.Identity\Modules.Identity.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Tenant\Modules.Tenant\Modules.Tenant.csproj" />
+  </ItemGroup>
+
+</Project>

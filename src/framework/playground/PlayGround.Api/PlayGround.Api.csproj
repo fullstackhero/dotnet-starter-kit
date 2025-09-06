@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+	<PropertyGroup>
+		<RootNamespace>FSH.PlayGround.Api</RootNamespace>
+		<AssemblyName>FSH.PlayGround.Api</AssemblyName>
+	</PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Scalar.AspNetCore" />
+  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\..\Modules\Auditing\Modules.Auditing\Modules.Auditing.csproj" />
+	  <ProjectReference Include="..\..\Modules\Common\Modules.Common.Infrastructure\Modules.Common.Infrastructure.csproj" />
+	  <ProjectReference Include="..\..\Modules\Common\Modules.Common.Shared\Modules.Common.Shared.csproj" />
+	  <ProjectReference Include="..\..\Modules\Identity\Modules.Identity\Modules.Identity.csproj" />
+	  <ProjectReference Include="..\..\Modules\Tenant\Modules.Tenant\Modules.Tenant.csproj" />
+	  <ProjectReference Include="..\Migrations\PostgreSQL\Migrations.PostgreSQL.csproj" />
+	</ItemGroup>
+
+</Project>

@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>FSH.Framework.Identity.Infrastructure</RootNamespace>
+    <AssemblyName>FSH.Framework.Identity.Infrastructure</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\Core.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Shared.csproj" />
+    <ProjectReference Include="..\..\Auditing.Contracts\Auditing.Contracts.csproj" />
+    <ProjectReference Include="..\Identity.Core\Identity.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Finbuckle.MultiTenant.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
+  </ItemGroup>
+</Project>

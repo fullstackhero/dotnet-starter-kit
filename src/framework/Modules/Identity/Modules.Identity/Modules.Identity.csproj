@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<RootNamespace>FSH.Modules.Identity</RootNamespace>
+		<AssemblyName>FSH.Modules.Identity</AssemblyName>
+	</PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Auditing\Modules.Auditing.Contracts\Modules.Auditing.Contracts.csproj" />
+    <ProjectReference Include="..\..\Common\Modules.Common.Infrastructure\Modules.Common.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Common\Modules.Common.Shared\Modules.Common.Shared.csproj" />
+    <ProjectReference Include="..\Modules.Identity.Contracts\Modules.Identity.Contracts.csproj" />
+  </ItemGroup>
+</Project>
