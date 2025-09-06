@@ -9,8 +9,8 @@
     <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Ardalis.Specification" Version="8.0.0" />
-    <PackageVersion Include="Ardalis.Specification.EntityFrameworkCore" Version="8.0.0" />
+    <PackageVersion Include="Ardalis.Specification" Version="9.0.1" />
+    <PackageVersion Include="Ardalis.Specification.EntityFrameworkCore" Version="9.0.1" />
     <PackageVersion Include="Asp.Versioning.Http" Version="8.1.0" />
     <PackageVersion Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
     <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="9.0.0" />
