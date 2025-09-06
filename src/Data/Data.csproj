@@ -1,6 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-	<PropertyGroup>
-		<RootNamespace>FSH.Framework.Data</RootNamespace>
-		<AssemblyName>FSH.Framework.Data</AssemblyName>
-	</PropertyGroup>
-</Project>
