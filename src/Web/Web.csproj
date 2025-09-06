@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<RootNamespace>FSH.Framework.Web</RootNamespace>
+		<AssemblyName>FSH.Framework.Web</AssemblyName>
+	</PropertyGroup>
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Endpoints\Filters\" />
+	  <Folder Include="Observability\Metrics\" />
+	  <Folder Include="Observability\Traces\" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Serilog" />
+		<PackageReference Include="Serilog.AspNetCore" />
+	</ItemGroup>
+</Project>
