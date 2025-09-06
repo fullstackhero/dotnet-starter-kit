@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<RootNamespace>FSH.Framework.Infrastructure</RootNamespace>
+		<AssemblyName>FSH.Framework.Infrastructure</AssemblyName>
+	</PropertyGroup>
+	<ItemGroup>
+	  <Folder Include="Mail\" />
+	  <Folder Include="Cache\" />
+	  <Folder Include="Jobs\" />
+	  <Folder Include="Mediator\" />
+	  <Folder Include="Storage\" />
+	  <Folder Include="Persistence\" />
+	</ItemGroup>
+</Project>

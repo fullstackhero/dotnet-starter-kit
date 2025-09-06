@@ -1,9 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
+	<PropertyGroup>
+		<RootNamespace>FSH.Framework.Shared</RootNamespace>
+		<AssemblyName>FSH.Framework.Shared</AssemblyName>
+	</PropertyGroup>
 </Project>

@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/PlayGround/" />
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Project Path="Core/Core.csproj" Id="922fe4d7-1273-4ec7-b052-3c64a22e05fb" />
+  <Project Path="Infrastructure/Infrastructure.csproj" Id="dd750472-3e6e-4e9e-8fff-4736596a1fbe" />
+  <Project Path="Shared/Shared.csproj" Id="fc0ef9d9-e2de-4efd-b16e-b2605a9cc73c" />
+  <Project Path="Web/Web.csproj" Id="14954577-676b-42cc-93b6-fef220c93349" />
+</Solution>
