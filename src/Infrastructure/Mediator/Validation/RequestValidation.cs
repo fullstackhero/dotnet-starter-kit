@@ -1,6 +1,6 @@
 ﻿namespace FSH.Framework.Infrastructure.Mediator.Validation;
 
-internal sealed class RequestValidation : IMediator
+public sealed class RequestValidation : IMediator
 {
     private readonly IMediator _inner;
     private readonly IServiceProvider _serviceProvider;

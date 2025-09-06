@@ -1,7 +1,7 @@
 <Project>
 	<PropertyGroup>
 		<!-- Target framework -->
-		<TargetFramework>net9.0</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 
 		<!-- Enable latest C# features and diagnostics -->
 		<LangVersion>latest</LangVersion>
