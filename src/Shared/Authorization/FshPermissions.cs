@@ -57,6 +57,14 @@ public static class FshPermissions
 
         //audit
         new("View Audit Trails", FshActions.View, FshResources.AuditTrails),
+
+        //categoryItems
+        new("View CategoryItems", FshActions.View, FshResources.CategoryItems, IsBasic: true),
+        new("Search CategoryItems", FshActions.Search, FshResources.CategoryItems, IsBasic: true),
+        new("Create CategoryItems", FshActions.Create, FshResources.CategoryItems),
+        new("Update CategoryItems", FshActions.Update, FshResources.CategoryItems),
+        new("Delete CategoryItems", FshActions.Delete, FshResources.CategoryItems),
+        new("Export CategoryItems", FshActions.Export, FshResources.CategoryItems),
     ];
 
     public static IReadOnlyList<FshPermission> All { get; } = new ReadOnlyCollection<FshPermission>(AllPermissions);
