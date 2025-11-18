@@ -25,7 +25,7 @@ public interface IUserService
     Task<string> ConfirmEmailAsync(string userId, string code, string tenant, CancellationToken cancellationToken);
     Task<string> ConfirmPhoneNumberAsync(string userId, string code);
 
-    // permisions
+    // permissions
     Task<bool> HasPermissionAsync(string userId, string permission, CancellationToken cancellationToken = default);
 
     // passwords
