@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FSH.Playground.Migrations.PostgreSQL.Audit
 {
     [DbContext(typeof(AuditDbContext))]
-    [Migration("20251112103857_Add Audit Schema")]
-    partial class AddAuditSchema
+    [Migration("20251203033647_Add Audits")]
+    partial class AddAudits
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

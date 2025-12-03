@@ -1,6 +1,7 @@
 using FSH.Framework.Shared.Persistence;
 using FSH.Modules.Multitenancy.Contracts.Dtos;
 using FSH.Modules.Multitenancy.Contracts.v1.GetTenants;
+using FSH.Framework.Shared.Multitenancy;
 
 namespace FSH.Modules.Multitenancy.Contracts;
 
@@ -21,4 +22,8 @@ public interface ITenantService
     Task<string> DeactivateAsync(string id);
 
     Task<DateTime> UpgradeSubscription(string id, DateTime extendedExpiryDate);
+
+    Task MigrateTenantAsync(AppTenantInfo tenant, CancellationToken cancellationToken);
+
+    Task SeedTenantAsync(AppTenantInfo tenant, CancellationToken cancellationToken);
 }

@@ -12,7 +12,10 @@ using FSH.Modules.Multitenancy.Features.v1.ChangeTenantActivation;
 using FSH.Modules.Multitenancy.Features.v1.CreateTenant;
 using FSH.Modules.Multitenancy.Features.v1.GetTenants;
 using FSH.Modules.Multitenancy.Features.v1.GetTenantStatus;
+using FSH.Modules.Multitenancy.Features.v1.TenantProvisioning.GetTenantProvisioningStatus;
+using FSH.Modules.Multitenancy.Features.v1.TenantProvisioning.RetryTenantProvisioning;
 using FSH.Modules.Multitenancy.Features.v1.UpgradeTenant;
+using FSH.Modules.Multitenancy.Provisioning;
 using FSH.Modules.Multitenancy.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -32,6 +35,10 @@ public sealed class MultitenancyModule : IModule
 
         builder.Services.AddScoped<ITenantService, TenantService>();
         builder.Services.AddTransient<IConnectionStringValidator, ConnectionStringValidator>();
+        builder.Services.AddScoped<ITenantProvisioningService, TenantProvisioningService>();
+        builder.Services.AddHostedService<TenantStoreInitializerHostedService>();
+        builder.Services.AddTransient<TenantProvisioningJob>();
+        builder.Services.AddHostedService<TenantAutoProvisioningHostedService>();
 
         builder.Services.AddHeroDbContext<TenantDbContext>();
 
@@ -93,5 +100,7 @@ public sealed class MultitenancyModule : IModule
         UpgradeTenantEndpoint.Map(group);
         CreateTenantEndpoint.Map(group);
         GetTenantStatusEndpoint.Map(group);
+        GetTenantProvisioningStatusEndpoint.Map(group);
+        RetryTenantProvisioningEndpoint.Map(group);
     }
 }

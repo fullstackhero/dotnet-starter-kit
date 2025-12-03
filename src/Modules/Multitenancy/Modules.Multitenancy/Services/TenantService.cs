@@ -8,6 +8,7 @@ using FSH.Modules.Multitenancy.Contracts;
 using FSH.Modules.Multitenancy.Contracts.Dtos;
 using FSH.Modules.Multitenancy.Contracts.v1.GetTenants;
 using FSH.Modules.Multitenancy.Data;
+using FSH.Modules.Multitenancy.Provisioning;
 using FSH.Modules.Multitenancy.Features.v1.GetTenants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,17 +22,20 @@ public sealed class TenantService : ITenantService
     private readonly DatabaseOptions _config;
     private readonly IServiceProvider _serviceProvider;
     private readonly TenantDbContext _dbContext;
+    private readonly ITenantProvisioningService _provisioningService;
 
     public TenantService(
         IMultiTenantStore<AppTenantInfo> tenantStore,
         IOptions<DatabaseOptions> config,
         IServiceProvider serviceProvider,
-        TenantDbContext dbContext)
+        TenantDbContext dbContext,
+        ITenantProvisioningService provisioningService)
     {
         _tenantStore = tenantStore;
         _config = config.Value;
         _serviceProvider = serviceProvider;
         _dbContext = dbContext;
+        _provisioningService = provisioningService;
     }
 
     public async Task<string> ActivateAsync(string id, CancellationToken cancellationToken)
@@ -42,6 +46,8 @@ public sealed class TenantService : ITenantService
         {
             throw new CustomException($"tenant {id} is already activated");
         }
+
+        await _provisioningService.EnsureCanActivateAsync(id, cancellationToken).ConfigureAwait(false);
 
         tenant.Activate();
 
@@ -63,12 +69,10 @@ public sealed class TenantService : ITenantService
         AppTenantInfo tenant = new(id, name, connectionString, adminEmail, issuer);
         await _tenantStore.TryAddAsync(tenant).ConfigureAwait(false);
 
-        await InitializeDatabase(tenant).ConfigureAwait(false);
-
         return tenant.Id;
     }
 
-    private async Task InitializeDatabase(AppTenantInfo tenant)
+    public async Task MigrateTenantAsync(AppTenantInfo tenant, CancellationToken cancellationToken)
     {
         using var scope = _serviceProvider.CreateScope();
 
@@ -78,11 +82,25 @@ public sealed class TenantService : ITenantService
                 TenantInfo = tenant
             };
 
-        var initializers = scope.ServiceProvider.GetServices<IDbInitializer>();
-        foreach (var initializer in initializers)
+        foreach (var initializer in scope.ServiceProvider.GetServices<IDbInitializer>())
         {
-            await initializer.MigrateAsync(CancellationToken.None).ConfigureAwait(false);
-            await initializer.SeedAsync(CancellationToken.None).ConfigureAwait(false);
+            await initializer.MigrateAsync(cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    public async Task SeedTenantAsync(AppTenantInfo tenant, CancellationToken cancellationToken)
+    {
+        using var scope = _serviceProvider.CreateScope();
+
+        scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>()
+            .MultiTenantContext = new MultiTenantContext<AppTenantInfo>()
+            {
+                TenantInfo = tenant
+            };
+
+        foreach (var initializer in scope.ServiceProvider.GetServices<IDbInitializer>())
+        {
+            await initializer.SeedAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 

@@ -13,6 +13,7 @@ public static class MultitenancyConstants
 
     public const string DefaultPassword = "123Pa$$word!";
     public const string Identifier = "tenant";
+    public const string Schema = "tenant";
 
     public static class Permissions
     {

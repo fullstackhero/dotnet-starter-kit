@@ -40,7 +40,7 @@ public class AuditingModule : IModule
         // Enrichers used by Audit.Configure (scoped, run on request thread)
         builder.Services.AddScoped<IAuditMaskingService, JsonMaskingService>();
         builder.Services.AddHostedService<AuditingConfigurator>();
-        builder.Services.AddSingleton<IAuditScope, HttpAuditScope>();
+        builder.Services.AddScoped<IAuditScope, HttpAuditScope>();
 
         builder.Services.AddSingleton<ChannelAuditPublisher>();
         builder.Services.AddSingleton<IAuditPublisher>(sp => sp.GetRequiredService<ChannelAuditPublisher>());

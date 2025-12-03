@@ -23,9 +23,9 @@ public static class ServiceCollectionExtensions
         // Request-scoped scope reader (HttpContext-backed)
         services.AddScoped<IAuditScope, HttpAuditScope>();
 
-        // Publisher depends on IAuditScope (scoped). Keep publisher itself also scoped so it sees current request scope.
-        services.AddScoped<ChannelAuditPublisher>();
-        services.AddScoped<IAuditPublisher>(sp => sp.GetRequiredService<ChannelAuditPublisher>());
+        // Publisher/sink/worker wiring: publisher is singleton and resolves current scope from HttpContext.
+        services.AddSingleton<ChannelAuditPublisher>();
+        services.AddSingleton<IAuditPublisher>(sp => sp.GetRequiredService<ChannelAuditPublisher>());
 
         services.AddHostedService<AuditBackgroundWorker>();
         services.AddSingleton<IAuditSink, SqlAuditSink>();
@@ -44,4 +44,3 @@ public static class ServiceCollectionExtensions
     public static IApplicationBuilder UseAuditHttp(this IApplicationBuilder app)
         => app.UseMiddleware<AuditHttpMiddleware>();
 }
-

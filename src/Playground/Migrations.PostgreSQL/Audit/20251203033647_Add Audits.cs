@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace FSH.Playground.Migrations.PostgreSQL.Audit
 {
     /// <inheritdoc />
-    public partial class AddAuditSchema : Migration
+    public partial class AddAudits : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

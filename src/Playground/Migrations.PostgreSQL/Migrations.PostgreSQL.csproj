@@ -12,4 +12,9 @@
 	  <ProjectReference Include="..\..\Modules\Multitenancy\Modules.Multitenancy\Modules.Multitenancy.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Audit\" />
+	  <Folder Include="MultiTenancy\" />
+	</ItemGroup>
+
 </Project>

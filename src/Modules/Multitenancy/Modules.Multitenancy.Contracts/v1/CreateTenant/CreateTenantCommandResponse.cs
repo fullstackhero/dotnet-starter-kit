@@ -1,3 +1,6 @@
-﻿namespace FSH.Modules.Multitenancy.Contracts.v1.CreateTenant;
+namespace FSH.Modules.Multitenancy.Contracts.v1.CreateTenant;
 
-public sealed record CreateTenantCommandResponse(string Id);
+public sealed record CreateTenantCommandResponse(
+    string Id,
+    string ProvisioningCorrelationId,
+    string Status);

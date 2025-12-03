@@ -35,10 +35,13 @@ public class AppTenantInfo : ITenantInfo, IAppTenantInfo
     public void AddValidity(int months) =>
         ValidUpto = ValidUpto.AddMonths(months);
 
-    public void SetValidity(in DateTime validTill) =>
-        ValidUpto = ValidUpto < validTill
-            ? validTill
+    public void SetValidity(in DateTime validTill)
+    {
+        var normalized = validTill;
+        ValidUpto = ValidUpto < normalized
+            ? normalized
             : throw new InvalidOperationException("Subscription cannot be backdated.");
+    }
 
     public void Activate()
     {

@@ -19,7 +19,7 @@ public class LogJobFilter : IClientFilter, IServerFilter, IElectStateFilter, IAp
         var job = context.Job;
         var jobName = GetJobName(job);
 
-        Logger.InfoFormat(
+        Logger.DebugFormat(
             "Creating job for {0}.", jobName);
     }
 
@@ -30,7 +30,7 @@ public class LogJobFilter : IClientFilter, IServerFilter, IElectStateFilter, IAp
         var jobId = context.BackgroundJob?.Id ?? "<unknown>";
         var recurringJobId = context.Parameters.TryGetValue("RecurringJobId", out var r) ? r : null;
 
-        Logger.InfoFormat(
+        Logger.DebugFormat(
             "Job created: Id={0}, Name={1}, RecurringJobId={2}",
             jobId,
             jobName,
@@ -45,7 +45,7 @@ public class LogJobFilter : IClientFilter, IServerFilter, IElectStateFilter, IAp
         var recurringJobId = context.GetJobParameter<string>("RecurringJobId") ?? "<none>";
         var args = FormatArguments(job.Args);
 
-        Logger.InfoFormat(
+        Logger.DebugFormat(
             "Starting job: Id={0}, Name={1}, RecurringJobId={2}, Queue={3}, Args={4}",
             backgroundJob.Id,
             jobName,
@@ -60,7 +60,7 @@ public class LogJobFilter : IClientFilter, IServerFilter, IElectStateFilter, IAp
         var job = backgroundJob.Job;
         var jobName = GetJobName(job);
 
-        Logger.InfoFormat(
+        Logger.DebugFormat(
             "Job completed: Id={0}, Name={1}, Succeeded={2}",
             backgroundJob.Id,
             jobName,
@@ -81,7 +81,7 @@ public class LogJobFilter : IClientFilter, IServerFilter, IElectStateFilter, IAp
 
     public void OnStateApplied(ApplyStateContext context, IWriteOnlyTransaction transaction)
     {
-        Logger.InfoFormat(
+        Logger.DebugFormat(
             "Job state changed: Id={0}, Name={1}, OldState={2}, NewState={3}",
             context.BackgroundJob.Id,
             GetJobName(context.BackgroundJob.Job),
@@ -91,7 +91,7 @@ public class LogJobFilter : IClientFilter, IServerFilter, IElectStateFilter, IAp
 
     public void OnStateUnapplied(ApplyStateContext context, IWriteOnlyTransaction transaction)
     {
-        Logger.InfoFormat(
+        Logger.DebugFormat(
             "Job state unapplied: Id={0}, Name={1}, OldState={2}",
             context.BackgroundJob.Id,
             GetJobName(context.BackgroundJob.Job),

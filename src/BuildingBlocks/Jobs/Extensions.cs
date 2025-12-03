@@ -13,6 +13,9 @@ public static class Extensions
 {
     public static IServiceCollection AddHeroJobs(this IServiceCollection services)
     {
+        services.AddOptions<HangfireOptions>()
+            .BindConfiguration(nameof(HangfireOptions));
+
         services.AddHangfireServer(options =>
         {
             options.HeartbeatInterval = TimeSpan.FromSeconds(30);
@@ -23,10 +26,9 @@ public static class Extensions
 
         services.AddHangfire((provider, config) =>
         {
-            var dbOptions = provider
-                .GetRequiredService<IConfiguration>()
-                .GetSection(nameof(DatabaseOptions))
-                .Get<DatabaseOptions>() ?? throw new CustomException("Database options not found");
+            var configuration = provider.GetRequiredService<IConfiguration>();
+            var dbOptions = configuration.GetSection(nameof(DatabaseOptions)).Get<DatabaseOptions>()
+                ?? throw new CustomException("Database options not found");
 
             switch (dbOptions.Provider.ToUpperInvariant())
             {
