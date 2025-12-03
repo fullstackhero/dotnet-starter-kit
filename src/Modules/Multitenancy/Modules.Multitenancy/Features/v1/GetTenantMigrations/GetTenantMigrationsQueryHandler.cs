@@ -47,10 +47,7 @@ public sealed class GetTenantMigrationsQueryHandler
                 using IServiceScope tenantScope = _scopeFactory.CreateScope();
 
                 tenantScope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>()
-                    .MultiTenantContext = new MultiTenantContext<AppTenantInfo>
-                    {
-                        TenantInfo = tenant
-                    };
+                    .MultiTenantContext = new MultiTenantContext<AppTenantInfo>(tenant);
 
                 var dbContext = tenantScope.ServiceProvider.GetRequiredService<TenantDbContext>();
 
@@ -78,4 +75,3 @@ public sealed class GetTenantMigrationsQueryHandler
         return tenantMigrationStatuses;
     }
 }
-

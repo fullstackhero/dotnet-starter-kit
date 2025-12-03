@@ -38,10 +38,7 @@ public class FshJobActivator : JobActivator
             if (tenantInfo is not null)
             {
                 _scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>()
-                    .MultiTenantContext = new MultiTenantContext<AppTenantInfo>
-                    {
-                        TenantInfo = tenantInfo
-                    };
+                    .MultiTenantContext = new MultiTenantContext<AppTenantInfo>(tenantInfo);
             }
 
             string userId = _context.GetJobParameter<string>(QueryStringKeys.UserId);

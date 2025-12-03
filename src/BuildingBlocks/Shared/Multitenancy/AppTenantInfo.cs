@@ -1,18 +1,18 @@
-﻿using Finbuckle.MultiTenant.Abstractions;
+using Finbuckle.MultiTenant.Abstractions;
 
 namespace FSH.Framework.Shared.Multitenancy;
 
-public class AppTenantInfo : ITenantInfo, IAppTenantInfo
+public record AppTenantInfo(string Id, string Identifier, string? Name = null)
+    : TenantInfo(Id, Identifier, Name), IAppTenantInfo
 {
-    public AppTenantInfo()
+    // Parameterless constructor for tooling/EF.
+    public AppTenantInfo() : this(string.Empty, string.Empty)
     {
     }
 
     public AppTenantInfo(string id, string name, string? connectionString, string adminEmail, string? issuer = null)
+        : this(id, id, name)
     {
-        Id = id;
-        Identifier = id;
-        Name = name;
         ConnectionString = connectionString ?? string.Empty;
         AdminEmail = adminEmail;
         IsActive = true;
@@ -21,12 +21,8 @@ public class AppTenantInfo : ITenantInfo, IAppTenantInfo
         // Add Default 1 Month Validity for all new tenants. Something like a DEMO period for tenants.
         ValidUpto = DateTime.UtcNow.AddMonths(1);
     }
-    public string Id { get; set; } = default!;
-    public string Identifier { get; set; } = default!;
 
-    public string Name { get; set; } = default!;
-    public string ConnectionString { get; set; } = default!;
-
+    public string ConnectionString { get; set; } = string.Empty;
     public string AdminEmail { get; set; } = default!;
     public bool IsActive { get; set; }
     public DateTime ValidUpto { get; set; }
@@ -62,8 +58,10 @@ public class AppTenantInfo : ITenantInfo, IAppTenantInfo
 
         IsActive = false;
     }
-    string? ITenantInfo.Id { get => Id; set => Id = value ?? throw new InvalidOperationException("Id can't be null."); }
-    string? ITenantInfo.Identifier { get => Identifier; set => Identifier = value ?? throw new InvalidOperationException("Identifier can't be null."); }
-    string? ITenantInfo.Name { get => Name; set => Name = value ?? throw new InvalidOperationException("Name can't be null."); }
-    string? IAppTenantInfo.ConnectionString { get => ConnectionString; set => ConnectionString = value ?? throw new InvalidOperationException("ConnectionString can't be null."); }
+
+    string? IAppTenantInfo.ConnectionString
+    {
+        get => ConnectionString;
+        set => ConnectionString = value ?? throw new InvalidOperationException("ConnectionString can't be null.");
+    }
 }

@@ -51,7 +51,7 @@ public sealed class TenantService : ITenantService
 
         tenant.Activate();
 
-        await _tenantStore.TryUpdateAsync(tenant).ConfigureAwait(false);
+        await _tenantStore.UpdateAsync(tenant).ConfigureAwait(false);
 
         return $"tenant {id} is now activated";
     }
@@ -67,7 +67,7 @@ public sealed class TenantService : ITenantService
         }
 
         AppTenantInfo tenant = new(id, name, connectionString, adminEmail, issuer);
-        await _tenantStore.TryAddAsync(tenant).ConfigureAwait(false);
+        await _tenantStore.AddAsync(tenant).ConfigureAwait(false);
 
         return tenant.Id;
     }
@@ -77,10 +77,7 @@ public sealed class TenantService : ITenantService
         using var scope = _serviceProvider.CreateScope();
 
         scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>()
-            .MultiTenantContext = new MultiTenantContext<AppTenantInfo>()
-            {
-                TenantInfo = tenant
-            };
+            .MultiTenantContext = new MultiTenantContext<AppTenantInfo>(tenant);
 
         foreach (var initializer in scope.ServiceProvider.GetServices<IDbInitializer>())
         {
@@ -93,10 +90,7 @@ public sealed class TenantService : ITenantService
         using var scope = _serviceProvider.CreateScope();
 
         scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>()
-            .MultiTenantContext = new MultiTenantContext<AppTenantInfo>()
-            {
-                TenantInfo = tenant
-            };
+            .MultiTenantContext = new MultiTenantContext<AppTenantInfo>(tenant);
 
         foreach (var initializer in scope.ServiceProvider.GetServices<IDbInitializer>())
         {
@@ -124,12 +118,12 @@ public sealed class TenantService : ITenantService
         }
 
         tenant.Deactivate();
-        await _tenantStore.TryUpdateAsync(tenant).ConfigureAwait(false);
+        await _tenantStore.UpdateAsync(tenant).ConfigureAwait(false);
         return $"tenant {id} is now deactivated";
     }
 
     public async Task<bool> ExistsWithIdAsync(string id) =>
-        await _tenantStore.TryGetAsync(id).ConfigureAwait(false) is not null;
+        await _tenantStore.GetAsync(id).ConfigureAwait(false) is not null;
 
     public async Task<bool> ExistsWithNameAsync(string name) =>
         (await _tenantStore.GetAllAsync().ConfigureAwait(false)).Any(t => t.Name == name);
@@ -167,11 +161,11 @@ public sealed class TenantService : ITenantService
     {
         var tenant = await GetTenantInfoAsync(id).ConfigureAwait(false);
         tenant.SetValidity(extendedExpiryDate);
-        await _tenantStore.TryUpdateAsync(tenant).ConfigureAwait(false);
+        await _tenantStore.UpdateAsync(tenant).ConfigureAwait(false);
         return tenant.ValidUpto;
     }
 
     private async Task<AppTenantInfo> GetTenantInfoAsync(string id) =>
-        await _tenantStore.TryGetAsync(id).ConfigureAwait(false)
+        await _tenantStore.GetAsync(id).ConfigureAwait(false)
             ?? throw new NotFoundException($"{typeof(AppTenantInfo).Name} {id} Not Found.");
 }

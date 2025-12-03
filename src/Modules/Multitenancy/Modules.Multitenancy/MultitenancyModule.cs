@@ -1,7 +1,10 @@
-﻿using Asp.Versioning;
+using Asp.Versioning;
 using Finbuckle.MultiTenant;
 using Finbuckle.MultiTenant.Abstractions;
-using Finbuckle.MultiTenant.Stores.DistributedCacheStore;
+using Finbuckle.MultiTenant.Stores;
+using Finbuckle.MultiTenant.Extensions;
+using Finbuckle.MultiTenant.AspNetCore.Extensions;
+using Finbuckle.MultiTenant.EntityFrameworkCore.Stores;
 using FSH.Framework.Persistence;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Shared.Multitenancy;
@@ -55,7 +58,7 @@ public sealed class MultitenancyModule : IModule
                             .GetRequiredService<IEnumerable<IMultiTenantStore<AppTenantInfo>>>()
                             .FirstOrDefault(s => s.GetType() == typeof(DistributedCacheStore<AppTenantInfo>));
 
-                        await distributedStore!.TryAddAsync(context.MultiTenantContext.TenantInfo!);
+                        await distributedStore!.AddAsync(context.MultiTenantContext.TenantInfo!);
                     }
                     await Task.CompletedTask;
                 };
@@ -73,7 +76,7 @@ public sealed class MultitenancyModule : IModule
                 return await Task.FromResult(tenantIdentifier.ToString());
             })
             .WithDistributedCacheStore(TimeSpan.FromMinutes(60))
-            .WithEFCoreStore<TenantDbContext, AppTenantInfo>();
+            .WithStore<EFCoreStore<TenantDbContext, AppTenantInfo>>(ServiceLifetime.Scoped);
 
         builder.Services.AddHealthChecks()
             .AddDbContextCheck<TenantDbContext>(

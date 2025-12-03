@@ -35,7 +35,7 @@ public sealed class TenantProvisioningService : ITenantProvisioningService
 
     public async Task<TenantProvisioning> StartAsync(string tenantId, CancellationToken cancellationToken)
     {
-        var tenant = await _tenantStore.TryGetAsync(tenantId).ConfigureAwait(false)
+        var tenant = await _tenantStore.GetAsync(tenantId).ConfigureAwait(false)
             ?? throw new NotFoundException($"Tenant {tenantId} not found for provisioning.");
 
         var existing = await GetLatestAsync(tenantId, cancellationToken).ConfigureAwait(false);

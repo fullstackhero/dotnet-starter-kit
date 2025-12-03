@@ -10,6 +10,7 @@
 	<ItemGroup>
 	  <PackageReference Include="Mediator.Abstractions" />
 	  <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+	  <PackageReference Include="Finbuckle.MultiTenant.Identity.EntityFrameworkCore" />
 	</ItemGroup>
 
 	<ItemGroup>

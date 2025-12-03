@@ -31,8 +31,8 @@ public sealed class SqlAuditSink : IAuditSink
             var store = scope.ServiceProvider.GetRequiredService<IMultiTenantStore<AppTenantInfo>>();
 
             var tenantInfo = group.Key is null
-                ? await store.TryGetAsync(MultitenancyConstants.Root.Id).ConfigureAwait(false)
-                : await store.TryGetAsync(group.Key).ConfigureAwait(false);
+                ? await store.GetAsync(MultitenancyConstants.Root.Id).ConfigureAwait(false)
+                : await store.GetAsync(group.Key).ConfigureAwait(false);
 
             if (tenantInfo is null)
             {
@@ -41,10 +41,7 @@ public sealed class SqlAuditSink : IAuditSink
             }
 
             scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>()
-                    .MultiTenantContext = new MultiTenantContext<AppTenantInfo>
-                    {
-                        TenantInfo = tenantInfo
-                    };
+                .MultiTenantContext = new MultiTenantContext<AppTenantInfo>(tenantInfo);
 
             var db = scope.ServiceProvider.GetRequiredService<AuditDbContext>();
 

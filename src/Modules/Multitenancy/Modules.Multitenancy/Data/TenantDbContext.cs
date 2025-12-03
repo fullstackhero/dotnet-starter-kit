@@ -1,4 +1,4 @@
-using Finbuckle.MultiTenant.EntityFrameworkCore.Stores.EFCoreStore;
+using Finbuckle.MultiTenant.EntityFrameworkCore.Stores;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Multitenancy.Provisioning;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +7,8 @@ namespace FSH.Modules.Multitenancy.Data;
 
 public class TenantDbContext : EFCoreStoreDbContext<AppTenantInfo>
 {
+    public const string Schema = "tenant";
+
     public TenantDbContext(DbContextOptions<TenantDbContext> options)
         : base(options)
     {

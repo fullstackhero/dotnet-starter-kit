@@ -1,5 +1,5 @@
-﻿using Finbuckle.MultiTenant.Abstractions;
-using Finbuckle.MultiTenant.EntityFrameworkCore;
+using Finbuckle.MultiTenant.Abstractions;
+using Finbuckle.MultiTenant.Identity.EntityFrameworkCore;
 using FSH.Framework.Eventing.Inbox;
 using FSH.Framework.Eventing.Outbox;
 using FSH.Framework.Persistence;
@@ -22,7 +22,8 @@ public class IdentityDbContext : MultiTenantIdentityDbContext<FshUser,
     IdentityUserRole<string>,
     IdentityUserLogin<string>,
     FshRoleClaim,
-    IdentityUserToken<string>>
+    IdentityUserToken<string>,
+    IdentityUserPasskey<string>>
 {
     private readonly DatabaseOptions _settings;
     private new AppTenantInfo TenantInfo { get; set; }

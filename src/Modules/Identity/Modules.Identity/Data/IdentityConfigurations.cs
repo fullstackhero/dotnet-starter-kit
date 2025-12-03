@@ -1,4 +1,4 @@
-﻿using Finbuckle.MultiTenant;
+using Finbuckle.MultiTenant.EntityFrameworkCore.Extensions;
 using FSH.Modules.Identity.Features.v1.RoleClaims;
 using FSH.Modules.Identity.Features.v1.Roles;
 using FSH.Modules.Identity.Features.v1.Users;

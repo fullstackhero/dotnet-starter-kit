@@ -33,7 +33,7 @@ public sealed class TenantProvisioningJob
 
     public async Task RunAsync(string tenantId, string correlationId)
     {
-        var tenant = await _tenantStore.TryGetAsync(tenantId).ConfigureAwait(false)
+        var tenant = await _tenantStore.GetAsync(tenantId).ConfigureAwait(false)
             ?? throw new NotFoundException($"Tenant {tenantId} not found during provisioning.");
 
         var currentStep = TenantProvisioningStepName.Database;
@@ -41,10 +41,7 @@ public sealed class TenantProvisioningJob
         {
             var runDatabase = await _provisioningService.MarkRunningAsync(tenantId, correlationId, currentStep, CancellationToken.None).ConfigureAwait(false);
 
-            _tenantContextSetter.MultiTenantContext = new MultiTenantContext<AppTenantInfo>()
-            {
-                TenantInfo = tenant
-            };
+            _tenantContextSetter.MultiTenantContext = new MultiTenantContext<AppTenantInfo>(tenant);
 
             if (runDatabase)
             {

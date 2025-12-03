@@ -5,9 +5,10 @@
 		<AssemblyName>FSH.Framework.Shared</AssemblyName>
 	</PropertyGroup>
 	<ItemGroup>
-		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	  <FrameworkReference Include="Microsoft.AspNetCore.App" />
 	</ItemGroup>
 	<ItemGroup>
+	  <PackageReference Include="Finbuckle.MultiTenant.Abstractions" />
 	  <PackageReference Include="Finbuckle.MultiTenant" />
 	</ItemGroup>
 
