@@ -79,3 +79,10 @@ Goal: automate tenant provisioning, activation, and health verification so new t
 - Double-submit provisioning for same tenant does not run concurrent workflows (dedupe/lock).
 - Partial seeds are safe to re-run (no duplicate roles/users; admin user upsert).
 - Health check reports degraded for tenants with failed provisioning; improves after successful retry.
+
+## Progress Update (Current State)
+- Provisioning workflow implemented with persisted status/steps and 202 responses on tenant creation; retry endpoint available.
+- Background provisioning via Hangfire, with inline fallback when Hangfire/storage is unavailable (dev-friendly).
+- Startup hosted services: tenant catalog migrate/seed (root tenant) and optional auto-provision enqueue.
+- Provider-aware TenantDbContextFactory to select PostgreSQL via appsettings.
+- Audit pipeline fixed to stamp tenant/user on events; audit sink writes per-tenant batches.
