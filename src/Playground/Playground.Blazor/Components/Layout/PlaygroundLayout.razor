@@ -1,6 +1,8 @@
 @inherits LayoutComponentBase
+@implements IDisposable
 @using FSH.Framework.Blazor.UI.Components.Button
 @using FSH.Framework.Blazor.UI.Components.Layouts
+@using FSH.Framework.Blazor.UI.Theme
 @using FSH.Playground.Blazor.Components.Pages
 @using Microsoft.AspNetCore.WebUtilities
 @using FSH.Playground.Blazor.Services
@@ -8,6 +10,7 @@
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 @inject MudTheme FshTheme
+@inject ITenantThemeState TenantThemeState
 @inject FSH.Playground.Blazor.Services.Api.ITokenSessionAccessor TokenSessionAccessor
 @inject FSH.Playground.Blazor.Services.Api.ITokenAccessor TokenAccessor
 
@@ -69,7 +72,21 @@ else
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        _theme = FshTheme;
+        _theme = TenantThemeState.Theme;
+        _isDarkMode = TenantThemeState.IsDarkMode;
+        TenantThemeState.OnThemeChanged += HandleThemeChanged;
+    }
+
+    private void HandleThemeChanged()
+    {
+        _theme = TenantThemeState.Theme;
+        _isDarkMode = TenantThemeState.IsDarkMode;
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        TenantThemeState.OnThemeChanged -= HandleThemeChanged;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -88,6 +105,8 @@ else
                 if (_isAuthenticated)
                 {
                     await HydrateSessionAsync(client);
+                    // Load tenant theme after authentication
+                    await TenantThemeState.LoadThemeAsync();
                 }
             }
             catch
@@ -151,7 +170,7 @@ else
 
     private void DarkModeToggle()
     {
-        _isDarkMode = !_isDarkMode;
+        TenantThemeState.ToggleDarkMode();
     }
 
     public string DarkLightModeButtonIcon => _isDarkMode switch

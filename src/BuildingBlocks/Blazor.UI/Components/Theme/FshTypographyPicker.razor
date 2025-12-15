@@ -1,0 +1,124 @@
+@using FSH.Framework.Blazor.UI.Theme
+
+<MudPaper Class="pa-4" Elevation="0" Outlined="true">
+    <MudText Typo="Typo.h6" Class="mb-4">Typography</MudText>
+
+    <MudGrid>
+        <MudItem xs="12" sm="6">
+            <MudSelect T="string"
+                      Label="Body Font Family"
+                      Value="@Typography.FontFamily"
+                      ValueChanged="@OnFontFamilyChanged"
+                      Variant="Variant.Outlined"
+                      Dense="true"
+                      Margin="Margin.Dense">
+                @foreach (var font in TypographySettings.WebSafeFonts)
+                {
+                    <MudSelectItem Value="@font">
+                        <span style="font-family: @font">@font.Split(',')[0]</span>
+                    </MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudSelect T="string"
+                      Label="Heading Font Family"
+                      Value="@Typography.HeadingFontFamily"
+                      ValueChanged="@OnHeadingFontFamilyChanged"
+                      Variant="Variant.Outlined"
+                      Dense="true"
+                      Margin="Margin.Dense">
+                @foreach (var font in TypographySettings.WebSafeFonts)
+                {
+                    <MudSelectItem Value="@font">
+                        <span style="font-family: @font">@font.Split(',')[0]</span>
+                    </MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudNumericField T="double"
+                            Label="Base Font Size (px)"
+                            Value="@Typography.FontSizeBase"
+                            ValueChanged="@OnFontSizeChanged"
+                            Min="10"
+                            Max="24"
+                            Step="1"
+                            Variant="Variant.Outlined"
+                            Dense="true"
+                            Margin="Margin.Dense"
+                            Adornment="Adornment.End"
+                            AdornmentText="px" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudNumericField T="double"
+                            Label="Line Height"
+                            Value="@Typography.LineHeightBase"
+                            ValueChanged="@OnLineHeightChanged"
+                            Min="1.0"
+                            Max="2.5"
+                            Step="0.1"
+                            Variant="Variant.Outlined"
+                            Dense="true"
+                            Margin="Margin.Dense" />
+        </MudItem>
+    </MudGrid>
+
+    <MudDivider Class="my-4" />
+
+    <MudText Typo="Typo.subtitle2" Class="mb-2">Preview</MudText>
+    <MudPaper Class="pa-4" Elevation="0" Outlined="true" Style="@GetPreviewStyle()">
+        <div style="@GetHeadingStyle()">
+            <MudText Typo="Typo.h4">Heading Text</MudText>
+        </div>
+        <MudText Typo="Typo.body1" Class="mt-2">
+            This is body text. The quick brown fox jumps over the lazy dog.
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+        </MudText>
+        <MudText Typo="Typo.caption" Class="mt-2" Color="Color.Secondary">
+            Caption text with secondary color
+        </MudText>
+    </MudPaper>
+</MudPaper>
+
+@code {
+    [Parameter] public TypographySettings Typography { get; set; } = new();
+    [Parameter] public EventCallback<TypographySettings> TypographyChanged { get; set; }
+
+    private async Task OnFontFamilyChanged(string value)
+    {
+        Typography.FontFamily = value;
+        await TypographyChanged.InvokeAsync(Typography);
+    }
+
+    private async Task OnHeadingFontFamilyChanged(string value)
+    {
+        Typography.HeadingFontFamily = value;
+        await TypographyChanged.InvokeAsync(Typography);
+    }
+
+    private async Task OnFontSizeChanged(double value)
+    {
+        Typography.FontSizeBase = value;
+        await TypographyChanged.InvokeAsync(Typography);
+    }
+
+    private async Task OnLineHeightChanged(double value)
+    {
+        Typography.LineHeightBase = value;
+        await TypographyChanged.InvokeAsync(Typography);
+    }
+
+    private string GetPreviewStyle()
+    {
+        return $"font-family: {Typography.FontFamily}; font-size: {Typography.FontSizeBase}px; line-height: {Typography.LineHeightBase};";
+    }
+
+    private string GetHeadingStyle()
+    {
+        return $"font-family: {Typography.HeadingFontFamily};";
+    }
+}

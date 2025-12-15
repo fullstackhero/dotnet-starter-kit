@@ -2,7 +2,7 @@
 
 public class FileUploadRequest
 {
-    public string FileName { get; init; } = default!;
-    public string ContentType { get; init; } = default!;
-    public IReadOnlyList<byte> Data { get; init; } = Array.Empty<byte>();
+    public string FileName { get; set; } = default!;
+    public string ContentType { get; set; } = default!;
+    public List<byte> Data { get; set; } = [];
 }

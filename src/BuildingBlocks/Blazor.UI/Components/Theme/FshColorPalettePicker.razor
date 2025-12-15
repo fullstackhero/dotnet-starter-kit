@@ -1,0 +1,184 @@
+@using FSH.Framework.Blazor.UI.Theme
+@using MudBlazor.Utilities
+
+<MudPaper Class="pa-4" Elevation="0" Outlined="true">
+    <MudText Typo="Typo.h6" Class="mb-4">@Title</MudText>
+
+    <MudGrid>
+        <MudItem xs="12" sm="6" md="4">
+            <MudText Typo="Typo.caption" Class="mb-1">Primary</MudText>
+            <MudColorPicker Value="@GetColor(Palette.Primary)"
+                          ValueChanged="@(c => OnColorChanged(c, v => Palette.Primary = v))"
+                          Label="Primary"
+                          DisableAlpha="true"
+                          DisableModeSwitch="true"
+                          ColorPickerMode="ColorPickerMode.HEX"
+                          PickerVariant="PickerVariant.Inline"
+                          DisableToolbar="true"
+                          Style="@($"--mud-palette-primary: {Palette.Primary}")"
+                          Class="color-picker-dense" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="4">
+            <MudText Typo="Typo.caption" Class="mb-1">Secondary</MudText>
+            <MudColorPicker Value="@GetColor(Palette.Secondary)"
+                          ValueChanged="@(c => OnColorChanged(c, v => Palette.Secondary = v))"
+                          Label="Secondary"
+                          DisableAlpha="true"
+                          DisableModeSwitch="true"
+                          ColorPickerMode="ColorPickerMode.HEX"
+                          PickerVariant="PickerVariant.Inline"
+                          DisableToolbar="true"
+                          Class="color-picker-dense" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="4">
+            <MudText Typo="Typo.caption" Class="mb-1">Tertiary</MudText>
+            <MudColorPicker Value="@GetColor(Palette.Tertiary)"
+                          ValueChanged="@(c => OnColorChanged(c, v => Palette.Tertiary = v))"
+                          Label="Tertiary"
+                          DisableAlpha="true"
+                          DisableModeSwitch="true"
+                          ColorPickerMode="ColorPickerMode.HEX"
+                          PickerVariant="PickerVariant.Inline"
+                          DisableToolbar="true"
+                          Class="color-picker-dense" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="4">
+            <MudText Typo="Typo.caption" Class="mb-1">Background</MudText>
+            <MudColorPicker Value="@GetColor(Palette.Background)"
+                          ValueChanged="@(c => OnColorChanged(c, v => Palette.Background = v))"
+                          Label="Background"
+                          DisableAlpha="true"
+                          DisableModeSwitch="true"
+                          ColorPickerMode="ColorPickerMode.HEX"
+                          PickerVariant="PickerVariant.Inline"
+                          DisableToolbar="true"
+                          Class="color-picker-dense" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="4">
+            <MudText Typo="Typo.caption" Class="mb-1">Surface</MudText>
+            <MudColorPicker Value="@GetColor(Palette.Surface)"
+                          ValueChanged="@(c => OnColorChanged(c, v => Palette.Surface = v))"
+                          Label="Surface"
+                          DisableAlpha="true"
+                          DisableModeSwitch="true"
+                          ColorPickerMode="ColorPickerMode.HEX"
+                          PickerVariant="PickerVariant.Inline"
+                          DisableToolbar="true"
+                          Class="color-picker-dense" />
+        </MudItem>
+
+        <MudItem xs="12" Class="mt-4">
+            <MudText Typo="Typo.subtitle2" Class="mb-2">Semantic Colors</MudText>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="3">
+            <MudText Typo="Typo.caption" Class="mb-1">Success</MudText>
+            <MudColorPicker Value="@GetColor(Palette.Success)"
+                          ValueChanged="@(c => OnColorChanged(c, v => Palette.Success = v))"
+                          Label="Success"
+                          DisableAlpha="true"
+                          DisableModeSwitch="true"
+                          ColorPickerMode="ColorPickerMode.HEX"
+                          PickerVariant="PickerVariant.Inline"
+                          DisableToolbar="true"
+                          Class="color-picker-dense" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="3">
+            <MudText Typo="Typo.caption" Class="mb-1">Info</MudText>
+            <MudColorPicker Value="@GetColor(Palette.Info)"
+                          ValueChanged="@(c => OnColorChanged(c, v => Palette.Info = v))"
+                          Label="Info"
+                          DisableAlpha="true"
+                          DisableModeSwitch="true"
+                          ColorPickerMode="ColorPickerMode.HEX"
+                          PickerVariant="PickerVariant.Inline"
+                          DisableToolbar="true"
+                          Class="color-picker-dense" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="3">
+            <MudText Typo="Typo.caption" Class="mb-1">Warning</MudText>
+            <MudColorPicker Value="@GetColor(Palette.Warning)"
+                          ValueChanged="@(c => OnColorChanged(c, v => Palette.Warning = v))"
+                          Label="Warning"
+                          DisableAlpha="true"
+                          DisableModeSwitch="true"
+                          ColorPickerMode="ColorPickerMode.HEX"
+                          PickerVariant="PickerVariant.Inline"
+                          DisableToolbar="true"
+                          Class="color-picker-dense" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="3">
+            <MudText Typo="Typo.caption" Class="mb-1">Error</MudText>
+            <MudColorPicker Value="@GetColor(Palette.Error)"
+                          ValueChanged="@(c => OnColorChanged(c, v => Palette.Error = v))"
+                          Label="Error"
+                          DisableAlpha="true"
+                          DisableModeSwitch="true"
+                          ColorPickerMode="ColorPickerMode.HEX"
+                          PickerVariant="PickerVariant.Inline"
+                          DisableToolbar="true"
+                          Class="color-picker-dense" />
+        </MudItem>
+    </MudGrid>
+
+    <MudDivider Class="my-4" />
+
+    <div class="d-flex gap-2 flex-wrap">
+        <MudText Typo="Typo.caption">Preview:</MudText>
+        @foreach (var color in GetColorSwatches())
+        {
+            <MudTooltip Text="@color.Name">
+                <MudPaper Width="32px" Height="32px"
+                         Style="@($"background-color: {color.Value}; border: 1px solid rgba(0,0,0,0.12);")"
+                         Elevation="0" />
+            </MudTooltip>
+        }
+    </div>
+</MudPaper>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Color Palette";
+    [Parameter] public PaletteSettings Palette { get; set; } = new();
+    [Parameter] public EventCallback<PaletteSettings> PaletteChanged { get; set; }
+
+    private MudColor GetColor(string hexColor)
+    {
+        try
+        {
+            return new MudColor(hexColor);
+        }
+        catch
+        {
+            return new MudColor("#000000");
+        }
+    }
+
+    private async Task OnColorChanged(MudColor color, Action<string> setter)
+    {
+        var hexValue = color.Value.StartsWith("#", StringComparison.Ordinal)
+            ? color.Value[..7]  // Take only #RRGGBB, ignore alpha
+            : $"#{color.Value}"[..7];
+        setter(hexValue);
+        await PaletteChanged.InvokeAsync(Palette);
+    }
+
+    private IEnumerable<(string Name, string Value)> GetColorSwatches()
+    {
+        yield return ("Primary", Palette.Primary);
+        yield return ("Secondary", Palette.Secondary);
+        yield return ("Tertiary", Palette.Tertiary);
+        yield return ("Background", Palette.Background);
+        yield return ("Surface", Palette.Surface);
+        yield return ("Success", Palette.Success);
+        yield return ("Info", Palette.Info);
+        yield return ("Warning", Palette.Warning);
+        yield return ("Error", Palette.Error);
+    }
+}

@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet build:*)",
+      "Bash(dotnet ef migrations add:*)",
+      "Bash(taskkill:*)",
+      "Bash(docker start:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

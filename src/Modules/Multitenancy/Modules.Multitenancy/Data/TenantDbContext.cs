@@ -1,5 +1,6 @@
 using Finbuckle.MultiTenant.EntityFrameworkCore.Stores;
 using FSH.Framework.Shared.Multitenancy;
+using FSH.Modules.Multitenancy.Domain;
 using FSH.Modules.Multitenancy.Provisioning;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,6 +18,8 @@ public class TenantDbContext : EFCoreStoreDbContext<AppTenantInfo>
     public DbSet<TenantProvisioning> TenantProvisionings => Set<TenantProvisioning>();
 
     public DbSet<TenantProvisioningStep> TenantProvisioningSteps => Set<TenantProvisioningStep>();
+
+    public DbSet<TenantTheme> TenantThemes => Set<TenantTheme>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

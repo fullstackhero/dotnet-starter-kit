@@ -1,0 +1,167 @@
+@using FSH.Framework.Blazor.UI.Theme
+
+<MudPaper Class="pa-4" Elevation="0" Outlined="true">
+    <MudText Typo="Typo.h6" Class="mb-4">Live Preview</MudText>
+
+    <MudToggleGroup T="bool" @bind-Value="@_previewDarkMode" Color="Color.Primary" Class="mb-4">
+        <MudToggleItem T="bool" Value="false">
+            <MudIcon Icon="@Icons.Material.Outlined.LightMode" Size="Size.Small" Class="mr-1" />
+            Light
+        </MudToggleItem>
+        <MudToggleItem T="bool" Value="true">
+            <MudIcon Icon="@Icons.Material.Outlined.DarkMode" Size="Size.Small" Class="mr-1" />
+            Dark
+        </MudToggleItem>
+    </MudToggleGroup>
+
+    <MudPaper Class="pa-4" Style="@GetPreviewContainerStyle()" Elevation="0">
+        @* App Bar Preview *@
+        <MudPaper Class="pa-3 mb-4" Style="@GetAppBarStyle()" Elevation="0">
+            <div class="d-flex align-center gap-2">
+                @if (!string.IsNullOrEmpty(GetLogoUrl()))
+                {
+                    <MudImage Src="@GetLogoUrl()" Height="32" Alt="Logo" ObjectFit="ObjectFit.Contain" />
+                }
+                else
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.Business" />
+                }
+                <MudText Typo="Typo.h6" Style="@GetAppBarTextStyle()">Brand Name</MudText>
+                <MudSpacer />
+                <MudIconButton Icon="@Icons.Material.Outlined.Notifications" Style="@GetAppBarTextStyle()" />
+                <MudIconButton Icon="@Icons.Material.Outlined.Person" Style="@GetAppBarTextStyle()" />
+            </div>
+        </MudPaper>
+
+        @* Content Preview *@
+        <MudGrid>
+            @* Cards *@
+            <MudItem xs="12" md="6">
+                <MudPaper Class="pa-4" Style="@GetCardStyle()" Elevation="@Settings.Layout.DefaultElevation">
+                    <MudText Typo="Typo.h6" Style="@GetTextStyle()">Dashboard Card</MudText>
+                    <MudText Typo="Typo.body2" Style="@GetSecondaryTextStyle()" Class="mt-2">
+                        This is how your content cards will look with the selected theme settings.
+                    </MudText>
+                    <div class="d-flex gap-2 mt-3">
+                        <MudButton Variant="Variant.Filled" Style="@GetPrimaryButtonStyle()" Size="Size.Small">
+                            Primary
+                        </MudButton>
+                        <MudButton Variant="Variant.Outlined" Style="@GetOutlinedButtonStyle()" Size="Size.Small">
+                            Outlined
+                        </MudButton>
+                    </div>
+                </MudPaper>
+            </MudItem>
+
+            @* Alerts *@
+            <MudItem xs="12" md="6">
+                <MudPaper Class="pa-4" Style="@GetCardStyle()" Elevation="@Settings.Layout.DefaultElevation">
+                    <MudText Typo="Typo.h6" Style="@GetTextStyle()" Class="mb-3">Alerts</MudText>
+                    <MudAlert Severity="Severity.Success" Dense="true" Class="mb-2"
+                             Style="@GetAlertStyle(CurrentPalette.Success)">
+                        Success message
+                    </MudAlert>
+                    <MudAlert Severity="Severity.Info" Dense="true" Class="mb-2"
+                             Style="@GetAlertStyle(CurrentPalette.Info)">
+                        Info message
+                    </MudAlert>
+                    <MudAlert Severity="Severity.Warning" Dense="true" Class="mb-2"
+                             Style="@GetAlertStyle(CurrentPalette.Warning)">
+                        Warning message
+                    </MudAlert>
+                    <MudAlert Severity="Severity.Error" Dense="true"
+                             Style="@GetAlertStyle(CurrentPalette.Error)">
+                        Error message
+                    </MudAlert>
+                </MudPaper>
+            </MudItem>
+
+            @* Form Elements *@
+            <MudItem xs="12">
+                <MudPaper Class="pa-4" Style="@GetCardStyle()" Elevation="@Settings.Layout.DefaultElevation">
+                    <MudText Typo="Typo.h6" Style="@GetTextStyle()" Class="mb-3">Form Elements</MudText>
+                    <MudGrid>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField T="string" Label="Text Input" Variant="Variant.Outlined"
+                                        Style="@GetInputStyle()" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudSelect T="string" Label="Select" Variant="Variant.Outlined"
+                                      Style="@GetInputStyle()">
+                                <MudSelectItem Value="@("Option 1")">Option 1</MudSelectItem>
+                                <MudSelectItem Value="@("Option 2")">Option 2</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudCheckBox T="bool" Label="Checkbox option" Color="Color.Primary" />
+                            <MudSwitch T="bool" Label="Toggle switch" Color="Color.Primary" Class="ml-4" />
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+</MudPaper>
+
+@code {
+    [Parameter] public TenantThemeSettings Settings { get; set; } = new();
+
+    private bool _previewDarkMode = false;
+
+    private PaletteSettings CurrentPalette => _previewDarkMode ? Settings.DarkPalette : Settings.LightPalette;
+
+    private string? GetLogoUrl()
+    {
+        return _previewDarkMode ? Settings.BrandAssets.LogoDarkUrl : Settings.BrandAssets.LogoUrl;
+    }
+
+    private string GetPreviewContainerStyle()
+    {
+        return $"background-color: {CurrentPalette.Background}; border-radius: {Settings.Layout.BorderRadius}; font-family: {Settings.Typography.FontFamily}; font-size: {Settings.Typography.FontSizeBase}px; line-height: {Settings.Typography.LineHeightBase};";
+    }
+
+    private string GetAppBarStyle()
+    {
+        return $"background-color: {CurrentPalette.Surface}; border-radius: {Settings.Layout.BorderRadius};";
+    }
+
+    private string GetAppBarTextStyle()
+    {
+        return $"color: {(_previewDarkMode ? "#E2E8F0" : CurrentPalette.Secondary)};";
+    }
+
+    private string GetCardStyle()
+    {
+        return $"background-color: {CurrentPalette.Surface}; border-radius: {Settings.Layout.BorderRadius};";
+    }
+
+    private string GetTextStyle()
+    {
+        return $"color: {(_previewDarkMode ? "#E2E8F0" : CurrentPalette.Secondary)}; font-family: {Settings.Typography.HeadingFontFamily};";
+    }
+
+    private string GetSecondaryTextStyle()
+    {
+        return $"color: {(_previewDarkMode ? "#CBD5E1" : "#475569")};";
+    }
+
+    private string GetPrimaryButtonStyle()
+    {
+        return $"background-color: {CurrentPalette.Primary}; color: white; border-radius: {Settings.Layout.BorderRadius};";
+    }
+
+    private string GetOutlinedButtonStyle()
+    {
+        return $"border-color: {CurrentPalette.Primary}; color: {CurrentPalette.Primary}; border-radius: {Settings.Layout.BorderRadius};";
+    }
+
+    private string GetAlertStyle(string color)
+    {
+        return $"border-radius: {Settings.Layout.BorderRadius};";
+    }
+
+    private string GetInputStyle()
+    {
+        return $"--mud-palette-primary: {CurrentPalette.Primary};";
+    }
+}

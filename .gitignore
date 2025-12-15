@@ -488,6 +488,8 @@ $RECYCLE.BIN/
 /.bmad
 
 team/
-fshuser/
 docs/
 spec-os/
+/PLAN.md
+/nul
+**/wwwroot/uploads/*

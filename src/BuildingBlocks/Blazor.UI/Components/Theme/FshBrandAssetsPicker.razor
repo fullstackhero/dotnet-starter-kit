@@ -1,0 +1,184 @@
+@using FSH.Framework.Blazor.UI.Theme
+
+<MudPaper Class="pa-4" Elevation="0" Outlined="true">
+    <MudText Typo="Typo.h6" Class="mb-4">Brand Assets</MudText>
+
+    <MudGrid>
+        @* Light Mode Logo *@
+        <MudItem xs="12" sm="6" md="4">
+            <MudPaper Class="pa-4" Elevation="0" Outlined="true">
+                <MudText Typo="Typo.subtitle2" Class="mb-2">Logo (Light Mode)</MudText>
+                @if (!string.IsNullOrEmpty(BrandAssets.LogoUrl))
+                {
+                    <div class="d-flex flex-column align-center gap-2">
+                        <MudImage Src="@BrandAssets.LogoUrl"
+                                 Height="64"
+                                 Alt="Logo Light"
+                                 ObjectFit="ObjectFit.Contain"
+                                 Class="rounded" />
+                        <MudButton Variant="Variant.Text"
+                                  Color="Color.Error"
+                                  Size="Size.Small"
+                                  StartIcon="@Icons.Material.Filled.Delete"
+                                  OnClick="@(() => ClearLogo())">
+                            Remove
+                        </MudButton>
+                    </div>
+                }
+                else
+                {
+                    <MudFileUpload T="IBrowserFile"
+                                  Accept=".png,.jpg,.jpeg,.svg,.webp"
+                                  FilesChanged="@OnLogoUpload"
+                                  MaximumFileCount="1">
+                        <ActivatorContent>
+                            <MudPaper Class="pa-4 d-flex flex-column align-center justify-center cursor-pointer"
+                                     Style="border: 2px dashed; border-color: var(--mud-palette-lines-default); min-height: 100px;"
+                                     Elevation="0">
+                                <MudIcon Icon="@Icons.Material.Outlined.CloudUpload" Size="Size.Large" Color="Color.Default" />
+                                <MudText Typo="Typo.caption" Class="mt-2">Click to upload logo</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">PNG, JPG, SVG, WebP</MudText>
+                            </MudPaper>
+                        </ActivatorContent>
+                    </MudFileUpload>
+                }
+            </MudPaper>
+        </MudItem>
+
+        @* Dark Mode Logo *@
+        <MudItem xs="12" sm="6" md="4">
+            <MudPaper Class="pa-4" Elevation="0" Outlined="true" Style="background-color: #1a1a2e;">
+                <MudText Typo="Typo.subtitle2" Class="mb-2" Style="color: white;">Logo (Dark Mode)</MudText>
+                @if (!string.IsNullOrEmpty(BrandAssets.LogoDarkUrl))
+                {
+                    <div class="d-flex flex-column align-center gap-2">
+                        <MudImage Src="@BrandAssets.LogoDarkUrl"
+                                 Height="64"
+                                 Alt="Logo Dark"
+                                 ObjectFit="ObjectFit.Contain"
+                                 Class="rounded" />
+                        <MudButton Variant="Variant.Text"
+                                  Color="Color.Error"
+                                  Size="Size.Small"
+                                  StartIcon="@Icons.Material.Filled.Delete"
+                                  OnClick="@(() => ClearLogoDark())">
+                            Remove
+                        </MudButton>
+                    </div>
+                }
+                else
+                {
+                    <MudFileUpload T="IBrowserFile"
+                                  Accept=".png,.jpg,.jpeg,.svg,.webp"
+                                  FilesChanged="@OnLogoDarkUpload"
+                                  MaximumFileCount="1">
+                        <ActivatorContent>
+                            <MudPaper Class="pa-4 d-flex flex-column align-center justify-center cursor-pointer"
+                                     Style="border: 2px dashed; border-color: rgba(255,255,255,0.3); min-height: 100px; background-color: transparent;"
+                                     Elevation="0">
+                                <MudIcon Icon="@Icons.Material.Outlined.CloudUpload" Size="Size.Large" Style="color: rgba(255,255,255,0.7);" />
+                                <MudText Typo="Typo.caption" Class="mt-2" Style="color: rgba(255,255,255,0.7);">Click to upload logo</MudText>
+                                <MudText Typo="Typo.caption" Style="color: rgba(255,255,255,0.5);">PNG, JPG, SVG, WebP</MudText>
+                            </MudPaper>
+                        </ActivatorContent>
+                    </MudFileUpload>
+                }
+            </MudPaper>
+        </MudItem>
+
+        @* Favicon *@
+        <MudItem xs="12" sm="6" md="4">
+            <MudPaper Class="pa-4" Elevation="0" Outlined="true">
+                <MudText Typo="Typo.subtitle2" Class="mb-2">Favicon</MudText>
+                @if (!string.IsNullOrEmpty(BrandAssets.FaviconUrl))
+                {
+                    <div class="d-flex flex-column align-center gap-2">
+                        <MudImage Src="@BrandAssets.FaviconUrl"
+                                 Height="32"
+                                 Width="32"
+                                 Alt="Favicon"
+                                 ObjectFit="ObjectFit.Contain"
+                                 Class="rounded" />
+                        <MudButton Variant="Variant.Text"
+                                  Color="Color.Error"
+                                  Size="Size.Small"
+                                  StartIcon="@Icons.Material.Filled.Delete"
+                                  OnClick="@(() => ClearFavicon())">
+                            Remove
+                        </MudButton>
+                    </div>
+                }
+                else
+                {
+                    <MudFileUpload T="IBrowserFile"
+                                  Accept=".png,.ico,.svg"
+                                  FilesChanged="@OnFaviconUpload"
+                                  MaximumFileCount="1">
+                        <ActivatorContent>
+                            <MudPaper Class="pa-4 d-flex flex-column align-center justify-center cursor-pointer"
+                                     Style="border: 2px dashed; border-color: var(--mud-palette-lines-default); min-height: 100px;"
+                                     Elevation="0">
+                                <MudIcon Icon="@Icons.Material.Outlined.Image" Size="Size.Large" Color="Color.Default" />
+                                <MudText Typo="Typo.caption" Class="mt-2">Click to upload favicon</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">16x16 or 32x32 PNG, ICO</MudText>
+                            </MudPaper>
+                        </ActivatorContent>
+                    </MudFileUpload>
+                }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-3">
+        <MudIcon Icon="@Icons.Material.Outlined.Info" Size="Size.Small" Class="mr-1" Style="vertical-align: middle;" />
+        Recommended logo size: 200x50px. Favicon: 32x32px. Maximum file size: 2MB.
+    </MudText>
+</MudPaper>
+
+@code {
+    [Parameter] public BrandAssets BrandAssets { get; set; } = new();
+    [Parameter] public EventCallback<BrandAssets> BrandAssetsChanged { get; set; }
+    [Parameter] public EventCallback<(IBrowserFile File, string AssetType)> OnFileUpload { get; set; }
+
+    private async Task OnLogoUpload(IBrowserFile file)
+    {
+        if (OnFileUpload.HasDelegate)
+        {
+            await OnFileUpload.InvokeAsync((file, "logo"));
+        }
+    }
+
+    private async Task OnLogoDarkUpload(IBrowserFile file)
+    {
+        if (OnFileUpload.HasDelegate)
+        {
+            await OnFileUpload.InvokeAsync((file, "logo-dark"));
+        }
+    }
+
+    private async Task OnFaviconUpload(IBrowserFile file)
+    {
+        if (OnFileUpload.HasDelegate)
+        {
+            await OnFileUpload.InvokeAsync((file, "favicon"));
+        }
+    }
+
+    private void ClearLogo()
+    {
+        BrandAssets.LogoUrl = null;
+        BrandAssetsChanged.InvokeAsync(BrandAssets);
+    }
+
+    private void ClearLogoDark()
+    {
+        BrandAssets.LogoDarkUrl = null;
+        BrandAssetsChanged.InvokeAsync(BrandAssets);
+    }
+
+    private void ClearFavicon()
+    {
+        BrandAssets.FaviconUrl = null;
+        BrandAssetsChanged.InvokeAsync(BrandAssets);
+    }
+}

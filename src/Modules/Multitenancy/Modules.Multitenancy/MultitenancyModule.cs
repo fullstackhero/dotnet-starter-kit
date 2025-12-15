@@ -14,8 +14,11 @@ using FSH.Modules.Multitenancy.Features.v1.ChangeTenantActivation;
 using FSH.Modules.Multitenancy.Features.v1.CreateTenant;
 using FSH.Modules.Multitenancy.Features.v1.GetTenants;
 using FSH.Modules.Multitenancy.Features.v1.GetTenantStatus;
+using FSH.Modules.Multitenancy.Features.v1.GetTenantTheme;
+using FSH.Modules.Multitenancy.Features.v1.ResetTenantTheme;
 using FSH.Modules.Multitenancy.Features.v1.TenantProvisioning.GetTenantProvisioningStatus;
 using FSH.Modules.Multitenancy.Features.v1.TenantProvisioning.RetryTenantProvisioning;
+using FSH.Modules.Multitenancy.Features.v1.UpdateTenantTheme;
 using FSH.Modules.Multitenancy.Features.v1.UpgradeTenant;
 using FSH.Modules.Multitenancy.Provisioning;
 using FSH.Modules.Multitenancy.Services;
@@ -38,6 +41,7 @@ public sealed class MultitenancyModule : IModule
             .Bind(builder.Configuration.GetSection(nameof(MultitenancyOptions)));
 
         builder.Services.AddScoped<ITenantService, TenantService>();
+        builder.Services.AddScoped<ITenantThemeService, TenantThemeService>();
         builder.Services.AddTransient<IConnectionStringValidator, ConnectionStringValidator>();
         builder.Services.AddScoped<ITenantProvisioningService, TenantProvisioningService>();
         builder.Services.AddHostedService<TenantStoreInitializerHostedService>();
@@ -106,5 +110,10 @@ public sealed class MultitenancyModule : IModule
         GetTenantStatusEndpoint.Map(group);
         GetTenantProvisioningStatusEndpoint.Map(group);
         RetryTenantProvisioningEndpoint.Map(group);
+
+        // Theme endpoints
+        GetTenantThemeEndpoint.Map(group);
+        UpdateTenantThemeEndpoint.Map(group);
+        ResetTenantThemeEndpoint.Map(group);
     }
 }

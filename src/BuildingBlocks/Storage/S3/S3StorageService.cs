@@ -48,7 +48,7 @@ internal sealed class S3StorageService : IStorageService
 
         var key = BuildKey<T>(SanitizeFileName(request.FileName));
 
-        using var stream = new MemoryStream(request.Data.Select(Convert.ToByte).ToArray());
+        using var stream = new MemoryStream([.. request.Data]);
 
         var putRequest = new PutObjectRequest
         {

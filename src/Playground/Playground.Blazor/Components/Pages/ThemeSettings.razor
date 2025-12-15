@@ -1,0 +1,65 @@
+@page "/settings/theme"
+@using FSH.Framework.Blazor.UI.Theme
+@using FSH.Framework.Blazor.UI.Components.Theme
+@using FSH.Playground.Blazor.Services
+@inject ITenantThemeState ThemeState
+@inject ISnackbar Snackbar
+
+<PageTitle>Theme Settings</PageTitle>
+
+<FshThemeCustomizer ThemeState="@ThemeState"
+                   OnThemeSaved="@OnThemeSaved"
+                   OnAssetUpload="@HandleAssetUpload" />
+
+@code {
+    private async Task OnThemeSaved()
+    {
+        // Reload theme after save to get the actual uploaded URLs
+        await ThemeState.LoadThemeAsync();
+        Snackbar.Add("Theme saved successfully.", Severity.Success);
+    }
+
+    private async Task HandleAssetUpload((IBrowserFile File, string AssetType, Action<string, FileUpload?> SetAsset) args)
+    {
+        try
+        {
+            // Validate file
+            if (args.File.Size > 2 * 1024 * 1024) // 2MB max
+            {
+                Snackbar.Add("File too large. Maximum 2MB allowed.", Severity.Error);
+                return;
+            }
+
+            if (!args.File.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+            {
+                Snackbar.Add("Only image files are allowed.", Severity.Error);
+                return;
+            }
+
+            // Read file data
+            using var stream = args.File.OpenReadStream(2 * 1024 * 1024);
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            var bytes = memoryStream.ToArray();
+
+            // Create file upload (same pattern as profile picture)
+            var fileUpload = new FileUpload
+            {
+                FileName = args.File.Name,
+                ContentType = args.File.ContentType,
+                Data = bytes
+            };
+
+            // Set preview URL as data URL for immediate visual feedback
+            var previewUrl = $"data:{args.File.ContentType};base64,{Convert.ToBase64String(bytes)}";
+
+            // Set both preview URL and file upload data via callback
+            args.SetAsset(previewUrl, fileUpload);
+            Snackbar.Add("Image ready. Click Save to upload.", Severity.Info);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to process file: {ex.Message}", Severity.Error);
+        }
+    }
+}

@@ -20,5 +20,7 @@ public static class MultitenancyConstants
         public const string View = "Permissions.Tenants.View";
         public const string Create = "Permissions.Tenants.Create";
         public const string Update = "Permissions.Tenants.Update";
+        public const string ViewTheme = "Permissions.Tenants.ViewTheme";
+        public const string UpdateTheme = "Permissions.Tenants.UpdateTheme";
     }
 }

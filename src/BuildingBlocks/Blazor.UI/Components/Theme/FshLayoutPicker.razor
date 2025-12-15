@@ -1,0 +1,88 @@
+@using FSH.Framework.Blazor.UI.Theme
+
+<MudPaper Class="pa-4" Elevation="0" Outlined="true">
+    <MudText Typo="Typo.h6" Class="mb-4">Layout Settings</MudText>
+
+    <MudGrid>
+        <MudItem xs="12" sm="6">
+            <MudSelect T="string"
+                      Label="Border Radius"
+                      Value="@Layout.BorderRadius"
+                      ValueChanged="@OnBorderRadiusChanged"
+                      Variant="Variant.Outlined"
+                      Dense="true"
+                      Margin="Margin.Dense">
+                @foreach (var radius in LayoutSettings.BorderRadiusOptions)
+                {
+                    <MudSelectItem Value="@radius">@radius</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudSlider T="int"
+                      Value="@Layout.DefaultElevation"
+                      ValueChanged="@OnElevationChanged"
+                      Min="0"
+                      Max="24"
+                      Step="1"
+                      Color="Color.Primary">
+                <MudText Typo="Typo.caption">Default Elevation: @Layout.DefaultElevation</MudText>
+            </MudSlider>
+        </MudItem>
+    </MudGrid>
+
+    <MudDivider Class="my-4" />
+
+    <MudText Typo="Typo.subtitle2" Class="mb-2">Preview</MudText>
+    <div class="d-flex gap-4 flex-wrap">
+        <MudPaper Class="pa-4"
+                 Elevation="@Layout.DefaultElevation"
+                 Style="@GetCardStyle()">
+            <MudText Typo="Typo.body1">Card with elevation @Layout.DefaultElevation</MudText>
+        </MudPaper>
+
+        <MudButton Variant="Variant.Filled"
+                  Color="Color.Primary"
+                  Style="@GetButtonStyle()">
+            Button Preview
+        </MudButton>
+
+        <MudTextField T="string"
+                     Label="Input Preview"
+                     Variant="Variant.Outlined"
+                     Style="@GetInputStyle()" />
+    </div>
+</MudPaper>
+
+@code {
+    [Parameter] public LayoutSettings Layout { get; set; } = new();
+    [Parameter] public EventCallback<LayoutSettings> LayoutChanged { get; set; }
+
+    private async Task OnBorderRadiusChanged(string value)
+    {
+        Layout.BorderRadius = value;
+        await LayoutChanged.InvokeAsync(Layout);
+    }
+
+    private async Task OnElevationChanged(int value)
+    {
+        Layout.DefaultElevation = value;
+        await LayoutChanged.InvokeAsync(Layout);
+    }
+
+    private string GetCardStyle()
+    {
+        return $"border-radius: {Layout.BorderRadius}; min-width: 150px;";
+    }
+
+    private string GetButtonStyle()
+    {
+        return $"border-radius: {Layout.BorderRadius};";
+    }
+
+    private string GetInputStyle()
+    {
+        return $"--mud-default-borderradius: {Layout.BorderRadius};";
+    }
+}

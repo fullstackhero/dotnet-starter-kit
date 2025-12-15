@@ -1,0 +1,294 @@
+@using FSH.Framework.Blazor.UI.Theme
+@using FSH.Framework.Blazor.UI.Components.Base
+@inherits FshComponentBase
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="py-4">
+    <div class="d-flex justify-space-between align-center mb-4">
+        <div>
+            <MudText Typo="Typo.h4">Theme Customization</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                Customize the look and feel of your application
+            </MudText>
+        </div>
+        <div class="d-flex gap-2">
+            <MudButton Variant="Variant.Outlined"
+                      Color="Color.Default"
+                      StartIcon="@Icons.Material.Outlined.Refresh"
+                      OnClick="@ResetToDefaults"
+                      Disabled="@_isSaving">
+                Reset to Defaults
+            </MudButton>
+            <MudButton Variant="Variant.Filled"
+                      Color="Color.Primary"
+                      StartIcon="@Icons.Material.Outlined.Save"
+                      OnClick="@SaveChanges"
+                      Disabled="@_isSaving">
+                @if (_isSaving)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                    <span>Saving...</span>
+                }
+                else
+                {
+                    <span>Save Changes</span>
+                }
+            </MudButton>
+        </div>
+    </div>
+
+    @if (_isLoading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+    }
+    else
+    {
+        <MudGrid>
+            @* Left Column - Settings *@
+            <MudItem xs="12" lg="7">
+                <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true" Class="mt-2">
+                    <MudTabPanel Text="Colors" Icon="@Icons.Material.Outlined.Palette">
+                        <div class="pa-4">
+                            <MudExpansionPanels MultiExpansion="true">
+                                <MudExpansionPanel Text="Light Mode Palette" IsInitiallyExpanded="true">
+                                    <FshColorPalettePicker Title="Light Mode Colors"
+                                                          Palette="@_settings.LightPalette"
+                                                          PaletteChanged="@OnLightPaletteChanged" />
+                                </MudExpansionPanel>
+                                <MudExpansionPanel Text="Dark Mode Palette">
+                                    <FshColorPalettePicker Title="Dark Mode Colors"
+                                                          Palette="@_settings.DarkPalette"
+                                                          PaletteChanged="@OnDarkPaletteChanged" />
+                                </MudExpansionPanel>
+                            </MudExpansionPanels>
+                        </div>
+                    </MudTabPanel>
+
+                    <MudTabPanel Text="Brand" Icon="@Icons.Material.Outlined.BrandingWatermark">
+                        <div class="pa-4">
+                            <FshBrandAssetsPicker BrandAssets="@_settings.BrandAssets"
+                                                 BrandAssetsChanged="@OnBrandAssetsChanged"
+                                                 OnFileUpload="@HandleFileUpload" />
+                        </div>
+                    </MudTabPanel>
+
+                    <MudTabPanel Text="Typography" Icon="@Icons.Material.Outlined.TextFields">
+                        <div class="pa-4">
+                            <FshTypographyPicker Typography="@_settings.Typography"
+                                                TypographyChanged="@OnTypographyChanged" />
+                        </div>
+                    </MudTabPanel>
+
+                    <MudTabPanel Text="Layout" Icon="@Icons.Material.Outlined.ViewCompact">
+                        <div class="pa-4">
+                            <FshLayoutPicker Layout="@_settings.Layout"
+                                           LayoutChanged="@OnLayoutChanged" />
+                        </div>
+                    </MudTabPanel>
+                </MudTabs>
+            </MudItem>
+
+            @* Right Column - Preview *@
+            <MudItem xs="12" lg="5">
+                <MudPaper Class="pa-4 sticky-preview" Elevation="0">
+                    <FshThemePreview Settings="@_settings" />
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+    }
+</MudContainer>
+
+<style>
+    .sticky-preview {
+        position: sticky;
+        top: 80px;
+    }
+</style>
+
+@code {
+    /// <summary>
+    /// The theme state service for loading/saving themes.
+    /// </summary>
+    [Parameter] public ITenantThemeState? ThemeState { get; set; }
+
+    /// <summary>
+    /// Callback when theme is saved successfully.
+    /// </summary>
+    [Parameter] public EventCallback OnThemeSaved { get; set; }
+
+    /// <summary>
+    /// Callback for handling file uploads (logo, favicon).
+    /// The consuming application should implement file upload logic.
+    /// The callback receives (File, AssetType, SetAsset) where SetAsset(url, fileUpload) sets both the preview URL and file data.
+    /// </summary>
+    [Parameter] public EventCallback<(IBrowserFile File, string AssetType, Action<string, FileUpload?> SetAsset)> OnAssetUpload { get; set; }
+
+    private TenantThemeSettings _settings = new();
+    private bool _isLoading = true;
+    private bool _isSaving = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTheme();
+    }
+
+    private async Task LoadTheme()
+    {
+        _isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            if (ThemeState != null)
+            {
+                await ThemeState.LoadThemeAsync();
+                _settings = CloneSettings(ThemeState.Current);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to load theme: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SaveChanges()
+    {
+        _isSaving = true;
+        StateHasChanged();
+
+        try
+        {
+            if (ThemeState != null)
+            {
+                ThemeState.UpdateSettings(_settings);
+                await ThemeState.SaveThemeAsync();
+                Snackbar.Add("Theme saved successfully!", Severity.Success);
+                await OnThemeSaved.InvokeAsync();
+            }
+            else
+            {
+                Snackbar.Add("Theme state not configured", Severity.Warning);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to save theme: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isSaving = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ResetToDefaults()
+    {
+        var confirmed = await DialogService.ShowMessageBox(
+            "Reset Theme",
+            "Are you sure you want to reset all theme settings to defaults? This action cannot be undone.",
+            yesText: "Reset",
+            cancelText: "Cancel");
+
+        if (confirmed == true)
+        {
+            try
+            {
+                if (ThemeState != null)
+                {
+                    await ThemeState.ResetThemeAsync();
+                    _settings = CloneSettings(ThemeState.Current);
+                    Snackbar.Add("Theme reset to defaults", Severity.Success);
+                    StateHasChanged();
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Failed to reset theme: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private async Task HandleFileUpload((IBrowserFile File, string AssetType) args)
+    {
+        if (!OnAssetUpload.HasDelegate)
+        {
+            Snackbar.Add("File upload not configured", Severity.Warning);
+            return;
+        }
+
+        // Callback that sets both URL and file upload data on the internal _settings
+        Action<string, FileUpload?> setAsset = (url, fileUpload) =>
+        {
+            switch (args.AssetType)
+            {
+                case "logo":
+                    _settings.BrandAssets.LogoUrl = url;
+                    _settings.BrandAssets.Logo = fileUpload;
+                    break;
+                case "logo-dark":
+                    _settings.BrandAssets.LogoDarkUrl = url;
+                    _settings.BrandAssets.LogoDark = fileUpload;
+                    break;
+                case "favicon":
+                    _settings.BrandAssets.FaviconUrl = url;
+                    _settings.BrandAssets.Favicon = fileUpload;
+                    break;
+            }
+        };
+
+        await OnAssetUpload.InvokeAsync((args.File, args.AssetType, setAsset));
+        StateHasChanged();
+    }
+
+    private void OnLightPaletteChanged(PaletteSettings palette)
+    {
+        _settings.LightPalette = palette;
+        StateHasChanged();
+    }
+
+    private void OnDarkPaletteChanged(PaletteSettings palette)
+    {
+        _settings.DarkPalette = palette;
+        StateHasChanged();
+    }
+
+    private void OnBrandAssetsChanged(BrandAssets assets)
+    {
+        _settings.BrandAssets = assets;
+        StateHasChanged();
+    }
+
+    private void OnTypographyChanged(TypographySettings typography)
+    {
+        _settings.Typography = typography;
+        StateHasChanged();
+    }
+
+    private void OnLayoutChanged(LayoutSettings layout)
+    {
+        _settings.Layout = layout;
+        StateHasChanged();
+    }
+
+    private static TenantThemeSettings CloneSettings(TenantThemeSettings source)
+    {
+        return new TenantThemeSettings
+        {
+            LightPalette = source.LightPalette.Clone(),
+            DarkPalette = source.DarkPalette.Clone(),
+            BrandAssets = new BrandAssets
+            {
+                LogoUrl = source.BrandAssets.LogoUrl,
+                LogoDarkUrl = source.BrandAssets.LogoDarkUrl,
+                FaviconUrl = source.BrandAssets.FaviconUrl
+            },
+            Typography = source.Typography.Clone(),
+            Layout = source.Layout.Clone(),
+            IsDefault = source.IsDefault
+        };
+    }
+}

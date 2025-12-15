@@ -1,4 +1,5 @@
 using FSH.Framework.Blazor.UI;
+using FSH.Framework.Blazor.UI.Theme;
 using FSH.Playground.Blazor;
 using FSH.Playground.Blazor.Components;
 using FSH.Playground.Blazor.Services;
@@ -17,6 +18,9 @@ builder.Services.AddScoped<ITokenSessionAccessor, TokenSessionAccessor>();
 builder.Services.AddScoped<ITokenAccessor, TokenAccessor>();
 builder.Services.AddScoped<CircuitHandler, TokenSessionCircuitHandler>();
 builder.Services.AddScoped<BffAuthDelegatingHandler>();
+
+// Tenant theme state service
+builder.Services.AddScoped<ITenantThemeState, TenantThemeState>();
 
 var apiBaseUrl = builder.Configuration["Api:BaseUrl"]
                  ?? throw new InvalidOperationException("Api:BaseUrl configuration is missing.");

@@ -15,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\BuildingBlocks\Persistence\Persistence.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\Shared\Shared.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\Storage\Storage.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\Web\Web.csproj" />
     <ProjectReference Include="..\Modules.Multitenancy.Contracts\Modules.Multitenancy.Contracts.csproj" />
   </ItemGroup>
