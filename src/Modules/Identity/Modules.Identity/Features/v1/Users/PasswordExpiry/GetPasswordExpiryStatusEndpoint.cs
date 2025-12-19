@@ -12,7 +12,7 @@ public static class GetPasswordExpiryStatusEndpoint
     {
         return endpoints.MapGet("/password-expiry-status", Handle)
             .WithName(nameof(GetPasswordExpiryStatusEndpoint))
-            .WithOpenApi()
+            //.WithOpenApi()
             .WithSummary("Get the current user's password expiry status")
             .WithDescription("Returns information about password expiry, warning status, and days remaining")
             .Produces<PasswordExpiryStatusDto>(StatusCodes.Status200OK)
