@@ -1,5 +1,8 @@
 ﻿using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Mailing;
+using FSH.Modules.Identity.Contracts.Services;
+using FSH.Modules.Identity.Features.v1.Users;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Collections.ObjectModel;
 using System.Text;
@@ -53,6 +56,17 @@ internal sealed partial class UserService
             var errors = result.Errors.Select(e => e.Description).ToList();
             throw new CustomException("error resetting password", errors);
         }
+
+        // Record the password reset in history
+        var updatedUser = await userManager.FindByIdAsync(user.Id).ConfigureAwait(false);
+        if (updatedUser?.PasswordHash is not null)
+        {
+            await passwordHistoryService.RecordPasswordChangeAsync(user.Id, updatedUser.PasswordHash, cancellationToken).ConfigureAwait(false);
+            await passwordHistoryService.CleanupOldPasswordHistoryAsync(user.Id, cancellationToken).ConfigureAwait(false);
+        }
+
+        // Update password change timestamp for expiry tracking
+        await passwordExpiryService.UpdateLastPasswordChangeAsync(user.Id, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task ChangePasswordAsync(string password, string newPassword, string confirmNewPassword, string userId)
