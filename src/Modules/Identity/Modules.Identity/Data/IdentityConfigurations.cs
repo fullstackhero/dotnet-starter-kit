@@ -21,6 +21,11 @@ public class ApplicationUserConfig : IEntityTypeConfiguration<FshUser>
         builder
             .Property(u => u.ObjectId)
                 .HasMaxLength(256);
+
+        builder
+            .Property(u => u.LastPasswordChangeUtc)
+            .HasColumnType("timestamp with time zone")
+            .IsRequired(false);
     }
 }
 
@@ -94,5 +99,34 @@ public class IdentityUserTokenConfig : IEntityTypeConfiguration<IdentityUserToke
         builder
             .ToTable("UserTokens", IdentityModuleConstants.SchemaName)
             .IsMultiTenant();
+    }
+}
+
+public class UserPasswordHistoryConfig : IEntityTypeConfiguration<UserPasswordHistory>
+{
+    public void Configure(EntityTypeBuilder<UserPasswordHistory> builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        builder
+            .ToTable("UserPasswordHistory", IdentityModuleConstants.SchemaName)
+            .IsMultiTenant();
+
+        builder
+            .Property(u => u.Id)
+            .ValueGeneratedOnAdd();
+
+        builder
+            .Property(u => u.PasswordHash)
+            .IsRequired()
+            .HasMaxLength(256);
+
+        builder
+            .Property(u => u.UserId)
+            .IsRequired()
+            .HasMaxLength(256);
+
+        builder
+            .HasIndex(u => u.UserId);
     }
 }

@@ -6,6 +6,7 @@ using Hangfire.Client;
 using Hangfire.Logging;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using System.Globalization;
 
 namespace FSH.Framework.Jobs;
 
@@ -49,6 +50,8 @@ public class FshJobFilter : IClientFilter
         {
             context.SetJobParameter(QueryStringKeys.UserId, userId);
         }
+        context.SetJobParameter("CurrentCulture", CultureInfo.CurrentCulture.Name);
+        context.SetJobParameter("CurrentUICulture", CultureInfo.CurrentUICulture.Name);
     }
 
     public void OnCreated(CreatedContext context)
@@ -58,5 +61,6 @@ public class FshJobFilter : IClientFilter
         Logger.InfoFormat(
             "Job created with parameters {0}",
             context.Parameters.Select(x => x.Key + "=" + x.Value).Aggregate((s1, s2) => s1 + ";" + s2));
+
     }
 }

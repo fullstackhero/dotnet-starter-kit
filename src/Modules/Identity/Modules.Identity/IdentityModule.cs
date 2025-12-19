@@ -13,8 +13,10 @@ using FSH.Framework.Storage;
 using FSH.Framework.Web.Modules;
 using FSH.Modules.Identity.Authorization;
 using FSH.Modules.Identity.Authorization.Jwt;
+using FSH.Modules.Identity.Configuration;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Data;
+using FSH.Modules.Identity.Extensions;
 using FSH.Modules.Identity.Features.v1.Roles;
 using FSH.Modules.Identity.Features.v1.Roles.DeleteRole;
 using FSH.Modules.Identity.Features.v1.Roles.GetRoleById;
@@ -45,6 +47,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
@@ -63,6 +66,29 @@ public class IdentityModule : IModule
         services.AddScoped(sp => (ICurrentUserInitializer)sp.GetRequiredService<ICurrentUser>());
         services.AddTransient<IUserService, UserService>();
         services.AddTransient<IRoleService, RoleService>();
+        
+        // Configure password history from appsettings
+        services.ConfigurePasswordHistory(options =>
+        {
+            var section = builder.Configuration.GetSection("Identity:PasswordHistory");
+            if (section.Exists())
+            {
+                section.Bind(options);
+            }
+        });
+        
+        // Configure password expiry from appsettings
+        services.Configure<PasswordExpiryOptions>(options =>
+        {
+            var section = builder.Configuration.GetSection("Identity:PasswordExpiry");
+            if (section.Exists())
+            {
+                section.Bind(options);
+            }
+        });
+        
+        services.AddScoped<IPasswordHistoryService, PasswordHistoryService>();
+        services.AddScoped<IPasswordExpiryService, PasswordExpiryService>();
         services.AddHeroStorage(builder.Configuration);
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddHeroDbContext<IdentityDbContext>();
@@ -137,6 +163,7 @@ public class IdentityModule : IModule
         group.MapGetUserByIdEndpoint();
         group.MapGetCurrentUserPermissionsEndpoint();
         group.MapGetMeEndpoint();
+        group.MapGetPasswordExpiryStatusEndpoint();
         group.MapGetUserRolesEndpoint();
         group.MapGetUsersListEndpoint();
         group.MapSearchUsersEndpoint();

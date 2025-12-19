@@ -18,4 +18,9 @@ public class UserDto
     public string? PhoneNumber { get; set; }
 
     public string? ImageUrl { get; set; }
+
+    /// <summary>
+    /// The date and time when the user's password was last changed.
+    /// </summary>
+    public DateTime? LastPasswordChangeUtc { get; set; }
 }

@@ -83,7 +83,8 @@ public sealed class SearchUsersQueryHandler : IQueryHandler<SearchUsersQuery, Pa
             IsActive = u.IsActive,
             EmailConfirmed = u.EmailConfirmed,
             PhoneNumber = u.PhoneNumber,
-            ImageUrl = u.ImageUrl != null ? u.ImageUrl.ToString() : null
+            ImageUrl = u.ImageUrl != null ? u.ImageUrl.ToString() : null,
+            LastPasswordChangeUtc = u.LastPasswordChangeUtc
         });
 
         var pagedResult = await projected.ToPagedResponseAsync(query, cancellationToken).ConfigureAwait(false);
@@ -99,7 +100,8 @@ public sealed class SearchUsersQueryHandler : IQueryHandler<SearchUsersQuery, Pa
             IsActive = u.IsActive,
             EmailConfirmed = u.EmailConfirmed,
             PhoneNumber = u.PhoneNumber,
-            ImageUrl = ResolveImageUrl(u.ImageUrl)
+            ImageUrl = ResolveImageUrl(u.ImageUrl),
+            LastPasswordChangeUtc = u.LastPasswordChangeUtc
         }).ToList();
 
         return new PagedResponse<UserDto>

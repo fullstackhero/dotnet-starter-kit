@@ -32,6 +32,8 @@ public class IdentityDbContext : MultiTenantIdentityDbContext<FshUser,
 
     public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
 
+    public DbSet<UserPasswordHistory> UserPasswordHistories => Set<UserPasswordHistory>();
+
     public IdentityDbContext(
         IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
         DbContextOptions<IdentityDbContext> options,

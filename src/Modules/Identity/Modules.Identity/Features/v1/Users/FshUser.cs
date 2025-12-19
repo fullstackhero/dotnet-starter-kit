@@ -12,4 +12,10 @@ public class FshUser : IdentityUser
     public DateTime RefreshTokenExpiryTime { get; set; }
 
     public string? ObjectId { get; set; }
+
+    /// <summary>
+    /// The date and time when the password was last changed.
+    /// Used to enforce password expiry policies.
+    /// </summary>
+    public DateTime? LastPasswordChangeUtc { get; set; }
 }

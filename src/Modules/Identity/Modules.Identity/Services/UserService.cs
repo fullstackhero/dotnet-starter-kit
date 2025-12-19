@@ -46,7 +46,9 @@ internal sealed partial class UserService(
     IOptions<OriginOptions> originOptions,
     IHttpContextAccessor httpContextAccessor,
     ICurrentUser currentUser,
-    IAuditClient auditClient
+    IAuditClient auditClient,
+    IPasswordHistoryService passwordHistoryService,
+    IPasswordExpiryService passwordExpiryService
     ) : IUserService
 {
     private readonly Uri? _originUrl = originOptions.Value.OriginUrl;
@@ -120,7 +122,8 @@ internal sealed partial class UserService(
             FirstName = user.FirstName,
             LastName = user.LastName,
             ImageUrl = ResolveImageUrl(user.ImageUrl),
-            IsActive = user.IsActive
+            IsActive = user.IsActive,
+            LastPasswordChangeUtc = user.LastPasswordChangeUtc
         };
     }
 
@@ -141,7 +144,8 @@ internal sealed partial class UserService(
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 ImageUrl = ResolveImageUrl(user.ImageUrl),
-                IsActive = user.IsActive
+                IsActive = user.IsActive,
+                LastPasswordChangeUtc = user.LastPasswordChangeUtc
             });
         }
 
@@ -180,6 +184,15 @@ internal sealed partial class UserService(
 
         // add basic role
         await userManager.AddToRoleAsync(user, RoleConstants.Basic);
+
+        // Record initial password in history and set password change timestamp
+        var createdUser = await userManager.FindByIdAsync(user.Id).ConfigureAwait(false);
+        if (createdUser?.PasswordHash is not null)
+        {
+            await passwordHistoryService.RecordPasswordChangeAsync(user.Id, createdUser.PasswordHash, cancellationToken).ConfigureAwait(false);
+            await passwordHistoryService.CleanupOldPasswordHistoryAsync(user.Id, cancellationToken).ConfigureAwait(false);
+            await passwordExpiryService.UpdateLastPasswordChangeAsync(user.Id, cancellationToken).ConfigureAwait(false);
+        }
 
         // send confirmation mail
         if (!string.IsNullOrEmpty(user.Email))
