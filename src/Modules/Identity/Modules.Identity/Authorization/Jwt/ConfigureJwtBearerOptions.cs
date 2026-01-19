@@ -1,5 +1,6 @@
 ﻿using FSH.Framework.Core.Exceptions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -57,31 +58,25 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
             OnChallenge = context =>
             {
                 context.HandleResponse();
-
-                var path = context.HttpContext.Request.Path;
-
                 if (!context.Response.HasStarted)
                 {
-                    var method = context.HttpContext.Request.Method;
-
-                    // You can include more details if needed like headers, etc.
-                    throw new UnauthorizedException($"Unauthorized access to {method} {path}");
+                    context.Response.StatusCode = 401;
+                    context.Response.ContentType = "application/json";
+                    var result = System.Text.Json.JsonSerializer.Serialize(new { error = "Unauthorized" });
+                    return context.Response.WriteAsync(result);
                 }
-
                 return Task.CompletedTask;
             },
             OnForbidden = _ => throw new ForbiddenException(),
             OnMessageReceived = context =>
             {
                 var accessToken = context.Request.Query["access_token"];
-
                 if (!string.IsNullOrEmpty(accessToken) &&
                     context.HttpContext.Request.Path.StartsWithSegments("/notifications", StringComparison.OrdinalIgnoreCase))
                 {
                     // Read the token out of the query string
                     context.Token = accessToken;
                 }
-
                 return Task.CompletedTask;
             }
         };

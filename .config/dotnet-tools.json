@@ -8,6 +8,13 @@
         "nswag"
       ],
       "rollForward": false
+    },
+    "dotnet-ef": {
+      "version": "10.0.2",
+      "commands": [
+        "dotnet-ef"
+      ],
+      "rollForward": false
     }
   }
 }
