@@ -29,14 +29,14 @@ public class SmtpMailService(IOptions<MailOptions> settings, ILogger<SmtpMailSer
             email.ReplyTo.Add(new MailboxAddress(request.ReplyToName, request.ReplyTo));
 
         // Bcc
-        if (request.Bcc != null)
+        if (request.Bcc != null && request.Bcc.Count > 0)
         {
             foreach (string address in request.Bcc.Where(bccValue => !string.IsNullOrWhiteSpace(bccValue)))
                 email.Bcc.Add(MailboxAddress.Parse(address.Trim()));
         }
 
         // Cc
-        if (request.Cc != null)
+        if (request.Cc != null && request.Cc.Count > 0)
         {
             foreach (string? address in request.Cc.Where(ccValue => !string.IsNullOrWhiteSpace(ccValue)))
                 email.Cc.Add(MailboxAddress.Parse(address.Trim()));

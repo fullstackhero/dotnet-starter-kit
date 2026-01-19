@@ -7,11 +7,12 @@
 	</PropertyGroup>
 	
 	<ItemGroup>
-		<PackageReference Include="MailKit" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
-		<PackageReference Include="Microsoft.Extensions.Options" />
-		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
-		<PackageReference Include="MimeKit" />
+    <PackageReference Include="MailKit" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
+    <PackageReference Include="Microsoft.Extensions.Options" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+    <PackageReference Include="MimeKit" />
+    <PackageReference Include="SendGrid" />
 	</ItemGroup>
 	
 	<ItemGroup>
