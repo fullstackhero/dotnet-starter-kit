@@ -22,6 +22,7 @@
 @inject IUserProfileState UserProfileState
 @inject IDialogService DialogService
 @inject IAuthStateNotifier AuthStateNotifier
+@inject IJSRuntime JS
 
 <MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode" />
 <MudPopoverProvider />
@@ -85,6 +86,7 @@ else
     private string? _userEmail;
     private string? _userRole;
     private string? _avatarUrl;
+    private string? _logoUrl;
 
     protected override async Task OnInitializedAsync()
     {
@@ -109,6 +111,8 @@ else
                 var tenantId = httpContext.Request.Cookies["fsh_tenant"] ?? "root";
                 var themeSettings = await ThemeStateFactory.GetThemeAsync(tenantId);
                 _theme = themeSettings.ToMudTheme();
+                TenantThemeState.UpdateSettings(themeSettings);
+                _logoUrl = themeSettings.BrandAssets.LogoUrl; // light mode initially
                 // Dark mode preference is user-specific, default to false for SSR
                 _isDarkMode = false;
             }
@@ -129,6 +133,9 @@ else
         // Subscribe to session expiration (for token refresh failures)
         AuthStateNotifier.SessionExpired += HandleSessionExpired;
 
+        // Subscribe to authentication state changes
+        AuthenticationStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
+
         _authStatusLoaded = true;
     }
 
@@ -143,6 +150,7 @@ else
     {
         _theme = TenantThemeState.Theme;
         _isDarkMode = TenantThemeState.IsDarkMode;
+        _logoUrl = _isDarkMode ? TenantThemeState.Current.BrandAssets.LogoDarkUrl : TenantThemeState.Current.BrandAssets.LogoUrl;
         InvokeAsync(StateHasChanged);
     }
 
@@ -155,46 +163,86 @@ else
         InvokeAsync(StateHasChanged);
     }
 
+    private async void OnAuthenticationStateChanged(Task<AuthenticationState> task)
+    {
+        var authState = await task;
+        var wasAuthenticated = _isAuthenticated;
+        _isAuthenticated = authState.User?.Identity?.IsAuthenticated ?? false;
+
+        if (!wasAuthenticated && _isAuthenticated)
+        {
+            // User just logged in, load theme and user info
+            var user = authState.User!;
+            _userName = user.FindFirst(ClaimTypes.Name)?.Value ?? user.FindFirst(ClaimTypes.Email)?.Value ?? "User";
+            _userEmail = user.FindFirst(ClaimTypes.Email)?.Value;
+            _userRole = user.FindFirst(ClaimTypes.Role)?.Value;
+
+            await TenantThemeState.LoadThemeAsync();
+            _theme = TenantThemeState.Theme;
+            _isDarkMode = TenantThemeState.IsDarkMode;
+            _logoUrl = _isDarkMode ? TenantThemeState.Current.BrandAssets.LogoDarkUrl : TenantThemeState.Current.BrandAssets.LogoUrl;
+
+            InvokeAsync(StateHasChanged);
+        }
+        else if (wasAuthenticated && !_isAuthenticated)
+        {
+            // User logged out, reset to default
+            await TenantThemeState.ResetThemeAsync();
+            _theme = TenantThemeState.Theme;
+            _isDarkMode = false;
+            _logoUrl = null;
+            await ApplyFaviconAsync(); // reset to default
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
     public void Dispose()
     {
         TenantThemeState.OnThemeChanged -= HandleThemeChanged;
         UserProfileState.OnProfileChanged -= HandleProfileChanged;
         AuthStateNotifier.SessionExpired -= HandleSessionExpired;
+        AuthenticationStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
 
-        if (firstRender && _isAuthenticated)
+        if (_isAuthenticated)
         {
-            // Load full profile in Interactive mode
-            await LoadUserProfileAsync();
+            // Apply theme assets (favicon)
+            await ApplyFaviconAsync();
 
-            // Handle toast notifications
-            var currentUri = new Uri(Navigation.Uri);
-            var query = QueryHelpers.ParseQuery(currentUri.Query);
-            if (query.TryGetValue("toast", out var toastValues))
+            if (firstRender)
             {
-                var toast = toastValues.ToString();
-                if (toast == "login_success")
+                // Load full profile in Interactive mode
+                await LoadUserProfileAsync();
+
+                // Handle toast notifications
+                var currentUri = new Uri(Navigation.Uri);
+                var query = QueryHelpers.ParseQuery(currentUri.Query);
+                if (query.TryGetValue("toast", out var toastValues))
                 {
-                    Snackbar.Add("Signed in.", Severity.Success);
-                }
-                else if (toast == "logout_success")
-                {
-                    Snackbar.Add("Signed out.", Severity.Success);
-                }
-                else if (toast == "session_expired")
-                {
-                    Snackbar.Add("Your session has expired. Please sign in again.", Severity.Warning);
+                    var toast = toastValues.ToString();
+                    if (toast == "login_success")
+                    {
+                        Snackbar.Add("Signed in.", Severity.Success);
+                    }
+                    else if (toast == "logout_success")
+                    {
+                        Snackbar.Add("Signed out.", Severity.Success);
+                    }
+                    else if (toast == "session_expired")
+                    {
+                        Snackbar.Add("Your session has expired. Please sign in again.", Severity.Warning);
+                    }
+
+                    var cleanUri = currentUri.GetLeftPart(UriPartial.Path);
+                    Navigation.NavigateTo(cleanUri, false);
                 }
 
-                var cleanUri = currentUri.GetLeftPart(UriPartial.Path);
-                Navigation.NavigateTo(cleanUri, false);
+                StateHasChanged();
             }
-
-            StateHasChanged();
         }
     }
 
@@ -230,6 +278,20 @@ else
         true => Icons.Material.Rounded.AutoMode,
         false => Icons.Material.Outlined.DarkMode,
     };
+
+    private async Task ApplyFaviconAsync()
+    {
+        try
+        {
+            var faviconUrl = TenantThemeState.Current.BrandAssets.FaviconUrl;
+            await JS.InvokeVoidAsync("FshTheme.setFavicon", faviconUrl);
+        }
+        catch (Exception ex)
+        {
+            // Log or ignore if JS not ready
+            Console.WriteLine($"Failed to apply favicon: {ex.Message}");
+        }
+    }
 
     private async Task LoadUserProfileAsync()
     {

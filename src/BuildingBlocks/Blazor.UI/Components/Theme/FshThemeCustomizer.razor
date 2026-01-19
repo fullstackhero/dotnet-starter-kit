@@ -220,36 +220,42 @@
 
         await OnAssetUpload.InvokeAsync((args.File, args.AssetType, setAsset));
         StateHasChanged();
+        if (ThemeState != null) ThemeState.UpdateSettings(_settings);
     }
 
     private void OnLightPaletteChanged(PaletteSettings palette)
     {
         _settings.LightPalette = palette;
         StateHasChanged();
+        if (ThemeState != null) ThemeState.UpdateSettings(_settings);
     }
 
     private void OnDarkPaletteChanged(PaletteSettings palette)
     {
         _settings.DarkPalette = palette;
         StateHasChanged();
+        if (ThemeState != null) ThemeState.UpdateSettings(_settings);
     }
 
     private void OnBrandAssetsChanged(BrandAssets assets)
     {
         _settings.BrandAssets = assets;
         StateHasChanged();
+        if (ThemeState != null) ThemeState.UpdateSettings(_settings);
     }
 
     private void OnTypographyChanged(TypographySettings typography)
     {
         _settings.Typography = typography;
         StateHasChanged();
+        if (ThemeState != null) ThemeState.UpdateSettings(_settings);
     }
 
     private void OnLayoutChanged(LayoutSettings layout)
     {
         _settings.Layout = layout;
         StateHasChanged();
+        if (ThemeState != null) ThemeState.UpdateSettings(_settings);
     }
 
     private static TenantThemeSettings CloneSettings(TenantThemeSettings source)
