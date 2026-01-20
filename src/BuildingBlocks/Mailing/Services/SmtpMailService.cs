@@ -15,6 +15,9 @@ public class SmtpMailService(IOptions<MailOptions> settings, ILogger<SmtpMailSer
     {
         ArgumentNullException.ThrowIfNull(request);
 
+        if (_settings.Smtp?.Host is null)
+            throw new InvalidOperationException("SMTP Host is not configured.");
+
         using var email = new MimeMessage();
 
         // From
@@ -72,8 +75,8 @@ public class SmtpMailService(IOptions<MailOptions> settings, ILogger<SmtpMailSer
         using var client = new SmtpClient();
         try
         {
-            await client.ConnectAsync(_settings.Host, _settings.Port, SecureSocketOptions.StartTls, ct);
-            await client.AuthenticateAsync(_settings.UserName, _settings.Password, ct);
+            await client.ConnectAsync(_settings.Smtp.Host, _settings.Smtp.Port, SecureSocketOptions.StartTls, ct);
+            await client.AuthenticateAsync(_settings.Smtp.UserName, _settings.Smtp.Password, ct);
             await client.SendAsync(email, ct);
         }
         catch (Exception ex)
