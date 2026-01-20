@@ -12,6 +12,7 @@ public class SendGridMailService : IMailService
 
     public SendGridMailService(IOptions<MailOptions> settings)
     {
+        ArgumentNullException.ThrowIfNull(settings);
         _settings = settings.Value;
     }
 
@@ -25,7 +26,7 @@ public class SendGridMailService : IMailService
         var from = new EmailAddress(request.From ?? _settings.SendGrid.From ?? _settings.From, request.DisplayName ?? _settings.SendGrid.DisplayName ?? _settings.DisplayName);
         var msg = MailHelper.CreateSingleEmail(
             from,
-            new EmailAddress(request.To.First()),
+            new EmailAddress(request.To[0]),
             request.Subject,
             request.Body,
             request.Body);
