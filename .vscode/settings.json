@@ -1,0 +1,11 @@
+{
+    "dotnet.dotnetPath": "/home/jarvis/.dotnet/dotnet",
+    "omnisharp.dotnetPath": "/home/jarvis/.dotnet",
+    "omnisharp.sdkPath": "/home/jarvis/.dotnet/sdk/10.0.102",
+    "omnisharp.useModernNet": true,
+    "editor.formatOnSave": true,
+    "files.exclude": {
+        "**/bin": true,
+        "**/obj": true
+    }
+}

@@ -9,6 +9,7 @@ using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Eventing.Outbox;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Identity.Contracts.Events;
+using Microsoft.Extensions.Logging;
 
 namespace FSH.Modules.Identity.Features.v1.Tokens.TokenGeneration;
 
@@ -22,6 +23,7 @@ public sealed class GenerateTokenCommandHandler
     private readonly IOutboxStore _outboxStore;
     private readonly IMultiTenantContextAccessor<AppTenantInfo> _multiTenantContextAccessor;
     private readonly ISessionService _sessionService;
+    private readonly ILogger<GenerateTokenCommandHandler> _logger;
 
     public GenerateTokenCommandHandler(
         IIdentityService identityService,
@@ -30,7 +32,8 @@ public sealed class GenerateTokenCommandHandler
         IRequestContext requestContext,
         IOutboxStore outboxStore,
         IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
-        ISessionService sessionService)
+        ISessionService sessionService,
+        ILogger<GenerateTokenCommandHandler> logger)
     {
         _identityService = identityService;
         _tokenService = tokenService;
@@ -39,6 +42,7 @@ public sealed class GenerateTokenCommandHandler
         _outboxStore = outboxStore;
         _multiTenantContextAccessor = multiTenantContextAccessor;
         _sessionService = sessionService;
+        _logger = logger;
     }
 
     public async ValueTask<TokenResponse> Handle(
@@ -99,10 +103,11 @@ public sealed class GenerateTokenCommandHandler
                 token.RefreshTokenExpiresAt,
                 cancellationToken);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             // Session creation is non-critical - don't fail the login
             // This can happen if migrations haven't been applied yet
+            _logger.LogWarning(ex, "Failed to create user session for user {UserId}. Login will continue without session tracking.", subject);
         }
 
         // 3) Audit token issuance with a fingerprint (never raw token)
