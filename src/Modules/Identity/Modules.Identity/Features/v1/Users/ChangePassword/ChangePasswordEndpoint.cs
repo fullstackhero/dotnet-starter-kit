@@ -21,6 +21,7 @@ public static class ChangePasswordEndpoint
         })
         .WithName("ChangePassword")
         .WithSummary("Change password")
-        .WithDescription("Change the current user's password.");
+        .WithDescription("Change the current user's password.")
+        .RequireAuthorization();
     }
 }

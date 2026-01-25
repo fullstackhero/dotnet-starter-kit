@@ -1,4 +1,6 @@
-﻿using FSH.Modules.Identity.Contracts.v1.Users.AssignUserRoles;
+﻿using FSH.Framework.Shared.Identity;
+using FSH.Framework.Shared.Identity.Authorization;
+using FSH.Modules.Identity.Contracts.v1.Users.AssignUserRoles;
 using Mediator;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -27,6 +29,7 @@ public static class AssignUserRolesEndpoint
         })
         .WithName("AssignUserRoles")
         .WithSummary("Assign roles to user")
-        .WithDescription("Assign one or more roles to a user.");
+        .WithDescription("Assign one or more roles to a user.")
+        .RequirePermission(IdentityPermissionConstants.Users.ManageRoles);
     }
 }

@@ -1,5 +1,7 @@
 using System.Security.Claims;
 using FSH.Framework.Core.Exceptions;
+using FSH.Framework.Shared.Identity;
+using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Framework.Shared.Identity.Claims;
 using FSH.Modules.Identity.Contracts.v1.Users.GetUserPermissions;
 using Mediator;
@@ -24,6 +26,7 @@ public static class GetUserPermissionsEndpoint
         })
         .WithName("GetCurrentUserPermissions")
         .WithSummary("Get current user permissions")
-        .WithDescription("Retrieve permissions for the authenticated user.");
+        .WithDescription("Retrieve permissions for the authenticated user.")
+        .RequirePermission(IdentityPermissionConstants.Users.View);
     }
 }

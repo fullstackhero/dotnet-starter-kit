@@ -24,6 +24,7 @@ public static class GetUserProfileEndpoint
         })
         .WithName("GetCurrentUserProfile")
         .WithSummary("Get current user profile")
-        .WithDescription("Retrieve the authenticated user's profile from the access token.");
+        .WithDescription("Retrieve the authenticated user's profile from the access token.")
+        .RequireAuthorization();
     }
 }
