@@ -145,7 +145,8 @@ public sealed class SessionService : ISessionService
             throw new UnauthorizedAccessException("Cannot revoke session for another user");
         }
 
-        session.Revoke(revokedBy, reason ?? "User requested");
+        var tenantId = _multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id;
+        session.Revoke(revokedBy, reason ?? "User requested", tenantId);
 
         await _db.SaveChangesAsync(cancellationToken);
 
@@ -179,9 +180,10 @@ public sealed class SessionService : ISessionService
 
         var sessions = await query.ToListAsync(cancellationToken);
 
+        var tenantId = _multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id;
         foreach (var session in sessions)
         {
-            session.Revoke(revokedBy, reason ?? "User requested logout from all devices");
+            session.Revoke(revokedBy, reason ?? "User requested logout from all devices", tenantId);
         }
 
         await _db.SaveChangesAsync(cancellationToken);
@@ -203,9 +205,10 @@ public sealed class SessionService : ISessionService
             .Where(s => s.UserId == userId && !s.IsRevoked)
             .ToListAsync(cancellationToken);
 
+        var tenantId = _multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id;
         foreach (var session in sessions)
         {
-            session.Revoke(revokedBy, reason ?? "Admin requested");
+            session.Revoke(revokedBy, reason ?? "Admin requested", tenantId);
         }
 
         await _db.SaveChangesAsync(cancellationToken);
@@ -232,7 +235,8 @@ public sealed class SessionService : ISessionService
             return false;
         }
 
-        session.Revoke(revokedBy, reason ?? "Admin requested");
+        var tenantId = _multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id;
+        session.Revoke(revokedBy, reason ?? "Admin requested", tenantId);
 
         await _db.SaveChangesAsync(cancellationToken);
 

@@ -1,7 +1,12 @@
+using FSH.Framework.Core.Domain;
+using FSH.Modules.Identity.Domain.Events;
+
 namespace FSH.Modules.Identity.Domain;
 
-public class UserSession
+public class UserSession : IHasDomainEvents
 {
+    private readonly List<IDomainEvent> _domainEvents = [];
+
     public Guid Id { get; private set; }
     public string UserId { get; private set; } = default!;
     public string RefreshTokenHash { get; private set; } = default!;
@@ -22,6 +27,11 @@ public class UserSession
 
     // Navigation property (init for EF Core materialization)
     public virtual FshUser? User { get; init; }
+
+    // IHasDomainEvents implementation
+    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+    public void ClearDomainEvents() => _domainEvents.Clear();
+    private void AddDomainEvent(IDomainEvent domainEvent) => _domainEvents.Add(domainEvent);
 
     private UserSession() { } // EF Core
 
@@ -67,11 +77,19 @@ public class UserSession
         LastActivityAt = DateTime.UtcNow;
     }
 
-    public void Revoke(string? revokedBy = null, string? reason = null)
+    public void Revoke(string? revokedBy = null, string? reason = null, string? tenantId = null)
     {
+        if (IsRevoked) return;
         IsRevoked = true;
         RevokedAt = DateTime.UtcNow;
         RevokedBy = revokedBy;
         RevokedReason = reason;
+
+        AddDomainEvent(SessionRevokedEvent.Create(
+            userId: UserId,
+            sessionId: Id,
+            revokedBy: revokedBy,
+            reason: reason,
+            tenantId: tenantId));
     }
 }

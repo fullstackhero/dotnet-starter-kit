@@ -53,6 +53,11 @@ internal sealed partial class UserService
             var errors = result.Errors.Select(e => e.Description).ToList();
             throw new CustomException("error resetting password", errors);
         }
+
+        // Raise domain event for password reset
+        var tenantId = multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id;
+        user.RecordPasswordChanged(wasReset: true, tenantId);
+        await db.SaveChangesAsync(cancellationToken);
     }
 
     public async Task ChangePasswordAsync(string password, string newPassword, string confirmNewPassword, string userId)
@@ -68,6 +73,11 @@ internal sealed partial class UserService
             var errors = result.Errors.Select(e => e.Description).ToList();
             throw new CustomException("failed to change password", errors);
         }
+
+        // Raise domain event for password change
+        var tenantId = multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id;
+        user.RecordPasswordChanged(wasReset: false, tenantId);
+        await db.SaveChangesAsync();
 
         // Update password expiry date
         await _passwordExpiryService.UpdateLastPasswordChangeDateAsync(userId);

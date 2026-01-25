@@ -232,13 +232,14 @@ internal sealed partial class UserService(
             db.UserGroups.Add(UserGroup.Create(user.Id, group.Id, "ExternalAuth"));
         }
 
-        if (defaultGroups.Count > 0)
-        {
-            await db.SaveChangesAsync();
-        }
+        // Raise domain event for user registration
+        var tenantId = multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id;
+        user.RecordRegistered(tenantId);
+
+        // Save to dispatch domain event via interceptor
+        await db.SaveChangesAsync();
 
         // Publish integration event
-        var tenantId = multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id;
         var integrationEvent = new UserRegisteredIntegrationEvent(
             Id: Guid.NewGuid(),
             OccurredOnUtc: DateTime.UtcNow,
@@ -310,8 +311,14 @@ internal sealed partial class UserService(
             jobService.Enqueue("email", () => mailService.SendAsync(mailRequest, cancellationToken));
         }
 
-        // enqueue integration event for user registration
+        // Raise domain event for user registration
         var tenantId = multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id;
+        user.RecordRegistered(tenantId);
+
+        // Save to dispatch domain event via interceptor
+        await db.SaveChangesAsync(cancellationToken);
+
+        // enqueue integration event for user registration
         var correlationId = Guid.NewGuid().ToString();
         var integrationEvent = new UserRegisteredIntegrationEvent(
             Id: Guid.NewGuid(),
@@ -396,7 +403,15 @@ internal sealed partial class UserService(
             }
         }
 
-        user.IsActive = activateUser;
+        var tenantId = multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id;
+        if (activateUser)
+        {
+            user.Activate(actorId.ToString(), tenantId);
+        }
+        else
+        {
+            user.Deactivate(actorId.ToString(), "Status toggled by administrator", tenantId);
+        }
 
         var result = await userManager.UpdateAsync(user);
         if (!result.Succeeded)
@@ -405,7 +420,6 @@ internal sealed partial class UserService(
             throw new CustomException("Toggle status failed", errors);
         }
 
-        var tenantId = multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id ?? "unknown";
         await _auditClient.WriteActivityAsync(
             ActivityKind.Command,
             name: "ToggleUserStatus",
@@ -414,7 +428,7 @@ internal sealed partial class UserService(
             captured: BodyCapture.None,
             requestSize: 0,
             responseSize: 0,
-            requestPreview: new { actorId = actorId.ToString(), targetUserId = userId, action = activateUser ? "activate" : "deactivate", tenant = tenantId },
+            requestPreview: new { actorId = actorId.ToString(), targetUserId = userId, action = activateUser ? "activate" : "deactivate", tenant = tenantId ?? "unknown" },
             responsePreview: new { outcome = "success" },
             severity: AuditSeverity.Information,
             source: "Identity",
@@ -579,6 +593,8 @@ internal sealed partial class UserService(
             }
         }
 
+        var assignedRoles = new List<string>();
+
         foreach (var userRole in userRoles)
         {
             // Check if Role Exists
@@ -589,6 +605,7 @@ internal sealed partial class UserService(
                     if (!await userManager.IsInRoleAsync(user, userRole.RoleName!))
                     {
                         await userManager.AddToRoleAsync(user, userRole.RoleName!);
+                        assignedRoles.Add(userRole.RoleName!);
                     }
                 }
                 else
@@ -596,6 +613,14 @@ internal sealed partial class UserService(
                     await userManager.RemoveFromRoleAsync(user, userRole.RoleName!);
                 }
             }
+        }
+
+        // Raise domain event for newly assigned roles
+        if (assignedRoles.Count > 0)
+        {
+            var tenantId = multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id;
+            user.RecordRolesAssigned(assignedRoles, tenantId);
+            await db.SaveChangesAsync(cancellationToken);
         }
 
         return "User Roles Updated Successfully.";
