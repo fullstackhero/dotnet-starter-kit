@@ -7,9 +7,9 @@ public class UserGroup
     public DateTime AddedAt { get; private set; }
     public string? AddedBy { get; private set; }
 
-    // Navigation properties
-    public virtual FshUser? User { get; private set; }
-    public virtual Group? Group { get; private set; }
+    // Navigation properties (init for EF Core materialization)
+    public virtual FshUser? User { get; init; }
+    public virtual Group? Group { get; init; }
 
     private UserGroup() { } // EF Core
 

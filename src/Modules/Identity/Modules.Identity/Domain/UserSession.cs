@@ -20,8 +20,8 @@ public class UserSession
     public string? RevokedBy { get; private set; }
     public string? RevokedReason { get; private set; }
 
-    // Navigation property
-    public virtual FshUser? User { get; private set; }
+    // Navigation property (init for EF Core materialization)
+    public virtual FshUser? User { get; init; }
 
     private UserSession() { } // EF Core
 

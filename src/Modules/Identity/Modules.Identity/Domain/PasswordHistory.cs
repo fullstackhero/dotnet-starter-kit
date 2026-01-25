@@ -2,13 +2,13 @@ namespace FSH.Modules.Identity.Domain;
 
 public class PasswordHistory
 {
-    public int Id { get; private set; }
+    public int Id { get; init; }
     public string UserId { get; private set; } = default!;
     public string PasswordHash { get; private set; } = default!;
     public DateTime CreatedAt { get; private set; }
 
-    // Navigation property
-    public virtual FshUser? User { get; private set; }
+    // Navigation property (init for EF Core materialization)
+    public virtual FshUser? User { get; init; }
 
     private PasswordHistory() { } // EF Core
 

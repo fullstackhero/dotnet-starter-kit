@@ -182,7 +182,7 @@ else
             _isDarkMode = TenantThemeState.IsDarkMode;
             _logoUrl = _isDarkMode ? TenantThemeState.Current.BrandAssets.LogoDarkUrl : TenantThemeState.Current.BrandAssets.LogoUrl;
 
-            InvokeAsync(StateHasChanged);
+            await InvokeAsync(StateHasChanged);
         }
         else if (wasAuthenticated && !_isAuthenticated)
         {
@@ -192,7 +192,7 @@ else
             _isDarkMode = false;
             _logoUrl = null;
             await ApplyFaviconAsync(); // reset to default
-            InvokeAsync(StateHasChanged);
+            await InvokeAsync(StateHasChanged);
         }
     }
 
