@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Http;
 
@@ -38,7 +38,7 @@ public class PathAwareAuthorizationHandler : IAuthorizationMiddlewareResultHandl
 
             // If no endpoint is found, return 404 explicitly
             context.Response.StatusCode = StatusCodes.Status404NotFound;
-            await context.Response.WriteAsync("Endpoint not found.");
+            await context.Response.WriteAsync("Endpoint not found.", context.RequestAborted).ConfigureAwait(false);
             return;
         }
 

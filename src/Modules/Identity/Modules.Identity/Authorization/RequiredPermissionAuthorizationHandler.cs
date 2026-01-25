@@ -1,4 +1,4 @@
-﻿using FSH.Framework.Shared.Identity.Claims;
+using FSH.Framework.Shared.Identity.Claims;
 using FSH.Modules.Identity.Contracts.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -12,9 +12,10 @@ public sealed class RequiredPermissionAuthorizationHandler(IUserService userServ
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(requirement);
 
+        var httpContext = context.Resource as HttpContext;
         var endpoint = context.Resource switch
         {
-            HttpContext httpContext => httpContext.GetEndpoint(),
+            HttpContext ctx => ctx.GetEndpoint(),
             Endpoint ep => ep,
             _ => null,
         };
@@ -27,7 +28,9 @@ public sealed class RequiredPermissionAuthorizationHandler(IUserService userServ
             context.Succeed(requirement);
             return;
         }
-        if (context.User?.GetUserId() is { } userId && await userService.HasPermissionAsync(userId, requiredPermissions.First()))
+
+        var cancellationToken = httpContext?.RequestAborted ?? CancellationToken.None;
+        if (context.User?.GetUserId() is { } userId && await userService.HasPermissionAsync(userId, requiredPermissions.First(), cancellationToken).ConfigureAwait(false))
         {
             context.Succeed(requirement);
         }
