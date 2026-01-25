@@ -7,7 +7,7 @@
 ```bash
 dotnet build src/FSH.Framework.slnx     # Build (0 warnings required)
 dotnet test src/FSH.Framework.slnx      # Test
-dotnet run --project src/Playground/FSH.Playground.AppHost  # Run
+dotnet run --project src/Playground/FSH.Playground.AppHost  # Run with Aspire
 ```
 
 ## Project Structure
@@ -25,48 +25,60 @@ src/
 
 ## The Pattern
 
-Every feature = 4 files in one folder:
+Every feature = vertical slice in one folder:
 
 ```
 Modules/{Module}/Features/v1/{Feature}/
-├── {Feature}Command.cs     → ICommand<TResult>
-├── {Feature}Handler.cs     → ICommandHandler<TCommand, TResult>
-├── {Feature}Validator.cs   → AbstractValidator<TCommand>
-└── {Feature}Endpoint.cs    → RouteHandlerBuilder extension
+├── {Action}{Entity}Command.cs      # ICommand<T> (NOT IRequest!)
+├── {Action}{Entity}Handler.cs      # ICommandHandler<T,R> returns ValueTask
+├── {Action}{Entity}Validator.cs    # AbstractValidator<T>
+└── {Action}{Entity}Endpoint.cs     # MapPost/Get/Put/Delete
 ```
 
-## Essential Rules
+## Critical Rules
 
 | Rule | Why |
 |------|-----|
 | Use `Mediator` not `MediatR` | Different library, different interfaces |
+| `ICommand<T>` / `IQuery<T>` | NOT `IRequest<T>` |
+| `ValueTask<T>` return type | NOT `Task<T>` |
 | DTOs in Contracts project | Keep internals internal |
 | Every command needs validator | No unvalidated input |
 | `.RequirePermission()` on endpoints | Explicit authorization |
 | Zero build warnings | CI enforces this |
 
-## Deep Dive
+## Available Skills
 
-| Topic | File |
-|-------|------|
-| All rules & constraints | [.claude/rules.md](.claude/rules.md) |
-| Step-by-step guides | [.claude/skills.md](.claude/skills.md) |
-| AI behavior guidelines | [.claude/agents.md](.claude/agents.md) |
+| Skill | When to Use |
+|-------|-------------|
+| `/add-feature` | Creating new API endpoints |
+| `/add-module` | Creating new bounded contexts |
+| `/add-entity` | Adding domain entities |
+| `/query-patterns` | Implementing GET with pagination/filtering |
+| `/testing-guide` | Writing tests |
 
----
+## Available Agents
+
+| Agent | Purpose |
+|-------|---------|
+| `code-reviewer` | Review changes against FSH patterns |
+| `feature-scaffolder` | Generate complete feature files |
+| `module-creator` | Scaffold new modules |
+| `architecture-guard` | Verify architectural integrity |
+| `migration-helper` | Handle EF Core migrations |
 
 ## Quick Patterns
 
 ### Command + Handler
 ```csharp
-public sealed record CreateUserCommand(string Email, string Name) : ICommand<Guid>;
+public sealed record CreateUserCommand(string Email) : ICommand<Guid>;
 
 public sealed class CreateUserHandler(IRepository<User> repo) 
     : ICommandHandler<CreateUserCommand, Guid>
 {
     public async ValueTask<Guid> Handle(CreateUserCommand cmd, CancellationToken ct)
     {
-        var user = User.Create(cmd.Email, cmd.Name);
+        var user = User.Create(cmd.Email);
         await repo.AddAsync(user, ct);
         return user.Id;
     }
@@ -75,10 +87,10 @@ public sealed class CreateUserHandler(IRepository<User> repo)
 
 ### Endpoint
 ```csharp
-public static RouteHandlerBuilder MapCreateUserEndpoint(this IEndpointRouteBuilder e) =>
+public static RouteHandlerBuilder Map(this IEndpointRouteBuilder e) =>
     e.MapPost("/", async (CreateUserCommand cmd, IMediator m, CancellationToken ct) =>
         TypedResults.Created($"/users/{await m.Send(cmd, ct)}"))
-    .WithName("CreateUser")
+    .WithName(nameof(CreateUserCommand))
     .WithSummary("Create a new user")
     .RequirePermission(IdentityPermissions.Users.Create);
 ```
@@ -90,17 +102,13 @@ public sealed class CreateUserValidator : AbstractValidator<CreateUserCommand>
     public CreateUserValidator()
     {
         RuleFor(x => x.Email).NotEmpty().EmailAddress();
-        RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
     }
 }
 ```
 
----
+## Before Committing
 
-## Configuration (Production)
-
-```
-DatabaseOptions:ConnectionString  ← Required
-CachingOptions:Redis              ← Required
-JwtOptions:SigningKey             ← Required (256-bit)
+```bash
+dotnet build src/FSH.Framework.slnx  # Must be 0 warnings
+dotnet test src/FSH.Framework.slnx   # All tests pass
 ```
