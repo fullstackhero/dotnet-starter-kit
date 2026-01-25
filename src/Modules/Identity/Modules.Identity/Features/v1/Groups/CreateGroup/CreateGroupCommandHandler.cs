@@ -48,21 +48,19 @@ public sealed class CreateGroupCommandHandler : ICommandHandler<CreateGroupComma
             }
         }
 
-        var group = new Group
-        {
-            Name = command.Name,
-            Description = command.Description,
-            IsDefault = command.IsDefault,
-            IsSystemGroup = false,
-            CreatedBy = _currentUser.GetUserId().ToString()
-        };
+        var group = Group.Create(
+            name: command.Name,
+            description: command.Description,
+            isDefault: command.IsDefault,
+            isSystemGroup: false,
+            createdBy: _currentUser.GetUserId().ToString());
 
         // Add role assignments
         if (command.RoleIds is { Count: > 0 })
         {
             foreach (var roleId in command.RoleIds)
             {
-                group.GroupRoles.Add(new GroupRole { GroupId = group.Id, RoleId = roleId });
+                _dbContext.GroupRoles.Add(GroupRole.Create(group.Id, roleId));
             }
         }
 

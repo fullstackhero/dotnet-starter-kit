@@ -109,15 +109,12 @@ internal sealed class IdentityDbInitializer(
 
         if (allUsersGroup is null)
         {
-            allUsersGroup = new Group
-            {
-                Name = allUsersGroupName,
-                Description = "Default group for all users. New users are automatically added to this group.",
-                IsDefault = true,
-                IsSystemGroup = true,
-                CreatedAt = timeProvider.GetUtcNow().UtcDateTime,
-                CreatedBy = "System"
-            };
+            allUsersGroup = Group.Create(
+                name: allUsersGroupName,
+                description: "Default group for all users. New users are automatically added to this group.",
+                isDefault: true,
+                isSystemGroup: true,
+                createdBy: "System");
 
             await context.Groups.AddAsync(allUsersGroup);
             logger.LogInformation("Seeding '{GroupName}' system group for '{TenantId}' Tenant.", allUsersGroupName, tenantId);
@@ -130,15 +127,12 @@ internal sealed class IdentityDbInitializer(
 
         if (administratorsGroup is null)
         {
-            administratorsGroup = new Group
-            {
-                Name = administratorsGroupName,
-                Description = "System group for administrators with full administrative privileges.",
-                IsDefault = false,
-                IsSystemGroup = true,
-                CreatedAt = timeProvider.GetUtcNow().UtcDateTime,
-                CreatedBy = "System"
-            };
+            administratorsGroup = Group.Create(
+                name: administratorsGroupName,
+                description: "System group for administrators with full administrative privileges.",
+                isDefault: false,
+                isSystemGroup: true,
+                createdBy: "System");
 
             await context.Groups.AddAsync(administratorsGroup);
             logger.LogInformation("Seeding '{GroupName}' system group for '{TenantId}' Tenant.", administratorsGroupName, tenantId);
@@ -155,11 +149,7 @@ internal sealed class IdentityDbInitializer(
 
             if (existingGroupRole is null)
             {
-                context.GroupRoles.Add(new GroupRole
-                {
-                    GroupId = administratorsGroup.Id,
-                    RoleId = adminRole.Id
-                });
+                context.GroupRoles.Add(GroupRole.Create(administratorsGroup.Id, adminRole.Id));
 
                 await context.SaveChangesAsync();
                 logger.LogInformation("Assigned Admin role to '{GroupName}' group for '{TenantId}' Tenant.", administratorsGroupName, tenantId);

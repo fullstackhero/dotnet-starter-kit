@@ -57,12 +57,7 @@ public sealed class AddUsersToGroupCommandHandler : ICommandHandler<AddUsersToGr
         var currentUserId = _currentUser.GetUserId().ToString();
         foreach (var userId in usersToAdd)
         {
-            _dbContext.UserGroups.Add(new UserGroup
-            {
-                UserId = userId,
-                GroupId = command.GroupId,
-                AddedBy = currentUserId
-            });
+            _dbContext.UserGroups.Add(UserGroup.Create(userId, command.GroupId, currentUserId));
         }
 
         await _dbContext.SaveChangesAsync(cancellationToken);

@@ -229,13 +229,7 @@ internal sealed partial class UserService(
 
         foreach (var group in defaultGroups)
         {
-            db.UserGroups.Add(new UserGroup
-            {
-                UserId = user.Id,
-                GroupId = group.Id,
-                AddedAt = DateTime.UtcNow,
-                AddedBy = "ExternalAuth"
-            });
+            db.UserGroups.Add(UserGroup.Create(user.Id, group.Id, "ExternalAuth"));
         }
 
         if (defaultGroups.Count > 0)
@@ -296,13 +290,7 @@ internal sealed partial class UserService(
 
         foreach (var group in defaultGroups)
         {
-            db.UserGroups.Add(new UserGroup
-            {
-                UserId = user.Id,
-                GroupId = group.Id,
-                AddedAt = DateTime.UtcNow,
-                AddedBy = "System"
-            });
+            db.UserGroups.Add(UserGroup.Create(user.Id, group.Id, "System"));
         }
 
         if (defaultGroups.Count > 0)

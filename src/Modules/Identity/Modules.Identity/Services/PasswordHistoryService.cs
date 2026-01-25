@@ -73,12 +73,7 @@ internal sealed class PasswordHistoryService : IPasswordHistoryService
             return;
         }
 
-        var passwordHistoryEntry = new PasswordHistory
-        {
-            UserId = userId,
-            PasswordHash = user.PasswordHash,
-            CreatedAt = DateTime.UtcNow
-        };
+        var passwordHistoryEntry = PasswordHistory.Create(userId, user.PasswordHash);
 
         _db.Set<PasswordHistory>().Add(passwordHistoryEntry);
         await _db.SaveChangesAsync(cancellationToken);

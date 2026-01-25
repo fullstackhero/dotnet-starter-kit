@@ -54,11 +54,8 @@ public sealed class UpdateGroupCommandHandler : ICommandHandler<UpdateGroupComma
         }
 
         // Update group properties
-        group.Name = command.Name;
-        group.Description = command.Description;
-        group.IsDefault = command.IsDefault;
-        group.ModifiedAt = DateTime.UtcNow;
-        group.ModifiedBy = _currentUser.GetUserId().ToString();
+        group.Update(command.Name, command.Description, _currentUser.GetUserId().ToString());
+        group.SetAsDefault(command.IsDefault, _currentUser.GetUserId().ToString());
 
         // Update role assignments
         var currentRoleIds = group.GroupRoles.Select(gr => gr.RoleId).ToHashSet();
@@ -74,7 +71,7 @@ public sealed class UpdateGroupCommandHandler : ICommandHandler<UpdateGroupComma
         // Add new role assignments
         foreach (var roleId in newRoleIds.Where(id => !currentRoleIds.Contains(id)))
         {
-            group.GroupRoles.Add(new GroupRole { GroupId = group.Id, RoleId = roleId });
+            group.GroupRoles.Add(GroupRole.Create(group.Id, roleId));
         }
 
         await _dbContext.SaveChangesAsync(cancellationToken);
