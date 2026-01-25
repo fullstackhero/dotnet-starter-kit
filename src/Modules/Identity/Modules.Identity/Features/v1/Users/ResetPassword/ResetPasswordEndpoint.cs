@@ -19,7 +19,7 @@ public static class ResetPasswordEndpoint
             CancellationToken cancellationToken) =>
         {
             var result = await mediator.Send(command, cancellationToken);
-            return Results.Ok(result);
+            return TypedResults.Ok(result);
         })
         .WithName("ResetPassword")
         .WithSummary("Reset password")

@@ -4,6 +4,7 @@ using FSH.Modules.Identity.Contracts.v1.Sessions.RevokeSession;
 using Mediator;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Routing;
 
 namespace FSH.Modules.Identity.Features.v1.Sessions.RevokeSession;
@@ -19,12 +20,12 @@ public static class RevokeSessionEndpoint
         .WithDescription("Revoke a specific session for the currently authenticated user.");
     }
 
-    private static async Task<IResult> Handler(
+    private static async Task<Results<Ok, NotFound>> Handler(
         Guid sessionId,
         IMediator mediator,
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new RevokeSessionCommand(sessionId), cancellationToken);
-        return result ? Results.Ok() : Results.NotFound();
+        return result ? TypedResults.Ok() : TypedResults.NotFound();
     }
 }

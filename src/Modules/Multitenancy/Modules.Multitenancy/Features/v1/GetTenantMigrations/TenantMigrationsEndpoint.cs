@@ -20,7 +20,7 @@ public static class TenantMigrationsEndpoint
                     IReadOnlyCollection<TenantMigrationStatusDto> result =
                         await mediator.Send(new GetTenantMigrationsQuery(), cancellationToken);
 
-                    return Results.Ok(result);
+                    return TypedResults.Ok(result);
                 })
             .WithName("GetTenantMigrations")
             .RequirePermission(MultitenancyConstants.Permissions.View)

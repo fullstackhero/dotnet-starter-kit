@@ -17,7 +17,7 @@ public static class ChangePasswordEndpoint
             CancellationToken cancellationToken) =>
         {
             var result = await mediator.Send(command, cancellationToken);
-            return Results.Ok(result);
+            return TypedResults.Ok(result);
         })
         .WithName("ChangePassword")
         .WithSummary("Change password")

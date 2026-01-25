@@ -20,7 +20,7 @@ public static class ForgotPasswordEndpoint
             CancellationToken cancellationToken) =>
         {
             var result = await mediator.Send(command, cancellationToken);
-            return Results.Ok(result);
+            return TypedResults.Ok(result);
         })
         .WithName("RequestPasswordReset")
         .WithSummary("Request password reset")

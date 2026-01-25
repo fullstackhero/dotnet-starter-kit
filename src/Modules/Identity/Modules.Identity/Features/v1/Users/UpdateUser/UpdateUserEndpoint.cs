@@ -26,7 +26,7 @@ public static class UpdateUserEndpoint
             request.Id = userId;
 
             await mediator.Send(request, cancellationToken);
-            return Results.Ok();
+            return TypedResults.Ok();
         })
         .WithName("UpdateUserProfile")
         .WithSummary("Update user profile")

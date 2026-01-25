@@ -16,7 +16,7 @@ public static class UpdateTenantThemeEndpoint
         return endpoints.MapPut("/theme", async (TenantThemeDto theme, IMediator mediator, CancellationToken cancellationToken) =>
             {
                 await mediator.Send(new UpdateTenantThemeCommand(theme), cancellationToken);
-                return Results.NoContent();
+                return TypedResults.NoContent();
             })
             .WithName("UpdateTenantTheme")
             .WithSummary("Update current tenant theme")

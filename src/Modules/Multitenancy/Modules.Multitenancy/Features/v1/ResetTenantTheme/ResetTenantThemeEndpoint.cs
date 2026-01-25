@@ -15,7 +15,7 @@ public static class ResetTenantThemeEndpoint
         return endpoints.MapPost("/theme/reset", async (IMediator mediator, CancellationToken cancellationToken) =>
             {
                 await mediator.Send(new ResetTenantThemeCommand(), cancellationToken);
-                return Results.NoContent();
+                return TypedResults.NoContent();
             })
             .WithName("ResetTenantTheme")
             .WithSummary("Reset tenant theme to defaults")
