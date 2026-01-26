@@ -16,6 +16,6 @@ public sealed class UpdatePermissionsCommandHandler : ICommandHandler<UpdatePerm
     public async ValueTask<string> Handle(UpdatePermissionsCommand command, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(command);
-        return await _roleService.UpdatePermissionsAsync(command.RoleId, command.Permissions).ConfigureAwait(false);
+        return await _roleService.UpdatePermissionsAsync(command.RoleId, command.Permissions, cancellationToken).ConfigureAwait(false);
     }
 }

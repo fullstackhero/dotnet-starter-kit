@@ -1,4 +1,4 @@
-﻿using Finbuckle.MultiTenant.Abstractions;
+using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Persistence;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Shared.Multitenancy;
@@ -31,16 +31,16 @@ internal sealed class IdentityDbInitializer(
 
     public async Task SeedAsync(CancellationToken cancellationToken)
     {
-        await SeedRolesAsync();
-        await SeedSystemGroupsAsync();
-        await SeedAdminUserAsync();
+        await SeedRolesAsync(cancellationToken);
+        await SeedSystemGroupsAsync(cancellationToken);
+        await SeedAdminUserAsync(cancellationToken);
     }
 
-    private async Task SeedRolesAsync()
+    private async Task SeedRolesAsync(CancellationToken cancellationToken = default)
     {
         foreach (string roleName in RoleConstants.DefaultRoles)
         {
-            if (await roleManager.Roles.SingleOrDefaultAsync(r => r.Name == roleName)
+            if (await roleManager.Roles.SingleOrDefaultAsync(r => r.Name == roleName, cancellationToken)
                 is not FshRole role)
             {
                 // create role
@@ -51,21 +51,21 @@ internal sealed class IdentityDbInitializer(
             // Assign permissions
             if (roleName == RoleConstants.Basic)
             {
-                await AssignPermissionsToRoleAsync(context, PermissionConstants.Basic, role);
+                await AssignPermissionsToRoleAsync(context, PermissionConstants.Basic, role, cancellationToken);
             }
             else if (roleName == RoleConstants.Admin)
             {
-                await AssignPermissionsToRoleAsync(context, PermissionConstants.Admin, role);
+                await AssignPermissionsToRoleAsync(context, PermissionConstants.Admin, role, cancellationToken);
 
                 if (multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id == MultitenancyConstants.Root.Id)
                 {
-                    await AssignPermissionsToRoleAsync(context, PermissionConstants.Root, role);
+                    await AssignPermissionsToRoleAsync(context, PermissionConstants.Root, role, cancellationToken);
                 }
             }
         }
     }
 
-    private async Task AssignPermissionsToRoleAsync(IdentityDbContext dbContext, IReadOnlyList<FshPermission> permissions, FshRole role)
+    private async Task AssignPermissionsToRoleAsync(IdentityDbContext dbContext, IReadOnlyList<FshPermission> permissions, FshRole role, CancellationToken cancellationToken = default)
     {
         var currentClaims = await roleManager.GetClaimsAsync(role);
         var newClaims = permissions
@@ -83,18 +83,18 @@ internal sealed class IdentityDbInitializer(
         foreach (var claim in newClaims)
         {
             logger.LogInformation("Seeding {Role} Permission '{Permission}' for '{TenantId}' Tenant.", role.Name, claim.ClaimValue, multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id);
-            await dbContext.RoleClaims.AddAsync(claim);
+            await dbContext.RoleClaims.AddAsync(claim, cancellationToken);
         }
 
         // Save changes to the database context
         if (newClaims.Count != 0)
         {
-            await dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync(cancellationToken);
         }
 
     }
 
-    private async Task SeedSystemGroupsAsync()
+    private async Task SeedSystemGroupsAsync(CancellationToken cancellationToken = default)
     {
         var tenantId = multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id;
         if (string.IsNullOrWhiteSpace(tenantId))
@@ -105,7 +105,7 @@ internal sealed class IdentityDbInitializer(
         // Seed "All Users" default group - all new users are automatically added to this group
         const string allUsersGroupName = "All Users";
         var allUsersGroup = await context.Groups
-            .FirstOrDefaultAsync(g => g.Name == allUsersGroupName && g.IsSystemGroup);
+            .FirstOrDefaultAsync(g => g.Name == allUsersGroupName && g.IsSystemGroup, cancellationToken);
 
         if (allUsersGroup is null)
         {
@@ -116,14 +116,14 @@ internal sealed class IdentityDbInitializer(
                 isSystemGroup: true,
                 createdBy: "System");
 
-            await context.Groups.AddAsync(allUsersGroup);
+            await context.Groups.AddAsync(allUsersGroup, cancellationToken);
             logger.LogInformation("Seeding '{GroupName}' system group for '{TenantId}' Tenant.", allUsersGroupName, tenantId);
         }
 
         // Seed "Administrators" group with Admin role
         const string administratorsGroupName = "Administrators";
         var administratorsGroup = await context.Groups
-            .FirstOrDefaultAsync(g => g.Name == administratorsGroupName && g.IsSystemGroup);
+            .FirstOrDefaultAsync(g => g.Name == administratorsGroupName && g.IsSystemGroup, cancellationToken);
 
         if (administratorsGroup is null)
         {
@@ -134,37 +134,37 @@ internal sealed class IdentityDbInitializer(
                 isSystemGroup: true,
                 createdBy: "System");
 
-            await context.Groups.AddAsync(administratorsGroup);
+            await context.Groups.AddAsync(administratorsGroup, cancellationToken);
             logger.LogInformation("Seeding '{GroupName}' system group for '{TenantId}' Tenant.", administratorsGroupName, tenantId);
         }
 
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(cancellationToken);
 
         // Assign Admin role to Administrators group
         var adminRole = await roleManager.FindByNameAsync(RoleConstants.Admin);
         if (adminRole is not null)
         {
             var existingGroupRole = await context.GroupRoles
-                .FirstOrDefaultAsync(gr => gr.GroupId == administratorsGroup.Id && gr.RoleId == adminRole.Id);
+                .FirstOrDefaultAsync(gr => gr.GroupId == administratorsGroup.Id && gr.RoleId == adminRole.Id, cancellationToken);
 
             if (existingGroupRole is null)
             {
                 context.GroupRoles.Add(GroupRole.Create(administratorsGroup.Id, adminRole.Id));
 
-                await context.SaveChangesAsync();
+                await context.SaveChangesAsync(cancellationToken);
                 logger.LogInformation("Assigned Admin role to '{GroupName}' group for '{TenantId}' Tenant.", administratorsGroupName, tenantId);
             }
         }
     }
 
-    private async Task SeedAdminUserAsync()
+    private async Task SeedAdminUserAsync(CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id) || string.IsNullOrWhiteSpace(multiTenantContextAccessor.MultiTenantContext.TenantInfo?.AdminEmail))
         {
             return;
         }
 
-        if (await userManager.Users.FirstOrDefaultAsync(u => u.Email == multiTenantContextAccessor.MultiTenantContext.TenantInfo!.AdminEmail)
+        if (await userManager.Users.FirstOrDefaultAsync(u => u.Email == multiTenantContextAccessor.MultiTenantContext.TenantInfo!.AdminEmail, cancellationToken)
             is not FshUser adminUser)
         {
             string adminUserName = $"{multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id.Trim()}.{RoleConstants.Admin}".ToUpperInvariant();

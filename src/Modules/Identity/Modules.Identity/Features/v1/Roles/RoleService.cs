@@ -1,4 +1,4 @@
-﻿using Finbuckle.MultiTenant.Abstractions;
+using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Shared.Constants;
@@ -17,7 +17,7 @@ public class RoleService(RoleManager<FshRole> roleManager,
     IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
     ICurrentUser currentUser) : IRoleService
 {
-    public async Task<IEnumerable<RoleDto>> GetRolesAsync()
+    public async Task<IEnumerable<RoleDto>> GetRolesAsync(CancellationToken cancellationToken = default)
     {
         if (roleManager is null)
             throw new NotFoundException("RoleManager<FshRole> not resolved. Check Identity registration.");
@@ -28,12 +28,12 @@ public class RoleService(RoleManager<FshRole> roleManager,
 
         var roles = await roleManager.Roles
             .Select(role => new RoleDto { Id = role.Id, Name = role.Name!, Description = role.Description })
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         return roles;
     }
 
-    public async Task<RoleDto?> GetRoleAsync(string id)
+    public async Task<RoleDto?> GetRoleAsync(string id, CancellationToken cancellationToken = default)
     {
         FshRole? role = await roleManager.FindByIdAsync(id);
 
@@ -42,7 +42,7 @@ public class RoleService(RoleManager<FshRole> roleManager,
         return new RoleDto { Id = role.Id, Name = role.Name!, Description = role.Description };
     }
 
-    public async Task<RoleDto> CreateOrUpdateRoleAsync(string roleId, string name, string description)
+    public async Task<RoleDto> CreateOrUpdateRoleAsync(string roleId, string name, string description, CancellationToken cancellationToken = default)
     {
         FshRole? role = await roleManager.FindByIdAsync(roleId);
 
@@ -61,7 +61,7 @@ public class RoleService(RoleManager<FshRole> roleManager,
         return new RoleDto { Id = role.Id, Name = role.Name!, Description = role.Description };
     }
 
-    public async Task DeleteRoleAsync(string id)
+    public async Task DeleteRoleAsync(string id, CancellationToken cancellationToken = default)
     {
         FshRole? role = await roleManager.FindByIdAsync(id);
 
@@ -70,9 +70,9 @@ public class RoleService(RoleManager<FshRole> roleManager,
         await roleManager.DeleteAsync(role);
     }
 
-    public async Task<RoleDto> GetWithPermissionsAsync(string id, CancellationToken cancellationToken)
+    public async Task<RoleDto> GetWithPermissionsAsync(string id, CancellationToken cancellationToken = default)
     {
-        var role = await GetRoleAsync(id);
+        var role = await GetRoleAsync(id, cancellationToken);
         _ = role ?? throw new NotFoundException("role not found");
 
         role.Permissions = await context.RoleClaims
@@ -83,7 +83,7 @@ public class RoleService(RoleManager<FshRole> roleManager,
         return role;
     }
 
-    public async Task<string> UpdatePermissionsAsync(string roleId, List<string> permissions)
+    public async Task<string> UpdatePermissionsAsync(string roleId, List<string> permissions, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(permissions);
 
@@ -94,8 +94,8 @@ public class RoleService(RoleManager<FshRole> roleManager,
         FilterRootPermissions(permissions);
 
         var currentClaims = await roleManager.GetClaimsAsync(role);
-        await RemoveRevokedPermissionsAsync(role, currentClaims, permissions);
-        await AddNewPermissionsAsync(role, currentClaims, permissions);
+        await RemoveRevokedPermissionsAsync(role, currentClaims, permissions, cancellationToken);
+        await AddNewPermissionsAsync(role, currentClaims, permissions, cancellationToken);
 
         return "permissions updated";
     }
@@ -116,12 +116,13 @@ public class RoleService(RoleManager<FshRole> roleManager,
         }
     }
 
-    private async Task RemoveRevokedPermissionsAsync(FshRole role, IList<System.Security.Claims.Claim> currentClaims, List<string> permissions)
+    private async Task RemoveRevokedPermissionsAsync(FshRole role, IList<System.Security.Claims.Claim> currentClaims, List<string> permissions, CancellationToken cancellationToken = default)
     {
         var claimsToRemove = currentClaims.Where(c => !permissions.Exists(p => p == c.Value));
 
         foreach (var claim in claimsToRemove)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var result = await roleManager.RemoveClaimAsync(role, claim);
             if (!result.Succeeded)
             {
@@ -131,7 +132,7 @@ public class RoleService(RoleManager<FshRole> roleManager,
         }
     }
 
-    private async Task AddNewPermissionsAsync(FshRole role, IList<System.Security.Claims.Claim> currentClaims, List<string> permissions)
+    private async Task AddNewPermissionsAsync(FshRole role, IList<System.Security.Claims.Claim> currentClaims, List<string> permissions, CancellationToken cancellationToken = default)
     {
         var newPermissions = permissions
             .Where(p => !string.IsNullOrEmpty(p) && !currentClaims.Any(c => c.Value == p))
@@ -150,7 +151,7 @@ public class RoleService(RoleManager<FshRole> roleManager,
 
         if (newPermissions.Count > 0)
         {
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(cancellationToken);
         }
     }
 }

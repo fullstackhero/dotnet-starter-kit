@@ -18,7 +18,7 @@ public sealed class UpsertRoleCommandHandler : ICommandHandler<UpsertRoleCommand
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        return await _roleService.CreateOrUpdateRoleAsync(command.Id, command.Name, command.Description ?? string.Empty)
+        return await _roleService.CreateOrUpdateRoleAsync(command.Id, command.Name, command.Description ?? string.Empty, cancellationToken)
             .ConfigureAwait(false);
     }
 }

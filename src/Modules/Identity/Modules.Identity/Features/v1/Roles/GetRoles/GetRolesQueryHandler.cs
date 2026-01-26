@@ -16,6 +16,6 @@ public sealed class GetRolesQueryHandler : IQueryHandler<GetRolesQuery, IEnumera
 
     public async ValueTask<IEnumerable<RoleDto>> Handle(GetRolesQuery query, CancellationToken cancellationToken)
     {
-        return await _roleService.GetRolesAsync().ConfigureAwait(false);
+        return await _roleService.GetRolesAsync(cancellationToken).ConfigureAwait(false);
     }
 }

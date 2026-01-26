@@ -17,6 +17,6 @@ public sealed class GetRoleByIdQueryHandler : IQueryHandler<GetRoleQuery, RoleDt
     public async ValueTask<RoleDto?> Handle(GetRoleQuery query, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(query);
-        return await _roleService.GetRoleAsync(query.Id).ConfigureAwait(false);
+        return await _roleService.GetRoleAsync(query.Id, cancellationToken).ConfigureAwait(false);
     }
 }

@@ -17,7 +17,7 @@ public sealed class DeleteRoleCommandHandler : ICommandHandler<DeleteRoleCommand
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        await _roleService.DeleteRoleAsync(command.Id).ConfigureAwait(false);
+        await _roleService.DeleteRoleAsync(command.Id, cancellationToken).ConfigureAwait(false);
 
         return Unit.Value;
     }
