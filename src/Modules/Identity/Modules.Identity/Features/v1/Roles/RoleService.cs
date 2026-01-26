@@ -87,23 +87,40 @@ public class RoleService(RoleManager<FshRole> roleManager,
     {
         ArgumentNullException.ThrowIfNull(permissions);
 
-        var role = await roleManager.FindByIdAsync(roleId);
-        _ = role ?? throw new NotFoundException("role not found");
+        var role = await roleManager.FindByIdAsync(roleId)
+            ?? throw new NotFoundException("role not found");
+
+        ValidateRoleCanBeModified(role);
+        FilterRootPermissions(permissions);
+
+        var currentClaims = await roleManager.GetClaimsAsync(role);
+        await RemoveRevokedPermissionsAsync(role, currentClaims, permissions);
+        await AddNewPermissionsAsync(role, currentClaims, permissions);
+
+        return "permissions updated";
+    }
+
+    private static void ValidateRoleCanBeModified(FshRole role)
+    {
         if (role.Name == RoleConstants.Admin)
         {
             throw new CustomException("operation not permitted");
         }
+    }
 
+    private void FilterRootPermissions(List<string> permissions)
+    {
         if (multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id != MultitenancyConstants.Root.Id)
         {
-            // Remove Root Permissions if the Role is not created for Root Tenant.
             permissions.RemoveAll(u => u.StartsWith("Permissions.Root.", StringComparison.InvariantCultureIgnoreCase));
         }
+    }
 
-        var currentClaims = await roleManager.GetClaimsAsync(role);
+    private async Task RemoveRevokedPermissionsAsync(FshRole role, IList<System.Security.Claims.Claim> currentClaims, List<string> permissions)
+    {
+        var claimsToRemove = currentClaims.Where(c => !permissions.Exists(p => p == c.Value));
 
-        // Remove permissions that were previously selected
-        foreach (var claim in currentClaims.Where(c => !permissions.Exists(p => p == c.Value)))
+        foreach (var claim in claimsToRemove)
         {
             var result = await roleManager.RemoveClaimAsync(role, claim);
             if (!result.Succeeded)
@@ -112,23 +129,28 @@ public class RoleService(RoleManager<FshRole> roleManager,
                 throw new CustomException("operation failed", errors);
             }
         }
+    }
 
-        // Add all permissions that were not previously selected
-        foreach (string permission in permissions.Where(c => !currentClaims.Any(p => p.Value == c)))
+    private async Task AddNewPermissionsAsync(FshRole role, IList<System.Security.Claims.Claim> currentClaims, List<string> permissions)
+    {
+        var newPermissions = permissions
+            .Where(p => !string.IsNullOrEmpty(p) && !currentClaims.Any(c => c.Value == p))
+            .ToList();
+
+        foreach (string permission in newPermissions)
         {
-            if (!string.IsNullOrEmpty(permission))
+            context.RoleClaims.Add(new FshRoleClaim
             {
-                context.RoleClaims.Add(new FshRoleClaim
-                {
-                    RoleId = role.Id,
-                    ClaimType = ClaimConstants.Permission,
-                    ClaimValue = permission,
-                    CreatedBy = currentUser.GetUserId().ToString()
-                });
-                await context.SaveChangesAsync();
-            }
+                RoleId = role.Id,
+                ClaimType = ClaimConstants.Permission,
+                ClaimValue = permission,
+                CreatedBy = currentUser.GetUserId().ToString()
+            });
         }
 
-        return "permissions updated";
+        if (newPermissions.Count > 0)
+        {
+            await context.SaveChangesAsync();
+        }
     }
 }

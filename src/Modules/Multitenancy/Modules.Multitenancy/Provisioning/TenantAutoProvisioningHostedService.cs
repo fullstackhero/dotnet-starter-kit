@@ -28,7 +28,7 @@ public sealed class TenantAutoProvisioningHostedService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        if (!_options.AutoProvisionOnStartup && !_options.RunTenantMigrationsOnStartup)
+        if (!ShouldRunProvisioning())
         {
             return;
         }
@@ -39,11 +39,20 @@ public sealed class TenantAutoProvisioningHostedService : IHostedService
             return;
         }
 
+        await ProvisionTenantsAsync(cancellationToken);
+    }
+
+    private bool ShouldRunProvisioning() =>
+        _options.AutoProvisionOnStartup || _options.RunTenantMigrationsOnStartup;
+
+    private async Task ProvisionTenantsAsync(CancellationToken cancellationToken)
+    {
         using var scope = _serviceProvider.CreateScope();
         var tenantStore = scope.ServiceProvider.GetRequiredService<IMultiTenantStore<AppTenantInfo>>();
         var provisioning = scope.ServiceProvider.GetRequiredService<ITenantProvisioningService>();
 
         var tenants = await tenantStore.GetAllAsync().ConfigureAwait(false);
+
         foreach (var tenant in tenants)
         {
             if (cancellationToken.IsCancellationRequested)
@@ -51,31 +60,39 @@ public sealed class TenantAutoProvisioningHostedService : IHostedService
                 break;
             }
 
-            try
-            {
-                var latest = await provisioning.GetLatestAsync(tenant.Id, cancellationToken).ConfigureAwait(false);
+            await TryProvisionTenantAsync(provisioning, tenant, cancellationToken);
+        }
+    }
 
-                // When RunTenantMigrationsOnStartup is enabled, always re-provision to apply any new migrations
-                // Otherwise, only provision if not completed yet
-                bool shouldProvision = _options.RunTenantMigrationsOnStartup ||
-                                       latest is null ||
-                                       latest.Status != TenantProvisioningStatus.Completed;
-
-                if (shouldProvision)
-                {
-                    await provisioning.StartAsync(tenant.Id, cancellationToken).ConfigureAwait(false);
-                    _logger.LogInformation("Enqueued provisioning for tenant {TenantId} on startup.", tenant.Id);
-                }
-            }
-            catch (CustomException ex)
+    private async Task TryProvisionTenantAsync(ITenantProvisioningService provisioning, AppTenantInfo tenant, CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (await ShouldProvisionTenantAsync(provisioning, tenant.Id, cancellationToken))
             {
-                _logger.LogInformation("Provisioning already in progress or recently queued for tenant {TenantId}: {Message}", tenant.Id, ex.Message);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to enqueue provisioning for tenant {TenantId}", tenant.Id);
+                await provisioning.StartAsync(tenant.Id, cancellationToken).ConfigureAwait(false);
+                _logger.LogInformation("Enqueued provisioning for tenant {TenantId} on startup.", tenant.Id);
             }
         }
+        catch (CustomException ex)
+        {
+            _logger.LogInformation("Provisioning already in progress or recently queued for tenant {TenantId}: {Message}", tenant.Id, ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to enqueue provisioning for tenant {TenantId}", tenant.Id);
+        }
+    }
+
+    private async Task<bool> ShouldProvisionTenantAsync(ITenantProvisioningService provisioning, string tenantId, CancellationToken cancellationToken)
+    {
+        if (_options.RunTenantMigrationsOnStartup)
+        {
+            return true;
+        }
+
+        var latest = await provisioning.GetLatestAsync(tenantId, cancellationToken).ConfigureAwait(false);
+        return latest is null || latest.Status != TenantProvisioningStatus.Completed;
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;

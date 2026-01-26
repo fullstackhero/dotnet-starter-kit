@@ -153,75 +153,68 @@ public abstract class Specification<T> : ISpecification<T>
         ArgumentNullException.ThrowIfNull(applyDefaultOrdering);
         ArgumentNullException.ThrowIfNull(sortMappings);
 
+        ClearOrderExpressions();
+
         if (string.IsNullOrWhiteSpace(sortExpression))
         {
-            ClearOrderExpressions();
             applyDefaultOrdering();
             return;
         }
 
-        ClearOrderExpressions();
-
-        string[] clauses = sortExpression.Split(
-            ',',
-            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-        bool anyApplied = false;
-
-        foreach (string rawClause in clauses)
-        {
-            if (string.IsNullOrWhiteSpace(rawClause))
-            {
-                continue;
-            }
-
-            string clause = rawClause.Trim();
-            bool descending = clause[0] == '-';
-            if (clause[0] is '-' or '+')
-            {
-                clause = clause[1..];
-            }
-
-            if (string.IsNullOrWhiteSpace(clause))
-            {
-                continue;
-            }
-
-            if (!sortMappings.TryGetValue(clause, out Expression<Func<T, object>>? selector))
-            {
-                // Unknown sort key; skip to keep sorting safe.
-                continue;
-            }
-
-            if (!anyApplied)
-            {
-                if (descending)
-                {
-                    OrderByDescending(selector);
-                }
-                else
-                {
-                    OrderBy(selector);
-                }
-
-                anyApplied = true;
-            }
-            else
-            {
-                if (descending)
-                {
-                    ThenByDescending(selector);
-                }
-                else
-                {
-                    ThenBy(selector);
-                }
-            }
-        }
+        var clauses = ParseSortClauses(sortExpression);
+        bool anyApplied = ApplySortClauses(clauses, sortMappings);
 
         if (!anyApplied)
         {
             applyDefaultOrdering();
+        }
+    }
+
+    private static IEnumerable<string> ParseSortClauses(string sortExpression)
+    {
+        return sortExpression.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(clause => !string.IsNullOrWhiteSpace(clause));
+    }
+
+    private bool ApplySortClauses(IEnumerable<string> clauses, IReadOnlyDictionary<string, Expression<Func<T, object>>> sortMappings)
+    {
+        bool anyApplied = false;
+
+        foreach (string rawClause in clauses)
+        {
+            var (key, descending) = ParseSortClause(rawClause);
+
+            if (string.IsNullOrWhiteSpace(key) || !sortMappings.TryGetValue(key, out var selector))
+            {
+                continue;
+            }
+
+            ApplySortOrder(selector, descending, anyApplied);
+            anyApplied = true;
+        }
+
+        return anyApplied;
+    }
+
+    private static (string key, bool descending) ParseSortClause(string clause)
+    {
+        clause = clause.Trim();
+        bool descending = clause[0] == '-';
+        string key = clause[0] is '-' or '+' ? clause[1..] : clause;
+        return (key, descending);
+    }
+
+    private void ApplySortOrder(Expression<Func<T, object>> selector, bool descending, bool isSecondary)
+    {
+        if (isSecondary)
+        {
+            if (descending) ThenByDescending(selector);
+            else ThenBy(selector);
+        }
+        else
+        {
+            if (descending) OrderByDescending(selector);
+            else OrderBy(selector);
         }
     }
 

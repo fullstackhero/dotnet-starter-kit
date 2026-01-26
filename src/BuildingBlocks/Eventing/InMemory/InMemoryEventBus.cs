@@ -42,9 +42,7 @@ public sealed class InMemoryEventBus : IEventBus
         using var scope = _serviceProvider.CreateScope();
         var provider = scope.ServiceProvider;
 
-        var handlerInterfaceType = typeof(IIntegrationEventHandler<>).MakeGenericType(eventType);
-        var handlers = provider.GetServices(handlerInterfaceType).ToArray();
-
+        var handlers = ResolveHandlers(provider, eventType);
         if (handlers.Length == 0)
         {
             _logger.LogDebug("No handlers registered for integration event type {EventType}", eventType.FullName);
@@ -52,48 +50,75 @@ public sealed class InMemoryEventBus : IEventBus
         }
 
         var inbox = provider.GetService<IInboxStore>();
+        var handlerInterfaceType = typeof(IIntegrationEventHandler<>).MakeGenericType(eventType);
 
         foreach (var handler in handlers)
         {
-            if (handler is null)
-            {
-                continue;
-            }
+            await InvokeHandlerAsync(handler, handlerInterfaceType, eventType, @event, inbox, ct);
+        }
+    }
 
-            var handlerName = handler.GetType().FullName ?? handler.GetType().Name;
+    private static object[] ResolveHandlers(IServiceProvider provider, Type eventType)
+    {
+        var handlerInterfaceType = typeof(IIntegrationEventHandler<>).MakeGenericType(eventType);
+        return provider.GetServices(handlerInterfaceType).Where(h => h is not null).ToArray()!;
+    }
+
+    private async Task InvokeHandlerAsync(
+        object handler,
+        Type handlerInterfaceType,
+        Type eventType,
+        IIntegrationEvent @event,
+        IInboxStore? inbox,
+        CancellationToken ct)
+    {
+        var handlerName = handler.GetType().FullName ?? handler.GetType().Name;
+
+        if (await ShouldSkipProcessedEventAsync(inbox, @event.Id, handlerName, ct))
+        {
+            _logger.LogDebug("Skipping already processed integration event {EventId} for handler {Handler}", @event.Id, handlerName);
+            return;
+        }
+
+        var method = handlerInterfaceType.GetMethod(nameof(IIntegrationEventHandler<IIntegrationEvent>.HandleAsync));
+        if (method == null)
+        {
+            _logger.LogWarning("Handler {Handler} does not implement HandleAsync correctly for {EventType}", handlerName, eventType.FullName);
+            return;
+        }
+
+        await ExecuteHandlerAsync(handler, method, @event, eventType, handlerName, inbox, ct);
+    }
+
+    private static async Task<bool> ShouldSkipProcessedEventAsync(IInboxStore? inbox, Guid eventId, string handlerName, CancellationToken ct)
+    {
+        return inbox != null && await inbox.HasProcessedAsync(eventId, handlerName, ct).ConfigureAwait(false);
+    }
+
+    private async Task ExecuteHandlerAsync(
+        object handler,
+        MethodInfo method,
+        IIntegrationEvent @event,
+        Type eventType,
+        string handlerName,
+        IInboxStore? inbox,
+        CancellationToken ct)
+    {
+        try
+        {
+            var task = (Task)method.Invoke(handler, new object[] { @event, ct })!;
+            await task.ConfigureAwait(false);
 
             if (inbox != null)
             {
-                if (await inbox.HasProcessedAsync(@event.Id, handlerName, ct).ConfigureAwait(false))
-                {
-                    _logger.LogDebug("Skipping already processed integration event {EventId} for handler {Handler}", @event.Id, handlerName);
-                    continue;
-                }
+                await inbox.MarkProcessedAsync(@event.Id, handlerName, @event.TenantId, eventType.AssemblyQualifiedName ?? eventType.FullName!, ct)
+                    .ConfigureAwait(false);
             }
-
-            var method = handlerInterfaceType.GetMethod(nameof(IIntegrationEventHandler<IIntegrationEvent>.HandleAsync));
-            if (method == null)
-            {
-                _logger.LogWarning("Handler {Handler} does not implement HandleAsync correctly for {EventType}", handlerName, eventType.FullName);
-                continue;
-            }
-
-            try
-            {
-                var task = (Task)method.Invoke(handler, new object[] { @event, ct })!;
-                await task.ConfigureAwait(false);
-
-                if (inbox != null)
-                {
-                    await inbox.MarkProcessedAsync(@event.Id, handlerName, @event.TenantId, eventType.AssemblyQualifiedName ?? eventType.FullName!, ct)
-                        .ConfigureAwait(false);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while handling integration event {EventId} with handler {Handler}", @event.Id, handlerName);
-                throw;
-            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error while handling integration event {EventId} with handler {Handler}", @event.Id, handlerName);
+            throw;
         }
     }
 }

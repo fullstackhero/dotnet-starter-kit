@@ -30,66 +30,76 @@ public static class Extensions
                 return;
             }
 
-            string GetPartitionKey(HttpContext context)
-            {
-                var tenant = context.User?.FindFirst(ClaimConstants.Tenant)?.Value;
-                var userId = context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (!string.IsNullOrWhiteSpace(tenant)) return $"tenant:{tenant}";
-                if (!string.IsNullOrWhiteSpace(userId)) return $"user:{userId}";
-                var ip = context.Connection.RemoteIpAddress?.ToString();
-                return string.IsNullOrWhiteSpace(ip) ? "ip:unknown" : $"ip:{ip}";
-            }
-
-            bool IsHealthPath(PathString path) =>
-                path.StartsWithSegments("/health", StringComparison.OrdinalIgnoreCase) ||
-                path.StartsWithSegments("/healthz", StringComparison.OrdinalIgnoreCase) ||
-                path.StartsWithSegments("/ready", StringComparison.OrdinalIgnoreCase) ||
-                path.StartsWithSegments("/live", StringComparison.OrdinalIgnoreCase);
-
-            options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
-            {
-                if (IsHealthPath(context.Request.Path))
-                {
-                    return RateLimitPartition.GetNoLimiter("health");
-                }
-
-                var key = GetPartitionKey(context);
-                return RateLimitPartition.GetFixedWindowLimiter(
-                    partitionKey: key,
-                    factory: _ => new FixedWindowRateLimiterOptions
-                    {
-                        PermitLimit = settings.Global.PermitLimit,
-                        Window = TimeSpan.FromSeconds(settings.Global.WindowSeconds),
-                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                        QueueLimit = settings.Global.QueueLimit
-                    });
-            });
-
-            options.AddPolicy<string>("global", context =>
-                RateLimitPartition.GetFixedWindowLimiter(
-                    partitionKey: GetPartitionKey(context),
-                    factory: _ => new FixedWindowRateLimiterOptions
-                    {
-                        PermitLimit = settings.Global.PermitLimit,
-                        Window = TimeSpan.FromSeconds(settings.Global.WindowSeconds),
-                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                        QueueLimit = settings.Global.QueueLimit
-                    }));
-
-            options.AddPolicy<string>("auth", context =>
-                RateLimitPartition.GetFixedWindowLimiter(
-                    partitionKey: GetPartitionKey(context),
-                    factory: _ => new FixedWindowRateLimiterOptions
-                    {
-                        PermitLimit = settings.Auth.PermitLimit,
-                        Window = TimeSpan.FromSeconds(settings.Auth.WindowSeconds),
-                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                        QueueLimit = settings.Auth.QueueLimit
-                    }));
+            options.GlobalLimiter = CreateGlobalLimiter(settings);
+            AddGlobalPolicy(options, settings);
+            AddAuthPolicy(options, settings);
         });
 
         return services;
     }
+
+    private static PartitionedRateLimiter<HttpContext> CreateGlobalLimiter(RateLimitingOptions settings)
+    {
+        return PartitionedRateLimiter.Create<HttpContext, string>(context =>
+        {
+            if (IsHealthPath(context.Request.Path))
+            {
+                return RateLimitPartition.GetNoLimiter("health");
+            }
+
+            var key = GetPartitionKey(context);
+            return CreateFixedWindowPartition(key, settings.Global);
+        });
+    }
+
+    private static void AddGlobalPolicy(Microsoft.AspNetCore.RateLimiting.RateLimiterOptions options, RateLimitingOptions settings)
+    {
+        options.AddPolicy<string>("global", context =>
+            CreateFixedWindowPartition(GetPartitionKey(context), settings.Global));
+    }
+
+    private static void AddAuthPolicy(Microsoft.AspNetCore.RateLimiting.RateLimiterOptions options, RateLimitingOptions settings)
+    {
+        options.AddPolicy<string>("auth", context =>
+            CreateFixedWindowPartition(GetPartitionKey(context), settings.Auth));
+    }
+
+    private static RateLimitPartition<string> CreateFixedWindowPartition(string partitionKey, FixedWindowPolicyOptions policy)
+    {
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: partitionKey,
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = policy.PermitLimit,
+                Window = TimeSpan.FromSeconds(policy.WindowSeconds),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = policy.QueueLimit
+            });
+    }
+
+    private static string GetPartitionKey(HttpContext context)
+    {
+        var tenant = context.User?.FindFirst(ClaimConstants.Tenant)?.Value;
+        if (!string.IsNullOrWhiteSpace(tenant))
+        {
+            return $"tenant:{tenant}";
+        }
+
+        var userId = context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!string.IsNullOrWhiteSpace(userId))
+        {
+            return $"user:{userId}";
+        }
+
+        var ip = context.Connection.RemoteIpAddress?.ToString();
+        return string.IsNullOrWhiteSpace(ip) ? "ip:unknown" : $"ip:{ip}";
+    }
+
+    private static bool IsHealthPath(PathString path) =>
+        path.StartsWithSegments("/health", StringComparison.OrdinalIgnoreCase) ||
+        path.StartsWithSegments("/healthz", StringComparison.OrdinalIgnoreCase) ||
+        path.StartsWithSegments("/ready", StringComparison.OrdinalIgnoreCase) ||
+        path.StartsWithSegments("/live", StringComparison.OrdinalIgnoreCase);
 
     public static IApplicationBuilder UseHeroRateLimiting(this IApplicationBuilder app)
     {

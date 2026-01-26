@@ -1,3 +1,4 @@
+using System.Threading.Channels;
 using FSH.Modules.Auditing.Contracts;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -34,45 +35,19 @@ public sealed class AuditBackgroundWorker : BackgroundService
     {
         var reader = _publisher.Reader;
         var batch = new List<AuditEnvelope>(_batchSize);
-
-        // Single delay task we reuse/reset to avoid concurrent waits.
-        Task delayTask = Task.Delay(_flushInterval, stoppingToken);
+        var delayTask = Task.Delay(_flushInterval, stoppingToken);
 
         try
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                // Greedily drain whatever is available, up to batch size.
-                while (batch.Count < _batchSize && reader.TryRead(out var item))
-                    batch.Add(item);
+                var (shouldContinue, newDelayTask) = await ProcessBatchCycleAsync(reader, batch, delayTask, stoppingToken);
+                delayTask = newDelayTask;
 
-                // If we've filled the batch, flush immediately.
-                if (batch.Count >= _batchSize)
+                if (!shouldContinue)
                 {
-                    await FlushAsync(batch, stoppingToken);
-                    delayTask = Task.Delay(_flushInterval, stoppingToken); // reset window after flush
-                    continue;
+                    break;
                 }
-
-                // If we have nothing yet, wait for either data to arrive or the flush window to elapse.
-                var readTask = reader.WaitToReadAsync(stoppingToken).AsTask();
-                var winner = await Task.WhenAny(readTask, delayTask);
-
-                if (winner == readTask)
-                {
-                    // If channel is completed, exit the loop.
-                    if (!await readTask.ConfigureAwait(false))
-                        break;
-
-                    // Loop back to drain newly available items (no flush yet).
-                    continue;
-                }
-
-                // Timer window elapsed: flush whatever we have (if any) and open a new window.
-                if (batch.Count > 0)
-                    await FlushAsync(batch, stoppingToken);
-
-                delayTask = Task.Delay(_flushInterval, stoppingToken); // start a fresh window
             }
         }
         catch (OperationCanceledException) { /* shutting down */ }
@@ -81,11 +56,60 @@ public sealed class AuditBackgroundWorker : BackgroundService
             _logger.LogError(ex, "Audit background worker crashed.");
         }
 
-        // Best-effort final flush on shutdown.
+        await FinalFlushAsync(batch, stoppingToken);
+    }
+
+    private async Task<(bool shouldContinue, Task delayTask)> ProcessBatchCycleAsync(
+        ChannelReader<AuditEnvelope> reader,
+        List<AuditEnvelope> batch,
+        Task delayTask,
+        CancellationToken stoppingToken)
+    {
+        DrainAvailableItems(reader, batch);
+
+        if (batch.Count >= _batchSize)
+        {
+            await FlushAsync(batch, stoppingToken);
+            return (true, Task.Delay(_flushInterval, stoppingToken));
+        }
+
+        var readTask = reader.WaitToReadAsync(stoppingToken).AsTask();
+        var winner = await Task.WhenAny(readTask, delayTask);
+
+        if (winner == readTask)
+        {
+            var canRead = await readTask.ConfigureAwait(false);
+            return (canRead, delayTask);
+        }
+
+        if (batch.Count > 0)
+        {
+            await FlushAsync(batch, stoppingToken);
+        }
+
+        return (true, Task.Delay(_flushInterval, stoppingToken));
+    }
+
+    private void DrainAvailableItems(ChannelReader<AuditEnvelope> reader, List<AuditEnvelope> batch)
+    {
+        while (batch.Count < _batchSize && reader.TryRead(out var item))
+        {
+            batch.Add(item);
+        }
+    }
+
+    private async Task FinalFlushAsync(List<AuditEnvelope> batch, CancellationToken stoppingToken)
+    {
         if (batch.Count > 0 && !stoppingToken.IsCancellationRequested)
         {
-            try { await _sink.WriteAsync(batch, stoppingToken); }
-            catch (Exception ex) { _logger.LogError(ex, "Final audit flush failed."); }
+            try
+            {
+                await _sink.WriteAsync(batch, stoppingToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Final audit flush failed.");
+            }
         }
     }
 
@@ -97,7 +121,6 @@ public sealed class AuditBackgroundWorker : BackgroundService
         }
         catch (Exception ex)
         {
-            // Don't crash the worker; log and keep going.
             _logger.LogError(ex, "Audit background flush failed.");
             await Task.Delay(250, ct);
         }

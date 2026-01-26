@@ -20,10 +20,23 @@ public sealed class GetExceptionAuditsQueryHandler : IQueryHandler<GetExceptionA
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        IQueryable<AuditRecord> audits = _dbContext.AuditRecords
+        var audits = GetBaseQuery();
+        audits = ApplyDateFilters(audits, query);
+        audits = ApplySeverityFilter(audits, query);
+        audits = ApplyPayloadFilters(audits, query);
+
+        return await ProjectToDto(audits, cancellationToken);
+    }
+
+    private IQueryable<AuditRecord> GetBaseQuery()
+    {
+        return _dbContext.AuditRecords
             .AsNoTracking()
             .Where(a => a.EventType == (int)AuditEventType.Exception);
+    }
 
+    private static IQueryable<AuditRecord> ApplyDateFilters(IQueryable<AuditRecord> audits, GetExceptionAuditsQuery query)
+    {
         if (query.FromUtc.HasValue)
         {
             audits = audits.Where(a => a.OccurredAtUtc >= query.FromUtc.Value);
@@ -34,11 +47,21 @@ public sealed class GetExceptionAuditsQueryHandler : IQueryHandler<GetExceptionA
             audits = audits.Where(a => a.OccurredAtUtc <= query.ToUtc.Value);
         }
 
+        return audits;
+    }
+
+    private static IQueryable<AuditRecord> ApplySeverityFilter(IQueryable<AuditRecord> audits, GetExceptionAuditsQuery query)
+    {
         if (query.Severity.HasValue)
         {
             audits = audits.Where(a => a.Severity == (byte)query.Severity.Value);
         }
 
+        return audits;
+    }
+
+    private static IQueryable<AuditRecord> ApplyPayloadFilters(IQueryable<AuditRecord> audits, GetExceptionAuditsQuery query)
+    {
         if (query.Area.HasValue && query.Area.Value != ExceptionArea.None)
         {
             string areaValue = query.Area.Value.ToString();
@@ -58,7 +81,12 @@ public sealed class GetExceptionAuditsQueryHandler : IQueryHandler<GetExceptionA
                 EF.Functions.ILike(a.PayloadJson, $"%\"routeOrLocation\":\"{query.RouteOrLocation}%"));
         }
 
-        var list = await audits
+        return audits;
+    }
+
+    private static async Task<IReadOnlyList<AuditSummaryDto>> ProjectToDto(IQueryable<AuditRecord> audits, CancellationToken cancellationToken)
+    {
+        return await audits
             .OrderByDescending(a => a.OccurredAtUtc)
             .Select(a => new AuditSummaryDto
             {
@@ -77,8 +105,6 @@ public sealed class GetExceptionAuditsQueryHandler : IQueryHandler<GetExceptionA
             })
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
-
-        return list;
     }
 }
 
