@@ -20,18 +20,58 @@ internal sealed partial class UserService
         EnsureValidTenant();
         ArgumentNullException.ThrowIfNull(principal);
 
-        var email = principal.FindFirstValue(ClaimTypes.Email)
-            ?? principal.FindFirstValue("email")
-            ?? throw new CustomException("Email claim is required for external authentication.");
+        var email = ExtractEmailFromPrincipal(principal);
 
-        // Try to find existing user by email
-        var user = await userManager.FindByEmailAsync(email);
-        if (user is not null)
+        var existingUser = await userManager.FindByEmailAsync(email);
+        if (existingUser is not null)
         {
-            return user.Id;
+            return existingUser.Id;
         }
 
-        // Extract claims for new user creation
+        var user = await CreateUserFromPrincipalAsync(principal, email);
+        await AssignDefaultRoleAndGroupsAsync(user, "ExternalAuth");
+        await PublishUserRegisteredAsync(user, "Identity.ExternalAuth");
+
+        return user.Id;
+    }
+
+    private static string ExtractEmailFromPrincipal(ClaimsPrincipal principal)
+    {
+        return principal.FindFirstValue(ClaimTypes.Email)
+            ?? principal.FindFirstValue("email")
+            ?? throw new CustomException("Email claim is required for external authentication.");
+    }
+
+    private async Task<FshUser> CreateUserFromPrincipalAsync(ClaimsPrincipal principal, string email)
+    {
+        var (firstName, lastName, userName) = ExtractUserInfoFromPrincipal(principal, email);
+
+        userName = await EnsureUniqueUserNameAsync(userName);
+
+        var user = new FshUser
+        {
+            Email = email,
+            UserName = userName,
+            FirstName = firstName,
+            LastName = lastName,
+            EmailConfirmed = true,
+            PhoneNumberConfirmed = false,
+            IsActive = true
+        };
+
+        var result = await userManager.CreateAsync(user);
+        if (!result.Succeeded)
+        {
+            var errors = result.Errors.Select(e => e.Description).ToList();
+            throw new CustomException("Failed to create user from external principal.", errors);
+        }
+
+        return user;
+    }
+
+    private static (string firstName, string lastName, string userName) ExtractUserInfoFromPrincipal(
+        ClaimsPrincipal principal, string email)
+    {
         var firstName = principal.FindFirstValue(ClaimTypes.GivenName)
             ?? principal.FindFirstValue("given_name")
             ?? string.Empty;
@@ -44,73 +84,55 @@ internal sealed partial class UserService
             ?? principal.FindFirstValue("preferred_username")
             ?? email.Split('@')[0];
 
-        // Ensure unique username
+        return (firstName, lastName, userName);
+    }
+
+    private async Task<string> EnsureUniqueUserNameAsync(string userName)
+    {
         if (await userManager.FindByNameAsync(userName) is not null)
         {
-            userName = $"{userName}_{Guid.NewGuid():N}"[..20];
+            return $"{userName}_{Guid.NewGuid():N}"[..20];
         }
+        return userName;
+    }
 
-        // Create new user from external principal
-        user = new FshUser
-        {
-            Email = email,
-            UserName = userName,
-            FirstName = firstName,
-            LastName = lastName,
-            EmailConfirmed = true, // External provider has verified the email
-            PhoneNumberConfirmed = false,
-            IsActive = true
-        };
+    public async Task<string> RegisterAsync(
+        string firstName,
+        string lastName,
+        string email,
+        string userName,
+        string password,
+        string confirmPassword,
+        string phoneNumber,
+        string origin,
+        CancellationToken cancellationToken)
+    {
+        ValidatePasswordMatch(password, confirmPassword);
 
-        var result = await userManager.CreateAsync(user);
-        if (!result.Succeeded)
-        {
-            var errors = result.Errors.Select(e => e.Description).ToList();
-            throw new CustomException("Failed to create user from external principal.", errors);
-        }
-
-        // Assign basic role
-        await userManager.AddToRoleAsync(user, RoleConstants.Basic);
-
-        // Add to default groups
-        var defaultGroups = await db.Groups
-            .Where(g => g.IsDefault && !g.IsDeleted)
-            .ToListAsync();
-
-        foreach (var group in defaultGroups)
-        {
-            db.UserGroups.Add(UserGroup.Create(user.Id, group.Id, "ExternalAuth"));
-        }
-
-        // Raise domain event for user registration
-        var tenantId = multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id;
-        user.RecordRegistered(tenantId);
-
-        // Save to dispatch domain event via interceptor
-        await db.SaveChangesAsync();
-
-        // Publish integration event
-        var integrationEvent = new UserRegisteredIntegrationEvent(
-            Id: Guid.NewGuid(),
-            OccurredOnUtc: DateTime.UtcNow,
-            TenantId: tenantId,
-            CorrelationId: Guid.NewGuid().ToString(),
-            Source: "Identity.ExternalAuth",
-            UserId: user.Id,
-            Email: user.Email ?? string.Empty,
-            FirstName: user.FirstName ?? string.Empty,
-            LastName: user.LastName ?? string.Empty);
-
-        await outboxStore.AddAsync(integrationEvent).ConfigureAwait(false);
+        var user = await CreateUserWithPasswordAsync(firstName, lastName, email, userName, password, phoneNumber);
+        await AssignDefaultRoleAndGroupsAsync(user, "System", cancellationToken);
+        await SendConfirmationEmailAsync(user, origin, cancellationToken);
+        await PublishUserRegisteredAsync(user, "Identity", cancellationToken);
 
         return user.Id;
     }
 
-    public async Task<string> RegisterAsync(string firstName, string lastName, string email, string userName, string password, string confirmPassword, string phoneNumber, string origin, CancellationToken cancellationToken)
+    private static void ValidatePasswordMatch(string password, string confirmPassword)
     {
-        if (password != confirmPassword) throw new CustomException("password mismatch.");
+        if (password != confirmPassword)
+        {
+            throw new CustomException("password mismatch.");
+        }
+    }
 
-        // create user entity
+    private async Task<FshUser> CreateUserWithPasswordAsync(
+        string firstName,
+        string lastName,
+        string email,
+        string userName,
+        string password,
+        string phoneNumber)
+    {
         var user = new FshUser
         {
             Email = email,
@@ -123,7 +145,6 @@ internal sealed partial class UserService
             PhoneNumberConfirmed = false,
         };
 
-        // register user
         var result = await userManager.CreateAsync(user, password);
         if (!result.Succeeded)
         {
@@ -131,59 +152,71 @@ internal sealed partial class UserService
             throw new CustomException("error while registering a new user", errors);
         }
 
-        // add basic role
+        return user;
+    }
+
+    private async Task AssignDefaultRoleAndGroupsAsync(
+        FshUser user,
+        string source,
+        CancellationToken cancellationToken = default)
+    {
         await userManager.AddToRoleAsync(user, RoleConstants.Basic);
 
-        // add user to default groups
         var defaultGroups = await db.Groups
             .Where(g => g.IsDefault && !g.IsDeleted)
             .ToListAsync(cancellationToken);
 
         foreach (var group in defaultGroups)
         {
-            db.UserGroups.Add(UserGroup.Create(user.Id, group.Id, "System"));
+            db.UserGroups.Add(UserGroup.Create(user.Id, group.Id, source));
         }
 
         if (defaultGroups.Count > 0)
         {
             await db.SaveChangesAsync(cancellationToken);
         }
+    }
 
-        // send confirmation mail
-        if (!string.IsNullOrEmpty(user.Email))
+    private async Task SendConfirmationEmailAsync(FshUser user, string origin, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(user.Email))
         {
-            string emailVerificationUri = await GetEmailVerificationUriAsync(user, origin);
-            string emailBody = BuildConfirmationEmailHtml(user.FirstName ?? user.UserName ?? "User", emailVerificationUri);
-            var mailRequest = new MailRequest(
-                new Collection<string> { user.Email },
-                "Confirm Your Email Address",
-                emailBody);
-            jobService.Enqueue("email", () => mailService.SendAsync(mailRequest, cancellationToken));
+            return;
         }
 
-        // Raise domain event for user registration
+        string emailVerificationUri = await GetEmailVerificationUriAsync(user, origin);
+        string emailBody = BuildConfirmationEmailHtml(user.FirstName ?? user.UserName ?? "User", emailVerificationUri);
+
+        var mailRequest = new MailRequest(
+            new Collection<string> { user.Email },
+            "Confirm Your Email Address",
+            emailBody);
+
+        jobService.Enqueue("email", () => mailService.SendAsync(mailRequest, cancellationToken));
+    }
+
+    private async Task PublishUserRegisteredAsync(
+        FshUser user,
+        string source,
+        CancellationToken cancellationToken = default)
+    {
         var tenantId = multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id;
         user.RecordRegistered(tenantId);
 
-        // Save to dispatch domain event via interceptor
         await db.SaveChangesAsync(cancellationToken);
 
-        // enqueue integration event for user registration
-        var correlationId = Guid.NewGuid().ToString();
         var integrationEvent = new UserRegisteredIntegrationEvent(
             Id: Guid.NewGuid(),
             OccurredOnUtc: DateTime.UtcNow,
             TenantId: tenantId,
-            CorrelationId: correlationId,
-            Source: "Identity",
+            CorrelationId: Guid.NewGuid().ToString(),
+            Source: source,
             UserId: user.Id,
             Email: user.Email ?? string.Empty,
             FirstName: user.FirstName ?? string.Empty,
             LastName: user.LastName ?? string.Empty);
 
         await outboxStore.AddAsync(integrationEvent, cancellationToken).ConfigureAwait(false);
-
-        return user.Id;
     }
 
     private async Task<string> GetEmailVerificationUriAsync(FshUser user, string origin)
@@ -192,13 +225,17 @@ internal sealed partial class UserService
 
         string code = await userManager.GenerateEmailConfirmationTokenAsync(user);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
         const string route = "api/v1/identity/confirm-email";
         var endpointUri = new Uri(string.Concat($"{origin}/", route));
+
         string verificationUri = QueryHelpers.AddQueryString(endpointUri.ToString(), QueryStringKeys.UserId, user.Id);
         verificationUri = QueryHelpers.AddQueryString(verificationUri, QueryStringKeys.Code, code);
-        verificationUri = QueryHelpers.AddQueryString(verificationUri,
+        verificationUri = QueryHelpers.AddQueryString(
+            verificationUri,
             MultitenancyConstants.Identifier,
             multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id!);
+
         return verificationUri;
     }
 

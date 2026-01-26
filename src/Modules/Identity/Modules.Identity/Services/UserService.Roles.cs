@@ -10,74 +10,106 @@ internal sealed partial class UserService
 {
     public async Task<string> AssignRolesAsync(string userId, List<UserRoleDto> userRoles, CancellationToken cancellationToken)
     {
-        var user = await userManager.Users.Where(u => u.Id == userId).FirstOrDefaultAsync(cancellationToken);
+        var user = await userManager.Users
+            .Where(u => u.Id == userId)
+            .FirstOrDefaultAsync(cancellationToken)
+            ?? throw new NotFoundException("user not found");
 
-        _ = user ?? throw new NotFoundException("user not found");
+        await ValidateAdminRoleChangeAsync(user, userRoles);
 
-        // Check if the user is an admin for which the admin role is getting disabled
-        if (await userManager.IsInRoleAsync(user, RoleConstants.Admin)
-            && userRoles.Exists(a => !a.Enabled && a.RoleName == RoleConstants.Admin))
+        var assignedRoles = await ProcessRoleAssignmentsAsync(user, userRoles);
+
+        await RaiseRolesAssignedEventAsync(user, assignedRoles, cancellationToken);
+
+        return "User Roles Updated Successfully.";
+    }
+
+    private async Task ValidateAdminRoleChangeAsync(Domain.FshUser user, List<UserRoleDto> userRoles)
+    {
+        bool isRemovingAdminRole = userRoles.Exists(a => !a.Enabled && a.RoleName == RoleConstants.Admin);
+        if (!isRemovingAdminRole)
         {
-            // Get count of users in Admin Role
-            int adminCount = (await userManager.GetUsersInRoleAsync(RoleConstants.Admin)).Count;
-
-            // Check if user is not Root Tenant Admin
-            // Edge Case : there are chances for other tenants to have users with the same email as that of Root Tenant Admin. Probably can add a check while User Registration
-            if (user.Email == MultitenancyConstants.Root.EmailAddress)
-            {
-                if (multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id == MultitenancyConstants.Root.Id)
-                {
-                    throw new CustomException("action not permitted");
-                }
-            }
-            else if (adminCount <= 2)
-            {
-                throw new CustomException("tenant should have at least 2 admins.");
-            }
+            return;
         }
 
+        bool userIsAdmin = await userManager.IsInRoleAsync(user, RoleConstants.Admin);
+        if (!userIsAdmin)
+        {
+            return;
+        }
+
+        if (IsRootTenantAdmin(user))
+        {
+            throw new CustomException("action not permitted");
+        }
+
+        await EnsureMinimumAdminCountAsync();
+    }
+
+    private bool IsRootTenantAdmin(Domain.FshUser user)
+    {
+        return user.Email == MultitenancyConstants.Root.EmailAddress
+            && multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id == MultitenancyConstants.Root.Id;
+    }
+
+    private async Task EnsureMinimumAdminCountAsync()
+    {
+        int adminCount = (await userManager.GetUsersInRoleAsync(RoleConstants.Admin)).Count;
+        if (adminCount <= 2)
+        {
+            throw new CustomException("tenant should have at least 2 admins.");
+        }
+    }
+
+    private async Task<List<string>> ProcessRoleAssignmentsAsync(Domain.FshUser user, List<UserRoleDto> userRoles)
+    {
         var assignedRoles = new List<string>();
 
         foreach (var userRole in userRoles)
         {
-            // Check if Role Exists
-            if (await roleManager.FindByNameAsync(userRole.RoleName!) is not null)
+            if (await roleManager.FindByNameAsync(userRole.RoleName!) is null)
             {
-                if (userRole.Enabled)
+                continue;
+            }
+
+            if (userRole.Enabled)
+            {
+                if (!await userManager.IsInRoleAsync(user, userRole.RoleName!))
                 {
-                    if (!await userManager.IsInRoleAsync(user, userRole.RoleName!))
-                    {
-                        await userManager.AddToRoleAsync(user, userRole.RoleName!);
-                        assignedRoles.Add(userRole.RoleName!);
-                    }
+                    await userManager.AddToRoleAsync(user, userRole.RoleName!);
+                    assignedRoles.Add(userRole.RoleName!);
                 }
-                else
-                {
-                    await userManager.RemoveFromRoleAsync(user, userRole.RoleName!);
-                }
+            }
+            else
+            {
+                await userManager.RemoveFromRoleAsync(user, userRole.RoleName!);
             }
         }
 
-        // Raise domain event for newly assigned roles
-        if (assignedRoles.Count > 0)
+        return assignedRoles;
+    }
+
+    private async Task RaiseRolesAssignedEventAsync(Domain.FshUser user, List<string> assignedRoles, CancellationToken cancellationToken)
+    {
+        if (assignedRoles.Count == 0)
         {
-            var tenantId = multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id;
-            user.RecordRolesAssigned(assignedRoles, tenantId);
-            await db.SaveChangesAsync(cancellationToken);
+            return;
         }
 
-        return "User Roles Updated Successfully.";
-
+        var tenantId = multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id;
+        user.RecordRolesAssigned(assignedRoles, tenantId);
+        await db.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<List<UserRoleDto>> GetUserRolesAsync(string userId, CancellationToken cancellationToken)
     {
-        var userRoles = new List<UserRoleDto>();
+        var user = await userManager.FindByIdAsync(userId)
+            ?? throw new NotFoundException("user not found");
 
-        var user = await userManager.FindByIdAsync(userId);
-        if (user is null) throw new NotFoundException("user not found");
-        var roles = await roleManager.Roles.AsNoTracking().ToListAsync(cancellationToken);
-        if (roles is null) throw new NotFoundException("roles not found");
+        var roles = await roleManager.Roles.AsNoTracking().ToListAsync(cancellationToken)
+            ?? throw new NotFoundException("roles not found");
+
+        var userRoles = new List<UserRoleDto>();
         foreach (var role in roles)
         {
             userRoles.Add(new UserRoleDto
