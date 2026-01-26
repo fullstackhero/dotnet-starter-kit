@@ -113,8 +113,9 @@ public class IdentityModule : IModule
         // Register password expiry service
         services.AddScoped<IPasswordExpiryService, PasswordExpiryService>();
 
-        // Register session service
+        // Register session service and background cleanup
         services.AddScoped<ISessionService, SessionService>();
+        services.AddHostedService<SessionCleanupHostedService>();
 
         // Register group role service for group-derived permissions
         services.AddScoped<IGroupRoleService, GroupRoleService>();

@@ -58,7 +58,7 @@ public sealed class SessionService : ISessionService
             ipAddress: ipAddress,
             userAgent: userAgent,
             expiresAt: expiresAt,
-            deviceType: GetDeviceType(clientInfo.Device.Family),
+            deviceType: DeviceTypeClassifier.Classify(clientInfo.Device.Family),
             browser: clientInfo.UA.Family,
             browserVersion: clientInfo.UA.Major,
             operatingSystem: clientInfo.OS.Family,
@@ -326,30 +326,6 @@ public sealed class SessionService : ISessionService
             await _db.SaveChangesAsync(cancellationToken);
             _logger.LogInformation("Cleaned up {Count} expired sessions", expiredSessions.Count);
         }
-    }
-
-    private static string GetDeviceType(string deviceFamily)
-    {
-        if (string.IsNullOrWhiteSpace(deviceFamily) || deviceFamily == "Other")
-        {
-            return "Desktop";
-        }
-
-        if (deviceFamily.Contains("mobile", StringComparison.OrdinalIgnoreCase) ||
-            deviceFamily.Contains("phone", StringComparison.OrdinalIgnoreCase) ||
-            deviceFamily.Contains("iphone", StringComparison.OrdinalIgnoreCase) ||
-            deviceFamily.Contains("android", StringComparison.OrdinalIgnoreCase))
-        {
-            return "Mobile";
-        }
-
-        if (deviceFamily.Contains("tablet", StringComparison.OrdinalIgnoreCase) ||
-            deviceFamily.Contains("ipad", StringComparison.OrdinalIgnoreCase))
-        {
-            return "Tablet";
-        }
-
-        return "Desktop";
     }
 
     private static UserSessionDto MapToDto(UserSession session, bool isCurrentSession)
