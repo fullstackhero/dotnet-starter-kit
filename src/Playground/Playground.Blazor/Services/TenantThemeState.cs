@@ -30,7 +30,6 @@ internal sealed class TenantThemeState : ITenantThemeState
     }
 
     public TenantThemeSettings Current => _current;
-
     public MudTheme Theme => _theme;
 
     public bool IsDarkMode
@@ -102,140 +101,139 @@ internal sealed class TenantThemeState : ITenantThemeState
         OnThemeChanged?.Invoke();
     }
 
-    public void ToggleDarkMode()
-    {
-        IsDarkMode = !IsDarkMode;
-    }
+    public void ToggleDarkMode() => IsDarkMode = !IsDarkMode;
 
     private TenantThemeSettings MapFromDto(TenantThemeApiDto dto)
     {
         return new TenantThemeSettings
         {
-            LightPalette = new PaletteSettings
-            {
-                Primary = dto.LightPalette?.Primary ?? "#2563EB",
-                Secondary = dto.LightPalette?.Secondary ?? "#0F172A",
-                Tertiary = dto.LightPalette?.Tertiary ?? "#6366F1",
-                Background = dto.LightPalette?.Background ?? "#F8FAFC",
-                Surface = dto.LightPalette?.Surface ?? "#FFFFFF",
-                Error = dto.LightPalette?.Error ?? "#DC2626",
-                Warning = dto.LightPalette?.Warning ?? "#F59E0B",
-                Success = dto.LightPalette?.Success ?? "#16A34A",
-                Info = dto.LightPalette?.Info ?? "#0284C7"
-            },
-            DarkPalette = new PaletteSettings
-            {
-                Primary = dto.DarkPalette?.Primary ?? "#38BDF8",
-                Secondary = dto.DarkPalette?.Secondary ?? "#94A3B8",
-                Tertiary = dto.DarkPalette?.Tertiary ?? "#818CF8",
-                Background = dto.DarkPalette?.Background ?? "#0B1220",
-                Surface = dto.DarkPalette?.Surface ?? "#111827",
-                Error = dto.DarkPalette?.Error ?? "#F87171",
-                Warning = dto.DarkPalette?.Warning ?? "#FBBF24",
-                Success = dto.DarkPalette?.Success ?? "#22C55E",
-                Info = dto.DarkPalette?.Info ?? "#38BDF8"
-            },
-            BrandAssets = new BrandAssets
-            {
-                LogoUrl = ToAbsoluteUrl(dto.BrandAssets?.LogoUrl),
-                LogoDarkUrl = ToAbsoluteUrl(dto.BrandAssets?.LogoDarkUrl),
-                FaviconUrl = ToAbsoluteUrl(dto.BrandAssets?.FaviconUrl)
-            },
-            Typography = new TypographySettings
-            {
-                FontFamily = dto.Typography?.FontFamily ?? "Inter, sans-serif",
-                HeadingFontFamily = dto.Typography?.HeadingFontFamily ?? "Inter, sans-serif",
-                FontSizeBase = dto.Typography?.FontSizeBase ?? 14,
-                LineHeightBase = dto.Typography?.LineHeightBase ?? 1.5
-            },
-            Layout = new LayoutSettings
-            {
-                BorderRadius = dto.Layout?.BorderRadius ?? "4px",
-                DefaultElevation = dto.Layout?.DefaultElevation ?? 1
-            },
+            LightPalette = MapLightPalette(dto.LightPalette),
+            DarkPalette = MapDarkPalette(dto.DarkPalette),
+            BrandAssets = MapBrandAssets(dto.BrandAssets),
+            Typography = MapTypography(dto.Typography),
+            Layout = MapLayout(dto.Layout),
             IsDefault = dto.IsDefault
         };
     }
+
+    private static PaletteSettings MapLightPalette(PaletteApiDto? dto) => new()
+    {
+        Primary = dto?.Primary ?? "#2563EB",
+        Secondary = dto?.Secondary ?? "#0F172A",
+        Tertiary = dto?.Tertiary ?? "#6366F1",
+        Background = dto?.Background ?? "#F8FAFC",
+        Surface = dto?.Surface ?? "#FFFFFF",
+        Error = dto?.Error ?? "#DC2626",
+        Warning = dto?.Warning ?? "#F59E0B",
+        Success = dto?.Success ?? "#16A34A",
+        Info = dto?.Info ?? "#0284C7"
+    };
+
+    private static PaletteSettings MapDarkPalette(PaletteApiDto? dto) => new()
+    {
+        Primary = dto?.Primary ?? "#38BDF8",
+        Secondary = dto?.Secondary ?? "#94A3B8",
+        Tertiary = dto?.Tertiary ?? "#818CF8",
+        Background = dto?.Background ?? "#0B1220",
+        Surface = dto?.Surface ?? "#111827",
+        Error = dto?.Error ?? "#F87171",
+        Warning = dto?.Warning ?? "#FBBF24",
+        Success = dto?.Success ?? "#22C55E",
+        Info = dto?.Info ?? "#38BDF8"
+    };
+
+    private BrandAssets MapBrandAssets(BrandAssetsApiDto? dto) => new()
+    {
+        LogoUrl = ToAbsoluteUrl(dto?.LogoUrl),
+        LogoDarkUrl = ToAbsoluteUrl(dto?.LogoDarkUrl),
+        FaviconUrl = ToAbsoluteUrl(dto?.FaviconUrl)
+    };
+
+    private static TypographySettings MapTypography(TypographyApiDto? dto) => new()
+    {
+        FontFamily = dto?.FontFamily ?? "Inter, sans-serif",
+        HeadingFontFamily = dto?.HeadingFontFamily ?? "Inter, sans-serif",
+        FontSizeBase = dto?.FontSizeBase ?? 14,
+        LineHeightBase = dto?.LineHeightBase ?? 1.5
+    };
+
+    private static LayoutSettings MapLayout(LayoutApiDto? dto) => new()
+    {
+        BorderRadius = dto?.BorderRadius ?? "4px",
+        DefaultElevation = dto?.DefaultElevation ?? 1
+    };
 
     private string? ToAbsoluteUrl(string? relativeUrl)
     {
         if (string.IsNullOrEmpty(relativeUrl))
             return null;
 
-        // Already absolute URL or data URL
-        if (relativeUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
-            relativeUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
-            relativeUrl.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
-        {
+        if (IsAbsoluteUrl(relativeUrl))
             return relativeUrl;
-        }
 
-        // Prepend API base URL to relative path
         return $"{_apiBaseUrl}/{relativeUrl}";
     }
 
-    private static TenantThemeApiDto MapToDto(TenantThemeSettings settings)
+    private static bool IsAbsoluteUrl(string url) =>
+        url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+        url.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
+        url.StartsWith("data:", StringComparison.OrdinalIgnoreCase);
+
+    private static TenantThemeApiDto MapToDto(TenantThemeSettings settings) => new()
     {
-        return new TenantThemeApiDto
-        {
-            LightPalette = new PaletteApiDto
-            {
-                Primary = settings.LightPalette.Primary,
-                Secondary = settings.LightPalette.Secondary,
-                Tertiary = settings.LightPalette.Tertiary,
-                Background = settings.LightPalette.Background,
-                Surface = settings.LightPalette.Surface,
-                Error = settings.LightPalette.Error,
-                Warning = settings.LightPalette.Warning,
-                Success = settings.LightPalette.Success,
-                Info = settings.LightPalette.Info
-            },
-            DarkPalette = new PaletteApiDto
-            {
-                Primary = settings.DarkPalette.Primary,
-                Secondary = settings.DarkPalette.Secondary,
-                Tertiary = settings.DarkPalette.Tertiary,
-                Background = settings.DarkPalette.Background,
-                Surface = settings.DarkPalette.Surface,
-                Error = settings.DarkPalette.Error,
-                Warning = settings.DarkPalette.Warning,
-                Success = settings.DarkPalette.Success,
-                Info = settings.DarkPalette.Info
-            },
-            BrandAssets = new BrandAssetsApiDto
-            {
-                LogoUrl = settings.BrandAssets.LogoUrl,
-                LogoDarkUrl = settings.BrandAssets.LogoDarkUrl,
-                FaviconUrl = settings.BrandAssets.FaviconUrl,
-                Logo = MapFileUpload(settings.BrandAssets.Logo),
-                LogoDark = MapFileUpload(settings.BrandAssets.LogoDark),
-                Favicon = MapFileUpload(settings.BrandAssets.Favicon),
-                DeleteLogo = settings.BrandAssets.DeleteLogo,
-                DeleteLogoDark = settings.BrandAssets.DeleteLogoDark,
-                DeleteFavicon = settings.BrandAssets.DeleteFavicon
-            },
-            Typography = new TypographyApiDto
-            {
-                FontFamily = settings.Typography.FontFamily,
-                HeadingFontFamily = settings.Typography.HeadingFontFamily,
-                FontSizeBase = settings.Typography.FontSizeBase,
-                LineHeightBase = settings.Typography.LineHeightBase
-            },
-            Layout = new LayoutApiDto
-            {
-                BorderRadius = settings.Layout.BorderRadius,
-                DefaultElevation = settings.Layout.DefaultElevation
-            },
-            IsDefault = settings.IsDefault
-        };
-    }
+        LightPalette = MapPaletteToDto(settings.LightPalette),
+        DarkPalette = MapPaletteToDto(settings.DarkPalette),
+        BrandAssets = MapBrandAssetsToDto(settings.BrandAssets),
+        Typography = MapTypographyToDto(settings.Typography),
+        Layout = MapLayoutToDto(settings.Layout),
+        IsDefault = settings.IsDefault
+    };
+
+    private static PaletteApiDto MapPaletteToDto(PaletteSettings palette) => new()
+    {
+        Primary = palette.Primary,
+        Secondary = palette.Secondary,
+        Tertiary = palette.Tertiary,
+        Background = palette.Background,
+        Surface = palette.Surface,
+        Error = palette.Error,
+        Warning = palette.Warning,
+        Success = palette.Success,
+        Info = palette.Info
+    };
+
+    private static BrandAssetsApiDto MapBrandAssetsToDto(BrandAssets assets) => new()
+    {
+        LogoUrl = assets.LogoUrl,
+        LogoDarkUrl = assets.LogoDarkUrl,
+        FaviconUrl = assets.FaviconUrl,
+        Logo = MapFileUpload(assets.Logo),
+        LogoDark = MapFileUpload(assets.LogoDark),
+        Favicon = MapFileUpload(assets.Favicon),
+        DeleteLogo = assets.DeleteLogo,
+        DeleteLogoDark = assets.DeleteLogoDark,
+        DeleteFavicon = assets.DeleteFavicon
+    };
+
+    private static TypographyApiDto MapTypographyToDto(TypographySettings typography) => new()
+    {
+        FontFamily = typography.FontFamily,
+        HeadingFontFamily = typography.HeadingFontFamily,
+        FontSizeBase = typography.FontSizeBase,
+        LineHeightBase = typography.LineHeightBase
+    };
+
+    private static LayoutApiDto MapLayoutToDto(LayoutSettings layout) => new()
+    {
+        BorderRadius = layout.BorderRadius,
+        DefaultElevation = layout.DefaultElevation
+    };
 
     private static FileUploadApiDto? MapFileUpload(FileUpload? upload)
     {
         if (upload is null || upload.Data.Length == 0)
             return null;
 
-        // Convert byte[] to List<int> for JSON serialization (same as profile picture pattern)
         return new FileUploadApiDto
         {
             FileName = upload.FileName,
@@ -308,7 +306,6 @@ internal sealed record BrandAssetsApiDto
     [JsonPropertyName("faviconUrl")]
     public string? FaviconUrl { get; init; }
 
-    // File upload data (same pattern as profile picture)
     [JsonPropertyName("logo")]
     public FileUploadApiDto? Logo { get; init; }
 
@@ -318,7 +315,6 @@ internal sealed record BrandAssetsApiDto
     [JsonPropertyName("favicon")]
     public FileUploadApiDto? Favicon { get; init; }
 
-    // Delete flags
     [JsonPropertyName("deleteLogo")]
     public bool DeleteLogo { get; init; }
 

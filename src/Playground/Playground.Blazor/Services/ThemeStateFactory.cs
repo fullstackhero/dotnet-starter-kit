@@ -14,11 +14,11 @@ internal interface IThemeStateFactory
 
 /// <summary>
 /// Redis-cached implementation of theme state factory.
-/// Efficient for SSR pages that need theme data without full circuit.
 /// </summary>
 internal sealed class CachedThemeStateFactory : IThemeStateFactory
 {
     private static readonly Uri ThemeEndpoint = new("/api/v1/tenants/theme", UriKind.Relative);
+    private static readonly TenantThemeSettings DefaultSettings = TenantThemeSettings.Default;
 
     private readonly IDistributedCache _cache;
     private readonly HttpClient _httpClient;
@@ -39,64 +39,62 @@ internal sealed class CachedThemeStateFactory : IThemeStateFactory
     {
         var cacheKey = $"theme:{tenantId}";
 
-        // Try to get from cache first (with error handling for Redis failures)
+        var cached = await TryGetFromCacheAsync(cacheKey, tenantId, cancellationToken);
+        if (cached is not null)
+        {
+            return cached;
+        }
+
+        return await FetchAndCacheThemeAsync(cacheKey, tenantId, cancellationToken);
+    }
+
+    private async Task<TenantThemeSettings?> TryGetFromCacheAsync(
+        string cacheKey,
+        string tenantId,
+        CancellationToken cancellationToken)
+    {
         try
         {
             var json = await _cache.GetStringAsync(cacheKey, cancellationToken);
-            if (json is not null)
+            if (json is null)
             {
-                try
-                {
-                    var cached = JsonSerializer.Deserialize<TenantThemeSettings>(json);
-                    if (cached is not null)
-                    {
-                        return cached;
-                    }
-                }
-                catch (JsonException ex)
-                {
-                    _logger.LogWarning(ex, "Failed to deserialize cached theme for tenant {TenantId}", tenantId);
-                }
+                return null;
             }
+
+            return DeserializeTheme(json, tenantId);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Cache unavailable, fetching theme directly for tenant {TenantId}", tenantId);
+            return null;
         }
+    }
 
-        // Cache miss or deserialization failed - fetch from API
+    private TenantThemeSettings? DeserializeTheme(string json, string tenantId)
+    {
         try
         {
-            var response = await _httpClient.GetAsync(ThemeEndpoint, cancellationToken);
+            return JsonSerializer.Deserialize<TenantThemeSettings>(json);
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogWarning(ex, "Failed to deserialize cached theme for tenant {TenantId}", tenantId);
+            return null;
+        }
+    }
 
-            if (response.IsSuccessStatusCode)
+    private async Task<TenantThemeSettings> FetchAndCacheThemeAsync(
+        string cacheKey,
+        string tenantId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var settings = await FetchThemeFromApiAsync(cancellationToken);
+            if (settings is not null)
             {
-                var dto = await response.Content.ReadFromJsonAsync<TenantThemeApiDto>(cancellationToken);
-                if (dto is not null)
-                {
-                    var settings = MapFromDto(dto);
-
-                    // Try to cache for 15 minutes (fail silently if cache unavailable)
-                    try
-                    {
-                        var serialized = JsonSerializer.Serialize(settings);
-                        var options = new DistributedCacheEntryOptions
-                        {
-                            AbsoluteExpirationRelativeToNow = _cacheExpiry
-                        };
-                        await _cache.SetStringAsync(cacheKey, serialized, options, cancellationToken);
-                    }
-                    catch (Exception cacheEx)
-                    {
-                        _logger.LogWarning(cacheEx, "Failed to cache theme, continuing without cache");
-                    }
-
-                    return settings;
-                }
-            }
-            else
-            {
-                _logger.LogWarning("Failed to load tenant theme from API: {StatusCode}", response.StatusCode);
+                await TryCacheThemeAsync(cacheKey, settings, cancellationToken);
+                return settings;
             }
         }
         catch (Exception ex)
@@ -104,59 +102,97 @@ internal sealed class CachedThemeStateFactory : IThemeStateFactory
             _logger.LogError(ex, "Error loading tenant theme for {TenantId}", tenantId);
         }
 
-        // Fallback to default theme
-        return TenantThemeSettings.Default;
+        return DefaultSettings;
     }
 
-    private static TenantThemeSettings MapFromDto(TenantThemeApiDto dto)
+    private async Task<TenantThemeSettings?> FetchThemeFromApiAsync(CancellationToken cancellationToken)
     {
-        var defaultSettings = TenantThemeSettings.Default;
+        var response = await _httpClient.GetAsync(ThemeEndpoint, cancellationToken);
 
-        return new TenantThemeSettings
+        if (!response.IsSuccessStatusCode)
         {
-            LightPalette = new PaletteSettings
-            {
-                Primary = dto.LightPalette?.Primary ?? defaultSettings.LightPalette.Primary,
-                Secondary = dto.LightPalette?.Secondary ?? defaultSettings.LightPalette.Secondary,
-                Tertiary = dto.LightPalette?.Tertiary ?? defaultSettings.LightPalette.Tertiary,
-                Background = dto.LightPalette?.Background ?? defaultSettings.LightPalette.Background,
-                Surface = dto.LightPalette?.Surface ?? defaultSettings.LightPalette.Surface,
-                Error = dto.LightPalette?.Error ?? defaultSettings.LightPalette.Error,
-                Warning = dto.LightPalette?.Warning ?? defaultSettings.LightPalette.Warning,
-                Success = dto.LightPalette?.Success ?? defaultSettings.LightPalette.Success,
-                Info = dto.LightPalette?.Info ?? defaultSettings.LightPalette.Info
-            },
-            DarkPalette = new PaletteSettings
-            {
-                Primary = dto.DarkPalette?.Primary ?? defaultSettings.DarkPalette.Primary,
-                Secondary = dto.DarkPalette?.Secondary ?? defaultSettings.DarkPalette.Secondary,
-                Tertiary = dto.DarkPalette?.Tertiary ?? defaultSettings.DarkPalette.Tertiary,
-                Background = dto.DarkPalette?.Background ?? defaultSettings.DarkPalette.Background,
-                Surface = dto.DarkPalette?.Surface ?? defaultSettings.DarkPalette.Surface,
-                Error = dto.DarkPalette?.Error ?? defaultSettings.DarkPalette.Error,
-                Warning = dto.DarkPalette?.Warning ?? defaultSettings.DarkPalette.Warning,
-                Success = dto.DarkPalette?.Success ?? defaultSettings.DarkPalette.Success,
-                Info = dto.DarkPalette?.Info ?? defaultSettings.DarkPalette.Info
-            },
-            BrandAssets = new BrandAssets
-            {
-                LogoUrl = dto.BrandAssets?.LogoUrl,
-                LogoDarkUrl = dto.BrandAssets?.LogoDarkUrl,
-                FaviconUrl = dto.BrandAssets?.FaviconUrl
-            },
-            Typography = new TypographySettings
-            {
-                FontFamily = dto.Typography?.FontFamily ?? defaultSettings.Typography.FontFamily,
-                HeadingFontFamily = dto.Typography?.HeadingFontFamily ?? defaultSettings.Typography.HeadingFontFamily,
-                FontSizeBase = dto.Typography?.FontSizeBase ?? defaultSettings.Typography.FontSizeBase,
-                LineHeightBase = dto.Typography?.LineHeightBase ?? defaultSettings.Typography.LineHeightBase
-            },
-            Layout = new LayoutSettings
-            {
-                BorderRadius = dto.Layout?.BorderRadius ?? defaultSettings.Layout.BorderRadius,
-                DefaultElevation = dto.Layout?.DefaultElevation ?? defaultSettings.Layout.DefaultElevation
-            },
-            IsDefault = dto.IsDefault
-        };
+            _logger.LogWarning("Failed to load tenant theme from API: {StatusCode}", response.StatusCode);
+            return null;
+        }
+
+        var dto = await response.Content.ReadFromJsonAsync<TenantThemeApiDto>(cancellationToken);
+        return dto is not null ? MapFromDto(dto) : null;
     }
+
+    private async Task TryCacheThemeAsync(
+        string cacheKey,
+        TenantThemeSettings settings,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var serialized = JsonSerializer.Serialize(settings);
+            var options = new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = _cacheExpiry
+            };
+            await _cache.SetStringAsync(cacheKey, serialized, options, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to cache theme, continuing without cache");
+        }
+    }
+
+    private static TenantThemeSettings MapFromDto(TenantThemeApiDto dto) => new()
+    {
+        LightPalette = MapLightPalette(dto.LightPalette),
+        DarkPalette = MapDarkPalette(dto.DarkPalette),
+        BrandAssets = MapBrandAssets(dto.BrandAssets),
+        Typography = MapTypography(dto.Typography),
+        Layout = MapLayout(dto.Layout),
+        IsDefault = dto.IsDefault
+    };
+
+    private static PaletteSettings MapLightPalette(PaletteApiDto? dto) => new()
+    {
+        Primary = dto?.Primary ?? DefaultSettings.LightPalette.Primary,
+        Secondary = dto?.Secondary ?? DefaultSettings.LightPalette.Secondary,
+        Tertiary = dto?.Tertiary ?? DefaultSettings.LightPalette.Tertiary,
+        Background = dto?.Background ?? DefaultSettings.LightPalette.Background,
+        Surface = dto?.Surface ?? DefaultSettings.LightPalette.Surface,
+        Error = dto?.Error ?? DefaultSettings.LightPalette.Error,
+        Warning = dto?.Warning ?? DefaultSettings.LightPalette.Warning,
+        Success = dto?.Success ?? DefaultSettings.LightPalette.Success,
+        Info = dto?.Info ?? DefaultSettings.LightPalette.Info
+    };
+
+    private static PaletteSettings MapDarkPalette(PaletteApiDto? dto) => new()
+    {
+        Primary = dto?.Primary ?? DefaultSettings.DarkPalette.Primary,
+        Secondary = dto?.Secondary ?? DefaultSettings.DarkPalette.Secondary,
+        Tertiary = dto?.Tertiary ?? DefaultSettings.DarkPalette.Tertiary,
+        Background = dto?.Background ?? DefaultSettings.DarkPalette.Background,
+        Surface = dto?.Surface ?? DefaultSettings.DarkPalette.Surface,
+        Error = dto?.Error ?? DefaultSettings.DarkPalette.Error,
+        Warning = dto?.Warning ?? DefaultSettings.DarkPalette.Warning,
+        Success = dto?.Success ?? DefaultSettings.DarkPalette.Success,
+        Info = dto?.Info ?? DefaultSettings.DarkPalette.Info
+    };
+
+    private static BrandAssets MapBrandAssets(BrandAssetsApiDto? dto) => new()
+    {
+        LogoUrl = dto?.LogoUrl,
+        LogoDarkUrl = dto?.LogoDarkUrl,
+        FaviconUrl = dto?.FaviconUrl
+    };
+
+    private static TypographySettings MapTypography(TypographyApiDto? dto) => new()
+    {
+        FontFamily = dto?.FontFamily ?? DefaultSettings.Typography.FontFamily,
+        HeadingFontFamily = dto?.HeadingFontFamily ?? DefaultSettings.Typography.HeadingFontFamily,
+        FontSizeBase = dto?.FontSizeBase ?? DefaultSettings.Typography.FontSizeBase,
+        LineHeightBase = dto?.LineHeightBase ?? DefaultSettings.Typography.LineHeightBase
+    };
+
+    private static LayoutSettings MapLayout(LayoutApiDto? dto) => new()
+    {
+        BorderRadius = dto?.BorderRadius ?? DefaultSettings.Layout.BorderRadius,
+        DefaultElevation = dto?.DefaultElevation ?? DefaultSettings.Layout.DefaultElevation
+    };
 }
