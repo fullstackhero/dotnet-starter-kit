@@ -73,10 +73,12 @@ public class IdentityModule : IModule
         ArgumentNullException.ThrowIfNull(builder);
         var services = builder.Services;
         services.AddSingleton<IAuthorizationMiddlewareResultHandler, PathAwareAuthorizationHandler>();
-        services.AddScoped<ICurrentUser, CurrentUserService>();
-        services.AddScoped<IRequestContext, RequestContextService>();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<ICurrentUser>(sp => sp.GetRequiredService<ICurrentUserService>());
+        services.AddScoped<ICurrentUserInitializer>(sp => sp.GetRequiredService<ICurrentUserService>());
+        services.AddScoped<IRequestContextService, RequestContextService>();
+        services.AddScoped<IRequestContext>(sp => sp.GetRequiredService<IRequestContextService>());
         services.AddScoped<ITokenService, TokenService>();
-        services.AddScoped(sp => (ICurrentUserInitializer)sp.GetRequiredService<ICurrentUser>());
 
         // User services - focused single-responsibility services
         services.AddTransient<IUserRegistrationService, UserRegistrationService>();

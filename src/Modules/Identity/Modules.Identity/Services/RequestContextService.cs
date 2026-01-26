@@ -1,5 +1,6 @@
 using FSH.Framework.Core.Context;
 using FSH.Framework.Web.Origin;
+using FSH.Modules.Identity.Contracts.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
@@ -9,7 +10,7 @@ namespace FSH.Modules.Identity.Services;
 /// Provides HTTP request context information through an abstraction.
 /// This allows handlers to access request metadata without direct ASP.NET Core dependencies.
 /// </summary>
-public sealed class RequestContextService : IRequestContext
+internal sealed class RequestContextService : IRequestContextService
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly Uri? _originUrl;
