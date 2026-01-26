@@ -1,11 +1,19 @@
-﻿using FSH.Framework.Caching;
+using FSH.Framework.Caching;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Shared.Constants;
+using FSH.Modules.Identity.Contracts.Services;
+using FSH.Modules.Identity.Data;
+using FSH.Modules.Identity.Domain;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Modules.Identity.Services;
 
-internal sealed partial class UserService
+internal sealed class UserPermissionService(
+    UserManager<FshUser> userManager,
+    RoleManager<FshRole> roleManager,
+    IdentityDbContext db,
+    ICacheService cache) : IUserPermissionService
 {
     public async Task<List<string>?> GetPermissionsAsync(string userId, CancellationToken cancellationToken)
     {

@@ -1,12 +1,27 @@
-﻿using FSH.Framework.Core.Exceptions;
+using Finbuckle.MultiTenant.Abstractions;
+using FSH.Framework.Core.Exceptions;
+using FSH.Framework.Jobs.Services;
 using FSH.Framework.Mailing;
+using FSH.Framework.Mailing.Services;
+using FSH.Framework.Shared.Multitenancy;
+using FSH.Modules.Identity.Contracts.Services;
+using FSH.Modules.Identity.Data;
+using FSH.Modules.Identity.Domain;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Collections.ObjectModel;
 using System.Text;
 
 namespace FSH.Modules.Identity.Services;
 
-internal sealed partial class UserService
+internal sealed class UserPasswordService(
+    UserManager<FshUser> userManager,
+    IdentityDbContext db,
+    IJobService jobService,
+    IMailService mailService,
+    IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
+    IPasswordHistoryService passwordHistoryService,
+    IPasswordExpiryService passwordExpiryService) : IUserPasswordService
 {
     public async Task ForgotPasswordAsync(string email, string origin, CancellationToken cancellationToken)
     {
@@ -80,9 +95,17 @@ internal sealed partial class UserService
         await db.SaveChangesAsync();
 
         // Update password expiry date
-        await _passwordExpiryService.UpdateLastPasswordChangeDateAsync(userId);
+        await passwordExpiryService.UpdateLastPasswordChangeDateAsync(userId);
 
         // Save to history
-        await _passwordHistoryService.SavePasswordHistoryAsync(userId);
+        await passwordHistoryService.SavePasswordHistoryAsync(userId);
+    }
+
+    private void EnsureValidTenant()
+    {
+        if (string.IsNullOrWhiteSpace(multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id))
+        {
+            throw new UnauthorizedException("invalid tenant");
+        }
     }
 }

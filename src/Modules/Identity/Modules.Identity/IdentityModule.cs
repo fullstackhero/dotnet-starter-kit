@@ -77,7 +77,18 @@ public class IdentityModule : IModule
         services.AddScoped<IRequestContext, RequestContextService>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped(sp => (ICurrentUserInitializer)sp.GetRequiredService<ICurrentUser>());
+
+        // User services - focused single-responsibility services
+        services.AddTransient<IUserRegistrationService, UserRegistrationService>();
+        services.AddTransient<IUserProfileService, UserProfileService>();
+        services.AddTransient<IUserStatusService, UserStatusService>();
+        services.AddTransient<IUserRoleService, UserRoleService>();
+        services.AddTransient<IUserPasswordService, UserPasswordService>();
+        services.AddTransient<IUserPermissionService, UserPermissionService>();
+
+        // Facade for backward compatibility
         services.AddTransient<IUserService, UserService>();
+
         services.AddTransient<IRoleService, RoleService>();
         services.AddHeroStorage(builder.Configuration);
         services.AddScoped<IIdentityService, IdentityService>();

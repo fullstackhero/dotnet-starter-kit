@@ -1,12 +1,21 @@
+using Finbuckle.MultiTenant.Abstractions;
+using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Shared.Constants;
+using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Auditing.Contracts;
+using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Domain;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Modules.Identity.Services;
 
-internal sealed partial class UserService
+internal sealed class UserStatusService(
+    UserManager<FshUser> userManager,
+    IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
+    ICurrentUser currentUser,
+    IAuditClient auditClient) : IUserStatusService
 {
     public async Task DeleteAsync(string userId)
     {
@@ -37,12 +46,20 @@ internal sealed partial class UserService
         await SaveAndAuditAsync(context, cancellationToken);
     }
 
+    private void EnsureValidTenant()
+    {
+        if (string.IsNullOrWhiteSpace(multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id))
+        {
+            throw new UnauthorizedException("invalid tenant");
+        }
+    }
+
     private async Task<ToggleStatusContext> BuildToggleContextAsync(
         string userId, 
         bool activateUser, 
         CancellationToken cancellationToken)
     {
-        var actorId = _currentUser.GetUserId();
+        var actorId = currentUser.GetUserId();
         if (actorId == Guid.Empty)
         {
             throw new UnauthorizedException("authenticated user required to toggle status");
@@ -126,7 +143,7 @@ internal sealed partial class UserService
             throw new CustomException("Toggle status failed", result.Errors.Select(e => e.Description).ToList());
         }
 
-        await _auditClient.WriteActivityAsync(
+        await auditClient.WriteActivityAsync(
             ActivityKind.Command,
             name: "ToggleUserStatus",
             statusCode: 204,
@@ -154,7 +171,7 @@ internal sealed partial class UserService
             ["action"] = context.ActivateUser ? "activate" : "deactivate"
         };
 
-        await _auditClient.WriteSecurityAsync(
+        await auditClient.WriteSecurityAsync(
             SecurityAction.PolicyFailed,
             subjectId: context.ActorId.ToString(),
             reasonCode: reason,

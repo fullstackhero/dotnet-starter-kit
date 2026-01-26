@@ -1,19 +1,33 @@
+using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Common;
 using FSH.Framework.Core.Exceptions;
+using FSH.Framework.Eventing.Outbox;
+using FSH.Framework.Jobs.Services;
 using FSH.Framework.Mailing;
+using FSH.Framework.Mailing.Services;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Identity.Contracts.Events;
+using FSH.Modules.Identity.Contracts.Services;
+using FSH.Modules.Identity.Data;
 using FSH.Modules.Identity.Domain;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Security.Claims;
 using System.Text;
 
 namespace FSH.Modules.Identity.Services;
 
-internal sealed partial class UserService
+internal sealed class UserRegistrationService(
+    UserManager<FshUser> userManager,
+    IdentityDbContext db,
+    IJobService jobService,
+    IMailService mailService,
+    IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
+    IOutboxStore outboxStore) : IUserRegistrationService
 {
     public async Task<string> GetOrCreateFromPrincipalAsync(ClaimsPrincipal principal)
     {
@@ -33,6 +47,71 @@ internal sealed partial class UserService
         await PublishUserRegisteredAsync(user, "Identity.ExternalAuth");
 
         return user.Id;
+    }
+
+    public async Task<string> RegisterAsync(
+        string firstName,
+        string lastName,
+        string email,
+        string userName,
+        string password,
+        string confirmPassword,
+        string phoneNumber,
+        string origin,
+        CancellationToken cancellationToken)
+    {
+        ValidatePasswordMatch(password, confirmPassword);
+
+        var user = await CreateUserWithPasswordAsync(firstName, lastName, email, userName, password, phoneNumber);
+        await AssignDefaultRoleAndGroupsAsync(user, "System", cancellationToken);
+        await SendConfirmationEmailAsync(user, origin, cancellationToken);
+        await PublishUserRegisteredAsync(user, "Identity", cancellationToken);
+
+        return user.Id;
+    }
+
+    public async Task<string> ConfirmEmailAsync(string userId, string code, string tenant, CancellationToken cancellationToken)
+    {
+        EnsureValidTenant();
+
+        var user = await userManager.Users
+            .Where(u => u.Id == userId && !u.EmailConfirmed)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        _ = user ?? throw new CustomException("An error occurred while confirming E-Mail.");
+
+        code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
+        var result = await userManager.ConfirmEmailAsync(user, code);
+
+        return result.Succeeded
+            ? string.Format(CultureInfo.InvariantCulture, "Account Confirmed for E-Mail {0}. You can now use the /api/tokens endpoint to generate JWT.", user.Email)
+            : throw new CustomException(string.Format(CultureInfo.InvariantCulture, "An error occurred while confirming {0}", user.Email));
+    }
+
+    public async Task<string> ConfirmPhoneNumberAsync(string userId, string code)
+    {
+        EnsureValidTenant();
+
+        var user = await userManager.Users
+            .Where(u => u.Id == userId && !u.PhoneNumberConfirmed)
+            .FirstOrDefaultAsync();
+
+        _ = user ?? throw new CustomException("An error occurred while confirming phone number.");
+
+        code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
+        var result = await userManager.ChangePhoneNumberAsync(user, user.PhoneNumber!, code);
+
+        return result.Succeeded
+            ? string.Format(CultureInfo.InvariantCulture, "Phone number {0} confirmed successfully.", user.PhoneNumber)
+            : throw new CustomException(string.Format(CultureInfo.InvariantCulture, "An error occurred while confirming phone number {0}", user.PhoneNumber));
+    }
+
+    private void EnsureValidTenant()
+    {
+        if (string.IsNullOrWhiteSpace(multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id))
+        {
+            throw new UnauthorizedException("invalid tenant");
+        }
     }
 
     private static string ExtractEmailFromPrincipal(ClaimsPrincipal principal)
@@ -94,27 +173,6 @@ internal sealed partial class UserService
             return $"{userName}_{Guid.NewGuid():N}"[..20];
         }
         return userName;
-    }
-
-    public async Task<string> RegisterAsync(
-        string firstName,
-        string lastName,
-        string email,
-        string userName,
-        string password,
-        string confirmPassword,
-        string phoneNumber,
-        string origin,
-        CancellationToken cancellationToken)
-    {
-        ValidatePasswordMatch(password, confirmPassword);
-
-        var user = await CreateUserWithPasswordAsync(firstName, lastName, email, userName, password, phoneNumber);
-        await AssignDefaultRoleAndGroupsAsync(user, "System", cancellationToken);
-        await SendConfirmationEmailAsync(user, origin, cancellationToken);
-        await PublishUserRegisteredAsync(user, "Identity", cancellationToken);
-
-        return user.Id;
     }
 
     private static void ValidatePasswordMatch(string password, string confirmPassword)
