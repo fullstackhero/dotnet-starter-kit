@@ -86,6 +86,10 @@ internal static class SolutionGenerator
         ConsoleTheme.WriteStep("Common files");
         await CreateCommonFilesAsync(projectPath, options);
 
+        // Create FSH manifest for upgrade tracking
+        ConsoleTheme.WriteStep("FSH manifest");
+        await CreateFshManifestAsync(projectPath, options);
+
         // Initialize git repository if enabled
         if (options.InitializeGit)
         {
@@ -104,6 +108,7 @@ internal static class SolutionGenerator
     {
         var directories = new List<string>
         {
+            ".fsh",
             "src",
             $"src/{options.Name}.Api",
             $"src/{options.Name}.Api/Properties",
@@ -419,6 +424,58 @@ internal static class SolutionGenerator
             var error = await process.StandardError.ReadToEndAsync();
             ConsoleTheme.WriteWarning($"Restore warnings: {error}");
         }
+    }
+
+    private static Task CreateFshManifestAsync(string projectPath, ProjectOptions options)
+    {
+        var cliVersion = GetCliVersion();
+        var fshVersion = options.FrameworkVersion ?? cliVersion;
+
+        // Determine which modules are included
+        var modules = new List<string> { "identity", "multitenancy", "auditing" };
+        if (options.IncludeSampleModule)
+        {
+            modules.Add("catalog");
+        }
+
+        var manifest = new FshManifest
+        {
+            FshVersion = fshVersion,
+            CreatedAt = DateTimeOffset.UtcNow,
+            CliVersion = cliVersion,
+            Options = new FshManifestOptions
+            {
+                Type = options.Type.ToString().ToLowerInvariant(),
+                Architecture = options.Architecture.ToString().ToLowerInvariant(),
+                Database = options.Database.ToString().ToLowerInvariant(),
+                Modules = modules,
+                IncludeDocker = options.IncludeDocker,
+                IncludeAspire = options.IncludeAspire,
+                IncludeTerraform = options.IncludeTerraform,
+                IncludeGitHubActions = options.IncludeGitHubActions
+            },
+            Tracking = new FshManifestTracking
+            {
+                BuildingBlocks = new Dictionary<string, string>
+                {
+                    ["Core"] = fshVersion,
+                    ["Web"] = fshVersion,
+                    ["Persistence"] = fshVersion,
+                    ["Infrastructure"] = fshVersion
+                },
+                Customizations = []
+            }
+        };
+
+        manifest.Save(projectPath);
+        return Task.CompletedTask;
+    }
+
+    private static string GetCliVersion()
+    {
+        var assembly = typeof(SolutionGenerator).Assembly;
+        var version = assembly.GetName().Version;
+        return version?.ToString(3) ?? "10.0.0";
     }
 
     private static void ShowNextSteps(ProjectOptions options)

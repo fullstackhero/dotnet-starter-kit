@@ -14,6 +14,19 @@ app.Configure(config =>
         .WithExample("new", "MyApp")
         .WithExample("new", "MyApp", "--preset", "quickstart")
         .WithExample("new", "MyApp", "--type", "api-blazor", "--arch", "monolith", "--db", "postgres");
+
+    config.AddCommand<VersionCommand>("version")
+        .WithDescription("Display CLI and project version information")
+        .WithExample("version")
+        .WithExample("version", "--path", "./MyApp")
+        .WithExample("version", "--json");
+
+    config.AddCommand<UpgradeCommand>("upgrade")
+        .WithDescription("Check for and apply FSH framework upgrades")
+        .WithExample("upgrade", "--check")
+        .WithExample("upgrade", "--apply")
+        .WithExample("upgrade", "--apply", "--skip-breaking")
+        .WithExample("upgrade", "--apply", "--dry-run");
 });
 
 return await app.RunAsync(args);
