@@ -255,28 +255,276 @@ internal sealed class UpgradeCommand : AsyncCommand<UpgradeCommand.Settings>
 
     private static async Task<int> ApplyUpgradesAsync(FshManifest manifest, Settings settings, CancellationToken cancellationToken)
     {
-        // TODO: Sprint 3 - Implement upgrade apply
-        // 1. Fetch latest release
-        // 2. Update Directory.Packages.props
-        // 3. For code changes, show diff and ask confirmation
-        // 4. Update manifest with new versions
+        using var githubService = new GitHubReleaseService();
 
-        AnsiConsole.MarkupLine("[yellow]⚠ Upgrade apply not yet implemented[/]");
-        AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("[dim]Coming in Sprint 3:[/]");
-        AnsiConsole.MarkupLine("[dim]  • Package version updater[/]");
-        AnsiConsole.MarkupLine("[dim]  • Safe (non-breaking) auto-apply[/]");
-        AnsiConsole.MarkupLine("[dim]  • Interactive diff viewer[/]");
-        AnsiConsole.WriteLine();
+        // Fetch latest release
+        GitHubRelease? latestRelease = null;
+        await AnsiConsole.Status()
+            .Spinner(Spinner.Known.Dots)
+            .StartAsync("Fetching latest release...", async ctx =>
+            {
+                if (settings.IncludePrerelease)
+                {
+                    var releases = await githubService.GetReleasesAsync(10, cancellationToken);
+                    latestRelease = releases.FirstOrDefault();
+                }
+                else
+                {
+                    latestRelease = await githubService.GetLatestReleaseAsync(cancellationToken);
+                }
+            });
 
-        if (settings.DryRun)
+        if (latestRelease == null)
         {
-            AnsiConsole.MarkupLine("[dim]Dry run mode - no changes would be made[/]");
+            AnsiConsole.MarkupLine("[red]Error:[/] Could not fetch release information from GitHub.");
+            return 1;
         }
 
-        if (settings.SkipBreaking)
+        var latestVersion = latestRelease.Version;
+        var comparison = VersionComparer.CompareVersions(manifest.FshVersion, latestVersion);
+
+        if (comparison >= 0)
         {
-            AnsiConsole.MarkupLine("[dim]Skip breaking mode - would skip breaking changes[/]");
+            AnsiConsole.MarkupLine("[green]✓[/] Already up to date!");
+            return 0;
+        }
+
+        AnsiConsole.MarkupLine($"[dim]Upgrading:[/] [yellow]{manifest.FshVersion}[/] → [green]{latestVersion}[/]");
+        AnsiConsole.WriteLine();
+
+        // Get package diff
+        var currentPackagesProps = await GetLocalPackagesPropsAsync(settings.Path);
+        var latestPackagesProps = await githubService.GetPackagesPropsAsync(latestRelease.TagName, cancellationToken);
+
+        if (currentPackagesProps == null)
+        {
+            AnsiConsole.MarkupLine("[red]Error:[/] Could not read Directory.Packages.props");
+            return 1;
+        }
+
+        if (latestPackagesProps == null)
+        {
+            AnsiConsole.MarkupLine("[red]Error:[/] Could not fetch latest Directory.Packages.props from GitHub");
+            return 1;
+        }
+
+        var currentVersions = VersionComparer.ParsePackagesProps(currentPackagesProps);
+        var latestVersions = VersionComparer.ParsePackagesProps(latestPackagesProps);
+        var diff = VersionComparer.Compare(currentVersions, latestVersions);
+
+        if (!diff.HasChanges)
+        {
+            AnsiConsole.MarkupLine("[dim]No package changes detected.[/]");
+            
+            // Still update manifest version
+            if (!settings.DryRun)
+            {
+                await PackageUpdater.UpdateManifestAsync(settings.Path, latestVersion, cancellationToken);
+                AnsiConsole.MarkupLine("[green]✓[/] Updated manifest version.");
+            }
+            return 0;
+        }
+
+        // Show what will be changed
+        AnsiConsole.MarkupLine("[blue]Changes to apply:[/]");
+        AnsiConsole.WriteLine();
+
+        if (diff.Updated.Count > 0)
+        {
+            var updateTable = new Table()
+                .Border(TableBorder.Simple)
+                .AddColumn("Package")
+                .AddColumn("From")
+                .AddColumn("To")
+                .AddColumn("Status");
+
+            foreach (var update in diff.Updated.OrderBy(u => u.Package))
+            {
+                var willSkip = settings.SkipBreaking && update.IsBreaking;
+                
+                string status;
+                if (!update.IsBreaking)
+                    status = "[green]Safe[/]";
+                else if (willSkip)
+                    status = "[yellow]Skip (breaking)[/]";
+                else
+                    status = "[red]Breaking[/]";
+
+                var packageName = willSkip ? $"[strikethrough dim]{update.Package}[/]" : update.Package;
+                    
+                updateTable.AddRow(
+                    packageName,
+                    update.FromVersion,
+                    $"[green]{update.ToVersion}[/]",
+                    status);
+            }
+
+            AnsiConsole.Write(updateTable);
+        }
+
+        if (diff.Added.Count > 0)
+        {
+            AnsiConsole.WriteLine();
+            AnsiConsole.MarkupLine($"[green]+[/] {diff.Added.Count} new packages will be added");
+        }
+
+        if (diff.Removed.Count > 0)
+        {
+            AnsiConsole.WriteLine();
+            AnsiConsole.MarkupLine($"[yellow]![/] {diff.Removed.Count} packages are no longer in the latest release (manual review needed)");
+        }
+
+        AnsiConsole.WriteLine();
+
+        // Dry run mode - stop here
+        if (settings.DryRun)
+        {
+            AnsiConsole.MarkupLine("[yellow]Dry run mode[/] - no changes were made.");
+            return 0;
+        }
+
+        // Confirm unless forced
+        if (!settings.Force)
+        {
+            var confirm = await AnsiConsole.ConfirmAsync("Apply these changes?", false, cancellationToken);
+            if (!confirm)
+            {
+                AnsiConsole.MarkupLine("[dim]Cancelled.[/]");
+                return 0;
+            }
+        }
+
+        // Create backup
+        AnsiConsole.MarkupLine("[dim]Creating backup...[/]");
+        var backupPath = await PackageUpdater.CreateBackupAsync(settings.Path, cancellationToken);
+
+        if (backupPath == null)
+        {
+            AnsiConsole.MarkupLine("[yellow]⚠[/] Could not create backup. Continue anyway?");
+            if (!settings.Force)
+            {
+                var continueAnyway = await AnsiConsole.ConfirmAsync("Continue without backup?", false, cancellationToken);
+                if (!continueAnyway)
+                {
+                    AnsiConsole.MarkupLine("[dim]Cancelled.[/]");
+                    return 0;
+                }
+            }
+        }
+        else
+        {
+            AnsiConsole.MarkupLine($"[dim]Backup created:[/] {backupPath}");
+        }
+
+        // Apply updates
+        var updateOptions = new UpdateOptions
+        {
+            DryRun = false,
+            SkipBreaking = settings.SkipBreaking,
+            Force = settings.Force
+        };
+
+        UpdateResult result;
+        await AnsiConsole.Status()
+            .Spinner(Spinner.Known.Dots)
+            .StartAsync("Applying updates...", async ctx =>
+            {
+                result = await PackageUpdater.UpdatePackagesPropsAsync(
+                    settings.Path,
+                    diff,
+                    updateOptions,
+                    cancellationToken);
+            });
+
+        result = await PackageUpdater.UpdatePackagesPropsAsync(
+            settings.Path,
+            diff,
+            updateOptions,
+            cancellationToken);
+
+        // Show results
+        AnsiConsole.WriteLine();
+
+        if (result.Success)
+        {
+            AnsiConsole.MarkupLine("[green]✓[/] Packages updated successfully!");
+            AnsiConsole.WriteLine();
+
+            if (result.Updated.Count > 0)
+            {
+                AnsiConsole.MarkupLine($"[green]Updated:[/] {result.Updated.Count} packages");
+            }
+
+            if (result.Added.Count > 0)
+            {
+                AnsiConsole.MarkupLine($"[green]Added:[/] {result.Added.Count} packages");
+            }
+
+            if (result.Skipped.Count > 0)
+            {
+                AnsiConsole.MarkupLine($"[yellow]Skipped:[/] {result.Skipped.Count} packages (breaking changes)");
+            }
+
+            // Update manifest
+            var manifestUpdated = await PackageUpdater.UpdateManifestAsync(settings.Path, latestVersion, cancellationToken);
+            if (manifestUpdated)
+            {
+                AnsiConsole.MarkupLine("[green]✓[/] Manifest updated.");
+            }
+
+            // Show warnings
+            if (result.Warnings.Count > 0)
+            {
+                AnsiConsole.WriteLine();
+                AnsiConsole.MarkupLine("[yellow]Warnings:[/]");
+                foreach (var warning in result.Warnings)
+                {
+                    AnsiConsole.MarkupLine($"  [yellow]![/] {warning}");
+                }
+            }
+
+            // Next steps
+            AnsiConsole.WriteLine();
+            AnsiConsole.MarkupLine("[dim]Next steps:[/]");
+            AnsiConsole.MarkupLine("  1. Run [green]dotnet restore[/] to restore packages");
+            AnsiConsole.MarkupLine("  2. Run [green]dotnet build[/] to verify the upgrade");
+            AnsiConsole.MarkupLine("  3. Review and test your application");
+
+            if (backupPath != null)
+            {
+                AnsiConsole.WriteLine();
+                AnsiConsole.MarkupLine($"[dim]To rollback:[/] restore from {backupPath}");
+            }
+        }
+        else
+        {
+            AnsiConsole.MarkupLine("[red]✗[/] Upgrade failed!");
+
+            foreach (var error in result.Errors)
+            {
+                AnsiConsole.MarkupLine($"  [red]Error:[/] {error}");
+            }
+
+            // Offer to restore backup
+            if (backupPath != null)
+            {
+                AnsiConsole.WriteLine();
+                var restore = await AnsiConsole.ConfirmAsync("Restore from backup?", true, cancellationToken);
+                if (restore)
+                {
+                    var restored = await PackageUpdater.RestoreBackupAsync(backupPath, cancellationToken);
+                    if (restored)
+                    {
+                        AnsiConsole.MarkupLine("[green]✓[/] Restored from backup.");
+                    }
+                    else
+                    {
+                        AnsiConsole.MarkupLine($"[red]✗[/] Could not restore. Manual restore needed from: {backupPath}");
+                    }
+                }
+            }
+
+            return 1;
         }
 
         return 0;
