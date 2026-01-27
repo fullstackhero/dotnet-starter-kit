@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using FSH.CLI.Models;
+using FSH.CLI.Services;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -44,6 +45,11 @@ internal sealed class UpgradeCommand : AsyncCommand<UpgradeCommand.Settings>
         [Description("Show what would be changed without making modifications")]
         [DefaultValue(false)]
         public bool DryRun { get; set; }
+
+        [CommandOption("--include-prerelease")]
+        [Description("Include prerelease versions")]
+        [DefaultValue(false)]
+        public bool IncludePrerelease { get; set; }
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken)
@@ -60,7 +66,7 @@ internal sealed class UpgradeCommand : AsyncCommand<UpgradeCommand.Settings>
 
         // Show current status
         AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine($"[blue]FSH Upgrade[/]");
+        AnsiConsole.MarkupLine("[blue]FSH Upgrade[/]");
         AnsiConsole.MarkupLine($"[dim]Project:[/] {Path.GetFullPath(settings.Path)}");
         AnsiConsole.MarkupLine($"[dim]Current version:[/] [yellow]{manifest.FshVersion}[/]");
         AnsiConsole.WriteLine();
@@ -89,67 +95,165 @@ internal sealed class UpgradeCommand : AsyncCommand<UpgradeCommand.Settings>
     private static void ShowUsageHelp()
     {
         AnsiConsole.MarkupLine("[yellow]Usage:[/]");
-        AnsiConsole.MarkupLine("  [green]fsh upgrade --check[/]              Check for available upgrades");
-        AnsiConsole.MarkupLine("  [green]fsh upgrade --apply[/]              Apply available upgrades");
-        AnsiConsole.MarkupLine("  [green]fsh upgrade --apply --skip-breaking[/]  Apply safe updates only");
-        AnsiConsole.MarkupLine("  [green]fsh upgrade --apply --dry-run[/]    Preview changes without applying");
+        AnsiConsole.MarkupLine("  [green]fsh upgrade --check[/]                    Check for available upgrades");
+        AnsiConsole.MarkupLine("  [green]fsh upgrade --apply[/]                    Apply available upgrades");
+        AnsiConsole.MarkupLine("  [green]fsh upgrade --apply --skip-breaking[/]    Apply safe updates only");
+        AnsiConsole.MarkupLine("  [green]fsh upgrade --apply --dry-run[/]          Preview changes without applying");
+        AnsiConsole.MarkupLine("  [green]fsh upgrade --check --include-prerelease[/]  Include prereleases");
         AnsiConsole.WriteLine();
     }
 
-    private static Task<int> CheckForUpgradesAsync(FshManifest manifest, Settings settings, CancellationToken cancellationToken)
+    private static async Task<int> CheckForUpgradesAsync(FshManifest manifest, Settings settings, CancellationToken cancellationToken)
     {
-        // TODO: Sprint 2 - Implement upgrade check
-        // 1. Fetch latest release info from GitHub API
-        // 2. Compare versions
-        // 3. Show available changes
+        using var githubService = new GitHubReleaseService();
 
-        AnsiConsole.MarkupLine("[yellow]⚠ Upgrade check not yet implemented[/]");
-        AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("[dim]Coming in Sprint 2:[/]");
-        AnsiConsole.MarkupLine("[dim]  • GitHub API integration for release fetching[/]");
-        AnsiConsole.MarkupLine("[dim]  • Version comparison logic[/]");
-        AnsiConsole.MarkupLine("[dim]  • Package diff detection[/]");
-        AnsiConsole.WriteLine();
+        // Fetch latest release
+        GitHubRelease? latestRelease = null;
+        await AnsiConsole.Status()
+            .Spinner(Spinner.Known.Dots)
+            .StartAsync("Checking for updates...", async ctx =>
+            {
+                if (settings.IncludePrerelease)
+                {
+                    // Get all releases and find newest
+                    var releases = await githubService.GetReleasesAsync(10, cancellationToken);
+                    latestRelease = releases.FirstOrDefault();
+                }
+                else
+                {
+                    latestRelease = await githubService.GetLatestReleaseAsync(cancellationToken);
+                }
+            });
 
-        // Placeholder output showing what it will look like
-        AnsiConsole.MarkupLine("[blue]Preview of planned output:[/]");
-        AnsiConsole.WriteLine();
-
-        var panel = new Panel(
-            """
-            [green]FSH Upgrade Check[/]
-            
-            Current: [yellow]10.0.0[/]
-            Latest:  [green]10.1.0[/]
-            
-            [blue]Changes available:[/]
-            
-            BuildingBlocks/Web:
-              [green]+[/] Added RateLimitingMiddleware
-              [yellow]~[/] Modified ExceptionHandler (non-breaking)
-            
-            Modules/Identity:
-              [green]+[/] Added MFA support
-              [red]![/] Breaking: IUserService signature changed
-            
-            Directory.Packages.props:
-              [yellow]~[/] 12 package updates
-            
-            Run '[green]fsh upgrade --apply[/]' to upgrade.
-            Run '[green]fsh upgrade --apply --skip-breaking[/]' for safe updates only.
-            """)
+        if (latestRelease == null)
         {
-            Border = BoxBorder.Rounded,
-            Padding = new Padding(2, 1)
-        };
+            AnsiConsole.MarkupLine("[yellow]⚠[/] Could not fetch release information from GitHub.");
+            AnsiConsole.MarkupLine("[dim]Check your internet connection or try again later.[/]");
+            return 1;
+        }
 
-        AnsiConsole.Write(panel);
+        var latestVersion = latestRelease.Version;
+        var comparison = VersionComparer.CompareVersions(manifest.FshVersion, latestVersion);
+
+        // Show version comparison
+        var table = new Table()
+            .Border(TableBorder.Rounded)
+            .AddColumn("[blue]Version[/]")
+            .AddColumn("[blue]Value[/]");
+
+        table.AddRow("Current", $"[yellow]{manifest.FshVersion}[/]");
+        table.AddRow("Latest", comparison < 0 ? $"[green]{latestVersion}[/]" : $"[dim]{latestVersion}[/]");
+
+        if (latestRelease.Prerelease)
+        {
+            table.AddRow("Type", "[yellow]Prerelease[/]");
+        }
+
+        AnsiConsole.Write(table);
         AnsiConsole.WriteLine();
 
-        return Task.FromResult(0);
+        if (comparison >= 0)
+        {
+            AnsiConsole.MarkupLine("[green]✓[/] You're up to date!");
+            return 0;
+        }
+
+        // Fetch package versions for comparison
+        AnsiConsole.MarkupLine("[dim]Analyzing changes...[/]");
+
+        var currentPackagesProps = await GetLocalPackagesPropsAsync(settings.Path);
+        var latestPackagesProps = await githubService.GetPackagesPropsAsync(latestRelease.TagName, cancellationToken);
+
+        if (currentPackagesProps != null && latestPackagesProps != null)
+        {
+            var currentVersions = VersionComparer.ParsePackagesProps(currentPackagesProps);
+            var latestVersions = VersionComparer.ParsePackagesProps(latestPackagesProps);
+            var diff = VersionComparer.Compare(currentVersions, latestVersions);
+
+            if (diff.HasChanges)
+            {
+                AnsiConsole.WriteLine();
+                AnsiConsole.MarkupLine("[blue]Package Changes:[/]");
+                AnsiConsole.WriteLine();
+
+                if (diff.Updated.Count > 0)
+                {
+                    var updateTable = new Table()
+                        .Border(TableBorder.Simple)
+                        .AddColumn("Package")
+                        .AddColumn("Current")
+                        .AddColumn("Latest")
+                        .AddColumn("Status");
+
+                    foreach (var update in diff.Updated.OrderBy(u => u.Package))
+                    {
+                        var status = update.IsBreaking ? "[red]Breaking[/]" : "[green]Safe[/]";
+                        updateTable.AddRow(
+                            $"[dim]{update.Package}[/]",
+                            update.FromVersion,
+                            $"[green]{update.ToVersion}[/]",
+                            status);
+                    }
+
+                    AnsiConsole.Write(updateTable);
+                }
+
+                if (diff.Added.Count > 0)
+                {
+                    AnsiConsole.WriteLine();
+                    AnsiConsole.MarkupLine("[green]New packages:[/]");
+                    foreach (var added in diff.Added.OrderBy(a => a.Package))
+                    {
+                        AnsiConsole.MarkupLine($"  [green]+[/] {added.Package} [dim]({added.Version})[/]");
+                    }
+                }
+
+                if (diff.Removed.Count > 0)
+                {
+                    AnsiConsole.WriteLine();
+                    AnsiConsole.MarkupLine("[red]Removed packages:[/]");
+                    foreach (var removed in diff.Removed.OrderBy(r => r.Package))
+                    {
+                        AnsiConsole.MarkupLine($"  [red]-[/] {removed.Package} [dim]({removed.Version})[/]");
+                    }
+                }
+
+                AnsiConsole.WriteLine();
+                AnsiConsole.MarkupLine($"[dim]Total:[/] {diff.Updated.Count} updates, {diff.Added.Count} new, {diff.Removed.Count} removed");
+
+                if (diff.HasBreakingChanges)
+                {
+                    AnsiConsole.MarkupLine("[yellow]⚠[/] Some updates may contain breaking changes.");
+                }
+            }
+        }
+
+        // Show release notes summary if available
+        if (!string.IsNullOrEmpty(latestRelease.Body))
+        {
+            AnsiConsole.WriteLine();
+            AnsiConsole.MarkupLine("[blue]Release Notes:[/]");
+            
+            var panel = new Panel(TruncateReleaseNotes(latestRelease.Body, 500))
+            {
+                Border = BoxBorder.Rounded,
+                Padding = new Padding(1, 0)
+            };
+            AnsiConsole.Write(panel);
+        }
+
+        // Show next steps
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine($"[dim]Release URL:[/] {latestRelease.HtmlUrl}");
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("Run [green]fsh upgrade --apply[/] to upgrade.");
+        AnsiConsole.MarkupLine("Run [green]fsh upgrade --apply --skip-breaking[/] for safe updates only.");
+        AnsiConsole.WriteLine();
+
+        return 0;
     }
 
-    private static Task<int> ApplyUpgradesAsync(FshManifest manifest, Settings settings, CancellationToken cancellationToken)
+    private static async Task<int> ApplyUpgradesAsync(FshManifest manifest, Settings settings, CancellationToken cancellationToken)
     {
         // TODO: Sprint 3 - Implement upgrade apply
         // 1. Fetch latest release
@@ -175,6 +279,38 @@ internal sealed class UpgradeCommand : AsyncCommand<UpgradeCommand.Settings>
             AnsiConsole.MarkupLine("[dim]Skip breaking mode - would skip breaking changes[/]");
         }
 
-        return Task.FromResult(0);
+        return 0;
+    }
+
+    private static async Task<string?> GetLocalPackagesPropsAsync(string projectPath)
+    {
+        var packagesPropsPath = Path.Combine(projectPath, "src", "Directory.Packages.props");
+        
+        if (!File.Exists(packagesPropsPath))
+        {
+            // Try root
+            packagesPropsPath = Path.Combine(projectPath, "Directory.Packages.props");
+        }
+
+        if (!File.Exists(packagesPropsPath))
+        {
+            return null;
+        }
+
+        return await File.ReadAllTextAsync(packagesPropsPath);
+    }
+
+    private static string TruncateReleaseNotes(string notes, int maxLength)
+    {
+        if (string.IsNullOrEmpty(notes))
+            return string.Empty;
+
+        // Remove markdown links for cleaner display
+        notes = System.Text.RegularExpressions.Regex.Replace(notes, @"\[([^\]]+)\]\([^\)]+\)", "$1");
+        
+        if (notes.Length <= maxLength)
+            return notes;
+
+        return notes[..maxLength] + "...";
     }
 }
