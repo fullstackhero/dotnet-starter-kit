@@ -7,6 +7,14 @@ namespace FSH.Framework.Persistence;
 /// </summary>
 internal static class SpecificationEvaluator
 {
+    /// <summary>
+    /// Evaluates a specification against an input query to produce a configured IQueryable.
+    /// </summary>
+    /// <typeparam name="T">The entity type.</typeparam>
+    /// <param name="inputQuery">The base queryable to apply the specification to.</param>
+    /// <param name="specification">The specification containing query configuration.</param>
+    /// <returns>A configured queryable with all specification rules applied.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when inputQuery or specification is null.</exception>
     public static IQueryable<T> GetQuery<T>(
         IQueryable<T> inputQuery,
         ISpecification<T> specification)
@@ -25,6 +33,15 @@ internal static class SpecificationEvaluator
         return query;
     }
 
+    /// <summary>
+    /// Evaluates a specification with projection against an input query.
+    /// </summary>
+    /// <typeparam name="T">The entity type.</typeparam>
+    /// <typeparam name="TResult">The projected result type.</typeparam>
+    /// <param name="inputQuery">The base queryable to apply the specification to.</param>
+    /// <param name="specification">The specification containing query configuration and projection.</param>
+    /// <returns>A configured queryable with specification rules and projection applied.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when inputQuery or specification is null.</exception>
     public static IQueryable<TResult> GetQuery<T, TResult>(
         IQueryable<T> inputQuery,
         ISpecification<T, TResult> specification)

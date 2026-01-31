@@ -4,11 +4,23 @@ using System.Linq.Expressions;
 
 namespace FSH.Framework.Persistence;
 
+/// <summary>
+/// Extension methods for converting IQueryable results to paginated responses.
+/// </summary>
 public static class PaginationExtensions
 {
     private const int DefaultPageSize = 20;
     private const int MaxPageSize = 100;
 
+    /// <summary>
+    /// Converts an IQueryable to a paged response with the specified pagination parameters.
+    /// </summary>
+    /// <typeparam name="T">The type of items in the query.</typeparam>
+    /// <param name="source">The queryable source to paginate.</param>
+    /// <param name="pagination">The pagination parameters including page number and page size.</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
+    /// <returns>A paged response containing the requested page of data and pagination metadata.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when source or pagination is null.</exception>
     public static Task<PagedResponse<T>> ToPagedResponseAsync<T>(
         this IQueryable<T> source,
         IPagedQuery pagination,
