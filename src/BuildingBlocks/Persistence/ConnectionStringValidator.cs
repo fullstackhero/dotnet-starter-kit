@@ -6,6 +6,11 @@ using Npgsql;
 
 namespace FSH.Framework.Persistence;
 
+/// <summary>
+/// Validates database connection strings for supported providers (PostgreSQL, SQL Server).
+/// </summary>
+/// <param name="dbSettings">Database configuration options.</param>
+/// <param name="logger">Logger instance for error tracking.</param>
 public sealed class ConnectionStringValidator(IOptions<DatabaseOptions> dbSettings, ILogger<ConnectionStringValidator> logger) : IConnectionStringValidator
 {
     private readonly DatabaseOptions _dbSettings = dbSettings.Value;

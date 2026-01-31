@@ -4,8 +4,18 @@ using System.Linq.Expressions;
 
 namespace FSH.Framework.Persistence;
 
+/// <summary>
+/// Internal extension methods for Entity Framework ModelBuilder configuration.
+/// </summary>
 internal static class ModelBuilderExtensions
 {
+    /// <summary>
+    /// Applies a global query filter to all entities that implement the specified interface.
+    /// </summary>
+    /// <typeparam name="TInterface">The interface type to filter entities by.</typeparam>
+    /// <param name="modelBuilder">The ModelBuilder instance to configure.</param>
+    /// <param name="filter">The filter expression to apply to all matching entities.</param>
+    /// <returns>The ModelBuilder for method chaining.</returns>
     public static ModelBuilder AppendGlobalQueryFilter<TInterface>(this ModelBuilder modelBuilder, Expression<Func<TInterface, bool>> filter)
     {
         // get a list of entities without a baseType that implement the interface TInterface
