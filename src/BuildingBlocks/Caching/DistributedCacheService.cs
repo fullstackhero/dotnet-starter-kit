@@ -1,10 +1,15 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text;
 using System.Text.Json;
 
 namespace FSH.Framework.Caching;
+
+/// <summary>
+/// Implementation of <see cref="ICacheService"/> using distributed cache (Redis or in-memory).
+/// Provides JSON serialization for cached objects with configurable expiration policies.
+/// </summary>
 public sealed class DistributedCacheService : ICacheService
 {
     private static readonly Encoding Utf8 = Encoding.UTF8;
@@ -14,6 +19,12 @@ public sealed class DistributedCacheService : ICacheService
     private readonly ILogger<DistributedCacheService> _logger;
     private readonly CachingOptions _opts;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="DistributedCacheService"/>.
+    /// </summary>
+    /// <param name="cache">The underlying distributed cache implementation.</param>
+    /// <param name="logger">Logger for cache operations.</param>
+    /// <param name="opts">Caching configuration options.</param>
     public DistributedCacheService(
         IDistributedCache cache,
         ILogger<DistributedCacheService> logger,
@@ -26,6 +37,7 @@ public sealed class DistributedCacheService : ICacheService
         _opts = opts.Value;
     }
 
+    /// <inheritdoc />
     public async Task<T?> GetItemAsync<T>(string key, CancellationToken ct = default)
     {
         key = Normalize(key);
@@ -42,6 +54,7 @@ public sealed class DistributedCacheService : ICacheService
         }
     }
 
+    /// <inheritdoc />
     public async Task SetItemAsync<T>(string key, T value, TimeSpan? sliding = default, CancellationToken ct = default)
     {
         key = Normalize(key);
@@ -57,6 +70,7 @@ public sealed class DistributedCacheService : ICacheService
         }
     }
 
+    /// <inheritdoc />
     public async Task RemoveItemAsync(string key, CancellationToken ct = default)
     {
         key = Normalize(key);
@@ -65,6 +79,7 @@ public sealed class DistributedCacheService : ICacheService
         { _logger.LogWarning(ex, "Cache remove failed for {Key}", key); }
     }
 
+    /// <inheritdoc />
     public async Task RefreshItemAsync(string key, CancellationToken ct = default)
     {
         key = Normalize(key);
@@ -76,11 +91,24 @@ public sealed class DistributedCacheService : ICacheService
         catch (Exception ex) when (ex is not OperationCanceledException)
         { _logger.LogWarning(ex, "Cache refresh failed for {Key}", key); }
     }
+
+    /// <inheritdoc />
     public T? GetItem<T>(string key) => GetItemAsync<T>(key).GetAwaiter().GetResult();
+
+    /// <inheritdoc />
     public void SetItem<T>(string key, T value, TimeSpan? sliding = default) => SetItemAsync(key, value, sliding).GetAwaiter().GetResult();
+
+    /// <inheritdoc />
     public void RemoveItem(string key) => RemoveItemAsync(key).GetAwaiter().GetResult();
+
+    /// <inheritdoc />
     public void RefreshItem(string key) => RefreshItemAsync(key).GetAwaiter().GetResult();
 
+    /// <summary>
+    /// Builds cache entry options with configured expiration settings.
+    /// </summary>
+    /// <param name="sliding">Optional sliding expiration override.</param>
+    /// <returns>Configured cache entry options.</returns>
     private DistributedCacheEntryOptions BuildEntryOptions(TimeSpan? sliding)
     {
         var o = new DistributedCacheEntryOptions();
@@ -96,6 +124,12 @@ public sealed class DistributedCacheService : ICacheService
         return o;
     }
 
+    /// <summary>
+    /// Normalizes the cache key by applying the configured prefix.
+    /// </summary>
+    /// <param name="key">The original cache key.</param>
+    /// <returns>The normalized key with prefix applied.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when key is null or whitespace.</exception>
     private string Normalize(string key)
     {
         if (string.IsNullOrWhiteSpace(key)) throw new ArgumentNullException(nameof(key));
