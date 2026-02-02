@@ -10,6 +10,7 @@ using FSH.Modules.Identity.Features.v1.Tokens.TokenGeneration;
 using Finbuckle.MultiTenant.Abstractions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using System.Security.Claims;
 
 namespace Identity.Tests.Handlers;
@@ -127,7 +128,7 @@ public sealed class GenerateTokenCommandHandlerTests
         await _identityService.Received(1).StoreRefreshTokenAsync(userId, token.RefreshToken, token.RefreshTokenExpiresAt, Arg.Any<CancellationToken>());
         await _securityAudit.Received(1).LoginSucceededAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
         await _securityAudit.Received(1).TokenIssuedAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<DateTime>(), Arg.Any<CancellationToken>());
-        await _outboxStore.Received(1).AddAsync(Arg.Any<object>(), Arg.Any<CancellationToken>());
+        await _outboxStore.Received(1).AddAsync(Arg.Any<FSH.Framework.Eventing.Abstractions.IIntegrationEvent>(), Arg.Any<CancellationToken>());
     }
 
     #endregion
@@ -222,7 +223,7 @@ public sealed class GenerateTokenCommandHandlerTests
         await _identityService.Received(1).ValidateCredentialsAsync(command.Email, command.Password, cancellationToken);
         await _tokenService.Received(1).IssueAsync(userId, claims, null, cancellationToken);
         await _identityService.Received(1).StoreRefreshTokenAsync(userId, token.RefreshToken, token.RefreshTokenExpiresAt, cancellationToken);
-        await _outboxStore.Received(1).AddAsync(Arg.Any<object>(), cancellationToken);
+        await _outboxStore.Received(1).AddAsync(Arg.Any<FSH.Framework.Eventing.Abstractions.IIntegrationEvent>(), cancellationToken);
     }
 
     #endregion

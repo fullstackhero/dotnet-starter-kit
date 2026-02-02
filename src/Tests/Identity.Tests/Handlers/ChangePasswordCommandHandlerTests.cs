@@ -4,6 +4,7 @@ using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Contracts.v1.Users.ChangePassword;
 using FSH.Modules.Identity.Features.v1.Users.ChangePassword;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 
 namespace Identity.Tests.Handlers;
 

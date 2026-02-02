@@ -4,6 +4,7 @@ using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Contracts.v1.Sessions.RevokeSession;
 using FSH.Modules.Identity.Features.v1.Sessions.RevokeSession;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 
 namespace Identity.Tests.Handlers;
 
