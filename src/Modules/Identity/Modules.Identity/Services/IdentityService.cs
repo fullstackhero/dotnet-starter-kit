@@ -177,7 +177,7 @@ public sealed class IdentityService : IIdentityService
         return claims;
     }
 
-    private List<Claim> CreateBasicClaims(FshUser user, string tenantId) =>
+    private static List<Claim> CreateBasicClaims(FshUser user, string tenantId) =>
     [
         new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         new(ClaimTypes.NameIdentifier, user.Id),

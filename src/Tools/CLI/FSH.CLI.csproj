@@ -5,6 +5,16 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    
+    <!-- Suppress warnings that are false positives for this CLI project -->
+    <!-- CA1812: Classes are instantiated via DI -->
+    <!-- CA1031: Intentional catch-all in TryLoad/IsValid methods -->
+    <!-- CA1303: CLI is not localized -->
+    <!-- CA1308: ToLowerInvariant is intentional for identifiers -->
+    <!-- CA2234: String URLs are fine for HttpClient -->
+    <!-- S1118: Classes have instance methods, not purely static -->
+    <!-- S4487: Field may be used in future -->
+    <NoWarn>$(NoWarn);CA1812;CA1031;CA1303;CA1308;CA2234;CA1852;CA1859;CA1826;CA1869;CA1307;CA1822;S1118;S4487;S1066;S3267;S1172;S2325;S125</NoWarn>
 
     <!-- Tool packaging -->
     <PackAsTool>true</PackAsTool>

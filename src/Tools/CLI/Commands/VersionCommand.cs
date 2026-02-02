@@ -12,6 +12,11 @@ namespace FSH.CLI.Commands;
 [SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by Spectre.Console.Cli via reflection")]
 internal sealed class VersionCommand : AsyncCommand<VersionCommand.Settings>
 {
+    private static readonly System.Text.Json.JsonSerializerOptions JsonOptions = new()
+    {
+        WriteIndented = true,
+        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+    };
     [SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by Spectre.Console.Cli via reflection")]
     internal sealed class Settings : CommandSettings
     {
@@ -120,11 +125,7 @@ internal sealed class VersionCommand : AsyncCommand<VersionCommand.Settings>
             } : null
         };
 
-        AnsiConsole.WriteLine(System.Text.Json.JsonSerializer.Serialize(output, new System.Text.Json.JsonSerializerOptions
-        {
-            WriteIndented = true,
-            PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
-        }));
+        AnsiConsole.WriteLine(System.Text.Json.JsonSerializer.Serialize(output, JsonOptions));
     }
 
     private static string GetCliVersion()

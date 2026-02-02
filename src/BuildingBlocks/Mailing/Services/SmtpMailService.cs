@@ -46,7 +46,7 @@ public class SmtpMailService(IOptions<MailOptions> settings, ILogger<SmtpMailSer
         email.Sender = new MailboxAddress(request.DisplayName ?? _settings.DisplayName, request.From ?? _settings.From);
     }
 
-    private void ConfigureRecipients(MimeMessage email, MailRequest request)
+    private static void ConfigureRecipients(MimeMessage email, MailRequest request)
     {
         foreach (string address in request.To)
         {
