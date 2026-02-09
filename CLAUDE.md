@@ -1,23 +1,23 @@
-# CLAUDE.md
+# FSH .NET Starter Kit — AI Assistant Guide
 
-> FullStackHero .NET Starter Kit — AI Assistant Guidelines
+> Modular Monolith · CQRS · DDD · Multi-Tenant · .NET 10
 
-## Quick Reference
+## Quick Start
 
 ```bash
-dotnet build src/FSH.Framework.slnx     # Build (0 warnings required)
-dotnet test src/FSH.Framework.slnx      # Test
+dotnet build src/FSH.Framework.slnx              # Build (0 warnings required)
+dotnet test src/FSH.Framework.slnx               # Run tests
 dotnet run --project src/Playground/FSH.Playground.AppHost  # Run with Aspire
 ```
 
-## Project Structure
+## Project Layout
 
 ```
 src/
-├── BuildingBlocks/     # Framework core (⚠️ don't modify without approval)
-├── Modules/            # Business modules — add features here
+├── BuildingBlocks/     # Framework (11 packages) — ⚠️ Protected
+├── Modules/            # Business features — Add code here
 │   ├── Identity/       # Auth, users, roles, permissions
-│   ├── Multitenancy/   # Tenant management
+│   ├── Multitenancy/   # Tenant management (Finbuckle)
 │   └── Auditing/       # Audit logging
 ├── Playground/         # Reference application
 └── Tests/              # Architecture + unit tests
@@ -25,90 +25,114 @@ src/
 
 ## The Pattern
 
-Every feature = vertical slice in one folder:
+Every feature = vertical slice:
 
 ```
 Modules/{Module}/Features/v1/{Feature}/
-├── {Action}{Entity}Command.cs      # ICommand<T> (NOT IRequest!)
-├── {Action}{Entity}Handler.cs      # ICommandHandler<T,R> returns ValueTask
+├── {Action}{Entity}Command.cs      # ICommand<T>
+├── {Action}{Entity}Handler.cs      # ICommandHandler<T,R>
 ├── {Action}{Entity}Validator.cs    # AbstractValidator<T>
 └── {Action}{Entity}Endpoint.cs     # MapPost/Get/Put/Delete
 ```
 
 ## Critical Rules
 
-| Rule | Why |
-|------|-----|
-| Use `Mediator` not `MediatR` | Different library, different interfaces |
+| ⚠️ Rule | Why |
+|---------|-----|
+| Use **Mediator** not MediatR | Different library, different interfaces |
 | `ICommand<T>` / `IQuery<T>` | NOT `IRequest<T>` |
 | `ValueTask<T>` return type | NOT `Task<T>` |
-| DTOs in Contracts project | Keep internals internal |
-| Every command needs validator | No unvalidated input |
+| Every command needs validator | FluentValidation, no exceptions |
 | `.RequirePermission()` on endpoints | Explicit authorization |
-| Zero build warnings | CI enforces this |
+| Zero build warnings | CI blocks merges |
 
 ## Available Skills
 
-| Skill | When to Use |
-|-------|-------------|
-| `/add-feature` | Creating new API endpoints |
-| `/add-module` | Creating new bounded contexts |
-| `/add-entity` | Adding domain entities |
-| `/query-patterns` | Implementing GET with pagination/filtering |
-| `/testing-guide` | Writing tests |
+Call skills with `/skill-name` in your prompt.
+
+| Skill | Purpose |
+|-------|---------|
+| `/add-feature` | Create complete CQRS feature (command/handler/validator/endpoint) |
+| `/add-entity` | Add domain entity with base class inheritance |
+| `/add-module` | Scaffold new bounded context module |
+| `/query-patterns` | Implement paginated/filtered queries |
+| `/testing-guide` | Write architecture + unit tests |
 
 ## Available Agents
 
-| Agent | Purpose |
-|-------|---------|
-| `code-reviewer` | Review changes against FSH patterns |
-| `feature-scaffolder` | Generate complete feature files |
-| `module-creator` | Scaffold new modules |
-| `architecture-guard` | Verify architectural integrity |
-| `migration-helper` | Handle EF Core migrations |
+Delegate complex tasks to specialized agents.
 
-## Quick Patterns
+| Agent | Expertise |
+|-------|----------|
+| `code-reviewer` | Review changes against FSH patterns + architecture rules |
+| `feature-scaffolder` | Generate complete feature slices from requirements |
+| `module-creator` | Create new modules with contracts, persistence, DI setup |
+| `architecture-guard` | Verify layering, dependencies, module boundaries |
+| `migration-helper` | Generate and apply EF Core migrations |
 
-### Command + Handler
+## Example: Create Feature
+
 ```csharp
-public sealed record CreateUserCommand(string Email) : ICommand<Guid>;
+// Command
+public sealed record CreateProductCommand(string Name, decimal Price) 
+    : ICommand<Guid>;
 
-public sealed class CreateUserHandler(IRepository<User> repo) 
-    : ICommandHandler<CreateUserCommand, Guid>
+// Handler
+public sealed class CreateProductHandler(IRepository<Product> repo) 
+    : ICommandHandler<CreateProductCommand, Guid>
 {
-    public async ValueTask<Guid> Handle(CreateUserCommand cmd, CancellationToken ct)
+    public async ValueTask<Guid> Handle(CreateProductCommand cmd, CancellationToken ct)
     {
-        var user = User.Create(cmd.Email);
-        await repo.AddAsync(user, ct);
-        return user.Id;
+        var product = Product.Create(cmd.Name, cmd.Price);
+        await repo.AddAsync(product, ct);
+        return product.Id;
     }
 }
-```
 
-### Endpoint
-```csharp
-public static RouteHandlerBuilder Map(this IEndpointRouteBuilder e) =>
-    e.MapPost("/", async (CreateUserCommand cmd, IMediator m, CancellationToken ct) =>
-        TypedResults.Created($"/users/{await m.Send(cmd, ct)}"))
-    .WithName(nameof(CreateUserCommand))
-    .WithSummary("Create a new user")
-    .RequirePermission(IdentityPermissions.Users.Create);
-```
-
-### Validator
-```csharp
-public sealed class CreateUserValidator : AbstractValidator<CreateUserCommand>
+// Validator
+public sealed class CreateProductValidator : AbstractValidator<CreateProductCommand>
 {
-    public CreateUserValidator()
+    public CreateProductValidator()
     {
-        RuleFor(x => x.Email).NotEmpty().EmailAddress();
+        RuleFor(x => x.Name).NotEmpty().MaximumLength(200);
+        RuleFor(x => x.Price).GreaterThan(0);
     }
 }
+
+// Endpoint
+public static RouteHandlerBuilder Map(this IEndpointRouteBuilder endpoints) =>
+    endpoints.MapPost("/", async (CreateProductCommand cmd, IMediator mediator, CancellationToken ct) =>
+        TypedResults.Created($"/api/v1/products/{await mediator.Send(cmd, ct)}"))
+    .WithName(nameof(CreateProductCommand))
+    .WithSummary("Create a new product")
+    .RequirePermission(CatalogPermissions.Products.Create);
 ```
+
+## Architecture
+
+- **Pattern:** Modular Monolith (not microservices)
+- **CQRS:** Mediator library (commands/queries)
+- **DDD:** Rich domain models, aggregates, value objects
+- **Multi-Tenancy:** Finbuckle.MultiTenant (shared DB, tenant isolation)
+- **Modules:** 3 core (Identity, Multitenancy, Auditing) + your features
+- **BuildingBlocks:** 11 packages (Core, Persistence, Caching, Jobs, Web, etc.)
+
+Details: See `.claude/rules/architecture.md`
 
 ## Before Committing
 
 ```bash
-dotnet build src/FSH.Framework.slnx  # Must be 0 warnings
-dotnet test src/FSH.Framework.slnx   # All tests pass
+dotnet build src/FSH.Framework.slnx  # Must pass with 0 warnings
+dotnet test src/FSH.Framework.slnx   # All tests must pass
 ```
+
+## Documentation
+
+- **Architecture:** See `ARCHITECTURE_ANALYSIS.md` (19KB deep-dive)
+- **Rules:** See `.claude/rules/*.md` (API conventions, testing, modules)
+- **Skills:** See `.claude/skills/*/SKILL.md` (step-by-step guides)
+- **Agents:** See `.claude/agents/*.md` (specialized assistants)
+
+---
+
+**Philosophy:** This is a production-ready starter kit. Every pattern is battle-tested. Follow the conventions, and you'll ship faster.
