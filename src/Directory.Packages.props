@@ -22,12 +22,12 @@
     <PackageVersion Include="MudBlazor" Version="8.15.0" />
     <PackageVersion Include="MudBlazor.ThemeManager" Version="3.0.0" />
     <PackageVersion Include="Npgsql.OpenTelemetry" Version="10.0.1" />
-    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.14.0" />
-    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.14.0" />
-    <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.14.0" />
+    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.0" />
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.15.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" Version="1.14.0-beta.2" />
-    <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.14.0" />
-    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.14.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.15.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.StackExchangeRedis" Version="1.14.0-beta.1" />
     <PackageVersion Include="Serilog.Enrichers.Environment" Version="3.0.1" />
     <PackageVersion Include="Serilog.Enrichers.Process" Version="3.0.0" />
@@ -46,11 +46,11 @@
     <PackageVersion Include="Finbuckle.MultiTenant.Abstractions" Version="10.0.2" />
     <PackageVersion Include="Finbuckle.MultiTenant.Identity.EntityFrameworkCore" Version="10.0.2" />
     <PackageVersion Include="FluentValidation" Version="12.1.1" />
-    <PackageVersion Include="Hangfire" Version="1.8.22" />
-    <PackageVersion Include="Hangfire.Core" Version="1.8.22" />
+    <PackageVersion Include="Hangfire" Version="1.8.23" />
+    <PackageVersion Include="Hangfire.Core" Version="1.8.23" />
     <PackageVersion Include="Hangfire.InMemory" Version="1.0.0" />
     <PackageVersion Include="Hangfire.MemoryStorage" Version="1.8.1.2" />
-    <PackageVersion Include="Hangfire.PostgreSql" Version="1.20.13" />
+    <PackageVersion Include="Hangfire.PostgreSql" Version="1.21.0" />
     <PackageVersion Include="MailKit" Version="4.14.1" />
     <PackageVersion Include="Mapster" Version="7.4.0" />
     <PackageVersion Include="Mediator.Abstractions" Version="3.0.1" />
@@ -83,7 +83,7 @@
     <PackageVersion Include="NSubstitute" Version="5.3.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
-    <PackageVersion Include="Scalar.AspNetCore" Version="2.12.11" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.12.36" />
     <PackageVersion Include="Serilog" Version="4.3.1-dev-02395" />
     <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageVersion Include="Serilog.Enrichers.CorrelationId" Version="3.0.1" />
@@ -103,7 +103,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.Components.Web" Version="10.0.2" />
   </ItemGroup>
   <ItemGroup Label="AWS">
-    <PackageVersion Include="AWSSDK.S3" Version="4.0.17.2" />
+    <PackageVersion Include="AWSSDK.S3" Version="4.0.18.3" />
   </ItemGroup>
   <ItemGroup Label="Messaging">
     <PackageVersion Include="RabbitMQ.Client" Version="7.2.0" />
