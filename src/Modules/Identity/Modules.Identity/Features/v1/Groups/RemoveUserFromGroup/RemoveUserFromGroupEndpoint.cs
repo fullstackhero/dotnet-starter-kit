@@ -20,6 +20,9 @@ public static class RemoveUserFromGroupEndpoint
         .WithName("RemoveUserFromGroup")
         .WithSummary("Remove a user from a group")
         .RequirePermission(IdentityPermissionConstants.Groups.ManageMembers)
-        .WithDescription("Remove a specific user from a group.");
+        .WithDescription("Remove a specific user from a group.")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
     }
 }

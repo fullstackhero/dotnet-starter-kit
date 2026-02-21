@@ -20,6 +20,9 @@ public static class DeleteGroupEndpoint
         .WithName("DeleteGroup")
         .WithSummary("Delete a group")
         .RequirePermission(IdentityPermissionConstants.Groups.Delete)
-        .WithDescription("Soft delete a group. System groups cannot be deleted.");
+        .WithDescription("Soft delete a group. System groups cannot be deleted.")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
     }
 }

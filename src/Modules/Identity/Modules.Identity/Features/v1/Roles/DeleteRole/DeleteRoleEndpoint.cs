@@ -20,6 +20,9 @@ public static class DeleteRoleEndpoint
         .WithName("DeleteRole")
         .WithSummary("Delete role by ID")
         .RequirePermission(IdentityPermissionConstants.Roles.Delete)
-        .WithDescription("Remove an existing role by its unique identifier.");
+        .WithDescription("Remove an existing role by its unique identifier.")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
     }
 }

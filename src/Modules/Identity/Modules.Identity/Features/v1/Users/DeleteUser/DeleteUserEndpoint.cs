@@ -20,6 +20,9 @@ public static class DeleteUserEndpoint
         .WithName("DeleteUser")
         .WithSummary("Delete user")
         .RequirePermission(IdentityPermissionConstants.Users.Delete)
-        .WithDescription("Delete a user by unique identifier.");
+        .WithDescription("Delete a user by unique identifier.")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
     }
 }
