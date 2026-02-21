@@ -13,8 +13,8 @@ public static class AddUsersToGroupEndpoint
 {
     public static RouteHandlerBuilder MapAddUsersToGroupEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        return endpoints.MapPost("/groups/{groupId:guid}/members", (Guid groupId, IMediator mediator, [FromBody] AddUsersRequest request, CancellationToken cancellationToken) =>
-            mediator.Send(new AddUsersToGroupCommand(groupId, request.UserIds), cancellationToken))
+        return endpoints.MapPost("/groups/{groupId:guid}/members", async (Guid groupId, IMediator mediator, [FromBody] AddUsersRequest request, CancellationToken cancellationToken) =>
+            TypedResults.Ok(await mediator.Send(new AddUsersToGroupCommand(groupId, request.UserIds), cancellationToken)))
         .WithName("AddUsersToGroup")
         .WithSummary("Add users to a group")
         .RequirePermission(IdentityPermissionConstants.Groups.ManageMembers)

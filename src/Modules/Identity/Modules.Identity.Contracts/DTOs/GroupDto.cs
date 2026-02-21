@@ -10,5 +10,5 @@ public class GroupDto
     public int MemberCount { get; set; }
     public IReadOnlyCollection<string>? RoleIds { get; set; }
     public IReadOnlyCollection<string>? RoleNames { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateTimeOffset CreatedOnUtc { get; set; }
 }

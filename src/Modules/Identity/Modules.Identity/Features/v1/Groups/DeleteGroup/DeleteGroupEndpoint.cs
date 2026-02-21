@@ -12,8 +12,11 @@ public static class DeleteGroupEndpoint
 {
     public static RouteHandlerBuilder MapDeleteGroupEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        return endpoints.MapDelete("/groups/{id:guid}", (Guid id, IMediator mediator, CancellationToken cancellationToken) =>
-            mediator.Send(new DeleteGroupCommand(id), cancellationToken))
+        return endpoints.MapDelete("/groups/{id:guid}", async (Guid id, IMediator mediator, CancellationToken cancellationToken) =>
+        {
+            await mediator.Send(new DeleteGroupCommand(id), cancellationToken);
+            return TypedResults.NoContent();
+        })
         .WithName("DeleteGroup")
         .WithSummary("Delete a group")
         .RequirePermission(IdentityPermissionConstants.Groups.Delete)

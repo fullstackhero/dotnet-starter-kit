@@ -31,7 +31,8 @@ public class GroupConfiguration : IEntityTypeConfiguration<Group>
             .HasMaxLength(450);
 
         builder
-            .Property(g => g.ModifiedBy)
+            .Property(g => g.LastModifiedBy)
+            .HasColumnName("ModifiedBy")
             .HasMaxLength(450);
 
         builder
@@ -39,8 +40,13 @@ public class GroupConfiguration : IEntityTypeConfiguration<Group>
             .HasMaxLength(450);
 
         builder
-            .Property(g => g.CreatedAt)
+            .Property(g => g.CreatedOnUtc)
+            .HasColumnName("CreatedAt")
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+        builder
+            .Property(g => g.LastModifiedOnUtc)
+            .HasColumnName("ModifiedAt");
 
         // Indexes
         builder.HasIndex(g => g.Name);

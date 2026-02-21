@@ -15,7 +15,7 @@ public static class GetAuditByIdEndpoint
         return group.MapGet(
                 "/{id:guid}",
                 async (Guid id, IMediator mediator, CancellationToken cancellationToken) =>
-                    await mediator.Send(new GetAuditByIdQuery(id), cancellationToken))
+                    TypedResults.Ok(await mediator.Send(new GetAuditByIdQuery(id), cancellationToken)))
             .WithName("GetAuditById")
             .WithSummary("Get audit event by ID")
             .WithDescription("Retrieve full details for a single audit event.")

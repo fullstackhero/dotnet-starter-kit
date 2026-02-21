@@ -2,22 +2,24 @@ using FSH.Framework.Core.Domain;
 
 namespace FSH.Modules.Identity.Domain;
 
-public class Group : ISoftDeletable
+public class Group : IAuditableEntity, ISoftDeletable
 {
     public Guid Id { get; private set; }
     public string Name { get; private set; } = default!;
     public string? Description { get; private set; }
     public bool IsDefault { get; private set; }
     public bool IsSystemGroup { get; private set; }
-    public DateTime CreatedAt { get; private set; }
+
+    // IAuditableEntity implementation
+    public DateTimeOffset CreatedOnUtc { get; private set; }
     public string? CreatedBy { get; private set; }
-    public DateTime? ModifiedAt { get; private set; }
-    public string? ModifiedBy { get; private set; }
+    public DateTimeOffset? LastModifiedOnUtc { get; private set; }
+    public string? LastModifiedBy { get; private set; }
 
     // ISoftDeletable implementation
-    public bool IsDeleted { get; set; }
-    public DateTimeOffset? DeletedOnUtc { get; set; }
-    public string? DeletedBy { get; set; }
+    public bool IsDeleted { get; private set; }
+    public DateTimeOffset? DeletedOnUtc { get; private set; }
+    public string? DeletedBy { get; private set; }
 
     // Navigation properties
     public virtual ICollection<GroupRole> GroupRoles { get; private set; } = [];
@@ -34,7 +36,7 @@ public class Group : ISoftDeletable
             Description = description,
             IsDefault = isDefault,
             IsSystemGroup = isSystemGroup,
-            CreatedAt = DateTime.UtcNow,
+            CreatedOnUtc = DateTimeOffset.UtcNow,
             CreatedBy = createdBy
         };
     }
@@ -43,14 +45,21 @@ public class Group : ISoftDeletable
     {
         Name = name;
         Description = description;
-        ModifiedAt = DateTime.UtcNow;
-        ModifiedBy = modifiedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+        LastModifiedBy = modifiedBy;
     }
 
     public void SetAsDefault(bool isDefault, string? modifiedBy = null)
     {
         IsDefault = isDefault;
-        ModifiedAt = DateTime.UtcNow;
-        ModifiedBy = modifiedBy;
+        LastModifiedOnUtc = DateTimeOffset.UtcNow;
+        LastModifiedBy = modifiedBy;
+    }
+
+    public void Delete(string? deletedBy = null)
+    {
+        IsDeleted = true;
+        DeletedOnUtc = DateTimeOffset.UtcNow;
+        DeletedBy = deletedBy;
     }
 }

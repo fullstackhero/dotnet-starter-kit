@@ -31,10 +31,8 @@ public sealed class DeleteGroupCommandHandler : ICommandHandler<DeleteGroupComma
             throw new ForbiddenException("System groups cannot be deleted.");
         }
 
-        // Soft delete
-        group.IsDeleted = true;
-        group.DeletedOnUtc = DateTimeOffset.UtcNow;
-        group.DeletedBy = _currentUser.GetUserId().ToString();
+        // Soft delete via domain method
+        group.Delete(_currentUser.GetUserId().ToString());
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
