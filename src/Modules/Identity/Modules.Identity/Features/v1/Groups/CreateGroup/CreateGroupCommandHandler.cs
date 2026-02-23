@@ -37,10 +37,11 @@ public sealed class CreateGroupCommandHandler : ICommandHandler<CreateGroupComma
         List<(string Id, string Name)> resolvedRoles = [];
         if (command.RoleIds is { Count: > 0 })
         {
-            resolvedRoles = await _dbContext.Roles
+            var rawRoles = await _dbContext.Roles
                 .Where(r => command.RoleIds.Contains(r.Id))
-                .Select(r => ValueTuple.Create(r.Id, r.Name!))
+                .Select(r => new { r.Id, r.Name })
                 .ToListAsync(cancellationToken);
+            resolvedRoles = rawRoles.Select(r => (r.Id, r.Name!)).ToList();
 
             var invalidRoleIds = command.RoleIds.Except(resolvedRoles.Select(r => r.Item1)).ToList();
             if (invalidRoleIds.Count > 0)
