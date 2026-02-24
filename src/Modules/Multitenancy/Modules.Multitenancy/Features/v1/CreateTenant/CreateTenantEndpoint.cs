@@ -16,11 +16,19 @@ public static class CreateTenantEndpoint
         return endpoints.MapPost("/", async (
             [FromBody] CreateTenantCommand command,
             [FromServices] IMediator mediator)
-            => TypedResults.Ok(await mediator.Send(command)))
+            =>
+            {
+                // TODO: Return TypedResults.Created() once the Blazor NSwag client is regenerated
+                // with a config that maps this to a meaningful response status (201).
+                return TypedResults.Ok(await mediator.Send(command));
+            })
             .WithName("CreateTenant")
             .WithSummary("Create tenant")
             .RequirePermission(MultitenancyConstants.Permissions.Create)
             .WithDescription("Create a new tenant.")
-            .Produces<CreateTenantCommandResponse>(StatusCodes.Status200OK);
+            .Produces<CreateTenantCommandResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status400BadRequest);
     }
 }

@@ -1,3 +1,4 @@
+using FSH.Modules.Multitenancy.Contracts.Dtos;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Multitenancy.Contracts.v1.TenantProvisioning;
@@ -16,10 +17,14 @@ public static class RetryTenantProvisioningEndpoint
         return endpoints.MapPost("/{tenantId}/provisioning/retry", async (
             [FromRoute] string tenantId,
             [FromServices] IMediator mediator) =>
-            await mediator.Send(new RetryTenantProvisioningCommand(tenantId)))
+            TypedResults.Ok(await mediator.Send(new RetryTenantProvisioningCommand(tenantId))))
             .WithName("RetryTenantProvisioning")
             .WithSummary("Retry tenant provisioning")
             .RequirePermission(MultitenancyConstants.Permissions.Update)
-            .WithDescription("Retry the provisioning workflow for a tenant.");
+            .WithDescription("Retry the provisioning workflow for a tenant.")
+            .Produces<TenantProvisioningStatusDto>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound);
     }
 }

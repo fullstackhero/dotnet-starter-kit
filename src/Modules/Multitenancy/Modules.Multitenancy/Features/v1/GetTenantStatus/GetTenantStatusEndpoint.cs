@@ -14,7 +14,7 @@ public static class GetTenantStatusEndpoint
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder endpoints)
     {
         return endpoints.MapGet("/{id}/status", async (string id, IMediator mediator, CancellationToken cancellationToken) =>
-                await mediator.Send(new GetTenantStatusQuery(id), cancellationToken))
+                TypedResults.Ok(await mediator.Send(new GetTenantStatusQuery(id), cancellationToken)))
             .WithName("GetTenantStatus")
             .WithSummary("Get tenant status")
             .WithDescription("Retrieve status information for a tenant, including activation, validity, and basic metadata.")

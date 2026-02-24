@@ -14,7 +14,7 @@ public static class GetTenantThemeEndpoint
     public static RouteHandlerBuilder Map(IEndpointRouteBuilder endpoints)
     {
         return endpoints.MapGet("/theme", async (IMediator mediator, CancellationToken cancellationToken) =>
-                await mediator.Send(new GetTenantThemeQuery(), cancellationToken))
+                TypedResults.Ok(await mediator.Send(new GetTenantThemeQuery(), cancellationToken)))
             .WithName("GetTenantTheme")
             .WithSummary("Get current tenant theme")
             .WithDescription("Retrieve the theme settings for the current tenant, including colors, typography, and brand assets.")

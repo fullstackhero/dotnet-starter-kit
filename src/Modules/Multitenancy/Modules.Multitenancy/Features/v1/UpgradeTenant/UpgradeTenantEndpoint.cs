@@ -17,7 +17,11 @@ public static class UpgradeTenantEndpoint
         .WithName("UpgradeTenant")
         .WithSummary("Upgrade tenant subscription")
         .RequirePermission(MultitenancyConstants.Permissions.Update)
-        .WithDescription("Extend or upgrade a tenant's subscription.");
+        .WithDescription("Extend or upgrade a tenant's subscription.")
+        .Produces<UpgradeTenantCommandResponse>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
     }
 
     private static async Task<Results<Ok<UpgradeTenantCommandResponse>, BadRequest>> Handler(

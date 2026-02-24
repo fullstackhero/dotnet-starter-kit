@@ -1,3 +1,4 @@
+using FSH.Modules.Multitenancy.Contracts.Dtos;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Multitenancy.Contracts.v1.TenantProvisioning;
@@ -16,10 +17,14 @@ public static class GetTenantProvisioningStatusEndpoint
         return endpoints.MapGet("/{tenantId}/provisioning", async (
             [FromRoute] string tenantId,
             [FromServices] IMediator mediator) =>
-            await mediator.Send(new GetTenantProvisioningStatusQuery(tenantId)))
+            TypedResults.Ok(await mediator.Send(new GetTenantProvisioningStatusQuery(tenantId))))
             .WithName("GetTenantProvisioningStatus")
             .WithSummary("Get tenant provisioning status")
             .RequirePermission(MultitenancyConstants.Permissions.View)
-            .WithDescription("Get latest provisioning status for a tenant.");
+            .WithDescription("Get latest provisioning status for a tenant.")
+            .Produces<TenantProvisioningStatusDto>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound);
     }
 }

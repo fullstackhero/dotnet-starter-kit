@@ -17,8 +17,8 @@ public static class GetTenantsEndpoint
     {
         return endpoints.MapGet(
                 "/",
-                ([AsParameters] GetTenantsQuery query, IMediator mediator, CancellationToken cancellationToken) =>
-                    mediator.Send(query, cancellationToken))
+                async ([AsParameters] GetTenantsQuery query, IMediator mediator, CancellationToken cancellationToken) =>
+                    TypedResults.Ok(await mediator.Send(query, cancellationToken)))
             .WithName("ListTenants")
             .WithSummary("List tenants")
             .WithDescription("Retrieve tenants for the current environment with pagination and optional sorting.")
