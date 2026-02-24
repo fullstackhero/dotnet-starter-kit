@@ -1,5 +1,7 @@
 using FSH.Framework.Shared.Identity;
 using FSH.Framework.Shared.Identity.Authorization;
+using FSH.Framework.Shared.Persistence;
+using FSH.Modules.Auditing.Contracts.Dtos;
 using FSH.Modules.Auditing.Contracts.v1.GetAudits;
 using Mediator;
 using Microsoft.AspNetCore.Builder;
@@ -20,7 +22,9 @@ public static class GetAuditsEndpoint
             .WithName("GetAudits")
             .WithSummary("List and search audit events")
             .WithDescription("Retrieve audit events with pagination and filters.")
-            .RequirePermission(AuditingPermissionConstants.View);
+            .RequirePermission(AuditingPermissionConstants.View)
+            .Produces<PagedResponse<AuditSummaryDto>>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden);
     }
 }
-

@@ -1,5 +1,6 @@
 using FSH.Framework.Shared.Identity;
 using FSH.Framework.Shared.Identity.Authorization;
+using FSH.Modules.Auditing.Contracts.Dtos;
 using FSH.Modules.Auditing.Contracts.v1.GetExceptionAudits;
 using Mediator;
 using Microsoft.AspNetCore.Builder;
@@ -20,7 +21,10 @@ public static class GetExceptionAuditsEndpoint
             .WithName("GetExceptionAudits")
             .WithSummary("Get exception audit events")
             .WithDescription("Retrieve audit events related to exceptions.")
-            .RequirePermission(AuditingPermissionConstants.View);
+            .RequirePermission(AuditingPermissionConstants.View)
+            .Produces<IEnumerable<AuditSummaryDto>>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden);
     }
 }
 

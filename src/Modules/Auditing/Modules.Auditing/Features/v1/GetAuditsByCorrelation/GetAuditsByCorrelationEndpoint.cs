@@ -1,5 +1,6 @@
 using FSH.Framework.Shared.Identity;
 using FSH.Framework.Shared.Identity.Authorization;
+using FSH.Modules.Auditing.Contracts.Dtos;
 using FSH.Modules.Auditing.Contracts.v1.GetAuditsByCorrelation;
 using Mediator;
 using Microsoft.AspNetCore.Builder;
@@ -24,7 +25,10 @@ public static class GetAuditsByCorrelationEndpoint
             .WithName("GetAuditsByCorrelation")
             .WithSummary("Get audit events by correlation id")
             .WithDescription("Retrieve audit events associated with a given correlation id.")
-            .RequirePermission(AuditingPermissionConstants.View);
+            .RequirePermission(AuditingPermissionConstants.View)
+            .Produces<IEnumerable<AuditSummaryDto>>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden);
     }
 }
 

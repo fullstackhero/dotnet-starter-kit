@@ -1,5 +1,6 @@
 using FSH.Framework.Shared.Identity;
 using FSH.Framework.Shared.Identity.Authorization;
+using FSH.Modules.Auditing.Contracts.Dtos;
 using FSH.Modules.Auditing.Contracts.v1.GetSecurityAudits;
 using Mediator;
 using Microsoft.AspNetCore.Builder;
@@ -20,7 +21,9 @@ public static class GetSecurityAuditsEndpoint
             .WithName("GetSecurityAudits")
             .WithSummary("Get security-related audit events")
             .WithDescription("Retrieve security audit events such as login, logout, and permission denials.")
-            .RequirePermission(AuditingPermissionConstants.View);
+            .RequirePermission(AuditingPermissionConstants.View)
+            .Produces<IEnumerable<AuditSummaryDto>>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden);
     }
 }
-
