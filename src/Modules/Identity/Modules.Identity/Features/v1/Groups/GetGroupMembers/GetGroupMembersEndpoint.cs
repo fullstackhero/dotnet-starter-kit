@@ -1,3 +1,4 @@
+using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Framework.Shared.Identity;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Identity.Contracts.v1.Groups.GetGroupMembers;
@@ -17,6 +18,10 @@ public static class GetGroupMembersEndpoint
         .WithName("GetGroupMembers")
         .WithSummary("Get members of a group")
         .RequirePermission(IdentityPermissionConstants.Groups.View)
-        .WithDescription("Retrieve all users that belong to a specific group.");
+        .WithDescription("Retrieve all users that belong to a specific group.")
+        .Produces<IEnumerable<GroupMemberDto>>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound);
     }
 }

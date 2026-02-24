@@ -18,7 +18,12 @@ public static class UpdateRolePermissionsEndpoint
         .WithName("UpdateRolePermissions")
         .WithSummary("Update role permissions")
         .RequirePermission(IdentityPermissionConstants.Roles.Update)
-        .WithDescription("Replace the set of permissions assigned to a role.");
+        .WithDescription("Replace the set of permissions assigned to a role.")
+        .Produces<string>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound);
     }
 
     private static async Task<Results<Ok<string>, BadRequest>> Handler(
