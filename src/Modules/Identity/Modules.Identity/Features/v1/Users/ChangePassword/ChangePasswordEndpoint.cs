@@ -1,3 +1,5 @@
+using FSH.Framework.Shared.Identity;
+using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Identity.Contracts.v1.Users.ChangePassword;
 using Mediator;
 using Microsoft.AspNetCore.Builder;
@@ -22,6 +24,9 @@ public static class ChangePasswordEndpoint
         .WithName("ChangePassword")
         .WithSummary("Change password")
         .WithDescription("Change the current user's password.")
-        .RequireAuthorization();
+        .RequireAuthorization()
+        .Produces(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status400BadRequest);
     }
 }

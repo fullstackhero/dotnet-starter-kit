@@ -18,6 +18,7 @@ public static class ConfirmEmailEndpoint
         .WithName("ConfirmEmail")
         .WithSummary("Confirm user email")
         .WithDescription("Confirm a user's email address.")
-        .AllowAnonymous();
+        .AllowAnonymous()
+        .Produces(StatusCodes.Status200OK);
     }
 }

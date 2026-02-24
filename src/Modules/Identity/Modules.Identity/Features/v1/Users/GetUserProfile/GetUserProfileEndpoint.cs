@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using FSH.Framework.Core.Exceptions;
+using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Framework.Shared.Identity.Claims;
 using FSH.Modules.Identity.Contracts.v1.Users.GetUserProfile;
 using Mediator;
@@ -20,11 +21,13 @@ public static class GetUserProfileEndpoint
                 throw new UnauthorizedException();
             }
 
-            return await mediator.Send(new GetCurrentUserProfileQuery(userId), cancellationToken);
+            return TypedResults.Ok(await mediator.Send(new GetCurrentUserProfileQuery(userId), cancellationToken));
         })
         .WithName("GetCurrentUserProfile")
         .WithSummary("Get current user profile")
         .WithDescription("Retrieve the authenticated user's profile from the access token.")
-        .RequireAuthorization();
+        .RequireAuthorization()
+        .Produces<UserDto>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized);
     }
 }

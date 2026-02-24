@@ -25,6 +25,7 @@ public static class ForgotPasswordEndpoint
         .WithName("RequestPasswordReset")
         .WithSummary("Request password reset")
         .WithDescription("Generate a password reset token and send it via email.")
-        .AllowAnonymous();
+        .AllowAnonymous()
+        .Produces(StatusCodes.Status200OK);
     }
 }

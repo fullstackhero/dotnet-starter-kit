@@ -24,6 +24,7 @@ public static class ResetPasswordEndpoint
         .WithName("ResetPassword")
         .WithSummary("Reset password")
         .WithDescription("Reset the user's password using the provided verification token.")
-        .AllowAnonymous();
+        .AllowAnonymous()
+        .Produces(StatusCodes.Status200OK);
     }
 }

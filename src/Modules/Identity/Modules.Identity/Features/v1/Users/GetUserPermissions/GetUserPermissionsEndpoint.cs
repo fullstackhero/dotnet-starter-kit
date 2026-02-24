@@ -22,11 +22,14 @@ public static class GetUserPermissionsEndpoint
                 throw new UnauthorizedException();
             }
 
-            return await mediator.Send(new GetCurrentUserPermissionsQuery(userId), cancellationToken);
+            return TypedResults.Ok(await mediator.Send(new GetCurrentUserPermissionsQuery(userId), cancellationToken));
         })
         .WithName("GetCurrentUserPermissions")
         .WithSummary("Get current user permissions")
         .WithDescription("Retrieve permissions for the authenticated user.")
-        .RequirePermission(IdentityPermissionConstants.Users.View);
+        .RequirePermission(IdentityPermissionConstants.Users.View)
+        .Produces<IEnumerable<string>>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
     }
 }

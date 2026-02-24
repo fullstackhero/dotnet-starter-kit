@@ -18,7 +18,11 @@ public static class ToggleUserStatusEndpoint
         .WithName("ToggleUserStatus")
         .WithSummary("Toggle user status")
         .RequirePermission(IdentityPermissionConstants.Users.Update)
-        .WithDescription("Activate or deactivate a user account.");
+        .WithDescription("Activate or deactivate a user account.")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status400BadRequest);
     }
 
     private static async Task<Results<NoContent, BadRequest>> Handler(

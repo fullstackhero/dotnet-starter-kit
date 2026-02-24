@@ -17,7 +17,11 @@ public static class AssignUserRolesEndpoint
         .WithName("AssignUserRoles")
         .WithSummary("Assign roles to user")
         .WithDescription("Assign one or more roles to a user.")
-        .RequirePermission(IdentityPermissionConstants.Users.ManageRoles);
+        .RequirePermission(IdentityPermissionConstants.Users.ManageRoles)
+        .Produces<string>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status400BadRequest);
     }
 
     private static async Task<Results<Ok<string>, BadRequest>> Handler(

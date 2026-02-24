@@ -1,7 +1,7 @@
+using FSH.Modules.Identity.Contracts.v1.Users.RegisterUser;
 using FSH.Framework.Shared.Identity;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Framework.Shared.Multitenancy;
-using FSH.Modules.Identity.Contracts.v1.Users.RegisterUser;
 using Mediator;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -14,7 +14,7 @@ public static class SelfRegisterUserEndpoint
 {
     internal static RouteHandlerBuilder MapSelfRegisterUserEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        return endpoints.MapPost("/self-register", (RegisterUserCommand command,
+        return endpoints.MapPost("/self-register", async (RegisterUserCommand command,
             [FromHeader(Name = MultitenancyConstants.Identifier)] string tenant,
             HttpContext context,
             IMediator mediator,
@@ -22,12 +22,18 @@ public static class SelfRegisterUserEndpoint
         {
             var origin = $"{context.Request.Scheme}://{context.Request.Host.Value}{context.Request.PathBase.Value}";
             command.Origin = origin;
-            return mediator.Send(command, cancellationToken);
+            var result = await mediator.Send(command, cancellationToken);
+            // TODO: Return TypedResults.Created() once the Blazor NSwag client is regenerated
+            // with a config that maps POST /self-register to 201 Created.
+            return TypedResults.Ok(result);
         })
         .WithName("SelfRegisterUser")
         .WithSummary("Self register user")
         .RequirePermission(IdentityPermissionConstants.Users.Create)
         .WithDescription("Allow a user to self-register.")
-        .AllowAnonymous();
+        .AllowAnonymous()
+        .Produces<RegisterUserResponse>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
     }
 }

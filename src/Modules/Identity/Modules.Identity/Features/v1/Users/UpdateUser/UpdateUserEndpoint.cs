@@ -31,6 +31,10 @@ public static class UpdateUserEndpoint
         .WithName("UpdateUserProfile")
         .WithSummary("Update user profile")
         .RequirePermission(IdentityPermissionConstants.Users.Update)
-        .WithDescription("Update profile details for the authenticated user.");
+        .WithDescription("Update profile details for the authenticated user.")
+        .Produces(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status400BadRequest);
     }
 }
