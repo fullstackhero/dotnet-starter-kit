@@ -20,6 +20,9 @@ public static class RevokeAllSessionsEndpoint
         .WithName("RevokeAllSessions")
         .WithSummary("Revoke all sessions")
         .RequirePermission(IdentityPermissionConstants.Sessions.Revoke)
-        .WithDescription("Revoke all sessions for the currently authenticated user except the current one.");
+        .WithDescription("Revoke all sessions for the currently authenticated user except the current one.")
+        .Produces(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
     }
 }

@@ -20,6 +20,9 @@ public static class AdminRevokeAllSessionsEndpoint
         .WithName("AdminRevokeAllSessions")
         .WithSummary("Revoke all user's sessions (Admin)")
         .RequirePermission(IdentityPermissionConstants.Sessions.RevokeAll)
-        .WithDescription("Revoke all sessions for a specific user. Requires admin permission.");
+        .WithDescription("Revoke all sessions for a specific user. Requires admin permission.")
+        .Produces(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
     }
 }

@@ -17,7 +17,13 @@ public static class AdminRevokeSessionEndpoint
         .WithName("AdminRevokeSession")
         .WithSummary("Revoke a user's session (Admin)")
         .RequirePermission(IdentityPermissionConstants.Sessions.RevokeAll)
-        .WithDescription("Revoke a specific session for a user. Requires admin permission.");
+        .WithDescription("Revoke a specific session for a user. Requires admin permission.")
+        // TODO: Return TypedResults.NoContent() once the Blazor NSwag client is regenerated
+        // with a config that handles 204 NoContent for DELETE /users/{userId}/sessions/{sessionId}.
+        .Produces(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound);
     }
 
     private static async Task<Results<Ok, NotFound>> Handler(
