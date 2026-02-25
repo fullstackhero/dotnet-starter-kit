@@ -18,20 +18,18 @@ public static class RevokeSessionEndpoint
         .WithSummary("Revoke a session")
         .RequirePermission(IdentityPermissionConstants.Sessions.Revoke)
         .WithDescription("Revoke a specific session for the currently authenticated user.")
-        // TODO: Return TypedResults.NoContent() once the Blazor NSwag client is regenerated
-        // with a config that handles 204 NoContent for DELETE /sessions/{sessionId}.
-        .Produces(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status401Unauthorized)
         .Produces(StatusCodes.Status403Forbidden)
         .Produces(StatusCodes.Status404NotFound);
     }
 
-    private static async Task<Results<Ok, NotFound>> Handler(
+    private static async Task<Results<NoContent, NotFound>> Handler(
         Guid sessionId,
         IMediator mediator,
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new RevokeSessionCommand(sessionId), cancellationToken);
-        return result ? TypedResults.Ok() : TypedResults.NotFound();
+        return result ? TypedResults.NoContent() : TypedResults.NotFound();
     }
 }

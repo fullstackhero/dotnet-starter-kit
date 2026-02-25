@@ -16,15 +16,14 @@ public static class CreateGroupEndpoint
     {
         return endpoints.MapPost("/groups", async (IMediator mediator, [FromBody] CreateGroupCommand request, CancellationToken cancellationToken) =>
         {
-            // TODO: Return TypedResults.Created() once the Blazor NSwag client is regenerated
-            // with a config that maps POST /groups to 201 Created.
-            return TypedResults.Ok(await mediator.Send(request, cancellationToken));
+            var result = await mediator.Send(request, cancellationToken);
+            return TypedResults.Created($"/api/v1/groups/{result.Id}", result);
         })
         .WithName("CreateGroup")
         .WithSummary("Create a new group")
         .RequirePermission(IdentityPermissionConstants.Groups.Create)
         .WithDescription("Create a new group with optional role assignments.")
-        .Produces<GroupDto>(StatusCodes.Status200OK)
+        .Produces<GroupDto>(StatusCodes.Status201Created)
         .Produces(StatusCodes.Status401Unauthorized)
         .Produces(StatusCodes.Status403Forbidden)
         .Produces(StatusCodes.Status400BadRequest);

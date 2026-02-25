@@ -12,19 +12,16 @@ public static class DeleteRoleEndpoint
 {
     public static RouteHandlerBuilder MapDeleteRoleEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        // TODO: Return TypedResults.NoContent() once the Blazor NSwag client is regenerated
-        // with the original configuration that preserves existing interface contracts.
-        // Currently the generated RolesDeleteAsync only handles HTTP 200.
         return endpoints.MapDelete("/roles/{id:guid}", async (string id, IMediator mediator, CancellationToken cancellationToken) =>
         {
-            var result = await mediator.Send(new DeleteRoleCommand(id), cancellationToken);
-            return TypedResults.Ok(result);
+            await mediator.Send(new DeleteRoleCommand(id), cancellationToken);
+            return TypedResults.NoContent();
         })
         .WithName("DeleteRole")
         .WithSummary("Delete role by ID")
         .RequirePermission(IdentityPermissionConstants.Roles.Delete)
         .WithDescription("Remove an existing role by its unique identifier.")
-        .Produces(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status401Unauthorized)
         .Produces(StatusCodes.Status403Forbidden);
     }

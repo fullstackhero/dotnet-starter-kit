@@ -23,16 +23,14 @@ public static class SelfRegisterUserEndpoint
             var origin = $"{context.Request.Scheme}://{context.Request.Host.Value}{context.Request.PathBase.Value}";
             command.Origin = origin;
             var result = await mediator.Send(command, cancellationToken);
-            // TODO: Return TypedResults.Created() once the Blazor NSwag client is regenerated
-            // with a config that maps POST /self-register to 201 Created.
-            return TypedResults.Ok(result);
+            return TypedResults.Created($"/api/v1/identity/users/{result.UserId}", result);
         })
         .WithName("SelfRegisterUser")
         .WithSummary("Self register user")
         .RequirePermission(IdentityPermissionConstants.Users.Create)
         .WithDescription("Allow a user to self-register.")
         .AllowAnonymous()
-        .Produces<RegisterUserResponse>(StatusCodes.Status200OK)
+        .Produces<RegisterUserResponse>(StatusCodes.Status201Created)
         .Produces(StatusCodes.Status401Unauthorized)
         .Produces(StatusCodes.Status403Forbidden);
     }

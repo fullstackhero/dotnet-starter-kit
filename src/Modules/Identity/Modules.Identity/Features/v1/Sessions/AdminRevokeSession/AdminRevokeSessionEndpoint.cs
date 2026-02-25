@@ -18,21 +18,19 @@ public static class AdminRevokeSessionEndpoint
         .WithSummary("Revoke a user's session (Admin)")
         .RequirePermission(IdentityPermissionConstants.Sessions.RevokeAll)
         .WithDescription("Revoke a specific session for a user. Requires admin permission.")
-        // TODO: Return TypedResults.NoContent() once the Blazor NSwag client is regenerated
-        // with a config that handles 204 NoContent for DELETE /users/{userId}/sessions/{sessionId}.
-        .Produces(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status401Unauthorized)
         .Produces(StatusCodes.Status403Forbidden)
         .Produces(StatusCodes.Status404NotFound);
     }
 
-    private static async Task<Results<Ok, NotFound>> Handler(
+    private static async Task<Results<NoContent, NotFound>> Handler(
         Guid userId,
         Guid sessionId,
         IMediator mediator,
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new AdminRevokeSessionCommand(userId, sessionId), cancellationToken);
-        return result ? TypedResults.Ok() : TypedResults.NotFound();
+        return result ? TypedResults.NoContent() : TypedResults.NotFound();
     }
 }
