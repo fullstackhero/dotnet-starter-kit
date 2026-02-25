@@ -5,9 +5,9 @@ param(
 $ErrorActionPreference = "Stop"
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$repoRoot = Resolve-Path (Join-Path $scriptDir ".." "..")
+$repoRoot = (Get-Item (Join-Path $scriptDir "..\..")).FullName
 $configPath = Join-Path $scriptDir "nswag-playground.json"
-$outputDir = Join-Path $repoRoot "src/Playground/Playground.Blazor/ApiClient"
+$outputDir = Join-Path $repoRoot "src\Playground\Playground.Blazor\ApiClient"
 
 Write-Host "Ensuring dotnet local tools are restored..." -ForegroundColor Cyan
 dotnet tool restore | Out-Host
