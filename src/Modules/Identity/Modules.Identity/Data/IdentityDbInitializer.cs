@@ -25,7 +25,10 @@ internal sealed class IdentityDbInitializer(
         if ((await context.Database.GetPendingMigrationsAsync(cancellationToken).ConfigureAwait(false)).Any())
         {
             await context.Database.MigrateAsync(cancellationToken).ConfigureAwait(false);
-            logger.LogInformation("[{Tenant}] applied database migrations for identity module", context.TenantInfo?.Identifier);
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                logger.LogInformation("[{Tenant}] applied database migrations for identity module", context.TenantInfo?.Identifier);
+            }
         }
     }
 
@@ -82,7 +85,10 @@ internal sealed class IdentityDbInitializer(
 
         foreach (var claim in newClaims)
         {
-            logger.LogInformation("Seeding {Role} Permission '{Permission}' for '{TenantId}' Tenant.", role.Name, claim.ClaimValue, multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id);
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                logger.LogInformation("Seeding {Role} Permission '{Permission}' for '{TenantId}' Tenant.", role.Name, claim.ClaimValue, multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id);
+            }
             await dbContext.RoleClaims.AddAsync(claim, cancellationToken);
         }
 
@@ -117,7 +123,10 @@ internal sealed class IdentityDbInitializer(
                 createdBy: "System");
 
             await context.Groups.AddAsync(allUsersGroup, cancellationToken);
-            logger.LogInformation("Seeding '{GroupName}' system group for '{TenantId}' Tenant.", allUsersGroupName, tenantId);
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                logger.LogInformation("Seeding '{GroupName}' system group for '{TenantId}' Tenant.", allUsersGroupName, tenantId);
+            }
         }
 
         // Seed "Administrators" group with Admin role
@@ -135,7 +144,10 @@ internal sealed class IdentityDbInitializer(
                 createdBy: "System");
 
             await context.Groups.AddAsync(administratorsGroup, cancellationToken);
-            logger.LogInformation("Seeding '{GroupName}' system group for '{TenantId}' Tenant.", administratorsGroupName, tenantId);
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                logger.LogInformation("Seeding '{GroupName}' system group for '{TenantId}' Tenant.", administratorsGroupName, tenantId);
+            }
         }
 
         await context.SaveChangesAsync(cancellationToken);
@@ -152,7 +164,10 @@ internal sealed class IdentityDbInitializer(
                 context.GroupRoles.Add(GroupRole.Create(administratorsGroup.Id, adminRole.Id));
 
                 await context.SaveChangesAsync(cancellationToken);
-                logger.LogInformation("Assigned Admin role to '{GroupName}' group for '{TenantId}' Tenant.", administratorsGroupName, tenantId);
+                if (logger.IsEnabled(LogLevel.Information))
+                {
+                    logger.LogInformation("Assigned Admin role to '{GroupName}' group for '{TenantId}' Tenant.", administratorsGroupName, tenantId);
+                }
             }
         }
     }
@@ -182,7 +197,10 @@ internal sealed class IdentityDbInitializer(
                 IsActive = true
             };
 
-            logger.LogInformation("Seeding Default Admin User for '{TenantId}' Tenant.", multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id);
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                logger.LogInformation("Seeding Default Admin User for '{TenantId}' Tenant.", multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id);
+            }
             var password = new PasswordHasher<FshUser>();
             adminUser.PasswordHash = password.HashPassword(adminUser, MultitenancyConstants.DefaultPassword);
             await userManager.CreateAsync(adminUser);
@@ -191,7 +209,10 @@ internal sealed class IdentityDbInitializer(
         // Assign role to user
         if (!await userManager.IsInRoleAsync(adminUser, RoleConstants.Admin))
         {
-            logger.LogInformation("Assigning Admin Role to Admin User for '{TenantId}' Tenant.", multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id);
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                logger.LogInformation("Assigning Admin Role to Admin User for '{TenantId}' Tenant.", multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id);
+            }
             await userManager.AddToRoleAsync(adminUser, RoleConstants.Admin);
         }
     }

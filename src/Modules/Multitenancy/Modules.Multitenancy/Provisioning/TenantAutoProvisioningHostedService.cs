@@ -71,12 +71,18 @@ public sealed class TenantAutoProvisioningHostedService : IHostedService
             if (await ShouldProvisionTenantAsync(provisioning, tenant.Id, cancellationToken))
             {
                 await provisioning.StartAsync(tenant.Id, cancellationToken).ConfigureAwait(false);
-                _logger.LogInformation("Enqueued provisioning for tenant {TenantId} on startup.", tenant.Id);
+                if (_logger.IsEnabled(LogLevel.Information))
+                {
+                    _logger.LogInformation("Enqueued provisioning for tenant {TenantId} on startup.", tenant.Id);
+                }
             }
         }
         catch (CustomException ex)
         {
-            _logger.LogInformation("Provisioning already in progress or recently queued for tenant {TenantId}: {Message}", tenant.Id, ex.Message);
+            if (_logger.IsEnabled(LogLevel.Information))
+            {
+                _logger.LogInformation("Provisioning already in progress or recently queued for tenant {TenantId}: {Message}", tenant.Id, ex.Message);
+            }
         }
         catch (Exception ex)
         {

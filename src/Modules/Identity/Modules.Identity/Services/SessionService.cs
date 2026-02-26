@@ -67,7 +67,10 @@ public sealed class SessionService : ISessionService
         _db.UserSessions.Add(session);
         await _db.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Created session {SessionId} for user {UserId}", session.Id, userId);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("Created session {SessionId} for user {UserId}", session.Id, userId);
+        }
 
         return MapToDto(session, isCurrentSession: true);
     }
@@ -150,7 +153,10 @@ public sealed class SessionService : ISessionService
 
         await _db.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Session {SessionId} revoked by {RevokedBy}", sessionId, revokedBy);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("Session {SessionId} revoked by {RevokedBy}", sessionId, revokedBy);
+        }
 
         return true;
     }
@@ -188,7 +194,10 @@ public sealed class SessionService : ISessionService
 
         await _db.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Revoked {Count} sessions for user {UserId}", sessions.Count, userId);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("Revoked {Count} sessions for user {UserId}", sessions.Count, userId);
+        }
 
         return sessions.Count;
     }
@@ -213,8 +222,11 @@ public sealed class SessionService : ISessionService
 
         await _db.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Admin {AdminId} revoked {Count} sessions for user {UserId}",
-            revokedBy, sessions.Count, userId);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("Admin {AdminId} revoked {Count} sessions for user {UserId}",
+                revokedBy, sessions.Count, userId);
+        }
 
         return sessions.Count;
     }
@@ -240,7 +252,10 @@ public sealed class SessionService : ISessionService
 
         await _db.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Admin {AdminId} revoked session {SessionId}", revokedBy, sessionId);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("Admin {AdminId} revoked session {SessionId}", revokedBy, sessionId);
+        }
 
         return true;
     }
@@ -277,7 +292,10 @@ public sealed class SessionService : ISessionService
             session.UpdateRefreshToken(newRefreshTokenHash, newExpiresAt);
             await _db.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Updated session {SessionId} with new refresh token", session.Id);
+            if (_logger.IsEnabled(LogLevel.Information))
+            {
+                _logger.LogInformation("Updated session {SessionId} with new refresh token", session.Id);
+            }
         }
     }
 
@@ -324,7 +342,10 @@ public sealed class SessionService : ISessionService
         {
             _db.UserSessions.RemoveRange(expiredSessions);
             await _db.SaveChangesAsync(cancellationToken);
-            _logger.LogInformation("Cleaned up {Count} expired sessions", expiredSessions.Count);
+            if (_logger.IsEnabled(LogLevel.Information))
+            {
+                _logger.LogInformation("Cleaned up {Count} expired sessions", expiredSessions.Count);
+            }
         }
     }
 

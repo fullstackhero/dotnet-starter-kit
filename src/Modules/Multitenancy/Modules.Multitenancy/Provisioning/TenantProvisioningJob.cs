@@ -73,7 +73,10 @@ public sealed class TenantProvisioningJob
 
             await _provisioningService.MarkCompletedAsync(tenantId, correlationId, CancellationToken.None).ConfigureAwait(false);
 
-            _logger.LogInformation("Provisioned tenant {TenantId} correlation {CorrelationId}", tenantId, correlationId);
+            if (_logger.IsEnabled(LogLevel.Information))
+            {
+                _logger.LogInformation("Provisioned tenant {TenantId} correlation {CorrelationId}", tenantId, correlationId);
+            }
         }
         catch (Exception ex)
         {

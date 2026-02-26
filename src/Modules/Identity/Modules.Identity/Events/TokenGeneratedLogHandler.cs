@@ -22,15 +22,18 @@ public sealed class TokenGeneratedLogHandler
     {
         ArgumentNullException.ThrowIfNull(@event);
 
-        _logger.LogInformation(
-            "Token generated for user {UserId} ({Email}) with client {ClientId}, IP {IpAddress}, UserAgent {UserAgent}, expires at {ExpiresAtUtc} (fingerprint: {Fingerprint})",
-            @event.UserId,
-            @event.Email,
-            @event.ClientId,
-            @event.IpAddress,
-            @event.UserAgent,
-            @event.AccessTokenExpiresAtUtc,
-            @event.TokenFingerprint);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation(
+                "Token generated for user {UserId} ({Email}) with client {ClientId}, IP {IpAddress}, UserAgent {UserAgent}, expires at {ExpiresAtUtc} (fingerprint: {Fingerprint})",
+                @event.UserId,
+                @event.Email,
+                @event.ClientId,
+                @event.IpAddress,
+                @event.UserAgent,
+                @event.AccessTokenExpiresAtUtc,
+                @event.TokenFingerprint);
+        }
 
         return Task.CompletedTask;
     }
