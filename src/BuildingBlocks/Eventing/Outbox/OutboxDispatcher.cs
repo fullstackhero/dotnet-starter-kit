@@ -44,7 +44,10 @@ public sealed class OutboxDispatcher
             return;
         }
 
-        _logger.LogInformation("Dispatching {Count} outbox messages (BatchSize={BatchSize})", messages.Count, batchSize);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("Dispatching {Count} outbox messages (BatchSize={BatchSize})", messages.Count, batchSize);
+        }
 
         var processedCount = 0;
         var failedCount = 0;
@@ -65,7 +68,10 @@ public sealed class OutboxDispatcher
                 await _outbox.MarkAsProcessedAsync(message, ct).ConfigureAwait(false);
                 processedCount++;
 
-                _logger.LogDebug("Outbox message {MessageId} dispatched and marked as processed.", message.Id);
+                if (_logger.IsEnabled(LogLevel.Debug))
+                {
+                    _logger.LogDebug("Outbox message {MessageId} dispatched and marked as processed.", message.Id);
+                }
             }
             catch (Exception ex)
             {
@@ -91,11 +97,14 @@ public sealed class OutboxDispatcher
             }
         }
 
-        _logger.LogInformation(
-            "Outbox dispatch summary: Total={Total}, Processed={Processed}, Failed={Failed}, DeadLettered={DeadLettered}",
-            messages.Count,
-            processedCount,
-            failedCount,
-            deadLetterCount);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation(
+                "Outbox dispatch summary: Total={Total}, Processed={Processed}, Failed={Failed}, DeadLettered={DeadLettered}",
+                messages.Count,
+                processedCount,
+                failedCount,
+                deadLetterCount);
+        }
     }
 }

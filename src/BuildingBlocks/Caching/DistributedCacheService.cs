@@ -62,7 +62,10 @@ public sealed class DistributedCacheService : ICacheService
         {
             var bytes = Utf8.GetBytes(JsonSerializer.Serialize(value, JsonOpts));
             await _cache.SetAsync(key, bytes, BuildEntryOptions(sliding), ct).ConfigureAwait(false);
-            _logger.LogDebug("Cached {Key}", key);
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("Cached {Key}", key);
+            }
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -86,7 +89,10 @@ public sealed class DistributedCacheService : ICacheService
         try
         {
             await _cache.RefreshAsync(key, ct).ConfigureAwait(false);
-            _logger.LogDebug("Refreshed {Key}", key);
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("Refreshed {Key}", key);
+            }
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         { _logger.LogWarning(ex, "Cache refresh failed for {Key}", key); }

@@ -99,9 +99,12 @@ public sealed class RabbitMqEventBus : IEventBus, IAsyncDisposable
                     body: body,
                     cancellationToken: ct).ConfigureAwait(false);
 
-                _logger.LogDebug(
-                    "Published integration event {EventType} ({EventId}) to exchange {Exchange}",
-                    routingKey, @event.Id, _options.ExchangeName);
+                if (_logger.IsEnabled(LogLevel.Debug))
+                {
+                    _logger.LogDebug(
+                        "Published integration event {EventType} ({EventId}) to exchange {Exchange}",
+                        routingKey, @event.Id, _options.ExchangeName);
+                }
 
                 return;
             }
@@ -160,9 +163,12 @@ public sealed class RabbitMqEventBus : IEventBus, IAsyncDisposable
 
     private async Task CreateConnectionAsync(CancellationToken ct)
     {
-        _logger.LogInformation(
-            "Connecting to RabbitMQ at {Host}:{Port}/{VirtualHost}",
-            _options.Host, _options.Port, _options.VirtualHost);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation(
+                "Connecting to RabbitMQ at {Host}:{Port}/{VirtualHost}",
+                _options.Host, _options.Port, _options.VirtualHost);
+        }
 
         var factory = new ConnectionFactory
         {
@@ -189,7 +195,10 @@ public sealed class RabbitMqEventBus : IEventBus, IAsyncDisposable
             autoDelete: false,
             cancellationToken: ct).ConfigureAwait(false);
 
-        _logger.LogInformation("RabbitMQ connection established. Exchange: {Exchange}", _options.ExchangeName);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("RabbitMQ connection established. Exchange: {Exchange}", _options.ExchangeName);
+        }
     }
 
     private async Task DisposeConnectionAsync()

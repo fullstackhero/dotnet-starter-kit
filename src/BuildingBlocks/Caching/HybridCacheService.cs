@@ -60,7 +60,10 @@ public sealed class HybridCacheService : ICacheService
             // Check L1 cache first (memory)
             if (_memoryCache.TryGetValue(key, out T? memoryValue))
             {
-                _logger.LogDebug("Cache hit in memory for {Key}", key);
+                if (_logger.IsEnabled(LogLevel.Debug))
+                {
+                    _logger.LogDebug("Cache hit in memory for {Key}", key);
+                }
                 return memoryValue;
             }
 
@@ -75,7 +78,10 @@ public sealed class HybridCacheService : ICacheService
             {
                 var expiration = GetMemoryCacheExpiration();
                 _memoryCache.Set(key, value, expiration);
-                _logger.LogDebug("Populated memory cache from distributed cache for {Key}", key);
+                if (_logger.IsEnabled(LogLevel.Debug))
+                {
+                    _logger.LogDebug("Populated memory cache from distributed cache for {Key}", key);
+                }
             }
 
             return value;
@@ -102,8 +108,11 @@ public sealed class HybridCacheService : ICacheService
             // Also set in memory cache
             var expiration = GetMemoryCacheExpiration();
             _memoryCache.Set(key, value, expiration);
-            
-            _logger.LogDebug("Cached {Key} in both memory and distributed caches", key);
+
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("Cached {Key} in both memory and distributed caches", key);
+            }
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -123,7 +132,10 @@ public sealed class HybridCacheService : ICacheService
             // Remove from both caches
             _memoryCache.Remove(key);
             await _distributedCache.RemoveAsync(key, ct).ConfigureAwait(false);
-            _logger.LogDebug("Removed {Key} from both caches", key);
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("Removed {Key} from both caches", key);
+            }
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -138,7 +150,10 @@ public sealed class HybridCacheService : ICacheService
         try
         {
             await _distributedCache.RefreshAsync(key, ct).ConfigureAwait(false);
-            _logger.LogDebug("Refreshed {Key}", key);
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("Refreshed {Key}", key);
+            }
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {

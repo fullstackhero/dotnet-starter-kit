@@ -30,9 +30,12 @@ public sealed class OutboxDispatcherHostedService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation(
-            "Outbox dispatcher hosted service started. Dispatch interval: {Interval}s",
-            _interval.TotalSeconds);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation(
+                "Outbox dispatcher hosted service started. Dispatch interval: {Interval}s",
+                _interval.TotalSeconds);
+        }
 
         while (!stoppingToken.IsCancellationRequested)
         {

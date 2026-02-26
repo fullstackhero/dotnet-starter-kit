@@ -37,7 +37,10 @@ public sealed class InMemoryEventBus : IEventBus
     private async Task PublishSingleAsync(IIntegrationEvent @event, CancellationToken ct)
     {
         var eventType = @event.GetType();
-        _logger.LogDebug("Publishing integration event {EventType} ({EventId})", eventType.FullName, @event.Id);
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("Publishing integration event {EventType} ({EventId})", eventType.FullName, @event.Id);
+        }
 
         using var scope = _serviceProvider.CreateScope();
         var provider = scope.ServiceProvider;
@@ -45,7 +48,10 @@ public sealed class InMemoryEventBus : IEventBus
         var handlers = ResolveHandlers(provider, eventType);
         if (handlers.Length == 0)
         {
-            _logger.LogDebug("No handlers registered for integration event type {EventType}", eventType.FullName);
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("No handlers registered for integration event type {EventType}", eventType.FullName);
+            }
             return;
         }
 
@@ -76,7 +82,10 @@ public sealed class InMemoryEventBus : IEventBus
 
         if (await ShouldSkipProcessedEventAsync(inbox, @event.Id, handlerName, ct))
         {
-            _logger.LogDebug("Skipping already processed integration event {EventId} for handler {Handler}", @event.Id, handlerName);
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("Skipping already processed integration event {EventId} for handler {Handler}", @event.Id, handlerName);
+            }
             return;
         }
 

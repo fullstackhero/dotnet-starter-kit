@@ -198,7 +198,7 @@ internal sealed class AuthorizationHeaderHandler : DelegatingHandler
             var timeUntilExpiration = jwtToken.ValidTo - DateTime.UtcNow;
             var isExpiringSoon = timeUntilExpiration <= TokenExpirationBuffer;
 
-            if (isExpiringSoon)
+            if (isExpiringSoon && _logger.IsEnabled(LogLevel.Debug))
             {
                 _logger.LogDebug(
                     "Token expires in {Minutes:F1} minutes (buffer: {Buffer} minutes)",

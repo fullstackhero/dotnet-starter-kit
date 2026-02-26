@@ -26,7 +26,10 @@ internal static class SimpleBffAuth
                 var password = form["Password"].ToString();
                 var tenant = form["Tenant"].ToString();
 
-                logger.LogInformation("Login attempt for {Email}", email);
+                if (logger.IsEnabled(LogLevel.Information))
+                {
+                    logger.LogInformation("Login attempt for {Email}", email);
+                }
 
                 // Call the identity API to get token
                 var token = await tokenClient.IssueAsync(
@@ -76,7 +79,10 @@ internal static class SimpleBffAuth
                     ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7)
                 });
 
-                logger.LogInformation("Login successful for {Email}", email);
+                if (logger.IsEnabled(LogLevel.Information))
+                {
+                    logger.LogInformation("Login successful for {Email}", email);
+                }
 
                 // Redirect to home page - this ensures the cookie is properly read on the next request
                 return Results.Redirect("/");

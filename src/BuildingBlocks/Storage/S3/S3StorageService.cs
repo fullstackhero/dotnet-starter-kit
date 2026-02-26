@@ -63,7 +63,10 @@ internal sealed class S3StorageService : IStorageService
 
         // Rely on bucket policy for public access; do not set ACLs to avoid conflicts with ACL-disabled buckets.
         await _s3.PutObjectAsync(putRequest, cancellationToken).ConfigureAwait(false);
-        _logger.LogInformation("Uploaded file to S3 bucket {Bucket} with key {Key}", _options.Bucket, key);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("Uploaded file to S3 bucket {Bucket} with key {Key}", _options.Bucket, key);
+        }
 
         return BuildPublicUrl(key);
     }
@@ -122,7 +125,10 @@ internal sealed class S3StorageService : IStorageService
         }
         catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
-            _logger.LogDebug(ex, "S3 object not found: {Path}", path);
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug(ex, "S3 object not found: {Path}", path);
+            }
             return null;
         }
         catch (Exception ex)
