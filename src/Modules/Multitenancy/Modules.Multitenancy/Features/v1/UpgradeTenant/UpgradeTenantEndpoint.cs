@@ -27,14 +27,15 @@ public static class UpgradeTenantEndpoint
     private static async Task<Results<Ok<UpgradeTenantCommandResponse>, BadRequest>> Handler(
         string id,
         UpgradeTenantCommand command,
-        IMediator dispatcher)
+        IMediator dispatcher,
+        CancellationToken cancellationToken)
     {
         if (!string.Equals(id, command.Tenant, StringComparison.Ordinal))
         {
             return TypedResults.BadRequest();
         }
 
-        var result = await dispatcher.Send(command);
+        var result = await dispatcher.Send(command, cancellationToken);
         return TypedResults.Ok(result);
     }
 }

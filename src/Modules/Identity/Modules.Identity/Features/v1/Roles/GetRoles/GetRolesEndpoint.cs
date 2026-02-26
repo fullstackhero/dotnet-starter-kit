@@ -18,9 +18,9 @@ public static class GetRolesEndpoint
         .WithName("ListRoles")
         .WithSummary("List all roles")
         .RequirePermission(IdentityPermissionConstants.Roles.View)
+        .Produces<IEnumerable<RoleDto>>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status401Unauthorized)
         .Produces(StatusCodes.Status403Forbidden)
-        .WithDescription("Retrieve all roles available for the current tenant.")
-        .Produces<IEnumerable<RoleDto>>(StatusCodes.Status200OK);
+        .WithDescription("Retrieve all roles available for the current tenant.");
     }
 }
