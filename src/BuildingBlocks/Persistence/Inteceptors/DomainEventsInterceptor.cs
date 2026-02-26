@@ -70,7 +70,10 @@ public sealed class DomainEventsInterceptor : SaveChangesInterceptor
         if (domainEvents.Length == 0)
             return await base.SavedChangesAsync(eventData, result, cancellationToken);
 
-        _logger.LogDebug("Publishing {Count} domain events...", domainEvents.Length);
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("Publishing {Count} domain events...", domainEvents.Length);
+        }
 
         foreach (var domainEvent in domainEvents)
             await _publisher.Publish(domainEvent, cancellationToken).ConfigureAwait(false);

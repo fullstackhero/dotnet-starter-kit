@@ -13,7 +13,10 @@ internal sealed class AuditDbInitializer(
         if ((await context.Database.GetPendingMigrationsAsync(cancellationToken).ConfigureAwait(false)).Any())
         {
             await context.Database.MigrateAsync(cancellationToken).ConfigureAwait(false);
-            logger.LogInformation("[{Tenant}] applied database migrations for audit module", context.TenantInfo?.Identifier);
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                logger.LogInformation("[{Tenant}] applied database migrations for audit module", context.TenantInfo?.Identifier);
+            }
         }
     }
 
