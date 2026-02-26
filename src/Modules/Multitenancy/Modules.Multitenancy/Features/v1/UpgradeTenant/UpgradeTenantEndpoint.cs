@@ -24,7 +24,7 @@ public static class UpgradeTenantEndpoint
         .Produces(StatusCodes.Status403Forbidden);
     }
 
-    private static async Task<Results<Ok<UpgradeTenantCommandResponse>, BadRequest>> Handler(
+    private static async ValueTask<Results<Ok<UpgradeTenantCommandResponse>, BadRequest>> Handler(
         string id,
         UpgradeTenantCommand command,
         IMediator dispatcher,

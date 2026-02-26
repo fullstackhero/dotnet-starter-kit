@@ -24,7 +24,7 @@ public static class RevokeSessionEndpoint
         .Produces(StatusCodes.Status404NotFound);
     }
 
-    private static async Task<Results<NoContent, NotFound>> Handler(
+    private static async ValueTask<Results<NoContent, NotFound>> Handler(
         Guid sessionId,
         IMediator mediator,
         CancellationToken cancellationToken)

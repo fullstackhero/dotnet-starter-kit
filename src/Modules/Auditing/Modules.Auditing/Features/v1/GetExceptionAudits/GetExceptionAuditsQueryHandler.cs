@@ -84,7 +84,7 @@ public sealed class GetExceptionAuditsQueryHandler : IQueryHandler<GetExceptionA
         return audits;
     }
 
-    private static async Task<IReadOnlyList<AuditSummaryDto>> ProjectToDto(IQueryable<AuditRecord> audits, CancellationToken cancellationToken)
+    private static async ValueTask<IReadOnlyList<AuditSummaryDto>> ProjectToDto(IQueryable<AuditRecord> audits, CancellationToken cancellationToken)
     {
         return await audits
             .OrderByDescending(a => a.OccurredAtUtc)

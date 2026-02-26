@@ -27,7 +27,7 @@ public static class ChangeTenantActivationEndpoint
             .Produces(StatusCodes.Status404NotFound);
     }
 
-    private static async Task<Results<Ok<TenantLifecycleResultDto>, BadRequest>> Handler(
+    private static async ValueTask<Results<Ok<TenantLifecycleResultDto>, BadRequest>> Handler(
         [FromRoute] string id,
         [FromBody] ChangeTenantActivationCommand command,
         IMediator mediator)

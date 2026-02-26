@@ -4,7 +4,7 @@ namespace FSH.Modules.Identity.Contracts.Services;
 
 public interface ISessionService
 {
-    Task<UserSessionDto> CreateSessionAsync(
+    ValueTask<UserSessionDto> CreateSessionAsync(
         string userId,
         string refreshTokenHash,
         string ipAddress,
@@ -12,61 +12,61 @@ public interface ISessionService
         DateTime expiresAt,
         CancellationToken cancellationToken = default);
 
-    Task<List<UserSessionDto>> GetUserSessionsAsync(
+    ValueTask<List<UserSessionDto>> GetUserSessionsAsync(
         string userId,
         CancellationToken cancellationToken = default);
 
-    Task<List<UserSessionDto>> GetUserSessionsForAdminAsync(
+    ValueTask<List<UserSessionDto>> GetUserSessionsForAdminAsync(
         string userId,
         CancellationToken cancellationToken = default);
 
-    Task<UserSessionDto?> GetSessionAsync(
+    ValueTask<UserSessionDto?> GetSessionAsync(
         Guid sessionId,
         CancellationToken cancellationToken = default);
 
-    Task<bool> RevokeSessionAsync(
+    ValueTask<bool> RevokeSessionAsync(
         Guid sessionId,
         string revokedBy,
         string? reason = null,
         CancellationToken cancellationToken = default);
 
-    Task<int> RevokeAllSessionsAsync(
+    ValueTask<int> RevokeAllSessionsAsync(
         string userId,
         string revokedBy,
         Guid? exceptSessionId = null,
         string? reason = null,
         CancellationToken cancellationToken = default);
 
-    Task<int> RevokeAllSessionsForAdminAsync(
+    ValueTask<int> RevokeAllSessionsForAdminAsync(
         string userId,
         string revokedBy,
         string? reason = null,
         CancellationToken cancellationToken = default);
 
-    Task<bool> RevokeSessionForAdminAsync(
+    ValueTask<bool> RevokeSessionForAdminAsync(
         Guid sessionId,
         string revokedBy,
         string? reason = null,
         CancellationToken cancellationToken = default);
 
-    Task UpdateSessionActivityAsync(
+    ValueTask UpdateSessionActivityAsync(
         string refreshTokenHash,
         CancellationToken cancellationToken = default);
 
-    Task UpdateSessionRefreshTokenAsync(
+    ValueTask UpdateSessionRefreshTokenAsync(
         string oldRefreshTokenHash,
         string newRefreshTokenHash,
         DateTime newExpiresAt,
         CancellationToken cancellationToken = default);
 
-    Task<bool> ValidateSessionAsync(
+    ValueTask<bool> ValidateSessionAsync(
         string refreshTokenHash,
         CancellationToken cancellationToken = default);
 
-    Task<Guid?> GetSessionIdByRefreshTokenAsync(
+    ValueTask<Guid?> GetSessionIdByRefreshTokenAsync(
         string refreshTokenHash,
         CancellationToken cancellationToken = default);
 
-    Task CleanupExpiredSessionsAsync(
+    ValueTask CleanupExpiredSessionsAsync(
         CancellationToken cancellationToken = default);
 }

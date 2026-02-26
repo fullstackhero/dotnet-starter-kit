@@ -40,7 +40,7 @@ public sealed class SessionService : ISessionService
         }
     }
 
-    public async Task<UserSessionDto> CreateSessionAsync(
+    public async ValueTask<UserSessionDto> CreateSessionAsync(
         string userId,
         string refreshTokenHash,
         string ipAddress,
@@ -75,7 +75,7 @@ public sealed class SessionService : ISessionService
         return MapToDto(session, isCurrentSession: true);
     }
 
-    public async Task<List<UserSessionDto>> GetUserSessionsAsync(
+    public async ValueTask<List<UserSessionDto>> GetUserSessionsAsync(
         string userId,
         CancellationToken cancellationToken = default)
     {
@@ -96,7 +96,7 @@ public sealed class SessionService : ISessionService
         return sessions.Select(s => MapToDto(s, isCurrentSession: false)).ToList();
     }
 
-    public async Task<List<UserSessionDto>> GetUserSessionsForAdminAsync(
+    public async ValueTask<List<UserSessionDto>> GetUserSessionsForAdminAsync(
         string userId,
         CancellationToken cancellationToken = default)
     {
@@ -112,7 +112,7 @@ public sealed class SessionService : ISessionService
         return sessions.Select(s => MapToDto(s, isCurrentSession: false)).ToList();
     }
 
-    public async Task<UserSessionDto?> GetSessionAsync(
+    public async ValueTask<UserSessionDto?> GetSessionAsync(
         Guid sessionId,
         CancellationToken cancellationToken = default)
     {
@@ -126,7 +126,7 @@ public sealed class SessionService : ISessionService
         return session is null ? null : MapToDto(session, isCurrentSession: false);
     }
 
-    public async Task<bool> RevokeSessionAsync(
+    public async ValueTask<bool> RevokeSessionAsync(
         Guid sessionId,
         string revokedBy,
         string? reason = null,
@@ -161,7 +161,7 @@ public sealed class SessionService : ISessionService
         return true;
     }
 
-    public async Task<int> RevokeAllSessionsAsync(
+    public async ValueTask<int> RevokeAllSessionsAsync(
         string userId,
         string revokedBy,
         Guid? exceptSessionId = null,
@@ -202,7 +202,7 @@ public sealed class SessionService : ISessionService
         return sessions.Count;
     }
 
-    public async Task<int> RevokeAllSessionsForAdminAsync(
+    public async ValueTask<int> RevokeAllSessionsForAdminAsync(
         string userId,
         string revokedBy,
         string? reason = null,
@@ -231,7 +231,7 @@ public sealed class SessionService : ISessionService
         return sessions.Count;
     }
 
-    public async Task<bool> RevokeSessionForAdminAsync(
+    public async ValueTask<bool> RevokeSessionForAdminAsync(
         Guid sessionId,
         string revokedBy,
         string? reason = null,
@@ -260,7 +260,7 @@ public sealed class SessionService : ISessionService
         return true;
     }
 
-    public async Task UpdateSessionActivityAsync(
+    public async ValueTask UpdateSessionActivityAsync(
         string refreshTokenHash,
         CancellationToken cancellationToken = default)
     {
@@ -276,7 +276,7 @@ public sealed class SessionService : ISessionService
         }
     }
 
-    public async Task UpdateSessionRefreshTokenAsync(
+    public async ValueTask UpdateSessionRefreshTokenAsync(
         string oldRefreshTokenHash,
         string newRefreshTokenHash,
         DateTime newExpiresAt,
@@ -299,7 +299,7 @@ public sealed class SessionService : ISessionService
         }
     }
 
-    public async Task<bool> ValidateSessionAsync(
+    public async ValueTask<bool> ValidateSessionAsync(
         string refreshTokenHash,
         CancellationToken cancellationToken = default)
     {
@@ -317,7 +317,7 @@ public sealed class SessionService : ISessionService
         return !session.IsRevoked && session.ExpiresAt > DateTime.UtcNow;
     }
 
-    public async Task<Guid?> GetSessionIdByRefreshTokenAsync(
+    public async ValueTask<Guid?> GetSessionIdByRefreshTokenAsync(
         string refreshTokenHash,
         CancellationToken cancellationToken = default)
     {
@@ -330,7 +330,7 @@ public sealed class SessionService : ISessionService
         return session?.Id;
     }
 
-    public async Task CleanupExpiredSessionsAsync(
+    public async ValueTask CleanupExpiredSessionsAsync(
         CancellationToken cancellationToken = default)
     {
         var cutoffDate = DateTime.UtcNow.AddDays(-30); // Keep revoked sessions for 30 days for audit
