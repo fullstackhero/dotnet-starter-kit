@@ -26,7 +26,7 @@ public static class UpdateRolePermissionsEndpoint
         .Produces(StatusCodes.Status404NotFound);
     }
 
-    private static async Task<Results<Ok<string>, BadRequest>> Handler(
+    private static async ValueTask<Results<Ok<string>, BadRequest>> Handler(
         string id,
         [FromBody] UpdatePermissionsCommand request,
         IMediator mediator,

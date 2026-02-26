@@ -25,7 +25,7 @@ public static class ToggleUserStatusEndpoint
         .Produces(StatusCodes.Status400BadRequest);
     }
 
-    private static async Task<Results<NoContent, BadRequest>> Handler(
+    private static async ValueTask<Results<NoContent, BadRequest>> Handler(
         string id,
         [FromBody] ToggleUserStatusCommand command,
         IMediator mediator,

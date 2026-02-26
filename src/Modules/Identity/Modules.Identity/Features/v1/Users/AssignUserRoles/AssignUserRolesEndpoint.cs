@@ -24,7 +24,7 @@ public static class AssignUserRolesEndpoint
         .Produces(StatusCodes.Status400BadRequest);
     }
 
-    private static async Task<Results<Ok<string>, BadRequest>> Handler(
+    private static async ValueTask<Results<Ok<string>, BadRequest>> Handler(
         string id,
         AssignUserRolesCommand command,
         IMediator mediator,

@@ -16,7 +16,7 @@ public static class RefreshTokenEndpoint
         ArgumentNullException.ThrowIfNull(endpoint);
 
         return endpoint.MapPost("/token/refresh",
-            [AllowAnonymous] async Task<Results<Ok<RefreshTokenCommandResponse>, UnauthorizedHttpResult, ProblemHttpResult>>
+            [AllowAnonymous] async ValueTask<Results<Ok<RefreshTokenCommandResponse>, UnauthorizedHttpResult, ProblemHttpResult>>
             ([FromBody] RefreshTokenCommand command,
             [FromHeader(Name = "tenant")] string tenant,
             [FromServices] IMediator mediator,
