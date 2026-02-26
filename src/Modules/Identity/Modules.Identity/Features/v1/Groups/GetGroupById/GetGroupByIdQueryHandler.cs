@@ -29,7 +29,7 @@ public sealed class GetGroupByIdQueryHandler : IQueryHandler<GetGroupByIdQuery, 
                 IsSystemGroup = g.IsSystemGroup,
                 MemberCount = g.UserGroups.Count,
                 RoleIds = g.GroupRoles.Select(gr => gr.RoleId).ToList().AsReadOnly(),
-                RoleNames = g.GroupRoles.Select(gr => gr.Role.Name!).ToList().AsReadOnly(),
+                RoleNames = g.GroupRoles.Select(gr => gr.Role!.Name!).ToList().AsReadOnly(),
                 CreatedOnUtc = g.CreatedOnUtc
             })
             .FirstOrDefaultAsync(cancellationToken)

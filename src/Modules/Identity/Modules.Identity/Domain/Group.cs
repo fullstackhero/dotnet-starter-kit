@@ -2,9 +2,8 @@ using FSH.Framework.Core.Domain;
 
 namespace FSH.Modules.Identity.Domain;
 
-public class Group : IAuditableEntity, ISoftDeletable
+public class Group : BaseEntity<Guid>, IAuditableEntity, ISoftDeletable
 {
-    public Guid Id { get; private set; }
     public string Name { get; private set; } = default!;
     public string? Description { get; private set; }
     public bool IsDefault { get; private set; }
