@@ -36,7 +36,7 @@ public sealed class DatabaseOptionsStartupLogger : IHostedService
         var options = _options.Value;
         if (_logger.IsEnabled(LogLevel.Information))
         {
-            _logger.LogInformation("Database Options: Provider={Provider}, ConnectionString={ConnectionString}", options.Provider, options.ConnectionString);
+            _logger.LogInformation("Database Options: Provider={Provider}", options.Provider);
             _logger.LogInformation("for docs: https://www.fullstackhero.net");
             _logger.LogInformation("sponsor: https://opencollective.com/fullstackhero");
         }
