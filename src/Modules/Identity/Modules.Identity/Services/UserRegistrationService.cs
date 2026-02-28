@@ -258,10 +258,8 @@ internal sealed class UserRegistrationService(
         string source,
         CancellationToken cancellationToken = default)
     {
-        var tenantId = multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id;
+        var tenantId = multiTenantContextAccessor.MultiTenantContext?.TenantInfo?.Id;
         user.RecordRegistered(tenantId);
-
-        await db.SaveChangesAsync(cancellationToken);
 
         var integrationEvent = new UserRegisteredIntegrationEvent(
             Id: Guid.NewGuid(),
