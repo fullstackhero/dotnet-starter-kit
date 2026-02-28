@@ -499,3 +499,6 @@ tmpclaude**
 
 # Auto Claude data directory
 .auto-claude/
+
+# Aspire dashboard local settings (user-specific, not for version control)
+.aspire/
