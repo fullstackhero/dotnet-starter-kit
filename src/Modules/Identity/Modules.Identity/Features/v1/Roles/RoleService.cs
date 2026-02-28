@@ -67,6 +67,11 @@ public class RoleService(RoleManager<FshRole> roleManager,
 
         _ = role ?? throw new NotFoundException("role not found");
 
+        if (RoleConstants.IsDefault(role.Name!))
+        {
+            throw new CustomException($"Not allowed to delete {role.Name} Role.");
+        }
+
         await roleManager.DeleteAsync(role);
     }
 

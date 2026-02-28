@@ -164,12 +164,12 @@
                                            OnClick="@(() => EditRole(context.Item))"
                                            Disabled="@IsProtectedRole(context.Item.Name)" />
                         </MudTooltip>
-                        <MudTooltip Text="@(IsProtectedRole(context.Item.Name) ? "Protected roles cannot be deleted" : "Delete Role")">
+                        <MudTooltip Text="@(IsDeletionProtectedRole(context.Item.Name) ? "System roles cannot be deleted" : "Delete Role")">
                             <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                            Size="Size.Small"
                                            Color="Color.Error"
                                            OnClick="@(() => DeleteRole(context.Item))"
-                                           Disabled="@(IsProtectedRole(context.Item.Name) || _busyRoleId == context.Item.Id)" />
+                                           Disabled="@(IsDeletionProtectedRole(context.Item.Name) || _busyRoleId == context.Item.Id)" />
                         </MudTooltip>
                     </MudStack>
                 </CellTemplate>
@@ -214,10 +214,16 @@
     private RoleStats _stats = new();
     private FilterModel _filter = new();
 
-    // Only Admin roles are truly protected - Basic can be edited by tenant admins
+    // Only Admin roles are truly protected from modification.
     private static readonly HashSet<string> ProtectedRoles = new(StringComparer.OrdinalIgnoreCase)
     {
         "Admin", "Administrator"
+    };
+
+    // System roles that cannot be deleted, but some (like Basic) can be edited
+    private static readonly HashSet<string> DeletionProtectedRoles = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Admin", "Administrator", "Basic"
     };
 
     // For display purposes, these are considered "system" roles
@@ -308,6 +314,9 @@
     private static bool IsProtectedRole(string? roleName) =>
         !string.IsNullOrEmpty(roleName) && ProtectedRoles.Contains(roleName);
 
+    private static bool IsDeletionProtectedRole(string? roleName) =>
+        !string.IsNullOrEmpty(roleName) && DeletionProtectedRoles.Contains(roleName);
+
     private void GoToPermissions(string? id)
     {
         if (Guid.TryParse(id, out var guid))
@@ -378,9 +387,9 @@
     {
         if (string.IsNullOrWhiteSpace(role.Id)) return;
 
-        if (IsProtectedRole(role.Name))
+        if (IsDeletionProtectedRole(role.Name))
         {
-            Snackbar.Add("Protected roles cannot be deleted.", Severity.Warning);
+            Snackbar.Add("System roles cannot be deleted.", Severity.Warning);
             return;
         }
 
@@ -406,10 +415,10 @@
 
     private async Task BulkDelete()
     {
-        var roles = _selectedRoles.Where(r => !IsProtectedRole(r.Name)).ToList();
+        var roles = _selectedRoles.Where(r => !IsDeletionProtectedRole(r.Name)).ToList();
         if (!roles.Any())
         {
-            Snackbar.Add("No deletable roles selected. Protected roles cannot be deleted.", Severity.Info);
+            Snackbar.Add("No deletable roles selected. System roles cannot be deleted.", Severity.Info);
             return;
         }
 
