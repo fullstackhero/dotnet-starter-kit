@@ -1,11 +1,10 @@
+using FSH.Framework.Core.Domain;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FSH.Modules.Multitenancy.Provisioning;
 
-public sealed class TenantProvisioningStep
+public sealed class TenantProvisioningStep : BaseEntity<Guid>
 {
-    public Guid Id { get; private set; } = Guid.NewGuid();
-
     public Guid ProvisioningId { get; private set; }
 
     public TenantProvisioningStepName Step { get; private set; }
@@ -27,6 +26,7 @@ public sealed class TenantProvisioningStep
 
     public TenantProvisioningStep(Guid provisioningId, TenantProvisioningStepName step)
     {
+        Id = Guid.NewGuid();
         ProvisioningId = provisioningId;
         Step = step;
     }

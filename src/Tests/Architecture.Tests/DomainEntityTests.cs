@@ -78,20 +78,36 @@ public class DomainEntityTests
     }
 
     [Fact]
-    public void Entities_In_Core_Namespace_Should_Implement_IEntity()
+    public void Domain_Entities_Should_Implement_IEntity_Or_Inherit_BaseEntity()
     {
+        // Classes explicitly exempt from this rule with documented reasons:
+        // - ASP.NET Identity classes: cannot inherit BaseEntity<T> because they already
+        //   inherit from IdentityUser / IdentityRole / IdentityRoleClaim (no multiple class inheritance in C#)
+        // - Join tables / write-only models: no business identity of their own
+        var knownExemptions = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "FSH.Modules.Identity.Domain.FshUser",          // inherits IdentityUser
+            "FSH.Modules.Identity.Domain.FshRole",          // inherits IdentityRole
+            "FSH.Modules.Identity.Domain.FshRoleClaim",     // inherits IdentityRoleClaim
+            "FSH.Modules.Identity.Domain.GroupRole",        // join table (GroupId + RoleId composite key)
+            "FSH.Modules.Identity.Domain.UserGroup",        // join table (UserId + GroupId composite key)
+            "FSH.Modules.Identity.Domain.PasswordHistory",  // write-only audit log, no business lifecycle
+        };
+
         var failures = new List<string>();
 
         foreach (var module in ModuleAssemblies)
         {
             var entityTypes = module.GetTypes()
                 .Where(t => t.IsClass && !t.IsAbstract)
-                .Where(t => t.Namespace?.Contains(".Core.", StringComparison.Ordinal) == true)
+                .Where(t => t.Namespace?.Contains(".Core.", StringComparison.Ordinal) == true
+                         || t.Namespace?.Contains(".Domain", StringComparison.Ordinal) == true)
                 .Where(t => t.Name.EndsWith("Entity", StringComparison.Ordinal)
                          || (t.Namespace?.Contains(".Domain", StringComparison.Ordinal) == true
                              && !t.Name.EndsWith("Event", StringComparison.Ordinal)
                              && !t.Name.EndsWith("Dto", StringComparison.Ordinal)
-                             && !t.Name.EndsWith("Exception", StringComparison.Ordinal)));
+                             && !t.Name.EndsWith("Exception", StringComparison.Ordinal)))
+                .Where(t => !knownExemptions.Contains(t.FullName ?? string.Empty));
 
             foreach (var entityType in entityTypes)
             {
@@ -109,7 +125,7 @@ public class DomainEntityTests
         }
 
         failures.ShouldBeEmpty(
-            $"Entities in Core namespace should implement IEntity<T> or inherit BaseEntity<T>. " +
+            $"All domain entities should implement IEntity<T> or inherit BaseEntity<T>. " +
             $"Violations: {string.Join(", ", failures)}");
     }
 

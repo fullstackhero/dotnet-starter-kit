@@ -3,11 +3,8 @@ using FSH.Modules.Identity.Domain.Events;
 
 namespace FSH.Modules.Identity.Domain;
 
-public class UserSession : IHasDomainEvents
+public class UserSession : BaseEntity<Guid>
 {
-    private readonly List<IDomainEvent> _domainEvents = [];
-
-    public Guid Id { get; private set; }
     public string UserId { get; private set; } = default!;
     public string RefreshTokenHash { get; private set; } = default!;
     public string IpAddress { get; private set; } = default!;
@@ -27,11 +24,6 @@ public class UserSession : IHasDomainEvents
 
     // Navigation property (init for EF Core materialization)
     public virtual FshUser? User { get; init; }
-
-    // IHasDomainEvents implementation
-    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
-    public void ClearDomainEvents() => _domainEvents.Clear();
-    private void AddDomainEvent(IDomainEvent domainEvent) => _domainEvents.Add(domainEvent);
 
     private UserSession() { } // EF Core
 

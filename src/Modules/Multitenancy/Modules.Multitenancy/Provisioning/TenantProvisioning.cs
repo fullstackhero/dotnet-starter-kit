@@ -1,9 +1,9 @@
+using FSH.Framework.Core.Domain;
+
 namespace FSH.Modules.Multitenancy.Provisioning;
 
-public sealed class TenantProvisioning
+public sealed class TenantProvisioning : BaseEntity<Guid>
 {
-    public Guid Id { get; private set; } = Guid.NewGuid();
-
     public string TenantId { get; private set; } = default!;
 
     public string CorrelationId { get; private set; } = default!;
@@ -30,6 +30,7 @@ public sealed class TenantProvisioning
 
     public TenantProvisioning(string tenantId, string correlationId)
     {
+        Id = Guid.NewGuid();
         TenantId = tenantId;
         CorrelationId = correlationId;
         CreatedUtc = DateTime.UtcNow;
