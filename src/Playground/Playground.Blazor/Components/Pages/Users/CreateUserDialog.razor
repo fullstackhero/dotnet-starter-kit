@@ -50,14 +50,14 @@
                     <MudDivider Class="mt-1" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_model.FirstName" Label="First Name" Placeholder="Enter first name"
-                                  Required="true" RequiredError="First name is required" Variant="Variant.Outlined"
-                                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Badge" Immediate="true" />
+                    <MudTextField @bind-Value="_model.FirstName"                                  Label="First Name" Placeholder="Enter first name"
+                                  Required="true"           RequiredError="First name is required"           Variant="Variant.Outlined"
+                                  Adornment="Adornment.Start"                     AdornmentIcon="@Icons.Material.Filled.Badge"                     Immediate="true" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_model.LastName" Label="Last Name" Placeholder="Enter last name"
-                                  Required="true" RequiredError="Last name is required" Variant="Variant.Outlined"
-                                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Badge" Immediate="true" />
+                    <MudTextField @bind-Value="_model.LastName"                     Label="Last Name"                      Placeholder="Enter last name"
+                                  Required="true"                                RequiredError="Last name is required"                                Variant="Variant.Outlined"
+                                  Adornment="Adornment.Start"       AdornmentIcon="@Icons.Material.Filled.Badge"       Immediate="true" />
                 </MudItem>
 
                 @* Account Details Section *@
@@ -69,22 +69,22 @@
                     <MudDivider Class="mt-1" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_model.Email" Label="Email Address" Placeholder="user@example.com"
-                                  Required="true" RequiredError="Email is required" InputType="InputType.Email"
-                                  Variant="Variant.Outlined" Adornment="Adornment.Start"
+                    <MudTextField @bind-Value="_model.Email"       Label="Email Address"       Placeholder="user@example.com"
+                                  Required="true"                  RequiredError="Email is required"                  InputType="InputType.Email"
+                                  Variant="Variant.Outlined"                            Adornment="Adornment.Start"
                                   AdornmentIcon="@Icons.Material.Filled.AlternateEmail"
-                                  HelperText="Used for notifications and recovery" Immediate="true" />
+                                  HelperText="Used for notifications and recovery"             Immediate="true" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_model.UserName" Label="Username" Placeholder="Choose a username"
-                                  Required="true" RequiredError="Username is required" Variant="Variant.Outlined"
-                                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AccountCircle"
-                                  HelperText="Used for login. Can be same as email." Immediate="true" />
+                    <MudTextField @bind-Value="_model.UserName"             Label="Username"             Placeholder="Choose a username"
+                                  Required="true"                       RequiredError="Username is required"                        Variant="Variant.Outlined"
+                                  Adornment="Adornment.Start"                                  AdornmentIcon="@Icons.Material.Filled.AccountCircle"
+                                  HelperText="Used for login. Can be same as email."         Immediate="true" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_model.PhoneNumber" Label="Phone Number" Placeholder="+1 (555) 123-4567"
-                                  Variant="Variant.Outlined" Adornment="Adornment.Start"
-                                  AdornmentIcon="@Icons.Material.Filled.Phone" HelperText="Optional - for 2FA or contact" />
+                    <MudTextField @bind-Value="_model.PhoneNumber"         Label="Phone Number"         Placeholder="+1 (555) 123-4567"
+                                  Variant="Variant.Outlined"                   Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Phone"                             HelperText="Optional - for 2FA or contact" />
                 </MudItem>
 
                 @* Security Section *@
@@ -96,18 +96,18 @@
                     <MudDivider Class="mt-1" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_model.Password" Label="Password" Placeholder="Create a strong password"
-                                  Required="true" RequiredError="Password is required"
-                                  InputType="@(_showPassword? InputType.Text: InputType.Password)" Adornment="Adornment.End"
+                    <MudTextField @bind-Value="_model.Password"                              Label="Password"                              Placeholder="Create a strong password"
+                                  Required="true"     RequiredError="Password is required"
+                                  InputType="@(_showPassword? InputType.Text: InputType.Password)"               Adornment="Adornment.End"
                                   AdornmentIcon="@(_showPassword? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
                                   OnAdornmentClick="TogglePasswordVisibility" AdornmentAriaLabel="Toggle password visibility"
-                                  Variant="Variant.Outlined" HelperText="Minimum 10 characters" Immediate="true" />
+                                  Variant="Variant.Outlined"          HelperText="Minimum 10 characters"           Immediate="true" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_model.ConfirmPassword" Label="Confirm Password"
-                                  Placeholder="Re-enter password" Required="true" RequiredError="Please confirm password"
-                                  InputType="@(_showPassword? InputType.Text: InputType.Password)" Variant="Variant.Outlined"
-                                  HelperText="Must match the password above" Immediate="true" />
+                    <MudTextField @bind-Value="_model.ConfirmPassword"           Label="Confirm Password"
+                                  Placeholder="Re-enter password"                     Required="true"                     RequiredError="Please confirm password"
+                                  InputType="@(_showPassword? InputType.Text: InputType.Password)"                               Variant="Variant.Outlined"
+                                  HelperText="Must match the password above"      Immediate="true" />
                 </MudItem>
 
                 @* Info Alert *@
@@ -126,10 +126,10 @@
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel" Disabled="_busy">
+        <MudButton Variant="Variant.Text"       Color="Color.Default"          OnClick="Cancel"                   Disabled="_busy">
             Cancel
         </MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit" Disabled="_busy"
+        <MudButton Variant="Variant.Filled"                   Color="Color.Primary"                   OnClick="Submit"                   Disabled="_busy"
                    StartIcon="@(_busy ? null : Icons.Material.Filled.PersonAdd)">
             @if (_busy)
             {
