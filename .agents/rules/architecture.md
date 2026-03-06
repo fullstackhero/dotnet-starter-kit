@@ -146,7 +146,7 @@ Features/v1/CreateProduct/
 | Shared | DTOs, constants |
 | Eventing.Abstractions | Event contracts |
 
-**Protected:** BuildingBlocks should NOT be modified without approval. See `.claude/rules/buildingblocks-protection.md`.
+**Protected:** BuildingBlocks should NOT be modified without approval. See `.agents/rules/buildingblocks-protection.md`.
 
 ### 7. Dependency Flow
 
@@ -243,5 +243,5 @@ public void Domain_Should_Not_Depend_On_Infrastructure()
 
 For implementation details, see:
 - `ARCHITECTURE_ANALYSIS.md` (deep dive)
-- `.claude/rules/modules.md` (module patterns)
-- `.claude/rules/persistence.md` (data access patterns)
+- `.agents/rules/modules.md` (module patterns)
+- `.agents/rules/persistence.md` (data access patterns)
