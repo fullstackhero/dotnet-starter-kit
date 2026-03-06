@@ -64,7 +64,7 @@ public async Task Handle_ValidCommand_ReturnsId()
 
 - **xUnit** - Test framework
 - **FluentAssertions** - `.Should()` assertions
-- **Moq** - `Mock<T>` for dependencies
+- **NSubstitute** - `Substitute.For<T>()` for dependencies
 
 ## Architecture Tests
 
