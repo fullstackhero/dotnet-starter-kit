@@ -171,6 +171,8 @@ public sealed class TenantThemeService : ITenantThemeService
         }
 
         await InvalidateCacheAsync(tenantId, ct).ConfigureAwait(false);
+        // Also invalidate default cache in case this tenant was the default
+        await _cache.RemoveItemAsync(DefaultThemeCacheKey, ct).ConfigureAwait(false);
 
         _logger.LogInformation("Reset theme to defaults for tenant {TenantId}", tenantId);
     }
