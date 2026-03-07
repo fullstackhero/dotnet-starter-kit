@@ -1,6 +1,8 @@
+using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Caching;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Shared.Constants;
+using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Data;
 using FSH.Modules.Identity.Domain;
@@ -13,12 +15,15 @@ internal sealed class UserPermissionService(
     UserManager<FshUser> userManager,
     RoleManager<FshRole> roleManager,
     IdentityDbContext db,
-    ICacheService cache) : IUserPermissionService
+    ICacheService cache,
+    IMultiTenantContextAccessor<AppTenantInfo> tenantAccessor) : IUserPermissionService
 {
     public async Task<List<string>?> GetPermissionsAsync(string userId, CancellationToken cancellationToken)
     {
+        var tenantId = tenantAccessor.MultiTenantContext?.TenantInfo?.Id ?? throw new InvalidOperationException("Tenant context required.");
+
         var permissions = await cache.GetOrSetAsync(
-            GetPermissionCacheKey(userId),
+            GetPermissionCacheKey(tenantId, userId),
             async () =>
             {
                 var user = await userManager.FindByIdAsync(userId);
@@ -43,9 +48,9 @@ internal sealed class UserPermissionService(
         return permissions;
     }
 
-    public static string GetPermissionCacheKey(string userId)
+    public static string GetPermissionCacheKey(string tenantId, string userId)
     {
-        return $"perm:{userId}";
+        return $"perm:{tenantId}:{userId}";
     }
 
     public async Task<bool> HasPermissionAsync(string userId, string permission, CancellationToken cancellationToken = default)
@@ -57,6 +62,7 @@ internal sealed class UserPermissionService(
 
     public Task InvalidatePermissionCacheAsync(string userId, CancellationToken cancellationToken)
     {
-        return cache.RemoveItemAsync(GetPermissionCacheKey(userId), cancellationToken);
+        var tenantId = tenantAccessor.MultiTenantContext?.TenantInfo?.Id ?? throw new InvalidOperationException("Tenant context required.");
+        return cache.RemoveItemAsync(GetPermissionCacheKey(tenantId, userId), cancellationToken);
     }
 }

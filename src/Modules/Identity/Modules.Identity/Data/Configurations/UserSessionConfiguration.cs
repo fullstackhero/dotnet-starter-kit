@@ -12,6 +12,7 @@ public class UserSessionConfiguration : IEntityTypeConfiguration<UserSession>
 
         builder
             .ToTable("UserSessions", IdentityModuleConstants.SchemaName)
+            .IsMultiTenant()
             .HasKey(s => s.Id);
 
         builder

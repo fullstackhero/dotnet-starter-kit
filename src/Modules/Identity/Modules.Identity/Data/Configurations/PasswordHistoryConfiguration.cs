@@ -12,6 +12,7 @@ public class PasswordHistoryConfiguration : IEntityTypeConfiguration<PasswordHis
 
         builder
             .ToTable("PasswordHistory", IdentityModuleConstants.SchemaName)
+            .IsMultiTenant()
             .HasKey(ph => ph.Id);
 
         builder
