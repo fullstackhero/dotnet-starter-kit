@@ -12,8 +12,7 @@ public class UserSessionConfiguration : IEntityTypeConfiguration<UserSession>
         ArgumentNullException.ThrowIfNull(builder);
 
         builder
-            .ToTable("UserSessions", IdentityModuleConstants.SchemaName)
-            .IsMultiTenant();
+            .ToTable("UserSessions", IdentityModuleConstants.SchemaName);
 
         builder.HasKey(s => s.Id);
 

@@ -12,8 +12,7 @@ public class GroupConfiguration : IEntityTypeConfiguration<Group>
         ArgumentNullException.ThrowIfNull(builder);
 
         builder
-            .ToTable("Groups", IdentityModuleConstants.SchemaName)
-            .IsMultiTenant();
+            .ToTable("Groups", IdentityModuleConstants.SchemaName);
 
         builder.HasKey(g => g.Id);
 

@@ -12,8 +12,7 @@ public class PasswordHistoryConfiguration : IEntityTypeConfiguration<PasswordHis
         ArgumentNullException.ThrowIfNull(builder);
 
         builder
-            .ToTable("PasswordHistory", IdentityModuleConstants.SchemaName)
-            .IsMultiTenant();
+            .ToTable("PasswordHistory", IdentityModuleConstants.SchemaName);
 
         builder.HasKey(ph => ph.Id);
 
