@@ -1,5 +1,7 @@
 using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Shared.Storage;
+using FSH.Framework.Storage;
 using FSH.Framework.Storage.DTOs;
 using FSH.Framework.Storage.Local;
 using Microsoft.AspNetCore.Hosting;
@@ -28,11 +30,11 @@ public class LocalStorageServiceTests
         var request = new FileUploadRequest
         {
             FileName = "test.png",
-            Data = new MemoryStream([1, 2, 3])
+            Data = [1, 2, 3]
         };
 
         // Act
-        var resultPath = await service.UploadAsync<DummyFile>(request, FileType.Image, CancellationToken.None);
+        var resultPath = await service.UploadAsync<DummyFile>(request, FSH.Framework.Storage.FileType.Image, CancellationToken.None);
 
         // Assert
         resultPath.ShouldContain("test-tenant-123");

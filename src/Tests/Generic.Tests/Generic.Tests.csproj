@@ -21,8 +21,12 @@
     </PackageReference>
     <PackageReference Include="Shouldly" />
     <PackageReference Include="AutoFixture" />
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\BuildingBlocks\Eventing\Eventing.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks\Eventing.Abstractions\Eventing.Abstractions.csproj" />
     <ProjectReference Include="..\..\BuildingBlocks\Shared\Shared.csproj" />
     <ProjectReference Include="..\..\BuildingBlocks\Storage\Storage.csproj" />
     <ProjectReference Include="..\..\Modules\Auditing\Modules.Auditing\Modules.Auditing.csproj" />
