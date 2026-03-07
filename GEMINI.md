@@ -20,7 +20,7 @@ src/
 │   ├── Multitenancy/   # Tenant management (Finbuckle)
 │   └── Auditing/       # Audit logging
 ├── Playground/         # Reference application
-└── Tests/              # Architecture + unit tests
+└── Tests/              # Architecture, Integration, Functional & Spec Tests
 ```
 
 ## The Pattern

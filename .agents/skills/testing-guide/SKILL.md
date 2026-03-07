@@ -12,10 +12,11 @@ FSH uses a layered testing strategy with architecture tests as guardrails.
 ```
 src/Tests/
 ├── Architecture.Tests/    # Enforces layering rules
-├── Generic.Tests/         # Shared test utilities
-├── Identity.Tests/        # Identity module tests
-├── Multitenancy.Tests/    # Multitenancy module tests
-└── Auditing.Tests/        # Auditing module tests
+├── Shared.Tests/          # Core infrastructure (Testcontainers, WebApplicationFactory)
+├── Integration.Tests/     # Database & Mediator testing (No HTTP)
+├── Functional.Tests/      # End-to-End vertical slices via HTTP
+├── Spec.Tests/            # BDD Acceptance specs
+└── {Module}.Tests/        # Unit tests for domain logic (Use Mocks ONLY. NO InMemoryDatabase)
 ```
 
 ## Architecture Tests
@@ -215,9 +216,10 @@ dotnet test --filter "FullyQualifiedName~Create{Entity}HandlerTests"
 
 ## Key Rules
 
-1. **Architecture tests are mandatory** - They enforce module boundaries
-2. **Validators need tests** - Cover edge cases
-3. **Handlers need tests** - Mock dependencies
-4. **Entities need tests** - Test factory methods and domain logic
-5. **Use FluentAssertions** - `.Should()` syntax
-6. **Use NSubstitute for mocking** - `Substitute.For<T>()` pattern
+1. **Architecture tests are mandatory** - They enforce module boundaries.
+2. **No InMemoryDatabase** - EF Core InMemory provider is an anti-pattern. Use robust `Testcontainers` (PostgreSQL/Redis) for Integration/Functional tests, and strictly `NSubstitute` for Unit Tests.
+3. **Integration Tests** - Inherit from `BaseIntegrationTest`. Test commands/queries through `ISender` without HTTP overhead.
+4. **Functional Tests** - Inherit from `BaseFunctionalTest`. Test the full vertical slice via `HttpClient` (routing, auth, middlewares, DB).
+5. **Spec-Driven Tests Workflow** - Do NOT create separate branches for testing. Tests must be written *during* the feature implementation branch (Red-Green-Refactor) to satisfy the SDD process.
+6. **Use Shouldly** - `.ShouldBe()` syntax.
+7. **Use NSubstitute for mocking** - `Substitute.For<T>()` pattern.
