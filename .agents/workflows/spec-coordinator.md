@@ -19,14 +19,6 @@ Never work directly on `develop`.
 
 ---
 
-# Phase 0: Branch Setup
-Before creating any files, you MUST ensure you are on a dedicated branch for the issue.
-If the user provides a desired spec name (e.g., `tenancy-isolation-nomigration`), execute:
-`git checkout -b fix/{spec-name}` (or `feat/{spec-name}`).
-Never work directly on `develop`.
-
----
-
 # Phase 1: Specify (`1-specify.md`)
 The goal is to define exactly WHAT needs to be built or fixed. Ensure the user's requirements are crystal clear.
 Create `1-specify.md` using the following Markdown template:
