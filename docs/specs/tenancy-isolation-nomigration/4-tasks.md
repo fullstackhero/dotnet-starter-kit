@@ -8,7 +8,7 @@
 - [x] Write integration test for `HasProcessedAsync` idempotency across tenants (EVENTING-2) - *Implemented in Generic.Tests for better isolation.*
 - [x] Write integration test for `OutboxDispatcher` to ensure tenant context is restored (EVENTING-1) - *Implemented in Generic.Tests for better isolation.*
 - [x] Write integration test for `AuditDbContext` model creation (AUDITING-1) - *Implemented in Auditing.Tests.*
-- [x] Write unit tests/validation to ensure `UserSession`, `GroupRole`, `UserGroup`, and `PasswordHistory` entity configurations include `IsMultiTenant()` (IDENTITY-1, IDENTITY-2).
+- [ ] ~~Write unit tests/validation to ensure `UserSession`, `GroupRole`, `UserGroup`, and `PasswordHistory` entity configurations include `IsMultiTenant()` (IDENTITY-1, IDENTITY-2)~~ *(Reverted: No-migration constraint).*
 - [x] Write unit tests for `LocalStorageService` to assert file paths include `{tenantId}` (STORAGE-1).
 - [x] *(BUG-2 is verified by zero build warnings)*
 
@@ -29,14 +29,14 @@
 ### Modules.Identity
 - [x] `src/Modules/Identity/Modules.Identity/Services/UserPermissionService.cs`
   - Update `GetPermissionCacheKey` signature and implementation to include `tenantId`, and update call sites (GetPermissionCacheKey, InvalidatePermissionCacheAsync, GetPermissionsAsync) (CACHE-1).
-- [x] `src/Modules/Identity/Modules.Identity/Data/Configurations/UserSessionConfiguration.cs`
-  - Add `builder.IsMultiTenant()` (IDENTITY-1).
-- [x] `src/Modules/Identity/Modules.Identity/Data/Configurations/GroupRoleConfiguration.cs`
-  - Add `builder.IsMultiTenant()` (IDENTITY-2).
-- [x] `src/Modules/Identity/Modules.Identity/Data/Configurations/UserGroupConfiguration.cs`
-  - Add `builder.IsMultiTenant()` (IDENTITY-2).
-- [x] `src/Modules/Identity/Modules.Identity/Data/Configurations/PasswordHistoryConfiguration.cs`
-  - Add `builder.IsMultiTenant()` (IDENTITY-2).
+- [ ] ~~`src/Modules/Identity/Modules.Identity/Data/Configurations/UserSessionConfiguration.cs`~~
+  - ~~Add `builder.IsMultiTenant()` (IDENTITY-1)~~ *(Reverted: No-migration constraint).*
+- [ ] ~~`src/Modules/Identity/Modules.Identity/Data/Configurations/GroupRoleConfiguration.cs`~~
+  - ~~Add `builder.IsMultiTenant()` (IDENTITY-2)~~ *(Reverted: No-migration constraint).*
+- [ ] ~~`src/Modules/Identity/Modules.Identity/Data/Configurations/UserGroupConfiguration.cs`~~
+  - ~~Add `builder.IsMultiTenant()` (IDENTITY-2)~~ *(Reverted: No-migration constraint).*
+- [ ] ~~`src/Modules/Identity/Modules.Identity/Data/Configurations/PasswordHistoryConfiguration.cs`~~
+  - ~~Add `builder.IsMultiTenant()` (IDENTITY-2)~~ *(Reverted: No-migration constraint).*
 
 ### Modules.Auditing
 - [x] `src/Modules/Auditing/Modules.Auditing/Persistence/AuditDbContext.cs`
