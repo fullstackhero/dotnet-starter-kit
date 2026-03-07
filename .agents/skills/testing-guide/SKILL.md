@@ -72,19 +72,19 @@ public class ArchitectureTests
 ```csharp
 public class Create{Entity}HandlerTests
 {
-    private readonly Mock<IRepository<{Entity}>> _repositoryMock;
-    private readonly Mock<ICurrentUser> _currentUserMock;
+    private readonly IRepository<{Entity}> _repositoryMock;
+    private readonly ICurrentUser _currentUserMock;
     private readonly Create{Entity}Handler _handler;
 
     public Create{Entity}HandlerTests()
     {
-        _repositoryMock = new Mock<IRepository<{Entity}>>();
-        _currentUserMock = new Mock<ICurrentUser>();
-        _currentUserMock.Setup(x => x.TenantId).Returns("test-tenant");
+        _repositoryMock = Substitute.For<IRepository<{Entity}>>();
+        _currentUserMock = Substitute.For<ICurrentUser>();
+        _currentUserMock.TenantId.Returns("test-tenant");
 
         _handler = new Create{Entity}Handler(
-            _repositoryMock.Object,
-            _currentUserMock.Object);
+            _repositoryMock,
+            _currentUserMock);
     }
 
     [Fact]
@@ -93,7 +93,7 @@ public class Create{Entity}HandlerTests
         // Arrange
         var command = new Create{Entity}Command("Test", 99.99m);
         _repositoryMock
-            .Setup(x => x.AddAsync(It.IsAny<{Entity}>(), It.IsAny<CancellationToken>()))
+            .AddAsync(Arg.Any<{Entity}>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
         // Act
@@ -101,9 +101,9 @@ public class Create{Entity}HandlerTests
 
         // Assert
         result.Id.Should().NotBeEmpty();
-        _repositoryMock.Verify(x => x.AddAsync(
-            It.Is<{Entity}>(e => e.Name == "Test" && e.Price == 99.99m),
-            It.IsAny<CancellationToken>()), Times.Once);
+        await _repositoryMock.Received(1).AddAsync(
+            Arg.Is<{Entity}>(e => e.Name == "Test" && e.Price == 99.99m),
+            Arg.Any<CancellationToken>());
     }
 }
 ```
@@ -211,8 +211,8 @@ dotnet test --filter "FullyQualifiedName~Create{Entity}HandlerTests"
 |------------|---------|
 | Test class name | `{ClassUnderTest}Tests` |
 | Test method name | `{Method}_{Scenario}_{ExpectedResult}` |
-| Arrange-Act-Assert | Always use this structure |
-| One assertion concept | Multiple asserts OK if same concept |
+| Structure | Always Arrange-Act-Assert |
+| Assertions | Multiple asserts OK if same concept |
 
 ## Key Rules
 

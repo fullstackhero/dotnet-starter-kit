@@ -1,4 +1,4 @@
-# FSH .NET Starter Kit — AI Assistant Guide
+# FSH .NET Starter Kit — Gemini AI Assistant Guide
 
 > Modular Monolith · CQRS · DDD · Multi-Tenant · .NET 10
 
@@ -48,7 +48,7 @@ Modules/{Module}/Features/v1/{Feature}/
 
 ## Available Skills
 
-Call skills with `/skill-name` in your prompt.
+Invoke with `/skill-name` in your prompt.
 
 | Skill | Purpose |
 |-------|---------|
@@ -57,28 +57,30 @@ Call skills with `/skill-name` in your prompt.
 | `/add-module` | Scaffold new bounded context module |
 | `/query-patterns` | Implement paginated/filtered queries |
 | `/testing-guide` | Write architecture + unit tests |
+| `/mediator-reference` | Mediator vs MediatR interface reference |
 
-## Available Agents
+## Available Workflows
 
-Delegate complex tasks to specialized agents.
+Delegate complex tasks to specialized workflows.
 
-| Agent | Expertise |
-|-------|----------|
-| `code-reviewer` | Review changes against FSH patterns + architecture rules |
-| `feature-scaffolder` | Generate complete feature slices from requirements |
-| `module-creator` | Create new modules with contracts, persistence, DI setup |
-| `architecture-guard` | Verify layering, dependencies, module boundaries |
-| `migration-helper` | Generate and apply EF Core migrations |
+| Workflow | Expertise |
+|----------|-----------|
+| `/spec-coordinator` | Orchestrate the 5-step Spec-Driven Development (SDD) process for features/bugs |
+| `/code-reviewer` | Review changes against FSH patterns + architecture rules |
+| `/feature-scaffolder` | Generate complete feature slices from requirements |
+| `/module-creator` | Create new modules with contracts, persistence, DI setup |
+| `/architecture-guard` | Verify layering, dependencies, module boundaries |
+| `/migration-helper` | Generate and apply EF Core migrations |
 
 ## Example: Create Feature
 
 ```csharp
 // Command
-public sealed record CreateProductCommand(string Name, decimal Price) 
+public sealed record CreateProductCommand(string Name, decimal Price)
     : ICommand<Guid>;
 
 // Handler
-public sealed class CreateProductHandler(IRepository<Product> repo) 
+public sealed class CreateProductHandler(IRepository<Product> repo)
     : ICommandHandler<CreateProductCommand, Guid>
 {
     public async ValueTask<Guid> Handle(CreateProductCommand cmd, CancellationToken ct)
@@ -117,7 +119,7 @@ public static RouteHandlerBuilder Map(this IEndpointRouteBuilder endpoints) =>
 - **Modules:** 3 core (Identity, Multitenancy, Auditing) + your features
 - **BuildingBlocks:** 11 packages (Core, Persistence, Caching, Jobs, Web, etc.)
 
-Details: See `.claude/rules/architecture.md`
+Details: See `.agents/rules/architecture.md`
 
 ## Before Committing
 
@@ -129,9 +131,9 @@ dotnet test src/FSH.Framework.slnx   # All tests must pass
 ## Documentation
 
 - **Architecture:** See `ARCHITECTURE_ANALYSIS.md` (19KB deep-dive)
-- **Rules:** See `.claude/rules/*.md` (API conventions, testing, modules)
-- **Skills:** See `.claude/skills/*/SKILL.md` (step-by-step guides)
-- **Agents:** See `.claude/agents/*.md` (specialized assistants)
+- **Rules:** See `.agents/rules/*.md` (API conventions, testing, modules)
+- **Skills:** See `.agents/skills/*/SKILL.md` (step-by-step guides)
+- **Workflows:** See `.agents/workflows/*.md` (specialized assistants)
 
 ---
 

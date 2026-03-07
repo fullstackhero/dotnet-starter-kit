@@ -67,3 +67,5 @@ app.MapGet("/", () => Results.Ok(new { message = "hello world!" }))
    .WithTags("PlayGround")
    .AllowAnonymous();
 await app.RunAsync();
+
+public partial class Program { }
