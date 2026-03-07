@@ -65,7 +65,6 @@ public sealed class MultitenancyModule : IModule
 
                         await distributedStore!.AddAsync(context.MultiTenantContext.TenantInfo!);
                     }
-                    await Task.CompletedTask;
                 };
             })
             .WithClaimStrategy(ClaimConstants.Tenant)
@@ -90,7 +89,6 @@ public sealed class MultitenancyModule : IModule
             .AddCheck<TenantMigrationsHealthCheck>(
                 name: "db:tenants-migrations",
                 failureStatus: HealthStatus.Healthy);
-        builder.Services.AddScoped<ITenantService, TenantService>();
     }
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
