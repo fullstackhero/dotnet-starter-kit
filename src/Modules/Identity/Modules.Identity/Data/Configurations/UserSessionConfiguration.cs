@@ -1,3 +1,4 @@
+using Finbuckle.MultiTenant.EntityFrameworkCore.Extensions;
 using FSH.Modules.Identity.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -12,8 +13,9 @@ public class UserSessionConfiguration : IEntityTypeConfiguration<UserSession>
 
         builder
             .ToTable("UserSessions", IdentityModuleConstants.SchemaName)
-            .IsMultiTenant()
-            .HasKey(s => s.Id);
+            .IsMultiTenant();
+
+        builder.HasKey(s => s.Id);
 
         builder
             .Property(s => s.UserId)

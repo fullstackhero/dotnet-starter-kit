@@ -1,3 +1,5 @@
+using Finbuckle.MultiTenant.Abstractions;
+using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Shared.Storage;
 using FSH.Framework.Storage.DTOs;
 using FSH.Framework.Storage.Services;
@@ -12,14 +14,18 @@ public class LocalStorageService : IStorageService
     private const string UploadBasePath = "uploads";
     private readonly string _rootPath;
     private readonly FileExtensionContentTypeProvider _contentTypeProvider;
+    private readonly IMultiTenantContextAccessor<AppTenantInfo> _tenantContextAccessor;
 
-    public LocalStorageService(IWebHostEnvironment environment)
+    public LocalStorageService(
+        IWebHostEnvironment environment,
+        IMultiTenantContextAccessor<AppTenantInfo> tenantContextAccessor)
     {
         ArgumentNullException.ThrowIfNull(environment);
         _rootPath = string.IsNullOrWhiteSpace(environment.WebRootPath)
             ? Path.Combine(environment.ContentRootPath, "wwwroot")
             : environment.WebRootPath;
         _contentTypeProvider = new FileExtensionContentTypeProvider();
+        _tenantContextAccessor = tenantContextAccessor;
     }
 
     public async Task<string> UploadAsync<T>(FileUploadRequest request, FileType fileType, CancellationToken cancellationToken = default)
@@ -41,11 +47,13 @@ public class LocalStorageService : IStorageService
             throw new InvalidOperationException($"File exceeds max size of {rules.MaxSizeInMB} MB.");
         }
 
+        var tenantId = _tenantContextAccessor.MultiTenantContext?.TenantInfo?.Id ?? "root";
+
         #pragma warning disable CA1308 // folder names are intentionally lower-case for URLs/paths
         var folder = Regex.Replace(typeof(T).Name.ToLowerInvariant(), @"[^a-z0-9]", "_");
         #pragma warning restore CA1308
         var safeFileName = $"{Guid.NewGuid():N}_{SanitizeFileName(request.FileName)}";
-        var relativePath = Path.Combine(UploadBasePath, folder, safeFileName);
+        var relativePath = Path.Combine(UploadBasePath, tenantId, folder, safeFileName);
         var fullPath = Path.Combine(_rootPath, relativePath);
 
         Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
