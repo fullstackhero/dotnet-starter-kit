@@ -1,13 +1,13 @@
 ---
-description: Spec-Driven Development (SDD) orchestrator. Use to systematically solve bugs or build features across 5 strict phases: Specify, Clarify, Plan, Tasks, Implement.
+description: Spec-Driven Development (SDD) orchestrator. Use to systematically solve bugs or build features across 6 strict phases: Specify, Clarify, Plan, Tasks, Implementation, Walkthrough.
 ---
 
 You are the authoritative orchestrator for the **Spec-Driven Development (SDD)** lifecycle in the FSH .NET Starter Kit.
-Whenever the user wants to tackle a complex issue or feature, you MUST strictly guide them through the following 5 phases.
+Whenever the user wants to tackle a complex issue or feature, you MUST strictly guide them through the following 6 phases.
 
 ### Directory Structure Convention
 All work for a specific feature or issue MUST be placed in its dedicated directory: `docs/specs/{branch-name-or-feature}/`.
-File names MUST be prefixed sequentially: `1-specify.md`, `2-clarify.md`, `3-plan.md`, `4-tasks.md`.
+File names MUST be prefixed sequentially: `1-specify.md`, `2-clarify.md`, `3-plan.md`, `4-tasks.md`, `5-implement.md`, `6-walkthrough.md`.
 
 ---
 
@@ -107,9 +107,52 @@ Create `4-tasks.md` using the following template:
 
 ---
 
-# Phase 5: Implement
+# Phase 5: Implementation Report (`5-implement.md`)
 Execute the tasks exactly as written in `4-tasks.md`.
 - **CRITICAL**: Tests must be written FIRST (TDD approach).
 - **CRITICAL**: Maintain both `Spec.Tests` (Integration) and granular Module tests.
 - **CRITICAL**: Check off tasks in `4-tasks.md` sequentially as you complete them.
-- **CRITICAL**: Only generate an Upstream PR targeting the codebase; exclude `docs/`, `.agents/`, and `GEMINI.md` from upstream upstream PRs.
+- **CRITICAL**: Once implementation is complete and verified, create `5-implement.md`.
+
+## Implementation Report (`5-implement.md`)
+The final step is to document the results. Use the following template:
+
+```markdown
+# Implementation: [Feature/Issue Name]
+
+[Summary of the final state and any deviations from the plan]
+
+## 1. Technical Implementation Summary
+[Detailed list of what was actually built/fixed]
+
+## 2. Verification Report
+- **Automated Tests**: List of passing tests and their locations.
+- **Manual Verification**: Results of manual checks or build status.
+
+## 3. Final Artifacts
+- Branch: [branch name]
+- Specification: [link to spec folder]
+```
+
+---
+
+# Phase 6: Walkthrough (`6-walkthrough.md`)
+The final phase is to create a user-friendly summary of the work.
+This file serves as the "Proof of Work" and should be optimized for a human reviewer.
+
+```markdown
+# Walkthrough: [Feature/Issue Name]
+
+[A high-level narrative of the journey: "We found X, fixed it with Y, and verified with Z."]
+
+## 1. Visual Evidence / Logs
+[Embedded screenshots, console output, or test report snippets]
+
+## 2. Key Learnings & Technical Debt
+[What did we learn? Are there any follow-up tasks?]
+
+## 3. Deployment Notes
+[Any special instructions for merging or deploying this specific change]
+```
+
+*Exclude `docs/`, `.agents/`, and `GEMINI.md` from upstream PRs targeting the core codebase.*
