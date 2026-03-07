@@ -1,3 +1,4 @@
+using Finbuckle.MultiTenant.EntityFrameworkCore.Extensions;
 using FSH.Modules.Identity.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -11,8 +12,9 @@ public class PasswordHistoryConfiguration : IEntityTypeConfiguration<PasswordHis
         ArgumentNullException.ThrowIfNull(builder);
 
         builder
-            .ToTable("PasswordHistory", IdentityModuleConstants.SchemaName)
-            .HasKey(ph => ph.Id);
+            .ToTable("PasswordHistory", IdentityModuleConstants.SchemaName);
+
+        builder.HasKey(ph => ph.Id);
 
         builder
             .Property(ph => ph.UserId)

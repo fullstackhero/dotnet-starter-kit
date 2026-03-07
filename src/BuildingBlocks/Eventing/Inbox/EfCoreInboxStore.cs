@@ -16,10 +16,10 @@ public sealed class EfCoreInboxStore<TDbContext> : IInboxStore
         _dbContext = dbContext;
     }
 
-    public async Task<bool> HasProcessedAsync(Guid eventId, string handlerName, CancellationToken ct = default)
+    public async Task<bool> HasProcessedAsync(Guid eventId, string handlerName, string? tenantId, CancellationToken ct = default)
     {
         return await _dbContext.Set<InboxMessage>()
-            .AnyAsync(i => i.Id == eventId && i.HandlerName == handlerName, ct)
+            .AnyAsync(i => i.Id == eventId && i.HandlerName == handlerName && i.TenantId == tenantId, ct)
             .ConfigureAwait(false);
     }
 

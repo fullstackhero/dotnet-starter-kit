@@ -31,7 +31,7 @@ public sealed class TenantProvisioningJob
         _logger = logger;
     }
 
-    public async Task RunAsync(string tenantId, string correlationId)
+    public async Task RunAsync(string tenantId, string correlationId, CancellationToken cancellationToken = default)
     {
         var tenant = await _tenantStore.GetAsync(tenantId).ConfigureAwait(false)
             ?? throw new NotFoundException($"Tenant {tenantId} not found during provisioning.");
@@ -39,39 +39,39 @@ public sealed class TenantProvisioningJob
         var currentStep = TenantProvisioningStepName.Database;
         try
         {
-            var runDatabase = await _provisioningService.MarkRunningAsync(tenantId, correlationId, currentStep, CancellationToken.None).ConfigureAwait(false);
+            var runDatabase = await _provisioningService.MarkRunningAsync(tenantId, correlationId, currentStep, cancellationToken).ConfigureAwait(false);
 
             _tenantContextSetter.MultiTenantContext = new MultiTenantContext<AppTenantInfo>(tenant);
 
             if (runDatabase)
             {
-                await _provisioningService.MarkStepCompletedAsync(tenantId, correlationId, currentStep, CancellationToken.None).ConfigureAwait(false);
+                await _provisioningService.MarkStepCompletedAsync(tenantId, correlationId, currentStep, cancellationToken).ConfigureAwait(false);
             }
 
             currentStep = TenantProvisioningStepName.Migrations;
-            var runMigrations = await _provisioningService.MarkRunningAsync(tenantId, correlationId, currentStep, CancellationToken.None).ConfigureAwait(false);
+            var runMigrations = await _provisioningService.MarkRunningAsync(tenantId, correlationId, currentStep, cancellationToken).ConfigureAwait(false);
             if (runMigrations)
             {
-                await _tenantService.MigrateTenantAsync(tenant, CancellationToken.None).ConfigureAwait(false);
-                await _provisioningService.MarkStepCompletedAsync(tenantId, correlationId, currentStep, CancellationToken.None).ConfigureAwait(false);
+                await _tenantService.MigrateTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+                await _provisioningService.MarkStepCompletedAsync(tenantId, correlationId, currentStep, cancellationToken).ConfigureAwait(false);
             }
 
             currentStep = TenantProvisioningStepName.Seeding;
-            var runSeeding = await _provisioningService.MarkRunningAsync(tenantId, correlationId, currentStep, CancellationToken.None).ConfigureAwait(false);
+            var runSeeding = await _provisioningService.MarkRunningAsync(tenantId, correlationId, currentStep, cancellationToken).ConfigureAwait(false);
             if (runSeeding)
             {
-                await _tenantService.SeedTenantAsync(tenant, CancellationToken.None).ConfigureAwait(false);
-                await _provisioningService.MarkStepCompletedAsync(tenantId, correlationId, currentStep, CancellationToken.None).ConfigureAwait(false);
+                await _tenantService.SeedTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+                await _provisioningService.MarkStepCompletedAsync(tenantId, correlationId, currentStep, cancellationToken).ConfigureAwait(false);
             }
 
             currentStep = TenantProvisioningStepName.CacheWarm;
-            var runCacheWarm = await _provisioningService.MarkRunningAsync(tenantId, correlationId, currentStep, CancellationToken.None).ConfigureAwait(false);
+            var runCacheWarm = await _provisioningService.MarkRunningAsync(tenantId, correlationId, currentStep, cancellationToken).ConfigureAwait(false);
             if (runCacheWarm)
             {
-                await _provisioningService.MarkStepCompletedAsync(tenantId, correlationId, currentStep, CancellationToken.None).ConfigureAwait(false);
+                await _provisioningService.MarkStepCompletedAsync(tenantId, correlationId, currentStep, cancellationToken).ConfigureAwait(false);
             }
 
-            await _provisioningService.MarkCompletedAsync(tenantId, correlationId, CancellationToken.None).ConfigureAwait(false);
+            await _provisioningService.MarkCompletedAsync(tenantId, correlationId, cancellationToken).ConfigureAwait(false);
 
             if (_logger.IsEnabled(LogLevel.Information))
             {
@@ -81,7 +81,7 @@ public sealed class TenantProvisioningJob
         catch (Exception ex)
         {
             _logger.LogError(ex, "Provisioning failed for tenant {TenantId}", tenantId);
-            await _provisioningService.MarkFailedAsync(tenantId, correlationId, currentStep, ex.Message, CancellationToken.None).ConfigureAwait(false);
+            await _provisioningService.MarkFailedAsync(tenantId, correlationId, currentStep, ex.Message, cancellationToken).ConfigureAwait(false);
             throw;
         }
     }

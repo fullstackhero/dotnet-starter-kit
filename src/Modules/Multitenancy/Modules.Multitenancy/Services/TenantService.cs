@@ -106,16 +106,17 @@ public sealed class TenantService : ITenantService
             throw new CustomException($"tenant {id} is already deactivated");
         }
 
-        int tenantCount = (await _tenantStore.GetAllAsync().ConfigureAwait(false)).Count(t => t.IsActive);
-        if (tenantCount <= 1)
-        {
-            throw new CustomException("At least one active tenant is required.");
-        }
-
         if (tenant.Id.Equals(MultitenancyConstants.Root.Id, StringComparison.OrdinalIgnoreCase))
         {
             throw new CustomException("The root tenant cannot be deactivated.");
         }
+
+        int tenantCount = await _dbContext.TenantInfo.CountAsync(t => t.IsActive && t.Id != id, cancellationToken).ConfigureAwait(false);
+        if (tenantCount < 1)
+        {
+            throw new CustomException("At least one active tenant is required.");
+        }
+
 
         tenant.Deactivate();
         await _tenantStore.UpdateAsync(tenant).ConfigureAwait(false);
@@ -126,7 +127,7 @@ public sealed class TenantService : ITenantService
         await _tenantStore.GetAsync(id).ConfigureAwait(false) is not null;
 
     public async Task<bool> ExistsWithNameAsync(string name, CancellationToken cancellationToken = default) =>
-        (await _tenantStore.GetAllAsync().ConfigureAwait(false)).Any(t => t.Name == name);
+        await _dbContext.TenantInfo.AnyAsync(t => t.Name == name, cancellationToken).ConfigureAwait(false);
 
     public async Task<PagedResponse<TenantDto>> GetAllAsync(GetTenantsQuery query, CancellationToken cancellationToken)
     {

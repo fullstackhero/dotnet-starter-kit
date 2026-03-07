@@ -1,4 +1,7 @@
+using Finbuckle.MultiTenant;
+using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Eventing.Abstractions;
+using FSH.Framework.Shared.Multitenancy;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -15,13 +18,17 @@ public sealed class OutboxDispatcher
     private readonly IEventSerializer _serializer;
     private readonly ILogger<OutboxDispatcher> _logger;
     private readonly EventingOptions _options;
+    private readonly IMultiTenantStore<AppTenantInfo> _tenantStore;
+    private readonly IMultiTenantContextSetter _tenantContextSetter;
 
     public OutboxDispatcher(
         IOutboxStore outbox,
         IEventBus bus,
         IEventSerializer serializer,
         IOptions<EventingOptions> options,
-        ILogger<OutboxDispatcher> logger)
+        ILogger<OutboxDispatcher> logger,
+        IMultiTenantStore<AppTenantInfo> tenantStore,
+        IMultiTenantContextSetter tenantContextSetter)
     {
         ArgumentNullException.ThrowIfNull(options);
 
@@ -30,6 +37,8 @@ public sealed class OutboxDispatcher
         _serializer = serializer;
         _logger = logger;
         _options = options.Value;
+        _tenantStore = tenantStore;
+        _tenantContextSetter = tenantContextSetter;
     }
 
     public async Task DispatchAsync(CancellationToken ct = default)
@@ -57,6 +66,13 @@ public sealed class OutboxDispatcher
         {
             try
             {
+                if (!string.IsNullOrEmpty(message.TenantId))
+                {
+                    var tenantInfo = await _tenantStore.GetAsync(message.TenantId).ConfigureAwait(false);
+                    if (tenantInfo is not null)
+                        _tenantContextSetter.MultiTenantContext = new MultiTenantContext<AppTenantInfo>(tenantInfo);
+                }
+
                 var @event = _serializer.Deserialize(message.Payload, message.Type);
                 if (@event is null)
                 {
