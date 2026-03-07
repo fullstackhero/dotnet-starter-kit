@@ -27,7 +27,7 @@ public class TenantThemeServiceTests
         var tenantAccessor = Substitute.For<IMultiTenantContextAccessor<AppTenantInfo>>();
         tenantAccessor.MultiTenantContext.Returns(new MultiTenantContext<AppTenantInfo>(new AppTenantInfo("test-tenant", "Test", null, "test@test.com", null)));
         
-        using var dbContext = new TenantDbContext(tenantAccessor, options, Substitute.For<Microsoft.Extensions.Options.IOptions<FSH.Framework.Shared.Persistence.DatabaseOptions>>(), Substitute.For<Microsoft.Extensions.Hosting.IHostEnvironment>());
+        using var dbContext = new TenantDbContext(options);
         // Seed a theme
         dbContext.TenantThemes.Add(TenantTheme.Create("test-tenant"));
         await dbContext.SaveChangesAsync();

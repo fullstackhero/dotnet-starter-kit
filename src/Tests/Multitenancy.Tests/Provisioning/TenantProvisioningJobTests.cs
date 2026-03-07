@@ -36,7 +36,7 @@ public class TenantProvisioningJobTests
         
         // Mock MarkRunningAsync to throw if the cancellation token is indeed cancelled
         provisioningService.MarkRunningAsync(tenantId, correlationId, Arg.Any<TenantProvisioningStepName>(), Arg.Is<CancellationToken>(ct => ct.IsCancellationRequested))
-            .Returns(x => throw new OperationCanceledException());
+            .Returns(Task.FromException<bool>(new OperationCanceledException()));
 
         // Act & Assert
         await Should.ThrowAsync<OperationCanceledException>(() => job.RunAsync(tenantId, correlationId, cts.Token));

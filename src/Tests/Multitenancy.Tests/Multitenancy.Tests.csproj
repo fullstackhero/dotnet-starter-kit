@@ -22,6 +22,7 @@
 		<PackageReference Include="Shouldly" />
 		<PackageReference Include="AutoFixture" />
 		<PackageReference Include="NSubstitute" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\..\Modules\Multitenancy\Modules.Multitenancy\Modules.Multitenancy.csproj" />
