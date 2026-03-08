@@ -1,7 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
+using FSH.Framework.Shared.Multitenancy;
+using FSH.Modules.Identity.Contracts.v1.Tokens.TokenGeneration;
 using FSH.Tests.Functional.Infrastructure;
 using FSH.Tests.Shared.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Xunit;
 
@@ -17,15 +20,15 @@ public class Identity_Login_ShouldReturnValidToken_WhenCredentialsAreCorrect : B
     [Fact]
     public async Task Login_WithValidCredentials_ShouldReturnToken()
     {
-        // Assert: Red phase failing test until wired
-        Client.DefaultRequestHeaders.Add("tenant", "root");
-        var response = await Client.PostAsJsonAsync("/api/v1/tokens", new { 
-            email = "admin@root.com", 
-            password = "123Pa$$word!" 
-        });
+        var loginRequest = new GenerateTokenCommand("admin@root.com", "123Pa$$word!");
+        Client.DefaultRequestHeaders.Add(MultitenancyConstants.Identifier, "root");
+
+        var response = await Client.PostAsJsonAsync("api/v1/identity/token/issue", loginRequest);
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
-        var content = await response.Content.ReadFromJsonAsync<dynamic>();
-        content!.ShouldNotBeNull();
+
+        var tokenResponse = await response.Content.ReadFromJsonAsync<TokenResponse>();
+        tokenResponse.ShouldNotBeNull();
+        tokenResponse.AccessToken.ShouldNotBeNullOrEmpty();
     }
 }
