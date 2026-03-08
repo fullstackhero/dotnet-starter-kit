@@ -26,11 +26,24 @@ The testing ecosystem is now structured as follows:
    - **Verification:** `SetupSanityCheckTests` passed successfully within the new containerized constraints.
 
 ## Technical Details & Enhancements
+- **Multi-Tenancy Integration**: Synchronized critical fixes from Issue #6, ensuring that custom Identity entities (Groups) are correctly isolated and seeded without `NullConstraint` violations.
+- **Architecture Test Refinement**: Updated dependency rules to distinguish between "hidden" implementation details and "exposed" Contracts, allowing legitimate cross-module interaction via interfaces.
 - **Solution File (`FSH.Framework.slnx`):** Updated to include the three new testing projects.
 - **Dependency Management:** Migrated testing dependencies (like `Testcontainers`, `Respawn`) explicitly to `Directory.Packages.props`.
-- **Zero-Warnings Policy:** Addressed all ASP.NET strict analysis warnings (`CA1062`, `CA1822`, `CA1051`, `CS8714`) ensuring the repository aligns seamlessly with the CI/CD compilation standards.
+- **Zero-Warnings Policy:** Addressed all ASP.NET strict analysis warnings (`CA1062`, `CA1822`, `CA1051`, `CS8714`, `CA1515`) ensuring the repository aligns seamlessly with the CI/CD compilation standards.
 
-## Next Steps for the Team
+## Verification Results
+
+### Architecture Tests (47/47 Passed)
+```bash
+Passed!  - Failed:     0, Passed:    47, Skipped:     0, Total:    47, Duration: 1 s
+```
+
+### Functional Tests (Successful Login)
+```bash
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 8 s
+```
+
 - **Deprecating InMemory:** Teams should progressively remove `InMemoryDatabase` from `Identity.Tests` and other legacy unit test boundaries.
 - **Writing New Tests:** Developers must now follow the standard base classes (`BaseFunctionalTest` or `BaseIntegrationTest`) when adding new features through `.agents/skills`.
 
