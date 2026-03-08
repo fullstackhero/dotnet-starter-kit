@@ -1,4 +1,5 @@
 using Finbuckle.MultiTenant.Abstractions;
+using Finbuckle.MultiTenant.EntityFrameworkCore;
 using Finbuckle.MultiTenant.Identity.EntityFrameworkCore;
 using FSH.Framework.Eventing.Inbox;
 using FSH.Framework.Eventing.Outbox;
@@ -63,6 +64,12 @@ public class IdentityDbContext : MultiTenantIdentityDbContext<FshUser,
 
         builder.ApplyConfiguration(new OutboxMessageConfiguration(IdentityModuleConstants.SchemaName));
         builder.ApplyConfiguration(new InboxMessageConfiguration(IdentityModuleConstants.SchemaName));
+    }
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        TenantNotSetMode = TenantNotSetMode.Overwrite;
+        return await base.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
