@@ -24,8 +24,9 @@ public class IdentityDbContext : MultiTenantIdentityDbContext<FshUser,
     IdentityUserPasskey<string>>
 {
     private readonly DatabaseOptions _settings;
+    private new AppTenantInfo TenantInfo { get; set; }
     private readonly IHostEnvironment _environment;
-    private new AppTenantInfo? TenantInfo => base.TenantInfo as AppTenantInfo;
+    
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
@@ -51,6 +52,7 @@ public class IdentityDbContext : MultiTenantIdentityDbContext<FshUser,
 
         _environment = environment;
         _settings = settings.Value;
+        TenantInfo = multiTenantContextAccessor.MultiTenantContext?.TenantInfo!;
     }
 
     protected override void OnModelCreating(ModelBuilder builder)
