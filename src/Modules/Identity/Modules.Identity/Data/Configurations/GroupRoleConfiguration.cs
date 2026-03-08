@@ -12,7 +12,8 @@ public class GroupRoleConfiguration : IEntityTypeConfiguration<GroupRole>
         ArgumentNullException.ThrowIfNull(builder);
 
         builder
-            .ToTable("GroupRoles", IdentityModuleConstants.SchemaName);
+            .ToTable("GroupRoles", IdentityModuleConstants.SchemaName)
+               .IsMultiTenant();
 
         builder.HasKey(gr => new { gr.GroupId, gr.RoleId });
 

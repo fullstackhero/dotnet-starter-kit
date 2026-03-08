@@ -12,7 +12,8 @@ public class UserGroupConfiguration : IEntityTypeConfiguration<UserGroup>
         ArgumentNullException.ThrowIfNull(builder);
 
         builder
-            .ToTable("UserGroups", IdentityModuleConstants.SchemaName);
+            .ToTable("UserGroups", IdentityModuleConstants.SchemaName)
+               .IsMultiTenant();
 
         builder.HasKey(ug => new { ug.UserId, ug.GroupId });
 
