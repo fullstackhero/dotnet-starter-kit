@@ -59,6 +59,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
 
     public new async Task DisposeAsync()
     {
+        await base.DisposeAsync();
         await _dbContainer.DisposeAsync().AsTask();
         await _redisContainer.DisposeAsync().AsTask();
     }

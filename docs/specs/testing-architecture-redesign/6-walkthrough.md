@@ -47,4 +47,9 @@ Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration:
 - **Deprecating InMemory:** Teams should progressively remove `InMemoryDatabase` from `Identity.Tests` and other legacy unit test boundaries.
 - **Writing New Tests:** Developers must now follow the standard base classes (`BaseFunctionalTest` or `BaseIntegrationTest`) when adding new features through `.agents/skills`.
 
+### PostgreSQL Shutdown Warning Fix
+- **Issue:** `Npgsql.NpgsqlException` was occasionally thrown during test suite teardown.
+- **Cause:** The database container was being disposed of before the `WebApplicationFactory` host had completed its graceful shutdown process.
+- **Fix:** Implemented a custom `DisposeAsync` in `CustomWebApplicationFactory` that explicitly calls `base.DisposeAsync()` first. This ensures all background services (like Hangfire) and the application host finish their work while the PostgreSQL container is still operational.
+
 _This completes Issue #23._
