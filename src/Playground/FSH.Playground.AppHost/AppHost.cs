@@ -5,6 +5,8 @@ var postgres = builder.AddPostgres("postgres").WithDataVolume("fsh-postgres-data
 
 var redis = builder.AddRedis("redis").WithDataVolume("fsh-redis-data");
 
+var papercut = builder.AddPapercutSmtp("papercut");
+
 builder.AddProject<Projects.Playground_Api>("playground-api")
     .WithReference(postgres)
     .WithEnvironment("ASPNETCORE_ENVIRONMENT", "Development")
@@ -18,7 +20,9 @@ builder.AddProject<Projects.Playground_Api>("playground-api")
     .WithReference(redis)
     .WithEnvironment("CachingOptions__Redis", redis.Resource.ConnectionStringExpression)
     .WithEnvironment("CachingOptions__EnableSsl", "true")
-    .WaitFor(redis);
+    .WaitFor(redis)
+    .WithReference(papercut)
+    .WaitFor(papercut);
 
 builder.AddProject<Projects.Playground_Blazor>("playground-blazor");
 

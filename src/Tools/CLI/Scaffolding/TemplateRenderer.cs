@@ -780,77 +780,84 @@ internal sealed class TemplateRenderer : ITemplateRenderer
         var dbService = options.Database switch
         {
             DatabaseProvider.PostgreSQL => $"""
-              postgres:
-                image: postgres:16-alpine
-                container_name: postgres
-                environment:
-                  POSTGRES_USER: postgres
-                  POSTGRES_PASSWORD: postgres
-                  POSTGRES_DB: {projectNameLower}
-                ports:
-                  - "5432:5432"
-                volumes:
-                  - postgres_data:/var/lib/postgresql/data
-                healthcheck:
-                  test: ["CMD-SHELL", "pg_isready -U postgres"]
-                  interval: 10s
-                  timeout: 5s
-                  retries: 5
-            """,
+          postgres:
+            image: postgres:16-alpine
+            container_name: postgres
+            environment:
+              POSTGRES_USER: postgres
+              POSTGRES_PASSWORD: postgres
+              POSTGRES_DB: {projectNameLower}
+            ports:
+              - "5432:5432"
+            volumes:
+              - postgres_data:/var/lib/postgresql/data
+            healthcheck:
+              test: ["CMD-SHELL", "pg_isready -U postgres"]
+              interval: 10s
+              timeout: 5s
+              retries: 5
+        """,
             DatabaseProvider.SqlServer => """
-              sqlserver:
-                image: mcr.microsoft.com/mssql/server:2022-latest
-                container_name: sqlserver
-                environment:
-                  ACCEPT_EULA: "Y"
-                  SA_PASSWORD: "Your_password123"
-                ports:
-                  - "1433:1433"
-                volumes:
-                  - sqlserver_data:/var/opt/mssql
-            """,
+          sqlserver:
+            image: mcr.microsoft.com/mssql/server:2022-latest
+            container_name: sqlserver
+            environment:
+              ACCEPT_EULA: "Y"
+              SA_PASSWORD: "Your_password123"
+            ports:
+              - "1433:1433"
+            volumes:
+              - sqlserver_data:/var/opt/mssql
+        """,
             _ => string.Empty
         };
 
         var volumes = options.Database switch
         {
             DatabaseProvider.PostgreSQL => """
-            volumes:
-              postgres_data:
-              redis_data:
-            """,
+        volumes:
+          postgres_data:
+          redis_data:
+        """,
             DatabaseProvider.SqlServer => """
-            volumes:
-              sqlserver_data:
-              redis_data:
-            """,
+        volumes:
+          sqlserver_data:
+          redis_data:
+        """,
             _ => """
-            volumes:
-              redis_data:
-            """
+        volumes:
+          redis_data:
+        """
         };
 
         return $$"""
-            version: '3.8'
+        version: '3.8'
 
-            services:
-            {{dbService}}
+        services:
+        {{dbService}}
 
-              redis:
-                image: redis:7-alpine
-                container_name: redis
-                ports:
-                  - "6379:6379"
-                volumes:
-                  - redis_data:/data
-                healthcheck:
-                  test: ["CMD", "redis-cli", "ping"]
-                  interval: 10s
-                  timeout: 5s
-                  retries: 5
+          redis:
+            image: redis:7-alpine
+            container_name: redis
+            ports:
+              - "6379:6379"
+            volumes:
+              - redis_data:/data
+            healthcheck:
+              test: ["CMD", "redis-cli", "ping"]
+              interval: 10s
+              timeout: 5s
+              retries: 5
 
-            {{volumes}}
-            """;
+          papercut:
+            image: changemakerstudiosus/papercut-smtp:latest
+            container_name: papercut
+            ports:
+              - "37408:8080"
+              - "2525:2525"
+
+        {{volumes}}
+        """;
     }
 
     public string RenderDockerComposeOverride() => _templateLoader.GetStaticTemplate("DockerComposeOverride");
