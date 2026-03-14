@@ -82,7 +82,10 @@ internal sealed class IdentityDbInitializer(
 
         foreach (var claim in newClaims)
         {
-            logger.LogInformation("Seeding {Role} Permission '{Permission}' for '{TenantId}' Tenant.", role.Name, claim.ClaimValue, multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id);
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                logger.LogInformation("Seeding {Role} Permission '{Permission}' for '{TenantId}' Tenant.", role.Name, claim.ClaimValue, multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id);
+            }
             await dbContext.RoleClaims.AddAsync(claim, cancellationToken);
         }
 
@@ -182,7 +185,10 @@ internal sealed class IdentityDbInitializer(
                 IsActive = true
             };
 
-            logger.LogInformation("Seeding Default Admin User for '{TenantId}' Tenant.", multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id);
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                logger.LogInformation("Seeding Default Admin User for '{TenantId}' Tenant.", multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id);
+            }
             var password = new PasswordHasher<FshUser>();
             adminUser.PasswordHash = password.HashPassword(adminUser, MultitenancyConstants.DefaultPassword);
             await userManager.CreateAsync(adminUser);
@@ -191,7 +197,10 @@ internal sealed class IdentityDbInitializer(
         // Assign role to user
         if (!await userManager.IsInRoleAsync(adminUser, RoleConstants.Admin))
         {
-            logger.LogInformation("Assigning Admin Role to Admin User for '{TenantId}' Tenant.", multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id);
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                logger.LogInformation("Assigning Admin Role to Admin User for '{TenantId}' Tenant.", multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id);
+            }
             await userManager.AddToRoleAsync(adminUser, RoleConstants.Admin);
         }
     }

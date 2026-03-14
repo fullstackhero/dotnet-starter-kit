@@ -64,7 +64,10 @@ public sealed class SessionCleanupHostedService : BackgroundService
         {
             db.UserSessions.RemoveRange(expiredSessions);
             await db.SaveChangesAsync(cancellationToken);
-            _logger.LogInformation("Cleaned up {Count} expired sessions", expiredSessions.Count);
+            if (_logger.IsEnabled(LogLevel.Information))
+            {
+                _logger.LogInformation("Cleaned up {Count} expired sessions", expiredSessions.Count);
+            }
         }
     }
 }

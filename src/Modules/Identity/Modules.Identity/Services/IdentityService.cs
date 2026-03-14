@@ -71,9 +71,12 @@ public sealed class IdentityService : IIdentityService
         user.RefreshToken = hashedToken;
         user.RefreshTokenExpiryTime = expiresAtUtc;
 
-        _logger.LogDebug(
-            "Storing refresh token for user {UserId} in tenant {TenantId}. Token hash: {TokenHash}, Expires: {ExpiresAt}",
-            subject, tenant.Id, hashedToken[..Math.Min(8, hashedToken.Length)] + "...", expiresAtUtc);
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug(
+                "Storing refresh token for user {UserId} in tenant {TenantId}. Token hash: {TokenHash}, Expires: {ExpiresAt}",
+                subject, tenant.Id, hashedToken[..Math.Min(8, hashedToken.Length)] + "...", expiresAtUtc);
+        }
 
         var result = await _userManager.UpdateAsync(user);
         if (!result.Succeeded)
@@ -112,9 +115,12 @@ public sealed class IdentityService : IIdentityService
     {
         var hashedToken = HashToken(refreshToken);
 
-        _logger.LogDebug(
-            "Validating refresh token for tenant {TenantId}. Token hash: {TokenHash}",
-            tenantId, hashedToken[..Math.Min(8, hashedToken.Length)] + "...");
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug(
+                "Validating refresh token for tenant {TenantId}. Token hash: {TokenHash}",
+                tenantId, hashedToken[..Math.Min(8, hashedToken.Length)] + "...");
+        }
 
         var user = await _userManager.Users
             .FirstOrDefaultAsync(u => u.RefreshToken == hashedToken, ct);
@@ -132,9 +138,12 @@ public sealed class IdentityService : IIdentityService
     {
         if (user.RefreshTokenExpiryTime <= DateTime.UtcNow)
         {
+        if (_logger.IsEnabled(LogLevel.Warning))
+        {
             _logger.LogWarning(
                 "Refresh token expired for user {UserId}. Expired at: {ExpiryTime}, Current time: {CurrentTime}",
                 user.Id, user.RefreshTokenExpiryTime, DateTime.UtcNow);
+        }
             throw new UnauthorizedException("refresh token is invalid or expired");
         }
     }

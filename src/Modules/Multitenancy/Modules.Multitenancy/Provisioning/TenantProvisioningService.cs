@@ -65,7 +65,7 @@ public sealed class TenantProvisioningService : ITenantProvisioningService
             return provisioning;
         }
 
-        var jobId = _jobService.Enqueue<TenantProvisioningJob>(job => job.RunAsync(tenant.Id, correlationId));
+        var jobId = _jobService.Enqueue<TenantProvisioningJob>(job => job.RunAsync(tenant.Id, correlationId, CancellationToken.None));
         provisioning.SetJobId(jobId);
         await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 

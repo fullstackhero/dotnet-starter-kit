@@ -1,4 +1,4 @@
-﻿using FSH.Modules.Identity.Authorization.Jwt;
+using FSH.Modules.Identity.Authorization.Jwt;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.Services;
 using Microsoft.Extensions.Logging;
@@ -49,7 +49,10 @@ public sealed class TokenService : ITokenService
         var refreshTokenExpiry = DateTime.UtcNow.AddDays(_options.RefreshTokenDays);
 
         var userEmail = claims.Where(a => a.Type == ClaimTypes.Email).Select(a => a.Value).First();
-        _logger.LogInformation("Issued JWT for {Email}", userEmail);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("Issued JWT for {Email}", userEmail);
+        }
         _metrics.TokenGenerated(userEmail);
 
         var response = new TokenResponse(

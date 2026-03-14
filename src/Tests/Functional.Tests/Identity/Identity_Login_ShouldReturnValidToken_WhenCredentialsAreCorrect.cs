@@ -19,13 +19,14 @@ public class Identity_Login_ShouldReturnValidToken_WhenCredentialsAreCorrect : B
     {
         // Assert: Red phase failing test until wired
         Client.DefaultRequestHeaders.Add("tenant", "root");
-        var response = await Client.PostAsJsonAsync("/api/v1/tokens", new { 
+        var response = await Client.PostAsJsonAsync("/api/v1/identity/token/issue", new { 
             email = "admin@root.com", 
             password = "123Pa$$word!" 
         });
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
-        var content = await response.Content.ReadFromJsonAsync<dynamic>();
-        content!.ShouldNotBeNull();
+        var content = await response.Content.ReadFromJsonAsync<FSH.Modules.Identity.Contracts.DTOs.TokenResponse>();
+        content.ShouldNotBeNull();
+        content.AccessToken.ShouldNotBeNullOrEmpty();
     }
 }
