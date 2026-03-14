@@ -131,8 +131,24 @@ public class SmtpMailService(IOptions<MailOptions> settings, ILogger<SmtpMailSer
 
         try
         {
-            await client.ConnectAsync(_settings.Smtp!.Host, _settings.Smtp.Port, SecureSocketOptions.StartTls, ct);
-            await client.AuthenticateAsync(_settings.Smtp.UserName, _settings.Smtp.Password, ct);
+            var secureOption = _settings.Smtp.UseStartTls
+                ? SecureSocketOptions.StartTls
+                : SecureSocketOptions.None;
+
+            await client.ConnectAsync(
+                _settings.Smtp.Host,
+                _settings.Smtp.Port,
+                secureOption,
+                ct);
+
+            if (_settings.Smtp.UseAuthentication)
+            {
+                await client.AuthenticateAsync(
+                    _settings.Smtp.UserName,
+                    _settings.Smtp.Password,
+                    ct);
+            }
+
             await client.SendAsync(email, ct);
         }
         catch (Exception ex)

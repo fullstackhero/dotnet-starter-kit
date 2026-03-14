@@ -1,3 +1,5 @@
+using System.Net.Sockets;
+
 var builder = DistributedApplication.CreateBuilder(args);
 
 // Postgres container + database
@@ -5,7 +7,20 @@ var postgres = builder.AddPostgres("postgres").WithDataVolume("fsh-postgres-data
 
 var redis = builder.AddRedis("redis").WithDataVolume("fsh-redis-data");
 
-var papercut = builder.AddPapercutSmtp("papercut");
+var papercut = builder.AddContainer("papercut", "jijiechen/papercut", "latest")
+  .WithEndpoint("smtp", e =>
+  {
+      e.TargetPort = 25;   // container port
+      e.Port = 25;         // host port
+      e.Protocol = ProtocolType.Tcp;
+      e.UriScheme = "smtp";
+  })
+  .WithEndpoint("ui", e =>
+  {
+      e.TargetPort = 37408;
+      e.Port = 37408;
+      e.UriScheme = "http";
+  });
 
 builder.AddProject<Projects.Playground_Api>("playground-api")
     .WithReference(postgres)
@@ -21,7 +36,6 @@ builder.AddProject<Projects.Playground_Api>("playground-api")
     .WithEnvironment("CachingOptions__Redis", redis.Resource.ConnectionStringExpression)
     .WithEnvironment("CachingOptions__EnableSsl", "true")
     .WaitFor(redis)
-    .WithReference(papercut)
     .WaitFor(papercut);
 
 builder.AddProject<Projects.Playground_Blazor>("playground-blazor");

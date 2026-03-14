@@ -15,6 +15,8 @@ public class SmtpOptions
     public int Port { get; set; }
     public string? UserName { get; set; }
     public string? Password { get; set; }
+    public bool UseStartTls { get; set; }
+    public bool UseAuthentication { get; set; }
 }
 
 public class SendGridOptions
