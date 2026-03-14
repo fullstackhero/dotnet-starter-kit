@@ -67,7 +67,10 @@ public sealed class SessionService : ISessionService
         _db.UserSessions.Add(session);
         await _db.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Created session {SessionId} for user {UserId}", session.Id, userId);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("Created session {SessionId} for user {UserId}", session.Id, userId);
+        }
 
         return MapToDto(session, isCurrentSession: true);
     }
