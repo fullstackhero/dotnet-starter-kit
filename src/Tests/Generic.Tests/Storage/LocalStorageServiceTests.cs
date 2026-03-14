@@ -12,7 +12,6 @@ namespace Generic.Tests.Storage;
 
 public class LocalStorageServiceTests
 {
-    private class DummyFile { }
 
     [Fact]
     public async Task UploadAsync_ShouldPrependTenantIdToPath()
@@ -34,7 +33,7 @@ public class LocalStorageServiceTests
         };
 
         // Act
-        var resultPath = await service.UploadAsync<DummyFile>(request, FSH.Framework.Storage.FileType.Image, CancellationToken.None);
+        var resultPath = await service.UploadAsync<object>(request, FSH.Framework.Storage.FileType.Image, CancellationToken.None);
 
         // Assert
         resultPath.ShouldContain("test-tenant-123");

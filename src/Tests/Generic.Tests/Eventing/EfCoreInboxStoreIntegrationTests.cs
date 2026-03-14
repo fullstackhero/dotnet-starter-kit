@@ -15,6 +15,7 @@ public class TestEventingDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        ArgumentNullException.ThrowIfNull(modelBuilder);
         base.OnModelCreating(modelBuilder);
         
         modelBuilder.Entity<InboxMessage>(builder =>

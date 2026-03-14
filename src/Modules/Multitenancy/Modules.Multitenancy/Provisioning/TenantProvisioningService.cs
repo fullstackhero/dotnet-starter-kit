@@ -191,7 +191,7 @@ public sealed class TenantProvisioningService : ITenantProvisioningService
     {
         using var scope = _scopeFactory.CreateScope();
         var job = scope.ServiceProvider.GetRequiredService<TenantProvisioningJob>();
-        await job.RunAsync(tenantId, correlationId).ConfigureAwait(false);
+        await job.RunAsync(tenantId, correlationId, cancellationToken).ConfigureAwait(false);
     }
 
     private static TenantProvisioningStatusDto ToDto(TenantProvisioning provisioning)

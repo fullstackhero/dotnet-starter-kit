@@ -63,7 +63,7 @@ public sealed class EfCoreOutboxStore<TDbContext> : IOutboxStore
             // especially when spinning up test containers, as the background outbox dispatcher 
             // might fire before the database schema is fully created.
             // We gracefully return an empty list until the tables are ready.
-            _logger.LogDebug("Outbox table does not exist yet. Skipping dispatch.");
+            _logger.LogDebug(ex, "Outbox table does not exist yet. Skipping dispatch.");
             return [];
         }
     }

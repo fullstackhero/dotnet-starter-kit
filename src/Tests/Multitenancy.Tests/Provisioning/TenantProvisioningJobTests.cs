@@ -29,8 +29,8 @@ public class TenantProvisioningJobTests
 
         var tenantId = "test-tenant";
         var correlationId = "corr-123";
-        var cts = new CancellationTokenSource();
-        cts.Cancel(); // Pre-cancel to ensure it throws or passes the cancelled token
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync(); // Pre-cancel to ensure it throws or passes the cancelled token
 
         tenantStore.GetAsync(tenantId).Returns(new AppTenantInfo(tenantId, "Test Tenant", null, "admin@test.com", null));
         
