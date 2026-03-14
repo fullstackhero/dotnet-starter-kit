@@ -119,14 +119,14 @@ public sealed class AuditBackgroundWorker : BackgroundService
         {
             await _sink.WriteAsync(batch, ct);
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException ex)
         {
-            _logger.LogDebug("Audit background flush canceled during shutdown.");
+            _logger.LogDebug(ex, "Audit background flush canceled during shutdown.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Audit background flush failed.");
-            try { await Task.Delay(250, ct); } catch (OperationCanceledException) { }
+            try { await Task.Delay(250, ct); } catch (OperationCanceledException) { /* Ignore cancellation during delay */ }
         }
         finally
         {

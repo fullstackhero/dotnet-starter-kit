@@ -30,7 +30,7 @@ The testing ecosystem is now structured as follows:
 - **Architecture Test Refinement**: Updated dependency rules to distinguish between "hidden" implementation details and "exposed" Contracts, allowing legitimate cross-module interaction via interfaces.
 - **Solution File (`FSH.Framework.slnx`):** Updated to include the three new testing projects.
 - **Dependency Management:** Migrated testing dependencies (like `Testcontainers`, `Respawn`) explicitly to `Directory.Packages.props`.
-- **Zero-Warnings Policy:** Addressed all ASP.NET strict analysis warnings (`CA1062`, `CA1822`, `CA1051`, `CS8714`, `CA1515`) ensuring the repository aligns seamlessly with the CI/CD compilation standards.
+- **Zero-Warnings Policy & Code Analysis:** Addressed all ASP.NET strict analysis warnings (`CA1062`, `CA1822`, `CA1051`, `CS8714`, `CA1515`, `CS8604`, `CA2016`, `CA1849`), SonarQube issues (`S6667`, `S1135`, `S108`, `S1118`, `S2930`, `S6966`), and centrally upgraded `MimeKit`/`MailKit` to `4.15.1` to resolve `NU1902/NU1603` vulnerabilities, ensuring the repository aligns seamlessly with CI/CD compilation standards.
 
 ## Handling Container Concurrency
 During the transition to Testcontainers, three key concurrency challenges were mitigated to ensure clean tests:
