@@ -32,6 +32,12 @@ The testing ecosystem is now structured as follows:
 - **Dependency Management:** Migrated testing dependencies (like `Testcontainers`, `Respawn`) explicitly to `Directory.Packages.props`.
 - **Zero-Warnings Policy:** Addressed all ASP.NET strict analysis warnings (`CA1062`, `CA1822`, `CA1051`, `CS8714`, `CA1515`) ensuring the repository aligns seamlessly with the CI/CD compilation standards.
 
+## Handling Container Concurrency
+During the transition to Testcontainers, three key concurrency challenges were mitigated to ensure clean tests:
+1. **Startup Race Conditions**: Background services (like `OutboxDispatcherHostedService`) often start polling before EF Core has finished creating the database tables. This was fixed by implementing graceful degradation—catching `System.Data.Common.DbException` (`42P01`) and returning an empty list, allowing the application to wait cleanly until tables exist. Additionally, `IHostApplicationLifetime.ApplicationStarted` is now awaited before the polling loop begins.
+2. **EF Core "First Run" Logs**: When connecting to a completely empty PostgreSQL container, EF Core logs a `Failed executing DbCommand` `ERR` as it probes for `__EFMigrationsHistory`. This is a standard and safe internal EF Core behavior that creates the table if missing, and should be safely ignored in test outputs.
+3. **Teardown Cancellations**: Shutting down `WebApplicationFactory` abruptly cancels background channels. `OperationCanceledException` is now caught silently in `AuditBackgroundWorker` to prevent spurious teardown logs.
+
 ## Verification Results
 
 ### Architecture Tests (47/47 Passed)
