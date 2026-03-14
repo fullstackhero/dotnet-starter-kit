@@ -1,5 +1,6 @@
 ﻿using FSH.Framework.Mailing.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace FSH.Framework.Mailing;
@@ -15,12 +16,20 @@ public static class Extensions
         services.AddTransient<IMailService>(sp =>
         {
             var options = sp.GetRequiredService<IOptions<MailOptions>>().Value;
-            if (options.UseSendGrid)
+
+            return options.Provider switch
             {
-                return new SendGridMailService(sp.GetRequiredService<IOptions<MailOptions>>());
-            }
-            return new SmtpMailService(sp.GetRequiredService<IOptions<MailOptions>>(), sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<SmtpMailService>>());
+                "SMTP" => new SmtpMailService(
+                    sp.GetRequiredService<IOptions<MailOptions>>(),
+                    sp.GetRequiredService<ILogger<SmtpMailService>>()),
+
+                "SendGrid" => new SendGridMailService(
+                    sp.GetRequiredService<IOptions<MailOptions>>()),
+
+                _ => throw new NotSupportedException($"Mail provider {options.Provider} not supported")
+            };
         });
+
         return services;
     }
 }

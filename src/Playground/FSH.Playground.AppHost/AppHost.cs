@@ -7,6 +7,21 @@ var postgres = builder.AddPostgres("postgres").WithDataVolume("fsh-postgres-data
 
 var redis = builder.AddRedis("redis").WithDataVolume("fsh-redis-data");
 
+var mailpit = builder.AddContainer("mailpit", "axllent/mailpit", "latest")
+    .WithEndpoint("smtp", e =>
+    {
+        e.TargetPort = 1025;   //  // container port
+        e.Port = 1025;         // host port
+        e.Protocol = ProtocolType.Tcp;
+        e.UriScheme = "smtp";
+    })
+    .WithEndpoint("ui", e =>
+    {
+        e.TargetPort = 8025;  // ui container
+        e.Port = 8025;
+        e.UriScheme = "http";
+    });
+
 var papercut = builder.AddContainer("papercut", "jijiechen/papercut", "latest")
   .WithEndpoint("smtp", e =>
   {
@@ -35,8 +50,9 @@ builder.AddProject<Projects.Playground_Api>("playground-api")
     .WithReference(redis)
     .WithEnvironment("CachingOptions__Redis", redis.Resource.ConnectionStringExpression)
     .WithEnvironment("CachingOptions__EnableSsl", "true")
-    .WaitFor(redis)
-    .WaitFor(papercut);
+    .WaitFor(redis)    
+    .WaitFor(papercut)
+    .WaitFor(mailpit);
 
 builder.AddProject<Projects.Playground_Blazor>("playground-blazor");
 

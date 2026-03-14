@@ -2,7 +2,7 @@
 
 public class MailOptions
 {
-    public bool UseSendGrid { get; set; }
+    public string? Provider { get; set; }
     public string? From { get; set; }
     public string? DisplayName { get; set; }
     public SmtpOptions? Smtp { get; set; }
