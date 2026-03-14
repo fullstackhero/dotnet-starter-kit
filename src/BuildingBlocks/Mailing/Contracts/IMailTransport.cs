@@ -1,7 +1,5 @@
-﻿using MimeKit;
-
-namespace FSH.Framework.Mailing.Contracts;
-public interface IMailTransport
+﻿namespace FSH.Framework.Mailing.Contracts;
+public interface IMailTransport<in T>
 {
-    Task SendAsync(MimeMessage message, CancellationToken ct);
+    Task SendAsync(T message, CancellationToken ct);
 }

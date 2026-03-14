@@ -1,8 +1,6 @@
 ﻿using FSH.Framework.Mailing.Models;
-using MimeKit;
-
 namespace FSH.Framework.Mailing.Contracts;
-public interface IMailComposer
+public interface IMailComposer<out T>
 {
-    Task<MimeMessage> Compose(MailRequest request, CancellationToken ct);
+    T Compose(MailRequest request, CancellationToken ct);
 }

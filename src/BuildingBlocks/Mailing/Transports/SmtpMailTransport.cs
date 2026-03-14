@@ -7,7 +7,7 @@ using MimeKit;
 using SmtpClient = MailKit.Net.Smtp.SmtpClient;
 
 namespace FSH.Framework.Mailing.Transports;
-public class SmtpMailTransport(IOptions<MailOptions> settings, ILogger<SmtpMailTransport> logger) : IMailTransport
+public class SmtpMailTransport(IOptions<MailOptions> settings, ILogger<SmtpMailTransport> logger) : IMailTransport<MimeMessage>
 {
     private readonly MailOptions _settings = settings.Value;
     private readonly ILogger<SmtpMailTransport> _logger = logger;

@@ -2,16 +2,17 @@
 using FSH.Framework.Mailing.Models;
 
 namespace FSH.Framework.Mailing.Services;
-public class MailService(
-    IMailComposer composer,
-    IMailTransport transport) : IMailService
+
+public class MailService<TMessage>(
+    IMailComposer<TMessage> composer,
+    IMailTransport<TMessage> transport) : IMailService
 {
-    private readonly IMailComposer _composer = composer;
-    private readonly IMailTransport _transport = transport;
+    private readonly IMailComposer<TMessage> _composer = composer ?? throw new ArgumentNullException(nameof(composer));
+    private readonly IMailTransport<TMessage> _transport = transport ?? throw new ArgumentNullException(nameof(transport));
 
     public async Task SendAsync(MailRequest request, CancellationToken ct)
     {
-        var mimeMessage = await _composer.Compose(request, ct);
-        await _transport.SendAsync(mimeMessage, ct);
+        TMessage message =  _composer.Compose(request, ct);
+        await _transport.SendAsync(message, ct);
     }
 }

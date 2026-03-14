@@ -6,18 +6,18 @@ using MimeKit;
 
 namespace FSH.Framework.Mailing.Composers;
 
-public class MimeKitEmailComposer(IOptions<MailOptions> settings) : IMailComposer
+public class MimeKitEmailComposer(IOptions<MailOptions> settings) : IMailComposer<MimeMessage>
 {
     private readonly MailOptions _settings = settings!.Value;
 
-    public async Task<MimeMessage> Compose(MailRequest request, CancellationToken ct)
+    public MimeMessage Compose(MailRequest request, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(request);
         var email = new MimeMessage();
         ConfigureSender(email, request);
         ConfigureRecipients(email, request);
         ConfigureContent(email, request);
-        await AddAttachmentsAsync(email, request, ct);
+        AddAttachmentsAsync(email, request, ct);
         return email;
     }
 
@@ -88,7 +88,7 @@ public class MimeKitEmailComposer(IOptions<MailOptions> settings) : IMailCompose
         email.Subject = request.Subject;
     }
 
-    private static async Task AddAttachmentsAsync(MimeMessage email, MailRequest request, CancellationToken ct)
+    private static void AddAttachmentsAsync(MimeMessage email, MailRequest request, CancellationToken ct)
     {
         var builder = new BodyBuilder { HtmlBody = request.Body };
 
@@ -97,9 +97,9 @@ public class MimeKitEmailComposer(IOptions<MailOptions> settings) : IMailCompose
             foreach (var attachment in request.AttachmentData)
             {
                 using var stream = new MemoryStream();
-                await stream.WriteAsync(attachment.Value, ct);
+                stream.Write(attachment.Value);
                 stream.Position = 0;
-                await builder.Attachments.AddAsync(attachment.Key, stream, ct);
+                builder.Attachments.Add(attachment.Key, stream, ct);
             }
         }
 
