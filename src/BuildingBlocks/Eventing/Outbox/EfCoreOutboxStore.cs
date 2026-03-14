@@ -48,12 +48,24 @@ public sealed class EfCoreOutboxStore<TDbContext> : IOutboxStore
 
     public async Task<IReadOnlyList<OutboxMessage>> GetPendingBatchAsync(int batchSize, CancellationToken ct = default)
     {
-        return await _dbContext.Set<OutboxMessage>()
-            .Where(m => !m.IsDead && m.ProcessedOnUtc == null)
-            .OrderBy(m => m.CreatedOnUtc)
-            .Take(batchSize)
-            .ToListAsync(ct)
-            .ConfigureAwait(false);
+        try
+        {
+            return await _dbContext.Set<OutboxMessage>()
+                .Where(m => !m.IsDead && m.ProcessedOnUtc == null)
+                .OrderBy(m => m.CreatedOnUtc)
+                .Take(batchSize)
+                .ToListAsync(ct)
+                .ConfigureAwait(false);
+        }
+        catch (System.Data.Common.DbException ex) when (ex.SqlState == "42P01")
+        {
+            // Note: This error ("relation does not exist") is expected during startup/migrations,
+            // especially when spinning up test containers, as the background outbox dispatcher 
+            // might fire before the database schema is fully created.
+            // We gracefully return an empty list until the tables are ready.
+            _logger.LogDebug("Outbox table does not exist yet. Skipping dispatch.");
+            return [];
+        }
     }
 
     public async Task MarkAsProcessedAsync(OutboxMessage message, CancellationToken ct = default)
