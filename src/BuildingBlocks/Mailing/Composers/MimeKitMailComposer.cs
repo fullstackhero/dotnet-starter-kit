@@ -1,42 +1,23 @@
-using MailKit.Security;
-using Microsoft.Extensions.Logging;
+﻿using FSH.Framework.Mailing.Contracts;
+using FSH.Framework.Mailing.Models;
+using FSH.Framework.Mailing.Options;
 using Microsoft.Extensions.Options;
 using MimeKit;
-using SmtpClient = MailKit.Net.Smtp.SmtpClient;
 
-namespace FSH.Framework.Mailing.Services;
+namespace FSH.Framework.Mailing.Composers;
 
-public class SmtpMailService(IOptions<MailOptions> settings, ILogger<SmtpMailService> logger) : IMailService
+public class MimeKitEmailComposer(IOptions<MailOptions> settings) : IMailComposer
 {
-    private readonly MailOptions _settings = settings.Value;
-    private readonly ILogger<SmtpMailService> _logger = logger;
+    private readonly MailOptions _settings = settings!.Value;
 
-    public async Task SendAsync(MailRequest request, CancellationToken ct)
+    public async Task<MimeMessage> Compose(MailRequest request, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(request);
-        ValidateSmtpConfiguration();
-
-        using var email = BuildMimeMessage(request);
-        await AddAttachmentsAsync(email, request, ct);
-        await SendEmailAsync(email, ct);
-    }
-
-    private void ValidateSmtpConfiguration()
-    {
-        if (_settings.Smtp?.Host is null)
-        {
-            throw new InvalidOperationException("SMTP Host is not configured.");
-        }
-    }
-
-    private MimeMessage BuildMimeMessage(MailRequest request)
-    {
         var email = new MimeMessage();
-
         ConfigureSender(email, request);
         ConfigureRecipients(email, request);
         ConfigureContent(email, request);
-
+        await AddAttachmentsAsync(email, request, ct);
         return email;
     }
 
@@ -123,42 +104,5 @@ public class SmtpMailService(IOptions<MailOptions> settings, ILogger<SmtpMailSer
         }
 
         email.Body = builder.ToMessageBody();
-    }
-
-    private async Task SendEmailAsync(MimeMessage email, CancellationToken ct)
-    {
-        using var client = new SmtpClient();
-
-        try
-        {
-            var secureOption = _settings.Smtp.UseStartTls
-                ? SecureSocketOptions.StartTls
-                : SecureSocketOptions.None;
-
-            await client.ConnectAsync(
-                _settings.Smtp.Host,
-                _settings.Smtp.Port,
-                secureOption,
-                ct);
-
-            if (_settings.Smtp.UseAuthentication)
-            {
-                await client.AuthenticateAsync(
-                    _settings.Smtp.UserName,
-                    _settings.Smtp.Password,
-                    ct);
-            }
-
-            await client.SendAsync(email, ct);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "An error occurred while sending email: {Message}", ex.Message);
-            throw new InvalidOperationException("Failed to send email.", ex);
-        }
-        finally
-        {
-            await client.DisconnectAsync(true, ct);
-        }
     }
 }

@@ -1,6 +1,6 @@
 using FSH.Framework.Eventing.Abstractions;
-using FSH.Framework.Mailing;
-using FSH.Framework.Mailing.Services;
+using FSH.Framework.Mailing.Contracts;
+using FSH.Framework.Mailing.Models;
 using FSH.Modules.Identity.Contracts.Events;
 
 namespace FSH.Modules.Identity.Events;

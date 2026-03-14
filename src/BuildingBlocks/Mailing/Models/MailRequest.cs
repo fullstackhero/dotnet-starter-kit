@@ -1,7 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 
-namespace FSH.Framework.Mailing;
-
+namespace FSH.Framework.Mailing.Models;
 public class MailRequest(Collection<string> to, string subject, string? body = null, string? from = null, string? displayName = null, string? replyTo = null, string? replyToName = null, Collection<string>? bcc = null, Collection<string>? cc = null, IDictionary<string, byte[]>? attachmentData = null, IDictionary<string, string>? headers = null)
 {
     public Collection<string> To { get; } = to;

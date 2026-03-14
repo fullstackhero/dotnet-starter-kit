@@ -1,16 +1,17 @@
+using FSH.Framework.Mailing.Contracts;
+using FSH.Framework.Mailing.Models;
+using FSH.Framework.Mailing.Options;
 using Microsoft.Extensions.Options;
 using SendGrid;
 using SendGrid.Helpers.Mail;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace FSH.Framework.Mailing.Services;
+namespace FSH.Framework.Mailing.Transports;
 
-public class SendGridMailService : IMailService
+public class SendGridMailTransport : IMailService
 {
     private readonly MailOptions _settings;
 
-    public SendGridMailService(IOptions<MailOptions> settings)
+    public SendGridMailTransport(IOptions<MailOptions> settings)
     {
         ArgumentNullException.ThrowIfNull(settings);
         _settings = settings.Value;
