@@ -20,7 +20,7 @@ public static class Extensions
 
         services.AddTransient<SmtpMailTransport>();
         services.AddTransient<SendGridMailTransport>();
-        //services.AddTransient<FakeEmailTransport>();
+        services.AddTransient<FakeEmailTransport>();
 
         services.AddTransient<IMailTransport>(sp =>
         {
@@ -30,7 +30,7 @@ public static class Extensions
             {
                 "SMTP" => sp.GetRequiredService<SmtpMailTransport>(),
                 //"SendGrid" => sp.GetRequiredService<SendGridMailTransport>(),
-                //"Fake" => sp.GetRequiredService<FakeEmailTransport>(),
+                "Fake" => sp.GetRequiredService<FakeEmailTransport>(),
                 _ => throw new NotSupportedException()
             };
         });
