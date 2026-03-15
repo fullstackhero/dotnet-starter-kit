@@ -1,13 +1,18 @@
-﻿using FSH.Framework.Core.Exceptions;
+using FSH.Framework.Core.Context;
+using FSH.Framework.Core.Exceptions;
+using FSH.Framework.Shared.Multitenancy;
+using Finbuckle.MultiTenant.Abstractions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog.Context;
 
 namespace FSH.Framework.Web.Exceptions;
 
-public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
+public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger)
+    : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
@@ -62,12 +67,24 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
 
         httpContext.Response.StatusCode = statusCode;
 
+        var multiTenantContextAccessor = httpContext.RequestServices.GetRequiredService<IMultiTenantContextAccessor<AppTenantInfo>>();
+        var currentUser = httpContext.RequestServices.GetRequiredService<ICurrentUser>();
+
+        string? tenantId = multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id;
+        Guid userId = currentUser.GetUserId();
+
+        LogContext.PushProperty("tenant_id", tenantId);
+        LogContext.PushProperty("user_id", userId);
         LogContext.PushProperty("exception_title", problemDetails.Title);
         LogContext.PushProperty("exception_detail", problemDetails.Detail);
         LogContext.PushProperty("exception_statusCode", problemDetails.Status);
         LogContext.PushProperty("exception_stackTrace", exception.StackTrace);
 
-        logger.LogError("Exception at {Path} - {Detail}", httpContext.Request.Path, problemDetails.Detail);
+        logger.LogError("Exception at {Path} (Tenant: {TenantId}, User: {UserId}) - {Detail}",
+            httpContext.Request.Path,
+            tenantId ?? "None",
+            userId == Guid.Empty ? "Anonymous" : userId.ToString(),
+            problemDetails.Detail);
 
         await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken).ConfigureAwait(false);
         return true;
