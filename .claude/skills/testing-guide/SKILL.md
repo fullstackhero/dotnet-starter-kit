@@ -22,6 +22,8 @@ src/Tests/
 └── Auditing.Tests/        # Auditing module tests
 ```
 
+> **Note:** For domain logic unit tests, use **NSubstitute ONLY**. Do not use `Moq` or `InMemoryDatabase`.
+
 ## Architecture Tests
 
 Architecture tests enforce module boundaries and layering. They run on every build.
@@ -214,8 +216,8 @@ dotnet test --filter "FullyQualifiedName~Create{Entity}HandlerTests"
 |------------|---------|
 | Test class name | `{ClassUnderTest}Tests` |
 | Test method name | `{Method}_{Scenario}_{ExpectedResult}` |
-| Structure | Always Arrange-Act-Assert |
-| Assertions | Multiple asserts OK if same concept |
+| Arrange-Act-Assert | Always use this structure |
+| One assertion concept | Multiple asserts OK if same concept |
 
 ## Key Rules
 
