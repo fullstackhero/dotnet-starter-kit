@@ -1,4 +1,4 @@
-﻿using FSH.Framework.Shared.Constants;
+using FSH.Framework.Shared.Constants;
 using System.Security.Claims;
 
 namespace FSH.Framework.Shared.Identity.Claims;
@@ -31,7 +31,9 @@ public static class ClaimsPrincipalExtensions
 
     // Retrieves the user's ID
     public static string? GetUserId(this ClaimsPrincipal principal) =>
-        principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+        principal?.FindFirstValue("uid")
+        ?? principal?.FindFirstValue("sub")
+        ?? principal?.FindFirstValue(ClaimTypes.NameIdentifier);
 
     // Retrieves the user's image URL as Uri
     public static Uri? GetImageUrl(this ClaimsPrincipal principal)

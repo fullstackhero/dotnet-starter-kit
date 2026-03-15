@@ -1,4 +1,4 @@
-﻿using FSH.Framework.Core.Exceptions;
+using FSH.Framework.Core.Exceptions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -41,6 +41,7 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
 
         options.RequireHttpsMetadata = true;
         options.SaveToken = false;
+        options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
