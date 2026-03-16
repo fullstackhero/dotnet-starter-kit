@@ -2,17 +2,17 @@
 
 namespace FSH.Framework.Mailing.Messages;
 
-public class AzureEmailMessage
+public class AzureMailMessage
 {
     public string From { get; set; } = null!;
 
     public string? DisplayName { get; set; }
 
-    public Collection<string> To { get; set; } = new();
+    public Collection<string> To { get; set; } = [];
 
-    public Collection<string> Cc { get; set; } = new();
+    public Collection<string> Cc { get; set; } = [];
 
-    public Collection<string> Bcc { get; set; } = new();
+    public Collection<string> Bcc { get; set; } = [];
 
     public string Subject { get; set; } = null!;
 

@@ -6,6 +6,7 @@ public class MailOptions
     public string? DisplayName { get; set; }
     public SmtpOptions? Smtp { get; set; }
     public SendGridOptions? SendGrid { get; set; }
+    public AzureOptions? Azure { get; set; }
 }
 public class SmtpOptions
 {
@@ -21,4 +22,9 @@ public class SendGridOptions
     public string? ApiKey { get; set; }
     public string? From { get; set; }
     public string? DisplayName { get; set; }
+}
+
+public class AzureOptions
+{
+    public string ConnectionString { get; set; } = null!;
 }

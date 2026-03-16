@@ -1,18 +1,22 @@
 ﻿using Azure.Communication.Email;
 using FSH.Framework.Mailing.Contracts;
 using FSH.Framework.Mailing.Messages;
+using FSH.Framework.Mailing.Options;
 using Microsoft.Extensions.Logging;
 
 namespace FSH.Framework.Mailing.Transports;
 
 public class AzureMailTransport(
-    EmailClient emailClient,
-    ILogger<AzureMailTransport> logger) : IMailTransport<AzureEmailMessage>
+    MailOptions settings,
+    ILogger<AzureMailTransport> logger) : IMailTransport<AzureMailMessage>
 {
-    private readonly EmailClient _client = emailClient;
+    private readonly MailOptions _settings = settings;
     private readonly ILogger<AzureMailTransport> _logger = logger;
+    private EmailClient? _client;
+    private EmailClient Client =>
+        _client ??= new EmailClient(_settings.Azure!.ConnectionString);
 
-    public async Task SendAsync(AzureEmailMessage message, CancellationToken ct)
+    public async Task SendAsync(AzureMailMessage message, CancellationToken ct)
     {
         try
         {
@@ -49,7 +53,7 @@ public class AzureMailTransport(
                 }
             }
 
-            var response = await _client.SendAsync(
+            var response = await Client.SendAsync(
                 Azure.WaitUntil.Completed,
                 emailMessage,
                 ct);

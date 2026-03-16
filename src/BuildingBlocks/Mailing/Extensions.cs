@@ -5,7 +5,6 @@ using FSH.Framework.Mailing.Messages;
 using FSH.Framework.Mailing.Options;
 using FSH.Framework.Mailing.Services;
 using FSH.Framework.Mailing.Transports;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using MimeKit;
@@ -23,10 +22,12 @@ public static class Extensions
         services.AddTransient<IMailComposer<MimeMessage>, MimeKitEmailComposer>();
         services.AddTransient<IMailComposer<SendGridMessage>, SendGridMailComposer>();
         services.AddTransient<IMailComposer<FakeMimeMessage>, FakeMailComposer>();
+        services.AddTransient<IMailComposer<AzureMailMessage>, AzureMailComposer>();
 
         services.AddTransient<IMailTransport<MimeMessage>, SmtpMailTransport>();
         services.AddTransient<IMailTransport<SendGridMessage>, SendGridMailTransport>();
         services.AddTransient<IMailTransport<FakeMimeMessage>, FakeMailTransport>();
+        services.AddTransient<IMailTransport<AzureMailMessage>, AzureMailTransport>();
 
         services.AddTransient<IMailService>(sp =>
         {
@@ -46,15 +47,12 @@ public static class Extensions
                     sp.GetRequiredService<IMailComposer<FakeMimeMessage>>(),
                     sp.GetRequiredService<IMailTransport<FakeMimeMessage>>()),
 
+                "Azure" => new MailService<AzureMailMessage>(
+                    sp.GetRequiredService<IMailComposer<AzureMailMessage>>(),
+                    sp.GetRequiredService<IMailTransport<AzureMailMessage>>()),
+
                 _ => throw new NotSupportedException($"Mail provider {options.Provider} not supported")
             };
-        });
-
-        services.AddSingleton(sp =>
-        {
-            var configuration = sp.GetRequiredService<IConfiguration>();
-            var connectionString = configuration["Azure:ConnectionString"];
-            return new EmailClient(connectionString);
         });
 
         return services;
