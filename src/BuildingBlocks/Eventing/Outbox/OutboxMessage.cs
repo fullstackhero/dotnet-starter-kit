@@ -1,3 +1,4 @@
+using FSH.Framework.Core.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -6,6 +7,7 @@ namespace FSH.Framework.Eventing.Outbox;
 /// <summary>
 /// Outbox message entity used to persist integration events alongside domain changes.
 /// </summary>
+[IgnoreAuditTrail]
 public class OutboxMessage
 {
     public Guid Id { get; set; }

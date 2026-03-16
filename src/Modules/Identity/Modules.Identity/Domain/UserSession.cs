@@ -3,6 +3,7 @@ using FSH.Modules.Identity.Domain.Events;
 
 namespace FSH.Modules.Identity.Domain;
 
+[IgnoreAuditTrail]
 public class UserSession : IHasDomainEvents
 {
     private readonly List<IDomainEvent> _domainEvents = [];

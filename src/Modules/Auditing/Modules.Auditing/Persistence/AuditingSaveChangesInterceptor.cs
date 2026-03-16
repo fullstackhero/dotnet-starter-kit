@@ -1,6 +1,7 @@
-﻿using FSH.Modules.Auditing.Contracts;
+using FSH.Modules.Auditing.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using FSH.Framework.Core.Domain;
 
 namespace FSH.Modules.Auditing.Persistence;
 
@@ -24,6 +25,7 @@ public sealed class AuditingSaveChangesInterceptor : SaveChangesInterceptor
 
         var entries = ctx.ChangeTracker.Entries()
             .Where(e => e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
+            .Where(e => !Attribute.IsDefined(e.Entity.GetType(), typeof(IgnoreAuditTrailAttribute)))
             .ToArray();
 
         if (entries.Length == 0) return result;
