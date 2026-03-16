@@ -1,4 +1,4 @@
-﻿using FSH.Framework.Caching;
+using FSH.Framework.Caching;
 using FSH.Framework.Jobs;
 using FSH.Framework.Mailing;
 using FSH.Framework.Persistence;
@@ -16,11 +16,13 @@ using FSH.Framework.Web.RateLimiting;
 using FSH.Framework.Web.Security;
 using FSH.Framework.Web.Versioning;
 using Mediator;
+using FSH.Framework.Web.Middlewares;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
+using FSH.Framework.Core.Context;
 
 namespace FSH.Framework.Web;
 
@@ -34,6 +36,11 @@ public static class Extensions
         configure?.Invoke(options);
 
         builder.Services.AddScoped<CurrentUserMiddleware>();
+        builder.Services.AddScoped<CorrelationIdMiddleware>();
+
+        builder.Services.AddScoped<CorrelationIdContext>();
+        builder.Services.AddScoped<ICorrelationIdContext>(sp => sp.GetRequiredService<CorrelationIdContext>());
+        builder.Services.AddScoped<ICorrelationIdInitializer>(sp => sp.GetRequiredService<CorrelationIdContext>());
 
         builder.AddHeroLogging();
         if (options.EnableOpenTelemetry)
@@ -98,6 +105,7 @@ public static class Extensions
         var openApiEnabled = options.UseOpenApi && IsOpenApiEnabled(app.Configuration);
 
         app.UseExceptionHandler();
+        app.UseMiddleware<CorrelationIdMiddleware>();
         app.UseHttpsRedirection();
 
         app.UseHeroSecurityHeaders();

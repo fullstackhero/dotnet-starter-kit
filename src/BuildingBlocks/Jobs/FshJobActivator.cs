@@ -1,4 +1,4 @@
-﻿using Finbuckle.MultiTenant;
+using Finbuckle.MultiTenant;
 using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Common;
 using FSH.Framework.Core.Context;
@@ -46,6 +46,13 @@ public class FshJobActivator : JobActivator
             {
                 _scope.ServiceProvider.GetRequiredService<ICurrentUserInitializer>()
                     .SetCurrentUserId(userId);
+            }
+
+            string correlationId = _context.GetJobParameter<string>("correlationId");
+            if (!string.IsNullOrEmpty(correlationId))
+            {
+                _scope.ServiceProvider.GetRequiredService<ICorrelationIdInitializer>()
+                    .SetCorrelationId(correlationId);
             }
         }
 

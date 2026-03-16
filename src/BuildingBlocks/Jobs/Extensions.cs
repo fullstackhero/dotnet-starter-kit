@@ -1,4 +1,4 @@
-﻿using FSH.Framework.Core.Exceptions;
+using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Jobs.Services;
 using FSH.Framework.Shared.Persistence;
 using Hangfire;
@@ -56,6 +56,7 @@ public static class Extensions
 
             config.UseFilter(new FshJobFilter(provider));
             config.UseFilter(new LogJobFilter());
+            config.UseFilter(new CorrelationIdJobFilter());
             config.UseFilter(new HangfireTelemetryFilter());
         });
 

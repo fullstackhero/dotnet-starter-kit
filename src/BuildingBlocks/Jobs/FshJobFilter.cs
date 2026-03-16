@@ -1,4 +1,4 @@
-﻿using Finbuckle.MultiTenant.Abstractions;
+using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Common;
 using FSH.Framework.Shared.Identity.Claims;
 using FSH.Framework.Shared.Multitenancy;
@@ -48,6 +48,12 @@ public class FshJobFilter : IClientFilter
         if (!string.IsNullOrEmpty(userId))
         {
             context.SetJobParameter(QueryStringKeys.UserId, userId);
+        }
+
+        var correlationId = httpContext.TraceIdentifier;
+        if (!string.IsNullOrEmpty(correlationId))
+        {
+            context.SetJobParameter("correlationId", correlationId);
         }
     }
 
