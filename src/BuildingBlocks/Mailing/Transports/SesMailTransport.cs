@@ -17,16 +17,18 @@ public class SesMailTransport(
     private readonly MailOptions _settings = settings.Value;
     private readonly ILogger<SesMailTransport> _logger = logger;
 
+    private AmazonSimpleEmailServiceClient? _client;
+    private AmazonSimpleEmailServiceClient Client =>
+    _client ??= new AmazonSimpleEmailServiceClient(
+        _settings.Ses!.AccessKey,
+        _settings.Ses.SecretKey,
+        RegionEndpoint.GetBySystemName(_settings.Ses.Region));
+
     public async Task SendAsync(SesMailMessage message, CancellationToken ct)
     {
         try
         {
-            var sesOptions = _settings.Ses!;
-
-            var client = new AmazonSimpleEmailServiceClient(
-                sesOptions.AccessKey,
-                sesOptions.SecretKey,
-                RegionEndpoint.GetBySystemName(sesOptions.Region));
+            ArgumentNullException.ThrowIfNull(message);
 
             var request = new SendEmailRequest
             {
@@ -47,7 +49,7 @@ public class SesMailTransport(
                 }
             };
 
-            var response = await client.SendEmailAsync(request, ct);
+            var response = await Client.SendEmailAsync(request, ct);
 
             _logger.LogInformation("SES Email sent. MessageId: {MessageId}", response.MessageId);
         }
