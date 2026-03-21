@@ -8,6 +8,7 @@ public class MailOptions
     public SendGridOptions? SendGrid { get; set; }
     public AzureOptions? Azure { get; set; }
     public SesOptions? Ses { get; set; }
+    public FluentOptions? FluentMail { get; set; }
 }
 public class SmtpOptions
 {
@@ -35,4 +36,12 @@ public class SesOptions
     public string AccessKey { get; set; } = null!;
     public string SecretKey { get; set; } = null!;
     public string Region { get; set; } = "eu-west-1";
+}
+
+public class FluentOptions
+{
+    public string? DefaultFromEmail { get; set; }
+    public string? DefaultFromName { get; set; }
+    public string? Host { get; set; }
+    public int Port { get; set; }
 }
