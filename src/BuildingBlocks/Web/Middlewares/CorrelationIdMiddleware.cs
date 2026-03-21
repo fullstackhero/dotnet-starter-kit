@@ -19,6 +19,7 @@ public class CorrelationIdMiddleware(ICorrelationIdInitializer correlationIdInit
         }
 
         _correlationIdInitializer.SetCorrelationId(correlationId!);
+        context.TraceIdentifier = correlationId!;
 
         // Also add to response headers for predictability
         if (!context.Response.Headers.ContainsKey(CorrelationIdHeader))
