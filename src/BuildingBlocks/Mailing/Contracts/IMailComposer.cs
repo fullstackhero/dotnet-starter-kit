@@ -1,4 +1,5 @@
-﻿using FSH.Framework.Mailing.Models;
+﻿using FSH.Framework.Mailing.Messages;
+
 namespace FSH.Framework.Mailing.Contracts;
 public interface IMailComposer<out T>
 {

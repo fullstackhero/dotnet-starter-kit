@@ -3,14 +3,16 @@ using FSH.Framework.Mailing.Contracts;
 using FSH.Framework.Mailing.Messages;
 using FSH.Framework.Mailing.Options;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace FSH.Framework.Mailing.Transports;
 
 public class AzureMailTransport(
-    MailOptions settings,
-    ILogger<AzureMailTransport> logger) : IMailTransport<AzureMailMessage>
+    IOptions<MailOptions> settings,
+    ILogger<AzureMailTransport> logger)
+    : IMailTransport<AzureMailMessage>
 {
-    private readonly MailOptions _settings = settings;
+    private readonly MailOptions _settings = settings.Value;
     private readonly ILogger<AzureMailTransport> _logger = logger;
     private EmailClient? _client;
     private EmailClient Client =>

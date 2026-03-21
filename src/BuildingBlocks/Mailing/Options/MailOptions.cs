@@ -7,6 +7,7 @@ public class MailOptions
     public SmtpOptions? Smtp { get; set; }
     public SendGridOptions? SendGrid { get; set; }
     public AzureOptions? Azure { get; set; }
+    public SesOptions? Ses { get; set; }
 }
 public class SmtpOptions
 {
@@ -27,4 +28,11 @@ public class SendGridOptions
 public class AzureOptions
 {
     public string ConnectionString { get; set; } = null!;
+}
+
+public class SesOptions
+{
+    public string AccessKey { get; set; } = null!;
+    public string SecretKey { get; set; } = null!;
+    public string Region { get; set; } = "eu-west-1";
 }
