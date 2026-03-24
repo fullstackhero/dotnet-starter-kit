@@ -12,14 +12,16 @@ public sealed class ChannelAuditPublisher : IAuditPublisher
     private static readonly IAuditScope DefaultScope = new DefaultAuditScope(null, null, null, null, null, null, null, null, AuditTag.None);
     private readonly Channel<AuditEnvelope> _channel;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly TimeProvider _timeProvider;
 
     public IAuditScope CurrentScope =>
         _httpContextAccessor.HttpContext?.RequestServices.GetService(typeof(IAuditScope)) as IAuditScope
         ?? DefaultScope;
 
-    public ChannelAuditPublisher(IHttpContextAccessor httpContextAccessor, int capacity = 50_000)
+    public ChannelAuditPublisher(IHttpContextAccessor httpContextAccessor, TimeProvider timeProvider, int capacity = 50_000)
     {
         _httpContextAccessor = httpContextAccessor;
+        _timeProvider = timeProvider;
 
         // Drop oldest to keep latency predictable under pressure.
         _channel = Channel.CreateBounded<AuditEnvelope>(new BoundedChannelOptions(capacity)
@@ -44,7 +46,7 @@ public sealed class ChannelAuditPublisher : IAuditPublisher
             : ValueTask.FromCanceled(ct);
     }
 
-    private static AuditEnvelope CreateEnvelope(IAuditEvent auditEvent)
+    private AuditEnvelope CreateEnvelope(IAuditEvent auditEvent)
     {
         if (auditEvent is AuditEnvelope existing)
         {
@@ -54,7 +56,7 @@ public sealed class ChannelAuditPublisher : IAuditPublisher
         return new AuditEnvelope(
             id: Guid.CreateVersion7(),
             occurredAtUtc: auditEvent.OccurredAtUtc,
-            receivedAtUtc: DateTime.UtcNow,
+            receivedAtUtc: _timeProvider.GetUtcNow().UtcDateTime,
             eventType: auditEvent.EventType,
             severity: auditEvent.Severity,
             tenantId: auditEvent.TenantId,

@@ -36,6 +36,8 @@ public sealed class MediatorTracingBehavior<TMessage, TResponse> : IPipelineBeha
             activity?.SetStatus(ActivityStatusCode.Ok);
             return response;
         }
+        // Broad catch is intentional: tracing must record all exception types
+        // on the activity span before re-throwing to the caller.
         catch (Exception ex)
         {
             if (activity is not null)

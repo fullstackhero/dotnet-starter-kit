@@ -115,6 +115,8 @@ public sealed class InMemoryEventBus : IEventBus
                     .ConfigureAwait(false);
             }
         }
+        // Broad catch is intentional: log and re-throw to ensure all handler
+        // failures are captured regardless of exception type.
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error while handling integration event {EventId} with handler {Handler}", @event.Id, handlerName);

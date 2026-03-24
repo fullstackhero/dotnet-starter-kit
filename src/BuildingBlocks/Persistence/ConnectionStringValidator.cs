@@ -39,14 +39,18 @@ public sealed class ConnectionStringValidator(IOptions<DatabaseOptions> dbSettin
 
             return true;
         }
-#pragma warning disable CA1031 // Validation should not throw to callers; we log and return false.
-        catch (Exception ex)
+        catch (ArgumentException ex)
         {
-#pragma warning disable S6667 // Logging in a catch clause should pass the caught exception as a parameter.
-            _logger.LogError("Connection String Validation Exception : {Error}", ex.Message);
-#pragma warning restore S6667 // Logging in a catch clause should pass the caught exception as a parameter.
+            // Catches invalid connection string format from both NpgsqlConnectionStringBuilder
+            // and SqlConnectionStringBuilder (both throw ArgumentException for malformed strings).
+            _logger.LogError(ex, "Connection String Validation Exception : {Error}", ex.Message);
             return false;
         }
-#pragma warning restore CA1031
+        catch (FormatException ex)
+        {
+            // Catches format-related parsing failures in connection string values.
+            _logger.LogError(ex, "Connection String Validation Exception : {Error}", ex.Message);
+            return false;
+        }
     }
 }

@@ -14,7 +14,9 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 
@@ -43,11 +45,19 @@ public class AuditingModule : IModule
         builder.Services.AddHostedService<AuditingConfigurator>();
         builder.Services.AddScoped<IAuditScope, HttpAuditScope>();
 
+        builder.Services.TryAddSingleton(TimeProvider.System);
         builder.Services.AddSingleton<ChannelAuditPublisher>();
         builder.Services.AddSingleton<IAuditPublisher>(sp => sp.GetRequiredService<ChannelAuditPublisher>());
+        builder.Services.AddScoped<ISaveChangesInterceptor, AuditingSaveChangesInterceptor>();
 
         builder.Services.AddSingleton<IAuditSink, SqlAuditSink>();
         builder.Services.AddHostedService<AuditBackgroundWorker>();
+    }
+
+    public void ConfigureMiddleware(IApplicationBuilder app)
+    {
+        ArgumentNullException.ThrowIfNull(app);
+        app.UseMiddleware<AuditHttpMiddleware>();
     }
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)

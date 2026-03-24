@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Modules.Identity.Features.v1.Roles;
 
-public class RoleService(RoleManager<FshRole> roleManager,
+public sealed class RoleService(RoleManager<FshRole> roleManager,
     IdentityDbContext context,
     IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
     ICurrentUser currentUser) : IRoleService
@@ -27,6 +27,7 @@ public class RoleService(RoleManager<FshRole> roleManager,
 
 
         var roles = await roleManager.Roles
+            .AsNoTracking()
             .Select(role => new RoleDto { Id = role.Id, Name = role.Name!, Description = role.Description })
             .ToListAsync(cancellationToken);
 
@@ -76,6 +77,7 @@ public class RoleService(RoleManager<FshRole> roleManager,
         _ = role ?? throw new NotFoundException("role not found");
 
         role.Permissions = await context.RoleClaims
+            .AsNoTracking()
             .Where(c => c.RoleId == id && c.ClaimType == ClaimConstants.Permission)
             .Select(c => c.ClaimValue!)
             .ToListAsync(cancellationToken);

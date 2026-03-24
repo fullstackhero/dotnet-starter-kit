@@ -18,6 +18,7 @@ public sealed class GetGroupsQueryHandler : IQueryHandler<GetGroupsQuery, IEnume
     public async ValueTask<IEnumerable<GroupDto>> Handle(GetGroupsQuery query, CancellationToken cancellationToken)
     {
         var groupsQuery = _dbContext.Groups
+            .AsNoTracking()
             .Include(g => g.GroupRoles)
             .AsQueryable();
 
@@ -49,6 +50,7 @@ public sealed class GetGroupsQueryHandler : IQueryHandler<GetGroupsQuery, IEnume
             .ToList();
 
         var roleNames = await _dbContext.Roles
+            .AsNoTracking()
             .Where(r => allRoleIds.Contains(r.Id))
             .ToDictionaryAsync(r => r.Id, r => r.Name!, cancellationToken);
 

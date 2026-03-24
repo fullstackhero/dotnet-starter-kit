@@ -1,8 +1,10 @@
-﻿using FSH.Framework.Shared.Persistence;
+﻿using FSH.Framework.Persistence.Inteceptors;
+using FSH.Framework.Shared.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
@@ -29,6 +31,7 @@ public static class PersistenceExtensions
             .Validate(o => !string.IsNullOrWhiteSpace(o.Provider), "DatabaseOptions.Provider is required.")
             .ValidateOnStart();
         services.AddHostedService<DatabaseOptionsStartupLogger>();
+        services.AddScoped<ISaveChangesInterceptor, DomainEventsInterceptor>();
         return services;
     }
 

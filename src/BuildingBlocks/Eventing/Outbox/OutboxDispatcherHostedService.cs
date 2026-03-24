@@ -45,6 +45,8 @@ public sealed class OutboxDispatcherHostedService : BackgroundService
                 // Graceful shutdown
                 break;
             }
+            // Broad catch is intentional: the hosted service loop must not crash
+            // due to transient errors; failures are logged and the next cycle retries.
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error dispatching outbox messages");

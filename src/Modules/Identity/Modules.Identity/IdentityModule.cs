@@ -123,10 +123,10 @@ public class IdentityModule : IModule
         services.AddIdentity<FshUser, FshRole>(options =>
         {
             options.Password.RequiredLength = IdentityModuleConstants.PasswordLength;
-            options.Password.RequireDigit = false;
-            options.Password.RequireLowercase = false;
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
             options.Password.RequireNonAlphanumeric = false;
-            options.Password.RequireUppercase = false;
+            options.Password.RequireUppercase = true;
             options.User.RequireUniqueEmail = true;
         })
            .AddEntityFrameworkStores<IdentityDbContext>()

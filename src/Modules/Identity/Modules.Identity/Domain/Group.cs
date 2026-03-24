@@ -36,7 +36,7 @@ public class Group : IAuditableEntity, ISoftDeletable
             Description = description,
             IsDefault = isDefault,
             IsSystemGroup = isSystemGroup,
-            CreatedOnUtc = DateTimeOffset.UtcNow,
+            CreatedAt = TimeProvider.System.GetUtcNow().UtcDateTime,
             CreatedBy = createdBy
         };
     }
@@ -45,21 +45,14 @@ public class Group : IAuditableEntity, ISoftDeletable
     {
         Name = name;
         Description = description;
-        LastModifiedOnUtc = DateTimeOffset.UtcNow;
-        LastModifiedBy = modifiedBy;
+        ModifiedAt = TimeProvider.System.GetUtcNow().UtcDateTime;
+        ModifiedBy = modifiedBy;
     }
 
     public void SetAsDefault(bool isDefault, string? modifiedBy = null)
     {
         IsDefault = isDefault;
-        LastModifiedOnUtc = DateTimeOffset.UtcNow;
-        LastModifiedBy = modifiedBy;
-    }
-
-    public void Delete(string? deletedBy = null)
-    {
-        IsDeleted = true;
-        DeletedOnUtc = DateTimeOffset.UtcNow;
-        DeletedBy = deletedBy;
+        ModifiedAt = TimeProvider.System.GetUtcNow().UtcDateTime;
+        ModifiedBy = modifiedBy;
     }
 }

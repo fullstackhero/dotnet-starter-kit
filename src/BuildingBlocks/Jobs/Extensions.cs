@@ -54,6 +54,7 @@ public static class Extensions
                     throw new CustomException($"Hangfire storage provider {dbOptions.Provider} is not supported");
             }
 
+            config.UseActivator(new FshJobActivator(provider.GetRequiredService<IServiceScopeFactory>()));
             config.UseFilter(new FshJobFilter(provider));
             config.UseFilter(new LogJobFilter());
             config.UseFilter(new HangfireTelemetryFilter());
@@ -84,9 +85,10 @@ public static class Extensions
                 logger?.LogWarning("Cleaned up {Count} stale Hangfire locks", deleted);
             }
         }
+        // Broad catch is intentional: cleanup is best-effort and must not prevent application startup.
+        // The hangfire schema/table may not exist yet on first run.
         catch (Exception ex)
         {
-            // Don't fail startup if cleanup fails - the lock might not exist yet
             logger?.LogDebug(ex, "Could not cleanup stale Hangfire locks (table may not exist yet)");
         }
     }

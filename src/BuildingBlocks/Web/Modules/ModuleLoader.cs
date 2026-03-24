@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Hosting;
 using System.Reflection;
@@ -51,6 +52,14 @@ public static class ModuleLoader
         }
 
         return builder;
+    }
+
+    public static IApplicationBuilder UseModuleMiddlewares(this IApplicationBuilder app)
+    {
+        foreach (var m in _modules)
+            m.ConfigureMiddleware(app);
+
+        return app;
     }
 
     public static IEndpointRouteBuilder MapModules(this IEndpointRouteBuilder endpoints)

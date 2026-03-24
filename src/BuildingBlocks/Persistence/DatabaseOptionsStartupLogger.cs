@@ -34,9 +34,12 @@ public sealed class DatabaseOptionsStartupLogger : IHostedService
     public Task StartAsync(CancellationToken cancellationToken)
     {
         var options = _options.Value;
-        _logger.LogInformation("current db provider: {Provider}", options.Provider);
-        _logger.LogInformation("for docs: https://www.fullstackhero.net");
-        _logger.LogInformation("sponsor: https://opencollective.com/fullstackhero");
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("current db provider: {Provider}", options.Provider);
+            _logger.LogInformation("for docs: https://www.fullstackhero.net");
+            _logger.LogInformation("sponsor: https://opencollective.com/fullstackhero");
+        }
         return Task.CompletedTask;
     }
 

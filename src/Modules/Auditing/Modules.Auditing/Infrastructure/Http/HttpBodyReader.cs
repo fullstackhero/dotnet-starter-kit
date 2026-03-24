@@ -51,9 +51,9 @@ internal static class HttpBodyReader
             using var doc = JsonDocument.Parse(ms.ToArray());
             return (ToPlain(doc.RootElement), totalBytes);
         }
-        catch
+        catch (JsonException)
         {
-            // not JSON; return UTF8 snippet
+            // Not valid JSON; return UTF8 snippet as fallback
             ms.Position = 0;
             var text = Encoding.UTF8.GetString(ms.ToArray());
             var snippet = text.Length > 2000 ? text[..2000] + ".(truncated)" : text;

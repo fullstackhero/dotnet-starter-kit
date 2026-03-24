@@ -652,16 +652,4 @@ else
         return formatted;
     }
 
-    private static string GetCategoryDescription(string category) => category switch
-    {
-        "Tenants" => "Manage multi-tenant operations",
-        "Users" => "Manage user accounts",
-        "Roles" => "Manage security roles",
-        "UserRoles" => "Assign roles to users",
-        "RoleClaims" => "Manage role permissions",
-        "AuditTrails" => "View audit logs",
-        "Hangfire" => "Access job dashboard",
-        "Dashboard" => "Access main dashboard",
-        _ => $"Manage {category.ToLowerInvariant()}"
-    };
 }

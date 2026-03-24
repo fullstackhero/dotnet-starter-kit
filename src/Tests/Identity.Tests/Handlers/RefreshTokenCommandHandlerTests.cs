@@ -5,8 +5,12 @@ using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Contracts.v1.Tokens.RefreshToken;
 using FSH.Modules.Identity.Features.v1.Tokens.RefreshToken;
+using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using NSubstitute;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text;
 
 namespace Identity.Tests.Handlers;
 
@@ -36,7 +40,8 @@ public sealed class RefreshTokenCommandHandlerTests
             _tokenService,
             _securityAudit,
             _requestContext,
-            _sessionService);
+            _sessionService,
+            Substitute.For<ILogger<RefreshTokenCommandHandler>>());
 
         _fixture = new Fixture();
     }
@@ -293,13 +298,18 @@ public sealed class RefreshTokenCommandHandlerTests
 
     private static string CreateValidJwtToken(string userId, string email)
     {
-        // Create a simple JWT-like token for testing purposes
-        // This is just for parsing tests, not a real JWT
-        var header = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("{\"alg\":\"HS256\",\"typ\":\"JWT\"}"));
-        var payload = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(
-            $"{{\"sub\":\"{userId}\",\"email\":\"{email}\",\"exp\":{DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds()}}}"));
-        var signature = "fake-signature";
-        return $"{header}.{payload}.{signature}";
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("test-signing-key-that-is-at-least-32-bytes-long"));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var claims = new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, userId),
+            new Claim(ClaimTypes.Email, email)
+        };
+        var token = new JwtSecurityToken(
+            claims: claims,
+            expires: DateTime.UtcNow.AddHours(1),
+            signingCredentials: credentials);
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
     #endregion

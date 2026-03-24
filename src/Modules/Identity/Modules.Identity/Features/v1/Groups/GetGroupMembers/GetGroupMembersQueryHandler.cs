@@ -29,6 +29,7 @@ public sealed class GetGroupMembersQueryHandler : IQueryHandler<GetGroupMembersQ
 
         // Get memberships with user info
         var memberships = await _dbContext.UserGroups
+            .AsNoTracking()
             .Where(ug => ug.GroupId == query.GroupId)
             .Join(
                 _dbContext.Users,

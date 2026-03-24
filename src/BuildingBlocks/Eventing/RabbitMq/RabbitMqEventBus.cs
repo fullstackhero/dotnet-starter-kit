@@ -105,6 +105,7 @@ public sealed class RabbitMqEventBus : IEventBus, IAsyncDisposable
 
                 return;
             }
+            // Broad catch with retry guard: any publish failure triggers reconnection and retry.
             catch (Exception ex) when (retryCount < maxRetries)
             {
                 retryCount++;
@@ -201,9 +202,9 @@ public sealed class RabbitMqEventBus : IEventBus, IAsyncDisposable
                 await _channel.CloseAsync().ConfigureAwait(false);
                 _channel.Dispose();
             }
-            catch
+            catch (Exception ex)
             {
-                // Ignore errors during cleanup
+                _logger.LogDebug(ex, "Error closing RabbitMQ channel during cleanup");
             }
 
             _channel = null;
@@ -216,9 +217,9 @@ public sealed class RabbitMqEventBus : IEventBus, IAsyncDisposable
                 await _connection.CloseAsync().ConfigureAwait(false);
                 _connection.Dispose();
             }
-            catch
+            catch (Exception ex)
             {
-                // Ignore errors during cleanup
+                _logger.LogDebug(ex, "Error closing RabbitMQ connection during cleanup");
             }
 
             _connection = null;

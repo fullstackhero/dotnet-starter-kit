@@ -65,7 +65,7 @@ internal sealed class CachedThemeStateFactory : IThemeStateFactory
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Cache unavailable, fetching theme directly for tenant {TenantId}", tenantId);
+            _logger.LogWarning(ex, "Cache unavailable, fetching theme directly for tenant {TenantId}", SanitizeLogValue(tenantId));
             return null;
         }
     }
@@ -78,7 +78,7 @@ internal sealed class CachedThemeStateFactory : IThemeStateFactory
         }
         catch (JsonException ex)
         {
-            _logger.LogWarning(ex, "Failed to deserialize cached theme for tenant {TenantId}", tenantId);
+            _logger.LogWarning(ex, "Failed to deserialize cached theme for tenant {TenantId}", SanitizeLogValue(tenantId));
             return null;
         }
     }
@@ -99,7 +99,7 @@ internal sealed class CachedThemeStateFactory : IThemeStateFactory
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error loading tenant theme for {TenantId}", tenantId);
+            _logger.LogError(ex, "Error loading tenant theme for {TenantId}", SanitizeLogValue(tenantId));
         }
 
         return DefaultSettings;
@@ -138,6 +138,9 @@ internal sealed class CachedThemeStateFactory : IThemeStateFactory
             _logger.LogWarning(ex, "Failed to cache theme, continuing without cache");
         }
     }
+
+    private static string SanitizeLogValue(string value) =>
+        string.IsNullOrEmpty(value) ? "empty" : value.Replace("\n", string.Empty, StringComparison.Ordinal).Replace("\r", string.Empty, StringComparison.Ordinal);
 
     private static TenantThemeSettings MapFromDto(TenantThemeApiDto dto) => new()
     {

@@ -42,8 +42,9 @@ public class SmtpMailService(IOptions<MailOptions> settings, ILogger<SmtpMailSer
 
     private void ConfigureSender(MimeMessage email, MailRequest request)
     {
-        email.From.Add(new MailboxAddress(_settings.DisplayName, request.From ?? _settings.From));
-        email.Sender = new MailboxAddress(request.DisplayName ?? _settings.DisplayName, request.From ?? _settings.From);
+        var fromAddress = request.From ?? _settings.From ?? throw new InvalidOperationException("No sender email address configured.");
+        email.From.Add(new MailboxAddress(_settings.DisplayName, fromAddress));
+        email.Sender = new MailboxAddress(request.DisplayName ?? _settings.DisplayName, fromAddress);
     }
 
     private static void ConfigureRecipients(MimeMessage email, MailRequest request)
@@ -135,6 +136,8 @@ public class SmtpMailService(IOptions<MailOptions> settings, ILogger<SmtpMailSer
             await client.AuthenticateAsync(_settings.Smtp.UserName, _settings.Smtp.Password, ct);
             await client.SendAsync(email, ct);
         }
+        // Broad catch is intentional: any SMTP failure (auth, network, protocol) is logged
+        // and wrapped in a consistent exception for callers.
         catch (Exception ex)
         {
             _logger.LogError(ex, "An error occurred while sending email: {Message}", ex.Message);

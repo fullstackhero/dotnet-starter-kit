@@ -18,7 +18,7 @@ public class PasswordHistory
         {
             UserId = userId,
             PasswordHash = passwordHash,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = TimeProvider.System.GetUtcNow().UtcDateTime
         };
     }
 }

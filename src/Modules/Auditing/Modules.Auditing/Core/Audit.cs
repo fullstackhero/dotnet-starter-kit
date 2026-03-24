@@ -115,7 +115,7 @@ public static class Audit
         private string? _requestId;
         private string? _source;
         private AuditTag _tags = AuditTag.None;
-        private DateTime _occurredAtUtc = DateTime.UtcNow;
+        private DateTime _occurredAtUtc = TimeProvider.System.GetUtcNow().UtcDateTime;
 
         internal Builder(AuditEventType eventType, AuditSeverity severity, object payload)
         {
@@ -172,7 +172,7 @@ public static class Audit
             var env = new AuditEnvelope(
                 id: Guid.CreateVersion7(),
                 occurredAtUtc: _occurredAtUtc,
-                receivedAtUtc: DateTime.UtcNow,
+                receivedAtUtc: TimeProvider.System.GetUtcNow().UtcDateTime,
                 eventType: _type,
                 severity: _severity,
                 tenantId: _tenantId,
@@ -194,6 +194,11 @@ public static class Audit
             await Publisher.PublishAsync(env, ct);
         }
 
+        /// <summary>
+        /// Synchronous convenience overload. Uses sync-over-async because the Builder
+        /// is consumed from synchronous call-sites (e.g., Dispose, IDisposable teardown).
+        /// Prefer <see cref="WriteAsync"/> whenever an async context is available.
+        /// </summary>
         public void Write(CancellationToken ct = default) => WriteAsync(ct).AsTask().GetAwaiter().GetResult();
     }
 

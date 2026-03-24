@@ -18,6 +18,10 @@ on:
         required: false
         type: string
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
   packages: write
@@ -25,6 +29,8 @@ permissions:
 env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+
 
 jobs:
   build:
@@ -33,18 +39,19 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.0.x'
+          dotnet-quality: 'preview'
 
       - name: Cache NuGet packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props') }}
           restore-keys: |
             ${{ runner.os }}-nuget-
 
@@ -52,10 +59,14 @@ jobs:
         run: dotnet restore src/FSH.Framework.slnx
 
       - name: Build
-        run: dotnet build src/FSH.Framework.slnx -c Release --no-restore
+        run: dotnet build src/FSH.Framework.slnx -c Release --no-restore -warnaserror
+
+      - name: Check for vulnerable packages
+        run: dotnet list src/FSH.Framework.slnx package --vulnerable --include-transitive 2>&1 | tee vulnerability-report.txt
+        continue-on-error: true
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: build-output
           path: |
@@ -85,29 +96,38 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.0.x'
+          dotnet-quality: 'preview'
 
       - name: Cache NuGet packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props') }}
           restore-keys: |
             ${{ runner.os }}-nuget-
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: build-output
           path: src
 
       - name: Run ${{ matrix.test-project.name }}
-        run: dotnet test ${{ matrix.test-project.path }} -c Release --no-build --verbosity normal
+        run: dotnet test ${{ matrix.test-project.path }} -c Release --no-build --verbosity normal --logger "trx;LogFileName=${{ matrix.test-project.name }}.trx"
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: test-results-${{ matrix.test-project.name }}
+          path: '**/*.trx'
+          retention-days: 7
 
   publish-dev-containers:
     name: Publish Dev Containers
@@ -117,23 +137,24 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.0.x'
+          dotnet-quality: 'preview'
 
       - name: Cache NuGet packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props') }}
           restore-keys: |
             ${{ runner.os }}-nuget-
 
       - name: Login to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -155,13 +176,6 @@ jobs:
             -p:ContainerRepository=ghcr.io/${{ github.repository_owner }}/fsh-playground-blazor \
             -p:ContainerImageTags='"dev-${{ github.sha }};dev-latest"'
 
-      - name: Push containers to GHCR
-        run: |
-          docker push ghcr.io/${{ github.repository_owner }}/fsh-playground-api:dev-${{ github.sha }}
-          docker push ghcr.io/${{ github.repository_owner }}/fsh-playground-api:dev-latest
-          docker push ghcr.io/${{ github.repository_owner }}/fsh-playground-blazor:dev-${{ github.sha }}
-          docker push ghcr.io/${{ github.repository_owner }}/fsh-playground-blazor:dev-latest
-
   publish-release:
     name: Publish Release (NuGet + Containers)
     runs-on: ubuntu-latest
@@ -172,18 +186,19 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.0.x'
+          dotnet-quality: 'preview'
 
       - name: Cache NuGet packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props') }}
           restore-keys: |
             ${{ runner.os }}-nuget-
 
@@ -216,6 +231,7 @@ jobs:
           dotnet pack src/BuildingBlocks/Jobs/Jobs.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
           dotnet pack src/BuildingBlocks/Storage/Storage.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
           dotnet pack src/BuildingBlocks/Eventing/Eventing.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
+          dotnet pack src/BuildingBlocks/Eventing.Abstractions/Eventing.Abstractions.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
           dotnet pack src/BuildingBlocks/Web/Web.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
           dotnet pack src/BuildingBlocks/Blazor.UI/Blazor.UI.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
 
@@ -235,7 +251,7 @@ jobs:
         run: dotnet nuget push "./nupkgs/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
 
       - name: Login to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -248,8 +264,6 @@ jobs:
             -p:PublishProfile=DefaultContainer \
             -p:ContainerRepository=ghcr.io/${{ github.repository_owner }}/fsh-playground-api \
             -p:ContainerImageTags='"${{ steps.version.outputs.version }};latest"'
-          docker push ghcr.io/${{ github.repository_owner }}/fsh-playground-api:${{ steps.version.outputs.version }}
-          docker push ghcr.io/${{ github.repository_owner }}/fsh-playground-api:latest
 
       - name: Build and push Blazor container
         run: |
@@ -258,5 +272,3 @@ jobs:
             -p:PublishProfile=DefaultContainer \
             -p:ContainerRepository=ghcr.io/${{ github.repository_owner }}/fsh-playground-blazor \
             -p:ContainerImageTags='"${{ steps.version.outputs.version }};latest"'
-          docker push ghcr.io/${{ github.repository_owner }}/fsh-playground-blazor:${{ steps.version.outputs.version }}
-          docker push ghcr.io/${{ github.repository_owner }}/fsh-playground-blazor:latest

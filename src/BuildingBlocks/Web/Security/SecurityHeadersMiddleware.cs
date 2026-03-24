@@ -31,6 +31,11 @@ public sealed class SecurityHeadersMiddleware(RequestDelegate next, IOptions<Sec
         headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
         headers["X-XSS-Protection"] = "0";
 
+        if (context.Request.IsHttps)
+        {
+            headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains";
+        }
+
         if (!headers.ContainsKey("Content-Security-Policy"))
         {
             var scriptSources = string.Join(' ', _options.ScriptSources ?? []);

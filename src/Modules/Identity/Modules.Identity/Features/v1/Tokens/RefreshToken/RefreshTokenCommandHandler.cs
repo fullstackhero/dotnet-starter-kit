@@ -3,6 +3,7 @@ using FSH.Modules.Auditing.Contracts;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Contracts.v1.Tokens.RefreshToken;
 using Mediator;
+using Microsoft.Extensions.Logging;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -16,19 +17,22 @@ public sealed class RefreshTokenCommandHandler
     private readonly ISecurityAudit _securityAudit;
     private readonly IRequestContext _requestContext;
     private readonly ISessionService _sessionService;
+    private readonly ILogger<RefreshTokenCommandHandler> _logger;
 
     public RefreshTokenCommandHandler(
         IIdentityService identityService,
         ITokenService tokenService,
         ISecurityAudit securityAudit,
         IRequestContext requestContext,
-        ISessionService sessionService)
+        ISessionService sessionService,
+        ILogger<RefreshTokenCommandHandler> logger)
     {
         _identityService = identityService;
         _tokenService = tokenService;
         _securityAudit = securityAudit;
         _requestContext = requestContext;
         _sessionService = sessionService;
+        _logger = logger;
     }
 
     public async ValueTask<RefreshTokenCommandResponse> Handle(
@@ -67,9 +71,9 @@ public sealed class RefreshTokenCommandHandler
         {
             parsedAccessToken = handler.ReadJwtToken(request.Token);
         }
-        catch
+        catch (Exception ex)
         {
-            // Ignore parsing errors and rely on refresh-token validation
+            _logger.LogDebug(ex, "Failed to parse access token during refresh; relying on refresh-token validation only");
         }
 
         if (parsedAccessToken is not null)

@@ -10,10 +10,12 @@ public sealed class EfCoreInboxStore<TDbContext> : IInboxStore
     where TDbContext : DbContext
 {
     private readonly TDbContext _dbContext;
+    private readonly TimeProvider _timeProvider;
 
-    public EfCoreInboxStore(TDbContext dbContext)
+    public EfCoreInboxStore(TDbContext dbContext, TimeProvider timeProvider)
     {
         _dbContext = dbContext;
+        _timeProvider = timeProvider;
     }
 
     public async Task<bool> HasProcessedAsync(Guid eventId, string handlerName, CancellationToken ct = default)
@@ -31,7 +33,7 @@ public sealed class EfCoreInboxStore<TDbContext> : IInboxStore
             EventType = eventType,
             HandlerName = handlerName,
             TenantId = tenantId,
-            ProcessedOnUtc = DateTime.UtcNow
+            ProcessedOnUtc = _timeProvider.GetUtcNow().UtcDateTime
         };
 
         await _dbContext.Set<InboxMessage>().AddAsync(message, ct).ConfigureAwait(false);

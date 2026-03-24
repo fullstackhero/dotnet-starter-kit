@@ -242,22 +242,6 @@
         }
     }
 
-    private static string GetStatusText(string? status) => status switch
-    {
-        "Healthy" => "All Systems Operational",
-        "Degraded" => "Degraded Performance",
-        "Unhealthy" => "System Issues Detected",
-        _ => "Checking Status..."
-    };
-
-    private static string GetStatusIcon(string? status) => status switch
-    {
-        "Healthy" => Icons.Material.Filled.CheckCircle,
-        "Degraded" => Icons.Material.Filled.Warning,
-        "Unhealthy" => Icons.Material.Filled.Error,
-        _ => Icons.Material.Filled.HelpOutline
-    };
-
     private static Color GetStatusColor(string? status) => status switch
     {
         "Healthy" => Color.Success,

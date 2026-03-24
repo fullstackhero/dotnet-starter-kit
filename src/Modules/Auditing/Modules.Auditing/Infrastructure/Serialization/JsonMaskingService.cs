@@ -23,9 +23,9 @@ public sealed class JsonMaskingService : IAuditMaskingService
             MaskNode(json);
             return json;
         }
-        catch
+        catch (JsonException)
         {
-            return payload; // safe fallback
+            return payload; // safe fallback — payload is not valid JSON
         }
     }
 

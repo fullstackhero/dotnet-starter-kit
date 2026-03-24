@@ -18,7 +18,7 @@ public class FshUser : IdentityUser, IHasDomainEvents
     public string? ObjectId { get; set; }
 
     /// <summary>Timestamp when the user last changed their password</summary>
-    public DateTime LastPasswordChangeDate { get; set; } = DateTime.UtcNow;
+    public DateTime LastPasswordChangeDate { get; set; } = TimeProvider.System.GetUtcNow().UtcDateTime;
 
     // Navigation property for password history
     public virtual ICollection<PasswordHistory> PasswordHistories { get; set; } = new List<PasswordHistory>();

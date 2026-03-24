@@ -18,23 +18,35 @@ public sealed class GetGroupByIdQueryHandler : IQueryHandler<GetGroupByIdQuery, 
 
     public async ValueTask<GroupDto> Handle(GetGroupByIdQuery query, CancellationToken cancellationToken)
     {
-        var result = await _dbContext.Groups
-            .Where(g => g.Id == query.Id)
-            .Select(g => new GroupDto
-            {
-                Id = g.Id,
-                Name = g.Name,
-                Description = g.Description,
-                IsDefault = g.IsDefault,
-                IsSystemGroup = g.IsSystemGroup,
-                MemberCount = g.UserGroups.Count,
-                RoleIds = g.GroupRoles.Select(gr => gr.RoleId).ToList().AsReadOnly(),
-                RoleNames = g.GroupRoles.Select(gr => gr.Role.Name!).ToList().AsReadOnly(),
-                CreatedOnUtc = g.CreatedOnUtc
-            })
-            .FirstOrDefaultAsync(cancellationToken)
+        var group = await _dbContext.Groups
+            .AsNoTracking()
+            .Include(g => g.GroupRoles)
+            .FirstOrDefaultAsync(g => g.Id == query.Id, cancellationToken)
             ?? throw new NotFoundException($"Group with ID '{query.Id}' not found.");
 
-        return result;
+        var memberCount = await _dbContext.UserGroups
+            .CountAsync(ug => ug.GroupId == group.Id, cancellationToken);
+
+        var roleIds = group.GroupRoles.Select(gr => gr.RoleId).ToList();
+        var roleNames = roleIds.Count > 0
+            ? await _dbContext.Roles
+                .AsNoTracking()
+                .Where(r => roleIds.Contains(r.Id))
+                .Select(r => r.Name!)
+                .ToListAsync(cancellationToken)
+            : [];
+
+        return new GroupDto
+        {
+            Id = group.Id,
+            Name = group.Name,
+            Description = group.Description,
+            IsDefault = group.IsDefault,
+            IsSystemGroup = group.IsSystemGroup,
+            MemberCount = memberCount,
+            RoleIds = roleIds.AsReadOnly(),
+            RoleNames = roleNames.AsReadOnly(),
+            CreatedAt = group.CreatedAt
+        };
     }
 }

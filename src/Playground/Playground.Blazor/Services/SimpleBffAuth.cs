@@ -26,7 +26,10 @@ internal static class SimpleBffAuth
                 var password = form["Password"].ToString();
                 var tenant = form["Tenant"].ToString();
 
-                logger.LogInformation("Login attempt for {Email}", email);
+                if (logger.IsEnabled(LogLevel.Information))
+                {
+                    logger.LogInformation("Login attempt for {EmailHash}", ComputeEmailHash(email));
+                }
 
                 // Call the identity API to get token
                 var token = await tokenClient.IssueAsync(
@@ -76,7 +79,10 @@ internal static class SimpleBffAuth
                     ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7)
                 });
 
-                logger.LogInformation("Login successful for {Email}", email);
+                if (logger.IsEnabled(LogLevel.Information))
+                {
+                    logger.LogInformation("Login successful for {EmailHash}", ComputeEmailHash(email));
+                }
 
                 // Redirect to home page - this ensures the cookie is properly read on the next request
                 return Results.Redirect("/");
@@ -109,5 +115,12 @@ internal static class SimpleBffAuth
             return Results.Redirect("/login?toast=logout_success");
         })
         .AllowAnonymous();
+    }
+
+    private static string ComputeEmailHash(string email)
+    {
+        if (string.IsNullOrEmpty(email)) return "empty";
+        var hash = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(email));
+        return Convert.ToHexString(hash.AsSpan(0, 4));
     }
 }

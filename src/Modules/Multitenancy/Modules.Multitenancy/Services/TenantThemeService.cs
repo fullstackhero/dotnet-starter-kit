@@ -101,7 +101,10 @@ public sealed class TenantThemeService : ITenantThemeService
         await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
         await InvalidateCacheAsync(tenantId, ct).ConfigureAwait(false);
 
-        _logger.LogInformation("Updated theme for tenant {TenantId}", tenantId);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("Updated theme for tenant {TenantId}", tenantId);
+        }
     }
 
     private async Task HandleBrandAssetUploadsAsync(BrandAssetsDto assets, TenantTheme entity, CancellationToken ct)
@@ -172,7 +175,10 @@ public sealed class TenantThemeService : ITenantThemeService
 
         await InvalidateCacheAsync(tenantId, ct).ConfigureAwait(false);
 
-        _logger.LogInformation("Reset theme to defaults for tenant {TenantId}", tenantId);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("Reset theme to defaults for tenant {TenantId}", tenantId);
+        }
     }
 
     public async Task SetAsDefaultThemeAsync(string tenantId, CancellationToken ct = default)
@@ -212,7 +218,10 @@ public sealed class TenantThemeService : ITenantThemeService
         // Invalidate default theme cache
         await _cache.RemoveItemAsync(DefaultThemeCacheKey, ct).ConfigureAwait(false);
 
-        _logger.LogInformation("Set theme for tenant {TenantId} as default", tenantId);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("Set theme for tenant {TenantId} as default", tenantId);
+        }
     }
 
     public async Task InvalidateCacheAsync(string tenantId, CancellationToken ct = default)

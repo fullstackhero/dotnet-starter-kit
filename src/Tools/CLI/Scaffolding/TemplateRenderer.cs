@@ -426,7 +426,9 @@ internal sealed class TemplateRenderer : ITemplateRenderer
 
         var connectionString = options.Database switch
         {
+#pragma warning disable S2068 // Credentials should not be hard-coded — this is a scaffold template placeholder, not a real credential
             DatabaseProvider.PostgreSQL => $"Server=localhost;Database={_templateParser.NormalizeProjectName(options.Name, NameContext.LowerCase)};User Id=postgres;Password=password",
+#pragma warning restore S2068
             DatabaseProvider.SqlServer => $"Server=localhost;Database={options.Name};Trusted_Connection=True;TrustServerCertificate=True",
             DatabaseProvider.SQLite => $"Data Source={options.Name}.db",
             _ => string.Empty

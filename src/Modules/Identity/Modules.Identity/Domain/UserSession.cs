@@ -59,29 +59,29 @@ public class UserSession : IHasDomainEvents
             BrowserVersion = browserVersion,
             OperatingSystem = operatingSystem,
             OsVersion = osVersion,
-            CreatedAt = DateTime.UtcNow,
-            LastActivityAt = DateTime.UtcNow,
+            CreatedAt = TimeProvider.System.GetUtcNow().UtcDateTime,
+            LastActivityAt = TimeProvider.System.GetUtcNow().UtcDateTime,
             ExpiresAt = expiresAt
         };
     }
 
     public void UpdateActivity()
     {
-        LastActivityAt = DateTime.UtcNow;
+        LastActivityAt = TimeProvider.System.GetUtcNow().UtcDateTime;
     }
 
     public void UpdateRefreshToken(string refreshTokenHash, DateTime expiresAt)
     {
         RefreshTokenHash = refreshTokenHash;
         ExpiresAt = expiresAt;
-        LastActivityAt = DateTime.UtcNow;
+        LastActivityAt = TimeProvider.System.GetUtcNow().UtcDateTime;
     }
 
     public void Revoke(string? revokedBy = null, string? reason = null, string? tenantId = null)
     {
         if (IsRevoked) return;
         IsRevoked = true;
-        RevokedAt = DateTime.UtcNow;
+        RevokedAt = TimeProvider.System.GetUtcNow().UtcDateTime;
         RevokedBy = revokedBy;
         RevokedReason = reason;
 

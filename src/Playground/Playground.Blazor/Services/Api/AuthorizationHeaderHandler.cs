@@ -1,6 +1,5 @@
 using FSH.Playground.Blazor.Services;
 using Microsoft.AspNetCore.Authentication;
-using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 
 namespace FSH.Playground.Blazor.Services.Api;
@@ -16,12 +15,6 @@ internal sealed class AuthorizationHeaderHandler : DelegatingHandler
     private readonly IServiceProvider _serviceProvider;
     private readonly ICircuitTokenCache _circuitTokenCache;
     private readonly ILogger<AuthorizationHeaderHandler> _logger;
-
-    /// <summary>
-    /// Buffer time before token expiration to proactively refresh.
-    /// This prevents edge cases where token expires during request processing.
-    /// </summary>
-    private static readonly TimeSpan TokenExpirationBuffer = TimeSpan.FromMinutes(2);
 
     /// <summary>
     /// Track if sign-out has already been initiated to prevent multiple sign-out attempts.
@@ -177,42 +170,6 @@ internal sealed class AuthorizationHeaderHandler : DelegatingHandler
         }
 
         return Task.FromResult<string?>(null);
-    }
-
-    /// <summary>
-    /// Checks if the JWT token is about to expire within the buffer window.
-    /// </summary>
-    private bool IsTokenExpiringSoon(string token)
-    {
-        try
-        {
-            var handler = new JwtSecurityTokenHandler();
-            var jwtToken = handler.ReadJwtToken(token);
-
-            if (jwtToken.ValidTo == DateTime.MinValue)
-            {
-                // Token doesn't have an expiration, consider it valid
-                return false;
-            }
-
-            var timeUntilExpiration = jwtToken.ValidTo - DateTime.UtcNow;
-            var isExpiringSoon = timeUntilExpiration <= TokenExpirationBuffer;
-
-            if (isExpiringSoon)
-            {
-                _logger.LogDebug(
-                    "Token expires in {Minutes:F1} minutes (buffer: {Buffer} minutes)",
-                    timeUntilExpiration.TotalMinutes,
-                    TokenExpirationBuffer.TotalMinutes);
-            }
-
-            return isExpiringSoon;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to parse JWT token for expiration check");
-            return false;
-        }
     }
 
     private async Task<string?> TryRefreshTokenAsync(CancellationToken cancellationToken)

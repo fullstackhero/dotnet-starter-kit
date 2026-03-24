@@ -31,7 +31,7 @@ public class AppTenantInfo : TenantInfo, IAppTenantInfo
         Issuer = issuer;
 
         // Add Default 1 Month Validity for all new tenants. Something like a DEMO period for tenants.
-        ValidUpto = DateTime.UtcNow.AddMonths(1);
+        ValidUpto = TimeProvider.System.GetUtcNow().UtcDateTime.AddMonths(1);
     }
 
     public string ConnectionString { get; set; } = string.Empty;

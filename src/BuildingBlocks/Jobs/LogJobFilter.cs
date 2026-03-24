@@ -130,8 +130,9 @@ public class LogJobFilter : IClientFilter, IServerFilter, IElectStateFilter, IAp
             var rendered = args.Select(a => a?.ToString() ?? "null");
             return "[" + string.Join(", ", rendered) + "]";
         }
-        catch
+        catch (Exception ex)
         {
+            Logger.DebugFormat("Failed to format job arguments: {0}", ex.Message);
             return "[<unavailable>]";
         }
         #pragma warning restore CA1031

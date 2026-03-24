@@ -37,9 +37,9 @@ public abstract class Specification<T> : ISpecification<T>
 
     public bool AsNoTracking { get; private set; }
 
-    public bool AsSplitQuery { get; private set; }
+    public bool AsSplitQuery { get; }
 
-    public bool IgnoreQueryFilters { get; private set; }
+    public bool IgnoreQueryFilters { get; }
 
     /// <summary>
     /// Adds a filter criteria expression combined with existing criteria via logical AND.
@@ -114,21 +114,6 @@ public abstract class Specification<T> : ISpecification<T>
     /// Enables <c>AsNoTracking()</c> for the query (default).
     /// </summary>
     protected void AsNoTrackingQuery() => AsNoTracking = true;
-
-    /// <summary>
-    /// Enables tracking queries by disabling <c>AsNoTracking()</c>.
-    /// </summary>
-    protected void AsTrackingQuery() => AsNoTracking = false;
-
-    /// <summary>
-    /// Enables <c>AsSplitQuery()</c>.
-    /// </summary>
-    protected void AsSplitQueryBehavior() => AsSplitQuery = true;
-
-    /// <summary>
-    /// Enables <c>IgnoreQueryFilters()</c>.
-    /// </summary>
-    protected void IgnoreQueryFiltersBehavior() => IgnoreQueryFilters = true;
 
     /// <summary>
     /// Applies a client-provided sort expression using a whitelist of sort keys.

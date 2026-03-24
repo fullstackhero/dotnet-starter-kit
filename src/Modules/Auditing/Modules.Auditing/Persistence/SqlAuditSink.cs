@@ -67,7 +67,10 @@ public sealed class SqlAuditSink : IAuditSink
             db.AuditRecords.AddRange(records);
             await db.SaveChangesAsync(ct).ConfigureAwait(false);
 
-            _log.LogInformation("Wrote {Count} audit records for tenant {TenantId}.", records.Count, tenantInfo.Id);
+            if (_log.IsEnabled(LogLevel.Information))
+            {
+                _log.LogInformation("Wrote {Count} audit records for tenant {TenantId}.", records.Count, tenantInfo.Id);
+            }
         }
     }
 }

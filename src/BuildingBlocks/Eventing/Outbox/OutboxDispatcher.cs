@@ -67,6 +67,8 @@ public sealed class OutboxDispatcher
 
                 _logger.LogDebug("Outbox message {MessageId} dispatched and marked as processed.", message.Id);
             }
+            // Broad catch is intentional: each message must be processed independently,
+            // and any failure type should trigger the retry/dead-letter mechanism.
             catch (Exception ex)
             {
                 var maxRetries = _options.OutboxMaxRetries <= 0 ? 5 : _options.OutboxMaxRetries;

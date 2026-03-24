@@ -10,8 +10,13 @@ namespace FSH.Modules.Auditing.Persistence;
 public sealed class AuditingSaveChangesInterceptor : SaveChangesInterceptor
 {
     private readonly IAuditPublisher _publisher;
+    private readonly TimeProvider _timeProvider;
 
-    public AuditingSaveChangesInterceptor(IAuditPublisher publisher) => _publisher = publisher;
+    public AuditingSaveChangesInterceptor(IAuditPublisher publisher, TimeProvider timeProvider)
+    {
+        _publisher = publisher;
+        _timeProvider = timeProvider;
+    }
 
     public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(
         DbContextEventData eventData,
@@ -44,10 +49,11 @@ public sealed class AuditingSaveChangesInterceptor : SaveChangesInterceptor
                     Changes: group.SelectMany(g => g.Changes).ToList(),
                     TransactionId: ctx.Database.CurrentTransaction?.TransactionId.ToString());
 
+                var now = _timeProvider.GetUtcNow().UtcDateTime;
                 var env = new AuditEnvelope(
                     id: Guid.CreateVersion7(),
-                    occurredAtUtc: DateTime.UtcNow,
-                    receivedAtUtc: DateTime.UtcNow,
+                    occurredAtUtc: now,
+                    receivedAtUtc: now,
                     eventType: AuditEventType.EntityChange,
                     severity: AuditSeverity.Information,
                     tenantId: null, userId: null, userName: null,

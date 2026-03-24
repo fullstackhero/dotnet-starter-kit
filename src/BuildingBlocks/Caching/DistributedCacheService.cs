@@ -92,6 +92,11 @@ public sealed class DistributedCacheService : ICacheService
         { _logger.LogWarning(ex, "Cache refresh failed for {Key}", key); }
     }
 
+    // Sync-over-async required by ICacheService interface contract.
+    // These synchronous methods exist for scenarios where async is not feasible (e.g., middleware, filters).
+    // The async implementations already handle exceptions, so deadlocks on the sync path are mitigated
+    // by the ConfigureAwait(false) usage in the async methods.
+#pragma warning disable CA1849 // Call async methods when in an async method — sync interface requirement
     /// <inheritdoc />
     public T? GetItem<T>(string key) => GetItemAsync<T>(key).GetAwaiter().GetResult();
 
@@ -103,6 +108,7 @@ public sealed class DistributedCacheService : ICacheService
 
     /// <inheritdoc />
     public void RefreshItem(string key) => RefreshItemAsync(key).GetAwaiter().GetResult();
+#pragma warning restore CA1849
 
     /// <summary>
     /// Builds cache entry options with configured expiration settings.

@@ -4,6 +4,7 @@ using FSH.Modules.Auditing.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace FSH.Modules.Auditing;
 
@@ -15,6 +16,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddAuditingCore(this IServiceCollection services, IConfiguration config, Action<AuditHttpOptions>? configure = null)
     {
         services.AddHttpContextAccessor();
+        services.TryAddSingleton(TimeProvider.System);
         services.AddScoped<IAuditClient, DefaultAuditClient>();
         services.AddScoped<ISecurityAudit, SecurityAudit>();
         services.AddHeroDbContext<AuditDbContext>();

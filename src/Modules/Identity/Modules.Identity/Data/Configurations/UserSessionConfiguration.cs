@@ -74,6 +74,7 @@ public class UserSessionConfiguration : IEntityTypeConfiguration<UserSession>
 
         builder.HasIndex(s => s.UserId);
         builder.HasIndex(s => s.RefreshTokenHash);
+        builder.HasIndex(s => s.ExpiresAt);
         builder.HasIndex(s => new { s.UserId, s.IsRevoked });
     }
 }

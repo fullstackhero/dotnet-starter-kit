@@ -19,7 +19,7 @@ public class UserGroup
         {
             UserId = userId,
             GroupId = groupId,
-            AddedAt = DateTime.UtcNow,
+            AddedAt = TimeProvider.System.GetUtcNow().UtcDateTime,
             AddedBy = addedBy
         };
     }

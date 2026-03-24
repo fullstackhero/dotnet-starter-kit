@@ -57,7 +57,10 @@ public class HangfireCustomBasicAuthenticationFilter : IDashboardAuthorizationFi
             return true;
         }
 
-        _logger.LogInformation("auth tokens [{UserName}] [{Password}] do not match configuration", tokens.Username, tokens.Password);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("auth tokens [{UserName}] [{Password}] do not match configuration", tokens.Username, tokens.Password);
+        }
 
         SetChallengeResponse(httpContext);
         return false;

@@ -50,7 +50,7 @@ public sealed class AuditBackgroundWorker : BackgroundService
                 }
             }
         }
-        catch (OperationCanceledException) { /* shutting down */ }
+        catch (OperationCanceledException) { /* Expected during graceful shutdown */ }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Audit background worker crashed.");

@@ -1,0 +1,7 @@
+**/bin
+**/obj
+**/.vs
+**/node_modules
+.git
+*.md
+src/Tests/

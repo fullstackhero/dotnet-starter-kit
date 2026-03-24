@@ -14,15 +14,18 @@ public sealed class EfCoreOutboxStore<TDbContext> : IOutboxStore
     private readonly TDbContext _dbContext;
     private readonly IEventSerializer _serializer;
     private readonly ILogger<EfCoreOutboxStore<TDbContext>> _logger;
+    private readonly TimeProvider _timeProvider;
 
     public EfCoreOutboxStore(
         TDbContext dbContext,
         IEventSerializer serializer,
-        ILogger<EfCoreOutboxStore<TDbContext>> logger)
+        ILogger<EfCoreOutboxStore<TDbContext>> logger,
+        TimeProvider timeProvider)
     {
         _dbContext = dbContext;
         _serializer = serializer;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task AddAsync(IIntegrationEvent @event, CancellationToken ct = default)
@@ -60,7 +63,7 @@ public sealed class EfCoreOutboxStore<TDbContext> : IOutboxStore
     {
         ArgumentNullException.ThrowIfNull(message);
 
-        message.ProcessedOnUtc = DateTime.UtcNow;
+        message.ProcessedOnUtc = _timeProvider.GetUtcNow().UtcDateTime;
         _dbContext.Set<OutboxMessage>().Update(message);
         await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
     }
