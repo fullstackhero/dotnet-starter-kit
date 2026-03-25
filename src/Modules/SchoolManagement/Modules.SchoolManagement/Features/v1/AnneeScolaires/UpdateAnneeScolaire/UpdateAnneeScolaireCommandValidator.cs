@@ -11,6 +11,6 @@ public sealed class UpdateAnneeScolaireCommandValidator : AbstractValidator<Upda
         RuleFor(x => x.Libelle).NotEmpty().MaximumLength(20);
         RuleFor(x => x.DateDebut).NotEmpty();
         RuleFor(x => x.DateFin).NotEmpty().GreaterThan(x => x.DateDebut)
-            .WithMessage("La date de fin doit être postérieure à la date de début.");
+            .WithMessage("End date must be after start date.");
     }
 }

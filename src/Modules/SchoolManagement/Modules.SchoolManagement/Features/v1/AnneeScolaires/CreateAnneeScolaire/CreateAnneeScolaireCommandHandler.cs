@@ -26,7 +26,7 @@ public sealed class CreateAnneeScolaireCommandHandler : ICommandHandler<CreateAn
         var exists = await _dbContext.AnneeScolaires
             .AnyAsync(a => a.Libelle == command.Libelle, cancellationToken).ConfigureAwait(false);
         if (exists)
-            throw new CustomException($"Une année scolaire avec le libellé '{command.Libelle}' existe déjà.", (IEnumerable<string>?)null, System.Net.HttpStatusCode.Conflict);
+            throw new CustomException($"A school year with label '{command.Libelle}' already exists.", (IEnumerable<string>?)null, System.Net.HttpStatusCode.Conflict);
 
         var annee = AnneeScolaire.Create(command.Libelle, command.DateDebut, command.DateFin, _currentUser.GetUserId().ToString());
         _dbContext.AnneeScolaires.Add(annee);

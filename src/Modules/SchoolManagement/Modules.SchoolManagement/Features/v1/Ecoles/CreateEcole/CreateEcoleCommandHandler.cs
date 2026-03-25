@@ -26,7 +26,7 @@ public sealed class CreateEcoleCommandHandler : ICommandHandler<CreateEcoleComma
         var exists = await _dbContext.Ecoles
             .AnyAsync(e => e.CodeEcole == command.CodeEcole, cancellationToken).ConfigureAwait(false);
         if (exists)
-            throw new CustomException($"Une école avec le code '{command.CodeEcole}' existe déjà.", (IEnumerable<string>?)null, System.Net.HttpStatusCode.Conflict);
+            throw new CustomException($"A school with code '{command.CodeEcole}' already exists.", (IEnumerable<string>?)null, System.Net.HttpStatusCode.Conflict);
 
         var typeEcole = Enum.Parse<TypeEcole>(command.Type, ignoreCase: true);
         var ecole = Ecole.Create(command.Nom, command.CodeEcole, typeEcole, command.Adresse, command.Telephone, command.Email, command.Region, command.Ville, _currentUser.GetUserId().ToString());

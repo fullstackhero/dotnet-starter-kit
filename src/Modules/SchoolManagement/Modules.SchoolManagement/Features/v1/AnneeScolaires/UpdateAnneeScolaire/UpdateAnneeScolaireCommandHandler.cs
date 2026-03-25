@@ -24,12 +24,12 @@ public sealed class UpdateAnneeScolaireCommandHandler : ICommandHandler<UpdateAn
 
         var annee = await _dbContext.AnneeScolaires
             .FirstOrDefaultAsync(a => a.Id == command.Id, cancellationToken).ConfigureAwait(false)
-            ?? throw new NotFoundException($"Année scolaire avec l'ID '{command.Id}' introuvable.");
+            ?? throw new NotFoundException($"School year with ID '{command.Id}' not found.");
 
         var libelleExists = await _dbContext.AnneeScolaires
             .AnyAsync(a => a.Libelle == command.Libelle && a.Id != command.Id, cancellationToken).ConfigureAwait(false);
         if (libelleExists)
-            throw new CustomException($"Une année scolaire avec le libellé '{command.Libelle}' existe déjà.", (IEnumerable<string>?)null, System.Net.HttpStatusCode.Conflict);
+            throw new CustomException($"A school year with label '{command.Libelle}' already exists.", (IEnumerable<string>?)null, System.Net.HttpStatusCode.Conflict);
 
         annee.Update(command.Libelle, command.DateDebut, command.DateFin, command.EstActive, _currentUser.GetUserId().ToString());
         await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

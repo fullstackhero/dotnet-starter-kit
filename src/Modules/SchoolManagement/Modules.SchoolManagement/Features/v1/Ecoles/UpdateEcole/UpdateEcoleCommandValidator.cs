@@ -11,7 +11,7 @@ public sealed class UpdateEcoleCommandValidator : AbstractValidator<UpdateEcoleC
         RuleFor(x => x.Nom).NotEmpty().MaximumLength(256);
         RuleFor(x => x.CodeEcole).NotEmpty().MaximumLength(50);
         RuleFor(x => x.Type).NotEmpty().Must(t => Enum.TryParse<Domain.TypeEcole>(t, ignoreCase: true, out _))
-            .WithMessage("Type doit être 'Public' ou 'Prive'.");
+            .WithMessage("Type must be 'Public' or 'Prive'.");
         RuleFor(x => x.Telephone).MaximumLength(20).When(x => x.Telephone is not null);
         RuleFor(x => x.Email).EmailAddress().MaximumLength(256).When(x => x.Email is not null);
         RuleFor(x => x.Adresse).MaximumLength(500).When(x => x.Adresse is not null);

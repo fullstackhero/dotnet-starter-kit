@@ -22,7 +22,7 @@ public sealed class GetEcoleByIdQueryHandler : IQueryHandler<GetEcoleByIdQuery, 
         var ecole = await _dbContext.Ecoles
             .AsNoTracking()
             .FirstOrDefaultAsync(e => e.Id == query.Id, cancellationToken).ConfigureAwait(false)
-            ?? throw new NotFoundException($"École avec l'ID '{query.Id}' introuvable.");
+            ?? throw new NotFoundException($"School with ID '{query.Id}' not found.");
 
         return new EcoleDto(ecole.Id, ecole.Nom, ecole.CodeEcole, ecole.Type.ToString(), ecole.Adresse, ecole.Telephone, ecole.Email, ecole.Region, ecole.Ville, ecole.CreatedOnUtc);
     }

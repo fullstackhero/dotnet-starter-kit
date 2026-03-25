@@ -26,12 +26,12 @@ public sealed class CreateClasseCommandHandler : ICommandHandler<CreateClasseCom
         var ecoleExists = await _dbContext.Ecoles
             .AnyAsync(e => e.Id == command.EcoleId, cancellationToken).ConfigureAwait(false);
         if (!ecoleExists)
-            throw new NotFoundException($"École avec l'ID '{command.EcoleId}' introuvable.");
+            throw new NotFoundException($"School with ID '{command.EcoleId}' not found.");
 
         var anneeExists = await _dbContext.AnneeScolaires
             .AnyAsync(a => a.Id == command.AnneeScolaireId, cancellationToken).ConfigureAwait(false);
         if (!anneeExists)
-            throw new NotFoundException($"Année scolaire avec l'ID '{command.AnneeScolaireId}' introuvable.");
+            throw new NotFoundException($"School year with ID '{command.AnneeScolaireId}' not found.");
 
         var niveau = Enum.Parse<NiveauScolaire>(command.Niveau, ignoreCase: true);
         var classe = Classe.Create(command.Nom, niveau, command.EcoleId, command.AnneeScolaireId, command.Capacite, _currentUser.GetUserId().ToString());

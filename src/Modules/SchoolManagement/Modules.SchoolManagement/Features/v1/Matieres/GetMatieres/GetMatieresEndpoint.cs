@@ -15,7 +15,7 @@ public static class GetMatieresEndpoint
         return endpoints.MapGet("/matieres", async (IMediator mediator, string? search, CancellationToken cancellationToken) =>
             TypedResults.Ok(await mediator.Send(new GetMatieresQuery(search), cancellationToken)))
         .WithName("GetMatieres")
-        .WithSummary("Obtenir la liste des matières")
+        .WithSummary("Get subjects list")
         .RequirePermission(SchoolManagementPermissionConstants.Matieres.View)
         .Produces<IReadOnlyCollection<MatiereDto>>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status401Unauthorized)

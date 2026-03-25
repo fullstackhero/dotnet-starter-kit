@@ -10,7 +10,7 @@ public sealed class UpdateClasseCommandValidator : AbstractValidator<UpdateClass
         RuleFor(x => x.Id).NotEmpty();
         RuleFor(x => x.Nom).NotEmpty().MaximumLength(256);
         RuleFor(x => x.Niveau).NotEmpty().Must(n => Enum.TryParse<Domain.NiveauScolaire>(n, ignoreCase: true, out _))
-            .WithMessage("Niveau scolaire invalide.");
+            .WithMessage("Invalid school level.");
         RuleFor(x => x.Capacite).GreaterThan(0);
     }
 }

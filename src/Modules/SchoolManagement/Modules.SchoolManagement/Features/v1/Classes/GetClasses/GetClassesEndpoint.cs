@@ -29,7 +29,7 @@ public static class GetClassesEndpoint
             return TypedResults.Ok(await mediator.Send(query, cancellationToken));
         })
         .WithName("GetClasses")
-        .WithSummary("Obtenir la liste des classes")
+        .WithSummary("Get classes list")
         .RequirePermission(SchoolManagementPermissionConstants.Classes.View)
         .Produces<PagedResponse<ClasseDto>>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status401Unauthorized)

@@ -18,7 +18,7 @@ public static class CreateAnneeScolaireEndpoint
             return TypedResults.Created($"/api/v1/school/annees-scolaires/{id}", id);
         })
         .WithName("CreateAnneeScolaire")
-        .WithSummary("Créer une nouvelle année scolaire")
+        .WithSummary("Create a new school year")
         .RequirePermission(SchoolManagementPermissionConstants.AnneeScolaires.Create)
         .Produces<Guid>(StatusCodes.Status201Created)
         .Produces(StatusCodes.Status400BadRequest)

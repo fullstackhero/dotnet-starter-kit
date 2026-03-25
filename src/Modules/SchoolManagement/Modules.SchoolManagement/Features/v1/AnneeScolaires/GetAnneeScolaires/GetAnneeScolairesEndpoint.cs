@@ -15,7 +15,7 @@ public static class GetAnneeScolairesEndpoint
         return endpoints.MapGet("/annees-scolaires", async (IMediator mediator, CancellationToken cancellationToken) =>
             TypedResults.Ok(await mediator.Send(new GetAnneeScolairesQuery(), cancellationToken)))
         .WithName("GetAnneeScolaires")
-        .WithSummary("Obtenir la liste des années scolaires")
+        .WithSummary("Get school years list")
         .RequirePermission(SchoolManagementPermissionConstants.AnneeScolaires.View)
         .Produces<IReadOnlyCollection<AnneeScolaireDto>>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status401Unauthorized)

@@ -25,7 +25,7 @@ public sealed class UpdateClasseCommandHandler : ICommandHandler<UpdateClasseCom
 
         var classe = await _dbContext.Classes
             .FirstOrDefaultAsync(c => c.Id == command.Id, cancellationToken).ConfigureAwait(false)
-            ?? throw new NotFoundException($"Classe avec l'ID '{command.Id}' introuvable.");
+            ?? throw new NotFoundException($"Class with ID '{command.Id}' not found.");
 
         var niveau = Enum.Parse<NiveauScolaire>(command.Niveau, ignoreCase: true);
         classe.Update(command.Nom, niveau, command.Capacite, _currentUser.GetUserId().ToString());

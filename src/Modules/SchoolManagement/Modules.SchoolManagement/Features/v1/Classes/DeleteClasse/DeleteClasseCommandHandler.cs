@@ -24,7 +24,7 @@ public sealed class DeleteClasseCommandHandler : ICommandHandler<DeleteClasseCom
 
         var classe = await _dbContext.Classes
             .FirstOrDefaultAsync(c => c.Id == command.Id, cancellationToken).ConfigureAwait(false)
-            ?? throw new NotFoundException($"Classe avec l'ID '{command.Id}' introuvable.");
+            ?? throw new NotFoundException($"Class with ID '{command.Id}' not found.");
 
         classe.Delete(_currentUser.GetUserId().ToString());
         await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

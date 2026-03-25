@@ -17,7 +17,7 @@ public static class DeleteEcoleEndpoint
             return TypedResults.NoContent();
         })
         .WithName("DeleteEcole")
-        .WithSummary("Supprimer une école")
+        .WithSummary("Delete a school")
         .RequirePermission(SchoolManagementPermissionConstants.Ecoles.Delete)
         .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status401Unauthorized)

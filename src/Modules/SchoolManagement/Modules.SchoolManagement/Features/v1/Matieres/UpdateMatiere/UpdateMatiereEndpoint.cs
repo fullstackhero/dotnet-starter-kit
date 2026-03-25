@@ -18,7 +18,7 @@ public static class UpdateMatiereEndpoint
             return TypedResults.NoContent();
         })
         .WithName("UpdateMatiere")
-        .WithSummary("Mettre à jour une matière")
+        .WithSummary("Update a subject")
         .RequirePermission(SchoolManagementPermissionConstants.Matieres.Update)
         .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status400BadRequest)

@@ -24,12 +24,12 @@ public sealed class UpdateMatiereCommandHandler : ICommandHandler<UpdateMatiereC
 
         var matiere = await _dbContext.Matieres
             .FirstOrDefaultAsync(m => m.Id == command.Id, cancellationToken).ConfigureAwait(false)
-            ?? throw new NotFoundException($"Matière avec l'ID '{command.Id}' introuvable.");
+            ?? throw new NotFoundException($"Subject with ID '{command.Id}' not found.");
 
         var codeExists = await _dbContext.Matieres
             .AnyAsync(m => m.Code == command.Code && m.Id != command.Id, cancellationToken).ConfigureAwait(false);
         if (codeExists)
-            throw new CustomException($"Une matière avec le code '{command.Code}' existe déjà.", (IEnumerable<string>?)null, System.Net.HttpStatusCode.Conflict);
+            throw new CustomException($"A subject with code '{command.Code}' already exists.", (IEnumerable<string>?)null, System.Net.HttpStatusCode.Conflict);
 
         matiere.Update(command.Nom, command.Code, command.Coefficient, command.Description, _currentUser.GetUserId().ToString());
         await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

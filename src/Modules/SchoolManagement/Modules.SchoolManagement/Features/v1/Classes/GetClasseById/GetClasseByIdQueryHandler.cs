@@ -22,7 +22,7 @@ public sealed class GetClasseByIdQueryHandler : IQueryHandler<GetClasseByIdQuery
         var classe = await _dbContext.Classes
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == query.Id, cancellationToken).ConfigureAwait(false)
-            ?? throw new NotFoundException($"Classe avec l'ID '{query.Id}' introuvable.");
+            ?? throw new NotFoundException($"Class with ID '{query.Id}' not found.");
 
         return new ClasseDto(classe.Id, classe.Nom, classe.Niveau.ToString(), classe.EcoleId, classe.AnneeScolaireId, classe.Capacite, classe.CreatedOnUtc);
     }

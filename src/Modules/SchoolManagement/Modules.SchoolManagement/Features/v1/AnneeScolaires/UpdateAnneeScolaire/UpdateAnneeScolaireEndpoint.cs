@@ -18,7 +18,7 @@ public static class UpdateAnneeScolaireEndpoint
             return TypedResults.NoContent();
         })
         .WithName("UpdateAnneeScolaire")
-        .WithSummary("Mettre à jour une année scolaire")
+        .WithSummary("Update a school year")
         .RequirePermission(SchoolManagementPermissionConstants.AnneeScolaires.Update)
         .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status400BadRequest)

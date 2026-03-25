@@ -24,7 +24,7 @@ public sealed class DeleteEcoleCommandHandler : ICommandHandler<DeleteEcoleComma
 
         var ecole = await _dbContext.Ecoles
             .FirstOrDefaultAsync(e => e.Id == command.Id, cancellationToken).ConfigureAwait(false)
-            ?? throw new NotFoundException($"École avec l'ID '{command.Id}' introuvable.");
+            ?? throw new NotFoundException($"School with ID '{command.Id}' not found.");
 
         ecole.Delete(_currentUser.GetUserId().ToString());
         await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

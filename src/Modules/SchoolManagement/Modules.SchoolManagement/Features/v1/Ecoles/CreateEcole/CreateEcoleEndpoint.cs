@@ -18,7 +18,7 @@ public static class CreateEcoleEndpoint
             return TypedResults.Created($"/api/v1/school/ecoles/{id}", id);
         })
         .WithName("CreateEcole")
-        .WithSummary("Créer une nouvelle école")
+        .WithSummary("Create a new school")
         .RequirePermission(SchoolManagementPermissionConstants.Ecoles.Create)
         .Produces<Guid>(StatusCodes.Status201Created)
         .Produces(StatusCodes.Status400BadRequest)

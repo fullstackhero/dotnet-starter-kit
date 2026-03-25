@@ -26,7 +26,7 @@ public sealed class CreateMatiereCommandHandler : ICommandHandler<CreateMatiereC
         var exists = await _dbContext.Matieres
             .AnyAsync(m => m.Code == command.Code, cancellationToken).ConfigureAwait(false);
         if (exists)
-            throw new CustomException($"Une matière avec le code '{command.Code}' existe déjà.", (IEnumerable<string>?)null, System.Net.HttpStatusCode.Conflict);
+            throw new CustomException($"A subject with code '{command.Code}' already exists.", (IEnumerable<string>?)null, System.Net.HttpStatusCode.Conflict);
 
         var matiere = Matiere.Create(command.Nom, command.Code, command.Coefficient, command.Description, _currentUser.GetUserId().ToString());
         _dbContext.Matieres.Add(matiere);

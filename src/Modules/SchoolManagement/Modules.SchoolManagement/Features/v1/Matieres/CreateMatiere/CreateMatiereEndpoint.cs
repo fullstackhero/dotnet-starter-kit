@@ -18,7 +18,7 @@ public static class CreateMatiereEndpoint
             return TypedResults.Created($"/api/v1/school/matieres/{id}", id);
         })
         .WithName("CreateMatiere")
-        .WithSummary("Créer une nouvelle matière")
+        .WithSummary("Create a new subject")
         .RequirePermission(SchoolManagementPermissionConstants.Matieres.Create)
         .Produces<Guid>(StatusCodes.Status201Created)
         .Produces(StatusCodes.Status400BadRequest)

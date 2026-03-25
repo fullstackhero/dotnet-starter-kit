@@ -9,7 +9,7 @@ public sealed class CreateClasseCommandValidator : AbstractValidator<CreateClass
     {
         RuleFor(x => x.Nom).NotEmpty().MaximumLength(256);
         RuleFor(x => x.Niveau).NotEmpty().Must(n => Enum.TryParse<Domain.NiveauScolaire>(n, ignoreCase: true, out _))
-            .WithMessage("Niveau scolaire invalide.");
+            .WithMessage("Invalid school level.");
         RuleFor(x => x.EcoleId).NotEmpty();
         RuleFor(x => x.AnneeScolaireId).NotEmpty();
         RuleFor(x => x.Capacite).GreaterThan(0);

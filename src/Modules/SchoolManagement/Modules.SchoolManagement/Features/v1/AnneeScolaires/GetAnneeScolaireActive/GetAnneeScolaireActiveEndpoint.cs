@@ -15,7 +15,7 @@ public static class GetAnneeScolaireActiveEndpoint
         return endpoints.MapGet("/annees-scolaires/active", async (IMediator mediator, CancellationToken cancellationToken) =>
             TypedResults.Ok(await mediator.Send(new GetAnneeScolaireActiveQuery(), cancellationToken)))
         .WithName("GetAnneeScolaireActive")
-        .WithSummary("Obtenir l'année scolaire active")
+        .WithSummary("Get active school year")
         .RequirePermission(SchoolManagementPermissionConstants.AnneeScolaires.View)
         .Produces<AnneeScolaireDto?>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status401Unauthorized)

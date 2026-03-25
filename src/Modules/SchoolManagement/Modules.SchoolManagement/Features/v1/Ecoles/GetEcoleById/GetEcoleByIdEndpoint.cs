@@ -15,7 +15,7 @@ public static class GetEcoleByIdEndpoint
         return endpoints.MapGet("/ecoles/{id:guid}", async (Guid id, IMediator mediator, CancellationToken cancellationToken) =>
             TypedResults.Ok(await mediator.Send(new GetEcoleByIdQuery(id), cancellationToken)))
         .WithName("GetEcoleById")
-        .WithSummary("Obtenir une école par ID")
+        .WithSummary("Get school by ID")
         .RequirePermission(SchoolManagementPermissionConstants.Ecoles.View)
         .Produces<EcoleDto>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status401Unauthorized)

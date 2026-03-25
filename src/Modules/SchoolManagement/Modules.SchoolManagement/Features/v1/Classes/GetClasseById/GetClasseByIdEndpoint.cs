@@ -15,7 +15,7 @@ public static class GetClasseByIdEndpoint
         return endpoints.MapGet("/classes/{id:guid}", async (Guid id, IMediator mediator, CancellationToken cancellationToken) =>
             TypedResults.Ok(await mediator.Send(new GetClasseByIdQuery(id), cancellationToken)))
         .WithName("GetClasseById")
-        .WithSummary("Obtenir une classe par ID")
+        .WithSummary("Get class by ID")
         .RequirePermission(SchoolManagementPermissionConstants.Classes.View)
         .Produces<ClasseDto>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status401Unauthorized)

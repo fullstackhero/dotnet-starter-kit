@@ -25,12 +25,12 @@ public sealed class UpdateEcoleCommandHandler : ICommandHandler<UpdateEcoleComma
 
         var ecole = await _dbContext.Ecoles
             .FirstOrDefaultAsync(e => e.Id == command.Id, cancellationToken).ConfigureAwait(false)
-            ?? throw new NotFoundException($"École avec l'ID '{command.Id}' introuvable.");
+            ?? throw new NotFoundException($"School with ID '{command.Id}' not found.");
 
         var codeExists = await _dbContext.Ecoles
             .AnyAsync(e => e.CodeEcole == command.CodeEcole && e.Id != command.Id, cancellationToken).ConfigureAwait(false);
         if (codeExists)
-            throw new CustomException($"Une école avec le code '{command.CodeEcole}' existe déjà.", (IEnumerable<string>?)null, System.Net.HttpStatusCode.Conflict);
+            throw new CustomException($"A school with code '{command.CodeEcole}' already exists.", (IEnumerable<string>?)null, System.Net.HttpStatusCode.Conflict);
 
         var typeEcole = Enum.Parse<TypeEcole>(command.Type, ignoreCase: true);
         ecole.Update(command.Nom, command.CodeEcole, typeEcole, command.Adresse, command.Telephone, command.Email, command.Region, command.Ville, _currentUser.GetUserId().ToString());

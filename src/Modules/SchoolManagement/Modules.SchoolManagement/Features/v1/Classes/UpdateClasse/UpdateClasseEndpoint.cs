@@ -18,7 +18,7 @@ public static class UpdateClasseEndpoint
             return TypedResults.NoContent();
         })
         .WithName("UpdateClasse")
-        .WithSummary("Mettre à jour une classe")
+        .WithSummary("Update a class")
         .RequirePermission(SchoolManagementPermissionConstants.Classes.Update)
         .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status400BadRequest)
