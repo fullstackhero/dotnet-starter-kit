@@ -1,0 +1,16 @@
+using FluentValidation;
+using FSH.Modules.SchoolManagement.Contracts.v1.AnneeScolaires.UpdateAnneeScolaire;
+
+namespace FSH.Modules.SchoolManagement.Features.v1.AnneeScolaires.UpdateAnneeScolaire;
+
+public sealed class UpdateAnneeScolaireCommandValidator : AbstractValidator<UpdateAnneeScolaireCommand>
+{
+    public UpdateAnneeScolaireCommandValidator()
+    {
+        RuleFor(x => x.Id).NotEmpty();
+        RuleFor(x => x.Libelle).NotEmpty().MaximumLength(20);
+        RuleFor(x => x.DateDebut).NotEmpty();
+        RuleFor(x => x.DateFin).NotEmpty().GreaterThan(x => x.DateDebut)
+            .WithMessage("End date must be after start date.");
+    }
+}
