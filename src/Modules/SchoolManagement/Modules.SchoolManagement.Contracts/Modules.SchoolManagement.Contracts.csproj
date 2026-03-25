@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<RootNamespace>FSH.Modules.SchoolManagement.Contracts</RootNamespace>
+		<AssemblyName>FSH.Modules.SchoolManagement.Contracts</AssemblyName>
+		<PackageId>FullStackHero.Modules.SchoolManagement.Contracts</PackageId>
+		<NoWarn>$(NoWarn);S2094</NoWarn>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Mediator.Abstractions" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\BuildingBlocks\Shared\Shared.csproj" />
+	</ItemGroup>
+</Project>

@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<RootNamespace>FSH.Modules.SchoolManagement</RootNamespace>
+		<AssemblyName>FSH.Modules.SchoolManagement</AssemblyName>
+		<PackageId>FullStackHero.Modules.SchoolManagement</PackageId>
+		<NoWarn>$(NoWarn);CA1031;CA1812;CA1859;S3267</NoWarn>
+	</PropertyGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\BuildingBlocks\Persistence\Persistence.csproj" />
+		<ProjectReference Include="..\..\..\BuildingBlocks\Web\Web.csproj" />
+		<ProjectReference Include="..\Modules.SchoolManagement.Contracts\Modules.SchoolManagement.Contracts.csproj" />
+	</ItemGroup>
+</Project>
