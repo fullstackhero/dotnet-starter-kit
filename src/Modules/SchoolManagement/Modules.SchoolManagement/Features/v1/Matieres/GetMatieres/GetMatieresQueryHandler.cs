@@ -17,12 +17,14 @@ public sealed class GetMatieresQueryHandler : IQueryHandler<GetMatieresQuery, IR
 
     public async ValueTask<IReadOnlyCollection<MatiereDto>> Handle(GetMatieresQuery query, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(query);
+
         var q = _dbContext.Matieres.AsNoTracking().AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            var search = query.Search.ToLowerInvariant();
-            q = q.Where(m => m.Nom.ToLower().Contains(search) || m.Code.ToLower().Contains(search));
+            var search = query.Search;
+            q = q.Where(m => m.Nom.Contains(search) || m.Code.Contains(search));
         }
 
         return await q

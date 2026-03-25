@@ -19,6 +19,8 @@ public sealed class GetClassesQueryHandler : IQueryHandler<GetClassesQuery, Page
 
     public async ValueTask<PagedResponse<ClasseDto>> Handle(GetClassesQuery query, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(query);
+
         var q = _dbContext.Classes.AsNoTracking().AsQueryable();
 
         if (query.EcoleId.HasValue)

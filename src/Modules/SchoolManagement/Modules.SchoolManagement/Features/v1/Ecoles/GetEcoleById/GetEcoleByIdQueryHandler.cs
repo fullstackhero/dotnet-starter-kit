@@ -18,6 +18,7 @@ public sealed class GetEcoleByIdQueryHandler : IQueryHandler<GetEcoleByIdQuery, 
 
     public async ValueTask<EcoleDto> Handle(GetEcoleByIdQuery query, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(query);
         var ecole = await _dbContext.Ecoles
             .AsNoTracking()
             .FirstOrDefaultAsync(e => e.Id == query.Id, cancellationToken).ConfigureAwait(false)

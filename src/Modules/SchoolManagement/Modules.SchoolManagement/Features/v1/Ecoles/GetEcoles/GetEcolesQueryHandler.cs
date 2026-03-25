@@ -19,12 +19,14 @@ public sealed class GetEcolesQueryHandler : IQueryHandler<GetEcolesQuery, PagedR
 
     public async ValueTask<PagedResponse<EcoleDto>> Handle(GetEcolesQuery query, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(query);
+
         var q = _dbContext.Ecoles.AsNoTracking().AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            var search = query.Search.ToLowerInvariant();
-            q = q.Where(e => e.Nom.ToLower().Contains(search) || e.CodeEcole.ToLower().Contains(search));
+            var search = query.Search;
+            q = q.Where(e => e.Nom.Contains(search) || e.CodeEcole.Contains(search));
         }
 
         if (!string.IsNullOrWhiteSpace(query.Region))
