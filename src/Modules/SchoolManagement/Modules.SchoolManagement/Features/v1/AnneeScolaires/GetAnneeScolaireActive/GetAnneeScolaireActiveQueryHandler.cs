@@ -17,6 +17,7 @@ public sealed class GetAnneeScolaireActiveQueryHandler : IQueryHandler<GetAnneeS
 
     public async ValueTask<AnneeScolaireDto?> Handle(GetAnneeScolaireActiveQuery query, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(query);
         var annee = await _dbContext.AnneeScolaires
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.EstActive, cancellationToken).ConfigureAwait(false);

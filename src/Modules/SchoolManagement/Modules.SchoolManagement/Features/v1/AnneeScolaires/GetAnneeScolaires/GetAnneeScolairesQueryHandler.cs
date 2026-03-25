@@ -17,6 +17,7 @@ public sealed class GetAnneeScolairesQueryHandler : IQueryHandler<GetAnneeScolai
 
     public async ValueTask<IReadOnlyCollection<AnneeScolaireDto>> Handle(GetAnneeScolairesQuery query, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(query);
         return await _dbContext.AnneeScolaires
             .AsNoTracking()
             .OrderByDescending(a => a.DateDebut)
