@@ -29,6 +29,9 @@
     <Project Path="Modules/SchoolManagement/Modules.SchoolManagement.Contracts/Modules.SchoolManagement.Contracts.csproj" />
     <Project Path="Modules/SchoolManagement/Modules.SchoolManagement/Modules.SchoolManagement.csproj" />
   </Folder>
+  <Folder Name="/Modules/StudentManagement/">
+    <Project Path="Modules.StudentManagement/Modules.StudentManagement.csproj" Id="35a17794-bff3-44ac-ad3f-d2a0b128793e" />
+  </Folder>
   <Folder Name="/Playground/">
     <Project Path="Playground/FSH.Playground.AppHost/FSH.Playground.AppHost.csproj" Id="86bd02ee-f1b5-472c-b5bd-bc607fe084de" />
     <Project Path="Playground/Playground.Api/Playground.Api.csproj" Id="187ce245-0a57-469c-96c2-a88902f2d40d" />
