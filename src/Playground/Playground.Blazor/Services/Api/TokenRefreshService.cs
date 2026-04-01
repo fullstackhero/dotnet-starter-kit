@@ -150,7 +150,7 @@ internal sealed class TokenRefreshService : ITokenRefreshService, IDisposable
             }
 
             var newClaims = BuildNewClaims(user, refreshResponse);
-            UpdateCaches(refreshResponse, currentRefreshToken);
+            UpdateCaches(refreshResponse);
             await TryUpdateCookieAsync(httpContext, newClaims);
 
             _logger.LogInformation("Access token refreshed successfully");
@@ -246,7 +246,7 @@ internal sealed class TokenRefreshService : ITokenRefreshService, IDisposable
         claims.AddRange(roleClaims.Select(r => new Claim(ClaimTypes.Role, r.Value)));
     }
 
-    private void UpdateCaches(RefreshTokenCommandResponse response, string oldRefreshToken)
+    private void UpdateCaches(RefreshTokenCommandResponse response)
     {
         _circuitTokenCache.UpdateTokens(response.Token, response.RefreshToken);
 

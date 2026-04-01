@@ -6,6 +6,8 @@ namespace FSH.Modules.Auditing.Persistence;
 
 public class AuditRecordConfiguration : IEntityTypeConfiguration<AuditRecord>
 {
+    private static readonly string[] JsonbPathOpsOperator = ["jsonb_path_ops"];
+
     public void Configure(EntityTypeBuilder<AuditRecord> builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -38,6 +40,6 @@ public class AuditRecordConfiguration : IEntityTypeConfiguration<AuditRecord>
         // GIN index for JSONB full-text search (PostgreSQL specific)
         builder.HasIndex(x => x.PayloadJson)
             .HasMethod("gin")
-            .HasAnnotation("Npgsql:IndexOperators", new[] { "jsonb_path_ops" });
+            .HasAnnotation("Npgsql:IndexOperators", JsonbPathOpsOperator);
     }
 }
