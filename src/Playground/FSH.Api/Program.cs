@@ -1,4 +1,5 @@
-﻿using FSH.Framework.Web;
+﻿using FSH.Framework.Shared.Localization;
+using FSH.Framework.Web;
 using FSH.Framework.Web.Modules;
 using FSH.Modules.Auditing;
 using FSH.Modules.Identity;
@@ -50,6 +51,8 @@ var moduleAssemblies = new Assembly[]
     typeof(WebhooksModule).Assembly
 };
 
+builder.Services.AddFshLocalization();
+
 builder.AddHeroPlatform(o =>
 {
     o.EnableCaching = true;
@@ -61,6 +64,7 @@ builder.AddModules(moduleAssemblies);
 var app = builder.Build();
 
 app.UseHeroMultiTenantDatabases();
+app.UseFshLocalization();
 app.UseHeroPlatform(p =>
 {
     p.MapModules = true;

@@ -83,22 +83,23 @@ public sealed class GetAuditsQueryHandler(AuditDbContext dbContext) : IQueryHand
 
         audits = audits.OrderByDescending(a => a.OccurredAtUtc);
 
-        IQueryable<AuditSummaryDto> projected = audits.Select(a => new AuditSummaryDto
-        {
-            Id = a.Id,
-            OccurredAtUtc = a.OccurredAtUtc,
-            EventType = (AuditEventType)a.EventType,
-            Severity = (AuditSeverity)a.Severity,
-            TenantId = a.TenantId,
-            UserId = a.UserId,
-            UserName = a.UserName,
-            TraceId = a.TraceId,
-            CorrelationId = a.CorrelationId,
-            RequestId = a.RequestId,
-            Source = a.Source,
-            Tags = (AuditTag)a.Tags
-        });
-
-        return await projected.ToPagedResponseAsync(query, cancellationToken).ConfigureAwait(false);
+        return await audits.ToPagedResponseAsync(
+            a => new AuditSummaryDto
+            {
+                Id = a.Id,
+                OccurredAtUtc = a.OccurredAtUtc,
+                EventType = (AuditEventType)a.EventType,
+                Severity = (AuditSeverity)a.Severity,
+                TenantId = a.TenantId,
+                UserId = a.UserId,
+                UserName = a.UserName,
+                TraceId = a.TraceId,
+                CorrelationId = a.CorrelationId,
+                RequestId = a.RequestId,
+                Source = a.Source,
+                Tags = (AuditTag)a.Tags
+            },
+            query,
+            cancellationToken).ConfigureAwait(false);
     }
 }

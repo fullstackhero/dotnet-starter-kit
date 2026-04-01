@@ -49,6 +49,38 @@ public static class PaginationExtensions
         return ToPagedResponseInternalAsync(source, pageNumber, pageSize, cancellationToken);
     }
 
+    /// <summary>
+    /// Counts on the raw <typeparamref name="TSource"/> query and projects only the paged subset to
+    /// <typeparamref name="TResult"/>, producing a simpler COUNT(*) and a narrower SELECT.
+    /// </summary>
+    public static Task<PagedResponse<TResult>> ToPagedResponseAsync<TSource, TResult>(
+        this IQueryable<TSource> source,
+        Expression<Func<TSource, TResult>> projection,
+        IPagedQuery pagination,
+        CancellationToken cancellationToken = default)
+        where TSource : class
+        where TResult : class
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(projection);
+        ArgumentNullException.ThrowIfNull(pagination);
+
+        var pageNumber = pagination.PageNumber is null or <= 0
+            ? 1
+            : pagination.PageNumber.Value;
+
+        var pageSize = pagination.PageSize is null or <= 0
+            ? DefaultPageSize
+            : pagination.PageSize.Value;
+
+        if (pageSize > MaxPageSize)
+        {
+            pageSize = MaxPageSize;
+        }
+
+        return ToPagedResponseInternalAsync(source, projection, pageNumber, pageSize, cancellationToken);
+    }
+
     private static async Task<PagedResponse<T>> ToPagedResponseInternalAsync<T>(
         IQueryable<T> source,
         int pageNumber,
@@ -76,6 +108,47 @@ public static class PaginationExtensions
             .ConfigureAwait(false);
 
         return new PagedResponse<T>
+        {
+            Items = items,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalCount = totalCount,
+            TotalPages = totalPages
+        };
+    }
+
+    // COUNT on TSource (no projection columns in the count query),
+    // Skip/Take on TSource, then project — avoids SELECT COUNT(*) FROM (SELECT col1, col2...) subquery.
+    private static async Task<PagedResponse<TResult>> ToPagedResponseInternalAsync<TSource, TResult>(
+        IQueryable<TSource> source,
+        Expression<Func<TSource, TResult>> projection,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken)
+        where TSource : class
+        where TResult : class
+    {
+        var totalCount = await source.LongCountAsync(cancellationToken).ConfigureAwait(false);
+
+        var totalPages = totalCount == 0
+            ? 0
+            : (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        if (pageNumber > totalPages && totalPages > 0)
+        {
+            pageNumber = totalPages;
+        }
+
+        var skip = (pageNumber - 1) * pageSize;
+
+        var items = await source
+            .Skip(skip)
+            .Take(pageSize)
+            .Select(projection)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return new PagedResponse<TResult>
         {
             Items = items,
             PageNumber = pageNumber,

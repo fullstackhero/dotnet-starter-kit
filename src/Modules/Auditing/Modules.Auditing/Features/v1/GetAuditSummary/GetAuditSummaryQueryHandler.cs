@@ -14,9 +14,43 @@ public sealed class GetAuditSummaryQueryHandler(AuditDbContext dbContext) : IQue
         ArgumentNullException.ThrowIfNull(query);
 
         var audits = ApplyFilters(dbContext.AuditRecords.AsNoTracking(), query);
-        var list = await audits.ToListAsync(cancellationToken).ConfigureAwait(false);
 
-        return AggregateRecords(list);
+        // Push all aggregation to the database via GROUP BY — avoids loading any rows into memory.
+        // EF Core DbContext is not thread-safe, so queries are run sequentially.
+
+        var byType = await audits
+            .GroupBy(a => a.EventType)
+            .Select(g => new { EventType = g.Key, Count = g.LongCount() })
+            .ToDictionaryAsync(g => (AuditEventType)g.EventType, g => g.Count, cancellationToken)
+            .ConfigureAwait(false);
+
+        var bySeverity = await audits
+            .GroupBy(a => a.Severity)
+            .Select(g => new { Severity = g.Key, Count = g.LongCount() })
+            .ToDictionaryAsync(g => (AuditSeverity)g.Severity, g => g.Count, cancellationToken)
+            .ConfigureAwait(false);
+
+        var bySource = await audits
+            .Where(a => a.Source != null)
+            .GroupBy(a => a.Source!)
+            .Select(g => new { Source = g.Key, Count = g.LongCount() })
+            .ToDictionaryAsync(g => g.Source, g => g.Count, StringComparer.OrdinalIgnoreCase, cancellationToken)
+            .ConfigureAwait(false);
+
+        var byTenant = await audits
+            .Where(a => a.TenantId != null)
+            .GroupBy(a => a.TenantId!)
+            .Select(g => new { TenantId = g.Key, Count = g.LongCount() })
+            .ToDictionaryAsync(g => g.TenantId, g => g.Count, StringComparer.OrdinalIgnoreCase, cancellationToken)
+            .ConfigureAwait(false);
+
+        return new AuditSummaryAggregateDto
+        {
+            EventsByType = byType,
+            EventsBySeverity = bySeverity,
+            EventsBySource = bySource,
+            EventsByTenant = byTenant
+        };
     }
 
     private static IQueryable<AuditRecord> ApplyFilters(IQueryable<AuditRecord> audits, GetAuditSummaryQuery query)
@@ -37,48 +71,5 @@ public sealed class GetAuditSummaryQueryHandler(AuditDbContext dbContext) : IQue
         }
 
         return audits;
-    }
-
-    private static AuditSummaryAggregateDto AggregateRecords(List<AuditRecord> records)
-    {
-        var aggregate = new AuditSummaryAggregateDto();
-
-        foreach (var record in records)
-        {
-            AggregateByType(aggregate, record);
-            AggregrateBySeverity(aggregate, record);
-            AggregateBySource(aggregate, record);
-            AggregateByTenant(aggregate, record);
-        }
-
-        return aggregate;
-    }
-
-    private static void AggregateByType(AuditSummaryAggregateDto aggregate, AuditRecord record)
-    {
-        var type = (AuditEventType)record.EventType;
-        aggregate.EventsByType[type] = aggregate.EventsByType.TryGetValue(type, out var c) ? c + 1 : 1;
-    }
-
-    private static void AggregrateBySeverity(AuditSummaryAggregateDto aggregate, AuditRecord record)
-    {
-        var severity = (AuditSeverity)record.Severity;
-        aggregate.EventsBySeverity[severity] = aggregate.EventsBySeverity.TryGetValue(severity, out var s) ? s + 1 : 1;
-    }
-
-    private static void AggregateBySource(AuditSummaryAggregateDto aggregate, AuditRecord record)
-    {
-        if (!string.IsNullOrWhiteSpace(record.Source))
-        {
-            aggregate.EventsBySource[record.Source] = aggregate.EventsBySource.TryGetValue(record.Source, out var cs) ? cs + 1 : 1;
-        }
-    }
-
-    private static void AggregateByTenant(AuditSummaryAggregateDto aggregate, AuditRecord record)
-    {
-        if (!string.IsNullOrWhiteSpace(record.TenantId))
-        {
-            aggregate.EventsByTenant[record.TenantId] = aggregate.EventsByTenant.TryGetValue(record.TenantId, out var ct) ? ct + 1 : 1;
-        }
     }
 }

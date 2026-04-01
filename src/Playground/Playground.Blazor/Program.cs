@@ -1,3 +1,4 @@
+using FSH.Framework.Shared.Localization;
 using FSH.Framework.Blazor.UI;
 using FSH.Framework.Blazor.UI.Theme;
 using FSH.Playground.Blazor;
@@ -118,6 +119,8 @@ builder.Services.AddOutputCache(options =>
         .Expire(TimeSpan.FromSeconds(10)));
 });
 
+builder.Services.AddFshLocalization();
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
@@ -140,6 +143,7 @@ app.MapGet("/health/ready", () => Results.Ok(new { status = "Healthy" }))
 app.MapGet("/health/live", () => Results.Ok(new { status = "Alive" }))
    .AllowAnonymous();
 
+app.UseFshLocalization();
 app.UseResponseCompression(); // Must come before UseStaticFiles
 app.UseOutputCache();
 app.UseHttpsRedirection();

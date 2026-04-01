@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Common validation messages -->
+  <data name="Required" xml:space="preserve">
+    <value>{0} is required.</value>
+  </data>
+  <data name="MaxLength" xml:space="preserve">
+    <value>{0} must not exceed {1} characters.</value>
+  </data>
+  <data name="MinLength" xml:space="preserve">
+    <value>{0} must be at least {1} characters.</value>
+  </data>
+  <data name="InvalidEmail" xml:space="preserve">
+    <value>A valid email address is required.</value>
+  </data>
+
+  <!-- Common error messages -->
+  <data name="Unauthorized" xml:space="preserve">
+    <value>Authentication failed.</value>
+  </data>
+  <data name="NotFound" xml:space="preserve">
+    <value>The requested resource was not found.</value>
+  </data>
+  <data name="Forbidden" xml:space="preserve">
+    <value>You do not have permission to perform this action.</value>
+  </data>
+</root>

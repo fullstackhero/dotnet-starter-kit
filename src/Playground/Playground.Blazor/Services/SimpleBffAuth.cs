@@ -1,5 +1,7 @@
+using FSH.Framework.Shared.Localization;
 using FSH.Playground.Blazor.ApiClient;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Localization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -135,6 +137,24 @@ internal static class SimpleBffAuth
         {
             await httpContext.SignOutAsync("Cookies");
             return Results.Redirect("/login?toast=logout_success");
+        })
+        .AllowAnonymous();
+
+        // Culture set endpoint - persists the chosen culture in a cookie and redirects back
+        app.MapGet("/Culture/Set", (HttpContext httpContext, string culture, string? redirectUri) =>
+        {
+            if (!LocalizationConstants.SupportedCultures.Contains(culture))
+            {
+                return Results.BadRequest($"Culture '{culture}' is not supported.");
+            }
+
+            httpContext.Response.Cookies.Append(
+                LocalizationConstants.CultureCookieName,
+                CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)),
+                new CookieOptions { MaxAge = TimeSpan.FromDays(365) });
+
+            var destination = string.IsNullOrEmpty(redirectUri) ? "/" : redirectUri;
+            return Results.Redirect(destination);
         })
         .AllowAnonymous();
     }
