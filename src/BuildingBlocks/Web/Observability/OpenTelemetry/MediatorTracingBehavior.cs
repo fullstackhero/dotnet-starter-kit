@@ -6,29 +6,19 @@ namespace FSH.Framework.Web.Observability.OpenTelemetry;
 /// <summary>
 /// Emits spans around Mediator commands/queries to improve trace visibility.
 /// </summary>
-public sealed class MediatorTracingBehavior<TMessage, TResponse> : IPipelineBehavior<TMessage, TResponse>
+public sealed class MediatorTracingBehavior<TMessage, TResponse>(ActivitySource activitySource) : IPipelineBehavior<TMessage, TResponse>
     where TMessage : IMessage
 {
-    private readonly ActivitySource _activitySource;
-
-    public MediatorTracingBehavior(ActivitySource activitySource)
-    {
-        _activitySource = activitySource;
-    }
-
     public async ValueTask<TResponse> Handle(TMessage message, MessageHandlerDelegate<TMessage, TResponse> next, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(message);
         ArgumentNullException.ThrowIfNull(next);
 
-        using var activity = _activitySource.StartActivity(
+        using var activity = activitySource.StartActivity(
             $"Mediator {typeof(TMessage).Name}",
             ActivityKind.Internal);
 
-        if (activity is not null)
-        {
-            activity.SetTag("mediator.request_type", typeof(TMessage).FullName);
-        }
+        activity?.SetTag("mediator.request_type", typeof(TMessage).FullName);
 
         try
         {

@@ -8,23 +8,16 @@ namespace FSH.Framework.Persistence;
 /// <summary>
 /// Hosted service that logs database configuration options during application startup.
 /// </summary>
-public sealed class DatabaseOptionsStartupLogger : IHostedService
+/// <remarks>
+/// Initializes a new instance of the <see cref="DatabaseOptionsStartupLogger"/> class.
+/// </remarks>
+/// <param name="logger">Logger instance for writing startup information.</param>
+/// <param name="options">Database configuration options.</param>
+public sealed class DatabaseOptionsStartupLogger(
+    ILogger<DatabaseOptionsStartupLogger> logger,
+    IOptions<DatabaseOptions> options) : IHostedService
 {
-    private readonly ILogger<DatabaseOptionsStartupLogger> _logger;
-    private readonly IOptions<DatabaseOptions> _options;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DatabaseOptionsStartupLogger"/> class.
-    /// </summary>
-    /// <param name="logger">Logger instance for writing startup information.</param>
-    /// <param name="options">Database configuration options.</param>
-    public DatabaseOptionsStartupLogger(
-        ILogger<DatabaseOptionsStartupLogger> logger,
-        IOptions<DatabaseOptions> options)
-    {
-        _logger = logger;
-        _options = options;
-    }
+    private readonly IOptions<DatabaseOptions> _options = options;
 
     /// <summary>
     /// Logs database configuration information when the service starts.
@@ -34,11 +27,11 @@ public sealed class DatabaseOptionsStartupLogger : IHostedService
     public Task StartAsync(CancellationToken cancellationToken)
     {
         var options = _options.Value;
-        if (_logger.IsEnabled(LogLevel.Information))
+        if (logger.IsEnabled(LogLevel.Information))
         {
-            _logger.LogInformation("current db provider: {Provider}", options.Provider);
-            _logger.LogInformation("for docs: https://www.fullstackhero.net");
-            _logger.LogInformation("sponsor: https://opencollective.com/fullstackhero");
+            logger.LogInformation("current db provider: {Provider}", options.Provider);
+            logger.LogInformation("for docs: https://www.fullstackhero.net");
+            logger.LogInformation("sponsor: https://opencollective.com/fullstackhero");
         }
         return Task.CompletedTask;
     }

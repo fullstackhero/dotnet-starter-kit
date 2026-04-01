@@ -9,23 +9,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Modules.Identity.Features.v1.Groups.CreateGroup;
 
-public sealed class CreateGroupCommandHandler : ICommandHandler<CreateGroupCommand, GroupDto>
+public sealed class CreateGroupCommandHandler(IdentityDbContext dbContext, ICurrentUser currentUser) : ICommandHandler<CreateGroupCommand, GroupDto>
 {
-    private readonly IdentityDbContext _dbContext;
-    private readonly ICurrentUser _currentUser;
-
-    public CreateGroupCommandHandler(IdentityDbContext dbContext, ICurrentUser currentUser)
-    {
-        _dbContext = dbContext;
-        _currentUser = currentUser;
-    }
-
     public async ValueTask<GroupDto> Handle(CreateGroupCommand command, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(command);
 
         // Validate name is unique within tenant
-        var nameExists = await _dbContext.Groups
+        var nameExists = await dbContext.Groups
             .AnyAsync(g => g.Name == command.Name, cancellationToken);
 
         if (nameExists)
@@ -37,7 +28,7 @@ public sealed class CreateGroupCommandHandler : ICommandHandler<CreateGroupComma
         List<(string Id, string Name)> resolvedRoles = [];
         if (command.RoleIds is { Count: > 0 })
         {
-            var rawRoles = await _dbContext.Roles
+            var rawRoles = await dbContext.Roles
                 .Where(r => command.RoleIds.Contains(r.Id))
                 .Select(r => new { r.Id, r.Name })
                 .ToListAsync(cancellationToken);
@@ -55,16 +46,16 @@ public sealed class CreateGroupCommandHandler : ICommandHandler<CreateGroupComma
             description: command.Description,
             isDefault: command.IsDefault,
             isSystemGroup: false,
-            createdBy: _currentUser.GetUserId().ToString());
+            createdBy: currentUser.GetUserId().ToString());
 
         // Add role assignments
         foreach (var role in resolvedRoles)
         {
-            _dbContext.GroupRoles.Add(GroupRole.Create(group.Id, role.Item1));
+            dbContext.GroupRoles.Add(GroupRole.Create(group.Id, role.Item1));
         }
 
-        _dbContext.Groups.Add(group);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        dbContext.Groups.Add(group);
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         return new GroupDto
         {

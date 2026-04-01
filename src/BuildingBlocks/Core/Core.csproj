@@ -4,6 +4,7 @@
 	    <RootNamespace>FSH.Framework.Core</RootNamespace>
 	    <AssemblyName>FSH.Framework.Core</AssemblyName>
 	    <PackageId>FullStackHero.Framework.Core</PackageId>
+      <NoWarn>$(NoWarn);NU1507</NoWarn>
     </PropertyGroup>
 
 	<ItemGroup>

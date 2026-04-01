@@ -8,16 +8,9 @@ namespace FSH.Modules.Identity.Events;
 /// <summary>
 /// Sends a welcome email when a new user registers.
 /// </summary>
-public sealed class UserRegisteredEmailHandler
-    : IIntegrationEventHandler<UserRegisteredIntegrationEvent>
+public sealed class UserRegisteredEmailHandler(IMailService mailService)
+        : IIntegrationEventHandler<UserRegisteredIntegrationEvent>
 {
-    private readonly IMailService _mailService;
-
-    public UserRegisteredEmailHandler(IMailService mailService)
-    {
-        _mailService = mailService;
-    }
-
     public async Task HandleAsync(UserRegisteredIntegrationEvent @event, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(@event);
@@ -32,6 +25,6 @@ public sealed class UserRegisteredEmailHandler
             subject: "Welcome!",
             body: $"Hi {@event.FirstName}, thanks for registering.");
 
-        await _mailService.SendAsync(mail, ct).ConfigureAwait(false);
+        await mailService.SendAsync(mail, ct).ConfigureAwait(false);
     }
 }

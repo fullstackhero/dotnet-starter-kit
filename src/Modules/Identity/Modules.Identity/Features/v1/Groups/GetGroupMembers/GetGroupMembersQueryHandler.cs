@@ -7,19 +7,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Modules.Identity.Features.v1.Groups.GetGroupMembers;
 
-public sealed class GetGroupMembersQueryHandler : IQueryHandler<GetGroupMembersQuery, IEnumerable<GroupMemberDto>>
+public sealed class GetGroupMembersQueryHandler(IdentityDbContext dbContext) : IQueryHandler<GetGroupMembersQuery, IEnumerable<GroupMemberDto>>
 {
-    private readonly IdentityDbContext _dbContext;
-
-    public GetGroupMembersQueryHandler(IdentityDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
     public async ValueTask<IEnumerable<GroupMemberDto>> Handle(GetGroupMembersQuery query, CancellationToken cancellationToken)
     {
         // Validate group exists
-        var groupExists = await _dbContext.Groups
+        var groupExists = await dbContext.Groups
             .AnyAsync(g => g.Id == query.GroupId, cancellationToken);
 
         if (!groupExists)
@@ -28,11 +21,11 @@ public sealed class GetGroupMembersQueryHandler : IQueryHandler<GetGroupMembersQ
         }
 
         // Get memberships with user info
-        var memberships = await _dbContext.UserGroups
+        var memberships = await dbContext.UserGroups
             .AsNoTracking()
             .Where(ug => ug.GroupId == query.GroupId)
             .Join(
-                _dbContext.Users,
+                dbContext.Users,
                 ug => ug.UserId,
                 u => u.Id,
                 (ug, u) => new GroupMemberDto

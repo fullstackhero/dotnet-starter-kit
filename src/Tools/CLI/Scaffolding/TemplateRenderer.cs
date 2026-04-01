@@ -7,18 +7,11 @@ namespace FSH.CLI.Scaffolding;
 /// Renders templates with variable substitution
 /// </summary>
 [SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "Lowercase is required for Docker, Terraform, and GitHub Actions naming conventions")]
-internal sealed class TemplateRenderer : ITemplateRenderer
+internal sealed class TemplateRenderer(ITemplateLoader templateLoader, ITemplateParser templateParser, ITemplateCache templateCache) : ITemplateRenderer
 {
-    private readonly ITemplateLoader _templateLoader;
-    private readonly ITemplateParser _templateParser;
-    private readonly ITemplateCache _templateCache;
-
-    public TemplateRenderer(ITemplateLoader templateLoader, ITemplateParser templateParser, ITemplateCache templateCache)
-    {
-        _templateLoader = templateLoader ?? throw new ArgumentNullException(nameof(templateLoader));
-        _templateParser = templateParser ?? throw new ArgumentNullException(nameof(templateParser));
-        _templateCache = templateCache ?? throw new ArgumentNullException(nameof(templateCache));
-    }
+    private readonly ITemplateLoader _templateLoader = templateLoader ?? throw new ArgumentNullException(nameof(templateLoader));
+    private readonly ITemplateParser _templateParser = templateParser ?? throw new ArgumentNullException(nameof(templateParser));
+    private readonly ITemplateCache _templateCache = templateCache ?? throw new ArgumentNullException(nameof(templateCache));
 
     #region Solution and Project Templates
 

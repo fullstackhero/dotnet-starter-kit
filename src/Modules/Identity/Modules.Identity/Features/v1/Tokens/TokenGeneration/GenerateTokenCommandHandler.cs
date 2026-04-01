@@ -13,38 +13,17 @@ using System.Security.Claims;
 
 namespace FSH.Modules.Identity.Features.v1.Tokens.TokenGeneration;
 
-public sealed class GenerateTokenCommandHandler
-    : ICommandHandler<GenerateTokenCommand, TokenResponse>
+public sealed class GenerateTokenCommandHandler(
+    IIdentityService identityService,
+    ITokenService tokenService,
+    ISecurityAudit securityAudit,
+    IRequestContext requestContext,
+    IOutboxStore outboxStore,
+    IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
+    ISessionService sessionService,
+    ILogger<GenerateTokenCommandHandler> logger)
+        : ICommandHandler<GenerateTokenCommand, TokenResponse>
 {
-    private readonly IIdentityService _identityService;
-    private readonly ITokenService _tokenService;
-    private readonly ISecurityAudit _securityAudit;
-    private readonly IRequestContext _requestContext;
-    private readonly IOutboxStore _outboxStore;
-    private readonly IMultiTenantContextAccessor<AppTenantInfo> _multiTenantContextAccessor;
-    private readonly ISessionService _sessionService;
-    private readonly ILogger<GenerateTokenCommandHandler> _logger;
-
-    public GenerateTokenCommandHandler(
-        IIdentityService identityService,
-        ITokenService tokenService,
-        ISecurityAudit securityAudit,
-        IRequestContext requestContext,
-        IOutboxStore outboxStore,
-        IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
-        ISessionService sessionService,
-        ILogger<GenerateTokenCommandHandler> logger)
-    {
-        _identityService = identityService;
-        _tokenService = tokenService;
-        _securityAudit = securityAudit;
-        _requestContext = requestContext;
-        _outboxStore = outboxStore;
-        _multiTenantContextAccessor = multiTenantContextAccessor;
-        _sessionService = sessionService;
-        _logger = logger;
-    }
-
     public async ValueTask<TokenResponse> Handle(
         GenerateTokenCommand request,
         CancellationToken cancellationToken)
@@ -52,18 +31,18 @@ public sealed class GenerateTokenCommandHandler
         ArgumentNullException.ThrowIfNull(request);
 
         // Gather context for auditing
-        var ip = _requestContext.IpAddress ?? "unknown";
-        var ua = _requestContext.UserAgent ?? "unknown";
-        var clientId = _requestContext.ClientId;
+        var ip = requestContext.IpAddress ?? "unknown";
+        var ua = requestContext.UserAgent ?? "unknown";
+        var clientId = requestContext.ClientId;
 
         // Validate credentials
-        var identityResult = await _identityService
+        var identityResult = await identityService
             .ValidateCredentialsAsync(request.Email, request.Password, cancellationToken);
 
         if (identityResult is null)
         {
             // 1) Audit failed login BEFORE throwing
-            await _securityAudit.LoginFailedAsync(
+            await securityAudit.LoginFailedAsync(
                 subjectIdOrName: request.Email,
                 clientId: clientId!,
                 reason: "InvalidCredentials",
@@ -77,7 +56,7 @@ public sealed class GenerateTokenCommandHandler
         var (subject, claims) = identityResult.Value;
 
         // 2) Audit successful login
-        await _securityAudit.LoginSucceededAsync(
+        await securityAudit.LoginSucceededAsync(
             userId: subject,
             userName: claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value ?? request.Email,
             clientId: clientId!,
@@ -86,16 +65,16 @@ public sealed class GenerateTokenCommandHandler
             ct: cancellationToken);
 
         // Issue token
-        var token = await _tokenService.IssueAsync(subject, claims, /*extra*/ null, cancellationToken);
+        var token = await tokenService.IssueAsync(subject, claims, /*extra*/ null, cancellationToken);
 
         // Persist refresh token (hashed) for this user
-        await _identityService.StoreRefreshTokenAsync(subject, token.RefreshToken, token.RefreshTokenExpiresAt, cancellationToken);
+        await identityService.StoreRefreshTokenAsync(subject, token.RefreshToken, token.RefreshTokenExpiresAt, cancellationToken);
 
         // Create user session for session management (non-blocking, fail gracefully)
         try
         {
             var refreshTokenHash = Sha256Short(token.RefreshToken);
-            await _sessionService.CreateSessionAsync(
+            await sessionService.CreateSessionAsync(
                 subject,
                 refreshTokenHash,
                 ip,
@@ -107,12 +86,12 @@ public sealed class GenerateTokenCommandHandler
         {
             // Session creation is non-critical - don't fail the login
             // This can happen if migrations haven't been applied yet
-            _logger.LogWarning(ex, "Failed to create user session for user {UserId}. Login will continue without session tracking.", subject);
+            logger.LogWarning(ex, "Failed to create user session for user {UserId}. Login will continue without session tracking.", subject);
         }
 
         // 3) Audit token issuance with a fingerprint (never raw token)
         var fingerprint = Sha256Short(token.AccessToken);
-        await _securityAudit.TokenIssuedAsync(
+        await securityAudit.TokenIssuedAsync(
             userId: subject,
             userName: claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value ?? request.Email,
             clientId: clientId!,
@@ -121,7 +100,7 @@ public sealed class GenerateTokenCommandHandler
             ct: cancellationToken);
 
         // 4) Enqueue integration event for token generation (sample event for testing eventing)
-        var tenantId = _multiTenantContextAccessor.MultiTenantContext?.TenantInfo?.Id;
+        var tenantId = multiTenantContextAccessor.MultiTenantContext?.TenantInfo?.Id;
         var correlationId = Guid.CreateVersion7().ToString();
 
         var integrationEvent = new TokenGeneratedIntegrationEvent(
@@ -138,7 +117,7 @@ public sealed class GenerateTokenCommandHandler
             TokenFingerprint: fingerprint,
             AccessTokenExpiresAtUtc: token.AccessTokenExpiresAt);
 
-        await _outboxStore.AddAsync(integrationEvent, cancellationToken).ConfigureAwait(false);
+        await outboxStore.AddAsync(integrationEvent, cancellationToken).ConfigureAwait(false);
 
         return token;
     }

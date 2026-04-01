@@ -4,20 +4,13 @@ using Mediator;
 
 namespace FSH.Modules.Identity.Features.v1.Users.UpdateUser;
 
-public sealed class UpdateUserCommandHandler : ICommandHandler<UpdateUserCommand, Unit>
+public sealed class UpdateUserCommandHandler(IUserService userService) : ICommandHandler<UpdateUserCommand, Unit>
 {
-    private readonly IUserService _userService;
-
-    public UpdateUserCommandHandler(IUserService userService)
-    {
-        _userService = userService;
-    }
-
     public async ValueTask<Unit> Handle(UpdateUserCommand command, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        await _userService.UpdateAsync(
+        await userService.UpdateAsync(
             command.Id,
             command.FirstName ?? string.Empty,
             command.LastName ?? string.Empty,

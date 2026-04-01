@@ -26,14 +26,14 @@ public sealed class SecurityHeadersMiddleware(RequestDelegate next, IOptions<Sec
 
         var headers = context.Response.Headers;
 
-        headers["X-Content-Type-Options"] = "nosniff";
-        headers["X-Frame-Options"] = "DENY";
+        headers.XContentTypeOptions = "nosniff";
+        headers.XFrameOptions = "DENY";
         headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
-        headers["X-XSS-Protection"] = "0";
+        headers.XXSSProtection = "0";
 
         if (context.Request.IsHttps)
         {
-            headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains";
+            headers.StrictTransportSecurity = "max-age=31536000; includeSubDomains";
         }
 
         if (!headers.ContainsKey("Content-Security-Policy"))
@@ -50,7 +50,7 @@ public sealed class SecurityHeadersMiddleware(RequestDelegate next, IOptions<Sec
                 "frame-ancestors 'none'; " +
                 "base-uri 'self';";
 
-            headers["Content-Security-Policy"] = csp;
+            headers.ContentSecurityPolicy = csp;
         }
 
         return next(context);

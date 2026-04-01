@@ -4,6 +4,7 @@
 		<RootNamespace>FSH.Framework.Caching</RootNamespace>
 		<AssemblyName>FSH.Framework.Caching</AssemblyName>
 		<PackageId>FullStackHero.Framework.Caching</PackageId>
+    <NoWarn>$(NoWarn);NU1507</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>

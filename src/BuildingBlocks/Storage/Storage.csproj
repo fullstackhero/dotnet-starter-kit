@@ -4,7 +4,7 @@
 		<RootNamespace>FSH.Framework.Storage</RootNamespace>
 		<AssemblyName>FSH.Framework.Storage</AssemblyName>
 		<PackageId>FullStackHero.Framework.Storage</PackageId>
-		<NoWarn>$(NoWarn);CA1031;CA1056;CA1002;CA2227;CA1812;CA1308;CA1062</NoWarn>
+		<NoWarn>$(NoWarn);CA1031;CA1056;CA1002;CA2227;CA1812;CA1308;CA1062;NU1507</NoWarn>
 	</PropertyGroup>
 	
 	<ItemGroup>

@@ -5,7 +5,7 @@
 		<AssemblyName>FSH.Framework.Blazor.UI</AssemblyName>
 		<PackageId>FullStackHero.Framework.Blazor.UI</PackageId>
 		<!-- MUD0002: MudBlazor analyzer false positives for valid component parameter usage in RenderFragment/component contexts -->
-		<NoWarn>$(NoWarn);MUD0002</NoWarn>
+		<NoWarn>$(NoWarn);MUD0002;NU1507</NoWarn>
 
 		<!-- Enable CSS isolation for Razor Class Library -->
 		<GenerateScopedCssFiles>true</GenerateScopedCssFiles>

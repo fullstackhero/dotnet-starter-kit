@@ -7,22 +7,15 @@ namespace FSH.Modules.Identity.Events;
 /// <summary>
 /// Logs user deactivation events for auditing purposes.
 /// </summary>
-public sealed class UserDeactivatedLogHandler : INotificationHandler<UserDeactivatedEvent>
+public sealed class UserDeactivatedLogHandler(ILogger<UserDeactivatedLogHandler> logger) : INotificationHandler<UserDeactivatedEvent>
 {
-    private readonly ILogger<UserDeactivatedLogHandler> _logger;
-
-    public UserDeactivatedLogHandler(ILogger<UserDeactivatedLogHandler> logger)
-    {
-        _logger = logger;
-    }
-
     public ValueTask Handle(UserDeactivatedEvent notification, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(notification);
 
-        if (_logger.IsEnabled(LogLevel.Information))
+        if (logger.IsEnabled(LogLevel.Information))
         {
-            _logger.LogInformation(
+            logger.LogInformation(
                 "User {UserId} deactivated in tenant {TenantId}",
                 notification.UserId,
                 notification.TenantId ?? "root");

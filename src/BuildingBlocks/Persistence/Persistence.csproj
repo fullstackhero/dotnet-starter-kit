@@ -4,7 +4,7 @@
 		<RootNamespace>FSH.Framework.Persistence</RootNamespace>
 		<AssemblyName>FSH.Framework.Persistence</AssemblyName>
 		<PackageId>FullStackHero.Framework.Persistence</PackageId>
-		<NoWarn>$(NoWarn);S4144;CS0618</NoWarn>
+		<NoWarn>$(NoWarn);S4144;CS0618;NU1507</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>

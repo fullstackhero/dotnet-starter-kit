@@ -15,38 +15,21 @@ using Microsoft.Extensions.Logging;
 
 namespace FSH.Modules.Multitenancy.Services;
 
-public sealed class TenantThemeService : ITenantThemeService
+public sealed class TenantThemeService(
+    ICacheService cache,
+    TenantDbContext dbContext,
+    IMultiTenantContextAccessor<AppTenantInfo> tenantAccessor,
+    IStorageService storageService,
+    ILogger<TenantThemeService> logger,
+    ICurrentUser currentUser) : ITenantThemeService
 {
     private const string CacheKeyPrefix = "theme:";
     private const string DefaultThemeCacheKey = "theme:default";
     private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(1);
 
-    private readonly ICacheService _cache;
-    private readonly TenantDbContext _dbContext;
-    private readonly IMultiTenantContextAccessor<AppTenantInfo> _tenantAccessor;
-    private readonly IStorageService _storageService;
-    private readonly ILogger<TenantThemeService> _logger;
-    private readonly ICurrentUser _currentUser;
-
-    public TenantThemeService(
-        ICacheService cache,
-        TenantDbContext dbContext,
-        IMultiTenantContextAccessor<AppTenantInfo> tenantAccessor,
-        IStorageService storageService,
-        ILogger<TenantThemeService> logger,
-        ICurrentUser currentUser)
-    {
-        _cache = cache;
-        _dbContext = dbContext;
-        _tenantAccessor = tenantAccessor;
-        _storageService = storageService;
-        _logger = logger;
-        _currentUser = currentUser;
-    }
-
     public async Task<TenantThemeDto> GetCurrentTenantThemeAsync(CancellationToken ct = default)
     {
-        var tenantId = _tenantAccessor.MultiTenantContext?.TenantInfo?.Id
+        var tenantId = tenantAccessor.MultiTenantContext?.TenantInfo?.Id
             ?? throw new InvalidOperationException("No tenant context available");
         return await GetThemeAsync(tenantId, ct).ConfigureAwait(false);
     }
@@ -57,7 +40,7 @@ public sealed class TenantThemeService : ITenantThemeService
 
         var cacheKey = $"{CacheKeyPrefix}{tenantId}";
 
-        var theme = await _cache.GetOrSetAsync(
+        var theme = await cache.GetOrSetAsync(
             cacheKey,
             async () => await LoadThemeFromDbAsync(tenantId, ct).ConfigureAwait(false),
             CacheDuration,
@@ -68,7 +51,7 @@ public sealed class TenantThemeService : ITenantThemeService
 
     public async Task<TenantThemeDto> GetDefaultThemeAsync(CancellationToken ct = default)
     {
-        var theme = await _cache.GetOrSetAsync(
+        var theme = await cache.GetOrSetAsync(
             DefaultThemeCacheKey,
             async () => await LoadDefaultThemeFromDbAsync(ct).ConfigureAwait(false),
             CacheDuration,
@@ -82,14 +65,14 @@ public sealed class TenantThemeService : ITenantThemeService
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         ArgumentNullException.ThrowIfNull(theme);
 
-        var entity = await _dbContext.TenantThemes
+        var entity = await dbContext.TenantThemes
             .FirstOrDefaultAsync(t => t.TenantId == tenantId, ct)
             .ConfigureAwait(false);
 
         if (entity is null)
         {
             entity = TenantTheme.Create(tenantId);
-            _dbContext.TenantThemes.Add(entity);
+            dbContext.TenantThemes.Add(entity);
         }
 
         // Handle brand asset uploads
@@ -98,12 +81,12 @@ public sealed class TenantThemeService : ITenantThemeService
         MapDtoToEntity(theme, entity);
         entity.Update(GetCurrentUserId());
 
-        await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
+        await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
         await InvalidateCacheAsync(tenantId, ct).ConfigureAwait(false);
 
-        if (_logger.IsEnabled(LogLevel.Information))
+        if (logger.IsEnabled(LogLevel.Information))
         {
-            _logger.LogInformation("Updated theme for tenant {TenantId}", tenantId);
+            logger.LogInformation("Updated theme for tenant {TenantId}", tenantId);
         }
     }
 
@@ -113,15 +96,15 @@ public sealed class TenantThemeService : ITenantThemeService
         if (assets.Logo?.Data is { Count: > 0 })
         {
             var oldLogoUrl = entity.LogoUrl;
-            entity.LogoUrl = await _storageService.UploadAsync<TenantTheme>(assets.Logo, FileType.Image, ct).ConfigureAwait(false);
+            entity.LogoUrl = await storageService.UploadAsync<TenantTheme>(assets.Logo, FileType.Image, ct).ConfigureAwait(false);
             if (!string.IsNullOrEmpty(oldLogoUrl))
             {
-                await _storageService.RemoveAsync(oldLogoUrl, ct).ConfigureAwait(false);
+                await storageService.RemoveAsync(oldLogoUrl, ct).ConfigureAwait(false);
             }
         }
         else if (assets.DeleteLogo && !string.IsNullOrEmpty(entity.LogoUrl))
         {
-            await _storageService.RemoveAsync(entity.LogoUrl, ct).ConfigureAwait(false);
+            await storageService.RemoveAsync(entity.LogoUrl, ct).ConfigureAwait(false);
             entity.LogoUrl = null;
         }
 
@@ -129,15 +112,15 @@ public sealed class TenantThemeService : ITenantThemeService
         if (assets.LogoDark?.Data is { Count: > 0 })
         {
             var oldLogoUrl = entity.LogoDarkUrl;
-            entity.LogoDarkUrl = await _storageService.UploadAsync<TenantTheme>(assets.LogoDark, FileType.Image, ct).ConfigureAwait(false);
+            entity.LogoDarkUrl = await storageService.UploadAsync<TenantTheme>(assets.LogoDark, FileType.Image, ct).ConfigureAwait(false);
             if (!string.IsNullOrEmpty(oldLogoUrl))
             {
-                await _storageService.RemoveAsync(oldLogoUrl, ct).ConfigureAwait(false);
+                await storageService.RemoveAsync(oldLogoUrl, ct).ConfigureAwait(false);
             }
         }
         else if (assets.DeleteLogoDark && !string.IsNullOrEmpty(entity.LogoDarkUrl))
         {
-            await _storageService.RemoveAsync(entity.LogoDarkUrl, ct).ConfigureAwait(false);
+            await storageService.RemoveAsync(entity.LogoDarkUrl, ct).ConfigureAwait(false);
             entity.LogoDarkUrl = null;
         }
 
@@ -145,15 +128,15 @@ public sealed class TenantThemeService : ITenantThemeService
         if (assets.Favicon?.Data is { Count: > 0 })
         {
             var oldFaviconUrl = entity.FaviconUrl;
-            entity.FaviconUrl = await _storageService.UploadAsync<TenantTheme>(assets.Favicon, FileType.Image, ct).ConfigureAwait(false);
+            entity.FaviconUrl = await storageService.UploadAsync<TenantTheme>(assets.Favicon, FileType.Image, ct).ConfigureAwait(false);
             if (!string.IsNullOrEmpty(oldFaviconUrl))
             {
-                await _storageService.RemoveAsync(oldFaviconUrl, ct).ConfigureAwait(false);
+                await storageService.RemoveAsync(oldFaviconUrl, ct).ConfigureAwait(false);
             }
         }
         else if (assets.DeleteFavicon && !string.IsNullOrEmpty(entity.FaviconUrl))
         {
-            await _storageService.RemoveAsync(entity.FaviconUrl, ct).ConfigureAwait(false);
+            await storageService.RemoveAsync(entity.FaviconUrl, ct).ConfigureAwait(false);
             entity.FaviconUrl = null;
         }
     }
@@ -162,7 +145,7 @@ public sealed class TenantThemeService : ITenantThemeService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
 
-        var entity = await _dbContext.TenantThemes
+        var entity = await dbContext.TenantThemes
             .FirstOrDefaultAsync(t => t.TenantId == tenantId, ct)
             .ConfigureAwait(false);
 
@@ -170,14 +153,14 @@ public sealed class TenantThemeService : ITenantThemeService
         {
             entity.ResetToDefaults();
             entity.Update(GetCurrentUserId());
-            await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
+            await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
         }
 
         await InvalidateCacheAsync(tenantId, ct).ConfigureAwait(false);
 
-        if (_logger.IsEnabled(LogLevel.Information))
+        if (logger.IsEnabled(LogLevel.Information))
         {
-            _logger.LogInformation("Reset theme to defaults for tenant {TenantId}", tenantId);
+            logger.LogInformation("Reset theme to defaults for tenant {TenantId}", tenantId);
         }
     }
 
@@ -186,53 +169,44 @@ public sealed class TenantThemeService : ITenantThemeService
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
 
         // Ensure only root tenant can set default theme
-        var currentTenantId = _tenantAccessor.MultiTenantContext?.TenantInfo?.Id;
+        var currentTenantId = tenantAccessor.MultiTenantContext?.TenantInfo?.Id;
         if (currentTenantId != MultitenancyConstants.Root.Id)
         {
             throw new ForbiddenException("Only the root tenant can set the default theme");
         }
 
         // Clear existing default
-        var existingDefault = await _dbContext.TenantThemes
+        var existingDefault = await dbContext.TenantThemes
             .FirstOrDefaultAsync(t => t.IsDefault, ct)
             .ConfigureAwait(false);
 
-        if (existingDefault is not null)
-        {
-            existingDefault.IsDefault = false;
-        }
+        existingDefault?.IsDefault = false;
 
         // Set new default
-        var entity = await _dbContext.TenantThemes
+        var entity = await dbContext.TenantThemes
             .FirstOrDefaultAsync(t => t.TenantId == tenantId, ct)
-            .ConfigureAwait(false);
-
-        if (entity is null)
-        {
-            throw new NotFoundException($"Theme for tenant {tenantId} not found");
-        }
-
+            .ConfigureAwait(false) ?? throw new NotFoundException($"Theme for tenant {tenantId} not found");
         entity.IsDefault = true;
-        await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
+        await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
 
         // Invalidate default theme cache
-        await _cache.RemoveItemAsync(DefaultThemeCacheKey, ct).ConfigureAwait(false);
+        await cache.RemoveItemAsync(DefaultThemeCacheKey, ct).ConfigureAwait(false);
 
-        if (_logger.IsEnabled(LogLevel.Information))
+        if (logger.IsEnabled(LogLevel.Information))
         {
-            _logger.LogInformation("Set theme for tenant {TenantId} as default", tenantId);
+            logger.LogInformation("Set theme for tenant {TenantId} as default", tenantId);
         }
     }
 
     public async Task InvalidateCacheAsync(string tenantId, CancellationToken ct = default)
     {
         var cacheKey = $"{CacheKeyPrefix}{tenantId}";
-        await _cache.RemoveItemAsync(cacheKey, ct).ConfigureAwait(false);
+        await cache.RemoveItemAsync(cacheKey, ct).ConfigureAwait(false);
     }
 
     private async Task<TenantThemeDto?> LoadThemeFromDbAsync(string tenantId, CancellationToken ct)
     {
-        var entity = await _dbContext.TenantThemes
+        var entity = await dbContext.TenantThemes
             .AsNoTracking()
             .FirstOrDefaultAsync(t => t.TenantId == tenantId, ct)
             .ConfigureAwait(false);
@@ -242,7 +216,7 @@ public sealed class TenantThemeService : ITenantThemeService
 
     private async Task<TenantThemeDto?> LoadDefaultThemeFromDbAsync(CancellationToken ct)
     {
-        var entity = await _dbContext.TenantThemes
+        var entity = await dbContext.TenantThemes
             .AsNoTracking()
             .FirstOrDefaultAsync(t => t.IsDefault, ct)
             .ConfigureAwait(false);
@@ -352,7 +326,7 @@ public sealed class TenantThemeService : ITenantThemeService
 
     private string? GetCurrentUserId()
     {
-        var userId = _currentUser.GetUserId();
+        var userId = currentUser.GetUserId();
         return userId == Guid.Empty ? null : userId.ToString();
     }
 }

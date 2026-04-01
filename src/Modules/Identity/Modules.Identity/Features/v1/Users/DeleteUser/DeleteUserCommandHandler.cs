@@ -4,20 +4,13 @@ using Mediator;
 
 namespace FSH.Modules.Identity.Features.v1.Users.DeleteUser;
 
-public sealed class DeleteUserCommandHandler : ICommandHandler<DeleteUserCommand, Unit>
+public sealed class DeleteUserCommandHandler(IUserService userService) : ICommandHandler<DeleteUserCommand, Unit>
 {
-    private readonly IUserService _userService;
-
-    public DeleteUserCommandHandler(IUserService userService)
-    {
-        _userService = userService;
-    }
-
     public async ValueTask<Unit> Handle(DeleteUserCommand command, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        await _userService.DeleteAsync(command.Id).ConfigureAwait(false);
+        await userService.DeleteAsync(command.Id).ConfigureAwait(false);
 
         return Unit.Value;
     }

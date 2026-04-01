@@ -7,20 +7,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Modules.Auditing.Features.v1.GetAuditSummary;
 
-public sealed class GetAuditSummaryQueryHandler : IQueryHandler<GetAuditSummaryQuery, AuditSummaryAggregateDto>
+public sealed class GetAuditSummaryQueryHandler(AuditDbContext dbContext) : IQueryHandler<GetAuditSummaryQuery, AuditSummaryAggregateDto>
 {
-    private readonly AuditDbContext _dbContext;
-
-    public GetAuditSummaryQueryHandler(AuditDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
     public async ValueTask<AuditSummaryAggregateDto> Handle(GetAuditSummaryQuery query, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        var audits = ApplyFilters(_dbContext.AuditRecords.AsNoTracking(), query);
+        var audits = ApplyFilters(dbContext.AuditRecords.AsNoTracking(), query);
         var list = await audits.ToListAsync(cancellationToken).ConfigureAwait(false);
 
         return AggregateRecords(list);

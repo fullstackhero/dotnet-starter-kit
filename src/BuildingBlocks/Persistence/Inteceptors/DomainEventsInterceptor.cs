@@ -8,21 +8,13 @@ namespace FSH.Framework.Persistence.Inteceptors;
 /// <summary>
 /// Entity Framework interceptor that automatically publishes domain events after saving changes.
 /// </summary>
-public sealed class DomainEventsInterceptor : SaveChangesInterceptor
+/// <remarks>
+/// Initializes a new instance of the <see cref="DomainEventsInterceptor"/> class.
+/// </remarks>
+/// <param name="publisher">The mediator publisher for publishing domain events.</param>
+/// <param name="logger">Logger for tracking domain event publication.</param>
+public sealed class DomainEventsInterceptor(IPublisher publisher, ILogger<DomainEventsInterceptor> logger) : SaveChangesInterceptor
 {
-    private readonly IPublisher _publisher;
-    private readonly ILogger<DomainEventsInterceptor> _logger;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DomainEventsInterceptor"/> class.
-    /// </summary>
-    /// <param name="publisher">The mediator publisher for publishing domain events.</param>
-    /// <param name="logger">Logger for tracking domain event publication.</param>
-    public DomainEventsInterceptor(IPublisher publisher, ILogger<DomainEventsInterceptor> logger)
-    {
-        _publisher = publisher;
-        _logger = logger;
-    }
 
     /// <summary>
     /// Called before changes are saved to the database.
@@ -70,13 +62,13 @@ public sealed class DomainEventsInterceptor : SaveChangesInterceptor
         if (domainEvents.Length == 0)
             return await base.SavedChangesAsync(eventData, result, cancellationToken);
 
-        if (_logger.IsEnabled(LogLevel.Debug))
+        if (logger.IsEnabled(LogLevel.Debug))
         {
-            _logger.LogDebug("Publishing {Count} domain events...", domainEvents.Length);
+            logger.LogDebug("Publishing {Count} domain events...", domainEvents.Length);
         }
 
         foreach (var domainEvent in domainEvents)
-            await _publisher.Publish(domainEvent, cancellationToken).ConfigureAwait(false);
+            await publisher.Publish(domainEvent, cancellationToken).ConfigureAwait(false);
 
         return await base.SavedChangesAsync(eventData, result, cancellationToken);
     }

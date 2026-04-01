@@ -9,13 +9,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FSH.Framework.Jobs;
 
-public class FshJobFilter : IClientFilter
+public class FshJobFilter(IServiceProvider services) : IClientFilter
 {
     private static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
-
-    private readonly IServiceProvider _services;
-
-    public FshJobFilter(IServiceProvider services) => _services = services;
 
     public void OnCreating(CreatingContext context)
     {
@@ -24,7 +20,7 @@ public class FshJobFilter : IClientFilter
         Logger.InfoFormat("Set TenantId and UserId parameters to job {0}.{1}...",
             context.Job.Method.ReflectedType?.FullName, context.Job.Method.Name);
 
-        using var scope = _services.CreateScope();
+        using var scope = services.CreateScope();
 
         var httpContextAccessor = scope.ServiceProvider.GetService<IHttpContextAccessor>();
         var httpContext = httpContextAccessor?.HttpContext;

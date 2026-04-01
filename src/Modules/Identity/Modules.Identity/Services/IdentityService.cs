@@ -12,28 +12,13 @@ using System.Security.Claims;
 
 namespace FSH.Modules.Identity.Services;
 
-public sealed class IdentityService : IIdentityService
+public sealed class IdentityService(
+    UserManager<FshUser> userManager,
+    IMultiTenantContextAccessor<AppTenantInfo>? multiTenantContextAccessor,
+    ILogger<IdentityService> logger,
+    IGroupRoleService groupRoleService,
+    TimeProvider timeProvider) : IIdentityService
 {
-    private readonly UserManager<FshUser> _userManager;
-    private readonly ILogger<IdentityService> _logger;
-    private readonly IMultiTenantContextAccessor<AppTenantInfo>? _multiTenantContextAccessor;
-    private readonly IGroupRoleService _groupRoleService;
-    private readonly TimeProvider _timeProvider;
-
-    public IdentityService(
-        UserManager<FshUser> userManager,
-        IMultiTenantContextAccessor<AppTenantInfo>? multiTenantContextAccessor,
-        ILogger<IdentityService> logger,
-        IGroupRoleService groupRoleService,
-        TimeProvider timeProvider)
-    {
-        _userManager = userManager;
-        _multiTenantContextAccessor = multiTenantContextAccessor;
-        _logger = logger;
-        _groupRoleService = groupRoleService;
-        _timeProvider = timeProvider;
-    }
-
     public async Task<(string Subject, IEnumerable<Claim> Claims)?>
         ValidateCredentialsAsync(string email, string password, CancellationToken ct = default)
     {
@@ -67,24 +52,24 @@ public sealed class IdentityService : IIdentityService
     public async Task StoreRefreshTokenAsync(string subject, string refreshToken, DateTime expiresAtUtc, CancellationToken ct = default)
     {
         var tenant = GetValidatedTenant();
-        var user = await _userManager.FindByIdAsync(subject)
+        var user = await userManager.FindByIdAsync(subject)
             ?? throw new UnauthorizedException("user not found");
 
         var hashedToken = HashToken(refreshToken);
         user.RefreshToken = hashedToken;
         user.RefreshTokenExpiryTime = expiresAtUtc;
 
-        if (_logger.IsEnabled(LogLevel.Debug))
+        if (logger.IsEnabled(LogLevel.Debug))
         {
-            _logger.LogDebug(
+            logger.LogDebug(
                 "Storing refresh token for user {UserId} in tenant {TenantId}. Token hash: {TokenHash}, Expires: {ExpiresAt}",
                 subject, tenant.Id, hashedToken[..Math.Min(8, hashedToken.Length)] + "...", expiresAtUtc);
         }
 
-        var result = await _userManager.UpdateAsync(user);
+        var result = await userManager.UpdateAsync(user);
         if (!result.Succeeded)
         {
-            _logger.LogError("Failed to persist refresh token for user {UserId}: {Errors}",
+            logger.LogError("Failed to persist refresh token for user {UserId}: {Errors}",
                 subject, string.Join(", ", result.Errors.Select(e => e.Description)));
             throw new UnauthorizedException("could not persist refresh token");
         }
@@ -92,7 +77,7 @@ public sealed class IdentityService : IIdentityService
 
     private AppTenantInfo GetValidatedTenant()
     {
-        var tenant = _multiTenantContextAccessor!.MultiTenantContext.TenantInfo
+        var tenant = multiTenantContextAccessor!.MultiTenantContext.TenantInfo
             ?? throw new UnauthorizedException();
 
         if (string.IsNullOrWhiteSpace(tenant.Id))
@@ -105,8 +90,8 @@ public sealed class IdentityService : IIdentityService
 
     private async Task<FshUser> FindAndValidateUserByCredentialsAsync(string email, string password)
     {
-        var user = await _userManager.FindByEmailAsync(email.Trim().Normalize());
-        if (user is null || !await _userManager.CheckPasswordAsync(user, password))
+        var user = await userManager.FindByEmailAsync(email.Trim().Normalize());
+        if (user is null || !await userManager.CheckPasswordAsync(user, password))
         {
             throw new UnauthorizedException();
         }
@@ -118,19 +103,19 @@ public sealed class IdentityService : IIdentityService
     {
         var hashedToken = HashToken(refreshToken);
 
-        if (_logger.IsEnabled(LogLevel.Debug))
+        if (logger.IsEnabled(LogLevel.Debug))
         {
-            _logger.LogDebug(
+            logger.LogDebug(
                 "Validating refresh token for tenant {TenantId}. Token hash: {TokenHash}",
                 tenantId, hashedToken[..Math.Min(8, hashedToken.Length)] + "...");
         }
 
-        var user = await _userManager.Users
+        var user = await userManager.Users
             .FirstOrDefaultAsync(u => u.RefreshToken == hashedToken, ct);
 
         if (user is null)
         {
-            _logger.LogWarning("No user found with matching refresh token hash for tenant {TenantId}", tenantId);
+            logger.LogWarning("No user found with matching refresh token hash for tenant {TenantId}", tenantId);
             throw new UnauthorizedException("refresh token is invalid or expired");
         }
 
@@ -139,10 +124,10 @@ public sealed class IdentityService : IIdentityService
 
     private void ValidateRefreshTokenExpiry(FshUser user)
     {
-        var now = _timeProvider.GetUtcNow().UtcDateTime;
+        var now = timeProvider.GetUtcNow().UtcDateTime;
         if (user.RefreshTokenExpiryTime <= now)
         {
-            _logger.LogWarning(
+            logger.LogWarning(
                 "Refresh token expired for user {UserId}. Expired at: {ExpiryTime}, Current time: {CurrentTime}",
                 user.Id, user.RefreshTokenExpiryTime, now);
             throw new UnauthorizedException("refresh token is invalid or expired");
@@ -174,7 +159,7 @@ public sealed class IdentityService : IIdentityService
             throw new UnauthorizedException($"tenant {tenant.Id} is deactivated");
         }
 
-        if (_timeProvider.GetUtcNow().UtcDateTime > tenant.ValidUpto)
+        if (timeProvider.GetUtcNow().UtcDateTime > tenant.ValidUpto)
         {
             throw new UnauthorizedException($"tenant {tenant.Id} validity has expired");
         }
@@ -202,8 +187,8 @@ public sealed class IdentityService : IIdentityService
 
     private async Task AddRoleClaimsAsync(List<Claim> claims, FshUser user, CancellationToken ct)
     {
-        var directRoles = await _userManager.GetRolesAsync(user);
-        var groupRoles = await _groupRoleService.GetUserGroupRolesAsync(user.Id, ct);
+        var directRoles = await userManager.GetRolesAsync(user);
+        var groupRoles = await groupRoleService.GetUserGroupRolesAsync(user.Id, ct);
 
         var allRoles = directRoles.Union(groupRoles).Distinct();
         claims.AddRange(allRoles.Select(r => new Claim(ClaimTypes.Role, r)));

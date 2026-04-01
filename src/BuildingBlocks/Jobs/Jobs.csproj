@@ -4,7 +4,7 @@
 		<RootNamespace>FSH.Framework.Jobs</RootNamespace>
 		<AssemblyName>FSH.Framework.Jobs</AssemblyName>
 		<PackageId>FullStackHero.Framework.Jobs</PackageId>
-		<NoWarn>$(NoWarn);CA1031;S3376;S3993</NoWarn>
+		<NoWarn>$(NoWarn);CA1031;S3376;S3993;NU1507</NoWarn>
 	</PropertyGroup>
 	
 	<ItemGroup>

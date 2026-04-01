@@ -3,7 +3,7 @@
 		<RootNamespace>FSH.Modules.Multitenancy</RootNamespace>
 		<AssemblyName>FSH.Modules.Multitenancy</AssemblyName>
 		<PackageId>FullStackHero.Modules.Multitenancy</PackageId>
-		<NoWarn>$(NoWarn);CA1031;CA1056;CA1008;CA1716;CA1812;S1135;S2139;S6667;S3267;S1172</NoWarn>
+		<NoWarn>$(NoWarn);CA1031;CA1056;CA1008;CA1716;CA1812;S1135;S2139;S6667;S3267;S1172;NU1507</NoWarn>
 	</PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Finbuckle.MultiTenant" />

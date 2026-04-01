@@ -9,30 +9,18 @@ namespace FSH.Playground.Blazor.Services.Api;
 /// by attempting to refresh the access token. If refresh fails, signs out the user and
 /// notifies Blazor components via IAuthStateNotifier.
 /// </summary>
-internal sealed class AuthorizationHeaderHandler : DelegatingHandler
+internal sealed class AuthorizationHeaderHandler(
+    IHttpContextAccessor httpContextAccessor,
+    IServiceProvider serviceProvider,
+    ICircuitTokenCache circuitTokenCache,
+    ILogger<AuthorizationHeaderHandler> logger) : DelegatingHandler
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly IServiceProvider _serviceProvider;
-    private readonly ICircuitTokenCache _circuitTokenCache;
-    private readonly ILogger<AuthorizationHeaderHandler> _logger;
 
     /// <summary>
     /// Track if sign-out has already been initiated to prevent multiple sign-out attempts.
     /// This is scoped per circuit (instance field, not static).
     /// </summary>
     private bool _signOutInitiated;
-
-    public AuthorizationHeaderHandler(
-        IHttpContextAccessor httpContextAccessor,
-        IServiceProvider serviceProvider,
-        ICircuitTokenCache circuitTokenCache,
-        ILogger<AuthorizationHeaderHandler> logger)
-    {
-        _httpContextAccessor = httpContextAccessor;
-        _serviceProvider = serviceProvider;
-        _circuitTokenCache = circuitTokenCache;
-        _logger = logger;
-    }
 
     protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request,
@@ -61,17 +49,17 @@ internal sealed class AuthorizationHeaderHandler : DelegatingHandler
 
             if (string.IsNullOrEmpty(accessToken))
             {
-                _logger.LogDebug("Received 401 but no access token available - cannot refresh");
+                logger.LogDebug("Received 401 but no access token available - cannot refresh");
                 return response;
             }
 
-            _logger.LogInformation("Received 401, attempting token refresh");
+            logger.LogInformation("Received 401, attempting token refresh");
 
             var newAccessToken = await TryRefreshTokenAsync(cancellationToken);
 
             if (!string.IsNullOrEmpty(newAccessToken))
             {
-                _logger.LogInformation("Token refresh successful, retrying request");
+                logger.LogInformation("Token refresh successful, retrying request");
 
                 // Clone the request with new token
                 using var retryRequest = await CloneHttpRequestMessageAsync(request);
@@ -85,7 +73,7 @@ internal sealed class AuthorizationHeaderHandler : DelegatingHandler
             }
             else
             {
-                _logger.LogWarning("Token refresh failed, signing out user");
+                logger.LogWarning("Token refresh failed, signing out user");
 
                 // Mark sign-out as initiated to prevent multiple sign-out attempts
                 _signOutInitiated = true;
@@ -102,7 +90,7 @@ internal sealed class AuthorizationHeaderHandler : DelegatingHandler
     {
         try
         {
-            var httpContext = _httpContextAccessor.HttpContext;
+            var httpContext = httpContextAccessor.HttpContext;
             if (httpContext is not null)
             {
                 // Try to sign out via cookies, but this may fail in Blazor Server's
@@ -112,34 +100,34 @@ internal sealed class AuthorizationHeaderHandler : DelegatingHandler
                     if (!httpContext.Response.HasStarted)
                     {
                         await httpContext.SignOutAsync("Cookies");
-                        _logger.LogInformation("User signed out due to expired refresh token");
+                        logger.LogInformation("User signed out due to expired refresh token");
                     }
                     else
                     {
-                        _logger.LogDebug("Response already started, skipping cookie sign-out");
+                        logger.LogDebug("Response already started, skipping cookie sign-out");
                     }
                 }
                 catch (InvalidOperationException ex)
                 {
                     // Expected in Blazor Server SignalR context - headers are read-only
-                    _logger.LogDebug(ex, "Could not sign out via cookies (response started), using navigation redirect");
+                    logger.LogDebug(ex, "Could not sign out via cookies (response started), using navigation redirect");
                 }
 
                 // Notify Blazor components that session has expired
                 // This will trigger navigation to login page with forceLoad:true,
                 // which will create a new HTTP request where cookies can be cleared
-                var authStateNotifier = _serviceProvider.GetService<IAuthStateNotifier>();
+                var authStateNotifier = serviceProvider.GetService<IAuthStateNotifier>();
                 authStateNotifier?.NotifySessionExpired();
             }
         }
         catch (Microsoft.AspNetCore.Components.NavigationException ex)
         {
             // Expected - NavigateTo with forceLoad throws this to interrupt execution
-            _logger.LogDebug(ex, "Navigation to login triggered (NavigationException is expected)");
+            logger.LogDebug(ex, "Navigation to login triggered (NavigationException is expected)");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to handle session expiration");
+            logger.LogError(ex, "Failed to handle session expiration");
         }
     }
 
@@ -150,13 +138,13 @@ internal sealed class AuthorizationHeaderHandler : DelegatingHandler
             // First, check circuit-scoped cache for refreshed tokens
             // This is critical because httpContext.User claims are cached per circuit
             // and don't update even after SignInAsync
-            if (!string.IsNullOrEmpty(_circuitTokenCache.AccessToken))
+            if (!string.IsNullOrEmpty(circuitTokenCache.AccessToken))
             {
-                return Task.FromResult<string?>(_circuitTokenCache.AccessToken);
+                return Task.FromResult<string?>(circuitTokenCache.AccessToken);
             }
 
             // Fall back to claims (initial token from cookie)
-            var httpContext = _httpContextAccessor.HttpContext;
+            var httpContext = httpContextAccessor.HttpContext;
             var user = httpContext?.User;
 
             if (user?.Identity?.IsAuthenticated == true)
@@ -166,7 +154,7 @@ internal sealed class AuthorizationHeaderHandler : DelegatingHandler
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to get access token");
+            logger.LogWarning(ex, "Failed to get access token");
         }
 
         return Task.FromResult<string?>(null);
@@ -178,10 +166,10 @@ internal sealed class AuthorizationHeaderHandler : DelegatingHandler
         {
             // Resolve the token refresh service from the service provider
             // We use IServiceProvider to avoid circular dependency issues
-            var tokenRefreshService = _serviceProvider.GetService<ITokenRefreshService>();
+            var tokenRefreshService = serviceProvider.GetService<ITokenRefreshService>();
             if (tokenRefreshService is null)
             {
-                _logger.LogWarning("TokenRefreshService is not registered");
+                logger.LogWarning("TokenRefreshService is not registered");
                 return null;
             }
 
@@ -189,7 +177,7 @@ internal sealed class AuthorizationHeaderHandler : DelegatingHandler
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during token refresh");
+            logger.LogError(ex, "Error during token refresh");
             return null;
         }
     }

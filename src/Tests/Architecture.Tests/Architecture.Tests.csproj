@@ -5,7 +5,7 @@
     <IsPublishable>false</IsPublishable>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <NoWarn>$(NoWarn);CA1515;CA1861;CA1707;CA1307</NoWarn>
+    <NoWarn>$(NoWarn);CA1515;CA1861;CA1707;CA1307;NU1507</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="coverlet.collector">

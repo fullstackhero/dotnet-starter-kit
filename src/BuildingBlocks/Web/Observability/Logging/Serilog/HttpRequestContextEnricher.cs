@@ -5,21 +5,15 @@ using Serilog.Events;
 
 namespace FSH.Framework.Web.Observability.Logging.Serilog;
 
-public class HttpRequestContextEnricher : ILogEventEnricher
+public class HttpRequestContextEnricher(IHttpContextAccessor httpContextAccessor) : ILogEventEnricher
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
-
-    public HttpRequestContextEnricher(IHttpContextAccessor httpContextAccessor)
-    {
-        _httpContextAccessor = httpContextAccessor;
-    }
     public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
     {
         ArgumentNullException.ThrowIfNull(logEvent);
         ArgumentNullException.ThrowIfNull(propertyFactory);
 
         // Get HttpContext properties here
-        var httpContext = _httpContextAccessor.HttpContext;
+        var httpContext = httpContextAccessor.HttpContext;
 
         if (httpContext != null)
         {

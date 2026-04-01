@@ -5,21 +5,12 @@ using Mediator;
 
 namespace FSH.Modules.Identity.Features.v1.Sessions.AdminRevokeAllSessions;
 
-public sealed class AdminRevokeAllSessionsCommandHandler : ICommandHandler<AdminRevokeAllSessionsCommand, int>
+public sealed class AdminRevokeAllSessionsCommandHandler(ISessionService sessionService, ICurrentUser currentUser) : ICommandHandler<AdminRevokeAllSessionsCommand, int>
 {
-    private readonly ISessionService _sessionService;
-    private readonly ICurrentUser _currentUser;
-
-    public AdminRevokeAllSessionsCommandHandler(ISessionService sessionService, ICurrentUser currentUser)
-    {
-        _sessionService = sessionService;
-        _currentUser = currentUser;
-    }
-
     public async ValueTask<int> Handle(AdminRevokeAllSessionsCommand command, CancellationToken cancellationToken)
     {
-        var adminId = _currentUser.GetUserId().ToString();
-        return await _sessionService.RevokeAllSessionsForAdminAsync(
+        var adminId = currentUser.GetUserId().ToString();
+        return await sessionService.RevokeAllSessionsForAdminAsync(
             command.UserId.ToString(),
             adminId,
             command.Reason ?? "Revoked by administrator",

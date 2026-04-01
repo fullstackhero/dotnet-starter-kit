@@ -6,21 +6,12 @@ namespace FSH.Framework.Eventing.Inbox;
 /// EF Core-based inbox store for a specific DbContext.
 /// </summary>
 /// <typeparam name="TDbContext">The DbContext that owns the InboxMessages set.</typeparam>
-public sealed class EfCoreInboxStore<TDbContext> : IInboxStore
+public sealed class EfCoreInboxStore<TDbContext>(TDbContext dbContext, TimeProvider timeProvider) : IInboxStore
     where TDbContext : DbContext
 {
-    private readonly TDbContext _dbContext;
-    private readonly TimeProvider _timeProvider;
-
-    public EfCoreInboxStore(TDbContext dbContext, TimeProvider timeProvider)
-    {
-        _dbContext = dbContext;
-        _timeProvider = timeProvider;
-    }
-
     public async Task<bool> HasProcessedAsync(Guid eventId, string handlerName, CancellationToken ct = default)
     {
-        return await _dbContext.Set<InboxMessage>()
+        return await dbContext.Set<InboxMessage>()
             .AnyAsync(i => i.Id == eventId && i.HandlerName == handlerName, ct)
             .ConfigureAwait(false);
     }
@@ -33,10 +24,10 @@ public sealed class EfCoreInboxStore<TDbContext> : IInboxStore
             EventType = eventType,
             HandlerName = handlerName,
             TenantId = tenantId,
-            ProcessedOnUtc = _timeProvider.GetUtcNow().UtcDateTime
+            ProcessedOnUtc = timeProvider.GetUtcNow().UtcDateTime
         };
 
-        await _dbContext.Set<InboxMessage>().AddAsync(message, ct).ConfigureAwait(false);
-        await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
+        await dbContext.Set<InboxMessage>().AddAsync(message, ct).ConfigureAwait(false);
+        await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
     }
 }

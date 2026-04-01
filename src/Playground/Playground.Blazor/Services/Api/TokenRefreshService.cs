@@ -13,13 +13,12 @@ internal interface ITokenRefreshService
     Task<string?> TryRefreshTokenAsync(CancellationToken cancellationToken = default);
 }
 
-internal sealed class TokenRefreshService : ITokenRefreshService, IDisposable
+internal sealed class TokenRefreshService(
+    IHttpContextAccessor httpContextAccessor,
+    ITokenClient tokenClient,
+    ICircuitTokenCache circuitTokenCache,
+    ILogger<TokenRefreshService> logger) : ITokenRefreshService, IDisposable
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly ITokenClient _tokenClient;
-    private readonly ICircuitTokenCache _circuitTokenCache;
-    private readonly ILogger<TokenRefreshService> _logger;
-
     private static readonly SemaphoreSlim RefreshLock = new(1, 1);
     private static readonly TimeSpan RefreshCacheDuration = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan FailedTokenCacheDuration = TimeSpan.FromMinutes(5);
@@ -30,37 +29,25 @@ internal sealed class TokenRefreshService : ITokenRefreshService, IDisposable
     private static string? _failedRefreshToken;
     private static DateTime _failedRefreshTime = DateTime.MinValue;
 
-    public TokenRefreshService(
-        IHttpContextAccessor httpContextAccessor,
-        ITokenClient tokenClient,
-        ICircuitTokenCache circuitTokenCache,
-        ILogger<TokenRefreshService> logger)
-    {
-        _httpContextAccessor = httpContextAccessor;
-        _tokenClient = tokenClient;
-        _circuitTokenCache = circuitTokenCache;
-        _logger = logger;
-    }
-
     public async Task<string?> TryRefreshTokenAsync(CancellationToken cancellationToken = default)
     {
-        var httpContext = _httpContextAccessor.HttpContext;
+        var httpContext = httpContextAccessor.HttpContext;
         if (httpContext is null)
         {
-            _logger.LogDebug("HttpContext is not available for token refresh");
+            logger.LogDebug("HttpContext is not available for token refresh");
             return null;
         }
 
         var currentRefreshToken = GetCurrentRefreshToken(httpContext);
         if (string.IsNullOrEmpty(currentRefreshToken))
         {
-            _logger.LogDebug("No refresh token available");
+            logger.LogDebug("No refresh token available");
             return null;
         }
 
         if (IsTokenRecentlyFailed(currentRefreshToken))
         {
-            _logger.LogDebug("Skipping refresh - token already failed recently");
+            logger.LogDebug("Skipping refresh - token already failed recently");
             return null;
         }
 
@@ -75,7 +62,7 @@ internal sealed class TokenRefreshService : ITokenRefreshService, IDisposable
 
     private string? GetCurrentRefreshToken(HttpContext httpContext)
     {
-        var circuitRefreshToken = _circuitTokenCache.RefreshToken;
+        var circuitRefreshToken = circuitTokenCache.RefreshToken;
         var claimsRefreshToken = httpContext.User?.FindFirst("refresh_token")?.Value;
 
         return !string.IsNullOrEmpty(circuitRefreshToken) ? circuitRefreshToken : claimsRefreshToken;
@@ -103,7 +90,7 @@ internal sealed class TokenRefreshService : ITokenRefreshService, IDisposable
     {
         if (!await RefreshLock.WaitAsync(TimeSpan.FromSeconds(10), cancellationToken))
         {
-            _logger.LogWarning("Token refresh lock acquisition timed out");
+            logger.LogWarning("Token refresh lock acquisition timed out");
             return null;
         }
 
@@ -153,7 +140,7 @@ internal sealed class TokenRefreshService : ITokenRefreshService, IDisposable
             UpdateCaches(refreshResponse);
             await TryUpdateCookieAsync(httpContext, newClaims);
 
-            _logger.LogInformation("Access token refreshed successfully");
+            logger.LogInformation("Access token refreshed successfully");
             return refreshResponse.Token;
         }
         catch (ApiException ex) when (ex.StatusCode == 401)
@@ -163,19 +150,19 @@ internal sealed class TokenRefreshService : ITokenRefreshService, IDisposable
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to refresh access token");
+            logger.LogError(ex, "Failed to refresh access token");
             return null;
         }
     }
 
     private (string AccessToken, string RefreshToken, string Tenant)? GetCurrentTokens(ClaimsPrincipal user)
     {
-        var currentAccessToken = !string.IsNullOrEmpty(_circuitTokenCache.AccessToken)
-            ? _circuitTokenCache.AccessToken
+        var currentAccessToken = !string.IsNullOrEmpty(circuitTokenCache.AccessToken)
+            ? circuitTokenCache.AccessToken
             : user.FindFirst("access_token")?.Value;
 
-        var refreshToken = !string.IsNullOrEmpty(_circuitTokenCache.RefreshToken)
-            ? _circuitTokenCache.RefreshToken
+        var refreshToken = !string.IsNullOrEmpty(circuitTokenCache.RefreshToken)
+            ? circuitTokenCache.RefreshToken
             : user.FindFirst("refresh_token")?.Value;
 
         var tenant = user.FindFirst("tenant")?.Value ?? "root";
@@ -192,7 +179,7 @@ internal sealed class TokenRefreshService : ITokenRefreshService, IDisposable
         (string AccessToken, string RefreshToken, string Tenant) tokens,
         CancellationToken cancellationToken)
     {
-        var refreshResponse = await _tokenClient.RefreshAsync(
+        var refreshResponse = await tokenClient.RefreshAsync(
             tokens.Tenant,
             new RefreshTokenCommand
             {
@@ -203,7 +190,7 @@ internal sealed class TokenRefreshService : ITokenRefreshService, IDisposable
 
         if (refreshResponse is null || string.IsNullOrEmpty(refreshResponse.Token))
         {
-            _logger.LogWarning("Token refresh returned empty response");
+            logger.LogWarning("Token refresh returned empty response");
             return null;
         }
 
@@ -248,7 +235,7 @@ internal sealed class TokenRefreshService : ITokenRefreshService, IDisposable
 
     private void UpdateCaches(RefreshTokenCommandResponse response)
     {
-        _circuitTokenCache.UpdateTokens(response.Token, response.RefreshToken);
+        circuitTokenCache.UpdateTokens(response.Token, response.RefreshToken);
 
 #pragma warning disable S2696
         _lastRefreshedToken = response.Token;
@@ -278,7 +265,7 @@ internal sealed class TokenRefreshService : ITokenRefreshService, IDisposable
 
     private void HandleRefreshFailure(string currentRefreshToken, ApiException ex)
     {
-        _circuitTokenCache.Clear();
+        circuitTokenCache.Clear();
 
 #pragma warning disable S2696
         _lastRefreshedToken = null;
@@ -288,7 +275,7 @@ internal sealed class TokenRefreshService : ITokenRefreshService, IDisposable
         _failedRefreshTime = DateTime.UtcNow;
 #pragma warning restore S2696
 
-        _logger.LogWarning(ex, "Refresh token is invalid or expired, user needs to re-authenticate");
+        logger.LogWarning(ex, "Refresh token is invalid or expired, user needs to re-authenticate");
     }
 
     public void Dispose()

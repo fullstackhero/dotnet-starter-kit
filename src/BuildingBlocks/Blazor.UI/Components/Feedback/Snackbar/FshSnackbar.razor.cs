@@ -5,15 +5,8 @@ namespace FSH.Framework.Blazor.UI.Components.Feedback.Snackbar;
 /// <summary>
 /// Convenience wrapper for snackbar calls with consistent styling.
 /// </summary>
-public sealed class FshSnackbar
+public sealed class FshSnackbar(ISnackbar snackbar)
 {
-    private readonly ISnackbar _snackbar;
-
-    public FshSnackbar(ISnackbar snackbar)
-    {
-        _snackbar = snackbar;
-    }
-
     public void Success(string message) => Add(message, Severity.Success);
     public void Info(string message) => Add(message, Severity.Info);
     public void Warning(string message) => Add(message, Severity.Warning);
@@ -21,6 +14,6 @@ public sealed class FshSnackbar
 
     private void Add(string message, Severity severity)
     {
-        _snackbar.Add(message, severity);
+        snackbar.Add(message, severity);
     }
 }

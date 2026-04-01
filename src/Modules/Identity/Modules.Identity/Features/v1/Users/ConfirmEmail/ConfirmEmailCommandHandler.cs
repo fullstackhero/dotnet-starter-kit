@@ -4,20 +4,13 @@ using Mediator;
 
 namespace FSH.Modules.Identity.Features.v1.Users.ConfirmEmail;
 
-public sealed class ConfirmEmailCommandHandler : ICommandHandler<ConfirmEmailCommand, string>
+public sealed class ConfirmEmailCommandHandler(IUserService userService) : ICommandHandler<ConfirmEmailCommand, string>
 {
-    private readonly IUserService _userService;
-
-    public ConfirmEmailCommandHandler(IUserService userService)
-    {
-        _userService = userService;
-    }
-
     public async ValueTask<string> Handle(ConfirmEmailCommand command, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        return await _userService.ConfirmEmailAsync(command.UserId, command.Code, command.Tenant, cancellationToken)
+        return await userService.ConfirmEmailAsync(command.UserId, command.Code, command.Tenant, cancellationToken)
             .ConfigureAwait(false);
     }
 }

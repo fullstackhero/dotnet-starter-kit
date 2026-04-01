@@ -7,22 +7,15 @@ namespace FSH.Modules.Identity.Events;
 /// <summary>
 /// Logs password change events for security auditing purposes.
 /// </summary>
-public sealed class PasswordChangedLogHandler : INotificationHandler<PasswordChangedEvent>
+public sealed class PasswordChangedLogHandler(ILogger<PasswordChangedLogHandler> logger) : INotificationHandler<PasswordChangedEvent>
 {
-    private readonly ILogger<PasswordChangedLogHandler> _logger;
-
-    public PasswordChangedLogHandler(ILogger<PasswordChangedLogHandler> logger)
-    {
-        _logger = logger;
-    }
-
     public ValueTask Handle(PasswordChangedEvent notification, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(notification);
 
-        if (_logger.IsEnabled(LogLevel.Information))
+        if (logger.IsEnabled(LogLevel.Information))
         {
-            _logger.LogInformation(
+            logger.LogInformation(
                 "Password {Action} for user {UserId} in tenant {TenantId}",
                 notification.WasReset ? "reset" : "changed",
                 notification.UserId,

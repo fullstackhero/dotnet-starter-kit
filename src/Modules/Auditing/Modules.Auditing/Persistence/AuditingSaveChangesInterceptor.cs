@@ -7,17 +7,8 @@ namespace FSH.Modules.Auditing.Persistence;
 /// <summary>
 /// Captures EF Core entity changes at SaveChanges to produce an EntityChange event.
 /// </summary>
-public sealed class AuditingSaveChangesInterceptor : SaveChangesInterceptor
+public sealed class AuditingSaveChangesInterceptor(IAuditPublisher publisher, TimeProvider timeProvider) : SaveChangesInterceptor
 {
-    private readonly IAuditPublisher _publisher;
-    private readonly TimeProvider _timeProvider;
-
-    public AuditingSaveChangesInterceptor(IAuditPublisher publisher, TimeProvider timeProvider)
-    {
-        _publisher = publisher;
-        _timeProvider = timeProvider;
-    }
-
     public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(
         DbContextEventData eventData,
         InterceptionResult<int> result,
@@ -49,7 +40,7 @@ public sealed class AuditingSaveChangesInterceptor : SaveChangesInterceptor
                     Changes: group.SelectMany(g => g.Changes).ToList(),
                     TransactionId: ctx.Database.CurrentTransaction?.TransactionId.ToString());
 
-                var now = _timeProvider.GetUtcNow().UtcDateTime;
+                var now = timeProvider.GetUtcNow().UtcDateTime;
                 var env = new AuditEnvelope(
                     id: Guid.CreateVersion7(),
                     occurredAtUtc: now,
@@ -62,7 +53,7 @@ public sealed class AuditingSaveChangesInterceptor : SaveChangesInterceptor
                     tags: AuditTag.None,
                     payload: payload);
 
-                await _publisher.PublishAsync(env, cancellationToken);
+                await publisher.PublishAsync(env, cancellationToken);
             }
         }
 

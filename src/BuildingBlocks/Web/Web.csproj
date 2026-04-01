@@ -4,7 +4,7 @@
 		<RootNamespace>FSH.Framework.Web</RootNamespace>
 		<AssemblyName>FSH.Framework.Web</AssemblyName>
 		<PackageId>FullStackHero.Framework.Web</PackageId>
-		<NoWarn>$(NoWarn);CA1805;CA1307;CA1308;S1854;CA1812;CA1305;CA2000</NoWarn>
+		<NoWarn>$(NoWarn);CA1805;CA1307;CA1308;S1854;CA1812;CA1305;CA2000;NU1507</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>

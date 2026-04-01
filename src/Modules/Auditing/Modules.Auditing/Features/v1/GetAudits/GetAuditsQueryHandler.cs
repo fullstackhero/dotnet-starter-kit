@@ -9,20 +9,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Modules.Auditing.Features.v1.GetAudits;
 
-public sealed class GetAuditsQueryHandler : IQueryHandler<GetAuditsQuery, PagedResponse<AuditSummaryDto>>
+public sealed class GetAuditsQueryHandler(AuditDbContext dbContext) : IQueryHandler<GetAuditsQuery, PagedResponse<AuditSummaryDto>>
 {
-    private readonly AuditDbContext _dbContext;
-
-    public GetAuditsQueryHandler(AuditDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
     public async ValueTask<PagedResponse<AuditSummaryDto>> Handle(GetAuditsQuery query, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        IQueryable<AuditRecord> audits = _dbContext.AuditRecords.AsNoTracking();
+        IQueryable<AuditRecord> audits = dbContext.AuditRecords.AsNoTracking();
 
         // Apply tenant filter first (indexed)
         if (!string.IsNullOrWhiteSpace(query.TenantId))

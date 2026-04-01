@@ -10,27 +10,17 @@ namespace FSH.Modules.Identity.Services;
 /// Background service that periodically cleans up expired sessions.
 /// Runs every hour and removes sessions that have been expired for more than 30 days.
 /// </summary>
-public sealed class SessionCleanupHostedService : BackgroundService
+public sealed class SessionCleanupHostedService(
+    IServiceScopeFactory scopeFactory,
+    ILogger<SessionCleanupHostedService> logger,
+    TimeProvider timeProvider) : BackgroundService
 {
-    private readonly IServiceScopeFactory _scopeFactory;
-    private readonly ILogger<SessionCleanupHostedService> _logger;
-    private readonly TimeProvider _timeProvider;
     private readonly TimeSpan _cleanupInterval = TimeSpan.FromHours(1);
     private readonly int _retentionDays = 30;
 
-    public SessionCleanupHostedService(
-        IServiceScopeFactory scopeFactory,
-        ILogger<SessionCleanupHostedService> logger,
-        TimeProvider timeProvider)
-    {
-        _scopeFactory = scopeFactory;
-        _logger = logger;
-        _timeProvider = timeProvider;
-    }
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Session cleanup service started");
+        logger.LogInformation("Session cleanup service started");
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -46,19 +36,19 @@ public sealed class SessionCleanupHostedService : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during session cleanup");
+                logger.LogError(ex, "Error during session cleanup");
             }
         }
 
-        _logger.LogInformation("Session cleanup service stopped");
+        logger.LogInformation("Session cleanup service stopped");
     }
 
     private async Task CleanupExpiredSessionsAsync(CancellationToken cancellationToken)
     {
-        using var scope = _scopeFactory.CreateScope();
+        using var scope = scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
 
-        var now = _timeProvider.GetUtcNow().UtcDateTime;
+        var now = timeProvider.GetUtcNow().UtcDateTime;
         var cutoffDate = now.AddDays(-_retentionDays);
         var expiredSessions = await db.UserSessions
             .Where(s => s.ExpiresAt < now && s.ExpiresAt < cutoffDate)
@@ -68,9 +58,9 @@ public sealed class SessionCleanupHostedService : BackgroundService
         {
             db.UserSessions.RemoveRange(expiredSessions);
             await db.SaveChangesAsync(cancellationToken);
-            if (_logger.IsEnabled(LogLevel.Information))
+            if (logger.IsEnabled(LogLevel.Information))
             {
-                _logger.LogInformation("Cleaned up {Count} expired sessions", expiredSessions.Count);
+                logger.LogInformation("Cleaned up {Count} expired sessions", expiredSessions.Count);
             }
         }
     }

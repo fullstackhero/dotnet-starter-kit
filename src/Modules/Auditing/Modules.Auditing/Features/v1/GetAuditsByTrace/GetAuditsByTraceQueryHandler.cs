@@ -7,20 +7,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Modules.Auditing.Features.v1.GetAuditsByTrace;
 
-public sealed class GetAuditsByTraceQueryHandler : IQueryHandler<GetAuditsByTraceQuery, IReadOnlyList<AuditSummaryDto>>
+public sealed class GetAuditsByTraceQueryHandler(AuditDbContext dbContext) : IQueryHandler<GetAuditsByTraceQuery, IReadOnlyList<AuditSummaryDto>>
 {
-    private readonly AuditDbContext _dbContext;
-
-    public GetAuditsByTraceQueryHandler(AuditDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
     public async ValueTask<IReadOnlyList<AuditSummaryDto>> Handle(GetAuditsByTraceQuery query, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        IQueryable<AuditRecord> audits = _dbContext.AuditRecords
+        IQueryable<AuditRecord> audits = dbContext.AuditRecords
             .AsNoTracking()
             .Where(a => a.TraceId == query.TraceId);
 

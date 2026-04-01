@@ -10,17 +10,8 @@ namespace FSH.Framework.Eventing.InMemory;
 /// In-memory event bus implementation used for single-process deployments.
 /// It resolves handlers from DI and optionally uses an inbox store for idempotency.
 /// </summary>
-public sealed partial class InMemoryEventBus : IEventBus
+public sealed partial class InMemoryEventBus(IServiceProvider serviceProvider, ILogger<InMemoryEventBus> logger) : IEventBus
 {
-    private readonly IServiceProvider _serviceProvider;
-    private readonly ILogger<InMemoryEventBus> _logger;
-
-    public InMemoryEventBus(IServiceProvider serviceProvider, ILogger<InMemoryEventBus> logger)
-    {
-        _serviceProvider = serviceProvider;
-        _logger = logger;
-    }
-
     public Task PublishAsync(IIntegrationEvent @event, CancellationToken ct = default)
         => PublishAsync(new[] { @event }, ct);
 
@@ -39,7 +30,7 @@ public sealed partial class InMemoryEventBus : IEventBus
         var eventType = @event.GetType();
         LogPublishingEvent(eventType.FullName, @event.Id);
 
-        using var scope = _serviceProvider.CreateScope();
+        using var scope = serviceProvider.CreateScope();
         var provider = scope.ServiceProvider;
 
         var handlers = ResolveHandlers(provider, eventType);
@@ -80,10 +71,10 @@ public sealed partial class InMemoryEventBus : IEventBus
             return;
         }
 
-        var method = handlerInterfaceType.GetMethod(nameof(IIntegrationEventHandler<IIntegrationEvent>.HandleAsync));
+        var method = handlerInterfaceType.GetMethod(nameof(IIntegrationEventHandler<>.HandleAsync));
         if (method == null)
         {
-            _logger.LogWarning("Handler {Handler} does not implement HandleAsync correctly for {EventType}", handlerName, eventType.FullName);
+            logger.LogWarning("Handler {Handler} does not implement HandleAsync correctly for {EventType}", handlerName, eventType.FullName);
             return;
         }
 
@@ -119,7 +110,7 @@ public sealed partial class InMemoryEventBus : IEventBus
         // failures are captured regardless of exception type.
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error while handling integration event {EventId} with handler {Handler}", @event.Id, handlerName);
+            logger.LogError(ex, "Error while handling integration event {EventId} with handler {Handler}", @event.Id, handlerName);
             throw;
         }
     }

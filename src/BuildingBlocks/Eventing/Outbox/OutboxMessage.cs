@@ -29,20 +29,13 @@ public class OutboxMessage
     public bool IsDead { get; set; }
 }
 
-public class OutboxMessageConfiguration : IEntityTypeConfiguration<OutboxMessage>
+public class OutboxMessageConfiguration(string schema) : IEntityTypeConfiguration<OutboxMessage>
 {
-    private readonly string _schema;
-
-    public OutboxMessageConfiguration(string schema)
-    {
-        _schema = schema;
-    }
-
     public void Configure(EntityTypeBuilder<OutboxMessage> builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        builder.ToTable("OutboxMessages", _schema);
+        builder.ToTable("OutboxMessages", schema);
 
         builder.HasKey(o => o.Id);
 

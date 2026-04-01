@@ -9,7 +9,7 @@ namespace FSH.Framework.Web.Modules;
 public static class ModuleLoader
 {
     private static readonly List<IModule> _modules = new();
-    private static readonly object _lock = new();
+    private static readonly Lock _lock = new();
     private static bool _modulesLoaded;
 
     public static IHostApplicationBuilder AddModules(this IHostApplicationBuilder builder, params Assembly[] assemblies)

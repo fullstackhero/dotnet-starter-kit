@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <UserSecretsId>9fe5df9a-b9b2-4202-bdb4-d30b01b71d1a</UserSecretsId>
     <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);NU1507</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

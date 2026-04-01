@@ -8,32 +8,19 @@ namespace FSH.Modules.Auditing;
 /// <summary>
 /// Drains the channel and writes to the configured sink in batches.
 /// </summary>
-public sealed class AuditBackgroundWorker : BackgroundService
+public sealed class AuditBackgroundWorker(
+    ChannelAuditPublisher publisher,
+    IAuditSink sink,
+    ILogger<AuditBackgroundWorker> logger,
+    int batchSize = 200,
+    int flushIntervalMs = 1000) : BackgroundService
 {
-    private readonly ChannelAuditPublisher _publisher;
-    private readonly IAuditSink _sink;
-    private readonly ILogger<AuditBackgroundWorker> _logger;
-
-    private readonly int _batchSize;
-    private readonly TimeSpan _flushInterval;
-
-    public AuditBackgroundWorker(
-        ChannelAuditPublisher publisher,
-        IAuditSink sink,
-        ILogger<AuditBackgroundWorker> logger,
-        int batchSize = 200,
-        int flushIntervalMs = 1000)
-    {
-        _publisher = publisher;
-        _sink = sink;
-        _logger = logger;
-        _batchSize = Math.Max(1, batchSize);
-        _flushInterval = TimeSpan.FromMilliseconds(Math.Max(50, flushIntervalMs));
-    }
+    private readonly int _batchSize = Math.Max(1, batchSize);
+    private readonly TimeSpan _flushInterval = TimeSpan.FromMilliseconds(Math.Max(50, flushIntervalMs));
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var reader = _publisher.Reader;
+        var reader = publisher.Reader;
         var batch = new List<AuditEnvelope>(_batchSize);
         var delayTask = Task.Delay(_flushInterval, stoppingToken);
 
@@ -56,7 +43,7 @@ public sealed class AuditBackgroundWorker : BackgroundService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Audit background worker crashed.");
+            logger.LogError(ex, "Audit background worker crashed.");
         }
 
         await FinalFlushAsync(batch, stoppingToken);
@@ -107,11 +94,11 @@ public sealed class AuditBackgroundWorker : BackgroundService
         {
             try
             {
-                await _sink.WriteAsync(batch, stoppingToken);
+                await sink.WriteAsync(batch, stoppingToken);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Final audit flush failed.");
+                logger.LogError(ex, "Final audit flush failed.");
             }
         }
     }
@@ -120,11 +107,11 @@ public sealed class AuditBackgroundWorker : BackgroundService
     {
         try
         {
-            await _sink.WriteAsync(batch, ct);
+            await sink.WriteAsync(batch, ct);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Audit background flush failed.");
+            logger.LogError(ex, "Audit background flush failed.");
             await Task.Delay(250, ct);
         }
         finally

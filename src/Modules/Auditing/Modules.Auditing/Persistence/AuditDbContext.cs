@@ -8,14 +8,12 @@ using Microsoft.Extensions.Options;
 
 namespace FSH.Modules.Auditing.Persistence;
 
-public sealed class AuditDbContext : BaseDbContext
+public sealed class AuditDbContext(
+IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
+DbContextOptions<AuditDbContext> options,
+IOptions<DatabaseOptions> settings,
+IHostEnvironment environment) : BaseDbContext(multiTenantContextAccessor, options, settings, environment)
 {
-    public AuditDbContext(
-    IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
-    DbContextOptions<AuditDbContext> options,
-    IOptions<DatabaseOptions> settings,
-    IHostEnvironment environment) : base(multiTenantContextAccessor, options, settings, environment) { }
-
     public DbSet<AuditRecord> AuditRecords => Set<AuditRecord>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -27,12 +27,7 @@ internal sealed class UserPasswordService(
     {
         EnsureValidTenant();
 
-        var user = await userManager.FindByEmailAsync(email);
-        if (user == null)
-        {
-            throw new NotFoundException("user not found");
-        }
-
+        var user = await userManager.FindByEmailAsync(email) ?? throw new NotFoundException("user not found");
         if (string.IsNullOrWhiteSpace(user.Email))
         {
             throw new InvalidOperationException("user email cannot be null or empty");
@@ -54,12 +49,7 @@ internal sealed class UserPasswordService(
     {
         EnsureValidTenant();
 
-        var user = await userManager.FindByEmailAsync(email);
-        if (user == null)
-        {
-            throw new NotFoundException("user not found");
-        }
-
+        var user = await userManager.FindByEmailAsync(email) ?? throw new NotFoundException("user not found");
         token = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(token));
         var result = await userManager.ResetPasswordAsync(user, token, password);
 

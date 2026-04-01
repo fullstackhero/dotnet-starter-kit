@@ -7,22 +7,15 @@ namespace FSH.Modules.Identity.Events;
 /// <summary>
 /// Logs session revocation events for security auditing purposes.
 /// </summary>
-public sealed class SessionRevokedLogHandler : INotificationHandler<SessionRevokedEvent>
+public sealed class SessionRevokedLogHandler(ILogger<SessionRevokedLogHandler> logger) : INotificationHandler<SessionRevokedEvent>
 {
-    private readonly ILogger<SessionRevokedLogHandler> _logger;
-
-    public SessionRevokedLogHandler(ILogger<SessionRevokedLogHandler> logger)
-    {
-        _logger = logger;
-    }
-
     public ValueTask Handle(SessionRevokedEvent notification, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(notification);
 
-        if (_logger.IsEnabled(LogLevel.Information))
+        if (logger.IsEnabled(LogLevel.Information))
         {
-            _logger.LogInformation(
+            logger.LogInformation(
                 "Session {SessionId} revoked for user {UserId} in tenant {TenantId}. Reason: {Reason}",
                 notification.SessionId,
                 notification.UserId,

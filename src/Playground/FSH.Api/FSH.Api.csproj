@@ -4,7 +4,7 @@
 		<RootNamespace>FSH.Api</RootNamespace>
 		<AssemblyName>FSH.Api</AssemblyName>
 		<IsPackable>false</IsPackable>
-
+    <NoWarn>$(NoWarn);NU1507</NoWarn>
 		<!-- Container configuration -->
 		<ContainerPort>8080</ContainerPort>
 		<ContainerUser>root</ContainerUser>

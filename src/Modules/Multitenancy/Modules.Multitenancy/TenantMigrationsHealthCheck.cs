@@ -8,18 +8,11 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace FSH.Modules.Multitenancy;
 
-public sealed class TenantMigrationsHealthCheck : IHealthCheck
+public sealed class TenantMigrationsHealthCheck(IServiceScopeFactory scopeFactory) : IHealthCheck
 {
-    private readonly IServiceScopeFactory _scopeFactory;
-
-    public TenantMigrationsHealthCheck(IServiceScopeFactory scopeFactory)
-    {
-        _scopeFactory = scopeFactory;
-    }
-
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
-        using IServiceScope scope = _scopeFactory.CreateScope();
+        using IServiceScope scope = scopeFactory.CreateScope();
 
         var tenantStore = scope.ServiceProvider.GetRequiredService<IMultiTenantStore<AppTenantInfo>>();
         var tenants = await tenantStore.GetAllAsync().ConfigureAwait(false);

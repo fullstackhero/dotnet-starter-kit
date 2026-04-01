@@ -100,15 +100,17 @@ public static class Extensions
         ArgumentNullException.ThrowIfNull(config);
 
         var hangfireOptions = config.GetSection(nameof(HangfireOptions)).Get<HangfireOptions>() ?? new HangfireOptions();
-        var dashboardOptions = new DashboardOptions();
-        dashboardOptions.AppPath = "/";
-        dashboardOptions.Authorization = new[]
+        var dashboardOptions = new DashboardOptions
         {
-           new HangfireCustomBasicAuthenticationFilter
-           {
-                User = hangfireOptions.UserName!,
-                Pass = hangfireOptions.Password!
-           }
+            AppPath = "/",
+            Authorization = new[]
+            {
+               new HangfireCustomBasicAuthenticationFilter
+               {
+                    User = hangfireOptions.UserName!,
+                    Pass = hangfireOptions.Password!
+               }
+            }
         };
 
         return app.UseHangfireDashboard(hangfireOptions.Route, dashboardOptions);

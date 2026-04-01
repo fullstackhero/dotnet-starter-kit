@@ -5,16 +5,10 @@ namespace FSH.CLI.Scaffolding;
 /// <summary>
 /// Validates template structure and project configuration
 /// </summary>
-internal sealed class TemplateValidator : ITemplateValidator
+internal sealed class TemplateValidator(ITemplateLoader templateLoader, ITemplateParser templateParser) : ITemplateValidator
 {
-    private readonly ITemplateLoader _templateLoader;
-    private readonly ITemplateParser _templateParser;
-
-    public TemplateValidator(ITemplateLoader templateLoader, ITemplateParser templateParser)
-    {
-        _templateLoader = templateLoader ?? throw new ArgumentNullException(nameof(templateLoader));
-        _templateParser = templateParser ?? throw new ArgumentNullException(nameof(templateParser));
-    }
+    private readonly ITemplateLoader _templateLoader = templateLoader ?? throw new ArgumentNullException(nameof(templateLoader));
+    private readonly ITemplateParser _templateParser = templateParser ?? throw new ArgumentNullException(nameof(templateParser));
 
     public ValidationResult ValidateProjectOptions(ProjectOptions options)
     {

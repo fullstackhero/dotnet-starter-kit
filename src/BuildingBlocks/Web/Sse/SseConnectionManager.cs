@@ -8,16 +8,10 @@ namespace FSH.Framework.Web.Sse;
 /// Manages active SSE connections per user. Supports targeted sends (by userId)
 /// and tenant-wide broadcasts. Thread-safe via ConcurrentDictionary.
 /// </summary>
-public sealed class SseConnectionManager
+public sealed class SseConnectionManager(ILogger<SseConnectionManager> logger)
 {
     private readonly ConcurrentDictionary<string, Channel<SseEvent>> _connections = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, string> _userTenantMap = new(StringComparer.Ordinal);
-    private readonly ILogger<SseConnectionManager> _logger;
-
-    public SseConnectionManager(ILogger<SseConnectionManager> logger)
-    {
-        _logger = logger;
-    }
 
     /// <summary>
     /// Creates a channel for the user and returns a reader to consume events.
@@ -37,9 +31,9 @@ public sealed class SseConnectionManager
             _userTenantMap[userId] = tenantId;
         }
 
-        if (_logger.IsEnabled(LogLevel.Debug))
+        if (logger.IsEnabled(LogLevel.Debug))
         {
-            _logger.LogDebug("SSE client connected: {UserId} (tenant: {TenantId})", userId, tenantId ?? "none");
+            logger.LogDebug("SSE client connected: {UserId} (tenant: {TenantId})", userId, tenantId ?? "none");
         }
 
         return channel.Reader;
@@ -55,9 +49,9 @@ public sealed class SseConnectionManager
             channel.Writer.TryComplete();
             _userTenantMap.TryRemove(userId, out _);
 
-            if (_logger.IsEnabled(LogLevel.Debug))
+            if (logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug("SSE client disconnected: {UserId}", userId);
+                logger.LogDebug("SSE client disconnected: {UserId}", userId);
             }
         }
     }

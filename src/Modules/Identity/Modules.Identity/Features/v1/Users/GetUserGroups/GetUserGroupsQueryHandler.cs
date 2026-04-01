@@ -7,19 +7,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Modules.Identity.Features.v1.Users.GetUserGroups;
 
-public sealed class GetUserGroupsQueryHandler : IQueryHandler<GetUserGroupsQuery, IEnumerable<GroupDto>>
+public sealed class GetUserGroupsQueryHandler(IdentityDbContext dbContext) : IQueryHandler<GetUserGroupsQuery, IEnumerable<GroupDto>>
 {
-    private readonly IdentityDbContext _dbContext;
-
-    public GetUserGroupsQueryHandler(IdentityDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
     public async ValueTask<IEnumerable<GroupDto>> Handle(GetUserGroupsQuery query, CancellationToken cancellationToken)
     {
         // Validate user exists
-        var userExists = await _dbContext.Users
+        var userExists = await dbContext.Users
             .AnyAsync(u => u.Id == query.UserId, cancellationToken);
 
         if (!userExists)
@@ -28,7 +21,7 @@ public sealed class GetUserGroupsQueryHandler : IQueryHandler<GetUserGroupsQuery
         }
 
         // Get user's groups
-        var groupIds = await _dbContext.UserGroups
+        var groupIds = await dbContext.UserGroups
             .AsNoTracking()
             .Where(ug => ug.UserId == query.UserId)
             .Select(ug => ug.GroupId)
@@ -39,14 +32,14 @@ public sealed class GetUserGroupsQueryHandler : IQueryHandler<GetUserGroupsQuery
             return [];
         }
 
-        var groups = await _dbContext.Groups
+        var groups = await dbContext.Groups
             .AsNoTracking()
             .Include(g => g.GroupRoles)
             .Where(g => groupIds.Contains(g.Id))
             .ToListAsync(cancellationToken);
 
         // Get member counts
-        var memberCounts = await _dbContext.UserGroups
+        var memberCounts = await dbContext.UserGroups
             .Where(ug => groupIds.Contains(ug.GroupId))
             .GroupBy(ug => ug.GroupId)
             .Select(g => new { GroupId = g.Key, Count = g.Count() })
@@ -59,7 +52,7 @@ public sealed class GetUserGroupsQueryHandler : IQueryHandler<GetUserGroupsQuery
             .ToList();
 
         var roleNames = allRoleIds.Count > 0
-            ? await _dbContext.Roles
+            ? await dbContext.Roles
                 .AsNoTracking()
                 .Where(r => allRoleIds.Contains(r.Id))
                 .ToDictionaryAsync(r => r.Id, r => r.Name!, cancellationToken)

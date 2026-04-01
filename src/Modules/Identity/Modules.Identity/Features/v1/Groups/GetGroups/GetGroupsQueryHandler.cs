@@ -6,18 +6,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Modules.Identity.Features.v1.Groups.GetGroups;
 
-public sealed class GetGroupsQueryHandler : IQueryHandler<GetGroupsQuery, IEnumerable<GroupDto>>
+public sealed class GetGroupsQueryHandler(IdentityDbContext dbContext) : IQueryHandler<GetGroupsQuery, IEnumerable<GroupDto>>
 {
-    private readonly IdentityDbContext _dbContext;
-
-    public GetGroupsQueryHandler(IdentityDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
     public async ValueTask<IEnumerable<GroupDto>> Handle(GetGroupsQuery query, CancellationToken cancellationToken)
     {
-        var groupsQuery = _dbContext.Groups
+        var groupsQuery = dbContext.Groups
             .AsNoTracking()
             .Include(g => g.GroupRoles)
             .AsQueryable();
@@ -37,7 +30,7 @@ public sealed class GetGroupsQueryHandler : IQueryHandler<GetGroupsQuery, IEnume
 
         // Get member counts in one query
         var groupIds = groups.Select(g => g.Id).ToList();
-        var memberCounts = await _dbContext.UserGroups
+        var memberCounts = await dbContext.UserGroups
             .Where(ug => groupIds.Contains(ug.GroupId))
             .GroupBy(ug => ug.GroupId)
             .Select(g => new { GroupId = g.Key, Count = g.Count() })
@@ -49,7 +42,7 @@ public sealed class GetGroupsQueryHandler : IQueryHandler<GetGroupsQuery, IEnume
             .Distinct()
             .ToList();
 
-        var roleNames = await _dbContext.Roles
+        var roleNames = await dbContext.Roles
             .AsNoTracking()
             .Where(r => allRoleIds.Contains(r.Id))
             .ToDictionaryAsync(r => r.Id, r => r.Name!, cancellationToken);

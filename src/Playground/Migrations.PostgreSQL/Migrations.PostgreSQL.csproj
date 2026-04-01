@@ -4,6 +4,7 @@
 		<RootNamespace>FSH.Migrations.PostgreSQL</RootNamespace>
 		<AssemblyName>FSH.Migrations.PostgreSQL</AssemblyName>
 		<IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);NU1507</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>

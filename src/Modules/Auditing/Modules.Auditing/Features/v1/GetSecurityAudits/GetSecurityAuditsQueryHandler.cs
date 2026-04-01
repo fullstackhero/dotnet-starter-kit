@@ -7,20 +7,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Modules.Auditing.Features.v1.GetSecurityAudits;
 
-public sealed class GetSecurityAuditsQueryHandler : IQueryHandler<GetSecurityAuditsQuery, IReadOnlyList<AuditSummaryDto>>
+public sealed class GetSecurityAuditsQueryHandler(AuditDbContext dbContext) : IQueryHandler<GetSecurityAuditsQuery, IReadOnlyList<AuditSummaryDto>>
 {
-    private readonly AuditDbContext _dbContext;
-
-    public GetSecurityAuditsQueryHandler(AuditDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
     public async ValueTask<IReadOnlyList<AuditSummaryDto>> Handle(GetSecurityAuditsQuery query, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        IQueryable<AuditRecord> audits = _dbContext.AuditRecords
+        IQueryable<AuditRecord> audits = dbContext.AuditRecords
             .AsNoTracking()
             .Where(a => a.EventType == (int)AuditEventType.Security);
 

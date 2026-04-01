@@ -4,15 +4,8 @@ using Mediator;
 
 namespace FSH.Modules.Identity.Features.v1.Users.ToggleUserStatus;
 
-public sealed class ToggleUserStatusCommandHandler : ICommandHandler<ToggleUserStatusCommand, Unit>
+public sealed class ToggleUserStatusCommandHandler(IUserService userService) : ICommandHandler<ToggleUserStatusCommand, Unit>
 {
-    private readonly IUserService _userService;
-
-    public ToggleUserStatusCommandHandler(IUserService userService)
-    {
-        _userService = userService;
-    }
-
     public async ValueTask<Unit> Handle(ToggleUserStatusCommand command, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -22,7 +15,7 @@ public sealed class ToggleUserStatusCommandHandler : ICommandHandler<ToggleUserS
             throw new ArgumentException("UserId must be provided.", nameof(command.UserId));
         }
 
-        await _userService.ToggleStatusAsync(command.ActivateUser, command.UserId, cancellationToken).ConfigureAwait(false);
+        await userService.ToggleStatusAsync(command.ActivateUser, command.UserId, cancellationToken).ConfigureAwait(false);
 
         return Unit.Value;
     }

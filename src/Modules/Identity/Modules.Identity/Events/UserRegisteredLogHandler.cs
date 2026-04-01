@@ -9,22 +9,15 @@ namespace FSH.Modules.Identity.Events;
 /// Note: This is a domain event handler. There's also UserRegisteredEmailHandler 
 /// which handles the integration event for cross-module communication.
 /// </summary>
-public sealed class UserRegisteredLogHandler : INotificationHandler<UserRegisteredEvent>
+public sealed class UserRegisteredLogHandler(ILogger<UserRegisteredLogHandler> logger) : INotificationHandler<UserRegisteredEvent>
 {
-    private readonly ILogger<UserRegisteredLogHandler> _logger;
-
-    public UserRegisteredLogHandler(ILogger<UserRegisteredLogHandler> logger)
-    {
-        _logger = logger;
-    }
-
     public ValueTask Handle(UserRegisteredEvent notification, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(notification);
 
-        if (_logger.IsEnabled(LogLevel.Information))
+        if (logger.IsEnabled(LogLevel.Information))
         {
-            _logger.LogInformation(
+            logger.LogInformation(
                 "User {UserId} ({Email}) registered in tenant {TenantId}",
                 notification.UserId,
                 notification.Email,

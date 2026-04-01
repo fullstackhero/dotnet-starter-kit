@@ -7,15 +7,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Modules.Auditing.Features.v1.GetExceptionAudits;
 
-public sealed class GetExceptionAuditsQueryHandler : IQueryHandler<GetExceptionAuditsQuery, IReadOnlyList<AuditSummaryDto>>
+public sealed class GetExceptionAuditsQueryHandler(AuditDbContext dbContext) : IQueryHandler<GetExceptionAuditsQuery, IReadOnlyList<AuditSummaryDto>>
 {
-    private readonly AuditDbContext _dbContext;
-
-    public GetExceptionAuditsQueryHandler(AuditDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
     public async ValueTask<IReadOnlyList<AuditSummaryDto>> Handle(GetExceptionAuditsQuery query, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(query);
@@ -30,7 +23,7 @@ public sealed class GetExceptionAuditsQueryHandler : IQueryHandler<GetExceptionA
 
     private IQueryable<AuditRecord> GetBaseQuery()
     {
-        return _dbContext.AuditRecords
+        return dbContext.AuditRecords
             .AsNoTracking()
             .Where(a => a.EventType == (int)AuditEventType.Exception);
     }

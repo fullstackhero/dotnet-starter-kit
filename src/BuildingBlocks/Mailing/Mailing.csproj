@@ -4,6 +4,7 @@
 		<RootNamespace>FSH.Framework.Mailing</RootNamespace>
 		<AssemblyName>FSH.Framework.Mailing</AssemblyName>
 		<PackageId>FullStackHero.Framework.Mailing</PackageId>
+    <NoWarn>$(NoWarn);NU1507</NoWarn>
 	</PropertyGroup>
 	
 	<ItemGroup>

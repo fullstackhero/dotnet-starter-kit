@@ -11,18 +11,9 @@ namespace FSH.Framework.Persistence.Inteceptors;
 /// and handles soft delete for entities implementing <see cref="ISoftDeletable"/>.
 /// Uses an <see cref="AsyncLocal{T}"/> recursion guard to prevent StackOverflowException from nested SaveChanges calls.
 /// </summary>
-public sealed class AuditableEntitySaveChangesInterceptor : SaveChangesInterceptor
+public sealed class AuditableEntitySaveChangesInterceptor(ICurrentUser currentUser, TimeProvider timeProvider) : SaveChangesInterceptor
 {
-    private readonly ICurrentUser _currentUser;
-    private readonly TimeProvider _timeProvider;
-
     private static readonly AsyncLocal<bool> _isSaving = new();
-
-    public AuditableEntitySaveChangesInterceptor(ICurrentUser currentUser, TimeProvider timeProvider)
-    {
-        _currentUser = currentUser;
-        _timeProvider = timeProvider;
-    }
 
     public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(
         DbContextEventData eventData,
@@ -75,8 +66,8 @@ public sealed class AuditableEntitySaveChangesInterceptor : SaveChangesIntercept
     {
         if (context is null) return;
 
-        var userId = _currentUser.IsAuthenticated() ? _currentUser.GetUserId().ToString() : null;
-        var now = _timeProvider.GetUtcNow();
+        var userId = currentUser.IsAuthenticated() ? currentUser.GetUserId().ToString() : null;
+        var now = timeProvider.GetUtcNow();
 
         foreach (var entry in context.ChangeTracker.Entries())
         {

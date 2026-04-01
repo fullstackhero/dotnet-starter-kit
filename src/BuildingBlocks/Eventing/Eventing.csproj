@@ -7,7 +7,7 @@
     <RootNamespace>FSH.Framework.Eventing</RootNamespace>
     <AssemblyName>FSH.Framework.Eventing</AssemblyName>
     <PackageId>FullStackHero.Framework.Eventing</PackageId>
-    <NoWarn>$(NoWarn);CA1711;CA1716;CA1031;S2139;S1066</NoWarn>
+    <NoWarn>$(NoWarn);CA1711;CA1716;CA1031;S2139;S1066;NU1507</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

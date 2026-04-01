@@ -159,14 +159,11 @@ public class IdentityModule : IModule
 
         // example Hangfire setup for Identity outbox dispatcher
         var jobManager = endpoints.ServiceProvider.GetService<IRecurringJobManager>();
-        if (jobManager is not null)
-        {
-            jobManager.AddOrUpdate(
+        jobManager?.AddOrUpdate(
                 "identity-outbox-dispatcher",
                 Job.FromExpression<OutboxDispatcher>(d => d.DispatchAsync(CancellationToken.None)),
                 Cron.Minutely(),
                 new RecurringJobOptions());
-        }
 
         // roles
         group.MapGetRolesEndpoint();

@@ -10,30 +10,23 @@ namespace FSH.Modules.Identity.Services;
 /// Provides HTTP request context information through an abstraction.
 /// This allows handlers to access request metadata without direct ASP.NET Core dependencies.
 /// </summary>
-internal sealed class RequestContextService : IRequestContextService
+internal sealed class RequestContextService(
+    IHttpContextAccessor httpContextAccessor,
+    IOptions<OriginOptions> originOptions) : IRequestContextService
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly Uri? _originUrl;
-
-    public RequestContextService(
-        IHttpContextAccessor httpContextAccessor,
-        IOptions<OriginOptions> originOptions)
-    {
-        _httpContextAccessor = httpContextAccessor;
-        _originUrl = originOptions.Value.OriginUrl;
-    }
+    private readonly Uri? _originUrl = originOptions.Value.OriginUrl;
 
     public string? IpAddress =>
-        _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
+        httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
 
     public string? UserAgent =>
-        _httpContextAccessor.HttpContext?.Request.Headers.UserAgent.ToString();
+        httpContextAccessor.HttpContext?.Request.Headers.UserAgent.ToString();
 
     public string ClientId
     {
         get
         {
-            var clientId = _httpContextAccessor.HttpContext?.Request.Headers["X-Client-Id"].ToString();
+            var clientId = httpContextAccessor.HttpContext?.Request.Headers["X-Client-Id"].ToString();
             return string.IsNullOrWhiteSpace(clientId) ? "web" : clientId;
         }
     }
@@ -47,7 +40,7 @@ internal sealed class RequestContextService : IRequestContextService
                 return _originUrl.AbsoluteUri.TrimEnd('/');
             }
 
-            var request = _httpContextAccessor.HttpContext?.Request;
+            var request = httpContextAccessor.HttpContext?.Request;
             if (request is not null && !string.IsNullOrWhiteSpace(request.Scheme) && request.Host.HasValue)
             {
                 return $"{request.Scheme}://{request.Host.Value}{request.PathBase}".TrimEnd('/');

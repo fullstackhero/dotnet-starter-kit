@@ -3,7 +3,7 @@
 		<RootNamespace>FSH.Modules.Multitenancy.Contracts</RootNamespace>
 		<AssemblyName>FSH.Modules.Multitenancy.Contracts</AssemblyName>
 		<PackageId>FullStackHero.Modules.Multitenancy.Contracts</PackageId>
-		<NoWarn>$(NoWarn);CA1056;S2094</NoWarn>
+		<NoWarn>$(NoWarn);CA1056;S2094;NU1507</NoWarn>
 	</PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Mediator.Abstractions" />

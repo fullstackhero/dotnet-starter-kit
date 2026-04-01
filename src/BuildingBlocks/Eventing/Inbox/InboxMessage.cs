@@ -19,20 +19,13 @@ public class InboxMessage
     public string? TenantId { get; set; }
 }
 
-public class InboxMessageConfiguration : IEntityTypeConfiguration<InboxMessage>
+public class InboxMessageConfiguration(string schema) : IEntityTypeConfiguration<InboxMessage>
 {
-    private readonly string _schema;
-
-    public InboxMessageConfiguration(string schema)
-    {
-        _schema = schema;
-    }
-
     public void Configure(EntityTypeBuilder<InboxMessage> builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        builder.ToTable("InboxMessages", _schema);
+        builder.ToTable("InboxMessages", schema);
 
         builder.HasKey(i => new { i.Id, i.HandlerName });
 

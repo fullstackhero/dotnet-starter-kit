@@ -6,14 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Modules.Multitenancy.Data;
 
-public class TenantDbContext : EFCoreStoreDbContext<AppTenantInfo>
+public class TenantDbContext(DbContextOptions<TenantDbContext> options) : EFCoreStoreDbContext<AppTenantInfo>(options)
 {
     public const string Schema = "tenant";
-
-    public TenantDbContext(DbContextOptions<TenantDbContext> options)
-        : base(options)
-    {
-    }
 
     public DbSet<TenantProvisioning> TenantProvisionings => Set<TenantProvisioning>();
 

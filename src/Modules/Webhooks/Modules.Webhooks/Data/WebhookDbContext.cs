@@ -9,14 +9,12 @@ using Microsoft.Extensions.Options;
 
 namespace FSH.Modules.Webhooks.Data;
 
-public sealed class WebhookDbContext : BaseDbContext
+public sealed class WebhookDbContext(
+    IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
+    DbContextOptions<WebhookDbContext> options,
+    IOptions<DatabaseOptions> settings,
+    IHostEnvironment environment) : BaseDbContext(multiTenantContextAccessor, options, settings, environment)
 {
-    public WebhookDbContext(
-        IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
-        DbContextOptions<WebhookDbContext> options,
-        IOptions<DatabaseOptions> settings,
-        IHostEnvironment environment) : base(multiTenantContextAccessor, options, settings, environment) { }
-
     public DbSet<WebhookSubscription> Subscriptions => Set<WebhookSubscription>();
     public DbSet<WebhookDelivery> Deliveries => Set<WebhookDelivery>();
 

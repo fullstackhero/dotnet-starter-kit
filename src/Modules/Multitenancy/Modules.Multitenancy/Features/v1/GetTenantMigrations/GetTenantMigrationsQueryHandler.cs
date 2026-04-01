@@ -9,25 +9,16 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FSH.Modules.Multitenancy.Features.v1.GetTenantMigrations;
 
-public sealed class GetTenantMigrationsQueryHandler
-    : IQueryHandler<GetTenantMigrationsQuery, IReadOnlyCollection<TenantMigrationStatusDto>>
+public sealed class GetTenantMigrationsQueryHandler(
+    IMultiTenantStore<AppTenantInfo> tenantStore,
+    IServiceScopeFactory scopeFactory)
+        : IQueryHandler<GetTenantMigrationsQuery, IReadOnlyCollection<TenantMigrationStatusDto>>
 {
-    private readonly IMultiTenantStore<AppTenantInfo> _tenantStore;
-    private readonly IServiceScopeFactory _scopeFactory;
-
-    public GetTenantMigrationsQueryHandler(
-        IMultiTenantStore<AppTenantInfo> tenantStore,
-        IServiceScopeFactory scopeFactory)
-    {
-        _tenantStore = tenantStore;
-        _scopeFactory = scopeFactory;
-    }
-
     public async ValueTask<IReadOnlyCollection<TenantMigrationStatusDto>> Handle(
         GetTenantMigrationsQuery query,
         CancellationToken cancellationToken)
     {
-        var tenants = await _tenantStore.GetAllAsync().ConfigureAwait(false);
+        var tenants = await tenantStore.GetAllAsync().ConfigureAwait(false);
 
         var tenantMigrationStatuses = new List<TenantMigrationStatusDto>();
 
@@ -43,7 +34,7 @@ public sealed class GetTenantMigrationsQueryHandler
 
             try
             {
-                using IServiceScope tenantScope = _scopeFactory.CreateScope();
+                using IServiceScope tenantScope = scopeFactory.CreateScope();
 
                 tenantScope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>()
                     .MultiTenantContext = new MultiTenantContext<AppTenantInfo>(tenant);

@@ -5,30 +5,21 @@ using Mediator;
 
 namespace FSH.Modules.Identity.Features.v1.Sessions.AdminRevokeSession;
 
-public sealed class AdminRevokeSessionCommandHandler : ICommandHandler<AdminRevokeSessionCommand, bool>
+public sealed class AdminRevokeSessionCommandHandler(ISessionService sessionService, ICurrentUser currentUser) : ICommandHandler<AdminRevokeSessionCommand, bool>
 {
-    private readonly ISessionService _sessionService;
-    private readonly ICurrentUser _currentUser;
-
-    public AdminRevokeSessionCommandHandler(ISessionService sessionService, ICurrentUser currentUser)
-    {
-        _sessionService = sessionService;
-        _currentUser = currentUser;
-    }
-
     public async ValueTask<bool> Handle(AdminRevokeSessionCommand command, CancellationToken cancellationToken)
     {
-        var adminId = _currentUser.GetUserId().ToString();
+        var adminId = currentUser.GetUserId().ToString();
 
         // Get the session to verify it belongs to the specified user
-        var session = await _sessionService.GetSessionAsync(command.SessionId, cancellationToken);
+        var session = await sessionService.GetSessionAsync(command.SessionId, cancellationToken);
         if (session is null || session.UserId != command.UserId.ToString())
         {
             return false;
         }
 
         // Use the admin revocation method (doesn't check ownership)
-        return await _sessionService.RevokeSessionForAdminAsync(
+        return await sessionService.RevokeSessionForAdminAsync(
             command.SessionId,
             adminId,
             command.Reason ?? "Revoked by administrator",

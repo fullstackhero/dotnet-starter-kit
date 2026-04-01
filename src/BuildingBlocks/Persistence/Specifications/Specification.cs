@@ -223,20 +223,11 @@ public abstract class Specification<T> : ISpecification<T>
                ?? throw new InvalidOperationException("Failed to replace parameter in expression.");
     }
 
-    private sealed class ParameterReplaceVisitor : ExpressionVisitor
+    private sealed class ParameterReplaceVisitor(ParameterExpression source, ParameterExpression target) : ExpressionVisitor
     {
-        private readonly ParameterExpression _source;
-        private readonly ParameterExpression _target;
-
-        public ParameterReplaceVisitor(ParameterExpression source, ParameterExpression target)
-        {
-            _source = source;
-            _target = target;
-        }
-
         protected override Expression VisitParameter(ParameterExpression node)
         {
-            return node == _source ? _target : base.VisitParameter(node);
+            return node == source ? target : base.VisitParameter(node);
         }
     }
 }

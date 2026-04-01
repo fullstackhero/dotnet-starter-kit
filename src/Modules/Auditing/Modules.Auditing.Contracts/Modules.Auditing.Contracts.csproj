@@ -4,7 +4,7 @@
 		<RootNamespace>FSH.Modules.Auditing.Contracts</RootNamespace>
 		<AssemblyName>FSH.Modules.Auditing.Contracts</AssemblyName>
 		<PackageId>FullStackHero.Modules.Auditing.Contracts</PackageId>
-		<NoWarn>$(NoWarn);S2094</NoWarn>
+		<NoWarn>$(NoWarn);S2094;NU1507</NoWarn>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="Mediator.Abstractions" />

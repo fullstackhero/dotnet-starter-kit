@@ -12,27 +12,16 @@ using System.Linq.Expressions;
 
 namespace FSH.Modules.Identity.Features.v1.Users.SearchUsers;
 
-public sealed class SearchUsersQueryHandler : IQueryHandler<SearchUsersQuery, PagedResponse<UserDto>>
+public sealed class SearchUsersQueryHandler(
+    UserManager<FshUser> userManager,
+    IdentityDbContext dbContext,
+    IRequestContext requestContext) : IQueryHandler<SearchUsersQuery, PagedResponse<UserDto>>
 {
-    private readonly UserManager<FshUser> _userManager;
-    private readonly IdentityDbContext _dbContext;
-    private readonly IRequestContext _requestContext;
-
-    public SearchUsersQueryHandler(
-        UserManager<FshUser> userManager,
-        IdentityDbContext dbContext,
-        IRequestContext requestContext)
-    {
-        _userManager = userManager;
-        _dbContext = dbContext;
-        _requestContext = requestContext;
-    }
-
     public async ValueTask<PagedResponse<UserDto>> Handle(SearchUsersQuery query, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        IQueryable<FshUser> users = _userManager.Users.AsNoTracking();
+        IQueryable<FshUser> users = userManager.Users.AsNoTracking();
 
         // Apply filters
         if (!string.IsNullOrWhiteSpace(query.Search))
@@ -57,7 +46,7 @@ public sealed class SearchUsersQueryHandler : IQueryHandler<SearchUsersQuery, Pa
 
         if (!string.IsNullOrWhiteSpace(query.RoleId))
         {
-            var userIdsInRole = await _dbContext.UserRoles
+            var userIdsInRole = await dbContext.UserRoles
                 .Where(ur => ur.RoleId == query.RoleId)
                 .Select(ur => ur.UserId)
                 .ToListAsync(cancellationToken);
@@ -179,7 +168,7 @@ public sealed class SearchUsersQueryHandler : IQueryHandler<SearchUsersQuery, Pa
             return imageUrl;
         }
 
-        var origin = _requestContext.Origin;
+        var origin = requestContext.Origin;
         if (string.IsNullOrEmpty(origin))
         {
             return imageUrl;

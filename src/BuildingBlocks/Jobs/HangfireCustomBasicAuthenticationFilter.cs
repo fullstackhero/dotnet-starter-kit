@@ -7,10 +7,10 @@ using System.Net.Http.Headers;
 
 namespace FSH.Framework.Jobs;
 
-public sealed class HangfireCustomBasicAuthenticationFilter : IDashboardAuthorizationFilter
+public sealed class HangfireCustomBasicAuthenticationFilter(ILogger<HangfireCustomBasicAuthenticationFilter> logger) : IDashboardAuthorizationFilter
 {
     private const string AuthenticationScheme = "Basic";
-    private readonly ILogger<HangfireCustomBasicAuthenticationFilter> _logger;
+
     public string User { get; set; } = default!;
     public string Pass { get; set; } = default!;
 
@@ -19,8 +19,6 @@ public sealed class HangfireCustomBasicAuthenticationFilter : IDashboardAuthoriz
     {
     }
 
-    public HangfireCustomBasicAuthenticationFilter(ILogger<HangfireCustomBasicAuthenticationFilter> logger) => _logger = logger;
-
     public bool Authorize(DashboardContext context)
     {
         var httpContext = context.GetHttpContext();
@@ -28,7 +26,7 @@ public sealed class HangfireCustomBasicAuthenticationFilter : IDashboardAuthoriz
 
         if (MissingAuthorizationHeader(header))
         {
-            _logger.LogInformation("Request is missing Authorization Header");
+            logger.LogInformation("Request is missing Authorization Header");
             SetChallengeResponse(httpContext);
             return false;
         }
@@ -37,7 +35,7 @@ public sealed class HangfireCustomBasicAuthenticationFilter : IDashboardAuthoriz
 
         if (NotBasicAuthentication(authValues))
         {
-            _logger.LogInformation("Request is NOT BASIC authentication");
+            logger.LogInformation("Request is NOT BASIC authentication");
             SetChallengeResponse(httpContext);
             return false;
         }
@@ -46,18 +44,18 @@ public sealed class HangfireCustomBasicAuthenticationFilter : IDashboardAuthoriz
 
         if (tokens.AreInvalid())
         {
-            _logger.LogInformation("Authentication tokens are invalid (empty, null, whitespace)");
+            logger.LogInformation("Authentication tokens are invalid (empty, null, whitespace)");
             SetChallengeResponse(httpContext);
             return false;
         }
 
         if (tokens.CredentialsMatch(User, Pass))
         {
-            _logger.LogInformation("Awesome, authentication tokens match configuration!");
+            logger.LogInformation("Awesome, authentication tokens match configuration!");
             return true;
         }
 
-        _logger.LogInformation("Hangfire dashboard authentication failed — credentials do not match configuration");
+        logger.LogInformation("Hangfire dashboard authentication failed — credentials do not match configuration");
 
         SetChallengeResponse(httpContext);
         return false;
@@ -87,23 +85,16 @@ public sealed class HangfireCustomBasicAuthenticationFilter : IDashboardAuthoriz
     }
 }
 
-public sealed class BasicAuthenticationTokens
+public sealed class BasicAuthenticationTokens(string[] tokens)
 {
-    private readonly string[] _tokens;
-
-    public string? Username => _tokens.Length > 0 ? _tokens[0] : null;
-    public string? Password => _tokens.Length > 1 ? _tokens[1] : null;
-
-    public BasicAuthenticationTokens(string[] tokens)
-    {
-        _tokens = tokens;
-    }
+    public string? Username => tokens.Length > 0 ? tokens[0] : null;
+    public string? Password => tokens.Length > 1 ? tokens[1] : null;
 
     public bool AreInvalid()
     {
-        return _tokens.Length != 2
-            || string.IsNullOrWhiteSpace(_tokens[0])
-            || string.IsNullOrWhiteSpace(_tokens[1]);
+        return tokens.Length != 2
+            || string.IsNullOrWhiteSpace(tokens[0])
+            || string.IsNullOrWhiteSpace(tokens[1]);
     }
 
     public bool CredentialsMatch(string user, string pass)

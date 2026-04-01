@@ -9,31 +9,16 @@ using System.Text.Json;
 
 namespace FSH.Modules.Auditing.Features.v1.GetAuditById;
 
-public sealed class GetAuditByIdQueryHandler : IQueryHandler<GetAuditByIdQuery, AuditDetailDto>
+public sealed class GetAuditByIdQueryHandler(AuditDbContext dbContext, ILogger<GetAuditByIdQueryHandler> logger) : IQueryHandler<GetAuditByIdQuery, AuditDetailDto>
 {
-    private readonly AuditDbContext _dbContext;
-    private readonly ILogger<GetAuditByIdQueryHandler> _logger;
-
-    public GetAuditByIdQueryHandler(AuditDbContext dbContext, ILogger<GetAuditByIdQueryHandler> logger)
-    {
-        _dbContext = dbContext;
-        _logger = logger;
-    }
-
     public async ValueTask<AuditDetailDto> Handle(GetAuditByIdQuery query, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        var record = await _dbContext.AuditRecords
+        var record = await dbContext.AuditRecords
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == query.Id, cancellationToken)
-            .ConfigureAwait(false);
-
-        if (record is null)
-        {
-            throw new KeyNotFoundException($"Audit record {query.Id} not found.");
-        }
-
+            .ConfigureAwait(false) ?? throw new KeyNotFoundException($"Audit record {query.Id} not found.");
         JsonElement payload;
         try
         {
@@ -42,7 +27,7 @@ public sealed class GetAuditByIdQueryHandler : IQueryHandler<GetAuditByIdQuery, 
         }
         catch (JsonException ex)
         {
-            _logger.LogWarning(ex, "Failed to parse audit payload JSON for record {AuditId}.", query.Id);
+            logger.LogWarning(ex, "Failed to parse audit payload JSON for record {AuditId}.", query.Id);
             payload = JsonDocument.Parse("{}").RootElement.Clone();
         }
 

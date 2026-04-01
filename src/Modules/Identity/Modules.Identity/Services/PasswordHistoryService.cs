@@ -7,28 +7,19 @@ using Microsoft.Extensions.Options;
 
 namespace FSH.Modules.Identity.Services;
 
-internal sealed class PasswordHistoryService : IPasswordHistoryService
+internal sealed class PasswordHistoryService(
+    IdentityDbContext db,
+    UserManager<FshUser> userManager,
+    IOptions<PasswordPolicyOptions> passwordPolicyOptions) : IPasswordHistoryService
 {
-    private readonly IdentityDbContext _db;
-    private readonly UserManager<FshUser> _userManager;
-    private readonly PasswordPolicyOptions _passwordPolicyOptions;
-
-    public PasswordHistoryService(
-        IdentityDbContext db,
-        UserManager<FshUser> userManager,
-        IOptions<PasswordPolicyOptions> passwordPolicyOptions)
-    {
-        _db = db;
-        _userManager = userManager;
-        _passwordPolicyOptions = passwordPolicyOptions.Value;
-    }
+    private readonly PasswordPolicyOptions _passwordPolicyOptions = passwordPolicyOptions.Value;
 
     public async Task<bool> IsPasswordInHistoryAsync(string userId, string newPassword, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(userId);
         ArgumentNullException.ThrowIfNull(newPassword);
 
-        var user = await _userManager.FindByIdAsync(userId);
+        var user = await userManager.FindByIdAsync(userId);
         if (user is null)
         {
             return false;
@@ -41,7 +32,7 @@ internal sealed class PasswordHistoryService : IPasswordHistoryService
             return false; // Password history check disabled
         }
 
-        var recentPasswordHashes = await _db.Set<PasswordHistory>()
+        var recentPasswordHashes = await db.Set<PasswordHistory>()
             .Where(ph => ph.UserId == userId)
             .OrderByDescending(ph => ph.CreatedAt)
             .Take(passwordHistoryCount)
@@ -51,7 +42,7 @@ internal sealed class PasswordHistoryService : IPasswordHistoryService
         // Check if the new password matches any recent password
         foreach (var passwordHash in recentPasswordHashes)
         {
-            var passwordHasher = _userManager.PasswordHasher;
+            var passwordHasher = userManager.PasswordHasher;
             var result = passwordHasher.VerifyHashedPassword(user, passwordHash, newPassword);
 
             if (result == PasswordVerificationResult.Success || result == PasswordVerificationResult.SuccessRehashNeeded)
@@ -67,7 +58,7 @@ internal sealed class PasswordHistoryService : IPasswordHistoryService
     {
         ArgumentNullException.ThrowIfNull(userId);
 
-        var user = await _userManager.FindByIdAsync(userId);
+        var user = await userManager.FindByIdAsync(userId);
         if (user is null || string.IsNullOrEmpty(user.PasswordHash))
         {
             return;
@@ -75,8 +66,8 @@ internal sealed class PasswordHistoryService : IPasswordHistoryService
 
         var passwordHistoryEntry = PasswordHistory.Create(userId, user.PasswordHash);
 
-        _db.Set<PasswordHistory>().Add(passwordHistoryEntry);
-        await _db.SaveChangesAsync(cancellationToken);
+        db.Set<PasswordHistory>().Add(passwordHistoryEntry);
+        await db.SaveChangesAsync(cancellationToken);
 
         // Clean up old password history entries
         await CleanupOldPasswordHistoryAsync(userId, cancellationToken);
@@ -93,7 +84,7 @@ internal sealed class PasswordHistoryService : IPasswordHistoryService
         }
 
         // Get all password history entries for the user, ordered by most recent
-        var allPasswordHistories = await _db.Set<PasswordHistory>()
+        var allPasswordHistories = await db.Set<PasswordHistory>()
             .Where(ph => ph.UserId == userId)
             .OrderByDescending(ph => ph.CreatedAt)
             .ToListAsync(cancellationToken);
@@ -105,8 +96,8 @@ internal sealed class PasswordHistoryService : IPasswordHistoryService
                 .Skip(passwordHistoryCount)
                 .ToList();
 
-            _db.Set<PasswordHistory>().RemoveRange(oldPasswordHistories);
-            await _db.SaveChangesAsync(cancellationToken);
+            db.Set<PasswordHistory>().RemoveRange(oldPasswordHistories);
+            await db.SaveChangesAsync(cancellationToken);
         }
     }
 }

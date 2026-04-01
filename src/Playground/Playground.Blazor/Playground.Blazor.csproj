@@ -10,7 +10,7 @@
 		<TieredCompilationQuickJit>true</TieredCompilationQuickJit>
 		<TieredCompilationQuickJitForLoops>true</TieredCompilationQuickJitForLoops>
 		<PublishReadyToRun>true</PublishReadyToRun>
-
+    <NoWarn>$(NoWarn);NU1507</NoWarn>
 		<!-- Container configuration -->
 		<ContainerPort>8080</ContainerPort>
 		<ContainerUser>root</ContainerUser>

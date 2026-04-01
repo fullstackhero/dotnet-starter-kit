@@ -15,25 +15,14 @@ internal interface IThemeStateFactory
 /// <summary>
 /// Redis-cached implementation of theme state factory.
 /// </summary>
-internal sealed class CachedThemeStateFactory : IThemeStateFactory
+internal sealed class CachedThemeStateFactory(
+    IDistributedCache cache,
+    HttpClient httpClient,
+    ILogger<CachedThemeStateFactory> logger) : IThemeStateFactory
 {
     private static readonly Uri ThemeEndpoint = new("/api/v1/tenants/theme", UriKind.Relative);
     private static readonly TenantThemeSettings DefaultSettings = TenantThemeSettings.Default;
-
-    private readonly IDistributedCache _cache;
-    private readonly HttpClient _httpClient;
-    private readonly ILogger<CachedThemeStateFactory> _logger;
     private readonly TimeSpan _cacheExpiry = TimeSpan.FromMinutes(15);
-
-    public CachedThemeStateFactory(
-        IDistributedCache cache,
-        HttpClient httpClient,
-        ILogger<CachedThemeStateFactory> logger)
-    {
-        _cache = cache;
-        _httpClient = httpClient;
-        _logger = logger;
-    }
 
     public async Task<TenantThemeSettings> GetThemeAsync(string tenantId, CancellationToken cancellationToken = default)
     {
@@ -55,7 +44,7 @@ internal sealed class CachedThemeStateFactory : IThemeStateFactory
     {
         try
         {
-            var json = await _cache.GetStringAsync(cacheKey, cancellationToken);
+            var json = await cache.GetStringAsync(cacheKey, cancellationToken);
             if (json is null)
             {
                 return null;
@@ -65,7 +54,7 @@ internal sealed class CachedThemeStateFactory : IThemeStateFactory
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Cache unavailable, fetching theme directly for tenant {TenantId}", SanitizeLogValue(tenantId));
+            logger.LogWarning(ex, "Cache unavailable, fetching theme directly for tenant {TenantId}", SanitizeLogValue(tenantId));
             return null;
         }
     }
@@ -78,7 +67,7 @@ internal sealed class CachedThemeStateFactory : IThemeStateFactory
         }
         catch (JsonException ex)
         {
-            _logger.LogWarning(ex, "Failed to deserialize cached theme for tenant {TenantId}", SanitizeLogValue(tenantId));
+            logger.LogWarning(ex, "Failed to deserialize cached theme for tenant {TenantId}", SanitizeLogValue(tenantId));
             return null;
         }
     }
@@ -99,7 +88,7 @@ internal sealed class CachedThemeStateFactory : IThemeStateFactory
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error loading tenant theme for {TenantId}", SanitizeLogValue(tenantId));
+            logger.LogError(ex, "Error loading tenant theme for {TenantId}", SanitizeLogValue(tenantId));
         }
 
         return DefaultSettings;
@@ -107,11 +96,11 @@ internal sealed class CachedThemeStateFactory : IThemeStateFactory
 
     private async Task<TenantThemeSettings?> FetchThemeFromApiAsync(CancellationToken cancellationToken)
     {
-        var response = await _httpClient.GetAsync(ThemeEndpoint, cancellationToken);
+        var response = await httpClient.GetAsync(ThemeEndpoint, cancellationToken);
 
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogWarning("Failed to load tenant theme from API: {StatusCode}", response.StatusCode);
+            logger.LogWarning("Failed to load tenant theme from API: {StatusCode}", response.StatusCode);
             return null;
         }
 
@@ -131,11 +120,11 @@ internal sealed class CachedThemeStateFactory : IThemeStateFactory
             {
                 AbsoluteExpirationRelativeToNow = _cacheExpiry
             };
-            await _cache.SetStringAsync(cacheKey, serialized, options, cancellationToken);
+            await cache.SetStringAsync(cacheKey, serialized, options, cancellationToken);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to cache theme, continuing without cache");
+            logger.LogWarning(ex, "Failed to cache theme, continuing without cache");
         }
     }
 
