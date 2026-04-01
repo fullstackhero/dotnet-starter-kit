@@ -20,7 +20,7 @@ public class HttpRequestContextEnricher(IHttpContextAccessor httpContextAccessor
             // Add properties to the log event based on HttpContext
             logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty("RequestMethod", httpContext.Request.Method));
             logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty("RequestPath", httpContext.Request.Path));
-            logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty("UserAgent", httpContext.Request.Headers["User-Agent"]));
+            logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty("UserAgent", httpContext.Request.Headers.UserAgent));
 
             if (httpContext.User?.Identity?.IsAuthenticated == true)
             {
