@@ -129,6 +129,10 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+// Status Code Pages Middleware - handles 404s by re-executing the request pipeline
+// This prevents the browser from showing its default 404 page
+app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+
 // Simple health endpoints for ALB/ECS
 app.MapGet("/health/ready", () => Results.Ok(new { status = "Healthy" }))
    .AllowAnonymous();

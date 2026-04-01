@@ -89,7 +89,28 @@ internal static class SimpleBffAuth
             }
             catch (ApiException ex) when (ex.StatusCode == 401)
             {
-                return Results.Unauthorized();
+                // Extract error message from ProblemDetails response
+                string errorMessage = "Invalid credentials";
+                if (!string.IsNullOrEmpty(ex.Response))
+                {
+                    try
+                    {
+                        var problemDetails = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(ex.Response);
+                        if (problemDetails.TryGetProperty("detail", out var detail))
+                        {
+                            errorMessage = detail.GetString() ?? errorMessage;
+                        }
+                    }
+                    catch
+                    {
+                        // If parsing fails, use default message
+                    }
+                }
+
+                logger.LogWarning("Login failed: {ErrorMessage}", errorMessage);
+
+                // Redirect to login page with error message as query parameter
+                return Results.Redirect($"/login?error={Uri.EscapeDataString(errorMessage)}");
             }
             catch (Exception ex)
             {

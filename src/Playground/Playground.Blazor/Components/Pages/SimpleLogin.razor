@@ -9,6 +9,7 @@
 @inject IHttpClientFactory HttpClientFactory
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IWebHostEnvironment Environment
+@inject ISnackbar Snackbar
 
 <PageTitle>Login</PageTitle>
 <div class="login-page">
@@ -130,6 +131,25 @@
 
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         _isAuthenticated = authState.User.Identity?.IsAuthenticated == true;
+
+        // Check for error message in query parameters
+        var uri = new Uri(Navigation.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        var errorMessage = query["error"];
+        if (!string.IsNullOrEmpty(errorMessage))
+        {
+            Snackbar.Add(errorMessage, Severity.Error);
+            // Remove the error parameter from URL to avoid showing it again on refresh
+            try
+            {
+                Navigation.NavigateTo("/login", replace: true);
+            }
+            catch (NavigationException)
+            {
+                // NavigationException is expected when NavigateTo interrupts the render cycle
+                // The navigation will still succeed
+            }
+        }
     }
 
     protected override void OnAfterRender(bool firstRender)
