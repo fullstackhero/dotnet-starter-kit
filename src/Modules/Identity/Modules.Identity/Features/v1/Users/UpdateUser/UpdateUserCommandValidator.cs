@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using FSH.Framework.Storage;
+using FSH.Modules.Identity.Constants;
 using FSH.Modules.Identity.Contracts.v1.Users.UpdateUser;
 
 namespace FSH.Modules.Identity.Features.v1.Users.UpdateUser;
@@ -10,7 +11,7 @@ public sealed class UpdateUserCommandValidator : AbstractValidator<UpdateUserCom
     {
         RuleFor(x => x.Id)
             .NotEmpty()
-            .WithMessage("User ID is required.");
+            .WithMessage(IdentityValidationMessages.UserIdRequired);
 
         RuleFor(x => x.FirstName)
             .MaximumLength(50)
@@ -34,9 +35,8 @@ public sealed class UpdateUserCommandValidator : AbstractValidator<UpdateUserCom
                 .SetValidator(new UserImageValidator(FileType.Image));
         });
 
-        // Prevent deleting and uploading image at the same time
         RuleFor(x => x)
             .Must(x => !(x.DeleteCurrentImage && x.Image is not null))
-            .WithMessage("You cannot upload a new image and delete the current one simultaneously.");
+            .WithMessage(IdentityValidationMessages.ImageConflict);
     }
 }

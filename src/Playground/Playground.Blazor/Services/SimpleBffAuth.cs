@@ -110,7 +110,7 @@ internal static class SimpleBffAuth
                     }
                 }
 
-                logger.LogWarning("Login failed: {ErrorMessage}", errorMessage);
+                logger.LogWarning(ex, "Login failed: {ErrorMessage}", errorMessage);
 
                 // Redirect to login page with error message as query parameter
                 return Results.Redirect($"/login?error={Uri.EscapeDataString(errorMessage)}");

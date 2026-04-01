@@ -1,5 +1,6 @@
 using FluentValidation;
 using FSH.Framework.Core.Context;
+using FSH.Modules.Identity.Constants;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Contracts.v1.Users.ChangePassword;
 
@@ -19,19 +20,19 @@ public sealed class ChangePasswordValidator : AbstractValidator<ChangePasswordCo
 
         RuleFor(p => p.Password)
             .NotEmpty()
-            .WithMessage("Current password is required.");
+            .WithMessage(IdentityValidationMessages.CurrentPasswordRequired);
 
         RuleFor(p => p.NewPassword)
             .NotEmpty()
-            .WithMessage("New password is required.")
+            .WithMessage(IdentityValidationMessages.NewPasswordRequired)
             .NotEqual(p => p.Password)
-            .WithMessage("New password must be different from the current password.")
+            .WithMessage(IdentityValidationMessages.NewPasswordMustDiffer)
             .MustAsync(NotBeInPasswordHistoryAsync)
-            .WithMessage("This password has been used recently. Please choose a different password.");
+            .WithMessage(IdentityValidationMessages.PasswordInHistory);
 
         RuleFor(p => p.ConfirmNewPassword)
             .Equal(p => p.NewPassword)
-            .WithMessage("Passwords do not match.");
+            .WithMessage(IdentityValidationMessages.PasswordsMustMatch);
     }
 
     private async Task<bool> NotBeInPasswordHistoryAsync(string newPassword, CancellationToken cancellationToken)

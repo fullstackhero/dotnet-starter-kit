@@ -1,4 +1,5 @@
 using FluentValidation;
+using FSH.Modules.Identity.Constants;
 using FSH.Modules.Identity.Contracts.v1.Users.ToggleUserStatus;
 
 namespace FSH.Modules.Identity.Features.v1.Users.ToggleUserStatus;
@@ -8,6 +9,6 @@ public sealed class ToggleUserStatusCommandValidator : AbstractValidator<ToggleU
     public ToggleUserStatusCommandValidator()
     {
         RuleFor(x => x.UserId)
-            .NotEmpty().WithMessage("User ID is required.");
+            .NotEmpty().WithMessage(IdentityValidationMessages.UserIdRequired);
     }
 }

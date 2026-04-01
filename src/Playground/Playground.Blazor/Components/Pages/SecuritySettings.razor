@@ -1,0 +1,121 @@
+@page "/settings/security"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject FSH.Playground.Blazor.ApiClient.IIdentityClient IdentityClient
+@inject ISnackbar Snackbar
+
+<PageTitle>Security Settings</PageTitle>
+
+<FshPageHeader Title="Security Settings"
+               Description="Manage your password and account security" />
+
+<MudGrid Spacing="4">
+    <MudItem xs="12" md="6">
+        <MudCard Elevation="2">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                        <MudIcon Icon="@Icons.Material.Outlined.Lock" Color="Color.Primary" />
+                        <MudText Typo="Typo.h6">Change Password</MudText>
+                    </MudStack>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudStack Spacing="3">
+                    <MudTextField @bind-Value="_currentPassword"
+                                  Label="Current Password"
+                                  InputType="@(_showCurrent ? InputType.Text : InputType.Password)"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@(_showCurrent ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                                  OnAdornmentClick="@(() => _showCurrent = !_showCurrent)"
+                                  Variant="Variant.Outlined"
+                                  Required="true" />
+
+                    <MudTextField @bind-Value="_newPassword"
+                                  Label="New Password"
+                                  InputType="@(_showNew ? InputType.Text : InputType.Password)"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@(_showNew ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                                  OnAdornmentClick="@(() => _showNew = !_showNew)"
+                                  Variant="Variant.Outlined"
+                                  Required="true" />
+
+                    <MudTextField @bind-Value="_confirmPassword"
+                                  Label="Confirm New Password"
+                                  InputType="@(_showConfirm ? InputType.Text : InputType.Password)"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@(_showConfirm ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                                  OnAdornmentClick="@(() => _showConfirm = !_showConfirm)"
+                                  Variant="Variant.Outlined"
+                                  Required="true"
+                                  Error="@(_confirmPassword.Length > 0 && _confirmPassword != _newPassword)"
+                                  ErrorText="Passwords do not match" />
+                </MudStack>
+            </MudCardContent>
+            <MudCardActions Class="pa-4">
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Outlined.Save"
+                           OnClick="ChangePasswordAsync"
+                           Disabled="@(_saving || !CanSubmit)">
+                    @if (_saving)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                        <span>Saving...</span>
+                    }
+                    else
+                    {
+                        <span>Update Password</span>
+                    }
+                </MudButton>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private string _currentPassword = string.Empty;
+    private string _newPassword = string.Empty;
+    private string _confirmPassword = string.Empty;
+    private bool _showCurrent;
+    private bool _showNew;
+    private bool _showConfirm;
+    private bool _saving;
+
+    private bool CanSubmit =>
+        !string.IsNullOrWhiteSpace(_currentPassword) &&
+        !string.IsNullOrWhiteSpace(_newPassword) &&
+        _newPassword == _confirmPassword;
+
+    private async Task ChangePasswordAsync()
+    {
+        if (!CanSubmit) return;
+
+        _saving = true;
+        try
+        {
+            await IdentityClient.ChangePasswordAsync(new FSH.Playground.Blazor.ApiClient.ChangePasswordCommand
+            {
+                Password = _currentPassword,
+                NewPassword = _newPassword,
+                ConfirmNewPassword = _confirmPassword
+            });
+
+            Snackbar.Add("Password updated successfully.", Severity.Success);
+            _currentPassword = string.Empty;
+            _newPassword = string.Empty;
+            _confirmPassword = string.Empty;
+        }
+        catch (FSH.Playground.Blazor.ApiClient.ApiException ex) when (ex.StatusCode == 400)
+        {
+            Snackbar.Add("Password update failed. Please check your current password.", Severity.Error);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("An unexpected error occurred.", Severity.Error);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

@@ -1,4 +1,5 @@
 using FluentValidation;
+using FSH.Modules.Identity.Constants;
 using FSH.Modules.Identity.Contracts.v1.Users.RegisterUser;
 
 namespace FSH.Modules.Identity.Features.v1.Users.RegisterUser;
@@ -8,32 +9,32 @@ public sealed class RegisterUserCommandValidator : AbstractValidator<RegisterUse
     public RegisterUserCommandValidator()
     {
         RuleFor(x => x.FirstName)
-            .NotEmpty().WithMessage("First name is required.")
-            .MaximumLength(100).WithMessage("First name must not exceed 100 characters.");
+            .NotEmpty().WithMessage(IdentityValidationMessages.FirstNameRequired)
+            .MaximumLength(100).WithMessage(IdentityValidationMessages.FirstNameMaxLength);
 
         RuleFor(x => x.LastName)
-            .NotEmpty().WithMessage("Last name is required.")
-            .MaximumLength(100).WithMessage("Last name must not exceed 100 characters.");
+            .NotEmpty().WithMessage(IdentityValidationMessages.LastNameRequired)
+            .MaximumLength(100).WithMessage(IdentityValidationMessages.LastNameMaxLength);
 
         RuleFor(x => x.Email)
-            .NotEmpty().WithMessage("Email is required.")
-            .EmailAddress().WithMessage("A valid email address is required.");
+            .NotEmpty().WithMessage(IdentityValidationMessages.EmailRequired)
+            .EmailAddress().WithMessage(IdentityValidationMessages.InvalidEmail);
 
         RuleFor(x => x.UserName)
-            .NotEmpty().WithMessage("Username is required.")
-            .MinimumLength(3).WithMessage("Username must be at least 3 characters.")
-            .MaximumLength(50).WithMessage("Username must not exceed 50 characters.");
+            .NotEmpty().WithMessage(IdentityValidationMessages.UsernameRequired)
+            .MinimumLength(3).WithMessage(IdentityValidationMessages.UsernameMinLength)
+            .MaximumLength(50).WithMessage(IdentityValidationMessages.UsernameMaxLength);
 
         RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("Password is required.")
-            .MinimumLength(6).WithMessage("Password must be at least 6 characters.");
+            .NotEmpty().WithMessage(IdentityValidationMessages.PasswordRequired)
+            .MinimumLength(6).WithMessage(IdentityValidationMessages.PasswordMinLength);
 
         RuleFor(x => x.ConfirmPassword)
-            .NotEmpty().WithMessage("Password confirmation is required.")
-            .Equal(x => x.Password).WithMessage("Passwords do not match.");
+            .NotEmpty().WithMessage(IdentityValidationMessages.PasswordConfirmationRequired)
+            .Equal(x => x.Password).WithMessage(IdentityValidationMessages.PasswordsMustMatch);
 
         RuleFor(x => x.PhoneNumber)
-            .MaximumLength(20).WithMessage("Phone number must not exceed 20 characters.")
+            .MaximumLength(20).WithMessage(IdentityValidationMessages.PhoneNumberMaxLength)
             .When(x => x.PhoneNumber is not null);
     }
 }
