@@ -101,9 +101,10 @@ internal static class SimpleBffAuth
                             errorMessage = detail.GetString() ?? errorMessage;
                         }
                     }
-                    catch
+                    catch (Exception parseEx)
                     {
                         // If parsing fails, use default message
+                        logger.LogDebug(parseEx, "Failed to parse error response, using default message");
                     }
                 }
 
