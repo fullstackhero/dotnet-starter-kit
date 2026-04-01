@@ -10,12 +10,12 @@ public sealed class AddUsersToGroupCommandValidator : AbstractValidator<AddUsers
     {
         RuleFor(x => x.GroupId)
             .NotEmpty()
-            .WithMessage(IdentityValidationMessages.GroupIdRequired);
+            .WithMessage(IdentityValidationMessages.Required("Group ID"));
 
         RuleFor(x => x.UserIds)
             .NotEmpty()
-            .WithMessage(IdentityValidationMessages.UserIdsRequired)
+            .WithMessage(IdentityValidationMessages.UserIdsRequired())
             .Must(ids => ids.All(id => !string.IsNullOrWhiteSpace(id)))
-            .WithMessage(IdentityValidationMessages.UserIdsInvalid);
+            .WithMessage(IdentityValidationMessages.UserIdsInvalid());
     }
 }

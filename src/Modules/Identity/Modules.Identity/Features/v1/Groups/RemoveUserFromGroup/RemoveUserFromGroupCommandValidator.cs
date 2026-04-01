@@ -9,9 +9,9 @@ public sealed class RemoveUserFromGroupCommandValidator : AbstractValidator<Remo
     public RemoveUserFromGroupCommandValidator()
     {
         RuleFor(x => x.GroupId)
-            .NotEmpty().WithMessage(IdentityValidationMessages.GroupIdRequired);
+            .NotEmpty().WithMessage(IdentityValidationMessages.Required("Group ID"));
 
         RuleFor(x => x.UserId)
-            .NotEmpty().WithMessage(IdentityValidationMessages.UserIdRequired);
+            .NotEmpty().WithMessage(IdentityValidationMessages.Required("User ID"));
     }
 }

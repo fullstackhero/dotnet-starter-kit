@@ -9,6 +9,6 @@ public sealed class DeleteRoleCommandValidator : AbstractValidator<DeleteRoleCom
     public DeleteRoleCommandValidator()
     {
         RuleFor(x => x.Id)
-            .NotEmpty().WithMessage(IdentityValidationMessages.RoleIdRequired);
+            .NotEmpty().WithMessage(IdentityValidationMessages.Required("Role ID"));
     }
 }

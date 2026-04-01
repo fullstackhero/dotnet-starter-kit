@@ -9,6 +9,6 @@ public sealed class DeleteUserCommandValidator : AbstractValidator<DeleteUserCom
     public DeleteUserCommandValidator()
     {
         RuleFor(x => x.Id)
-            .NotEmpty().WithMessage(IdentityValidationMessages.UserIdRequired);
+            .NotEmpty().WithMessage(IdentityValidationMessages.Required("User ID"));
     }
 }

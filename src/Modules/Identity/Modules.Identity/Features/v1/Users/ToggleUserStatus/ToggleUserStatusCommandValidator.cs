@@ -9,6 +9,6 @@ public sealed class ToggleUserStatusCommandValidator : AbstractValidator<ToggleU
     public ToggleUserStatusCommandValidator()
     {
         RuleFor(x => x.UserId)
-            .NotEmpty().WithMessage(IdentityValidationMessages.UserIdRequired);
+            .NotEmpty().WithMessage(IdentityValidationMessages.Required("User ID"));
     }
 }

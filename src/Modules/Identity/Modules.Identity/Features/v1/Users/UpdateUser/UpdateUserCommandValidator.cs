@@ -11,7 +11,7 @@ public sealed class UpdateUserCommandValidator : AbstractValidator<UpdateUserCom
     {
         RuleFor(x => x.Id)
             .NotEmpty()
-            .WithMessage(IdentityValidationMessages.UserIdRequired);
+            .WithMessage(IdentityValidationMessages.Required("User ID"));
 
         RuleFor(x => x.FirstName)
             .MaximumLength(50)
@@ -37,6 +37,6 @@ public sealed class UpdateUserCommandValidator : AbstractValidator<UpdateUserCom
 
         RuleFor(x => x)
             .Must(x => !(x.DeleteCurrentImage && x.Image is not null))
-            .WithMessage(IdentityValidationMessages.ImageConflict);
+            .WithMessage(IdentityValidationMessages.ImageConflict());
     }
 }

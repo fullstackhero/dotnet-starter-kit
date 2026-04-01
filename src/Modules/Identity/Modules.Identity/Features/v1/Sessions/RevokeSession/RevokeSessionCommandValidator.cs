@@ -9,6 +9,6 @@ public sealed class RevokeSessionCommandValidator : AbstractValidator<RevokeSess
     public RevokeSessionCommandValidator()
     {
         RuleFor(x => x.SessionId)
-            .NotEmpty().WithMessage(IdentityValidationMessages.SessionIdRequired);
+            .NotEmpty().WithMessage(IdentityValidationMessages.Required("Session ID"));
     }
 }

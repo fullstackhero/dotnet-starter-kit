@@ -20,19 +20,19 @@ public sealed class ChangePasswordValidator : AbstractValidator<ChangePasswordCo
 
         RuleFor(p => p.Password)
             .NotEmpty()
-            .WithMessage(IdentityValidationMessages.CurrentPasswordRequired);
+            .WithMessage(IdentityValidationMessages.Required("Current password"));
 
         RuleFor(p => p.NewPassword)
             .NotEmpty()
-            .WithMessage(IdentityValidationMessages.NewPasswordRequired)
+            .WithMessage(IdentityValidationMessages.Required("New password"))
             .NotEqual(p => p.Password)
-            .WithMessage(IdentityValidationMessages.NewPasswordMustDiffer)
+            .WithMessage(IdentityValidationMessages.NewPasswordMustDiffer())
             .MustAsync(NotBeInPasswordHistoryAsync)
-            .WithMessage(IdentityValidationMessages.PasswordInHistory);
+            .WithMessage(IdentityValidationMessages.PasswordInHistory());
 
         RuleFor(p => p.ConfirmNewPassword)
             .Equal(p => p.NewPassword)
-            .WithMessage(IdentityValidationMessages.PasswordsMustMatch);
+            .WithMessage(IdentityValidationMessages.PasswordsMustMatch());
     }
 
     private async Task<bool> NotBeInPasswordHistoryAsync(string newPassword, CancellationToken cancellationToken)

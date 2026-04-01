@@ -9,10 +9,10 @@ public sealed class AdminRevokeAllSessionsCommandValidator : AbstractValidator<A
     public AdminRevokeAllSessionsCommandValidator()
     {
         RuleFor(x => x.UserId)
-            .NotEmpty().WithMessage(IdentityValidationMessages.UserIdRequired);
+            .NotEmpty().WithMessage(IdentityValidationMessages.Required("User ID"));
 
         RuleFor(x => x.Reason)
-            .MaximumLength(500).WithMessage(IdentityValidationMessages.ReasonMaxLength)
+            .MaximumLength(500).WithMessage(IdentityValidationMessages.MaxLength("Reason", 500))
             .When(x => x.Reason is not null);
     }
 }

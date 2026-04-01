@@ -9,12 +9,12 @@ public sealed class ConfirmEmailCommandValidator : AbstractValidator<ConfirmEmai
     public ConfirmEmailCommandValidator()
     {
         RuleFor(x => x.UserId)
-            .NotEmpty().WithMessage(IdentityValidationMessages.UserIdRequired);
+            .NotEmpty().WithMessage(IdentityValidationMessages.Required("User ID"));
 
         RuleFor(x => x.Code)
-            .NotEmpty().WithMessage(IdentityValidationMessages.ConfirmationCodeRequired);
+            .NotEmpty().WithMessage(IdentityValidationMessages.Required("Confirmation code"));
 
         RuleFor(x => x.Tenant)
-            .NotEmpty().WithMessage(IdentityValidationMessages.TenantRequired);
+            .NotEmpty().WithMessage(IdentityValidationMessages.Required("Tenant"));
     }
 }

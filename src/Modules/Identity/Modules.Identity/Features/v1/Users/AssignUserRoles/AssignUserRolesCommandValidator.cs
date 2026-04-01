@@ -9,9 +9,9 @@ public sealed class AssignUserRolesCommandValidator : AbstractValidator<AssignUs
     public AssignUserRolesCommandValidator()
     {
         RuleFor(x => x.UserId)
-            .NotEmpty().WithMessage(IdentityValidationMessages.UserIdRequired);
+            .NotEmpty().WithMessage(IdentityValidationMessages.Required("User ID"));
 
         RuleFor(x => x.UserRoles)
-            .NotNull().WithMessage(IdentityValidationMessages.UserRolesRequired);
+            .NotNull().WithMessage(IdentityValidationMessages.Required("User roles list"));
     }
 }

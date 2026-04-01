@@ -9,6 +9,6 @@ public sealed class DeleteGroupCommandValidator : AbstractValidator<DeleteGroupC
     public DeleteGroupCommandValidator()
     {
         RuleFor(x => x.Id)
-            .NotEmpty().WithMessage(IdentityValidationMessages.GroupIdRequired);
+            .NotEmpty().WithMessage(IdentityValidationMessages.Required("Group ID"));
     }
 }

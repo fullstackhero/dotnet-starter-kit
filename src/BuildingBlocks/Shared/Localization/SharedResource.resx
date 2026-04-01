@@ -31,6 +31,26 @@
     <value>A valid email address is required.</value>
   </data>
 
+  <!-- Identity validation messages -->
+  <data name="UserIdsRequired" xml:space="preserve">
+    <value>At least one user ID is required.</value>
+  </data>
+  <data name="UserIdsInvalid" xml:space="preserve">
+    <value>User IDs cannot be empty or whitespace.</value>
+  </data>
+  <data name="PasswordsMustMatch" xml:space="preserve">
+    <value>Passwords do not match.</value>
+  </data>
+  <data name="NewPasswordMustDiffer" xml:space="preserve">
+    <value>New password must be different from the current password.</value>
+  </data>
+  <data name="PasswordInHistory" xml:space="preserve">
+    <value>This password has been used recently. Please choose a different password.</value>
+  </data>
+  <data name="ImageConflict" xml:space="preserve">
+    <value>You cannot upload a new image and delete the current one simultaneously.</value>
+  </data>
+
   <!-- Common error messages -->
   <data name="Unauthorized" xml:space="preserve">
     <value>Authentication failed.</value>

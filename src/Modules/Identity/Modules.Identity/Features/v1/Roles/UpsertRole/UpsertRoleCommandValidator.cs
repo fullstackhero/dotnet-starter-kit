@@ -8,6 +8,6 @@ public sealed class UpsertRoleCommandValidator : AbstractValidator<UpsertRoleCom
 {
     public UpsertRoleCommandValidator()
     {
-        RuleFor(x => x.Name).NotEmpty().WithMessage(IdentityValidationMessages.RoleNameRequired);
+        RuleFor(x => x.Name).NotEmpty().WithMessage(IdentityValidationMessages.Required("Role name"));
     }
 }
