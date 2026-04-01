@@ -484,7 +484,7 @@ else
     {
         if (_profileForm is not null)
         {
-            await _profileForm.Validate();
+            await _profileForm.ValidateAsync();
             if (!_profileForm.IsValid)
             {
                 Snackbar.Add("Please fix the validation errors.", Severity.Warning);
@@ -565,7 +565,7 @@ else
     {
         if (_passwordForm is not null)
         {
-            await _passwordForm.Validate();
+            await _passwordForm.ValidateAsync();
             if (!_passwordForm.IsValid)
             {
                 Snackbar.Add("Please fix the validation errors.", Severity.Warning);
