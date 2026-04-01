@@ -4,6 +4,7 @@
 @using FSH.Framework.Blazor.UI.Components.Cards
 @using FSH.Framework.Shared.Constants
 @using FSH.Framework.Shared.Multitenancy
+@using Microsoft.AspNetCore.Components
 @using Microsoft.AspNetCore.Components.Authorization
 @inherits ComponentBase
 @inject IV1Client V1Client
@@ -435,7 +436,16 @@ else
     private void GoToDetail(string? id)
     {
         if (!string.IsNullOrWhiteSpace(id))
-            Navigation.NavigateTo($"/tenants/{id}");
+        {
+            try
+            {
+                Navigation.NavigateTo($"/tenants/{id}");
+            }
+            catch (NavigationException)
+            {
+                // NavigationException is expected in Blazor Server - navigation still succeeds
+            }
+        }
     }
 
     private async Task ToggleStatus(TenantDto tenant)

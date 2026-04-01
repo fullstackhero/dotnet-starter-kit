@@ -187,7 +187,7 @@ internal sealed class S3StorageService : IStorageService
     private string BuildKey<T>(string fileName) where T : class
     {
         var folder = Regex.Replace(typeof(T).Name.ToLowerInvariant(), @"[^a-z0-9]", "_");
-        var relativePath = Path.Combine(UploadBasePath, folder, $"{Guid.NewGuid():N}_{fileName}").Replace("\\", "/", StringComparison.Ordinal);
+        var relativePath = Path.Combine(UploadBasePath, folder, $"{Guid.CreateVersion7():N}_{fileName}").Replace("\\", "/", StringComparison.Ordinal);
         if (!string.IsNullOrWhiteSpace(_options.Prefix))
         {
             return $"{_options.Prefix.TrimEnd('/')}/{relativePath}";

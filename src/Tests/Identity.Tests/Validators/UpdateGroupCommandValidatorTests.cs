@@ -16,7 +16,7 @@ public sealed class UpdateGroupCommandValidatorTests
     public void Id_Should_Pass_When_Valid()
     {
         // Arrange
-        var command = new UpdateGroupCommand(Guid.NewGuid(), "Developers", null, false, null);
+        var command = new UpdateGroupCommand(Guid.CreateVersion7(), "Developers", null, false, null);
 
         // Act
         var result = _sut.Validate(command);
@@ -62,7 +62,7 @@ public sealed class UpdateGroupCommandValidatorTests
     public void Name_Should_Pass_When_Valid()
     {
         // Arrange
-        var command = new UpdateGroupCommand(Guid.NewGuid(), "Developers", null, false, null);
+        var command = new UpdateGroupCommand(Guid.CreateVersion7(), "Developers", null, false, null);
 
         // Act
         var result = _sut.Validate(command);
@@ -78,7 +78,7 @@ public sealed class UpdateGroupCommandValidatorTests
     public void Name_Should_Fail_When_Empty(string? name)
     {
         // Arrange
-        var command = new UpdateGroupCommand(Guid.NewGuid(), name!, null, false, null);
+        var command = new UpdateGroupCommand(Guid.CreateVersion7(), name!, null, false, null);
 
         // Act
         var result = _sut.Validate(command);
@@ -93,7 +93,7 @@ public sealed class UpdateGroupCommandValidatorTests
     {
         // Arrange
         var longName = new string('a', 257);
-        var command = new UpdateGroupCommand(Guid.NewGuid(), longName, null, false, null);
+        var command = new UpdateGroupCommand(Guid.CreateVersion7(), longName, null, false, null);
 
         // Act
         var result = _sut.Validate(command);
@@ -108,7 +108,7 @@ public sealed class UpdateGroupCommandValidatorTests
     {
         // Arrange
         var maxLengthName = new string('a', 256);
-        var command = new UpdateGroupCommand(Guid.NewGuid(), maxLengthName, null, false, null);
+        var command = new UpdateGroupCommand(Guid.CreateVersion7(), maxLengthName, null, false, null);
 
         // Act
         var result = _sut.Validate(command);
@@ -121,7 +121,7 @@ public sealed class UpdateGroupCommandValidatorTests
     public void Name_Should_Have_CorrectErrorMessage_When_Empty()
     {
         // Arrange
-        var command = new UpdateGroupCommand(Guid.NewGuid(), "", null, false, null);
+        var command = new UpdateGroupCommand(Guid.CreateVersion7(), "", null, false, null);
 
         // Act
         var result = _sut.Validate(command);
@@ -137,7 +137,7 @@ public sealed class UpdateGroupCommandValidatorTests
     {
         // Arrange
         var longName = new string('a', 257);
-        var command = new UpdateGroupCommand(Guid.NewGuid(), longName, null, false, null);
+        var command = new UpdateGroupCommand(Guid.CreateVersion7(), longName, null, false, null);
 
         // Act
         var result = _sut.Validate(command);
@@ -156,7 +156,7 @@ public sealed class UpdateGroupCommandValidatorTests
     public void Description_Should_Pass_When_Null()
     {
         // Arrange
-        var command = new UpdateGroupCommand(Guid.NewGuid(), "Developers", null, false, null);
+        var command = new UpdateGroupCommand(Guid.CreateVersion7(), "Developers", null, false, null);
 
         // Act
         var result = _sut.Validate(command);
@@ -169,7 +169,7 @@ public sealed class UpdateGroupCommandValidatorTests
     public void Description_Should_Pass_When_Empty()
     {
         // Arrange
-        var command = new UpdateGroupCommand(Guid.NewGuid(), "Developers", "", false, null);
+        var command = new UpdateGroupCommand(Guid.CreateVersion7(), "Developers", "", false, null);
 
         // Act
         var result = _sut.Validate(command);
@@ -182,7 +182,7 @@ public sealed class UpdateGroupCommandValidatorTests
     public void Description_Should_Pass_When_Valid()
     {
         // Arrange
-        var command = new UpdateGroupCommand(Guid.NewGuid(), "Developers", "Software development team", false, null);
+        var command = new UpdateGroupCommand(Guid.CreateVersion7(), "Developers", "Software development team", false, null);
 
         // Act
         var result = _sut.Validate(command);
@@ -196,7 +196,7 @@ public sealed class UpdateGroupCommandValidatorTests
     {
         // Arrange
         var longDescription = new string('a', 1025);
-        var command = new UpdateGroupCommand(Guid.NewGuid(), "Developers", longDescription, false, null);
+        var command = new UpdateGroupCommand(Guid.CreateVersion7(), "Developers", longDescription, false, null);
 
         // Act
         var result = _sut.Validate(command);
@@ -211,7 +211,7 @@ public sealed class UpdateGroupCommandValidatorTests
     {
         // Arrange
         var maxLengthDescription = new string('a', 1024);
-        var command = new UpdateGroupCommand(Guid.NewGuid(), "Developers", maxLengthDescription, false, null);
+        var command = new UpdateGroupCommand(Guid.CreateVersion7(), "Developers", maxLengthDescription, false, null);
 
         // Act
         var result = _sut.Validate(command);
@@ -225,7 +225,7 @@ public sealed class UpdateGroupCommandValidatorTests
     {
         // Arrange
         var longDescription = new string('a', 1025);
-        var command = new UpdateGroupCommand(Guid.NewGuid(), "Developers", longDescription, false, null);
+        var command = new UpdateGroupCommand(Guid.CreateVersion7(), "Developers", longDescription, false, null);
 
         // Act
         var result = _sut.Validate(command);
@@ -245,7 +245,7 @@ public sealed class UpdateGroupCommandValidatorTests
     {
         // Arrange
         var command = new UpdateGroupCommand(
-            Guid.NewGuid(),
+            Guid.CreateVersion7(),
             "Engineering Team",
             "All software engineers",
             true,
@@ -263,7 +263,7 @@ public sealed class UpdateGroupCommandValidatorTests
     public void Validate_Should_Pass_When_OptionalFieldsAreNull()
     {
         // Arrange
-        var command = new UpdateGroupCommand(Guid.NewGuid(), "Basic Group", null, false, null);
+        var command = new UpdateGroupCommand(Guid.CreateVersion7(), "Basic Group", null, false, null);
 
         // Act
         var result = _sut.Validate(command);

@@ -15,5 +15,5 @@ public sealed record SessionRevokedEvent(
 ) : DomainEvent(EventId, OccurredOnUtc, CorrelationId, TenantId)
 {
     public static SessionRevokedEvent Create(string userId, Guid sessionId, string? revokedBy = null, string? reason = null, string? correlationId = null, string? tenantId = null)
-        => new(Guid.NewGuid(), DateTimeOffset.UtcNow, userId, sessionId, revokedBy, reason, correlationId, tenantId);
+        => new(Guid.CreateVersion7(), DateTimeOffset.UtcNow, userId, sessionId, revokedBy, reason, correlationId, tenantId);
 }

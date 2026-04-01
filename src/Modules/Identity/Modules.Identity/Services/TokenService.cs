@@ -48,7 +48,7 @@ public sealed class TokenService : ITokenService
         var accessToken = new JwtSecurityTokenHandler().WriteToken(jwtToken);
 
         // Refresh token
-        var refreshToken = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+        var refreshToken = Convert.ToBase64String(Guid.CreateVersion7().ToByteArray());
         var refreshTokenExpiry = now.AddDays(_options.RefreshTokenDays);
 
         if (_logger.IsEnabled(LogLevel.Information))

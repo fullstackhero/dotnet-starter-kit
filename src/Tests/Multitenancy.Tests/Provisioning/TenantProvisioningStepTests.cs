@@ -13,7 +13,7 @@ public sealed class TenantProvisioningStepTests
     public void Constructor_Should_SetProvisioningId()
     {
         // Arrange
-        var provisioningId = Guid.NewGuid();
+        var provisioningId = Guid.CreateVersion7();
 
         // Act
         var step = new TenantProvisioningStep(provisioningId, TenantProvisioningStepName.Database);
@@ -26,7 +26,7 @@ public sealed class TenantProvisioningStepTests
     public void Constructor_Should_SetStep()
     {
         // Arrange
-        var provisioningId = Guid.NewGuid();
+        var provisioningId = Guid.CreateVersion7();
 
         // Act
         var step = new TenantProvisioningStep(provisioningId, TenantProvisioningStepName.Migrations);
@@ -39,7 +39,7 @@ public sealed class TenantProvisioningStepTests
     public void Constructor_Should_SetStatusToPending()
     {
         // Act
-        var step = new TenantProvisioningStep(Guid.NewGuid(), TenantProvisioningStepName.Database);
+        var step = new TenantProvisioningStep(Guid.CreateVersion7(), TenantProvisioningStepName.Database);
 
         // Assert
         step.Status.ShouldBe(TenantProvisioningStatus.Pending);
@@ -49,7 +49,7 @@ public sealed class TenantProvisioningStepTests
     public void Constructor_Should_GenerateNewId()
     {
         // Act
-        var step = new TenantProvisioningStep(Guid.NewGuid(), TenantProvisioningStepName.Database);
+        var step = new TenantProvisioningStep(Guid.CreateVersion7(), TenantProvisioningStepName.Database);
 
         // Assert
         step.Id.ShouldNotBe(Guid.Empty);
@@ -59,7 +59,7 @@ public sealed class TenantProvisioningStepTests
     public void Constructor_Should_InitializeNullFields()
     {
         // Act
-        var step = new TenantProvisioningStep(Guid.NewGuid(), TenantProvisioningStepName.Database);
+        var step = new TenantProvisioningStep(Guid.CreateVersion7(), TenantProvisioningStepName.Database);
 
         // Assert
         step.Error.ShouldBeNull();
@@ -75,7 +75,7 @@ public sealed class TenantProvisioningStepTests
     public void Constructor_Should_AcceptAllStepNames(TenantProvisioningStepName stepName)
     {
         // Act
-        var step = new TenantProvisioningStep(Guid.NewGuid(), stepName);
+        var step = new TenantProvisioningStep(Guid.CreateVersion7(), stepName);
 
         // Assert
         step.Step.ShouldBe(stepName);
@@ -89,7 +89,7 @@ public sealed class TenantProvisioningStepTests
     public void MarkRunning_Should_SetStatusToRunning()
     {
         // Arrange
-        var step = new TenantProvisioningStep(Guid.NewGuid(), TenantProvisioningStepName.Database);
+        var step = new TenantProvisioningStep(Guid.CreateVersion7(), TenantProvisioningStepName.Database);
 
         // Act
         step.MarkRunning();
@@ -102,7 +102,7 @@ public sealed class TenantProvisioningStepTests
     public void MarkRunning_Should_SetStartedUtc_OnFirstCall()
     {
         // Arrange
-        var step = new TenantProvisioningStep(Guid.NewGuid(), TenantProvisioningStepName.Database);
+        var step = new TenantProvisioningStep(Guid.CreateVersion7(), TenantProvisioningStepName.Database);
         var before = DateTime.UtcNow;
 
         // Act
@@ -119,7 +119,7 @@ public sealed class TenantProvisioningStepTests
     public void MarkRunning_Should_NotOverwriteStartedUtc_OnSubsequentCalls()
     {
         // Arrange
-        var step = new TenantProvisioningStep(Guid.NewGuid(), TenantProvisioningStepName.Database);
+        var step = new TenantProvisioningStep(Guid.CreateVersion7(), TenantProvisioningStepName.Database);
         step.MarkRunning();
         var firstStartedUtc = step.StartedUtc;
 
@@ -138,7 +138,7 @@ public sealed class TenantProvisioningStepTests
     public void MarkCompleted_Should_SetStatusToCompleted()
     {
         // Arrange
-        var step = new TenantProvisioningStep(Guid.NewGuid(), TenantProvisioningStepName.Database);
+        var step = new TenantProvisioningStep(Guid.CreateVersion7(), TenantProvisioningStepName.Database);
         step.MarkRunning();
 
         // Act
@@ -152,7 +152,7 @@ public sealed class TenantProvisioningStepTests
     public void MarkCompleted_Should_SetCompletedUtc()
     {
         // Arrange
-        var step = new TenantProvisioningStep(Guid.NewGuid(), TenantProvisioningStepName.Database);
+        var step = new TenantProvisioningStep(Guid.CreateVersion7(), TenantProvisioningStepName.Database);
         var before = DateTime.UtcNow;
 
         // Act
@@ -173,7 +173,7 @@ public sealed class TenantProvisioningStepTests
     public void MarkFailed_Should_SetStatusToFailed()
     {
         // Arrange
-        var step = new TenantProvisioningStep(Guid.NewGuid(), TenantProvisioningStepName.Database);
+        var step = new TenantProvisioningStep(Guid.CreateVersion7(), TenantProvisioningStepName.Database);
 
         // Act
         step.MarkFailed("Connection failed");
@@ -186,7 +186,7 @@ public sealed class TenantProvisioningStepTests
     public void MarkFailed_Should_SetError()
     {
         // Arrange
-        var step = new TenantProvisioningStep(Guid.NewGuid(), TenantProvisioningStepName.Database);
+        var step = new TenantProvisioningStep(Guid.CreateVersion7(), TenantProvisioningStepName.Database);
         var error = "Database connection timeout";
 
         // Act
@@ -200,7 +200,7 @@ public sealed class TenantProvisioningStepTests
     public void MarkFailed_Should_SetCompletedUtc()
     {
         // Arrange
-        var step = new TenantProvisioningStep(Guid.NewGuid(), TenantProvisioningStepName.Database);
+        var step = new TenantProvisioningStep(Guid.CreateVersion7(), TenantProvisioningStepName.Database);
         var before = DateTime.UtcNow;
 
         // Act
@@ -221,7 +221,7 @@ public sealed class TenantProvisioningStepTests
     public void Step_Should_SupportSuccessfulLifecycle()
     {
         // Arrange
-        var step = new TenantProvisioningStep(Guid.NewGuid(), TenantProvisioningStepName.Migrations);
+        var step = new TenantProvisioningStep(Guid.CreateVersion7(), TenantProvisioningStepName.Migrations);
         step.Status.ShouldBe(TenantProvisioningStatus.Pending);
 
         // Act - Running
@@ -239,7 +239,7 @@ public sealed class TenantProvisioningStepTests
     public void Step_Should_SupportFailureLifecycle()
     {
         // Arrange
-        var step = new TenantProvisioningStep(Guid.NewGuid(), TenantProvisioningStepName.Seeding);
+        var step = new TenantProvisioningStep(Guid.CreateVersion7(), TenantProvisioningStepName.Seeding);
 
         // Act - Running
         step.MarkRunning();

@@ -31,15 +31,16 @@
                                   Accept=".png,.jpg,.jpeg,.svg,.webp"
                                   FilesChanged="@OnLogoUpload"
                                   MaximumFileCount="1">
-                        <ActivatorContent>
+                        <CustomContent Context="upload">
                             <MudPaper Class="pa-4 d-flex flex-column align-center justify-center cursor-pointer"
                                      Style="border: 2px dashed; border-color: var(--mud-palette-lines-default); min-height: 100px;"
-                                     Elevation="0">
+                                     Elevation="0"
+                                     @onclick="@(async (e) => await upload.OpenFilePickerAsync())">
                                 <MudIcon Icon="@Icons.Material.Outlined.CloudUpload" Size="Size.Large" Color="Color.Default" />
                                 <MudText Typo="Typo.caption" Class="mt-2">Click to upload logo</MudText>
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">PNG, JPG, SVG, WebP</MudText>
                             </MudPaper>
-                        </ActivatorContent>
+                        </CustomContent>
                     </MudFileUpload>
                 }
             </MudPaper>
@@ -72,15 +73,16 @@
                                   Accept=".png,.jpg,.jpeg,.svg,.webp"
                                   FilesChanged="@OnLogoDarkUpload"
                                   MaximumFileCount="1">
-                        <ActivatorContent>
+                        <CustomContent Context="upload">
                             <MudPaper Class="pa-4 d-flex flex-column align-center justify-center cursor-pointer"
                                      Style="border: 2px dashed; border-color: rgba(255,255,255,0.3); min-height: 100px; background-color: transparent;"
-                                     Elevation="0">
+                                     Elevation="0"
+                                     @onclick="@(async (e) => await upload.OpenFilePickerAsync())">
                                 <MudIcon Icon="@Icons.Material.Outlined.CloudUpload" Size="Size.Large" Style="color: rgba(255,255,255,0.7);" />
                                 <MudText Typo="Typo.caption" Class="mt-2" Style="color: rgba(255,255,255,0.7);">Click to upload logo</MudText>
                                 <MudText Typo="Typo.caption" Style="color: rgba(255,255,255,0.5);">PNG, JPG, SVG, WebP</MudText>
                             </MudPaper>
-                        </ActivatorContent>
+                        </CustomContent>
                     </MudFileUpload>
                 }
             </MudPaper>
@@ -114,15 +116,16 @@
                                   Accept=".png,.ico,.svg"
                                   FilesChanged="@OnFaviconUpload"
                                   MaximumFileCount="1">
-                        <ActivatorContent>
+                        <CustomContent Context="upload">
                             <MudPaper Class="pa-4 d-flex flex-column align-center justify-center cursor-pointer"
                                      Style="border: 2px dashed; border-color: var(--mud-palette-lines-default); min-height: 100px;"
-                                     Elevation="0">
+                                     Elevation="0"
+                                     @onclick="@(async (e) => await upload.OpenFilePickerAsync())">
                                 <MudIcon Icon="@Icons.Material.Outlined.Image" Size="Size.Large" Color="Color.Default" />
                                 <MudText Typo="Typo.caption" Class="mt-2">Click to upload favicon</MudText>
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">16x16 or 32x32 PNG, ICO</MudText>
                             </MudPaper>
-                        </ActivatorContent>
+                        </CustomContent>
                     </MudFileUpload>
                 }
             </MudPaper>

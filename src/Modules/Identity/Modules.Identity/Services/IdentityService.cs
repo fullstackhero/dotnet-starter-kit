@@ -189,7 +189,7 @@ public sealed class IdentityService : IIdentityService
 
     private static List<Claim> CreateBasicClaims(FshUser user, string tenantId) =>
     [
-        new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+        new(JwtRegisteredClaimNames.Jti, Guid.CreateVersion7().ToString()),
         new(ClaimTypes.NameIdentifier, user.Id),
         new(ClaimTypes.Email, user.Email!),
         new(ClaimTypes.Name, user.FirstName ?? string.Empty),

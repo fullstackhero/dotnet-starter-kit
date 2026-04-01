@@ -31,7 +31,7 @@ public sealed class PasswordExpiryServiceTests
     {
         return new FshUser
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = Guid.CreateVersion7().ToString(),
             Email = "test@example.com",
             UserName = "testuser",
             LastPasswordChangeDate = lastPasswordChangeDate

@@ -46,7 +46,7 @@ public static class Extensions
         services.AddStackExchangeRedisCache(options =>
         {
             var config = ConfigurationOptions.Parse(cacheOptions.Redis);
-            config.AbortOnConnectFail = true;
+            config.AbortOnConnectFail = false;
 
             // Only override SSL if explicitly configured
             if (cacheOptions.EnableSsl.HasValue)

@@ -49,7 +49,7 @@ public class UserSession : IHasDomainEvents
     {
         return new UserSession
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.CreateVersion7(),
             UserId = userId,
             RefreshTokenHash = refreshTokenHash,
             IpAddress = ipAddress,

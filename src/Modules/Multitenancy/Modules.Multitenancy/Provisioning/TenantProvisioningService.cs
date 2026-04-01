@@ -44,7 +44,7 @@ public sealed class TenantProvisioningService : ITenantProvisioningService
             throw new CustomException($"Provisioning already running for tenant {tenantId}.");
         }
 
-        var correlationId = Guid.NewGuid().ToString();
+        var correlationId = Guid.CreateVersion7().ToString();
         var provisioning = new TenantProvisioning(tenant.Id, correlationId);
 
         provisioning.Steps.Add(new TenantProvisioningStep(provisioning.Id, TenantProvisioningStepName.Database));

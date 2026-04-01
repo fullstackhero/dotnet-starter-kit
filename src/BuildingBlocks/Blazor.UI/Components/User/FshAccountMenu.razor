@@ -6,8 +6,9 @@
              TransformOrigin="Origin.TopRight"
              PopoverClass="fsh-account-popover"
              Dense="false">
-        <ActivatorContent>
-            <MudButton Class="fsh-account-trigger" Variant="Variant.Text" Color="Color.Inherit">
+        <ActivatorContent Context="ctx">
+            <MudButton Class="fsh-account-trigger" Variant="Variant.Text" Color="Color.Inherit"
+                       OnClick="@(async (e) => await ctx.ToggleAsync(e))">
                 <MudAvatar Size="Size.Small" Class="fsh-trigger-avatar">
                     @if (!string.IsNullOrEmpty(AvatarUrl))
                     {

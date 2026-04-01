@@ -7,7 +7,7 @@ namespace Auditing.Tests.Contracts;
 /// </summary>
 public sealed class AuditEnvelopeTests
 {
-    private static readonly Guid TestId = Guid.NewGuid();
+    private static readonly Guid TestId = Guid.CreateVersion7();
     private static readonly DateTime TestOccurredAt = new(2024, 1, 15, 12, 0, 0, DateTimeKind.Utc);
     private static readonly DateTime TestReceivedAt = new(2024, 1, 15, 12, 0, 1, DateTimeKind.Utc);
 
@@ -185,7 +185,7 @@ public sealed class AuditEnvelopeTests
         {
             // Act
             var envelope = new AuditEnvelope(
-                Guid.NewGuid(),
+                Guid.CreateVersion7(),
                 TestOccurredAt,
                 TestReceivedAt,
                 eventType,
@@ -209,7 +209,7 @@ public sealed class AuditEnvelopeTests
         {
             // Act
             var envelope = new AuditEnvelope(
-                Guid.NewGuid(),
+                Guid.CreateVersion7(),
                 TestOccurredAt,
                 TestReceivedAt,
                 AuditEventType.Activity,

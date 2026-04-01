@@ -15,5 +15,5 @@ public sealed record UserRegisteredEvent(
 ) : DomainEvent(EventId, OccurredOnUtc, CorrelationId, TenantId)
 {
     public static UserRegisteredEvent Create(string userId, string email, string? firstName = null, string? lastName = null, string? correlationId = null, string? tenantId = null)
-        => new(Guid.NewGuid(), DateTimeOffset.UtcNow, userId, email, firstName, lastName, correlationId, tenantId);
+        => new(Guid.CreateVersion7(), DateTimeOffset.UtcNow, userId, email, firstName, lastName, correlationId, tenantId);
 }

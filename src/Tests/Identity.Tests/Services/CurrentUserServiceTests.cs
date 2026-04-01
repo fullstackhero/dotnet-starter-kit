@@ -50,7 +50,7 @@ public sealed class CurrentUserServiceTests
     {
         // Arrange
         var service = new CurrentUserService();
-        var userId = Guid.NewGuid();
+        var userId = Guid.CreateVersion7();
         var principal = CreateAuthenticatedPrincipal(userId.ToString());
         service.SetCurrentUser(principal);
 
@@ -66,7 +66,7 @@ public sealed class CurrentUserServiceTests
     {
         // Arrange
         var service = new CurrentUserService();
-        var userId = Guid.NewGuid();
+        var userId = Guid.CreateVersion7();
         service.SetCurrentUserId(userId.ToString());
 
         // Act
@@ -99,7 +99,7 @@ public sealed class CurrentUserServiceTests
         // Arrange
         var service = new CurrentUserService();
         var principal = CreateAuthenticatedPrincipal(
-            Guid.NewGuid().ToString(),
+            Guid.CreateVersion7().ToString(),
             email: "test@example.com");
         service.SetCurrentUser(principal);
 
@@ -134,7 +134,7 @@ public sealed class CurrentUserServiceTests
     {
         // Arrange
         var service = new CurrentUserService();
-        var principal = CreateAuthenticatedPrincipal(Guid.NewGuid().ToString());
+        var principal = CreateAuthenticatedPrincipal(Guid.CreateVersion7().ToString());
         service.SetCurrentUser(principal);
 
         // Act
@@ -182,7 +182,7 @@ public sealed class CurrentUserServiceTests
         // Arrange
         var service = new CurrentUserService();
         var principal = CreateAuthenticatedPrincipal(
-            Guid.NewGuid().ToString(),
+            Guid.CreateVersion7().ToString(),
             null, null, null,
             "Admin", "User");
         service.SetCurrentUser(principal);
@@ -200,7 +200,7 @@ public sealed class CurrentUserServiceTests
         // Arrange
         var service = new CurrentUserService();
         var principal = CreateAuthenticatedPrincipal(
-            Guid.NewGuid().ToString(),
+            Guid.CreateVersion7().ToString(),
             null, null, null,
             "User");
         service.SetCurrentUser(principal);
@@ -235,7 +235,7 @@ public sealed class CurrentUserServiceTests
         // Arrange
         var service = new CurrentUserService();
         var principal = CreateAuthenticatedPrincipal(
-            Guid.NewGuid().ToString(),
+            Guid.CreateVersion7().ToString(),
             email: "test@example.com",
             name: "Test User");
         service.SetCurrentUser(principal);
@@ -272,7 +272,7 @@ public sealed class CurrentUserServiceTests
         // Arrange
         var service = new CurrentUserService();
         var principal = CreateAuthenticatedPrincipal(
-            Guid.NewGuid().ToString(),
+            Guid.CreateVersion7().ToString(),
             tenant: "tenant-1");
         service.SetCurrentUser(principal);
 
@@ -307,7 +307,7 @@ public sealed class CurrentUserServiceTests
     {
         // Arrange
         var service = new CurrentUserService();
-        var principal = CreateAuthenticatedPrincipal(Guid.NewGuid().ToString());
+        var principal = CreateAuthenticatedPrincipal(Guid.CreateVersion7().ToString());
         service.SetCurrentUser(principal);
 
         // Act & Assert
@@ -320,7 +320,7 @@ public sealed class CurrentUserServiceTests
     {
         // Arrange
         var service = new CurrentUserService();
-        var principal = CreateAuthenticatedPrincipal(Guid.NewGuid().ToString());
+        var principal = CreateAuthenticatedPrincipal(Guid.CreateVersion7().ToString());
 
         // Act
         service.SetCurrentUser(principal);
@@ -338,7 +338,7 @@ public sealed class CurrentUserServiceTests
     {
         // Arrange
         var service = new CurrentUserService();
-        var userId = Guid.NewGuid().ToString();
+        var userId = Guid.CreateVersion7().ToString();
         service.SetCurrentUserId(userId);
 
         // Act & Assert
@@ -362,7 +362,7 @@ public sealed class CurrentUserServiceTests
     {
         // Arrange
         var service = new CurrentUserService();
-        var userId = Guid.NewGuid();
+        var userId = Guid.CreateVersion7();
 
         // Act
         service.SetCurrentUserId(userId.ToString());
@@ -382,7 +382,7 @@ public sealed class CurrentUserServiceTests
         var service = new CurrentUserService();
         var claims = new List<Claim>
         {
-            new(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),
+            new(ClaimTypes.NameIdentifier, Guid.CreateVersion7().ToString()),
             new(ClaimTypes.Name, "John Doe")
         };
         var identity = new ClaimsIdentity(claims, "TestAuthType", ClaimTypes.Name, ClaimTypes.Role);

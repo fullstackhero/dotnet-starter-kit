@@ -285,6 +285,7 @@
             "db:tenants-migrations" => "Tenant Migrations",
             _ => name.Replace(":", " - ").Replace("-", " ")
                      .Split(' ')
+                     .Where(w => w.Length > 0)
                      .Select(w => char.ToUpper(w[0]) + w[1..].ToLower())
                      .Aggregate((a, b) => $"{a} {b}")
         };

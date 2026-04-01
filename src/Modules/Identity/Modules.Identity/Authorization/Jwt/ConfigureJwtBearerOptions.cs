@@ -41,6 +41,8 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
 
         options.RequireHttpsMetadata = true;
         options.SaveToken = false;
+        options.MapInboundClaims = true;
+        options.UseSecurityTokenValidators = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,

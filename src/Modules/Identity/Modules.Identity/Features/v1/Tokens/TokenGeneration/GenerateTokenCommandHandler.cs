@@ -122,10 +122,10 @@ public sealed class GenerateTokenCommandHandler
 
         // 4) Enqueue integration event for token generation (sample event for testing eventing)
         var tenantId = _multiTenantContextAccessor.MultiTenantContext?.TenantInfo?.Id;
-        var correlationId = Guid.NewGuid().ToString();
+        var correlationId = Guid.CreateVersion7().ToString();
 
         var integrationEvent = new TokenGeneratedIntegrationEvent(
-            Id: Guid.NewGuid(),
+            Id: Guid.CreateVersion7(),
             OccurredOnUtc: TimeProvider.System.GetUtcNow().UtcDateTime,
             TenantId: tenantId,
             CorrelationId: correlationId,

@@ -14,5 +14,5 @@ public sealed record UserDeactivatedEvent(
 ) : DomainEvent(EventId, OccurredOnUtc, CorrelationId, TenantId)
 {
     public static UserDeactivatedEvent Create(string userId, string? deactivatedBy = null, string? reason = null, string? correlationId = null, string? tenantId = null)
-        => new(Guid.NewGuid(), DateTimeOffset.UtcNow, userId, deactivatedBy, reason, correlationId, tenantId);
+        => new(Guid.CreateVersion7(), DateTimeOffset.UtcNow, userId, deactivatedBy, reason, correlationId, tenantId);
 }

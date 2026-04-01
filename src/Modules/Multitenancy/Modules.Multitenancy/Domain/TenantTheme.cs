@@ -58,7 +58,7 @@ public class TenantTheme : BaseEntity<Guid>, IHasTenant, IAuditableEntity
     {
         return new TenantTheme
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.CreateVersion7(),
             TenantId = tenantId,
             CreatedBy = createdBy,
             CreatedOnUtc = DateTimeOffset.UtcNow

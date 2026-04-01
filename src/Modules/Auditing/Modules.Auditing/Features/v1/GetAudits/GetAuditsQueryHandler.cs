@@ -24,6 +24,13 @@ public sealed class GetAuditsQueryHandler : IQueryHandler<GetAuditsQuery, PagedR
 
         IQueryable<AuditRecord> audits = _dbContext.AuditRecords.AsNoTracking();
 
+        // Apply tenant filter first (indexed)
+        if (!string.IsNullOrWhiteSpace(query.TenantId))
+        {
+            audits = audits.Where(a => a.TenantId == query.TenantId);
+        }
+
+        // Apply time range filters (indexed with composite index)
         if (query.FromUtc.HasValue)
         {
             audits = audits.Where(a => a.OccurredAtUtc >= query.FromUtc.Value);
@@ -34,11 +41,7 @@ public sealed class GetAuditsQueryHandler : IQueryHandler<GetAuditsQuery, PagedR
             audits = audits.Where(a => a.OccurredAtUtc <= query.ToUtc.Value);
         }
 
-        if (!string.IsNullOrWhiteSpace(query.TenantId))
-        {
-            audits = audits.Where(a => a.TenantId == query.TenantId);
-        }
-
+        // Apply indexed filters
         if (!string.IsNullOrWhiteSpace(query.UserId))
         {
             audits = audits.Where(a => a.UserId == query.UserId);
@@ -52,12 +55,6 @@ public sealed class GetAuditsQueryHandler : IQueryHandler<GetAuditsQuery, PagedR
         if (query.Severity.HasValue)
         {
             audits = audits.Where(a => a.Severity == (byte)query.Severity.Value);
-        }
-
-        if (query.Tags.HasValue && query.Tags.Value != AuditTag.None)
-        {
-            long tagMask = (long)query.Tags.Value;
-            audits = audits.Where(a => (a.Tags & tagMask) != 0);
         }
 
         if (!string.IsNullOrWhiteSpace(query.Source))
@@ -75,6 +72,13 @@ public sealed class GetAuditsQueryHandler : IQueryHandler<GetAuditsQuery, PagedR
             audits = audits.Where(a => a.TraceId == query.TraceId);
         }
 
+        if (query.Tags.HasValue && query.Tags.Value != AuditTag.None)
+        {
+            long tagMask = (long)query.Tags.Value;
+            audits = audits.Where(a => (a.Tags & tagMask) != 0);
+        }
+
+        // Apply search last (most expensive operation)
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
             string term = query.Search;

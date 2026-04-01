@@ -31,7 +31,7 @@ public class Group : IAuditableEntity, ISoftDeletable
     {
         return new Group
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.CreateVersion7(),
             Name = name,
             Description = description,
             IsDefault = isDefault,

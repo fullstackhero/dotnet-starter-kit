@@ -1,9 +1,12 @@
-﻿namespace FSH.Framework.Core.Domain;
+﻿using Mediator;
+
+namespace FSH.Framework.Core.Domain;
 
 /// <summary>
 /// Represents a domain event with correlation and tenant context.
+/// Implements INotification to enable publishing through Mediator.
 /// </summary>
-public interface IDomainEvent
+public interface IDomainEvent : INotification
 {
     /// <summary>
     /// Gets the unique event identifier.

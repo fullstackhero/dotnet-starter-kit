@@ -218,7 +218,7 @@ internal sealed class TokenRefreshService : ITokenRefreshService, IDisposable
 
         var newClaims = new List<Claim>
         {
-            new(ClaimTypes.NameIdentifier, jwtToken.Subject ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? Guid.NewGuid().ToString()),
+            new(ClaimTypes.NameIdentifier, jwtToken.Subject ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? Guid.CreateVersion7().ToString()),
             new(ClaimTypes.Email, user.FindFirst(ClaimTypes.Email)?.Value ?? string.Empty),
             new("access_token", response.Token),
             new("refresh_token", response.RefreshToken),
@@ -252,7 +252,7 @@ internal sealed class TokenRefreshService : ITokenRefreshService, IDisposable
 
 #pragma warning disable S2696
         _lastRefreshedToken = response.Token;
-        _cachedForRefreshToken = oldRefreshToken;
+        _cachedForRefreshToken = response.RefreshToken;
         _lastRefreshTime = DateTime.UtcNow;
 #pragma warning restore S2696
     }

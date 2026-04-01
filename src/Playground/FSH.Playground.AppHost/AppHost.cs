@@ -20,8 +20,7 @@ var api = builder.AddProject<Projects.FSH_Api>("fsh-api")
     .WithEnvironment("DatabaseOptions__Provider", "POSTGRESQL")
     .WithEnvironment("DatabaseOptions__ConnectionString", postgres.Resource.ConnectionStringExpression)
     .WithEnvironment("DatabaseOptions__MigrationsAssembly", "FSH.Migrations.PostgreSQL")
-    .WithEnvironment("CachingOptions__Redis", redis.Resource.ConnectionStringExpression)
-    .WithEnvironment("CachingOptions__EnableSsl", "false");
+    .WithEnvironment("CachingOptions__Redis", redis.Resource.ConnectionStringExpression);
 
 // Blazor UI
 builder.AddProject<Projects.Playground_Blazor>("playground-blazor")

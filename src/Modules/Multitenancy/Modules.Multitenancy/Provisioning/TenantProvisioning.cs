@@ -2,7 +2,7 @@ namespace FSH.Modules.Multitenancy.Provisioning;
 
 public sealed class TenantProvisioning
 {
-    public Guid Id { get; private set; } = Guid.NewGuid();
+    public Guid Id { get; private set; } = Guid.CreateVersion7();
 
     public string TenantId { get; private set; } = default!;
 

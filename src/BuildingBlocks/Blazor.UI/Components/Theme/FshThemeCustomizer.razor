@@ -165,7 +165,7 @@
     /// </summary>
     public async Task ResetToDefaultsAsync()
     {
-        var confirmed = await DialogService.ShowMessageBox(
+        var confirmed = await DialogService.ShowMessageBoxAsync(
             "Reset Theme",
             "Are you sure you want to reset all theme settings to defaults? This action cannot be undone.",
             yesText: "Reset",

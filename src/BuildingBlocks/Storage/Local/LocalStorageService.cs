@@ -44,7 +44,7 @@ public class LocalStorageService : IStorageService
 #pragma warning disable CA1308 // folder names are intentionally lower-case for URLs/paths
         var folder = Regex.Replace(typeof(T).Name.ToLowerInvariant(), @"[^a-z0-9]", "_");
 #pragma warning restore CA1308
-        var safeFileName = $"{Guid.NewGuid():N}_{SanitizeFileName(request.FileName)}";
+        var safeFileName = $"{Guid.CreateVersion7():N}_{SanitizeFileName(request.FileName)}";
         var relativePath = Path.Combine(UploadBasePath, folder, safeFileName);
         var fullPath = Path.Combine(_rootPath, relativePath);
 

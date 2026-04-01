@@ -14,7 +14,7 @@ public sealed class TenantProvisioningTests
     {
         // Arrange
         var tenantId = "tenant-1";
-        var correlationId = Guid.NewGuid().ToString();
+        var correlationId = Guid.CreateVersion7().ToString();
 
         // Act
         var provisioning = new TenantProvisioning(tenantId, correlationId);
@@ -28,7 +28,7 @@ public sealed class TenantProvisioningTests
     {
         // Arrange
         var tenantId = "tenant-1";
-        var correlationId = Guid.NewGuid().ToString();
+        var correlationId = Guid.CreateVersion7().ToString();
 
         // Act
         var provisioning = new TenantProvisioning(tenantId, correlationId);
@@ -41,7 +41,7 @@ public sealed class TenantProvisioningTests
     public void Constructor_Should_SetStatusToPending()
     {
         // Act
-        var provisioning = new TenantProvisioning("tenant-1", Guid.NewGuid().ToString());
+        var provisioning = new TenantProvisioning("tenant-1", Guid.CreateVersion7().ToString());
 
         // Assert
         provisioning.Status.ShouldBe(TenantProvisioningStatus.Pending);
@@ -54,7 +54,7 @@ public sealed class TenantProvisioningTests
         var before = DateTime.UtcNow;
 
         // Act
-        var provisioning = new TenantProvisioning("tenant-1", Guid.NewGuid().ToString());
+        var provisioning = new TenantProvisioning("tenant-1", Guid.CreateVersion7().ToString());
         var after = DateTime.UtcNow;
 
         // Assert
@@ -66,7 +66,7 @@ public sealed class TenantProvisioningTests
     public void Constructor_Should_GenerateNewId()
     {
         // Act
-        var provisioning = new TenantProvisioning("tenant-1", Guid.NewGuid().ToString());
+        var provisioning = new TenantProvisioning("tenant-1", Guid.CreateVersion7().ToString());
 
         // Assert
         provisioning.Id.ShouldNotBe(Guid.Empty);
@@ -76,7 +76,7 @@ public sealed class TenantProvisioningTests
     public void Constructor_Should_InitializeNullFields()
     {
         // Act
-        var provisioning = new TenantProvisioning("tenant-1", Guid.NewGuid().ToString());
+        var provisioning = new TenantProvisioning("tenant-1", Guid.CreateVersion7().ToString());
 
         // Assert
         provisioning.CurrentStep.ShouldBeNull();
@@ -90,7 +90,7 @@ public sealed class TenantProvisioningTests
     public void Constructor_Should_InitializeEmptySteps()
     {
         // Act
-        var provisioning = new TenantProvisioning("tenant-1", Guid.NewGuid().ToString());
+        var provisioning = new TenantProvisioning("tenant-1", Guid.CreateVersion7().ToString());
 
         // Assert
         provisioning.Steps.ShouldNotBeNull();
@@ -105,7 +105,7 @@ public sealed class TenantProvisioningTests
     public void SetJobId_Should_SetJobId()
     {
         // Arrange
-        var provisioning = new TenantProvisioning("tenant-1", Guid.NewGuid().ToString());
+        var provisioning = new TenantProvisioning("tenant-1", Guid.CreateVersion7().ToString());
         var jobId = "job-12345";
 
         // Act
@@ -119,7 +119,7 @@ public sealed class TenantProvisioningTests
     public void SetJobId_Should_AllowOverwriting()
     {
         // Arrange
-        var provisioning = new TenantProvisioning("tenant-1", Guid.NewGuid().ToString());
+        var provisioning = new TenantProvisioning("tenant-1", Guid.CreateVersion7().ToString());
         provisioning.SetJobId("job-1");
 
         // Act
@@ -137,7 +137,7 @@ public sealed class TenantProvisioningTests
     public void MarkRunning_Should_SetStatusToRunning()
     {
         // Arrange
-        var provisioning = new TenantProvisioning("tenant-1", Guid.NewGuid().ToString());
+        var provisioning = new TenantProvisioning("tenant-1", Guid.CreateVersion7().ToString());
 
         // Act
         provisioning.MarkRunning("Migration");
@@ -150,7 +150,7 @@ public sealed class TenantProvisioningTests
     public void MarkRunning_Should_SetCurrentStep()
     {
         // Arrange
-        var provisioning = new TenantProvisioning("tenant-1", Guid.NewGuid().ToString());
+        var provisioning = new TenantProvisioning("tenant-1", Guid.CreateVersion7().ToString());
 
         // Act
         provisioning.MarkRunning("Migration");
@@ -163,7 +163,7 @@ public sealed class TenantProvisioningTests
     public void MarkRunning_Should_SetStartedUtc_OnFirstCall()
     {
         // Arrange
-        var provisioning = new TenantProvisioning("tenant-1", Guid.NewGuid().ToString());
+        var provisioning = new TenantProvisioning("tenant-1", Guid.CreateVersion7().ToString());
         var before = DateTime.UtcNow;
 
         // Act
@@ -180,7 +180,7 @@ public sealed class TenantProvisioningTests
     public void MarkRunning_Should_NotOverwriteStartedUtc_OnSubsequentCalls()
     {
         // Arrange
-        var provisioning = new TenantProvisioning("tenant-1", Guid.NewGuid().ToString());
+        var provisioning = new TenantProvisioning("tenant-1", Guid.CreateVersion7().ToString());
         provisioning.MarkRunning("Migration");
         var firstStartedUtc = provisioning.StartedUtc;
 
@@ -200,7 +200,7 @@ public sealed class TenantProvisioningTests
     public void MarkCompleted_Should_SetStatusToCompleted()
     {
         // Arrange
-        var provisioning = new TenantProvisioning("tenant-1", Guid.NewGuid().ToString());
+        var provisioning = new TenantProvisioning("tenant-1", Guid.CreateVersion7().ToString());
         provisioning.MarkRunning("Migration");
 
         // Act
@@ -214,7 +214,7 @@ public sealed class TenantProvisioningTests
     public void MarkCompleted_Should_SetCompletedUtc()
     {
         // Arrange
-        var provisioning = new TenantProvisioning("tenant-1", Guid.NewGuid().ToString());
+        var provisioning = new TenantProvisioning("tenant-1", Guid.CreateVersion7().ToString());
         var before = DateTime.UtcNow;
 
         // Act
@@ -231,7 +231,7 @@ public sealed class TenantProvisioningTests
     public void MarkCompleted_Should_ClearCurrentStep()
     {
         // Arrange
-        var provisioning = new TenantProvisioning("tenant-1", Guid.NewGuid().ToString());
+        var provisioning = new TenantProvisioning("tenant-1", Guid.CreateVersion7().ToString());
         provisioning.MarkRunning("Migration");
 
         // Act
@@ -245,7 +245,7 @@ public sealed class TenantProvisioningTests
     public void MarkCompleted_Should_ClearError()
     {
         // Arrange
-        var provisioning = new TenantProvisioning("tenant-1", Guid.NewGuid().ToString());
+        var provisioning = new TenantProvisioning("tenant-1", Guid.CreateVersion7().ToString());
         provisioning.MarkFailed("Migration", "Some error");
 
         // Act
@@ -263,7 +263,7 @@ public sealed class TenantProvisioningTests
     public void MarkFailed_Should_SetStatusToFailed()
     {
         // Arrange
-        var provisioning = new TenantProvisioning("tenant-1", Guid.NewGuid().ToString());
+        var provisioning = new TenantProvisioning("tenant-1", Guid.CreateVersion7().ToString());
 
         // Act
         provisioning.MarkFailed("Migration", "Database connection failed");
@@ -276,7 +276,7 @@ public sealed class TenantProvisioningTests
     public void MarkFailed_Should_SetCurrentStep()
     {
         // Arrange
-        var provisioning = new TenantProvisioning("tenant-1", Guid.NewGuid().ToString());
+        var provisioning = new TenantProvisioning("tenant-1", Guid.CreateVersion7().ToString());
 
         // Act
         provisioning.MarkFailed("Migration", "Database connection failed");
@@ -289,7 +289,7 @@ public sealed class TenantProvisioningTests
     public void MarkFailed_Should_SetError()
     {
         // Arrange
-        var provisioning = new TenantProvisioning("tenant-1", Guid.NewGuid().ToString());
+        var provisioning = new TenantProvisioning("tenant-1", Guid.CreateVersion7().ToString());
         var error = "Database connection failed";
 
         // Act
@@ -303,7 +303,7 @@ public sealed class TenantProvisioningTests
     public void MarkFailed_Should_SetCompletedUtc()
     {
         // Arrange
-        var provisioning = new TenantProvisioning("tenant-1", Guid.NewGuid().ToString());
+        var provisioning = new TenantProvisioning("tenant-1", Guid.CreateVersion7().ToString());
         var before = DateTime.UtcNow;
 
         // Act
@@ -324,7 +324,7 @@ public sealed class TenantProvisioningTests
     public void Provisioning_Should_SupportFullLifecycle()
     {
         // Arrange
-        var provisioning = new TenantProvisioning("tenant-1", Guid.NewGuid().ToString());
+        var provisioning = new TenantProvisioning("tenant-1", Guid.CreateVersion7().ToString());
         provisioning.Status.ShouldBe(TenantProvisioningStatus.Pending);
 
         // Act & Assert - Running
@@ -345,7 +345,7 @@ public sealed class TenantProvisioningTests
     public void Provisioning_Should_SupportFailureFromRunning()
     {
         // Arrange
-        var provisioning = new TenantProvisioning("tenant-1", Guid.NewGuid().ToString());
+        var provisioning = new TenantProvisioning("tenant-1", Guid.CreateVersion7().ToString());
         provisioning.MarkRunning("Migration");
 
         // Act

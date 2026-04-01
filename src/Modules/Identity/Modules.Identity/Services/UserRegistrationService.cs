@@ -170,7 +170,7 @@ internal sealed class UserRegistrationService(
     {
         if (await userManager.FindByNameAsync(userName) is not null)
         {
-            return $"{userName}_{Guid.NewGuid():N}"[..20];
+            return $"{userName}_{Guid.CreateVersion7():N}"[..20];
         }
         return userName;
     }
@@ -265,10 +265,10 @@ internal sealed class UserRegistrationService(
         await db.SaveChangesAsync(cancellationToken);
 
         var integrationEvent = new UserRegisteredIntegrationEvent(
-            Id: Guid.NewGuid(),
+            Id: Guid.CreateVersion7(),
             OccurredOnUtc: TimeProvider.System.GetUtcNow().UtcDateTime,
             TenantId: tenantId,
-            CorrelationId: Guid.NewGuid().ToString(),
+            CorrelationId: Guid.CreateVersion7().ToString(),
             Source: source,
             UserId: user.Id,
             Email: user.Email ?? string.Empty,

@@ -4,7 +4,7 @@ namespace FSH.Modules.Multitenancy.Provisioning;
 
 public sealed class TenantProvisioningStep
 {
-    public Guid Id { get; private set; } = Guid.NewGuid();
+    public Guid Id { get; private set; } = Guid.CreateVersion7();
 
     public Guid ProvisioningId { get; private set; }
 

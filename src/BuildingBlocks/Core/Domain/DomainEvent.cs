@@ -24,6 +24,6 @@ public abstract record DomainEvent(
         where T : DomainEvent
     {
         ArgumentNullException.ThrowIfNull(factory);
-        return factory(Guid.NewGuid(), DateTimeOffset.UtcNow);
+        return factory(Guid.CreateVersion7(), DateTimeOffset.UtcNow);
     }
 }

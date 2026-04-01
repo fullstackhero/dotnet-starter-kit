@@ -51,7 +51,7 @@ internal static class SimpleBffAuth
 
                 var claims = new List<Claim>
                 {
-                    new(ClaimTypes.NameIdentifier, jwtToken.Subject ?? Guid.NewGuid().ToString()),
+                    new(ClaimTypes.NameIdentifier, jwtToken.Subject ?? Guid.CreateVersion7().ToString()),
                     new(ClaimTypes.Email, email),
                     new("access_token", token.AccessToken), // Store JWT for API calls
                     new("refresh_token", token.RefreshToken), // Store refresh token for token renewal

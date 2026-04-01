@@ -13,5 +13,5 @@ public sealed record PasswordChangedEvent(
 ) : DomainEvent(EventId, OccurredOnUtc, CorrelationId, TenantId)
 {
     public static PasswordChangedEvent Create(string userId, bool wasReset = false, string? correlationId = null, string? tenantId = null)
-        => new(Guid.NewGuid(), DateTimeOffset.UtcNow, userId, wasReset, correlationId, tenantId);
+        => new(Guid.CreateVersion7(), DateTimeOffset.UtcNow, userId, wasReset, correlationId, tenantId);
 }

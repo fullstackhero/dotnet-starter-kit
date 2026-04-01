@@ -61,14 +61,15 @@ else
                         <!-- Upload/Delete Buttons -->
                         <MudStack Row="true" Spacing="2" Class="flex-wrap justify-center">
                             <MudFileUpload T="IBrowserFile" Accept="image/*" MaximumFileCount="1" OnFilesChanged="OnAvatarSelected">
-                                <ActivatorContent>
+                                <CustomContent Context="upload">
                                     <MudButton Variant="Variant.Filled"
                                                Color="Color.Primary"
                                                StartIcon="@Icons.Material.Filled.CloudUpload"
-                                               Size="Size.Small">
+                                               Size="Size.Small"
+                                               OnClick="@(async (e) => await upload.OpenFilePickerAsync())">
                                         Upload Photo
                                     </MudButton>
-                                </ActivatorContent>
+                                </CustomContent>
                             </MudFileUpload>
 
                             @if (!string.IsNullOrEmpty(_avatarPreviewUrl))

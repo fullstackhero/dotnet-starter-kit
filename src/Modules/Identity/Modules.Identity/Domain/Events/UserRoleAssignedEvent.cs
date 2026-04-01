@@ -13,5 +13,5 @@ public sealed record UserRoleAssignedEvent(
 ) : DomainEvent(EventId, OccurredOnUtc, CorrelationId, TenantId)
 {
     public static UserRoleAssignedEvent Create(string userId, IEnumerable<string> assignedRoles, string? correlationId = null, string? tenantId = null)
-        => new(Guid.NewGuid(), DateTimeOffset.UtcNow, userId, assignedRoles.ToList().AsReadOnly(), correlationId, tenantId);
+        => new(Guid.CreateVersion7(), DateTimeOffset.UtcNow, userId, assignedRoles.ToList().AsReadOnly(), correlationId, tenantId);
 }
