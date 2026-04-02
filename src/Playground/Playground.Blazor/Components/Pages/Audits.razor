@@ -741,7 +741,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
+            Snackbar.Add(string.Format(L["UnexpectedErrorOccurred"], ex.Message), Severity.Error);
             return new TableData<FSH.Playground.Blazor.ApiClient.AuditSummaryDto>
             {
                 Items = Array.Empty<FSH.Playground.Blazor.ApiClient.AuditSummaryDto>(),
@@ -826,7 +826,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
+            Snackbar.Add(string.Format(L["UnexpectedErrorOccurred"], ex.Message), Severity.Error);
             _expanded.Remove(audit.Id);
         }
     }
@@ -852,7 +852,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
+            Snackbar.Add(string.Format(L["UnexpectedErrorOccurred"], ex.Message), Severity.Error);
         }
         finally
         {
@@ -882,7 +882,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
+            Snackbar.Add(string.Format(L["UnexpectedErrorOccurred"], ex.Message), Severity.Error);
         }
         finally
         {
@@ -1028,7 +1028,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
+            Snackbar.Add(string.Format(L["UnexpectedErrorOccurred"], ex.Message), Severity.Error);
         }
     }
 

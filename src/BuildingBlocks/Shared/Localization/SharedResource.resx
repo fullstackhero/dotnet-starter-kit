@@ -243,9 +243,7 @@
   <data name="AccountCreatedSuccessfully" xml:space="preserve">
     <value>Account created successfully! Please check your email to confirm your account.</value>
   </data>
-  <data name="UnexpectedErrorOccurred" xml:space="preserve">
-    <value>An unexpected error occurred. Please try again.</value>
-  </data>
+  <data name="UnexpectedErrorOccurred" xml:space="preserve"><value>An unexpected error occurred: {0}</value></data>
   <data name="Login" xml:space="preserve">
     <value>Login</value>
   </data>

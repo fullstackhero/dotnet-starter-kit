@@ -112,11 +112,11 @@
         }
         catch (FSH.Playground.Blazor.ApiClient.ApiException ex) when (ex.StatusCode == 400)
         {
-            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
+            Snackbar.Add(string.Format(L["UnexpectedErrorOccurred"], ex.Message), Severity.Error);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
+            Snackbar.Add(string.Format(L["UnexpectedErrorOccurred"], ex.Message), Severity.Error);
         }
         finally
         {

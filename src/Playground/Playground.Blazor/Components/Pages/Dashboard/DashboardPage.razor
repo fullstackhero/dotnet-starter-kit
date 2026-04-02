@@ -90,7 +90,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
+            Snackbar.Add(string.Format(L["UnexpectedErrorOccurred"], ex.Message), Severity.Error);
         }
     }
 
@@ -109,7 +109,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
+            Snackbar.Add(string.Format(L["UnexpectedErrorOccurred"], ex.Message), Severity.Error);
         }
     }
 
