@@ -1,28 +1,33 @@
 @page "/health"
 @using FSH.Playground.Blazor.ApiClient
 @using FSH.Framework.Blazor.UI.Components.Cards
+@using FSH.Framework.Shared.Localization
+@using FSH.Playground.Blazor.Localization.Health
+@using Microsoft.Extensions.Localization
 @using System.Timers
 @implements IDisposable
 @inject IHealthClient HealthClient
 @inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
+@inject IStringLocalizer<HealthResource> HL
 
-<FshPageHeader Title="System Health"
-               Description="Real-time monitoring of system components and services">
+<FshPageHeader Title="@HL["SystemHealth"]"
+               Description="@HL["CheckSystemHealth"]">
     <ActionContent>
         <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Class="mr-2">
-            Last updated: @_lastUpdated.ToString("HH:mm:ss")
+            @_lastUpdated.ToString("HH:mm:ss")
         </MudChip>
         <MudToggleIconButton @bind-Toggled="_autoRefresh"
                              Icon="@Icons.Material.Outlined.PlayArrow"
                              ToggledIcon="@Icons.Material.Outlined.Pause"
                              Size="Size.Small"
                              ToggledColor="Color.Success"
-                             Title="@(_autoRefresh ? "Auto-refresh ON" : "Auto-refresh OFF")" />
+                             Title="@(_autoRefresh ? HL["AutoRefreshOn"] : HL["AutoRefreshOff"])" />
         <MudIconButton Icon="@Icons.Material.Outlined.Refresh"
                        Color="Color.Primary"
                        OnClick="RefreshHealth"
                        Disabled="_loading"
-                       Title="Refresh now" />
+                       Title="@L["Refresh"]" />
     </ActionContent>
 </FshPageHeader>
 
@@ -32,34 +37,34 @@
         <FshStatCard Icon="@Icons.Material.Filled.CheckCircle"
                      IconColor="Color.Success"
                      Value="@((_readyResult?.Results?.Count(r => r.Status == "Healthy") ?? 0).ToString())"
-                     Label="Healthy Services"
-                     Badge="Healthy" />
+                     Label="@HL["HealthyServices"]"
+                     Badge="@HL["Healthy"]" />
     </MudItem>
     <MudItem xs="6" sm="3">
         <FshStatCard Icon="@Icons.Material.Filled.Warning"
                      IconColor="Color.Warning"
                      Value="@((_readyResult?.Results?.Count(r => r.Status == "Degraded") ?? 0).ToString())"
-                     Label="Degraded Services"
-                     Badge="Degraded" />
+                     Label="@HL["DegradedServices"]"
+                     Badge="@HL["Degraded"]" />
     </MudItem>
     <MudItem xs="6" sm="3">
         <FshStatCard Icon="@Icons.Material.Filled.Error"
                      IconColor="Color.Error"
                      Value="@((_readyResult?.Results?.Count(r => r.Status == "Unhealthy") ?? 0).ToString())"
-                     Label="Unhealthy Services"
-                     Badge="Unhealthy" />
+                     Label="@HL["UnhealthyServices"]"
+                     Badge="@HL["Unhealthy"]" />
     </MudItem>
     <MudItem xs="6" sm="3">
         <FshStatCard Icon="@Icons.Material.Filled.Speed"
                      IconColor="Color.Info"
                      Value="@($"{GetAverageDuration()}ms")"
-                     Label="Avg Response Time"
-                     Badge="Response" />
+                     Label="@HL["AvgResponseTime"]"
+                     Badge="@HL["Response"]" />
     </MudItem>
 </MudGrid>
 
 @* Services Grid *@
-<MudText Typo="Typo.h6" Class="fw-600 mb-3">Service Status</MudText>
+<MudText Typo="Typo.h6" Class="fw-600 mb-3">@HL["ServiceStatus"]</MudText>
 <MudGrid Class="mb-4">
     @if (_readyResult?.Results != null)
     {
@@ -95,14 +100,14 @@
         <MudPaper Class="fsh-card pa-4">
             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-3">
                 <MudIcon Icon="@Icons.Material.Outlined.Favorite" Color="Color.Success" />
-                <MudText Typo="Typo.h6" Class="fw-600">Liveness Probe</MudText>
+                <MudText Typo="Typo.h6" Class="fw-600">@HL["LivenessProbe"]</MudText>
                 <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined"
                          Color="@GetStatusColor(_liveResult?.Status)" Class="ml-auto">
-                    @(_liveResult?.Status ?? "Unknown")
+                    @(_liveResult?.Status ?? L["Unknown"])
                 </MudChip>
             </MudStack>
             <MudText Typo="Typo.body2" Class="text-muted mb-3">
-                Basic process check - confirms the application is running.
+                @HL["LivenessProbeDescription"]
             </MudText>
             <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
                 <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Icon="@Icons.Material.Outlined.Link">
@@ -118,14 +123,14 @@
         <MudPaper Class="fsh-card pa-4">
             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-3">
                 <MudIcon Icon="@Icons.Material.Outlined.FactCheck" Color="Color.Primary" />
-                <MudText Typo="Typo.h6" Class="fw-600">Readiness Probe</MudText>
+                <MudText Typo="Typo.h6" Class="fw-600">@HL["ReadinessProbe"]</MudText>
                 <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined"
                          Color="@GetStatusColor(_readyResult?.Status)" Class="ml-auto">
-                    @(_readyResult?.Status ?? "Unknown")
+                    @(_readyResult?.Status ?? L["Unknown"])
                 </MudChip>
             </MudStack>
             <MudText Typo="Typo.body2" Class="text-muted mb-3">
-                Full dependency check - validates all services and databases.
+                @HL["ReadinessProbeDescription"]
             </MudText>
             <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
                 <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Icon="@Icons.Material.Outlined.Link">
@@ -145,8 +150,8 @@
     <MudPaper Class="fsh-card pa-4 mt-4">
         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-3">
             <MudIcon Icon="@Icons.Material.Outlined.Timeline" Color="Color.Primary" />
-            <MudText Typo="Typo.h6" Class="fw-600">Recent Checks</MudText>
-            <MudText Typo="Typo.caption" Class="text-muted ml-auto">Last @_healthHistory.Count checks</MudText>
+            <MudText Typo="Typo.h6" Class="fw-600">@HL["RecentChecks"]</MudText>
+            <MudText Typo="Typo.caption" Class="text-muted ml-auto">@string.Format(HL["LastNChecks"], _healthHistory.Count)</MudText>
         </MudStack>
         <MudStack Row="true" Spacing="1" AlignItems="AlignItems.End" Style="height: 40px;">
             @foreach (var record in _healthHistory.TakeLast(20))
@@ -229,7 +234,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to fetch health status: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
             _healthHistory.Add(new HealthRecord
             {
                 Time = DateTime.Now,
@@ -272,17 +277,17 @@
         _ => Icons.Material.Outlined.Dns
     };
 
-    private static string FormatServiceName(string? name)
+    private string FormatServiceName(string? name)
     {
-        if (string.IsNullOrEmpty(name)) return "Unknown";
+        if (string.IsNullOrEmpty(name)) return L["Unknown"];
 
         return name switch
         {
-            "self" => "Application Core",
-            "db:identity" => "Identity Database",
-            "db:auditing" => "Audit Database",
-            "db:multitenancy" => "Multitenancy Database",
-            "db:tenants-migrations" => "Tenant Migrations",
+            "self" => HL["ApplicationCore"],
+            "db:identity" => HL["IdentityDatabase"],
+            "db:auditing" => HL["AuditDatabase"],
+            "db:multitenancy" => HL["MultitenancyDatabase"],
+            "db:tenants-migrations" => HL["TenantMigrations"],
             _ => name.Replace(":", " - ").Replace("-", " ")
                      .Split(' ')
                      .Where(w => w.Length > 0)

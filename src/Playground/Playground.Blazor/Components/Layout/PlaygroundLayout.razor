@@ -8,7 +8,9 @@
 @using FSH.Playground.Blazor.Components.Pages
 @using Microsoft.AspNetCore.WebUtilities
 @using FSH.Playground.Blazor.Services
+@using FSH.Framework.Shared.Localization
 @using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.Extensions.Localization
 @using System.Security.Claims
 @inject IHttpContextAccessor HttpContextAccessor
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -23,6 +25,7 @@
 @inject IDialogService DialogService
 @inject IAuthStateNotifier AuthStateNotifier
 @inject IJSRuntime JS
+@inject IStringLocalizer<SharedResource> L
 
 <MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode" />
 <MudPopoverProvider />
@@ -226,15 +229,15 @@ else
                     var toast = toastValues.ToString();
                     if (toast == "login_success")
                     {
-                        Snackbar.Add("Signed in.", Severity.Success);
+                        Snackbar.Add(L["SignedIn"], Severity.Success);
                     }
                     else if (toast == "logout_success")
                     {
-                        Snackbar.Add("Signed out.", Severity.Success);
+                        Snackbar.Add(L["SignedOut"], Severity.Success);
                     }
                     else if (toast == "session_expired")
                     {
-                        Snackbar.Add("Your session has expired. Please sign in again.", Severity.Warning);
+                        Snackbar.Add(L["SessionExpired"], Severity.Warning);
                     }
 
                     var cleanUri = currentUri.GetLeftPart(UriPartial.Path);
@@ -248,7 +251,7 @@ else
 
     private async Task ConfirmAndLogoutAsync()
     {
-        var confirmed = await DialogService.ShowSignOutConfirmAsync();
+        var confirmed = await DialogService.ShowSignOutConfirmAsync(L);
         if (confirmed)
         {
             await LogoutAsync();

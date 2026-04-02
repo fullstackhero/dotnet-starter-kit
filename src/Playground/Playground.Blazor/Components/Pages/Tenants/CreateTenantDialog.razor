@@ -1,6 +1,11 @@
 @using FSH.Playground.Blazor.ApiClient
+@using FSH.Framework.Shared.Localization
+@using FSH.Playground.Blazor.Localization.Tenants
+@using Microsoft.Extensions.Localization
 @inject IV1Client V1Client
 @inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
+@inject IStringLocalizer<TenantResource> TL
 
 <MudDialog>
     <TitleContent>
@@ -9,8 +14,8 @@
                 <MudIcon Icon="@Icons.Material.Filled.Business" />
             </MudAvatar>
             <MudStack Spacing="0">
-                <MudText Typo="Typo.h6" Class="fw-600">Create New Tenant</MudText>
-                <MudText Typo="Typo.caption" Class="text-muted">Add a new organization to the platform</MudText>
+                <MudText Typo="Typo.h6" Class="fw-600">@TL["CreateTenant"]</MudText>
+                <MudText Typo="Typo.caption" Class="text-muted">@TL["TenantManagement"]</MudText>
             </MudStack>
         </MudStack>
     </TitleContent>
@@ -21,32 +26,30 @@
                 <MudItem xs="12">
                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                         <MudIcon Icon="@Icons.Material.Filled.Info" Color="Color.Primary" Size="Size.Small" />
-                        <MudText Typo="Typo.subtitle2" Class="fw-600">Basic Information</MudText>
+                        <MudText Typo="Typo.subtitle2" Class="fw-600">@L["Details"]</MudText>
                     </MudStack>
                     <MudDivider Class="mt-1" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
                     <MudTextField @bind-Value="_model.Id"
-                                  Label="Tenant ID"
+                                  Label="@TL["TenantIdentifier"]"
                                   Placeholder="e.g., acme-corp"
                                   Required="true"
-                                  RequiredError="Tenant ID is required"
+                                  RequiredError="@L["Required"]"
                                   Variant="Variant.Outlined"
                                   Adornment="Adornment.Start"
                                   AdornmentIcon="@Icons.Material.Filled.Tag"
-                                  HelperText="Unique identifier (lowercase, no spaces)"
                                   Immediate="true" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
                     <MudTextField @bind-Value="_model.Name"
-                                  Label="Tenant Name"
+                                  Label="@L["Name"]"
                                   Placeholder="e.g., Acme Corporation"
                                   Required="true"
-                                  RequiredError="Tenant name is required"
+                                  RequiredError="@L["Required"]"
                                   Variant="Variant.Outlined"
                                   Adornment="Adornment.Start"
                                   AdornmentIcon="@Icons.Material.Filled.Business"
-                                  HelperText="Display name for the tenant"
                                   Immediate="true" />
                 </MudItem>
 
@@ -54,45 +57,45 @@
                 <MudItem xs="12">
                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mt-2">
                         <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Color="Color.Primary" Size="Size.Small" />
-                        <MudText Typo="Typo.subtitle2" Class="fw-600">Administrator Account</MudText>
+                        <MudText Typo="Typo.subtitle2" Class="fw-600">@L["Admin"]</MudText>
                     </MudStack>
                     <MudDivider Class="mt-1" />
                 </MudItem>
                 <MudItem xs="12">
                     <MudTextField @bind-Value="_model.AdminEmail"
-                                  Label="Admin Email"
+                                  Label="@TL["AdminEmail"]"
                                   Placeholder="admin@example.com"
                                   Required="true"
-                                  RequiredError="Admin email is required"
+                                  RequiredError="@L["Required"]"
                                   InputType="InputType.Email"
                                   Variant="Variant.Outlined"
                                   Adornment="Adornment.Start"
                                   AdornmentIcon="@Icons.Material.Filled.Email"
-                                  HelperText="Email for the tenant administrator"
+                                  HelperText="@TL["AdminEmail"]"
                                   Immediate="true" />
                 </MudItem>
 
                 @* Advanced Settings Section *@
                 <MudItem xs="12">
                     <MudExpansionPanels Elevation="0">
-                        <MudExpansionPanel Text="Advanced Settings" IsInitiallyExpanded="false">
+                        <MudExpansionPanel Text="@L["Details"]" IsInitiallyExpanded="false">
                             <MudStack Spacing="3">
                                 <MudTextField @bind-Value="_model.ConnectionString"
-                                              Label="Connection String"
+                                              Label="@TL["ConnectionString"]"
                                               Placeholder="Server=...;Database=..."
                                               Variant="Variant.Outlined"
                                               Adornment="Adornment.Start"
                                               AdornmentIcon="@Icons.Material.Filled.Storage"
-                                              HelperText="Optional: Dedicated database connection string"
+                                              HelperText="@TL["ConnectionString"]"
                                               Lines="2" />
 
                                 <MudTextField @bind-Value="_model.Issuer"
-                                              Label="JWT Issuer"
-                                              Placeholder="e.g., my-issuer"
+                                              Label="@TL["Issuer"]"
+                                              Placeholder="@TL["Issuer"]"
                                               Variant="Variant.Outlined"
                                               Adornment="Adornment.Start"
                                               AdornmentIcon="@Icons.Material.Filled.Key"
-                                              HelperText="Optional: Custom JWT issuer for this tenant" />
+                                              HelperText="@TL["Issuer"]" />
                             </MudStack>
                         </MudExpansionPanel>
                     </MudExpansionPanels>
@@ -104,7 +107,7 @@
                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                             <MudIcon Icon="@Icons.Material.Filled.Info" Size="Size.Small" />
                             <MudText Typo="Typo.body2">
-                                A new tenant will be provisioned with default settings. The admin will receive credentials to access the tenant.
+                                @TL["TenantDetails"]
                             </MudText>
                         </MudStack>
                     </MudAlert>
@@ -117,7 +120,7 @@
                    Color="Color.Default"
                    OnClick="Cancel"
                    Disabled="_busy">
-            Cancel
+            @L["Cancel"]
         </MudButton>
         <MudButton Variant="Variant.Filled"
                    Color="Color.Primary"
@@ -127,11 +130,11 @@
             @if (_busy)
             {
                 <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
-                <span>Creating...</span>
+                <span>@L["ProcessingRequest"]</span>
             }
             else
             {
-                <span>Create Tenant</span>
+                <span>@TL["CreateTenant"]</span>
             }
         </MudButton>
     </DialogActions>
@@ -171,7 +174,7 @@
             string.IsNullOrWhiteSpace(_model.Name) ||
             string.IsNullOrWhiteSpace(_model.AdminEmail))
         {
-            Snackbar.Add("Please fill in all required fields.", Severity.Warning);
+            Snackbar.Add(L["Required"], Severity.Warning);
             return;
         }
 
@@ -179,7 +182,7 @@
         var tenantId = _model.Id.Trim().ToLowerInvariant();
         if (tenantId.Contains(' ') || tenantId.Contains('\t'))
         {
-            Snackbar.Add("Tenant ID cannot contain spaces.", Severity.Error);
+            Snackbar.Add(L["Required"], Severity.Error);
             return;
         }
 
@@ -189,12 +192,12 @@
         try
         {
             await V1Client.TenantsPostAsync(_model);
-            Snackbar.Add($"Tenant '{_model.Name}' created successfully!", Severity.Success);
+            Snackbar.Add(TL["TenantCreatedSuccessfully"], Severity.Success);
             MudDialog.Close(DialogResult.Ok(true));
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to create tenant: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {

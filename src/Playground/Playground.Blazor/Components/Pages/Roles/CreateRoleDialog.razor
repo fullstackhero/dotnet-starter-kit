@@ -1,13 +1,18 @@
 @using FSH.Playground.Blazor.ApiClient
+@using FSH.Framework.Shared.Localization
+@using FSH.Playground.Blazor.Localization.Roles
+@using Microsoft.Extensions.Localization
 @inject IIdentityClient IdentityClient
 @inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
+@inject IStringLocalizer<RoleResource> RL
 
 <MudDialog>
     <TitleContent>
         <MudStack Spacing="0">
-            <MudText Typo="Typo.h6" Class="fw-600">@(IsEditMode ? "Edit Role" : "Create New Role")</MudText>
+            <MudText Typo="Typo.h6" Class="fw-600">@(IsEditMode ? RL["EditRole"] : RL["CreateRole"])</MudText>
             <MudText Typo="Typo.caption" Class="text-muted">
-                @(IsEditMode ? "Modify role details" : "Define a new role for your organization")
+                @RL["RoleManagement"]
             </MudText>
         </MudStack>
     </TitleContent>
@@ -16,40 +21,31 @@
             <MudStack Spacing="4" Class="mt-2">
                 @* Role Name *@
                 <MudTextField @bind-Value="_model.Name"
-                              Label="Role Name"
-                              Placeholder="Enter role name (e.g., Manager, Editor)"
+                              Label="@RL["RoleName"]"
+                              Placeholder="@RL["RoleName"]"
                               Required="true"
-                              RequiredError="Role name is required"
+                              RequiredError="@L["Required"]"
                               Variant="Variant.Outlined"
                               Adornment="Adornment.Start"
                               AdornmentIcon="@Icons.Material.Filled.Badge"
                               Immediate="true"
-                              Disabled="@(IsEditMode && IsSystemRole(_model.Name))"
-                              HelperText="@(IsEditMode && IsSystemRole(_model.Name) ? "System role names cannot be changed" : "Choose a descriptive name for the role")" />
+                              Disabled="@(IsEditMode && IsSystemRole(_model.Name))" />
 
                 @* Role Description *@
                 <MudTextField @bind-Value="_model.Description"
-                              Label="Description"
-                              Placeholder="Describe the purpose and scope of this role"
+                              Label="@L["Description"]"
+                              Placeholder="@RL["RoleDescription"]"
                               Variant="Variant.Outlined"
                               Adornment="Adornment.Start"
                               AdornmentIcon="@Icons.Material.Filled.Description"
-                              Lines="3"
-                              HelperText="Help others understand what this role is used for" />
+                              Lines="3" />
 
                 @* Info Alert *@
                 <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true">
                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                         <MudIcon Icon="@Icons.Material.Filled.Info" Size="Size.Small" />
                         <MudText Typo="Typo.body2">
-                            @if (IsEditMode)
-                            {
-                                <span>After saving, you can manage permissions for this role from the Roles page.</span>
-                            }
-                            else
-                            {
-                                <span>After creating the role, you can assign permissions to define what users with this role can do.</span>
-                            }
+                            @RL["ManagePermissions"]
                         </MudText>
                     </MudStack>
                 </MudAlert>
@@ -61,7 +57,7 @@
                    Color="Color.Default"
                    OnClick="Cancel"
                    Disabled="_busy">
-            Cancel
+            @L["Cancel"]
         </MudButton>
         <MudButton Variant="Variant.Filled"
                    Color="Color.Primary"
@@ -71,11 +67,11 @@
             @if (_busy)
             {
                 <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
-                <span>@(IsEditMode ? "Saving..." : "Creating...")</span>
+                <span>@L["ProcessingRequest"]</span>
             }
             else
             {
-                <span>@(IsEditMode ? "Save Changes" : "Create Role")</span>
+                <span>@(IsEditMode ? L["Save"] : RL["CreateRole"])</span>
             }
         </MudButton>
     </DialogActions>
@@ -139,7 +135,7 @@
 
         if (string.IsNullOrWhiteSpace(_model.Name))
         {
-            Snackbar.Add("Please enter a role name.", Severity.Warning);
+            Snackbar.Add(L["Required"], Severity.Warning);
             return;
         }
 
@@ -147,12 +143,12 @@
         try
         {
             await IdentityClient.RolesPostAsync(_model);
-            Snackbar.Add($"Role '{_model.Name}' {(IsEditMode ? "updated" : "created")} successfully!", Severity.Success);
+            Snackbar.Add(IsEditMode ? RL["RoleUpdatedSuccessfully"] : RL["RoleCreatedSuccessfully"], Severity.Success);
             MudDialog.Close(DialogResult.Ok(true));
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to {(IsEditMode ? "update" : "create")} role: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {

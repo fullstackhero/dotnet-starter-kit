@@ -1,13 +1,18 @@
 @using FSH.Playground.Blazor.ApiClient
+@using FSH.Framework.Shared.Localization
+@using FSH.Playground.Blazor.Localization.Groups
+@using Microsoft.Extensions.Localization
 @inject IIdentityClient IdentityClient
 @inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
+@inject IStringLocalizer<GroupResource> GL
 
 <MudDialog>
     <TitleContent>
         <MudStack Spacing="0">
-            <MudText Typo="Typo.h6" Class="fw-600">@(IsEditMode ? "Edit Group" : "Create New Group")</MudText>
+            <MudText Typo="Typo.h6" Class="fw-600">@(IsEditMode ? GL["EditGroup"] : GL["CreateGroup"])</MudText>
             <MudText Typo="Typo.caption" Class="text-muted">
-                @(IsEditMode ? "Modify group details and role assignments" : "Define a new group for organizing users")
+                @GL["GroupManagement"]
             </MudText>
         </MudStack>
     </TitleContent>
@@ -16,39 +21,37 @@
             <MudStack Spacing="4" Class="mt-2">
                 @* Group Name *@
                 <MudTextField @bind-Value="_name"
-                              Label="Group Name"
-                              Placeholder="Enter group name (e.g., Marketing, Engineering)"
+                              Label="@GL["GroupName"]"
+                              Placeholder="@GL["GroupName"]"
                               Required="true"
-                              RequiredError="Group name is required"
+                              RequiredError="@L["Required"]"
                               Variant="Variant.Outlined"
                               Adornment="Adornment.Start"
                               AdornmentIcon="@Icons.Material.Filled.Groups"
-                              Immediate="true"
-                              HelperText="Choose a descriptive name for the group" />
+                              Immediate="true" />
 
                 @* Group Description *@
                 <MudTextField @bind-Value="_description"
-                              Label="Description"
-                              Placeholder="Describe the purpose of this group"
+                              Label="@L["Description"]"
+                              Placeholder="@GL["GroupDescription"]"
                               Variant="Variant.Outlined"
                               Adornment="Adornment.Start"
                               AdornmentIcon="@Icons.Material.Filled.Description"
-                              Lines="3"
-                              HelperText="Help others understand what this group is for" />
+                              Lines="3" />
 
                 @* Is Default Group *@
                 <MudSwitch @bind-Value="_isDefault"
-                           Label="Default Group"
+                           Label="@GL["DefaultGroups"]"
                            Color="Color.Primary"
                            Class="mt-2" />
                 <MudText Typo="Typo.caption" Class="text-muted ml-12" Style="margin-top: -12px;">
-                    New users will be automatically added to default groups
+                    @GL["DefaultGroupTooltip"]
                 </MudText>
 
                 @* Role Assignments *@
-                <MudText Typo="Typo.subtitle2" Class="fw-600 mt-4">Role Assignments</MudText>
+                <MudText Typo="Typo.subtitle2" Class="fw-600 mt-4">@L["Roles"]</MudText>
                 <MudText Typo="Typo.caption" Class="text-muted">
-                    Members of this group will inherit these roles
+                    @GL["GroupManagement"]
                 </MudText>
 
                 @if (_loadingRoles)
@@ -83,7 +86,7 @@
                 else
                 {
                     <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true">
-                        No roles available for assignment.
+                        @GL["NoRolesAssigned"]
                     </MudAlert>
                 }
 
@@ -92,14 +95,7 @@
                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                         <MudIcon Icon="@Icons.Material.Filled.Info" Size="Size.Small" />
                         <MudText Typo="Typo.body2">
-                            @if (IsEditMode)
-                            {
-                                <span>After saving, you can manage group members from the group details page.</span>
-                            }
-                            else
-                            {
-                                <span>After creating the group, you can add members from the group details page.</span>
-                            }
+                            @GL["GroupDetails"]
                         </MudText>
                     </MudStack>
                 </MudAlert>
@@ -111,7 +107,7 @@
                    Color="Color.Default"
                    OnClick="Cancel"
                    Disabled="_busy">
-            Cancel
+            @L["Cancel"]
         </MudButton>
         <MudButton Variant="Variant.Filled"
                    Color="Color.Primary"
@@ -121,11 +117,11 @@
             @if (_busy)
             {
                 <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
-                <span>@(IsEditMode ? "Saving..." : "Creating...")</span>
+                <span>@L["ProcessingRequest"]</span>
             }
             else
             {
-                <span>@(IsEditMode ? "Save Changes" : "Create Group")</span>
+                <span>@(IsEditMode ? L["Save"] : GL["CreateGroup"])</span>
             }
         </MudButton>
     </DialogActions>
@@ -185,7 +181,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to load roles: {ex.Message}", Severity.Warning);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Warning);
         }
         finally
         {
@@ -237,7 +233,7 @@
 
         if (string.IsNullOrWhiteSpace(_name))
         {
-            Snackbar.Add("Please enter a group name.", Severity.Warning);
+            Snackbar.Add(L["Required"], Severity.Warning);
             return;
         }
 
@@ -267,12 +263,12 @@
                 await IdentityClient.GroupsPostAsync(command);
             }
 
-            Snackbar.Add($"Group '{_name}' {(IsEditMode ? "updated" : "created")} successfully!", Severity.Success);
+            Snackbar.Add(IsEditMode ? GL["GroupUpdatedSuccessfully"] : GL["GroupCreatedSuccessfully"], Severity.Success);
             MudDialog.Close(DialogResult.Ok(true));
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to {(IsEditMode ? "update" : "create")} group: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {

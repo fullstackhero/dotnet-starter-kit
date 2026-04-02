@@ -13,16 +13,16 @@
             @* Left Column - Settings *@
             <MudItem xs="12" lg="7">
                 <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true" Class="mt-2">
-                    <MudTabPanel Text="Colors" Icon="@Icons.Material.Outlined.Palette">
+                    <MudTabPanel Text="@L["Colors"]" Icon="@Icons.Material.Outlined.Palette">
                         <div class="pa-4">
                             <MudExpansionPanels MultiExpansion="true">
-                                <MudExpansionPanel Text="Light Mode Palette" IsInitiallyExpanded="true">
-                                    <FshColorPalettePicker Title="Light Mode Colors"
+                                <MudExpansionPanel Text="@L["LightMode"]" IsInitiallyExpanded="true">
+                                    <FshColorPalettePicker Title="@L["LightMode"]"
                                                           Palette="@_settings.LightPalette"
                                                           PaletteChanged="@OnLightPaletteChanged" />
                                 </MudExpansionPanel>
-                                <MudExpansionPanel Text="Dark Mode Palette">
-                                    <FshColorPalettePicker Title="Dark Mode Colors"
+                                <MudExpansionPanel Text="@L["DarkMode"]">
+                                    <FshColorPalettePicker Title="@L["DarkMode"]"
                                                           Palette="@_settings.DarkPalette"
                                                           PaletteChanged="@OnDarkPaletteChanged" />
                                 </MudExpansionPanel>
@@ -30,7 +30,7 @@
                         </div>
                     </MudTabPanel>
 
-                    <MudTabPanel Text="Brand" Icon="@Icons.Material.Outlined.BrandingWatermark">
+                    <MudTabPanel Text="@L["Brand"]" Icon="@Icons.Material.Outlined.BrandingWatermark">
                         <div class="pa-4">
                             <FshBrandAssetsPicker BrandAssets="@_settings.BrandAssets"
                                                  BrandAssetsChanged="@OnBrandAssetsChanged"
@@ -38,14 +38,14 @@
                         </div>
                     </MudTabPanel>
 
-                    <MudTabPanel Text="Typography" Icon="@Icons.Material.Outlined.TextFields">
+                    <MudTabPanel Text="@L["Typography"]" Icon="@Icons.Material.Outlined.TextFields">
                         <div class="pa-4">
                             <FshTypographyPicker Typography="@_settings.Typography"
                                                 TypographyChanged="@OnTypographyChanged" />
                         </div>
                     </MudTabPanel>
 
-                    <MudTabPanel Text="Layout" Icon="@Icons.Material.Outlined.ViewCompact">
+                    <MudTabPanel Text="@L["Layout"]" Icon="@Icons.Material.Outlined.ViewCompact">
                         <div class="pa-4">
                             <FshLayoutPicker Layout="@_settings.Layout"
                                            LayoutChanged="@OnLayoutChanged" />

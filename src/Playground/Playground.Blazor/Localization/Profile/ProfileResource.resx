@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data"><xsd:complexType><xsd:sequence><xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" /></xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" /><xsd:attribute ref="xml:space" /></xsd:complexType></xsd:element>
+          <xsd:element name="resheader"><xsd:complexType><xsd:sequence><xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" /></xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" /></xsd:complexType></xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="ProfileSettings" xml:space="preserve"><value>Profile Settings</value></data>
+  <data name="UpdateProfile" xml:space="preserve"><value>Update Profile</value></data>
+  <data name="ProfileInformation" xml:space="preserve"><value>Profile Information</value></data>
+  <data name="UploadPhoto" xml:space="preserve"><value>Upload Photo</value></data>
+  <data name="RemovePhoto" xml:space="preserve"><value>Remove Photo</value></data>
+  <data name="ProfileUpdatedSuccessfully" xml:space="preserve"><value>Profile updated successfully</value></data>
+  
+  <data name="SecuritySettings" xml:space="preserve"><value>Security Settings</value></data>
+  <data name="ChangePassword" xml:space="preserve"><value>Change Password</value></data>
+  <data name="TwoFactorAuthentication" xml:space="preserve"><value>Two-Factor Authentication</value></data>
+  <data name="Enable2FA" xml:space="preserve"><value>Enable Two-Factor Authentication</value></data>
+  <data name="Disable2FA" xml:space="preserve"><value>Disable Two-Factor Authentication</value></data>
+  <data name="SecurityUpdatedSuccessfully" xml:space="preserve"><value>Security settings updated successfully</value></data>
+  
+  <data name="ThemeSettings" xml:space="preserve"><value>Theme Settings</value></data>
+  <data name="CustomizeAppearance" xml:space="preserve"><value>Customize Appearance</value></data>
+  <data name="ColorScheme" xml:space="preserve"><value>Color Scheme</value></data>
+  <data name="Light" xml:space="preserve"><value>Light</value></data>
+  <data name="Dark" xml:space="preserve"><value>Dark</value></data>
+  <data name="System" xml:space="preserve"><value>System</value></data>
+  <data name="ProfilePhoto" xml:space="preserve"><value>Profile Photo</value></data>
+  <data name="ProfilePhotoDescription" xml:space="preserve"><value>Upload a profile photo. Max 2MB, images only.</value></data>
+  <data name="CurrentPassword" xml:space="preserve"><value>Current Password</value></data>
+  <data name="NewPassword" xml:space="preserve"><value>New Password</value></data>
+  <data name="PasswordDescription" xml:space="preserve"><value>Update your password to keep your account secure</value></data>
+  <data name="PasswordRequirements" xml:space="preserve"><value>Use at least 8 characters with a mix of letters, numbers and symbols</value></data>
+  <data name="PasswordChangedSuccessfully" xml:space="preserve"><value>Password changed successfully</value></data>
+  <data name="FileTooLarge" xml:space="preserve"><value>File too large. Maximum 2MB allowed.</value></data>
+  <data name="OnlyImagesAllowed" xml:space="preserve"><value>Only image files are allowed.</value></data>
+  <data name="ImageReady" xml:space="preserve"><value>Image ready. Click Save to upload.</value></data>
+  <data name="PhotoWillBeRemoved" xml:space="preserve"><value>Photo will be removed when you save changes.</value></data>
+  <data name="ThemeSavedSuccessfully" xml:space="preserve"><value>Theme saved successfully</value></data>
+</root>

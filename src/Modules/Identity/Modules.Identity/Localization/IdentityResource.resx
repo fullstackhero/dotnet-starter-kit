@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Identity Module Specific Resources -->
+  
+  <!-- User Management -->
+  <data name="UserCreated" xml:space="preserve">
+    <value>User created successfully</value>
+  </data>
+  <data name="UserUpdated" xml:space="preserve">
+    <value>User updated successfully</value>
+  </data>
+  <data name="UserDeleted" xml:space="preserve">
+    <value>User deleted successfully</value>
+  </data>
+  <data name="UserDeactivated" xml:space="preserve">
+    <value>User deactivated</value>
+  </data>
+  <data name="UserActivated" xml:space="preserve">
+    <value>User activated</value>
+  </data>
+
+  <!-- Authentication -->
+  <data name="LoginSuccessful" xml:space="preserve">
+    <value>Login successful</value>
+  </data>
+  <data name="LogoutSuccessful" xml:space="preserve">
+    <value>Logout successful</value>
+  </data>
+  <data name="InvalidCredentials" xml:space="preserve">
+    <value>Invalid email or password</value>
+  </data>
+  <data name="AccountLocked" xml:space="preserve">
+    <value>Your account has been locked. Please contact support.</value>
+  </data>
+
+  <!-- Password Management -->
+  <data name="PasswordChanged" xml:space="preserve">
+    <value>Password changed successfully</value>
+  </data>
+  <data name="PasswordResetEmailSent" xml:space="preserve">
+    <value>Password reset email has been sent</value>
+  </data>
+  <data name="PasswordResetSuccessful" xml:space="preserve">
+    <value>Password has been reset successfully</value>
+  </data>
+
+  <!-- Email Confirmation -->
+  <data name="EmailConfirmed" xml:space="preserve">
+    <value>Email confirmed successfully</value>
+  </data>
+  <data name="EmailConfirmationSent" xml:space="preserve">
+    <value>Confirmation email has been sent</value>
+  </data>
+
+  <!-- Roles & Permissions -->
+  <data name="RoleAssigned" xml:space="preserve">
+    <value>Role assigned successfully</value>
+  </data>
+  <data name="RoleRemoved" xml:space="preserve">
+    <value>Role removed successfully</value>
+  </data>
+  <data name="PermissionGranted" xml:space="preserve">
+    <value>Permission granted</value>
+  </data>
+  <data name="PermissionRevoked" xml:space="preserve">
+    <value>Permission revoked</value>
+  </data>
+
+  <!-- Groups -->
+  <data name="GroupCreated" xml:space="preserve">
+    <value>Group created successfully</value>
+  </data>
+  <data name="GroupUpdated" xml:space="preserve">
+    <value>Group updated successfully</value>
+  </data>
+  <data name="GroupDeleted" xml:space="preserve">
+    <value>Group deleted successfully</value>
+  </data>
+  <data name="UserAddedToGroup" xml:space="preserve">
+    <value>User added to group</value>
+  </data>
+  <data name="UserRemovedFromGroup" xml:space="preserve">
+    <value>User removed from group</value>
+  </data>
+
+  <!-- Sessions -->
+  <data name="SessionRevoked" xml:space="preserve">
+    <value>Session revoked successfully</value>
+  </data>
+  <data name="AllSessionsRevoked" xml:space="preserve">
+    <value>All sessions revoked successfully</value>
+  </data>
+</root>

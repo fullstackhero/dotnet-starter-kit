@@ -15,7 +15,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Core\Core.csproj" />
+		<ProjectReference Include="..\Core\Core.csproj" />
 	</ItemGroup>
+
+	<!-- SharedResource.resx is automatically embedded and paired with SharedResource.cs marker class for IStringLocalizer<T> pattern -->
 
 </Project>

@@ -7,8 +7,9 @@
 		<!-- MUD0002: MudBlazor analyzer false positives for valid component parameter usage in RenderFragment/component contexts -->
 		<NoWarn>$(NoWarn);MUD0002;NU1507</NoWarn>
 
-		<!-- Enable CSS isolation for Razor Class Library -->
-		<GenerateScopedCssFiles>true</GenerateScopedCssFiles>
+		<!-- Disable CSS isolation to prevent unused preload warnings -->
+		<!-- Components can still use regular CSS files -->
+		<GenerateScopedCssFiles>false</GenerateScopedCssFiles>
 	</PropertyGroup>
 
 
@@ -16,11 +17,15 @@
     <SupportedPlatform Include="browser" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" />
-    <PackageReference Include="MudBlazor" />
-    <PackageReference Include="MudBlazor.ThemeManager" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Components.Authorization" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.Web" />
+		<PackageReference Include="MudBlazor" />
+		<PackageReference Include="MudBlazor.ThemeManager" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Shared\Shared.csproj" />
+	</ItemGroup>
 
 </Project>

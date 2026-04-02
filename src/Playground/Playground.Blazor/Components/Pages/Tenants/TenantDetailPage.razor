@@ -3,6 +3,9 @@
 @using FSH.Framework.Blazor.UI.Components.Dialogs
 @using FSH.Framework.Shared.Constants
 @using FSH.Framework.Shared.Multitenancy
+@using FSH.Framework.Shared.Localization
+@using FSH.Playground.Blazor.Localization.Tenants
+@using Microsoft.Extensions.Localization
 @using Microsoft.AspNetCore.Components.Authorization
 @inherits ComponentBase
 @inject ITenantsClient TenantsClient
@@ -11,46 +14,48 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<SharedResource> L
+@inject IStringLocalizer<TenantResource> TL
 
 @if (!_isRootTenantAdmin)
 {
     <MudAlert Severity="Severity.Warning" Class="mb-4">
-        <MudText>You do not have permission to access this page. Only root tenant administrators can manage tenants.</MudText>
+        <MudText>@L["AccessDenied"]</MudText>
     </MudAlert>
 }
 else if (_loading)
 {
-    <FshPageHeader Title="Tenant Details"
-                   Description="Loading tenant details..." />
+    <FshPageHeader Title="@TL["TenantDetails"]"
+                   Description="@L["Loading"]" />
     <MudStack AlignItems="AlignItems.Center" Class="pa-8">
         <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
-        <MudText>Loading tenant details...</MudText>
+        <MudText>@L["Loading"]</MudText>
     </MudStack>
 }
 else if (_tenant is null)
 {
-    <FshPageHeader Title="Tenant Details"
-                   Description="Tenant not found" />
+    <FshPageHeader Title="@TL["TenantDetails"]"
+                   Description="@L["NotFound"]" />
     <MudAlert Severity="Severity.Error" Class="mb-4">
-        <MudText>Tenant not found.</MudText>
+        <MudText>@L["NotFound"]</MudText>
     </MudAlert>
 }
 else
 {
-    <FshPageHeader Title="Tenant Details"
-                   Description="@($"Managing {_tenant.Name}")">
+    <FshPageHeader Title="@TL["TenantDetails"]"
+                   Description="@($"{TL["TenantManagement"]} - {_tenant.Name}")">
         <ActionContent>
             <MudButton Variant="Variant.Text"
                        Color="Color.Default"
                        StartIcon="@Icons.Material.Outlined.ArrowBack"
                        OnClick="GoBack">
-                Back to Tenants
+                @L["Back"]
             </MudButton>
             <MudButton Variant="Variant.Outlined"
                        Color="Color.Primary"
                        StartIcon="@Icons.Material.Filled.Upgrade"
                        OnClick="ShowUpgrade">
-                Upgrade
+                @TL["UpgradeTenant"]
             </MudButton>
             @if (!IsRootTenant)
             {
@@ -59,7 +64,7 @@ else
                            StartIcon="@(_tenant.IsActive ? Icons.Material.Filled.Block : Icons.Material.Filled.CheckCircle)"
                            OnClick="ToggleStatus"
                            Disabled="_busy">
-                    @(_tenant.IsActive ? "Deactivate" : "Activate")
+                    @(_tenant.IsActive ? TL["Deactivate"] : TL["Activate"])
                 </MudButton>
             }
         </ActionContent>
@@ -76,11 +81,11 @@ else
             </MudStack>
             @if (_tenant.IsActive)
             {
-                <MudChip T="string" Color="Color.Success" Size="Size.Small" Variant="Variant.Filled">Active</MudChip>
+                <MudChip T="string" Color="Color.Success" Size="Size.Small" Variant="Variant.Filled">@L["Active"]</MudChip>
             }
             else
             {
-                <MudChip T="string" Color="Color.Error" Size="Size.Small" Variant="Variant.Filled">Inactive</MudChip>
+                <MudChip T="string" Color="Color.Error" Size="Size.Small" Variant="Variant.Filled">@L["Inactive"]</MudChip>
             }
         </MudStack>
     </MudPaper>
@@ -91,25 +96,25 @@ else
             <MudPaper Class="fsh-card pa-4" Style="height: 100%;">
                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-3">
                     <MudIcon Icon="@Icons.Material.Filled.Info" Color="Color.Primary" />
-                    <MudText Typo="Typo.h6" Class="fw-600">Tenant Information</MudText>
+                    <MudText Typo="Typo.h6" Class="fw-600">@L["Details"]</MudText>
                 </MudStack>
                 <MudDivider Class="mb-3" />
                 <MudStack Spacing="2">
                     <MudStack Row="true" Justify="Justify.SpaceBetween">
-                        <MudText Typo="Typo.body2" Class="text-muted">Tenant ID</MudText>
+                        <MudText Typo="Typo.body2" Class="text-muted">@TL["TenantIdentifier"]</MudText>
                         <MudText Typo="Typo.body2" Class="fw-600">@_tenant.Id</MudText>
                     </MudStack>
                     <MudStack Row="true" Justify="Justify.SpaceBetween">
-                        <MudText Typo="Typo.body2" Class="text-muted">Name</MudText>
+                        <MudText Typo="Typo.body2" Class="text-muted">@L["Name"]</MudText>
                         <MudText Typo="Typo.body2" Class="fw-600">@_tenant.Name</MudText>
                     </MudStack>
                     <MudStack Row="true" Justify="Justify.SpaceBetween">
-                        <MudText Typo="Typo.body2" Class="text-muted">Admin Email</MudText>
+                        <MudText Typo="Typo.body2" Class="text-muted">@TL["AdminEmail"]</MudText>
                         <MudText Typo="Typo.body2" Class="fw-600">@_tenant.AdminEmail</MudText>
                     </MudStack>
                     <MudStack Row="true" Justify="Justify.SpaceBetween">
-                        <MudText Typo="Typo.body2" Class="text-muted">Issuer</MudText>
-                        <MudText Typo="Typo.body2" Class="fw-600">@(string.IsNullOrEmpty(_tenant.Issuer) ? "Default" : _tenant.Issuer)</MudText>
+                        <MudText Typo="Typo.body2" Class="text-muted">@TL["Issuer"]</MudText>
+                        <MudText Typo="Typo.body2" Class="fw-600">@(string.IsNullOrEmpty(_tenant.Issuer) ? L["Default"] : _tenant.Issuer)</MudText>
                     </MudStack>
                 </MudStack>
             </MudPaper>
@@ -120,27 +125,27 @@ else
             <MudPaper Class="fsh-card pa-4" Style="height: 100%;">
                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-3">
                     <MudIcon Icon="@Icons.Material.Filled.CardMembership" Color="Color.Primary" />
-                    <MudText Typo="Typo.h6" Class="fw-600">Subscription Details</MudText>
+                    <MudText Typo="Typo.h6" Class="fw-600">@TL["Subscription"]</MudText>
                 </MudStack>
                 <MudDivider Class="mb-3" />
                 <MudStack Spacing="2">
                     <MudStack Row="true" Justify="Justify.SpaceBetween">
-                        <MudText Typo="Typo.body2" Class="text-muted">Status</MudText>
+                        <MudText Typo="Typo.body2" Class="text-muted">@L["Status"]</MudText>
                         @if (_tenant.IsActive)
                         {
-                            <MudChip T="string" Color="Color.Success" Size="Size.Small">Active</MudChip>
+                            <MudChip T="string" Color="Color.Success" Size="Size.Small">@L["Active"]</MudChip>
                         }
                         else
                         {
-                            <MudChip T="string" Color="Color.Error" Size="Size.Small">Inactive</MudChip>
+                            <MudChip T="string" Color="Color.Error" Size="Size.Small">@L["Inactive"]</MudChip>
                         }
                     </MudStack>
                     <MudStack Row="true" Justify="Justify.SpaceBetween">
-                        <MudText Typo="Typo.body2" Class="text-muted">Valid Until</MudText>
+                        <MudText Typo="Typo.body2" Class="text-muted">@TL["ValidUpto"]</MudText>
                         <MudText Typo="Typo.body2" Class="fw-600">@_tenant.ValidUpto.ToString("MMMM dd, yyyy")</MudText>
                     </MudStack>
                     <MudStack Row="true" Justify="Justify.SpaceBetween">
-                        <MudText Typo="Typo.body2" Class="text-muted">Time Remaining</MudText>
+                        <MudText Typo="Typo.body2" Class="text-muted">@L["TimeRemaining"]</MudText>
                         <MudText Typo="Typo.body2" Class="fw-600" Color="@GetExpiryColor(_tenant.ValidUpto)">
                             @GetExpiryText(_tenant.ValidUpto)
                         </MudText>
@@ -150,13 +155,13 @@ else
                 @if (IsExpiringSoon(_tenant.ValidUpto))
                 {
                     <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Dense="true" Class="mt-3">
-                        This tenant's subscription is expiring soon. Consider upgrading.
+                        @L["ExpiringSoon"]
                     </MudAlert>
                 }
                 else if (IsExpired(_tenant.ValidUpto))
                 {
                     <MudAlert Severity="Severity.Error" Variant="Variant.Outlined" Dense="true" Class="mt-3">
-                        This tenant's subscription has expired.
+                        @L["Expired"]
                     </MudAlert>
                 }
             </MudPaper>
@@ -167,32 +172,32 @@ else
             <MudPaper Class="fsh-card pa-4" Style="height: 100%;">
                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-3">
                     <MudIcon Icon="@Icons.Material.Filled.Storage" Color="Color.Primary" />
-                    <MudText Typo="Typo.h6" Class="fw-600">Database Configuration</MudText>
+                    <MudText Typo="Typo.h6" Class="fw-600">@L["Database"]</MudText>
                 </MudStack>
                 <MudDivider Class="mb-3" />
                 <MudStack Spacing="2">
                     <MudStack Row="true" Justify="Justify.SpaceBetween">
-                        <MudText Typo="Typo.body2" Class="text-muted">Database Type</MudText>
+                        <MudText Typo="Typo.body2" Class="text-muted">@L["Type"]</MudText>
                         @if (_tenant.HasConnectionString)
                         {
                             <MudChip T="string" Color="Color.Info" Size="Size.Small" Variant="Variant.Outlined">
                                 <MudIcon Icon="@Icons.Material.Filled.Storage" Size="Size.Small" Class="mr-1" />
-                                Dedicated
+                                @L["Dedicated"]
                             </MudChip>
                         }
                         else
                         {
                             <MudChip T="string" Color="Color.Default" Size="Size.Small" Variant="Variant.Outlined">
                                 <MudIcon Icon="@Icons.Material.Filled.Cloud" Size="Size.Small" Class="mr-1" />
-                                Shared
+                                @L["Shared"]
                             </MudChip>
                         }
                     </MudStack>
                     @if (_tenant.HasConnectionString)
                     {
                         <MudStack Row="true" Justify="Justify.SpaceBetween">
-                            <MudText Typo="Typo.body2" Class="text-muted">Connection String</MudText>
-                            <MudTooltip Text="Connection string is configured">
+                            <MudText Typo="Typo.body2" Class="text-muted">@TL["ConnectionString"]</MudText>
+                            <MudTooltip Text="@L["Configured"]">
                                 <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" />
                             </MudTooltip>
                         </MudStack>
@@ -207,7 +212,7 @@ else
                 <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-3">
                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                         <MudIcon Icon="@Icons.Material.Filled.BuildCircle" Color="Color.Primary" />
-                        <MudText Typo="Typo.h6" Class="fw-600">Provisioning Status</MudText>
+                        <MudText Typo="Typo.h6" Class="fw-600">@L["ProvisioningStatus"]</MudText>
                     </MudStack>
                     <MudIconButton Icon="@Icons.Material.Filled.Refresh"
                                    Size="Size.Small"
@@ -225,14 +230,14 @@ else
                 else if (_provisioningStatus is null)
                 {
                     <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true">
-                        No provisioning information available.
+                        @L["NoDataAvailable"]
                     </MudAlert>
                 }
                 else
                 {
                     <MudStack Spacing="2">
                         <MudStack Row="true" Justify="Justify.SpaceBetween">
-                            <MudText Typo="Typo.body2" Class="text-muted">Status</MudText>
+                            <MudText Typo="Typo.body2" Class="text-muted">@L["Status"]</MudText>
                             <MudChip T="string" Color="@GetProvisioningStatusColor(_provisioningStatus.Status)" Size="Size.Small">
                                 @_provisioningStatus.Status
                             </MudChip>
@@ -240,21 +245,21 @@ else
                         @if (!string.IsNullOrEmpty(_provisioningStatus.CurrentStep))
                         {
                             <MudStack Row="true" Justify="Justify.SpaceBetween">
-                                <MudText Typo="Typo.body2" Class="text-muted">Current Step</MudText>
+                                <MudText Typo="Typo.body2" Class="text-muted">@L["CurrentStep"]</MudText>
                                 <MudText Typo="Typo.body2" Class="fw-600">@_provisioningStatus.CurrentStep</MudText>
                             </MudStack>
                         }
                         @if (_provisioningStatus.StartedUtc.HasValue)
                         {
                             <MudStack Row="true" Justify="Justify.SpaceBetween">
-                                <MudText Typo="Typo.body2" Class="text-muted">Started</MudText>
+                                <MudText Typo="Typo.body2" Class="text-muted">@L["Started"]</MudText>
                                 <MudText Typo="Typo.body2">@_provisioningStatus.StartedUtc.Value.LocalDateTime.ToString("g")</MudText>
                             </MudStack>
                         }
                         @if (_provisioningStatus.CompletedUtc.HasValue)
                         {
                             <MudStack Row="true" Justify="Justify.SpaceBetween">
-                                <MudText Typo="Typo.body2" Class="text-muted">Completed</MudText>
+                                <MudText Typo="Typo.body2" Class="text-muted">@L["Completed"]</MudText>
                                 <MudText Typo="Typo.body2">@_provisioningStatus.CompletedUtc.Value.LocalDateTime.ToString("g")</MudText>
                             </MudStack>
                         }
@@ -276,11 +281,11 @@ else
                                 @if (_retrying)
                                 {
                                     <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
-                                    <span>Retrying...</span>
+                                    <span>@L["Loading"]</span>
                                 }
                                 else
                                 {
-                                    <span>Retry Provisioning</span>
+                                    <span>@TL["RetryProvisioning"]</span>
                                 }
                             </MudButton>
                         }
@@ -290,7 +295,7 @@ else
                     @if (_provisioningStatus.Steps?.Any() == true)
                     {
                         <MudDivider Class="my-3" />
-                        <MudText Typo="Typo.subtitle2" Class="fw-600 mb-2">Provisioning Steps</MudText>
+                        <MudText Typo="Typo.subtitle2" Class="fw-600 mb-2">@L["ProvisioningStatus"]</MudText>
                         <MudTimeline TimelinePosition="TimelinePosition.Start">
                             @foreach (var step in _provisioningStatus.Steps)
                             {
@@ -377,7 +382,7 @@ else
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to load tenant: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {
@@ -422,21 +427,21 @@ else
         return validUpto > now && validUpto <= now.AddDays(30);
     }
 
-    private static string GetExpiryText(DateTimeOffset validUpto)
+    private string GetExpiryText(DateTimeOffset validUpto)
     {
         var now = DateTimeOffset.UtcNow;
         if (validUpto <= now)
-            return "Expired";
+            return L["Expired"];
 
         var diff = validUpto - now;
         if (diff.TotalDays < 1)
-            return "Expires today";
+            return L["ExpiringSoon"];
         if (diff.TotalDays < 2)
-            return "Expires tomorrow";
+            return L["ExpiringSoon"];
         if (diff.TotalDays <= 30)
-            return $"Expires in {(int)diff.TotalDays} days";
+            return $"{(int)diff.TotalDays} {L["Days"]}";
 
-        return $"{(int)diff.TotalDays} days remaining";
+        return $"{(int)diff.TotalDays} {L["Days"]}";
     }
 
     private static Color GetExpiryColor(DateTimeOffset validUpto)
@@ -472,10 +477,10 @@ else
         if (_tenant is null) return;
 
         var confirmed = await DialogService.ShowConfirmAsync(
-            "Retry Provisioning",
-            $"Are you sure you want to retry provisioning for '{_tenant.Name}'? This will attempt to complete any failed provisioning steps.",
-            "Retry",
-            "Cancel",
+            TL["RetryProvisioning"],
+            string.Format(TL["ConfirmRetryProvisioning"], _tenant.Name),
+            L["Retry"],
+            L["Cancel"],
             Color.Primary);
 
         if (!confirmed) return;
@@ -484,11 +489,11 @@ else
         try
         {
             _provisioningStatus = await ProvisioningClient.RetryAsync(_tenant.Id);
-            Snackbar.Add("Provisioning retry initiated successfully.", Severity.Success);
+            Snackbar.Add(TL["ProvisioningRetrySuccess"], Severity.Success);
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to retry provisioning: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {
@@ -504,16 +509,15 @@ else
 
         if (IsRootTenant)
         {
-            Snackbar.Add("Root tenant cannot be deactivated.", Severity.Warning);
+            Snackbar.Add(TL["RootCannotBeDeactivated"], Severity.Warning);
             return;
         }
 
-        var action = _tenant.IsActive ? "deactivate" : "activate";
         var confirmed = await DialogService.ShowConfirmAsync(
-            $"{(_tenant.IsActive ? "Deactivate" : "Activate")} Tenant",
-            $"Are you sure you want to {action} '{_tenant.Name}'?",
-            _tenant.IsActive ? "Deactivate" : "Activate",
-            "Cancel",
+            _tenant.IsActive ? TL["Deactivate"] : TL["Activate"],
+            string.Format(TL["ConfirmToggleStatus"], _tenant.Name),
+            _tenant.IsActive ? TL["Deactivate"] : TL["Activate"],
+            L["Cancel"],
             _tenant.IsActive ? Color.Warning : Color.Success);
 
         if (!confirmed) return;
@@ -527,12 +531,12 @@ else
                 IsActive = !_tenant.IsActive
             };
             await TenantsClient.ActivationAsync(_tenant.Id, command);
-            Snackbar.Add($"Tenant {(_tenant.IsActive ? "deactivated" : "activated")} successfully.", Severity.Success);
+            Snackbar.Add(TL["TenantUpdatedSuccessfully"], Severity.Success);
             await LoadTenant();
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to update tenant: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {
@@ -567,7 +571,7 @@ else
             CloseButton = true
         };
 
-        var dialog = await DialogService.ShowAsync<UpgradeTenantDialog>("Upgrade Subscription", parameters, options);
+        var dialog = await DialogService.ShowAsync<UpgradeTenantDialog>(TL["UpgradeTenant"], parameters, options);
         var result = await dialog.Result;
 
         if (result is not null && !result.Canceled)

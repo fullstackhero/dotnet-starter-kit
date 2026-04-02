@@ -1,5 +1,8 @@
 @page "/welcome"
+@using FSH.Playground.Blazor.Localization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<PlaygroundResource> PL
 @inherits ComponentBase
 
-<FshPageHeader Title="Welcome"
-               Description="Use the navigation to access Dashboard, Profile, and Audits" />
+<FshPageHeader Title="@PL["Home"]"
+               Description="@PL["WelcomeToYourNewApp"]" />

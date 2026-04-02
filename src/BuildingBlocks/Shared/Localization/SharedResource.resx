@@ -1,7 +1,108 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
     </xsd:element>
   </xsd:schema>
   <resheader name="resmimetype">
@@ -11,13 +112,11 @@
     <value>2.0</value>
   </resheader>
   <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-
-  <!-- Common validation messages -->
   <data name="Required" xml:space="preserve">
     <value>{0} is required.</value>
   </data>
@@ -30,8 +129,15 @@
   <data name="InvalidEmail" xml:space="preserve">
     <value>A valid email address is required.</value>
   </data>
-
-  <!-- Identity validation messages -->
+  <data name="Unauthorized" xml:space="preserve">
+    <value>Authentication failed.</value>
+  </data>
+  <data name="NotFound" xml:space="preserve">
+    <value>The requested resource was not found.</value>
+  </data>
+  <data name="Forbidden" xml:space="preserve">
+    <value>You do not have permission to perform this action.</value>
+  </data>
   <data name="UserIdsRequired" xml:space="preserve">
     <value>At least one user ID is required.</value>
   </data>
@@ -50,15 +156,338 @@
   <data name="ImageConflict" xml:space="preserve">
     <value>You cannot upload a new image and delete the current one simultaneously.</value>
   </data>
+  <data name="CreateAccount" xml:space="preserve">
+    <value>Create Account</value>
+  </data>
+  <data name="CreateAnAccount" xml:space="preserve">
+    <value>Create an account</value>
+  </data>
+  <data name="EnterYourDetailsToGetStarted" xml:space="preserve">
+    <value>Enter your details to get started</value>
+  </data>
+  <data name="Tenant" xml:space="preserve">
+    <value>Tenant</value>
+  </data>
+  <data name="EnterTenantName" xml:space="preserve">
+    <value>Enter tenant name</value>
+  </data>
+  <data name="FirstName" xml:space="preserve">
+    <value>First Name</value>
+  </data>
+  <data name="FirstNamePlaceholder" xml:space="preserve">
+    <value>John</value>
+  </data>
+  <data name="LastName" xml:space="preserve">
+    <value>Last Name</value>
+  </data>
+  <data name="LastNamePlaceholder" xml:space="preserve">
+    <value>Doe</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="EmailPlaceholder" xml:space="preserve">
+    <value>m@example.com</value>
+  </data>
+  <data name="Username" xml:space="preserve">
+    <value>Username</value>
+  </data>
+  <data name="UsernamePlaceholder" xml:space="preserve">
+    <value>johndoe</value>
+  </data>
+  <data name="PhoneNumber" xml:space="preserve">
+    <value>Phone Number</value>
+  </data>
+  <data name="Optional" xml:space="preserve">
+    <value>Optional</value>
+  </data>
+  <data name="PhoneNumberPlaceholder" xml:space="preserve">
+    <value>+1 (555) 000-0000</value>
+  </data>
+  <data name="Password" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="CreateStrongPassword" xml:space="preserve">
+    <value>Create a strong password</value>
+  </data>
+  <data name="ConfirmPassword" xml:space="preserve">
+    <value>Confirm Password</value>
+  </data>
+  <data name="ConfirmYourPassword" xml:space="preserve">
+    <value>Confirm your password</value>
+  </data>
+  <data name="ShowPassword" xml:space="preserve">
+    <value>Show password</value>
+  </data>
+  <data name="CreatingAccount" xml:space="preserve">
+    <value>Creating account...</value>
+  </data>
+  <data name="AlreadyHaveAccount" xml:space="preserve">
+    <value>Already have an account?</value>
+  </data>
+  <data name="SignIn" xml:space="preserve">
+    <value>Sign in</value>
+  </data>
+  <data name="ByCreatingAccountYouAgree" xml:space="preserve">
+    <value>By creating an account, you agree to our</value>
+  </data>
+  <data name="And" xml:space="preserve">
+    <value>and</value>
+  </data>
+  <data name="TermsOfService" xml:space="preserve">
+    <value>Terms of Service</value>
+  </data>
+  <data name="PrivacyPolicy" xml:space="preserve">
+    <value>Privacy Policy</value>
+  </data>
+  <data name="AccountCreatedSuccessfully" xml:space="preserve">
+    <value>Account created successfully! Please check your email to confirm your account.</value>
+  </data>
+  <data name="UnexpectedErrorOccurred" xml:space="preserve">
+    <value>An unexpected error occurred. Please try again.</value>
+  </data>
+  <data name="Login" xml:space="preserve">
+    <value>Login</value>
+  </data>
+  <data name="WelcomeBack" xml:space="preserve">
+    <value>Welcome Back</value>
+  </data>
+  <data name="LoginWithYourAccount" xml:space="preserve">
+    <value>Login with your Apple or Google account</value>
+  </data>
+  <data name="LoginWithApple" xml:space="preserve">
+    <value>Login with Apple</value>
+  </data>
+  <data name="LoginWithGoogle" xml:space="preserve">
+    <value>Login with Google</value>
+  </data>
+  <data name="OrContinueWith" xml:space="preserve">
+    <value>Or continue with</value>
+  </data>
+  <data name="ForgotYourPassword" xml:space="preserve">
+    <value>Forgot your password?</value>
+  </data>
+  <data name="DontHaveAccount" xml:space="preserve">
+    <value>Don't have an account?</value>
+  </data>
+  <data name="SignUp" xml:space="preserve">
+    <value>Sign up</value>
+  </data>
+  <data name="ByClickingContinueYouAgree" xml:space="preserve">
+    <value>By clicking continue, you agree to our</value>
+  </data>
 
-  <!-- Common error messages -->
-  <data name="Unauthorized" xml:space="preserve">
-    <value>Authentication failed.</value>
-  </data>
-  <data name="NotFound" xml:space="preserve">
-    <value>The requested resource was not found.</value>
-  </data>
-  <data name="Forbidden" xml:space="preserve">
-    <value>You do not have permission to perform this action.</value>
-  </data>
+  <!-- Common Actions -->
+  <data name="Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="Create" xml:space="preserve"><value>Create</value></data>
+  <data name="Update" xml:space="preserve"><value>Update</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Submit" xml:space="preserve"><value>Submit</value></data>
+  <data name="Search" xml:space="preserve"><value>Search</value></data>
+  <data name="Filter" xml:space="preserve"><value>Filter</value></data>
+  <data name="Export" xml:space="preserve"><value>Export</value></data>
+  <data name="Import" xml:space="preserve"><value>Import</value></data>
+  <data name="Refresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="Add" xml:space="preserve"><value>Add</value></data>
+  <data name="Remove" xml:space="preserve"><value>Remove</value></data>
+  <data name="View" xml:space="preserve"><value>View</value></data>
+  <data name="Back" xml:space="preserve"><value>Back</value></data>
+  <data name="Next" xml:space="preserve"><value>Next</value></data>
+  <data name="Previous" xml:space="preserve"><value>Previous</value></data>
+  <data name="Confirm" xml:space="preserve"><value>Confirm</value></data>
+  <data name="Reset" xml:space="preserve"><value>Reset</value></data>
+  <data name="Clear" xml:space="preserve"><value>Clear</value></data>
+  <data name="Apply" xml:space="preserve"><value>Apply</value></data>
+
+  <!-- Common Labels -->
+  <data name="Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Description" xml:space="preserve"><value>Description</value></data>
+  <data name="Status" xml:space="preserve"><value>Status</value></data>
+  <data name="Active" xml:space="preserve"><value>Active</value></data>
+  <data name="Inactive" xml:space="preserve"><value>Inactive</value></data>
+  <data name="Enabled" xml:space="preserve"><value>Enabled</value></data>
+  <data name="Disabled" xml:space="preserve"><value>Disabled</value></data>
+  <data name="Actions" xml:space="preserve"><value>Actions</value></data>
+  <data name="Details" xml:space="preserve"><value>Details</value></data>
+  <data name="Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Date" xml:space="preserve"><value>Date</value></data>
+  <data name="Time" xml:space="preserve"><value>Time</value></data>
+  <data name="CreatedAt" xml:space="preserve"><value>Created At</value></data>
+  <data name="UpdatedAt" xml:space="preserve"><value>Updated At</value></data>
+  <data name="CreatedBy" xml:space="preserve"><value>Created By</value></data>
+  <data name="UpdatedBy" xml:space="preserve"><value>Updated By</value></data>
+
+  <!-- Messages -->
+  <data name="Loading" xml:space="preserve"><value>Loading...</value></data>
+  <data name="NoDataAvailable" xml:space="preserve"><value>No data available</value></data>
+  <data name="SavedSuccessfully" xml:space="preserve"><value>Saved successfully</value></data>
+  <data name="DeletedSuccessfully" xml:space="preserve"><value>Deleted successfully</value></data>
+  <data name="UpdatedSuccessfully" xml:space="preserve"><value>Updated successfully</value></data>
+  <data name="CreatedSuccessfully" xml:space="preserve"><value>Created successfully</value></data>
+  <data name="ConfirmDelete" xml:space="preserve"><value>Are you sure you want to delete this?</value></data>
+  <data name="OperationCancelled" xml:space="preserve"><value>Operation cancelled</value></data>
+  <data name="ProcessingRequest" xml:space="preserve"><value>Processing request...</value></data>
+
+  <!-- Navigation -->
+  <data name="Dashboard" xml:space="preserve"><value>Dashboard</value></data>
+  <data name="Users" xml:space="preserve"><value>Users</value></data>
+  <data name="Roles" xml:space="preserve"><value>Roles</value></data>
+  <data name="Groups" xml:space="preserve"><value>Groups</value></data>
+  <data name="Tenants" xml:space="preserve"><value>Tenants</value></data>
+  <data name="Audits" xml:space="preserve"><value>Audits</value></data>
+  <data name="Profile" xml:space="preserve"><value>Profile</value></data>
+  <data name="Security" xml:space="preserve"><value>Security</value></data>
+  <data name="Theme" xml:space="preserve"><value>Theme</value></data>
+  <data name="Sessions" xml:space="preserve"><value>Sessions</value></data>
+  <data name="Permissions" xml:space="preserve"><value>Permissions</value></data>
+  <data name="Webhooks" xml:space="preserve"><value>Webhooks</value></data>
+
+  <!-- Table Headers -->
+  <data name="Id" xml:space="preserve"><value>ID</value></data>
+  <data name="Image" xml:space="preserve"><value>Image</value></data>
+  <data name="Role" xml:space="preserve"><value>Role</value></data>
+  <data name="Members" xml:space="preserve"><value>Members</value></data>
+  <data name="Count" xml:space="preserve"><value>Count</value></data>
+
+  <!-- Status -->
+  <data name="Assigned" xml:space="preserve"><value>Assigned</value></data>
+  <data name="Available" xml:space="preserve"><value>Available</value></data>
+  <data name="AvailableRoles" xml:space="preserve"><value>Available Roles</value></data>
+  <data name="Categories" xml:space="preserve"><value>Categories</value></data>
+  <data name="Changes" xml:space="preserve"><value>Changes</value></data>
+  <data name="WillBeAdded" xml:space="preserve"><value>Will be added</value></data>
+  <data name="WillBeRemoved" xml:space="preserve"><value>Will be removed</value></data>
+  <data name="Configured" xml:space="preserve"><value>Configured</value></data>
+  <data name="ProvisioningStatus" xml:space="preserve"><value>Provisioning Status</value></data>
+  <data name="CurrentStep" xml:space="preserve"><value>Current Step</value></data>
+  <data name="Started" xml:space="preserve"><value>Started</value></data>
+  <data name="TimeRemaining" xml:space="preserve"><value>Time Remaining</value></data>
+  <data name="Expired" xml:space="preserve"><value>Expired</value></data>
+  <data name="ExpiringSoon" xml:space="preserve"><value>Expiring Soon</value></data>
+  <data name="Dedicated" xml:space="preserve"><value>Dedicated</value></data>
+  <data name="Shared" xml:space="preserve"><value>Shared</value></data>
+  <data name="DangerZone" xml:space="preserve"><value>Danger Zone</value></data>
+  <data name="ViewAll" xml:space="preserve"><value>View All</value></data>
+  <data name="User" xml:space="preserve"><value>User</value></data>
+  <data name="UserId" xml:space="preserve"><value>User ID</value></data>
+  <data name="Admin" xml:space="preserve"><value>Admin</value></data>
+  <data name="Verified" xml:space="preserve"><value>Verified</value></data>
+  <data name="Unverified" xml:space="preserve"><value>Unverified</value></data>
+  <data name="Tenant" xml:space="preserve"><value>Tenant</value></data>
+  <data name="Days" xml:space="preserve"><value>days</value></data>
+  <data name="Unlimited" xml:space="preserve"><value>Unlimited</value></data>
+  <data name="MaxSessions" xml:space="preserve"><value>Max Sessions per User</value></data>
+  <data name="SessionIdleTimeout" xml:space="preserve"><value>Session Idle Timeout</value></data>
+  <data name="SessionAbsoluteTimeout" xml:space="preserve"><value>Session Absolute Timeout</value></data>
+  <data name="PasswordHistory" xml:space="preserve"><value>Password History</value></data>
+  <data name="AccountLockout" xml:space="preserve"><value>Account Lockout</value></data>
+  <data name="TwoFactorAuthentication" xml:space="preserve"><value>Two-Factor Authentication</value></data>
+  <data name="Optional" xml:space="preserve"><value>Optional</value></data>
+  <data name="Quotas" xml:space="preserve"><value>Quotas</value></data>
+  <data name="MaxUsers" xml:space="preserve"><value>Max Users</value></data>
+  <data name="StorageLimit" xml:space="preserve"><value>Storage Limit</value></data>
+  <data name="APIRateLimit" xml:space="preserve"><value>API Rate Limit</value></data>
+  <data name="EmailNotifications" xml:space="preserve"><value>Email Notifications</value></data>
+  <data name="SystemAlerts" xml:space="preserve"><value>System Alerts</value></data>
+  <data name="Retry" xml:space="preserve"><value>Retry</value></data>
+  <data name="SelectAll" xml:space="preserve"><value>Select All</value></data>
+  <data name="DeselectAll" xml:space="preserve"><value>Deselect All</value></data>
+  <data name="Expand" xml:space="preserve"><value>Expand</value></data>
+  <data name="Collapse" xml:space="preserve"><value>Collapse</value></data>
+  <data name="Pending" xml:space="preserve"><value>Pending</value></data>
+  <data name="Upload" xml:space="preserve"><value>Upload</value></data>
+  <data name="EmailVerified" xml:space="preserve"><value>Email Verified</value></data>
+  <data name="NotProvided" xml:space="preserve"><value>Not provided</value></data>
+  <data name="Yes" xml:space="preserve"><value>Yes</value></data>
+  <data name="No" xml:space="preserve"><value>No</value></data>
+  <data name="Clear" xml:space="preserve"><value>Clear</value></data>
+  <data name="ConfirmPassword" xml:space="preserve"><value>Confirm Password</value></data>
+  <data name="ConfirmYourPassword" xml:space="preserve"><value>Confirm your password</value></data>
+  <data name="PasswordsMustMatch" xml:space="preserve"><value>Passwords do not match</value></data>
+  <data name="ComingSoon" xml:space="preserve"><value>Coming soon in a future update.</value></data>
+
+  <!-- Navigation Sections -->
+  <data name="Administration" xml:space="preserve"><value>Administration</value></data>
+  <data name="Communication" xml:space="preserve"><value>Communication</value></data>
+  <data name="System" xml:space="preserve"><value>System</value></data>
+  <data name="Chat" xml:space="preserve"><value>Chat</value></data>
+  <data name="Notifications" xml:space="preserve"><value>Notifications</value></data>
+  <data name="Logs" xml:space="preserve"><value>Logs</value></data>
+  <data name="AuditLogs" xml:space="preserve"><value>Audit Logs</value></data>
+  <data name="About" xml:space="preserve"><value>About</value></data>
+  <data name="Database" xml:space="preserve"><value>Database</value></data>
+  <data name="AccessDenied" xml:space="preserve"><value>Access Denied</value></data>
+  <data name="Timestamp" xml:space="preserve"><value>Timestamp</value></data>
+  <data name="Tracking" xml:space="preserve"><value>Tracking</value></data>
+  <data name="Apply" xml:space="preserve"><value>Apply</value></data>
+  <data name="All" xml:space="preserve"><value>All</value></data>
+  <data name="Total" xml:space="preserve"><value>Total</value></data>
+  <data name="Refresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="Overview" xml:space="preserve"><value>Overview</value></data>
+  <data name="Hide" xml:space="preserve"><value>Hide</value></data>
+  <data name="Copy" xml:space="preserve"><value>Copy</value></data>
+  <data name="CopiedToClipboard" xml:space="preserve"><value>Copied to clipboard</value></data>
+  <data name="RowsPerPage" xml:space="preserve"><value>Rows per page:</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Default" xml:space="preserve"><value>Default</value></data>
+  <data name="Filters" xml:space="preserve"><value>Filters</value></data>
+  <data name="Protected" xml:space="preserve"><value>Protected</value></data>
+  <data name="Expiring" xml:space="preserve"><value>Expiring</value></data>
+  <data name="Inactive" xml:space="preserve"><value>Inactive</value></data>
+  <data name="Unknown" xml:space="preserve"><value>Unknown</value></data>
+  <data name="Enabled" xml:space="preserve"><value>Enabled</value></data>
+  <data name="Phone" xml:space="preserve"><value>Phone</value></data>
+  <data name="Type" xml:space="preserve"><value>Type</value></data>
+  <data name="LastActivity" xml:space="preserve"><value>Last Activity</value></data>
+  <data name="CreatedOn" xml:space="preserve"><value>Created</value></data>
+  <data name="Roles" xml:space="preserve"><value>Roles</value></data>
+  <data name="Other" xml:space="preserve"><value>Other</value></data>
+  <data name="ViewAndEditProfile" xml:space="preserve"><value>View and edit your profile</value></data>
+  <data name="ViewRecentActivity" xml:space="preserve"><value>View your recent activity</value></data>
+  <data name="SignOut" xml:space="preserve"><value>Sign out</value></data>
+  <data name="BrandAssets" xml:space="preserve"><value>Brand Assets</value></data>
+  <data name="LogoLightMode" xml:space="preserve"><value>Logo (Light Mode)</value></data>
+  <data name="LogoDarkMode" xml:space="preserve"><value>Logo (Dark Mode)</value></data>
+  <data name="Favicon" xml:space="preserve"><value>Favicon</value></data>
+  <data name="ClickToUpload" xml:space="preserve"><value>Click to upload</value></data>
+  <data name="Remove" xml:space="preserve"><value>Remove</value></data>
+  <data name="Primary" xml:space="preserve"><value>Primary</value></data>
+  <data name="Secondary" xml:space="preserve"><value>Secondary</value></data>
+  <data name="Tertiary" xml:space="preserve"><value>Tertiary</value></data>
+  <data name="Background" xml:space="preserve"><value>Background</value></data>
+  <data name="Surface" xml:space="preserve"><value>Surface</value></data>
+  <data name="SemanticColors" xml:space="preserve"><value>Semantic Colors</value></data>
+  <data name="Success" xml:space="preserve"><value>Success</value></data>
+  <data name="Info" xml:space="preserve"><value>Info</value></data>
+  <data name="Warning" xml:space="preserve"><value>Warning</value></data>
+  <data name="Error" xml:space="preserve"><value>Error</value></data>
+  <data name="LayoutSettings" xml:space="preserve"><value>Layout Settings</value></data>
+  <data name="BorderRadius" xml:space="preserve"><value>Border Radius</value></data>
+  <data name="DefaultElevation" xml:space="preserve"><value>Default Elevation</value></data>
+  <data name="Preview" xml:space="preserve"><value>Preview</value></data>
+  <data name="Colors" xml:space="preserve"><value>Colors</value></data>
+  <data name="LightMode" xml:space="preserve"><value>Light Mode</value></data>
+  <data name="DarkMode" xml:space="preserve"><value>Dark Mode</value></data>
+  <data name="Brand" xml:space="preserve"><value>Brand</value></data>
+  <data name="Typography" xml:space="preserve"><value>Typography</value></data>
+  <data name="Layout" xml:space="preserve"><value>Layout</value></data>
+  <data name="Alerts" xml:space="preserve"><value>Alerts</value></data>
+  <data name="Form" xml:space="preserve"><value>Form</value></data>
+  <data name="BodyFontFamily" xml:space="preserve"><value>Body Font Family</value></data>
+  <data name="HeadingFontFamily" xml:space="preserve"><value>Heading Font Family</value></data>
+  <data name="FontSize" xml:space="preserve"><value>Font Size</value></data>
+  <data name="LineHeight" xml:space="preserve"><value>Line Height</value></data>
+  <data name="DeleteConfirmation" xml:space="preserve"><value>Delete Confirmation</value></data>
+  <data name="ConfirmDelete" xml:space="preserve"><value>Are you sure you want to delete {0}? This action cannot be undone.</value></data>
+  <data name="ConfirmSignOut" xml:space="preserve"><value>Are you sure you want to sign out of your account?</value></data>
+  <data name="SignedIn" xml:space="preserve"><value>Signed in.</value></data>
+  <data name="SignedOut" xml:space="preserve"><value>Signed out.</value></data>
+  <data name="SessionExpired" xml:space="preserve"><value>Your session has expired. Please sign in again.</value></data>
+  <data name="Completed" xml:space="preserve"><value>Completed</value></data>
+  <data name="Health" xml:space="preserve"><value>Health</value></data>
+  <data name="Home" xml:space="preserve"><value>Home</value></data>
+  <data name="None" xml:space="preserve"><value>None</value></data>
 </root>

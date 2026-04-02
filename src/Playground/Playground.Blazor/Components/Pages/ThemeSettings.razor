@@ -2,21 +2,26 @@
 @using FSH.Framework.Blazor.UI.Theme
 @using FSH.Framework.Blazor.UI.Components.Theme
 @using FSH.Framework.Blazor.UI.Components.Page
+@using FSH.Framework.Shared.Localization
+@using FSH.Playground.Blazor.Localization.Profile
 @using FSH.Playground.Blazor.Services
+@using Microsoft.Extensions.Localization
 @inject ITenantThemeState ThemeState
 @inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
+@inject IStringLocalizer<ProfileResource> PRL
 
-<PageTitle>Theme Settings</PageTitle>
+<PageTitle>@PRL["ThemeSettings"]</PageTitle>
 
-<FshPageHeader Title="Theme Settings"
-               Description="Customize your application's appearance and branding">
+<FshPageHeader Title="@PRL["ThemeSettings"]"
+               Description="@PRL["CustomizeAppearance"]">
     <ActionContent>
         <MudButton Variant="Variant.Outlined"
                    Color="Color.Default"
                    StartIcon="@Icons.Material.Outlined.Refresh"
                    OnClick="@ResetToDefaults"
                    Disabled="@(_customizer?.IsSaving ?? false)">
-            Reset to Defaults
+            @L["Reset"]
         </MudButton>
         <MudButton Variant="Variant.Filled"
                    Color="Color.Primary"
@@ -26,11 +31,11 @@
             @if (_customizer?.IsSaving ?? false)
             {
                 <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
-                <span>Saving...</span>
+                <span>@L["ProcessingRequest"]</span>
             }
             else
             {
-                <span>Save Changes</span>
+                <span>@L["Save"]</span>
             }
         </MudButton>
     </ActionContent>
@@ -64,7 +69,7 @@
     {
         // Reload theme after save to get the actual uploaded URLs
         await ThemeState.LoadThemeAsync();
-        Snackbar.Add("Theme saved successfully.", Severity.Success);
+        Snackbar.Add(PRL["ThemeSavedSuccessfully"], Severity.Success);
     }
 
     private async Task HandleAssetUpload((IBrowserFile File, string AssetType, Action<string, FileUpload?> SetAsset) args)
@@ -74,13 +79,13 @@
             // Validate file
             if (args.File.Size > 2 * 1024 * 1024) // 2MB max
             {
-                Snackbar.Add("File too large. Maximum 2MB allowed.", Severity.Error);
+                Snackbar.Add(PRL["FileTooLarge"], Severity.Error);
                 return;
             }
 
             if (!args.File.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
             {
-                Snackbar.Add("Only image files are allowed.", Severity.Error);
+                Snackbar.Add(PRL["OnlyImagesAllowed"], Severity.Error);
                 return;
             }
 
@@ -103,11 +108,11 @@
 
             // Set both preview URL and file upload data via callback
             args.SetAsset(previewUrl, fileUpload);
-            Snackbar.Add("Image ready. Click Save to upload.", Severity.Info);
+            Snackbar.Add(PRL["ImageReady"], Severity.Info);
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to process file: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
     }
 }

@@ -171,6 +171,23 @@
     font-size: 18px;
 }
 
+/* ===== Validation Messages ===== */
+::deep .validation-message {
+    font-size: 0.75rem;
+    color: #dc2626;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+::deep .form-input.invalid {
+    border-color: #dc2626;
+}
+
+::deep .form-input.invalid:focus {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 1px #dc2626;
+}
+
 /* ===== Auth Button ===== */
 .auth-button {
     display: flex;

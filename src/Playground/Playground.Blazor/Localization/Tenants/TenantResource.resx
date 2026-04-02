@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data"><xsd:complexType><xsd:sequence><xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" /></xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" /><xsd:attribute ref="xml:space" /></xsd:complexType></xsd:element>
+          <xsd:element name="resheader"><xsd:complexType><xsd:sequence><xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" /></xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" /></xsd:complexType></xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="TenantManagement" xml:space="preserve"><value>Tenant Management</value></data>
+  <data name="CreateTenant" xml:space="preserve"><value>Create Tenant</value></data>
+  <data name="EditTenant" xml:space="preserve"><value>Edit Tenant</value></data>
+  <data name="DeleteTenant" xml:space="preserve"><value>Delete Tenant</value></data>
+  <data name="TenantDetails" xml:space="preserve"><value>Tenant Details</value></data>
+  <data name="TenantSettings" xml:space="preserve"><value>Tenant Settings</value></data>
+  <data name="UpgradeTenant" xml:space="preserve"><value>Upgrade Tenant</value></data>
+  <data name="TenantIdentifier" xml:space="preserve"><value>Tenant Identifier</value></data>
+  <data name="AdminEmail" xml:space="preserve"><value>Admin Email</value></data>
+  <data name="ConnectionString" xml:space="preserve"><value>Connection String</value></data>
+  <data name="ValidFrom" xml:space="preserve"><value>Valid From</value></data>
+  <data name="ValidUpto" xml:space="preserve"><value>Valid Upto</value></data>
+  <data name="Issuer" xml:space="preserve"><value>Issuer</value></data>
+  <data name="TenantCreatedSuccessfully" xml:space="preserve"><value>Tenant created successfully</value></data>
+  <data name="TenantUpdatedSuccessfully" xml:space="preserve"><value>Tenant updated successfully</value></data>
+  <data name="TenantDeletedSuccessfully" xml:space="preserve"><value>Tenant deleted successfully</value></data>
+  <data name="TenantUpgradedSuccessfully" xml:space="preserve"><value>Tenant upgraded successfully</value></data>
+  <data name="ConfirmDeleteTenant" xml:space="preserve"><value>Are you sure you want to delete this tenant?</value></data>
+  <data name="SelectSubscription" xml:space="preserve"><value>Select Subscription</value></data>
+  <data name="ExtendValidUpto" xml:space="preserve"><value>Extend Valid Upto</value></data>
+  <data name="TotalTenants" xml:space="preserve"><value>Total Tenants</value></data>
+  <data name="ActiveTenants" xml:space="preserve"><value>Active Tenants</value></data>
+  <data name="InactiveTenants" xml:space="preserve"><value>Inactive Tenants</value></data>
+  <data name="ExpiredTenants" xml:space="preserve"><value>Expired Tenants</value></data>
+  <data name="NoTenantsFound" xml:space="preserve"><value>No tenants found</value></data>
+  <data name="TryAdjustingFilters" xml:space="preserve"><value>Try adjusting your filters or create a new tenant.</value></data>
+  <data name="ViewDetails" xml:space="preserve"><value>View Details</value></data>
+  <data name="Activate" xml:space="preserve"><value>Activate</value></data>
+  <data name="Deactivate" xml:space="preserve"><value>Deactivate</value></data>
+  <data name="RootTenantCannotBeDeleted" xml:space="preserve"><value>Root tenant cannot be deleted</value></data>
+  <data name="RootTenantCannotBeDeactivated" xml:space="preserve"><value>Root tenant cannot be deactivated</value></data>
+  <data name="Subscription" xml:space="preserve"><value>Subscription</value></data>
+  <data name="RetryProvisioning" xml:space="preserve"><value>Retry Provisioning</value></data>
+  <data name="ConfirmRetryProvisioning" xml:space="preserve"><value>Are you sure you want to retry provisioning for '{0}'?</value></data>
+  <data name="ProvisioningRetrySuccess" xml:space="preserve"><value>Provisioning retry initiated successfully</value></data>
+  <data name="RootCannotBeDeactivated" xml:space="preserve"><value>Root tenant cannot be deactivated</value></data>
+  <data name="ConfirmToggleStatus" xml:space="preserve"><value>Are you sure you want to change the status of '{0}'?</value></data>
+  <data name="SubscriptionReminders" xml:space="preserve"><value>Subscription Reminders</value></data>
+  <data name="Months" xml:space="preserve"><value>Months</value></data>
+  <data name="Year" xml:space="preserve"><value>Year</value></data>
+  <data name="NoPermission" xml:space="preserve"><value>You do not have permission to access this page. Only root tenant administrators can manage tenants.</value></data>
+</root>

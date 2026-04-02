@@ -2,14 +2,19 @@
 @using FSH.Playground.Blazor.ApiClient
 @using FSH.Framework.Blazor.UI.Components.Dialogs
 @using FSH.Framework.Blazor.UI.Components.Cards
+@using FSH.Framework.Shared.Localization
+@using FSH.Playground.Blazor.Localization.Groups
+@using Microsoft.Extensions.Localization
 @inherits ComponentBase
 @inject IIdentityClient IdentityClient
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@inject IStringLocalizer<SharedResource> L
+@inject IStringLocalizer<GroupResource> GL
 
-<FshPageHeader Title="Groups"
-               Description="Manage user groups and role assignments">
+<FshPageHeader Title="@L["Groups"]"
+               Description="@GL["GroupManagement"]">
     <ActionContent>
         @if (_selectedGroups.Any())
         {
@@ -18,11 +23,11 @@
                            Color="Color.Error"
                            OnClick="BulkDelete"
                            Disabled="_bulkBusy">
-                    Delete (@_selectedGroups.Count)
+                    @L["Delete"] (@_selectedGroups.Count)
                 </MudButton>
                 <MudButton StartIcon="@Icons.Material.Filled.Clear"
                            OnClick="ClearSelection">
-                    Clear
+                    @L["Clear"]
                 </MudButton>
             </MudButtonGroup>
         }
@@ -30,7 +35,7 @@
                    Color="Color.Primary"
                    StartIcon="@Icons.Material.Filled.Add"
                    OnClick="ShowCreate">
-            New Group
+            @GL["NewGroup"]
         </MudButton>
     </ActionContent>
 </FshPageHeader>
@@ -41,40 +46,40 @@
         <FshStatCard Icon="@Icons.Material.Filled.Groups"
                      IconColor="Color.Primary"
                      Value="@_stats.Total.ToString()"
-                     Label="Total Groups"
-                     Badge="Total" />
+                     Label="@GL["TotalGroups"]"
+                     Badge="@L["Total"]" />
     </MudItem>
     <MudItem xs="6" sm="3">
         <FshStatCard Icon="@Icons.Material.Filled.Lock"
                      IconColor="Color.Warning"
                      Value="@_stats.SystemGroups.ToString()"
-                     Label="System Groups"
-                     Badge="System" />
+                     Label="@GL["SystemGroups"]"
+                     Badge="@GL["System"]" />
     </MudItem>
     <MudItem xs="6" sm="3">
         <FshStatCard Icon="@Icons.Material.Filled.GroupAdd"
                      IconColor="Color.Success"
                      Value="@_stats.DefaultGroups.ToString()"
-                     Label="Default Groups"
-                     Badge="Default" />
+                     Label="@GL["DefaultGroups"]"
+                     Badge="@L["Default"]" />
     </MudItem>
     <MudItem xs="6" sm="3">
         <FshStatCard Icon="@Icons.Material.Filled.Edit"
                      IconColor="Color.Info"
                      Value="@_stats.CustomGroups.ToString()"
-                     Label="Custom Groups"
-                     Badge="Custom" />
+                     Label="@GL["CustomGroups"]"
+                     Badge="@GL["Custom"]" />
     </MudItem>
 </MudGrid>
 
 @* Filter Panel *@
 <MudExpansionPanels Class="mb-4" Elevation="0">
-    <MudExpansionPanel Text="Filters" IsInitiallyExpanded="true" Class="fsh-card">
+    <MudExpansionPanel Text="@L["Filter"]" IsInitiallyExpanded="true" Class="fsh-card">
         <MudGrid GutterSize="2">
             <MudItem xs="12" sm="6">
                 <MudTextField @bind-Value="_filter.Search"
-                              Label="Search"
-                              Placeholder="Group name or description"
+                              Label="@L["Search"]"
+                              Placeholder="@GL["GroupName"]"
                               Adornment="Adornment.Start"
                               AdornmentIcon="@Icons.Material.Filled.Search"
                               Immediate="true"
@@ -86,14 +91,14 @@
                            Color="Color.Default"
                            Variant="Variant.Text"
                            OnClick="ClearFilters">
-                    Clear Filters
+                    @L["Clear"]
                 </MudButton>
                 <MudButton StartIcon="@Icons.Material.Filled.Refresh"
                            Color="Color.Primary"
                            Variant="Variant.Filled"
                            OnClick="LoadData"
                            Class="ml-2">
-                    Refresh
+                    @L["Refresh"]
                 </MudButton>
             </MudItem>
         </MudGrid>
@@ -118,7 +123,7 @@
                  Class="groups-datagrid">
         <Columns>
             <SelectColumn T="GroupDto" ShowInFooter="false" />
-            <TemplateColumn Title="Group" Sortable="true" SortBy="@(x => x.Name)">
+            <TemplateColumn Title="@L["Groups"]" Sortable="true" SortBy="@(x => x.Name)">
                 <CellTemplate>
                     <MudStack Spacing="0">
                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
@@ -127,36 +132,36 @@
                             </MudLink>
                             @if (context.Item.IsDefault)
                             {
-                                <MudTooltip Text="New users are automatically added to this group">
+                                <MudTooltip Text="@GL["DefaultGroupTooltip"]">
                                     <MudIcon Icon="@Icons.Material.Filled.Star" Size="Size.Small" Color="Color.Warning" />
                                 </MudTooltip>
                             }
                         </MudStack>
                         <MudText Typo="Typo.caption" Class="text-muted">
-                            @(string.IsNullOrEmpty(context.Item.Description) ? "No description" : context.Item.Description)
+                            @(string.IsNullOrEmpty(context.Item.Description) ? GL["NoDescription"] : context.Item.Description)
                         </MudText>
                     </MudStack>
                 </CellTemplate>
             </TemplateColumn>
-            <TemplateColumn Title="Type" Sortable="true" SortBy="@(x => x.IsSystemGroup)">
+            <TemplateColumn Title="@L["Status"]" Sortable="true" SortBy="@(x => x.IsSystemGroup)">
                 <CellTemplate>
                     @if (context.Item.IsSystemGroup)
                     {
                         <MudChip T="string" Color="Color.Warning" Size="Size.Small" Variant="Variant.Outlined">
                             <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Small" Class="mr-1" />
-                            System
+                            @GL["System"]
                         </MudChip>
                     }
                     else
                     {
                         <MudChip T="string" Color="Color.Info" Size="Size.Small" Variant="Variant.Outlined">
                             <MudIcon Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Class="mr-1" />
-                            Custom
+                            @GL["Custom"]
                         </MudChip>
                     }
                 </CellTemplate>
             </TemplateColumn>
-            <TemplateColumn Title="Roles" Sortable="false">
+            <TemplateColumn Title="@L["Roles"]" Sortable="false">
                 <CellTemplate>
                     @if (context.Item.RoleNames?.Any() == true)
                     {
@@ -177,11 +182,11 @@
                     }
                     else
                     {
-                        <MudText Typo="Typo.caption" Class="text-muted">No roles assigned</MudText>
+                        <MudText Typo="Typo.caption" Class="text-muted">@GL["NoRolesAssigned"]</MudText>
                     }
                 </CellTemplate>
             </TemplateColumn>
-            <TemplateColumn Title="Members" Sortable="true" SortBy="@(x => x.MemberCount)">
+            <TemplateColumn Title="@L["Members"]" Sortable="true" SortBy="@(x => x.MemberCount)">
                 <CellTemplate>
                     <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="Color.Primary">
                         <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Small" Class="mr-1" />
@@ -189,23 +194,23 @@
                     </MudChip>
                 </CellTemplate>
             </TemplateColumn>
-            <TemplateColumn Title="Actions" Sortable="false" HeaderClass="text-right" CellClass="text-right">
+            <TemplateColumn Title="@L["Actions"]" Sortable="false" HeaderClass="text-right" CellClass="text-right">
                 <CellTemplate>
                     <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="0">
-                        <MudTooltip Text="Manage Members">
+                        <MudTooltip Text="@GL["ManageMembers"]">
                             <MudIconButton Icon="@Icons.Material.Filled.PeopleAlt"
                                            Size="Size.Small"
                                            Color="Color.Primary"
                                            OnClick="@(() => GoToMembers(context.Item.Id))" />
                         </MudTooltip>
-                        <MudTooltip Text="@(context.Item.IsSystemGroup ? "System groups cannot be edited" : "Edit Group")">
+                        <MudTooltip Text="@(context.Item.IsSystemGroup ? GL["SystemGroupsCannotBeEdited"] : GL["EditGroup"])">
                             <MudIconButton Icon="@Icons.Material.Filled.Edit"
                                            Size="Size.Small"
                                            Color="Color.Info"
                                            OnClick="@(() => EditGroup(context.Item))"
                                            Disabled="@context.Item.IsSystemGroup" />
                         </MudTooltip>
-                        <MudTooltip Text="@(context.Item.IsSystemGroup ? "System groups cannot be deleted" : "Delete Group")">
+                        <MudTooltip Text="@(context.Item.IsSystemGroup ? GL["SystemGroupsCannotBeDeleted"] : GL["DeleteGroup"])">
                             <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                            Size="Size.Small"
                                            Color="Color.Error"
@@ -222,8 +227,8 @@
         <NoRecordsContent>
             <MudStack AlignItems="AlignItems.Center" Spacing="4" Class="pa-8">
                 <MudIcon Icon="@Icons.Material.Filled.Groups" Size="Size.Large" Color="Color.Default" />
-                <MudText Typo="Typo.h6">No groups found</MudText>
-                <MudText Typo="Typo.body2" Class="text-muted">Try adjusting your filters or create a new group.</MudText>
+                <MudText Typo="Typo.h6">@GL["NoGroupsFound"]</MudText>
+                <MudText Typo="Typo.body2" Class="text-muted">@GL["TryAdjustingFilters"]</MudText>
             </MudStack>
         </NoRecordsContent>
     </MudDataGrid>
@@ -285,7 +290,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to load groups: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {
@@ -365,7 +370,7 @@
             CloseButton = true
         };
 
-        var dialog = await DialogService.ShowAsync<CreateGroupDialog>("Create Group", options);
+        var dialog = await DialogService.ShowAsync<CreateGroupDialog>(GL["CreateGroup"], options);
         var result = await dialog.Result;
 
         if (result is not null && !result.Canceled)
@@ -378,7 +383,7 @@
     {
         if (group.IsSystemGroup)
         {
-            Snackbar.Add("System groups cannot be edited.", Severity.Warning);
+            Snackbar.Add(GL["SystemGroupsCannotBeEdited"], Severity.Warning);
             return;
         }
 
@@ -395,7 +400,7 @@
             CloseButton = true
         };
 
-        var dialog = await DialogService.ShowAsync<CreateGroupDialog>("Edit Group", parameters, options);
+        var dialog = await DialogService.ShowAsync<CreateGroupDialog>(GL["EditGroup"], parameters, options);
         var result = await dialog.Result;
 
         if (result is not null && !result.Canceled)
@@ -408,23 +413,23 @@
     {
         if (group.IsSystemGroup)
         {
-            Snackbar.Add("System groups cannot be deleted.", Severity.Warning);
+            Snackbar.Add(GL["SystemGroupsCannotBeDeleted"], Severity.Warning);
             return;
         }
 
-        var confirmed = await DialogService.ShowDeleteConfirmAsync(group.Name ?? "this group");
+        var confirmed = await DialogService.ShowDeleteConfirmAsync(group.Name ?? L["Unknown"], L);
         if (!confirmed) return;
 
         _busyGroupId = group.Id;
         try
         {
             await IdentityClient.GroupsDeleteAsync(group.Id);
-            Snackbar.Add("Group deleted successfully.", Severity.Success);
+            Snackbar.Add(GL["GroupDeletedSuccessfully"], Severity.Success);
             await LoadData();
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to delete group: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {
@@ -437,15 +442,15 @@
         var groups = _selectedGroups.Where(g => !g.IsSystemGroup).ToList();
         if (!groups.Any())
         {
-            Snackbar.Add("No deletable groups selected. System groups cannot be deleted.", Severity.Info);
+            Snackbar.Add(GL["NoDeletableGroupsSelected"], Severity.Info);
             return;
         }
 
         var confirmed = await DialogService.ShowConfirmAsync(
-            "Bulk Delete",
-            $"Delete {groups.Count} group(s)? This action cannot be undone.",
-            "Delete All",
-            "Cancel",
+            GL["BulkDelete"],
+            string.Format(GL["DeleteGroupsConfirm"], groups.Count),
+            L["Delete"],
+            L["Cancel"],
             Color.Error,
             Icons.Material.Outlined.DeleteForever,
             Color.Error);
@@ -467,7 +472,7 @@
             }
         }
         _bulkBusy = false;
-        Snackbar.Add($"Deleted {success} of {groups.Count} groups.", Severity.Success);
+        Snackbar.Add(string.Format(GL["DeletedGroupsCount"], success, groups.Count), Severity.Success);
         ClearSelection();
         await LoadData();
     }

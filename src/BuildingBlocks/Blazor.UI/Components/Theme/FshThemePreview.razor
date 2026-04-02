@@ -1,16 +1,19 @@
 @using FSH.Framework.Blazor.UI.Theme
+@using FSH.Framework.Shared.Localization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> L
 
 <MudPaper Class="pa-4" Elevation="0" Outlined="true">
-    <MudText Typo="Typo.h6" Class="mb-4">Live Preview</MudText>
+    <MudText Typo="Typo.h6" Class="mb-4">@L["Preview"]</MudText>
 
     <MudToggleGroup T="bool" @bind-Value="@_previewDarkMode" Color="Color.Primary" Class="mb-4">
         <MudToggleItem T="bool" Value="false">
             <MudIcon Icon="@Icons.Material.Outlined.LightMode" Size="Size.Small" Class="mr-1" />
-            Light
+            @L["LightMode"]
         </MudToggleItem>
         <MudToggleItem T="bool" Value="true">
             <MudIcon Icon="@Icons.Material.Outlined.DarkMode" Size="Size.Small" Class="mr-1" />
-            Dark
+            @L["DarkMode"]
         </MudToggleItem>
     </MudToggleGroup>
 
@@ -26,7 +29,7 @@
                 {
                     <MudIcon Icon="@Icons.Material.Filled.Business" />
                 }
-                <MudText Typo="Typo.h6" Style="@GetAppBarTextStyle()">Brand Name</MudText>
+                <MudText Typo="Typo.h6" Style="@GetAppBarTextStyle()">@L["Brand"]</MudText>
                 <MudSpacer />
                 <MudIconButton Icon="@Icons.Material.Outlined.Notifications" Style="@GetAppBarTextStyle()" />
                 <MudIconButton Icon="@Icons.Material.Outlined.Person" Style="@GetAppBarTextStyle()" />
@@ -38,16 +41,16 @@
             @* Cards *@
             <MudItem xs="12" md="6">
                 <MudPaper Class="pa-4" Style="@GetCardStyle()" Elevation="@Settings.Layout.DefaultElevation">
-                    <MudText Typo="Typo.h6" Style="@GetTextStyle()">Dashboard Card</MudText>
+                    <MudText Typo="Typo.h6" Style="@GetTextStyle()">@L["Dashboard"]</MudText>
                     <MudText Typo="Typo.body2" Style="@GetSecondaryTextStyle()" Class="mt-2">
-                        This is how your content cards will look with the selected theme settings.
+                        @L["Preview"]
                     </MudText>
                     <div class="d-flex gap-2 mt-3">
                         <MudButton Variant="Variant.Filled" Style="@GetPrimaryButtonStyle()" Size="Size.Small">
-                            Primary
+                            @L["Primary"]
                         </MudButton>
                         <MudButton Variant="Variant.Outlined" Style="@GetOutlinedButtonStyle()" Size="Size.Small">
-                            Outlined
+                            @L["Preview"]
                         </MudButton>
                     </div>
                 </MudPaper>
@@ -56,22 +59,22 @@
             @* Alerts *@
             <MudItem xs="12" md="6">
                 <MudPaper Class="pa-4" Style="@GetCardStyle()" Elevation="@Settings.Layout.DefaultElevation">
-                    <MudText Typo="Typo.h6" Style="@GetTextStyle()" Class="mb-3">Alerts</MudText>
+                    <MudText Typo="Typo.h6" Style="@GetTextStyle()" Class="mb-3">@L["Alerts"]</MudText>
                     <MudAlert Severity="Severity.Success" Dense="true" Class="mb-2"
                              Style="@GetAlertStyle()">
-                        Success message
+                        @L["Success"]
                     </MudAlert>
                     <MudAlert Severity="Severity.Info" Dense="true" Class="mb-2"
                              Style="@GetAlertStyle()">
-                        Info message
+                        @L["Info"]
                     </MudAlert>
                     <MudAlert Severity="Severity.Warning" Dense="true" Class="mb-2"
                              Style="@GetAlertStyle()">
-                        Warning message
+                        @L["Warning"]
                     </MudAlert>
                     <MudAlert Severity="Severity.Error" Dense="true"
                              Style="@GetAlertStyle()">
-                        Error message
+                        @L["Error"]
                     </MudAlert>
                 </MudPaper>
             </MudItem>
@@ -79,22 +82,22 @@
             @* Form Elements *@
             <MudItem xs="12">
                 <MudPaper Class="pa-4" Style="@GetCardStyle()" Elevation="@Settings.Layout.DefaultElevation">
-                    <MudText Typo="Typo.h6" Style="@GetTextStyle()" Class="mb-3">Form Elements</MudText>
+                    <MudText Typo="Typo.h6" Style="@GetTextStyle()" Class="mb-3">@L["Form"]</MudText>
                     <MudGrid>
                         <MudItem xs="12" sm="6">
-                            <MudTextField T="string" Label="Text Input" Variant="Variant.Outlined"
+                            <MudTextField T="string" Label="@L["Preview"]" Variant="Variant.Outlined"
                                         Style="@GetInputStyle()" />
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudSelect T="string" Label="Select" Variant="Variant.Outlined"
+                            <MudSelect T="string" Label="@L["Preview"]" Variant="Variant.Outlined"
                                       Style="@GetInputStyle()">
                                 <MudSelectItem Value="@("Option 1")">Option 1</MudSelectItem>
                                 <MudSelectItem Value="@("Option 2")">Option 2</MudSelectItem>
                             </MudSelect>
                         </MudItem>
                         <MudItem xs="12">
-                            <MudCheckBox T="bool" Label="Checkbox option" Color="Color.Primary" />
-                            <MudSwitch T="bool" Label="Toggle switch" Color="Color.Primary" Class="ml-4" />
+                            <MudCheckBox T="bool" Label="@L["Preview"]" Color="Color.Primary" />
+                            <MudSwitch T="bool" Label="@L["Preview"]" Color="Color.Primary" Class="ml-4" />
                         </MudItem>
                     </MudGrid>
                 </MudPaper>

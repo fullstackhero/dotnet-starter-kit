@@ -1,83 +1,86 @@
 @using FSH.Framework.Shared.Constants
 @using FSH.Framework.Shared.Multitenancy
+@using FSH.Framework.Shared.Localization
+@using Microsoft.Extensions.Localization
 @using Microsoft.AspNetCore.Components.Authorization
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<SharedResource> L
 
 <nav class="fsh-nav">
     <MudNavMenu Class="pa-2" Rounded="true" Margin="Margin.Dense" Color="Color.Primary">
         <!-- Home - Root Item -->
         <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Home">
-            Home
+            @L["Home"]
         </MudNavLink>
 
         <!-- Administration Section -->
-        <div class="fsh-nav-section-title">Administration</div>
+        <div class="fsh-nav-section-title">@L["Administration"]</div>
 
         <MudNavLink Href="/users" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Person">
-            Users
+            @L["Users"]
         </MudNavLink>
         <MudNavLink Href="/roles" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.AdminPanelSettings">
-            Roles
+            @L["Roles"]
         </MudNavLink>
         <MudNavLink Href="/groups" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Groups">
-            Groups
+            @L["Groups"]
         </MudNavLink>
 
         @if (_isRootTenantAdmin)
         {
             <MudNavLink Href="/tenants" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.CorporateFare">
-                Tenants
+                @L["Tenants"]
             </MudNavLink>
             <MudNavLink Href="/tenants/settings" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Tune">
-                Tenant Settings
+                @L["Settings"]
             </MudNavLink>
         }
 
         <MudNavLink Href="/audits" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.History">
-            Audit Logs
+            @L["AuditLogs"]
         </MudNavLink>
 
         <!-- Communication Section -->
-        <div class="fsh-nav-section-title">Communication</div>
+        <div class="fsh-nav-section-title">@L["Communication"]</div>
 
         <MudNavLink Href="/chat" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Chat">
-            Chat
+            @L["Chat"]
         </MudNavLink>
 
         <MudNavLink Href="/notifications" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Notifications">
-            Notifications
+            @L["Notifications"]
         </MudNavLink>
 
         <!-- System Section -->
-        <div class="fsh-nav-section-title">System</div>
+        <div class="fsh-nav-section-title">@L["System"]</div>
 
         <MudNavLink Href="/health" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.MonitorHeart">
-            Health
+            @L["Health"]
         </MudNavLink>
 
         <MudNavLink Href="/logs" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Terminal">
-            Logs
+            @L["Logs"]
         </MudNavLink>
 
         <!-- Settings Section -->
-        <div class="fsh-nav-section-title">Settings</div>
+        <div class="fsh-nav-section-title">@L["Settings"]</div>
 
         <MudNavLink Href="/settings/profile" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.ManageAccounts">
-            Account
+            @L["Profile"]
         </MudNavLink>
         <MudNavLink Href="/settings/theme" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Palette">
-            Theme
+            @L["Theme"]
         </MudNavLink>
         <MudNavLink Href="/settings/security" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Security">
-            Security
+            @L["Security"]
         </MudNavLink>
         <MudNavLink Href="/sessions" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Devices">
-            Sessions
+            @L["Sessions"]
         </MudNavLink>
 
         <MudNavLink Href="/about" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Info">
-            About
+            @L["About"]
         </MudNavLink>
     </MudNavMenu>
 </nav>

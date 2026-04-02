@@ -2,14 +2,19 @@
 @using FSH.Playground.Blazor.ApiClient
 @using FSH.Framework.Blazor.UI.Components.Dialogs
 @using FSH.Framework.Blazor.UI.Components.Cards
+@using FSH.Framework.Shared.Localization
+@using FSH.Playground.Blazor.Localization.Roles
+@using Microsoft.Extensions.Localization
 @inherits ComponentBase
 @inject IIdentityClient IdentityClient
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@inject IStringLocalizer<SharedResource> L
+@inject IStringLocalizer<RoleResource> RL
 
-<FshPageHeader Title="Roles"
-               Description="Manage roles and their permissions">
+<FshPageHeader Title="@L["Roles"]"
+               Description="@RL["RoleManagement"]">
     <ActionContent>
         @if (_selectedRoles.Any())
         {
@@ -18,11 +23,11 @@
                            Color="Color.Error"
                            OnClick="BulkDelete"
                            Disabled="_bulkBusy">
-                    Delete (@_selectedRoles.Count)
+                    @L["Delete"] (@_selectedRoles.Count)
                 </MudButton>
                 <MudButton StartIcon="@Icons.Material.Filled.Clear"
                            OnClick="ClearSelection">
-                    Clear
+                    @L["Clear"]
                 </MudButton>
             </MudButtonGroup>
         }
@@ -41,40 +46,40 @@
         <FshStatCard Icon="@Icons.Material.Filled.Security"
                      IconColor="Color.Primary"
                      Value="@_stats.Total.ToString()"
-                     Label="Total Roles"
-                     Badge="Total" />
+                     Label="@RL["TotalRoles"]"
+                     Badge="@L["Total"]" />
     </MudItem>
     <MudItem xs="6" sm="3">
         <FshStatCard Icon="@Icons.Material.Filled.AdminPanelSettings"
                      IconColor="Color.Error"
                      Value="@_stats.SystemRolesCount.ToString()"
-                     Label="System Roles"
-                     Badge="System" />
+                     Label="@RL["SystemRoles"]"
+                     Badge="@L["System"]" />
     </MudItem>
     <MudItem xs="6" sm="3">
         <FshStatCard Icon="@Icons.Material.Filled.Badge"
                      IconColor="Color.Info"
                      Value="@_stats.CustomRolesCount.ToString()"
-                     Label="Custom Roles"
-                     Badge="Custom" />
+                     Label="@RL["CustomRoles"]"
+                     Badge="@RL["Custom"]" />
     </MudItem>
     <MudItem xs="6" sm="3">
         <FshStatCard Icon="@Icons.Material.Filled.Lock"
                      IconColor="Color.Warning"
                      Value="@_stats.ProtectedRolesCount.ToString()"
-                     Label="Protected Roles"
-                     Badge="Protected" />
+                     Label="@L["Protected"]"
+                     Badge="@L["Protected"]" />
     </MudItem>
 </MudGrid>
 
 @* Filter Panel *@
 <MudExpansionPanels Class="mb-4" Elevation="0">
-    <MudExpansionPanel Text="Filters" IsInitiallyExpanded="true" Class="fsh-card">
+    <MudExpansionPanel Text="@L["Filters"]" IsInitiallyExpanded="true" Class="fsh-card">
         <MudGrid GutterSize="2">
             <MudItem xs="12" sm="6">
                 <MudTextField @bind-Value="_filter.Search"
-                              Label="Search"
-                              Placeholder="Role name or description"
+                              Label="@L["Search"]"
+                              Placeholder="@L["Search"]"
                               Adornment="Adornment.Start"
                               AdornmentIcon="@Icons.Material.Filled.Search"
                               Immediate="true"
@@ -86,7 +91,7 @@
                            Color="Color.Default"
                            Variant="Variant.Text"
                            OnClick="ClearFilters">
-                    Clear Filters
+                    @L["Clear"]
                 </MudButton>
                 <MudButton StartIcon="@Icons.Material.Filled.Refresh"
                            Color="Color.Primary"
@@ -125,39 +130,39 @@
                             @context.Item.Name
                         </MudLink>
                         <MudText Typo="Typo.caption" Class="text-muted">
-                            @(string.IsNullOrEmpty(context.Item.Description) ? "No description" : context.Item.Description)
+                            @(string.IsNullOrEmpty(context.Item.Description) ? RL["NoDescription"] : context.Item.Description)
                         </MudText>
                     </MudStack>
                 </CellTemplate>
             </TemplateColumn>
-            <TemplateColumn Title="Type" Sortable="false">
+            <TemplateColumn Title="@L["Type"]" Sortable="false">
                 <CellTemplate>
                     @if (IsSystemRole(context.Item.Name))
                     {
                         <MudChip T="string" Color="Color.Error" Size="Size.Small" Variant="Variant.Outlined">
                             <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Small" Class="mr-1" />
-                            System
+                            @L["System"]
                         </MudChip>
                     }
                     else
                     {
                         <MudChip T="string" Color="Color.Info" Size="Size.Small" Variant="Variant.Outlined">
                             <MudIcon Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Class="mr-1" />
-                            Custom
+                            @RL["Custom"]
                         </MudChip>
                     }
                 </CellTemplate>
             </TemplateColumn>
-            <TemplateColumn Title="Actions" Sortable="false" HeaderClass="text-right" CellClass="text-right">
+            <TemplateColumn Title="@L["Actions"]" Sortable="false" HeaderClass="text-right" CellClass="text-right">
                 <CellTemplate>
                     <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="0">
-                        <MudTooltip Text="Manage Permissions">
+                        <MudTooltip Text="@RL["ManagePermissions"]">
                             <MudIconButton Icon="@Icons.Material.Filled.Key"
                                            Size="Size.Small"
                                            Color="Color.Primary"
                                            OnClick="@(() => GoToPermissions(context.Item.Id))" />
                         </MudTooltip>
-                        <MudTooltip Text="@(IsProtectedRole(context.Item.Name) ? "Protected roles cannot be edited" : "Edit Role")">
+                        <MudTooltip Text="@(IsProtectedRole(context.Item.Name) ? RL["SystemRolesCannotBeEdited"] : RL["EditRole"])">
                             <MudIconButton Icon="@Icons.Material.Filled.Edit"
                                            Size="Size.Small"
                                            Color="Color.Info"
@@ -181,8 +186,8 @@
         <NoRecordsContent>
             <MudStack AlignItems="AlignItems.Center" Spacing="4" Class="pa-8">
                 <MudIcon Icon="@Icons.Material.Filled.Security" Size="Size.Large" Color="Color.Default" />
-                <MudText Typo="Typo.h6">No roles found</MudText>
-                <MudText Typo="Typo.body2" Class="text-muted">Try adjusting your filters or create a new role.</MudText>
+                <MudText Typo="Typo.h6">@RL["NoRolesFound"]</MudText>
+                <MudText Typo="Typo.body2" Class="text-muted">@RL["TryAdjustingFilters"]</MudText>
             </MudStack>
         </NoRecordsContent>
     </MudDataGrid>
@@ -256,7 +261,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to load roles: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {
@@ -335,7 +340,7 @@
             CloseButton = true
         };
 
-        var dialog = await DialogService.ShowAsync<CreateRoleDialog>("Create Role", options);
+        var dialog = await DialogService.ShowAsync<CreateRoleDialog>(RL["CreateRole"], options);
         var result = await dialog.Result;
 
         if (result is not null && !result.Canceled)
@@ -348,7 +353,7 @@
     {
         if (IsProtectedRole(role.Name))
         {
-            Snackbar.Add("Protected roles cannot be edited.", Severity.Warning);
+            Snackbar.Add(RL["SystemRolesCannotBeEdited"], Severity.Warning);
             return;
         }
 
@@ -365,7 +370,7 @@
             CloseButton = true
         };
 
-        var dialog = await DialogService.ShowAsync<CreateRoleDialog>("Edit Role", parameters, options);
+        var dialog = await DialogService.ShowAsync<CreateRoleDialog>(RL["EditRole"], parameters, options);
         var result = await dialog.Result;
 
         if (result is not null && !result.Canceled)
@@ -380,23 +385,23 @@
 
         if (IsProtectedRole(role.Name))
         {
-            Snackbar.Add("Protected roles cannot be deleted.", Severity.Warning);
+            Snackbar.Add(RL["SystemRolesCannotBeDeleted"], Severity.Warning);
             return;
         }
 
-        var confirmed = await DialogService.ShowDeleteConfirmAsync(role.Name ?? "this role");
+        var confirmed = await DialogService.ShowDeleteConfirmAsync(role.Name ?? L["Unknown"], L);
         if (!confirmed) return;
 
         _busyRoleId = role.Id;
         try
         {
             await IdentityClient.RolesDeleteAsync(Guid.Parse(role.Id));
-            Snackbar.Add("Role deleted successfully.", Severity.Success);
+            Snackbar.Add(RL["RoleDeletedSuccessfully"], Severity.Success);
             await LoadData();
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to delete role: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {
@@ -409,15 +414,15 @@
         var roles = _selectedRoles.Where(r => !IsProtectedRole(r.Name)).ToList();
         if (!roles.Any())
         {
-            Snackbar.Add("No deletable roles selected. Protected roles cannot be deleted.", Severity.Info);
+            Snackbar.Add(RL["NoDeletableRolesSelected"], Severity.Info);
             return;
         }
 
         var confirmed = await DialogService.ShowConfirmAsync(
-            "Bulk Delete",
-            $"Delete {roles.Count} role(s)? This action cannot be undone.",
-            "Delete All",
-            "Cancel",
+            RL["BulkDelete"],
+            string.Format(RL["DeleteRolesConfirm"], roles.Count),
+            L["Delete"],
+            L["Cancel"],
             Color.Error,
             Icons.Material.Outlined.DeleteForever,
             Color.Error);
@@ -439,7 +444,7 @@
             }
         }
         _bulkBusy = false;
-        Snackbar.Add($"Deleted {success} of {roles.Count} roles.", Severity.Success);
+        Snackbar.Add(string.Format(RL["DeletedRolesCount"], success, roles.Count), Severity.Success);
         ClearSelection();
         await LoadData();
     }

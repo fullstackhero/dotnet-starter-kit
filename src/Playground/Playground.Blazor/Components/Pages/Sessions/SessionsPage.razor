@@ -2,6 +2,9 @@
 @using FSH.Playground.Blazor.ApiClient
 @using FSH.Framework.Blazor.UI.Components.Dialogs
 @using FSH.Framework.Blazor.UI.Components.Cards
+@using FSH.Framework.Shared.Localization
+@using FSH.Playground.Blazor.Localization.Sessions
+@using Microsoft.Extensions.Localization
 @inherits ComponentBase
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Components.Authorization
@@ -11,16 +14,18 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<SharedResource> L
+@inject IStringLocalizer<SessionResource> SL
 
-<FshPageHeader Title="Active Sessions"
-               Description="Manage your active sessions and connected devices">
+<FshPageHeader Title="@SL["ActiveSessions"]"
+               Description="@SL["SessionManagement"]">
     <ActionContent>
         <MudButton Variant="Variant.Filled"
                    Color="Color.Warning"
                    StartIcon="@Icons.Material.Filled.Logout"
                    OnClick="RevokeAllSessions"
                    Disabled="_loading || !_sessions.Any()">
-            Logout All Other Devices
+            @SL["RevokeAllSessions"]
         </MudButton>
     </ActionContent>
 </FshPageHeader>
@@ -31,29 +36,29 @@
         <FshStatCard Icon="@Icons.Material.Filled.Devices"
                      IconColor="Color.Primary"
                      Value="@_stats.Total.ToString()"
-                     Label="Active Sessions"
-                     Badge="Total" />
+                     Label="@SL["ActiveSessions"]"
+                     Badge="@L["Total"]" />
     </MudItem>
     <MudItem xs="6" sm="3">
         <FshStatCard Icon="@Icons.Material.Filled.Computer"
                      IconColor="Color.Info"
                      Value="@_stats.Desktop.ToString()"
-                     Label="Desktop Sessions"
-                     Badge="Desktop" />
+                     Label="@SL["DesktopSessions"]"
+                     Badge="@SL["Desktop"]" />
     </MudItem>
     <MudItem xs="6" sm="3">
         <FshStatCard Icon="@Icons.Material.Filled.PhoneAndroid"
                      IconColor="Color.Success"
                      Value="@_stats.Mobile.ToString()"
-                     Label="Mobile Sessions"
-                     Badge="Mobile" />
+                     Label="@SL["MobileSessions"]"
+                     Badge="@SL["Mobile"]" />
     </MudItem>
     <MudItem xs="6" sm="3">
         <FshStatCard Icon="@Icons.Material.Filled.Tablet"
                      IconColor="Color.Warning"
                      Value="@_stats.Tablet.ToString()"
-                     Label="Tablet Sessions"
-                     Badge="Tablet" />
+                     Label="@SL["TabletSessions"]"
+                     Badge="@SL["Tablet"]" />
     </MudItem>
 </MudGrid>
 
@@ -108,12 +113,12 @@
                     </MudStack>
                 </CellTemplate>
             </TemplateColumn>
-            <PropertyColumn Property="x => x.IpAddress" Title="IP Address" Sortable="true">
+            <PropertyColumn Property="x => x.IpAddress" Title="@SL["IPAddress"]" Sortable="true">
                 <CellTemplate>
                     <MudText Typo="Typo.body2" Style="font-family: monospace;">@context.Item.IpAddress</MudText>
                 </CellTemplate>
             </PropertyColumn>
-            <TemplateColumn Title="Last Activity" Sortable="true" SortBy="@(x => x.LastActivityAt)">
+            <TemplateColumn Title="@L["LastActivity"]" Sortable="true" SortBy="@(x => x.LastActivityAt)">
                 <CellTemplate>
                     <MudStack Spacing="0">
                         <MudText Typo="Typo.body2">@FormatRelativeTime(context.Item.LastActivityAt)</MudText>
@@ -121,7 +126,7 @@
                     </MudStack>
                 </CellTemplate>
             </TemplateColumn>
-            <TemplateColumn Title="Created" Sortable="true" SortBy="@(x => x.CreatedAt)">
+            <TemplateColumn Title="@L["CreatedOn"]" Sortable="true" SortBy="@(x => x.CreatedAt)">
                 <CellTemplate>
                     <MudStack Spacing="0">
                         <MudText Typo="Typo.body2">@FormatRelativeTime(context.Item.CreatedAt)</MudText>
@@ -129,23 +134,23 @@
                     </MudStack>
                 </CellTemplate>
             </TemplateColumn>
-            <TemplateColumn Title="Status" Sortable="true" SortBy="@(x => x.IsActive)">
+            <TemplateColumn Title="@L["Status"]" Sortable="true" SortBy="@(x => x.IsActive)">
                 <CellTemplate>
                     @if (context.Item.IsActive)
                     {
-                        <MudChip T="string" Color="Color.Success" Size="Size.Small" Variant="Variant.Filled">Active</MudChip>
+                        <MudChip T="string" Color="Color.Success" Size="Size.Small" Variant="Variant.Filled">@L["Active"]</MudChip>
                     }
                     else
                     {
-                        <MudChip T="string" Color="Color.Error" Size="Size.Small" Variant="Variant.Filled">Expired</MudChip>
+                        <MudChip T="string" Color="Color.Error" Size="Size.Small" Variant="Variant.Filled">@L["Expired"]</MudChip>
                     }
                 </CellTemplate>
             </TemplateColumn>
-            <TemplateColumn Title="Actions" Sortable="false" HeaderClass="text-right" CellClass="text-right">
+            <TemplateColumn Title="@L["Actions"]" Sortable="false" HeaderClass="text-right" CellClass="text-right">
                 <CellTemplate>
                     @if (!context.Item.IsCurrentSession)
                     {
-                        <MudTooltip Text="Revoke this session">
+                        <MudTooltip Text="@SL["RevokeSession"]">
                             <MudIconButton Icon="@Icons.Material.Filled.Logout"
                                            Size="Size.Small"
                                            Color="Color.Error"
@@ -155,7 +160,7 @@
                     }
                     else
                     {
-                        <MudTooltip Text="This is your current session">
+                        <MudTooltip Text="@SL["CurrentSession"]">
                             <MudIconButton Icon="@Icons.Material.Filled.Lock"
                                            Size="Size.Small"
                                            Color="Color.Default"
@@ -171,8 +176,8 @@
         <NoRecordsContent>
             <MudStack AlignItems="AlignItems.Center" Spacing="4" Class="pa-8">
                 <MudIcon Icon="@Icons.Material.Filled.DevicesOther" Size="Size.Large" Color="Color.Default" />
-                <MudText Typo="Typo.h6">No active sessions</MudText>
-                <MudText Typo="Typo.body2" Class="text-muted">You don't have any active sessions at the moment.</MudText>
+                <MudText Typo="Typo.h6">@L["NoDataAvailable"]</MudText>
+                <MudText Typo="Typo.body2" Class="text-muted">@SL["NoOtherSessions"]</MudText>
             </MudStack>
         </NoRecordsContent>
     </MudDataGrid>
@@ -228,7 +233,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to load sessions: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {
@@ -250,10 +255,10 @@
     private async Task RevokeSession(UserSessionDto session)
     {
         var confirmed = await DialogService.ShowConfirmAsync(
-            "Revoke Session",
-            $"Are you sure you want to log out from this device?\n\n{session.Browser} on {session.OperatingSystem}",
-            "Revoke",
-            "Cancel",
+            SL["RevokeSession"],
+            string.Format(SL["ConfirmRevokeSession"], session.Browser, session.OperatingSystem),
+            SL["RevokeSession"],
+            L["Cancel"],
             Color.Error);
 
         if (!confirmed) return;
@@ -262,12 +267,12 @@
         try
         {
             await IdentityClient.SessionsAsync(session.Id);
-            Snackbar.Add("Session revoked successfully.", Severity.Success);
+            Snackbar.Add(SL["SessionRevokedSuccessfully"], Severity.Success);
             await LoadSessions();
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to revoke session: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {
@@ -280,15 +285,15 @@
         var otherSessions = _sessions.Count(s => !s.IsCurrentSession);
         if (otherSessions == 0)
         {
-            Snackbar.Add("No other sessions to revoke.", Severity.Info);
+            Snackbar.Add(SL["NoOtherSessions"], Severity.Info);
             return;
         }
 
         var confirmed = await DialogService.ShowConfirmAsync(
-            "Logout All Other Devices",
-            $"This will log you out from {otherSessions} other device(s). Your current session will remain active.",
-            "Logout All",
-            "Cancel",
+            SL["LogoutAllDevices"],
+            string.Format(SL["LogoutAllConfirm"], otherSessions),
+            SL["LogoutAll"],
+            L["Cancel"],
             Color.Warning,
             Icons.Material.Outlined.Warning,
             Color.Warning);
@@ -299,12 +304,12 @@
         try
         {
             await SessionsClient.RevokeAllPostAsync(null);
-            Snackbar.Add($"Successfully logged out from {otherSessions} device(s).", Severity.Success);
+            Snackbar.Add(SL["AllSessionsRevoked"], Severity.Success);
             await LoadSessions();
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to revoke sessions: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {
@@ -326,21 +331,21 @@
         _ => Color.Info
     };
 
-    private static string FormatRelativeTime(DateTimeOffset dateTime)
+    private string FormatRelativeTime(DateTimeOffset dateTime)
     {
         var timeSpan = DateTimeOffset.UtcNow - dateTime;
 
         if (timeSpan.TotalMinutes < 1)
-            return "Just now";
+            return SL["JustNow"];
         if (timeSpan.TotalMinutes < 60)
-            return $"{(int)timeSpan.TotalMinutes} min ago";
+            return string.Format(SL["MinutesAgo"], (int)timeSpan.TotalMinutes);
         if (timeSpan.TotalHours < 24)
-            return $"{(int)timeSpan.TotalHours} hour(s) ago";
+            return string.Format(SL["HoursAgo"], (int)timeSpan.TotalHours);
         if (timeSpan.TotalDays < 7)
-            return $"{(int)timeSpan.TotalDays} day(s) ago";
+            return string.Format(SL["DaysAgo"], (int)timeSpan.TotalDays);
         if (timeSpan.TotalDays < 30)
-            return $"{(int)(timeSpan.TotalDays / 7)} week(s) ago";
+            return string.Format(SL["WeeksAgo"], (int)(timeSpan.TotalDays / 7));
 
-        return $"{(int)(timeSpan.TotalDays / 30)} month(s) ago";
+        return string.Format(SL["MonthsAgo"], (int)(timeSpan.TotalDays / 30));
     }
 }

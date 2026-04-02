@@ -52,14 +52,14 @@
                 <div class="fsh-dropdown-menu">
                     <MudMenuItem Icon="@Icons.Material.Outlined.Person" OnClick="@HandleProfileClick" Class="fsh-menu-item">
                         <div class="fsh-menu-item-content">
-                            <span class="fsh-menu-item-text">Profile</span>
-                            <span class="fsh-menu-item-desc">View and edit your profile</span>
+                            <span class="fsh-menu-item-text">@L["Profile"]</span>
+                            <span class="fsh-menu-item-desc">@L["ViewAndEditProfile"]</span>
                         </div>
                     </MudMenuItem>
                     <MudMenuItem Icon="@Icons.Material.Outlined.History" OnClick="@HandleAuditingClick" Class="fsh-menu-item">
                         <div class="fsh-menu-item-content">
-                            <span class="fsh-menu-item-text">Activity Log</span>
-                            <span class="fsh-menu-item-desc">View your recent activity</span>
+                            <span class="fsh-menu-item-text">@L["AuditLogs"]</span>
+                            <span class="fsh-menu-item-desc">@L["ViewRecentActivity"]</span>
                         </div>
                     </MudMenuItem>
                 </div>
@@ -69,7 +69,7 @@
                 <!-- Sign out -->
                 <div class="fsh-dropdown-footer">
                     <MudMenuItem Icon="@Icons.Material.Outlined.Logout" OnClick="@HandleLogoutClick" Class="fsh-menu-item fsh-menu-item-danger">
-                        Sign out
+                        @L["SignOut"]
                     </MudMenuItem>
                 </div>
             </div>

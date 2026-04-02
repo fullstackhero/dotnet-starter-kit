@@ -1,12 +1,15 @@
 ﻿@page "/counter"
+@using FSH.Playground.Blazor.Localization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<PlaygroundResource> PL
 
-<PageTitle>Counter</PageTitle>
+<PageTitle>@PL["Counter"]</PageTitle>
 
-<MudText Typo="Typo.h3" GutterBottom="true">Counter</MudText>
+<MudText Typo="Typo.h3" GutterBottom="true">@PL["Counter"]</MudText>
 
-<MudText Typo="Typo.body1" Class="mb-4">Current count: @currentCount</MudText>
+<MudText Typo="Typo.body1" Class="mb-4">@PL["CurrentCount"]: @currentCount</MudText>
 
-<MudButton Color="Color.Primary" Variant="Variant.Filled" @onclick="IncrementCount">Click me</MudButton>
+<MudButton Color="Color.Primary" Variant="Variant.Filled" @onclick="IncrementCount">@PL["ClickMe"]</MudButton>
 
 @code {
     private int currentCount = 0;

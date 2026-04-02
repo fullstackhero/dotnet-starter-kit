@@ -1,6 +1,9 @@
 @page "/users/{Id:guid}"
 @using FSH.Playground.Blazor.ApiClient
 @using FSH.Framework.Blazor.UI.Components.Dialogs
+@using FSH.Framework.Shared.Localization
+@using FSH.Playground.Blazor.Localization.Users
+@using Microsoft.Extensions.Localization
 @inherits ComponentBase
 @using System.Security.Claims
 @using FSH.Framework.Shared.Constants
@@ -11,15 +14,17 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<SharedResource> L
+@inject IStringLocalizer<UserResource> UL
 
-<FshPageHeader Title="User Details"
-               Description="@(_user != null ? $"{_user.FirstName} {_user.LastName}" : "Loading...")">
+<FshPageHeader Title="@UL["UserDetails"]"
+               Description="@(_user != null ? $"{_user.FirstName} {_user.LastName}" : L["Loading"])">
     <ActionContent>
         <MudButton Variant="Variant.Text"
                    Color="Color.Default"
                    StartIcon="@Icons.Material.Outlined.ArrowBack"
                    OnClick="GoBack">
-            Back to Users
+            @L["Back"]
         </MudButton>
         @if (_user != null)
         {
@@ -27,7 +32,7 @@
                        Color="Color.Primary"
                        StartIcon="@Icons.Material.Outlined.Security"
                        OnClick="GoToRoles">
-                Manage Roles
+                @UL["ManageRoles"]
             </MudButton>
         }
     </ActionContent>
@@ -38,7 +43,7 @@
     <MudPaper Class="fsh-card pa-8">
         <MudStack AlignItems="AlignItems.Center" Spacing="4">
             <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
-            <MudText Typo="Typo.body1">Loading user...</MudText>
+            <MudText Typo="Typo.body1">@L["Loading"]</MudText>
         </MudStack>
     </MudPaper>
 }
@@ -47,10 +52,10 @@ else if (_user is null)
     <MudPaper Class="fsh-card pa-8">
         <MudStack AlignItems="AlignItems.Center" Spacing="4">
             <MudIcon Icon="@Icons.Material.Outlined.PersonOff" Style="font-size: 64px; opacity: 0.3;" />
-            <MudText Typo="Typo.h6">User not found</MudText>
-            <MudText Typo="Typo.body2" Class="text-muted">The user you're looking for doesn't exist.</MudText>
+            <MudText Typo="Typo.h6">@L["NotFound"]</MudText>
+            <MudText Typo="Typo.body2" Class="text-muted">@L["NotFound"]</MudText>
             <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="GoBack">
-                Back to Users
+                @L["Back"]
             </MudButton>
         </MudStack>
     </MudPaper>
@@ -88,16 +93,16 @@ else
                     <MudStack Row="true" Justify="Justify.Center" Spacing="1" Class="mb-4">
                         <MudChip T="string" Size="Size.Small" Variant="Variant.Filled"
                                  Color="@(_user.IsActive ? Color.Success : Color.Error)">
-                            @(_user.IsActive ? "Active" : "Inactive")
+                            @(_user.IsActive ? L["Active"] : L["Inactive"])
                         </MudChip>
                         <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined"
                                  Color="@(_user.EmailConfirmed ? Color.Info : Color.Warning)">
-                            @(_user.EmailConfirmed ? "Verified" : "Unverified")
+                            @(_user.EmailConfirmed ? L["Verified"] : L["Unverified"])
                         </MudChip>
                         @if (_targetIsAdmin)
                         {
                             <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="Color.Error">
-                                Admin
+                                @L["Admin"]
                             </MudChip>
                         }
                     </MudStack>
@@ -107,19 +112,19 @@ else
                     <MudList T="string" Dense="true" Class="profile-details">
                         <MudListItem Icon="@Icons.Material.Outlined.Email" IconColor="Color.Primary">
                             <MudStack Spacing="0">
-                                <MudText Typo="Typo.caption" Class="text-muted">Email</MudText>
+                                <MudText Typo="Typo.caption" Class="text-muted">@L["Email"]</MudText>
                                 <MudText Typo="Typo.body2">@_user.Email</MudText>
                             </MudStack>
                         </MudListItem>
                         <MudListItem Icon="@Icons.Material.Outlined.Phone" IconColor="Color.Primary">
                             <MudStack Spacing="0">
-                                <MudText Typo="Typo.caption" Class="text-muted">Phone</MudText>
-                                <MudText Typo="Typo.body2">@(string.IsNullOrEmpty(_user.PhoneNumber) ? "Not provided" : _user.PhoneNumber)</MudText>
+                                <MudText Typo="Typo.caption" Class="text-muted">@L["PhoneNumber"]</MudText>
+                                <MudText Typo="Typo.body2">@(string.IsNullOrEmpty(_user.PhoneNumber) ? L["NotProvided"] : _user.PhoneNumber)</MudText>
                             </MudStack>
                         </MudListItem>
                         <MudListItem Icon="@Icons.Material.Outlined.Badge" IconColor="Color.Primary">
                             <MudStack Spacing="0">
-                                <MudText Typo="Typo.caption" Class="text-muted">User ID</MudText>
+                                <MudText Typo="Typo.caption" Class="text-muted">@L["UserId"]</MudText>
                                 <MudText Typo="Typo.body2" Style="font-family: monospace; font-size: 0.75rem;">@_user.Id</MudText>
                             </MudStack>
                         </MudListItem>
@@ -138,7 +143,7 @@ else
                             <MudStack Spacing="1">
                                 <MudIcon Icon="@Icons.Material.Outlined.Security" Color="Color.Primary" />
                                 <MudText Typo="Typo.h5" Class="fw-700">@_roles.Count(r => r.Enabled)</MudText>
-                                <MudText Typo="Typo.caption" Class="text-muted">Roles</MudText>
+                                <MudText Typo="Typo.caption" Class="text-muted">@L["Roles"]</MudText>
                             </MudStack>
                         </MudCardContent>
                     </MudCard>
@@ -149,8 +154,8 @@ else
                             <MudStack Spacing="1">
                                 <MudIcon Icon="@(_user.EmailConfirmed ? Icons.Material.Outlined.MarkEmailRead : Icons.Material.Outlined.MarkEmailUnread)"
                                          Color="@(_user.EmailConfirmed ? Color.Success : Color.Warning)" />
-                                <MudText Typo="Typo.h5" Class="fw-700">@(_user.EmailConfirmed ? "Yes" : "No")</MudText>
-                                <MudText Typo="Typo.caption" Class="text-muted">Verified</MudText>
+                                <MudText Typo="Typo.h5" Class="fw-700">@(_user.EmailConfirmed ? L["Yes"] : L["No"])</MudText>
+                                <MudText Typo="Typo.caption" Class="text-muted">@L["Verified"]</MudText>
                             </MudStack>
                         </MudCardContent>
                     </MudCard>
@@ -161,8 +166,8 @@ else
                             <MudStack Spacing="1">
                                 <MudIcon Icon="@(_user.IsActive ? Icons.Material.Outlined.CheckCircle : Icons.Material.Outlined.Cancel)"
                                          Color="@(_user.IsActive ? Color.Success : Color.Error)" />
-                                <MudText Typo="Typo.h5" Class="fw-700">@(_user.IsActive ? "Active" : "Inactive")</MudText>
-                                <MudText Typo="Typo.caption" Class="text-muted">Status</MudText>
+                                <MudText Typo="Typo.h5" Class="fw-700">@(_user.IsActive ? L["Active"] : L["Inactive"])</MudText>
+                                <MudText Typo="Typo.caption" Class="text-muted">@L["Status"]</MudText>
                             </MudStack>
                         </MudCardContent>
                     </MudCard>
@@ -173,8 +178,8 @@ else
                             <MudStack Spacing="1">
                                 <MudIcon Icon="@(_targetIsAdmin ? Icons.Material.Outlined.AdminPanelSettings : Icons.Material.Outlined.Person)"
                                          Color="@(_targetIsAdmin ? Color.Error : Color.Info)" />
-                                <MudText Typo="Typo.h5" Class="fw-700">@(_targetIsAdmin ? "Admin" : "User")</MudText>
-                                <MudText Typo="Typo.caption" Class="text-muted">Type</MudText>
+                                <MudText Typo="Typo.h5" Class="fw-700">@(_targetIsAdmin ? L["Admin"] : L["User"])</MudText>
+                                <MudText Typo="Typo.caption" Class="text-muted">@L["Type"]</MudText>
                             </MudStack>
                         </MudCardContent>
                     </MudCard>
@@ -186,18 +191,18 @@ else
                 <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-3">
                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                         <MudIcon Icon="@Icons.Material.Outlined.Security" Color="Color.Primary" />
-                        <MudText Typo="Typo.h6" Class="fw-600">Assigned Roles</MudText>
+                        <MudText Typo="Typo.h6" Class="fw-600">@L["Roles"]</MudText>
                     </MudStack>
                     <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small"
                                EndIcon="@Icons.Material.Outlined.ArrowForward" OnClick="GoToRoles">
-                        Manage
+                        @UL["ManageRoles"]
                     </MudButton>
                 </MudStack>
 
                 @if (!_roles.Any(r => r.Enabled))
                 {
                     <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true">
-                        No roles assigned. Click "Manage" to assign roles.
+                        @L["NoDataAvailable"]
                     </MudAlert>
                 }
                 else
@@ -213,11 +218,11 @@ else
                 <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-3">
                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                         <MudIcon Icon="@Icons.Material.Outlined.Groups" Color="Color.Primary" />
-                        <MudText Typo="Typo.h6" Class="fw-600">Group Memberships</MudText>
+                        <MudText Typo="Typo.h6" Class="fw-600">@L["Groups"]</MudText>
                     </MudStack>
                     <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small"
                                EndIcon="@Icons.Material.Outlined.ArrowForward" OnClick="GoToGroups">
-                        View All Groups
+                        @L["ViewAll"]
                     </MudButton>
                 </MudStack>
 
@@ -228,7 +233,7 @@ else
                 else if (!_groups.Any())
                 {
                     <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true">
-                        Not a member of any groups.
+                        @L["NoDataAvailable"]
                     </MudAlert>
                 }
                 else
@@ -258,7 +263,7 @@ else
                     <MudPaper Class="fsh-card pa-4" Style="height: 100%;">
                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-3">
                             <MudIcon Icon="@Icons.Material.Outlined.Settings" Color="Color.Primary" />
-                            <MudText Typo="Typo.h6" Class="fw-600">Account Actions</MudText>
+                            <MudText Typo="Typo.h6" Class="fw-600">@L["Actions"]</MudText>
                         </MudStack>
 
                         <MudExpansionPanels Elevation="0" Class="action-panels">
@@ -268,20 +273,20 @@ else
                                     <TitleContent>
                                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                                             <MudIcon Icon="@Icons.Material.Outlined.MarkEmailRead" Color="Color.Warning" Size="Size.Small" />
-                                            <MudText Typo="Typo.body2" Class="fw-600">Confirm Email</MudText>
+                                            <MudText Typo="Typo.body2" Class="fw-600">@UL["ConfirmEmail"]</MudText>
                                         </MudStack>
                                     </TitleContent>
                                     <ChildContent>
                                         <MudStack Spacing="2">
-                                            <MudText Typo="Typo.caption" Class="text-muted">Enter the confirmation code sent to the user's email.</MudText>
+                                            <MudText Typo="Typo.caption" Class="text-muted">@UL["ConfirmEmailDescription"]</MudText>
                                             <MudTextField @bind-Value="_confirmModel.Code"
-                                                          Label="Confirmation Code"
+                                                          Label="@UL["ConfirmationCode"]"
                                                           Variant="Variant.Outlined"
                                                           Margin="Margin.Dense"
                                                           FullWidth="true" />
                                             <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small"
                                                        OnClick="ConfirmEmail" Disabled="_busy">
-                                                Confirm Email
+                                                @UL["ConfirmEmail"]
                                             </MudButton>
                                         </MudStack>
                                     </ChildContent>
@@ -291,26 +296,26 @@ else
                                 <TitleContent>
                                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                                         <MudIcon Icon="@Icons.Material.Outlined.Lock" Color="Color.Primary" Size="Size.Small" />
-                                        <MudText Typo="Typo.body2" Class="fw-600">Reset Password</MudText>
+                                        <MudText Typo="Typo.body2" Class="fw-600">@UL["ResetPassword"]</MudText>
                                     </MudStack>
                                 </TitleContent>
                                 <ChildContent>
                                     <MudStack Spacing="2">
-                                        <MudText Typo="Typo.caption" Class="text-muted">Requires a valid reset token from email flow.</MudText>
+                                        <MudText Typo="Typo.caption" Class="text-muted">@UL["ResetPasswordDescription"]</MudText>
                                         <MudTextField @bind-Value="_resetModel.Token"
-                                                      Label="Reset Token"
+                                                      Label="@UL["ResetToken"]"
                                                       Variant="Variant.Outlined"
                                                       Margin="Margin.Dense"
                                                       FullWidth="true" />
                                         <MudTextField @bind-Value="_resetModel.Password"
-                                                      Label="New Password"
+                                                      Label="@L["Password"]"
                                                       InputType="InputType.Password"
                                                       Variant="Variant.Outlined"
                                                       Margin="Margin.Dense"
                                                       FullWidth="true" />
                                         <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small"
                                                    OnClick="ResetPassword" Disabled="_busy">
-                                            Reset Password
+                                            @UL["ResetPassword"]
                                         </MudButton>
                                     </MudStack>
                                 </ChildContent>
@@ -319,15 +324,15 @@ else
                                 <TitleContent>
                                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                                         <MudIcon Icon="@Icons.Material.Outlined.Key" Color="Color.Secondary" Size="Size.Small" />
-                                        <MudText Typo="Typo.body2" Class="fw-600">Send Password Reset</MudText>
+                                        <MudText Typo="Typo.body2" Class="fw-600">@UL["SendResetEmail"]</MudText>
                                     </MudStack>
                                 </TitleContent>
                                 <ChildContent>
                                     <MudStack Spacing="2">
-                                        <MudText Typo="Typo.caption" Class="text-muted">Send a password reset email to the user.</MudText>
+                                        <MudText Typo="Typo.caption" Class="text-muted">@UL["SendResetEmailDescription"]</MudText>
                                         <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
                                                    Disabled="true">
-                                            Send Reset Email
+                                            @UL["SendResetEmail"]
                                         </MudButton>
                                     </MudStack>
                                 </ChildContent>
@@ -341,17 +346,17 @@ else
                     <MudPaper Class="fsh-card pa-4 danger-zone" Style="height: 100%;">
                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-3">
                             <MudIcon Icon="@Icons.Material.Outlined.Warning" Color="Color.Error" />
-                            <MudText Typo="Typo.h6" Class="fw-600" Color="Color.Error">Danger Zone</MudText>
+                            <MudText Typo="Typo.h6" Class="fw-600" Color="Color.Error">@L["DangerZone"]</MudText>
                         </MudStack>
 
                         <MudStack Spacing="2">
                             <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="danger-item pa-3">
                                 <MudStack Spacing="0">
                                     <MudText Typo="Typo.subtitle2" Class="fw-600">
-                                        @(_user.IsActive ? "Deactivate Account" : "Activate Account")
+                                        @(_user.IsActive ? UL["DeactivateAccount"] : UL["ActivateAccount"])
                                     </MudText>
                                     <MudText Typo="Typo.caption" Class="text-muted">
-                                        @(_user.IsActive ? "User will lose access to the system" : "Restore user access")
+                                        @(_user.IsActive ? UL["DeactivateDescription"] : UL["ActivateDescription"])
                                     </MudText>
                                 </MudStack>
                                 <MudTooltip Text="@ToggleTooltip">
@@ -360,19 +365,19 @@ else
                                                Size="Size.Small"
                                                OnClick="ToggleStatus"
                                                Disabled="@IsToggleDisabled">
-                                        @(_user.IsActive ? "Deactivate" : "Activate")
+                                        @(_user.IsActive ? UL["Deactivate"] : UL["Activate"])
                                     </MudButton>
                                 </MudTooltip>
                             </MudStack>
 
                             <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="danger-item pa-3">
                                 <MudStack Spacing="0">
-                                    <MudText Typo="Typo.subtitle2" Class="fw-600">Delete Account</MudText>
-                                    <MudText Typo="Typo.caption" Class="text-muted">Permanently remove this user</MudText>
+                                    <MudText Typo="Typo.subtitle2" Class="fw-600">@UL["DeleteAccount"]</MudText>
+                                    <MudText Typo="Typo.caption" Class="text-muted">@UL["DeleteAccountDescription"]</MudText>
                                 </MudStack>
                                 <MudButton Variant="Variant.Outlined" Color="Color.Error" Size="Size.Small"
                                            OnClick="DeleteUser" Disabled="_busy">
-                                    Delete
+                                    @L["Delete"]
                                 </MudButton>
                             </MudStack>
                         </MudStack>
@@ -418,7 +423,7 @@ else
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to load user: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {
@@ -450,10 +455,10 @@ else
     {
         get
         {
-            if (_user is null) return "User not loaded";
-            if (IsCurrentUser) return "Cannot modify your own account";
-            if (_targetIsAdmin) return "Cannot deactivate administrators";
-            return _user.IsActive ? "Deactivate user" : "Activate user";
+            if (_user is null) return L["Loading"];
+            if (IsCurrentUser) return UL["CannotModifyOwnAccount"];
+            if (_targetIsAdmin) return UL["CannotDeactivateAdmin"];
+            return _user.IsActive ? UL["Deactivate"] : UL["Activate"];
         }
     }
 
@@ -461,12 +466,11 @@ else
     {
         if (_user is null || string.IsNullOrWhiteSpace(_user.Id) || IsToggleDisabled) return;
 
-        var action = _user.IsActive ? "deactivate" : "activate";
         var confirmed = await DialogService.ShowConfirmAsync(
-            $"{(_user.IsActive ? "Deactivate" : "Activate")} User",
-            $"Are you sure you want to {action} {_user.FirstName} {_user.LastName}?",
-            _user.IsActive ? "Deactivate" : "Activate",
-            "Cancel",
+            _user.IsActive ? UL["DeactivateAccount"] : UL["ActivateAccount"],
+            string.Format(UL["ConfirmToggleStatus"], _user.FirstName, _user.LastName),
+            _user.IsActive ? UL["Deactivate"] : UL["Activate"],
+            L["Cancel"],
             _user.IsActive ? Color.Warning : Color.Success);
 
         if (!confirmed) return;
@@ -479,12 +483,12 @@ else
                 ActivateUser = !_user.IsActive,
                 UserId = _user.Id
             });
-            Snackbar.Add($"User {(_user.IsActive ? "deactivated" : "activated")} successfully", Severity.Success);
+            Snackbar.Add(UL["UserUpdatedSuccessfully"], Severity.Success);
             await LoadUser();
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {
@@ -496,19 +500,19 @@ else
     {
         if (_user is null || string.IsNullOrWhiteSpace(_user.Id)) return;
 
-        var confirmed = await DialogService.ShowDeleteConfirmAsync($"{_user.FirstName} {_user.LastName}");
+        var confirmed = await DialogService.ShowDeleteConfirmAsync($"{_user.FirstName} {_user.LastName}", L);
         if (!confirmed) return;
 
         _busy = true;
         try
         {
             await IdentityClient.UsersDeleteAsync(Id);
-            Snackbar.Add("User deleted", Severity.Success);
+            Snackbar.Add(UL["UserDeletedSuccessfully"], Severity.Success);
             Navigation.NavigateTo("/users");
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {
@@ -523,12 +527,12 @@ else
         try
         {
             await IdentityClient.ResetPasswordAsync(TenantContext, _resetModel);
-            Snackbar.Add("Password reset successfully", Severity.Success);
+            Snackbar.Add(UL["PasswordResetSuccessfully"], Severity.Success);
             _resetModel = new ResetPasswordCommand { Email = _user.Email ?? string.Empty };
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {
@@ -543,12 +547,12 @@ else
         try
         {
             await IdentityClient.ConfirmEmailAsync(_confirmModel.UserId, _confirmModel.Code ?? string.Empty, TenantContext);
-            Snackbar.Add("Email confirmed successfully", Severity.Success);
+            Snackbar.Add(UL["EmailConfirmedSuccessfully"], Severity.Success);
             await LoadUser();
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {

@@ -1,12 +1,15 @@
 @using FSH.Framework.Blazor.UI.Theme
+@using FSH.Framework.Shared.Localization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> L
 
 <MudPaper Class="pa-4" Elevation="0" Outlined="true">
-    <MudText Typo="Typo.h6" Class="mb-4">Layout Settings</MudText>
+    <MudText Typo="Typo.h6" Class="mb-4">@L["LayoutSettings"]</MudText>
 
     <MudGrid>
         <MudItem xs="12" sm="6">
             <MudSelect T="string"
-                      Label="Border Radius"
+                      Label="@L["BorderRadius"]"
                       Value="@Layout.BorderRadius"
                       ValueChanged="@OnBorderRadiusChanged"
                       Variant="Variant.Outlined"
@@ -27,29 +30,29 @@
                       Max="24"
                       Step="1"
                       Color="Color.Primary">
-                <MudText Typo="Typo.caption">Default Elevation: @Layout.DefaultElevation</MudText>
+                <MudText Typo="Typo.caption">@L["DefaultElevation"]: @Layout.DefaultElevation</MudText>
             </MudSlider>
         </MudItem>
     </MudGrid>
 
     <MudDivider Class="my-4" />
 
-    <MudText Typo="Typo.subtitle2" Class="mb-2">Preview</MudText>
+    <MudText Typo="Typo.subtitle2" Class="mb-2">@L["Preview"]</MudText>
     <div class="d-flex gap-4 flex-wrap">
         <MudPaper Class="pa-4"
                  Elevation="@Layout.DefaultElevation"
                  Style="@GetCardStyle()">
-            <MudText Typo="Typo.body1">Card with elevation @Layout.DefaultElevation</MudText>
+            <MudText Typo="Typo.body1">@L["Preview"] @Layout.DefaultElevation</MudText>
         </MudPaper>
 
         <MudButton Variant="Variant.Filled"
                   Color="Color.Primary"
                   Style="@GetButtonStyle()">
-            Button Preview
+            @L["Preview"]
         </MudButton>
 
         <MudTextField T="string"
-                     Label="Input Preview"
+                     Label="@L["Preview"]"
                      Variant="Variant.Outlined"
                      Style="@GetInputStyle()" />
     </div>

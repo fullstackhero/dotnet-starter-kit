@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="Counter" xml:space="preserve"><value>Counter</value></data>
+  <data name="CurrentCount" xml:space="preserve"><value>Current count</value></data>
+  <data name="ClickMe" xml:space="preserve"><value>Click me</value></data>
+  
+  <data name="Weather" xml:space="preserve"><value>Weather</value></data>
+  <data name="WeatherForecast" xml:space="preserve"><value>Weather Forecast</value></data>
+  <data name="ThisComponentDemonstrates" xml:space="preserve"><value>This component demonstrates showing data.</value></data>
+  <data name="TemperatureC" xml:space="preserve"><value>Temp. (C)</value></data>
+  <data name="TemperatureF" xml:space="preserve"><value>Temp. (F)</value></data>
+  <data name="Summary" xml:space="preserve"><value>Summary</value></data>
+  
+  <data name="Home" xml:space="preserve"><value>Home</value></data>
+  <data name="HelloWorld" xml:space="preserve"><value>Hello, world!</value></data>
+  <data name="WelcomeToYourNewApp" xml:space="preserve"><value>Welcome to your new app.</value></data>
+  
+  <data name="ProfileSettings" xml:space="preserve"><value>Profile Settings</value></data>
+  <data name="UpdateProfile" xml:space="preserve"><value>Update Profile</value></data>
+  <data name="ProfileUpdated" xml:space="preserve"><value>Profile updated successfully</value></data>
+  
+  <data name="SecuritySettings" xml:space="preserve"><value>Security Settings</value></data>
+  <data name="ChangePassword" xml:space="preserve"><value>Change Password</value></data>
+  <data name="CurrentPassword" xml:space="preserve"><value>Current Password</value></data>
+  <data name="NewPassword" xml:space="preserve"><value>New Password</value></data>
+  <data name="PasswordChangedSuccessfully" xml:space="preserve"><value>Password changed successfully</value></data>
+  
+  <data name="ThemeSettings" xml:space="preserve"><value>Theme Settings</value></data>
+  <data name="CustomizeTheme" xml:space="preserve"><value>Customize your theme</value></data>
+  <data name="PrimaryColor" xml:space="preserve"><value>Primary Color</value></data>
+  <data name="SecondaryColor" xml:space="preserve"><value>Secondary Color</value></data>
+  <data name="DarkMode" xml:space="preserve"><value>Dark Mode</value></data>
+  <data name="ThemeUpdatedSuccessfully" xml:space="preserve"><value>Theme updated successfully</value></data>
+  
+  <data name="SessionManagement" xml:space="preserve"><value>Session Management</value></data>
+  <data name="ActiveSessions" xml:space="preserve"><value>Active Sessions</value></data>
+  <data name="Device" xml:space="preserve"><value>Device</value></data>
+  <data name="Location" xml:space="preserve"><value>Location</value></data>
+  <data name="LastActive" xml:space="preserve"><value>Last Active</value></data>
+  <data name="RevokeSession" xml:space="preserve"><value>Revoke Session</value></data>
+  <data name="RevokeAllSessions" xml:space="preserve"><value>Revoke All Sessions</value></data>
+  <data name="SessionRevoked" xml:space="preserve"><value>Session revoked successfully</value></data>
+  
+  <data name="HealthCheck" xml:space="preserve"><value>Health Check</value></data>
+  <data name="SystemHealth" xml:space="preserve"><value>System Health</value></data>
+  <data name="Healthy" xml:space="preserve"><value>Healthy</value></data>
+  <data name="Unhealthy" xml:space="preserve"><value>Unhealthy</value></data>
+  <data name="Degraded" xml:space="preserve"><value>Degraded</value></data>
+  
+  <data name="ErrorOccurred" xml:space="preserve"><value>An error occurred</value></data>
+  <data name="ErrorDetails" xml:space="preserve"><value>Error Details</value></data>
+  <data name="ReturnHome" xml:space="preserve"><value>Return Home</value></data>
+</root>

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data"><xsd:complexType><xsd:sequence><xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" /></xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" /><xsd:attribute ref="xml:space" /></xsd:complexType></xsd:element>
+          <xsd:element name="resheader"><xsd:complexType><xsd:sequence><xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" /></xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" /></xsd:complexType></xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="UserManagement" xml:space="preserve"><value>User Management</value></data>
+  <data name="CreateUser" xml:space="preserve"><value>Create User</value></data>
+  <data name="EditUser" xml:space="preserve"><value>Edit User</value></data>
+  <data name="DeleteUser" xml:space="preserve"><value>Delete User</value></data>
+  <data name="UserDetails" xml:space="preserve"><value>User Details</value></data>
+  <data name="UserRoles" xml:space="preserve"><value>User Roles</value></data>
+  <data name="AssignRole" xml:space="preserve"><value>Assign Role</value></data>
+  <data name="RemoveRole" xml:space="preserve"><value>Remove Role</value></data>
+  <data name="UserCreatedSuccessfully" xml:space="preserve"><value>User created successfully</value></data>
+  <data name="UserUpdatedSuccessfully" xml:space="preserve"><value>User updated successfully</value></data>
+  <data name="UserDeletedSuccessfully" xml:space="preserve"><value>User deleted successfully</value></data>
+  <data name="ConfirmDeleteUser" xml:space="preserve"><value>Are you sure you want to delete this user?</value></data>
+  <data name="IsActive" xml:space="preserve"><value>Is Active</value></data>
+  <data name="EmailConfirmed" xml:space="preserve"><value>Email Confirmed</value></data>
+  <data name="PhoneConfirmed" xml:space="preserve"><value>Phone Confirmed</value></data>
+  <data name="NewUser" xml:space="preserve"><value>New User</value></data>
+  <data name="TotalUsers" xml:space="preserve"><value>Total Users</value></data>
+  <data name="ActiveUsers" xml:space="preserve"><value>Active Users</value></data>
+  <data name="InactiveUsers" xml:space="preserve"><value>Inactive Users</value></data>
+  <data name="ConfirmedUsers" xml:space="preserve"><value>Confirmed Users</value></data>
+  <data name="NoUsersFound" xml:space="preserve"><value>No users found</value></data>
+  <data name="TryAdjustingFilters" xml:space="preserve"><value>Try adjusting your filters or create a new user.</value></data>
+  <data name="ManageRoles" xml:space="preserve"><value>Manage Roles</value></data>
+  <data name="ViewDetails" xml:space="preserve"><value>View Details</value></data>
+  <data name="Activate" xml:space="preserve"><value>Activate</value></data>
+  <data name="Deactivate" xml:space="preserve"><value>Deactivate</value></data>
+  <data name="UsersActivated" xml:space="preserve"><value>{0} user(s) activated</value></data>
+  <data name="UsersDeactivated" xml:space="preserve"><value>{0} user(s) deactivated</value></data>
+  <data name="UsersDeleted" xml:space="preserve"><value>Deleted {0} of {1} users</value></data>
+  <data name="BulkDelete" xml:space="preserve"><value>Bulk Delete</value></data>
+  <data name="DeleteUsersConfirm" xml:space="preserve"><value>Delete {0} user(s)? This action cannot be undone.</value></data>
+  <data name="CannotDeleteSelf" xml:space="preserve"><value>Cannot delete your own account</value></data>
+  <data name="ConfirmRemoveRole" xml:space="preserve"><value>Remove the '{0}' role from this user?</value></data>
+  <data name="RolesUpdatedSuccessfully" xml:space="preserve"><value>Roles updated successfully</value></data>
+  <data name="ConfirmToggleStatus" xml:space="preserve"><value>Are you sure you want to change the status of {0} {1}?</value></data>
+  <data name="DeactivateAccount" xml:space="preserve"><value>Deactivate Account</value></data>
+  <data name="ActivateAccount" xml:space="preserve"><value>Activate Account</value></data>
+  <data name="DeactivateDescription" xml:space="preserve"><value>User will lose access to the system</value></data>
+  <data name="ActivateDescription" xml:space="preserve"><value>Restore user access</value></data>
+  <data name="DeleteAccount" xml:space="preserve"><value>Delete Account</value></data>
+  <data name="DeleteAccountDescription" xml:space="preserve"><value>Permanently remove this user</value></data>
+  <data name="CannotModifyOwnAccount" xml:space="preserve"><value>Cannot modify your own account</value></data>
+  <data name="CannotDeactivateAdmin" xml:space="preserve"><value>Cannot deactivate administrators</value></data>
+  <data name="ConfirmEmail" xml:space="preserve"><value>Confirm Email</value></data>
+  <data name="ConfirmEmailDescription" xml:space="preserve"><value>Enter the confirmation code sent to the user's email.</value></data>
+  <data name="ConfirmationCode" xml:space="preserve"><value>Confirmation Code</value></data>
+  <data name="EmailConfirmedSuccessfully" xml:space="preserve"><value>Email confirmed successfully</value></data>
+  <data name="ResetPassword" xml:space="preserve"><value>Reset Password</value></data>
+  <data name="ResetPasswordDescription" xml:space="preserve"><value>Requires a valid reset token from email flow.</value></data>
+  <data name="ResetToken" xml:space="preserve"><value>Reset Token</value></data>
+  <data name="PasswordResetSuccessfully" xml:space="preserve"><value>Password reset successfully</value></data>
+  <data name="SendResetEmail" xml:space="preserve"><value>Send Password Reset Email</value></data>
+  <data name="SendResetEmailDescription" xml:space="preserve"><value>Send a password reset email to the user.</value></data>
+</root>

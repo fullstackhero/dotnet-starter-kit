@@ -1,0 +1,86 @@
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.Extensions.Localization
+@using Microsoft.Extensions.DependencyInjection
+@using FSH.Framework.Shared.Localization
+@using System.ComponentModel.DataAnnotations
+@inherits ComponentBase
+@implements IDisposable
+@inject IServiceProvider ServiceProvider
+@inject IStringLocalizer<SharedResource> Localizer
+
+@code {
+    [CascadingParameter] 
+    private EditContext? EditContext { get; set; }
+
+    private ValidationMessageStore? _validationMessageStore;
+
+    protected override void OnInitialized()
+    {
+        if (EditContext == null)
+        {
+            throw new InvalidOperationException($"{nameof(LocalizedDataAnnotationsValidator)} requires a cascading parameter of type {nameof(EditContext)}.");
+        }
+
+        _validationMessageStore = new ValidationMessageStore(EditContext);
+        EditContext.OnValidationRequested += HandleValidationRequested;
+        EditContext.OnFieldChanged += HandleFieldChanged;
+    }
+
+    private void HandleValidationRequested(object? sender, ValidationRequestedEventArgs args)
+    {
+        _validationMessageStore?.Clear();
+
+        if (EditContext?.Model is IValidatableObject validatableModel)
+        {
+            var validationContext = new ValidationContext(EditContext.Model, ServiceProvider, null);
+            var validationResults = validatableModel.Validate(validationContext);
+
+            foreach (var validationResult in validationResults)
+            {
+                if (validationResult.MemberNames.Any())
+                {
+                    foreach (var memberName in validationResult.MemberNames)
+                    {
+                        var fieldIdentifier = new FieldIdentifier(EditContext.Model, memberName);
+                        _validationMessageStore?.Add(fieldIdentifier, validationResult.ErrorMessage ?? string.Empty);
+                    }
+                }
+            }
+        }
+
+        EditContext?.NotifyValidationStateChanged();
+    }
+
+    private void HandleFieldChanged(object? sender, FieldChangedEventArgs args)
+    {
+        _validationMessageStore?.Clear(args.FieldIdentifier);
+
+        if (EditContext?.Model is IValidatableObject validatableModel)
+        {
+            var validationContext = new ValidationContext(EditContext.Model, ServiceProvider, null)
+            {
+                MemberName = args.FieldIdentifier.FieldName
+            };
+
+            var validationResults = validatableModel.Validate(validationContext)
+                .Where(vr => vr.MemberNames.Contains(args.FieldIdentifier.FieldName));
+
+            foreach (var validationResult in validationResults)
+            {
+                _validationMessageStore?.Add(args.FieldIdentifier, validationResult.ErrorMessage ?? string.Empty);
+            }
+        }
+
+        EditContext?.NotifyValidationStateChanged();
+    }
+
+    public void Dispose()
+    {
+        if (EditContext != null)
+        {
+            EditContext.OnValidationRequested -= HandleValidationRequested;
+            EditContext.OnFieldChanged -= HandleFieldChanged;
+        }
+    }
+}
+

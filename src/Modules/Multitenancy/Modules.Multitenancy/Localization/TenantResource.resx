@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="TenantCreated" xml:space="preserve"><value>Tenant created successfully</value></data>
+  <data name="TenantUpdated" xml:space="preserve"><value>Tenant updated successfully</value></data>
+  <data name="TenantDeleted" xml:space="preserve"><value>Tenant deleted successfully</value></data>
+  <data name="TenantActivated" xml:space="preserve"><value>Tenant activated</value></data>
+  <data name="TenantDeactivated" xml:space="preserve"><value>Tenant deactivated</value></data>
+  <data name="TenantUpgraded" xml:space="preserve"><value>Tenant upgraded successfully</value></data>
+  <data name="TenantDowngraded" xml:space="preserve"><value>Tenant downgraded successfully</value></data>
+  <data name="SubscriptionRenewed" xml:space="preserve"><value>Subscription renewed</value></data>
+  <data name="SubscriptionCancelled" xml:space="preserve"><value>Subscription cancelled</value></data>
+  <data name="SubscriptionExpired" xml:space="preserve"><value>Subscription has expired</value></data>
+  <data name="SubscriptionExpiringSoon" xml:space="preserve"><value>Subscription expiring soon</value></data>
+  <data name="TenantLimitReached" xml:space="preserve"><value>Tenant limit has been reached</value></data>
+  <data name="InvalidTenant" xml:space="preserve"><value>Invalid tenant</value></data>
+  <data name="TenantNotFound" xml:space="preserve"><value>Tenant not found</value></data>
+  <data name="TenantAlreadyExists" xml:space="preserve"><value>Tenant already exists</value></data>
+  <data name="ConnectionStringUpdated" xml:space="preserve"><value>Connection string updated</value></data>
+  <data name="DatabaseCreated" xml:space="preserve"><value>Database created successfully</value></data>
+  <data name="DatabaseDeleted" xml:space="preserve"><value>Database deleted successfully</value></data>
+  <data name="MigrationCompleted" xml:space="preserve"><value>Migration completed successfully</value></data>
+  <data name="ThemeUpdated" xml:space="preserve"><value>Theme updated successfully</value></data>
+</root>

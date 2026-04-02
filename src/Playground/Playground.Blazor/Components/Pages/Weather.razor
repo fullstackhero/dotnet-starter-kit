@@ -1,9 +1,14 @@
 ﻿@page "/weather"
+@using FSH.Framework.Shared.Localization
+@using FSH.Playground.Blazor.Localization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> L
+@inject IStringLocalizer<PlaygroundResource> PL
 
-<PageTitle>Weather</PageTitle>
+<PageTitle>@PL["Weather"]</PageTitle>
 
-<FshPageHeader Title="Weather forecast"
-               Description="This component demonstrates fetching data from the server."
+<FshPageHeader Title="@PL["WeatherForecast"]"
+               Description="@PL["ThisComponentDemonstrates"]"
                TitleTypo="Typo.h3" />
 
 @if (forecasts == null)
@@ -14,16 +19,16 @@ else
 {
   <MudTable Items="forecasts" Hover="true" SortLabel="Sort By" Elevation="0" AllowUnsorted="false">
         <HeaderContent>
-            <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<WeatherForecast, object>(x=>x.Date)">Date</MudTableSortLabel></MudTh>
-            <MudTh><MudTableSortLabel SortBy="new Func<WeatherForecast, object>(x=>x.TemperatureC)">Temp. (C)</MudTableSortLabel></MudTh>
-            <MudTh><MudTableSortLabel SortBy="new Func<WeatherForecast, object>(x=>x.TemperatureF)">Temp. (F)</MudTableSortLabel></MudTh>
-            <MudTh><MudTableSortLabel SortBy="new Func<WeatherForecast, object>(x=>x.Summary!)">Summary</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<WeatherForecast, object>(x=>x.Date)">@L["Date"]</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<WeatherForecast, object>(x=>x.TemperatureC)">@PL["TemperatureC"]</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<WeatherForecast, object>(x=>x.TemperatureF)">@PL["TemperatureF"]</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<WeatherForecast, object>(x=>x.Summary!)">@PL["Summary"]</MudTableSortLabel></MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="Date">@context.Date</MudTd>
-            <MudTd DataLabel="Temp. (C)">@context.TemperatureC</MudTd>
-            <MudTd DataLabel="Temp. (F)">@context.TemperatureF</MudTd>
-            <MudTd DataLabel="Summary">@context.Summary</MudTd>
+            <MudTd DataLabel="@L["Date"]">@context.Date</MudTd>
+            <MudTd DataLabel="@PL["TemperatureC"]">@context.TemperatureC</MudTd>
+            <MudTd DataLabel="@PL["TemperatureF"]">@context.TemperatureF</MudTd>
+            <MudTd DataLabel="@PL["Summary"]">@context.Summary</MudTd>
         </RowTemplate>
         <PagerContent>
             <MudTablePager PageSizeOptions="new int[]{50, 100}" />

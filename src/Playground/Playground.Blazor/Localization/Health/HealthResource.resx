@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data"><xsd:complexType><xsd:sequence><xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" /></xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" /><xsd:attribute ref="xml:space" /></xsd:complexType></xsd:element>
+          <xsd:element name="resheader"><xsd:complexType><xsd:sequence><xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" /></xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" /></xsd:complexType></xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="HealthCheck" xml:space="preserve"><value>Health Check</value></data>
+  <data name="SystemHealth" xml:space="preserve"><value>System Health</value></data>
+  <data name="CheckSystemHealth" xml:space="preserve"><value>Check System Health</value></data>
+  <data name="HealthStatus" xml:space="preserve"><value>Health Status</value></data>
+  <data name="Healthy" xml:space="preserve"><value>Healthy</value></data>
+  <data name="Unhealthy" xml:space="preserve"><value>Unhealthy</value></data>
+  <data name="Degraded" xml:space="preserve"><value>Degraded</value></data>
+  <data name="Duration" xml:space="preserve"><value>Duration</value></data>
+  <data name="Component" xml:space="preserve"><value>Component</value></data>
+  <data name="Tags" xml:space="preserve"><value>Tags</value></data>
+  <data name="HealthyServices" xml:space="preserve"><value>Healthy Services</value></data>
+  <data name="DegradedServices" xml:space="preserve"><value>Degraded Services</value></data>
+  <data name="UnhealthyServices" xml:space="preserve"><value>Unhealthy Services</value></data>
+  <data name="AvgResponseTime" xml:space="preserve"><value>Avg Response Time</value></data>
+  <data name="Response" xml:space="preserve"><value>Response</value></data>
+  <data name="ServiceStatus" xml:space="preserve"><value>Service Status</value></data>
+  <data name="LivenessProbe" xml:space="preserve"><value>Liveness Probe</value></data>
+  <data name="LivenessProbeDescription" xml:space="preserve"><value>Basic process check - confirms the application is running.</value></data>
+  <data name="ReadinessProbe" xml:space="preserve"><value>Readiness Probe</value></data>
+  <data name="ReadinessProbeDescription" xml:space="preserve"><value>Full dependency check - validates all services and databases.</value></data>
+  <data name="RecentChecks" xml:space="preserve"><value>Recent Checks</value></data>
+  <data name="AutoRefreshOn" xml:space="preserve"><value>Auto-refresh ON</value></data>
+  <data name="AutoRefreshOff" xml:space="preserve"><value>Auto-refresh OFF</value></data>
+  <data name="ApplicationCore" xml:space="preserve"><value>Application Core</value></data>
+  <data name="IdentityDatabase" xml:space="preserve"><value>Identity Database</value></data>
+  <data name="AuditDatabase" xml:space="preserve"><value>Audit Database</value></data>
+  <data name="MultitenancyDatabase" xml:space="preserve"><value>Multitenancy Database</value></data>
+  <data name="TenantMigrations" xml:space="preserve"><value>Tenant Migrations</value></data>
+  <data name="LastNChecks" xml:space="preserve"><value>Last {0} checks</value></data>
+</root>

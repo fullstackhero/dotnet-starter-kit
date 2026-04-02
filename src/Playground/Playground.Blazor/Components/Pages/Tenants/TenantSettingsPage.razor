@@ -3,22 +3,27 @@
 @using FSH.Framework.Blazor.UI.Components.Page
 @using FSH.Framework.Shared.Constants
 @using FSH.Framework.Shared.Multitenancy
+@using FSH.Framework.Shared.Localization
+@using FSH.Playground.Blazor.Localization.Tenants
+@using Microsoft.Extensions.Localization
 @using Microsoft.AspNetCore.Components.Authorization
 @inherits ComponentBase
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<SharedResource> L
+@inject IStringLocalizer<TenantResource> TL
 
 @if (!_isRootTenantAdmin)
 {
     <MudAlert Severity="Severity.Warning" Class="mb-4">
-        <MudText>You do not have permission to access this page. Only root tenant administrators can manage tenant settings.</MudText>
+        <MudText>@L["AccessDenied"]</MudText>
     </MudAlert>
 }
 else
 {
-    <FshPageHeader Title="Tenant Settings"
-                   Description="Configure global tenant settings and policies" />
+    <FshPageHeader Title="@TL["TenantSettings"]"
+                   Description="@TL["TenantManagement"]" />
 
     <MudGrid GutterSize="3">
         @* Session Management Settings *@
@@ -26,28 +31,28 @@ else
             <MudPaper Class="fsh-card pa-4" Style="height: 100%;">
                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-3">
                     <MudIcon Icon="@Icons.Material.Filled.Devices" Color="Color.Primary" />
-                    <MudText Typo="Typo.h6" Class="fw-600">Session Management</MudText>
+                    <MudText Typo="Typo.h6" Class="fw-600">@L["Sessions"]</MudText>
                 </MudStack>
                 <MudDivider Class="mb-3" />
                 <MudStack Spacing="3">
                     <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true">
-                        Session management settings will be available in a future update.
+                        @L["ComingSoon"]
                     </MudAlert>
                     <MudText Typo="Typo.body2" Class="text-muted">
-                        Configure session limits, idle timeouts, and concurrent session policies for all tenants.
+                        @TL["TenantManagement"]
                     </MudText>
                     <MudStack Spacing="2">
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                            <MudText Typo="Typo.body2">Max Sessions per User</MudText>
-                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Default">Unlimited</MudChip>
+                            <MudText Typo="Typo.body2">@L["MaxSessions"]</MudText>
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Default">@L["Unlimited"]</MudChip>
                         </MudStack>
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                            <MudText Typo="Typo.body2">Session Idle Timeout</MudText>
-                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Default">None</MudChip>
+                            <MudText Typo="Typo.body2">@L["SessionIdleTimeout"]</MudText>
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Default">@L["None"]</MudChip>
                         </MudStack>
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                            <MudText Typo="Typo.body2">Session Absolute Timeout</MudText>
-                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Default">7 days</MudChip>
+                            <MudText Typo="Typo.body2">@L["SessionAbsoluteTimeout"]</MudText>
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Default">7 @L["Days"]</MudChip>
                         </MudStack>
                     </MudStack>
                 </MudStack>
@@ -59,28 +64,28 @@ else
             <MudPaper Class="fsh-card pa-4" Style="height: 100%;">
                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-3">
                     <MudIcon Icon="@Icons.Material.Filled.Security" Color="Color.Primary" />
-                    <MudText Typo="Typo.h6" Class="fw-600">Security Policies</MudText>
+                    <MudText Typo="Typo.h6" Class="fw-600">@L["Security"]</MudText>
                 </MudStack>
                 <MudDivider Class="mb-3" />
                 <MudStack Spacing="3">
                     <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true">
-                        Security policy settings will be available in a future update.
+                        @L["ComingSoon"]
                     </MudAlert>
                     <MudText Typo="Typo.body2" Class="text-muted">
-                        Configure password policies, lockout settings, and authentication requirements.
+                        @TL["TenantManagement"]
                     </MudText>
                     <MudStack Spacing="2">
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                            <MudText Typo="Typo.body2">Password History</MudText>
-                            <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="Color.Success">Enabled (5)</MudChip>
+                            <MudText Typo="Typo.body2">@L["PasswordHistory"]</MudText>
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="Color.Success">@L["Enabled"] (5)</MudChip>
                         </MudStack>
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                            <MudText Typo="Typo.body2">Account Lockout</MudText>
-                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Default">Default</MudChip>
+                            <MudText Typo="Typo.body2">@L["AccountLockout"]</MudText>
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Default">@L["Default"]</MudChip>
                         </MudStack>
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                            <MudText Typo="Typo.body2">Two-Factor Authentication</MudText>
-                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Default">Optional</MudChip>
+                            <MudText Typo="Typo.body2">@L["TwoFactorAuthentication"]</MudText>
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Default">@L["Optional"]</MudChip>
                         </MudStack>
                     </MudStack>
                 </MudStack>
@@ -92,28 +97,28 @@ else
             <MudPaper Class="fsh-card pa-4" Style="height: 100%;">
                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-3">
                     <MudIcon Icon="@Icons.Material.Filled.DataUsage" Color="Color.Primary" />
-                    <MudText Typo="Typo.h6" Class="fw-600">Usage Quotas</MudText>
+                    <MudText Typo="Typo.h6" Class="fw-600">@L["Quotas"]</MudText>
                 </MudStack>
                 <MudDivider Class="mb-3" />
                 <MudStack Spacing="3">
                     <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true">
-                        Quota settings will be available in a future update.
+                        @L["ComingSoon"]
                     </MudAlert>
                     <MudText Typo="Typo.body2" Class="text-muted">
-                        Configure storage limits, API rate limits, and resource quotas per tenant.
+                        @TL["TenantManagement"]
                     </MudText>
                     <MudStack Spacing="2">
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                            <MudText Typo="Typo.body2">Max Users</MudText>
-                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Default">Unlimited</MudChip>
+                            <MudText Typo="Typo.body2">@L["MaxUsers"]</MudText>
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Default">@L["Unlimited"]</MudChip>
                         </MudStack>
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                            <MudText Typo="Typo.body2">Storage Limit</MudText>
-                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Default">Unlimited</MudChip>
+                            <MudText Typo="Typo.body2">@L["StorageLimit"]</MudText>
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Default">@L["Unlimited"]</MudChip>
                         </MudStack>
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                            <MudText Typo="Typo.body2">API Rate Limit</MudText>
-                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Default">None</MudChip>
+                            <MudText Typo="Typo.body2">@L["APIRateLimit"]</MudText>
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Default">@L["None"]</MudChip>
                         </MudStack>
                     </MudStack>
                 </MudStack>
@@ -125,28 +130,28 @@ else
             <MudPaper Class="fsh-card pa-4" Style="height: 100%;">
                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-3">
                     <MudIcon Icon="@Icons.Material.Filled.Notifications" Color="Color.Primary" />
-                    <MudText Typo="Typo.h6" Class="fw-600">Notifications</MudText>
+                    <MudText Typo="Typo.h6" Class="fw-600">@L["Notifications"]</MudText>
                 </MudStack>
                 <MudDivider Class="mb-3" />
                 <MudStack Spacing="3">
                     <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true">
-                        Notification settings will be available in a future update.
+                        @L["ComingSoon"]
                     </MudAlert>
                     <MudText Typo="Typo.body2" Class="text-muted">
-                        Configure email notifications, alerts, and system messages for tenants.
+                        @TL["TenantManagement"]
                     </MudText>
                     <MudStack Spacing="2">
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                            <MudText Typo="Typo.body2">Email Notifications</MudText>
-                            <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="Color.Success">Enabled</MudChip>
+                            <MudText Typo="Typo.body2">@L["EmailNotifications"]</MudText>
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="Color.Success">@L["Enabled"]</MudChip>
                         </MudStack>
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                            <MudText Typo="Typo.body2">System Alerts</MudText>
-                            <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="Color.Success">Enabled</MudChip>
+                            <MudText Typo="Typo.body2">@L["SystemAlerts"]</MudText>
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="Color.Success">@L["Enabled"]</MudChip>
                         </MudStack>
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                            <MudText Typo="Typo.body2">Subscription Reminders</MudText>
-                            <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="Color.Success">Enabled</MudChip>
+                            <MudText Typo="Typo.body2">@TL["SubscriptionReminders"]</MudText>
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="Color.Success">@L["Enabled"]</MudChip>
                         </MudStack>
                     </MudStack>
                 </MudStack>

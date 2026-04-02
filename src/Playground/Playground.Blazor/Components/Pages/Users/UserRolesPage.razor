@@ -1,21 +1,26 @@
 @page "/users/{Id:guid}/roles"
 @using FSH.Playground.Blazor.ApiClient
 @using FSH.Framework.Blazor.UI.Components.Dialogs
+@using FSH.Framework.Shared.Localization
+@using FSH.Playground.Blazor.Localization.Users
+@using Microsoft.Extensions.Localization
 @inherits ComponentBase
 @inject IIdentityClient IdentityClient
 @inject IUsersClient UsersClient
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@inject IStringLocalizer<SharedResource> L
+@inject IStringLocalizer<UserResource> UL
 
-<FshPageHeader Title="Manage User Roles"
-               Description="Assign or remove roles for this user">
+<FshPageHeader Title="@UL["UserRoles"]"
+               Description="@UL["ManageRoles"]">
     <ActionContent>
         <MudButton Variant="Variant.Text"
                    Color="Color.Default"
                    StartIcon="@Icons.Material.Filled.ArrowBack"
                    OnClick="GoBack">
-            Back to Users
+            @L["Back"]
         </MudButton>
     </ActionContent>
 </FshPageHeader>
@@ -25,7 +30,7 @@
     <MudPaper Class="fsh-card pa-8">
         <MudStack AlignItems="AlignItems.Center" Spacing="4">
             <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
-            <MudText Typo="Typo.body1">Loading user information...</MudText>
+            <MudText Typo="Typo.body1">@L["Loading"]</MudText>
         </MudStack>
     </MudPaper>
 }
@@ -34,10 +39,10 @@ else if (_user is null)
     <MudPaper Class="fsh-card pa-8">
         <MudStack AlignItems="AlignItems.Center" Spacing="4">
             <MudIcon Icon="@Icons.Material.Filled.PersonOff" Size="Size.Large" Color="Color.Error" />
-            <MudText Typo="Typo.h6">User Not Found</MudText>
-            <MudText Typo="Typo.body2" Class="text-muted">The requested user could not be found.</MudText>
+            <MudText Typo="Typo.h6">@L["NotFound"]</MudText>
+            <MudText Typo="Typo.body2" Class="text-muted">@L["NotFound"]</MudText>
             <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="GoBack">
-                Back to Users
+                @L["Back"]
             </MudButton>
         </MudStack>
     </MudPaper>
@@ -63,16 +68,16 @@ else
                 <MudStack Row="true" Spacing="1" Class="mt-1">
                     @if (_user.IsActive)
                     {
-                        <MudChip T="string" Color="Color.Success" Size="Size.Small" Variant="Variant.Filled">Active</MudChip>
+                        <MudChip T="string" Color="Color.Success" Size="Size.Small" Variant="Variant.Filled">@L["Active"]</MudChip>
                     }
                     else
                     {
-                        <MudChip T="string" Color="Color.Error" Size="Size.Small" Variant="Variant.Filled">Inactive</MudChip>
+                        <MudChip T="string" Color="Color.Error" Size="Size.Small" Variant="Variant.Filled">@L["Inactive"]</MudChip>
                     }
                     @if (_user.EmailConfirmed)
                     {
                         <MudChip T="string" Color="Color.Info" Size="Size.Small" Variant="Variant.Outlined">
-                            <MudIcon Icon="@Icons.Material.Filled.Verified" Size="Size.Small" Class="mr-1" /> Verified
+                            <MudIcon Icon="@Icons.Material.Filled.Verified" Size="Size.Small" Class="mr-1" /> @L["Verified"]
                         </MudChip>
                     }
                 </MudStack>
@@ -84,9 +89,9 @@ else
     <MudPaper Class="fsh-card pa-4 mb-4">
         <MudStack Spacing="3">
             <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                <MudText Typo="Typo.h6" Class="fw-600">Current Roles</MudText>
+                <MudText Typo="Typo.h6" Class="fw-600">@L["Roles"]</MudText>
                 <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Text">
-                    @_currentRoleIds.Count assigned
+                    @_currentRoleIds.Count @L["Assigned"]
                 </MudChip>
             </MudStack>
             <MudDivider />
@@ -111,7 +116,7 @@ else
             else
             {
                 <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true">
-                    This user has no roles assigned. Assign roles below to grant permissions.
+                    @L["NoDataAvailable"]
                 </MudAlert>
             }
         </MudStack>
@@ -121,7 +126,7 @@ else
     <MudPaper Class="fsh-card pa-4">
         <MudStack Spacing="3">
             <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                <MudText Typo="Typo.h6" Class="fw-600">Available Roles</MudText>
+                <MudText Typo="Typo.h6" Class="fw-600">@L["AvailableRoles"]</MudText>
                 <MudStack Row="true" Spacing="2">
                     @if (HasChanges)
                     {
@@ -129,7 +134,7 @@ else
                                    Color="Color.Default"
                                    OnClick="ResetChanges"
                                    Disabled="_saving">
-                            Reset
+                            @L["Reset"]
                         </MudButton>
                     }
                     <MudButton Variant="Variant.Filled"
@@ -141,7 +146,7 @@ else
                         {
                             <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
                         }
-                        Save Changes
+                        @L["Save"]
                     </MudButton>
                 </MudStack>
             </MudStack>
@@ -176,7 +181,7 @@ else
                                         <MudChip T="string" Size="Size.Small"
                                                  Color="@(isAssigned ? Color.Success : Color.Warning)"
                                                  Variant="Variant.Text">
-                                            @(isAssigned ? "Will be added" : "Will be removed")
+                                            @(isAssigned ? L["WillBeAdded"] : L["WillBeRemoved"])
                                         </MudChip>
                                     }
                                     @if (isAssigned)
@@ -193,7 +198,7 @@ else
             else
             {
                 <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">
-                    No roles available in the system. Contact an administrator.
+                    @L["NoDataAvailable"]
                 </MudAlert>
             }
         </MudStack>
@@ -266,7 +271,7 @@ else
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to load data: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {
@@ -300,10 +305,10 @@ else
         if (string.IsNullOrEmpty(roleId)) return;
 
         var confirmed = await DialogService.ShowConfirmAsync(
-            "Remove Role",
-            $"Remove the '{roleName}' role from this user?",
-            "Remove",
-            "Cancel",
+            UL["RemoveRole"],
+            string.Format(UL["ConfirmRemoveRole"], roleName),
+            L["Delete"],
+            L["Cancel"],
             Color.Warning);
 
         if (!confirmed) return;
@@ -343,11 +348,11 @@ else
             // Update original state to match current
             _originalRoleIds = new HashSet<string>(_currentRoleIds);
 
-            Snackbar.Add("Roles updated successfully.", Severity.Success);
+            Snackbar.Add(UL["RolesUpdatedSuccessfully"], Severity.Success);
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to save roles: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {

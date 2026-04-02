@@ -1,27 +1,32 @@
 @page "/groups/{GroupId:guid}/members"
 @using FSH.Playground.Blazor.ApiClient
 @using FSH.Framework.Blazor.UI.Components.Dialogs
+@using FSH.Framework.Shared.Localization
+@using FSH.Playground.Blazor.Localization.Groups
+@using Microsoft.Extensions.Localization
 @inherits ComponentBase
 @inject IIdentityClient IdentityClient
 @inject IGroupsClient GroupsClient
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@inject IStringLocalizer<SharedResource> L
+@inject IStringLocalizer<GroupResource> GL
 
-<FshPageHeader Title="@($"Group Members - {_group?.Name ?? "Loading..."}")"
-               Description="@(_group?.Description ?? "Manage group membership")">
+<FshPageHeader Title="@($"{GL["GroupMembers"]} - {_group?.Name ?? L["Loading"]}")"
+               Description="@(_group?.Description ?? GL["GroupManagement"])">
     <ActionContent>
         <MudButton Variant="Variant.Text"
                    Color="Color.Default"
                    StartIcon="@Icons.Material.Filled.ArrowBack"
                    OnClick="@(() => Navigation.NavigateTo("/groups"))">
-            Back to Groups
+            @L["Back"]
         </MudButton>
         <MudButton Variant="Variant.Filled"
                    Color="Color.Primary"
                    StartIcon="@Icons.Material.Filled.PersonAdd"
                    OnClick="ShowAddMembers">
-            Add Members
+            @GL["AddMembers"]
         </MudButton>
     </ActionContent>
 </FshPageHeader>
@@ -39,13 +44,13 @@
                         @if (_group.IsSystemGroup)
                         {
                             <MudChip T="string" Color="Color.Warning" Size="Size.Small" Variant="Variant.Outlined">
-                                System
+                                @GL["System"]
                             </MudChip>
                         }
                         @if (_group.IsDefault)
                         {
                             <MudChip T="string" Color="Color.Success" Size="Size.Small" Variant="Variant.Outlined">
-                                Default
+                                @GL["DefaultGroups"]
                             </MudChip>
                         }
                     </MudStack>
@@ -85,7 +90,7 @@
                  Class="members-datagrid">
         <ToolBarContent>
             <MudTextField @bind-Value="_searchTerm"
-                          Placeholder="Search members..."
+                          Placeholder="@L["Search"]"
                           Adornment="Adornment.Start"
                           AdornmentIcon="@Icons.Material.Filled.Search"
                           IconSize="Size.Small"
@@ -115,8 +120,8 @@
                     </MudStack>
                 </CellTemplate>
             </TemplateColumn>
-            <PropertyColumn Property="x => x.Email" Title="Email" Sortable="true" />
-            <TemplateColumn Title="Added" Sortable="true" SortBy="@(x => x.AddedAt)">
+            <PropertyColumn Property="x => x.Email" Title="@L["Email"]" Sortable="true" />
+            <TemplateColumn Title="@L["Date"]" Sortable="true" SortBy="@(x => x.AddedAt)">
                 <CellTemplate>
                     <MudStack Spacing="0">
                         <MudText Typo="Typo.body2">@context.Item.AddedAt.LocalDateTime.ToString("MMM d, yyyy")</MudText>
@@ -124,9 +129,9 @@
                     </MudStack>
                 </CellTemplate>
             </TemplateColumn>
-            <TemplateColumn Title="Actions" Sortable="false" HeaderClass="text-right" CellClass="text-right">
+            <TemplateColumn Title="@L["Actions"]" Sortable="false" HeaderClass="text-right" CellClass="text-right">
                 <CellTemplate>
-                    <MudTooltip Text="Remove from group">
+                    <MudTooltip Text="@GL["RemoveMember"]">
                         <MudIconButton Icon="@Icons.Material.Filled.PersonRemove"
                                        Size="Size.Small"
                                        Color="Color.Error"
@@ -142,13 +147,13 @@
         <NoRecordsContent>
             <MudStack AlignItems="AlignItems.Center" Spacing="4" Class="pa-8">
                 <MudIcon Icon="@Icons.Material.Filled.GroupOff" Size="Size.Large" Color="Color.Default" />
-                <MudText Typo="Typo.h6">No members in this group</MudText>
-                <MudText Typo="Typo.body2" Class="text-muted">Add members to get started.</MudText>
+                <MudText Typo="Typo.h6">@L["NoDataAvailable"]</MudText>
+                <MudText Typo="Typo.body2" Class="text-muted">@GL["AddMembers"]</MudText>
                 <MudButton Variant="Variant.Filled"
                            Color="Color.Primary"
                            StartIcon="@Icons.Material.Filled.PersonAdd"
                            OnClick="ShowAddMembers">
-                    Add Members
+                    @GL["AddMembers"]
                 </MudButton>
             </MudStack>
         </NoRecordsContent>
@@ -204,7 +209,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to load group: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
     }
 
@@ -219,7 +224,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to load members: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {
@@ -277,7 +282,7 @@
             CloseButton = true
         };
 
-        var dialog = await DialogService.ShowAsync<AddMembersDialog>("Add Members", parameters, options);
+        var dialog = await DialogService.ShowAsync<AddMembersDialog>(GL["AddMembers"], parameters, options);
         var result = await dialog.Result;
 
         if (result is not null && !result.Canceled)
@@ -291,10 +296,10 @@
         if (string.IsNullOrWhiteSpace(member.UserId)) return;
 
         var confirmed = await DialogService.ShowConfirmAsync(
-            "Remove Member",
-            $"Remove {member.FirstName} {member.LastName} from this group?",
-            "Remove",
-            "Cancel",
+            GL["RemoveMember"],
+            string.Format(GL["ConfirmDeleteGroup"], $"{member.FirstName} {member.LastName}"),
+            L["Delete"],
+            L["Cancel"],
             Color.Error);
 
         if (!confirmed) return;
@@ -303,12 +308,12 @@
         try
         {
             await GroupsClient.MembersDeleteAsync(GroupId, member.UserId);
-            Snackbar.Add($"{member.FirstName} {member.LastName} removed from group.", Severity.Success);
+            Snackbar.Add(GL["MemberRemovedSuccessfully"], Severity.Success);
             await LoadMembers();
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to remove member: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {

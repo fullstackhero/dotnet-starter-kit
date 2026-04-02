@@ -1,13 +1,16 @@
 @using FSH.Framework.Blazor.UI.Theme
+@using FSH.Framework.Shared.Localization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> L
 
 <MudPaper Class="pa-4" Elevation="0" Outlined="true">
-    <MudText Typo="Typo.h6" Class="mb-4">Brand Assets</MudText>
+    <MudText Typo="Typo.h6" Class="mb-4">@L["BrandAssets"]</MudText>
 
     <MudGrid>
         @* Light Mode Logo *@
         <MudItem xs="12" sm="6" md="4">
             <MudPaper Class="pa-4" Elevation="0" Outlined="true">
-                <MudText Typo="Typo.subtitle2" Class="mb-2">Logo (Light Mode)</MudText>
+                <MudText Typo="Typo.subtitle2" Class="mb-2">@L["LogoLightMode"]</MudText>
                 @if (!string.IsNullOrEmpty(BrandAssets.LogoUrl))
                 {
                     <div class="d-flex flex-column align-center gap-2">
@@ -21,7 +24,7 @@
                                   Size="Size.Small"
                                   StartIcon="@Icons.Material.Filled.Delete"
                                   OnClick="@(() => ClearLogo())">
-                            Remove
+                            @L["Remove"]
                         </MudButton>
                     </div>
                 }
@@ -37,7 +40,7 @@
                                      Elevation="0"
                                      @onclick="@(async (e) => await upload.OpenFilePickerAsync())">
                                 <MudIcon Icon="@Icons.Material.Outlined.CloudUpload" Size="Size.Large" Color="Color.Default" />
-                                <MudText Typo="Typo.caption" Class="mt-2">Click to upload logo</MudText>
+                                <MudText Typo="Typo.caption" Class="mt-2">@L["ClickToUpload"]</MudText>
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">PNG, JPG, SVG, WebP</MudText>
                             </MudPaper>
                         </CustomContent>
@@ -49,7 +52,7 @@
         @* Dark Mode Logo *@
         <MudItem xs="12" sm="6" md="4">
             <MudPaper Class="pa-4" Elevation="0" Outlined="true" Style="background-color: #1a1a2e;">
-                <MudText Typo="Typo.subtitle2" Class="mb-2" Style="color: white;">Logo (Dark Mode)</MudText>
+                <MudText Typo="Typo.subtitle2" Class="mb-2" Style="color: white;">@L["LogoDarkMode"]</MudText>
                 @if (!string.IsNullOrEmpty(BrandAssets.LogoDarkUrl))
                 {
                     <div class="d-flex flex-column align-center gap-2">
@@ -63,7 +66,7 @@
                                   Size="Size.Small"
                                   StartIcon="@Icons.Material.Filled.Delete"
                                   OnClick="@(() => ClearLogoDark())">
-                            Remove
+                            @L["Remove"]
                         </MudButton>
                     </div>
                 }
@@ -79,7 +82,7 @@
                                      Elevation="0"
                                      @onclick="@(async (e) => await upload.OpenFilePickerAsync())">
                                 <MudIcon Icon="@Icons.Material.Outlined.CloudUpload" Size="Size.Large" Style="color: rgba(255,255,255,0.7);" />
-                                <MudText Typo="Typo.caption" Class="mt-2" Style="color: rgba(255,255,255,0.7);">Click to upload logo</MudText>
+                                <MudText Typo="Typo.caption" Class="mt-2" Style="color: rgba(255,255,255,0.7);">@L["ClickToUpload"]</MudText>
                                 <MudText Typo="Typo.caption" Style="color: rgba(255,255,255,0.5);">PNG, JPG, SVG, WebP</MudText>
                             </MudPaper>
                         </CustomContent>
@@ -91,7 +94,7 @@
         @* Favicon *@
         <MudItem xs="12" sm="6" md="4">
             <MudPaper Class="pa-4" Elevation="0" Outlined="true">
-                <MudText Typo="Typo.subtitle2" Class="mb-2">Favicon</MudText>
+                <MudText Typo="Typo.subtitle2" Class="mb-2">@L["Favicon"]</MudText>
                 @if (!string.IsNullOrEmpty(BrandAssets.FaviconUrl))
                 {
                     <div class="d-flex flex-column align-center gap-2">
@@ -106,7 +109,7 @@
                                   Size="Size.Small"
                                   StartIcon="@Icons.Material.Filled.Delete"
                                   OnClick="@(() => ClearFavicon())">
-                            Remove
+                            @L["Remove"]
                         </MudButton>
                     </div>
                 }
@@ -122,7 +125,7 @@
                                      Elevation="0"
                                      @onclick="@(async (e) => await upload.OpenFilePickerAsync())">
                                 <MudIcon Icon="@Icons.Material.Outlined.Image" Size="Size.Large" Color="Color.Default" />
-                                <MudText Typo="Typo.caption" Class="mt-2">Click to upload favicon</MudText>
+                                <MudText Typo="Typo.caption" Class="mt-2">@L["ClickToUpload"]</MudText>
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">16x16 or 32x32 PNG, ICO</MudText>
                             </MudPaper>
                         </CustomContent>

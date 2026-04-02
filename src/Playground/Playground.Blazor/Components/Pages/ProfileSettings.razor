@@ -1,21 +1,26 @@
 @page "/settings/profile"
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Components.Authorization
+@using FSH.Framework.Shared.Localization
+@using FSH.Playground.Blazor.Localization.Profile
+@using Microsoft.Extensions.Localization
 @inject FSH.Playground.Blazor.ApiClient.IIdentityClient IdentityClient
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject FSH.Playground.Blazor.Services.IUserProfileState UserProfileState
+@inject IStringLocalizer<SharedResource> L
+@inject IStringLocalizer<ProfileResource> PRL
 
 <!-- Hero Section -->
-<FshPageHeader Title="Profile Settings"
-               Description="Manage your personal information, profile photo, and security settings" />
+<FshPageHeader Title="@PRL["ProfileSettings"]"
+               Description="@PRL["ProfileInformation"]" />
 
 @if (_loading)
 {
     <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Class="pa-8">
         <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
-        <MudText Typo="Typo.body2" Class="text-muted mt-4">Loading profile...</MudText>
+        <MudText Typo="Typo.body2" Class="text-muted mt-4">@L["Loading"]</MudText>
     </MudStack>
 }
 else
@@ -28,7 +33,7 @@ else
                     <CardHeaderContent>
                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                             <MudIcon Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Primary" />
-                            <MudText Typo="Typo.h6" Class="fw-600">Profile Photo</MudText>
+                            <MudText Typo="Typo.h6" Class="fw-600">@PRL["ProfilePhoto"]</MudText>
                         </MudStack>
                     </CardHeaderContent>
                 </MudCardHeader>
@@ -50,12 +55,12 @@ else
                             }
                             @if (_hasImageChanges)
                             {
-                                <MudChip T="string" Size="Size.Small" Color="Color.Warning" Class="pending-badge">Pending</MudChip>
+                                <MudChip T="string" Size="Size.Small" Color="Color.Warning" Class="pending-badge">@L["Pending"]</MudChip>
                             }
                         </div>
 
                         <MudText Typo="Typo.body2" Class="text-muted text-center">
-                            Upload a profile photo. Max 2MB, images only.
+                            @PRL["ProfilePhotoDescription"]
                         </MudText>
 
                         <!-- Upload/Delete Buttons -->
@@ -67,7 +72,7 @@ else
                                                StartIcon="@Icons.Material.Filled.CloudUpload"
                                                Size="Size.Small"
                                                OnClick="@(async (e) => await upload.OpenFilePickerAsync())">
-                                        Upload Photo
+                                        @L["Upload"]
                                     </MudButton>
                                 </CustomContent>
                             </MudFileUpload>
@@ -79,7 +84,7 @@ else
                                            StartIcon="@Icons.Material.Filled.Delete"
                                            Size="Size.Small"
                                            OnClick="DeleteAvatar">
-                                    Remove
+                                    @L["Delete"]
                                 </MudButton>
                             }
                         </MudStack>
@@ -93,28 +98,28 @@ else
                     <CardHeaderContent>
                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                             <MudIcon Icon="@Icons.Material.Filled.VerifiedUser" Color="Color.Primary" />
-                            <MudText Typo="Typo.h6" Class="fw-600">Account Status</MudText>
+                            <MudText Typo="Typo.h6" Class="fw-600">@L["Status"]</MudText>
                         </MudStack>
                     </CardHeaderContent>
                 </MudCardHeader>
                 <MudCardContent>
                     <MudStack Spacing="2">
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                            <MudText Typo="Typo.body2" Class="text-muted">Account Status</MudText>
+                            <MudText Typo="Typo.body2" Class="text-muted">@L["Status"]</MudText>
                             <MudChip T="string" Size="Size.Small" Color="@(_profile?.IsActive == true ? Color.Success : Color.Error)">
-                                @(_profile?.IsActive == true ? "Active" : "Inactive")
+                                @(_profile?.IsActive == true ? L["Active"] : L["Inactive"])
                             </MudChip>
                         </MudStack>
                         <MudDivider />
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                            <MudText Typo="Typo.body2" Class="text-muted">Email Verified</MudText>
+                            <MudText Typo="Typo.body2" Class="text-muted">@L["EmailVerified"]</MudText>
                             <MudChip T="string" Size="Size.Small" Color="@(_profile?.EmailConfirmed == true ? Color.Success : Color.Warning)">
-                                @(_profile?.EmailConfirmed == true ? "Verified" : "Pending")
+                                @(_profile?.EmailConfirmed == true ? L["Verified"] : L["Pending"])
                             </MudChip>
                         </MudStack>
                         <MudDivider />
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                            <MudText Typo="Typo.body2" Class="text-muted">Username</MudText>
+                            <MudText Typo="Typo.body2" Class="text-muted">@L["Username"]</MudText>
                             <MudText Typo="Typo.body2">@(_profile?.UserName ?? "-")</MudText>
                         </MudStack>
                     </MudStack>
@@ -126,46 +131,46 @@ else
         <MudItem xs="12" md="8">
             <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" Class="profile-tabs" PanelClass="pa-0">
                 <!-- Personal Information Tab -->
-                <MudTabPanel Icon="@Icons.Material.Filled.Person" Text="Personal Info">
+                <MudTabPanel Icon="@Icons.Material.Filled.Person" Text="@L["Profile"]">
                     <MudCard Elevation="0" Class="profile-form-card">
                         <MudCardContent Class="pa-6">
                             <MudForm @ref="_profileForm" Model="_profileModel">
                                 <MudGrid Spacing="3">
                                     <MudItem xs="12" sm="6">
                                         <MudTextField @bind-Value="_profileModel.FirstName"
-                                                      Label="First Name"
-                                                      Placeholder="Enter your first name"
+                                                      Label="@L["FirstName"]"
+                                                      Placeholder="@L["FirstNamePlaceholder"]"
                                                       Variant="Variant.Outlined"
                                                       Adornment="Adornment.Start"
                                                       AdornmentIcon="@Icons.Material.Filled.Person"
                                                       Required="true"
-                                                      RequiredError="First name is required" />
+                                                      RequiredError="@L["Required"]" />
                                     </MudItem>
                                     <MudItem xs="12" sm="6">
                                         <MudTextField @bind-Value="_profileModel.LastName"
-                                                      Label="Last Name"
-                                                      Placeholder="Enter your last name"
+                                                      Label="@L["LastName"]"
+                                                      Placeholder="@L["LastNamePlaceholder"]"
                                                       Variant="Variant.Outlined"
                                                       Adornment="Adornment.Start"
                                                       AdornmentIcon="@Icons.Material.Filled.Person"
                                                       Required="true"
-                                                      RequiredError="Last name is required" />
+                                                      RequiredError="@L["Required"]" />
                                     </MudItem>
                                     <MudItem xs="12">
                                         <MudTextField @bind-Value="_profileModel.Email"
-                                                      Label="Email Address"
-                                                      Placeholder="Enter your email"
+                                                      Label="@L["Email"]"
+                                                      Placeholder="@L["EmailPlaceholder"]"
                                                       Variant="Variant.Outlined"
                                                       InputType="InputType.Email"
                                                       Adornment="Adornment.Start"
                                                       AdornmentIcon="@Icons.Material.Filled.Email"
                                                       Required="true"
-                                                      RequiredError="Email is required" />
+                                                      RequiredError="@L["Required"]" />
                                     </MudItem>
                                     <MudItem xs="12">
                                         <MudTextField @bind-Value="_profileModel.PhoneNumber"
-                                                      Label="Phone Number"
-                                                      Placeholder="Enter your phone number"
+                                                      Label="@L["PhoneNumber"]"
+                                                      Placeholder="@L["PhoneNumberPlaceholder"]"
                                                       Variant="Variant.Outlined"
                                                       Adornment="Adornment.Start"
                                                       AdornmentIcon="@Icons.Material.Filled.Phone" />
@@ -180,7 +185,7 @@ else
                                        StartIcon="@Icons.Material.Filled.Refresh"
                                        OnClick="ResetProfile"
                                        Disabled="_saving">
-                                Reset
+                                @L["Reset"]
                             </MudButton>
                             <MudButton Variant="Variant.Filled"
                                        Color="Color.Primary"
@@ -190,11 +195,11 @@ else
                                 @if (_saving)
                                 {
                                     <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
-                                    <span>Saving...</span>
+                                    <span>@L["ProcessingRequest"]</span>
                                 }
                                 else
                                 {
-                                    <span>Save Changes</span>
+                                    <span>@L["Save"]</span>
                                 }
                             </MudButton>
                         </MudCardActions>
@@ -202,14 +207,14 @@ else
                 </MudTabPanel>
 
                 <!-- Security Tab (Change Password) -->
-                <MudTabPanel Icon="@Icons.Material.Filled.Lock" Text="Security">
+                <MudTabPanel Icon="@Icons.Material.Filled.Lock" Text="@L["Security"]">
                     <MudCard Elevation="0" Class="profile-form-card">
                         <MudCardHeader Class="px-6 pt-6 pb-0">
                             <CardHeaderContent>
                                 <MudStack Spacing="1">
-                                    <MudText Typo="Typo.h6" Class="fw-600">Change Password</MudText>
+                                    <MudText Typo="Typo.h6" Class="fw-600">@PRL["ChangePassword"]</MudText>
                                     <MudText Typo="Typo.body2" Class="text-muted">
-                                        Update your password to keep your account secure
+                                        @PRL["PasswordDescription"]
                                     </MudText>
                                 </MudStack>
                             </CardHeaderContent>
@@ -219,40 +224,40 @@ else
                                 <MudGrid Spacing="3">
                                     <MudItem xs="12">
                                         <MudTextField @bind-Value="_passwordModel.CurrentPassword"
-                                                      Label="Current Password"
-                                                      Placeholder="Enter your current password"
+                                                      Label="@PRL["CurrentPassword"]"
+                                                      Placeholder="@PRL["CurrentPassword"]"
                                                       Variant="Variant.Outlined"
                                                       InputType="@(_showCurrentPassword? InputType.Text: InputType.Password)"
                                                       Adornment="Adornment.End"
                                                       AdornmentIcon="@(_showCurrentPassword? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
                                                       OnAdornmentClick="@(() => _showCurrentPassword = !_showCurrentPassword)"
                                                       Required="true"
-                                                      RequiredError="Current password is required" />
+                                                      RequiredError="@L["Required"]" />
                                     </MudItem>
                                     <MudItem xs="12">
                                         <MudTextField @bind-Value="_passwordModel.NewPassword"
-                                                      Label="New Password"
-                                                      Placeholder="Enter your new password"
+                                                      Label="@PRL["NewPassword"]"
+                                                      Placeholder="@PRL["NewPassword"]"
                                                       Variant="Variant.Outlined"
                                                       InputType="@(_showNewPassword? InputType.Text: InputType.Password)"
                                                       Adornment="Adornment.End"
                                                       AdornmentIcon="@(_showNewPassword? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
                                                       OnAdornmentClick="@(() => _showNewPassword = !_showNewPassword)"
                                                       Required="true"
-                                                      RequiredError="New password is required"
-                                                      HelperText="Use at least 8 characters with a mix of letters, numbers & symbols" />
+                                                      RequiredError="@L["Required"]"
+                                                      HelperText="@PRL["PasswordRequirements"]" />
                                     </MudItem>
                                     <MudItem xs="12">
                                         <MudTextField @bind-Value="_passwordModel.ConfirmPassword"
-                                                      Label="Confirm New Password"
-                                                      Placeholder="Confirm your new password"
+                                                      Label="@L["ConfirmPassword"]"
+                                                      Placeholder="@L["ConfirmYourPassword"]"
                                                       Variant="Variant.Outlined"
                                                       InputType="@(_showConfirmPassword? InputType.Text: InputType.Password)"
                                                       Adornment="Adornment.End"
                                                       AdornmentIcon="@(_showConfirmPassword? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
                                                       OnAdornmentClick="@(() => _showConfirmPassword = !_showConfirmPassword)"
                                                       Required="true"
-                                                      RequiredError="Please confirm your new password"
+                                                      RequiredError="@L["Required"]"
                                                       Validation="@(new Func<string, string?>(ValidateConfirmPassword))" />
                                     </MudItem>
                                 </MudGrid>
@@ -265,7 +270,7 @@ else
                                        StartIcon="@Icons.Material.Filled.Clear"
                                        OnClick="ResetPasswordForm"
                                        Disabled="_changingPassword">
-                                Clear
+                                @L["Clear"]
                             </MudButton>
                             <MudButton Variant="Variant.Filled"
                                        Color="Color.Primary"
@@ -275,11 +280,11 @@ else
                                 @if (_changingPassword)
                                 {
                                     <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
-                                    <span>Updating...</span>
+                                    <span>@L["ProcessingRequest"]</span>
                                 }
                                 else
                                 {
-                                    <span>Update Password</span>
+                                    <span>@PRL["ChangePassword"]</span>
                                 }
                             </MudButton>
                         </MudCardActions>
@@ -386,7 +391,7 @@ else
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to load profile: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {
@@ -411,14 +416,14 @@ else
             // Validate file size (2MB max)
             if (file.Size > 2 * 1024 * 1024)
             {
-                Snackbar.Add("File too large. Maximum 2MB allowed.", Severity.Error);
+                Snackbar.Add(PRL["FileTooLarge"], Severity.Error);
                 return;
             }
 
             // Validate file type
             if (!file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
             {
-                Snackbar.Add("Only image files are allowed.", Severity.Error);
+                Snackbar.Add(PRL["OnlyImagesAllowed"], Severity.Error);
                 return;
             }
 
@@ -438,12 +443,12 @@ else
             // Set preview URL
             _avatarPreviewUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(bytes)}";
 
-            Snackbar.Add("Image ready. Click Save Changes to upload.", Severity.Info);
+            Snackbar.Add(PRL["ImageReady"], Severity.Info);
             StateHasChanged();
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to process image: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
     }
 
@@ -455,7 +460,7 @@ else
         _pendingImageContentType = null;
         _deleteCurrentImage = true;
         _hasImageChanges = true;
-        Snackbar.Add("Photo will be removed when you save changes.", Severity.Info);
+        Snackbar.Add(PRL["PhotoWillBeRemoved"], Severity.Info);
         StateHasChanged();
     }
 
@@ -487,7 +492,7 @@ else
             await _profileForm.ValidateAsync();
             if (!_profileForm.IsValid)
             {
-                Snackbar.Add("Please fix the validation errors.", Severity.Warning);
+                Snackbar.Add(L["Required"], Severity.Warning);
                 return;
             }
         }
@@ -518,7 +523,7 @@ else
 
             await IdentityClient.ProfilePutAsync(command);
 
-            Snackbar.Add("Profile updated successfully!", Severity.Success);
+            Snackbar.Add(PRL["ProfileUpdatedSuccessfully"], Severity.Success);
 
             // Reload profile to get updated data
             await LoadProfileAsync();
@@ -529,11 +534,11 @@ else
         }
         catch (FSH.Playground.Blazor.ApiClient.ApiException ex)
         {
-            Snackbar.Add($"Failed to update profile: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"An error occurred: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {
@@ -556,7 +561,7 @@ else
             return null; // Required validation handles empty
 
         if (confirmPassword != _passwordModel.NewPassword)
-            return "Passwords do not match";
+            return L["PasswordsMustMatch"];
 
         return null;
     }
@@ -568,14 +573,14 @@ else
             await _passwordForm.ValidateAsync();
             if (!_passwordForm.IsValid)
             {
-                Snackbar.Add("Please fix the validation errors.", Severity.Warning);
+                Snackbar.Add(L["Required"], Severity.Warning);
                 return;
             }
         }
 
         if (_passwordModel.NewPassword != _passwordModel.ConfirmPassword)
         {
-            Snackbar.Add("Passwords do not match.", Severity.Warning);
+            Snackbar.Add(L["PasswordsMustMatch"], Severity.Warning);
             return;
         }
 
@@ -591,16 +596,16 @@ else
 
             await IdentityClient.ChangePasswordAsync(command);
 
-            Snackbar.Add("Password changed successfully!", Severity.Success);
+            Snackbar.Add(PRL["PasswordChangedSuccessfully"], Severity.Success);
             ResetPasswordForm();
         }
         catch (FSH.Playground.Blazor.ApiClient.ApiException ex)
         {
-            Snackbar.Add($"Failed to change password: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"An error occurred: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {

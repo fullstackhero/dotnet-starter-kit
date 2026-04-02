@@ -1,14 +1,19 @@
 @using FSH.Playground.Blazor.ApiClient
+@using FSH.Framework.Shared.Localization
+@using FSH.Playground.Blazor.Localization.Groups
+@using Microsoft.Extensions.Localization
 @inject IIdentityClient IdentityClient
 @inject IGroupsClient GroupsClient
 @inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
+@inject IStringLocalizer<GroupResource> GL
 
 <MudDialog>
     <TitleContent>
         <MudStack Spacing="0">
-            <MudText Typo="Typo.h6" Class="fw-600">Add Members to Group</MudText>
+            <MudText Typo="Typo.h6" Class="fw-600">@GL["AddMembers"]</MudText>
             <MudText Typo="Typo.caption" Class="text-muted">
-                Select users to add to this group
+                @GL["SelectUsers"]
             </MudText>
         </MudStack>
     </TitleContent>
@@ -16,8 +21,8 @@
         <MudStack Spacing="4" Class="mt-2">
             @* Search *@
             <MudTextField @bind-Value="_searchTerm"
-                          Label="Search Users"
-                          Placeholder="Search by name or email..."
+                          Label="@L["Search"]"
+                          Placeholder="@L["Search"]"
                           Adornment="Adornment.Start"
                           AdornmentIcon="@Icons.Material.Filled.Search"
                           Variant="Variant.Outlined"
@@ -73,14 +78,14 @@
                 @if (_selectedUserIds.Any())
                 {
                     <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true">
-                        @_selectedUserIds.Count user(s) selected
+                        @string.Format(L["Count"], _selectedUserIds.Count)
                     </MudAlert>
                 }
             }
             else
             {
                 <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true">
-                    No users found matching your search.
+                    @L["NoDataAvailable"]
                 </MudAlert>
             }
         </MudStack>
@@ -90,7 +95,7 @@
                    Color="Color.Default"
                    OnClick="Cancel"
                    Disabled="_busy">
-            Cancel
+            @L["Cancel"]
         </MudButton>
         <MudButton Variant="Variant.Filled"
                    Color="Color.Primary"
@@ -100,11 +105,11 @@
             @if (_busy)
             {
                 <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
-                <span>Adding...</span>
+                <span>@L["ProcessingRequest"]</span>
             }
             else
             {
-                <span>Add @_selectedUserIds.Count Member(s)</span>
+                <span>@GL["AddMembers"] (@_selectedUserIds.Count)</span>
             }
         </MudButton>
     </DialogActions>
@@ -154,7 +159,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to load users: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {
@@ -212,7 +217,7 @@
     {
         if (!_selectedUserIds.Any())
         {
-            Snackbar.Add("Please select at least one user.", Severity.Warning);
+            Snackbar.Add(GL["SelectUsers"], Severity.Warning);
             return;
         }
 
@@ -228,19 +233,19 @@
 
             if (response.AddedCount > 0)
             {
-                Snackbar.Add($"Added {response.AddedCount} member(s) to the group.", Severity.Success);
+                Snackbar.Add(GL["MembersAddedSuccessfully"], Severity.Success);
             }
 
             if (response.AlreadyMemberUserIds?.Any() == true)
             {
-                Snackbar.Add($"{response.AlreadyMemberUserIds.Count} user(s) were already members.", Severity.Info);
+                Snackbar.Add(GL["AlreadyMembers"], Severity.Info);
             }
 
             MudDialog.Close(DialogResult.Ok(true));
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to add members: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {

@@ -1,6 +1,11 @@
 @using FSH.Playground.Blazor.ApiClient
+@using FSH.Framework.Shared.Localization
+@using FSH.Playground.Blazor.Localization.Tenants
+@using Microsoft.Extensions.Localization
 @inject ITenantsClient TenantsClient
 @inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
+@inject IStringLocalizer<TenantResource> TL
 
 <MudDialog>
     <TitleContent>
@@ -9,8 +14,8 @@
                 <MudIcon Icon="@Icons.Material.Filled.Upgrade" />
             </MudAvatar>
             <MudStack Spacing="0">
-                <MudText Typo="Typo.h6" Class="fw-600">Upgrade Subscription</MudText>
-                <MudText Typo="Typo.caption" Class="text-muted">Extend the subscription for @Tenant?.Name</MudText>
+                <MudText Typo="Typo.h6" Class="fw-600">@TL["UpgradeTenant"]</MudText>
+                <MudText Typo="Typo.caption" Class="text-muted">@TL["ExtendValidUpto"] - @Tenant?.Name</MudText>
             </MudStack>
         </MudStack>
     </TitleContent>
@@ -21,30 +26,30 @@
                 @* Current Subscription Info *@
                 <MudPaper Class="pa-3" Elevation="0" Style="background-color: rgba(var(--mud-palette-primary-rgb), 0.04); border-radius: 8px;">
                     <MudStack Spacing="1">
-                        <MudText Typo="Typo.subtitle2" Class="fw-600">Current Subscription</MudText>
+                        <MudText Typo="Typo.subtitle2" Class="fw-600">@L["Details"]</MudText>
                         <MudStack Row="true" Justify="Justify.SpaceBetween">
-                            <MudText Typo="Typo.body2" Class="text-muted">Tenant</MudText>
+                            <MudText Typo="Typo.body2" Class="text-muted">@L["Tenant"]</MudText>
                             <MudText Typo="Typo.body2" Class="fw-600">@Tenant.Name</MudText>
                         </MudStack>
                         <MudStack Row="true" Justify="Justify.SpaceBetween">
-                            <MudText Typo="Typo.body2" Class="text-muted">Valid Until</MudText>
+                            <MudText Typo="Typo.body2" Class="text-muted">@TL["ValidUpto"]</MudText>
                             <MudText Typo="Typo.body2" Class="fw-600" Color="@GetExpiryColor(Tenant.ValidUpto)">
                                 @Tenant.ValidUpto.ToString("MMMM dd, yyyy")
                             </MudText>
                         </MudStack>
                         <MudStack Row="true" Justify="Justify.SpaceBetween">
-                            <MudText Typo="Typo.body2" Class="text-muted">Status</MudText>
+                            <MudText Typo="Typo.body2" Class="text-muted">@L["Status"]</MudText>
                             @if (IsExpired(Tenant.ValidUpto))
                             {
-                                <MudChip T="string" Color="Color.Error" Size="Size.Small">Expired</MudChip>
+                                <MudChip T="string" Color="Color.Error" Size="Size.Small">@L["Expired"]</MudChip>
                             }
                             else if (IsExpiringSoon(Tenant.ValidUpto))
                             {
-                                <MudChip T="string" Color="Color.Warning" Size="Size.Small">Expiring Soon</MudChip>
+                                <MudChip T="string" Color="Color.Warning" Size="Size.Small">@L["ExpiringSoon"]</MudChip>
                             }
                             else
                             {
-                                <MudChip T="string" Color="Color.Success" Size="Size.Small">Active</MudChip>
+                                <MudChip T="string" Color="Color.Success" Size="Size.Small">@L["Active"]</MudChip>
                             }
                         </MudStack>
                     </MudStack>
@@ -52,13 +57,13 @@
 
                 @* New Expiry Date *@
                 <MudStack Spacing="2">
-                    <MudText Typo="Typo.subtitle2" Class="fw-600">New Expiry Date</MudText>
+                    <MudText Typo="Typo.subtitle2" Class="fw-600">@TL["ExtendValidUpto"]</MudText>
                     <MudDatePicker @bind-Date="_newExpiryDate"
-                                   Label="Extended Expiry Date"
-                                   Placeholder="Select new expiry date"
+                                   Label="@TL["ExtendValidUpto"]"
+                                   Placeholder="@TL["ExtendValidUpto"]"
                                    MinDate="@DateTime.Today"
                                    Required="true"
-                                   RequiredError="Please select a new expiry date"
+                                   RequiredError="@L["Required"]"
                                    Variant="Variant.Outlined"
                                    Adornment="Adornment.Start"
                                    AdornmentIcon="@Icons.Material.Filled.CalendarMonth"
@@ -67,31 +72,31 @@
 
                 @* Quick Extend Options *@
                 <MudStack Spacing="2">
-                    <MudText Typo="Typo.subtitle2" Class="fw-600">Quick Extend</MudText>
+                    <MudText Typo="Typo.subtitle2" Class="fw-600">@TL["ExtendValidUpto"]</MudText>
                     <MudStack Row="true" Spacing="2" Wrap="Wrap.Wrap">
                         <MudButton Variant="Variant.Outlined"
                                    Color="Color.Primary"
                                    Size="Size.Small"
                                    OnClick="@(() => ExtendBy(30))">
-                            +30 Days
+                            +30 @L["Days"]
                         </MudButton>
                         <MudButton Variant="Variant.Outlined"
                                    Color="Color.Primary"
                                    Size="Size.Small"
                                    OnClick="@(() => ExtendBy(90))">
-                            +90 Days
+                            +90 @L["Days"]
                         </MudButton>
                         <MudButton Variant="Variant.Outlined"
                                    Color="Color.Primary"
                                    Size="Size.Small"
                                    OnClick="@(() => ExtendBy(180))">
-                            +6 Months
+                            +6 @TL["Months"]
                         </MudButton>
                         <MudButton Variant="Variant.Outlined"
                                    Color="Color.Primary"
                                    Size="Size.Small"
                                    OnClick="@(() => ExtendBy(365))">
-                            +1 Year
+                            +1 @TL["Year"]
                         </MudButton>
                     </MudStack>
                 </MudStack>
@@ -124,7 +129,7 @@
                    Color="Color.Default"
                    OnClick="Cancel"
                    Disabled="_busy">
-            Cancel
+            @L["Cancel"]
         </MudButton>
         <MudButton Variant="Variant.Filled"
                    Color="Color.Primary"
@@ -134,11 +139,11 @@
             @if (_busy)
             {
                 <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
-                <span>Upgrading...</span>
+                <span>@L["ProcessingRequest"]</span>
             }
             else
             {
-                <span>Upgrade Subscription</span>
+                <span>@TL["UpgradeTenant"]</span>
             }
         </MudButton>
     </DialogActions>
@@ -207,13 +212,13 @@
     {
         if (Tenant is null || !_newExpiryDate.HasValue)
         {
-            Snackbar.Add("Please select a new expiry date.", Severity.Warning);
+            Snackbar.Add(L["Required"], Severity.Warning);
             return;
         }
 
         if (_newExpiryDate.Value <= DateTime.Today)
         {
-            Snackbar.Add("New expiry date must be in the future.", Severity.Error);
+            Snackbar.Add(L["Required"], Severity.Error);
             return;
         }
 
@@ -230,12 +235,12 @@
             };
 
             await TenantsClient.UpgradeAsync(Tenant.Id, command);
-            Snackbar.Add($"Subscription for '{Tenant.Name}' upgraded successfully!", Severity.Success);
+            Snackbar.Add(TL["TenantUpgradedSuccessfully"], Severity.Success);
             MudDialog.Close(DialogResult.Ok(true));
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to upgrade subscription: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {

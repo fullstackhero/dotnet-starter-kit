@@ -2,13 +2,18 @@
 @layout EmptyLayout
 @attribute [AllowAnonymous]
 @using FSH.Framework.Shared.Multitenancy
+@using FSH.Framework.Shared.Localization
+@using FSH.Playground.Blazor.Components.Validation
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using System.ComponentModel.DataAnnotations
 @using FSH.Playground.Blazor.ApiClient
 @inject NavigationManager Navigation
 @inject IIdentityClient IdentityClient
 @inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
 
-<PageTitle>Create Account</PageTitle>
+<PageTitle>@L["CreateAccount"]</PageTitle>
 <div class="auth-page">
     <div class="auth-wrapper">
         @* Logo/Brand *@
@@ -23,20 +28,21 @@
         <div class="auth-card">
             @* Header *@
             <div class="auth-header">
-                <h1 class="auth-title">Create an account</h1>
-                <p class="auth-subtitle">Enter your details to get started</p>
+                <h1 class="auth-title">@L["CreateAnAccount"]</h1>
+                <p class="auth-subtitle">@L["EnterYourDetailsToGetStarted"]</p>
             </div>
 
             @* Registration Form *@
             <EditForm Model="@_model" OnValidSubmit="HandleSubmitAsync" class="auth-form">
                 <DataAnnotationsValidator />
+                <LocalizedDataAnnotationsValidator />
 
                 @* Tenant Field *@
                 <div class="form-group">
-                    <label class="form-label">Tenant</label>
+                    <label class="form-label">@L["Tenant"]</label>
                     <input type="text"
                            @bind="_model.Tenant"
-                           placeholder="Enter tenant name"
+                           placeholder="@L["EnterTenantName"]"
                            class="form-input"
                            required />
                 </div>
@@ -44,77 +50,84 @@
                 @* Name Fields *@
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">First Name</label>
+                        <label class="form-label">@L["FirstName"]</label>
                         <input type="text"
                                @bind="_model.FirstName"
-                               placeholder="John"
+                               placeholder="@L["FirstNamePlaceholder"]"
                                class="form-input"
                                required />
+                        <ValidationMessage For="@(() => _model.FirstName)" />
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Last Name</label>
+                        <label class="form-label">@L["LastName"]</label>
                         <input type="text"
                                @bind="_model.LastName"
-                               placeholder="Doe"
+                               placeholder="@L["LastNamePlaceholder"]"
                                class="form-input"
                                required />
+                        <ValidationMessage For="@(() => _model.LastName)" />
                     </div>
                 </div>
 
                 @* Email Field *@
                 <div class="form-group">
-                    <label class="form-label">Email</label>
+                    <label class="form-label">@L["Email"]</label>
                     <input type="email"
                            @bind="_model.Email"
-                           placeholder="m@example.com"
+                           placeholder="@L["EmailPlaceholder"]"
                            class="form-input"
                            required />
+                    <ValidationMessage For="@(() => _model.Email)" />
                 </div>
 
                 @* Username Field *@
                 <div class="form-group">
-                    <label class="form-label">Username</label>
+                    <label class="form-label">@L["Username"]</label>
                     <input type="text"
                            @bind="_model.UserName"
-                           placeholder="johndoe"
+                           placeholder="@L["UsernamePlaceholder"]"
                            class="form-input"
                            required />
+                    <ValidationMessage For="@(() => _model.UserName)" />
                 </div>
 
                 @* Phone Field (Optional) *@
                 <div class="form-group">
-                    <label class="form-label">Phone Number <span class="optional-label">(Optional)</span></label>
+                    <label class="form-label">@L["PhoneNumber"] <span class="optional-label">(@L["Optional"])</span></label>
                     <input type="tel"
                            @bind="_model.PhoneNumber"
-                           placeholder="+1 (555) 000-0000"
+                           placeholder="@L["PhoneNumberPlaceholder"]"
                            class="form-input" />
+                    <ValidationMessage For="@(() => _model.PhoneNumber)" />
                 </div>
 
                 @* Password Field *@
                 <div class="form-group">
-                    <label class="form-label">Password</label>
+                    <label class="form-label">@L["Password"]</label>
                     <input type="@(_showPassword ? "text" : "password")"
                            @bind="_model.Password"
-                           placeholder="Create a strong password"
+                           placeholder="@L["CreateStrongPassword"]"
                            class="form-input"
                            required />
+                    <ValidationMessage For="@(() => _model.Password)" />
                 </div>
 
                 @* Confirm Password Field *@
                 <div class="form-group">
-                    <label class="form-label">Confirm Password</label>
+                    <label class="form-label">@L["ConfirmPassword"]</label>
                     <input type="@(_showPassword ? "text" : "password")"
                            @bind="_model.ConfirmPassword"
-                           placeholder="Confirm your password"
+                           placeholder="@L["ConfirmYourPassword"]"
                            class="form-input"
                            required />
+                    <ValidationMessage For="@(() => _model.ConfirmPassword)" />
                 </div>
 
                 @* Show Password Toggle *@
                 <div class="checkbox-group">
                     <label class="checkbox-label">
                         <input type="checkbox" @bind="_showPassword" class="checkbox-input" />
-                        <span>Show password</span>
+                        <span>@L["ShowPassword"]</span>
                     </label>
                 </div>
 
@@ -132,24 +145,24 @@
                     @if (_isLoading)
                     {
                         <MudProgressCircular Size="Size.Small" Indeterminate="true" Color="Color.Inherit" />
-                        <span>Creating account...</span>
+                        <span>@L["CreatingAccount"]</span>
                     }
                     else
                     {
-                        <span>Create account</span>
+                        <span>@L["CreateAccount"]</span>
                     }
                 </button>
 
                 @* Login Link *@
                 <p class="auth-link-text">
-                    Already have an account? <a href="/login" class="auth-link">Sign in</a>
+                    @L["AlreadyHaveAccount"] <a href="/login" class="auth-link">@L["SignIn"]</a>
                 </p>
             </EditForm>
         </div>
 
         @* Footer *@
         <div class="auth-footer">
-            <span>By creating an account, you agree to our <a href="#" class="footer-link">Terms of Service</a> and <a href="#" class="footer-link">Privacy Policy</a>.</span>
+            <span>@L["ByCreatingAccountYouAgree"] <a href="#" class="footer-link">@L["TermsOfService"]</a> @L["And"] <a href="#" class="footer-link">@L["PrivacyPolicy"]</a>.</span>
         </div>
     </div>
 </div>
@@ -160,38 +173,54 @@
     private bool _isLoading = false;
     private string? _errorMessage;
 
-    private class RegisterModel
+    private class RegisterModel : IValidatableObject
     {
         public string Tenant { get; set; } = "root";
+
+        [Required]
+        [MaxLength(100)]
         public string FirstName { get; set; } = string.Empty;
+
+        [Required]
+        [MaxLength(100)]
         public string LastName { get; set; } = string.Empty;
+
+        [Required]
+        [EmailAddress]
         public string Email { get; set; } = string.Empty;
+
+        [Required]
+        [MinLength(3)]
+        [MaxLength(50)]
         public string UserName { get; set; } = string.Empty;
+
+        [MaxLength(20)]
         public string? PhoneNumber { get; set; }
+
+        [Required]
+        [MinLength(6)]
         public string Password { get; set; } = string.Empty;
+
+        [Required]
         public string ConfirmPassword { get; set; } = string.Empty;
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            // Get the localizer from the service provider
+            var localizer = validationContext.GetService(typeof(IStringLocalizer<SharedResource>)) as IStringLocalizer<SharedResource>;
+
+            if (Password != ConfirmPassword)
+            {
+                yield return new ValidationResult(
+                    localizer?["PasswordsMustMatch"] ?? "Passwords do not match.",
+                    new[] { nameof(ConfirmPassword) });
+            }
+        }
     }
 
     private async Task HandleSubmitAsync()
     {
         _errorMessage = null;
-
-        if (_model.Password != _model.ConfirmPassword)
-        {
-            _errorMessage = "Passwords do not match.";
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(_model.FirstName) ||
-            string.IsNullOrWhiteSpace(_model.LastName) ||
-            string.IsNullOrWhiteSpace(_model.Email) ||
-            string.IsNullOrWhiteSpace(_model.UserName) ||
-            string.IsNullOrWhiteSpace(_model.Password))
-        {
-            _errorMessage = "Please fill in all required fields.";
-            return;
-        }
-
         _isLoading = true;
 
         try
@@ -209,7 +238,7 @@
 
             await IdentityClient.SelfRegisterAsync(_model.Tenant, command);
 
-            Snackbar.Add("Account created successfully! Please check your email to confirm your account.", Severity.Success);
+            Snackbar.Add(L["AccountCreatedSuccessfully"], Severity.Success);
             Navigation.NavigateTo("/login");
         }
         catch (ApiException ex)
@@ -218,7 +247,7 @@
         }
         catch (Exception ex)
         {
-            _errorMessage = "An unexpected error occurred. Please try again.";
+            _errorMessage = L["UnexpectedErrorOccurred"];
             Console.WriteLine(ex);
         }
         finally

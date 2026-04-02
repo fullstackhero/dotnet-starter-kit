@@ -2,7 +2,12 @@
 @page "/not-found"
 @layout PlaygroundLayout
 @using System.Diagnostics
+@using FSH.Framework.Shared.Localization
+@using FSH.Playground.Blazor.Localization
+@using Microsoft.Extensions.Localization
 @inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> L
+@inject IStringLocalizer<PlaygroundResource> PL
 
 <PageTitle>@ErrorTitle</PageTitle>
 
@@ -27,7 +32,7 @@
                     The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.
                 </MudText>
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/" StartIcon="@Icons.Material.Filled.Home">
-                    Go to Home
+                    @PL["ReturnHome"]
                 </MudButton>
             }
             else

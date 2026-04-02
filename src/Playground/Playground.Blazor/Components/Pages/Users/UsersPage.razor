@@ -2,6 +2,9 @@
 @using FSH.Playground.Blazor.ApiClient
 @using FSH.Framework.Blazor.UI.Components.Dialogs
 @using FSH.Framework.Blazor.UI.Components.Cards
+@using FSH.Framework.Shared.Localization
+@using FSH.Playground.Blazor.Localization.Users
+@using Microsoft.Extensions.Localization
 @inherits ComponentBase
 @using System.Security.Claims
 @using FSH.Framework.Shared.Constants
@@ -12,9 +15,11 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<SharedResource> L
+@inject IStringLocalizer<UserResource> UL
 
-<FshPageHeader Title="Users"
-               Description="Manage user accounts and permissions">
+<FshPageHeader Title="@L["Users"]"
+               Description="@UL["UserManagement"]">
     <ActionContent>
         @if (_selectedUsers.Any())
         {
@@ -23,23 +28,23 @@
                            Color="Color.Success"
                            OnClick="BulkActivate"
                            Disabled="_bulkBusy">
-                    Activate (@_selectedUsers.Count)
+                    @L["Active"] (@_selectedUsers.Count)
                 </MudButton>
                 <MudButton StartIcon="@Icons.Material.Filled.Cancel"
                            Color="Color.Warning"
                            OnClick="BulkDeactivate"
                            Disabled="_bulkBusy">
-                    Deactivate
+                    @L["Inactive"]
                 </MudButton>
                 <MudButton StartIcon="@Icons.Material.Filled.Delete"
                            Color="Color.Error"
                            OnClick="BulkDelete"
                            Disabled="_bulkBusy">
-                    Delete
+                    @L["Delete"]
                 </MudButton>
                 <MudButton StartIcon="@Icons.Material.Filled.Clear"
                            OnClick="ClearSelection">
-                    Clear
+                    @L["Clear"]
                 </MudButton>
             </MudButtonGroup>
         }
@@ -47,7 +52,7 @@
                    Color="Color.Primary"
                    StartIcon="@Icons.Material.Filled.Add"
                    OnClick="ShowCreate">
-            New User
+            @UL["NewUser"]
         </MudButton>
     </ActionContent>
 </FshPageHeader>
@@ -58,40 +63,40 @@
         <FshStatCard Icon="@Icons.Material.Filled.People"
                      IconColor="Color.Primary"
                      Value="@_stats.Total.ToString()"
-                     Label="Total Users"
-                     Badge="Total" />
+                     Label="@UL["TotalUsers"]"
+                     Badge="@L["Total"]" />
     </MudItem>
     <MudItem xs="6" sm="3">
         <FshStatCard Icon="@Icons.Material.Filled.CheckCircle"
                      IconColor="Color.Success"
                      Value="@_stats.Active.ToString()"
-                     Label="Active Users"
-                     Badge="Active" />
+                     Label="@UL["ActiveUsers"]"
+                     Badge="@L["Active"]" />
     </MudItem>
     <MudItem xs="6" sm="3">
         <FshStatCard Icon="@Icons.Material.Filled.Cancel"
                      IconColor="Color.Error"
                      Value="@_stats.Inactive.ToString()"
-                     Label="Inactive Users"
-                     Badge="Inactive" />
+                     Label="@UL["InactiveUsers"]"
+                     Badge="@L["Inactive"]" />
     </MudItem>
     <MudItem xs="6" sm="3">
         <FshStatCard Icon="@Icons.Material.Filled.MarkEmailUnread"
                      IconColor="Color.Warning"
                      Value="@_stats.UnconfirmedEmail.ToString()"
-                     Label="Pending Verification"
-                     Badge="Unconfirmed" />
+                     Label="@L["Pending"]"
+                     Badge="@L["Unverified"]" />
     </MudItem>
 </MudGrid>
 
 @* Filter Panel *@
 <MudExpansionPanels Class="mb-4" Elevation="0">
-    <MudExpansionPanel Text="Filters" IsInitiallyExpanded="true" Class="fsh-card">
+    <MudExpansionPanel Text="@L["Filters"]" IsInitiallyExpanded="true" Class="fsh-card">
         <MudGrid GutterSize="2">
             <MudItem xs="12" sm="4">
                 <MudTextField @bind-Value="_filter.Search"
-                              Label="Search"
-                              Placeholder="Name, email, or username"
+                              Label="@L["Search"]"
+                              Placeholder="@L["Search"]"
                               Adornment="Adornment.Start"
                               AdornmentIcon="@Icons.Material.Filled.Search"
                               Immediate="true"
@@ -99,17 +104,17 @@
                               OnDebounceIntervalElapsed="@((string _) => RefreshData())" />
             </MudItem>
             <MudItem xs="6" sm="2">
-                <MudSelect T="bool?" Value="_filter.IsActive" Label="Status" Clearable="true" ValueChanged="OnStatusFilterChanged">
-                    <MudSelectItem T="bool?" Value="@((bool?)null)">All</MudSelectItem>
-                    <MudSelectItem T="bool?" Value="true">Active</MudSelectItem>
-                    <MudSelectItem T="bool?" Value="false">Inactive</MudSelectItem>
+                <MudSelect T="bool?" Value="_filter.IsActive" Label="@L["Status"]" Clearable="true" ValueChanged="OnStatusFilterChanged">
+                    <MudSelectItem T="bool?" Value="@((bool?)null)">@L["All"]</MudSelectItem>
+                    <MudSelectItem T="bool?" Value="true">@L["Active"]</MudSelectItem>
+                    <MudSelectItem T="bool?" Value="false">@L["Inactive"]</MudSelectItem>
                 </MudSelect>
             </MudItem>
             <MudItem xs="6" sm="2">
-                <MudSelect T="bool?" Value="_filter.EmailConfirmed" Label="Email" Clearable="true" ValueChanged="OnEmailFilterChanged">
-                    <MudSelectItem T="bool?" Value="@((bool?)null)">All</MudSelectItem>
-                    <MudSelectItem T="bool?" Value="true">Confirmed</MudSelectItem>
-                    <MudSelectItem T="bool?" Value="false">Unconfirmed</MudSelectItem>
+                <MudSelect T="bool?" Value="_filter.EmailConfirmed" Label="@L["Email"]" Clearable="true" ValueChanged="OnEmailFilterChanged">
+                    <MudSelectItem T="bool?" Value="@((bool?)null)">@L["All"]</MudSelectItem>
+                    <MudSelectItem T="bool?" Value="true">@L["Verified"]</MudSelectItem>
+                    <MudSelectItem T="bool?" Value="false">@L["Unverified"]</MudSelectItem>
                 </MudSelect>
             </MudItem>
             <MudItem xs="12" sm="4" Class="d-flex align-center justify-end">
@@ -117,7 +122,7 @@
                            Color="Color.Default"
                            Variant="Variant.Text"
                            OnClick="ClearFilters">
-                    Clear Filters
+                    @L["Clear"]
                 </MudButton>
                 <MudButton StartIcon="@Icons.Material.Filled.Refresh"
                            Color="Color.Primary"
@@ -171,27 +176,27 @@
                     </MudStack>
                 </CellTemplate>
             </TemplateColumn>
-            <PropertyColumn Property="x => x.Email" Title="Email" Sortable="true">
+            <PropertyColumn Property="x => x.Email" Title="@L["Email"]" Sortable="true">
                 <CellTemplate>
                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
                         <MudText Typo="Typo.body2">@context.Item.Email</MudText>
                         @if (context.Item.EmailConfirmed)
                         {
-                            <MudTooltip Text="Email verified">
+                            <MudTooltip Text="@L["Verified"]">
                                 <MudIcon Icon="@Icons.Material.Filled.Verified" Size="Size.Small" Color="Color.Success" />
                             </MudTooltip>
                         }
                         else
                         {
-                            <MudTooltip Text="Email not verified">
+                            <MudTooltip Text="@L["Unverified"]">
                                 <MudIcon Icon="@Icons.Material.Filled.Warning" Size="Size.Small" Color="Color.Warning" />
                             </MudTooltip>
                         }
                     </MudStack>
                 </CellTemplate>
             </PropertyColumn>
-            <PropertyColumn Property="x => x.PhoneNumber" Title="Phone" Sortable="false" />
-            <TemplateColumn Title="Roles" Sortable="false">
+            <PropertyColumn Property="x => x.PhoneNumber" Title="@L["Phone"]" Sortable="false" />
+            <TemplateColumn Title="@L["Roles"]" Sortable="false">
                 <CellTemplate>
                     @if (_userRolesCache.TryGetValue(context.Item.Id ?? "", out var roles) && roles.Any())
                     {
@@ -208,33 +213,33 @@
                     else
                     {
                         <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="Color.Default">
-                            No roles
+                            @L["NoDataAvailable"]
                         </MudChip>
                     }
                 </CellTemplate>
             </TemplateColumn>
-            <TemplateColumn Title="Status" Sortable="true" SortBy="@(x => x.IsActive)">
+            <TemplateColumn Title="@L["Status"]" Sortable="true" SortBy="@(x => x.IsActive)">
                 <CellTemplate>
                     @if (context.Item.IsActive)
                     {
-                        <MudChip T="string" Color="Color.Success" Size="Size.Small" Variant="Variant.Filled">Active</MudChip>
+                        <MudChip T="string" Color="Color.Success" Size="Size.Small" Variant="Variant.Filled">@L["Active"]</MudChip>
                     }
                     else
                     {
-                        <MudChip T="string" Color="Color.Error" Size="Size.Small" Variant="Variant.Filled">Inactive</MudChip>
+                        <MudChip T="string" Color="Color.Error" Size="Size.Small" Variant="Variant.Filled">@L["Inactive"]</MudChip>
                     }
                 </CellTemplate>
             </TemplateColumn>
-            <TemplateColumn Title="Actions" Sortable="false" HeaderClass="text-right" CellClass="text-right">
+            <TemplateColumn Title="@L["Actions"]" Sortable="false" HeaderClass="text-right" CellClass="text-right">
                 <CellTemplate>
                     <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="0">
-                        <MudTooltip Text="View Details">
+                        <MudTooltip Text="@L["Details"]">
                             <MudIconButton Icon="@Icons.Material.Filled.Visibility"
                                            Size="Size.Small"
                                            Color="Color.Primary"
                                            OnClick="@(() => GoToDetail(context.Item.Id))" />
                         </MudTooltip>
-                        <MudTooltip Text="Manage Roles">
+                        <MudTooltip Text="@L["Roles"]">
                             <MudIconButton Icon="@Icons.Material.Filled.AdminPanelSettings"
                                            Size="Size.Small"
                                            Color="Color.Info"
@@ -247,7 +252,7 @@
                                            OnClick="@(() => ToggleStatus(context.Item))"
                                            Disabled="@IsToggleDisabled(context.Item)" />
                         </MudTooltip>
-                        <MudTooltip Text="Delete User">
+                        <MudTooltip Text="@UL["DeleteUser"]">
                             <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                            Size="Size.Small"
                                            Color="Color.Error"
@@ -264,8 +269,8 @@
         <NoRecordsContent>
             <MudStack AlignItems="AlignItems.Center" Spacing="4" Class="pa-8">
                 <MudIcon Icon="@Icons.Material.Filled.PersonSearch" Size="Size.Large" Color="Color.Default" />
-                <MudText Typo="Typo.h6">No users found</MudText>
-                <MudText Typo="Typo.body2" Class="text-muted">Try adjusting your filters or create a new user.</MudText>
+                <MudText Typo="Typo.h6">@UL["NoUsersFound"]</MudText>
+                <MudText Typo="Typo.body2" Class="text-muted">@UL["TryAdjustingFilters"]</MudText>
             </MudStack>
         </NoRecordsContent>
     </MudDataGrid>
@@ -343,7 +348,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to load users: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {
@@ -489,8 +494,8 @@
 
     private string GetToggleTooltip(UserDto user)
     {
-        if (IsCurrentUser(user)) return "Cannot modify your own account";
-        return user.IsActive ? "Deactivate user" : "Activate user";
+        if (IsCurrentUser(user)) return UL["CannotDeleteSelf"];
+        return user.IsActive ? UL["Deactivate"] : UL["Activate"];
     }
 
     private async Task<bool> IsUserAdminAsync(string userId)
@@ -539,23 +544,22 @@
 
         if (IsCurrentUser(user))
         {
-            Snackbar.Add("You cannot modify your own account.", Severity.Warning);
+            Snackbar.Add(UL["CannotDeleteSelf"], Severity.Warning);
             return;
         }
 
         var isAdmin = await IsUserAdminAsync(user.Id);
         if (isAdmin && user.IsActive)
         {
-            Snackbar.Add("Administrators cannot be deactivated.", Severity.Warning);
+            Snackbar.Add(UL["CannotDeactivateAdmin"], Severity.Warning);
             return;
         }
 
-        var action = user.IsActive ? "deactivate" : "activate";
         var confirmed = await DialogService.ShowConfirmAsync(
-            $"{(user.IsActive ? "Deactivate" : "Activate")} User",
-            $"Are you sure you want to {action} {user.FirstName} {user.LastName}?",
-            user.IsActive ? "Deactivate" : "Activate",
-            "Cancel",
+            user.IsActive ? UL["Deactivate"] : UL["Activate"],
+            string.Format(UL["ConfirmToggleStatus"], user.FirstName, user.LastName),
+            user.IsActive ? UL["Deactivate"] : UL["Activate"],
+            L["Cancel"],
             user.IsActive ? Color.Warning : Color.Success);
 
         if (!confirmed) return;
@@ -565,12 +569,12 @@
         {
             var command = new ToggleUserStatusCommand { ActivateUser = !user.IsActive, UserId = user.Id };
             await IdentityClient.UsersPatchAsync(Guid.Parse(user.Id), command);
-            Snackbar.Add($"User {(user.IsActive ? "deactivated" : "activated")} successfully.", Severity.Success);
+            Snackbar.Add(UL["UserUpdatedSuccessfully"], Severity.Success);
             await LoadData();
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to update user: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {
@@ -582,19 +586,19 @@
     {
         if (string.IsNullOrWhiteSpace(user.Id)) return;
 
-        var confirmed = await DialogService.ShowDeleteConfirmAsync($"{user.FirstName} {user.LastName}");
+        var confirmed = await DialogService.ShowDeleteConfirmAsync($"{user.FirstName} {user.LastName}", L);
         if (!confirmed) return;
 
         _busyUserId = user.Id;
         try
         {
             await IdentityClient.UsersDeleteAsync(Guid.Parse(user.Id));
-            Snackbar.Add("User deleted successfully.", Severity.Success);
+            Snackbar.Add(UL["UserDeletedSuccessfully"], Severity.Success);
             await LoadData();
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to delete user: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {
@@ -607,15 +611,15 @@
         var users = _selectedUsers.Where(u => !u.IsActive && !IsCurrentUser(u)).ToList();
         if (!users.Any())
         {
-            Snackbar.Add("No inactive users selected.", Severity.Info);
+            Snackbar.Add(L["NoDataAvailable"], Severity.Info);
             return;
         }
 
         var confirmed = await DialogService.ShowConfirmAsync(
-            "Bulk Activate",
-            $"Activate {users.Count} user(s)?",
-            "Activate All",
-            "Cancel",
+            UL["Activate"],
+            string.Format(UL["UsersActivated"], users.Count),
+            UL["Activate"],
+            L["Cancel"],
             Color.Success);
 
         if (!confirmed) return;
@@ -637,7 +641,7 @@
         }));
         var success = results.Count(r => r);
         _bulkBusy = false;
-        Snackbar.Add($"Activated {success} of {users.Count} users.", Severity.Success);
+        Snackbar.Add(string.Format(UL["UsersActivated"], success), Severity.Success);
         ClearSelection();
         await LoadData();
     }
@@ -647,15 +651,15 @@
         var users = _selectedUsers.Where(u => u.IsActive && !IsCurrentUser(u)).ToList();
         if (!users.Any())
         {
-            Snackbar.Add("No active users selected (excluding yourself).", Severity.Info);
+            Snackbar.Add(L["NoDataAvailable"], Severity.Info);
             return;
         }
 
         var confirmed = await DialogService.ShowConfirmAsync(
-            "Bulk Deactivate",
-            $"Deactivate {users.Count} user(s)?",
-            "Deactivate All",
-            "Cancel",
+            UL["Deactivate"],
+            string.Format(UL["UsersDeactivated"], users.Count),
+            UL["Deactivate"],
+            L["Cancel"],
             Color.Warning);
 
         if (!confirmed) return;
@@ -678,7 +682,7 @@
         }));
         var success = results.Count(r => r);
         _bulkBusy = false;
-        Snackbar.Add($"Deactivated {success} of {users.Count} users.", Severity.Success);
+        Snackbar.Add(string.Format(UL["UsersDeactivated"], success), Severity.Success);
         ClearSelection();
         await LoadData();
     }
@@ -688,15 +692,15 @@
         var users = _selectedUsers.Where(u => !IsCurrentUser(u)).ToList();
         if (!users.Any())
         {
-            Snackbar.Add("No users selected (excluding yourself).", Severity.Info);
+            Snackbar.Add(L["NoDataAvailable"], Severity.Info);
             return;
         }
 
         var confirmed = await DialogService.ShowConfirmAsync(
-            "Bulk Delete",
-            $"Delete {users.Count} user(s)? This action cannot be undone.",
-            "Delete All",
-            "Cancel",
+            UL["BulkDelete"],
+            string.Format(UL["DeleteUsersConfirm"], users.Count),
+            L["Delete"],
+            L["Cancel"],
             Color.Error,
             Icons.Material.Outlined.DeleteForever,
             Color.Error);
@@ -718,7 +722,7 @@
             }
         }
         _bulkBusy = false;
-        Snackbar.Add($"Deleted {success} of {users.Count} users.", Severity.Success);
+        Snackbar.Add(string.Format(UL["UsersDeleted"], success, users.Count), Severity.Success);
         ClearSelection();
         await LoadData();
     }
@@ -733,7 +737,7 @@
             CloseButton = true
         };
 
-        var dialog = await DialogService.ShowAsync<CreateUserDialog>("Create User", options);
+        var dialog = await DialogService.ShowAsync<CreateUserDialog>(UL["CreateUser"], options);
         var result = await dialog.Result;
 
         if (result is not null && !result.Canceled)

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data"><xsd:complexType><xsd:sequence><xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" /></xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" /><xsd:attribute ref="xml:space" /></xsd:complexType></xsd:element>
+          <xsd:element name="resheader"><xsd:complexType><xsd:sequence><xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" /></xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" /></xsd:complexType></xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="GroupManagement" xml:space="preserve"><value>Group Management</value></data>
+  <data name="CreateGroup" xml:space="preserve"><value>Create Group</value></data>
+  <data name="EditGroup" xml:space="preserve"><value>Edit Group</value></data>
+  <data name="DeleteGroup" xml:space="preserve"><value>Delete Group</value></data>
+  <data name="GroupDetails" xml:space="preserve"><value>Group Details</value></data>
+  <data name="GroupMembers" xml:space="preserve"><value>Group Members</value></data>
+  <data name="AddMembers" xml:space="preserve"><value>Add Members</value></data>
+  <data name="RemoveMember" xml:space="preserve"><value>Remove Member</value></data>
+  <data name="GroupName" xml:space="preserve"><value>Group Name</value></data>
+  <data name="GroupDescription" xml:space="preserve"><value>Group Description</value></data>
+  <data name="GroupCreatedSuccessfully" xml:space="preserve"><value>Group created successfully</value></data>
+  <data name="GroupUpdatedSuccessfully" xml:space="preserve"><value>Group updated successfully</value></data>
+  <data name="GroupDeletedSuccessfully" xml:space="preserve"><value>Group deleted successfully</value></data>
+  <data name="MembersAddedSuccessfully" xml:space="preserve"><value>Members added successfully</value></data>
+  <data name="MemberRemovedSuccessfully" xml:space="preserve"><value>Member removed successfully</value></data>
+  <data name="ConfirmDeleteGroup" xml:space="preserve"><value>Are you sure you want to delete this group?</value></data>
+  <data name="SelectUsers" xml:space="preserve"><value>Select Users</value></data>
+  <data name="MemberCount" xml:space="preserve"><value>Member Count</value></data>
+  <data name="NewGroup" xml:space="preserve"><value>New Group</value></data>
+  <data name="TotalGroups" xml:space="preserve"><value>Total Groups</value></data>
+  <data name="SystemGroups" xml:space="preserve"><value>System Groups</value></data>
+  <data name="DefaultGroups" xml:space="preserve"><value>Default Groups</value></data>
+  <data name="CustomGroups" xml:space="preserve"><value>Custom Groups</value></data>
+  <data name="System" xml:space="preserve"><value>System</value></data>
+  <data name="Custom" xml:space="preserve"><value>Custom</value></data>
+  <data name="NoDescription" xml:space="preserve"><value>No description</value></data>
+  <data name="NoRolesAssigned" xml:space="preserve"><value>No roles assigned</value></data>
+  <data name="ManageMembers" xml:space="preserve"><value>Manage Members</value></data>
+  <data name="SystemGroupsCannotBeEdited" xml:space="preserve"><value>System groups cannot be edited</value></data>
+  <data name="SystemGroupsCannotBeDeleted" xml:space="preserve"><value>System groups cannot be deleted</value></data>
+  <data name="NoGroupsFound" xml:space="preserve"><value>No groups found</value></data>
+  <data name="TryAdjustingFilters" xml:space="preserve"><value>Try adjusting your filters or create a new group.</value></data>
+  <data name="DefaultGroupTooltip" xml:space="preserve"><value>New users are automatically added to this group</value></data>
+  <data name="BulkDelete" xml:space="preserve"><value>Bulk Delete</value></data>
+  <data name="DeleteGroupsConfirm" xml:space="preserve"><value>Delete {0} group(s)? This action cannot be undone.</value></data>
+  <data name="DeletedGroupsCount" xml:space="preserve"><value>Deleted {0} of {1} groups.</value></data>
+  <data name="NoDeletableGroupsSelected" xml:space="preserve"><value>No deletable groups selected. System groups cannot be deleted.</value></data>
+  <data name="AlreadyMembers" xml:space="preserve"><value>Some users were already members.</value></data>
+</root>

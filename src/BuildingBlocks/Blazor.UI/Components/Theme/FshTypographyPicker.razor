@@ -1,12 +1,15 @@
 @using FSH.Framework.Blazor.UI.Theme
+@using FSH.Framework.Shared.Localization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> L
 
 <MudPaper Class="pa-4" Elevation="0" Outlined="true">
-    <MudText Typo="Typo.h6" Class="mb-4">Typography</MudText>
+    <MudText Typo="Typo.h6" Class="mb-4">@L["Typography"]</MudText>
 
     <MudGrid>
         <MudItem xs="12" sm="6">
             <MudSelect T="string"
-                      Label="Body Font Family"
+                      Label="@L["BodyFontFamily"]"
                       Value="@Typography.FontFamily"
                       ValueChanged="@OnFontFamilyChanged"
                       Variant="Variant.Outlined"
@@ -23,7 +26,7 @@
 
         <MudItem xs="12" sm="6">
             <MudSelect T="string"
-                      Label="Heading Font Family"
+                      Label="@L["HeadingFontFamily"]"
                       Value="@Typography.HeadingFontFamily"
                       ValueChanged="@OnHeadingFontFamilyChanged"
                       Variant="Variant.Outlined"
@@ -40,7 +43,7 @@
 
         <MudItem xs="12" sm="6">
             <MudNumericField T="double"
-                            Label="Base Font Size (px)"
+                            Label="@L["FontSize"]"
                             Value="@Typography.FontSizeBase"
                             ValueChanged="@OnFontSizeChanged"
                             Min="10"
@@ -55,7 +58,7 @@
 
         <MudItem xs="12" sm="6">
             <MudNumericField T="double"
-                            Label="Line Height"
+                            Label="@L["LineHeight"]"
                             Value="@Typography.LineHeightBase"
                             ValueChanged="@OnLineHeightChanged"
                             Min="1.0"
@@ -69,14 +72,13 @@
 
     <MudDivider Class="my-4" />
 
-    <MudText Typo="Typo.subtitle2" Class="mb-2">Preview</MudText>
+    <MudText Typo="Typo.subtitle2" Class="mb-2">@L["Preview"]</MudText>
     <MudPaper Class="pa-4" Elevation="0" Outlined="true" Style="@GetPreviewStyle()">
         <div style="@GetHeadingStyle()">
-            <MudText Typo="Typo.h4">Heading Text</MudText>
+            <MudText Typo="Typo.h4">@L["Preview"]</MudText>
         </div>
         <MudText Typo="Typo.body1" Class="mt-2">
-            This is body text. The quick brown fox jumps over the lazy dog.
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+            @L["Preview"]
         </MudText>
         <MudText Typo="Typo.caption" Class="mt-2" Color="Color.Secondary">
             Caption text with secondary color

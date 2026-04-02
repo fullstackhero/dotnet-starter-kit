@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="WebhookCreated" xml:space="preserve"><value>Webhook created successfully</value></data>
+  <data name="WebhookUpdated" xml:space="preserve"><value>Webhook updated successfully</value></data>
+  <data name="WebhookDeleted" xml:space="preserve"><value>Webhook deleted successfully</value></data>
+  <data name="WebhookActivated" xml:space="preserve"><value>Webhook activated</value></data>
+  <data name="WebhookDeactivated" xml:space="preserve"><value>Webhook deactivated</value></data>
+  <data name="WebhookTriggered" xml:space="preserve"><value>Webhook triggered</value></data>
+  <data name="WebhookDelivered" xml:space="preserve"><value>Webhook delivered successfully</value></data>
+  <data name="WebhookFailed" xml:space="preserve"><value>Webhook delivery failed</value></data>
+  <data name="WebhookRetrying" xml:space="preserve"><value>Retrying webhook delivery</value></data>
+  <data name="WebhookRetryLimitReached" xml:space="preserve"><value>Webhook retry limit reached</value></data>
+  <data name="InvalidWebhookUrl" xml:space="preserve"><value>Invalid webhook URL</value></data>
+  <data name="WebhookNotFound" xml:space="preserve"><value>Webhook not found</value></data>
+  <data name="WebhookAlreadyExists" xml:space="preserve"><value>Webhook already exists for this event</value></data>
+  <data name="SecretUpdated" xml:space="preserve"><value>Webhook secret updated</value></data>
+  <data name="EventSubscribed" xml:space="preserve"><value>Subscribed to event successfully</value></data>
+  <data name="EventUnsubscribed" xml:space="preserve"><value>Unsubscribed from event</value></data>
+  <data name="DeliveryHistoryCleared" xml:space="preserve"><value>Delivery history cleared</value></data>
+  <data name="WebhookTested" xml:space="preserve"><value>Webhook test completed</value></data>
+</root>

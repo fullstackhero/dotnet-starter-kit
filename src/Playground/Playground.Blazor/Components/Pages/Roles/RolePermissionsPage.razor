@@ -1,20 +1,25 @@
 @page "/roles/{Id:guid}/permissions"
 @using FSH.Playground.Blazor.ApiClient
 @using FSH.Framework.Blazor.UI.Components.Dialogs
+@using FSH.Framework.Shared.Localization
+@using FSH.Playground.Blazor.Localization.Roles
+@using Microsoft.Extensions.Localization
 @inherits ComponentBase
 @inject IIdentityClient IdentityClient
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@inject IStringLocalizer<SharedResource> L
+@inject IStringLocalizer<RoleResource> RL
 
-<FshPageHeader Title="Manage Role Permissions"
-               Description="Configure what actions this role can perform">
+<FshPageHeader Title="@RL["ManagePermissions"]"
+               Description="@RL["RoleManagement"]">
     <ActionContent>
         <MudButton Variant="Variant.Text"
                    Color="Color.Default"
                    StartIcon="@Icons.Material.Filled.ArrowBack"
                    OnClick="GoBack">
-            Back to Roles
+            @L["Back"]
         </MudButton>
     </ActionContent>
 </FshPageHeader>
@@ -24,7 +29,7 @@
     <MudPaper Class="fsh-card pa-8">
         <MudStack AlignItems="AlignItems.Center" Spacing="4">
             <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
-            <MudText Typo="Typo.body1">Loading role information...</MudText>
+            <MudText Typo="Typo.body1">@L["Loading"]</MudText>
         </MudStack>
     </MudPaper>
 }
@@ -33,10 +38,10 @@ else if (_role is null)
     <MudPaper Class="fsh-card pa-8">
         <MudStack AlignItems="AlignItems.Center" Spacing="4">
             <MudIcon Icon="@Icons.Material.Filled.ErrorOutline" Size="Size.Large" Color="Color.Error" />
-            <MudText Typo="Typo.h6">Role Not Found</MudText>
-            <MudText Typo="Typo.body2" Class="text-muted">The requested role could not be found.</MudText>
+            <MudText Typo="Typo.h6">@L["NotFound"]</MudText>
+            <MudText Typo="Typo.body2" Class="text-muted">@L["NotFound"]</MudText>
             <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="GoBack">
-                Back to Roles
+                @L["Back"]
             </MudButton>
         </MudStack>
     </MudPaper>
@@ -49,28 +54,28 @@ else
             <MudStack Spacing="0">
                 <MudText Typo="Typo.h5" Class="fw-700">@_role.Name</MudText>
                 <MudText Typo="Typo.body2" Class="text-muted">
-                    @(string.IsNullOrEmpty(_role.Description) ? "No description provided" : _role.Description)
+                    @(string.IsNullOrEmpty(_role.Description) ? RL["NoDescription"] : _role.Description)
                 </MudText>
                 <MudStack Row="true" Spacing="1" Class="mt-2">
                     @if (IsAdminRole(_role.Name))
                     {
                         <MudChip T="string" Color="Color.Error" Size="Size.Small" Variant="Variant.Outlined">
                             <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Small" Class="mr-1" />
-                            Admin (Full Access)
+                            Admin
                         </MudChip>
                     }
                     else if (IsSystemRole(_role.Name))
                     {
                         <MudChip T="string" Color="Color.Warning" Size="Size.Small" Variant="Variant.Outlined">
                             <MudIcon Icon="@Icons.Material.Filled.Security" Size="Size.Small" Class="mr-1" />
-                            System Role
+                            @RL["System"]
                         </MudChip>
                     }
                     else
                     {
                         <MudChip T="string" Color="Color.Info" Size="Size.Small" Variant="Variant.Outlined">
                             <MudIcon Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Class="mr-1" />
-                            Custom Role
+                            @RL["Custom"]
                         </MudChip>
                     }
                     <MudChip T="string" Color="Color.Primary" Size="Size.Small" Variant="Variant.Filled">
@@ -87,7 +92,7 @@ else
                                    Color="Color.Default"
                                    OnClick="ResetChanges"
                                    Disabled="_saving">
-                            Reset
+                            @L["Reset"]
                         </MudButton>
                     }
                     <MudButton Variant="Variant.Filled"
@@ -99,7 +104,7 @@ else
                         {
                             <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
                         }
-                        Save Changes
+                        @L["Save"]
                     </MudButton>
                 </MudStack>
             }
@@ -110,7 +115,7 @@ else
     {
         <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mb-4">
             <MudText Typo="Typo.body2">
-                <strong>Admin role has full access to all permissions.</strong> These permissions cannot be modified.
+                @RL["ManagePermissions"]
             </MudText>
         </MudAlert>
     }
@@ -124,7 +129,7 @@ else
                         <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" />
                         <MudStack Spacing="0">
                             <MudText Typo="Typo.h6" Class="fw-700">@_currentPermissions.Count</MudText>
-                            <MudText Typo="Typo.caption" Class="text-muted">Assigned</MudText>
+                            <MudText Typo="Typo.caption" Class="text-muted">@L["Assigned"]</MudText>
                         </MudStack>
                     </MudStack>
                 </MudCardContent>
@@ -137,7 +142,7 @@ else
                         <MudIcon Icon="@Icons.Material.Filled.RadioButtonUnchecked" Color="Color.Default" />
                         <MudStack Spacing="0">
                             <MudText Typo="Typo.h6" Class="fw-700">@(_allPermissions.Count - _currentPermissions.Count)</MudText>
-                            <MudText Typo="Typo.caption" Class="text-muted">Available</MudText>
+                            <MudText Typo="Typo.caption" Class="text-muted">@L["Available"]</MudText>
                         </MudStack>
                     </MudStack>
                 </MudCardContent>
@@ -150,7 +155,7 @@ else
                         <MudIcon Icon="@Icons.Material.Filled.Category" Color="Color.Info" />
                         <MudStack Spacing="0">
                             <MudText Typo="Typo.h6" Class="fw-700">@_groupedPermissions.Count</MudText>
-                            <MudText Typo="Typo.caption" Class="text-muted">Categories</MudText>
+                            <MudText Typo="Typo.caption" Class="text-muted">@L["Categories"]</MudText>
                         </MudStack>
                     </MudStack>
                 </MudCardContent>
@@ -164,7 +169,7 @@ else
                                  Color="@(HasChanges ? Color.Warning : Color.Success)" />
                         <MudStack Spacing="0">
                             <MudText Typo="Typo.h6" Class="fw-700">@GetChangedCount()</MudText>
-                            <MudText Typo="Typo.caption" Class="text-muted">Changes</MudText>
+                            <MudText Typo="Typo.caption" Class="text-muted">@L["Changes"]</MudText>
                         </MudStack>
                     </MudStack>
                 </MudCardContent>
@@ -176,7 +181,7 @@ else
     <MudPaper Class="fsh-card pa-4 mb-4">
         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
             <MudTextField @bind-Value="_searchTerm"
-                          Placeholder="Search permissions..."
+                          Placeholder="@L["Search"]"
                           Adornment="Adornment.Start"
                           AdornmentIcon="@Icons.Material.Filled.Search"
                           Immediate="true"
@@ -198,15 +203,15 @@ else
                                Size="Size.Small"
                                StartIcon="@Icons.Material.Filled.Deselect"
                                OnClick="DeselectAll">
-                        Deselect All
+                        @L["DeselectAll"]
                     </MudButton>
                 }
                 <MudButtonGroup Variant="Variant.Outlined" Size="Size.Small">
                     <MudButton OnClick="ExpandAll" StartIcon="@Icons.Material.Filled.UnfoldMore">
-                        Expand
+                        @L["Expand"]
                     </MudButton>
                     <MudButton OnClick="CollapseAll" StartIcon="@Icons.Material.Filled.UnfoldLess">
-                        Collapse
+                        @L["Collapse"]
                     </MudButton>
                 </MudButtonGroup>
             </MudStack>
@@ -275,7 +280,7 @@ else
                                             @if (HasPermissionChanged(perm))
                                             {
                                                 <MudText Typo="Typo.caption" Color="@(IsPermissionAssigned(perm) ? Color.Success : Color.Warning)">
-                                                    @(IsPermissionAssigned(perm) ? "Will be added" : "Will be removed")
+                                                    @(IsPermissionAssigned(perm) ? L["WillBeAdded"] : L["WillBeRemoved"])
                                                 </MudText>
                                             }
                                         </MudStack>
@@ -300,15 +305,15 @@ else
         <MudPaper Class="fsh-card pa-8">
             <MudStack AlignItems="AlignItems.Center" Spacing="4">
                 <MudIcon Icon="@Icons.Material.Filled.SearchOff" Size="Size.Large" Color="Color.Default" />
-                <MudText Typo="Typo.h6">No permissions found</MudText>
+                <MudText Typo="Typo.h6">@L["NoDataAvailable"]</MudText>
                 <MudText Typo="Typo.body2" Class="text-muted">
                     @if (!string.IsNullOrEmpty(_searchTerm))
                     {
-                        <span>No permissions match your search. Try a different term.</span>
+                        <span>@L["NoDataAvailable"]</span>
                     }
                     else
                     {
-                        <span>No permissions available in the system.</span>
+                        <span>@L["NoDataAvailable"]</span>
                     }
                 </MudText>
             </MudStack>
@@ -474,7 +479,7 @@ else
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to load data: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {
@@ -616,11 +621,11 @@ else
 
             _originalPermissions = new HashSet<string>(_currentPermissions);
 
-            Snackbar.Add("Permissions updated successfully.", Severity.Success);
+            Snackbar.Add(RL["PermissionsUpdatedSuccessfully"], Severity.Success);
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to save permissions: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {
@@ -633,9 +638,9 @@ else
         Navigation.NavigateTo("/roles");
     }
 
-    private static string FormatCategoryName(string category)
+    private string FormatCategoryName(string category)
     {
-        if (string.IsNullOrEmpty(category)) return "Other";
+        if (string.IsNullOrEmpty(category)) return L["Other"];
         return char.ToUpper(category[0]) + category.Substring(1);
     }
 

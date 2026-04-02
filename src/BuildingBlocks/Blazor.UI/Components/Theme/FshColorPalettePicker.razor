@@ -1,15 +1,18 @@
 @using FSH.Framework.Blazor.UI.Theme
+@using FSH.Framework.Shared.Localization
+@using Microsoft.Extensions.Localization
 @using MudBlazor.Utilities
+@inject IStringLocalizer<SharedResource> L
 
 <MudPaper Class="pa-4" Elevation="0" Outlined="true">
     <MudText Typo="Typo.h6" Class="mb-4">@Title</MudText>
 
     <MudGrid>
         <MudItem xs="12" sm="6" md="4">
-            <MudText Typo="Typo.caption" Class="mb-1">Primary</MudText>
+            <MudText Typo="Typo.caption" Class="mb-1">@L["Primary"]</MudText>
             <MudColorPicker Value="@GetColor(Palette.Primary)"
                           ValueChanged="@(c => OnColorChanged(c, v => Palette.Primary = v))"
-                          Label="Primary"
+                          Label="@L["Primary"]"
                           DisableAlpha="true"
                           DisableModeSwitch="true"
                           ColorPickerMode="ColorPickerMode.HEX"
@@ -20,10 +23,10 @@
         </MudItem>
 
         <MudItem xs="12" sm="6" md="4">
-            <MudText Typo="Typo.caption" Class="mb-1">Secondary</MudText>
+            <MudText Typo="Typo.caption" Class="mb-1">@L["Secondary"]</MudText>
             <MudColorPicker Value="@GetColor(Palette.Secondary)"
                           ValueChanged="@(c => OnColorChanged(c, v => Palette.Secondary = v))"
-                          Label="Secondary"
+                          Label="@L["Secondary"]"
                           DisableAlpha="true"
                           DisableModeSwitch="true"
                           ColorPickerMode="ColorPickerMode.HEX"
@@ -33,10 +36,10 @@
         </MudItem>
 
         <MudItem xs="12" sm="6" md="4">
-            <MudText Typo="Typo.caption" Class="mb-1">Tertiary</MudText>
+            <MudText Typo="Typo.caption" Class="mb-1">@L["Tertiary"]</MudText>
             <MudColorPicker Value="@GetColor(Palette.Tertiary)"
                           ValueChanged="@(c => OnColorChanged(c, v => Palette.Tertiary = v))"
-                          Label="Tertiary"
+                          Label="@L["Tertiary"]"
                           DisableAlpha="true"
                           DisableModeSwitch="true"
                           ColorPickerMode="ColorPickerMode.HEX"
@@ -46,10 +49,10 @@
         </MudItem>
 
         <MudItem xs="12" sm="6" md="4">
-            <MudText Typo="Typo.caption" Class="mb-1">Background</MudText>
+            <MudText Typo="Typo.caption" Class="mb-1">@L["Background"]</MudText>
             <MudColorPicker Value="@GetColor(Palette.Background)"
                           ValueChanged="@(c => OnColorChanged(c, v => Palette.Background = v))"
-                          Label="Background"
+                          Label="@L["Background"]"
                           DisableAlpha="true"
                           DisableModeSwitch="true"
                           ColorPickerMode="ColorPickerMode.HEX"
@@ -59,10 +62,10 @@
         </MudItem>
 
         <MudItem xs="12" sm="6" md="4">
-            <MudText Typo="Typo.caption" Class="mb-1">Surface</MudText>
+            <MudText Typo="Typo.caption" Class="mb-1">@L["Surface"]</MudText>
             <MudColorPicker Value="@GetColor(Palette.Surface)"
                           ValueChanged="@(c => OnColorChanged(c, v => Palette.Surface = v))"
-                          Label="Surface"
+                          Label="@L["Surface"]"
                           DisableAlpha="true"
                           DisableModeSwitch="true"
                           ColorPickerMode="ColorPickerMode.HEX"
@@ -72,14 +75,14 @@
         </MudItem>
 
         <MudItem xs="12" Class="mt-4">
-            <MudText Typo="Typo.subtitle2" Class="mb-2">Semantic Colors</MudText>
+            <MudText Typo="Typo.subtitle2" Class="mb-2">@L["SemanticColors"]</MudText>
         </MudItem>
 
         <MudItem xs="12" sm="6" md="3">
-            <MudText Typo="Typo.caption" Class="mb-1">Success</MudText>
+            <MudText Typo="Typo.caption" Class="mb-1">@L["Success"]</MudText>
             <MudColorPicker Value="@GetColor(Palette.Success)"
                           ValueChanged="@(c => OnColorChanged(c, v => Palette.Success = v))"
-                          Label="Success"
+                          Label="@L["Success"]"
                           DisableAlpha="true"
                           DisableModeSwitch="true"
                           ColorPickerMode="ColorPickerMode.HEX"
@@ -89,10 +92,10 @@
         </MudItem>
 
         <MudItem xs="12" sm="6" md="3">
-            <MudText Typo="Typo.caption" Class="mb-1">Info</MudText>
+            <MudText Typo="Typo.caption" Class="mb-1">@L["Info"]</MudText>
             <MudColorPicker Value="@GetColor(Palette.Info)"
                           ValueChanged="@(c => OnColorChanged(c, v => Palette.Info = v))"
-                          Label="Info"
+                          Label="@L["Info"]"
                           DisableAlpha="true"
                           DisableModeSwitch="true"
                           ColorPickerMode="ColorPickerMode.HEX"
@@ -102,10 +105,10 @@
         </MudItem>
 
         <MudItem xs="12" sm="6" md="3">
-            <MudText Typo="Typo.caption" Class="mb-1">Warning</MudText>
+            <MudText Typo="Typo.caption" Class="mb-1">@L["Warning"]</MudText>
             <MudColorPicker Value="@GetColor(Palette.Warning)"
                           ValueChanged="@(c => OnColorChanged(c, v => Palette.Warning = v))"
-                          Label="Warning"
+                          Label="@L["Warning"]"
                           DisableAlpha="true"
                           DisableModeSwitch="true"
                           ColorPickerMode="ColorPickerMode.HEX"
@@ -115,10 +118,10 @@
         </MudItem>
 
         <MudItem xs="12" sm="6" md="3">
-            <MudText Typo="Typo.caption" Class="mb-1">Error</MudText>
+            <MudText Typo="Typo.caption" Class="mb-1">@L["Error"]</MudText>
             <MudColorPicker Value="@GetColor(Palette.Error)"
                           ValueChanged="@(c => OnColorChanged(c, v => Palette.Error = v))"
-                          Label="Error"
+                          Label="@L["Error"]"
                           DisableAlpha="true"
                           DisableModeSwitch="true"
                           ColorPickerMode="ColorPickerMode.HEX"

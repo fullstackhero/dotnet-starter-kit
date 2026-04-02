@@ -1,5 +1,6 @@
-using Microsoft.AspNetCore.Components;
-using MudBlazor;
+using FSH.Framework.Shared.Localization;
+using Microsoft.Extensions.Localization;
+using System.Globalization;
 
 namespace FSH.Framework.Blazor.UI.Components.Dialogs;
 
@@ -45,25 +46,40 @@ public static class FshDialogService
 
     public static Task<bool> ShowDeleteConfirmAsync(
         this IDialogService dialogService,
-        string itemName = "this item")
+        string itemName,
+        IStringLocalizer<SharedResource>? localizer = null)
     {
+        string title = localizer?["DeleteConfirmation"] ?? "Delete Confirmation";
+        string message = localizer != null
+            ? string.Format(CultureInfo.InvariantCulture, localizer["ConfirmDelete"], itemName)
+            : $"Are you sure you want to delete {itemName}? This action cannot be undone.";
+        string confirmText = localizer?["Delete"] ?? "Delete";
+        string cancelText = localizer?["Cancel"] ?? "Cancel";
+
         return dialogService.ShowConfirmAsync(
-            title: "Delete Confirmation",
-            message: $"Are you sure you want to delete {itemName}? This action cannot be undone.",
-            confirmText: "Delete",
-            cancelText: "Cancel",
+            title: title,
+            message: message,
+            confirmText: confirmText,
+            cancelText: cancelText,
             confirmColor: Color.Error,
             icon: Icons.Material.Outlined.DeleteForever,
             iconColor: Color.Error);
     }
 
-    public static Task<bool> ShowSignOutConfirmAsync(this IDialogService dialogService)
+    public static Task<bool> ShowSignOutConfirmAsync(
+        this IDialogService dialogService,
+        IStringLocalizer<SharedResource>? localizer = null)
     {
+        string title = localizer?["SignOut"] ?? "Sign Out";
+        string message = localizer?["ConfirmSignOut"] ?? "Are you sure you want to sign out of your account?";
+        string confirmText = localizer?["SignOut"] ?? "Sign Out";
+        string cancelText = localizer?["Cancel"] ?? "Cancel";
+
         return dialogService.ShowConfirmAsync(
-            title: "Sign Out",
-            message: "Are you sure you want to sign out of your account?",
-            confirmText: "Sign Out",
-            cancelText: "Cancel",
+            title: title,
+            message: message,
+            confirmText: confirmText,
+            cancelText: cancelText,
             confirmColor: Color.Error,
             icon: Icons.Material.Outlined.Logout,
             iconColor: Color.Warning);

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data"><xsd:complexType><xsd:sequence><xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" /></xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" /><xsd:attribute ref="xml:space" /></xsd:complexType></xsd:element>
+          <xsd:element name="resheader"><xsd:complexType><xsd:sequence><xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" /></xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" /></xsd:complexType></xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="AuditTrails" xml:space="preserve"><value>Audit Trails</value></data>
+  <data name="AuditDetails" xml:space="preserve"><value>Audit Details</value></data>
+  <data name="EntityType" xml:space="preserve"><value>Entity Type</value></data>
+  <data name="EntityId" xml:space="preserve"><value>Entity ID</value></data>
+  <data name="Operation" xml:space="preserve"><value>Operation</value></data>
+  <data name="OldValues" xml:space="preserve"><value>Old Values</value></data>
+  <data name="NewValues" xml:space="preserve"><value>New Values</value></data>
+  <data name="PrimaryKey" xml:space="preserve"><value>Primary Key</value></data>
+  <data name="AffectedColumns" xml:space="preserve"><value>Affected Columns</value></data>
+  <data name="DateRange" xml:space="preserve"><value>Date Range</value></data>
+  <data name="StartDate" xml:space="preserve"><value>Start Date</value></data>
+  <data name="EndDate" xml:space="preserve"><value>End Date</value></data>
+  <data name="ExportAudits" xml:space="preserve"><value>Export Audits</value></data>
+  <data name="TotalEvents" xml:space="preserve"><value>Total Events</value></data>
+  <data name="ErrorEvents" xml:space="preserve"><value>Error Events</value></data>
+  <data name="Errors" xml:space="preserve"><value>Errors</value></data>
+  <data name="SecurityEvents" xml:space="preserve"><value>Security Events</value></data>
+  <data name="UniqueSources" xml:space="preserve"><value>Unique Sources</value></data>
+  <data name="Sources" xml:space="preserve"><value>Sources</value></data>
+  <data name="QuickFilters" xml:space="preserve"><value>Quick Filters</value></data>
+  <data name="LastHour" xml:space="preserve"><value>Last Hour</value></data>
+  <data name="Last24Hours" xml:space="preserve"><value>Last 24 Hours</value></data>
+  <data name="Last7Days" xml:space="preserve"><value>Last 7 Days</value></data>
+  <data name="ErrorsOnly" xml:space="preserve"><value>Errors Only</value></data>
+  <data name="Exceptions" xml:space="preserve"><value>Exceptions</value></data>
+  <data name="AdvancedFilters" xml:space="preserve"><value>Advanced Filters</value></data>
+  <data name="Severity" xml:space="preserve"><value>Severity</value></data>
+  <data name="EventType" xml:space="preserve"><value>Event Type</value></data>
+  <data name="ReceivedAt" xml:space="preserve"><value>Received At</value></data>
+  <data name="Latency" xml:space="preserve"><value>Latency</value></data>
+  <data name="ContextIdentity" xml:space="preserve"><value>Context &amp; Identity</value></data>
+  <data name="CorrelationId" xml:space="preserve"><value>Correlation ID</value></data>
+  <data name="TraceId" xml:space="preserve"><value>Trace ID</value></data>
+  <data name="RequestId" xml:space="preserve"><value>Request ID</value></data>
+  <data name="Tags" xml:space="preserve"><value>Tags</value></data>
+  <data name="ViewCorrelatedEvents" xml:space="preserve"><value>View Correlated Events</value></data>
+  <data name="ViewTraceTimeline" xml:space="preserve"><value>View Trace Timeline</value></data>
+  <data name="Payload" xml:space="preserve"><value>Payload</value></data>
+  <data name="TryAdjustingFilters" xml:space="preserve"><value>Try adjusting your filters or date range to see more results</value></data>
+  <data name="SpanId" xml:space="preserve"><value>Span ID</value></data>
+  <data name="ExportAsJson" xml:space="preserve"><value>Export as JSON</value></data>
+</root>

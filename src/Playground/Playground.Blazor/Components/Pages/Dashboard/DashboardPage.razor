@@ -3,13 +3,18 @@
 @attribute [StreamRendering(true)]
 @using System.Linq
 @using FSH.Framework.Blazor.UI.Components.Cards
+@using FSH.Framework.Shared.Localization
+@using FSH.Playground.Blazor.Localization.Dashboard
+@using Microsoft.Extensions.Localization
 @inherits ComponentBase
 @inject FSH.Playground.Blazor.ApiClient.IV1Client V1Client
 @inject FSH.Playground.Blazor.ApiClient.IIdentityClient IdentityClient
 @inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
+@inject IStringLocalizer<DashboardResource> DL
 
-<FshPageHeader Title="Dashboard"
-               Description="Overview of your system metrics and recent activity" />
+<FshPageHeader Title="@L["Dashboard"]"
+               Description="@DL["Overview"]" />
 
 <div class="dashboard-shell">
     <MudGrid>
@@ -17,42 +22,42 @@
             <FshStatCard Icon="@Icons.Material.Filled.People"
                          IconColor="Color.Primary"
                          Value="@_summary.Users.ToString()"
-                         Label="Total Users" />
+                         Label="@DL["TotalUsers"]" />
         </MudItem>
         <MudItem xs="12" sm="6" md="3">
             <FshStatCard Icon="@Icons.Material.Filled.Security"
                          IconColor="Color.Secondary"
                          Value="@_summary.Roles.ToString()"
-                         Label="Total Roles" />
+                         Label="@L["Roles"]" />
         </MudItem>
         <MudItem xs="12" sm="6" md="3">
             <FshStatCard Icon="@Icons.Material.Filled.Business"
                          IconColor="Color.Info"
                          Value="@_summary.Tenants.ToString()"
-                         Label="Total Tenants" />
+                         Label="@DL["TotalTenants"]" />
         </MudItem>
         <MudItem xs="12" sm="6" md="3">
             <FshStatCard Icon="@Icons.Material.Filled.History"
                          IconColor="Color.Warning"
                          Value="@_recentAudits.Count.ToString()"
-                         Label="Recent Audits" />
+                         Label="@DL["RecentActivity"]" />
         </MudItem>
     </MudGrid>
 
     <MudPaper Class="fsh-card pa-4 mt-4">
-        <MudText Typo="Typo.h6" Class="mb-2">Recent Audits</MudText>
+        <MudText Typo="Typo.h6" Class="mb-2">@DL["RecentActivity"]</MudText>
         <MudTable Items="_recentAudits" Dense="true">
             <HeaderContent>
-                <MudTh>Timestamp</MudTh>
-                <MudTh>Event Type</MudTh>
-                <MudTh>User</MudTh>
-                <MudTh>Correlation</MudTh>
+                <MudTh>@L["Date"]</MudTh>
+                <MudTh>@L["Status"]</MudTh>
+                <MudTh>@L["Users"]</MudTh>
+                <MudTh>@L["Id"]</MudTh>
             </HeaderContent>
             <RowTemplate>
-                <MudTd DataLabel="Timestamp">@context.OccurredAtUtc.ToLocalTime()</MudTd>
-                <MudTd DataLabel="Event Type">@context.EventType</MudTd>
-                <MudTd DataLabel="User">@context.UserName</MudTd>
-                <MudTd DataLabel="Correlation">@context.CorrelationId</MudTd>
+                <MudTd DataLabel="@L["Date"]">@context.OccurredAtUtc.ToLocalTime()</MudTd>
+                <MudTd DataLabel="@L["Status"]">@context.EventType</MudTd>
+                <MudTd DataLabel="@L["Users"]">@context.UserName</MudTd>
+                <MudTd DataLabel="@L["Id"]">@context.CorrelationId</MudTd>
             </RowTemplate>
         </MudTable>
     </MudPaper>
@@ -85,7 +90,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to load audits: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
     }
 
@@ -104,7 +109,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to load summary: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
     }
 

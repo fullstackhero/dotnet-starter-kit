@@ -4,6 +4,9 @@
 @using FSH.Framework.Blazor.UI.Components.Cards
 @using FSH.Framework.Shared.Constants
 @using FSH.Framework.Shared.Multitenancy
+@using FSH.Framework.Shared.Localization
+@using FSH.Playground.Blazor.Localization.Tenants
+@using Microsoft.Extensions.Localization
 @using Microsoft.AspNetCore.Components
 @using Microsoft.AspNetCore.Components.Authorization
 @inherits ComponentBase
@@ -13,23 +16,25 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<SharedResource> L
+@inject IStringLocalizer<TenantResource> TL
 
 @if (!_isRootTenantAdmin)
 {
     <MudAlert Severity="Severity.Warning" Class="mb-4">
-        <MudText>You do not have permission to access this page. Only root tenant administrators can manage tenants.</MudText>
+        <MudText>@TL["NoPermission"]</MudText>
     </MudAlert>
 }
 else
 {
-    <FshPageHeader Title="Tenants"
-                   Description="Manage organization tenants and subscriptions">
+    <FshPageHeader Title="@L["Tenants"]"
+                   Description="@TL["TenantManagement"]">
         <ActionContent>
             <MudButton Variant="Variant.Filled"
                        Color="Color.Primary"
                        StartIcon="@Icons.Material.Filled.Add"
                        OnClick="ShowCreate">
-                New Tenant
+                @TL["CreateTenant"]
             </MudButton>
         </ActionContent>
     </FshPageHeader>
@@ -40,40 +45,40 @@ else
             <FshStatCard Icon="@Icons.Material.Filled.Business"
                          IconColor="Color.Primary"
                          Value="@_stats.Total.ToString()"
-                         Label="Total Tenants"
-                         Badge="Total" />
+                         Label="@TL["TotalTenants"]"
+                         Badge="@L["Total"]" />
         </MudItem>
         <MudItem xs="6" sm="3">
             <FshStatCard Icon="@Icons.Material.Filled.CheckCircle"
                          IconColor="Color.Success"
                          Value="@_stats.Active.ToString()"
-                         Label="Active Tenants"
-                         Badge="Active" />
+                         Label="@TL["ActiveTenants"]"
+                         Badge="@L["Active"]" />
         </MudItem>
         <MudItem xs="6" sm="3">
             <FshStatCard Icon="@Icons.Material.Filled.Cancel"
                          IconColor="Color.Error"
                          Value="@_stats.Inactive.ToString()"
-                         Label="Inactive Tenants"
-                         Badge="Inactive" />
+                         Label="@TL["InactiveTenants"]"
+                         Badge="@L["Inactive"]" />
         </MudItem>
         <MudItem xs="6" sm="3">
             <FshStatCard Icon="@Icons.Material.Filled.Warning"
                          IconColor="Color.Warning"
                          Value="@_stats.ExpiringSoon.ToString()"
-                         Label="Expiring in 30 days"
-                         Badge="Expiring" />
+                         Label="@L["ExpiringSoon"]"
+                         Badge="@L["Expiring"]" />
         </MudItem>
     </MudGrid>
 
     @* Filter Panel *@
     <MudExpansionPanels Class="mb-4" Elevation="0">
-        <MudExpansionPanel Text="Filters" IsInitiallyExpanded="true" Class="fsh-card">
+        <MudExpansionPanel Text="@L["Filters"]" IsInitiallyExpanded="true" Class="fsh-card">
             <MudGrid GutterSize="2">
                 <MudItem xs="12" sm="4">
                     <MudTextField @bind-Value="_filter.Search"
-                                  Label="Search"
-                                  Placeholder="Name, ID, or admin email"
+                                  Label="@L["Search"]"
+                                  Placeholder="@L["Search"]"
                                   Adornment="Adornment.Start"
                                   AdornmentIcon="@Icons.Material.Filled.Search"
                                   Immediate="true"
@@ -81,10 +86,10 @@ else
                                   OnDebounceIntervalElapsed="@((string _) => RefreshData())" />
                 </MudItem>
                 <MudItem xs="6" sm="2">
-                    <MudSelect T="bool?" Value="_filter.IsActive" Label="Status" Clearable="true" ValueChanged="OnStatusFilterChanged">
-                        <MudSelectItem T="bool?" Value="@((bool?)null)">All</MudSelectItem>
-                        <MudSelectItem T="bool?" Value="true">Active</MudSelectItem>
-                        <MudSelectItem T="bool?" Value="false">Inactive</MudSelectItem>
+                    <MudSelect T="bool?" Value="_filter.IsActive" Label="@L["Status"]" Clearable="true" ValueChanged="OnStatusFilterChanged">
+                        <MudSelectItem T="bool?" Value="@((bool?)null)">@L["All"]</MudSelectItem>
+                        <MudSelectItem T="bool?" Value="true">@L["Active"]</MudSelectItem>
+                        <MudSelectItem T="bool?" Value="false">@L["Inactive"]</MudSelectItem>
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="12" sm="6" Class="d-flex align-center justify-end">
@@ -92,7 +97,7 @@ else
                                Color="Color.Default"
                                Variant="Variant.Text"
                                OnClick="ClearFilters">
-                        Clear Filters
+                        @L["Clear"]
                     </MudButton>
                     <MudButton StartIcon="@Icons.Material.Filled.Refresh"
                                Color="Color.Primary"
@@ -135,8 +140,8 @@ else
                         </MudStack>
                     </CellTemplate>
                 </TemplateColumn>
-                <PropertyColumn Property="x => x.AdminEmail" Title="Admin Email" Sortable="true" />
-                <TemplateColumn Title="Subscription" Sortable="true" SortBy="@(x => x.ValidUpto)">
+                <PropertyColumn Property="x => x.AdminEmail" Title="@TL["AdminEmail"]" Sortable="true" />
+                <TemplateColumn Title="@TL["Subscription"]" Sortable="true" SortBy="@(x => x.ValidUpto)">
                     <CellTemplate>
                         <MudStack Spacing="0">
                             <MudText Typo="Typo.body2">@context.Item.ValidUpto.ToString("MMM dd, yyyy")</MudText>
@@ -148,7 +153,7 @@ else
                             }
                             else if (IsExpired(context.Item.ValidUpto))
                             {
-                                <MudText Typo="Typo.caption" Color="Color.Error">Expired</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Error">@L["Expired"]</MudText>
                             }
                             else
                             {
@@ -159,46 +164,46 @@ else
                         </MudStack>
                     </CellTemplate>
                 </TemplateColumn>
-                <TemplateColumn Title="Database" Sortable="false">
+                <TemplateColumn Title="@L["Database"]" Sortable="false">
                     <CellTemplate>
                         @if (!string.IsNullOrWhiteSpace(context.Item.ConnectionString))
                         {
                             <MudChip T="string" Color="Color.Info" Size="Size.Small" Variant="Variant.Outlined">
                                 <MudIcon Icon="@Icons.Material.Filled.Storage" Size="Size.Small" Class="mr-1" />
-                                Dedicated
+                                @L["Dedicated"]
                             </MudChip>
                         }
                         else
                         {
                             <MudChip T="string" Color="Color.Default" Size="Size.Small" Variant="Variant.Outlined">
                                 <MudIcon Icon="@Icons.Material.Filled.Cloud" Size="Size.Small" Class="mr-1" />
-                                Shared
+                                @L["Shared"]
                             </MudChip>
                         }
                     </CellTemplate>
                 </TemplateColumn>
-                <TemplateColumn Title="Status" Sortable="true" SortBy="@(x => x.IsActive)">
+                <TemplateColumn Title="@L["Status"]" Sortable="true" SortBy="@(x => x.IsActive)">
                     <CellTemplate>
                         @if (context.Item.IsActive)
                         {
-                            <MudChip T="string" Color="Color.Success" Size="Size.Small" Variant="Variant.Filled">Active</MudChip>
+                            <MudChip T="string" Color="Color.Success" Size="Size.Small" Variant="Variant.Filled">@L["Active"]</MudChip>
                         }
                         else
                         {
-                            <MudChip T="string" Color="Color.Error" Size="Size.Small" Variant="Variant.Filled">Inactive</MudChip>
+                            <MudChip T="string" Color="Color.Error" Size="Size.Small" Variant="Variant.Filled">@L["Inactive"]</MudChip>
                         }
                     </CellTemplate>
                 </TemplateColumn>
-                <TemplateColumn Title="Actions" Sortable="false" HeaderClass="text-right" CellClass="text-right">
+                <TemplateColumn Title="@L["Actions"]" Sortable="false" HeaderClass="text-right" CellClass="text-right">
                     <CellTemplate>
                         <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="0">
-                            <MudTooltip Text="View Details">
+                            <MudTooltip Text="@TL["ViewDetails"]">
                                 <MudIconButton Icon="@Icons.Material.Filled.Visibility"
                                                Size="Size.Small"
                                                Color="Color.Primary"
                                                OnClick="@(() => GoToDetail(context.Item.Id))" />
                             </MudTooltip>
-                            <MudTooltip Text="Upgrade Subscription">
+                            <MudTooltip Text="@TL["UpgradeTenant"]">
                                 <MudIconButton Icon="@Icons.Material.Filled.Upgrade"
                                                Size="Size.Small"
                                                Color="Color.Info"
@@ -221,8 +226,8 @@ else
             <NoRecordsContent>
                 <MudStack AlignItems="AlignItems.Center" Spacing="4" Class="pa-8">
                     <MudIcon Icon="@Icons.Material.Filled.Business" Size="Size.Large" Color="Color.Default" />
-                    <MudText Typo="Typo.h6">No tenants found</MudText>
-                    <MudText Typo="Typo.body2" Class="text-muted">Try adjusting your filters or create a new tenant.</MudText>
+                    <MudText Typo="Typo.h6">@TL["NoTenantsFound"]</MudText>
+                    <MudText Typo="Typo.body2" Class="text-muted">@TL["TryAdjustingFilters"]</MudText>
                 </MudStack>
             </NoRecordsContent>
         </MudDataGrid>
@@ -319,7 +324,7 @@ else
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to load tenants: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {
@@ -404,21 +409,21 @@ else
         return validUpto > now && validUpto <= now.AddDays(30);
     }
 
-    private static string GetExpiryText(DateTimeOffset validUpto)
+    private string GetExpiryText(DateTimeOffset validUpto)
     {
         var now = DateTimeOffset.UtcNow;
         if (validUpto <= now)
-            return "Expired";
+            return L["Expired"];
 
         var diff = validUpto - now;
         if (diff.TotalDays < 1)
-            return "Expires today";
+            return L["ExpiringSoon"];
         if (diff.TotalDays < 2)
-            return "Expires tomorrow";
+            return L["ExpiringSoon"];
         if (diff.TotalDays <= 30)
-            return $"Expires in {(int)diff.TotalDays} days";
+            return $"{(int)diff.TotalDays} {L["Days"]}";
 
-        return $"{(int)diff.TotalDays} days remaining";
+        return $"{(int)diff.TotalDays} {L["Days"]}";
     }
 
     private bool IsToggleDisabled(TenantDto tenant) =>
@@ -426,11 +431,11 @@ else
         _busyTenantId == tenant.Id ||
         IsRootTenant(tenant);
 
-    private static string GetToggleTooltip(TenantDto tenant)
+    private string GetToggleTooltip(TenantDto tenant)
     {
         if (IsRootTenant(tenant))
-            return "Root tenant cannot be deactivated";
-        return tenant.IsActive ? "Deactivate tenant" : "Activate tenant";
+            return TL["RootTenantCannotBeDeactivated"];
+        return tenant.IsActive ? TL["Deactivate"] : TL["Activate"];
     }
 
     private void GoToDetail(string? id)
@@ -454,16 +459,15 @@ else
 
         if (IsRootTenant(tenant))
         {
-            Snackbar.Add("Root tenant cannot be deactivated.", Severity.Warning);
+            Snackbar.Add(TL["RootTenantCannotBeDeactivated"], Severity.Warning);
             return;
         }
 
-        var action = tenant.IsActive ? "deactivate" : "activate";
         var confirmed = await DialogService.ShowConfirmAsync(
-            $"{(tenant.IsActive ? "Deactivate" : "Activate")} Tenant",
-            $"Are you sure you want to {action} '{tenant.Name}'?",
-            tenant.IsActive ? "Deactivate" : "Activate",
-            "Cancel",
+            tenant.IsActive ? TL["Deactivate"] : TL["Activate"],
+            string.Format(TL["ConfirmToggleStatus"], tenant.Name),
+            tenant.IsActive ? TL["Deactivate"] : TL["Activate"],
+            L["Cancel"],
             tenant.IsActive ? Color.Warning : Color.Success);
 
         if (!confirmed) return;
@@ -477,12 +481,12 @@ else
                 IsActive = !tenant.IsActive
             };
             await TenantsClient.ActivationAsync(tenant.Id, command);
-            Snackbar.Add($"Tenant {(tenant.IsActive ? "deactivated" : "activated")} successfully.", Severity.Success);
+            Snackbar.Add(TL["TenantUpdatedSuccessfully"], Severity.Success);
             await LoadData();
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to update tenant: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Error);
         }
         finally
         {
@@ -500,7 +504,7 @@ else
             CloseButton = true
         };
 
-        var dialog = await DialogService.ShowAsync<CreateTenantDialog>("Create Tenant", options);
+        var dialog = await DialogService.ShowAsync<CreateTenantDialog>(TL["CreateTenant"], options);
         var result = await dialog.Result;
 
         if (result is not null && !result.Canceled)
@@ -524,7 +528,7 @@ else
             CloseButton = true
         };
 
-        var dialog = await DialogService.ShowAsync<UpgradeTenantDialog>("Upgrade Subscription", parameters, options);
+        var dialog = await DialogService.ShowAsync<UpgradeTenantDialog>(TL["UpgradeTenant"], parameters, options);
         var result = await dialog.Result;
 
         if (result is not null && !result.Canceled)

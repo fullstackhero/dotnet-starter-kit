@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data"><xsd:complexType><xsd:sequence><xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" /></xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" /><xsd:attribute ref="xml:space" /></xsd:complexType></xsd:element>
+          <xsd:element name="resheader"><xsd:complexType><xsd:sequence><xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" /></xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" /></xsd:complexType></xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="SessionManagement" xml:space="preserve"><value>Session Management</value></data>
+  <data name="ActiveSessions" xml:space="preserve"><value>Active Sessions</value></data>
+  <data name="SessionDetails" xml:space="preserve"><value>Session Details</value></data>
+  <data name="RevokeSession" xml:space="preserve"><value>Revoke Session</value></data>
+  <data name="RevokeAllSessions" xml:space="preserve"><value>Revoke All Sessions</value></data>
+  <data name="RefreshToken" xml:space="preserve"><value>Refresh Token</value></data>
+  <data name="ExpiresAt" xml:space="preserve"><value>Expires At</value></data>
+  <data name="SessionRevokedSuccessfully" xml:space="preserve"><value>Session revoked successfully</value></data>
+  <data name="AllSessionsRevokedSuccessfully" xml:space="preserve"><value>All sessions revoked successfully</value></data>
+  <data name="ConfirmRevokeSession" xml:space="preserve"><value>Are you sure you want to log out from this device? {0} on {1}</value></data>
+  <data name="ConfirmRevokeAllSessions" xml:space="preserve"><value>Are you sure you want to revoke all sessions?</value></data>
+  <data name="CurrentSession" xml:space="preserve"><value>Current Session</value></data>
+  <data name="IPAddress" xml:space="preserve"><value>IP Address</value></data>
+  <data name="UserAgent" xml:space="preserve"><value>User Agent</value></data>
+  <data name="NoOtherSessions" xml:space="preserve"><value>No other sessions to revoke.</value></data>
+  <data name="LogoutAllDevices" xml:space="preserve"><value>Logout All Other Devices</value></data>
+  <data name="LogoutAllConfirm" xml:space="preserve"><value>This will log you out from {0} other device(s). Your current session will remain active.</value></data>
+  <data name="LogoutAll" xml:space="preserve"><value>Logout All</value></data>
+  <data name="AllSessionsRevoked" xml:space="preserve"><value>All other sessions have been revoked.</value></data>
+  <data name="DesktopSessions" xml:space="preserve"><value>Desktop Sessions</value></data>
+  <data name="MobileSessions" xml:space="preserve"><value>Mobile Sessions</value></data>
+  <data name="TabletSessions" xml:space="preserve"><value>Tablet Sessions</value></data>
+  <data name="Desktop" xml:space="preserve"><value>Desktop</value></data>
+  <data name="Mobile" xml:space="preserve"><value>Mobile</value></data>
+  <data name="Tablet" xml:space="preserve"><value>Tablet</value></data>
+  <data name="JustNow" xml:space="preserve"><value>Just now</value></data>
+  <data name="MinutesAgo" xml:space="preserve"><value>{0} min ago</value></data>
+  <data name="HoursAgo" xml:space="preserve"><value>{0} hour(s) ago</value></data>
+  <data name="DaysAgo" xml:space="preserve"><value>{0} day(s) ago</value></data>
+  <data name="WeeksAgo" xml:space="preserve"><value>{0} week(s) ago</value></data>
+  <data name="MonthsAgo" xml:space="preserve"><value>{0} month(s) ago</value></data>
+</root>

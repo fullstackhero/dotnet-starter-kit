@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data"><xsd:complexType><xsd:sequence><xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" /></xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" /><xsd:attribute ref="xml:space" /></xsd:complexType></xsd:element>
+          <xsd:element name="resheader"><xsd:complexType><xsd:sequence><xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" /></xsd:sequence><xsd:attribute name="name" type="xsd:string" use="required" /></xsd:complexType></xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="ForgotPassword" xml:space="preserve"><value>Forgot Password</value></data>
+  <data name="ForgotPasswordTitle" xml:space="preserve"><value>Forgot your password?</value></data>
+  <data name="EnterEmailToResetPassword" xml:space="preserve"><value>Enter your email address and we'll send you a link to reset your password</value></data>
+  <data name="SendResetLink" xml:space="preserve"><value>Send Reset Link</value></data>
+  <data name="BackToLogin" xml:space="preserve"><value>Back to Login</value></data>
+  <data name="ResetLinkSent" xml:space="preserve"><value>Password reset link has been sent to your email</value></data>
+  
+  <data name="ResetPassword" xml:space="preserve"><value>Reset Password</value></data>
+  <data name="ResetPasswordTitle" xml:space="preserve"><value>Reset your password</value></data>
+  <data name="EnterNewPassword" xml:space="preserve"><value>Enter your new password</value></data>
+  <data name="ResetPasswordButton" xml:space="preserve"><value>Reset Password</value></data>
+  <data name="PasswordResetSuccessful" xml:space="preserve"><value>Password has been reset successfully</value></data>
+  <data name="InvalidOrExpiredToken" xml:space="preserve"><value>Invalid or expired reset token</value></data>
+  <data name="CheckYourEmail" xml:space="preserve"><value>Check your email</value></data>
+  <data name="DidntReceiveEmail" xml:space="preserve"><value>Didn't receive the email?</value></data>
+  <data name="ClickToResend" xml:space="preserve"><value>Click to resend</value></data>
+  <data name="NeedHelp" xml:space="preserve"><value>Need help?</value></data>
+  <data name="ContactSupport" xml:space="preserve"><value>Contact support</value></data>
+</root>
