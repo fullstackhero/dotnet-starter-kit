@@ -325,7 +325,7 @@
   <data name="DeletedSuccessfully" xml:space="preserve"><value>Deleted successfully</value></data>
   <data name="UpdatedSuccessfully" xml:space="preserve"><value>Updated successfully</value></data>
   <data name="CreatedSuccessfully" xml:space="preserve"><value>Created successfully</value></data>
-  <data name="ConfirmDelete" xml:space="preserve"><value>Are you sure you want to delete this?</value></data>
+  <data name="ConfirmDelete" xml:space="preserve"><value>Are you sure you want to delete {0}? This action cannot be undone.</value></data>
   <data name="OperationCancelled" xml:space="preserve"><value>Operation cancelled</value></data>
   <data name="ProcessingRequest" xml:space="preserve"><value>Processing request...</value></data>
 
@@ -374,7 +374,6 @@
   <data name="Admin" xml:space="preserve"><value>Admin</value></data>
   <data name="Verified" xml:space="preserve"><value>Verified</value></data>
   <data name="Unverified" xml:space="preserve"><value>Unverified</value></data>
-  <data name="Tenant" xml:space="preserve"><value>Tenant</value></data>
   <data name="Days" xml:space="preserve"><value>days</value></data>
   <data name="Unlimited" xml:space="preserve"><value>Unlimited</value></data>
   <data name="MaxSessions" xml:space="preserve"><value>Max Sessions per User</value></data>
@@ -383,7 +382,6 @@
   <data name="PasswordHistory" xml:space="preserve"><value>Password History</value></data>
   <data name="AccountLockout" xml:space="preserve"><value>Account Lockout</value></data>
   <data name="TwoFactorAuthentication" xml:space="preserve"><value>Two-Factor Authentication</value></data>
-  <data name="Optional" xml:space="preserve"><value>Optional</value></data>
   <data name="Quotas" xml:space="preserve"><value>Quotas</value></data>
   <data name="MaxUsers" xml:space="preserve"><value>Max Users</value></data>
   <data name="StorageLimit" xml:space="preserve"><value>Storage Limit</value></data>
@@ -401,10 +399,6 @@
   <data name="NotProvided" xml:space="preserve"><value>Not provided</value></data>
   <data name="Yes" xml:space="preserve"><value>Yes</value></data>
   <data name="No" xml:space="preserve"><value>No</value></data>
-  <data name="Clear" xml:space="preserve"><value>Clear</value></data>
-  <data name="ConfirmPassword" xml:space="preserve"><value>Confirm Password</value></data>
-  <data name="ConfirmYourPassword" xml:space="preserve"><value>Confirm your password</value></data>
-  <data name="PasswordsMustMatch" xml:space="preserve"><value>Passwords do not match</value></data>
   <data name="ComingSoon" xml:space="preserve"><value>Coming soon in a future update.</value></data>
 
   <!-- Navigation Sections -->
@@ -420,28 +414,22 @@
   <data name="AccessDenied" xml:space="preserve"><value>Access Denied</value></data>
   <data name="Timestamp" xml:space="preserve"><value>Timestamp</value></data>
   <data name="Tracking" xml:space="preserve"><value>Tracking</value></data>
-  <data name="Apply" xml:space="preserve"><value>Apply</value></data>
   <data name="All" xml:space="preserve"><value>All</value></data>
   <data name="Total" xml:space="preserve"><value>Total</value></data>
-  <data name="Refresh" xml:space="preserve"><value>Refresh</value></data>
   <data name="Overview" xml:space="preserve"><value>Overview</value></data>
   <data name="Hide" xml:space="preserve"><value>Hide</value></data>
   <data name="Copy" xml:space="preserve"><value>Copy</value></data>
   <data name="CopiedToClipboard" xml:space="preserve"><value>Copied to clipboard</value></data>
   <data name="RowsPerPage" xml:space="preserve"><value>Rows per page:</value></data>
-  <data name="Close" xml:space="preserve"><value>Close</value></data>
   <data name="Default" xml:space="preserve"><value>Default</value></data>
   <data name="Filters" xml:space="preserve"><value>Filters</value></data>
   <data name="Protected" xml:space="preserve"><value>Protected</value></data>
   <data name="Expiring" xml:space="preserve"><value>Expiring</value></data>
-  <data name="Inactive" xml:space="preserve"><value>Inactive</value></data>
   <data name="Unknown" xml:space="preserve"><value>Unknown</value></data>
-  <data name="Enabled" xml:space="preserve"><value>Enabled</value></data>
   <data name="Phone" xml:space="preserve"><value>Phone</value></data>
   <data name="Type" xml:space="preserve"><value>Type</value></data>
   <data name="LastActivity" xml:space="preserve"><value>Last Activity</value></data>
   <data name="CreatedOn" xml:space="preserve"><value>Created</value></data>
-  <data name="Roles" xml:space="preserve"><value>Roles</value></data>
   <data name="Other" xml:space="preserve"><value>Other</value></data>
   <data name="ViewAndEditProfile" xml:space="preserve"><value>View and edit your profile</value></data>
   <data name="ViewRecentActivity" xml:space="preserve"><value>View your recent activity</value></data>
@@ -451,7 +439,6 @@
   <data name="LogoDarkMode" xml:space="preserve"><value>Logo (Dark Mode)</value></data>
   <data name="Favicon" xml:space="preserve"><value>Favicon</value></data>
   <data name="ClickToUpload" xml:space="preserve"><value>Click to upload</value></data>
-  <data name="Remove" xml:space="preserve"><value>Remove</value></data>
   <data name="Primary" xml:space="preserve"><value>Primary</value></data>
   <data name="Secondary" xml:space="preserve"><value>Secondary</value></data>
   <data name="Tertiary" xml:space="preserve"><value>Tertiary</value></data>
@@ -479,7 +466,6 @@
   <data name="FontSize" xml:space="preserve"><value>Font Size</value></data>
   <data name="LineHeight" xml:space="preserve"><value>Line Height</value></data>
   <data name="DeleteConfirmation" xml:space="preserve"><value>Delete Confirmation</value></data>
-  <data name="ConfirmDelete" xml:space="preserve"><value>Are you sure you want to delete {0}? This action cannot be undone.</value></data>
   <data name="ConfirmSignOut" xml:space="preserve"><value>Are you sure you want to sign out of your account?</value></data>
   <data name="SignedIn" xml:space="preserve"><value>Signed in.</value></data>
   <data name="SignedOut" xml:space="preserve"><value>Signed out.</value></data>
