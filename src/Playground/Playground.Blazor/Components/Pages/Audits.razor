@@ -690,7 +690,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add(L["UnexpectedErrorOccurred"], Severity.Warning);
+            Snackbar.Add(string.Format(L["UnexpectedErrorOccurred"], ex.Message), Severity.Warning);
             _showSummary = false;
         }
     }

@@ -35,15 +35,12 @@
             var validationContext = new ValidationContext(EditContext.Model, ServiceProvider, null);
             var validationResults = validatableModel.Validate(validationContext);
 
-            foreach (var validationResult in validationResults)
+            foreach (var validationResult in validationResults.Where(vr => vr.MemberNames.Any()))
             {
-                if (validationResult.MemberNames.Any())
+                foreach (var memberName in validationResult.MemberNames)
                 {
-                    foreach (var memberName in validationResult.MemberNames)
-                    {
-                        var fieldIdentifier = new FieldIdentifier(EditContext.Model, memberName);
-                        _validationMessageStore?.Add(fieldIdentifier, validationResult.ErrorMessage ?? string.Empty);
-                    }
+                    var fieldIdentifier = new FieldIdentifier(EditContext.Model, memberName);
+                    _validationMessageStore?.Add(fieldIdentifier, validationResult.ErrorMessage ?? string.Empty);
                 }
             }
         }
