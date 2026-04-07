@@ -1,7 +1,9 @@
-﻿namespace FSH.Framework.Mailing.Options;
+﻿using FSH.Framework.Mailing.Contracts;
+
+namespace FSH.Framework.Mailing.Options;
 public class MailOptions
 {
-    public string? Provider { get; set; }
+    public MailProviderType Provider { get; set; }
     public string? From { get; set; }
     public string? DisplayName { get; set; }
     public SmtpOptions? Smtp { get; set; }

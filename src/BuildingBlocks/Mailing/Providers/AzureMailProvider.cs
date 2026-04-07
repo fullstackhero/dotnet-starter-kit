@@ -8,7 +8,7 @@ public class AzureMailProvider(
     IMailTransport<AzureMailMessage> transport)
     : IMailProvider
 {
-    public string Name => "Azure";
+    public MailProviderType ProviderType => MailProviderType.Azure;
 
     public async Task SendAsync(MailRequest request, CancellationToken ct)
     {

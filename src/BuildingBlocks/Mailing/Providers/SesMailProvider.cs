@@ -7,7 +7,7 @@ public class SesMailProvider(
     IMailTransport<SesMailMessage> transport)
     : IMailProvider
 {
-    public string Name => "SES";
+    public MailProviderType ProviderType => MailProviderType.Ses;
 
     public async Task SendAsync(MailRequest request, CancellationToken ct)
     {

@@ -8,7 +8,7 @@ public class FakeMailProvider(
     IMailTransport<FakeMimeMessage> transport)
     : IMailProvider
 {
-    public string Name => "Fake";
+    public MailProviderType ProviderType => MailProviderType.Fake;
 
     public async Task SendAsync(MailRequest request, CancellationToken ct)
     {

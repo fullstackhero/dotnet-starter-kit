@@ -8,7 +8,7 @@ public class FluentMailProvider(
     IMailTransport<FluentMailMessage> transport)
     : IMailProvider
 {
-    public string Name => "Fluent";
+    public MailProviderType ProviderType => MailProviderType.Fluent;
 
     public async Task SendAsync(MailRequest request, CancellationToken ct)
     {

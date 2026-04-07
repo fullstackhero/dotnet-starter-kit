@@ -4,14 +4,11 @@ namespace FSH.Framework.Mailing.Factory;
 
 public class MailProviderFactory(IEnumerable<IMailProvider> providers)
 {
-    private readonly Dictionary<string, IMailProvider> _providers =
-        providers.ToDictionary(x => x.Name, StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<MailProviderType, IMailProvider> _providers =
+        providers.ToDictionary(p => p.ProviderType);
 
-    public IMailProvider Get(string provider)
-    {
-        if (!_providers.TryGetValue(provider, out var mailProvider))
-            throw new NotSupportedException($"Mail provider {provider} not supported");
-
-        return mailProvider;
-    }
+    public IMailProvider Get(MailProviderType type)
+        => _providers.TryGetValue(type, out var provider)
+            ? provider
+            : throw new NotSupportedException($"Mail provider {type} not registered.");
 }

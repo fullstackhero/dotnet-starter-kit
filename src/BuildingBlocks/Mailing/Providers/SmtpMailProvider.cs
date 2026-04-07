@@ -1,9 +1,6 @@
 ﻿using FSH.Framework.Mailing.Contracts;
 using FSH.Framework.Mailing.Messages;
 using MimeKit;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace FSH.Framework.Mailing.Providers;
 
@@ -12,7 +9,7 @@ public class SmtpMailProvider(
     IMailTransport<MimeMessage> transport)
     : IMailProvider
 {
-    public string Name => "SMTP";
+    public MailProviderType ProviderType => MailProviderType.Smtp;
 
     public async Task SendAsync(MailRequest request, CancellationToken ct)
     {

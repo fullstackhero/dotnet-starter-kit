@@ -9,7 +9,7 @@ public class SendGridMailProvider(
     IMailTransport<SendGridMessage> transport)
     : IMailProvider
 {
-    public string Name => "SendGrid";
+    public MailProviderType ProviderType => MailProviderType.SendGrid;
 
     public async Task SendAsync(MailRequest request, CancellationToken ct)
     {
