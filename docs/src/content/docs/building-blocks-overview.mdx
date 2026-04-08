@@ -17,7 +17,7 @@ Each Building Block is a standalone project with a clear, single responsibility.
 | **Core** | `Core.csproj` | DDD primitives (`BaseEntity`, `AggregateRoot`, `DomainEvent`), framework exception types, `ICurrentUser` abstraction, CQRS interfaces |
 | **Persistence** | `Persistence.csproj` | EF Core abstractions, `Specification<T>` pattern, pagination helpers, audit interceptors, outbox/inbox persistence |
 | **Web** | `Web.csproj` | Module system (`IModule`, `ModuleLoader`), global exception handling (`ProblemDetails`), API versioning, rate limiting, security headers, OpenAPI + Scalar, health checks, observability (Serilog + OpenTelemetry) |
-| **Caching** | `Caching.csproj` | Distributed and hybrid cache abstraction (`ICacheService`) backed by Redis (StackExchange) or in-memory fallback |
+| **Caching** | `Caching.csproj` | `HybridCache` wiring (L1 in-process + L2 Redis) with stampede protection and tag-based invalidation; Redis via StackExchange or in-memory fallback |
 | **Eventing** | `Eventing.csproj` + `Eventing.Abstractions.csproj` | Event bus infrastructure, outbox/inbox pattern implementation, InMemory and RabbitMQ transport providers |
 | **Jobs** | `Jobs.csproj` | Background job scheduling via Hangfire, `IJobService` abstraction for fire-and-forget, delayed, and recurring jobs |
 | **Mailing** | `Mailing.csproj` | Email abstraction layer with SMTP and SendGrid provider implementations |

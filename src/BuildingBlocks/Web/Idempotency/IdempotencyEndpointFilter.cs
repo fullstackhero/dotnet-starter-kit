@@ -4,6 +4,7 @@ using System.Text.Json;
 using FSH.Framework.Caching;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -18,6 +19,7 @@ namespace FSH.Framework.Web.Idempotency;
 public sealed class IdempotencyEndpointFilter : IEndpointFilter
 {
     private static readonly JsonSerializerOptions JsonOpts = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+    private static readonly HybridCacheEntryOptions ProbeOnlyOptions = new() { Flags = HybridCacheEntryFlags.DisableUnderlyingData };
 
     public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
@@ -39,15 +41,22 @@ public sealed class IdempotencyEndpointFilter : IEndpointFilter
             return TypedResults.BadRequest($"Idempotency key exceeds maximum length of {options.MaxKeyLength}.");
         }
 
-        var cache = httpContext.RequestServices.GetRequiredService<ICacheService>();
+        var cache = httpContext.RequestServices.GetRequiredService<HybridCache>();
         var logger = httpContext.RequestServices.GetRequiredService<ILogger<IdempotencyEndpointFilter>>();
 
         // Include tenant context in cache key for isolation
         var tenantId = httpContext.User.FindFirst("tenant")?.Value ?? "global";
-        var cacheKey = $"idempotency:{tenantId}:{idempotencyKey}";
+        var cacheKey = CacheKeys.IdempotencyEntry(tenantId, idempotencyKey);
+        var tags = new[] { CacheKeys.Tags.Idempotency, CacheKeys.Tags.Tenant(tenantId) };
 
-        // Check for cached response
-        var cached = await cache.GetItemAsync<CachedIdempotentResponse>(cacheKey, httpContext.RequestAborted).ConfigureAwait(false);
+        // Probe-only read: DisableUnderlyingData prevents the factory from running so a miss
+        // returns null without caching or executing the handler here. The factory lambda is
+        // mandatory per API contract but will never be invoked with this flag.
+        var cached = await cache.GetOrCreateAsync<CachedIdempotentResponse?>(
+            cacheKey,
+            static _ => ValueTask.FromResult<CachedIdempotentResponse?>(null),
+            options: ProbeOnlyOptions,
+            cancellationToken: httpContext.RequestAborted).ConfigureAwait(false);
         if (cached is not null)
         {
             if (logger.IsEnabled(LogLevel.Debug))
@@ -83,7 +92,12 @@ public sealed class IdempotencyEndpointFilter : IEndpointFilter
                 Body = body
             };
 
-            await cache.SetItemAsync(cacheKey, responseToCache, options.DefaultTtl, httpContext.RequestAborted).ConfigureAwait(false);
+            var setOptions = new HybridCacheEntryOptions
+            {
+                Expiration = options.DefaultTtl,
+                LocalCacheExpiration = options.DefaultTtl < TimeSpan.FromMinutes(2) ? options.DefaultTtl : TimeSpan.FromMinutes(2),
+            };
+            await cache.SetAsync(cacheKey, responseToCache, setOptions, tags, httpContext.RequestAborted).ConfigureAwait(false);
         }
         // Best-effort caching: idempotency replay is a convenience, not a correctness requirement
         catch (Exception ex) when (ex is not OperationCanceledException)

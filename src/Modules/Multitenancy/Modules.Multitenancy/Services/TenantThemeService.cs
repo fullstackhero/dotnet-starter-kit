@@ -11,17 +11,22 @@ using FSH.Modules.Multitenancy.Contracts.Dtos;
 using FSH.Modules.Multitenancy.Data;
 using FSH.Modules.Multitenancy.Domain;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 
 namespace FSH.Modules.Multitenancy.Services;
 
 public sealed class TenantThemeService : ITenantThemeService
 {
-    private const string CacheKeyPrefix = "theme:";
-    private const string DefaultThemeCacheKey = "theme:default";
-    private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(1);
+    private static readonly HybridCacheEntryOptions ThemeEntryOptions = new()
+    {
+        Expiration = TimeSpan.FromHours(1),
+        LocalCacheExpiration = TimeSpan.FromMinutes(2),
+    };
 
-    private readonly ICacheService _cache;
+    private static readonly string[] DefaultThemeTags = [CacheKeys.Tags.Themes];
+
+    private readonly HybridCache _cache;
     private readonly TenantDbContext _dbContext;
     private readonly IMultiTenantContextAccessor<AppTenantInfo> _tenantAccessor;
     private readonly IStorageService _storageService;
@@ -29,7 +34,7 @@ public sealed class TenantThemeService : ITenantThemeService
     private readonly ICurrentUser _currentUser;
 
     public TenantThemeService(
-        ICacheService cache,
+        HybridCache cache,
         TenantDbContext dbContext,
         IMultiTenantContextAccessor<AppTenantInfo> tenantAccessor,
         IStorageService storageService,
@@ -55,26 +60,28 @@ public sealed class TenantThemeService : ITenantThemeService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
 
-        var cacheKey = $"{CacheKeyPrefix}{tenantId}";
+        var tags = new[] { CacheKeys.Tags.Themes, CacheKeys.Tags.Tenant(tenantId) };
 
-        var theme = await _cache.GetOrSetAsync(
-            cacheKey,
-            async () => await LoadThemeFromDbAsync(tenantId, ct).ConfigureAwait(false),
-            CacheDuration,
+        var theme = await _cache.GetOrCreateAsync(
+            CacheKeys.TenantTheme(tenantId),
+            async innerCt => await LoadThemeFromDbAsync(tenantId, innerCt).ConfigureAwait(false) ?? TenantThemeDto.Default,
+            ThemeEntryOptions,
+            tags,
             ct).ConfigureAwait(false);
 
-        return theme ?? TenantThemeDto.Default;
+        return theme;
     }
 
     public async Task<TenantThemeDto> GetDefaultThemeAsync(CancellationToken ct = default)
     {
-        var theme = await _cache.GetOrSetAsync(
-            DefaultThemeCacheKey,
-            async () => await LoadDefaultThemeFromDbAsync(ct).ConfigureAwait(false),
-            CacheDuration,
+        var theme = await _cache.GetOrCreateAsync(
+            CacheKeys.DefaultTheme,
+            async innerCt => await LoadDefaultThemeFromDbAsync(innerCt).ConfigureAwait(false) ?? TenantThemeDto.Default,
+            ThemeEntryOptions,
+            DefaultThemeTags,
             ct).ConfigureAwait(false);
 
-        return theme ?? TenantThemeDto.Default;
+        return theme;
     }
 
     public async Task UpdateThemeAsync(string tenantId, TenantThemeDto theme, CancellationToken ct = default)
@@ -216,7 +223,7 @@ public sealed class TenantThemeService : ITenantThemeService
         await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
 
         // Invalidate default theme cache
-        await _cache.RemoveItemAsync(DefaultThemeCacheKey, ct).ConfigureAwait(false);
+        await _cache.RemoveAsync(CacheKeys.DefaultTheme, ct).ConfigureAwait(false);
 
         if (_logger.IsEnabled(LogLevel.Information))
         {
@@ -226,8 +233,9 @@ public sealed class TenantThemeService : ITenantThemeService
 
     public async Task InvalidateCacheAsync(string tenantId, CancellationToken ct = default)
     {
-        var cacheKey = $"{CacheKeyPrefix}{tenantId}";
-        await _cache.RemoveItemAsync(cacheKey, ct).ConfigureAwait(false);
+        // Purge both the tenant-specific entry and anything tagged for this tenant.
+        await _cache.RemoveAsync(CacheKeys.TenantTheme(tenantId), ct).ConfigureAwait(false);
+        await _cache.RemoveByTagAsync(CacheKeys.Tags.Tenant(tenantId), ct).ConfigureAwait(false);
     }
 
     private async Task<TenantThemeDto?> LoadThemeFromDbAsync(string tenantId, CancellationToken ct)

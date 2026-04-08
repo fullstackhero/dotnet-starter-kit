@@ -8,6 +8,7 @@
 
 	<ItemGroup>
 	  <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" />
+	  <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" />
 	  <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
 	  <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
 	  <PackageReference Include="Microsoft.Extensions.Configuration" />

@@ -52,7 +52,7 @@ Enterprise audit trails capturing four event types: entity changes (CRUD with be
 1. **Core** - DDD primitives (BaseEntity, AggregateRoot, DomainEvent), exceptions (CustomException, NotFoundException, ForbiddenException), ICurrentUser
 2. **Persistence** - EF Core abstractions, Specification pattern, pagination, domain events interceptor, auditable entity interceptor
 3. **Web** - Module system (IModule, ModuleLoader), GlobalExceptionHandler (ProblemDetails RFC 9457), API versioning, rate limiting, security headers, OpenAPI/Scalar, health checks, Serilog + OpenTelemetry
-4. **Caching** - ICacheService with distributed (Redis) and hybrid (L1 memory + L2 Redis) implementations
+4. **Caching** - Microsoft.Extensions.Caching.Hybrid (HybridCache) with L1 in-process + L2 Redis, stampede protection, tag-based invalidation
 5. **Eventing** - IEventBus (InMemory + RabbitMQ), outbox/inbox pattern, integration events, JsonEventSerializer
 6. **Jobs** - IJobService wrapping Hangfire, tenant-aware job processing, OpenTelemetry telemetry filter
 7. **Mailing** - IMailService with SMTP (MailKit) and SendGrid providers

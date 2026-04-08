@@ -91,6 +91,8 @@ jobs:
             path: src/Tests/Architecture.Tests
           - name: Auditing.Tests
             path: src/Tests/Auditing.Tests
+          - name: Caching.Tests
+            path: src/Tests/Caching.Tests
           - name: Generic.Tests
             path: src/Tests/Generic.Tests
           - name: Identity.Tests

@@ -64,7 +64,7 @@ Enable idempotency via `FshPlatformOptions`:
 ```csharp
 builder.AddHeroPlatform(options =>
 {
-    options.EnableCaching = true,       // Required - idempotency uses ICacheService
+    options.EnableCaching = true,       // Required - idempotency uses HybridCache
     options.EnableIdempotency = true
 });
 ```
@@ -82,7 +82,7 @@ This binds `IdempotencyOptions` from the `IdempotencyOptions` configuration sect
 ```
 
 <Aside type="warning" title="Caching Required">
-Idempotency relies on `ICacheService` (the caching building block) to store and retrieve cached responses. You must enable caching (`EnableCaching = true`) and have a Redis connection configured. Without it, the idempotency filter cannot function.
+Idempotency relies on `HybridCache` (the caching building block) to store and retrieve cached responses. You must enable caching (`EnableCaching = true`) and have a Redis connection configured. Without it, the idempotency filter cannot function.
 </Aside>
 
 ## Applying to Endpoints
