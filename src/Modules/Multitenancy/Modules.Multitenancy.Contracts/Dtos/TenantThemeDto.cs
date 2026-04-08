@@ -1,7 +1,15 @@
+using System.ComponentModel;
 using FSH.Framework.Shared.Storage;
 
 namespace FSH.Modules.Multitenancy.Contracts.Dtos;
 
+/// <remarks>
+/// Marked <see cref="ImmutableObjectAttribute"/> + <c>sealed</c> so HybridCache can reuse the
+/// in-process instance across requests without re-deserializing the JSON payload on every L1 hit.
+/// DO NOT add mutable properties or make this class open — it would break HybridCache's L1
+/// reuse optimization.
+/// </remarks>
+[ImmutableObject(true)]
 public sealed record TenantThemeDto
 {
     public PaletteDto LightPalette { get; init; } = new();
@@ -14,6 +22,7 @@ public sealed record TenantThemeDto
     public static TenantThemeDto Default => new();
 }
 
+[ImmutableObject(true)]
 public sealed record PaletteDto
 {
     public string Primary { get; init; } = "#2563EB";
@@ -42,6 +51,7 @@ public sealed record PaletteDto
     };
 }
 
+[ImmutableObject(true)]
 public sealed record BrandAssetsDto
 {
     // Current URLs (returned from API)
@@ -60,6 +70,7 @@ public sealed record BrandAssetsDto
     public bool DeleteFavicon { get; init; }
 }
 
+[ImmutableObject(true)]
 public sealed record TypographyDto
 {
     public string FontFamily { get; init; } = "Inter, sans-serif";
@@ -86,6 +97,7 @@ public sealed record TypographyDto
     };
 }
 
+[ImmutableObject(true)]
 public sealed record LayoutDto
 {
     public string BorderRadius { get; init; } = "4px";

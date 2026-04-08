@@ -1,3 +1,4 @@
+using FSH.Framework.Caching.Telemetry;
 using Mediator;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -80,6 +81,9 @@ public static class Extensions
                         });
                 }
 
+                // Caching building block metrics (hits, misses, factory duration, invalidations).
+                metrics.AddMeter(CachingTelemetry.MeterName);
+
                 foreach (var meterName in options.Metrics.MeterNames ?? Array.Empty<string>())
                 {
                     metrics.AddMeter(meterName);
@@ -119,7 +123,8 @@ public static class Extensions
                         }
                     })
                     .AddSource(builder.Environment.ApplicationName)
-                    .AddSource("FSH.Hangfire");
+                    .AddSource("FSH.Hangfire")
+                    .AddSource(CachingTelemetry.ActivitySourceName);
 
                 if (options.Exporter.Otlp.Enabled)
                 {

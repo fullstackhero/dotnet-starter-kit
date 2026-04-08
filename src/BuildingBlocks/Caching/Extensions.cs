@@ -12,15 +12,18 @@ public static class Extensions
 {
     /// <summary>
     /// Registers <see cref="HybridCache"/> layered over either Redis (when
-    /// <see cref="CachingOptions.Redis"/> is set) or an in-memory distributed cache fallback.
+    /// <see cref="CachingOptions.Redis"/> is set) or an in-memory distributed cache fallback,
+    /// then wraps it with <see cref="ObservableHybridCache"/> so every operation emits OTel
+    /// metrics and activities via <see cref="Telemetry.CachingTelemetry"/>.
     /// </summary>
     /// <remarks>
     /// HybridCache provides stampede-protected <c>GetOrCreateAsync</c>, built-in L1 (in-process)
-    /// + L2 (distributed) layering, and logical tag-based invalidation. Consumers should inject
-    /// <see cref="HybridCache"/> directly rather than a wrapper interface.
+    /// + L2 (distributed) layering, and logical tag-based invalidation. Consumers inject
+    /// <see cref="HybridCache"/> directly — the decorator is transparent.
     /// </remarks>
     public static IServiceCollection AddHeroCaching(this IServiceCollection services, IConfiguration configuration)
     {
+        ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
 
         services
@@ -29,7 +32,9 @@ public static class Extensions
 
         var cacheOptions = configuration.GetSection(nameof(CachingOptions)).Get<CachingOptions>() ?? new CachingOptions();
 
-        // L2: Redis if configured, otherwise in-memory distributed cache.
+        // L2: Redis if configured, in-memory distributed cache otherwise.
+        // Note: Microsoft.Extensions.Caching.StackExchangeRedis 9.0+ implements
+        // IBufferDistributedCache, which HybridCache uses for zero-copy reads.
         if (string.IsNullOrEmpty(cacheOptions.Redis))
         {
             services.AddDistributedMemoryCache();
@@ -51,18 +56,50 @@ public static class Extensions
             });
         }
 
-        // HybridCache auto-composes with the registered IDistributedCache above.
+        // HybridCache auto-composes with whatever IDistributedCache is registered above.
         services.AddHybridCache(options =>
         {
             options.DefaultEntryOptions = new HybridCacheEntryOptions
             {
-                Expiration = cacheOptions.DefaultExpiration,
-                LocalCacheExpiration = cacheOptions.DefaultLocalCacheExpiration,
+                Expiration = cacheOptions.DefaultExpiration,            // L1 + L2 total lifetime
+                LocalCacheExpiration = cacheOptions.DefaultLocalCacheExpiration, // L1 only
             };
             options.MaximumKeyLength = cacheOptions.MaximumKeyLength;
             options.MaximumPayloadBytes = cacheOptions.MaximumPayloadBytes;
         });
 
+        // Wrap HybridCache with the OTel-emitting decorator. We capture the existing descriptor
+        // (a DefaultHybridCache factory installed by AddHybridCache), remove it, and register a
+        // factory that builds the inner via the original descriptor and returns our wrapper.
+        DecorateHybridCache(services);
+
         return services;
+    }
+
+    private static void DecorateHybridCache(IServiceCollection services)
+    {
+        var originalDescriptor = services.LastOrDefault(d => d.ServiceType == typeof(HybridCache))
+            ?? throw new InvalidOperationException("HybridCache is not registered. AddHybridCache must be called before DecorateHybridCache.");
+
+        services.Remove(originalDescriptor);
+
+        services.AddSingleton<HybridCache>(sp =>
+        {
+            HybridCache inner;
+            if (originalDescriptor.ImplementationInstance is HybridCache instance)
+            {
+                inner = instance;
+            }
+            else if (originalDescriptor.ImplementationFactory is { } factory)
+            {
+                inner = (HybridCache)factory(sp);
+            }
+            else
+            {
+                inner = (HybridCache)ActivatorUtilities.CreateInstance(sp, originalDescriptor.ImplementationType!);
+            }
+
+            return new ObservableHybridCache(inner);
+        });
     }
 }

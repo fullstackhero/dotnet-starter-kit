@@ -20,8 +20,10 @@
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+        <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" />
         <PackageReference Include="Testcontainers.PostgreSql" />
+        <PackageReference Include="Testcontainers.Redis" />
         <PackageReference Include="Hangfire.InMemory" />
         <PackageReference Include="xunit" />
         <PackageReference Include="xunit.runner.visualstudio">

@@ -25,5 +25,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\BuildingBlocks\Caching\Caching.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks\Web\Web.csproj" />
+    <ProjectReference Include="..\..\Modules\Identity\Modules.Identity\Modules.Identity.csproj" />
+    <ProjectReference Include="..\..\Modules\Multitenancy\Modules.Multitenancy.Contracts\Modules.Multitenancy.Contracts.csproj" />
   </ItemGroup>
 </Project>

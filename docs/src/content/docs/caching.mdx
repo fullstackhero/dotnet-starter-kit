@@ -7,7 +7,18 @@ import Aside from '../../components/Aside.astro';
 
 fullstackhero uses **`HybridCache`** — the GA caching abstraction in `Microsoft.Extensions.Caching.Hybrid` — as the single caching primitive across the entire starter kit. HybridCache layers an in-process L1 on top of any distributed L2 (Redis by default), provides **built-in stampede protection**, and supports **logical tag-based invalidation** out of the box.
 
-Modules inject `HybridCache` directly. There is no custom wrapper interface.
+Modules inject `HybridCache` directly. There is no custom wrapper interface. Every operation is wrapped by `ObservableHybridCache`, a transparent decorator that records OpenTelemetry metrics and spans via the `FSH.Caching` meter and activity source.
+
+## Performance characteristics
+
+Six optimizations are baked into the building block:
+
+1. **`[ImmutableObject(true)]` on cached DTOs** — every cache value type is `sealed` + `[ImmutableObject(true)]` + `init`-only. HybridCache returns the same in-process reference on L1 hits instead of re-deserializing the JSON payload. Saves ~5–10 µs per L1 hit and roughly 1 KB of allocation. Locked in by `CachedTypeContractTests`.
+2. **Stateless `<TState, T>` factory overloads** — every consumer uses the stateless overload with a `static` lambda or static method group. No closure capture, no per-call delegate allocation, even on L1 hits.
+3. **Hoisted `HybridCacheEntryOptions` and tag arrays** — `static readonly` instances reused across calls.
+4. **`IBufferDistributedCache` Redis backend** — `Microsoft.Extensions.Caching.StackExchangeRedis` 9.0+ implements `IBufferDistributedCache`, so HybridCache reads bytes from Redis without allocating an intermediate `byte[]`. Locked in by an integration test.
+5. **`HybridCacheEntryFlags.DisableCompression` for small hot entries** — under ~4 KB, compression CPU exceeds the network savings. User permissions opt out.
+6. **OpenTelemetry observability** — every `GetOrCreateAsync` is instrumented with hit/miss counters and a factory-duration histogram (`fsh.cache.hits`, `fsh.cache.misses`, `fsh.cache.factory.duration`, `fsh.cache.invalidations`) and an `Activity` span tagged `cache.system=fsh.hybrid`. Wired into the OTel pipeline automatically — no consumer code required.
 
 ## Why HybridCache
 

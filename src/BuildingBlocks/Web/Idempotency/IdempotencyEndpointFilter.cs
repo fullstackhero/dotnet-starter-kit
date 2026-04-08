@@ -4,6 +4,7 @@ using System.Text.Json;
 using FSH.Framework.Caching;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -16,10 +17,16 @@ namespace FSH.Framework.Web.Idempotency;
 /// When an Idempotency-Key header is present, the response is cached and replayed
 /// for subsequent requests with the same key.
 /// </summary>
+/// <remarks>
+/// Uses <see cref="IDistributedCache"/> directly for the probe read (bypassing
+/// <see cref="HybridCache"/>'s factory-mandatory API) and <see cref="HybridCache.SetAsync"/>
+/// for the write path so replays benefit from L1 and the regular tag invalidation story.
+/// Using <c>HybridCache</c> with <c>DisableUnderlyingData</c> as a "get-only probe" is a
+/// known anti-pattern tracked at dotnet/aspnetcore#57191.
+/// </remarks>
 public sealed class IdempotencyEndpointFilter : IEndpointFilter
 {
     private static readonly JsonSerializerOptions JsonOpts = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-    private static readonly HybridCacheEntryOptions ProbeOnlyOptions = new() { Flags = HybridCacheEntryFlags.DisableUnderlyingData };
 
     public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
@@ -41,7 +48,8 @@ public sealed class IdempotencyEndpointFilter : IEndpointFilter
             return TypedResults.BadRequest($"Idempotency key exceeds maximum length of {options.MaxKeyLength}.");
         }
 
-        var cache = httpContext.RequestServices.GetRequiredService<HybridCache>();
+        var distributedCache = httpContext.RequestServices.GetRequiredService<IDistributedCache>();
+        var hybridCache = httpContext.RequestServices.GetRequiredService<HybridCache>();
         var logger = httpContext.RequestServices.GetRequiredService<ILogger<IdempotencyEndpointFilter>>();
 
         // Include tenant context in cache key for isolation
@@ -49,39 +57,39 @@ public sealed class IdempotencyEndpointFilter : IEndpointFilter
         var cacheKey = CacheKeys.IdempotencyEntry(tenantId, idempotencyKey);
         var tags = new[] { CacheKeys.Tags.Idempotency, CacheKeys.Tags.Tenant(tenantId) };
 
-        // Probe-only read: DisableUnderlyingData prevents the factory from running so a miss
-        // returns null without caching or executing the handler here. The factory lambda is
-        // mandatory per API contract but will never be invoked with this flag.
-        var cached = await cache.GetOrCreateAsync<CachedIdempotentResponse?>(
-            cacheKey,
-            static _ => ValueTask.FromResult<CachedIdempotentResponse?>(null),
-            options: ProbeOnlyOptions,
-            cancellationToken: httpContext.RequestAborted).ConfigureAwait(false);
-        if (cached is not null)
+        // Probe-only read: IDistributedCache has a real GetAsync that returns null on miss,
+        // unlike HybridCache which requires a factory. We bypass L1 here because idempotency
+        // replays are rare relative to first-calls and L1 warmth has little value.
+        var cachedBytes = await distributedCache.GetAsync(cacheKey, httpContext.RequestAborted).ConfigureAwait(false);
+        if (cachedBytes is not null && cachedBytes.Length > 0)
         {
-            if (logger.IsEnabled(LogLevel.Debug))
+            var cached = JsonSerializer.Deserialize<CachedIdempotentResponse>(cachedBytes, JsonOpts);
+            if (cached is not null)
             {
-                logger.LogDebug("Idempotent replay for key {KeyHash}", HashKey(idempotencyKey));
-            }
-            httpContext.Response.Headers["Idempotency-Replayed"] = "true";
-            httpContext.Response.StatusCode = cached.StatusCode;
-            if (cached.ContentType is not null)
-            {
-                httpContext.Response.ContentType = cached.ContentType;
-            }
+                if (logger.IsEnabled(LogLevel.Debug))
+                {
+                    logger.LogDebug("Idempotent replay for key {KeyHash}", HashKey(idempotencyKey));
+                }
+                httpContext.Response.Headers["Idempotency-Replayed"] = "true";
+                httpContext.Response.StatusCode = cached.StatusCode;
+                if (cached.ContentType is not null)
+                {
+                    httpContext.Response.ContentType = cached.ContentType;
+                }
 
-            if (cached.Body.Length > 0)
-            {
-                await httpContext.Response.Body.WriteAsync(cached.Body, httpContext.RequestAborted).ConfigureAwait(false);
-            }
+                if (cached.Body.Length > 0)
+                {
+                    await httpContext.Response.Body.WriteAsync(cached.Body, httpContext.RequestAborted).ConfigureAwait(false);
+                }
 
-            return null; // Response already written
+                return null; // Response already written
+            }
         }
 
         // Execute the handler
         var result = await next(context).ConfigureAwait(false);
 
-        // Cache the response
+        // Cache the response through HybridCache so the tag invalidation path works for purges.
         try
         {
             var body = result is not null ? JsonSerializer.SerializeToUtf8Bytes(result, JsonOpts) : [];
@@ -97,7 +105,7 @@ public sealed class IdempotencyEndpointFilter : IEndpointFilter
                 Expiration = options.DefaultTtl,
                 LocalCacheExpiration = options.DefaultTtl < TimeSpan.FromMinutes(2) ? options.DefaultTtl : TimeSpan.FromMinutes(2),
             };
-            await cache.SetAsync(cacheKey, responseToCache, setOptions, tags, httpContext.RequestAborted).ConfigureAwait(false);
+            await hybridCache.SetAsync(cacheKey, responseToCache, setOptions, tags, httpContext.RequestAborted).ConfigureAwait(false);
         }
         // Best-effort caching: idempotency replay is a convenience, not a correctness requirement
         catch (Exception ex) when (ex is not OperationCanceledException)

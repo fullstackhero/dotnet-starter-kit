@@ -56,33 +56,57 @@ public sealed class TenantThemeService : ITenantThemeService
         return await GetThemeAsync(tenantId, ct).ConfigureAwait(false);
     }
 
-    public async Task<TenantThemeDto> GetThemeAsync(string tenantId, CancellationToken ct = default)
+    public Task<TenantThemeDto> GetThemeAsync(string tenantId, CancellationToken ct = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
 
+        // Per-tenant tag array — one small alloc per call is unavoidable because the tag is
+        // parameterized by tenantId. Keeping the array allocation local (not LOH) and short-lived.
         var tags = new[] { CacheKeys.Tags.Themes, CacheKeys.Tags.Tenant(tenantId) };
 
-        var theme = await _cache.GetOrCreateAsync(
+        // Stateless factory via a static method group — no closure allocation even on L1 hits.
+        var state = new TenantFactoryState(_dbContext, tenantId);
+        return _cache.GetOrCreateAsync(
             CacheKeys.TenantTheme(tenantId),
-            async innerCt => await LoadThemeFromDbAsync(tenantId, innerCt).ConfigureAwait(false) ?? TenantThemeDto.Default,
+            state,
+            LoadTenantThemeAsync,
             ThemeEntryOptions,
             tags,
-            ct).ConfigureAwait(false);
-
-        return theme;
+            ct).AsTask();
     }
 
-    public async Task<TenantThemeDto> GetDefaultThemeAsync(CancellationToken ct = default)
+    public Task<TenantThemeDto> GetDefaultThemeAsync(CancellationToken ct = default)
     {
-        var theme = await _cache.GetOrCreateAsync(
+        return _cache.GetOrCreateAsync(
             CacheKeys.DefaultTheme,
-            async innerCt => await LoadDefaultThemeFromDbAsync(innerCt).ConfigureAwait(false) ?? TenantThemeDto.Default,
+            _dbContext,
+            LoadDefaultThemeAsync,
             ThemeEntryOptions,
             DefaultThemeTags,
-            ct).ConfigureAwait(false);
-
-        return theme;
+            ct).AsTask();
     }
+
+    private static async ValueTask<TenantThemeDto> LoadTenantThemeAsync(TenantFactoryState state, CancellationToken ct)
+    {
+        var entity = await state.DbContext.TenantThemes
+            .AsNoTracking()
+            .FirstOrDefaultAsync(t => t.TenantId == state.TenantId, ct)
+            .ConfigureAwait(false);
+
+        return entity is null ? TenantThemeDto.Default : MapEntityToDto(entity);
+    }
+
+    private static async ValueTask<TenantThemeDto> LoadDefaultThemeAsync(TenantDbContext dbContext, CancellationToken ct)
+    {
+        var entity = await dbContext.TenantThemes
+            .AsNoTracking()
+            .FirstOrDefaultAsync(t => t.IsDefault, ct)
+            .ConfigureAwait(false);
+
+        return entity is null ? TenantThemeDto.Default : MapEntityToDto(entity);
+    }
+
+    private readonly record struct TenantFactoryState(TenantDbContext DbContext, string TenantId);
 
     public async Task UpdateThemeAsync(string tenantId, TenantThemeDto theme, CancellationToken ct = default)
     {
@@ -236,26 +260,6 @@ public sealed class TenantThemeService : ITenantThemeService
         // Purge both the tenant-specific entry and anything tagged for this tenant.
         await _cache.RemoveAsync(CacheKeys.TenantTheme(tenantId), ct).ConfigureAwait(false);
         await _cache.RemoveByTagAsync(CacheKeys.Tags.Tenant(tenantId), ct).ConfigureAwait(false);
-    }
-
-    private async Task<TenantThemeDto?> LoadThemeFromDbAsync(string tenantId, CancellationToken ct)
-    {
-        var entity = await _dbContext.TenantThemes
-            .AsNoTracking()
-            .FirstOrDefaultAsync(t => t.TenantId == tenantId, ct)
-            .ConfigureAwait(false);
-
-        return entity is null ? null : MapEntityToDto(entity);
-    }
-
-    private async Task<TenantThemeDto?> LoadDefaultThemeFromDbAsync(CancellationToken ct)
-    {
-        var entity = await _dbContext.TenantThemes
-            .AsNoTracking()
-            .FirstOrDefaultAsync(t => t.IsDefault, ct)
-            .ConfigureAwait(false);
-
-        return entity is null ? null : MapEntityToDto(entity);
     }
 
     private static TenantThemeDto MapEntityToDto(TenantTheme entity)
