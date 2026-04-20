@@ -1,0 +1,193 @@
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { env } from "@/env";
+import { tokenStore } from "@/auth/token-store";
+import { issueSseToken } from "@/sse/sse-api";
+
+export type SseStatus = "idle" | "connecting" | "connected" | "reconnecting" | "error";
+
+export type SseEvent = {
+  id: string;
+  type: string;
+  data: unknown;
+  rawData: string;
+  receivedAt: number;
+};
+
+type SseContextValue = {
+  status: SseStatus;
+  events: SseEvent[];
+  eventCount: number;
+};
+
+const SseContext = createContext<SseContextValue | null>(null);
+
+const MAX_EVENTS = 200;
+const INITIAL_BACKOFF_MS = 1000;
+const MAX_BACKOFF_MS = 30_000;
+
+function randomId() {
+  return typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function tryParseJson(raw: string): unknown {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return raw;
+  }
+}
+
+async function* parseSseStream(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+): AsyncGenerator<{ type: string; data: string; id?: string }> {
+  const decoder = new TextDecoder("utf-8");
+  let buffer = "";
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) return;
+    buffer += decoder.decode(value, { stream: true });
+
+    // SSE events are delimited by a blank line (\n\n).
+    let delimiter: number;
+    while ((delimiter = buffer.indexOf("\n\n")) !== -1) {
+      const rawEvent = buffer.slice(0, delimiter);
+      buffer = buffer.slice(delimiter + 2);
+
+      // Skip comments (lines starting with ':') and empty blocks
+      const lines = rawEvent.split("\n").filter((l) => l && !l.startsWith(":"));
+      if (lines.length === 0) continue;
+
+      let eventType = "message";
+      let eventId: string | undefined;
+      const dataLines: string[] = [];
+
+      for (const line of lines) {
+        const colonIdx = line.indexOf(":");
+        const field = colonIdx === -1 ? line : line.slice(0, colonIdx);
+        const value = colonIdx === -1 ? "" : line.slice(colonIdx + 1).replace(/^ /, "");
+        if (field === "event") eventType = value;
+        else if (field === "id") eventId = value;
+        else if (field === "data") dataLines.push(value);
+      }
+
+      yield { type: eventType, data: dataLines.join("\n"), id: eventId };
+    }
+  }
+}
+
+export function SseProvider({ children }: { children: ReactNode }) {
+  const [status, setStatus] = useState<SseStatus>("idle");
+  const [events, setEvents] = useState<SseEvent[]>([]);
+  const [eventCount, setEventCount] = useState(0);
+
+  // We keep the running connection in refs so re-renders don't restart it.
+  const abortRef = useRef<AbortController | null>(null);
+  const stoppedRef = useRef(false);
+
+  const appendEvent = useCallback((ev: { type: string; data: string; id?: string }) => {
+    const entry: SseEvent = {
+      id: ev.id ?? randomId(),
+      type: ev.type,
+      data: tryParseJson(ev.data),
+      rawData: ev.data,
+      receivedAt: Date.now(),
+    };
+    setEvents((prev) => {
+      const next = [entry, ...prev];
+      return next.length > MAX_EVENTS ? next.slice(0, MAX_EVENTS) : next;
+    });
+    setEventCount((c) => c + 1);
+  }, []);
+
+  useEffect(() => {
+    stoppedRef.current = false;
+    let backoff = INITIAL_BACKOFF_MS;
+
+    const connect = async () => {
+      while (!stoppedRef.current) {
+        if (!tokenStore.getAccessToken()) {
+          setStatus("idle");
+          return;
+        }
+
+        setStatus((s) => (s === "idle" ? "connecting" : "reconnecting"));
+
+        try {
+          const { token } = await issueSseToken();
+          const controller = new AbortController();
+          abortRef.current = controller;
+
+          const tenant = tokenStore.getTenant() ?? env.defaultTenant;
+          const url = `${env.apiBase}/api/v1/sse/stream?token=${encodeURIComponent(token)}`;
+
+          const response = await fetch(url, {
+            method: "GET",
+            headers: {
+              Accept: "text/event-stream",
+              ...(tenant ? { tenant } : {}),
+            },
+            signal: controller.signal,
+          });
+
+          if (!response.ok || !response.body) {
+            throw new Error(`SSE stream refused: ${response.status}`);
+          }
+
+          setStatus("connected");
+          backoff = INITIAL_BACKOFF_MS;
+
+          const reader = response.body.getReader();
+          for await (const ev of parseSseStream(reader)) {
+            appendEvent(ev);
+          }
+
+          // Stream ended cleanly — loop will retry unless stopped.
+        } catch (err) {
+          if (stoppedRef.current) return;
+          if (err instanceof DOMException && err.name === "AbortError") return;
+          setStatus("error");
+        }
+
+        if (stoppedRef.current) return;
+        setStatus("reconnecting");
+        await new Promise((r) => setTimeout(r, backoff));
+        backoff = Math.min(backoff * 2, MAX_BACKOFF_MS);
+      }
+    };
+
+    void connect();
+
+    return () => {
+      stoppedRef.current = true;
+      abortRef.current?.abort();
+      setStatus("idle");
+    };
+  }, [appendEvent]);
+
+  const value = useMemo(
+    () => ({ status, events, eventCount }),
+    [status, events, eventCount],
+  );
+
+  return <SseContext.Provider value={value}>{children}</SseContext.Provider>;
+}
+
+export function useSse() {
+  const ctx = useContext(SseContext);
+  if (!ctx) {
+    throw new Error("useSse must be used within SseProvider");
+  }
+  return ctx;
+}

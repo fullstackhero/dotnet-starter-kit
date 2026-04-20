@@ -81,4 +81,13 @@ builder.AddJavaScriptApp("fsh-admin", "../../../clients/admin", "dev")
     .WithExternalHttpEndpoints()
     .WithEnvironment("VITE_API_BASE_URL", api.GetEndpoint("http"));
 
+// Tenant-facing dashboard (React + Vite, with SSE live feed)
+builder.AddJavaScriptApp("fsh-dashboard", "../../../clients/dashboard", "dev")
+    .WithNpm()
+    .WithReference(api)
+    .WaitFor(api)
+    .WithHttpEndpoint(port: 5174, targetPort: 5174, isProxied: false)
+    .WithExternalHttpEndpoints()
+    .WithEnvironment("VITE_API_BASE_URL", api.GetEndpoint("http"));
+
 await builder.Build().RunAsync();
