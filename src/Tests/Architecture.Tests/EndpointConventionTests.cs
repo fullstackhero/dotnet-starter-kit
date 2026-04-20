@@ -256,7 +256,9 @@ public class EndpointConventionTests
                                name.StartsWith("Retry", StringComparison.Ordinal) ||
                                name.StartsWith("Upgrade", StringComparison.Ordinal) ||
                                name.StartsWith("Self", StringComparison.Ordinal) ||
-                               name.StartsWith("Tenant", StringComparison.Ordinal);
+                               name.StartsWith("Tenant", StringComparison.Ordinal) ||
+                               name.StartsWith("Start", StringComparison.Ordinal) ||
+                               name.StartsWith("End", StringComparison.Ordinal);
 
                 if (!hasVerb)
                 {

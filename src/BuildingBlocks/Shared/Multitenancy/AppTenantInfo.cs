@@ -1,4 +1,5 @@
 using Finbuckle.MultiTenant.Abstractions;
+using FSH.Framework.Shared.Quota;
 using System.Diagnostics.CodeAnalysis;
 
 namespace FSH.Framework.Shared.Multitenancy;
@@ -39,6 +40,12 @@ public class AppTenantInfo : TenantInfo, IAppTenantInfo
     public bool IsActive { get; set; }
     public DateTime ValidUpto { get; set; }
     public string? Issuer { get; set; }
+
+    /// <summary>Plan name used to resolve quota defaults (e.g. "free", "pro"). Null falls back to <c>QuotaOptions.DefaultPlan</c>.</summary>
+    public string? Plan { get; set; }
+
+    /// <summary>Per-tenant quota overrides. Serialized as JSON by the tenant store; empty by default.</summary>
+    public Dictionary<QuotaResource, long> QuotaLimits { get; set; } = new();
 
     public void AddValidity(int months) =>
         ValidUpto = ValidUpto.AddMonths(months);

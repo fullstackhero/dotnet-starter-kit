@@ -55,6 +55,7 @@ builder.AddHeroPlatform(o =>
     o.EnableCaching = true;
     o.EnableMailing = true;
     o.EnableJobs = true;
+    o.EnableQuotas = true;
 });
 
 builder.AddModules(moduleAssemblies);
@@ -65,6 +66,7 @@ app.UseHeroPlatform(p =>
 {
     p.MapModules = true;
     p.ServeStaticFiles = true;
+    p.UseQuotas = true;
 });
 
 app.MapGet("/", () => Results.Ok(new { message = "hello world!" }))

@@ -61,6 +61,7 @@
 	  <ProjectReference Include="..\Jobs\Jobs.csproj" />
 	  <ProjectReference Include="..\Mailing\Mailing.csproj" />
 	  <ProjectReference Include="..\Persistence\Persistence.csproj" />
+	  <ProjectReference Include="..\Quota\Quota.csproj" />
 	</ItemGroup>
 
 </Project>

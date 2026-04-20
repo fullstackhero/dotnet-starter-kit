@@ -1,3 +1,4 @@
+using FSH.Framework.Shared.Auditing;
 using FSH.Modules.Auditing.Contracts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -122,7 +123,7 @@ public sealed class AuditHttpMiddleware
         int respSize,
         Stopwatch sw)
     {
-        await Audit.ForActivity(Contracts.ActivityKind.Http, ctx.Request.Path)
+        var builder = Audit.ForActivity(Contracts.ActivityKind.Http, ctx.Request.Path)
             .WithActivityResult(
                 statusCode: ctx.Response.StatusCode,
                 durationMs: (int)sw.Elapsed.TotalMilliseconds,
@@ -135,8 +136,14 @@ public sealed class AuditHttpMiddleware
             .WithTenant(_publisher.CurrentScope?.TenantId)
             .WithUser(_publisher.CurrentScope?.UserId, _publisher.CurrentScope?.UserName)
             .WithCorrelation(_publisher.CurrentScope?.CorrelationId ?? ctx.TraceIdentifier)
-            .WithRequestId(_publisher.CurrentScope?.RequestId ?? ctx.TraceIdentifier)
-            .WriteAsync(ctx.RequestAborted);
+            .WithRequestId(_publisher.CurrentScope?.RequestId ?? ctx.TraceIdentifier);
+
+        if (ctx.Items.TryGetValue(HttpContextItemKeys.QuotaRejected, out var flag) && flag is true)
+        {
+            builder.WithTags(AuditTag.OutOfQuota);
+        }
+
+        await builder.WriteAsync(ctx.RequestAborted);
     }
 
     private async Task WriteExceptionAuditAsync(HttpContext ctx, Exception ex)

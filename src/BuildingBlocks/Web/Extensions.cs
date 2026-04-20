@@ -2,6 +2,7 @@
 using FSH.Framework.Jobs;
 using FSH.Framework.Mailing;
 using FSH.Framework.Persistence;
+using FSH.Framework.Quota;
 using FSH.Framework.Web.Auth;
 using FSH.Framework.Web.Cors;
 using FSH.Framework.Web.Exceptions;
@@ -114,6 +115,11 @@ public static class Extensions
             builder.Services.AddHeroSse();
         }
 
+        if (options.EnableQuotas)
+        {
+            builder.Services.AddHeroQuotas(builder.Configuration);
+        }
+
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
         builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         builder.Services.AddProblemDetails();
@@ -172,6 +178,12 @@ public static class Extensions
         app.UseModuleMiddlewares();
 
         app.UseHeroRateLimiting();
+
+        if (options.UseQuotas)
+        {
+            app.UseHeroQuotas();
+        }
+
         app.UseAuthorization();
 
         if (options.MapModules)
@@ -214,6 +226,7 @@ public sealed class FshPlatformOptions
     public bool EnableFeatureFlags { get; set; } = false;
     public bool EnableIdempotency { get; set; } = false;
     public bool EnableSse { get; set; } = false;
+    public bool EnableQuotas { get; set; } = false;
 }
 
 public sealed class FshPipelineOptions
@@ -223,4 +236,5 @@ public sealed class FshPipelineOptions
     public bool ServeStaticFiles { get; set; } = true;
     public bool MapModules { get; set; } = true;
     public bool MapSseEndpoints { get; set; } = false;
+    public bool UseQuotas { get; set; } = false;
 }
