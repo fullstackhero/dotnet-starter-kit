@@ -3,6 +3,7 @@ using FSH.Framework.Core.Context;
 using FSH.Framework.Eventing;
 using FSH.Framework.Eventing.Outbox;
 using FSH.Framework.Persistence;
+using FSH.Framework.Quota;
 using FSH.Framework.Storage;
 using FSH.Framework.Storage.Local;
 using FSH.Framework.Storage.Services;
@@ -122,6 +123,9 @@ public class IdentityModule : IModule
 
         // Register group role service for group-derived permissions
         services.AddScoped<IGroupRoleService, GroupRoleService>();
+
+        // Quota gauge: reports live user count per tenant for the Users quota.
+        services.AddScoped<IQuotaGaugeProvider, UserCountQuotaGaugeProvider>();
 
         services.AddIdentity<FshUser, FshRole>(options =>
         {

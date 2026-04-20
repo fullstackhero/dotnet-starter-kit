@@ -11,25 +11,28 @@ namespace FSH.Framework.Quota;
 /// </summary>
 public sealed class InMemoryQuotaService : IQuotaService
 {
-    private readonly ConcurrentDictionary<string, long> _counters = new();
+    private readonly ConcurrentDictionary<string, long> _counters;
     private readonly QuotaOptions _options;
     private readonly QuotaPlanResolver _planResolver;
     private readonly IMultiTenantContextAccessor<AppTenantInfo>? _tenantAccessor;
     private readonly IReadOnlyDictionary<QuotaResource, IQuotaGaugeProvider> _gauges;
     private readonly TimeProvider _timeProvider;
 
-    public InMemoryQuotaService(
+    internal InMemoryQuotaService(
+        InMemoryQuotaStore store,
         QuotaOptions options,
         QuotaPlanResolver planResolver,
         IEnumerable<IQuotaGaugeProvider> gauges,
         TimeProvider timeProvider,
         IMultiTenantContextAccessor<AppTenantInfo>? tenantAccessor = null)
     {
+        ArgumentNullException.ThrowIfNull(store);
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(planResolver);
         ArgumentNullException.ThrowIfNull(gauges);
         ArgumentNullException.ThrowIfNull(timeProvider);
 
+        _counters = store.Counters;
         _options = options;
         _planResolver = planResolver;
         _timeProvider = timeProvider;
