@@ -40,7 +40,9 @@ public enum SecurityAction
     RoleAssigned = 6,
     RoleRevoked = 7,
     PermissionDenied = 8,
-    PolicyFailed = 9
+    PolicyFailed = 9,
+    ImpersonationStarted = 10,
+    ImpersonationEnded = 11
 }
 
 /// <summary>

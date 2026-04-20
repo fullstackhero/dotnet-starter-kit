@@ -29,4 +29,28 @@ public sealed class SecurityAudit : ISecurityAudit
         => _audit.WriteSecurityAsync(SecurityAction.TokenRevoked,
             subjectId: userId, clientId: clientId, authMethod: "", reasonCode: reason, claims: null,
             severity: AuditSeverity.Information, source: "Identity", ct);
+
+    public ValueTask ImpersonationStartedAsync(string actorUserId, string actorTenantId, string targetUserId, string targetTenantId, string clientId, string ip, string userAgent, string reason, CancellationToken ct = default)
+        => _audit.WriteSecurityAsync(SecurityAction.ImpersonationStarted,
+            subjectId: actorUserId, clientId: clientId, authMethod: "Impersonation", reasonCode: reason,
+            claims: new Dictionary<string, object?>
+            {
+                ["actorTenant"] = actorTenantId,
+                ["targetUser"] = targetUserId,
+                ["targetTenant"] = targetTenantId,
+                ["ip"] = ip,
+                ["userAgent"] = userAgent
+            },
+            severity: AuditSeverity.Warning, source: "Identity", ct);
+
+    public ValueTask ImpersonationEndedAsync(string actorUserId, string actorTenantId, string targetUserId, string targetTenantId, string clientId, CancellationToken ct = default)
+        => _audit.WriteSecurityAsync(SecurityAction.ImpersonationEnded,
+            subjectId: actorUserId, clientId: clientId, authMethod: "Impersonation", reasonCode: "",
+            claims: new Dictionary<string, object?>
+            {
+                ["actorTenant"] = actorTenantId,
+                ["targetUser"] = targetUserId,
+                ["targetTenant"] = targetTenantId
+            },
+            severity: AuditSeverity.Information, source: "Identity", ct);
 }

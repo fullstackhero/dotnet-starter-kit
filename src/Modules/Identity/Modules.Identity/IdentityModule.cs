@@ -20,6 +20,8 @@ using FSH.Modules.Identity.Features.v1.Groups.GetGroupMembers;
 using FSH.Modules.Identity.Features.v1.Groups.GetGroups;
 using FSH.Modules.Identity.Features.v1.Groups.RemoveUserFromGroup;
 using FSH.Modules.Identity.Features.v1.Groups.UpdateGroup;
+using FSH.Modules.Identity.Features.v1.Impersonation.EndImpersonation;
+using FSH.Modules.Identity.Features.v1.Impersonation.StartImpersonation;
 using FSH.Modules.Identity.Features.v1.Roles;
 using FSH.Modules.Identity.Features.v1.Roles.DeleteRole;
 using FSH.Modules.Identity.Features.v1.Roles.GetRoleById;
@@ -216,5 +218,9 @@ public class IdentityModule : IModule
 
         // user groups
         group.MapGetUserGroupsEndpoint();
+
+        // impersonation
+        group.MapStartImpersonationEndpoint();
+        group.MapEndImpersonationEndpoint();
     }
 }

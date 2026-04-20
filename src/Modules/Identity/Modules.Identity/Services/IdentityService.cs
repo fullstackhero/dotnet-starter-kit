@@ -3,6 +3,7 @@ using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Identity.Contracts.Services;
+using FSH.Modules.Identity.Data;
 using FSH.Modules.Identity.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -19,19 +20,22 @@ public sealed class IdentityService : IIdentityService
     private readonly IMultiTenantContextAccessor<AppTenantInfo>? _multiTenantContextAccessor;
     private readonly IGroupRoleService _groupRoleService;
     private readonly TimeProvider _timeProvider;
+    private readonly IdentityDbContext _dbContext;
 
     public IdentityService(
         UserManager<FshUser> userManager,
         IMultiTenantContextAccessor<AppTenantInfo>? multiTenantContextAccessor,
         ILogger<IdentityService> logger,
         IGroupRoleService groupRoleService,
-        TimeProvider timeProvider)
+        TimeProvider timeProvider,
+        IdentityDbContext dbContext)
     {
         _userManager = userManager;
         _multiTenantContextAccessor = multiTenantContextAccessor;
         _logger = logger;
         _groupRoleService = groupRoleService;
         _timeProvider = timeProvider;
+        _dbContext = dbContext;
     }
 
     public async Task<(string Subject, IEnumerable<Claim> Claims)?>
@@ -88,6 +92,48 @@ public sealed class IdentityService : IIdentityService
                 subject, string.Join(", ", result.Errors.Select(e => e.Description)));
             throw new UnauthorizedException("could not persist refresh token");
         }
+    }
+
+    public async Task<(string Subject, IEnumerable<Claim> Claims)?>
+        BuildClaimsForUserAsync(string userId, string tenantId, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(userId);
+        ArgumentNullException.ThrowIfNull(tenantId);
+
+        // IgnoreQueryFilters bypasses Finbuckle's tenant filter so root-tenant callers can
+        // resolve users in other tenants during impersonation.
+        var user = await _userManager.Users
+            .IgnoreQueryFilters()
+            .Where(u => u.Id == userId && EF.Property<string>(u, "TenantId") == tenantId)
+            .FirstOrDefaultAsync(ct);
+
+        if (user is null)
+        {
+            return null;
+        }
+
+        ValidateUserStatus(user);
+
+        var claims = CreateBasicClaims(user, tenantId);
+
+        var userRoleIds = await _dbContext.UserRoles
+            .IgnoreQueryFilters()
+            .Where(ur => ur.UserId == userId)
+            .Select(ur => ur.RoleId)
+            .ToListAsync(ct);
+
+        if (userRoleIds.Count > 0)
+        {
+            var roleNames = await _dbContext.Roles
+                .IgnoreQueryFilters()
+                .Where(r => userRoleIds.Contains(r.Id) && EF.Property<string>(r, "TenantId") == tenantId)
+                .Select(r => r.Name!)
+                .ToListAsync(ct);
+
+            claims.AddRange(roleNames.Select(r => new Claim(ClaimTypes.Role, r)));
+        }
+
+        return (user.Id, claims);
     }
 
     private AppTenantInfo GetValidatedTenant()

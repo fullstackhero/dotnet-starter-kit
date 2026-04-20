@@ -32,10 +32,35 @@ public sealed class TokenService : ITokenService
         string? tenant = null,
         CancellationToken ct = default)
     {
+        var (accessToken, accessTokenExpiry) = BuildAccessToken(subject, claims);
+
+        var now = _timeProvider.GetUtcNow().UtcDateTime;
+        var refreshToken = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+        var refreshTokenExpiry = now.AddDays(_options.RefreshTokenDays);
+
+        var response = new TokenResponse(
+            AccessToken: accessToken,
+            RefreshToken: refreshToken,
+            RefreshTokenExpiresAt: refreshTokenExpiry,
+            AccessTokenExpiresAt: accessTokenExpiry);
+
+        return Task.FromResult(response);
+    }
+
+    public Task<(string AccessToken, DateTime ExpiresAtUtc)> IssueAccessOnlyAsync(
+        string subject,
+        IEnumerable<Claim> claims,
+        CancellationToken ct = default)
+    {
+        var result = BuildAccessToken(subject, claims);
+        return Task.FromResult(result);
+    }
+
+    private (string AccessToken, DateTime ExpiresAtUtc) BuildAccessToken(string subject, IEnumerable<Claim> claims)
+    {
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SigningKey));
         var creds = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
 
-        // Access token
         var now = _timeProvider.GetUtcNow().UtcDateTime;
         var accessTokenExpiry = now.AddMinutes(_options.AccessTokenMinutes);
         var jwtToken = new JwtSecurityToken(
@@ -47,22 +72,12 @@ public sealed class TokenService : ITokenService
 
         var accessToken = new JwtSecurityTokenHandler().WriteToken(jwtToken);
 
-        // Refresh token
-        var refreshToken = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-        var refreshTokenExpiry = now.AddDays(_options.RefreshTokenDays);
-
         if (_logger.IsEnabled(LogLevel.Information))
         {
             _logger.LogInformation("Issued JWT for subject {Subject}", subject);
         }
         _metrics.TokenGenerated(subject);
 
-        var response = new TokenResponse(
-            AccessToken: accessToken,
-            RefreshToken: refreshToken,
-            RefreshTokenExpiresAt: refreshTokenExpiry,
-            AccessTokenExpiresAt: accessTokenExpiry);
-
-        return Task.FromResult(response);
+        return (accessToken, accessTokenExpiry);
     }
 }

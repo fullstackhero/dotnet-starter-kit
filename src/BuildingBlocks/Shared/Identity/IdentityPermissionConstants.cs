@@ -9,6 +9,7 @@ public static class IdentityPermissionConstants
         public const string Update = "Permissions.Users.Update";
         public const string Delete = "Permissions.Users.Delete";
         public const string ManageRoles = "Permissions.Users.ManageRoles";
+        public const string Impersonate = "Permissions.Users.Impersonate";
     }
 
     public static class Roles
