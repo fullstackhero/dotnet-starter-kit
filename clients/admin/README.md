@@ -11,13 +11,30 @@ This is a **standalone Vite app** — not part of a pnpm workspace — so it can
 
 ## Install & run
 
+Two options — pick whichever matches how you want to develop.
+
+### Option A — run everything through Aspire (recommended)
+
+The AppHost launches Postgres, Redis, MinIO, the API, **and** this Vite app together, with `VITE_API_BASE_URL` wired via service discovery.
+
+```bash
+npm install --prefix clients/admin   # one-time
+dotnet run --project src/Playground/FSH.Starter.AppHost
+```
+
+Aspire dashboard will expose `fsh-admin` on <http://localhost:5173>.
+
+### Option B — run the frontend standalone
+
+Useful when the API is already running elsewhere (container, remote).
+
 ```bash
 cd clients/admin
 npm install
 npm run dev          # http://localhost:5173
 ```
 
-The dev server proxies `/api`, `/openapi`, and `/scalar` to the API origin, so browser requests stay same-origin in development.
+The dev server proxies `/api`, `/openapi`, and `/scalar` to `VITE_API_BASE_URL` (default `http://localhost:5030`), so browser requests stay same-origin.
 
 ## Scripts
 

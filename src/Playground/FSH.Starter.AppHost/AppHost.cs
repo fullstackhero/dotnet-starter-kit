@@ -51,7 +51,7 @@ var minioInit = builder.AddContainer("minio-init", "minio/mc")
 var minioApiEndpoint = minio.GetEndpoint("api");
 
 // API Service
-builder.AddProject<Projects.FSH_Starter_Api>("fsh-api")
+var api = builder.AddProject<Projects.FSH_Starter_Api>("fsh-api")
     .WithReference(postgres)
     .WithReference(redis)
     .WaitFor(postgres)
@@ -71,5 +71,14 @@ builder.AddProject<Projects.FSH_Starter_Api>("fsh-api")
     .WithEnvironment("Storage__S3__SecretKey", minioPassword)
     .WithEnvironment("Storage__S3__ForcePathStyle", "true")
     .WithEnvironment("Storage__S3__PublicBaseUrl", ReferenceExpression.Create($"{minioApiEndpoint}/{MinioBucket}"));
+
+// Admin console (React + Vite)
+builder.AddJavaScriptApp("fsh-admin", "../../../clients/admin", "dev")
+    .WithNpm()
+    .WithReference(api)
+    .WaitFor(api)
+    .WithHttpEndpoint(port: 5173, targetPort: 5173, isProxied: false)
+    .WithExternalHttpEndpoints()
+    .WithEnvironment("VITE_API_BASE_URL", api.GetEndpoint("http"));
 
 await builder.Build().RunAsync();
