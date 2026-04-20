@@ -9,7 +9,14 @@
 	
 	<ItemGroup>
 		<ProjectReference Include="..\Core\Core.csproj" />
+		<ProjectReference Include="..\Quota\Quota.csproj" />
 		<ProjectReference Include="..\Shared\Shared.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Finbuckle.MultiTenant" />
+		<PackageReference Include="Finbuckle.MultiTenant.Abstractions" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
 	</ItemGroup>
 	
 	<ItemGroup>

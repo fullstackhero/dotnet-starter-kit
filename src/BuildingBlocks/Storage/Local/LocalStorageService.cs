@@ -102,6 +102,24 @@ public class LocalStorageService : IStorageService
         return Task.FromResult(File.Exists(fullPath));
     }
 
+    public Task<long> GetSizeAsync(string path, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return Task.FromResult(0L);
+        }
+
+        var normalizedPath = path.Replace("/", Path.DirectorySeparatorChar.ToString(), StringComparison.Ordinal);
+        var fullPath = Path.Combine(_rootPath, normalizedPath);
+
+        if (!File.Exists(fullPath))
+        {
+            return Task.FromResult(0L);
+        }
+
+        return Task.FromResult(new FileInfo(fullPath).Length);
+    }
+
     public Task RemoveAsync(string path, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(path)) return Task.CompletedTask;

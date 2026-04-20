@@ -175,11 +175,25 @@ public sealed class RedisQuotaService : IQuotaService
     private static bool IsCounterResource(QuotaResource resource) => resource switch
     {
         QuotaResource.ApiCalls => true,
+        QuotaResource.StorageBytes => true,
+        _ => false
+    };
+
+    // Periodic counters reset at the billing period boundary (monthly).
+    // Perpetual counters (e.g. StorageBytes) accumulate until explicitly decremented.
+    private static bool IsPeriodic(QuotaResource resource) => resource switch
+    {
+        QuotaResource.ApiCalls => true,
         _ => false
     };
 
     private string BuildCounterKey(string tenantId, QuotaResource resource)
     {
+        if (!IsPeriodic(resource))
+        {
+            return $"quota:{tenantId}:{resource}";
+        }
+
         var now = _timeProvider.GetUtcNow();
         // Monthly billing period is the coarsest useful window for SaaS; hourly/daily windows can be
         // added as additional QuotaResource values if needed later.
@@ -189,7 +203,7 @@ public sealed class RedisQuotaService : IQuotaService
 
     private DateTimeOffset? GetPeriodResetUtc(QuotaResource resource)
     {
-        if (!IsCounterResource(resource))
+        if (!IsPeriodic(resource))
         {
             return null;
         }

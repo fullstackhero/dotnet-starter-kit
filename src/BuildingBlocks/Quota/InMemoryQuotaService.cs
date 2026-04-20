@@ -137,11 +137,23 @@ public sealed class InMemoryQuotaService : IQuotaService
     private static bool IsCounterResource(QuotaResource resource) => resource switch
     {
         QuotaResource.ApiCalls => true,
+        QuotaResource.StorageBytes => true,
+        _ => false
+    };
+
+    private static bool IsPeriodic(QuotaResource resource) => resource switch
+    {
+        QuotaResource.ApiCalls => true,
         _ => false
     };
 
     private string BuildCounterKey(string tenantId, QuotaResource resource)
     {
+        if (!IsPeriodic(resource))
+        {
+            return $"quota:{tenantId}:{resource}";
+        }
+
         var now = _timeProvider.GetUtcNow();
         var period = $"{now.Year:D4}{now.Month:D2}";
         return $"quota:{tenantId}:{resource}:{period}";
@@ -149,7 +161,7 @@ public sealed class InMemoryQuotaService : IQuotaService
 
     private DateTimeOffset? GetPeriodResetUtc(QuotaResource resource)
     {
-        if (!IsCounterResource(resource))
+        if (!IsPeriodic(resource))
         {
             return null;
         }

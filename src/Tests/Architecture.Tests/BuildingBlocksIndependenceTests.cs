@@ -186,8 +186,9 @@ public class BuildingBlocksIndependenceTests
         // Mailing should only depend on Core
         CheckBuildingBlockDependencies("Mailing", ["Core"], layerViolations);
 
-        // Storage should depend on Core and Shared (FileUploadRequest moved to Shared)
-        CheckBuildingBlockDependencies("Storage", ["Core", "Shared"], layerViolations);
+        // Storage depends on Core and Shared (FileUploadRequest moved to Shared) plus Quota,
+        // since the quota-metered storage decorator lives here and charges StorageBytes per upload.
+        CheckBuildingBlockDependencies("Storage", ["Core", "Shared", "Quota"], layerViolations);
 
         // Persistence should depend on Core, Shared
         CheckBuildingBlockDependencies("Persistence", ["Core", "Shared"], layerViolations);

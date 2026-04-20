@@ -148,6 +148,40 @@ internal sealed class S3StorageService : IStorageService
         }
     }
 
+    public async Task<long> GetSizeAsync(string path, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return 0;
+        }
+
+        try
+        {
+            var key = NormalizeKey(path);
+            var metadata = await _s3.GetObjectMetadataAsync(new GetObjectMetadataRequest
+            {
+                BucketName = _options.Bucket,
+                Key = key
+            }, cancellationToken).ConfigureAwait(false);
+
+            return metadata.ContentLength;
+        }
+        catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return 0;
+        }
+        catch (AmazonS3Exception ex)
+        {
+            _logger.LogWarning(ex, "S3 error reading object size {Path}: {StatusCode}", path, ex.StatusCode);
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Unexpected error reading S3 object size: {Path}", path);
+            return 0;
+        }
+    }
+
     public async Task<bool> ExistsAsync(string path, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(path))
