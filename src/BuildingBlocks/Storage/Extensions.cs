@@ -1,10 +1,12 @@
 using Amazon;
+using Amazon.Runtime;
 using Amazon.S3;
 using FSH.Framework.Storage.Local;
 using FSH.Framework.Storage.S3;
 using FSH.Framework.Storage.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace FSH.Framework.Storage;
 
@@ -26,19 +28,36 @@ public static class Extensions
 
             services.AddSingleton<IAmazonS3>(sp =>
             {
-                var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<S3StorageOptions>>().Value;
+                var options = sp.GetRequiredService<IOptions<S3StorageOptions>>().Value;
 
                 if (string.IsNullOrWhiteSpace(options.Bucket))
                 {
                     throw new InvalidOperationException("Storage:S3:Bucket is required when using S3 storage.");
                 }
 
-                if (string.IsNullOrWhiteSpace(options.Region))
+                var config = new AmazonS3Config();
+
+                if (!string.IsNullOrWhiteSpace(options.ServiceUrl))
                 {
-                    return new AmazonS3Client();
+                    // S3-compatible endpoint (e.g. MinIO). Path-style addressing is typically required
+                    // because these services don't route virtual-hosted-style bucket subdomains.
+                    config.ServiceURL = options.ServiceUrl;
+                    config.ForcePathStyle = options.ForcePathStyle;
+
+                    // The SDK still wants an auth region for SigV4 even when hitting a custom endpoint.
+                    config.AuthenticationRegion = string.IsNullOrWhiteSpace(options.Region) ? "us-east-1" : options.Region;
+                }
+                else if (!string.IsNullOrWhiteSpace(options.Region))
+                {
+                    config.RegionEndpoint = RegionEndpoint.GetBySystemName(options.Region);
                 }
 
-                return new AmazonS3Client(RegionEndpoint.GetBySystemName(options.Region));
+                var hasExplicitCredentials = !string.IsNullOrWhiteSpace(options.AccessKey)
+                    && !string.IsNullOrWhiteSpace(options.SecretKey);
+
+                return hasExplicitCredentials
+                    ? new AmazonS3Client(new BasicAWSCredentials(options.AccessKey, options.SecretKey), config)
+                    : new AmazonS3Client(config);
             });
 
             services.AddTransient<IStorageService, S3StorageService>();

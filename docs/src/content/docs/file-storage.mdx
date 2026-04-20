@@ -1,13 +1,13 @@
 ---
 title: "Storage"
-description: "File storage abstraction with local filesystem and AWS S3 support."
+description: "File storage abstraction with local filesystem, AWS S3, and MinIO (S3-compatible) support."
 ---
 
 import Aside from '../../components/Aside.astro';
 import Tabs from '../../components/Tabs.astro';
 import TabPanel from '../../components/TabPanel.astro';
 
-The Storage building block provides a unified file storage abstraction with two provider implementations -- local filesystem and AWS S3. Both providers share the same `IStorageService` interface, so your application code works identically regardless of where files are stored.
+The Storage building block provides a unified file storage abstraction with two provider implementations -- local filesystem and an S3 client that targets either AWS S3 or any S3-compatible service (MinIO, Cloudflare R2, Wasabi, etc.). All providers share the same `IStorageService` interface, so your application code works identically regardless of where files are stored.
 
 ## IStorageService
 
@@ -174,16 +174,24 @@ public sealed class S3StorageOptions
     public string? Prefix { get; set; }
     public bool PublicRead { get; set; } = true;
     public string? PublicBaseUrl { get; set; }
+    public string? ServiceUrl { get; set; }
+    public string? AccessKey { get; set; }
+    public string? SecretKey { get; set; }
+    public bool ForcePathStyle { get; set; }
 }
 ```
 
 | Property | Description | Default |
 |----------|-------------|---------|
-| `Bucket` | S3 bucket name (required) | -- |
-| `Region` | AWS region (e.g., `us-east-1`) | -- |
+| `Bucket` | Bucket name (required) | -- |
+| `Region` | AWS region (e.g., `us-east-1`). Also used as the auth region when `ServiceUrl` is set; defaults to `us-east-1` in that case. | -- |
 | `Prefix` | Key prefix for all uploaded files | -- |
-| `PublicRead` | Whether to construct public S3 URLs | `true` |
-| `PublicBaseUrl` | Custom base URL (e.g., CloudFront distribution) | -- |
+| `PublicRead` | Whether to construct public URLs | `true` |
+| `PublicBaseUrl` | Custom base URL (e.g., CloudFront distribution, public MinIO host). When set, the value is returned as-is from `UploadAsync`. | -- |
+| `ServiceUrl` | Custom endpoint URL for S3-compatible services (e.g., MinIO: `http://localhost:9000`). Leave empty to target AWS S3. | -- |
+| `AccessKey` | Explicit access key. When omitted (together with `SecretKey`), the AWS SDK's ambient credential chain is used. | -- |
+| `SecretKey` | Explicit secret key. | -- |
+| `ForcePathStyle` | Required for MinIO and most non-AWS S3-compatible services. Ignored when `ServiceUrl` is empty. | `false` |
 
 <Aside type="tip" title="CloudFront integration">
 Set `PublicBaseUrl` to your CloudFront distribution URL (e.g., `https://cdn.yourapp.com`) to serve S3 files through a CDN. When set, all URLs returned by `UploadAsync` will use this base URL instead of the raw S3 endpoint.
@@ -209,6 +217,8 @@ Or simply omit the `Storage` section entirely -- local is the default provider.
 </TabPanel>
 <TabPanel>
 
+**AWS S3:**
+
 ```json
 {
   "Storage": {
@@ -224,7 +234,28 @@ Or simply omit the `Storage` section entirely -- local is the default provider.
 }
 ```
 
-AWS credentials are resolved by the AWS SDK's default credential chain (environment variables, IAM role, `~/.aws/credentials`, etc.). You do not configure credentials in the application settings.
+When `ServiceUrl`, `AccessKey`, and `SecretKey` are all empty, AWS credentials are resolved by the AWS SDK's default credential chain (environment variables, IAM role, `~/.aws/credentials`, etc.).
+
+**MinIO (local development via `docker-compose up` or Aspire AppHost):**
+
+```json
+{
+  "Storage": {
+    "Provider": "s3",
+    "S3": {
+      "Bucket": "fsh-uploads",
+      "Region": "us-east-1",
+      "ServiceUrl": "http://localhost:9000",
+      "AccessKey": "minioadmin",
+      "SecretKey": "minioadmin",
+      "ForcePathStyle": true,
+      "PublicBaseUrl": "http://localhost:9000/fsh-uploads"
+    }
+  }
+}
+```
+
+Both `docker-compose.yml` and the Aspire `AppHost` already provision a MinIO container plus a one-shot init container (`minio-init`) that creates the `fsh-uploads` bucket and enables anonymous downloads for public assets. The API waits for the init container to complete before starting, so the bucket is guaranteed to exist.
 
 </TabPanel>
 </Tabs>
