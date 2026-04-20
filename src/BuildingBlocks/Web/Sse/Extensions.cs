@@ -11,6 +11,7 @@ public static class Extensions
     {
         ArgumentNullException.ThrowIfNull(services);
         services.AddSingleton<SseConnectionManager>();
+        services.AddScoped<ISseTokenService, SseTokenService>();
         return services;
     }
 }

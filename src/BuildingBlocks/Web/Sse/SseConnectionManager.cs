@@ -5,13 +5,13 @@ using Microsoft.Extensions.Logging;
 namespace FSH.Framework.Web.Sse;
 
 /// <summary>
-/// Manages active SSE connections per user. Supports targeted sends (by userId)
-/// and tenant-wide broadcasts. Thread-safe via ConcurrentDictionary.
+/// Manages active SSE connections keyed by a per-connection <see cref="Guid"/> so a single user with
+/// multiple tabs keeps every stream open. Supports targeted sends (by userId — fans out to all of the
+/// user's active connections) and tenant-wide broadcasts. Thread-safe via ConcurrentDictionary.
 /// </summary>
 public sealed class SseConnectionManager
 {
-    private readonly ConcurrentDictionary<string, Channel<SseEvent>> _connections = new(StringComparer.Ordinal);
-    private readonly ConcurrentDictionary<string, string> _userTenantMap = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<Guid, Connection> _connections = new();
     private readonly ILogger<SseConnectionManager> _logger;
 
     public SseConnectionManager(ILogger<SseConnectionManager> logger)
@@ -20,70 +20,76 @@ public sealed class SseConnectionManager
     }
 
     /// <summary>
-    /// Creates a channel for the user and returns a reader to consume events.
+    /// Registers a new connection and returns a stable connectionId plus the channel reader the
+    /// endpoint will consume.
     /// </summary>
-    public ChannelReader<SseEvent> Connect(string userId, string? tenantId = null)
+    public (Guid ConnectionId, ChannelReader<SseEvent> Reader) Connect(string userId, string? tenantId = null)
     {
+        var connectionId = Guid.CreateVersion7();
         var channel = Channel.CreateBounded<SseEvent>(new BoundedChannelOptions(100)
         {
             FullMode = BoundedChannelFullMode.DropOldest,
             SingleReader = true,
-            SingleWriter = false
+            SingleWriter = false,
         });
 
-        _connections[userId] = channel;
-        if (tenantId is not null)
-        {
-            _userTenantMap[userId] = tenantId;
-        }
+        _connections[connectionId] = new Connection(userId, tenantId, channel);
 
         if (_logger.IsEnabled(LogLevel.Debug))
         {
-            _logger.LogDebug("SSE client connected: {UserId} (tenant: {TenantId})", userId, tenantId ?? "none");
+            _logger.LogDebug("SSE client connected: connection={ConnectionId} user={UserId} tenant={TenantId}",
+                connectionId, userId, tenantId ?? "none");
         }
 
-        return channel.Reader;
+        return (connectionId, channel.Reader);
     }
 
     /// <summary>
-    /// Disconnects a user and completes their channel.
+    /// Disconnects a specific connection and completes its channel.
     /// </summary>
-    public void Disconnect(string userId)
+    public void Disconnect(Guid connectionId)
     {
-        if (_connections.TryRemove(userId, out var channel))
+        if (_connections.TryRemove(connectionId, out var connection))
         {
-            channel.Writer.TryComplete();
-            _userTenantMap.TryRemove(userId, out _);
+            connection.Channel.Writer.TryComplete();
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug("SSE client disconnected: {UserId}", userId);
+                _logger.LogDebug("SSE client disconnected: connection={ConnectionId} user={UserId}",
+                    connectionId, connection.UserId);
             }
         }
     }
 
     /// <summary>
-    /// Sends an event to a specific user. Returns false if the user is not connected.
+    /// Sends an event to every connection owned by the given user (all tabs, all devices).
+    /// Returns the number of channels the event was written to.
     /// </summary>
-    public bool TrySend(string userId, SseEvent sseEvent)
+    public int TrySend(string userId, SseEvent sseEvent)
     {
-        if (_connections.TryGetValue(userId, out var channel))
+        var sent = 0;
+        foreach (var (_, connection) in _connections)
         {
-            return channel.Writer.TryWrite(sseEvent);
+            if (string.Equals(connection.UserId, userId, StringComparison.Ordinal)
+                && connection.Channel.Writer.TryWrite(sseEvent))
+            {
+                sent++;
+            }
         }
 
-        return false;
+        return sent;
     }
 
     /// <summary>
-    /// Broadcasts an event to all connected users in a specific tenant.
+    /// Broadcasts an event to all connections in the specified tenant.
     /// </summary>
     public int Broadcast(string tenantId, SseEvent sseEvent)
     {
         var sent = 0;
-        foreach (var (userId, tid) in _userTenantMap)
+        foreach (var (_, connection) in _connections)
         {
-            if (string.Equals(tid, tenantId, StringComparison.Ordinal) && TrySend(userId, sseEvent))
+            if (string.Equals(connection.TenantId, tenantId, StringComparison.Ordinal)
+                && connection.Channel.Writer.TryWrite(sseEvent))
             {
                 sent++;
             }
@@ -93,14 +99,14 @@ public sealed class SseConnectionManager
     }
 
     /// <summary>
-    /// Broadcasts an event to ALL connected users (cross-tenant).
+    /// Broadcasts an event to every connected client (cross-tenant).
     /// </summary>
     public int BroadcastAll(SseEvent sseEvent)
     {
         var sent = 0;
-        foreach (var (_, channel) in _connections)
+        foreach (var (_, connection) in _connections)
         {
-            if (channel.Writer.TryWrite(sseEvent))
+            if (connection.Channel.Writer.TryWrite(sseEvent))
             {
                 sent++;
             }
@@ -109,8 +115,8 @@ public sealed class SseConnectionManager
         return sent;
     }
 
-    /// <summary>
-    /// Gets the number of active connections.
-    /// </summary>
+    /// <summary>Number of active connections across all users.</summary>
     public int ActiveConnections => _connections.Count;
+
+    private sealed record Connection(string UserId, string? TenantId, Channel<SseEvent> Channel);
 }
