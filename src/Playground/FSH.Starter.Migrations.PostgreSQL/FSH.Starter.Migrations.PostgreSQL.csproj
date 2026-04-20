@@ -14,11 +14,13 @@
 	  <ProjectReference Include="..\..\Modules\Identity\Modules.Identity\Modules.Identity.csproj" />
 	  <ProjectReference Include="..\..\Modules\Multitenancy\Modules.Multitenancy\Modules.Multitenancy.csproj" />
 	  <ProjectReference Include="..\..\Modules\Webhooks\Modules.Webhooks\Modules.Webhooks.csproj" />
+	  <ProjectReference Include="..\..\Modules\Billing\Modules.Billing\Modules.Billing.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <Folder Include="Audit\" />
 	  <Folder Include="MultiTenancy\" />
+	  <Folder Include="Billing\" />
 	</ItemGroup>
 
 </Project>

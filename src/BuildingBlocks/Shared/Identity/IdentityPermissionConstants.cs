@@ -36,4 +36,10 @@ public static class IdentityPermissionConstants
         public const string Delete = "Permissions.Groups.Delete";
         public const string ManageMembers = "Permissions.Groups.ManageMembers";
     }
+
+    public static class Billing
+    {
+        public const string View = "Permissions.Billing.View";
+        public const string Manage = "Permissions.Billing.Manage";
+    }
 }
