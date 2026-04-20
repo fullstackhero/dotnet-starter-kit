@@ -159,22 +159,23 @@ When a client omits the version segment, the API defaults to `v1.0`. This allows
 
 ## Rate Limiting
 
-The framework uses ASP.NET Core's built-in rate limiting with **fixed window** policies. Rate limiting is tenant-aware -- partition keys are resolved from the authenticated user's tenant claim, user ID, or IP address.
+The framework uses ASP.NET Core's built-in rate limiting with **fixed window** policies. The global limiter is a **chained partitioned limiter** that enforces three independent buckets per request -- per-tenant, per-user, and per-IP. A request is rejected if **any** bucket is exceeded.
 
-### Policies
+### Scopes (Global Limiter)
+
+| Scope | Partition Key | Default Limit | Window | Queue | Applies When |
+|-------|---------------|---------------|--------|-------|--------------|
+| Tenant | `tenant:{tenantId}` | 1000 requests | 60 seconds | 0 | Request has a tenant claim |
+| User | `user:{userId}` | 200 requests | 60 seconds | 0 | Request is authenticated |
+| IP | `ip:{address}` | 300 requests | 60 seconds | 0 | Always (authenticated or anonymous) |
+
+When the tenant claim or user identity is absent, that scope yields a no-op partition, so only the applicable buckets count.
+
+### Named Policies
 
 | Policy | Default Limit | Window | Queue | Purpose |
 |--------|--------------|--------|-------|---------|
-| `global` | 100 requests | 60 seconds | 0 | Applied to all endpoints via the global limiter |
-| `auth` | 10 requests | 60 seconds | 0 | Protects authentication endpoints (login, register) |
-
-### Partition Key Resolution
-
-The rate limiter partitions requests using the following priority:
-
-1. **Tenant claim** -- if the user has a tenant claim, the key is `tenant:{tenantId}`.
-2. **User ID** -- if authenticated but no tenant, the key is `user:{userId}`.
-3. **IP address** -- for anonymous requests, the key is `ip:{address}`.
+| `auth` | 10 requests | 60 seconds | 0 | Applied explicitly to authentication endpoints (login, register, refresh, confirm-email, forgot-password). Partitions by user-id when authenticated, otherwise IP. |
 
 Health check endpoints (`/health`, `/healthz`, `/ready`, `/live`) are always excluded from rate limiting.
 
@@ -184,8 +185,18 @@ Health check endpoints (`/health`, `/healthz`, `/ready`, `/live`) are always exc
 {
   "RateLimitingOptions": {
     "Enabled": true,
-    "Global": {
-      "PermitLimit": 100,
+    "Tenant": {
+      "PermitLimit": 1000,
+      "WindowSeconds": 60,
+      "QueueLimit": 0
+    },
+    "User": {
+      "PermitLimit": 200,
+      "WindowSeconds": 60,
+      "QueueLimit": 0
+    },
+    "Ip": {
+      "PermitLimit": 300,
       "WindowSeconds": 60,
       "QueueLimit": 0
     },

@@ -160,7 +160,7 @@ SMTP passwords and SendGrid API keys are sensitive. Use environment variables or
 
 ## Rate Limiting
 
-Configures global and per-policy rate limiting using fixed window policies.
+Configures chained per-tenant, per-user, and per-IP rate limiting (all three enforced simultaneously) plus a stricter `auth` policy opted in on authentication endpoints. All scopes use fixed-window limiters.
 
 **Options class:** `FSH.Framework.Web.RateLimiting.RateLimitingOptions`
 
@@ -168,16 +168,10 @@ Configures global and per-policy rate limiting using fixed window policies.
 {
   "RateLimitingOptions": {
     "Enabled": true,
-    "Global": {
-      "PermitLimit": 100,
-      "WindowSeconds": 60,
-      "QueueLimit": 0
-    },
-    "Auth": {
-      "PermitLimit": 10,
-      "WindowSeconds": 60,
-      "QueueLimit": 0
-    }
+    "Tenant": { "PermitLimit": 1000, "WindowSeconds": 60, "QueueLimit": 0 },
+    "User":   { "PermitLimit": 200,  "WindowSeconds": 60, "QueueLimit": 0 },
+    "Ip":     { "PermitLimit": 300,  "WindowSeconds": 60, "QueueLimit": 0 },
+    "Auth":   { "PermitLimit": 10,   "WindowSeconds": 60, "QueueLimit": 0 }
   }
 }
 ```
@@ -185,12 +179,18 @@ Configures global and per-policy rate limiting using fixed window policies.
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
 | `Enabled` | `bool` | `true` | Enable or disable rate limiting globally. |
-| `Global.PermitLimit` | `int` | `100` | Maximum requests per window (global). |
-| `Global.WindowSeconds` | `int` | `60` | Window duration in seconds (global). |
-| `Global.QueueLimit` | `int` | `0` | Queue capacity when limit is hit (global). |
-| `Auth.PermitLimit` | `int` | `10` | Maximum requests per window (auth endpoints). |
-| `Auth.WindowSeconds` | `int` | `60` | Window duration in seconds (auth endpoints). |
-| `Auth.QueueLimit` | `int` | `0` | Queue capacity when limit is hit (auth endpoints). |
+| `Tenant.PermitLimit` | `int` | `1000` | Max requests per window, partitioned by the `tenant` claim. Skipped when absent. |
+| `Tenant.WindowSeconds` | `int` | `60` | Window duration for the tenant bucket. |
+| `Tenant.QueueLimit` | `int` | `0` | Queue capacity when the tenant bucket is exhausted. |
+| `User.PermitLimit` | `int` | `200` | Max requests per window, partitioned by `ClaimTypes.NameIdentifier`. Skipped when anonymous. |
+| `User.WindowSeconds` | `int` | `60` | Window duration for the user bucket. |
+| `User.QueueLimit` | `int` | `0` | Queue capacity when the user bucket is exhausted. |
+| `Ip.PermitLimit` | `int` | `300` | Max requests per window, partitioned by remote IP. Always applied. |
+| `Ip.WindowSeconds` | `int` | `60` | Window duration for the IP bucket. |
+| `Ip.QueueLimit` | `int` | `0` | Queue capacity when the IP bucket is exhausted. |
+| `Auth.PermitLimit` | `int` | `10` | Max requests per window for the `auth` named policy (partitioned by user-id, falling back to IP). |
+| `Auth.WindowSeconds` | `int` | `60` | Window duration for the `auth` policy. |
+| `Auth.QueueLimit` | `int` | `0` | Queue capacity for the `auth` policy. |
 
 ## CORS
 
