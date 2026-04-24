@@ -1,5 +1,6 @@
 using FSH.Framework.Shared.Identity;
 using FSH.Framework.Shared.Identity.Authorization;
+using FSH.Framework.Web.Idempotency;
 using FSH.Modules.Billing.Contracts.Dtos;
 using FSH.Modules.Billing.Contracts.v1.Usage;
 using Mediator;
@@ -20,6 +21,7 @@ public static class CaptureUsageSnapshotsEndpoint
             .WithSummary("Manually capture usage snapshots for a tenant + period")
             .WithDescription("Ops endpoint wrapping IUsageReporter.CaptureForPeriodAsync. Idempotent: re-running for the same (tenant, period) returns existing snapshots unchanged. Used for retroactive billing, debugging, and re-runs after fixes.")
             .RequirePermission(IdentityPermissionConstants.Billing.Manage)
+            .WithIdempotency()
             .Produces<IReadOnlyList<UsageSnapshotDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)

@@ -1,5 +1,6 @@
 using FSH.Framework.Shared.Identity;
 using FSH.Framework.Shared.Identity.Authorization;
+using FSH.Framework.Web.Idempotency;
 using FSH.Modules.Billing.Contracts.v1.Subscriptions;
 using Mediator;
 using Microsoft.AspNetCore.Builder;
@@ -17,6 +18,7 @@ public static class AssignSubscriptionEndpoint
                     Results.Ok(await mediator.Send(command, ct)))
             .WithName("AssignSubscription")
             .WithSummary("Assign a plan to a tenant")
-            .RequirePermission(IdentityPermissionConstants.Billing.Manage);
+            .RequirePermission(IdentityPermissionConstants.Billing.Manage)
+            .WithIdempotency();
     }
 }

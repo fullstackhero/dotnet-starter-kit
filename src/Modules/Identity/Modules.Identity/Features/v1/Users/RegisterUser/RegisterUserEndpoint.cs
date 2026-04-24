@@ -1,5 +1,6 @@
 using FSH.Framework.Shared.Identity;
 using FSH.Framework.Shared.Identity.Authorization;
+using FSH.Framework.Web.Idempotency;
 using FSH.Modules.Identity.Contracts.v1.Users.RegisterUser;
 using Mediator;
 using Microsoft.AspNetCore.Builder;
@@ -25,6 +26,7 @@ public static class RegisterUserEndpoint
         .WithName("RegisterUser")
         .WithSummary("Register user")
         .RequirePermission(IdentityPermissionConstants.Users.Create)
+        .WithIdempotency()
         .WithDescription("Create a new user account.")
         .Produces<RegisterUserResponse>(StatusCodes.Status201Created)
         .Produces(StatusCodes.Status401Unauthorized)

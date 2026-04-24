@@ -1,3 +1,4 @@
+using FSH.Framework.Web.Idempotency;
 using FSH.Modules.Webhooks.Contracts.v1.CreateWebhookSubscription;
 using Mediator;
 using Microsoft.AspNetCore.Builder;
@@ -20,6 +21,7 @@ public static class CreateWebhookSubscriptionEndpoint
         })
         .WithName("CreateWebhookSubscription")
         .WithSummary("Create a webhook subscription")
+        .WithIdempotency()
         .Produces<Guid>(StatusCodes.Status201Created);
     }
 }

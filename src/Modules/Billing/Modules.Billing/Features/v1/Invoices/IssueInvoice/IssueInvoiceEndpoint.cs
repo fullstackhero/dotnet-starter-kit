@@ -1,5 +1,6 @@
 using FSH.Framework.Shared.Identity;
 using FSH.Framework.Shared.Identity.Authorization;
+using FSH.Framework.Web.Idempotency;
 using FSH.Modules.Billing.Contracts.v1.Invoices;
 using Mediator;
 using Microsoft.AspNetCore.Builder;
@@ -19,6 +20,7 @@ public static class IssueInvoiceEndpoint
                     Results.Ok(await mediator.Send(new IssueInvoiceCommand(invoiceId, body?.DueAtUtc), ct)))
             .WithName("IssueInvoice")
             .WithSummary("Issue a draft invoice")
-            .RequirePermission(IdentityPermissionConstants.Billing.Manage);
+            .RequirePermission(IdentityPermissionConstants.Billing.Manage)
+            .WithIdempotency();
     }
 }

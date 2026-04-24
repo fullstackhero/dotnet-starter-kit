@@ -1,5 +1,6 @@
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Web.Idempotency;
 using FSH.Modules.Multitenancy.Contracts.v1.CreateTenant;
 using Mediator;
 using Microsoft.AspNetCore.Builder;
@@ -24,6 +25,7 @@ public static class CreateTenantEndpoint
             .WithName("CreateTenant")
             .WithSummary("Create tenant")
             .RequirePermission(MultitenancyConstants.Permissions.Create)
+            .WithIdempotency()
             .WithDescription("Create a new tenant.")
             .Produces<CreateTenantCommandResponse>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status401Unauthorized)
