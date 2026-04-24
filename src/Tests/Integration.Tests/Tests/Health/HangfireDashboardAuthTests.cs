@@ -8,7 +8,7 @@ public sealed class HangfireDashboardAuthTests
 {
     private const string DashboardPath = "/jobs";
     private const string TestUser = "admin";
-    private const string TestPass = "admin";
+    private const string TestPass = "integration-test-hangfire-pwd";
 
     private readonly FshWebApplicationFactory _factory;
 

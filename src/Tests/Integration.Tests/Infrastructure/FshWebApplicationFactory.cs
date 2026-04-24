@@ -82,7 +82,7 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
                 ["Serilog:WriteTo:1:Name"] = "",
                 ["MailOptions:UseSendGrid"] = "false",
                 ["HangfireOptions:Username"] = "admin",
-                ["HangfireOptions:Password"] = "admin",
+                ["HangfireOptions:Password"] = "integration-test-hangfire-pwd",
                 ["HangfireOptions:Route"] = "/jobs",
                 ["RateLimitingOptions:Enabled"] = "false",
                 ["PasswordPolicy:EnforcePasswordExpiry"] = "false",
