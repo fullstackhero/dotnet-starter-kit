@@ -16,7 +16,9 @@ public static class Extensions
         ArgumentNullException.ThrowIfNull(services);
 
         services.AddOptions<HangfireOptions>()
-            .BindConfiguration(nameof(HangfireOptions));
+            .BindConfiguration(nameof(HangfireOptions))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
 
         services.AddHangfireServer(options =>
         {
