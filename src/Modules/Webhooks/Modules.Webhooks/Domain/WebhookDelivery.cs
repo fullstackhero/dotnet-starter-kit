@@ -14,13 +14,19 @@ public sealed class WebhookDelivery
 
     private WebhookDelivery() { }
 
-    public static WebhookDelivery Create(Guid subscriptionId, string eventType, string payloadJson)
+    public static WebhookDelivery Create(Guid subscriptionId, string eventType, string payloadJson, int attemptNumber = 1)
     {
+        if (attemptNumber < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(attemptNumber), attemptNumber, "Attempt number must be >= 1.");
+        }
+
         return new WebhookDelivery
         {
             SubscriptionId = subscriptionId,
             EventType = eventType,
             PayloadJson = payloadJson,
+            AttemptCount = attemptNumber,
             AttemptedAtUtc = TimeProvider.System.GetUtcNow().UtcDateTime
         };
     }
