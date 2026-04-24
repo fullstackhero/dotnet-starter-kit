@@ -10,6 +10,15 @@ import { env } from "@/env";
 
 type LocationState = { from?: { pathname: string } };
 
+// Dev-only seeded credentials — match what IdentityDbInitializer creates for the root tenant.
+// Surfaced as a one-click button below; never shipped in production bundles because Vite
+// statically replaces import.meta.env.DEV with false during `vite build`, so the entire
+// branch is dead-code-eliminated.
+const DEFAULT_DEV_CREDENTIALS = {
+  email: "admin@root.com",
+  password: "123Pa$$word!",
+} as const;
+
 export function LoginPage() {
   const { isAuthenticated, login } = useAuth();
   const navigate = useNavigate();
@@ -26,12 +35,11 @@ export function LoginPage() {
     return <Navigate to={from} replace />;
   }
 
-  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const performLogin = async (creds: { email: string; password: string; tenant: string }) => {
     setError(null);
     setSubmitting(true);
     try {
-      await login({ email, password, tenant });
+      await login(creds);
       navigate(from, { replace: true });
     } catch (err) {
       const message =
@@ -44,6 +52,19 @@ export function LoginPage() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    await performLogin({ email, password, tenant });
+  };
+
+  const onSignInAsDefault = async () => {
+    await performLogin({
+      email: DEFAULT_DEV_CREDENTIALS.email,
+      password: DEFAULT_DEV_CREDENTIALS.password,
+      tenant: env.defaultTenant,
+    });
   };
 
   return (
@@ -93,10 +114,21 @@ export function LoginPage() {
               </div>
             )}
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex flex-col gap-2">
             <Button type="submit" className="w-full" disabled={submitting}>
               {submitting ? "Signing in…" : "Sign in"}
             </Button>
+            {import.meta.env.DEV && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                disabled={submitting}
+                onClick={onSignInAsDefault}
+              >
+                Sign in as default (dev only)
+              </Button>
+            )}
           </CardFooter>
         </form>
       </Card>
