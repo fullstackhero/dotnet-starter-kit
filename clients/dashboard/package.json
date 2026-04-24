@@ -22,6 +22,7 @@
     "react-hook-form": "^7.54.2",
     "react-router-dom": "^7.1.5",
     "recharts": "^2.15.0",
+    "sonner": "^2.0.7",
     "tailwind-merge": "^3.0.1",
     "zod": "^3.24.2"
   },
