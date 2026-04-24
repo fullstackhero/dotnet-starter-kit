@@ -38,6 +38,9 @@ using FSH.Modules.Identity.Features.v1.Sessions.RevokeAllSessions;
 using FSH.Modules.Identity.Features.v1.Sessions.RevokeSession;
 using FSH.Modules.Identity.Features.v1.Tokens.RefreshToken;
 using FSH.Modules.Identity.Features.v1.Tokens.TokenGeneration;
+using FSH.Modules.Identity.Features.v1.TwoFactor.Disable;
+using FSH.Modules.Identity.Features.v1.TwoFactor.Enroll;
+using FSH.Modules.Identity.Features.v1.TwoFactor.VerifyEnroll;
 using FSH.Modules.Identity.Features.v1.Users.AssignUserRoles;
 using FSH.Modules.Identity.Features.v1.Users.ChangePassword;
 using FSH.Modules.Identity.Features.v1.Users.ConfirmEmail;
@@ -135,6 +138,13 @@ public class IdentityModule : IModule
             options.Password.RequireNonAlphanumeric = false;
             options.Password.RequireUppercase = true;
             options.User.RequireUniqueEmail = true;
+
+            // Account lockout: 5 consecutive failed logins → 15-minute lockout.
+            // Applies to newly created users by default. Login flow triggers
+            // AccessFailedAsync / IsLockedOutAsync in IdentityService.
+            options.Lockout.AllowedForNewUsers = true;
+            options.Lockout.MaxFailedAccessAttempts = 5;
+            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
         })
            .AddEntityFrameworkStores<IdentityDbContext>()
            .AddDefaultTokenProviders();
@@ -226,5 +236,10 @@ public class IdentityModule : IModule
         // impersonation
         group.MapStartImpersonationEndpoint();
         group.MapEndImpersonationEndpoint();
+
+        // two-factor authentication (TOTP)
+        group.MapEnrollTwoFactorEndpoint();
+        group.MapVerifyEnrollTwoFactorEndpoint();
+        group.MapDisableTwoFactorEndpoint();
     }
 }

@@ -56,9 +56,9 @@ public sealed class GenerateTokenCommandHandler
         var ua = _requestContext.UserAgent ?? "unknown";
         var clientId = _requestContext.ClientId;
 
-        // Validate credentials
+        // Validate credentials (includes 2FA verification when the user has it enabled)
         var identityResult = await _identityService
-            .ValidateCredentialsAsync(request.Email, request.Password, cancellationToken);
+            .ValidateCredentialsAsync(request.Email, request.Password, request.TwoFactorCode, cancellationToken);
 
         if (identityResult is null)
         {
