@@ -16,8 +16,8 @@ export function LoginPage() {
   const location = useLocation();
   const from = (location.state as LocationState | null)?.from?.pathname ?? "/";
 
-  const [email, setEmail] = useState("admin@root.com");
-  const [password, setPassword] = useState("123Pa$$word!");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [tenant, setTenant] = useState(env.defaultTenant);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);

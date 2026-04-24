@@ -116,6 +116,13 @@ export function SseProvider({ children }: { children: ReactNode }) {
     let backoff = INITIAL_BACKOFF_MS;
 
     const connect = async () => {
+      // Token lifecycle: the SSE access token is short-lived and single-use — the server
+      // only checks it at /sse/stream handshake time, NOT on every event. Once the stream
+      // is open, its life depends on the transport (network / server), not the token.
+      // When the server or network eventually closes the stream, control returns to this
+      // loop and we call issueSseToken() again below, obtaining a fresh one. The user JWT
+      // used by issueSseToken() refreshes itself on 401 via api-client. So token refresh
+      // during long sessions is implicit in the reconnect path — no dedicated timer needed.
       while (!stoppedRef.current) {
         if (!tokenStore.getAccessToken()) {
           setStatus("idle");
