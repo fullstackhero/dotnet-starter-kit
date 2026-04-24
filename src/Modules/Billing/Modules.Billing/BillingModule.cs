@@ -14,6 +14,7 @@ using FSH.Modules.Billing.Features.v1.Plans.GetPlans;
 using FSH.Modules.Billing.Features.v1.Plans.UpdatePlan;
 using FSH.Modules.Billing.Features.v1.Subscriptions.AssignSubscription;
 using FSH.Modules.Billing.Features.v1.Subscriptions.GetSubscription;
+using FSH.Modules.Billing.Features.v1.Usage.CaptureUsageSnapshots;
 using FSH.Modules.Billing.Features.v1.Usage.GetUsageSnapshots;
 using FSH.Modules.Billing.Services;
 using Hangfire;
@@ -83,6 +84,7 @@ public sealed class BillingModule : IModule
         group.MapVoidInvoiceEndpoint();
 
         group.MapGetUsageSnapshotsEndpoint();
+        group.MapCaptureUsageSnapshotsEndpoint();
 
         var jobManager = endpoints.ServiceProvider.GetService<IRecurringJobManager>();
         if (jobManager is not null)
