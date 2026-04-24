@@ -1,5 +1,3 @@
-using FSH.Framework.Shared.Identity;
-using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Identity.Contracts.v1.Users.RegisterUser;
 using Mediator;
@@ -27,11 +25,9 @@ public static class SelfRegisterUserEndpoint
         })
         .WithName("SelfRegisterUser")
         .WithSummary("Self register user")
-        .RequirePermission(IdentityPermissionConstants.Users.Create)
-        .WithDescription("Allow a user to self-register.")
+        .WithDescription("Allow a user to self-register. Anonymous; tenant identified via the tenant header.")
         .AllowAnonymous()
         .Produces<RegisterUserResponse>(StatusCodes.Status201Created)
-        .Produces(StatusCodes.Status401Unauthorized)
-        .Produces(StatusCodes.Status403Forbidden);
+        .Produces(StatusCodes.Status400BadRequest);
     }
 }
