@@ -1,4 +1,5 @@
 using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Web.Idempotency;
 using FSH.Modules.Identity.Contracts.v1.Users.RegisterUser;
 using Mediator;
 using Microsoft.AspNetCore.Builder;
@@ -27,6 +28,7 @@ public static class SelfRegisterUserEndpoint
         .WithSummary("Self register user")
         .WithDescription("Allow a user to self-register. Anonymous; tenant identified via the tenant header.")
         .AllowAnonymous()
+        .WithIdempotency()
         .Produces<RegisterUserResponse>(StatusCodes.Status201Created)
         .Produces(StatusCodes.Status400BadRequest);
     }

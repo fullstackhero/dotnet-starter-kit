@@ -1,5 +1,6 @@
 using FSH.Framework.Shared.Identity;
 using FSH.Framework.Shared.Identity.Authorization;
+using FSH.Framework.Web.Idempotency;
 using FSH.Modules.Billing.Contracts.v1.Invoices;
 using Mediator;
 using Microsoft.AspNetCore.Builder;
@@ -17,6 +18,7 @@ public static class GenerateInvoicesEndpoint
                     Results.Ok(new { generated = await mediator.Send(command, ct) }))
             .WithName("GenerateInvoices")
             .WithSummary("Manually trigger invoice generation for a period")
-            .RequirePermission(IdentityPermissionConstants.Billing.Manage);
+            .RequirePermission(IdentityPermissionConstants.Billing.Manage)
+            .WithIdempotency();
     }
 }

@@ -30,6 +30,8 @@ public sealed class WebhooksModule : IModule
         builder.Services.AddHeroDbContext<WebhookDbContext>();
         builder.Services.AddScoped<IDbInitializer, WebhookDbInitializer>();
         builder.Services.AddScoped<IWebhookDeliveryService, WebhookDeliveryService>();
+        builder.Services.AddScoped<IWebhookDispatcher, WebhookDispatcher>();
+        builder.Services.AddScoped<WebhookDispatchJob>();
 
         builder.Services.AddHttpClient("Webhooks")
             .AddHeroResilience(builder.Configuration);
