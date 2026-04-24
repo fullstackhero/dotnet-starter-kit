@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { listTenants, type TenantDto } from "@/api/tenants";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,6 +39,7 @@ function StatusBadge({ active }: { active: boolean }) {
 
 export function TenantsListPage() {
   const [pageNumber, setPageNumber] = useState(1);
+  const navigate = useNavigate();
 
   const query = useQuery({
     queryKey: ["tenants", { pageNumber, pageSize: PAGE_SIZE }],
@@ -57,6 +59,9 @@ export function TenantsListPage() {
             Manage tenants registered on this instance.
           </p>
         </div>
+        <Button onClick={() => navigate("/tenants/new")}>
+          <Plus className="mr-1 h-4 w-4" /> New tenant
+        </Button>
       </div>
 
       <Card>
@@ -99,7 +104,11 @@ export function TenantsListPage() {
                 </TableRow>
               ) : (
                 items.map((tenant) => (
-                  <TableRow key={tenant.id}>
+                  <TableRow
+                    key={tenant.id}
+                    className="cursor-pointer hover:bg-[var(--color-muted)]/50"
+                    onClick={() => navigate(`/tenants/${tenant.id}`)}
+                  >
                     <TableCell className="font-medium">{tenant.name}</TableCell>
                     <TableCell className="font-mono text-xs text-[var(--color-muted-foreground)]">
                       {tenant.id}
