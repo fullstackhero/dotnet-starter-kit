@@ -40,7 +40,7 @@ public sealed class IdentityService : IIdentityService
     }
 
     public async Task<(string Subject, IEnumerable<Claim> Claims)?>
-        ValidateCredentialsAsync(string email, string password, CancellationToken ct = default)
+        ValidateCredentialsAsync(string email, string password, string? twoFactorCode = null, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(email);
         ArgumentNullException.ThrowIfNull(password);
@@ -51,8 +51,35 @@ public sealed class IdentityService : IIdentityService
         ValidateUserStatus(user);
         ValidateTenantStatus(tenant);
 
+        if (user.TwoFactorEnabled)
+        {
+            await VerifyTwoFactorOrThrowAsync(user, twoFactorCode);
+        }
+
         var claims = await BuildUserClaimsAsync(user, tenant.Id, ct);
         return (user.Id, claims);
+    }
+
+    private async Task VerifyTwoFactorOrThrowAsync(FshUser user, string? twoFactorCode)
+    {
+        if (string.IsNullOrWhiteSpace(twoFactorCode))
+        {
+            throw new CustomException(
+                "two_factor_required: An authenticator code is required to complete sign-in.",
+                errors: null,
+                HttpStatusCode.Unauthorized);
+        }
+
+        var valid = await _userManager.VerifyTwoFactorTokenAsync(
+            user,
+            _userManager.Options.Tokens.AuthenticatorTokenProvider,
+            twoFactorCode);
+
+        if (!valid)
+        {
+            _logger.LogWarning("Invalid two-factor code for user {UserId}", user.Id);
+            throw new UnauthorizedException("two_factor_invalid: The authenticator code is invalid or expired.");
+        }
     }
 
     public async Task<(string Subject, IEnumerable<Claim> Claims)?>

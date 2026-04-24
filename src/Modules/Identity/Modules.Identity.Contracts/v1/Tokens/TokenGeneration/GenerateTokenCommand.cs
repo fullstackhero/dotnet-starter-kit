@@ -5,5 +5,6 @@ namespace FSH.Modules.Identity.Contracts.v1.Tokens.TokenGeneration;
 
 public record GenerateTokenCommand(
     string Email,
-    string Password)
+    string Password,
+    string? TwoFactorCode = null)
     : ICommand<TokenResponse>;
