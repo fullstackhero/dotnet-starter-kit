@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Security.Claims;
 
 namespace FSH.Modules.Identity.Services;
@@ -152,9 +153,42 @@ public sealed class IdentityService : IIdentityService
     private async Task<FshUser> FindAndValidateUserByCredentialsAsync(string email, string password)
     {
         var user = await _userManager.FindByEmailAsync(email.Trim().Normalize());
-        if (user is null || !await _userManager.CheckPasswordAsync(user, password))
+        if (user is null)
         {
+            // Generic 401 — never confirm or deny account existence from this path.
             throw new UnauthorizedException();
+        }
+
+        // Lockout check runs BEFORE password check so an attacker can't tell a locked
+        // account from a wrong-password one on every request.
+        if (_userManager.SupportsUserLockout && await _userManager.IsLockedOutAsync(user))
+        {
+            _logger.LogWarning("Login attempted for locked account {UserId}", user.Id);
+            throw new CustomException(
+                "Account is temporarily locked due to too many failed login attempts. Try again later.",
+                errors: null,
+                HttpStatusCode.Locked);
+        }
+
+        if (!await _userManager.CheckPasswordAsync(user, password))
+        {
+            if (_userManager.SupportsUserLockout)
+            {
+                await _userManager.AccessFailedAsync(user);
+                if (await _userManager.IsLockedOutAsync(user))
+                {
+                    _logger.LogWarning(
+                        "Account {UserId} locked out after exceeding failed login threshold.",
+                        user.Id);
+                }
+            }
+            throw new UnauthorizedException();
+        }
+
+        // Successful authentication resets the failed-attempt counter.
+        if (_userManager.SupportsUserLockout && await _userManager.GetAccessFailedCountAsync(user) > 0)
+        {
+            await _userManager.ResetAccessFailedCountAsync(user);
         }
 
         return user;

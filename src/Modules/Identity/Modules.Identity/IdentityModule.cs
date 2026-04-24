@@ -135,6 +135,13 @@ public class IdentityModule : IModule
             options.Password.RequireNonAlphanumeric = false;
             options.Password.RequireUppercase = true;
             options.User.RequireUniqueEmail = true;
+
+            // Account lockout: 5 consecutive failed logins → 15-minute lockout.
+            // Applies to newly created users by default. Login flow triggers
+            // AccessFailedAsync / IsLockedOutAsync in IdentityService.
+            options.Lockout.AllowedForNewUsers = true;
+            options.Lockout.MaxFailedAccessAttempts = 5;
+            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
         })
            .AddEntityFrameworkStores<IdentityDbContext>()
            .AddDefaultTokenProviders();
