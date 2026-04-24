@@ -39,11 +39,6 @@ public sealed class GetSecurityAuditsQueryHandler : IQueryHandler<GetSecurityAud
             audits = audits.Where(a => a.UserId == query.UserId);
         }
 
-        if (!string.IsNullOrWhiteSpace(query.TenantId))
-        {
-            audits = audits.Where(a => a.TenantId == query.TenantId);
-        }
-
         if (query.Action.HasValue && query.Action.Value != SecurityAction.None)
         {
             string actionValue = query.Action.Value.ToString();
