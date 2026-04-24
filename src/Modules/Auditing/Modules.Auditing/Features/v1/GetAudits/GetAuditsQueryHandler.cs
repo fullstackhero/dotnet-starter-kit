@@ -34,11 +34,6 @@ public sealed class GetAuditsQueryHandler : IQueryHandler<GetAuditsQuery, PagedR
             audits = audits.Where(a => a.OccurredAtUtc <= query.ToUtc.Value);
         }
 
-        if (!string.IsNullOrWhiteSpace(query.TenantId))
-        {
-            audits = audits.Where(a => a.TenantId == query.TenantId);
-        }
-
         if (!string.IsNullOrWhiteSpace(query.UserId))
         {
             audits = audits.Where(a => a.UserId == query.UserId);

@@ -38,11 +38,6 @@ public sealed class GetAuditSummaryQueryHandler : IQueryHandler<GetAuditSummaryQ
             audits = audits.Where(a => a.OccurredAtUtc <= query.ToUtc.Value);
         }
 
-        if (!string.IsNullOrWhiteSpace(query.TenantId))
-        {
-            audits = audits.Where(a => a.TenantId == query.TenantId);
-        }
-
         return audits;
     }
 

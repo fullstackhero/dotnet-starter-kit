@@ -195,8 +195,8 @@ public class IdentityModule : IModule
         group.MapSearchUsersEndpoint();
         group.MapRegisterUserEndpoint();
         group.MapForgotPasswordEndpoint().RequireRateLimiting("auth");
-        group.MapResetPasswordEndpoint();
-        group.MapSelfRegisterUserEndpoint();
+        group.MapResetPasswordEndpoint().RequireRateLimiting("auth");
+        group.MapSelfRegisterUserEndpoint().RequireRateLimiting("auth");
         group.MapToggleUserStatusEndpoint();
         group.MapUpdateUserEndpoint();
 
