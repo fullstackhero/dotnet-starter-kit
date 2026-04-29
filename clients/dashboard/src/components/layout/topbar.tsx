@@ -1,5 +1,15 @@
+import { useState } from "react";
 import { LogOut, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/auth/use-auth";
 import { SseStatusBadge } from "@/components/sse/sse-status-badge";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
@@ -26,6 +36,13 @@ function CommandSlot() {
 
 export function Topbar() {
   const { user, logout } = useAuth();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const onConfirmSignOut = () => {
+    setConfirmOpen(false);
+    logout();
+  };
+
   return (
     <header
       className={[
@@ -55,11 +72,64 @@ export function Topbar() {
             <div className="text-xs text-[var(--color-muted-foreground)]">{user.email}</div>
           )}
         </div>
-        <Button variant="outline" size="sm" onClick={logout}>
+        <Button variant="outline" size="sm" onClick={() => setConfirmOpen(true)}>
           <LogOut className="mr-2 h-3.5 w-3.5" />
           Sign out
         </Button>
       </div>
+
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sign out of FullStackHero?</DialogTitle>
+            <DialogDescription>
+              You'll need to sign in again to access this tenant. Any unsaved
+              work in this session will be lost.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogBody>
+            <div className="flex items-center gap-3 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2.5">
+              <span
+                aria-hidden
+                className="grid h-7 w-7 place-items-center rounded-full bg-[var(--color-primary-soft)] text-[11px] font-semibold uppercase text-[var(--color-primary)]"
+              >
+                {(user?.name ?? user?.email ?? "?").charAt(0)}
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-medium tracking-tight">
+                  {user?.name ?? user?.email ?? "Unknown"}
+                </div>
+                {user?.email && user.name && (
+                  <div className="truncate text-xs text-[var(--color-muted-foreground)]">
+                    {user.email}
+                  </div>
+                )}
+              </div>
+              <code className="rounded bg-[var(--color-muted)] px-1.5 py-0.5 font-mono text-[11px]">
+                {user?.tenant ?? "—"}
+              </code>
+            </div>
+          </DialogBody>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setConfirmOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={onConfirmSignOut}
+              autoFocus
+            >
+              <LogOut className="mr-1.5 h-3.5 w-3.5" />
+              Sign out
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </header>
   );
 }
