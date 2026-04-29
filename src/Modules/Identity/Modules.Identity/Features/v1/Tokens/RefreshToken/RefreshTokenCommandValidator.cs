@@ -7,10 +7,8 @@ public sealed class RefreshTokenCommandValidator : AbstractValidator<RefreshToke
 {
     public RefreshTokenCommandValidator()
     {
-        RuleFor(p => p.Token)
-            .Cascade(CascadeMode.Stop)
-            .NotEmpty();
-
+        // Token is intentionally not validated — see RefreshTokenCommand for why it's
+        // optional. The handler cross-checks it only when present.
         RuleFor(p => p.RefreshToken)
             .Cascade(CascadeMode.Stop)
             .NotEmpty();

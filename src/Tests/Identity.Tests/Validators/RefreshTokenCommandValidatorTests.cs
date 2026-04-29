@@ -12,34 +12,25 @@ public sealed class RefreshTokenCommandValidatorTests
 
     #region Token Validation
 
-    [Fact]
-    public void Token_Should_Pass_When_Valid()
-    {
-        // Arrange
-        var command = new RefreshTokenCommand("valid-jwt-token", "valid-refresh-token");
-
-        // Act
-        var result = _sut.Validate(command);
-
-        // Assert
-        result.Errors.ShouldNotContain(e => e.PropertyName == "Token");
-    }
+    // Token is optional on RefreshTokenCommand — the handler cross-checks it only when
+    // present. The validator therefore intentionally ignores Token entirely.
 
     [Theory]
+    [InlineData("valid-jwt-token")]
     [InlineData("")]
     [InlineData(" ")]
     [InlineData(null)]
-    public void Token_Should_Fail_When_Empty(string? token)
+    public void Token_Should_Be_Ignored_By_Validator(string? token)
     {
         // Arrange
-        var command = new RefreshTokenCommand(token!, "valid-refresh-token");
+        var command = new RefreshTokenCommand(token, "valid-refresh-token");
 
         // Act
         var result = _sut.Validate(command);
 
         // Assert
-        result.IsValid.ShouldBeFalse();
-        result.Errors.ShouldContain(e => e.PropertyName == "Token");
+        result.IsValid.ShouldBeTrue();
+        result.Errors.ShouldNotContain(e => e.PropertyName == "Token");
     }
 
     #endregion
@@ -99,7 +90,7 @@ public sealed class RefreshTokenCommandValidatorTests
     [Fact]
     public void Validate_Should_Fail_When_AllFieldsEmpty()
     {
-        // Arrange
+        // Arrange — only RefreshToken is required, so a single error is expected.
         var command = new RefreshTokenCommand("", "");
 
         // Act
@@ -107,22 +98,8 @@ public sealed class RefreshTokenCommandValidatorTests
 
         // Assert
         result.IsValid.ShouldBeFalse();
-        result.Errors.Count.ShouldBe(2);
-    }
-
-    [Fact]
-    public void Validate_Should_Fail_When_TokenEmpty_RefreshTokenValid()
-    {
-        // Arrange
-        var command = new RefreshTokenCommand("", "valid-refresh-token");
-
-        // Act
-        var result = _sut.Validate(command);
-
-        // Assert
-        result.IsValid.ShouldBeFalse();
         result.Errors.Count.ShouldBe(1);
-        result.Errors.ShouldContain(e => e.PropertyName == "Token");
+        result.Errors.ShouldContain(e => e.PropertyName == "RefreshToken");
     }
 
     [Fact]
