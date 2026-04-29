@@ -297,6 +297,9 @@ public sealed class IdentityService : IIdentityService
     private static List<Claim> CreateBasicClaims(FshUser user, string tenantId) =>
     [
         new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+        // RFC 7519 standard subject identifier — emitted alongside NameIdentifier so JWT
+        // consumers (including the dashboard's claimsToUser) can read `sub` per the spec.
+        new(JwtRegisteredClaimNames.Sub, user.Id),
         new(ClaimTypes.NameIdentifier, user.Id),
         new(ClaimTypes.Email, user.Email!),
         new(ClaimTypes.Name, user.FirstName ?? string.Empty),
