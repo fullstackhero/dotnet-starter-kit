@@ -28,13 +28,26 @@ function claimsToUser(claims: JwtClaims | null): AuthUser | null {
     : typeof claims.permissions === "string"
       ? [claims.permissions]
       : [];
+  // `name` is the standard short claim; `unique_name` is what
+  // JwtSecurityTokenHandler emits for ClaimTypes.Name. Treat empty
+  // strings as missing so the topbar falls through to email/Unknown
+  // instead of rendering blank.
+  const name = pickFirstNonEmpty(claims.name, claims.unique_name);
+  const email = pickFirstNonEmpty(claims.email);
   return {
     id: claims.sub,
-    email: claims.email,
-    name: claims.name,
+    email,
+    name,
     tenant: claims.tenant,
     permissions,
   };
+}
+
+function pickFirstNonEmpty(...candidates: Array<string | undefined>): string | undefined {
+  for (const c of candidates) {
+    if (typeof c === "string" && c.trim().length > 0) return c;
+  }
+  return undefined;
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {

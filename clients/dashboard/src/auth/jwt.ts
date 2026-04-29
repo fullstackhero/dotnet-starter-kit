@@ -2,6 +2,13 @@ export type JwtClaims = {
   sub?: string;
   email?: string;
   name?: string;
+  /**
+   * `unique_name` is what JwtSecurityTokenHandler emits when the source
+   * is `ClaimTypes.Name` and no explicit `name` claim is also added.
+   * Read as a fallback so tokens issued without a registered `name`
+   * claim still resolve a username.
+   */
+  unique_name?: string;
   tenant?: string;
   permissions?: string[] | string;
   exp?: number;
