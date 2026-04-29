@@ -776,6 +776,17 @@
   100% { transform: scale(1.7); opacity: 0.00; }
 }
 
+/* Dialog enter/exit — overlay fades; content fades + scales + translates
+   from -2px so the dialog "rises" into place.  */
+@keyframes fsh-overlay-in  { from { opacity: 0; }                                   to { opacity: 1; } }
+@keyframes fsh-overlay-out { from { opacity: 1; }                                   to { opacity: 0; } }
+@keyframes fsh-dialog-in   { from { opacity: 0; transform: translate(-50%, -48%) scale(0.96); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+@keyframes fsh-dialog-out  { from { opacity: 1; transform: translate(-50%, -50%) scale(1); }     to { opacity: 0; transform: translate(-50%, -48%) scale(0.96); } }
+.animate-fsh-overlay-in  { animation: fsh-overlay-in  var(--duration-default) var(--ease-out-cubic) both; }
+.animate-fsh-overlay-out { animation: fsh-overlay-out var(--duration-fast)    var(--ease-out-cubic) both; }
+.animate-fsh-dialog-in   { animation: fsh-dialog-in   var(--duration-slow)    var(--ease-out-cubic) both; }
+.animate-fsh-dialog-out  { animation: fsh-dialog-out  var(--duration-fast)    var(--ease-out-cubic) both; }
+
 /* Aurora drift — the upper-corner glows breathe slowly. Kept very low
    amplitude so it stays peripheral, never distracting. */
 @keyframes fsh-aurora {
