@@ -2,99 +2,811 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ============================================================================
+   FullStackHero Dashboard — Design Tokens
+   ----------------------------------------------------------------------------
+   Architecture (read top-down):
+     1. PRIMITIVES — raw oklch scales. Never reference these in components.
+     2. SEMANTICS  — purpose-named vars (--background, --primary, …). The
+                     public API. Components reference these.
+     3. SURFACES   — explicit elevation steps for layout chrome.
+     4. SYSTEM     — typography, motion, radii, shadows.
+   Theme contract: shadcn-compatible. The classic --color-* names all exist
+   so existing primitives (Button, Card, Input, Label) keep working.
+   ========================================================================== */
+
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.625rem;
+  /* ── 1. PRIMITIVES ──────────────────────────────────────────────────── */
+
+  /* Neutrals — cool-cast (hue 270, low chroma) for a deliberate, slightly
+     blue-violet chassis that gives the indigo brand room to breathe. */
+  --neutral-0:    oklch(1.000 0.000 270);
+  --neutral-50:   oklch(0.985 0.002 270);
+  --neutral-100:  oklch(0.965 0.004 270);
+  --neutral-200:  oklch(0.928 0.006 270);
+  --neutral-300:  oklch(0.870 0.008 270);
+  --neutral-400:  oklch(0.745 0.010 270);
+  --neutral-500:  oklch(0.585 0.012 270);
+  --neutral-600:  oklch(0.475 0.014 270);
+  --neutral-700:  oklch(0.380 0.014 270);
+  --neutral-800:  oklch(0.265 0.012 270);
+  --neutral-850:  oklch(0.215 0.012 270);
+  --neutral-900:  oklch(0.165 0.011 270);
+  --neutral-950:  oklch(0.115 0.010 270);
+  --neutral-1000: oklch(0.080 0.009 270);
+
+  /* Brand — confident indigo. 600 is the workhorse; 500 is for dark mode. */
+  --brand-50:   oklch(0.972 0.020 268);
+  --brand-100:  oklch(0.945 0.040 268);
+  --brand-200:  oklch(0.895 0.078 268);
+  --brand-300:  oklch(0.825 0.130 268);
+  --brand-400:  oklch(0.720 0.180 268);
+  --brand-500:  oklch(0.620 0.210 268);
+  --brand-600:  oklch(0.555 0.220 268);
+  --brand-700:  oklch(0.485 0.205 268);
+  --brand-800:  oklch(0.405 0.175 268);
+  --brand-900:  oklch(0.325 0.135 268);
+  --brand-950:  oklch(0.230 0.090 268);
+
+  /* Status scales — emerald, amber, sky, rose. All at L≈0.6/0.7 so they
+     read as a coherent set when stacked next to each other. */
+  --success-500: oklch(0.660 0.155 162);
+  --success-600: oklch(0.575 0.155 162);
+  --warning-500: oklch(0.770 0.155  76);
+  --warning-600: oklch(0.685 0.155  76);
+  --info-500:    oklch(0.685 0.150 232);
+  --info-600:    oklch(0.605 0.150 232);
+  --danger-500:  oklch(0.625 0.220  20);
+  --danger-600:  oklch(0.555 0.220  20);
+
+  /* ── 2. SEMANTICS (light) ──────────────────────────────────────────── */
+  --background:                 var(--neutral-50);
+  --foreground:                 var(--neutral-950);
+
+  --card:                       var(--neutral-0);
+  --card-foreground:            var(--neutral-950);
+  --popover:                    var(--neutral-0);
+  --popover-foreground:         var(--neutral-950);
+
+  --primary:                    var(--brand-600);
+  --primary-foreground:         oklch(0.990 0.005 268);
+  --primary-hover:              var(--brand-700);
+  --primary-soft:               oklch(0.555 0.220 268 / 0.10);
+
+  --secondary:                  var(--neutral-100);
+  --secondary-foreground:       var(--neutral-900);
+
+  --muted:                      var(--neutral-100);
+  --muted-foreground:           var(--neutral-500);
+
+  --accent:                     var(--neutral-100);
+  --accent-foreground:          var(--neutral-900);
+
+  --destructive:                var(--danger-600);
+  --destructive-foreground:     oklch(0.990 0.005  20);
+
+  --success:                    var(--success-600);
+  --success-foreground:         oklch(0.990 0.005 162);
+  --warning:                    var(--warning-600);
+  --warning-foreground:         var(--neutral-950);
+  --info:                       var(--info-600);
+  --info-foreground:            oklch(0.990 0.005 232);
+
+  --border:                     oklch(0.928 0.006 270 / 0.85);
+  --border-strong:              oklch(0.870 0.008 270);
+  --input:                      var(--neutral-200);
+  --ring:                       var(--brand-500);
+
+  /* ── 3. SURFACES — explicit elevation. Use these instead of mixing
+     card/muted/accent ad-hoc.  ──────────────────────────────────────── */
+  --surface-1:                  var(--neutral-50);   /* canvas */
+  --surface-2:                  var(--neutral-0);    /* sidebar, panels */
+  --surface-3:                  var(--neutral-0);    /* cards, popovers */
+  --surface-4:                  var(--neutral-100);  /* hover, raised */
+  --surface-1-hover:            var(--neutral-100);
+  --surface-2-hover:            var(--neutral-50);
+
+  /* ── Charts — laddered around the brand axis with three counter-hues
+     spaced for visual harmony when stacked.  ───────────────────────── */
+  --chart-1: var(--brand-500);                       /* indigo */
+  --chart-2: oklch(0.700 0.155 195);                 /* teal */
+  --chart-3: oklch(0.760 0.150  76);                 /* amber */
+  --chart-4: oklch(0.660 0.180 320);                 /* magenta */
+  --chart-5: oklch(0.665 0.155 162);                 /* emerald */
+  --chart-grid: oklch(0.928 0.006 270 / 0.6);
+
+  /* ── 4. SYSTEM ─────────────────────────────────────────────────────── */
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --font-feature-default: "ss01", "ss03", "cv11";
+  --font-feature-tabular: "tnum", "cv11";
+
+  --radius:     0.625rem;
+  --radius-sm:  calc(var(--radius) - 4px);
+  --radius-md:  calc(var(--radius) - 2px);
+  --radius-lg:  var(--radius);
+  --radius-xl:  calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+
+  --ease-out-cubic:    cubic-bezier(0.215, 0.610, 0.355, 1.000);
+  --ease-out-quart:    cubic-bezier(0.165, 0.840, 0.440, 1.000);
+  --ease-in-out-cubic: cubic-bezier(0.645, 0.045, 0.355, 1.000);
+  --duration-fast:     120ms;
+  --duration-default:  200ms;
+  --duration-slow:     320ms;
+
+  --shadow-xs: 0 1px 2px 0 oklch(0.115 0.010 270 / 0.04);
+  --shadow-sm: 0 1px 2px 0 oklch(0.115 0.010 270 / 0.05),
+               0 1px 3px 0 oklch(0.115 0.010 270 / 0.06);
+  --shadow-md: 0 4px 6px -1px oklch(0.115 0.010 270 / 0.07),
+               0 2px 4px -2px oklch(0.115 0.010 270 / 0.05);
+  --shadow-lg: 0 10px 15px -3px oklch(0.115 0.010 270 / 0.08),
+               0 4px 6px -4px oklch(0.115 0.010 270 / 0.05);
+  --shadow-lift: 0 12px 32px -16px oklch(0.115 0.010 270 / 0.20),
+                 0 4px 8px -4px oklch(0.115 0.010 270 / 0.10);
+
+  /* The "Linear glint": a 1px inner highlight on the top edge of any
+     elevated surface. Reads as ambient light catching the bevel. */
+  --highlight-top: inset 0 1px 0 oklch(1 0 0 / 0.55);
+
+  /* Display-weight tracking ratio applied to hero headings and page
+     titles. Tighter than body, slightly heavier optical weight. */
+  --tracking-display: -0.025em;
+  --tracking-tight:   -0.015em;
+
+  --color-scheme: light;
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   DARK MODE — values flip; semantic names stay.
+   ─────────────────────────────────────────────────────────────────────── */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
+  --background:                 var(--neutral-1000);
+  --foreground:                 oklch(0.965 0.004 270);
+
+  --card:                       var(--neutral-900);
+  --card-foreground:            oklch(0.965 0.004 270);
+  --popover:                    var(--neutral-850);
+  --popover-foreground:         oklch(0.965 0.004 270);
+
+  --primary:                    var(--brand-500);
+  --primary-foreground:         oklch(0.990 0.005 268);
+  --primary-hover:              var(--brand-400);
+  --primary-soft:               oklch(0.620 0.210 268 / 0.18);
+
+  --secondary:                  var(--neutral-850);
+  --secondary-foreground:       oklch(0.965 0.004 270);
+
+  --muted:                      var(--neutral-850);
+  --muted-foreground:           oklch(0.665 0.012 270);
+
+  --accent:                     var(--neutral-800);
+  --accent-foreground:          oklch(0.965 0.004 270);
+
+  --destructive:                var(--danger-500);
+  --destructive-foreground:     oklch(0.990 0.005  20);
+
+  --success:                    var(--success-500);
+  --warning:                    var(--warning-500);
+  --info:                       var(--info-500);
+
+  --border:                     oklch(0.265 0.012 270 / 0.85);
+  --border-strong:              oklch(0.380 0.014 270);
+  --input:                      var(--neutral-800);
+  --ring:                       var(--brand-400);
+
+  --surface-1:                  var(--neutral-1000);
+  --surface-2:                  var(--neutral-900);
+  --surface-3:                  var(--neutral-850);
+  --surface-4:                  var(--neutral-800);
+  --surface-1-hover:            var(--neutral-950);
+  --surface-2-hover:            var(--neutral-850);
+
+  --chart-1: var(--brand-400);
+  --chart-2: oklch(0.745 0.155 195);
+  --chart-3: oklch(0.795 0.150  76);
+  --chart-4: oklch(0.705 0.180 320);
+  --chart-5: oklch(0.710 0.155 162);
+  --chart-grid: oklch(0.265 0.012 270 / 0.6);
+
+  --highlight-top: inset 0 1px 0 oklch(1 0 0 / 0.06);
+
+  --shadow-sm: 0 1px 2px 0 oklch(0 0 0 / 0.20),
+               0 1px 3px 0 oklch(0 0 0 / 0.24);
+  --shadow-md: 0 4px 6px -1px oklch(0 0 0 / 0.28),
+               0 2px 4px -2px oklch(0 0 0 / 0.20);
+  --shadow-lg: 0 10px 15px -3px oklch(0 0 0 / 0.34),
+               0 4px 6px -4px oklch(0 0 0 / 0.22);
+  --shadow-lift: 0 16px 36px -18px oklch(0 0 0 / 0.55),
+                 0 6px 12px -6px oklch(0 0 0 / 0.35);
+
+  --color-scheme: dark;
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   THEME BLOCK — exposes semantics as Tailwind v4 utilities.
+   `bg-[var(--color-X)]` and `bg-{X}` both work.
+   ─────────────────────────────────────────────────────────────────────── */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
+  --color-background:             var(--background);
+  --color-foreground:             var(--foreground);
+  --color-card:                   var(--card);
+  --color-card-foreground:        var(--card-foreground);
+  --color-popover:                var(--popover);
+  --color-popover-foreground:     var(--popover-foreground);
+  --color-primary:                var(--primary);
+  --color-primary-foreground:     var(--primary-foreground);
+  --color-primary-hover:          var(--primary-hover);
+  --color-primary-soft:           var(--primary-soft);
+  --color-secondary:              var(--secondary);
+  --color-secondary-foreground:   var(--secondary-foreground);
+  --color-muted:                  var(--muted);
+  --color-muted-foreground:       var(--muted-foreground);
+  --color-accent:                 var(--accent);
+  --color-accent-foreground:      var(--accent-foreground);
+  --color-destructive:            var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
+  --color-success:                var(--success);
+  --color-success-foreground:     var(--success-foreground);
+  --color-warning:                var(--warning);
+  --color-warning-foreground:     var(--warning-foreground);
+  --color-info:                   var(--info);
+  --color-info-foreground:        var(--info-foreground);
+  --color-border:                 var(--border);
+  --color-border-strong:          var(--border-strong);
+  --color-input:                  var(--input);
+  --color-ring:                   var(--ring);
+
+  --color-surface-1:              var(--surface-1);
+  --color-surface-2:              var(--surface-2);
+  --color-surface-3:              var(--surface-3);
+  --color-surface-4:              var(--surface-4);
+
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+
+  --radius-sm:  var(--radius-sm);
+  --radius-md:  var(--radius-md);
+  --radius-lg:  var(--radius-lg);
+  --radius-xl:  var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   BASE LAYER — global treatments
+   ─────────────────────────────────────────────────────────────────────── */
 @layer base {
-  * {
+  *, ::before, ::after {
     border-color: var(--color-border);
+  }
+
+  :root {
+    color-scheme: var(--color-scheme);
+  }
+
+  html {
+    font-family: var(--font-sans);
+    font-feature-settings: var(--font-feature-default);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   html, body {
     background-color: var(--color-background);
     color: var(--color-foreground);
   }
+
+  /* Atmospheric background — two soft brand glows in the upper corners
+     plus a barely-visible noise texture so flat panels never look dead.
+     SVG is inline so there's no extra request. */
+  body {
+    background-image:
+      radial-gradient(ellipse 60% 40% at 15% -5%, oklch(0.555 0.220 268 / 0.07), transparent 70%),
+      radial-gradient(ellipse 60% 40% at 85% -5%, oklch(0.700 0.155 195 / 0.05), transparent 70%),
+      url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.5'/></svg>");
+    background-blend-mode: normal, normal, soft-light;
+  }
+
+  .dark body {
+    background-image:
+      radial-gradient(ellipse 60% 40% at 15% -5%, oklch(0.620 0.210 268 / 0.10), transparent 70%),
+      radial-gradient(ellipse 60% 40% at 85% -5%, oklch(0.700 0.155 195 / 0.05), transparent 70%),
+      url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.35'/></svg>");
+  }
+
+  /* Tabular numerals everywhere a number is rendered as data. */
+  table, .tabular-nums, [data-tabular="true"], .font-mono, code, kbd, samp, pre {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: var(--font-feature-tabular);
+  }
+
+  /* Refined focus halo — 2px ring + soft outer brand bloom. The bloom
+     is what separates "default browser" from "designed".  */
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+    box-shadow: 0 0 0 6px oklch(from var(--color-ring) l c h / 0.18);
+  }
+
+  /* Brand-tinted text selection. */
+  ::selection {
+    background-color: oklch(from var(--color-primary) l c h / 0.30);
+    color: var(--color-foreground);
+  }
+
+  /* Restrained scrollbars — Linear-style hairlines. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-strong) transparent;
+  }
+  *::-webkit-scrollbar { width: 8px; height: 8px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+  *::-webkit-scrollbar-thumb {
+    background-color: oklch(from var(--color-border-strong) l c h / 0.6);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-muted-foreground);
+  }
+
+  /* Heading rhythm. */
+  h1, h2, h3, h4 {
+    letter-spacing: var(--tracking-tight);
+  }
+  h1 { letter-spacing: var(--tracking-display); }
+
+  /* Display class for hero numbers / page titles. Tight, heavy, with
+     stylistic-set glyphs from Geist. */
+  .text-display {
+    font-family: var(--font-sans);
+    letter-spacing: var(--tracking-display);
+    font-feature-settings: "ss01", "ss03", "cv11", "tnum";
+  }
+
+  /* Smooth theme transitions when toggling — but skip during initial paint
+     so the no-FOUC bootstrap doesn't animate on first load. */
+  html.theme-ready,
+  html.theme-ready * {
+    transition:
+      background-color var(--duration-default) var(--ease-out-cubic),
+      border-color    var(--duration-default) var(--ease-out-cubic),
+      color           var(--duration-default) var(--ease-out-cubic);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   COMPONENT UTILITIES
+   ─────────────────────────────────────────────────────────────────────── */
+@layer components {
+  .surface-1 { background-color: var(--color-surface-1); }
+  .surface-2 { background-color: var(--color-surface-2); }
+  .surface-3 { background-color: var(--color-surface-3); }
+  .surface-4 { background-color: var(--color-surface-4); }
+
+  /* Linear-style elevated surface: 1px hairline + top-edge highlight. */
+  .surface-edge {
+    box-shadow: 0 0 0 1px var(--color-border), var(--highlight-top);
+  }
+
+  /* Brand glow for emphasized CTAs. */
+  .brand-glow {
+    box-shadow:
+      0 0 0 1px oklch(from var(--color-primary) l c h / 0.45),
+      0 8px 24px -10px oklch(from var(--color-primary) l c h / 0.40),
+      var(--highlight-top);
+  }
+
+  /* Subtle vertical gradient overlay — used by primary buttons for that
+     hand-finished, light-catching look. */
+  .gradient-sheen {
+    background-image: linear-gradient(
+      to bottom,
+      oklch(1 0 0 / 0.08),
+      oklch(1 0 0 / 0) 60%
+    );
+  }
+
+  /* Gradient hairline border — uses double-background composition so the
+     border itself carries a top-to-bottom gradient. The card surface
+     paints into padding-box; the border layer paints into border-box.
+     Reads as if the card has a slightly polished metallic edge. */
+  .gradient-border {
+    border: 1px solid transparent;
+    background:
+      linear-gradient(var(--color-card), var(--color-card)) padding-box,
+      linear-gradient(
+        180deg,
+        oklch(from var(--color-foreground) l c h / 0.18),
+        oklch(from var(--color-foreground) l c h / 0.06) 30%,
+        var(--color-border)
+      ) border-box;
+  }
+  .dark .gradient-border {
+    background:
+      linear-gradient(var(--color-card), var(--color-card)) padding-box,
+      linear-gradient(
+        180deg,
+        oklch(1 0 0 / 0.10),
+        oklch(1 0 0 / 0.03) 30%,
+        var(--color-border)
+      ) border-box;
+  }
+
+  /* Hover lift — translate -1px and bloom the shadow. CSS-only; relies
+     on motion tokens so global tuning applies. */
+  .hover-lift {
+    transition:
+      transform var(--duration-default) var(--ease-out-cubic),
+      box-shadow var(--duration-default) var(--ease-out-cubic),
+      border-color var(--duration-default) var(--ease-out-cubic);
+  }
+  .hover-lift:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-lift), var(--highlight-top);
+  }
+
+  /* Animated brand mark — a slowly-rotating conic gradient under the "F"
+     glyph. Mask-compositing keeps the rotating gradient inside the
+     rounded square. */
+  .brand-mark {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    background: var(--color-primary);
+  }
+  .brand-mark::before {
+    content: "";
+    position: absolute;
+    inset: -50%;
+    background: conic-gradient(
+      from 0deg,
+      oklch(from var(--color-primary) calc(l + 0.10) c h),
+      oklch(from var(--color-primary) calc(l + 0.18) c calc(h + 30)),
+      oklch(from var(--color-primary) l c h),
+      oklch(from var(--color-primary) calc(l + 0.10) c h)
+    );
+    animation: fsh-spin 14s linear infinite;
+    z-index: 0;
+  }
+  .brand-mark::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, oklch(1 0 0 / 0.18), transparent 60%);
+    z-index: 1;
+  }
+  .brand-mark > * { position: relative; z-index: 2; }
+
+  /* Animated thumb for the segmented theme toggle. The container carries
+     a `data-mode` attribute; the thumb slides via attribute-selector. */
+  .seg-toggle { position: relative; }
+  .seg-toggle .seg-thumb {
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    left: 2px;
+    width: 28px;
+    border-radius: 9999px;
+    background: var(--color-primary);
+    box-shadow:
+      0 1px 0 oklch(1 0 0 / 0.18) inset,
+      0 4px 14px -4px oklch(from var(--color-primary) l c h / 0.45);
+    transition: transform var(--duration-default) var(--ease-out-quart);
+    pointer-events: none;
+  }
+  .seg-toggle[data-mode="light"]  .seg-thumb { transform: translateX(0); }
+  .seg-toggle[data-mode="system"] .seg-thumb { transform: translateX(28px); }
+  .seg-toggle[data-mode="dark"]   .seg-thumb { transform: translateX(56px); }
+
+  /* Skeleton shimmer — for placeholders. Subtler than the typical
+     hard-edged sweep; the gradient is brand-tinted in dark mode. */
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+    background: oklch(from var(--color-muted) l c h / 0.6);
+    border-radius: var(--radius-sm);
+  }
+  .skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      oklch(from var(--color-foreground) l c h / 0.06),
+      transparent
+    );
+    transform: translateX(-100%);
+    animation: fsh-shimmer 1.6s var(--ease-in-out-cubic) infinite;
+  }
+
+  /* Status dot with breathing pulse. Used by SSE indicator when live. */
+  .pulse-dot {
+    position: relative;
+  }
+  .pulse-dot::before {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: 9999px;
+    background: currentColor;
+    opacity: 0.35;
+    animation: fsh-pulse 2.2s var(--ease-out-cubic) infinite;
+  }
+
+  /* Glow frame — a 1px-thick outer ring carrying a slowly-rotating conic
+     gradient. The frame's ::before paints the conic; the child surface
+     sits on top with 1px of frame visible all around. The visual reads
+     as an ambient halo, not a gimmick. */
+  .glow-frame {
+    position: relative;
+    isolation: isolate;
+    border-radius: var(--radius-2xl);
+    padding: 1px;
+  }
+  .glow-frame::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    /* Static iridescent halo — same brand → counter-hue arcs as the
+       earlier rotating version, but anchored: the top edge catches the
+       brand glow, the bottom-right catches the teal, the rest is a
+       calm hairline. Reads as a polished metallic edge. */
+    background: conic-gradient(
+      from 210deg at 50% 50%,
+      oklch(from var(--color-primary) l c h / 0.55) 0%,
+      transparent 18%,
+      transparent 50%,
+      oklch(0.700 0.155 195 / 0.40) 65%,
+      transparent 82%,
+      oklch(from var(--color-primary) l c h / 0.40) 100%
+    );
+  }
+  .glow-frame > * {
+    position: relative;
+    z-index: 1;
+    border-radius: calc(var(--radius-2xl) - 1px);
+  }
+
+  /* Brand-gradient text — used for emphasized headline words. The
+     gradient sweeps from primary to a slightly hue-shifted variant for
+     subtle iridescence rather than a flat brand fill. */
+  .text-gradient-brand {
+    background-image: linear-gradient(
+      135deg,
+      var(--color-primary),
+      oklch(from var(--color-primary) calc(l + 0.12) c calc(h + 28))
+    );
+    -webkit-background-clip: text;
+            background-clip: text;
+    color: transparent;
+    /* Preserve emoji/icons that share the heading. */
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* Iridescent button sheen — a thin diagonal highlight that sweeps
+     across the button on hover. Classic "polished metal catches light"
+     gesture, executed in CSS. */
+  .btn-shimmer { position: relative; overflow: hidden; }
+  .btn-shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      110deg,
+      transparent 30%,
+      oklch(1 0 0 / 0.22) 50%,
+      transparent 70%
+    );
+    transform: translateX(-120%);
+    transition: transform 700ms var(--ease-out-quart);
+    pointer-events: none;
+  }
+  .btn-shimmer:hover::after { transform: translateX(120%); }
+
+  /* Parallax orbs — translate slightly opposite to cursor (set on
+     :root via JS as --px / --py in -1..1 range). The two orbs use
+     opposite displacement so depth reads stronger. */
+  .parallax-orb,
+  .parallax-orb-2 {
+    will-change: transform;
+    transition: transform 220ms var(--ease-out-cubic);
+  }
+  .parallax-orb   { transform: translate3d(calc(var(--px, 0) * -22px), calc(var(--py, 0) * -22px), 0); }
+  .parallax-orb-2 { transform: translate3d(calc(var(--px, 0) *  16px), calc(var(--py, 0) *  16px), 0); }
+
+  /* Floating-label field — modern minimal alternative to prefix-icon
+     fields. Label sits inside the input at rest; on focus or non-empty
+     state, it translates up and shrinks into a tracked spec-sheet
+     caption. Driven entirely by `:placeholder-shown` so no JS state
+     management is needed. */
+  .float-field { position: relative; }
+  .float-field > input {
+    width: 100%;
+    height: 56px;
+    padding: 22px 14px 8px;
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-input);
+    border-radius: var(--radius-md);
+    font: inherit;
+    font-size: 14px;
+    color: var(--color-foreground);
+    transition:
+      border-color var(--duration-fast) var(--ease-out-cubic),
+      box-shadow   var(--duration-fast) var(--ease-out-cubic),
+      background   var(--duration-fast) var(--ease-out-cubic);
+  }
+  .float-field > input::placeholder { color: transparent; }
+  .float-field > input:hover { border-color: var(--color-border-strong); }
+  .float-field > input:focus,
+  .float-field > input:focus-visible {
+    outline: none;
+    border-color: var(--color-ring);
+    background: var(--color-surface-3);
+    box-shadow: 0 0 0 4px oklch(from var(--color-ring) l c h / 0.18);
+  }
+  .float-field > label {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    line-height: 1;
+    color: var(--color-muted-foreground);
+    pointer-events: none;
+    transition: all var(--duration-default) var(--ease-out-cubic);
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .float-field > input:focus + label,
+  .float-field > input:not(:placeholder-shown) + label {
+    top: 14px;
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-primary);
+    transform: translateY(0);
+  }
+
+  /* Cursor-following spotlight — a soft brand-tinted radial gradient
+     positioned at --mx/--my (set by JS on mousemove). Faded in on hover
+     so it doesn't compete with the static look at rest. */
+  .card-spotlight {
+    position: relative;
+    overflow: hidden;
+  }
+  .card-spotlight::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background: radial-gradient(
+      520px circle at var(--mx, 50%) var(--my, 0%),
+      oklch(from var(--color-primary) l c h / 0.18),
+      transparent 40%
+    );
+    opacity: 0;
+    transition: opacity var(--duration-slow) var(--ease-out-cubic);
+    z-index: 0;
+  }
+  .card-spotlight:hover::before { opacity: 1; }
+  .card-spotlight > * { position: relative; z-index: 1; }
+
+  /* Dot-grid utilities — used by the login marketing pane. The base
+     layer is a dim, theme-aware grid of dots; the bright layer paints
+     identical dots in brand color and a slowly-moving mask reveals only
+     a soft circular zone, producing a "pulse traveling through the
+     grid" effect that's purely CSS. */
+  .dot-grid-base {
+    background-image: radial-gradient(
+      circle,
+      oklch(from var(--color-foreground) l c h / 0.07) 1px,
+      transparent 1.5px
+    );
+    background-size: 22px 22px;
+  }
+  .dark .dot-grid-base {
+    background-image: radial-gradient(
+      circle,
+      oklch(from var(--color-foreground) l c h / 0.10) 1px,
+      transparent 1.5px
+    );
+  }
+  .dot-grid-bright {
+    background-image: radial-gradient(
+      circle,
+      oklch(from var(--color-primary) l c h / 0.65) 1.2px,
+      transparent 1.8px
+    );
+    background-size: 22px 22px;
+    -webkit-mask-image: radial-gradient(
+      circle at center,
+      black,
+      transparent 38%
+    );
+            mask-image: radial-gradient(
+      circle at center,
+      black,
+      transparent 38%
+    );
+    -webkit-mask-size: 60% 60%;
+            mask-size: 60% 60%;
+    -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+    -webkit-mask-position: 30% 30%;
+            mask-position: 30% 30%;
+    animation: fsh-dot-pulse 16s var(--ease-in-out-cubic) infinite;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   ENTRY ANIMATIONS — orchestrated stagger on first paint.
+   ─────────────────────────────────────────────────────────────────────── */
+@keyframes fsh-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+.fsh-enter   { animation: fsh-enter var(--duration-slow) var(--ease-out-cubic) both; }
+.fsh-enter-1 { animation-delay:  40ms; }
+.fsh-enter-2 { animation-delay:  90ms; }
+.fsh-enter-3 { animation-delay: 140ms; }
+.fsh-enter-4 { animation-delay: 200ms; }
+.fsh-enter-5 { animation-delay: 260ms; }
+
+/* Modern micro-animations referenced by .brand-mark, .skeleton, .pulse-dot */
+@keyframes fsh-spin    { to { transform: rotate(360deg); } }
+@keyframes fsh-shimmer { to { transform: translateX(100%); } }
+@keyframes fsh-pulse {
+  0%   { transform: scale(1);   opacity: 0.40; }
+  70%  { transform: scale(1.7); opacity: 0.00; }
+  100% { transform: scale(1.7); opacity: 0.00; }
+}
+
+/* Aurora drift — the upper-corner glows breathe slowly. Kept very low
+   amplitude so it stays peripheral, never distracting. */
+@keyframes fsh-aurora {
+  0%   { background-position: 0% 0%, 100% 0%, 0 0; }
+  50%  { background-position: 8% 4%, 92% 6%, 0 0; }
+  100% { background-position: 0% 0%, 100% 0%, 0 0; }
+}
+
+/* Dot-grid pulse — the mask travels through five waypoints over 16s on
+   a closed path, so the bright zone reads as a single spotlight that's
+   slowly pacing the grid. Position values are sized for a 60% mask. */
+@keyframes fsh-dot-pulse {
+  0%   { -webkit-mask-position: 10%  20%; mask-position: 10%  20%; }
+  25%  { -webkit-mask-position: 70%  10%; mask-position: 70%  10%; }
+  50%  { -webkit-mask-position: 80%  70%; mask-position: 80%  70%; }
+  75%  { -webkit-mask-position: 20%  80%; mask-position: 20%  80%; }
+  100% { -webkit-mask-position: 10%  20%; mask-position: 10%  20%; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  body {
+    background-size: 130% 130%, 130% 130%, 200px 200px;
+    animation: fsh-aurora 60s var(--ease-in-out-cubic) infinite;
+  }
+}
+
+/* Honour user motion preferences. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  body { background-image: none; }
 }

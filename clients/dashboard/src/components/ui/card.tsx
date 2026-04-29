@@ -1,12 +1,25 @@
 import * as React from "react";
 import { cn } from "@/lib/cn";
 
-export const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
+type CardProps = React.HTMLAttributes<HTMLDivElement> & {
+  /** When true, the card lifts and brightens its shadow on hover. */
+  interactive?: boolean;
+};
+
+/**
+ * Card — primary content surface. Uses the `gradient-border` utility so
+ * the 1px hairline carries a top-to-bottom luminance ramp (reads as a
+ * polished metallic edge), plus the `surface-edge` top-edge highlight
+ * for the "Linear glint." Optional `interactive` adds hover-lift.
+ */
+export const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, interactive, ...props }, ref) => (
     <div
       ref={ref}
       className={cn(
-        "rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] text-[var(--color-card-foreground)] shadow-sm",
+        "gradient-border rounded-xl bg-[var(--color-card)] text-[var(--color-card-foreground)]",
+        "shadow-[var(--highlight-top)]",
+        interactive && "hover-lift cursor-default",
         className,
       )}
       {...props}
@@ -17,7 +30,11 @@ Card.displayName = "Card";
 
 export const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("flex flex-col space-y-1.5 p-6", className)} {...props} />
+    <div
+      ref={ref}
+      className={cn("flex flex-col gap-1.5 px-6 pt-5 pb-3", className)}
+      {...props}
+    />
   ),
 );
 CardHeader.displayName = "CardHeader";
@@ -26,7 +43,7 @@ export const CardTitle = React.forwardRef<HTMLDivElement, React.HTMLAttributes<H
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("text-lg font-semibold leading-none tracking-tight", className)}
+      className={cn("text-base font-semibold leading-none tracking-tight", className)}
       {...props}
     />
   ),
@@ -37,7 +54,7 @@ export const CardDescription = React.forwardRef<HTMLDivElement, React.HTMLAttrib
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("text-sm text-[var(--color-muted-foreground)]", className)}
+      className={cn("text-sm leading-relaxed text-[var(--color-muted-foreground)]", className)}
       {...props}
     />
   ),
@@ -46,14 +63,18 @@ CardDescription.displayName = "CardDescription";
 
 export const CardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+    <div ref={ref} className={cn("px-6 pb-5 pt-1", className)} {...props} />
   ),
 );
 CardContent.displayName = "CardContent";
 
 export const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("flex items-center p-6 pt-0", className)} {...props} />
+    <div
+      ref={ref}
+      className={cn("flex items-center gap-2 border-t border-[var(--color-border)] px-6 py-3", className)}
+      {...props}
+    />
   ),
 );
 CardFooter.displayName = "CardFooter";

@@ -5,6 +5,39 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>FullStackHero — Dashboard</title>
+
+    <!-- Fonts: Geist (UI) + JetBrains Mono (tabular/code). Variable axes. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap"
+    />
+
+    <!--
+      Theme bootstrap — runs before React mounts so first paint matches the
+      user's stored or system preference. Must remain a synchronous inline
+      script: any async load reintroduces FOUC.
+    -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("fsh.theme"); // "light" | "dark" | "system" | null
+          var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          var resolved = stored === "dark" || stored === "light"
+            ? stored
+            : prefersDark ? "dark" : "light";
+          if (resolved === "dark") document.documentElement.classList.add("dark");
+        } catch (_) {
+          /* localStorage may be unavailable (privacy mode). Default to light. */
+        }
+        // Mark the document so post-mount transitions are allowed; the
+        // inline class flip above is exempt from animation.
+        requestAnimationFrame(function () {
+          document.documentElement.classList.add("theme-ready");
+        });
+      })();
+    </script>
   </head>
   <body class="h-full bg-background text-foreground antialiased">
     <div id="root" class="h-full"></div>
