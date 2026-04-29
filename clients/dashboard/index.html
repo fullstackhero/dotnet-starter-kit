@@ -6,30 +6,64 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>FullStackHero — Dashboard</title>
 
-    <!-- Fonts: Geist (UI) + JetBrains Mono (tabular/code). Variable axes. -->
+    <!-- Fonts: Geist + Inter Tight + DM Sans + IBM Plex Sans (selectable
+         in Settings → Appearance) plus JetBrains Mono for tabular/code.
+         All variable axes where supported. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,100..1000&family=Figtree:wght@300..900&family=Geist:wght@100..900&family=IBM+Plex+Sans:wght@100;200;300;400;500;600;700&family=Inter+Tight:wght@100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Lexend:wght@100..900&family=Manrope:wght@200..800&family=Onest:wght@100..900&family=Outfit:wght@100..900&family=Plus+Jakarta+Sans:wght@200..800&family=Roboto+Flex:opsz,wght@8..144,100..1000&family=Sora:wght@100..800&display=swap"
     />
 
     <!--
-      Theme bootstrap — runs before React mounts so first paint matches the
-      user's stored or system preference. Must remain a synchronous inline
-      script: any async load reintroduces FOUC.
+      Theme + appearance bootstrap — runs synchronously before React mounts so
+      first paint matches the user's stored preferences. Any async load
+      reintroduces FOUC, so this MUST stay inline.
     -->
     <script>
       (function () {
+        var SHARED_FALLBACKS =
+          "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+        var FONT_FAMILIES = {
+          geist: "'Geist', " + SHARED_FALLBACKS,
+          "inter-tight": "'Inter Tight', " + SHARED_FALLBACKS,
+          "dm-sans": "'DM Sans', " + SHARED_FALLBACKS,
+          "ibm-plex": "'IBM Plex Sans', " + SHARED_FALLBACKS,
+          manrope: "'Manrope', " + SHARED_FALLBACKS,
+          "plus-jakarta": "'Plus Jakarta Sans', " + SHARED_FALLBACKS,
+          outfit: "'Outfit', " + SHARED_FALLBACKS,
+          sora: "'Sora', " + SHARED_FALLBACKS,
+          lexend: "'Lexend', " + SHARED_FALLBACKS,
+          figtree: "'Figtree', " + SHARED_FALLBACKS,
+          onest: "'Onest', " + SHARED_FALLBACKS,
+          "roboto-flex": "'Roboto Flex', " + SHARED_FALLBACKS,
+        };
+        var ACCENTS = ["indigo", "violet", "sky", "emerald", "amber", "rose"];
+
         try {
-          var stored = localStorage.getItem("fsh.theme"); // "light" | "dark" | "system" | null
+          // Theme.
+          var stored = localStorage.getItem("fsh.theme");
           var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
           var resolved = stored === "dark" || stored === "light"
             ? stored
             : prefersDark ? "dark" : "light";
           if (resolved === "dark") document.documentElement.classList.add("dark");
+
+          // Font — set --font-sans on :root.
+          var savedFont = localStorage.getItem("fsh.font");
+          if (savedFont && FONT_FAMILIES[savedFont]) {
+            document.documentElement.style.setProperty("--font-sans", FONT_FAMILIES[savedFont]);
+          }
+
+          // Accent — toggle accent-{id} class on :root. Indigo is the
+          // baseline (no class needed).
+          var savedAccent = localStorage.getItem("fsh.accent");
+          if (savedAccent && savedAccent !== "indigo" && ACCENTS.indexOf(savedAccent) !== -1) {
+            document.documentElement.classList.add("accent-" + savedAccent);
+          }
         } catch (_) {
-          /* localStorage may be unavailable (privacy mode). Default to light. */
+          /* localStorage may be unavailable (privacy mode). Fall back to defaults. */
         }
         // Mark the document so post-mount transitions are allowed; the
         // inline class flip above is exempt from animation.

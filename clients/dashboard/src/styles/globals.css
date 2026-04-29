@@ -35,7 +35,9 @@
   --neutral-950:  oklch(0.115 0.010 270);
   --neutral-1000: oklch(0.080 0.009 270);
 
-  /* Brand — confident indigo. 600 is the workhorse; 500 is for dark mode. */
+  /* Brand — confident indigo. 600 is the workhorse; 500 is for dark
+     mode. Override these eleven stops via an `accent-{id}` class on
+     :root (defined further down) to swap the entire brand palette. */
   --brand-50:   oklch(0.972 0.020 268);
   --brand-100:  oklch(0.945 0.040 268);
   --brand-200:  oklch(0.895 0.078 268);
@@ -69,9 +71,11 @@
   --popover-foreground:         var(--neutral-950);
 
   --primary:                    var(--brand-600);
-  --primary-foreground:         oklch(0.990 0.005 268);
+  /* Derive from the active brand stop so accent swaps re-tone these
+     too. The `from <color>` relative-color syntax resolves at runtime. */
+  --primary-foreground:         oklch(from var(--brand-600) 0.990 0.005 h);
   --primary-hover:              var(--brand-700);
-  --primary-soft:               oklch(0.555 0.220 268 / 0.10);
+  --primary-soft:               oklch(from var(--brand-600) l c h / 0.10);
 
   --secondary:                  var(--neutral-100);
   --secondary-foreground:       var(--neutral-900);
@@ -158,6 +162,83 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
+   ACCENT PALETTES — each class overrides the 11 brand stops with a
+   different hue, keeping the L/C ramp identical. Apply by toggling a
+   single class on :root (e.g. `accent-violet`).
+   Hue chosen per accent:
+     indigo → 268 · violet → 305 · sky → 232
+     emerald → 152 · amber → 76  · rose → 12
+   The amber accent uses slightly different L/C at the workhorse stops
+   so AA contrast holds against light surfaces (yellow at high chroma
+   is intrinsically lighter than indigo).
+   ─────────────────────────────────────────────────────────────────────── */
+.accent-violet {
+  --brand-50:   oklch(0.972 0.020 305);
+  --brand-100:  oklch(0.945 0.040 305);
+  --brand-200:  oklch(0.895 0.078 305);
+  --brand-300:  oklch(0.825 0.130 305);
+  --brand-400:  oklch(0.720 0.180 305);
+  --brand-500:  oklch(0.620 0.210 305);
+  --brand-600:  oklch(0.555 0.220 305);
+  --brand-700:  oklch(0.485 0.205 305);
+  --brand-800:  oklch(0.405 0.175 305);
+  --brand-900:  oklch(0.325 0.135 305);
+  --brand-950:  oklch(0.230 0.090 305);
+}
+.accent-sky {
+  --brand-50:   oklch(0.972 0.020 232);
+  --brand-100:  oklch(0.945 0.040 232);
+  --brand-200:  oklch(0.895 0.078 232);
+  --brand-300:  oklch(0.825 0.130 232);
+  --brand-400:  oklch(0.720 0.170 232);
+  --brand-500:  oklch(0.620 0.180 232);
+  --brand-600:  oklch(0.555 0.180 232);
+  --brand-700:  oklch(0.485 0.170 232);
+  --brand-800:  oklch(0.405 0.150 232);
+  --brand-900:  oklch(0.325 0.115 232);
+  --brand-950:  oklch(0.230 0.078 232);
+}
+.accent-emerald {
+  --brand-50:   oklch(0.972 0.020 152);
+  --brand-100:  oklch(0.945 0.040 152);
+  --brand-200:  oklch(0.895 0.078 152);
+  --brand-300:  oklch(0.825 0.120 152);
+  --brand-400:  oklch(0.720 0.155 152);
+  --brand-500:  oklch(0.620 0.170 152);
+  --brand-600:  oklch(0.545 0.170 152);
+  --brand-700:  oklch(0.470 0.155 152);
+  --brand-800:  oklch(0.395 0.135 152);
+  --brand-900:  oklch(0.320 0.110 152);
+  --brand-950:  oklch(0.225 0.075 152);
+}
+.accent-amber {
+  --brand-50:   oklch(0.972 0.025  76);
+  --brand-100:  oklch(0.945 0.050  76);
+  --brand-200:  oklch(0.895 0.090  76);
+  --brand-300:  oklch(0.840 0.130  76);
+  --brand-400:  oklch(0.770 0.155  76);
+  --brand-500:  oklch(0.700 0.170  76);
+  --brand-600:  oklch(0.620 0.165  76);
+  --brand-700:  oklch(0.530 0.150  76);
+  --brand-800:  oklch(0.440 0.130  76);
+  --brand-900:  oklch(0.355 0.105  76);
+  --brand-950:  oklch(0.255 0.075  76);
+}
+.accent-rose {
+  --brand-50:   oklch(0.972 0.020  12);
+  --brand-100:  oklch(0.945 0.040  12);
+  --brand-200:  oklch(0.895 0.078  12);
+  --brand-300:  oklch(0.825 0.130  12);
+  --brand-400:  oklch(0.720 0.180  12);
+  --brand-500:  oklch(0.620 0.210  12);
+  --brand-600:  oklch(0.555 0.220  12);
+  --brand-700:  oklch(0.485 0.205  12);
+  --brand-800:  oklch(0.405 0.175  12);
+  --brand-900:  oklch(0.325 0.135  12);
+  --brand-950:  oklch(0.230 0.090  12);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
    DARK MODE — values flip; semantic names stay.
    ─────────────────────────────────────────────────────────────────────── */
 .dark {
@@ -170,9 +251,9 @@
   --popover-foreground:         oklch(0.965 0.004 270);
 
   --primary:                    var(--brand-500);
-  --primary-foreground:         oklch(0.990 0.005 268);
+  --primary-foreground:         oklch(from var(--brand-500) 0.990 0.005 h);
   --primary-hover:              var(--brand-400);
-  --primary-soft:               oklch(0.620 0.210 268 / 0.18);
+  --primary-soft:               oklch(from var(--brand-500) l c h / 0.18);
 
   --secondary:                  var(--neutral-850);
   --secondary-foreground:       oklch(0.965 0.004 270);
@@ -308,7 +389,7 @@
      SVG is inline so there's no extra request. */
   body {
     background-image:
-      radial-gradient(ellipse 60% 40% at 15% -5%, oklch(0.555 0.220 268 / 0.07), transparent 70%),
+      radial-gradient(ellipse 60% 40% at 15% -5%, oklch(from var(--brand-600) l c h / 0.07), transparent 70%),
       radial-gradient(ellipse 60% 40% at 85% -5%, oklch(0.700 0.155 195 / 0.05), transparent 70%),
       url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.5'/></svg>");
     background-blend-mode: normal, normal, soft-light;
@@ -316,7 +397,7 @@
 
   .dark body {
     background-image:
-      radial-gradient(ellipse 60% 40% at 15% -5%, oklch(0.620 0.210 268 / 0.10), transparent 70%),
+      radial-gradient(ellipse 60% 40% at 15% -5%, oklch(from var(--brand-500) l c h / 0.10), transparent 70%),
       radial-gradient(ellipse 60% 40% at 85% -5%, oklch(0.700 0.155 195 / 0.05), transparent 70%),
       url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.35'/></svg>");
   }
