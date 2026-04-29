@@ -12,7 +12,7 @@
     <PackageVersion Include="Aspire.Hosting.JavaScript" Version="13.2.4" />
     <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.2.4" />
     <PackageVersion Include="Aspire.Hosting.Redis" Version="13.2.4" />
-    <PackageVersion Include="coverlet.collector" Version="8.0.1">
+    <PackageVersion Include="coverlet.collector" Version="10.0.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageVersion>
