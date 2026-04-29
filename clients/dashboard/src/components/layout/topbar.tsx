@@ -7,10 +7,12 @@ import {
   LogOut,
   Monitor,
   Moon,
+  Search,
   Settings as SettingsIcon,
   Sun,
   UserRound,
 } from "lucide-react";
+import { useCommandPalette } from "@/components/command-palette/command-palette";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -179,6 +181,7 @@ export function Topbar() {
   const { user, logout } = useAuth();
   const { status: sseStatus, eventCount } = useSse();
   const { mode, setMode } = useTheme();
+  const { setOpen: setPaletteOpen } = useCommandPalette();
   const navigate = useNavigate();
   const [confirmOpen, setConfirmOpen] = useState(false);
 
@@ -218,11 +221,32 @@ export function Topbar() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-30 flex h-14 shrink-0 items-center justify-end",
+        "sticky top-0 z-30 flex h-14 shrink-0 items-center justify-end gap-2",
         "border-b border-[var(--color-border)] bg-[oklch(from_var(--color-surface-1)_l_c_h_/_0.72)]",
         "px-4 backdrop-blur-xl backdrop-saturate-150",
       )}
     >
+      {/* Command palette trigger — opens via ⌘K from anywhere; the
+          chip in the topbar is a discoverability affordance. */}
+      <button
+        type="button"
+        onClick={() => setPaletteOpen(true)}
+        title="Open command palette"
+        className={cn(
+          "hidden h-8 items-center gap-2 rounded-md bg-[var(--color-surface-2)] px-2.5 text-xs",
+          "gradient-border text-[var(--color-muted-foreground)]",
+          "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
+          "hover:text-[var(--color-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
+          "md:inline-flex",
+        )}
+      >
+        <Search className="h-3.5 w-3.5" />
+        <span>Search</span>
+        <kbd className="ml-2 rounded border border-[var(--color-border-strong)] bg-[var(--color-surface-1)] px-1.5 py-px font-mono text-[10px] font-medium tracking-tight">
+          ⌘K
+        </kbd>
+      </button>
+
       {/* `modal={false}` is required because we open the sign-out
           confirmation Dialog from a DropdownMenuItem. Default modal mode
           locks pointer-events on the body, which can leave the page

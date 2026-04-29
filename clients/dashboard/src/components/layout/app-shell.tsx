@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { SseProvider } from "@/sse/sse-context";
+import { CommandPaletteRoot } from "@/components/command-palette/command-palette";
 
 export function AppShell() {
   return (
@@ -15,6 +16,9 @@ export function AppShell() {
           </main>
         </div>
       </div>
+      {/* Mounted inside the router subtree so useNavigate inside the
+          palette resolves correctly. */}
+      <CommandPaletteRoot />
     </SseProvider>
   );
 }
