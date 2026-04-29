@@ -258,7 +258,11 @@ public class EndpointConventionTests
                                name.StartsWith("Self", StringComparison.Ordinal) ||
                                name.StartsWith("Tenant", StringComparison.Ordinal) ||
                                name.StartsWith("Start", StringComparison.Ordinal) ||
-                               name.StartsWith("End", StringComparison.Ordinal);
+                               name.StartsWith("End", StringComparison.Ordinal) ||
+                               name.StartsWith("Enroll", StringComparison.Ordinal) ||
+                               name.StartsWith("Verify", StringComparison.Ordinal) ||
+                               name.StartsWith("Disable", StringComparison.Ordinal) ||
+                               name.StartsWith("Enable", StringComparison.Ordinal);
 
                 if (!hasVerb)
                 {

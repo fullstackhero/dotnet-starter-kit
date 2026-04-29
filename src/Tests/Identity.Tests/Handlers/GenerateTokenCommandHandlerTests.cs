@@ -79,7 +79,7 @@ public sealed class GenerateTokenCommandHandlerTests
         _requestContext.UserAgent.Returns("TestAgent");
         _requestContext.ClientId.Returns("test-client");
 
-        _identityService.ValidateCredentialsAsync(command.Email, command.Password, Arg.Any<CancellationToken>())
+        _identityService.ValidateCredentialsAsync(command.Email, command.Password, Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns((userId, claims));
 
         _tokenService.IssueAsync(userId, claims, null, Arg.Any<CancellationToken>())
@@ -113,7 +113,7 @@ public sealed class GenerateTokenCommandHandlerTests
         _requestContext.UserAgent.Returns("TestAgent");
         _requestContext.ClientId.Returns("test-client");
 
-        _identityService.ValidateCredentialsAsync(command.Email, command.Password, Arg.Any<CancellationToken>())
+        _identityService.ValidateCredentialsAsync(command.Email, command.Password, Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns((userId, claims));
 
         _tokenService.IssueAsync(userId, claims, null, Arg.Any<CancellationToken>())
@@ -123,7 +123,7 @@ public sealed class GenerateTokenCommandHandlerTests
         await _sut.Handle(command, CancellationToken.None);
 
         // Assert
-        await _identityService.Received(1).ValidateCredentialsAsync(command.Email, command.Password, Arg.Any<CancellationToken>());
+        await _identityService.Received(1).ValidateCredentialsAsync(command.Email, command.Password, Arg.Any<string?>(), Arg.Any<CancellationToken>());
         await _tokenService.Received(1).IssueAsync(userId, claims, null, Arg.Any<CancellationToken>());
         await _identityService.Received(1).StoreRefreshTokenAsync(userId, token.RefreshToken, token.RefreshTokenExpiresAt, Arg.Any<CancellationToken>());
         await _securityAudit.Received(1).LoginSucceededAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
@@ -144,7 +144,7 @@ public sealed class GenerateTokenCommandHandlerTests
         _requestContext.IpAddress.Returns("192.168.1.1");
         _requestContext.ClientId.Returns("test-client");
 
-        _identityService.ValidateCredentialsAsync(command.Email, command.Password, Arg.Any<CancellationToken>())
+        _identityService.ValidateCredentialsAsync(command.Email, command.Password, Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns((ValueTuple<string, IReadOnlyList<Claim>>?)null);
 
         // Act & Assert
@@ -163,7 +163,7 @@ public sealed class GenerateTokenCommandHandlerTests
         _requestContext.IpAddress.Returns("192.168.1.1");
         _requestContext.ClientId.Returns("test-client");
 
-        _identityService.ValidateCredentialsAsync(command.Email, command.Password, Arg.Any<CancellationToken>())
+        _identityService.ValidateCredentialsAsync(command.Email, command.Password, Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns((ValueTuple<string, IReadOnlyList<Claim>>?)null);
 
         // Act
@@ -210,7 +210,7 @@ public sealed class GenerateTokenCommandHandlerTests
         _requestContext.UserAgent.Returns("TestAgent");
         _requestContext.ClientId.Returns("test-client");
 
-        _identityService.ValidateCredentialsAsync(command.Email, command.Password, cancellationToken)
+        _identityService.ValidateCredentialsAsync(command.Email, command.Password, null, cancellationToken)
             .Returns((userId, claims));
 
         _tokenService.IssueAsync(userId, claims, null, cancellationToken)
@@ -220,7 +220,7 @@ public sealed class GenerateTokenCommandHandlerTests
         await _sut.Handle(command, cancellationToken);
 
         // Assert
-        await _identityService.Received(1).ValidateCredentialsAsync(command.Email, command.Password, cancellationToken);
+        await _identityService.Received(1).ValidateCredentialsAsync(command.Email, command.Password, null, cancellationToken);
         await _tokenService.Received(1).IssueAsync(userId, claims, null, cancellationToken);
         await _identityService.Received(1).StoreRefreshTokenAsync(userId, token.RefreshToken, token.RefreshTokenExpiresAt, cancellationToken);
         await _outboxStore.Received(1).AddAsync(Arg.Any<FSH.Framework.Eventing.Abstractions.IIntegrationEvent>(), cancellationToken);
@@ -243,7 +243,7 @@ public sealed class GenerateTokenCommandHandlerTests
         _requestContext.UserAgent.Returns("TestAgent");
         _requestContext.ClientId.Returns("test-client");
 
-        _identityService.ValidateCredentialsAsync(command.Email, command.Password, Arg.Any<CancellationToken>())
+        _identityService.ValidateCredentialsAsync(command.Email, command.Password, Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns((userId, claims));
 
         _tokenService.IssueAsync(userId, claims, null, Arg.Any<CancellationToken>())
@@ -278,7 +278,7 @@ public sealed class GenerateTokenCommandHandlerTests
         _requestContext.UserAgent.Returns((string?)null);
         _requestContext.ClientId.Returns("test-client");
 
-        _identityService.ValidateCredentialsAsync(command.Email, command.Password, Arg.Any<CancellationToken>())
+        _identityService.ValidateCredentialsAsync(command.Email, command.Password, Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns((userId, claims));
 
         _tokenService.IssueAsync(userId, claims, null, Arg.Any<CancellationToken>())
