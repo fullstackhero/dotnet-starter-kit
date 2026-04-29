@@ -118,3 +118,7 @@ export const DEFAULT_ACCENT = "indigo";
 
 export const FONT_STORAGE_KEY = "fsh.font";
 export const ACCENT_STORAGE_KEY = "fsh.accent";
+
+export type DensityMode = "comfortable" | "compact";
+export const DENSITY_STORAGE_KEY = "fsh.density";
+export const DEFAULT_DENSITY: DensityMode = "comfortable";

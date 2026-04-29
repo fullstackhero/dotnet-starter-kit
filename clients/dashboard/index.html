@@ -62,6 +62,11 @@
           if (savedAccent && savedAccent !== "indigo" && ACCENTS.indexOf(savedAccent) !== -1) {
             document.documentElement.classList.add("accent-" + savedAccent);
           }
+
+          // Density — toggle density-compact class on :root.
+          if (localStorage.getItem("fsh.density") === "compact") {
+            document.documentElement.classList.add("density-compact");
+          }
         } catch (_) {
           /* localStorage may be unavailable (privacy mode). Fall back to defaults. */
         }

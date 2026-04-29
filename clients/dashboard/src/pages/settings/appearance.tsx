@@ -29,8 +29,7 @@ const themeOptions: Array<{
 ];
 
 export function AppearanceSettings() {
-  const { mode, setMode, font, setFont, accent, setAccent } = useTheme();
-  const [compactMode, setCompactMode] = useState(false);
+  const { mode, setMode, font, setFont, accent, setAccent, density, setDensity } = useTheme();
   const [reducedMotion, setReducedMotion] = useState(false);
 
   return (
@@ -127,8 +126,8 @@ export function AppearanceSettings() {
             Use compact spacing across the dashboard.
           </div>
           <Switch
-            checked={compactMode}
-            onCheckedChange={setCompactMode}
+            checked={density === "compact"}
+            onCheckedChange={(checked) => setDensity(checked ? "compact" : "comfortable")}
             aria-label="Compact density"
           />
         </CardContent>

@@ -835,6 +835,27 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
+   DENSITY MODE — when `.density-compact` is on :root, tighten the
+   high-leverage paddings and rhythm tokens. Scope to `main` so chrome
+   (sidebar, topbar, dropdown menus) is unaffected.
+
+   The overrides target Tailwind utility classes that the Card / list
+   surfaces use directly, with !important to win the cascade. This is
+   pragmatic rather than purist — if more granular control is needed
+   later, swap to a `--card-py / --card-px` token system on the
+   primitives themselves.
+   ─────────────────────────────────────────────────────────────────────── */
+.density-compact main .space-y-7 > * + * { margin-top: 1.25rem; }
+.density-compact main .space-y-6 > * + * { margin-top: 1rem; }
+.density-compact main .space-y-5 > * + * { margin-top: 0.875rem; }
+.density-compact main .px-6 { padding-left: 1rem !important; padding-right: 1rem !important; }
+.density-compact main .pt-5 { padding-top: 0.75rem !important; }
+.density-compact main .pb-5 { padding-bottom: 0.75rem !important; }
+.density-compact main .py-3 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+.density-compact main .py-3\.5 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+.density-compact main .py-4 { padding-top: 0.625rem !important; padding-bottom: 0.625rem !important; }
+
+/* ─────────────────────────────────────────────────────────────────────────
    ENTRY ANIMATIONS — orchestrated stagger on first paint.
    ─────────────────────────────────────────────────────────────────────── */
 @keyframes fsh-enter {

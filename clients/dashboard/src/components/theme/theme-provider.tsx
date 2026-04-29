@@ -11,9 +11,12 @@ import {
   ACCENT_STORAGE_KEY,
   accents,
   DEFAULT_ACCENT,
+  DEFAULT_DENSITY,
   DEFAULT_FONT,
+  DENSITY_STORAGE_KEY,
   FONT_STORAGE_KEY,
   fonts,
+  type DensityMode,
 } from "@/components/theme/appearance-options";
 
 export type ThemeMode = "light" | "dark" | "system";
@@ -27,6 +30,8 @@ type ThemeContextValue = {
   setFont: (id: string) => void;
   accent: string;
   setAccent: (id: string) => void;
+  density: DensityMode;
+  setDensity: (next: DensityMode) => void;
 };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -82,6 +87,11 @@ function applyAccent(id: string) {
   }
 }
 
+function applyDensity(value: DensityMode) {
+  if (typeof document === "undefined") return;
+  document.documentElement.classList.toggle("density-compact", value === "compact");
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [mode, setModeState] = useState<ThemeMode>(() => readStoredMode());
   const [resolved, setResolved] = useState<ResolvedTheme>(() =>
@@ -99,15 +109,21 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [accent, setAccentState] = useState<string>(() =>
     readStoredString(ACCENT_STORAGE_KEY, DEFAULT_ACCENT),
   );
+  const [density, setDensityState] = useState<DensityMode>(() => {
+    const stored = readStoredString(DENSITY_STORAGE_KEY, DEFAULT_DENSITY);
+    return stored === "compact" ? "compact" : DEFAULT_DENSITY;
+  });
 
   // Apply resolved theme on every change.
   useEffect(() => {
     applyResolved(resolved);
   }, [resolved]);
 
-  // Apply font / accent — covers initial render and any subsequent change.
+  // Apply font / accent / density — covers initial render and any
+  // subsequent change.
   useEffect(() => applyFont(font), [font]);
   useEffect(() => applyAccent(accent), [accent]);
+  useEffect(() => applyDensity(density), [density]);
 
   // Recompute resolved when mode changes; subscribe to system in "system" mode.
   useEffect(() => {
@@ -149,9 +165,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const setDensity = useCallback((next: DensityMode) => {
+    setDensityState(next);
+    try {
+      window.localStorage.setItem(DENSITY_STORAGE_KEY, next);
+    } catch {
+      /* storage unavailable */
+    }
+  }, []);
+
   const value = useMemo<ThemeContextValue>(
-    () => ({ mode, resolved, setMode, font, setFont, accent, setAccent }),
-    [mode, resolved, setMode, font, setFont, accent, setAccent],
+    () => ({ mode, resolved, setMode, font, setFont, accent, setAccent, density, setDensity }),
+    [mode, resolved, setMode, font, setFont, accent, setAccent, density, setDensity],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
