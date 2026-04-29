@@ -6,6 +6,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Receipt,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 
@@ -29,6 +30,12 @@ const groups: NavGroup[] = [
       { to: "/", label: "Overview", icon: LayoutDashboard },
       { to: "/activity", label: "Live activity", icon: Activity },
       { to: "/invoices", label: "Invoices", icon: Receipt },
+    ],
+  },
+  {
+    caption: "Account",
+    items: [
+      { to: "/settings", label: "Settings", icon: Settings },
     ],
   },
 ];
