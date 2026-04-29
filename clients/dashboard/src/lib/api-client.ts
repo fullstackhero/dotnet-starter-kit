@@ -25,14 +25,22 @@ let refreshPromise: Promise<void> | null = null;
 
 async function refreshAccessToken() {
   const refreshToken = tokenStore.getRefreshToken();
-  if (!refreshToken) {
+  const accessToken = tokenStore.getAccessToken();
+  if (!refreshToken || !accessToken) {
     throw new ApiRequestError(401, "No refresh token");
   }
 
+  // Server's RefreshTokenCommand requires both `token` (the existing, possibly expired
+  // access token, used to cross-check the subject) and `refreshToken`. Sending only one
+  // of them fails FluentValidation and surfaces as 500.
+  const tenant = tokenStore.getTenant() ?? env.defaultTenant;
   const response = await fetch(`${env.apiBase}/api/v1/identity/token/refresh`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refreshToken }),
+    headers: {
+      "Content-Type": "application/json",
+      ...(tenant ? { tenant } : {}),
+    },
+    body: JSON.stringify({ token: accessToken, refreshToken }),
   });
 
   if (!response.ok) {
@@ -40,11 +48,13 @@ async function refreshAccessToken() {
     throw new ApiRequestError(response.status, "Refresh failed");
   }
 
+  // Server's RefreshTokenCommandResponse returns `{ token, refreshToken, refreshTokenExpiryTime }` —
+  // note the rotated access token is on `token`, not `accessToken`.
   const tokens = (await response.json()) as {
-    accessToken: string;
+    token: string;
     refreshToken: string;
   };
-  tokenStore.setTokens(tokens.accessToken, tokens.refreshToken);
+  tokenStore.setTokens(tokens.token, tokens.refreshToken);
 }
 
 async function parseError(response: Response): Promise<ApiError | undefined> {
