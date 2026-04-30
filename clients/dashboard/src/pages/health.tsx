@@ -248,7 +248,12 @@ export function HealthPage() {
           ) : (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {snapshot.results.map((entry, idx) => (
-                <CheckCard key={entry.name} entry={entry} animationDelayMs={60 * idx} />
+                <CheckCard
+                  key={entry.name}
+                  entry={entry}
+                  index={idx}
+                  animationDelayMs={60 * idx}
+                />
               ))}
             </div>
           )
@@ -438,12 +443,33 @@ function HistoryRibbon({ ticks }: { ticks: Tick[] }) {
 }
 
 // ────────────────────────────────────────────────────────────────────────
-// Per-check card — name, description, latency, optional details. Status
-// pill in the top-right with a colored left edge that doubles as the
-// status bar. Subtle.
+// Per-check card — telemetry rack-unit faceplate.
+//
+// Aesthetic vocabulary: each check reads as one slot in an instrument
+// panel. A subtle tone-tinted rail along the top edge identifies the
+// status. The slot is labelled (SLOT 01, 02 …) and the dependency name
+// is rendered in mono — it IS a service identifier, treat it like one.
+// The dominant readout is the latency, big and tabular, paired with a
+// log-curved gauge bar that tints to the status tone. A glowing LED
+// chip on the right communicates state at a glance and breathes
+// gently. Detail metadata renders as `KEY=value` env-var chips.
 // ────────────────────────────────────────────────────────────────────────
 
-function CheckCard({ entry, animationDelayMs }: { entry: HealthEntry; animationDelayMs: number }) {
+function splitLatency(ms: number): [string, string] {
+  if (ms < 10) return [ms.toFixed(1), "ms"];
+  if (ms < 1000) return [ms.toFixed(0), "ms"];
+  return [(ms / 1000).toFixed(2), "s"];
+}
+
+function CheckCard({
+  entry,
+  index,
+  animationDelayMs,
+}: {
+  entry: HealthEntry;
+  index: number;
+  animationDelayMs: number;
+}) {
   const tone = toneFor(entry.status);
   const Icon = iconForCheck(entry.name);
   const toneColor = TONE_VAR[tone];
@@ -451,82 +477,87 @@ function CheckCard({ entry, animationDelayMs }: { entry: HealthEntry; animationD
     ? Object.entries(entry.details).filter(([k]) => k !== "tag")
     : [];
 
+  // sqrt-scaled fill against a 500ms soft budget. A linear bar parks
+  // every fast check at <5% (visually dead). sqrt gives 1ms ~= 4%,
+  // 50ms ~= 31%, 250ms ~= 71%, 500ms = 100%, and saturates beyond.
+  const pct = Math.min(100, Math.sqrt(Math.max(0, entry.durationMs) / 500) * 100);
+  const [num, unit] = splitLatency(entry.durationMs);
+
   return (
-    <Card
-      interactive
-      className="fsh-enter relative overflow-hidden"
-      style={{ animationDelay: `${animationDelayMs}ms` } as React.CSSProperties}
+    <article
+      className="health-card fsh-enter"
+      aria-label={`${entry.name} — ${entry.status}`}
+      style={
+        {
+          animationDelay: `${animationDelayMs}ms`,
+          "--tone": toneColor,
+        } as React.CSSProperties
+      }
     >
-      {/* Colored left edge — 2px tall accent that signals status without
-          competing with content. Healthy uses primary tint instead of
-          green so the wall isn't a wall of green when everything works. */}
-      <span
-        aria-hidden
-        className="absolute inset-y-0 left-0 w-[2px]"
-        style={{
-          background:
-            entry.status === "Healthy"
-              ? "linear-gradient(180deg, var(--color-primary), oklch(from var(--color-primary) l c h / 0.4))"
-              : `linear-gradient(180deg, ${toneColor}, oklch(from ${toneColor} l c h / 0.4))`,
-        }}
-      />
+      <span aria-hidden className="health-card__rail" />
 
-      <CardContent className="px-5 pb-4 pt-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <span
-              aria-hidden
-              className="grid h-7 w-7 place-items-center rounded-md"
-              style={{
-                background: `linear-gradient(135deg, oklch(from ${toneColor} l c h / 0.16), oklch(from ${toneColor} l c h / 0.02))`,
-                color: toneColor,
-              }}
-            >
-              <Icon className="h-3.5 w-3.5" />
+      <header className="health-card__header">
+        <div className="health-card__id">
+          <span className="health-card__icon" aria-hidden>
+            <Icon className="h-3.5 w-3.5" />
+          </span>
+          <div className="health-card__title-block">
+            <span className="health-card__index">
+              SLOT · {String(index + 1).padStart(2, "0")}
             </span>
-            <span className="text-sm font-semibold tracking-tight">{entry.name}</span>
+            <h3 className="health-card__name" title={entry.name}>
+              {entry.name}
+            </h3>
           </div>
-          <Badge variant={tone === "success" ? "success" : tone === "warning" ? "warning" : "danger"}>
-            {entry.status}
-          </Badge>
         </div>
 
-        {entry.description && (
-          <p className="mt-2.5 line-clamp-2 text-xs leading-relaxed text-[var(--color-muted-foreground)]">
-            {entry.description}
-          </p>
-        )}
+        <span className="health-card__led-block" aria-label={entry.status}>
+          <span className="health-card__led" aria-hidden />
+          <span className="health-card__led-label">{entry.status}</span>
+        </span>
+      </header>
 
-        <div className="mt-3 flex items-center justify-between gap-2 border-t border-[var(--color-border)] pt-2.5">
-          <span className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
-            latency
-          </span>
-          <span className="font-mono text-xs font-medium tabular-nums">
-            {formatLatency(entry.durationMs)}
-          </span>
+      {entry.description ? (
+        <p className="health-card__desc">{entry.description}</p>
+      ) : (
+        <p className="health-card__desc health-card__desc--muted">
+          No description registered.
+        </p>
+      )}
+
+      <div className="health-card__readout">
+        <div className="health-card__numeric">
+          <span className="health-card__num">{num}</span>
+          <span className="health-card__unit">{unit}</span>
         </div>
+        <span className="health-card__metric-label">latency</span>
+      </div>
 
-        {detailEntries.length > 0 && (
-          <div className="mt-2.5 flex flex-wrap gap-1.5">
-            {detailEntries.slice(0, 4).map(([k, v]) => (
-              <span
-                key={k}
-                className="inline-flex max-w-[14rem] items-center gap-1 rounded-full bg-[var(--color-muted)] px-2 py-0.5 font-mono text-[10.5px] text-[var(--color-muted-foreground)]"
-                title={`${k}: ${String(v)}`}
-              >
-                <span className="uppercase tracking-[0.08em]">{k}</span>
-                <span className="truncate text-[var(--color-foreground)]">{String(v)}</span>
-              </span>
-            ))}
-            {detailEntries.length > 4 && (
-              <span className="font-mono text-[10.5px] text-[var(--color-muted-foreground)]">
-                +{detailEntries.length - 4} more
-              </span>
-            )}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      <div className="health-card__bar" aria-hidden>
+        <span className="health-card__bar-fill" style={{ width: `${pct}%` }} />
+      </div>
+
+      {detailEntries.length > 0 && (
+        <div className="health-card__details">
+          {detailEntries.slice(0, 4).map(([k, v]) => (
+            <span
+              className="health-card__chip"
+              key={k}
+              title={`${k}: ${String(v)}`}
+            >
+              <span className="health-card__chip-key">{k}</span>
+              <span className="health-card__chip-eq">=</span>
+              <span className="health-card__chip-val">{String(v)}</span>
+            </span>
+          ))}
+          {detailEntries.length > 4 && (
+            <span className="health-card__chip-more">
+              +{detailEntries.length - 4}
+            </span>
+          )}
+        </div>
+      )}
+    </article>
   );
 }
 
@@ -565,19 +596,28 @@ function ChecksSkeleton() {
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
       {[0, 1, 2, 3, 4, 5].map((i) => (
-        <Card key={i}>
-          <CardContent className="space-y-2.5 px-5 pb-4 pt-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <Skeleton className="h-7 w-7 rounded-md" />
-                <Skeleton className="h-4 w-24" />
+        <div
+          key={i}
+          className="health-card health-card--skeleton"
+          style={{ ["--tone"]: "var(--color-muted-foreground)" } as React.CSSProperties}
+        >
+          <div className="health-card__header">
+            <div className="health-card__id">
+              <Skeleton className="h-7 w-7 rounded-md" />
+              <div className="space-y-1.5">
+                <Skeleton className="h-2 w-14" />
+                <Skeleton className="h-3 w-28" />
               </div>
-              <Skeleton className="h-5 w-16 rounded-full" />
             </div>
-            <Skeleton className="h-3 w-full" />
-            <Skeleton className="h-3 w-3/4" />
-          </CardContent>
-        </Card>
+            <Skeleton className="h-5 w-20 rounded-full" />
+          </div>
+          <Skeleton className="h-3 w-full" />
+          <div className="flex items-baseline justify-between gap-2">
+            <Skeleton className="h-7 w-20" />
+            <Skeleton className="h-2 w-12" />
+          </div>
+          <Skeleton className="h-1 w-full rounded-full" />
+        </div>
       ))}
     </div>
   );
