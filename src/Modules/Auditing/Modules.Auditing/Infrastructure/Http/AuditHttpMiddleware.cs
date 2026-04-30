@@ -25,7 +25,18 @@ public sealed class AuditHttpMiddleware
             return;
         }
 
-        var requestContext = await CaptureRequestAsync(ctx);
+        // Endpoint-level opt-out via [NoAudit]. Two flavours:
+        //   • full skip (default) — don't write any audit at all
+        //   • body-only — record the activity but elide previews
+        var noAudit = ctx.GetEndpoint()?.Metadata.GetMetadata<NoAuditAttribute>();
+        if (noAudit is { BodyOnly: false })
+        {
+            await _next(ctx).ConfigureAwait(false);
+            return;
+        }
+        bool suppressBodies = noAudit is { BodyOnly: true };
+
+        var requestContext = await CaptureRequestAsync(ctx, suppressBodies);
         var sw = Stopwatch.StartNew();
 
         var originalBody = ctx.Response.Body;
@@ -37,7 +48,7 @@ public sealed class AuditHttpMiddleware
             await _next(ctx).ConfigureAwait(false);
             sw.Stop();
 
-            await WriteSuccessAuditAsync(ctx, requestContext, responseBuffer, originalBody, sw);
+            await WriteSuccessAuditAsync(ctx, requestContext, responseBuffer, originalBody, sw, suppressBodies);
         }
         catch (Exception ex)
         {
@@ -48,13 +59,13 @@ public sealed class AuditHttpMiddleware
         }
     }
 
-    private async Task<RequestCaptureContext> CaptureRequestAsync(HttpContext ctx)
+    private async Task<RequestCaptureContext> CaptureRequestAsync(HttpContext ctx, bool suppressBodies)
     {
         object? reqPreview = null;
         int reqSize = 0;
         int maskedFields = 0;
 
-        if (ShouldCaptureBody(ctx.Request.ContentType))
+        if (!suppressBodies && ShouldCaptureBody(ctx.Request.ContentType))
         {
             var masker = ctx.RequestServices.GetService<IAuditMaskingService>();
             (reqPreview, reqSize) = await HttpBodyReader.ReadRequestAsync(ctx, _opts.MaxRequestBytes, ctx.RequestAborted);
@@ -75,18 +86,19 @@ public sealed class AuditHttpMiddleware
         RequestCaptureContext requestContext,
         MemoryStream responseBuffer,
         Stream originalBody,
-        Stopwatch sw)
+        Stopwatch sw,
+        bool suppressBodies)
     {
-        var (respPreview, respSize, respMasked) = await CaptureResponseAsync(ctx, responseBuffer);
+        var (respPreview, respSize, respMasked) = await CaptureResponseAsync(ctx, responseBuffer, suppressBodies);
 
         await RestoreResponseBodyAsync(responseBuffer, originalBody, ctx);
 
         await WriteActivityAuditAsync(ctx, requestContext, respPreview, respSize, respMasked, sw);
     }
 
-    private async Task<(object? Preview, int Size, int MaskedFields)> CaptureResponseAsync(HttpContext ctx, MemoryStream responseBuffer)
+    private async Task<(object? Preview, int Size, int MaskedFields)> CaptureResponseAsync(HttpContext ctx, MemoryStream responseBuffer, bool suppressBodies)
     {
-        if (!ShouldCaptureBody(ctx.Response.ContentType))
+        if (suppressBodies || !ShouldCaptureBody(ctx.Response.ContentType))
         {
             return (null, 0, 0);
         }

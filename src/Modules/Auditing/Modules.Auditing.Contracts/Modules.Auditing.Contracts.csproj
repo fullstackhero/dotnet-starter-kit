@@ -7,6 +7,9 @@
 		<NoWarn>$(NoWarn);S2094</NoWarn>
 	</PropertyGroup>
 	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+	<ItemGroup>
 		<PackageReference Include="Mediator.Abstractions" />
 	</ItemGroup>
 	<ItemGroup>

@@ -24,7 +24,7 @@ public sealed class JsonMaskingServiceTests
         var result = _sut.ApplyMasking(payload);
 
         // Assert
-        var json = result as JsonNode;
+        var json = result.Payload as JsonNode;
         json.ShouldNotBeNull();
         json["password"]?.GetValue<string>().ShouldBe("****");
         json["username"]?.GetValue<string>().ShouldBe("john");
@@ -40,7 +40,7 @@ public sealed class JsonMaskingServiceTests
         var result = _sut.ApplyMasking(payload);
 
         // Assert
-        var json = result as JsonNode;
+        var json = result.Payload as JsonNode;
         json.ShouldNotBeNull();
         json["apiSecret"]?.GetValue<string>().ShouldBe("****");
         json["name"]?.GetValue<string>().ShouldBe("test");
@@ -56,7 +56,7 @@ public sealed class JsonMaskingServiceTests
         var result = _sut.ApplyMasking(payload);
 
         // Assert
-        var json = result as JsonNode;
+        var json = result.Payload as JsonNode;
         json.ShouldNotBeNull();
         json["token"]?.GetValue<string>().ShouldBe("****");
     }
@@ -71,7 +71,7 @@ public sealed class JsonMaskingServiceTests
         var result = _sut.ApplyMasking(payload);
 
         // Assert
-        var json = result as JsonNode;
+        var json = result.Payload as JsonNode;
         json.ShouldNotBeNull();
         json["otp"]?.GetValue<string>().ShouldBe("****");
         json["email"]?.GetValue<string>().ShouldBe("test@example.com");
@@ -87,7 +87,7 @@ public sealed class JsonMaskingServiceTests
         var result = _sut.ApplyMasking(payload);
 
         // Assert
-        var json = result as JsonNode;
+        var json = result.Payload as JsonNode;
         json.ShouldNotBeNull();
         json["pin"]?.GetValue<string>().ShouldBe("****");
     }
@@ -102,7 +102,7 @@ public sealed class JsonMaskingServiceTests
         var result = _sut.ApplyMasking(payload);
 
         // Assert
-        var json = result as JsonNode;
+        var json = result.Payload as JsonNode;
         json.ShouldNotBeNull();
         json["accessToken"]?.GetValue<string>().ShouldBe("****");
         json["scope"]?.GetValue<string>().ShouldBe("read");
@@ -118,7 +118,7 @@ public sealed class JsonMaskingServiceTests
         var result = _sut.ApplyMasking(payload);
 
         // Assert
-        var json = result as JsonNode;
+        var json = result.Payload as JsonNode;
         json.ShouldNotBeNull();
         json["refreshToken"]?.GetValue<string>().ShouldBe("****");
         json["expiresIn"]?.GetValue<int>().ShouldBe(3600);
@@ -142,7 +142,7 @@ public sealed class JsonMaskingServiceTests
         var result = _sut.ApplyMasking(payload);
 
         // Assert
-        var json = result as JsonNode;
+        var json = result.Payload as JsonNode;
         json.ShouldNotBeNull();
         json[fieldName]?.GetValue<string>().ShouldBe("****");
     }
@@ -157,7 +157,7 @@ public sealed class JsonMaskingServiceTests
         var result = _sut.ApplyMasking(payload);
 
         // Assert
-        var json = result as JsonNode;
+        var json = result.Payload as JsonNode;
         json.ShouldNotBeNull();
         json["userPassword"]?.GetValue<string>().ShouldBe("****");
         json["userId"]?.GetValue<string>().ShouldBe("user1");
@@ -173,7 +173,7 @@ public sealed class JsonMaskingServiceTests
         var result = _sut.ApplyMasking(payload);
 
         // Assert
-        var json = result as JsonNode;
+        var json = result.Payload as JsonNode;
         json.ShouldNotBeNull();
         json["clientSecret"]?.GetValue<string>().ShouldBe("****");
         json["clientId"]?.GetValue<string>().ShouldBe("client1");
@@ -196,7 +196,7 @@ public sealed class JsonMaskingServiceTests
         var result = _sut.ApplyMasking(payload);
 
         // Assert
-        var json = result as JsonNode;
+        var json = result.Payload as JsonNode;
         json.ShouldNotBeNull();
         json["user"]?["password"]?.GetValue<string>().ShouldBe("****");
         json["user"]?["name"]?.GetValue<string>().ShouldBe("john");
@@ -222,7 +222,7 @@ public sealed class JsonMaskingServiceTests
         var result = _sut.ApplyMasking(payload);
 
         // Assert
-        var json = result as JsonNode;
+        var json = result.Payload as JsonNode;
         json.ShouldNotBeNull();
         json["auth"]?["credentials"]?["token"]?.GetValue<string>().ShouldBe("****");
         json["auth"]?["credentials"]?["type"]?.GetValue<string>().ShouldBe("bearer");
@@ -245,7 +245,7 @@ public sealed class JsonMaskingServiceTests
         var result = _sut.ApplyMasking(payload);
 
         // Assert
-        var json = result as JsonNode;
+        var json = result.Payload as JsonNode;
         json.ShouldNotBeNull();
         var users = json["users"] as JsonArray;
         users.ShouldNotBeNull();
@@ -269,7 +269,10 @@ public sealed class JsonMaskingServiceTests
         var result = _sut.ApplyMasking(payload!);
 
         // Assert
-        result.ShouldBeNull();
+        // Null payload serializes to JSON null; nothing to mask, so the
+        // service returns the original reference with a zero count.
+        result.MaskedFieldCount.ShouldBe(0);
+        result.Payload.ShouldBeNull();
     }
 
     [Fact]
@@ -288,7 +291,7 @@ public sealed class JsonMaskingServiceTests
         var result = _sut.ApplyMasking(payload);
 
         // Assert
-        var json = result as JsonNode;
+        var json = result.Payload as JsonNode;
         json.ShouldNotBeNull();
         json["username"]?.GetValue<string>().ShouldBe("john");
         json["email"]?.GetValue<string>().ShouldBe("john@example.com");
@@ -306,7 +309,7 @@ public sealed class JsonMaskingServiceTests
         var result = _sut.ApplyMasking(payload);
 
         // Assert
-        var json = result as JsonNode;
+        var json = result.Payload as JsonNode;
         json.ShouldNotBeNull();
     }
 
@@ -320,7 +323,7 @@ public sealed class JsonMaskingServiceTests
         var result = _sut.ApplyMasking(payload);
 
         // Assert
-        var json = result as JsonNode;
+        var json = result.Payload as JsonNode;
         json.ShouldNotBeNull();
         var items = json["items"] as JsonArray;
         items.ShouldNotBeNull();
@@ -340,7 +343,7 @@ public sealed class JsonMaskingServiceTests
         var result = _sut.ApplyMasking(payload);
 
         // Assert
-        var json = result as JsonNode;
+        var json = result.Payload as JsonNode;
         json.ShouldNotBeNull();
         var data = json["data"] as JsonArray;
         data.ShouldNotBeNull();
@@ -367,7 +370,7 @@ public sealed class JsonMaskingServiceTests
         var result = _sut.ApplyMasking(payload);
 
         // Assert
-        var json = result as JsonNode;
+        var json = result.Payload as JsonNode;
         json.ShouldNotBeNull();
         json["password"]?.GetValue<string>().ShouldBe("****");
         json["secret"]?.GetValue<string>().ShouldBe("****");

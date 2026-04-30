@@ -32,7 +32,7 @@ public class BaseDbContext(IMultiTenantContextAccessor<AppTenantInfo> multiTenan
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
-        modelBuilder.AppendGlobalQueryFilter<ISoftDeletable>(s => !s.IsDeleted);
+        modelBuilder.AppendGlobalQueryFilter<ISoftDeletable>(QueryFilters.SoftDelete, s => !s.IsDeleted);
         base.OnModelCreating(modelBuilder);
     }
 
