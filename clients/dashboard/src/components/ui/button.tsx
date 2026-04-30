@@ -16,11 +16,11 @@ import { cn } from "@/lib/cn";
  */
 const buttonVariants = cva(
   [
-    "relative inline-flex select-none items-center justify-center gap-2 whitespace-nowrap",
+    "relative inline-flex cursor-pointer select-none items-center justify-center gap-2 whitespace-nowrap",
     "rounded-md text-sm font-medium tracking-tight",
     "transition-[background-color,box-shadow,transform,color] duration-[var(--duration-default)] ease-[var(--ease-out-cubic)]",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-background)]",
-    "disabled:pointer-events-none disabled:opacity-50",
+    "disabled:cursor-not-allowed disabled:pointer-events-none disabled:opacity-50",
     "active:translate-y-px",
   ].join(" "),
   {

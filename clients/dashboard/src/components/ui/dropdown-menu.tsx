@@ -52,7 +52,8 @@ export const DropdownMenuItem = React.forwardRef<
     className={cn(
       // The `group` class lets descendants react to [data-highlighted]
       // via Tailwind's group-data-* selector (see QuickAction in topbar).
-      "group relative mx-1 my-0.5 flex cursor-default select-none items-center gap-2.5 rounded-md px-2.5 py-2 text-sm",
+      "group relative mx-1 my-0.5 flex cursor-pointer select-none items-center gap-2.5 rounded-md px-2.5 py-2 text-sm",
+      "data-[disabled]:cursor-not-allowed",
       // Radix moves keyboard focus to the highlighted item, which would
       // otherwise trigger the global :focus-visible halo on top of the
       // bg-accent hover signal — visible as a thick brand outline.

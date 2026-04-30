@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { flushSync } from "react-dom";
 import {
   ACCENT_STORAGE_KEY,
   accents,
@@ -37,6 +38,7 @@ type ThemeContextValue = {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 const THEME_STORAGE_KEY = "fsh.theme";
 const ACCENT_CLASS_PREFIX = "accent-";
+const FALLBACK_TRANSITION_MS = 280;
 
 function readStoredMode(): ThemeMode {
   if (typeof window === "undefined") return "system";
@@ -62,9 +64,65 @@ function systemPrefersDark(): boolean {
   return window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
 
-function applyResolved(resolved: ResolvedTheme) {
+function applyDarkClass(next: ResolvedTheme) {
+  document.documentElement.classList.toggle("dark", next === "dark");
+}
+
+let fallbackTimer: number | undefined;
+
+/**
+ * Wraps a DOM mutation in the smoothest available crossfade:
+ *
+ *  1. View Transitions API — single bitmap snapshot crossfade. The only
+ *     mechanism that can morph gradients, box-shadows, SVG fills,
+ *     conic/radial backgrounds, and image-based surfaces in lockstep
+ *     with text and bg-color. Handles every property uniformly.
+ *  2. Firefox / older browsers — opt into the scoped `theme-switching`
+ *     blanket transition for the subset of properties CSS *can*
+ *     interpolate.
+ *  3. Reduced-motion / cold load — apply instantly, no animation.
+ *
+ * The commit callback MUST update the DOM synchronously. We use
+ * `flushSync` at the call site so React's state updates land inside the
+ * View Transitions snapshot window — otherwise the toggle thumb would
+ * lead the actual class flip by a frame and the snapshot would be
+ * inconsistent with the new state.
+ */
+function withThemeTransition(commit: () => void): void {
   const root = document.documentElement;
-  root.classList.toggle("dark", resolved === "dark");
+  const ready = root.classList.contains("theme-ready");
+  const reduceMotion =
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const canViewTransition = typeof document.startViewTransition === "function";
+
+  if (!ready || reduceMotion) {
+    commit();
+    return;
+  }
+
+  if (canViewTransition) {
+    // Mark the document for the duration of the transition so component
+    // CSS can opt out of competing transitions (e.g. the seg-thumb's own
+    // transform animation, which would otherwise interpolate inside the
+    // captured snapshot and tear).
+    root.classList.add("vt-active");
+    const transition = document.startViewTransition!(commit);
+    const cleanup = () => root.classList.remove("vt-active");
+    transition.finished.then(cleanup, cleanup);
+    return;
+  }
+
+  root.classList.add("theme-switching");
+  if (fallbackTimer !== undefined) window.clearTimeout(fallbackTimer);
+  try {
+    commit();
+  } finally {
+    fallbackTimer = window.setTimeout(() => {
+      root.classList.remove("theme-switching");
+      fallbackTimer = undefined;
+    }, FALLBACK_TRANSITION_MS);
+  }
 }
 
 function applyFont(id: string) {
@@ -114,32 +172,50 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return stored === "compact" ? "compact" : DEFAULT_DENSITY;
   });
 
-  // Apply resolved theme on every change.
-  useEffect(() => {
-    applyResolved(resolved);
-  }, [resolved]);
-
   // Apply font / accent / density — covers initial render and any
-  // subsequent change.
+  // subsequent change. The dark class is owned by withThemeTransition
+  // and the index.html bootstrap script; no useEffect for `resolved`.
   useEffect(() => applyFont(font), [font]);
   useEffect(() => applyAccent(accent), [accent]);
   useEffect(() => applyDensity(density), [density]);
 
-  // Recompute resolved when mode changes; subscribe to system in "system" mode.
+  // Subscribe to system preference while in "system" mode. Future OS
+  // changes route through withThemeTransition so they crossfade too.
   useEffect(() => {
-    if (mode === "system") {
-      const mq = window.matchMedia("(prefers-color-scheme: dark)");
-      const update = () => setResolved(mq.matches ? "dark" : "light");
-      update();
-      mq.addEventListener("change", update);
-      return () => mq.removeEventListener("change", update);
-    }
-    setResolved(mode);
-    return undefined;
+    if (mode !== "system") return undefined;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const update = () => {
+      const next: ResolvedTheme = mq.matches ? "dark" : "light";
+      withThemeTransition(() => {
+        flushSync(() => setResolved(next));
+        applyDarkClass(next);
+      });
+    };
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
   }, [mode]);
 
   const setMode = useCallback((next: ThemeMode) => {
-    setModeState(next);
+    const nextResolved: ResolvedTheme =
+      next === "dark"
+        ? "dark"
+        : next === "light"
+          ? "light"
+          : systemPrefersDark()
+            ? "dark"
+            : "light";
+
+    withThemeTransition(() => {
+      // flushSync ensures the new mode/resolved render lands BEFORE the
+      // View Transitions API captures the new snapshot — otherwise the
+      // thumb position in the new snapshot wouldn't match the new state.
+      flushSync(() => {
+        setModeState(next);
+        setResolved(nextResolved);
+      });
+      applyDarkClass(nextResolved);
+    });
+
     try {
       window.localStorage.setItem(THEME_STORAGE_KEY, next);
     } catch {

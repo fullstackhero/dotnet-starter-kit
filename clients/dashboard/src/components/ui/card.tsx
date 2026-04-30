@@ -2,24 +2,31 @@ import * as React from "react";
 import { cn } from "@/lib/cn";
 
 type CardProps = React.HTMLAttributes<HTMLDivElement> & {
-  /** When true, the card lifts and brightens its shadow on hover. */
+  /** When true, the card softens its shadow in on hover. */
   interactive?: boolean;
 };
 
 /**
- * Card — primary content surface. Uses the `gradient-border` utility so
- * the 1px hairline carries a top-to-bottom luminance ramp (reads as a
- * polished metallic edge), plus the `surface-edge` top-edge highlight
- * for the "Linear glint." Optional `interactive` adds hover-lift.
+ * Card — primary content surface, modernized.
+ *
+ * Earlier revisions stacked a luminance-ramped gradient border, an inset
+ * top-edge highlight ("glossy lip"), and a double drop-shadow on hover.
+ * The combination read as 2014-era skeuomorphism on dense pages.
+ *
+ * Now: a single hairline border at low alpha, no resting shadow at all
+ * (depth comes from surface-tier contrast — surface-1 on surface-2 on
+ * surface-3 — not chrome), and on `interactive` a soft pillow-shadow
+ * that fades in slowly with a quiet border-strong tint. Linear / Mercury
+ * vocabulary. The `card-shell` utility owns the styling so we can tune
+ * it in one place.
  */
 export const Card = React.forwardRef<HTMLDivElement, CardProps>(
   ({ className, interactive, ...props }, ref) => (
     <div
       ref={ref}
       className={cn(
-        "gradient-border rounded-xl bg-[var(--color-card)] text-[var(--color-card-foreground)]",
-        "shadow-[var(--highlight-top)]",
-        interactive && "hover-lift cursor-default",
+        "card-shell text-[var(--color-card-foreground)]",
+        interactive && "card-shell-interactive cursor-default",
         className,
       )}
       {...props}

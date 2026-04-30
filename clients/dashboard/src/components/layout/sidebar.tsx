@@ -2,11 +2,14 @@ import { useCallback, useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
   Activity,
+  FolderTree,
   LayoutDashboard,
+  Package,
   PanelLeftClose,
   PanelLeftOpen,
   Receipt,
   Settings,
+  Tags,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 
@@ -30,6 +33,14 @@ const groups: NavGroup[] = [
       { to: "/", label: "Overview", icon: LayoutDashboard },
       { to: "/activity", label: "Live activity", icon: Activity },
       { to: "/invoices", label: "Invoices", icon: Receipt },
+    ],
+  },
+  {
+    caption: "Catalog",
+    items: [
+      { to: "/catalog/products", label: "Products", icon: Package },
+      { to: "/catalog/brands", label: "Brands", icon: Tags },
+      { to: "/catalog/categories", label: "Categories", icon: FolderTree },
     ],
   },
   {
@@ -113,7 +124,7 @@ export function Sidebar() {
             aria-expanded
             title="Collapse sidebar"
             className={cn(
-              "grid h-7 w-7 shrink-0 place-items-center rounded-md",
+              "grid h-7 w-7 shrink-0 cursor-pointer place-items-center rounded-md",
               "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
               "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
@@ -158,7 +169,7 @@ export function Sidebar() {
             aria-expanded={false}
             title="Expand sidebar"
             className={cn(
-              "grid h-7 w-7 shrink-0 place-items-center rounded-md",
+              "grid h-7 w-7 shrink-0 cursor-pointer place-items-center rounded-md",
               "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
               "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",

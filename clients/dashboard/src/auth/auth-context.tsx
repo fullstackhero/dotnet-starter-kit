@@ -57,9 +57,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    return tokenStore.subscribe(() => {
-      setUser(claimsToUser(decodeJwt(tokenStore.getAccessToken())));
-    });
+    const refresh = () => setUser(claimsToUser(decodeJwt(tokenStore.getAccessToken())));
+    const unsubscribe = tokenStore.subscribe(refresh);
+
+    // The token store's subscribe() only fires for in-app mutations. Storage
+    // changes from another tab fire a `storage` event, and same-tab manual
+    // clears (e.g. via DevTools) need to be picked up when the user returns
+    // to the tab — otherwise `isAuthenticated` stays true while the token
+    // is gone, and protected requests silently 401 with no header attached.
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === null || e.key.startsWith("fsh.dashboard.")) refresh();
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+    window.addEventListener("storage", onStorage);
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener("storage", onStorage);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, []);
 
   const login = useCallback(

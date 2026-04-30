@@ -13,7 +13,9 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           "transition-[border-color,box-shadow,background-color] duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
           "placeholder:text-[var(--color-muted-foreground)]",
           "hover:border-[var(--color-border-strong)]",
-          "focus-visible:outline-none focus-visible:border-[var(--color-ring)] focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-background)]",
+          // Defer focus styling to the global :focus-visible halo
+          // (outline + outer bloom) so we don't paint a second border.
+          "focus-visible:border-[var(--color-input)]",
           "disabled:cursor-not-allowed disabled:opacity-50",
           className,
         )}

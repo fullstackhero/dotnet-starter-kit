@@ -40,7 +40,7 @@ export function ThemeToggle() {
             title={label}
             onClick={() => setMode(value)}
             className={cn(
-              "relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full",
+              "relative z-10 inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-full",
               "transition-colors duration-[var(--duration-default)] ease-[var(--ease-out-cubic)]",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
               active

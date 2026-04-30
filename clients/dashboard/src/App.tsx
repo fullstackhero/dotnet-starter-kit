@@ -14,14 +14,31 @@ export function App() {
         <AuthProvider>
           <CommandPaletteProvider>
             <RouterProvider router={router} />
+            {/*
+              FSH-native toaster.
+
+              We deliberately don't enable `richColors` — sonner's default palette
+              paints the whole toast surface in saturated green/red, which fights
+              the dashboard's restrained OKLCH vocabulary. Instead each toast
+              shares the same `gradient-border surface-edge` chrome the rest of
+              the app uses, with a 2px tone-coded edge accent on the left and a
+              tinted icon plate. Type styling lives in `globals.css` under the
+              `.fsh-toast` family (one rule per [data-type]).
+            */}
             <Toaster
               position="top-right"
-              richColors
               closeButton
               theme="system"
+              gap={10}
               toastOptions={{
+                duration: 4200,
                 classNames: {
-                  toast: "surface-edge !bg-[var(--color-surface-3)] !text-[var(--color-foreground)]",
+                  toast: "fsh-toast",
+                  title: "fsh-toast-title",
+                  description: "fsh-toast-description",
+                  closeButton: "fsh-toast-close",
+                  actionButton: "fsh-toast-action",
+                  cancelButton: "fsh-toast-cancel",
                 },
               }}
             />

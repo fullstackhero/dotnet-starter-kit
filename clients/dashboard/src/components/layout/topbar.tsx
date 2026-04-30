@@ -98,7 +98,7 @@ function ThemeTile({
       aria-checked={active}
       title={label}
       className={cn(
-        "group/tile relative flex flex-col items-center gap-1.5 overflow-hidden rounded-lg border p-2.5",
+        "group/tile relative flex cursor-pointer flex-col items-center gap-1.5 overflow-hidden rounded-lg border p-2.5",
         "transition-colors duration-[var(--duration-default)] ease-[var(--ease-out-cubic)]",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
         active
@@ -233,7 +233,7 @@ export function Topbar() {
         onClick={() => setPaletteOpen(true)}
         title="Open command palette"
         className={cn(
-          "hidden h-8 items-center gap-2 rounded-md bg-[var(--color-surface-2)] px-2.5 text-xs",
+          "hidden h-8 cursor-pointer items-center gap-2 rounded-md bg-[var(--color-surface-2)] px-2.5 text-xs",
           "gradient-border text-[var(--color-muted-foreground)]",
           "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
           "hover:text-[var(--color-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
@@ -259,7 +259,7 @@ export function Topbar() {
             type="button"
             aria-label="Open profile menu"
             className={cn(
-              "group/profile flex items-center gap-2 rounded-full py-1 pl-1 pr-2",
+              "group/profile flex cursor-pointer items-center gap-2 rounded-full py-1 pl-1 pr-2",
               "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
               "hover:bg-[var(--color-accent)]",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
