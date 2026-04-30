@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { Command } from "cmdk";
 import {
   Activity,
+  HeartPulse,
   KeyRound,
   LayoutDashboard,
   LogOut,
@@ -18,6 +19,7 @@ import {
   Moon,
   Palette,
   Receipt,
+  ScrollText,
   Search,
   Settings as SettingsIcon,
   Shield,
@@ -164,6 +166,22 @@ function CommandPaletteDialog({
             Icon: Receipt,
             keywords: ["billing", "payment"],
             perform: go("/invoices"),
+          },
+          {
+            id: "nav-health",
+            label: "Health",
+            hint: "Readiness probe & dependencies",
+            Icon: HeartPulse,
+            keywords: ["status", "uptime", "system", "ready", "redis", "postgres"],
+            perform: go("/system/health"),
+          },
+          {
+            id: "nav-audits",
+            label: "Audit trail",
+            hint: "Activity, security, entity-change events",
+            Icon: ScrollText,
+            keywords: ["audit", "log", "compliance", "security", "trace", "correlation"],
+            perform: go("/system/audits"),
           },
           {
             id: "nav-settings",

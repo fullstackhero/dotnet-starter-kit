@@ -55,6 +55,14 @@ const NotificationsSettings = lazyNamed(
   "NotificationsSettings",
 );
 const ApiKeysSettings = lazyNamed(() => import("@/pages/settings/api-keys"), "ApiKeysSettings");
+const HealthPage = lazyNamed(() => import("@/pages/health"), "HealthPage");
+const AuditsPage = lazyNamed(() => import("@/pages/audits"), "AuditsPage");
+const TicketsPage = lazyNamed(() => import("@/pages/tickets/tickets"), "TicketsPage");
+const TicketDetailPage = lazyNamed(
+  () => import("@/pages/tickets/ticket-detail"),
+  "TicketDetailPage",
+);
+const TrashPage = lazyNamed(() => import("@/pages/system/trash"), "TrashPage");
 
 /**
  * RouteFallback — what shows while a lazy chunk is downloading. Mirrors
@@ -107,6 +115,11 @@ export const router = createBrowserRouter([
           { index: true, element: withSuspense(<OverviewPage />) },
           { path: "activity", element: withSuspense(<ActivityPage />) },
           { path: "invoices", element: withSuspense(<InvoicesPage />) },
+          { path: "system/health", element: withSuspense(<HealthPage />) },
+          { path: "system/audits", element: withSuspense(<AuditsPage />) },
+          { path: "system/trash", element: withSuspense(<TrashPage />) },
+          { path: "tickets", element: withSuspense(<TicketsPage />) },
+          { path: "tickets/:ticketId", element: withSuspense(<TicketDetailPage />) },
           { path: "catalog", element: <Navigate to="/catalog/brands" replace /> },
           { path: "catalog/brands", element: withSuspense(<BrandsPage />) },
           { path: "catalog/categories", element: withSuspense(<CategoriesPage />) },

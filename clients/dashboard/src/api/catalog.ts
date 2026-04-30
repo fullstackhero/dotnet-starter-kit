@@ -18,6 +18,8 @@ export type BrandDto = {
   logoUrl?: string | null;
   createdAtUtc: string;
   updatedAtUtc?: string | null;
+  deletedOnUtc?: string | null;
+  deletedBy?: string | null;
 };
 
 export type SearchBrandsParams = {
@@ -94,6 +96,8 @@ export type CategoryDto = {
   parentCategoryId?: string | null;
   createdAtUtc: string;
   updatedAtUtc?: string | null;
+  deletedOnUtc?: string | null;
+  deletedBy?: string | null;
 };
 
 export type CategoryTreeNodeDto = {
@@ -202,6 +206,8 @@ export type ProductDto = {
   imageUrl?: string | null;
   createdAtUtc: string;
   updatedAtUtc?: string | null;
+  deletedOnUtc?: string | null;
+  deletedBy?: string | null;
 };
 
 export type SearchProductsParams = {
@@ -337,5 +343,62 @@ export async function adjustProductStock(
 export async function deleteProduct(id: string): Promise<void> {
   await apiFetch<void>(`/api/v1/catalog/products/${encodeURIComponent(id)}`, {
     method: "DELETE",
+  });
+}
+
+// ─── Trash + Restore ──────────────────────────────────────────────────
+
+export function listTrashedBrands(
+  pageNumber = 1,
+  pageSize = 20,
+): Promise<PagedResponse<BrandDto>> {
+  const q = new URLSearchParams({
+    pageNumber: String(pageNumber),
+    pageSize: String(pageSize),
+  });
+  return apiFetch<PagedResponse<BrandDto>>(`/api/v1/catalog/brands/trash?${q.toString()}`);
+}
+
+export function restoreBrand(id: string): Promise<string> {
+  return apiFetch<string>(`/api/v1/catalog/brands/${encodeURIComponent(id)}/restore`, {
+    method: "POST",
+  });
+}
+
+export function listTrashedCategories(
+  pageNumber = 1,
+  pageSize = 20,
+): Promise<PagedResponse<CategoryDto>> {
+  const q = new URLSearchParams({
+    pageNumber: String(pageNumber),
+    pageSize: String(pageSize),
+  });
+  return apiFetch<PagedResponse<CategoryDto>>(
+    `/api/v1/catalog/categories/trash?${q.toString()}`,
+  );
+}
+
+export function restoreCategory(id: string): Promise<string> {
+  return apiFetch<string>(`/api/v1/catalog/categories/${encodeURIComponent(id)}/restore`, {
+    method: "POST",
+  });
+}
+
+export function listTrashedProducts(
+  pageNumber = 1,
+  pageSize = 20,
+): Promise<PagedResponse<ProductDto>> {
+  const q = new URLSearchParams({
+    pageNumber: String(pageNumber),
+    pageSize: String(pageSize),
+  });
+  return apiFetch<PagedResponse<ProductDto>>(
+    `/api/v1/catalog/products/trash?${q.toString()}`,
+  );
+}
+
+export function restoreProduct(id: string): Promise<string> {
+  return apiFetch<string>(`/api/v1/catalog/products/${encodeURIComponent(id)}/restore`, {
+    method: "POST",
   });
 }

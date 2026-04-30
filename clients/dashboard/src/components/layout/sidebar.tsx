@@ -3,13 +3,17 @@ import { NavLink } from "react-router-dom";
 import {
   Activity,
   FolderTree,
+  HeartPulse,
   LayoutDashboard,
   Package,
   PanelLeftClose,
   PanelLeftOpen,
   Receipt,
+  ScrollText,
   Settings,
   Tags,
+  Ticket,
+  Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 
@@ -41,6 +45,20 @@ const groups: NavGroup[] = [
       { to: "/catalog/products", label: "Products", icon: Package },
       { to: "/catalog/brands", label: "Brands", icon: Tags },
       { to: "/catalog/categories", label: "Categories", icon: FolderTree },
+    ],
+  },
+  {
+    caption: "Helpdesk",
+    items: [
+      { to: "/tickets", label: "Tickets", icon: Ticket },
+    ],
+  },
+  {
+    caption: "System",
+    items: [
+      { to: "/system/health", label: "Health", icon: HeartPulse },
+      { to: "/system/audits", label: "Audit trail", icon: ScrollText },
+      { to: "/system/trash", label: "Trash", icon: Trash2 },
     ],
   },
   {
@@ -111,7 +129,7 @@ export function Sidebar() {
           </span>
           {!collapsed && (
             <span className="whitespace-nowrap font-semibold tracking-tight">
-              FullStackHero
+              fullstackhero
             </span>
           )}
         </div>
