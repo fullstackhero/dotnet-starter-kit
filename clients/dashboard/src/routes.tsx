@@ -63,6 +63,22 @@ const TicketDetailPage = lazyNamed(
   "TicketDetailPage",
 );
 const TrashPage = lazyNamed(() => import("@/pages/system/trash"), "TrashPage");
+const SessionsPage = lazyNamed(() => import("@/pages/system/sessions"), "SessionsPage");
+const UsersPage = lazyNamed(() => import("@/pages/identity/users"), "UsersPage");
+const UserDetailPage = lazyNamed(
+  () => import("@/pages/identity/user-detail"),
+  "UserDetailPage",
+);
+const RolesPage = lazyNamed(() => import("@/pages/identity/roles"), "RolesPage");
+const RoleDetailPage = lazyNamed(
+  () => import("@/pages/identity/role-detail"),
+  "RoleDetailPage",
+);
+const GroupsPage = lazyNamed(() => import("@/pages/identity/groups"), "GroupsPage");
+const GroupDetailPage = lazyNamed(
+  () => import("@/pages/identity/group-detail"),
+  "GroupDetailPage",
+);
 
 /**
  * RouteFallback — what shows while a lazy chunk is downloading. Mirrors
@@ -118,8 +134,16 @@ export const router = createBrowserRouter([
           { path: "system/health", element: withSuspense(<HealthPage />) },
           { path: "system/audits", element: withSuspense(<AuditsPage />) },
           { path: "system/trash", element: withSuspense(<TrashPage />) },
+          { path: "system/sessions", element: withSuspense(<SessionsPage />) },
           { path: "tickets", element: withSuspense(<TicketsPage />) },
           { path: "tickets/:ticketId", element: withSuspense(<TicketDetailPage />) },
+          { path: "identity", element: <Navigate to="/identity/users" replace /> },
+          { path: "identity/users", element: withSuspense(<UsersPage />) },
+          { path: "identity/users/:userId", element: withSuspense(<UserDetailPage />) },
+          { path: "identity/roles", element: withSuspense(<RolesPage />) },
+          { path: "identity/roles/:roleId", element: withSuspense(<RoleDetailPage />) },
+          { path: "identity/groups", element: withSuspense(<GroupsPage />) },
+          { path: "identity/groups/:groupId", element: withSuspense(<GroupDetailPage />) },
           { path: "catalog", element: <Navigate to="/catalog/brands" replace /> },
           { path: "catalog/brands", element: withSuspense(<BrandsPage />) },
           { path: "catalog/categories", element: withSuspense(<CategoriesPage />) },

@@ -33,6 +33,7 @@ using FSH.Modules.Identity.Features.v1.Roles.UpsertRole;
 using FSH.Modules.Identity.Features.v1.Sessions.AdminRevokeAllSessions;
 using FSH.Modules.Identity.Features.v1.Sessions.AdminRevokeSession;
 using FSH.Modules.Identity.Features.v1.Sessions.GetMySessions;
+using FSH.Modules.Identity.Features.v1.Sessions.GetTenantSessions;
 using FSH.Modules.Identity.Features.v1.Sessions.GetUserSessions;
 using FSH.Modules.Identity.Features.v1.Sessions.RevokeAllSessions;
 using FSH.Modules.Identity.Features.v1.Sessions.RevokeSession;
@@ -222,6 +223,7 @@ public class IdentityModule : IModule
         group.MapRevokeAllSessionsEndpoint();
 
         // sessions - admin endpoints
+        group.MapGetTenantSessionsEndpoint();
         group.MapGetUserSessionsEndpoint();
         group.MapAdminRevokeSessionEndpoint();
         group.MapAdminRevokeAllSessionsEndpoint();

@@ -11,9 +11,13 @@ import {
   Receipt,
   ScrollText,
   Settings,
+  ShieldCheck,
   Tags,
   Ticket,
   Trash2,
+  Users,
+  UsersRound,
+  Wifi,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 
@@ -54,10 +58,19 @@ const groups: NavGroup[] = [
     ],
   },
   {
+    caption: "Identity",
+    items: [
+      { to: "/identity/users", label: "Users", icon: Users },
+      { to: "/identity/roles", label: "Roles", icon: ShieldCheck },
+      { to: "/identity/groups", label: "Groups", icon: UsersRound },
+    ],
+  },
+  {
     caption: "System",
     items: [
       { to: "/system/health", label: "Health", icon: HeartPulse },
       { to: "/system/audits", label: "Audit trail", icon: ScrollText },
+      { to: "/system/sessions", label: "Sessions", icon: Wifi },
       { to: "/system/trash", label: "Trash", icon: Trash2 },
     ],
   },

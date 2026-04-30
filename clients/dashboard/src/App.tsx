@@ -15,15 +15,16 @@ export function App() {
           <CommandPaletteProvider>
             <RouterProvider router={router} />
             {/*
-              FSH-native toaster.
+              FSH-native toaster — "telegraph slip" treatment.
 
-              We deliberately don't enable `richColors` — sonner's default palette
-              paints the whole toast surface in saturated green/red, which fights
-              the dashboard's restrained OKLCH vocabulary. Instead each toast
-              shares the same `gradient-border surface-edge` chrome the rest of
-              the app uses, with a 2px tone-coded edge accent on the left and a
-              tinted icon plate. Type styling lives in `globals.css` under the
-              `.fsh-toast` family (one rule per [data-type]).
+              `richColors` is intentionally off; the whole colour story lives
+              in a 3px tone-saturated left rail (with a single tally-light
+              pulse on enter) and a bracketed mono channel tag in the header
+              ([OK] / [ERR] / [WARN] / [INFO] / [NOTE] / […]). The default
+              icon plate is hidden — type is announced typographically. All
+              chrome lives in globals.css under the `.fsh-toast` family; the
+              `closeButton` flag below makes sonner render the hairline X we
+              re-style there.
             */}
             <Toaster
               position="top-right"

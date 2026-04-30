@@ -117,6 +117,51 @@ public sealed class SessionService : ISessionService
         return sessions.Select(s => MapToDto(s, isCurrentSession: false)).ToList();
     }
 
+    public async Task<(List<UserSessionDto> Items, long TotalCount)> GetTenantSessionsAsync(
+        bool includeInactive,
+        string? search,
+        int skip,
+        int take,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureValidTenant();
+
+        // Cap server-side so an over-eager client can't pull a tenant's full
+        // session table in one round-trip.
+        if (take is < 1 or > 200) take = 50;
+        if (skip < 0) skip = 0;
+
+        var now = _timeProvider.GetUtcNow().UtcDateTime;
+        var q = _db.UserSessions
+            .AsNoTracking()
+            .Include(s => s.User)
+            .AsQueryable();
+
+        if (!includeInactive)
+        {
+            q = q.Where(s => !s.IsRevoked && s.ExpiresAt > now);
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            string term = search.Trim();
+            q = q.Where(s =>
+                (s.User != null && s.User.UserName != null && EF.Functions.ILike(s.User.UserName, $"%{term}%"))
+                || (s.User != null && s.User.Email != null && EF.Functions.ILike(s.User.Email, $"%{term}%"))
+                || (s.IpAddress != null && EF.Functions.ILike(s.IpAddress, $"%{term}%")));
+        }
+
+        long total = await q.LongCountAsync(cancellationToken);
+
+        var sessions = await q
+            .OrderByDescending(s => s.LastActivityAt)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(cancellationToken);
+
+        return (sessions.Select(s => MapToDto(s, isCurrentSession: false)).ToList(), total);
+    }
+
     public async Task<UserSessionDto?> GetSessionAsync(
         Guid sessionId,
         CancellationToken cancellationToken = default)
