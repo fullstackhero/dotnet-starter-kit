@@ -7,12 +7,16 @@ namespace FSH.Modules.Tickets.Domain;
 /// the parent aggregate stays the consistency boundary — comments are
 /// never persisted independently.
 /// </summary>
-public sealed class TicketComment : BaseEntity<Guid>
+public sealed class TicketComment : BaseEntity<Guid>, ISoftDeletable
 {
     public Guid TicketId { get; private set; }
     public Guid AuthorUserId { get; private set; }
     public string Body { get; private set; } = default!;
     public DateTime CreatedAtUtc { get; private set; }
+
+    public bool IsDeleted { get; private set; }
+    public DateTimeOffset? DeletedOnUtc { get; private set; }
+    public string? DeletedBy { get; private set; }
 
     private TicketComment() { }
 

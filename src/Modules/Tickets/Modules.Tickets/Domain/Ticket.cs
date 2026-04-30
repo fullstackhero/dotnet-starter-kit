@@ -12,7 +12,7 @@ namespace FSH.Modules.Tickets.Domain;
 /// method throws CustomException when called from an illegal state, so
 /// the API surface returns clean 409s for invalid transitions.
 /// </summary>
-public sealed class Ticket : AggregateRoot<Guid>
+public sealed class Ticket : AggregateRoot<Guid>, ISoftDeletable
 {
     private readonly List<TicketComment> _comments = [];
 
@@ -29,7 +29,23 @@ public sealed class Ticket : AggregateRoot<Guid>
     public DateTime? ResolvedAtUtc { get; private set; }
     public DateTime? ClosedAtUtc { get; private set; }
 
+    public bool IsDeleted { get; private set; }
+    public DateTimeOffset? DeletedOnUtc { get; private set; }
+    public string? DeletedBy { get; private set; }
+
     public IReadOnlyCollection<TicketComment> Comments => _comments.AsReadOnly();
+
+    /// <summary>
+    /// Reverses a soft delete. Idempotent.
+    /// </summary>
+    public void Restore()
+    {
+        if (!IsDeleted) return;
+        IsDeleted = false;
+        DeletedOnUtc = null;
+        DeletedBy = null;
+        UpdatedAtUtc = DateTime.UtcNow;
+    }
 
     private Ticket() { }
 

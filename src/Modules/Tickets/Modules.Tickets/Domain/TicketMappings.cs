@@ -18,7 +18,9 @@ internal static class TicketMappings
         t.UpdatedAtUtc,
         t.ResolvedAtUtc,
         t.ClosedAtUtc,
-        t.Comments.Count);
+        t.Comments.Count,
+        t.DeletedOnUtc,
+        t.DeletedBy);
 
     public static TicketDto ToDto(this Ticket t, int commentCount) => new(
         t.Id,
@@ -34,7 +36,9 @@ internal static class TicketMappings
         t.UpdatedAtUtc,
         t.ResolvedAtUtc,
         t.ClosedAtUtc,
-        commentCount);
+        commentCount,
+        t.DeletedOnUtc,
+        t.DeletedBy);
 
     public static TicketCommentDto ToDto(this TicketComment c) => new(
         c.Id, c.TicketId, c.AuthorUserId, c.Body, c.CreatedAtUtc);

@@ -9,8 +9,10 @@ using FSH.Modules.Tickets.Features.v1.Tickets.AssignTicket;
 using FSH.Modules.Tickets.Features.v1.Tickets.CreateTicket;
 using FSH.Modules.Tickets.Features.v1.Tickets.GetTicketById;
 using FSH.Modules.Tickets.Features.v1.Tickets.ListTicketComments;
+using FSH.Modules.Tickets.Features.v1.Tickets.ListTrashedTickets;
 using FSH.Modules.Tickets.Features.v1.Tickets.ReopenTicket;
 using FSH.Modules.Tickets.Features.v1.Tickets.ResolveTicket;
+using FSH.Modules.Tickets.Features.v1.Tickets.RestoreTicket;
 using FSH.Modules.Tickets.Features.v1.Tickets.SearchTickets;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -60,12 +62,14 @@ public sealed class TicketsModule : IModule
             .WithApiVersionSet(versionSet)
             .RequireAuthorization();
 
-        // Comments routes registered before the catch-all `{ticketId:guid}`
-        // GET so the literal `/comments` segment wins. Order matters
-        // because Minimal APIs match the first compatible pattern.
+        // Trash + comment routes registered before the catch-all
+        // `{ticketId:guid}` GET so the literal segments win. Minimal APIs
+        // match the first compatible pattern, so order matters.
+        group.MapListTrashedTicketsEndpoint();
         group.MapAddTicketCommentEndpoint();
         group.MapListTicketCommentsEndpoint();
 
+        group.MapRestoreTicketEndpoint();
         group.MapAssignTicketEndpoint();
         group.MapResolveTicketEndpoint();
         group.MapReopenTicketEndpoint();

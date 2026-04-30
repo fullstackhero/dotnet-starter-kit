@@ -20,4 +20,6 @@ public sealed record TicketDto(
     DateTime? UpdatedAtUtc,
     DateTime? ResolvedAtUtc,
     DateTime? ClosedAtUtc,
-    int CommentCount);
+    int CommentCount,
+    DateTimeOffset? DeletedOnUtc = null,
+    string? DeletedBy = null);

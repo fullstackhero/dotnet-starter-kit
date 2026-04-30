@@ -14,8 +14,9 @@ public sealed class TicketConfiguration : IEntityTypeConfiguration<Ticket>
 
         builder.Property(x => x.Number).IsRequired().HasMaxLength(32);
         // Unique per tenant — Finbuckle adds a TenantId to the row, so the
-        // index ends up being effectively (TenantId, Number).
-        builder.HasIndex(x => x.Number).IsUnique();
+        // index ends up being effectively (TenantId, Number). Filter on
+        // IsDeleted so soft-deleted ticket numbers don't conflict with new ones.
+        builder.HasIndex(x => x.Number).IsUnique().HasFilter("\"IsDeleted\" = FALSE");
 
         builder.Property(x => x.Title).IsRequired().HasMaxLength(160);
         builder.Property(x => x.Description).HasMaxLength(4096);
@@ -27,6 +28,8 @@ public sealed class TicketConfiguration : IEntityTypeConfiguration<Ticket>
         builder.HasIndex(x => x.Status);
         builder.HasIndex(x => x.AssignedToUserId);
         builder.HasIndex(x => x.ReporterUserId);
+        builder.HasIndex(x => x.IsDeleted);
+        builder.Property(x => x.DeletedBy).HasMaxLength(64);
 
         builder.HasMany(x => x.Comments)
             .WithOne()
