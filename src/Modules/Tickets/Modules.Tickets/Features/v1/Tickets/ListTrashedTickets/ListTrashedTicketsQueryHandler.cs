@@ -1,3 +1,4 @@
+using FSH.Framework.Persistence;
 using FSH.Framework.Shared.Persistence;
 using FSH.Modules.Tickets.Contracts.Dtos;
 using FSH.Modules.Tickets.Contracts.v1.Tickets;
@@ -21,7 +22,7 @@ public sealed class ListTrashedTicketsQueryHandler(TicketsDbContext dbContext)
 
         var q = dbContext.Tickets
             .AsNoTracking()
-            .IgnoreQueryFilters()
+            .IgnoreQueryFilters([QueryFilters.SoftDelete])
             .Where(t => t.IsDeleted)
             .OrderByDescending(t => t.DeletedOnUtc);
 

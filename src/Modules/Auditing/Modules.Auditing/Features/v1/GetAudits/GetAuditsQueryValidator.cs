@@ -13,5 +13,15 @@ public sealed class GetAuditsQueryValidator : AbstractValidator<GetAuditsQuery>
         RuleFor(q => q)
             .Must(q => !q.FromUtc.HasValue || !q.ToUtc.HasValue || q.FromUtc <= q.ToUtc)
             .WithMessage("FromUtc must be less than or equal to ToUtc.");
+
+        // Reject obviously oversized windows up-front so the user sees a 400
+        // instead of a silently-clamped result. The handler still clamps as a
+        // defence in depth (e.g. when only one endpoint is supplied).
+        RuleFor(q => q)
+            .Must(q =>
+                !q.FromUtc.HasValue
+                || !q.ToUtc.HasValue
+                || (q.ToUtc.Value - q.FromUtc.Value) <= GetAuditsQueryHandler.MaxWindow)
+            .WithMessage($"Audit query window cannot exceed {GetAuditsQueryHandler.MaxWindow.TotalDays:0} days.");
     }
 }

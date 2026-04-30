@@ -6,6 +6,7 @@ using FSH.Modules.Tickets.Contracts.v1.Tickets;
 using FSH.Modules.Tickets.Data;
 using FSH.Modules.Tickets.Domain;
 using Mediator;
+using FSH.Framework.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Modules.Tickets.Features.v1.Tickets.CreateTicket;
@@ -30,16 +31,19 @@ public sealed class CreateTicketCommandHandler(
 
         // Sequential, tenant-scoped ticket numbers (TK-1, TK-2, …).
         //
-        // We derive the next number from the count of existing rows for
-        // this tenant. Two writers racing here will both get the same
-        // count and the unique index on `Number` will reject the
-        // second with a DbUpdateException — the API surface translates
-        // that to a 409 Conflict, and the caller can retry.
+        // We count ALL tenant rows including soft-deleted ones (via
+        // IgnoreQueryFilters) — otherwise a deleted TK-3 would let us
+        // re-issue TK-3 to a new ticket, which collides with the live
+        // unique index AND is a confusing audit footprint. Two writers
+        // racing here will both compute the same next-number; the
+        // filtered unique index on `Number` rejects the second insert
+        // and the API surface returns 409 — caller can retry.
         //
         // For higher write contention, the right upgrade is a dedicated
         // counter table updated via `UPDATE … RETURNING` (or a Postgres
         // sequence per tenant). The demo doesn't need it.
         long count = await dbContext.Tickets
+            .IgnoreQueryFilters([QueryFilters.SoftDelete])
             .LongCountAsync(cancellationToken)
             .ConfigureAwait(false);
         string number = $"TK-{(count + 1).ToString(CultureInfo.InvariantCulture)}";

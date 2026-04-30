@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.v1.Groups.GetGroupById;
@@ -17,7 +17,7 @@ public static class GetGroupByIdEndpoint
             TypedResults.Ok(await mediator.Send(new GetGroupByIdQuery(id), cancellationToken)))
         .WithName("GetGroupById")
         .WithSummary("Get group by ID")
-        .RequirePermission(IdentityPermissionConstants.Groups.View)
+        .RequirePermission(IdentityPermissions.Groups.View)
         .WithDescription("Retrieve a specific group by its ID including roles and member count.")
         .Produces<GroupDto>(StatusCodes.Status200OK);
     }

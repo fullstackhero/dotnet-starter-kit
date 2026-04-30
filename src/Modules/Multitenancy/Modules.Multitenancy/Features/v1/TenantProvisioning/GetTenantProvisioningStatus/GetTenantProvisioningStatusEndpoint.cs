@@ -1,5 +1,6 @@
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Framework.Shared.Multitenancy;
+using FSH.Modules.Multitenancy.Contracts.Authorization;
 using FSH.Modules.Multitenancy.Contracts.Dtos;
 using FSH.Modules.Multitenancy.Contracts.v1.TenantProvisioning;
 using Mediator;
@@ -20,7 +21,7 @@ public static class GetTenantProvisioningStatusEndpoint
             TypedResults.Ok(await mediator.Send(new GetTenantProvisioningStatusQuery(tenantId))))
             .WithName("GetTenantProvisioningStatus")
             .WithSummary("Get tenant provisioning status")
-            .RequirePermission(MultitenancyConstants.Permissions.View)
+            .RequirePermission(MultitenancyPermissions.Tenants.View)
             .WithDescription("Get latest provisioning status for a tenant.")
             .Produces<TenantProvisioningStatusDto>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)

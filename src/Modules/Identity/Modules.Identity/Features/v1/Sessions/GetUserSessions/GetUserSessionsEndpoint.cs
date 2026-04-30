@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.v1.Sessions.GetUserSessions;
@@ -17,7 +17,7 @@ public static class GetUserSessionsEndpoint
             TypedResults.Ok(await mediator.Send(new GetUserSessionsQuery(userId), cancellationToken)))
         .WithName("GetUserSessions")
         .WithSummary("Get user's sessions (Admin)")
-        .RequirePermission(IdentityPermissionConstants.Sessions.ViewAll)
+        .RequirePermission(IdentityPermissions.Sessions.ViewAll)
         .WithDescription("Retrieve all active sessions for a specific user. Requires admin permission.")
         .Produces<IEnumerable<UserSessionDto>>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status401Unauthorized)

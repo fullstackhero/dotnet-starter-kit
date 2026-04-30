@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.v1.Roles.GetRoles;
@@ -17,7 +17,7 @@ public static class GetRolesEndpoint
             TypedResults.Ok(await mediator.Send(new GetRolesQuery(), cancellationToken)))
         .WithName("ListRoles")
         .WithSummary("List all roles")
-        .RequirePermission(IdentityPermissionConstants.Roles.View)
+        .RequirePermission(IdentityPermissions.Roles.View)
         .Produces<IEnumerable<RoleDto>>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status401Unauthorized)
         .Produces(StatusCodes.Status403Forbidden)

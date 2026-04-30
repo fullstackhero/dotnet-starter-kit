@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Billing.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Billing.Contracts.v1.Usage;
 using Mediator;
@@ -17,6 +17,6 @@ public static class GetUsageSnapshotsEndpoint
                     mediator.Send(new GetUsageSnapshotsQuery(tenantId, periodYear, periodMonth), ct))
             .WithName("GetUsageSnapshots")
             .WithSummary("List captured usage snapshots")
-            .RequirePermission(IdentityPermissionConstants.Billing.View);
+            .RequirePermission(BillingPermissions.View);
     }
 }

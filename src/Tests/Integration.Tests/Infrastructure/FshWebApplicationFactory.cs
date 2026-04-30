@@ -194,6 +194,18 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
                 await init.SeedAsync(CancellationToken.None);
             }
         }
+
+        // Run the role-permission syncer through the production code path.
+        // Catches regressions where new module permissions never reach existing
+        // tenants (the bug that produced 401s in dev when the Catalog module was added).
+        using (var scope = Services.CreateScope())
+        {
+            var setter = scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>();
+            setter.MultiTenantContext = new MultiTenantContext<AppTenantInfo>(rootTenant);
+
+            var syncer = scope.ServiceProvider.GetRequiredService<FSH.Modules.Identity.Authorization.RolePermissionSyncer>();
+            await syncer.SyncAsync(CancellationToken.None);
+        }
     }
 
     private static void ResetModuleLoader()

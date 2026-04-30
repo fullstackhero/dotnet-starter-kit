@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Identity.Contracts.v1.Sessions.AdminRevokeAllSessions;
 using Mediator;
@@ -19,7 +19,7 @@ public static class AdminRevokeAllSessionsEndpoint
         })
         .WithName("AdminRevokeAllSessions")
         .WithSummary("Revoke all user's sessions (Admin)")
-        .RequirePermission(IdentityPermissionConstants.Sessions.RevokeAll)
+        .RequirePermission(IdentityPermissions.Sessions.RevokeAll)
         .WithDescription("Revoke all sessions for a specific user. Requires admin permission.")
         .Produces(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status401Unauthorized)

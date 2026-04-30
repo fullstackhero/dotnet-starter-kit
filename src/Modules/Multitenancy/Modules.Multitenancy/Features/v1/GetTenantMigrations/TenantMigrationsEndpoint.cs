@@ -1,5 +1,6 @@
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Framework.Shared.Multitenancy;
+using FSH.Modules.Multitenancy.Contracts.Authorization;
 using FSH.Modules.Multitenancy.Contracts.Dtos;
 using FSH.Modules.Multitenancy.Contracts.v1.GetTenantMigrations;
 using Mediator;
@@ -23,7 +24,7 @@ public static class TenantMigrationsEndpoint
                     return TypedResults.Ok(result);
                 })
             .WithName("GetTenantMigrations")
-            .RequirePermission(MultitenancyConstants.Permissions.View)
+            .RequirePermission(MultitenancyPermissions.Tenants.View)
             .WithSummary("Get per-tenant migration status")
             .WithDescription("Retrieve migration status for each tenant, including pending migrations and provider information.")
             .Produces<IReadOnlyCollection<TenantMigrationStatusDto>>(StatusCodes.Status200OK)

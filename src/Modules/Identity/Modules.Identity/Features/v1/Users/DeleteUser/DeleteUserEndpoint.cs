@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Identity.Contracts.v1.Users.DeleteUser;
 using Mediator;
@@ -19,7 +19,7 @@ public static class DeleteUserEndpoint
         })
         .WithName("DeleteUser")
         .WithSummary("Delete user")
-        .RequirePermission(IdentityPermissionConstants.Users.Delete)
+        .RequirePermission(IdentityPermissions.Users.Delete)
         .WithDescription("Delete a user by unique identifier.")
         .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status401Unauthorized)

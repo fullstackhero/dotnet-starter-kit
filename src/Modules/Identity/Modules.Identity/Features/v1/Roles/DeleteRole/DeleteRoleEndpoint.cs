@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Identity.Contracts.v1.Roles.DeleteRole;
 using Mediator;
@@ -19,7 +19,7 @@ public static class DeleteRoleEndpoint
         })
         .WithName("DeleteRole")
         .WithSummary("Delete role by ID")
-        .RequirePermission(IdentityPermissionConstants.Roles.Delete)
+        .RequirePermission(IdentityPermissions.Roles.Delete)
         .WithDescription("Remove an existing role by its unique identifier.")
         .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status401Unauthorized)

@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.v1.Users.GetUsers;
@@ -17,7 +17,7 @@ public static class GetUsersListEndpoint
             TypedResults.Ok(await mediator.Send(new GetUsersQuery(), cancellationToken)))
         .WithName("ListUsers")
         .WithSummary("List users")
-        .RequirePermission(IdentityPermissionConstants.Users.View)
+        .RequirePermission(IdentityPermissions.Users.View)
         .WithDescription("Retrieve a list of users for the current tenant.")
         .Produces<IEnumerable<UserDto>>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status401Unauthorized)

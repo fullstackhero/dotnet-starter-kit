@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Identity.Contracts.v1.Roles.UpdatePermissions;
 using Mediator;
@@ -17,7 +17,7 @@ public static class UpdateRolePermissionsEndpoint
         return endpoints.MapPut("/{id}/permissions", Handler)
         .WithName("UpdateRolePermissions")
         .WithSummary("Update role permissions")
-        .RequirePermission(IdentityPermissionConstants.Roles.Update)
+        .RequirePermission(IdentityPermissions.Roles.Update)
         .WithDescription("Replace the set of permissions assigned to a role.")
         .Produces<string>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status400BadRequest)

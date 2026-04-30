@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.v1.Groups.UpdateGroup;
@@ -18,7 +18,7 @@ public static class UpdateGroupEndpoint
             TypedResults.Ok(await mediator.Send(new UpdateGroupCommand(id, request.Name, request.Description, request.IsDefault, request.RoleIds), cancellationToken)))
         .WithName("UpdateGroup")
         .WithSummary("Update a group")
-        .RequirePermission(IdentityPermissionConstants.Groups.Update)
+        .RequirePermission(IdentityPermissions.Groups.Update)
         .WithDescription("Update a group's name, description, default status, and role assignments.")
         .Produces<GroupDto>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status401Unauthorized)

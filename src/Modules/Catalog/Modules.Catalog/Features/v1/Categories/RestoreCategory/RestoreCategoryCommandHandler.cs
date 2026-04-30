@@ -1,4 +1,5 @@
 using FSH.Framework.Core.Exceptions;
+using FSH.Framework.Persistence;
 using FSH.Modules.Catalog.Contracts.v1.Categories;
 using FSH.Modules.Catalog.Data;
 using Mediator;
@@ -14,7 +15,7 @@ public sealed class RestoreCategoryCommandHandler(CatalogDbContext dbContext)
         ArgumentNullException.ThrowIfNull(command);
 
         var category = await dbContext.Categories
-            .IgnoreQueryFilters()
+            .IgnoreQueryFilters([QueryFilters.SoftDelete])
             .FirstOrDefaultAsync(c => c.Id == command.CategoryId, cancellationToken)
             .ConfigureAwait(false)
             ?? throw new NotFoundException($"Category {command.CategoryId} not found.");

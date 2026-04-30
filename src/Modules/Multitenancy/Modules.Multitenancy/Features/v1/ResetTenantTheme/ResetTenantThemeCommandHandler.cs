@@ -1,5 +1,6 @@
 using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Shared.Multitenancy;
+using FSH.Modules.Multitenancy.Contracts.Authorization;
 using FSH.Modules.Multitenancy.Contracts;
 using FSH.Modules.Multitenancy.Contracts.v1.ResetTenantTheme;
 using Mediator;

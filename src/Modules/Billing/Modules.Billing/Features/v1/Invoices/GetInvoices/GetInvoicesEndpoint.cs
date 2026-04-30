@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Billing.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Billing.Contracts;
 using FSH.Modules.Billing.Contracts.v1.Invoices;
@@ -25,6 +25,6 @@ public static class GetInvoicesEndpoint
                         pageSize <= 0 ? 20 : pageSize), ct))
             .WithName("GetInvoices")
             .WithSummary("List invoices across all tenants (admin)")
-            .RequirePermission(IdentityPermissionConstants.Billing.View);
+            .RequirePermission(BillingPermissions.View);
     }
 }

@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Identity.Contracts.v1.Users.AssignUserRoles;
 using Mediator;
@@ -17,7 +17,7 @@ public static class AssignUserRolesEndpoint
         .WithName("AssignUserRoles")
         .WithSummary("Assign roles to user")
         .WithDescription("Assign one or more roles to a user.")
-        .RequirePermission(IdentityPermissionConstants.Users.ManageRoles)
+        .RequirePermission(IdentityPermissions.Users.ManageRoles)
         .Produces<string>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status401Unauthorized)
         .Produces(StatusCodes.Status403Forbidden)

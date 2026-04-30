@@ -1,4 +1,5 @@
 using FSH.Framework.Core.Exceptions;
+using FSH.Framework.Persistence;
 using FSH.Modules.Catalog.Contracts.v1.Products;
 using FSH.Modules.Catalog.Data;
 using Mediator;
@@ -14,7 +15,7 @@ public sealed class RestoreProductCommandHandler(CatalogDbContext dbContext)
         ArgumentNullException.ThrowIfNull(command);
 
         var product = await dbContext.Products
-            .IgnoreQueryFilters()
+            .IgnoreQueryFilters([QueryFilters.SoftDelete])
             .FirstOrDefaultAsync(p => p.Id == command.ProductId, cancellationToken)
             .ConfigureAwait(false)
             ?? throw new NotFoundException($"Product {command.ProductId} not found.");

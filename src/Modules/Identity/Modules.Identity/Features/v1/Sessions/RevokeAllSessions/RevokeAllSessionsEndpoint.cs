@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Identity.Contracts.v1.Sessions.RevokeAllSessions;
 using Mediator;
@@ -19,7 +19,7 @@ public static class RevokeAllSessionsEndpoint
         })
         .WithName("RevokeAllSessions")
         .WithSummary("Revoke all sessions")
-        .RequirePermission(IdentityPermissionConstants.Sessions.Revoke)
+        .RequirePermission(IdentityPermissions.Sessions.Revoke)
         .WithDescription("Revoke all sessions for the currently authenticated user except the current one.")
         .Produces(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status401Unauthorized)

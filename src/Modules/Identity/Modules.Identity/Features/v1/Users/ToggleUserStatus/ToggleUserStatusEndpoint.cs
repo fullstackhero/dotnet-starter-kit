@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Identity.Contracts.v1.Users.ToggleUserStatus;
 using Mediator;
@@ -17,7 +17,7 @@ public static class ToggleUserStatusEndpoint
         return endpoints.MapPatch("/users/{id:guid}", Handler)
         .WithName("ToggleUserStatus")
         .WithSummary("Toggle user status")
-        .RequirePermission(IdentityPermissionConstants.Users.Update)
+        .RequirePermission(IdentityPermissions.Users.Update)
         .WithDescription("Activate or deactivate a user account.")
         .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status401Unauthorized)

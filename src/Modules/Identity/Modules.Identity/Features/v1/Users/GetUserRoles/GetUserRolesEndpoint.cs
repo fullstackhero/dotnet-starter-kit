@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.v1.Users.GetUserRoles;
@@ -17,7 +17,7 @@ public static class GetUserRolesEndpoint
             TypedResults.Ok(await mediator.Send(new GetUserRolesQuery(id), cancellationToken)))
         .WithName("GetUserRoles")
         .WithSummary("Get user roles")
-        .RequirePermission(IdentityPermissionConstants.Users.View)
+        .RequirePermission(IdentityPermissions.Users.View)
         .WithDescription("Retrieve the roles assigned to a specific user.")
         .Produces<IEnumerable<UserRoleDto>>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status401Unauthorized)

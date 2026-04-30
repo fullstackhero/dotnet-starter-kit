@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Identity.Contracts.v1.Groups.RemoveUserFromGroup;
 using Mediator;
@@ -19,7 +19,7 @@ public static class RemoveUserFromGroupEndpoint
         })
         .WithName("RemoveUserFromGroup")
         .WithSummary("Remove a user from a group")
-        .RequirePermission(IdentityPermissionConstants.Groups.ManageMembers)
+        .RequirePermission(IdentityPermissions.Groups.ManageMembers)
         .WithDescription("Remove a specific user from a group.")
         .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status401Unauthorized)

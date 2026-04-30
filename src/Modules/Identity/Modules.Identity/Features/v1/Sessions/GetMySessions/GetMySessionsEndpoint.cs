@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.v1.Sessions.GetMySessions;
@@ -17,7 +17,7 @@ public static class GetMySessionsEndpoint
             TypedResults.Ok(await mediator.Send(new GetMySessionsQuery(), cancellationToken)))
         .WithName("GetMySessions")
         .WithSummary("Get current user's sessions")
-        .RequirePermission(IdentityPermissionConstants.Sessions.View)
+        .RequirePermission(IdentityPermissions.Sessions.View)
         .WithDescription("Retrieve all active sessions for the currently authenticated user.")
         .Produces<IEnumerable<UserSessionDto>>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status401Unauthorized)

@@ -1,4 +1,5 @@
 using FSH.Framework.Core.Exceptions;
+using FSH.Framework.Persistence;
 using FSH.Modules.Catalog.Contracts.v1.Brands;
 using FSH.Modules.Catalog.Data;
 using Mediator;
@@ -13,10 +14,10 @@ public sealed class RestoreBrandCommandHandler(CatalogDbContext dbContext)
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        // IgnoreQueryFilters lets us load soft-deleted rows; the global
-        // filter set on BaseDbContext would otherwise hide them.
+        // Disable only the SoftDelete filter so we can load a deleted row;
+        // tenant scoping stays in force, so cross-tenant restores cannot leak.
         var brand = await dbContext.Brands
-            .IgnoreQueryFilters()
+            .IgnoreQueryFilters([QueryFilters.SoftDelete])
             .FirstOrDefaultAsync(b => b.Id == command.BrandId, cancellationToken)
             .ConfigureAwait(false)
             ?? throw new NotFoundException($"Brand {command.BrandId} not found.");

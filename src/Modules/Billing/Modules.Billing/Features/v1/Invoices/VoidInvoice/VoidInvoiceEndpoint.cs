@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Billing.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Billing.Contracts.v1.Invoices;
 using Mediator;
@@ -19,6 +19,6 @@ public static class VoidInvoiceEndpoint
                     Results.Ok(await mediator.Send(new VoidInvoiceCommand(invoiceId, body?.Reason), ct)))
             .WithName("VoidInvoice")
             .WithSummary("Void an invoice")
-            .RequirePermission(IdentityPermissionConstants.Billing.Manage);
+            .RequirePermission(BillingPermissions.Manage);
     }
 }

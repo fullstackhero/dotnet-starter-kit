@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Billing.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Billing.Contracts.v1.Subscriptions;
 using Mediator;
@@ -17,7 +17,7 @@ public static class GetSubscriptionEndpoint
                     mediator.Send(new GetSubscriptionQuery(tenantId), ct))
             .WithName("GetSubscription")
             .WithSummary("Get the active subscription for a tenant (admin) or the current tenant")
-            .RequirePermission(IdentityPermissionConstants.Billing.View);
+            .RequirePermission(BillingPermissions.View);
     }
 
     internal static RouteHandlerBuilder MapGetMySubscriptionEndpoint(this IEndpointRouteBuilder endpoints)

@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Billing.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Framework.Web.Idempotency;
 using FSH.Modules.Billing.Contracts.v1.Invoices;
@@ -18,7 +18,7 @@ public static class MarkInvoicePaidEndpoint
                     Results.Ok(await mediator.Send(new MarkInvoicePaidCommand(invoiceId), ct)))
             .WithName("MarkInvoicePaid")
             .WithSummary("Mark an issued invoice as paid (manual, no payment processor)")
-            .RequirePermission(IdentityPermissionConstants.Billing.Manage)
+            .RequirePermission(BillingPermissions.Manage)
             .WithIdempotency();
     }
 }

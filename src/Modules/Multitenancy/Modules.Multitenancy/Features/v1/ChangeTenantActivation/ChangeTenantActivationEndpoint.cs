@@ -1,5 +1,6 @@
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Framework.Shared.Multitenancy;
+using FSH.Modules.Multitenancy.Contracts.Authorization;
 using FSH.Modules.Multitenancy.Contracts.Dtos;
 using FSH.Modules.Multitenancy.Contracts.v1.ChangeTenantActivation;
 using Mediator;
@@ -19,7 +20,7 @@ public static class ChangeTenantActivationEndpoint
             .WithName("ChangeTenantActivation")
             .WithSummary("Change tenant activation state")
             .WithDescription("Activate or deactivate a tenant in a single endpoint.")
-            .RequirePermission(MultitenancyConstants.Permissions.Update)
+            .RequirePermission(MultitenancyPermissions.Tenants.Update)
             .Produces<TenantLifecycleResultDto>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)

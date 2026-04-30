@@ -1,5 +1,6 @@
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Framework.Shared.Multitenancy;
+using FSH.Modules.Multitenancy.Contracts.Authorization;
 using FSH.Modules.Multitenancy.Contracts.Dtos;
 using FSH.Modules.Multitenancy.Contracts.v1.UpdateTenantTheme;
 using Mediator;
@@ -21,7 +22,7 @@ public static class UpdateTenantThemeEndpoint
             .WithName("UpdateTenantTheme")
             .WithSummary("Update current tenant theme")
             .WithDescription("Update the theme settings for the current tenant, including colors, typography, and layout.")
-            .RequirePermission(MultitenancyConstants.Permissions.UpdateTheme)
+            .RequirePermission(MultitenancyPermissions.Tenants.UpdateTheme)
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)

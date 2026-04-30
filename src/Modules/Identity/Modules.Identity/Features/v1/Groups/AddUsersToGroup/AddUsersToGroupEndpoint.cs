@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Identity.Contracts.v1.Groups.AddUsersToGroup;
 using Mediator;
@@ -17,7 +17,7 @@ public static class AddUsersToGroupEndpoint
             TypedResults.Ok(await mediator.Send(new AddUsersToGroupCommand(groupId, request.UserIds), cancellationToken)))
         .WithName("AddUsersToGroup")
         .WithSummary("Add users to a group")
-        .RequirePermission(IdentityPermissionConstants.Groups.ManageMembers)
+        .RequirePermission(IdentityPermissions.Groups.ManageMembers)
         .WithDescription("Add one or more users to a group. Returns count of added users and list of users already in the group.")
         .Produces<AddUsersToGroupResponse>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status401Unauthorized)

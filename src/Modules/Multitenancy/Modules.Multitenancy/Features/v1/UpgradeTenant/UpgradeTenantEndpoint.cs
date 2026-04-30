@@ -1,5 +1,6 @@
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Framework.Shared.Multitenancy;
+using FSH.Modules.Multitenancy.Contracts.Authorization;
 using FSH.Modules.Multitenancy.Contracts.v1.UpgradeTenant;
 using Mediator;
 using Microsoft.AspNetCore.Builder;
@@ -16,7 +17,7 @@ public static class UpgradeTenantEndpoint
         return endpoints.MapPost("/{id}/upgrade", Handler)
         .WithName("UpgradeTenant")
         .WithSummary("Upgrade tenant subscription")
-        .RequirePermission(MultitenancyConstants.Permissions.Update)
+        .RequirePermission(MultitenancyPermissions.Tenants.Update)
         .WithDescription("Extend or upgrade a tenant's subscription.")
         .Produces<UpgradeTenantCommandResponse>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status400BadRequest)

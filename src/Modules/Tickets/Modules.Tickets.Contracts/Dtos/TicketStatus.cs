@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace FSH.Modules.Tickets.Contracts.Dtos;
 
 /// <summary>
@@ -11,6 +13,7 @@ namespace FSH.Modules.Tickets.Contracts.Dtos;
 ///   Resolved    → Open       (reopen)
 ///   Closed      → Open       (reopen)
 /// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter<TicketStatus>))]
 public enum TicketStatus
 {
     Open = 0,

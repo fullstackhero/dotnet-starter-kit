@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Billing.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Billing.Contracts.v1.Invoices;
 using Mediator;
@@ -17,6 +17,6 @@ public static class GetInvoiceByIdEndpoint
                     mediator.Send(new GetInvoiceByIdQuery(invoiceId), ct))
             .WithName("GetInvoiceById")
             .WithSummary("Get a single invoice by id")
-            .RequirePermission(IdentityPermissionConstants.Billing.View);
+            .RequirePermission(BillingPermissions.View);
     }
 }

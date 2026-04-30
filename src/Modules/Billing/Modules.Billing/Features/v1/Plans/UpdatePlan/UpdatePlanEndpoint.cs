@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Billing.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Billing.Contracts.v1.Plans;
 using Mediator;
@@ -21,6 +21,6 @@ public static class UpdatePlanEndpoint
                 })
             .WithName("UpdateBillingPlan")
             .WithSummary("Update a billing plan")
-            .RequirePermission(IdentityPermissionConstants.Billing.Manage);
+            .RequirePermission(BillingPermissions.Manage);
     }
 }

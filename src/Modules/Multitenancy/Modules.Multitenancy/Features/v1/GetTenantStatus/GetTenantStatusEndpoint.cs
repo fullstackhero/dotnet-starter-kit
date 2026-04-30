@@ -1,5 +1,6 @@
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Framework.Shared.Multitenancy;
+using FSH.Modules.Multitenancy.Contracts.Authorization;
 using FSH.Modules.Multitenancy.Contracts.Dtos;
 using FSH.Modules.Multitenancy.Contracts.v1.GetTenantStatus;
 using Mediator;
@@ -18,7 +19,7 @@ public static class GetTenantStatusEndpoint
             .WithName("GetTenantStatus")
             .WithSummary("Get tenant status")
             .WithDescription("Retrieve status information for a tenant, including activation, validity, and basic metadata.")
-            .RequirePermission(MultitenancyConstants.Permissions.View)
+            .RequirePermission(MultitenancyPermissions.Tenants.View)
             .Produces<TenantStatusDto>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)

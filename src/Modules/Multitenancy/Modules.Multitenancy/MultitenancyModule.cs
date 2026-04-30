@@ -37,6 +37,9 @@ public sealed class MultitenancyModule : IModule
     {
         ArgumentNullException.ThrowIfNull(builder);
 
+        FSH.Framework.Shared.Constants.PermissionConstants.Register(
+            FSH.Modules.Multitenancy.Contracts.Authorization.MultitenancyPermissions.All);
+
         builder.Services.AddOptions<MultitenancyOptions>()
             .Bind(builder.Configuration.GetSection(nameof(MultitenancyOptions)));
 

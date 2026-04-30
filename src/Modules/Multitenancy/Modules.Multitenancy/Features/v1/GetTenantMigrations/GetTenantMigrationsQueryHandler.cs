@@ -1,5 +1,6 @@
 using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Shared.Multitenancy;
+using FSH.Modules.Multitenancy.Contracts.Authorization;
 using FSH.Modules.Multitenancy.Contracts.Dtos;
 using FSH.Modules.Multitenancy.Contracts.v1.GetTenantMigrations;
 using FSH.Modules.Multitenancy.Data;

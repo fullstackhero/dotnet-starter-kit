@@ -78,7 +78,13 @@ public class IdentityModule : IModule
     public void ConfigureServices(IHostApplicationBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
+
+        FSH.Framework.Shared.Constants.PermissionConstants.Register(
+            FSH.Modules.Identity.Contracts.Authorization.IdentityPermissions.All);
+
         var services = builder.Services;
+        services.AddScoped<RolePermissionSyncer>();
+        services.AddHostedService<RolePermissionSyncHostedService>();
         services.AddSingleton<IAuthorizationMiddlewareResultHandler, PathAwareAuthorizationHandler>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<ICurrentUser>(sp => sp.GetRequiredService<ICurrentUserService>());

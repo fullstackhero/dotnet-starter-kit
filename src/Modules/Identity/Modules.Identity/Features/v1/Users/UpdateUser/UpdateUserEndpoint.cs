@@ -1,5 +1,5 @@
 using FSH.Framework.Core.Exceptions;
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Framework.Shared.Identity.Claims;
 using FSH.Modules.Identity.Contracts.v1.Users.UpdateUser;
@@ -30,7 +30,7 @@ public static class UpdateUserEndpoint
         })
         .WithName("UpdateUserProfile")
         .WithSummary("Update user profile")
-        .RequirePermission(IdentityPermissionConstants.Users.Update)
+        .RequirePermission(IdentityPermissions.Users.Update)
         .WithDescription("Update profile details for the authenticated user.")
         .Produces(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status401Unauthorized)

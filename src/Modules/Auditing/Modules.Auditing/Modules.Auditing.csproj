@@ -11,6 +11,7 @@
 	  <ProjectReference Include="..\..\..\BuildingBlocks\Persistence\Persistence.csproj" />
 	  <ProjectReference Include="..\..\..\BuildingBlocks\Web\Web.csproj" />
 	  <ProjectReference Include="..\Modules.Auditing.Contracts\Modules.Auditing.Contracts.csproj" />
+	  <ProjectReference Include="..\..\Identity\Modules.Identity.Contracts\Modules.Identity.Contracts.csproj" />
 	</ItemGroup>
 
 </Project>

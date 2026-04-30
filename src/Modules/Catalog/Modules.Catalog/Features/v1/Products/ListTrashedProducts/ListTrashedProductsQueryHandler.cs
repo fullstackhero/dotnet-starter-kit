@@ -1,3 +1,4 @@
+using FSH.Framework.Persistence;
 using FSH.Framework.Shared.Persistence;
 using FSH.Modules.Catalog.Contracts.Dtos;
 using FSH.Modules.Catalog.Contracts.v1.Products;
@@ -20,7 +21,7 @@ public sealed class ListTrashedProductsQueryHandler(CatalogDbContext dbContext)
 
         var q = dbContext.Products
             .AsNoTracking()
-            .IgnoreQueryFilters()
+            .IgnoreQueryFilters([QueryFilters.SoftDelete])
             .Where(p => p.IsDeleted)
             .OrderByDescending(p => p.DeletedOnUtc);
 

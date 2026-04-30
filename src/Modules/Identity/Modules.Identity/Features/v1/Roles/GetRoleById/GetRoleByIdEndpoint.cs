@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.v1.Roles.GetRole;
@@ -17,7 +17,7 @@ public static class GetRoleByIdEndpoint
             TypedResults.Ok(await mediator.Send(new GetRoleQuery(id), cancellationToken)))
         .WithName("GetRole")
         .WithSummary("Get role by ID")
-        .RequirePermission(IdentityPermissionConstants.Roles.View)
+        .RequirePermission(IdentityPermissions.Roles.View)
         .WithDescription("Retrieve details of a specific role by its unique identifier.")
         .Produces<RoleDto>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status401Unauthorized)
