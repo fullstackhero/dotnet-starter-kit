@@ -51,9 +51,10 @@ export const DialogContent = React.forwardRef<
       ref={ref}
       className={cn(
         "fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2",
-        "rounded-2xl bg-[var(--color-card)] shadow-[var(--shadow-lift)]",
-        // Use the gradient-border utility for the iridescent hairline
-        "gradient-border",
+        // Architectural surface — single hairline border, no gradient ramp.
+        // The lift shadow is intentionally larger than card-shell hover
+        // (this is a modal — it should clearly float above the page).
+        "card-shell rounded-2xl shadow-[var(--shadow-lift)]",
         "data-[state=open]:animate-fsh-dialog-in data-[state=closed]:animate-fsh-dialog-out",
         className,
       )}

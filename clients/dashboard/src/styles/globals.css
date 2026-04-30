@@ -658,26 +658,49 @@
      to the destination so the bitmap crossfade owns the motion. */
   html.vt-active .seg-toggle .seg-thumb { transition: none !important; }
 
-  /* Skeleton shimmer — for placeholders. Subtler than the typical
-     hard-edged sweep; the gradient is brand-tinted in dark mode. */
+  /* Skeleton — placeholder block with a slow brand-tinted shimmer.
+     Tuned for the architectural card vocabulary: a softer resting fill
+     (so the skeleton doesn't compete with adjacent content) and a
+     longer, more ambient shimmer cycle that reads as "loading" rather
+     than "anxious." */
   .skeleton {
     position: relative;
     overflow: hidden;
-    background: oklch(from var(--color-muted) l c h / 0.6);
+    background: oklch(from var(--color-muted) l c h / 0.5);
     border-radius: var(--radius-sm);
+    /* Subtle inner ring so the skeleton has a defined edge when nested
+       inside a card-shell — without it the placeholder visually melts
+       into the card surface. */
+    box-shadow: inset 0 0 0 1px oklch(from var(--color-border) l c h / 0.55);
   }
   .skeleton::after {
     content: "";
     position: absolute;
     inset: 0;
+    /* Brand-tinted sweep — alpha is intentionally low so the highlight
+       is more "atmosphere" than "wave." */
     background: linear-gradient(
       90deg,
       transparent,
+      oklch(from var(--color-primary) l c h / 0.08),
       oklch(from var(--color-foreground) l c h / 0.06),
       transparent
     );
     transform: translateX(-100%);
-    animation: fsh-shimmer 1.6s var(--ease-in-out-cubic) infinite;
+    animation: fsh-shimmer 2.4s var(--ease-in-out-cubic) infinite;
+  }
+  .dark .skeleton {
+    background: oklch(from var(--color-muted) l c h / 0.45);
+    box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.04);
+  }
+  .dark .skeleton::after {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      oklch(from var(--color-primary) l c h / 0.12),
+      oklch(1 0 0 / 0.06),
+      transparent
+    );
   }
 
   /* Status dot with breathing pulse. Used by SSE indicator when live. */

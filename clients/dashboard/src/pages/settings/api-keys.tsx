@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { EmptyState } from "@/components/list";
 
 export function ApiKeysSettings() {
   return (
@@ -27,26 +28,18 @@ export function ApiKeysSettings() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="px-6 pb-7 pt-1">
-          <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-[var(--color-border)] bg-[var(--color-surface-2)] py-12 text-center">
-            <span
-              aria-hidden
-              className="grid h-9 w-9 place-items-center rounded-full bg-[var(--color-muted)] text-[var(--color-muted-foreground)]"
-            >
-              <KeyRound className="h-4 w-4" />
-            </span>
-            <div>
-              <div className="text-sm font-medium tracking-tight">No keys yet</div>
-              <p className="mt-1 max-w-sm text-xs leading-relaxed text-[var(--color-muted-foreground)]">
-                Generate a key, store it somewhere safe, and use it as a Bearer
-                token against the API. Keys are only shown once at creation.
-              </p>
-            </div>
-            <Button variant="soft" size="sm">
-              <Plus className="mr-1.5 h-3.5 w-3.5" />
-              Generate first key
-            </Button>
-          </div>
+        <CardContent className="p-0">
+          <EmptyState
+            eyebrow="No keys yet"
+            headline="Your tenant hasn't issued any API keys."
+            body="Generate a key, store it somewhere safe, and use it as a Bearer token against the API. Keys are only shown once at creation — copy them at that moment."
+            icon={<KeyRound className="h-6 w-6 text-[var(--color-primary)]" />}
+            primaryAction={{
+              label: "Generate first key",
+              onClick: () => {},
+              icon: <Plus className="h-3.5 w-3.5" />,
+            }}
+          />
         </CardContent>
       </Card>
 

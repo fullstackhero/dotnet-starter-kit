@@ -555,9 +555,25 @@ export function OverviewPage() {
 }
 
 function EmptyState({ title, description }: { title: string; description: string }) {
+  // Inline status panel inside the Quota card. Smaller-scale than the
+  // shared `EmptyState` "plinth" primitive on purpose — this is a status
+  // panel, not a CTA pulse, so the chrome stays restrained.
   return (
-    <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
-      <div className="text-sm font-medium tracking-tight">{title}</div>
+    <div className="flex flex-col items-center justify-center gap-2.5 py-12 text-center">
+      <span
+        aria-hidden
+        className={cn(
+          "grid h-9 w-9 place-items-center rounded-lg",
+          "bg-[linear-gradient(135deg,oklch(from_var(--color-primary)_l_c_h_/_0.16),oklch(from_var(--color-primary)_l_c_h_/_0.02))]",
+          "ring-1 ring-inset ring-[oklch(from_var(--color-primary)_l_c_h_/_0.22)]",
+        )}
+      >
+        <Gauge className="h-4 w-4 text-[var(--color-primary)]" />
+      </span>
+      <span className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
+        Quota status
+      </span>
+      <div className="text-display text-base font-semibold tracking-tight">{title}</div>
       <p className="max-w-sm text-xs leading-relaxed text-[var(--color-muted-foreground)]">
         {description}
       </p>
