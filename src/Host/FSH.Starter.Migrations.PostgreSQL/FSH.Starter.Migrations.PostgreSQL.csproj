@@ -15,12 +15,16 @@
 	  <ProjectReference Include="..\..\Modules\Multitenancy\Modules.Multitenancy\Modules.Multitenancy.csproj" />
 	  <ProjectReference Include="..\..\Modules\Webhooks\Modules.Webhooks\Modules.Webhooks.csproj" />
 	  <ProjectReference Include="..\..\Modules\Billing\Modules.Billing\Modules.Billing.csproj" />
+	  <ProjectReference Include="..\..\Modules\Catalog\Modules.Catalog\Modules.Catalog.csproj" />
+	  <ProjectReference Include="..\..\Modules\Tickets\Modules.Tickets\Modules.Tickets.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <Folder Include="Audit\" />
 	  <Folder Include="MultiTenancy\" />
 	  <Folder Include="Billing\" />
+	  <Folder Include="Catalog\" />
+	  <Folder Include="Tickets\" />
 	</ItemGroup>
 
 </Project>
