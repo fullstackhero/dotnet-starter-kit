@@ -166,14 +166,13 @@ export function Sidebar() {
         )}
       </div>
 
-      {/* Nav. No overflow handling: setting `overflow-y: auto` here also
-          implicitly makes overflow-x: auto, which the absolutely-
-          positioned hover tooltips on collapsed nav items would trigger
-          (they extend past the nav's right edge). With a small fixed
-          set of nav items the column never needs to scroll, so leave
-          overflow visible — the tooltips can render outside the
-          sidebar without inducing a scrollbar. */}
-      <nav className="flex-1 space-y-5 px-2.5 py-4">
+      {/* Nav scrolls vertically when item count exceeds available height.
+          `overflow-x: clip` (instead of the default auto-coupled-with-y)
+          keeps a stray horizontal scrollbar from appearing when the
+          collapsed-mode hover tooltips peek past the nav's right edge —
+          those tooltips will be clipped, but the native `title=`
+          attribute on each NavLink provides the accessibility fallback. */}
+      <nav className="flex-1 space-y-5 overflow-y-auto overflow-x-clip px-2.5 py-4">
         {groups.map((group) => (
           <NavSection key={group.caption} caption={group.caption} collapsed={collapsed}>
             {group.items.map((item) => (

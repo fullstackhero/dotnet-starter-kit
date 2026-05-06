@@ -8,7 +8,7 @@ import { CommandPaletteRoot } from "@/components/command-palette/command-palette
 export function AppShell() {
   return (
     <SseProvider>
-      <div className="flex h-screen flex-col bg-[var(--color-background)] text-[var(--color-foreground)]">
+      <div className="flex h-screen flex-col overflow-hidden bg-[var(--color-background)] text-[var(--color-foreground)]">
         <ImpersonationBanner />
         <div className="flex min-h-0 flex-1">
           <Sidebar />
