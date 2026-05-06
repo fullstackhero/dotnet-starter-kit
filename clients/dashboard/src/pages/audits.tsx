@@ -25,6 +25,7 @@ import {
   AUDIT_TAG_LABELS,
   decodeTags,
   getAuditById,
+  getAuditsByCorrelation,
   getAuditSummary,
   listAudits,
   type AuditDetailDto,
@@ -35,6 +36,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageHero } from "@/components/list";
 import {
   Dialog,
   DialogClose,
@@ -253,27 +255,12 @@ export function AuditsPage() {
 
   return (
     <div className="space-y-6">
-      {/* ── Header ──────────────────────────────────────────────────── */}
-      <header className="fsh-enter fsh-enter-1 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
-              System · Audit
-            </span>
-            <code className="rounded bg-[var(--color-primary-soft)] px-1.5 py-0.5 font-mono text-[11px] font-medium text-[var(--color-primary)]">
-              {user?.tenant ?? "—"}
-            </code>
-          </div>
-          <h1 className="text-display mt-2 text-[28px] font-semibold leading-tight">
-            Audit trail
-          </h1>
-          <p className="mt-1 text-sm leading-relaxed text-[var(--color-muted-foreground)]">
-            Activity, security, entity-change, and exception events across the platform.
-            Window enforced server-side; max 90 days.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
+      <PageHero
+        eyebrow="System · Audit"
+        tenant={user?.tenant ?? "—"}
+        title="Audit trail"
+        subtitle="Activity, security, entity-change, and exception events across the platform. Window enforced server-side; max 90 days."
+        actions={
           <Button
             variant="outline"
             size="sm"
@@ -288,8 +275,8 @@ export function AuditsPage() {
             />
             Refresh
           </Button>
-        </div>
-      </header>
+        }
+      />
 
       {/* ── Summary strip ─────────────────────────────────────────────── */}
       <section className="fsh-enter fsh-enter-2">
@@ -345,6 +332,7 @@ export function AuditsPage() {
       <AuditDetailDrawer
         auditId={drawerId}
         onClose={() => setDrawerId(null)}
+        onJumpAudit={(id) => setDrawerId(id)}
         onJumpCorrelation={(cid) => {
           setDrawerId(null);
           setFilters((f) => ({ ...INITIAL_FILTERS, range: f.range, correlation: cid }));
@@ -1004,11 +992,13 @@ function PaginationFooter({
 function AuditDetailDrawer({
   auditId,
   onClose,
+  onJumpAudit,
   onJumpCorrelation,
   onJumpTrace,
 }: {
   auditId: string | null;
   onClose: () => void;
+  onJumpAudit: (id: string) => void;
   onJumpCorrelation: (id: string) => void;
   onJumpTrace: (id: string) => void;
 }) {
@@ -1052,6 +1042,7 @@ function AuditDetailDrawer({
               ) : detail.data ? (
                 <DrawerBody
                   detail={detail.data}
+                  onJumpAudit={onJumpAudit}
                   onJumpCorrelation={onJumpCorrelation}
                   onJumpTrace={onJumpTrace}
                 />
@@ -1152,10 +1143,12 @@ function DrawerHeader({ detail, loading }: { detail?: AuditDetailDto; loading: b
 
 function DrawerBody({
   detail,
+  onJumpAudit,
   onJumpCorrelation,
   onJumpTrace,
 }: {
   detail: AuditDetailDto;
+  onJumpAudit: (id: string) => void;
   onJumpCorrelation: (id: string) => void;
   onJumpTrace: (id: string) => void;
 }) {
@@ -1198,6 +1191,18 @@ function DrawerBody({
           )}
         </div>
       </section>
+
+      {/* Related events — every audit sharing this correlation ID,
+          rendered as a vertical timeline. Click another row to swap
+          the drawer to that audit without closing. */}
+      {detail.correlationId && (
+        <RelatedEventsSection
+          currentId={detail.id}
+          correlationId={detail.correlationId}
+          currentOccurredAtUtc={detail.occurredAtUtc}
+          onJumpAudit={onJumpAudit}
+        />
+      )}
 
       {/* Payload */}
       <section>
@@ -1282,6 +1287,128 @@ function DefRow({ label, value, mono }: { label: string; value: string; mono?: b
       </dt>
       <dd className={cn("text-[12.5px]", mono && "font-mono break-all")}>{value}</dd>
     </div>
+  );
+}
+
+function RelatedEventsSection({
+  currentId,
+  correlationId,
+  currentOccurredAtUtc,
+  onJumpAudit,
+}: {
+  currentId: string;
+  correlationId: string;
+  currentOccurredAtUtc: string;
+  onJumpAudit: (id: string) => void;
+}) {
+  const related = useQuery({
+    queryKey: ["audit", "by-correlation", correlationId],
+    queryFn: ({ signal }) => getAuditsByCorrelation(correlationId, {}, signal),
+    enabled: !!correlationId,
+    staleTime: 30_000,
+  });
+
+  // Newest → oldest, capped at 12 to keep the timeline bounded for
+  // chatty correlations. Memoised against the underlying response so a
+  // re-render doesn't re-sort.
+  const sorted = useMemo(() => {
+    const items = related.data ?? [];
+    return [...items]
+      .sort((a, b) => Date.parse(b.occurredAtUtc) - Date.parse(a.occurredAtUtc))
+      .slice(0, 12);
+  }, [related.data]);
+  const others = sorted.filter((r) => r.id !== currentId);
+  const currentMs = Date.parse(currentOccurredAtUtc);
+
+  return (
+    <section>
+      <div className="flex items-baseline justify-between">
+        <SectionLabel>Related events</SectionLabel>
+        {!related.isLoading && (
+          <span className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
+            {sorted.length} on this correlation
+          </span>
+        )}
+      </div>
+
+      {related.isLoading ? (
+        <div className="mt-2 space-y-2">
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} className="h-10 w-full rounded-md" />
+          ))}
+        </div>
+      ) : others.length === 0 ? (
+        <p className="mt-2 text-[11.5px] text-[var(--color-muted-foreground)]">
+          No other events share this correlation. The full lifecycle of this
+          request is contained in the payload above.
+        </p>
+      ) : (
+        <ol className="mt-2 relative pl-4">
+          {/* Vertical rail — fades top + bottom so it reads as a slice
+              of a longer timeline rather than a hard-bounded list. */}
+          <span
+            aria-hidden
+            className="absolute left-1.5 top-1 bottom-1 w-px bg-gradient-to-b from-transparent via-[var(--color-border)] to-transparent"
+          />
+          {sorted.map((row) => {
+            const isCurrent = row.id === currentId;
+            const tone = severityColorVar(row.severity);
+            const RowIcon = eventTypeIcon(row.eventType);
+            const deltaSec = Math.round((Date.parse(row.occurredAtUtc) - currentMs) / 1000);
+            const deltaLabel =
+              isCurrent
+                ? "this event"
+                : deltaSec === 0
+                  ? "0s"
+                  : deltaSec > 0
+                    ? `+${deltaSec}s`
+                    : `${deltaSec}s`;
+            return (
+              <li key={row.id} className="relative pl-4 pb-2 last:pb-0">
+                {/* Node dot */}
+                <span
+                  aria-hidden
+                  className={cn(
+                    "absolute -left-0 top-2 h-2.5 w-2.5 rounded-full ring-2 ring-[var(--color-card)]",
+                    isCurrent && "shadow-[0_0_0_3px_oklch(from_var(--color-primary)_l_c_h_/_0.18)]",
+                  )}
+                  style={{ background: isCurrent ? "var(--color-primary)" : tone }}
+                />
+                <button
+                  type="button"
+                  onClick={() => !isCurrent && onJumpAudit(row.id)}
+                  disabled={isCurrent}
+                  className={cn(
+                    "group/related flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left transition-colors",
+                    isCurrent
+                      ? "bg-[var(--color-primary-soft)] cursor-default"
+                      : "hover:bg-[var(--color-accent)] cursor-pointer",
+                  )}
+                >
+                  <RowIcon className="h-3.5 w-3.5 shrink-0" style={{ color: tone }} aria-hidden />
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-baseline gap-2">
+                      <span className={cn("truncate text-[12px] font-medium tracking-tight", isCurrent && "text-[var(--color-primary)]")}>
+                        {row.source ?? AUDIT_EVENT_TYPE_LABELS[row.eventType]}
+                      </span>
+                      <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
+                        {AUDIT_SEVERITY_LABELS[row.severity]}
+                      </span>
+                    </span>
+                    <span className="font-mono text-[10.5px] tabular-nums text-[var(--color-muted-foreground)]">
+                      {fmtIsoDense(row.occurredAtUtc).time} · {deltaLabel}
+                    </span>
+                  </span>
+                  {!isCurrent && (
+                    <ChevronRight className="h-3 w-3 text-[var(--color-muted-foreground)] transition-transform group-hover/related:translate-x-0.5" />
+                  )}
+                </button>
+              </li>
+            );
+          })}
+        </ol>
+      )}
+    </section>
   );
 }
 
