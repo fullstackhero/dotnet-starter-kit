@@ -1,17 +1,12 @@
 import { useEffect, useState } from "react";
-import {
-  Activity,
-  Database,
-  KeyRound,
-  Layers,
-} from "lucide-react";
 import { cn } from "@/lib/cn";
 
 // ────────────────────────────────────────────────────────────────────────
-// Tagline cycle — soft crossfade through a few short statements about
-// what the product is. Phrases stay on screen for ~4s each. Pure CSS
-// transition driven by a setInterval that bumps an index; the previous
-// line fades out as the new one fades in.
+// Editorial hero panel for the login page. Strict typographic hierarchy:
+//   eyebrow → massive headline → tagline crossfade → editorial stat strip.
+// No feature pills, no decorative chrome — the page leans on type and
+// negative space. Demo panel + form panel sit beside this column on
+// wide viewports.
 // ────────────────────────────────────────────────────────────────────────
 
 const TAGLINES: ReadonlyArray<string> = [
@@ -21,26 +16,16 @@ const TAGLINES: ReadonlyArray<string> = [
   "Aspire-orchestrated. SSE-powered.",
 ] as const;
 
-const TAGLINE_INTERVAL_MS = 4000;
+const TAGLINE_INTERVAL_MS = 4200;
 
-type TrustItem = {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  description: string;
-};
+type Stat = { value: string; label: string };
 
-const TRUST_ITEMS: ReadonlyArray<TrustItem> = [
-  { icon: KeyRound, label: "JWT", description: "Bearer-secured sessions, refresh-rotated" },
-  { icon: Layers, label: "Modular", description: "VSA + Mediator handlers per slice" },
-  { icon: Database, label: "EF Core 10", description: "PostgreSQL · Finbuckle multi-tenancy" },
-  { icon: Activity, label: "Live SSE", description: "Server-Sent Events stream into the UI" },
+const STATS: ReadonlyArray<Stat> = [
+  { value: "14", label: "Modules" },
+  { value: "08", label: "Building blocks" },
+  { value: "02", label: "Demo apps" },
 ];
 
-/**
- * Marketing-style left column shown beside the login card on wide
- * viewports. Stays flat on narrow viewports — caller decides via
- * grid template whether this renders.
- */
 export function LoginBrandStory() {
   const [tagIdx, setTagIdx] = useState(0);
 
@@ -54,43 +39,37 @@ export function LoginBrandStory() {
   return (
     <aside
       aria-hidden
-      className={cn(
-        "fsh-enter fsh-enter-1 relative z-10 flex flex-col justify-between",
-        "min-h-[28rem] gap-10 px-2 py-2 lg:px-4",
-      )}
+      className="fsh-enter fsh-enter-1 relative z-10 flex flex-col justify-between gap-10 py-2"
     >
-      {/* Wordmark + tagline cycle ───────────────────────────────────── */}
+      {/* Eyebrow + Headline + Tagline */}
       <div>
-        <div className="flex items-center gap-3">
-          <span
-            aria-hidden
-            className={cn(
-              "brand-mark grid h-10 w-10 place-items-center rounded-lg",
-              "text-[16px] font-bold tracking-tight text-[var(--color-primary-foreground)]",
-              "shadow-[0_1px_0_oklch(1_0_0_/_0.20)_inset,0_8px_22px_-8px_oklch(from_var(--color-primary)_l_c_h_/_0.65)]",
-            )}
-          >
-            F
-          </span>
-          <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-            FullStackHero · console
-          </span>
+        <div className="flex items-center gap-2.5 font-mono text-[10.5px] font-medium uppercase tracking-[0.20em] text-[var(--color-muted-foreground)]">
+          <span className="inline-block h-px w-8 bg-[var(--color-border-strong)]" aria-hidden />
+          <span>The starter kit</span>
         </div>
 
-        {/* Headline — display serif, gradient on the noun. */}
+        {/* Massive editorial headline. Fluid clamp scales from 40px on
+            narrow lg viewports to 80px on very wide ones. The display
+            font is the user's currently-selected sans (controlled via
+            the appearance theme). pb-2 protects descenders from being
+            clipped against the headline's own line-box at tight
+            line-heights. */}
         <h2
-          className="text-display mt-7 font-semibold leading-[1.04] tracking-[-0.022em]"
-          style={{ fontSize: "clamp(2rem, 1.4rem + 2.4vw, 2.875rem)" }}
+          className="text-display mt-4 pb-2 font-semibold leading-[1.02] tracking-[-0.028em]"
+          style={{ fontSize: "clamp(2.5rem, 1.5rem + 4vw, 5rem)" }}
         >
-          The starter kit your{" "}
-          <span className="text-gradient-brand">.NET</span>{" "}
-          team has been waiting for.
+          The complete{" "}
+          <span className="text-gradient-brand">.NET 10</span>
+          <br />
+          starter kit your team
+          <br />
+          has been waiting for.
         </h2>
 
-        {/* Tagline cycle — fixed-height container so the rotating
-            crossfade doesn't reflow neighbouring content.  */}
+        {/* Tagline cycle — fixed-height container so the crossfade
+            doesn't reflow neighbouring content. */}
         <div
-          className="mt-5 relative h-6 max-w-md overflow-hidden"
+          className="relative mt-6 h-7 max-w-md overflow-hidden"
           aria-live="polite"
         >
           {TAGLINES.map((line, i) => (
@@ -98,7 +77,7 @@ export function LoginBrandStory() {
               key={line}
               className={cn(
                 "absolute inset-0 text-[15px] leading-relaxed text-[var(--color-muted-foreground)]",
-                "transition-opacity duration-[600ms] ease-[var(--ease-out-cubic)]",
+                "transition-opacity duration-[700ms] ease-[var(--ease-out-cubic)]",
                 i === tagIdx ? "opacity-100" : "opacity-0",
               )}
             >
@@ -108,65 +87,27 @@ export function LoginBrandStory() {
         </div>
       </div>
 
-      {/* Trust strip — feature pills with icon + label + tooltip-like
-          description. Stacked stagger entrance via fsh-enter. */}
-      <div className="space-y-2.5">
-        <div className="flex items-center gap-2 font-mono text-[10.5px] font-medium uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
-          <span
-            aria-hidden
-            className="pulse-dot inline-block h-1.5 w-1.5 rounded-full"
-            style={{ backgroundColor: "var(--color-success)", color: "var(--color-success)" }}
-          />
-          Service ready
-        </div>
-        <ul className="grid grid-cols-2 gap-2">
-          {TRUST_ITEMS.map((item, i) => (
-            <li
-              key={item.label}
-              className="fsh-enter"
-              style={{ animationDelay: `${120 + i * 60}ms` }}
-            >
-              <TrustPill item={item} />
-            </li>
-          ))}
-        </ul>
+      {/* Editorial stat strip — three numbers, mono caps captions, hairline
+          dividers. No box chrome — pure typography sitting on the page. */}
+      <div className="flex items-stretch gap-8">
+        {STATS.map((stat, i) => (
+          <div
+            key={stat.label}
+            className={cn(
+              "fsh-enter relative",
+              i > 0 && "border-l border-[var(--color-border-strong)] pl-8",
+            )}
+            style={{ animationDelay: `${160 + i * 80}ms` }}
+          >
+            <div className="text-display text-[40px] font-semibold leading-none tabular-nums tracking-[-0.025em]">
+              {stat.value}
+            </div>
+            <div className="mt-1.5 font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
+              {stat.label}
+            </div>
+          </div>
+        ))}
       </div>
     </aside>
   );
 }
-
-function TrustPill({ item }: { item: TrustItem }) {
-  const Icon = item.icon;
-  return (
-    <div
-      className={cn(
-        "group/trust relative flex h-full items-start gap-2.5 rounded-xl border bg-[oklch(from_var(--color-card)_l_c_h_/_0.55)] px-3 py-2.5",
-        "border-[var(--color-border)] backdrop-blur-md",
-        "transition-colors duration-[var(--duration-default)] ease-[var(--ease-out-cubic)]",
-        "hover:border-[var(--color-border-strong)]",
-      )}
-    >
-      <span
-        aria-hidden
-        className="grid h-7 w-7 shrink-0 place-items-center rounded-md ring-1 ring-inset"
-        style={{
-          background:
-            "linear-gradient(135deg, oklch(from var(--color-primary) l c h / 0.20), oklch(from var(--color-primary) l c h / 0.02))",
-          color: "var(--color-primary)",
-          boxShadow: "inset 0 0 0 1px oklch(from var(--color-primary) l c h / 0.25)",
-        }}
-      >
-        <Icon className="h-3.5 w-3.5" />
-      </span>
-      <div className="min-w-0 flex-1">
-        <div className="truncate text-[12px] font-semibold tracking-tight">
-          {item.label}
-        </div>
-        <div className="mt-0.5 text-[11px] leading-relaxed text-[var(--color-muted-foreground)]">
-          {item.description}
-        </div>
-      </div>
-    </div>
-  );
-}
-
