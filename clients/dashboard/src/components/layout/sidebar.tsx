@@ -351,53 +351,82 @@ function AccordionSection({
         // The "card" treatment for the open state — distinct surface,
         // tone-soft border, gentle inner highlight, comfortable
         // padding. Closed state is borderless and sits flush so the
-        // sidebar reads as a list of section labels.
-        "rounded-lg transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
+        // sidebar reads as a list of section labels. Animate every
+        // chrome property (bg, border, padding, shadow) so the card
+        // materialises rather than snapping in.
+        "rounded-lg",
+        "transition-[background-color,border-color,box-shadow,padding] duration-[var(--duration-default)] ease-[var(--ease-out-cubic)]",
         isOpen
           ? "border border-[var(--color-border)] bg-[var(--color-surface-3)] p-1.5 shadow-[var(--highlight-top)]"
-          : "border border-transparent",
+          : "border border-transparent p-0 shadow-none",
       )}
     >
+      {/* Section header. Structured to mirror NavItemLink — same height,
+          same gap, same padding, same icon size, same text-sm/medium —
+          so the sidebar reads as one consistent typographic system.
+          Differentiation from a nav item is carried by the trailing
+          chevron + the card-surface treatment when this section is
+          active, not by font/size shifts. */}
       <button
         type="button"
         onClick={onToggle}
         aria-expanded={isOpen}
         aria-controls={`nav-section-${section.id}`}
         className={cn(
-          "flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5",
-          "text-left transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
+          "flex h-9 w-full cursor-pointer items-center gap-3 rounded-md px-3",
+          "text-left text-sm font-medium",
+          "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
           isOpen
             ? "text-[var(--color-foreground)]"
             : "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
         )}
       >
-        <SectionIcon className="h-3.5 w-3.5 shrink-0 opacity-80" aria-hidden />
-        <span className="flex-1 font-mono text-[10.5px] font-medium uppercase tracking-[0.14em]">
-          {section.caption}
-        </span>
+        <SectionIcon className="h-4 w-4 shrink-0" aria-hidden />
+        <span className="flex-1 truncate">{section.caption}</span>
         <ChevronDown
           aria-hidden
           className={cn(
-            "h-3 w-3 shrink-0 transition-transform duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
-            isOpen ? "rotate-180" : "rotate-0",
-            isOpen
-              ? "text-[var(--color-foreground)]"
-              : "text-[var(--color-muted-foreground)]",
+            "h-3.5 w-3.5 shrink-0 transition-transform duration-[var(--duration-default)] ease-[var(--ease-out-cubic)]",
+            isOpen ? "rotate-180 text-[var(--color-foreground)]" : "rotate-0 text-[var(--color-muted-foreground)]",
           )}
         />
       </button>
 
-      {isOpen && (
-        <div
-          id={`nav-section-${section.id}`}
-          className="mt-1 space-y-0.5"
-        >
-          {section.items.map((item) => (
-            <NavItemLink key={item.to} item={item} collapsed={false} indent />
-          ))}
+      {/* Items panel — animated open/close via the grid-template-rows
+          0fr ↔ 1fr trick. The wrapper is a CSS grid with a single
+          implicit row whose track size animates between 0fr (closed,
+          panel collapses) and 1fr (open, panel takes its natural
+          height). The inner div needs `overflow: hidden` + `min-h-0`
+          so the contents are clipped during the transition rather
+          than overflowing into the next section. Items also fade in
+          with a tiny delay so the slide and the visual reveal stay
+          in lockstep. */}
+      <div
+        id={`nav-section-${section.id}`}
+        className={cn(
+          "grid",
+          "transition-[grid-template-rows,margin-top] duration-[var(--duration-default)] ease-[var(--ease-out-cubic)]",
+          isOpen ? "mt-1 grid-rows-[1fr]" : "mt-0 grid-rows-[0fr]",
+        )}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div
+            aria-hidden={!isOpen}
+            className={cn(
+              "space-y-0.5",
+              "transition-opacity ease-[var(--ease-out-cubic)]",
+              isOpen
+                ? "opacity-100 duration-[var(--duration-default)] delay-[80ms]"
+                : "opacity-0 duration-[var(--duration-fast)]",
+            )}
+          >
+            {section.items.map((item) => (
+              <NavItemLink key={item.to} item={item} collapsed={false} indent />
+            ))}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
