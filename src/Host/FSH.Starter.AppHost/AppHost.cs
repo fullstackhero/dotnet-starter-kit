@@ -42,14 +42,17 @@ var minio = builder.AddContainer("minio", "minio/minio")
     .WithVolume("fsh-minio-data", "/data")
     .WithLifetime(ContainerLifetime.Persistent);
 
-var minioInitScript = $$"""
+// Normalize line endings to LF — on Windows the source file is CRLF, and
+// /bin/sh inside the minio/mc container chokes on \r appearing after `do`
+// and `done` ("syntax error near unexpected token `done'").
+var minioInitScript = ($$"""
 until mc alias set local http://minio:9000 "$MC_USER" "$MC_PASS"; do
   echo "waiting for minio...";
   sleep 2;
 done;
 mc mb --ignore-existing local/{{MinioBucket}};
 mc anonymous set download local/{{MinioBucket}};
-""";
+""").ReplaceLineEndings("\n");
 
 var minioInit = builder.AddContainer("minio-init", "minio/mc")
     .WithEntrypoint("/bin/sh")
