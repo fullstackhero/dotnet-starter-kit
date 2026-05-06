@@ -9,15 +9,21 @@ import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import {
   AlertCircle,
   ArrowRight,
+  FlaskConical,
   Loader2,
   ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "@/auth/use-auth";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { ApiRequestError } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
 import { env } from "@/env";
-import { LoginBrandStory } from "@/pages/login.brand-story";
 import { LoginDemoPanel } from "@/pages/login.demo-panel";
 import type { DemoAccount } from "@/pages/login.demo-accounts";
 
@@ -62,8 +68,6 @@ function TechMarquee() {
         "bg-[oklch(from_var(--color-background)_l_c_h_/_0.55)] backdrop-blur-md",
       )}
       style={{
-        // Fade-out on both edges so the scroll feels infinite — no hard
-        // start/end. The mask narrows the visible band to the middle.
         WebkitMaskImage:
           "linear-gradient(90deg, transparent, black 8%, black 92%, transparent)",
         maskImage:
@@ -74,10 +78,7 @@ function TechMarquee() {
         {[...STACK, ...STACK].map((label, i) => (
           <span
             key={`${label}-${i}`}
-            className={cn(
-              "shrink-0 font-mono text-[11.5px] uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]",
-              "inline-flex items-center gap-2 whitespace-nowrap",
-            )}
+            className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap font-mono text-[11.5px] uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]"
           >
             <span
               aria-hidden
@@ -91,10 +92,10 @@ function TechMarquee() {
   );
 }
 
-/**
- * Updates `--mx`/`--my` on the supplied element so a CSS radial spotlight
- * tracks the cursor. Listener detaches on unmount.
- */
+// ────────────────────────────────────────────────────────────────────────
+// Cursor + viewport hooks (same as before — atmosphere depends on them).
+// ────────────────────────────────────────────────────────────────────────
+
 function useSpotlight<T extends HTMLElement>(): RefObject<T | null> {
   const ref = useRef<T>(null);
   useEffect(() => {
@@ -111,11 +112,6 @@ function useSpotlight<T extends HTMLElement>(): RefObject<T | null> {
   return ref;
 }
 
-/**
- * Sets `--px`/`--py` on the document root in the range [-1, 1] based on
- * the cursor's normalized viewport position. The aurora orbs read these
- * vars to translate-3d, producing a soft parallax depth illusion.
- */
 function useViewportParallax() {
   useEffect(() => {
     let rafId = 0;
@@ -139,12 +135,11 @@ function useViewportParallax() {
   }, []);
 }
 
-/**
- * FloatField — modern floating-label input. Label sits centered in the
- * field at rest and translates up + shrinks + brand-tints when the
- * input gains focus or has a value. Driven by :placeholder-shown so no
- * JS state coordination is needed.
- */
+// ────────────────────────────────────────────────────────────────────────
+// FloatField — modern floating-label input. Driven by :placeholder-shown
+// so no JS state coordination is needed.
+// ────────────────────────────────────────────────────────────────────────
+
 function FloatField({
   id,
   label,
@@ -162,9 +157,26 @@ function FloatField({
 }
 
 // ────────────────────────────────────────────────────────────────────────
-// Top strip — single brand mark on the left, build/version chip on the
-// right. Replaces the duplicate brand mark that previously appeared
-// inside the form card.
+// Corner brackets — four small L-shaped marks pinned to the card's
+// corners. Tone-coloured, hairline. Read as engineering / blueprint
+// markers framing the card without competing with its content.
+// ────────────────────────────────────────────────────────────────────────
+
+function CornerBrackets() {
+  const base = "absolute h-3 w-3 border-[var(--color-primary)] opacity-80";
+  return (
+    <>
+      <span aria-hidden className={cn(base, "-top-px -left-px border-l border-t")} />
+      <span aria-hidden className={cn(base, "-top-px -right-px border-r border-t")} />
+      <span aria-hidden className={cn(base, "-bottom-px -left-px border-l border-b")} />
+      <span aria-hidden className={cn(base, "-bottom-px -right-px border-r border-b")} />
+    </>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────
+// Top strip — brand mark left, status + version right. Single brand
+// mark across the whole page.
 // ────────────────────────────────────────────────────────────────────────
 
 function TopStrip() {
@@ -201,6 +213,47 @@ function TopStrip() {
 }
 
 // ────────────────────────────────────────────────────────────────────────
+// Demo popup — DEV only. Click "Demo accounts" under the form, the
+// existing LoginDemoPanel renders inside a Dialog. Picking an account
+// closes the dialog and prefills the form.
+// ────────────────────────────────────────────────────────────────────────
+
+function DemoDialog({
+  open,
+  onOpenChange,
+  current,
+  onSelect,
+}: {
+  open: boolean;
+  onOpenChange: (next: boolean) => void;
+  current: { email: string; tenant: string };
+  onSelect: (account: DemoAccount) => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-[520px] !p-0">
+        <DialogTitle className="sr-only">Demo accounts</DialogTitle>
+        <DialogDescription className="sr-only">
+          Pick a seeded demo account to prefill the login form. DEV only.
+        </DialogDescription>
+        {/* The panel brings its own card chrome, so the dialog content
+            wrapper drops its padding (!p-0) and lets the panel render
+            edge-to-edge. */}
+        <div className="rounded-[inherit] overflow-hidden">
+          <LoginDemoPanel
+            current={current}
+            onSelect={(a) => {
+              onSelect(a);
+              onOpenChange(false);
+            }}
+          />
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────
 // Page
 // ────────────────────────────────────────────────────────────────────────
 
@@ -215,6 +268,7 @@ export function LoginPage() {
   const [tenant, setTenant] = useState(env.defaultTenant);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [demoOpen, setDemoOpen] = useState(false);
 
   useViewportParallax();
   const cardRef = useSpotlight<HTMLDivElement>();
@@ -254,18 +308,10 @@ export function LoginPage() {
     setTenant(account.tenant);
   };
 
-  // Layout breakpoints:
-  //   narrow:        single column, brand-story hidden, form leads
-  //   ≥lg non-DEV:   2-col [story | form], max-w-1200, centred
-  //   ≥xl DEV:       3-col [story | form | demo], max-w-1440
-  // The DEV demo panel is hidden below xl so it never disrupts the
-  // composition on smaller screens; users running the dev server on
-  // a laptop see it kick in once they hit ~1280px wide.
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden">
       {/* Atmospheric background — multi-orb aurora that drifts with the
-          cursor. Layered radial gradients hand-tuned to stay soft on
-          both light + dark canvases. */}
+          cursor + a subtle dot-grid overlay for the blueprint feel. */}
       <div
         aria-hidden
         className="parallax-orb pointer-events-none absolute -left-32 -top-40 h-[640px] w-[640px] rounded-full blur-[160px]"
@@ -282,101 +328,110 @@ export function LoginPage() {
         style={{ backgroundColor: "oklch(from var(--color-primary) l c h / 0.16)" }}
       />
 
+      {/* Dot grid — one tiny dot every 32px, very low opacity. Reads as
+          graph paper / blueprint texture without competing for attention. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.65]"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle, oklch(from var(--color-foreground) l c h / 0.10) 1px, transparent 1px)",
+          backgroundSize: "32px 32px",
+          maskImage:
+            "radial-gradient(ellipse 70% 60% at 50% 50%, black 30%, transparent 75%)",
+          WebkitMaskImage:
+            "radial-gradient(ellipse 70% 60% at 50% 50%, black 30%, transparent 75%)",
+        }}
+      />
+
       <TopStrip />
 
-      {/* Main composition — hero column + form + (DEV) demo. Sits
-          centred in a max-width container, vertically pinned to the
-          middle of the remaining viewport. */}
-      <main className="relative z-10 flex flex-1 items-center px-6 py-12 sm:px-10">
-        <div
-          className={cn(
-            "mx-auto grid w-full items-center gap-10",
-            "max-w-[1200px]",
-            "lg:grid-cols-[minmax(0,1.15fr)_minmax(0,420px)]",
-            "xl:max-w-[1440px] xl:gap-12 xl:grid-cols-[minmax(0,1fr)_420px_320px]",
-          )}
-        >
-          {/* Hero column — hidden below lg so narrow viewports lead
-              with the form (faster sign-in on phones). */}
-          <div className="hidden lg:block">
-            <LoginBrandStory />
+      {/* Main composition — single centred column. Eyebrow + headline
+          set the editorial weight; the form card sits beneath them as a
+          focused action surface; the editorial stat strip lives on the
+          canvas below the card so it reads as page-level commentary
+          rather than card content. */}
+      <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 py-10 sm:px-10">
+        <div className="mx-auto flex w-full max-w-[680px] flex-col items-center text-center">
+          {/* Eyebrow */}
+          <div className="fsh-enter fsh-enter-1 flex items-center gap-2.5 font-mono text-[10.5px] font-medium uppercase tracking-[0.22em] text-[var(--color-muted-foreground)]">
+            <span aria-hidden className="inline-block h-px w-8 bg-[var(--color-border-strong)]" />
+            <span>// FullStackHero · console</span>
+            <span aria-hidden className="inline-block h-px w-8 bg-[var(--color-border-strong)]" />
           </div>
 
-          {/* Form card */}
-          <div className="glow-frame fsh-enter fsh-enter-2 relative w-full shadow-[var(--shadow-lift)]">
+          {/* Display headline — fluid clamp, gradient noun, generous
+              line-height to keep descenders comfortable. */}
+          <h1
+            className="text-display fsh-enter fsh-enter-2 mt-6 pb-1 font-semibold leading-[1.06] tracking-[-0.025em]"
+            style={{ fontSize: "clamp(2rem, 1.4rem + 2.4vw, 3.25rem)" }}
+          >
+            The complete{" "}
+            <span className="text-gradient-brand">.NET 10</span>{" "}
+            starter kit,
+            <br />
+            ready to ship.
+          </h1>
+
+          <p className="fsh-enter fsh-enter-3 mt-4 max-w-md text-[14px] leading-relaxed text-[var(--color-muted-foreground)]">
+            Multi-tenant from day one. Modular monolith. Aspire-orchestrated.
+            Sign in to continue to your tenant.
+          </p>
+
+          {/* Login card — single focal action surface, ~440px wide,
+              pinned with corner brackets so it reads as a "spec sheet"
+              element on the canvas rather than another generic card. */}
+          <div className="fsh-enter fsh-enter-4 relative mt-10 w-full max-w-[440px]">
+            <CornerBrackets />
             <div
               ref={cardRef}
               className={cn(
-                "card-spotlight rounded-[calc(var(--radius-2xl)-1px)]",
-                // Translucent surface + saturating backdrop blur so the
-                // aurora behind shows through the card. Tone-rail on the
-                // left edge (3px brand-coloured border) anchors the card
-                // to the brand without needing the duplicated brand
-                // mark we used to render here.
+                "card-spotlight relative rounded-2xl",
                 "bg-[oklch(from_var(--color-card)_l_c_h_/_0.78)] backdrop-blur-2xl backdrop-saturate-150",
-                "border-l-[3px] border-l-[var(--color-primary)]",
-                "px-7 pb-7 pt-7",
+                "border border-[var(--color-border)]",
+                "px-7 pb-6 pt-6 text-left",
+                "shadow-[0_30px_60px_-30px_oklch(0_0_0_/_0.30),0_12px_24px_-16px_oklch(0_0_0_/_0.20)]",
               )}
             >
-              {/* Eyebrow — replaces the duplicate brand mark that used
-                  to live here. Tone-soft mono caps. */}
-              <div className="flex items-center gap-2 fsh-enter fsh-enter-3">
-                <span
-                  aria-hidden
-                  className="inline-block h-px w-6 bg-[var(--color-primary)]"
-                />
-                <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.20em] text-[var(--color-primary)]">
-                  Sign in
-                </span>
+              <div className="mb-5 flex items-center justify-between gap-2 font-mono text-[10.5px] font-medium uppercase tracking-[0.18em]">
+                <span className="text-[var(--color-primary)]">// 01.SIGN-IN</span>
+                <span className="text-[var(--color-muted-foreground)]">tenant · jwt</span>
               </div>
 
-              <header className="mt-3 mb-7 space-y-1.5 fsh-enter fsh-enter-3">
-                <h1
-                  className="text-display pb-1 font-semibold leading-[1.05] tracking-[-0.022em]"
-                  style={{ fontSize: "clamp(1.625rem, 1.3rem + 1.2vw, 2rem)" }}
-                >
-                  Welcome <span className="text-gradient-brand">back.</span>
-                </h1>
-                <p className="text-[13.5px] leading-relaxed text-[var(--color-muted-foreground)]">
-                  Sign in to your tenant to continue.
-                </p>
-              </header>
+              <h2 className="text-display pb-1 text-[22px] font-semibold leading-[1.1] tracking-[-0.018em]">
+                Welcome <span className="text-gradient-brand">back.</span>
+              </h2>
+              <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-muted-foreground)]">
+                Sign in to continue to your tenant.
+              </p>
 
-              <form onSubmit={onSubmit} className="space-y-3" noValidate>
-                <div className="fsh-enter fsh-enter-4">
-                  <FloatField
-                    id="tenant"
-                    label="Tenant"
-                    value={tenant}
-                    onChange={(e) => setTenant(e.target.value)}
-                    required
-                    autoComplete="organization"
-                  />
-                </div>
-
-                <div className="fsh-enter fsh-enter-4">
-                  <FloatField
-                    id="email"
-                    label="Email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    autoComplete="email"
-                  />
-                </div>
-
-                <div className="fsh-enter fsh-enter-5">
-                  <FloatField
-                    id="password"
-                    label="Password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    autoComplete="current-password"
-                  />
-                </div>
+              <form onSubmit={onSubmit} className="mt-5 space-y-3" noValidate>
+                <FloatField
+                  id="tenant"
+                  label="Tenant"
+                  value={tenant}
+                  onChange={(e) => setTenant(e.target.value)}
+                  required
+                  autoComplete="organization"
+                />
+                <FloatField
+                  id="email"
+                  label="Email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                />
+                <FloatField
+                  id="password"
+                  label="Password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
+                />
 
                 {error && (
                   <div
@@ -393,52 +448,71 @@ export function LoginPage() {
                   </div>
                 )}
 
-                <div className="space-y-2.5 pt-3 fsh-enter fsh-enter-5">
-                  <Button
-                    type="submit"
-                    size="lg"
-                    className="btn-shimmer w-full"
-                    disabled={submitting || !email || !password || !tenant}
-                  >
-                    {submitting ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Signing in…
-                      </>
-                    ) : (
-                      <>
-                        Sign in
-                        <ArrowRight className="h-4 w-4 transition-transform duration-[var(--duration-default)] group-hover/btn:translate-x-0.5" />
-                      </>
-                    )}
-                  </Button>
-                </div>
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="btn-shimmer mt-1.5 w-full"
+                  disabled={submitting || !email || !password || !tenant}
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Signing in…
+                    </>
+                  ) : (
+                    <>
+                      Sign in
+                      <ArrowRight className="h-4 w-4 transition-transform duration-[var(--duration-default)] group-hover/btn:translate-x-0.5" />
+                    </>
+                  )}
+                </Button>
               </form>
 
-              {/* Trust strip — moved below the CTA, lighter weight so it
-                  doesn't compete with the action. */}
-              <div className="mt-6 flex items-center justify-center gap-1.5 fsh-enter fsh-enter-5 text-[11px] tracking-tight text-[var(--color-muted-foreground)]">
-                <ShieldCheck className="h-3 w-3" />
-                <span>Encrypted in transit · JWT-secured session</span>
-              </div>
+              {/* Demo button (DEV only) — opens the popup. Sits as a
+                  hairline-divider-separated row at the bottom of the
+                  card so it doesn't compete with the primary CTA. */}
+              {import.meta.env.DEV && (
+                <div className="mt-5 border-t border-[var(--color-border)] pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setDemoOpen(true)}
+                    className={cn(
+                      "group/demo flex w-full cursor-pointer items-center justify-between gap-2 rounded-md px-2 py-1.5 text-[12px]",
+                      "transition-colors duration-[var(--duration-fast)]",
+                      "hover:bg-[var(--color-accent)]",
+                    )}
+                  >
+                    <span className="inline-flex items-center gap-2 font-mono uppercase tracking-[0.14em] text-[var(--color-muted-foreground)] group-hover/demo:text-[var(--color-foreground)]">
+                      <FlaskConical className="h-3 w-3" />
+                      // demo accounts
+                    </span>
+                    <span className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
+                      DEV
+                    </span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* DEV demo panel — only renders ≥xl so it never crowds the
-              composition on a laptop. */}
-          {import.meta.env.DEV && (
-            <div className="hidden xl:block">
-              <LoginDemoPanel
-                current={{ email, tenant }}
-                onSelect={onPickDemo}
-              />
-            </div>
-          )}
+          {/* Editorial stat strip — three numbers, mono captions,
+              hairline dividers. Sits ON the canvas below the card so
+              it reads as page-level commentary, not card content. */}
+          <div className="fsh-enter fsh-enter-5 mt-10 flex items-stretch gap-7 sm:gap-10">
+            <Stat value="14" label="Modules" />
+            <Stat value="08" label="Building blocks" border />
+            <Stat value="02" label="Demo apps" border />
+          </div>
+
+          {/* Trust line — quietly under the stat strip. */}
+          <div className="fsh-enter fsh-enter-5 mt-7 inline-flex items-center gap-1.5 text-[11px] tracking-tight text-[var(--color-muted-foreground)]">
+            <ShieldCheck className="h-3 w-3" />
+            <span>Encrypted in transit · JWT-secured session</span>
+          </div>
         </div>
       </main>
 
-      {/* Tech-stack marquee — full-bleed at the bottom of the canvas.
-          Sits above the footer; pauses on hover. */}
+      {/* Tech-stack marquee — full-bleed at the bottom. Pauses on hover. */}
       <TechMarquee />
 
       <footer className="relative z-10 px-6 py-5 text-center text-xs text-[var(--color-muted-foreground)]">
@@ -456,6 +530,37 @@ export function LoginPage() {
         <span className="mx-3 text-[var(--color-border-strong)]">·</span>
         <span className="font-mono">v0.1 · console</span>
       </footer>
+
+      {/* DEV demo popup — controlled by the // demo accounts button. */}
+      {import.meta.env.DEV && (
+        <DemoDialog
+          open={demoOpen}
+          onOpenChange={setDemoOpen}
+          current={{ email, tenant }}
+          onSelect={onPickDemo}
+        />
+      )}
+    </div>
+  );
+}
+
+function Stat({
+  value,
+  label,
+  border,
+}: {
+  value: string;
+  label: string;
+  border?: boolean;
+}) {
+  return (
+    <div className={cn(border && "border-l border-[var(--color-border-strong)] pl-7 sm:pl-10")}>
+      <div className="text-display text-[32px] font-semibold leading-none tabular-nums tracking-[-0.025em] sm:text-[40px]">
+        {value}
+      </div>
+      <div className="mt-1.5 font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
+        {label}
+      </div>
     </div>
   );
 }
