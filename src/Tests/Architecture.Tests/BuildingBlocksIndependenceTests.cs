@@ -49,7 +49,7 @@ public class BuildingBlocksIndependenceTests
     }
 
     [Fact]
-    public void BuildingBlocks_Should_Not_Depend_On_Playground()
+    public void BuildingBlocks_Should_Not_Depend_On_Hosts()
     {
         foreach (var assembly in BuildingBlockAssemblies)
         {
@@ -64,7 +64,7 @@ public class BuildingBlocksIndependenceTests
             var failingTypes = result.FailingTypeNames ?? [];
 
             result.IsSuccessful.ShouldBeTrue(
-                $"BuildingBlock '{assembly.GetName().Name}' should not depend on Playground. " +
+                $"BuildingBlock '{assembly.GetName().Name}' should not depend on Hosts. " +
                 $"Failing types: {string.Join(", ", failingTypes)}");
         }
     }
@@ -103,9 +103,9 @@ public class BuildingBlocksIndependenceTests
                     violations.Add($"{projectName} -> {referencedName}");
                 }
 
-                // Check if it references Playground
-                if (referencedName.StartsWith("Playground", StringComparison.OrdinalIgnoreCase) ||
-                    referencedName.Contains("AppHost", StringComparison.OrdinalIgnoreCase))
+                // Check if it references a Host project
+                if (referencedName.Contains("AppHost", StringComparison.OrdinalIgnoreCase) ||
+                    referencedName.StartsWith("FSH.Starter.Api", StringComparison.OrdinalIgnoreCase))
                 {
                     violations.Add($"{projectName} -> {referencedName}");
                 }
@@ -113,7 +113,7 @@ public class BuildingBlocksIndependenceTests
         }
 
         violations.ShouldBeEmpty(
-            $"BuildingBlocks should not reference Modules or Playground projects. " +
+            $"BuildingBlocks should not reference Modules or Host projects. " +
             $"Violations: {string.Join(", ", violations)}");
     }
 

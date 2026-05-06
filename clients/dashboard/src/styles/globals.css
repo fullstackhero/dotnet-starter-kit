@@ -410,13 +410,13 @@
     font-feature-settings: var(--font-feature-tabular);
   }
 
-  /* Refined focus halo — 2px ring + soft outer brand bloom. The bloom
-     is what separates "default browser" from "designed".  */
+  /* Focus indicator — clean 2px outline, no bloom. The previous outer
+     brand-tinted halo (box-shadow) read as garish, especially in dark
+     mode and on input fields. The outline alone is enough for keyboard
+     accessibility and matches the rest of the dashboard's restraint. */
   :focus-visible {
     outline: 2px solid var(--color-ring);
     outline-offset: 2px;
-    border-radius: var(--radius-sm);
-    box-shadow: 0 0 0 6px oklch(from var(--color-ring) l c h / 0.18);
   }
 
   /* Brand-tinted text selection. */
@@ -1115,7 +1115,6 @@
     outline: none;
     border-color: var(--color-ring);
     background: var(--color-surface-3);
-    box-shadow: 0 0 0 4px oklch(from var(--color-ring) l c h / 0.18);
   }
   .float-field > label {
     position: absolute;
@@ -1213,294 +1212,347 @@
   }
 
   /* ─────────────────────────────────────────────────────────────────────
-     TOASTS — sonner override · "telegraph slip" treatment.
+     TOASTS — sonner override · "frosted plate" treatment.
 
-     Each toast reads as a transmission frame lifted off a teletype:
-     · A luminous 3px left rail in the type's tone, with a single top-to-
-       bottom scanline pulse on enter (the tally-light moment).
-     · A bracketed mono channel tag — [OK] [ERR] [WARN] [INFO] [NOTE]
-       […] — supplants the icon plate. Type is announced typographically.
-     · Hairline rule between the channel header and the body.
-     · Display title, muted body, ghost action with a right chevron on
-       hover. Asymmetric padding anchors the rail on the left.
-     · Spring-in entrance from the right with a brief 6deg → 0deg rotate
-       resolve and a staggered text reveal.
+     Goal: a thin glass slab that's backlit by a tone-coloured aurora,
+     plus a tiny mono capsule signalling type. Geometry is pinned —
+     width / min-width / max-width all clamp to 360px, padding is
+     fixed, no transforms apply on hover. Stacked toasts always render
+     at full size (sonner `expand` is true), so nothing reflows when
+     the cursor enters or leaves.
 
-     `richColors` stays off; the colour story lives entirely in the rail
-     and the bracketed tag, never in the surface.
+     Visual ingredients (top → bottom):
+       · A small lowercase mono pill — "ok" / "err" / "warn" / "info"
+         / "note" — coloured in the type's tone. Type is announced by
+         typography, not an icon.
+       · Title in the display family.
+       · Description in muted body.
+       · Optional ghost action — text button with a chevron, no border.
+       · A 1px progress drain along the bottom that ticks down with
+         the auto-dismiss timer, so the toast's lifetime is visible.
+
+     Light mode: white card, faint aurora, monochrome pillow shadow.
+     Dark mode: deep card, more saturated aurora, deeper pillow. The
+     shadow is never tone-tinted — that read as garish on dark.
   --------------------------------------------------------------------- */
 
-  /* ── Token map. Each tone resolves to a single oklch base; a derived
-        glow var lights the rail's scanline. */
+  /* ── Token map ─────────────────────────────────────────────────── */
   [data-sonner-toaster] [data-sonner-toast].fsh-toast {
-    --fsh-toast-tone: var(--color-border-strong);
-    --fsh-toast-glow: oklch(from var(--fsh-toast-tone) l c h / 0.55);
-    --fsh-toast-tag: "[NOTE]";
+    --fsh-toast-tone: var(--color-muted-foreground);
+    --fsh-toast-tag: "note";
+    --fsh-toast-aurora-light: 0.10;
+    --fsh-toast-aurora-dark: 0.20;
+    --fsh-toast-duration: 4200ms;
   }
   [data-sonner-toast][data-type="success"].fsh-toast {
     --fsh-toast-tone: var(--color-success);
-    --fsh-toast-tag: "[OK]";
+    --fsh-toast-tag: "ok";
   }
   [data-sonner-toast][data-type="error"].fsh-toast {
     --fsh-toast-tone: var(--color-destructive);
-    --fsh-toast-tag: "[ERR]";
+    --fsh-toast-tag: "err";
   }
   [data-sonner-toast][data-type="warning"].fsh-toast {
     --fsh-toast-tone: var(--color-warning);
-    --fsh-toast-tag: "[WARN]";
+    --fsh-toast-tag: "warn";
   }
   [data-sonner-toast][data-type="info"].fsh-toast {
     --fsh-toast-tone: var(--color-info);
-    --fsh-toast-tag: "[INFO]";
+    --fsh-toast-tag: "info";
   }
   [data-sonner-toast][data-type="loading"].fsh-toast {
     --fsh-toast-tone: var(--color-primary);
-    --fsh-toast-tag: "[…]";
+    --fsh-toast-tag: "wait";
   }
 
-  /* ── Base shell. The grid leaves a column for the rail (painted by
-        ::before, not flexing into layout) and a single content column.
-        Asymmetric padding: 18px top/bottom, 18px right, 22px left so
-        the body breathes away from the rail. */
+  /* ── Base shell.
+
+        Geometry pinned: width = min-width = max-width = 360px so no
+        child can grow the toast and sonner's stacking transforms
+        cannot expand it. Padding is fixed; hover applies no transform
+        anywhere on the toast itself. ───────────────────────────── */
   [data-sonner-toaster] [data-sonner-toast].fsh-toast {
     position: relative;
+    isolation: isolate;
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 0 0.75rem;
+    grid-template-rows: auto auto auto auto;
+    gap: 0 12px;
     align-items: start;
-    width: 380px;
-    max-width: 100%;
-    padding: 14px 18px 14px 22px;
-    border-radius: var(--radius-md);
-    border: 1px solid transparent;
+
+    width: 360px;
+    min-width: 360px;
+    max-width: 360px;
+    padding: 14px 14px 15px 14px;
+
+    border-radius: 14px;
+    border: 1px solid oklch(0 0 0 / 0.07);
+    /* Two-layer background: the aurora rides on top of the card fill.
+       The aurora opacity is driven by --fsh-toast-aurora-light here;
+       dark mode swaps to the dark-mode value below. */
     background:
-      linear-gradient(var(--color-card), var(--color-card)) padding-box,
-      linear-gradient(
-        180deg,
-        oklch(from var(--color-foreground) l c h / 0.16),
-        var(--color-border) 70%
-      ) border-box !important;
+      radial-gradient(
+        110% 130% at -10% -20%,
+        oklch(from var(--fsh-toast-tone) l c h / var(--fsh-toast-aurora-light)),
+        transparent 60%
+      ),
+      var(--color-card);
     box-shadow:
-      0 1px 0 oklch(from var(--color-foreground) l c h / 0.04) inset,
-      0 18px 36px -18px oklch(from var(--fsh-toast-tone) l c h / 0.32),
-      0 8px 18px -10px oklch(0 0 0 / 0.20);
+      0 1px 0 oklch(1 0 0 / 0.6) inset,
+      0 6px 16px -8px oklch(0 0 0 / 0.10),
+      0 24px 48px -24px oklch(0 0 0 / 0.18);
+
     color: var(--color-foreground) !important;
     font-family: var(--font-sans);
     overflow: hidden;
+    /* Prevent any children from forcing a width change. */
+    contain: layout paint;
   }
+
   .dark [data-sonner-toaster] [data-sonner-toast].fsh-toast {
+    border-color: oklch(1 0 0 / 0.08);
     background:
-      linear-gradient(var(--color-card), var(--color-card)) padding-box,
-      linear-gradient(180deg, oklch(1 0 0 / 0.10), var(--color-border) 70%) border-box !important;
-    box-shadow:
-      0 1px 0 oklch(1 0 0 / 0.05) inset,
-      0 22px 44px -18px oklch(from var(--fsh-toast-tone) l c h / 0.42),
-      0 10px 22px -10px oklch(0 0 0 / 0.35);
-  }
-
-  /* ── The rail. 3px solid base + a moving scanline gradient that fires
-        once on enter (the tally-light pulse). The base is opaque so the
-        rail still reads after the animation finishes. */
-  [data-sonner-toast].fsh-toast::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: 3px;
-    background:
-      linear-gradient(180deg,
-        transparent 0%,
-        var(--fsh-toast-glow) 18%,
-        oklch(from var(--fsh-toast-tone) l c h / 1.0) 50%,
-        var(--fsh-toast-glow) 82%,
-        transparent 100%
+      radial-gradient(
+        110% 130% at -10% -20%,
+        oklch(from var(--fsh-toast-tone) l c h / var(--fsh-toast-aurora-dark)),
+        transparent 60%
       ),
-      var(--fsh-toast-tone);
-    background-size: 100% 220%, 100% 100%;
-    background-position: 0 -120%, 0 0;
-    background-repeat: no-repeat;
-    animation: fsh-toast-rail-pulse 1100ms var(--ease-out-cubic) 60ms 1 both;
-  }
-  @keyframes fsh-toast-rail-pulse {
-    from { background-position: 0 -120%, 0 0; }
-    to   { background-position: 0  220%, 0 0; }
+      var(--color-card);
+    box-shadow:
+      0 1px 0 oklch(1 0 0 / 0.04) inset,
+      0 8px 22px -10px oklch(0 0 0 / 0.55),
+      0 32px 64px -28px oklch(0 0 0 / 0.65);
   }
 
-  /* ── Sonner inserts a default icon container as the first wrapper.
-        Hide it — we use typography for the type signal. */
+  /* ── Sonner's default icon container. Hide it — type lives in the
+        mono pill rendered via ::before below. */
   [data-sonner-toast].fsh-toast [data-icon] {
     display: none !important;
   }
 
-  /* ── Channel header: bracketed mono tag generated by ::before from
-        --fsh-toast-tag. Sits above the title; spans the full content
-        column. The hairline beneath separates header from body. */
-  [data-sonner-toast].fsh-toast .fsh-toast-title {
+  /* ── Mono pill capsule (row 1, col 1).
+
+        Renders the lowercase tag in a tone-soft chip. Width is
+        max-content so it never stretches. The chip is a separate
+        block element above the title, not inline with it — gives a
+        more deliberate, structured layout. ─────────────────────── */
+  [data-sonner-toast].fsh-toast::before {
+    content: var(--fsh-toast-tag);
     grid-column: 1;
     grid-row: 1;
-    margin: 0;
-    padding-bottom: 9px;
-    border-bottom: 1px solid oklch(from var(--color-border) l c h / 0.7);
-    font-family: var(--font-display);
-    font-size: 0.9375rem;
-    font-weight: 600;
-    line-height: 1.25;
-    letter-spacing: -0.012em;
-    color: var(--color-foreground);
-    animation: fsh-toast-text-in 360ms var(--ease-out-cubic) 80ms both;
-  }
-  [data-sonner-toast].fsh-toast .fsh-toast-title::before {
-    content: var(--fsh-toast-tag);
-    display: block;
-    margin-bottom: 6px;
+    justify-self: start;
+    align-self: start;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 20px;
+    padding: 0 9px;
+    margin-bottom: 8px;
+
     font-family: var(--font-mono);
-    font-size: 0.6875rem;
+    font-size: 10.5px;
     font-weight: 600;
     letter-spacing: 0.04em;
-    color: var(--fsh-toast-tone);
     line-height: 1;
-    /* Subtle glow that fades during the rail pulse so the eyebrow
-       feels electrically connected to the rail. */
-    text-shadow: 0 0 12px oklch(from var(--fsh-toast-tone) l c h / 0.35);
-    animation: fsh-toast-tag-flash 1100ms var(--ease-out-cubic) 60ms both;
+
+    color: var(--fsh-toast-tone);
+    background: oklch(from var(--fsh-toast-tone) l c h / 0.12);
+    border-radius: 999px;
+    box-shadow: inset 0 0 0 1px oklch(from var(--fsh-toast-tone) l c h / 0.20);
   }
-  @keyframes fsh-toast-tag-flash {
-    0%   { text-shadow: 0 0  0px oklch(from var(--fsh-toast-tone) l c h / 0.0); }
-    25%  { text-shadow: 0 0 18px oklch(from var(--fsh-toast-tone) l c h / 0.65); }
-    100% { text-shadow: 0 0 12px oklch(from var(--fsh-toast-tone) l c h / 0.35); }
+  .dark [data-sonner-toast].fsh-toast::before {
+    background: oklch(from var(--fsh-toast-tone) l c h / 0.18);
+    box-shadow: inset 0 0 0 1px oklch(from var(--fsh-toast-tone) l c h / 0.32);
   }
 
-  /* Loading uses a three-dot animated bracket via the existing tag. */
-  [data-sonner-toast][data-type="loading"].fsh-toast .fsh-toast-title::before {
-    animation:
-      fsh-toast-tag-flash 1100ms var(--ease-out-cubic) 60ms both,
-      fsh-toast-loading-tag 1400ms steps(4, end) 1100ms infinite;
+  /* Loading: animate the dots inside the pill. We reset the static
+     content and replace it with a steps() cycle that draws the dot
+     count. Re-renders cheaply (text-only). */
+  [data-sonner-toast][data-type="loading"].fsh-toast::before {
+    content: "wait";
+    animation: fsh-toast-wait 1400ms steps(4, end) infinite;
   }
-  @keyframes fsh-toast-loading-tag {
-    0%   { content: "[ ]"; }
-    25%  { content: "[·]"; }
-    50%  { content: "[· ·]"; }
-    75%  { content: "[· · ·]"; }
-    100% { content: "[ ]"; }
+  @keyframes fsh-toast-wait {
+    0%   { content: "wait";    }
+    25%  { content: "wait .";  }
+    50%  { content: "wait ·"; }
+    75%  { content: "wait ·"; }
+    100% { content: "wait";    }
   }
 
-  /* ── Description: muted body, slight upward bleed under the rule. */
-  [data-sonner-toast].fsh-toast .fsh-toast-description {
+  /* ── Title (row 2). Display family, snug tracking. */
+  [data-sonner-toast].fsh-toast .fsh-toast-title {
     grid-column: 1;
     grid-row: 2;
-    margin: 9px 0 0 0;
-    font-size: 0.8125rem;
-    line-height: 1.55;
-    color: var(--color-muted-foreground);
-    animation: fsh-toast-text-in 420ms var(--ease-out-cubic) 140ms both;
-  }
-  @keyframes fsh-toast-text-in {
-    from { opacity: 0; transform: translateY(2px); }
-    to   { opacity: 1; transform: translateY(0); }
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 14.5px;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.011em;
+    color: var(--color-foreground);
   }
 
-  /* ── Close: hairline X tucked into the header row. Static positioning
-        overrides sonner's absolute placement so it lives in the grid. */
+  /* ── Description (row 3). Muted body, comfortable leading. */
+  [data-sonner-toast].fsh-toast .fsh-toast-description {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    margin: 4px 0 0 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--color-muted-foreground);
+  }
+
+  /* ── Close (top-right, spans rows 1-2 so it's vertically centered
+        against the leading pill+title block). Hairline circle that
+        becomes solid on hover. No transforms. */
   [data-sonner-toast].fsh-toast .fsh-toast-close {
     grid-column: 2;
-    grid-row: 1;
+    grid-row: 1 / span 2;
+    align-self: start;
+    justify-self: end;
     position: static !important;
-    width: 1.25rem !important;
-    height: 1.25rem !important;
-    margin-top: 0 !important;
-    border-radius: 0.25rem !important;
+
+    width: 22px !important;
+    height: 22px !important;
+    border-radius: 999px !important;
     background: transparent !important;
-    border: none !important;
+    border: 1px solid oklch(0 0 0 / 0.08) !important;
     color: var(--color-muted-foreground) !important;
-    opacity: 0.7;
+    opacity: 0.6;
     transform: none !important;
+    cursor: pointer;
     transition:
       opacity var(--duration-fast) var(--ease-out-cubic),
       background-color var(--duration-fast) var(--ease-out-cubic),
+      border-color var(--duration-fast) var(--ease-out-cubic),
       color var(--duration-fast) var(--ease-out-cubic);
   }
+  .dark [data-sonner-toast].fsh-toast .fsh-toast-close {
+    border-color: oklch(1 0 0 / 0.10) !important;
+  }
   [data-sonner-toast].fsh-toast .fsh-toast-close:hover {
-    background: oklch(from var(--fsh-toast-tone) l c h / 0.10) !important;
-    color: var(--fsh-toast-tone) !important;
     opacity: 1;
+    background: var(--color-muted) !important;
+    border-color: var(--color-border-strong) !important;
+    color: var(--color-foreground) !important;
   }
   [data-sonner-toast].fsh-toast .fsh-toast-close svg {
-    width: 0.75rem;
-    height: 0.75rem;
+    width: 11px;
+    height: 11px;
   }
 
-  /* ── Action / cancel: ghost wires, not solid pills. Action gets a
-        right chevron on hover via ::after. Spans the content column so
-        they sit flush under the body. */
+  /* ── Action / cancel (row 4). Action is a tone-tinted text button
+        with a chevron; cancel is a plain text button. No borders, no
+        background — modern and quiet. ─────────────────────────── */
   [data-sonner-toast].fsh-toast .fsh-toast-action,
   [data-sonner-toast].fsh-toast .fsh-toast-cancel {
     grid-column: 1 / -1;
+    grid-row: 4;
     justify-self: start;
-    margin-top: 12px;
-    height: 1.625rem !important;
-    padding: 0 0.625rem !important;
-    border-radius: 999px !important;
-    font-family: var(--font-mono) !important;
-    font-size: 0.6875rem !important;
+    margin: 10px 0 0 0;
+    height: auto !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    font-family: var(--font-sans) !important;
+    font-size: 12.5px !important;
     font-weight: 600 !important;
-    letter-spacing: 0.04em !important;
-    text-transform: uppercase;
+    letter-spacing: -0.005em !important;
     cursor: pointer;
-    transition:
-      background-color var(--duration-fast) var(--ease-out-cubic),
-      color var(--duration-fast) var(--ease-out-cubic),
-      box-shadow var(--duration-fast) var(--ease-out-cubic);
+    transition: color var(--duration-fast) var(--ease-out-cubic);
   }
   [data-sonner-toast].fsh-toast .fsh-toast-action {
-    background: transparent !important;
     color: var(--fsh-toast-tone) !important;
-    border: 1px solid oklch(from var(--fsh-toast-tone) l c h / 0.40) !important;
-    box-shadow: inset 0 0 0 0 oklch(from var(--fsh-toast-tone) l c h / 0);
   }
   [data-sonner-toast].fsh-toast .fsh-toast-action::after {
-    content: " →";
+    content: "  →";
+    margin-left: 4px;
     display: inline-block;
-    margin-left: 0.25rem;
     transition: transform var(--duration-fast) var(--ease-out-cubic);
   }
   [data-sonner-toast].fsh-toast .fsh-toast-action:hover {
-    background: oklch(from var(--fsh-toast-tone) l c h / 0.10) !important;
-    box-shadow: 0 0 0 4px oklch(from var(--fsh-toast-tone) l c h / 0.10);
+    color: oklch(from var(--fsh-toast-tone) calc(l + 0.04) c h) !important;
   }
   [data-sonner-toast].fsh-toast .fsh-toast-action:hover::after {
-    transform: translateX(2px);
+    transform: translateX(3px);
   }
   [data-sonner-toast].fsh-toast .fsh-toast-cancel {
-    background: transparent !important;
     color: var(--color-muted-foreground) !important;
-    border: 1px solid var(--color-border) !important;
-    margin-left: 8px !important;
+    margin-left: 14px !important;
   }
   [data-sonner-toast].fsh-toast .fsh-toast-cancel:hover {
     color: var(--color-foreground) !important;
-    background: var(--color-muted) !important;
   }
 
-  /* ── Entrance: spring-in from the right with a 6deg→0deg resolve.
-        Sonner's default `data-mounted` trigger drives the animation;
-        we override its keyframes via [data-mounted="true"]. */
+  /* ── Bottom progress drain. 1px tone-coloured bar that scales from
+        100% → 0% over the toast's auto-dismiss duration. Pauses (in
+        sonner) when the toaster is hovered, so the timer doesn't run
+        out under the cursor. Animation is purely transform-based — no
+        layout shift. ───────────────────────────────────────────── */
+  [data-sonner-toast].fsh-toast::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: var(--fsh-toast-tone);
+    opacity: 0.6;
+    transform: scaleX(1);
+    transform-origin: left center;
+    animation: fsh-toast-drain var(--fsh-toast-duration) linear forwards;
+  }
+  /* Pause the drain while the toaster is hovered. Sonner sets
+     [data-expanded="true"] on the host but with `expand` true that's
+     always set; instead we listen for hover at the toaster level. */
+  [data-sonner-toaster]:hover [data-sonner-toast].fsh-toast::after {
+    animation-play-state: paused;
+  }
+  /* Loading toasts have no fixed duration — show a static rail. */
+  [data-sonner-toast][data-type="loading"].fsh-toast::after {
+    animation: none;
+    opacity: 0.4;
+  }
+  @keyframes fsh-toast-drain {
+    from { transform: scaleX(1); }
+    to   { transform: scaleX(0); }
+  }
+
+  /* ── Entrance: clean slide-from-right + fade. No rotation, no
+        scale — those caused the apparent "jump" the user noted. */
   [data-sonner-toaster][data-y-position="top"] [data-sonner-toast].fsh-toast[data-mounted="true"] {
-    animation: fsh-toast-enter 460ms var(--ease-out-cubic) both;
+    animation: fsh-toast-enter 320ms var(--ease-out-cubic) both;
   }
   @keyframes fsh-toast-enter {
-    0%   { opacity: 0; transform: translateX(28px) translateY(-4px) rotate(2.4deg) scale(0.985); }
-    55%  { opacity: 1; transform: translateX(-2px) translateY(0)    rotate(-0.4deg) scale(1.005); }
-    100% { opacity: 1; transform: translateX(0)    translateY(0)    rotate(0)     scale(1); }
+    0%   { opacity: 0; transform: translateX(20px); }
+    100% { opacity: 1; transform: translateX(0);    }
   }
-  /* Reduce motion users get a simple fade. */
+  /* Exit: fade + slight slide right. Sonner sets data-removed on
+     dismissal; we override its default keyframes. */
+  [data-sonner-toaster] [data-sonner-toast].fsh-toast[data-removed="true"] {
+    animation: fsh-toast-exit 220ms var(--ease-out-cubic) forwards;
+  }
+  @keyframes fsh-toast-exit {
+    from { opacity: 1; transform: translateX(0);    }
+    to   { opacity: 0; transform: translateX(12px); }
+  }
+
+  /* Reduced motion: fade only, no slide, no drain animation. */
   @media (prefers-reduced-motion: reduce) {
     [data-sonner-toast].fsh-toast,
     [data-sonner-toast].fsh-toast::before,
-    [data-sonner-toast].fsh-toast .fsh-toast-title,
-    [data-sonner-toast].fsh-toast .fsh-toast-title::before,
-    [data-sonner-toast].fsh-toast .fsh-toast-description {
+    [data-sonner-toast].fsh-toast::after {
       animation: none !important;
+    }
+    [data-sonner-toaster] [data-sonner-toast].fsh-toast[data-mounted="true"] {
+      animation: fsh-toast-fade-in 220ms var(--ease-out-cubic) both;
+    }
+    @keyframes fsh-toast-fade-in {
+      from { opacity: 0; }
+      to   { opacity: 1; }
     }
   }
 }

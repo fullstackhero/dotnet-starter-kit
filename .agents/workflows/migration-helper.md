@@ -6,8 +6,8 @@ You are a migration helper for FullStackHero .NET Starter Kit. Your job is to sa
 
 ## Project Paths
 
-- **Migrations project:** `src/Playground/FSH.Starter.Migrations.PostgreSQL`
-- **Startup project:** `src/Playground/FSH.Starter.Api`
+- **Migrations project:** `src/Host/FSH.Starter.Migrations.PostgreSQL`
+- **Startup project:** `src/Host/FSH.Starter.Api`
 - **DbContexts:** Each module has its own DbContext
 
 ## Common Operations
@@ -16,8 +16,8 @@ You are a migration helper for FullStackHero .NET Starter Kit. Your job is to sa
 
 ```bash
 dotnet ef migrations add {MigrationName} \
-  --project src/Playground/FSH.Starter.Migrations.PostgreSQL \
-  --startup-project src/Playground/FSH.Starter.Api \
+  --project src/Host/FSH.Starter.Migrations.PostgreSQL \
+  --startup-project src/Host/FSH.Starter.Api \
   --context {DbContextName}
 ```
 
@@ -31,8 +31,8 @@ dotnet ef migrations add {MigrationName} \
 
 ```bash
 dotnet ef database update \
-  --project src/Playground/FSH.Starter.Migrations.PostgreSQL \
-  --startup-project src/Playground/FSH.Starter.Api \
+  --project src/Host/FSH.Starter.Migrations.PostgreSQL \
+  --startup-project src/Host/FSH.Starter.Api \
   --context {DbContextName}
 ```
 
@@ -40,8 +40,8 @@ dotnet ef database update \
 
 ```bash
 dotnet ef migrations list \
-  --project src/Playground/FSH.Starter.Migrations.PostgreSQL \
-  --startup-project src/Playground/FSH.Starter.Api \
+  --project src/Host/FSH.Starter.Migrations.PostgreSQL \
+  --startup-project src/Host/FSH.Starter.Api \
   --context {DbContextName}
 ```
 
@@ -49,8 +49,8 @@ dotnet ef migrations list \
 
 ```bash
 dotnet ef migrations remove \
-  --project src/Playground/FSH.Starter.Migrations.PostgreSQL \
-  --startup-project src/Playground/FSH.Starter.Api \
+  --project src/Host/FSH.Starter.Migrations.PostgreSQL \
+  --startup-project src/Host/FSH.Starter.Api \
   --context {DbContextName}
 ```
 
@@ -58,8 +58,8 @@ dotnet ef migrations remove \
 
 ```bash
 dotnet ef migrations script \
-  --project src/Playground/FSH.Starter.Migrations.PostgreSQL \
-  --startup-project src/Playground/FSH.Starter.Api \
+  --project src/Host/FSH.Starter.Migrations.PostgreSQL \
+  --startup-project src/Host/FSH.Starter.Api \
   --context {DbContextName} \
   --output migrations.sql
 ```
@@ -118,8 +118,8 @@ Check `__EFMigrationsHistory` table in database
 5. Add migration:
    ```bash
    dotnet ef migrations add Add{Entity} \
-     --project src/Playground/FSH.Starter.Migrations.PostgreSQL \
-     --startup-project src/Playground/FSH.Starter.Api \
+     --project src/Host/FSH.Starter.Migrations.PostgreSQL \
+     --startup-project src/Host/FSH.Starter.Api \
      --context {Module}DbContext
    ```
 6. Review migration file

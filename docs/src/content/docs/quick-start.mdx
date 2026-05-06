@@ -83,7 +83,7 @@ When cloning directly, project names retain the `FSH.Starter` prefix. The CLI an
 <TabPanel>
 
 ```bash
-dotnet run --project src/Playground/MyApp.AppHost
+dotnet run --project src/Host/MyApp.AppHost
 ```
 
 Aspire orchestrates PostgreSQL, Redis, and the API automatically - no manual setup needed. Once it starts, open the Aspire dashboard at the URL shown in your terminal output to monitor all running services, view logs, and inspect traces.
@@ -96,7 +96,7 @@ If you cloned the repo directly (instead of using the CLI or template), use `FSH
 <TabPanel>
 
 ```bash
-dotnet run --project src/Playground/MyApp.Api
+dotnet run --project src/Host/MyApp.Api
 ```
 
 <Aside type="warning" title="Local Services Required">

@@ -8,7 +8,7 @@ An opinionated, production-first starter for building multi-tenant SaaS and ente
 
 ## Quick Start
 
-You get the complete source code — BuildingBlocks, Modules, and Playground — with full project references. No black-box NuGet packages; you own and can modify everything.
+You get the complete source code — BuildingBlocks, Modules, and Host — with full project references. No black-box NuGet packages; you own and can modify everything.
 
 ### Option 1: FSH CLI (recommended)
 
@@ -16,7 +16,7 @@ You get the complete source code — BuildingBlocks, Modules, and Playground —
 dotnet tool install -g FullStackHero.CLI
 fsh new MyApp
 cd MyApp
-dotnet run --project src/Playground/MyApp.AppHost
+dotnet run --project src/Host/MyApp.AppHost
 ```
 
 The interactive wizard lets you pick your database provider and whether to include Aspire. Run `fsh doctor` to verify your environment first.
@@ -27,7 +27,7 @@ The interactive wizard lets you pick your database provider and whether to inclu
 dotnet new install FullStackHero.NET.StarterKit
 dotnet new fsh -n MyApp
 cd MyApp
-dotnet run --project src/Playground/MyApp.AppHost
+dotnet run --project src/Host/MyApp.AppHost
 ```
 
 ### Option 3: Clone the repository
@@ -36,7 +36,7 @@ dotnet run --project src/Playground/MyApp.AppHost
 git clone https://github.com/fullstackhero/dotnet-starter-kit.git MyApp
 cd MyApp
 dotnet restore src/FSH.Starter.slnx
-dotnet run --project src/Playground/FSH.Starter.AppHost
+dotnet run --project src/Host/FSH.Starter.AppHost
 ```
 
 ### Option 4: GitHub Codespaces
@@ -65,7 +65,7 @@ fsh new MyApp --dry-run
 ## Why teams pick this
 - Modular vertical slices: drop `Modules.Identity`, `Modules.Multitenancy`, `Modules.Auditing`, `Modules.Webhooks` into any API and let the module loader wire endpoints.
 - Battle-tested building blocks: persistence + specifications, distributed caching, mailing, jobs via Hangfire, storage abstractions, and web host primitives (auth, rate limiting, versioning, CORS, exception handling).
-- Cloud-ready out of the box: Aspire AppHost spins up Postgres + Redis + the Playground API with OTLP tracing enabled.
+- Cloud-ready out of the box: Aspire AppHost spins up Postgres + Redis + the API host with OTLP tracing enabled.
 - Multi-tenant from day one: Finbuckle-powered tenancy across Identity and your module DbContexts; helpers to migrate and seed tenant databases on startup.
 - Observability baked in: OpenTelemetry traces/metrics/logs, structured logging, health checks, and security/exception auditing.
 
@@ -79,7 +79,7 @@ fsh new MyApp --dry-run
 ## Repository map
 - `src/BuildingBlocks` — Core abstractions (DDD primitives, exceptions), Persistence, Caching, Mailing, Jobs, Storage, Web host wiring.
 - `src/Modules` — `Identity`, `Multitenancy`, `Auditing`, `Webhooks` runtime + contracts projects.
-- `src/Playground` — Reference host (`FSH.Starter.Api`), Aspire app host (`FSH.Starter.AppHost`), Postgres migrations.
+- `src/Host` — Composition-root host (`FSH.Starter.Api`), Aspire app host (`FSH.Starter.AppHost`), Postgres migrations.
 - `src/Tools/CLI` — The `fsh` CLI tool source code.
 - `src/Tests` — Architecture tests that enforce layering and module boundaries.
 - `deploy` — Docker, Dokploy, and Terraform deployment scaffolding.
@@ -88,13 +88,13 @@ fsh new MyApp --dry-run
 Prereqs: .NET 10 SDK, Aspire workload, Docker running (for Postgres/Redis).
 
 1. Restore: `dotnet restore src/FSH.Starter.slnx`
-2. Start everything: `dotnet run --project src/Playground/FSH.Starter.AppHost`
-   - Aspire brings up Postgres + Redis containers, wires env vars, launches the Playground API, and enables OTLP export on https://localhost:4317.
+2. Start everything: `dotnet run --project src/Host/FSH.Starter.AppHost`
+   - Aspire brings up Postgres + Redis containers, wires env vars, launches the API host, and enables OTLP export on https://localhost:4317.
 3. Hit the API: `https://localhost:5285` (Swagger/Scalar and module endpoints under `/api/v1/...`).
 
 ### Run the API only
 - Set env vars or appsettings for `DatabaseOptions__Provider`, `DatabaseOptions__ConnectionString`, `DatabaseOptions__MigrationsAssembly`, `CachingOptions__Redis`, and JWT options.
-- Run: `dotnet run --project src/Playground/FSH.Starter.Api`
+- Run: `dotnet run --project src/Host/FSH.Starter.Api`
 - The host applies migrations/seeding via `UseHeroMultiTenantDatabases()` and maps module endpoints via `UseHeroPlatform`.
 
 ## Bring the framework into your API
@@ -103,7 +103,7 @@ Prereqs: .NET 10 SDK, Aspire workload, Docker running (for Postgres/Redis).
   - Register Mediator with assemblies containing your commands/queries and module handlers.
   - Call `builder.AddHeroPlatform(...)` to enable auth, OpenAPI, caching, mailing, jobs, health, OTel, rate limiting.
   - Call `builder.AddModules(moduleAssemblies)` and `app.UseHeroPlatform(p => p.MapModules = true);`.
-- Configure connection strings, Redis, JWT, CORS, and OTel endpoints via configuration. Example wiring lives in `src/Playground/FSH.Starter.Api/Program.cs`.
+- Configure connection strings, Redis, JWT, CORS, and OTel endpoints via configuration. Example wiring lives in `src/Host/FSH.Starter.Api/Program.cs`.
 
 ## Included modules
 - **Identity** — ASP.NET Identity + JWT issuance/refresh, user/role/permission management, profile image storage, login/refresh auditing, health checks.

@@ -3,6 +3,7 @@ using FSH.Framework.Jobs;
 using FSH.Framework.Mailing;
 using FSH.Framework.Persistence;
 using FSH.Framework.Quota;
+using FSH.Framework.Shared.Constants;
 using FSH.Framework.Web.Auth;
 using FSH.Framework.Web.Cors;
 using FSH.Framework.Web.Exceptions;
@@ -38,6 +39,8 @@ public static class Extensions
 
         var options = new FshPlatformOptions();
         configure?.Invoke(options);
+
+        PermissionConstants.Register(SystemPermissions.All);
 
         builder.Services.AddScoped<CurrentUserMiddleware>();
 

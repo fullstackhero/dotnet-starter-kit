@@ -178,7 +178,7 @@ Each module uses its own database schema (e.g., `catalog`) to maintain data isol
 
 In the host application's `Program.cs`, add your module assembly to the module discovery. The framework's `ModuleLoader` scans for assemblies with the `[FshModule]` attribute.
 
-Ensure your module's assembly is referenced by the host project. Add a project reference in the Playground API's `.csproj`:
+Ensure your module's assembly is referenced by the host project. Add a project reference in the API host's `.csproj`:
 
 ```xml
 <ProjectReference Include="..\..\Modules\Catalog\Modules.Catalog\Modules.Catalog.csproj" />

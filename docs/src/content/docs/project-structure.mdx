@@ -16,7 +16,7 @@ The solution file `FSH.Starter.slnx` uses the modern XML-based `.slnx` format in
 |-------|----------|---------|
 | **BuildingBlocks** | 11 | Shared framework libraries consumed by all modules |
 | **Modules** | 8 | Bounded context modules (runtime + contracts pairs) |
-| **Playground** | 2 | Sample host applications (API, Aspire) |
+| **Host** | 2 | Composition-root host applications (API, Aspire) |
 | **Tests** | 5 | Unit tests, integration tests, and architecture tests |
 | **Tools** | 2 | CLI tooling and EF Core migrations |
 
@@ -58,8 +58,8 @@ The `.slnx` format is a cleaner, XML-based replacement for the legacy `.sln` for
         { name: 'Modules.Webhooks.Contracts/', type: 'folder', desc: 'Public API - commands, queries, DTOs' }
       ]}
     ]},
-    { name: 'Playground/', type: 'folder', desc: 'Sample host applications', children: [
-      { name: 'FSH.Starter.Api/', type: 'folder', desc: 'Reference ASP.NET Core API host' },
+    { name: 'Host/', type: 'folder', desc: 'Composition-root host applications', children: [
+      { name: 'FSH.Starter.Api/', type: 'folder', desc: 'ASP.NET Core API host' },
       { name: 'FSH.Starter.AppHost/', type: 'folder', desc: '.NET Aspire orchestrator' }
     ]},
     { name: 'Tests/', type: 'folder', desc: 'Test projects', children: [
@@ -169,7 +169,7 @@ The projects follow a strict dependency hierarchy that flows in one direction - 
       { name: 'Web', type: 'folder', desc: 'Host infrastructure, middleware, module system', children: [
         { name: 'Module Contracts', type: 'folder', desc: 'Public API surface for each module', children: [
           { name: 'Module Runtimes', type: 'folder', desc: 'Internal implementation per module', children: [
-            { name: 'Playground (host apps)', type: 'folder', desc: 'API, Aspire - compose modules into runnable hosts' }
+            { name: 'Host (host apps)', type: 'folder', desc: 'API, Aspire - compose modules into runnable hosts' }
           ]}
         ]}
       ]}
@@ -182,7 +182,7 @@ The projects follow a strict dependency hierarchy that flows in one direction - 
 - **Infrastructure libraries** (Persistence, Caching, Eventing, Jobs, Mailing, Storage) each depend on Core and/or Shared but not on each other.
 - **Web** ties the infrastructure together and provides the module loading system.
 - **Modules** consume BuildingBlocks and other modules' Contracts projects - never their runtime projects.
-- **Playground** applications sit at the top, composing modules into runnable hosts.
+- **Host** applications sit at the top, composing modules into runnable hosts.
 
 <Aside type="tip" title="Enforced by Architecture Tests">
 The dependency hierarchy is enforced by architecture tests in `Architecture.Tests/`. Any violation - such as a module referencing another module's runtime project or a BuildingBlock depending on a module - will fail the build.

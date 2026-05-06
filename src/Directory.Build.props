@@ -46,7 +46,7 @@
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageProjectUrl>https://fullstackhero.net</PackageProjectUrl>
 		<Description>FullStackHero .NET Starter Kit - A production-ready modular .NET framework for building enterprise applications</Description>
-		<!-- Enable NuGet pack globally (overridden in Playground/Tests) -->
+		<!-- Enable NuGet pack globally (overridden in Host/Tests) -->
 		<IsPackable>true</IsPackable>
 	</PropertyGroup>
 

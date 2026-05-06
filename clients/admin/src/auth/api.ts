@@ -15,7 +15,9 @@ export function issueToken(input: {
   return apiFetch<TokenResponse>("/api/v1/identity/token/issue", {
     method: "POST",
     body: JSON.stringify({ email: input.email, password: input.password }),
-    headers: { tenant: input.tenant },
+    // X-FSH-App marks this client as the platform-admin app. Used by the
+    // API to enforce the SuperAdmin / dashboard boundary.
+    headers: { tenant: input.tenant, "X-FSH-App": "admin" },
     skipAuth: true,
   });
 }

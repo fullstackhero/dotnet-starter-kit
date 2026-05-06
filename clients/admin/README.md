@@ -7,7 +7,7 @@ This is a **standalone Vite app** — not part of a pnpm workspace — so it can
 ## Prerequisites
 
 - Node.js 20+
-- The API running locally (`dotnet run --project src/Playground/FSH.Starter.Api`, defaults to `http://localhost:5030`)
+- The API running locally (`dotnet run --project src/Host/FSH.Starter.Api`, defaults to `http://localhost:5030`)
 
 ## Install & run
 
@@ -19,7 +19,7 @@ The AppHost launches Postgres, Redis, MinIO, the API, **and** this Vite app toge
 
 ```bash
 npm install --prefix clients/admin   # one-time
-dotnet run --project src/Playground/FSH.Starter.AppHost
+dotnet run --project src/Host/FSH.Starter.AppHost
 ```
 
 Aspire dashboard will expose `fsh-admin` on <http://localhost:5173>.

@@ -288,7 +288,7 @@ Other Modules → Module.Contracts
 
 **Never:**
 - Module A → Module B (direct reference)
-- Module → Playground (implementation referencing host)
+- Module → Host (implementation referencing host)
 
 ## Testing Modules
 

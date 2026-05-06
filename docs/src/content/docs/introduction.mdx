@@ -74,7 +74,7 @@ The codebase is organized into three layers:
 
 2. **Modules** - Independent bounded contexts, each with its own domain, data access, features, and API surface. Modules communicate exclusively through **Contracts** projects - lightweight assemblies containing only commands, queries, events, DTOs, and service interfaces. A module never references another module's runtime project, and this boundary is enforced by architecture tests.
 
-3. **Playground** - Reference host applications that wire everything together. The API project composes all modules into a running application, and the AppHost project orchestrates the full stack with .NET Aspire.
+3. **Host** - Composition-root host applications that wire everything together. The API project composes all modules into a running application, and the AppHost project orchestrates the full stack with .NET Aspire.
 
 ```
 src/
@@ -88,8 +88,8 @@ src/
 │   ├── Auditing.Contracts/
 │   ├── Webhooks/            # Outbound webhook subscriptions and delivery
 │   └── Webhooks.Contracts/
-├── Playground/
-│   ├── FSH.Starter.Api/         # Reference API host
+├── Host/
+│   ├── FSH.Starter.Api/         # ASP.NET Core API host
 │   ├── FSH.Starter.AppHost/     # .NET Aspire orchestrator
 │   └── FSH.Starter.Migrations.PostgreSQL/
 ├── Tools/

@@ -16,13 +16,4 @@ public static class MultitenancyConstants
 #pragma warning restore S2068
     public const string Identifier = "tenant";
     public const string Schema = "tenant";
-
-    public static class Permissions
-    {
-        public const string View = "Permissions.Tenants.View";
-        public const string Create = "Permissions.Tenants.Create";
-        public const string Update = "Permissions.Tenants.Update";
-        public const string ViewTheme = "Permissions.Tenants.ViewTheme";
-        public const string UpdateTheme = "Permissions.Tenants.UpdateTheme";
-    }
 }

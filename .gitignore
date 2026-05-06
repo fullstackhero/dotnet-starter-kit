@@ -510,3 +510,7 @@ clients/**/.next/
 clients/**/.turbo/
 clients/**/dist/
 clients/**/.env.local
+
+# Audit dead-letter queue — runtime fallback when the audit pipeline cannot
+# reach its persistent sink. Local-only by design; never commit.
+**/audit-dlq/

@@ -66,7 +66,7 @@ Enterprise audit trails capturing four event types: entity changes (CRUD with be
 git clone https://github.com/fullstackhero/dotnet-starter-kit.git
 cd dotnet-starter-kit
 dotnet build src/FSH.Framework.slnx
-dotnet run --project src/Playground/FSH.Playground.AppHost  # Aspire (recommended)
+dotnet run --project src/Host/FSH.Starter.AppHost  # Aspire (recommended)
 ```
 
 Default credentials: admin@root.com / 123Pa$$word! (root tenant)

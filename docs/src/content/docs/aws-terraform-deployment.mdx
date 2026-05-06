@@ -266,7 +266,7 @@ The Terraform configuration expects container images to be available in a regist
 ```bash
 # Build the API image
 docker build -t ghcr.io/fullstackhero/fsh-api:v1.0.0 \
-  -f src/Playground/FSH.Starter.Api/Dockerfile .
+  -f src/Host/FSH.Starter.Api/Dockerfile .
 
 # Push to registry
 docker push ghcr.io/fullstackhero/fsh-api:v1.0.0

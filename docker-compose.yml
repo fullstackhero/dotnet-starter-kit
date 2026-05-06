@@ -45,7 +45,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: src/Playground/FSH.Starter.Api/Dockerfile
+      dockerfile: src/Host/FSH.Starter.Api/Dockerfile
     ports:
       - "8080:8080"
     depends_on:
