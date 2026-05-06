@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Auditing.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Auditing.Contracts.Dtos;
 using FSH.Modules.Auditing.Contracts.v1.GetAuditById;
@@ -20,7 +20,7 @@ public static class GetAuditByIdEndpoint
             .WithName("GetAuditById")
             .WithSummary("Get audit event by ID")
             .WithDescription("Retrieve full details for a single audit event.")
-            .RequirePermission(AuditingPermissionConstants.View)
+            .RequirePermission(AuditingPermissions.AuditTrails.View)
             .Produces<AuditDetailDto>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)

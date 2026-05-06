@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Auditing.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Auditing.Contracts.Dtos;
 using FSH.Modules.Auditing.Contracts.v1.GetSecurityAudits;
@@ -21,7 +21,7 @@ public static class GetSecurityAuditsEndpoint
             .WithName("GetSecurityAudits")
             .WithSummary("Get security-related audit events")
             .WithDescription("Retrieve security audit events such as login, logout, and permission denials.")
-            .RequirePermission(AuditingPermissionConstants.View)
+            .RequirePermission(AuditingPermissions.AuditTrails.View)
             .Produces<IEnumerable<AuditSummaryDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden);

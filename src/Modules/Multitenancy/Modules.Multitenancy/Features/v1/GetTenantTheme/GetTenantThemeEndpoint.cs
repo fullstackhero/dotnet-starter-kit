@@ -1,5 +1,6 @@
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Framework.Shared.Multitenancy;
+using FSH.Modules.Multitenancy.Contracts.Authorization;
 using FSH.Modules.Multitenancy.Contracts.Dtos;
 using FSH.Modules.Multitenancy.Contracts.v1.GetTenantTheme;
 using Mediator;
@@ -18,7 +19,7 @@ public static class GetTenantThemeEndpoint
             .WithName("GetTenantTheme")
             .WithSummary("Get current tenant theme")
             .WithDescription("Retrieve the theme settings for the current tenant, including colors, typography, and brand assets.")
-            .RequirePermission(MultitenancyConstants.Permissions.ViewTheme)
+            .RequirePermission(MultitenancyPermissions.Tenants.ViewTheme)
             .Produces<TenantThemeDto>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden);

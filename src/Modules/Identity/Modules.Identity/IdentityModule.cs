@@ -33,6 +33,7 @@ using FSH.Modules.Identity.Features.v1.Roles.UpsertRole;
 using FSH.Modules.Identity.Features.v1.Sessions.AdminRevokeAllSessions;
 using FSH.Modules.Identity.Features.v1.Sessions.AdminRevokeSession;
 using FSH.Modules.Identity.Features.v1.Sessions.GetMySessions;
+using FSH.Modules.Identity.Features.v1.Sessions.GetTenantSessions;
 using FSH.Modules.Identity.Features.v1.Sessions.GetUserSessions;
 using FSH.Modules.Identity.Features.v1.Sessions.RevokeAllSessions;
 using FSH.Modules.Identity.Features.v1.Sessions.RevokeSession;
@@ -78,7 +79,13 @@ public class IdentityModule : IModule
     public void ConfigureServices(IHostApplicationBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
+
+        FSH.Framework.Shared.Constants.PermissionConstants.Register(
+            FSH.Modules.Identity.Contracts.Authorization.IdentityPermissions.All);
+
         var services = builder.Services;
+        services.AddScoped<RolePermissionSyncer>();
+        services.AddHostedService<RolePermissionSyncHostedService>();
         services.AddSingleton<IAuthorizationMiddlewareResultHandler, PathAwareAuthorizationHandler>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<ICurrentUser>(sp => sp.GetRequiredService<ICurrentUserService>());
@@ -216,6 +223,7 @@ public class IdentityModule : IModule
         group.MapRevokeAllSessionsEndpoint();
 
         // sessions - admin endpoints
+        group.MapGetTenantSessionsEndpoint();
         group.MapGetUserSessionsEndpoint();
         group.MapAdminRevokeSessionEndpoint();
         group.MapAdminRevokeAllSessionsEndpoint();

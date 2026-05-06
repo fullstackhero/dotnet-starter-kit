@@ -34,9 +34,12 @@ public static class HealthEndpoints
                 .WithDescription("Reports if the API process is alive. Does not check dependencies.")
                 .Produces<HealthResult>(StatusCodes.Status200OK);
 
-        // Readiness: includes DB (and any other registered checks)
+        // Readiness: includes DB (and any other registered checks). Returns the
+        // full payload on both 200 and 503 so dashboards/operators can see *which*
+        // check failed and why. Probe consumers (k8s, load balancers) only key
+        // off the status code, so adding a body on 503 is safe.
         group.MapGet("/ready",
-                    async Task<Results<Ok<HealthResult>, StatusCodeHttpResult>> (HealthCheckService hc, CancellationToken cancellationToken) =>
+                    async (HealthCheckService hc, CancellationToken cancellationToken) =>
                     {
                         var report = await hc.CheckHealthAsync(cancellationToken: cancellationToken);
                         var results = report.Entries.Select(e =>
@@ -51,16 +54,17 @@ public static class HealthEndpoints
                         )));
 
                         var payload = new HealthResult(report.Status.ToString(), results);
+                        var statusCode = report.Status == HealthStatus.Healthy
+                            ? StatusCodes.Status200OK
+                            : StatusCodes.Status503ServiceUnavailable;
 
-                        return report.Status == HealthStatus.Healthy
-                            ? TypedResults.Ok(payload)
-                            : TypedResults.StatusCode(StatusCodes.Status503ServiceUnavailable);
+                        return Results.Json(payload, statusCode: statusCode);
                     })
                     .WithName("Readiness")
                     .WithSummary("Readiness probe with database check.")
-                    .WithDescription("Returns 200 if all dependencies are healthy, otherwise 503.")
+                    .WithDescription("Returns 200 if all dependencies are healthy, otherwise 503. Body is the same shape in both cases.")
                     .Produces<HealthResult>(StatusCodes.Status200OK)
-                    .Produces(StatusCodes.Status503ServiceUnavailable);
+                    .Produces<HealthResult>(StatusCodes.Status503ServiceUnavailable);
 
         return app;
     }

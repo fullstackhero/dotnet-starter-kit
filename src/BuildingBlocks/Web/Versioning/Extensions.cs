@@ -19,8 +19,7 @@ public static class Extensions
             {
                 options.GroupNameFormat = "'v'VVV";
                 options.SubstituteApiVersionInUrl = true;
-            })
-            .EnableApiVersionBinding();
+            });
         return services;
     }
 }

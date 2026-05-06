@@ -6,6 +6,10 @@ export type ApiError = {
   title?: string;
   detail?: string;
   errors?: Record<string, string[]>;
+  // Dev-only extension surfaced on 401 by ConfigureJwtBearerOptions.
+  reason?: string;
+  // Allow any other ProblemDetails extensions through.
+  [key: string]: unknown;
 };
 
 export class ApiRequestError extends Error {
@@ -25,14 +29,22 @@ let refreshPromise: Promise<void> | null = null;
 
 async function refreshAccessToken() {
   const refreshToken = tokenStore.getRefreshToken();
-  if (!refreshToken) {
+  const accessToken = tokenStore.getAccessToken();
+  if (!refreshToken || !accessToken) {
     throw new ApiRequestError(401, "No refresh token");
   }
 
+  // Server's RefreshTokenCommand requires both `token` (the existing, possibly expired
+  // access token, used to cross-check the subject) and `refreshToken`. Sending only one
+  // of them fails FluentValidation and surfaces as 500.
+  const tenant = tokenStore.getTenant() ?? env.defaultTenant;
   const response = await fetch(`${env.apiBase}/api/v1/identity/token/refresh`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refreshToken }),
+    headers: {
+      "Content-Type": "application/json",
+      ...(tenant ? { tenant } : {}),
+    },
+    body: JSON.stringify({ token: accessToken, refreshToken }),
   });
 
   if (!response.ok) {
@@ -40,11 +52,13 @@ async function refreshAccessToken() {
     throw new ApiRequestError(response.status, "Refresh failed");
   }
 
+  // Server's RefreshTokenCommandResponse returns `{ token, refreshToken, refreshTokenExpiryTime }` —
+  // note the rotated access token is on `token`, not `accessToken`.
   const tokens = (await response.json()) as {
-    accessToken: string;
+    token: string;
     refreshToken: string;
   };
-  tokenStore.setTokens(tokens.accessToken, tokens.refreshToken);
+  tokenStore.setTokens(tokens.token, tokens.refreshToken);
 }
 
 async function parseError(response: Response): Promise<ApiError | undefined> {
@@ -74,6 +88,17 @@ export async function apiFetch<T = unknown>(
     const accessToken = tokenStore.getAccessToken();
     if (accessToken) {
       mergedHeaders.set("Authorization", `Bearer ${accessToken}`);
+    } else {
+      // We're not anonymous (skipAuth=false) but the token is gone — likely a
+      // manual localStorage clear that AuthContext missed. Clear remaining
+      // session state and surface a clean 401 so the UI flips to /login
+      // instead of repeatedly firing tokenless requests.
+      tokenStore.clear();
+      throw new ApiRequestError(401, "Not signed in", {
+        status: 401,
+        title: "Unauthorized",
+        detail: "Your session is no longer available. Please sign in again.",
+      });
     }
   }
 

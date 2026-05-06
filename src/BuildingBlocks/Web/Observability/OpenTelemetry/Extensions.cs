@@ -84,6 +84,9 @@ public static class Extensions
                 // Caching building block metrics (hits, misses, factory duration, invalidations).
                 metrics.AddMeter(CachingTelemetry.MeterName);
 
+                // Auditing pipeline metrics (published, dropped, flush, dead-letter).
+                metrics.AddMeter("FSH.Modules.Auditing");
+
                 foreach (var meterName in options.Metrics.MeterNames ?? Array.Empty<string>())
                 {
                     metrics.AddMeter(meterName);

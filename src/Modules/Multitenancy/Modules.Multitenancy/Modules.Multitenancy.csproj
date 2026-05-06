@@ -10,7 +10,6 @@
     <PackageReference Include="Finbuckle.MultiTenant.AspNetCore" />
     <PackageReference Include="Finbuckle.MultiTenant.EntityFrameworkCore" />
     <PackageReference Include="FluentValidation" />
-    <PackageReference Include="Mapster" />
 	  <PackageReference Include="Mediator.Abstractions" />
   </ItemGroup>
 

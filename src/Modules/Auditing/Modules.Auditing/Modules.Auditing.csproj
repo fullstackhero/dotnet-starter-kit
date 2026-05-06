@@ -4,13 +4,14 @@
 		<RootNamespace>FSH.Modules.Auditing</RootNamespace>
 		<AssemblyName>FSH.Modules.Auditing</AssemblyName>
 		<PackageId>FullStackHero.Modules.Auditing</PackageId>
-		<NoWarn>$(NoWarn);CA1031;CA1812;CA1859;S3267</NoWarn>
+		<NoWarn>$(NoWarn);CA1031;CA1308;CA1812;CA1859;S3267</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\..\BuildingBlocks\Persistence\Persistence.csproj" />
 	  <ProjectReference Include="..\..\..\BuildingBlocks\Web\Web.csproj" />
 	  <ProjectReference Include="..\Modules.Auditing.Contracts\Modules.Auditing.Contracts.csproj" />
+	  <ProjectReference Include="..\..\Identity\Modules.Identity.Contracts\Modules.Identity.Contracts.csproj" />
 	</ItemGroup>
 
 </Project>

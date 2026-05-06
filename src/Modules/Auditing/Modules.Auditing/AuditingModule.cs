@@ -10,6 +10,8 @@ using FSH.Modules.Auditing.Features.v1.GetAuditSummary;
 using FSH.Modules.Auditing.Features.v1.GetExceptionAudits;
 using FSH.Modules.Auditing.Features.v1.GetSecurityAudits;
 using FSH.Modules.Auditing.Persistence;
+using Hangfire;
+using Hangfire.Common;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -27,8 +29,16 @@ public class AuditingModule : IModule
     public void ConfigureServices(IHostApplicationBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
+
+        FSH.Framework.Shared.Constants.PermissionConstants.Register(
+            FSH.Modules.Auditing.Contracts.Authorization.AuditingPermissions.All);
+
         var httpOpts = builder.Configuration.GetSection("Auditing").Get<AuditHttpOptions>() ?? new AuditHttpOptions();
         builder.Services.AddSingleton(httpOpts);
+
+        var retentionOpts = builder.Configuration.GetSection("Auditing:Retention").Get<AuditRetentionOptions>() ?? new AuditRetentionOptions();
+        builder.Services.AddSingleton(retentionOpts);
+        builder.Services.AddTransient<AuditRetentionJob>();
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<IAuditClient, DefaultAuditClient>();
         builder.Services.AddScoped<ISecurityAudit, SecurityAudit>();
@@ -51,6 +61,7 @@ public class AuditingModule : IModule
         builder.Services.AddScoped<ISaveChangesInterceptor, AuditingSaveChangesInterceptor>();
 
         builder.Services.AddSingleton<IAuditSink, SqlAuditSink>();
+        builder.Services.AddSingleton<IAuditDlqSink, FileAuditDlqSink>();
         builder.Services.AddHostedService<AuditBackgroundWorker>();
     }
 
@@ -79,5 +90,19 @@ public class AuditingModule : IModule
         group.MapGetSecurityAuditsEndpoint();
         group.MapGetExceptionAuditsEndpoint();
         group.MapGetAuditSummaryEndpoint();
+
+        // Schedule the retention purge. The job is a no-op when
+        // AuditRetentionOptions.Enabled is false, so registering
+        // unconditionally is safe — operators flip the switch in config.
+        var jobManager = endpoints.ServiceProvider.GetService<IRecurringJobManager>();
+        var retentionOpts = endpoints.ServiceProvider.GetService<AuditRetentionOptions>();
+        if (jobManager is not null && retentionOpts is not null)
+        {
+            jobManager.AddOrUpdate(
+                "auditing-retention",
+                Job.FromExpression<AuditRetentionJob>(j => j.RunAsync(CancellationToken.None)),
+                retentionOpts.Cron,
+                new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+        }
     }
 }

@@ -1,5 +1,6 @@
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Framework.Shared.Multitenancy;
+using FSH.Modules.Multitenancy.Contracts.Authorization;
 using FSH.Modules.Multitenancy.Contracts.v1.ResetTenantTheme;
 using Mediator;
 using Microsoft.AspNetCore.Builder;
@@ -20,7 +21,7 @@ public static class ResetTenantThemeEndpoint
             .WithName("ResetTenantTheme")
             .WithSummary("Reset tenant theme to defaults")
             .WithDescription("Reset the theme settings for the current tenant to the default values.")
-            .RequirePermission(MultitenancyConstants.Permissions.UpdateTheme)
+            .RequirePermission(MultitenancyPermissions.Tenants.UpdateTheme)
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden);

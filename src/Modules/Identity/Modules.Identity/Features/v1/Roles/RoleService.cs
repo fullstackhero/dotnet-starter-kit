@@ -1,3 +1,4 @@
+using System.Net;
 using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
@@ -45,16 +46,26 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
 
     public async Task<RoleDto> CreateOrUpdateRoleAsync(string roleId, string name, string description, CancellationToken cancellationToken = default)
     {
-        FshRole? role = await roleManager.FindByIdAsync(roleId);
+        FshRole? role = string.IsNullOrEmpty(roleId)
+            ? null
+            : await roleManager.FindByIdAsync(roleId);
 
         if (role != null)
         {
+            // System roles cannot be modified — neither renamed nor re-described.
+            EnsureNotSystemRole(role.Name, "System roles cannot be modified.");
+            // And no custom role can be renamed to a system role's name.
+            EnsureNotSystemRole(name, "Cannot rename a role to a system role's name.");
+
             role.Name = name;
             role.Description = description;
             await roleManager.UpdateAsync(role);
         }
         else
         {
+            // No new role can be created using a system role's name.
+            EnsureNotSystemRole(name, "Cannot create a role using a system role's name.");
+
             role = new FshRole(name, description);
             await roleManager.CreateAsync(role);
         }
@@ -67,6 +78,8 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
         FshRole? role = await roleManager.FindByIdAsync(id);
 
         _ = role ?? throw new NotFoundException("role not found");
+
+        EnsureNotSystemRole(role.Name, "System roles cannot be deleted.");
 
         await roleManager.DeleteAsync(role);
     }
@@ -92,7 +105,7 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
         var role = await roleManager.FindByIdAsync(roleId)
             ?? throw new NotFoundException("role not found");
 
-        ValidateRoleCanBeModified(role);
+        EnsureNotSystemRole(role.Name, "System role permissions are managed by the framework and cannot be modified.");
         FilterRootPermissions(permissions);
 
         var currentClaims = await roleManager.GetClaimsAsync(role);
@@ -102,11 +115,11 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
         return "permissions updated";
     }
 
-    private static void ValidateRoleCanBeModified(FshRole role)
+    private static void EnsureNotSystemRole(string? roleName, string message)
     {
-        if (role.Name == RoleConstants.Admin)
+        if (!string.IsNullOrEmpty(roleName) && RoleConstants.IsDefault(roleName))
         {
-            throw new CustomException("operation not permitted");
+            throw new CustomException(message, Array.Empty<string>(), HttpStatusCode.BadRequest);
         }
     }
 

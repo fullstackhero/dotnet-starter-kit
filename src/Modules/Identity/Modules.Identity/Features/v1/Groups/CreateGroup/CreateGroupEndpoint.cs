@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.v1.Groups.CreateGroup;
@@ -21,7 +21,7 @@ public static class CreateGroupEndpoint
         })
         .WithName("CreateGroup")
         .WithSummary("Create a new group")
-        .RequirePermission(IdentityPermissionConstants.Groups.Create)
+        .RequirePermission(IdentityPermissions.Groups.Create)
         .WithDescription("Create a new group with optional role assignments.")
         .Produces<GroupDto>(StatusCodes.Status201Created)
         .Produces(StatusCodes.Status401Unauthorized)

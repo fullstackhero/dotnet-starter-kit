@@ -2,99 +2,1613 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ============================================================================
+   FullStackHero Dashboard — Design Tokens
+   ----------------------------------------------------------------------------
+   Architecture (read top-down):
+     1. PRIMITIVES — raw oklch scales. Never reference these in components.
+     2. SEMANTICS  — purpose-named vars (--background, --primary, …). The
+                     public API. Components reference these.
+     3. SURFACES   — explicit elevation steps for layout chrome.
+     4. SYSTEM     — typography, motion, radii, shadows.
+   Theme contract: shadcn-compatible. The classic --color-* names all exist
+   so existing primitives (Button, Card, Input, Label) keep working.
+   ========================================================================== */
+
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.625rem;
+  /* ── 1. PRIMITIVES ──────────────────────────────────────────────────── */
+
+  /* Neutrals — cool-cast (hue 270, low chroma) for a deliberate, slightly
+     blue-violet chassis that gives the indigo brand room to breathe. */
+  --neutral-0:    oklch(1.000 0.000 270);
+  --neutral-50:   oklch(0.985 0.002 270);
+  --neutral-100:  oklch(0.965 0.004 270);
+  --neutral-200:  oklch(0.928 0.006 270);
+  --neutral-300:  oklch(0.870 0.008 270);
+  --neutral-400:  oklch(0.745 0.010 270);
+  --neutral-500:  oklch(0.585 0.012 270);
+  --neutral-600:  oklch(0.475 0.014 270);
+  --neutral-700:  oklch(0.380 0.014 270);
+  --neutral-800:  oklch(0.265 0.012 270);
+  --neutral-850:  oklch(0.215 0.012 270);
+  --neutral-900:  oklch(0.165 0.011 270);
+  --neutral-950:  oklch(0.115 0.010 270);
+  --neutral-1000: oklch(0.080 0.009 270);
+
+  /* Brand — confident indigo. 600 is the workhorse; 500 is for dark
+     mode. Override these eleven stops via an `accent-{id}` class on
+     :root (defined further down) to swap the entire brand palette. */
+  --brand-50:   oklch(0.972 0.020 268);
+  --brand-100:  oklch(0.945 0.040 268);
+  --brand-200:  oklch(0.895 0.078 268);
+  --brand-300:  oklch(0.825 0.130 268);
+  --brand-400:  oklch(0.720 0.180 268);
+  --brand-500:  oklch(0.620 0.210 268);
+  --brand-600:  oklch(0.555 0.220 268);
+  --brand-700:  oklch(0.485 0.205 268);
+  --brand-800:  oklch(0.405 0.175 268);
+  --brand-900:  oklch(0.325 0.135 268);
+  --brand-950:  oklch(0.230 0.090 268);
+
+  /* Status scales — emerald, amber, sky, rose. All at L≈0.6/0.7 so they
+     read as a coherent set when stacked next to each other. */
+  --success-500: oklch(0.660 0.155 162);
+  --success-600: oklch(0.575 0.155 162);
+  --warning-500: oklch(0.770 0.155  76);
+  --warning-600: oklch(0.685 0.155  76);
+  --info-500:    oklch(0.685 0.150 232);
+  --info-600:    oklch(0.605 0.150 232);
+  --danger-500:  oklch(0.625 0.220  20);
+  --danger-600:  oklch(0.555 0.220  20);
+
+  /* ── 2. SEMANTICS (light) ──────────────────────────────────────────── */
+  --background:                 var(--neutral-50);
+  --foreground:                 var(--neutral-950);
+
+  --card:                       var(--neutral-0);
+  --card-foreground:            var(--neutral-950);
+  --popover:                    var(--neutral-0);
+  --popover-foreground:         var(--neutral-950);
+
+  --primary:                    var(--brand-600);
+  /* Derive from the active brand stop so accent swaps re-tone these
+     too. The `from <color>` relative-color syntax resolves at runtime. */
+  --primary-foreground:         oklch(from var(--brand-600) 0.990 0.005 h);
+  --primary-hover:              var(--brand-700);
+  --primary-soft:               oklch(from var(--brand-600) l c h / 0.10);
+
+  --secondary:                  var(--neutral-100);
+  --secondary-foreground:       var(--neutral-900);
+
+  --muted:                      var(--neutral-100);
+  --muted-foreground:           var(--neutral-500);
+
+  --accent:                     var(--neutral-100);
+  --accent-foreground:          var(--neutral-900);
+
+  --destructive:                var(--danger-600);
+  --destructive-foreground:     oklch(0.990 0.005  20);
+
+  --success:                    var(--success-600);
+  --success-foreground:         oklch(0.990 0.005 162);
+  --warning:                    var(--warning-600);
+  --warning-foreground:         var(--neutral-950);
+  --info:                       var(--info-600);
+  --info-foreground:            oklch(0.990 0.005 232);
+
+  --border:                     oklch(0.928 0.006 270 / 0.85);
+  --border-strong:              oklch(0.870 0.008 270);
+  --input:                      var(--neutral-200);
+  --ring:                       var(--brand-500);
+
+  /* ── 3. SURFACES — explicit elevation. Use these instead of mixing
+     card/muted/accent ad-hoc.  ──────────────────────────────────────── */
+  --surface-1:                  var(--neutral-50);   /* canvas */
+  --surface-2:                  var(--neutral-0);    /* sidebar, panels */
+  --surface-3:                  var(--neutral-0);    /* cards, popovers */
+  --surface-4:                  var(--neutral-100);  /* hover, raised */
+  --surface-1-hover:            var(--neutral-100);
+  --surface-2-hover:            var(--neutral-50);
+
+  /* ── Charts — laddered around the brand axis with three counter-hues
+     spaced for visual harmony when stacked.  ───────────────────────── */
+  --chart-1: var(--brand-500);                       /* indigo */
+  --chart-2: oklch(0.700 0.155 195);                 /* teal */
+  --chart-3: oklch(0.760 0.150  76);                 /* amber */
+  --chart-4: oklch(0.660 0.180 320);                 /* magenta */
+  --chart-5: oklch(0.665 0.155 162);                 /* emerald */
+  --chart-grid: oklch(0.928 0.006 270 / 0.6);
+
+  /* ── 4. SYSTEM ─────────────────────────────────────────────────────── */
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --font-feature-default: "ss01", "ss03", "cv11";
+  --font-feature-tabular: "tnum", "cv11";
+
+  --radius:     0.625rem;
+  --radius-sm:  calc(var(--radius) - 4px);
+  --radius-md:  calc(var(--radius) - 2px);
+  --radius-lg:  var(--radius);
+  --radius-xl:  calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+
+  --ease-out-cubic:    cubic-bezier(0.215, 0.610, 0.355, 1.000);
+  --ease-out-quart:    cubic-bezier(0.165, 0.840, 0.440, 1.000);
+  --ease-in-out-cubic: cubic-bezier(0.645, 0.045, 0.355, 1.000);
+  --duration-fast:     120ms;
+  --duration-default:  200ms;
+  --duration-slow:     320ms;
+
+  --shadow-xs: 0 1px 2px 0 oklch(0.115 0.010 270 / 0.04);
+  --shadow-sm: 0 1px 2px 0 oklch(0.115 0.010 270 / 0.05),
+               0 1px 3px 0 oklch(0.115 0.010 270 / 0.06);
+  --shadow-md: 0 4px 6px -1px oklch(0.115 0.010 270 / 0.07),
+               0 2px 4px -2px oklch(0.115 0.010 270 / 0.05);
+  --shadow-lg: 0 10px 15px -3px oklch(0.115 0.010 270 / 0.08),
+               0 4px 6px -4px oklch(0.115 0.010 270 / 0.05);
+  --shadow-lift: 0 12px 32px -16px oklch(0.115 0.010 270 / 0.20),
+                 0 4px 8px -4px oklch(0.115 0.010 270 / 0.10);
+
+  /* Top-edge highlight — kept very subtle. Earlier value (0.55 alpha)
+     read as 2014-era glassmorphism gloss; toned to 0.14 so it
+     whispers rather than shouts. Only present on surfaces that
+     explicitly opt in via `surface-edge`, `gradient-border`, etc. */
+  --highlight-top: inset 0 1px 0 oklch(1 0 0 / 0.14);
+
+  /* Display-weight tracking ratio applied to hero headings and page
+     titles. Tighter than body, slightly heavier optical weight. */
+  --tracking-display: -0.025em;
+  --tracking-tight:   -0.015em;
+
+  --color-scheme: light;
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   ACCENT PALETTES — each class overrides the 11 brand stops with a
+   different hue, keeping the L/C ramp identical. Apply by toggling a
+   single class on :root (e.g. `accent-violet`).
+   Hue chosen per accent:
+     indigo → 268 · violet → 305 · sky → 232
+     emerald → 152 · amber → 76  · rose → 12
+   The amber accent uses slightly different L/C at the workhorse stops
+   so AA contrast holds against light surfaces (yellow at high chroma
+   is intrinsically lighter than indigo).
+   ─────────────────────────────────────────────────────────────────────── */
+.accent-violet {
+  --brand-50:   oklch(0.972 0.020 305);
+  --brand-100:  oklch(0.945 0.040 305);
+  --brand-200:  oklch(0.895 0.078 305);
+  --brand-300:  oklch(0.825 0.130 305);
+  --brand-400:  oklch(0.720 0.180 305);
+  --brand-500:  oklch(0.620 0.210 305);
+  --brand-600:  oklch(0.555 0.220 305);
+  --brand-700:  oklch(0.485 0.205 305);
+  --brand-800:  oklch(0.405 0.175 305);
+  --brand-900:  oklch(0.325 0.135 305);
+  --brand-950:  oklch(0.230 0.090 305);
+}
+.accent-sky {
+  --brand-50:   oklch(0.972 0.020 232);
+  --brand-100:  oklch(0.945 0.040 232);
+  --brand-200:  oklch(0.895 0.078 232);
+  --brand-300:  oklch(0.825 0.130 232);
+  --brand-400:  oklch(0.720 0.170 232);
+  --brand-500:  oklch(0.620 0.180 232);
+  --brand-600:  oklch(0.555 0.180 232);
+  --brand-700:  oklch(0.485 0.170 232);
+  --brand-800:  oklch(0.405 0.150 232);
+  --brand-900:  oklch(0.325 0.115 232);
+  --brand-950:  oklch(0.230 0.078 232);
+}
+.accent-emerald {
+  --brand-50:   oklch(0.972 0.020 152);
+  --brand-100:  oklch(0.945 0.040 152);
+  --brand-200:  oklch(0.895 0.078 152);
+  --brand-300:  oklch(0.825 0.120 152);
+  --brand-400:  oklch(0.720 0.155 152);
+  --brand-500:  oklch(0.620 0.170 152);
+  --brand-600:  oklch(0.545 0.170 152);
+  --brand-700:  oklch(0.470 0.155 152);
+  --brand-800:  oklch(0.395 0.135 152);
+  --brand-900:  oklch(0.320 0.110 152);
+  --brand-950:  oklch(0.225 0.075 152);
+}
+.accent-amber {
+  --brand-50:   oklch(0.972 0.025  76);
+  --brand-100:  oklch(0.945 0.050  76);
+  --brand-200:  oklch(0.895 0.090  76);
+  --brand-300:  oklch(0.840 0.130  76);
+  --brand-400:  oklch(0.770 0.155  76);
+  --brand-500:  oklch(0.700 0.170  76);
+  --brand-600:  oklch(0.620 0.165  76);
+  --brand-700:  oklch(0.530 0.150  76);
+  --brand-800:  oklch(0.440 0.130  76);
+  --brand-900:  oklch(0.355 0.105  76);
+  --brand-950:  oklch(0.255 0.075  76);
+}
+.accent-rose {
+  --brand-50:   oklch(0.972 0.020  12);
+  --brand-100:  oklch(0.945 0.040  12);
+  --brand-200:  oklch(0.895 0.078  12);
+  --brand-300:  oklch(0.825 0.130  12);
+  --brand-400:  oklch(0.720 0.180  12);
+  --brand-500:  oklch(0.620 0.210  12);
+  --brand-600:  oklch(0.555 0.220  12);
+  --brand-700:  oklch(0.485 0.205  12);
+  --brand-800:  oklch(0.405 0.175  12);
+  --brand-900:  oklch(0.325 0.135  12);
+  --brand-950:  oklch(0.230 0.090  12);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   DARK MODE — values flip; semantic names stay.
+   ─────────────────────────────────────────────────────────────────────── */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
+  --background:                 var(--neutral-1000);
+  --foreground:                 oklch(0.965 0.004 270);
+
+  --card:                       var(--neutral-900);
+  --card-foreground:            oklch(0.965 0.004 270);
+  --popover:                    var(--neutral-850);
+  --popover-foreground:         oklch(0.965 0.004 270);
+
+  --primary:                    var(--brand-500);
+  --primary-foreground:         oklch(from var(--brand-500) 0.990 0.005 h);
+  --primary-hover:              var(--brand-400);
+  --primary-soft:               oklch(from var(--brand-500) l c h / 0.18);
+
+  --secondary:                  var(--neutral-850);
+  --secondary-foreground:       oklch(0.965 0.004 270);
+
+  --muted:                      var(--neutral-850);
+  --muted-foreground:           oklch(0.665 0.012 270);
+
+  --accent:                     var(--neutral-800);
+  --accent-foreground:          oklch(0.965 0.004 270);
+
+  --destructive:                var(--danger-500);
+  --destructive-foreground:     oklch(0.990 0.005  20);
+
+  --success:                    var(--success-500);
+  --warning:                    var(--warning-500);
+  --info:                       var(--info-500);
+
+  --border:                     oklch(0.265 0.012 270 / 0.85);
+  --border-strong:              oklch(0.380 0.014 270);
+  --input:                      var(--neutral-800);
+  --ring:                       var(--brand-400);
+
+  --surface-1:                  var(--neutral-1000);
+  --surface-2:                  var(--neutral-900);
+  --surface-3:                  var(--neutral-850);
+  --surface-4:                  var(--neutral-800);
+  --surface-1-hover:            var(--neutral-950);
+  --surface-2-hover:            var(--neutral-850);
+
+  --chart-1: var(--brand-400);
+  --chart-2: oklch(0.745 0.155 195);
+  --chart-3: oklch(0.795 0.150  76);
+  --chart-4: oklch(0.705 0.180 320);
+  --chart-5: oklch(0.710 0.155 162);
+  --chart-grid: oklch(0.265 0.012 270 / 0.6);
+
+  --highlight-top: inset 0 1px 0 oklch(1 0 0 / 0.06);
+
+  --shadow-sm: 0 1px 2px 0 oklch(0 0 0 / 0.20),
+               0 1px 3px 0 oklch(0 0 0 / 0.24);
+  --shadow-md: 0 4px 6px -1px oklch(0 0 0 / 0.28),
+               0 2px 4px -2px oklch(0 0 0 / 0.20);
+  --shadow-lg: 0 10px 15px -3px oklch(0 0 0 / 0.34),
+               0 4px 6px -4px oklch(0 0 0 / 0.22);
+  --shadow-lift: 0 16px 36px -18px oklch(0 0 0 / 0.55),
+                 0 6px 12px -6px oklch(0 0 0 / 0.35);
+
+  --color-scheme: dark;
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   THEME BLOCK — exposes semantics as Tailwind v4 utilities.
+   `bg-[var(--color-X)]` and `bg-{X}` both work.
+   ─────────────────────────────────────────────────────────────────────── */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
+  --color-background:             var(--background);
+  --color-foreground:             var(--foreground);
+  --color-card:                   var(--card);
+  --color-card-foreground:        var(--card-foreground);
+  --color-popover:                var(--popover);
+  --color-popover-foreground:     var(--popover-foreground);
+  --color-primary:                var(--primary);
+  --color-primary-foreground:     var(--primary-foreground);
+  --color-primary-hover:          var(--primary-hover);
+  --color-primary-soft:           var(--primary-soft);
+  --color-secondary:              var(--secondary);
+  --color-secondary-foreground:   var(--secondary-foreground);
+  --color-muted:                  var(--muted);
+  --color-muted-foreground:       var(--muted-foreground);
+  --color-accent:                 var(--accent);
+  --color-accent-foreground:      var(--accent-foreground);
+  --color-destructive:            var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
+  --color-success:                var(--success);
+  --color-success-foreground:     var(--success-foreground);
+  --color-warning:                var(--warning);
+  --color-warning-foreground:     var(--warning-foreground);
+  --color-info:                   var(--info);
+  --color-info-foreground:        var(--info-foreground);
+  --color-border:                 var(--border);
+  --color-border-strong:          var(--border-strong);
+  --color-input:                  var(--input);
+  --color-ring:                   var(--ring);
+
+  --color-surface-1:              var(--surface-1);
+  --color-surface-2:              var(--surface-2);
+  --color-surface-3:              var(--surface-3);
+  --color-surface-4:              var(--surface-4);
+
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+
+  --radius-sm:  var(--radius-sm);
+  --radius-md:  var(--radius-md);
+  --radius-lg:  var(--radius-lg);
+  --radius-xl:  var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   BASE LAYER — global treatments
+   ─────────────────────────────────────────────────────────────────────── */
 @layer base {
-  * {
+  *, ::before, ::after {
     border-color: var(--color-border);
+  }
+
+  :root {
+    color-scheme: var(--color-scheme);
+  }
+
+  html {
+    font-family: var(--font-sans);
+    font-feature-settings: var(--font-feature-default);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   html, body {
     background-color: var(--color-background);
     color: var(--color-foreground);
   }
+
+  /* Atmospheric background — two soft brand glows in the upper corners
+     plus a barely-visible noise texture so flat panels never look dead.
+     SVG is inline so there's no extra request. */
+  body {
+    background-image:
+      radial-gradient(ellipse 60% 40% at 15% -5%, oklch(from var(--brand-600) l c h / 0.07), transparent 70%),
+      radial-gradient(ellipse 60% 40% at 85% -5%, oklch(0.700 0.155 195 / 0.05), transparent 70%),
+      url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.5'/></svg>");
+    background-blend-mode: normal, normal, soft-light;
+  }
+
+  .dark body {
+    background-image:
+      radial-gradient(ellipse 60% 40% at 15% -5%, oklch(from var(--brand-500) l c h / 0.10), transparent 70%),
+      radial-gradient(ellipse 60% 40% at 85% -5%, oklch(0.700 0.155 195 / 0.05), transparent 70%),
+      url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.35'/></svg>");
+  }
+
+  /* Tabular numerals everywhere a number is rendered as data. */
+  table, .tabular-nums, [data-tabular="true"], .font-mono, code, kbd, samp, pre {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: var(--font-feature-tabular);
+  }
+
+  /* Refined focus halo — 2px ring + soft outer brand bloom. The bloom
+     is what separates "default browser" from "designed".  */
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+    box-shadow: 0 0 0 6px oklch(from var(--color-ring) l c h / 0.18);
+  }
+
+  /* Brand-tinted text selection. */
+  ::selection {
+    background-color: oklch(from var(--color-primary) l c h / 0.30);
+    color: var(--color-foreground);
+  }
+
+  /* Restrained scrollbars — Linear-style hairlines. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-strong) transparent;
+  }
+  *::-webkit-scrollbar { width: 8px; height: 8px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+  *::-webkit-scrollbar-thumb {
+    background-color: oklch(from var(--color-border-strong) l c h / 0.6);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-muted-foreground);
+  }
+
+  /* Heading rhythm. */
+  h1, h2, h3, h4 {
+    letter-spacing: var(--tracking-tight);
+  }
+  h1 { letter-spacing: var(--tracking-display); }
+
+  /* Display class for hero numbers / page titles. Tight, heavy, with
+     stylistic-set glyphs from Geist. */
+  .text-display {
+    font-family: var(--font-sans);
+    letter-spacing: var(--tracking-display);
+    font-feature-settings: "ss01", "ss03", "cv11", "tnum";
+  }
+
+  /* ──────────────────────────────────────────────────────────────────
+     Theme cross-fade.
+
+     Primary mechanism: View Transitions API. The browser snapshots the
+     page bitmap before/after the dark-class flip and crossfades
+     between them. This is the only technique that morphs gradients,
+     box-shadows, conic backgrounds, SVG fills, and image-based
+     surfaces uniformly with text and surfaces — per-property CSS
+     transitions cannot interpolate any of those.
+
+     Fallback: `.theme-switching` blanket transition for browsers
+     without View Transitions (Firefox today). Limited to the
+     interpolatable subset. Better than nothing, worse than VT.
+
+     Reduced-motion users skip both paths via JS and never see either
+     transition. The block below also nukes view-transition animations
+     defensively in case the user toggles the OS pref mid-session.
+     ──────────────────────────────────────────────────────────────── */
+
+  html.theme-switching,
+  html.theme-switching *,
+  html.theme-switching *::before,
+  html.theme-switching *::after {
+    transition:
+      background-color var(--duration-default) var(--ease-out-cubic),
+      background-image var(--duration-default) var(--ease-out-cubic),
+      border-color     var(--duration-default) var(--ease-out-cubic),
+      color            var(--duration-default) var(--ease-out-cubic),
+      fill             var(--duration-default) var(--ease-out-cubic),
+      stroke           var(--duration-default) var(--ease-out-cubic),
+      box-shadow       var(--duration-default) var(--ease-out-cubic) !important;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   COMPONENT UTILITIES
+   ─────────────────────────────────────────────────────────────────────── */
+@layer components {
+  .surface-1 { background-color: var(--color-surface-1); }
+  .surface-2 { background-color: var(--color-surface-2); }
+  .surface-3 { background-color: var(--color-surface-3); }
+  .surface-4 { background-color: var(--color-surface-4); }
+
+  /* Linear-style elevated surface: 1px hairline + top-edge highlight. */
+  .surface-edge {
+    box-shadow: 0 0 0 1px var(--color-border), var(--highlight-top);
+  }
+
+  /* Brand glow for emphasized CTAs. */
+  .brand-glow {
+    box-shadow:
+      0 0 0 1px oklch(from var(--color-primary) l c h / 0.45),
+      0 8px 24px -10px oklch(from var(--color-primary) l c h / 0.40),
+      var(--highlight-top);
+  }
+
+  /* Subtle vertical gradient overlay — used by primary buttons for that
+     hand-finished, light-catching look. */
+  .gradient-sheen {
+    background-image: linear-gradient(
+      to bottom,
+      oklch(1 0 0 / 0.08),
+      oklch(1 0 0 / 0) 60%
+    );
+  }
+
+  /* Gradient hairline border — uses double-background composition so the
+     border itself carries a top-to-bottom gradient. The card surface
+     paints into padding-box; the border layer paints into border-box.
+     Reads as if the card has a slightly polished metallic edge. */
+  .gradient-border {
+    border: 1px solid transparent;
+    background:
+      linear-gradient(var(--color-card), var(--color-card)) padding-box,
+      linear-gradient(
+        180deg,
+        oklch(from var(--color-foreground) l c h / 0.18),
+        oklch(from var(--color-foreground) l c h / 0.06) 30%,
+        var(--color-border)
+      ) border-box;
+  }
+  .dark .gradient-border {
+    background:
+      linear-gradient(var(--color-card), var(--color-card)) padding-box,
+      linear-gradient(
+        180deg,
+        oklch(1 0 0 / 0.10),
+        oklch(1 0 0 / 0.03) 30%,
+        var(--color-border)
+      ) border-box;
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     CARD — modern, architectural surface.
+
+     Earlier revisions stacked gradient-border + inset top highlight +
+     double drop-shadow. Modernized to: 1px hairline + zero resting
+     shadow (depth = surface contrast). Interactive variant softens a
+     pillow-shadow in on hover and tints the border one notch darker.
+
+     The two utilities exist as plain classes so we can layer them
+     selectively (some surfaces want the static shell only).
+  --------------------------------------------------------------------- */
+  .card-shell {
+    background-color: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+  }
+
+  .card-shell-interactive {
+    transition:
+      border-color var(--duration-default) var(--ease-out-cubic),
+      box-shadow var(--duration-default) var(--ease-out-cubic),
+      transform var(--duration-default) var(--ease-out-cubic);
+  }
+  .card-shell-interactive:hover {
+    border-color: var(--color-border-strong);
+    /* Pillow shadow — tight close hairline + wide-low-alpha bloom. The
+       two layers together read as light catching from above without any
+       hard edge. */
+    box-shadow:
+      0 1px 2px 0 oklch(0 0 0 / 0.04),
+      0 2px 6px -2px oklch(0 0 0 / 0.06),
+      0 12px 28px -14px oklch(0 0 0 / 0.14);
+  }
+  .dark .card-shell-interactive:hover {
+    box-shadow:
+      0 1px 2px 0 oklch(0 0 0 / 0.30),
+      0 4px 10px -4px oklch(0 0 0 / 0.25),
+      0 18px 36px -16px oklch(0 0 0 / 0.45);
+  }
+
+  /* Hover lift — translate -1px and bloom the shadow. CSS-only; relies
+     on motion tokens so global tuning applies. */
+  .hover-lift {
+    transition:
+      transform var(--duration-default) var(--ease-out-cubic),
+      box-shadow var(--duration-default) var(--ease-out-cubic),
+      border-color var(--duration-default) var(--ease-out-cubic);
+  }
+  .hover-lift:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-lift), var(--highlight-top);
+  }
+
+  /* Animated brand mark — a slowly-rotating conic gradient under the "F"
+     glyph. Mask-compositing keeps the rotating gradient inside the
+     rounded square. */
+  .brand-mark {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    background: var(--color-primary);
+  }
+  .brand-mark::before {
+    content: "";
+    position: absolute;
+    inset: -50%;
+    background: conic-gradient(
+      from 0deg,
+      oklch(from var(--color-primary) calc(l + 0.10) c h),
+      oklch(from var(--color-primary) calc(l + 0.18) c calc(h + 30)),
+      oklch(from var(--color-primary) l c h),
+      oklch(from var(--color-primary) calc(l + 0.10) c h)
+    );
+    animation: fsh-spin 14s linear infinite;
+    z-index: 0;
+  }
+  .brand-mark::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, oklch(1 0 0 / 0.18), transparent 60%);
+    z-index: 1;
+  }
+  .brand-mark > * { position: relative; z-index: 2; }
+
+  /* Animated thumb for the segmented theme toggle. The container carries
+     a `data-mode` attribute; the thumb slides via attribute-selector. */
+  .seg-toggle { position: relative; }
+  .seg-toggle .seg-thumb {
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    left: 2px;
+    width: 28px;
+    border-radius: 9999px;
+    background: var(--color-primary);
+    box-shadow:
+      0 1px 0 oklch(1 0 0 / 0.18) inset,
+      0 4px 14px -4px oklch(from var(--color-primary) l c h / 0.45);
+    transition: transform var(--duration-default) var(--ease-out-quart);
+    pointer-events: none;
+  }
+  .seg-toggle[data-mode="light"]  .seg-thumb { transform: translateX(0); }
+  .seg-toggle[data-mode="system"] .seg-thumb { transform: translateX(28px); }
+  .seg-toggle[data-mode="dark"]   .seg-thumb { transform: translateX(56px); }
+  /* During a View Transitions theme swap the thumb's transform would
+     interpolate inside the new snapshot and tear visually. Snap it
+     to the destination so the bitmap crossfade owns the motion. */
+  html.vt-active .seg-toggle .seg-thumb { transition: none !important; }
+
+  /* Skeleton — placeholder block with a slow brand-tinted shimmer.
+     Tuned for the architectural card vocabulary: a softer resting fill
+     (so the skeleton doesn't compete with adjacent content) and a
+     longer, more ambient shimmer cycle that reads as "loading" rather
+     than "anxious." */
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+    background: oklch(from var(--color-muted) l c h / 0.5);
+    border-radius: var(--radius-sm);
+    /* Subtle inner ring so the skeleton has a defined edge when nested
+       inside a card-shell — without it the placeholder visually melts
+       into the card surface. */
+    box-shadow: inset 0 0 0 1px oklch(from var(--color-border) l c h / 0.55);
+  }
+  .skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    /* Brand-tinted sweep — alpha is intentionally low so the highlight
+       is more "atmosphere" than "wave." */
+    background: linear-gradient(
+      90deg,
+      transparent,
+      oklch(from var(--color-primary) l c h / 0.08),
+      oklch(from var(--color-foreground) l c h / 0.06),
+      transparent
+    );
+    transform: translateX(-100%);
+    animation: fsh-shimmer 2.4s var(--ease-in-out-cubic) infinite;
+  }
+  .dark .skeleton {
+    background: oklch(from var(--color-muted) l c h / 0.45);
+    box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.04);
+  }
+  .dark .skeleton::after {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      oklch(from var(--color-primary) l c h / 0.12),
+      oklch(1 0 0 / 0.06),
+      transparent
+    );
+  }
+
+  /* Status dot with breathing pulse. Used by SSE indicator when live. */
+  .pulse-dot {
+    position: relative;
+  }
+  .pulse-dot::before {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: 9999px;
+    background: currentColor;
+    opacity: 0.35;
+    animation: fsh-pulse 2.2s var(--ease-out-cubic) infinite;
+  }
+
+  /* Glow frame — a 1px-thick outer ring carrying a slowly-rotating conic
+     gradient. The frame's ::before paints the conic; the child surface
+     sits on top with 1px of frame visible all around. The visual reads
+     as an ambient halo, not a gimmick. */
+  .glow-frame {
+    position: relative;
+    isolation: isolate;
+    border-radius: var(--radius-2xl);
+    padding: 1px;
+  }
+  .glow-frame::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    /* Static iridescent halo — same brand → counter-hue arcs as the
+       earlier rotating version, but anchored: the top edge catches the
+       brand glow, the bottom-right catches the teal, the rest is a
+       calm hairline. Reads as a polished metallic edge. */
+    background: conic-gradient(
+      from 210deg at 50% 50%,
+      oklch(from var(--color-primary) l c h / 0.55) 0%,
+      transparent 18%,
+      transparent 50%,
+      oklch(0.700 0.155 195 / 0.40) 65%,
+      transparent 82%,
+      oklch(from var(--color-primary) l c h / 0.40) 100%
+    );
+  }
+  .glow-frame > * {
+    position: relative;
+    z-index: 1;
+    border-radius: calc(var(--radius-2xl) - 1px);
+  }
+
+  /* ──────────────────────────────────────────────────────────────────
+     Health-page check card — telemetry rack-unit faceplate.
+
+     One card per dependency. Each consumes a `--tone` CSS variable set
+     by the React component (success / warning / danger). Every accent
+     downstream — rail, icon halo, LED chip, gauge fill — derives from
+     that tone via relative-color math, so a single var swap recolors
+     the whole faceplate in lockstep.
+     ──────────────────────────────────────────────────────────────── */
+
+  .health-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    padding: 16px 18px 16px 18px;
+    border-radius: var(--radius-lg);
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--highlight-top);
+    transition:
+      transform var(--duration-default) var(--ease-out-cubic),
+      border-color var(--duration-default) var(--ease-out-cubic),
+      box-shadow var(--duration-default) var(--ease-out-cubic);
+    overflow: hidden;
+  }
+  .health-card:hover {
+    transform: translateY(-1px);
+    border-color: oklch(from var(--tone) l c h / 0.40);
+    box-shadow:
+      var(--highlight-top),
+      0 14px 32px -18px oklch(from var(--tone) l c h / 0.32);
+  }
+
+  /* Tone-tinted rail. Sits flush against the top edge but inset from
+     both corners so it reads as a marker, not a border. Brightens on
+     hover so the card feels reactive. */
+  .health-card__rail {
+    position: absolute;
+    top: 0;
+    left: 14px;
+    right: 14px;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--tone) 22%,
+      var(--tone) 78%,
+      transparent
+    );
+    opacity: 0.55;
+    transition: opacity var(--duration-default) var(--ease-out-cubic);
+    pointer-events: none;
+  }
+  .health-card:hover .health-card__rail { opacity: 1; }
+
+  .health-card__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .health-card__id {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+  .health-card__icon {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    border-radius: var(--radius-md);
+    color: var(--tone);
+    background: linear-gradient(
+      135deg,
+      oklch(from var(--tone) l c h / 0.18),
+      oklch(from var(--tone) l c h / 0.04)
+    );
+    border: 1px solid oklch(from var(--tone) l c h / 0.22);
+  }
+  .health-card__title-block { min-width: 0; }
+  .health-card__index {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-muted-foreground);
+    line-height: 1;
+  }
+  .health-card__name {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    color: var(--color-foreground);
+    margin-top: 4px;
+    line-height: 1.15;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Status chip on the right — a glowing LED dot inside a tone-tinted
+     pill. The dot breathes on a 2.6s cycle so a healthy wall doesn't
+     freeze visually but doesn't strobe either. */
+  .health-card__led-block {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 4px 9px 4px 8px;
+    border-radius: 999px;
+    background: oklch(from var(--tone) l c h / 0.10);
+    border: 1px solid oklch(from var(--tone) l c h / 0.22);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .health-card__led {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--tone);
+    box-shadow:
+      0 0 0 1.5px oklch(from var(--tone) l c h / 0.22),
+      0 0 8px oklch(from var(--tone) l c h / 0.65),
+      inset 0 0.5px 0 oklch(1 0 0 / 0.45);
+    animation: health-led-pulse 2.6s var(--ease-in-out-cubic) infinite;
+  }
+  .health-card__led-label {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--tone);
+    line-height: 1;
+  }
+
+  .health-card__desc {
+    font-size: 11.5px;
+    line-height: 1.55;
+    color: var(--color-muted-foreground);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin: 0;
+  }
+  .health-card__desc--muted { font-style: italic; opacity: 0.7; }
+
+  /* Latency readout — the hero. Big tabular numeric paired with a
+     small unit, with a stamp-style metric label on the far right.
+     Mono font + tabular-nums + ss01/ss03 stylistic sets give the
+     digits a precise instrumentation feel. */
+  .health-card__readout {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 2px;
+  }
+  .health-card__numeric {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 3px;
+  }
+  .health-card__num {
+    font-family: var(--font-mono);
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    color: var(--color-foreground);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "ss01", "ss03", "tnum", "cv11";
+    line-height: 1;
+  }
+  .health-card__unit {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-muted-foreground);
+    letter-spacing: 0.02em;
+  }
+  .health-card__metric-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-muted-foreground);
+    line-height: 1;
+    padding-bottom: 3px;
+  }
+
+  /* Gauge bar. Track is a low-alpha foreground tint; fill carries the
+     tone with a soft outer glow that suggests phosphor. Width animates
+     when refresh ticks land so the bar visibly responds to new data. */
+  .health-card__bar {
+    position: relative;
+    height: 4px;
+    border-radius: 999px;
+    background: oklch(from var(--color-foreground) l c h / 0.06);
+    overflow: hidden;
+  }
+  .health-card__bar-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    border-radius: 999px;
+    background: linear-gradient(
+      90deg,
+      oklch(from var(--tone) l c h / 0.55),
+      var(--tone)
+    );
+    box-shadow: 0 0 10px -1px oklch(from var(--tone) l c h / 0.50);
+    transition: width 600ms var(--ease-out-cubic);
+  }
+
+  /* Detail metadata renders as `KEY=value` env-var chips. The terminal
+     vocabulary is intentional — these values come straight from the
+     check's payload and reading them as code is faster than reading
+     them as labels. */
+  .health-card__details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 2px;
+  }
+  .health-card__chip,
+  .health-card__chip-more {
+    display: inline-flex;
+    align-items: center;
+    height: 20px;
+    padding: 0 7px;
+    border-radius: 5px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    line-height: 1;
+    background: oklch(from var(--color-foreground) l c h / 0.04);
+    border: 1px solid oklch(from var(--color-foreground) l c h / 0.06);
+    color: var(--color-foreground);
+    max-width: 14rem;
+  }
+  .health-card__chip-key {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-muted-foreground);
+    font-weight: 500;
+  }
+  .health-card__chip-eq {
+    margin: 0 4px;
+    color: var(--color-muted-foreground);
+    opacity: 0.5;
+  }
+  .health-card__chip-val {
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 9rem;
+  }
+  .health-card__chip-more {
+    background: transparent;
+    border-color: transparent;
+    color: var(--color-muted-foreground);
+  }
+
+  .health-card--skeleton .health-card__rail { display: none; }
+
+  @keyframes health-led-pulse {
+    0%, 100% {
+      box-shadow:
+        0 0 0 1.5px oklch(from var(--tone) l c h / 0.22),
+        0 0 6px oklch(from var(--tone) l c h / 0.55),
+        inset 0 0.5px 0 oklch(1 0 0 / 0.45);
+    }
+    50% {
+      box-shadow:
+        0 0 0 1.5px oklch(from var(--tone) l c h / 0.22),
+        0 0 14px oklch(from var(--tone) l c h / 0.85),
+        inset 0 0.5px 0 oklch(1 0 0 / 0.45);
+    }
+  }
+
+  /* Brand-gradient text — used for emphasized headline words. The
+     gradient sweeps from primary to a slightly hue-shifted variant for
+     subtle iridescence rather than a flat brand fill. */
+  .text-gradient-brand {
+    background-image: linear-gradient(
+      135deg,
+      var(--color-primary),
+      oklch(from var(--color-primary) calc(l + 0.12) c calc(h + 28))
+    );
+    -webkit-background-clip: text;
+            background-clip: text;
+    color: transparent;
+    /* Preserve emoji/icons that share the heading. */
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* Iridescent button sheen — a thin diagonal highlight that sweeps
+     across the button on hover. Classic "polished metal catches light"
+     gesture, executed in CSS. */
+  .btn-shimmer { position: relative; overflow: hidden; }
+  .btn-shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      110deg,
+      transparent 30%,
+      oklch(1 0 0 / 0.22) 50%,
+      transparent 70%
+    );
+    transform: translateX(-120%);
+    transition: transform 700ms var(--ease-out-quart);
+    pointer-events: none;
+  }
+  .btn-shimmer:hover::after { transform: translateX(120%); }
+
+  /* Parallax orbs — translate slightly opposite to cursor (set on
+     :root via JS as --px / --py in -1..1 range). The two orbs use
+     opposite displacement so depth reads stronger. */
+  .parallax-orb,
+  .parallax-orb-2 {
+    will-change: transform;
+    transition: transform 220ms var(--ease-out-cubic);
+  }
+  .parallax-orb   { transform: translate3d(calc(var(--px, 0) * -22px), calc(var(--py, 0) * -22px), 0); }
+  .parallax-orb-2 { transform: translate3d(calc(var(--px, 0) *  16px), calc(var(--py, 0) *  16px), 0); }
+
+  /* Floating-label field — modern minimal alternative to prefix-icon
+     fields. Label sits inside the input at rest; on focus or non-empty
+     state, it translates up and shrinks into a tracked spec-sheet
+     caption. Driven entirely by `:placeholder-shown` so no JS state
+     management is needed. */
+  .float-field { position: relative; }
+  .float-field > input {
+    width: 100%;
+    height: 56px;
+    padding: 22px 14px 8px;
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-input);
+    border-radius: var(--radius-md);
+    font: inherit;
+    font-size: 14px;
+    color: var(--color-foreground);
+    transition:
+      border-color var(--duration-fast) var(--ease-out-cubic),
+      box-shadow   var(--duration-fast) var(--ease-out-cubic),
+      background   var(--duration-fast) var(--ease-out-cubic);
+  }
+  .float-field > input::placeholder { color: transparent; }
+  .float-field > input:hover { border-color: var(--color-border-strong); }
+  .float-field > input:focus,
+  .float-field > input:focus-visible {
+    outline: none;
+    border-color: var(--color-ring);
+    background: var(--color-surface-3);
+    box-shadow: 0 0 0 4px oklch(from var(--color-ring) l c h / 0.18);
+  }
+  .float-field > label {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    line-height: 1;
+    color: var(--color-muted-foreground);
+    pointer-events: none;
+    transition: all var(--duration-default) var(--ease-out-cubic);
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .float-field > input:focus + label,
+  .float-field > input:not(:placeholder-shown) + label {
+    top: 14px;
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-primary);
+    transform: translateY(0);
+  }
+
+  /* Cursor-following spotlight — a soft brand-tinted radial gradient
+     positioned at --mx/--my (set by JS on mousemove). Faded in on hover
+     so it doesn't compete with the static look at rest. */
+  .card-spotlight {
+    position: relative;
+    overflow: hidden;
+  }
+  .card-spotlight::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background: radial-gradient(
+      520px circle at var(--mx, 50%) var(--my, 0%),
+      oklch(from var(--color-primary) l c h / 0.18),
+      transparent 40%
+    );
+    opacity: 0;
+    transition: opacity var(--duration-slow) var(--ease-out-cubic);
+    z-index: 0;
+  }
+  .card-spotlight:hover::before { opacity: 1; }
+  .card-spotlight > * { position: relative; z-index: 1; }
+
+  /* Dot-grid utilities — used by the login marketing pane. The base
+     layer is a dim, theme-aware grid of dots; the bright layer paints
+     identical dots in brand color and a slowly-moving mask reveals only
+     a soft circular zone, producing a "pulse traveling through the
+     grid" effect that's purely CSS. */
+  .dot-grid-base {
+    background-image: radial-gradient(
+      circle,
+      oklch(from var(--color-foreground) l c h / 0.07) 1px,
+      transparent 1.5px
+    );
+    background-size: 22px 22px;
+  }
+  .dark .dot-grid-base {
+    background-image: radial-gradient(
+      circle,
+      oklch(from var(--color-foreground) l c h / 0.10) 1px,
+      transparent 1.5px
+    );
+  }
+  .dot-grid-bright {
+    background-image: radial-gradient(
+      circle,
+      oklch(from var(--color-primary) l c h / 0.65) 1.2px,
+      transparent 1.8px
+    );
+    background-size: 22px 22px;
+    -webkit-mask-image: radial-gradient(
+      circle at center,
+      black,
+      transparent 38%
+    );
+            mask-image: radial-gradient(
+      circle at center,
+      black,
+      transparent 38%
+    );
+    -webkit-mask-size: 60% 60%;
+            mask-size: 60% 60%;
+    -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+    -webkit-mask-position: 30% 30%;
+            mask-position: 30% 30%;
+    animation: fsh-dot-pulse 16s var(--ease-in-out-cubic) infinite;
+  }
+
+  /* ─────────────────────────────────────────────────────────────────────
+     TOASTS — sonner override · "telegraph slip" treatment.
+
+     Each toast reads as a transmission frame lifted off a teletype:
+     · A luminous 3px left rail in the type's tone, with a single top-to-
+       bottom scanline pulse on enter (the tally-light moment).
+     · A bracketed mono channel tag — [OK] [ERR] [WARN] [INFO] [NOTE]
+       […] — supplants the icon plate. Type is announced typographically.
+     · Hairline rule between the channel header and the body.
+     · Display title, muted body, ghost action with a right chevron on
+       hover. Asymmetric padding anchors the rail on the left.
+     · Spring-in entrance from the right with a brief 6deg → 0deg rotate
+       resolve and a staggered text reveal.
+
+     `richColors` stays off; the colour story lives entirely in the rail
+     and the bracketed tag, never in the surface.
+  --------------------------------------------------------------------- */
+
+  /* ── Token map. Each tone resolves to a single oklch base; a derived
+        glow var lights the rail's scanline. */
+  [data-sonner-toaster] [data-sonner-toast].fsh-toast {
+    --fsh-toast-tone: var(--color-border-strong);
+    --fsh-toast-glow: oklch(from var(--fsh-toast-tone) l c h / 0.55);
+    --fsh-toast-tag: "[NOTE]";
+  }
+  [data-sonner-toast][data-type="success"].fsh-toast {
+    --fsh-toast-tone: var(--color-success);
+    --fsh-toast-tag: "[OK]";
+  }
+  [data-sonner-toast][data-type="error"].fsh-toast {
+    --fsh-toast-tone: var(--color-destructive);
+    --fsh-toast-tag: "[ERR]";
+  }
+  [data-sonner-toast][data-type="warning"].fsh-toast {
+    --fsh-toast-tone: var(--color-warning);
+    --fsh-toast-tag: "[WARN]";
+  }
+  [data-sonner-toast][data-type="info"].fsh-toast {
+    --fsh-toast-tone: var(--color-info);
+    --fsh-toast-tag: "[INFO]";
+  }
+  [data-sonner-toast][data-type="loading"].fsh-toast {
+    --fsh-toast-tone: var(--color-primary);
+    --fsh-toast-tag: "[…]";
+  }
+
+  /* ── Base shell. The grid leaves a column for the rail (painted by
+        ::before, not flexing into layout) and a single content column.
+        Asymmetric padding: 18px top/bottom, 18px right, 22px left so
+        the body breathes away from the rail. */
+  [data-sonner-toaster] [data-sonner-toast].fsh-toast {
+    position: relative;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0 0.75rem;
+    align-items: start;
+    width: 380px;
+    max-width: 100%;
+    padding: 14px 18px 14px 22px;
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    background:
+      linear-gradient(var(--color-card), var(--color-card)) padding-box,
+      linear-gradient(
+        180deg,
+        oklch(from var(--color-foreground) l c h / 0.16),
+        var(--color-border) 70%
+      ) border-box !important;
+    box-shadow:
+      0 1px 0 oklch(from var(--color-foreground) l c h / 0.04) inset,
+      0 18px 36px -18px oklch(from var(--fsh-toast-tone) l c h / 0.32),
+      0 8px 18px -10px oklch(0 0 0 / 0.20);
+    color: var(--color-foreground) !important;
+    font-family: var(--font-sans);
+    overflow: hidden;
+  }
+  .dark [data-sonner-toaster] [data-sonner-toast].fsh-toast {
+    background:
+      linear-gradient(var(--color-card), var(--color-card)) padding-box,
+      linear-gradient(180deg, oklch(1 0 0 / 0.10), var(--color-border) 70%) border-box !important;
+    box-shadow:
+      0 1px 0 oklch(1 0 0 / 0.05) inset,
+      0 22px 44px -18px oklch(from var(--fsh-toast-tone) l c h / 0.42),
+      0 10px 22px -10px oklch(0 0 0 / 0.35);
+  }
+
+  /* ── The rail. 3px solid base + a moving scanline gradient that fires
+        once on enter (the tally-light pulse). The base is opaque so the
+        rail still reads after the animation finishes. */
+  [data-sonner-toast].fsh-toast::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 3px;
+    background:
+      linear-gradient(180deg,
+        transparent 0%,
+        var(--fsh-toast-glow) 18%,
+        oklch(from var(--fsh-toast-tone) l c h / 1.0) 50%,
+        var(--fsh-toast-glow) 82%,
+        transparent 100%
+      ),
+      var(--fsh-toast-tone);
+    background-size: 100% 220%, 100% 100%;
+    background-position: 0 -120%, 0 0;
+    background-repeat: no-repeat;
+    animation: fsh-toast-rail-pulse 1100ms var(--ease-out-cubic) 60ms 1 both;
+  }
+  @keyframes fsh-toast-rail-pulse {
+    from { background-position: 0 -120%, 0 0; }
+    to   { background-position: 0  220%, 0 0; }
+  }
+
+  /* ── Sonner inserts a default icon container as the first wrapper.
+        Hide it — we use typography for the type signal. */
+  [data-sonner-toast].fsh-toast [data-icon] {
+    display: none !important;
+  }
+
+  /* ── Channel header: bracketed mono tag generated by ::before from
+        --fsh-toast-tag. Sits above the title; spans the full content
+        column. The hairline beneath separates header from body. */
+  [data-sonner-toast].fsh-toast .fsh-toast-title {
+    grid-column: 1;
+    grid-row: 1;
+    margin: 0;
+    padding-bottom: 9px;
+    border-bottom: 1px solid oklch(from var(--color-border) l c h / 0.7);
+    font-family: var(--font-display);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.012em;
+    color: var(--color-foreground);
+    animation: fsh-toast-text-in 360ms var(--ease-out-cubic) 80ms both;
+  }
+  [data-sonner-toast].fsh-toast .fsh-toast-title::before {
+    content: var(--fsh-toast-tag);
+    display: block;
+    margin-bottom: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--fsh-toast-tone);
+    line-height: 1;
+    /* Subtle glow that fades during the rail pulse so the eyebrow
+       feels electrically connected to the rail. */
+    text-shadow: 0 0 12px oklch(from var(--fsh-toast-tone) l c h / 0.35);
+    animation: fsh-toast-tag-flash 1100ms var(--ease-out-cubic) 60ms both;
+  }
+  @keyframes fsh-toast-tag-flash {
+    0%   { text-shadow: 0 0  0px oklch(from var(--fsh-toast-tone) l c h / 0.0); }
+    25%  { text-shadow: 0 0 18px oklch(from var(--fsh-toast-tone) l c h / 0.65); }
+    100% { text-shadow: 0 0 12px oklch(from var(--fsh-toast-tone) l c h / 0.35); }
+  }
+
+  /* Loading uses a three-dot animated bracket via the existing tag. */
+  [data-sonner-toast][data-type="loading"].fsh-toast .fsh-toast-title::before {
+    animation:
+      fsh-toast-tag-flash 1100ms var(--ease-out-cubic) 60ms both,
+      fsh-toast-loading-tag 1400ms steps(4, end) 1100ms infinite;
+  }
+  @keyframes fsh-toast-loading-tag {
+    0%   { content: "[ ]"; }
+    25%  { content: "[·]"; }
+    50%  { content: "[· ·]"; }
+    75%  { content: "[· · ·]"; }
+    100% { content: "[ ]"; }
+  }
+
+  /* ── Description: muted body, slight upward bleed under the rule. */
+  [data-sonner-toast].fsh-toast .fsh-toast-description {
+    grid-column: 1;
+    grid-row: 2;
+    margin: 9px 0 0 0;
+    font-size: 0.8125rem;
+    line-height: 1.55;
+    color: var(--color-muted-foreground);
+    animation: fsh-toast-text-in 420ms var(--ease-out-cubic) 140ms both;
+  }
+  @keyframes fsh-toast-text-in {
+    from { opacity: 0; transform: translateY(2px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Close: hairline X tucked into the header row. Static positioning
+        overrides sonner's absolute placement so it lives in the grid. */
+  [data-sonner-toast].fsh-toast .fsh-toast-close {
+    grid-column: 2;
+    grid-row: 1;
+    position: static !important;
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+    margin-top: 0 !important;
+    border-radius: 0.25rem !important;
+    background: transparent !important;
+    border: none !important;
+    color: var(--color-muted-foreground) !important;
+    opacity: 0.7;
+    transform: none !important;
+    transition:
+      opacity var(--duration-fast) var(--ease-out-cubic),
+      background-color var(--duration-fast) var(--ease-out-cubic),
+      color var(--duration-fast) var(--ease-out-cubic);
+  }
+  [data-sonner-toast].fsh-toast .fsh-toast-close:hover {
+    background: oklch(from var(--fsh-toast-tone) l c h / 0.10) !important;
+    color: var(--fsh-toast-tone) !important;
+    opacity: 1;
+  }
+  [data-sonner-toast].fsh-toast .fsh-toast-close svg {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+
+  /* ── Action / cancel: ghost wires, not solid pills. Action gets a
+        right chevron on hover via ::after. Spans the content column so
+        they sit flush under the body. */
+  [data-sonner-toast].fsh-toast .fsh-toast-action,
+  [data-sonner-toast].fsh-toast .fsh-toast-cancel {
+    grid-column: 1 / -1;
+    justify-self: start;
+    margin-top: 12px;
+    height: 1.625rem !important;
+    padding: 0 0.625rem !important;
+    border-radius: 999px !important;
+    font-family: var(--font-mono) !important;
+    font-size: 0.6875rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.04em !important;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition:
+      background-color var(--duration-fast) var(--ease-out-cubic),
+      color var(--duration-fast) var(--ease-out-cubic),
+      box-shadow var(--duration-fast) var(--ease-out-cubic);
+  }
+  [data-sonner-toast].fsh-toast .fsh-toast-action {
+    background: transparent !important;
+    color: var(--fsh-toast-tone) !important;
+    border: 1px solid oklch(from var(--fsh-toast-tone) l c h / 0.40) !important;
+    box-shadow: inset 0 0 0 0 oklch(from var(--fsh-toast-tone) l c h / 0);
+  }
+  [data-sonner-toast].fsh-toast .fsh-toast-action::after {
+    content: " →";
+    display: inline-block;
+    margin-left: 0.25rem;
+    transition: transform var(--duration-fast) var(--ease-out-cubic);
+  }
+  [data-sonner-toast].fsh-toast .fsh-toast-action:hover {
+    background: oklch(from var(--fsh-toast-tone) l c h / 0.10) !important;
+    box-shadow: 0 0 0 4px oklch(from var(--fsh-toast-tone) l c h / 0.10);
+  }
+  [data-sonner-toast].fsh-toast .fsh-toast-action:hover::after {
+    transform: translateX(2px);
+  }
+  [data-sonner-toast].fsh-toast .fsh-toast-cancel {
+    background: transparent !important;
+    color: var(--color-muted-foreground) !important;
+    border: 1px solid var(--color-border) !important;
+    margin-left: 8px !important;
+  }
+  [data-sonner-toast].fsh-toast .fsh-toast-cancel:hover {
+    color: var(--color-foreground) !important;
+    background: var(--color-muted) !important;
+  }
+
+  /* ── Entrance: spring-in from the right with a 6deg→0deg resolve.
+        Sonner's default `data-mounted` trigger drives the animation;
+        we override its keyframes via [data-mounted="true"]. */
+  [data-sonner-toaster][data-y-position="top"] [data-sonner-toast].fsh-toast[data-mounted="true"] {
+    animation: fsh-toast-enter 460ms var(--ease-out-cubic) both;
+  }
+  @keyframes fsh-toast-enter {
+    0%   { opacity: 0; transform: translateX(28px) translateY(-4px) rotate(2.4deg) scale(0.985); }
+    55%  { opacity: 1; transform: translateX(-2px) translateY(0)    rotate(-0.4deg) scale(1.005); }
+    100% { opacity: 1; transform: translateX(0)    translateY(0)    rotate(0)     scale(1); }
+  }
+  /* Reduce motion users get a simple fade. */
+  @media (prefers-reduced-motion: reduce) {
+    [data-sonner-toast].fsh-toast,
+    [data-sonner-toast].fsh-toast::before,
+    [data-sonner-toast].fsh-toast .fsh-toast-title,
+    [data-sonner-toast].fsh-toast .fsh-toast-title::before,
+    [data-sonner-toast].fsh-toast .fsh-toast-description {
+      animation: none !important;
+    }
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   DENSITY MODE — when `.density-compact` is on :root, tighten the
+   high-leverage paddings and rhythm tokens. Scope to `main` so chrome
+   (sidebar, topbar, dropdown menus) is unaffected.
+
+   The overrides target Tailwind utility classes that the Card / list
+   surfaces use directly, with !important to win the cascade. This is
+   pragmatic rather than purist — if more granular control is needed
+   later, swap to a `--card-py / --card-px` token system on the
+   primitives themselves.
+   ─────────────────────────────────────────────────────────────────────── */
+.density-compact main .space-y-7 > * + * { margin-top: 1.25rem; }
+.density-compact main .space-y-6 > * + * { margin-top: 1rem; }
+.density-compact main .space-y-5 > * + * { margin-top: 0.875rem; }
+.density-compact main .px-6 { padding-left: 1rem !important; padding-right: 1rem !important; }
+.density-compact main .pt-5 { padding-top: 0.75rem !important; }
+.density-compact main .pb-5 { padding-bottom: 0.75rem !important; }
+.density-compact main .py-3 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+.density-compact main .py-3\.5 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+.density-compact main .py-4 { padding-top: 0.625rem !important; padding-bottom: 0.625rem !important; }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   ENTRY ANIMATIONS — orchestrated stagger on first paint.
+   ─────────────────────────────────────────────────────────────────────── */
+@keyframes fsh-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+.fsh-enter   { animation: fsh-enter var(--duration-slow) var(--ease-out-cubic) both; }
+.fsh-enter-1 { animation-delay:  40ms; }
+.fsh-enter-2 { animation-delay:  90ms; }
+.fsh-enter-3 { animation-delay: 140ms; }
+.fsh-enter-4 { animation-delay: 200ms; }
+.fsh-enter-5 { animation-delay: 260ms; }
+
+/* Modern micro-animations referenced by .brand-mark, .skeleton, .pulse-dot */
+@keyframes fsh-spin    { to { transform: rotate(360deg); } }
+@keyframes fsh-shimmer { to { transform: translateX(100%); } }
+@keyframes fsh-pulse {
+  0%   { transform: scale(1);   opacity: 0.40; }
+  70%  { transform: scale(1.7); opacity: 0.00; }
+  100% { transform: scale(1.7); opacity: 0.00; }
+}
+
+/* Dialog enter/exit — overlay fades; content fades + scales + translates
+   from -2px so the dialog "rises" into place.  */
+@keyframes fsh-overlay-in  { from { opacity: 0; }                                   to { opacity: 1; } }
+@keyframes fsh-overlay-out { from { opacity: 1; }                                   to { opacity: 0; } }
+@keyframes fsh-dialog-in   { from { opacity: 0; transform: translate(-50%, -48%) scale(0.96); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+@keyframes fsh-dialog-out  { from { opacity: 1; transform: translate(-50%, -50%) scale(1); }     to { opacity: 0; transform: translate(-50%, -48%) scale(0.96); } }
+.animate-fsh-overlay-in  { animation: fsh-overlay-in  var(--duration-default) var(--ease-out-cubic) both; }
+.animate-fsh-overlay-out { animation: fsh-overlay-out var(--duration-fast)    var(--ease-out-cubic) both; }
+.animate-fsh-dialog-in   { animation: fsh-dialog-in   var(--duration-slow)    var(--ease-out-cubic) both; }
+.animate-fsh-dialog-out  { animation: fsh-dialog-out  var(--duration-fast)    var(--ease-out-cubic) both; }
+
+/* Aurora drift — the upper-corner glows breathe slowly. Kept very low
+   amplitude so it stays peripheral, never distracting. */
+@keyframes fsh-aurora {
+  0%   { background-position: 0% 0%, 100% 0%, 0 0; }
+  50%  { background-position: 8% 4%, 92% 6%, 0 0; }
+  100% { background-position: 0% 0%, 100% 0%, 0 0; }
+}
+
+/* Dot-grid pulse — the mask travels through five waypoints over 16s on
+   a closed path, so the bright zone reads as a single spotlight that's
+   slowly pacing the grid. Position values are sized for a 60% mask. */
+@keyframes fsh-dot-pulse {
+  0%   { -webkit-mask-position: 10%  20%; mask-position: 10%  20%; }
+  25%  { -webkit-mask-position: 70%  10%; mask-position: 70%  10%; }
+  50%  { -webkit-mask-position: 80%  70%; mask-position: 80%  70%; }
+  75%  { -webkit-mask-position: 20%  80%; mask-position: 20%  80%; }
+  100% { -webkit-mask-position: 10%  20%; mask-position: 10%  20%; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  body {
+    background-size: 130% 130%, 130% 130%, 200px 200px;
+    animation: fsh-aurora 60s var(--ease-in-out-cubic) infinite;
+  }
+}
+
+/* View Transitions API — owns the dark/light crossfade in Chromium and
+   Safari. The default UA animations cross-dissolve; we only tune
+   duration and easing so the swap matches the rest of the motion
+   system. `mix-blend-mode: normal` overrides the spec's default
+   (`plus-lighter`), which can briefly flash white through bright
+   surfaces during the dissolve. The body's aurora animation pauses on
+   the snapshot — `animation-name: none` on the group prevents it from
+   re-triggering inside the captured pseudo-element. */
+@supports (view-transition-name: root) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 260ms;
+    animation-timing-function: var(--ease-out-cubic);
+    mix-blend-mode: normal;
+  }
+  ::view-transition-group(root) { animation-duration: 260ms; }
+}
+
+/* Honour user motion preferences. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  body { background-image: none; }
 }

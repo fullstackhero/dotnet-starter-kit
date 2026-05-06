@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.v1.Roles.UpsertRole;
@@ -18,7 +18,7 @@ public static class CreateOrUpdateRoleEndpoint
             TypedResults.Ok(await mediator.Send(request, cancellationToken)))
         .WithName("CreateOrUpdateRole")
         .WithSummary("Create or update role")
-        .RequirePermission(IdentityPermissionConstants.Roles.Create)
+        .RequirePermission(IdentityPermissions.Roles.Create)
         .WithDescription("Create a new role or update an existing role's name and description.")
         .Produces<RoleDto>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status401Unauthorized)

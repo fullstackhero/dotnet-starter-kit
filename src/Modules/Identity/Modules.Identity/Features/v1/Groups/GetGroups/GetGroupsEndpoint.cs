@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.v1.Groups.GetGroups;
@@ -17,7 +17,7 @@ public static class GetGroupsEndpoint
             TypedResults.Ok(await mediator.Send(new GetGroupsQuery(search), cancellationToken)))
         .WithName("ListGroups")
         .WithSummary("List all groups")
-        .RequirePermission(IdentityPermissionConstants.Groups.View)
+        .RequirePermission(IdentityPermissions.Groups.View)
         .WithDescription("Retrieve all groups for the current tenant with optional search filter.")
         .Produces<IEnumerable<GroupDto>>(StatusCodes.Status200OK);
     }

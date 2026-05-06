@@ -25,6 +25,14 @@ public sealed class UpdateGroupCommandHandler : ICommandHandler<UpdateGroupComma
         ArgumentNullException.ThrowIfNull(command);
 
         var group = await GetGroupAsync(command.Id, cancellationToken);
+
+        // System groups are framework-managed — name, description, default flag, and role
+        // assignments are all part of the seed contract that the startup syncer relies on.
+        if (group.IsSystemGroup)
+        {
+            throw new ForbiddenException("System groups cannot be modified.");
+        }
+
         await ValidateUniqueNameAsync(command.Id, command.Name, cancellationToken);
         await ValidateRoleIdsAsync(command.RoleIds, cancellationToken);
 

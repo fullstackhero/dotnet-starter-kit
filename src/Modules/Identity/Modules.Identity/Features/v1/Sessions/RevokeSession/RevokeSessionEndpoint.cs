@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Identity.Contracts.v1.Sessions.RevokeSession;
 using Mediator;
@@ -16,7 +16,7 @@ public static class RevokeSessionEndpoint
         return endpoints.MapDelete("/sessions/{sessionId:guid}", Handler)
         .WithName("RevokeSession")
         .WithSummary("Revoke a session")
-        .RequirePermission(IdentityPermissionConstants.Sessions.Revoke)
+        .RequirePermission(IdentityPermissions.Sessions.Revoke)
         .WithDescription("Revoke a specific session for the currently authenticated user.")
         .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status401Unauthorized)

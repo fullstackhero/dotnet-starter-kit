@@ -36,6 +36,9 @@ public sealed class BillingModule : IModule
     {
         ArgumentNullException.ThrowIfNull(builder);
 
+        FSH.Framework.Shared.Constants.PermissionConstants.Register(
+            FSH.Modules.Billing.Contracts.Authorization.BillingPermissions.All);
+
         builder.Services.AddHeroDbContext<BillingDbContext>();
         builder.Services.AddScoped<IDbInitializer, BillingDbInitializer>();
         builder.Services.AddScoped<IUsageReporter, UsageReporter>();

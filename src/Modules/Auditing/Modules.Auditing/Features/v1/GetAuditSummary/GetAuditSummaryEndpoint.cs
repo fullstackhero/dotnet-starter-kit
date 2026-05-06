@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Auditing.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Auditing.Contracts.Dtos;
 using FSH.Modules.Auditing.Contracts.v1.GetAuditSummary;
@@ -21,7 +21,7 @@ public static class GetAuditSummaryEndpoint
             .WithName("GetAuditSummary")
             .WithSummary("Get audit summary")
             .WithDescription("Retrieve aggregate counts of audit events by type, severity, source, and tenant.")
-            .RequirePermission(AuditingPermissionConstants.View)
+            .RequirePermission(AuditingPermissions.AuditTrails.View)
             .Produces<AuditSummaryAggregateDto>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden);

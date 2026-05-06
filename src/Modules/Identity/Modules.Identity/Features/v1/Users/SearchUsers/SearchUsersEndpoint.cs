@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Framework.Shared.Persistence;
 using FSH.Modules.Identity.Contracts.DTOs;
@@ -21,7 +21,7 @@ public static class SearchUsersEndpoint
             .WithName("SearchUsers")
             .WithSummary("Search users with pagination")
             .WithDescription("Search and filter users with server-side pagination, sorting, and filtering by status, email confirmation, and role.")
-            .RequirePermission(IdentityPermissionConstants.Users.View)
+            .RequirePermission(IdentityPermissions.Users.View)
             .Produces<PagedResponse<UserDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden);

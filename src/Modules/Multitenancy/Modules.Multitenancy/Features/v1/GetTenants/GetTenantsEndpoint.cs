@@ -1,5 +1,6 @@
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Framework.Shared.Multitenancy;
+using FSH.Modules.Multitenancy.Contracts.Authorization;
 using FSH.Framework.Shared.Persistence;
 using FSH.Modules.Multitenancy.Contracts.Dtos;
 using FSH.Modules.Multitenancy.Contracts.v1.GetTenants;
@@ -22,7 +23,7 @@ public static class GetTenantsEndpoint
             .WithName("ListTenants")
             .WithSummary("List tenants")
             .WithDescription("Retrieve tenants for the current environment with pagination and optional sorting.")
-            .RequirePermission(MultitenancyConstants.Permissions.View)
+            .RequirePermission(MultitenancyPermissions.Tenants.View)
             .Produces<PagedResponse<TenantDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden);

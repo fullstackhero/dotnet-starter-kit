@@ -142,6 +142,19 @@ public static class Extensions
 
         app.UseExceptionHandler();
         app.UseResponseCompression();
+
+        // CORS MUST run before UseHttpsRedirection. Preflight (OPTIONS) requests cannot follow
+        // redirects per the Fetch spec, so an HTTP→HTTPS redirect on the preflight makes the
+        // browser block the call ("Redirect is not allowed for a preflight request"). Putting
+        // CORS first means the preflight gets its 204 here and the actual request follows the
+        // HTTPS redirect normally afterwards. Safe to run before routing because we use a
+        // single global policy via app.UseCors(name); endpoint-specific [EnableCors] attributes
+        // would need CORS after UseRouting, but none exist in this codebase.
+        if (corsEnabled)
+        {
+            app.UseHeroCors();
+        }
+
         app.UseHttpsRedirection();
 
         app.UseHeroSecurityHeaders();
@@ -160,12 +173,6 @@ public static class Extensions
 
         app.UseHeroJobDashboard(app.Configuration);
         app.UseRouting();
-
-        // CORS should run between routing and authN/authZ
-        if (corsEnabled)
-        {
-            app.UseHeroCors();
-        }
 
         if (openApiEnabled)
         {

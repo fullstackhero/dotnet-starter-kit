@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Identity.Contracts.v1.Impersonation;
 using FSH.Modules.Identity.Contracts.v1.Impersonation.StartImpersonation;
@@ -27,7 +27,7 @@ public static class StartImpersonationEndpoint
             .WithName("StartImpersonation")
             .WithSummary("Start user impersonation")
             .WithDescription("Issues a short-lived access token representing the target user. The token carries actor claims (act_sub, act_tenant) identifying the original caller. Platform operators (root tenant) may impersonate any user; tenant admins can only impersonate users within their own tenant. No refresh token is issued.")
-            .RequirePermission(IdentityPermissionConstants.Users.Impersonate)
+            .RequirePermission(IdentityPermissions.Users.Impersonate)
             .Produces<ImpersonationResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)

@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Billing.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Framework.Web.Idempotency;
 using FSH.Modules.Billing.Contracts.v1.Subscriptions;
@@ -18,7 +18,7 @@ public static class AssignSubscriptionEndpoint
                     Results.Ok(await mediator.Send(command, ct)))
             .WithName("AssignSubscription")
             .WithSummary("Assign a plan to a tenant")
-            .RequirePermission(IdentityPermissionConstants.Billing.Manage)
+            .RequirePermission(BillingPermissions.Manage)
             .WithIdempotency();
     }
 }

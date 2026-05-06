@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Modules.Identity.Contracts.v1.Groups.DeleteGroup;
 using Mediator;
@@ -19,7 +19,7 @@ public static class DeleteGroupEndpoint
         })
         .WithName("DeleteGroup")
         .WithSummary("Delete a group")
-        .RequirePermission(IdentityPermissionConstants.Groups.Delete)
+        .RequirePermission(IdentityPermissions.Groups.Delete)
         .WithDescription("Soft delete a group. System groups cannot be deleted.")
         .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status401Unauthorized)

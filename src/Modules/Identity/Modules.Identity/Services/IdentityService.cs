@@ -294,18 +294,31 @@ public sealed class IdentityService : IIdentityService
         return claims;
     }
 
-    private static List<Claim> CreateBasicClaims(FshUser user, string tenantId) =>
-    [
-        new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-        new(ClaimTypes.NameIdentifier, user.Id),
-        new(ClaimTypes.Email, user.Email!),
-        new(ClaimTypes.Name, user.FirstName ?? string.Empty),
-        new(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty),
-        new(ClaimConstants.Fullname, $"{user.FirstName} {user.LastName}"),
-        new(ClaimTypes.Surname, user.LastName ?? string.Empty),
-        new(ClaimConstants.Tenant, tenantId),
-        new(ClaimConstants.ImageUrl, user.ImageUrl?.ToString() ?? string.Empty)
-    ];
+    private static List<Claim> CreateBasicClaims(FshUser user, string tenantId)
+    {
+        var fullName = $"{user.FirstName} {user.LastName}".Trim();
+        return
+        [
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            // RFC 7519 standard short-form claims — emitted alongside the legacy
+            // ClaimTypes.* entries so JWT consumers (including the dashboard's
+            // claimsToUser) can read `sub` / `name` / `email` per the spec.
+            // JwtSecurityTokenHandler's default outbound map turns ClaimTypes.Name
+            // into `unique_name`, which is *not* the standard `name` claim, so
+            // we publish `name` explicitly here.
+            new(JwtRegisteredClaimNames.Sub, user.Id),
+            new(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
+            new(JwtRegisteredClaimNames.Name, fullName.Length > 0 ? fullName : (user.Email ?? string.Empty)),
+            new(ClaimTypes.NameIdentifier, user.Id),
+            new(ClaimTypes.Email, user.Email!),
+            new(ClaimTypes.Name, user.FirstName ?? string.Empty),
+            new(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty),
+            new(ClaimConstants.Fullname, fullName),
+            new(ClaimTypes.Surname, user.LastName ?? string.Empty),
+            new(ClaimConstants.Tenant, tenantId),
+            new(ClaimConstants.ImageUrl, user.ImageUrl?.ToString() ?? string.Empty)
+        ];
+    }
 
     private async Task AddRoleClaimsAsync(List<Claim> claims, FshUser user, CancellationToken ct)
     {

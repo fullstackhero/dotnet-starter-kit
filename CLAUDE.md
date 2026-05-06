@@ -54,7 +54,6 @@ Additional module folders: `Domain/`, `Data/`, `Services/`, `Events/`, `Authoriz
 | Webhooks | Tenant-scoped subscriptions with HMAC signing |
 | Real-time | Server-Sent Events (SSE) |
 | Logging | Serilog + OpenTelemetry (OTLP) |
-| Object mapping | Mapster |
 | API docs | OpenAPI + Scalar |
 | API versioning | Asp.Versioning |
 | Hosting | .NET Aspire (AppHost) |

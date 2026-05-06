@@ -31,6 +31,7 @@ public static class ServiceCollectionExtensions
 
         services.AddHostedService<AuditBackgroundWorker>();
         services.AddSingleton<IAuditSink, SqlAuditSink>();
+        services.AddSingleton<IAuditDlqSink, FileAuditDlqSink>();
 
         var opts = new AuditHttpOptions();
         configure?.Invoke(opts);

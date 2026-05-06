@@ -18,22 +18,30 @@ public sealed class JsonMaskingService : IAuditMaskingService
 
     private const string MaskValue = "****";
 
-    public object ApplyMasking(object payload)
+    public MaskingResult ApplyMasking(object payload)
     {
         try
         {
             var json = JsonSerializer.SerializeToNode(payload);
-            if (json is null) return payload;
-            MaskNode(json);
-            return json;
+            if (json is null) return new MaskingResult(payload, 0);
+
+            int maskedCount = 0;
+            MaskNode(json, ref maskedCount);
+
+            // No fields matched — return the original reference so callers can
+            // skip the AuditTag.PiiMasked tag and avoid an extra serialization
+            // hop in the sink.
+            return maskedCount == 0
+                ? new MaskingResult(payload, 0)
+                : new MaskingResult(json, maskedCount);
         }
         catch (JsonException)
         {
-            return payload; // safe fallback — payload is not valid JSON
+            return new MaskingResult(payload, 0); // safe fallback — payload is not valid JSON
         }
     }
 
-    private static void MaskNode(JsonNode node)
+    private static void MaskNode(JsonNode node, ref int maskedCount)
     {
         if (node is JsonObject obj)
         {
@@ -42,17 +50,18 @@ public sealed class JsonMaskingService : IAuditMaskingService
                 if (ShouldMask(kvp.Key))
                 {
                     obj[kvp.Key] = MaskValue;
+                    maskedCount++;
                 }
                 else if (kvp.Value is not null)
                 {
-                    MaskNode(kvp.Value);
+                    MaskNode(kvp.Value, ref maskedCount);
                 }
             }
         }
         else if (node is JsonArray arr)
         {
             foreach (var el in arr)
-                if (el is not null) MaskNode(el);
+                if (el is not null) MaskNode(el, ref maskedCount);
         }
     }
 

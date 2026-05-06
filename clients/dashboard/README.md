@@ -19,7 +19,7 @@ The AppHost launches Postgres, Redis, MinIO, the API, the admin app, **and** thi
 
 ```bash
 npm install --prefix clients/dashboard   # one-time
-dotnet run --project src/Playground/FSH.Starter.AppHost
+dotnet run --project src/Host/FSH.Starter.AppHost
 ```
 
 Aspire dashboard exposes `fsh-dashboard` on <http://localhost:5174>.

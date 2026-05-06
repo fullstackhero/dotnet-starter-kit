@@ -25,7 +25,18 @@ public sealed class AuditHttpMiddleware
             return;
         }
 
-        var requestContext = await CaptureRequestAsync(ctx);
+        // Endpoint-level opt-out via [NoAudit]. Two flavours:
+        //   • full skip (default) — don't write any audit at all
+        //   • body-only — record the activity but elide previews
+        var noAudit = ctx.GetEndpoint()?.Metadata.GetMetadata<NoAuditAttribute>();
+        if (noAudit is { BodyOnly: false })
+        {
+            await _next(ctx).ConfigureAwait(false);
+            return;
+        }
+        bool suppressBodies = noAudit is { BodyOnly: true };
+
+        var requestContext = await CaptureRequestAsync(ctx, suppressBodies);
         var sw = Stopwatch.StartNew();
 
         var originalBody = ctx.Response.Body;
@@ -37,7 +48,7 @@ public sealed class AuditHttpMiddleware
             await _next(ctx).ConfigureAwait(false);
             sw.Stop();
 
-            await WriteSuccessAuditAsync(ctx, requestContext, responseBuffer, originalBody, sw);
+            await WriteSuccessAuditAsync(ctx, requestContext, responseBuffer, originalBody, sw, suppressBodies);
         }
         catch (Exception ex)
         {
@@ -48,23 +59,26 @@ public sealed class AuditHttpMiddleware
         }
     }
 
-    private async Task<RequestCaptureContext> CaptureRequestAsync(HttpContext ctx)
+    private async Task<RequestCaptureContext> CaptureRequestAsync(HttpContext ctx, bool suppressBodies)
     {
         object? reqPreview = null;
         int reqSize = 0;
+        int maskedFields = 0;
 
-        if (ShouldCaptureBody(ctx.Request.ContentType))
+        if (!suppressBodies && ShouldCaptureBody(ctx.Request.ContentType))
         {
             var masker = ctx.RequestServices.GetService<IAuditMaskingService>();
             (reqPreview, reqSize) = await HttpBodyReader.ReadRequestAsync(ctx, _opts.MaxRequestBytes, ctx.RequestAborted);
 
             if (reqPreview is not null && masker is not null)
             {
-                reqPreview = masker.ApplyMasking(reqPreview);
+                var result = masker.ApplyMasking(reqPreview);
+                reqPreview = result.Payload;
+                maskedFields = result.MaskedFieldCount;
             }
         }
 
-        return new RequestCaptureContext(reqPreview, reqSize);
+        return new RequestCaptureContext(reqPreview, reqSize, maskedFields);
     }
 
     private async Task WriteSuccessAuditAsync(
@@ -72,20 +86,21 @@ public sealed class AuditHttpMiddleware
         RequestCaptureContext requestContext,
         MemoryStream responseBuffer,
         Stream originalBody,
-        Stopwatch sw)
+        Stopwatch sw,
+        bool suppressBodies)
     {
-        var (respPreview, respSize) = await CaptureResponseAsync(ctx, responseBuffer);
+        var (respPreview, respSize, respMasked) = await CaptureResponseAsync(ctx, responseBuffer, suppressBodies);
 
         await RestoreResponseBodyAsync(responseBuffer, originalBody, ctx);
 
-        await WriteActivityAuditAsync(ctx, requestContext, respPreview, respSize, sw);
+        await WriteActivityAuditAsync(ctx, requestContext, respPreview, respSize, respMasked, sw);
     }
 
-    private async Task<(object? Preview, int Size)> CaptureResponseAsync(HttpContext ctx, MemoryStream responseBuffer)
+    private async Task<(object? Preview, int Size, int MaskedFields)> CaptureResponseAsync(HttpContext ctx, MemoryStream responseBuffer, bool suppressBodies)
     {
-        if (!ShouldCaptureBody(ctx.Response.ContentType))
+        if (suppressBodies || !ShouldCaptureBody(ctx.Response.ContentType))
         {
-            return (null, 0);
+            return (null, 0, 0);
         }
 
         var masker = ctx.RequestServices.GetService<IAuditMaskingService>();
@@ -97,12 +112,15 @@ public sealed class AuditHttpMiddleware
         var (respPreview, respSize) = await HttpBodyReader.ReadResponseAsync(
             respBuffer, _opts.MaxResponseBytes, ctx.RequestAborted);
 
+        int maskedFields = 0;
         if (respPreview is not null && masker is not null)
         {
-            respPreview = masker.ApplyMasking(respPreview);
+            var result = masker.ApplyMasking(respPreview);
+            respPreview = result.Payload;
+            maskedFields = result.MaskedFieldCount;
         }
 
-        return (respPreview, respSize);
+        return (respPreview, respSize, maskedFields);
     }
 
     private static async Task RestoreResponseBodyAsync(MemoryStream responseBuffer, Stream originalBody, HttpContext ctx)
@@ -121,6 +139,7 @@ public sealed class AuditHttpMiddleware
         RequestCaptureContext requestContext,
         object? respPreview,
         int respSize,
+        int respMaskedFields,
         Stopwatch sw)
     {
         var builder = Audit.ForActivity(Contracts.ActivityKind.Http, ctx.Request.Path)
@@ -132,15 +151,24 @@ public sealed class AuditHttpMiddleware
                 responseSize: respSize,
                 requestPreview: requestContext.Preview,
                 responsePreview: respPreview)
-            .WithSource("api")
+            .WithSource(AuditSourceResolver.Resolve(ctx))
             .WithTenant(_publisher.CurrentScope?.TenantId)
             .WithUser(_publisher.CurrentScope?.UserId, _publisher.CurrentScope?.UserName)
             .WithCorrelation(_publisher.CurrentScope?.CorrelationId ?? ctx.TraceIdentifier)
             .WithRequestId(_publisher.CurrentScope?.RequestId ?? ctx.TraceIdentifier);
 
+        var tags = AuditTag.None;
         if (ctx.Items.TryGetValue(HttpContextItemKeys.QuotaRejected, out var flag) && flag is true)
         {
-            builder.WithTags(AuditTag.OutOfQuota);
+            tags |= AuditTag.OutOfQuota;
+        }
+        if (requestContext.MaskedFields > 0 || respMaskedFields > 0)
+        {
+            tags |= AuditTag.PiiMasked;
+        }
+        if (tags != AuditTag.None)
+        {
+            builder.WithTags(tags);
         }
 
         await builder.WriteAsync(ctx.RequestAborted);
@@ -155,7 +183,7 @@ public sealed class AuditHttpMiddleware
         }
 
         await Audit.ForException(ex, ExceptionArea.Api, routeOrLocation: ctx.Request.Path, severity: sev)
-            .WithSource("api")
+            .WithSource(AuditSourceResolver.Resolve(ctx))
             .WithTenant(_publisher.CurrentScope?.TenantId)
             .WithUser(_publisher.CurrentScope?.UserId, _publisher.CurrentScope?.UserName)
             .WithCorrelation(_publisher.CurrentScope?.CorrelationId ?? ctx.TraceIdentifier)
@@ -173,5 +201,5 @@ public sealed class AuditHttpMiddleware
             path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
     }
 
-    private readonly record struct RequestCaptureContext(object? Preview, int Size);
+    private readonly record struct RequestCaptureContext(object? Preview, int Size, int MaskedFields);
 }

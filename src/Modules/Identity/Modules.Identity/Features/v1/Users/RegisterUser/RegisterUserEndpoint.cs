@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Identity;
+using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Framework.Web.Idempotency;
 using FSH.Modules.Identity.Contracts.v1.Users.RegisterUser;
@@ -25,7 +25,7 @@ public static class RegisterUserEndpoint
         })
         .WithName("RegisterUser")
         .WithSummary("Register user")
-        .RequirePermission(IdentityPermissionConstants.Users.Create)
+        .RequirePermission(IdentityPermissions.Users.Create)
         .WithIdempotency()
         .WithDescription("Create a new user account.")
         .Produces<RegisterUserResponse>(StatusCodes.Status201Created)
