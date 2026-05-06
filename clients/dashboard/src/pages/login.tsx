@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { ApiRequestError } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
 import { env } from "@/env";
+import { LoginBrandStory } from "@/pages/login.brand-story";
 import { LoginDemoPanel } from "@/pages/login.demo-panel";
 import type { DemoAccount } from "@/pages/login.demo-accounts";
 
@@ -159,16 +160,30 @@ export function LoginPage() {
         style={{ backgroundColor: "oklch(0.700 0.155 195 / 0.22)" }}
       />
 
-      {/* Two-column wrapper. On ≥md, the demo panel sits alongside the
-          card; on smaller viewports it stacks beneath. */}
+      {/* Multi-column wrapper.
+            Narrow: everything stacks (brand story → form → demo).
+            ≥lg non-DEV: brand story (1fr) | form card (420px). The
+              brand-story column carries the marketing weight; the form
+              stays anchored in the card.
+            ≥lg DEV: brand story (1fr) | form (420px) | demo (320px) —
+              demo panel only renders in DEV so it falls out gracefully.
+            The earlier md:grid-cols layout activated at md (768px),
+            but at that width the three-column DEV split was cramped;
+            promoted to lg (1024px). */}
       <div
         className={cn(
-          "relative z-10 grid w-full items-start gap-6",
+          "relative z-10 grid w-full items-center gap-8",
           import.meta.env.DEV
-            ? "max-w-[920px] md:grid-cols-[420px_minmax(0,1fr)]"
-            : "max-w-[420px]",
+            ? "max-w-[1180px] lg:grid-cols-[minmax(0,1fr)_420px_320px]"
+            : "max-w-[920px] lg:grid-cols-[minmax(0,1fr)_420px]",
         )}
       >
+        {/* Marketing-style left column. Hidden below lg so narrow
+            viewports lead with the form (faster sign-in). */}
+        <div className="hidden lg:block">
+          <LoginBrandStory />
+        </div>
+
       {/* The card — glow-frame outer ring + glassmorphism surface +
           cursor spotlight. */}
       <div className="glow-frame fsh-enter relative w-full shadow-[var(--shadow-lift)]">
