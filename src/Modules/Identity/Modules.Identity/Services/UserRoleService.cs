@@ -1,4 +1,6 @@
+using System.Net;
 using Finbuckle.MultiTenant.Abstractions;
+using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Shared.Multitenancy;
@@ -15,7 +17,8 @@ internal sealed class UserRoleService(
     UserManager<FshUser> userManager,
     RoleManager<FshRole> roleManager,
     IdentityDbContext db,
-    IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor) : IUserRoleService
+    IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
+    ICurrentUser currentUser) : IUserRoleService
 {
     public async Task<string> AssignRolesAsync(string userId, List<UserRoleDto> userRoles, CancellationToken cancellationToken)
     {
@@ -70,11 +73,25 @@ internal sealed class UserRoleService(
             return;
         }
 
-        if (IsRootTenantAdmin(user))
+        // Administrators cannot demote themselves — they would lose access immediately on the next request,
+        // and would need another admin to restore them.
+        var actorId = currentUser.GetUserId();
+        if (actorId != Guid.Empty && string.Equals(actorId.ToString(), user.Id, StringComparison.Ordinal))
         {
-            throw new CustomException("action not permitted");
+            throw new CustomException(
+                "Administrators cannot remove their own admin role.",
+                Array.Empty<string>(),
+                HttpStatusCode.BadRequest);
         }
 
+        // The root tenant's seed admin is the framework's last-resort recovery account.
+        if (IsRootTenantAdmin(user))
+        {
+            throw new ForbiddenException("The root tenant administrator cannot be demoted.");
+        }
+
+        // After this removal, at least one admin must remain in the tenant — matches
+        // the "at least one active administrator" invariant enforced on user deactivation.
         await EnsureMinimumAdminCountAsync();
     }
 
@@ -87,9 +104,12 @@ internal sealed class UserRoleService(
     private async Task EnsureMinimumAdminCountAsync()
     {
         int adminCount = (await userManager.GetUsersInRoleAsync(RoleConstants.Admin)).Count;
-        if (adminCount <= 2)
+        if (adminCount <= 1)
         {
-            throw new CustomException("tenant should have at least 2 admins.");
+            throw new CustomException(
+                "Tenant must retain at least one administrator.",
+                Array.Empty<string>(),
+                HttpStatusCode.BadRequest);
         }
     }
 

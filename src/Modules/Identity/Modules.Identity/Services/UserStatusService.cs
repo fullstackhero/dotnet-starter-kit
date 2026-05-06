@@ -1,3 +1,4 @@
+using System.Net;
 using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
@@ -17,21 +18,10 @@ internal sealed class UserStatusService(
     ICurrentUser currentUser,
     IAuditClient auditClient) : IUserStatusService
 {
-    public async Task DeleteAsync(string userId)
-    {
-        var user = await userManager.FindByIdAsync(userId);
-
-        _ = user ?? throw new NotFoundException("User Not Found.");
-
-        user.IsActive = false;
-        var result = await userManager.UpdateAsync(user);
-
-        if (!result.Succeeded)
-        {
-            var errors = result.Errors.Select(error => error.Description).ToList();
-            throw new CustomException("Delete profile failed", errors);
-        }
-    }
+    // Soft-delete is functionally identical to deactivation — delegate so the same admin/self/last-admin
+    // guards and audit pipeline apply uniformly to both DELETE /users/{id} and PATCH /users/{id}.
+    public Task DeleteAsync(string userId)
+        => ToggleStatusAsync(activateUser: false, userId, CancellationToken.None);
 
     public async Task ToggleStatusAsync(bool activateUser, string userId, CancellationToken cancellationToken)
     {
@@ -88,19 +78,19 @@ internal sealed class UserStatusService(
         if (!await userManager.IsInRoleAsync(context.Actor, RoleConstants.Admin))
         {
             await AuditPolicyFailureAsync(context, "ActorNotAdmin", cancellationToken);
-            throw new CustomException("Only administrators can toggle user status.");
+            throw new ForbiddenException("Only administrators can change user status.");
         }
 
         if (!context.ActivateUser && context.ActorId.ToString() == context.TargetUser.Id)
         {
             await AuditPolicyFailureAsync(context, "SelfDeactivationBlocked", cancellationToken);
-            throw new CustomException("Users cannot deactivate themselves.");
+            throw new CustomException("Users cannot deactivate themselves.", Array.Empty<string>(), HttpStatusCode.BadRequest);
         }
 
-        if (await userManager.IsInRoleAsync(context.TargetUser, RoleConstants.Admin))
+        if (!context.ActivateUser && await userManager.IsInRoleAsync(context.TargetUser, RoleConstants.Admin))
         {
             await AuditPolicyFailureAsync(context, "AdminDeactivationBlocked", cancellationToken);
-            throw new CustomException("Administrators cannot be deactivated.");
+            throw new CustomException("Administrators cannot be deactivated.", Array.Empty<string>(), HttpStatusCode.BadRequest);
         }
 
         if (!context.ActivateUser)
@@ -117,7 +107,7 @@ internal sealed class UserStatusService(
         if (!activeAdmins.Any(u => u.IsActive))
         {
             await AuditPolicyFailureAsync(context, "NoActiveAdmins", cancellationToken);
-            throw new CustomException("Tenant must have at least one active administrator.");
+            throw new CustomException("Tenant must have at least one active administrator.", Array.Empty<string>(), HttpStatusCode.BadRequest);
         }
     }
 
@@ -140,7 +130,7 @@ internal sealed class UserStatusService(
         var result = await userManager.UpdateAsync(context.TargetUser);
         if (!result.Succeeded)
         {
-            throw new CustomException("Toggle status failed", result.Errors.Select(e => e.Description).ToList());
+            throw new CustomException("Toggle status failed", result.Errors.Select(e => e.Description).ToList(), HttpStatusCode.BadRequest);
         }
 
         await auditClient.WriteActivityAsync(

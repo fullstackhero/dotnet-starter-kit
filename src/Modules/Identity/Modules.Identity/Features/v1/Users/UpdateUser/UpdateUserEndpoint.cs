@@ -1,6 +1,4 @@
 using FSH.Framework.Core.Exceptions;
-using FSH.Modules.Identity.Contracts.Authorization;
-using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Framework.Shared.Identity.Claims;
 using FSH.Modules.Identity.Contracts.v1.Users.UpdateUser;
 using Mediator;
@@ -23,6 +21,8 @@ public static class UpdateUserEndpoint
                 throw new UnauthorizedException();
             }
 
+            // Force the target id to the authenticated user — this endpoint is for self-update
+            // only, regardless of any id the caller supplied in the body.
             request.Id = userId;
 
             await mediator.Send(request, cancellationToken);
@@ -30,11 +30,10 @@ public static class UpdateUserEndpoint
         })
         .WithName("UpdateUserProfile")
         .WithSummary("Update user profile")
-        .RequirePermission(IdentityPermissions.Users.Update)
-        .WithDescription("Update profile details for the authenticated user.")
+        .RequireAuthorization()
+        .WithDescription("Update profile details for the authenticated user. Any signed-in user may edit their own profile; no admin permission required.")
         .Produces(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status401Unauthorized)
-        .Produces(StatusCodes.Status403Forbidden)
         .Produces(StatusCodes.Status400BadRequest);
     }
 }

@@ -20,11 +20,20 @@ public sealed class RemoveUserFromGroupCommandHandler : ICommandHandler<RemoveUs
         ArgumentNullException.ThrowIfNull(command);
 
         var membership = await _dbContext.UserGroups
+            .Include(ug => ug.Group)
             .FirstOrDefaultAsync(ug => ug.GroupId == command.GroupId && ug.UserId == command.UserId, cancellationToken);
 
         if (membership is null)
         {
             throw new NotFoundException($"User '{command.UserId}' is not a member of group '{command.GroupId}'.");
+        }
+
+        // Default groups (e.g. the seeded "All Users") hold the invariant that
+        // every user in the tenant is a member. Removing breaks that contract —
+        // the next user to register would join a half-populated group.
+        if (membership.Group is not null && membership.Group.IsDefault)
+        {
+            throw new ForbiddenException("Users cannot be removed from a default group.");
         }
 
         _dbContext.UserGroups.Remove(membership);
