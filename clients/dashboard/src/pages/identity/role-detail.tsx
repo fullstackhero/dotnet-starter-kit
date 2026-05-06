@@ -10,6 +10,7 @@ import {
   ArrowLeft,
   Check,
   Hash,
+  Lock,
   Minus,
   ShieldCheck,
   Sparkles,
@@ -49,6 +50,15 @@ import {
 import { ErrorBand, Field } from "@/components/list";
 import { describe, pad2 } from "@/lib/list-helpers";
 import { cn } from "@/lib/cn";
+
+// System roles defined by the framework (RoleConstants.DefaultRoles on the
+// server). These cannot be deleted, renamed, re-described, or have their
+// permissions edited — the API rejects all four with 400/403, so we mirror
+// those rules in the UI as a read-only mode rather than letting the user
+// click a destructive action only to be turned away by a toast.
+const SYSTEM_ROLE_NAMES: ReadonlyArray<string> = ["Admin", "Basic"];
+const isSystemRoleName = (name?: string | null): boolean =>
+  !!name && SYSTEM_ROLE_NAMES.includes(name);
 
 export function RoleDetailPage() {
   const { roleId = "" } = useParams<{ roleId: string }>();
@@ -191,6 +201,7 @@ export function RoleDetailPage() {
 
   const totalSelected = selected.size;
   const totalCatalog = IDENTITY_PERMISSIONS.length;
+  const isSystem = isSystemRoleName(role.name);
 
   return (
     <div className="space-y-7 pb-12">
@@ -228,15 +239,25 @@ export function RoleDetailPage() {
             </span>
             <div className="min-w-0">
               <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-                Role · permissions
+                {isSystem ? "System role · permissions" : "Role · permissions"}
               </span>
-              <h1 className="text-display mt-1 truncate text-[34px] font-semibold leading-[1.05] tracking-[-0.02em] sm:text-[38px]">
-                {role.name}
+              <h1 className="text-display mt-1 flex items-center gap-3 truncate text-[34px] font-semibold leading-[1.05] tracking-[-0.02em] sm:text-[38px]">
+                <span className="truncate">{role.name}</span>
+                {isSystem && (
+                  <span
+                    aria-hidden
+                    title="System role — managed by the framework"
+                    className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-[var(--color-border)] bg-[var(--color-muted)] text-[var(--color-muted-foreground)]"
+                  >
+                    <Lock className="h-3.5 w-3.5" />
+                  </span>
+                )}
               </h1>
               <div className="mt-2 flex flex-wrap items-center gap-1.5">
                 <Badge variant="brand">
                   {pad2(totalSelected)} / {pad2(totalCatalog)} permissions
                 </Badge>
+                {isSystem && <Badge variant="outline">system</Badge>}
                 <code className="inline-flex items-center gap-1 rounded bg-[var(--color-muted)] px-1.5 py-0.5 font-mono text-[10.5px] tracking-tight text-[var(--color-muted-foreground)]">
                   <Hash className="h-2.5 w-2.5" /> {role.id}
                 </code>
@@ -245,12 +266,44 @@ export function RoleDetailPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2 md:justify-end">
-            <Button variant="destructive" size="sm" onClick={() => setConfirmDelete(true)}>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setConfirmDelete(true)}
+              disabled={isSystem}
+              title={isSystem ? "System roles cannot be deleted." : undefined}
+            >
               <Trash2 className="mr-1 h-3.5 w-3.5" /> Delete role
             </Button>
           </div>
         </div>
       </section>
+
+      {isSystem && (
+        <section
+          role="status"
+          aria-live="polite"
+          className="fsh-enter fsh-enter-1 flex items-start gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-2)] px-4 py-3"
+        >
+          <span
+            aria-hidden
+            className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-[var(--color-muted)] text-[var(--color-muted-foreground)]"
+          >
+            <Lock className="h-3.5 w-3.5" />
+          </span>
+          <div className="min-w-0 text-sm leading-relaxed">
+            <p className="font-medium text-[var(--color-foreground)]">
+              Built-in role — read only
+            </p>
+            <p className="mt-0.5 text-[12.5px] text-[var(--color-muted-foreground)]">
+              <span className="font-mono font-medium">{role.name}</span> ships with the framework.
+              Its name, description, and permissions are managed centrally so the seed contract
+              and the runtime permission syncer stay in agreement. Create a custom role if you
+              need a different set of grants.
+            </p>
+          </div>
+        </section>
+      )}
 
       {/* Metadata */}
       <Card className="fsh-enter fsh-enter-2">
@@ -268,6 +321,9 @@ export function RoleDetailPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               maxLength={128}
+              readOnly={isSystem}
+              aria-readonly={isSystem || undefined}
+              className={cn(isSystem && "cursor-not-allowed opacity-70")}
             />
           </Field>
           <Field id="role-desc" label="Description">
@@ -277,6 +333,9 @@ export function RoleDetailPage() {
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Short description for this role"
               maxLength={512}
+              readOnly={isSystem}
+              aria-readonly={isSystem || undefined}
+              className={cn(isSystem && "cursor-not-allowed opacity-70")}
             />
           </Field>
         </CardContent>
@@ -297,9 +356,14 @@ export function RoleDetailPage() {
               </CardDescription>
             </div>
             <div className="flex flex-wrap gap-1.5">
-              <PresetButton onClick={presetBasic} icon={<Sparkles className="h-3 w-3" />} label="Basic" />
-              <PresetButton onClick={presetAll} label="All" />
-              <PresetButton onClick={presetClear} label="Clear" />
+              <PresetButton
+                onClick={presetBasic}
+                icon={<Sparkles className="h-3 w-3" />}
+                label="Basic"
+                disabled={isSystem}
+              />
+              <PresetButton onClick={presetAll} label="All" disabled={isSystem} />
+              <PresetButton onClick={presetClear} label="Clear" disabled={isSystem} />
             </div>
           </div>
         </CardHeader>
@@ -317,6 +381,7 @@ export function RoleDetailPage() {
                       <button
                         type="button"
                         onClick={() => setGroupAll(group.permissions, !allOn)}
+                        disabled={isSystem}
                         className={cn(
                           "grid h-5 w-5 shrink-0 place-items-center rounded border transition-colors",
                           allOn
@@ -324,6 +389,7 @@ export function RoleDetailPage() {
                             : someOn
                               ? "border-[var(--color-primary)] bg-[oklch(from_var(--color-primary)_l_c_h_/_0.40)] text-[var(--color-primary-foreground)]"
                               : "border-[var(--color-input)] hover:border-[var(--color-foreground)]/40",
+                          isSystem && "cursor-not-allowed opacity-60",
                         )}
                         aria-label={`Toggle all ${group.resource}`}
                       >
@@ -344,14 +410,22 @@ export function RoleDetailPage() {
                       <button
                         type="button"
                         onClick={() => setGroupAll(group.permissions, true)}
-                        className="rounded-full px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]"
+                        disabled={isSystem}
+                        className={cn(
+                          "rounded-full px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]",
+                          isSystem && "cursor-not-allowed opacity-50 hover:bg-transparent hover:text-[var(--color-muted-foreground)]",
+                        )}
                       >
                         all
                       </button>
                       <button
                         type="button"
                         onClick={() => setGroupAll(group.permissions, false)}
-                        className="rounded-full px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]"
+                        disabled={isSystem}
+                        className={cn(
+                          "rounded-full px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]",
+                          isSystem && "cursor-not-allowed opacity-50 hover:bg-transparent hover:text-[var(--color-muted-foreground)]",
+                        )}
                       >
                         none
                       </button>
@@ -371,6 +445,7 @@ export function RoleDetailPage() {
                           checked={checked}
                           dirty={dirty}
                           onToggle={() => togglePerm(perm.name)}
+                          disabled={isSystem}
                         />
                       );
                     })}
@@ -381,37 +456,40 @@ export function RoleDetailPage() {
           </div>
         </CardContent>
 
-        {/* Sticky save bar */}
-        <div
-          className={cn(
-            "sticky bottom-0 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--color-border)]",
-            "bg-[var(--color-surface-2)] px-6 py-3 backdrop-blur",
-          )}
-        >
-          <div className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
-            {isDirty ? (
-              <span className="inline-flex items-center gap-1.5 text-[var(--color-warning)]">
-                <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--color-warning)]" />
-                unsaved changes
-              </span>
-            ) : (
-              "all changes saved"
+        {/* Sticky save bar — hidden entirely for system roles since
+            the dirty/save flow does not apply when nothing can be edited. */}
+        {!isSystem && (
+          <div
+            className={cn(
+              "sticky bottom-0 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--color-border)]",
+              "bg-[var(--color-surface-2)] px-6 py-3 backdrop-blur",
             )}
+          >
+            <div className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
+              {isDirty ? (
+                <span className="inline-flex items-center gap-1.5 text-[var(--color-warning)]">
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--color-warning)]" />
+                  unsaved changes
+                </span>
+              ) : (
+                "all changes saved"
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={reset} disabled={!isDirty || isSaving}>
+                Discard
+              </Button>
+              <Button
+                size="sm"
+                onClick={saveAll}
+                disabled={!isDirty || isSaving}
+                className="brand-glow gradient-sheen"
+              >
+                {isSaving ? "Saving…" : "Save changes"}
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={reset} disabled={!isDirty || isSaving}>
-              Discard
-            </Button>
-            <Button
-              size="sm"
-              onClick={saveAll}
-              disabled={!isDirty || isSaving}
-              className="brand-glow gradient-sheen"
-            >
-              {isSaving ? "Saving…" : "Save changes"}
-            </Button>
-          </div>
-        </div>
+        )}
       </Card>
 
       {/* Delete dialog */}
@@ -455,21 +533,25 @@ function PresetButton({
   onClick,
   label,
   icon,
+  disabled,
 }: {
   onClick: () => void;
   label: string;
   icon?: React.ReactNode;
+  disabled?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
       className={cn(
         "inline-flex h-7 items-center gap-1 rounded-full bg-[var(--color-surface-3)] px-3",
         "ring-1 ring-inset ring-[var(--color-border)]",
         "font-mono text-[10.5px] font-medium uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]",
         "transition-colors duration-[var(--duration-fast)]",
         "hover:bg-[var(--color-surface-4)] hover:text-[var(--color-foreground)]",
+        disabled && "cursor-not-allowed opacity-50 hover:bg-[var(--color-surface-3)] hover:text-[var(--color-muted-foreground)]",
       )}
     >
       {icon}
@@ -483,20 +565,25 @@ function PermissionTile({
   checked,
   dirty,
   onToggle,
+  disabled,
 }: {
   perm: PermissionDescriptor;
   checked: boolean;
   dirty: boolean;
   onToggle: () => void;
+  disabled?: boolean;
 }) {
   return (
     <label
       className={cn(
-        "group/perm relative flex cursor-pointer items-start gap-2.5 rounded-xl border px-3 py-2.5",
+        "group/perm relative flex items-start gap-2.5 rounded-xl border px-3 py-2.5",
         "transition-all duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
+        disabled ? "cursor-not-allowed opacity-75" : "cursor-pointer",
         checked
           ? "border-[oklch(from_var(--color-primary)_l_c_h_/_0.30)] bg-[var(--color-primary-soft)]"
-          : "border-[var(--color-border)] bg-[var(--color-surface-3)] hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface-4)]",
+          : !disabled
+            ? "border-[var(--color-border)] bg-[var(--color-surface-3)] hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface-4)]"
+            : "border-[var(--color-border)] bg-[var(--color-surface-3)]",
       )}
     >
       <input
@@ -504,6 +591,7 @@ function PermissionTile({
         className="sr-only"
         checked={checked}
         onChange={onToggle}
+        disabled={disabled}
       />
       <span
         aria-hidden
