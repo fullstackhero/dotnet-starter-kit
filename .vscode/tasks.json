@@ -35,7 +35,7 @@
             "args": [
                 "run",
                 "--project",
-                "${workspaceFolder}/src/Playground/FSH.Starter.AppHost"
+                "${workspaceFolder}/src/Host/FSH.Starter.AppHost"
             ],
             "problemMatcher": "$msCompile",
             "group": "none"
@@ -47,7 +47,7 @@
             "args": [
                 "run",
                 "--project",
-                "${workspaceFolder}/src/Playground/FSH.Starter.Api"
+                "${workspaceFolder}/src/Host/FSH.Starter.Api"
             ],
             "problemMatcher": "$msCompile",
             "group": "none"

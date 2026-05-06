@@ -282,8 +282,8 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
         AnsiConsole.WriteLine();
 
         string runProject = aspire
-            ? $"src/Playground/{name}.AppHost"
-            : $"src/Playground/{name}.Api";
+            ? $"src/Host/{name}.AppHost"
+            : $"src/Host/{name}.Api";
 
         var tree = new Tree($"[bold {FshConstants.AccentColor}]Next Steps[/]");
         tree.AddNode($"[bold]cd[/] {name.EscapeMarkup()}");

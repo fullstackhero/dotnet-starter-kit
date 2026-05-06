@@ -12,10 +12,10 @@ Built with [FullStackHero .NET Starter Kit](https://github.com/fullstackhero/dot
 
 ```bash
 # Start everything with Aspire (recommended)
-dotnet run --project src/Playground/FSH.Starter.AppHost
+dotnet run --project src/Host/FSH.Starter.AppHost
 
 # Or run the API standalone (requires external Postgres + Redis)
-dotnet run --project src/Playground/FSH.Starter.Api
+dotnet run --project src/Host/FSH.Starter.Api
 ```
 
 The Aspire dashboard opens at `https://localhost:15888`. The API serves at `https://localhost:7030` with Scalar docs at `/scalar`.
@@ -26,7 +26,7 @@ The Aspire dashboard opens at `https://localhost:15888`. The API serves at `http
 src/
   BuildingBlocks/       # Shared framework libraries (do not modify unless necessary)
   Modules/              # Bounded contexts (Identity, Multitenancy, Auditing, Webhooks)
-  Playground/
+  Host/
     FSH.Starter.Api/            # API host
     FSH.Starter.AppHost/        # .NET Aspire orchestrator
 FSH.Starter.Migrations.PostgreSQL/  # EF Core migrations
@@ -46,9 +46,9 @@ FSH.Starter.Migrations.PostgreSQL/  # EF Core migrations
 To remove a module (e.g., Webhooks):
 
 1. Delete `src/Modules/Webhooks/` folders
-2. Remove its references from `src/Playground/FSH.Starter.Api/FSH.Starter.Api.csproj`
+2. Remove its references from `src/Host/FSH.Starter.Api/FSH.Starter.Api.csproj`
 3. Remove its assembly from `Program.cs` (both `AddMediator` and `moduleAssemblies`)
-4. Remove its migration folder from `src/Playground/FSH.Starter.Migrations.PostgreSQL/`
+4. Remove its migration folder from `src/Host/FSH.Starter.Migrations.PostgreSQL/`
 5. Remove from `src/FSH.Starter.slnx`
 
 ## Running Tests

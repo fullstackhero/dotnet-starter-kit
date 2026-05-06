@@ -166,7 +166,6 @@ function HeroSearch({
         "backdrop-blur-md",
         "transition-shadow duration-[var(--duration-default)]",
         "focus-within:ring-[oklch(from_var(--color-primary)_l_c_h_/_0.35)]",
-        "focus-within:shadow-[0_0_0_4px_oklch(from_var(--color-primary)_l_c_h_/_0.10),var(--highlight-top)]",
       )}
     >
       <Search className="ml-4 h-4 w-4 text-[var(--color-muted-foreground)] transition-colors group-focus-within/search:text-[var(--color-primary)]" />

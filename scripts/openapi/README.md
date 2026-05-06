@@ -1,6 +1,6 @@
 # OpenAPI Client Generation
 
-Use NSwag (local dotnet tool) to generate typed C# clients + DTOs from the Playground API spec.
+Use NSwag (local dotnet tool) to generate typed C# clients + DTOs from the FSH Starter API spec.
 
 ## Prereqs
 - .NET SDK (repo already uses net10.0)
@@ -21,7 +21,7 @@ This restores the local tool, ensures the output directory exists, and runs NSwa
 ## Drift Check (manual)
 Use `./scripts/openapi/check-openapi-drift.ps1 -SpecUrl "<spec-url>"` to regenerate the clients and fail if `ApiClient/Generated.cs` changes. This is useful in PRs to ensure the spec and generated clients stay in sync even before CI enforcement.
 
-> Note: The spec endpoint must be reachable when running the generation scripts. If the API is not running locally, point `-SpecUrl` to an accessible environment or start the Playground API first.
+> Note: The spec endpoint must be reachable when running the generation scripts. If the API is not running locally, point `-SpecUrl` to an accessible environment or start the FSH Starter API first.
 
 ## Tips
 - If the API changes, rerun the script with the updated spec URL (e.g., staging/prod).

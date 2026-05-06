@@ -121,9 +121,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (input: { email: string; password: string; tenant: string }) => {
       tokenStore.setTenant(input.tenant);
       const tokens = await issueToken(input);
+      // Defence-in-depth: even though the API rejects root-tenant logins
+      // submitted with X-FSH-App=dashboard, double-check the issued token
+      // so a future API regression can't quietly drop a root token into
+      // a tenant-dashboard session.
+      const claims = decodeJwt(tokens.accessToken);
+      if (claims?.tenant === "root") {
+        tokenStore.clear();
+        throw new Error(
+          "SuperAdmin accounts must use the admin app. Sign in there instead.",
+        );
+      }
       tokenStore.setTokens(tokens.accessToken, tokens.refreshToken);
+      // Drop any cached query state from before login. Without this, a
+      // failed pre-login probe (e.g. OverviewPage's billing fetch
+      // firing during the brief window before ProtectedRoute redirects
+      // to /login, or a stale error from a previous session) sticks in
+      // the react-query cache as a 401 and renders as an ErrorBand on
+      // the next page — react-query's retry config blocks auto-retries
+      // for 401, so the stale error would never refetch on its own.
+      queryClient.clear();
     },
-    [],
+    [queryClient],
   );
 
   const logout = useCallback(() => {

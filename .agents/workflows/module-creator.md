@@ -121,8 +121,8 @@ public sealed class {Name}DbContext : DbContext
 ### Step 4: Register Module
 
 Show changes needed in:
-1. `src/Playground/FSH.Starter.Api/Program.cs` - Add to moduleAssemblies
-2. `src/Playground/FSH.Starter.Api/FSH.Starter.Api.csproj` - Add ProjectReference
+1. `src/Host/FSH.Starter.Api/Program.cs` - Add to moduleAssemblies
+2. `src/Host/FSH.Starter.Api/FSH.Starter.Api.csproj` - Add ProjectReference
 3. Solution file - Add both projects
 
 ### Step 5: Add to Solution

@@ -8,7 +8,7 @@
 
 - **BuildingBlocks** (`src/BuildingBlocks/`) — shared framework libraries (Core, Persistence, Web, Caching, Eventing, etc.)
 - **Modules** (`src/Modules/`) — bounded contexts (Identity, Multitenancy, Auditing)
-- **Playground** (`src/Playground/`) — sample host applications (API, AppHost)
+- **Host** (`src/Host/`) — composition-root host applications (API, AppHost)
 - **Tests** (`src/Tests/`) — per-module test projects + architecture tests
 
 ### Module Boundaries
@@ -66,10 +66,10 @@ Additional module folders: `Domain/`, `Data/`, `Services/`, `Events/`, `Authoriz
 dotnet build src/FSH.Starter.slnx
 
 # Run API (from repo root)
-dotnet run --project src/Playground/FSH.Starter.Api
+dotnet run --project src/Host/FSH.Starter.Api
 
 # Run with Aspire
-dotnet run --project src/Playground/FSH.Starter.AppHost
+dotnet run --project src/Host/FSH.Starter.AppHost
 
 # Run tests
 dotnet test src/FSH.Starter.slnx

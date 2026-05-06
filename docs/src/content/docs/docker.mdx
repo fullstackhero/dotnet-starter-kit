@@ -34,7 +34,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: src/Playground/FSH.Starter.Api/Dockerfile
+      dockerfile: src/Host/FSH.Starter.Api/Dockerfile
     ports:
       - "8080:8080"
     depends_on:
@@ -110,7 +110,7 @@ Key environment variables to configure in your compose file or `.env`:
 To build the Docker image manually:
 
 ```bash
-docker build -f src/Playground/FSH.Starter.Api/Dockerfile -t fsh-api .
+docker build -f src/Host/FSH.Starter.Api/Dockerfile -t fsh-api .
 ```
 
 Run the image standalone:

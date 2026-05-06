@@ -4,13 +4,13 @@ using Xunit;
 
 namespace Architecture.Tests;
 
-public class PlaygroundArchitectureTests
+public class HostArchitectureTests
 {
     [Fact]
-    public void Modules_Should_Not_Depend_On_Playground_Hosts()
+    public void Modules_Should_Not_Depend_On_Hosts()
     {
-        // Assemblies / namespaces that represent Playground hosts.
-        string[] playgroundNamespaces =
+        // Assemblies / namespaces that represent host applications.
+        string[] hostNamespaces =
         {
             "FSH.Starter.Api"
         };
@@ -20,18 +20,18 @@ public class PlaygroundArchitectureTests
             .That()
             .ResideInNamespace("FSH.Modules")
             .Should()
-            .NotHaveDependencyOnAny(playgroundNamespaces)
+            .NotHaveDependencyOnAny(hostNamespaces)
             .GetResult();
 
         var failingTypes = result.FailingTypeNames ?? Array.Empty<string>();
 
         result.IsSuccessful.ShouldBeTrue(
-            "Module code must not depend on Playground host assemblies. " +
+            "Module code must not depend on host assemblies. " +
             $"Failing types: {string.Join(", ", failingTypes)}");
     }
 
     [Fact]
-    public void Playground_Hosts_Should_Not_Depend_On_Module_Internals()
+    public void Hosts_Should_Not_Depend_On_Module_Internals()
     {
         // Hosts may depend on module contracts and module root types,
         // but should not directly reference feature or data-layer namespaces.
@@ -56,7 +56,7 @@ public class PlaygroundArchitectureTests
         var hostFailingTypes = hostResult.FailingTypeNames ?? Array.Empty<string>();
 
         hostResult.IsSuccessful.ShouldBeTrue(
-            "Playground hosts should not depend directly on module feature or data internals. " +
+            "Hosts should not depend directly on module feature or data internals. " +
             $"Failing types: {string.Join(", ", hostFailingTypes)}");
     }
 }

@@ -3,10 +3,20 @@ using Aspire.Hosting.ApplicationModel;
 var builder = DistributedApplication.CreateBuilder(args);
 
 // Infrastructure
-var postgres = builder.AddPostgres("postgres")
-    .WithDataVolume("fsh-postgres-data")
+//
+// pgAdmin sidecar attaches to the same Postgres server resource. Aspire
+// auto-discovers every database registered against this server, so the
+// pgAdmin server-tree shows `fsh-db` (and any future databases) without
+// us authoring a `servers.json` by hand. Persistent so the saved query
+// state and folder layout survive `dotnet run` restarts.
+var postgresServer = builder.AddPostgres("postgres")
+    .WithDataVolume("postgres-data")
     .WithLifetime(ContainerLifetime.Persistent)
-    .AddDatabase("fsh");
+    .WithPgAdmin(pa => pa
+        .WithHostPort(5050)
+        .WithLifetime(ContainerLifetime.Persistent));
+
+var postgres = postgresServer.AddDatabase("fsh-db");
 
 var redis = builder.AddRedis("redis")
     .WithDataVolume("fsh-redis-data")
@@ -72,14 +82,21 @@ var api = builder.AddProject<Projects.FSH_Starter_Api>("fsh-api")
     .WithEnvironment("Storage__S3__ForcePathStyle", "true")
     .WithEnvironment("Storage__S3__PublicBaseUrl", ReferenceExpression.Create($"{minioApiEndpoint}/{MinioBucket}"));
 
-// Admin console (React + Vite)
+// Admin console (React + Vite).
+//
+// We target the API's HTTPS endpoint, not HTTP. The API has
+// UseHttpsRedirection(), so calls to the http endpoint bounce 307 to
+// https — and the browser strips the Authorization header on cross-
+// origin redirects (different scheme/port count as cross-origin per
+// the Fetch spec). Going straight to https avoids the redirect and
+// preserves the bearer token on every request.
 builder.AddJavaScriptApp("fsh-admin", "../../../clients/admin", "dev")
     .WithNpm()
     .WithReference(api)
     .WaitFor(api)
     .WithHttpEndpoint(port: 5173, targetPort: 5173, isProxied: false)
     .WithExternalHttpEndpoints()
-    .WithEnvironment("VITE_API_BASE_URL", api.GetEndpoint("http"));
+    .WithEnvironment("VITE_API_BASE_URL", api.GetEndpoint("https"));
 
 // Tenant-facing dashboard (React + Vite, with SSE live feed)
 builder.AddJavaScriptApp("fsh-dashboard", "../../../clients/dashboard", "dev")
@@ -88,6 +105,6 @@ builder.AddJavaScriptApp("fsh-dashboard", "../../../clients/dashboard", "dev")
     .WaitFor(api)
     .WithHttpEndpoint(port: 5174, targetPort: 5174, isProxied: false)
     .WithExternalHttpEndpoints()
-    .WithEnvironment("VITE_API_BASE_URL", api.GetEndpoint("http"));
+    .WithEnvironment("VITE_API_BASE_URL", api.GetEndpoint("https"));
 
 await builder.Build().RunAsync();

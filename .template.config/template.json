@@ -93,7 +93,7 @@
                 {
                     "condition": "(!aspire)",
                     "exclude": [
-                        "src/Playground/FSH.Starter.AppHost/**"
+                        "src/Host/FSH.Starter.AppHost/**"
                     ]
                 }
             ]

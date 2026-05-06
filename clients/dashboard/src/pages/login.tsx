@@ -11,24 +11,16 @@ import {
   ArrowRight,
   Loader2,
   ShieldCheck,
-  Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/auth/use-auth";
 import { Button } from "@/components/ui/button";
 import { ApiRequestError } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
 import { env } from "@/env";
+import { LoginDemoPanel } from "@/pages/login.demo-panel";
+import type { DemoAccount } from "@/pages/login.demo-accounts";
 
 type LocationState = { from?: { pathname: string } };
-
-// Dev-only seeded credentials — match what IdentityDbInitializer creates for
-// the root tenant. Surfaced as a one-click button below; never shipped in
-// production bundles because Vite statically replaces import.meta.env.DEV
-// with false during `vite build`, so the entire branch is dead-code-eliminated.
-const DEFAULT_DEV_CREDENTIALS = {
-  email: "admin@root.com",
-  password: "123Pa$$word!",
-} as const;
 
 /**
  * Updates `--mx`/`--my` on the supplied element so a CSS radial spotlight
@@ -144,12 +136,11 @@ export function LoginPage() {
     await performLogin({ email, password, tenant });
   };
 
-  const onSignInAsDefault = async () => {
-    await performLogin({
-      email: DEFAULT_DEV_CREDENTIALS.email,
-      password: DEFAULT_DEV_CREDENTIALS.password,
-      tenant: env.defaultTenant,
-    });
+  const onPickDemo = (account: DemoAccount) => {
+    setError(null);
+    setEmail(account.email);
+    setPassword(account.password);
+    setTenant(account.tenant);
   };
 
   return (
@@ -168,9 +159,19 @@ export function LoginPage() {
         style={{ backgroundColor: "oklch(0.700 0.155 195 / 0.22)" }}
       />
 
+      {/* Two-column wrapper. On ≥md, the demo panel sits alongside the
+          card; on smaller viewports it stacks beneath. */}
+      <div
+        className={cn(
+          "relative z-10 grid w-full items-start gap-6",
+          import.meta.env.DEV
+            ? "max-w-[920px] md:grid-cols-[420px_minmax(0,1fr)]"
+            : "max-w-[420px]",
+        )}
+      >
       {/* The card — glow-frame outer ring + glassmorphism surface +
           cursor spotlight. */}
-      <div className="glow-frame fsh-enter relative z-10 w-full max-w-[420px] shadow-[var(--shadow-lift)]">
+      <div className="glow-frame fsh-enter relative w-full shadow-[var(--shadow-lift)]">
         <div
           ref={cardRef}
           className={cn(
@@ -283,18 +284,6 @@ export function LoginPage() {
                 )}
               </Button>
 
-              {import.meta.env.DEV && (
-                <Button
-                  type="button"
-                  variant="soft"
-                  className="w-full"
-                  disabled={submitting}
-                  onClick={onSignInAsDefault}
-                >
-                  <Sparkles className="h-3.5 w-3.5" />
-                  Continue as default admin
-                </Button>
-              )}
             </div>
           </form>
 
@@ -304,6 +293,14 @@ export function LoginPage() {
             <span>Encrypted in transit · JWT-secured session</span>
           </div>
         </div>
+      </div>
+
+      {import.meta.env.DEV && (
+        <LoginDemoPanel
+          current={{ email, tenant }}
+          onSelect={onPickDemo}
+        />
+      )}
       </div>
 
       {/* Footer */}

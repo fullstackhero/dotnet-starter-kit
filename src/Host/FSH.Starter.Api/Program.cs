@@ -72,6 +72,12 @@ builder.AddHeroPlatform(o =>
 });
 
 builder.AddModules(moduleAssemblies);
+
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddHostedService<FSH.Starter.Api.DevSeeding.DevDataSeeder>();
+}
+
 var app = builder.Build();
 
 app.UseHeroMultiTenantDatabases();

@@ -31,6 +31,8 @@ export function App() {
               closeButton
               theme="system"
               gap={10}
+              expand
+              visibleToasts={4}
               toastOptions={{
                 duration: 4200,
                 classNames: {

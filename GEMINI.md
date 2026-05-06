@@ -7,7 +7,7 @@
 ```bash
 dotnet build src/FSH.Starter.slnx              # Build (0 warnings required)
 dotnet test src/FSH.Starter.slnx               # Run tests
-dotnet run --project src/Playground/FSH.Starter.AppHost  # Run with Aspire
+dotnet run --project src/Host/FSH.Starter.AppHost  # Run with Aspire
 ```
 
 ## Project Layout
@@ -19,7 +19,7 @@ src/
 │   ├── Identity/       # Auth, users, roles, permissions
 │   ├── Multitenancy/   # Tenant management (Finbuckle)
 │   └── Auditing/       # Audit logging
-├── Playground/         # Reference application
+├── Host/               # Composition-root host applications
 └── Tests/              # Architecture + unit tests
 ```
 

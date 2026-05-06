@@ -152,7 +152,7 @@ dotnet sln src/FSH.Starter.slnx add src/Modules/{Name}/Modules.{Name}.Contracts/
 
 ## Step 7: Reference from API
 
-In `src/Playground/FSH.Starter.Api/FSH.Starter.Api.csproj`:
+In `src/Host/FSH.Starter.Api/FSH.Starter.Api.csproj`:
 ```xml
 <ProjectReference Include="..\..\Modules\{Name}\Modules.{Name}\Modules.{Name}.csproj" />
 ```

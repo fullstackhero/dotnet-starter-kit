@@ -35,7 +35,7 @@ The codebase is organized into three layers, each with a clear responsibility:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        Playground                           │
+│                          Host                               │
 │          (Host applications that compose modules)           │
 │       FSH.Starter.Api  ·  AppHost                                    │
 ├─────────────────────────────────────────────────────────────┤
@@ -53,7 +53,7 @@ The codebase is organized into three layers, each with a clear responsibility:
 
 **Modules** are the bounded contexts where your business logic lives. Each module owns its domain entities, data access, feature handlers, and API endpoints. Modules are isolated from each other and communicate only through Contracts.
 
-**Playground** contains the host applications that wire everything together. The API project composes all modules into a running HTTP service, and the AppHost project orchestrates the full stack with .NET Aspire.
+**Host** contains the host applications that wire everything together. The API project composes all modules into a running HTTP service, and the AppHost project orchestrates the full stack with .NET Aspire.
 
 <FileTree items={[
   { name: 'src/', type: 'folder', children: [
@@ -75,8 +75,8 @@ The codebase is organized into three layers, each with a clear responsibility:
       { name: 'Auditing/', type: 'folder', desc: 'Audit trail capture and querying' },
       { name: 'Webhooks/', type: 'folder', desc: 'Outbound webhook subscriptions and delivery' }
     ]},
-    { name: 'Playground/', type: 'folder', desc: 'Host applications', children: [
-      { name: 'FSH.Starter.Api/', type: 'folder', desc: 'Reference ASP.NET Core API host' },
+    { name: 'Host/', type: 'folder', desc: 'Host applications', children: [
+      { name: 'FSH.Starter.Api/', type: 'folder', desc: 'ASP.NET Core API host' },
       { name: 'FSH.Starter.AppHost/', type: 'folder', desc: '.NET Aspire orchestrator' }
     ]},
     { name: 'Tests/', type: 'folder', desc: 'Unit, integration, and architecture tests' }
@@ -375,7 +375,7 @@ Layer 3 (depends on lower layers)
   └── Web
 
          ┌──────────────────┐
-         │    Playground     │  ← references Modules + BuildingBlocks
+         │       Host        │  ← references Modules + BuildingBlocks
          └────────┬─────────┘
                   │
          ┌────────▼─────────┐
@@ -389,13 +389,13 @@ Layer 3 (depends on lower layers)
 
 The key rules:
 
-- **BuildingBlocks never depend on Modules or Playground.** They are reusable framework libraries.
-- **Modules never depend on Playground.** They are self-contained bounded contexts.
+- **BuildingBlocks never depend on Modules or Host.** They are reusable framework libraries.
+- **Modules never depend on Host.** They are self-contained bounded contexts.
 - **Modules reference other modules only through Contracts projects.** Never through runtime projects.
 - **Core has zero project references.** It depends only on the .NET BCL and Mediator abstractions.
 
 <Aside type="tip" title="Architecture tests enforce these rules">
-The `BuildingBlocksIndependenceTests` class verifies at both the assembly level (using NetArchTest) and the project file level (scanning `.csproj` references) that no BuildingBlock depends on any Module or Playground project. Run `dotnet test` to catch violations before they reach your main branch.
+The `BuildingBlocksIndependenceTests` class verifies at both the assembly level (using NetArchTest) and the project file level (scanning `.csproj` references) that no BuildingBlock depends on any Module or Host project. Run `dotnet test` to catch violations before they reach your main branch.
 </Aside>
 
 ## Cross-Cutting Concerns
