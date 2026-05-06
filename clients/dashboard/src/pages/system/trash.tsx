@@ -34,6 +34,7 @@ import { cn } from "@/lib/cn";
 import {
   EmptyState,
   ErrorBand,
+  PageHero,
   Pagination,
 } from "@/components/list";
 import {
@@ -75,26 +76,12 @@ export function TrashPage() {
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Header — eyebrow + display title + tenant. Lighter than the list
-          hero, since trash isn't a primary destination. */}
-      <header className="fsh-enter fsh-enter-1">
-        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-          <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-            System · Trash
-          </span>
-          <span aria-hidden className="h-px w-6 bg-[var(--color-border-strong)]" />
-          <code className="rounded bg-[var(--color-primary-soft)] px-1.5 py-0.5 font-mono text-[11px] font-medium text-[var(--color-primary)]">
-            {user?.tenant ?? "—"}
-          </code>
-        </div>
-        <h1 className="text-display mt-2 text-[32px] font-semibold leading-tight tracking-[-0.02em] sm:text-[36px]">
-          Recycle bin
-        </h1>
-        <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-[var(--color-muted-foreground)]">
-          Soft-deleted records, kept indefinitely until you restore or purge them. Restoring
-          a row brings it back to its parent list with the same ID and history intact.
-        </p>
-      </header>
+      <PageHero
+        eyebrow="System · Trash"
+        tenant={user?.tenant ?? "—"}
+        title="Recycle bin"
+        subtitle="Soft-deleted records, kept indefinitely until you restore or purge them. Restoring a row brings it back to its parent list with the same ID and history intact."
+      />
 
       {/* Tab bar — pill nav, mono-caps eyebrow per tab */}
       <nav

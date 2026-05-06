@@ -31,6 +31,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   EmptyState,
   ErrorBand,
+  PageHero,
   Pagination,
   Stat,
   StatStrip,
@@ -133,38 +134,24 @@ export function SessionsPage() {
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Header */}
-      <header className="fsh-enter fsh-enter-1 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-            <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-              System · Sessions
-            </span>
-            <span aria-hidden className="h-px w-6 bg-[var(--color-border-strong)]" />
-            <code className="rounded bg-[var(--color-primary-soft)] px-1.5 py-0.5 font-mono text-[11px] font-medium text-[var(--color-primary)]">
-              {user?.tenant ?? "—"}
-            </code>
-          </div>
-          <h1 className="text-display mt-2 text-[32px] font-semibold leading-tight tracking-[-0.02em] sm:text-[36px]">
-            Active sessions
-          </h1>
-          <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-[var(--color-muted-foreground)]">
-            Every browser and device currently signed in to this tenant. Refreshes every
-            30 seconds. Revoke individual sessions, or sign a user out of all their
-            devices at once.
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={query.isFetching}
-          onClick={() => void query.refetch()}
-          className="gap-1.5"
-        >
-          <RefreshCw className={cn("h-3.5 w-3.5", query.isFetching && "animate-spin")} />
-          Refresh
-        </Button>
-      </header>
+      <PageHero
+        eyebrow="System · Sessions"
+        tenant={user?.tenant ?? "—"}
+        title="Active sessions"
+        subtitle="Every browser and device currently signed in to this tenant. Refreshes every 30 seconds. Revoke individual sessions, or sign a user out of all their devices at once."
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={query.isFetching}
+            onClick={() => void query.refetch()}
+            className="gap-1.5"
+          >
+            <RefreshCw className={cn("h-3.5 w-3.5", query.isFetching && "animate-spin")} />
+            Refresh
+          </Button>
+        }
+      />
 
       <StatStrip cols={4}>
         <Stat

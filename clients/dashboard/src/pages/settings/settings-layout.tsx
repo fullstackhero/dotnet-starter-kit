@@ -7,6 +7,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { useAuth } from "@/auth/use-auth";
+import { PageHero } from "@/components/list";
 import { cn } from "@/lib/cn";
 
 type Tab = {
@@ -32,23 +33,12 @@ export function SettingsLayout() {
   const { user } = useAuth();
   return (
     <div className="space-y-7">
-      {/* Header — matches Overview / Activity vocabulary. */}
-      <header className="fsh-enter fsh-enter-1">
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
-            Tenant
-          </span>
-          <code className="rounded bg-[var(--color-primary-soft)] px-1.5 py-0.5 font-mono text-[11px] font-medium text-[var(--color-primary)]">
-            {user?.tenant ?? "—"}
-          </code>
-        </div>
-        <h1 className="text-display mt-2 text-[28px] font-semibold leading-tight">
-          Settings
-        </h1>
-        <p className="mt-1 text-sm leading-relaxed text-[var(--color-muted-foreground)]">
-          Manage your profile, security, and tenant preferences.
-        </p>
-      </header>
+      <PageHero
+        eyebrow="Account · Settings"
+        tenant={user?.tenant ?? "—"}
+        title="Settings"
+        subtitle="Manage your profile, security, appearance, and tenant preferences."
+      />
 
       {/* Pill tab nav. flex-wrap so it lays sensibly on narrow viewports;
           the active pill takes brand-soft + brand text, idle pills sit

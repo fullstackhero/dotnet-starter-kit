@@ -1,4 +1,5 @@
 export { ListHero } from "./list-hero";
+export { PageHero } from "./page-hero";
 export { Stat, StatStrip, type StatTone } from "./stat";
 export { SortChips, type SortDir, type SortOption } from "./sort-chips";
 export {

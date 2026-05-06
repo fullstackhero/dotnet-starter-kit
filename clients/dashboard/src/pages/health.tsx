@@ -21,6 +21,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageHero } from "@/components/list";
 import { cn } from "@/lib/cn";
 
 // ────────────────────────────────────────────────────────────────────────
@@ -163,48 +164,44 @@ export function HealthPage() {
 
   return (
     <div className="space-y-7">
-      {/* ── Header strip ────────────────────────────────────────────────── */}
-      <header className="fsh-enter fsh-enter-1 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
-            System
-          </span>
-          <h1 className="text-display mt-2 text-[28px] font-semibold leading-tight">
-            Health
-          </h1>
-          <p className="mt-1 text-sm leading-relaxed text-[var(--color-muted-foreground)]">
+      <PageHero
+        eyebrow="System · Health"
+        title="Health"
+        subtitle={
+          <>
             Live readiness probe across every registered dependency. Polled every{" "}
             <span className="font-mono">{POLL_INTERVAL_MS / 1000}s</span>.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setAutoRefresh((v) => !v)}
-            title={autoRefresh ? "Pause auto-refresh" : "Resume auto-refresh"}
-          >
-            {autoRefresh ? (
-              <Pause className="mr-1.5 h-3.5 w-3.5" />
-            ) : (
-              <Play className="mr-1.5 h-3.5 w-3.5" />
-            )}
-            {autoRefresh ? "Live" : "Paused"}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={query.isFetching}
-            onClick={() => void query.refetch()}
-          >
-            <RefreshCw
-              className={cn("mr-1.5 h-3.5 w-3.5", query.isFetching && "animate-spin")}
-            />
-            Refresh
-          </Button>
-        </div>
-      </header>
+          </>
+        }
+        actions={
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setAutoRefresh((v) => !v)}
+              title={autoRefresh ? "Pause auto-refresh" : "Resume auto-refresh"}
+            >
+              {autoRefresh ? (
+                <Pause className="mr-1.5 h-3.5 w-3.5" />
+              ) : (
+                <Play className="mr-1.5 h-3.5 w-3.5" />
+              )}
+              {autoRefresh ? "Live" : "Paused"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={query.isFetching}
+              onClick={() => void query.refetch()}
+            >
+              <RefreshCw
+                className={cn("mr-1.5 h-3.5 w-3.5", query.isFetching && "animate-spin")}
+              />
+              Refresh
+            </Button>
+          </>
+        }
+      />
 
       {/* ── Hero status panel ───────────────────────────────────────────── */}
       <section className="fsh-enter fsh-enter-2">
