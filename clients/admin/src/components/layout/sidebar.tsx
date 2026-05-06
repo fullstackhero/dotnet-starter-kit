@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, Building2, Receipt, Gauge } from "lucide-react";
+import { LayoutDashboard, Building2, UsersRound, Receipt, Gauge } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 type NavItem = {
@@ -11,6 +11,7 @@ type NavItem = {
 const items: NavItem[] = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/tenants", label: "Tenants", icon: Building2 },
+  { to: "/users", label: "Users", icon: UsersRound },
   { to: "/billing", label: "Billing", icon: Receipt },
   { to: "/quota", label: "Quota", icon: Gauge },
 ];

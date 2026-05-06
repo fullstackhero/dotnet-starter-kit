@@ -71,6 +71,8 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 @layer base {
@@ -82,4 +84,75 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
   }
+
+  /* Editorial display utility — Fraunces with subtle optical sizing baked in. */
+  .font-display {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+    font-variation-settings: "opsz" 96, "SOFT" 50;
+    letter-spacing: -0.018em;
+  }
+  .font-mono {
+    font-family: var(--font-mono);
+  }
+}
+
+/* ------------------------------------------------------------------------- */
+/* Editorial section rule used across the admin module surfaces.              */
+/* "\\ USERS" hairline header lives at the top of every page in a section.   */
+/* ------------------------------------------------------------------------- */
+.section-rule {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 0.625rem;
+  padding-top: 0.625rem;
+  border-top: 1px solid var(--color-foreground);
+}
+.section-rule__crumb {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-foreground);
+}
+.section-rule__crumb--muted {
+  color: var(--color-muted-foreground);
+  font-weight: 400;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Deterministic monogram tones — chroma=0 to honour the existing palette.   */
+/* ------------------------------------------------------------------------- */
+.mono-tone-0 { background: oklch(0.94 0 0); color: oklch(0.20 0 0); }
+.mono-tone-1 { background: oklch(0.86 0 0); color: oklch(0.18 0 0); }
+.mono-tone-2 { background: oklch(0.32 0 0); color: oklch(0.96 0 0); }
+.mono-tone-3 { background: oklch(0.18 0 0); color: oklch(0.95 0 0); }
+
+.dark .mono-tone-0 { background: oklch(0.32 0 0); color: oklch(0.93 0 0); }
+.dark .mono-tone-1 { background: oklch(0.42 0 0); color: oklch(0.97 0 0); }
+.dark .mono-tone-2 { background: oklch(0.86 0 0); color: oklch(0.18 0 0); }
+.dark .mono-tone-3 { background: oklch(0.96 0 0); color: oklch(0.18 0 0); }
+
+.mono-grid {
+  position: relative;
+  isolation: isolate;
+}
+.mono-grid::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgb(0 0 0 / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(0 0 0 / 0.06) 1px, transparent 1px);
+  background-size: 4px 4px;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+.dark .mono-grid::after {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.05) 1px, transparent 1px);
+  mix-blend-mode: screen;
 }

@@ -1,4 +1,7 @@
 import { apiFetch } from "@/lib/api-client";
+import type { PagedResponse } from "@/lib/api-types";
+
+export type { PagedResponse } from "@/lib/api-types";
 
 export type TenantDto = {
   id: string;
@@ -7,16 +10,6 @@ export type TenantDto = {
   isActive: boolean;
   validUpto: string;
   issuer?: string;
-};
-
-export type PagedResponse<T> = {
-  items: T[];
-  pageNumber: number;
-  pageSize: number;
-  totalCount: number;
-  totalPages: number;
-  hasNext: boolean;
-  hasPrevious: boolean;
 };
 
 export type ListTenantsParams = {
