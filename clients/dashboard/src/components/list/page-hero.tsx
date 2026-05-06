@@ -92,8 +92,19 @@ export function PageHero({
         {/* Title + actions */}
         <div className="mt-5 grid grid-cols-1 gap-6 md:grid-cols-[1fr_auto] md:items-end">
           <div className="min-w-0">
-            <h1 className="text-display flex items-baseline gap-3 text-[34px] font-semibold leading-[1.04] tracking-[-0.022em] sm:text-[40px]">
-              <span className="truncate">{title}</span>
+            {/* leading-[1.12] (was 1.04) + pb-1 leave room for descenders.
+                Without the extra height, glyphs like g/y/p/q hang past
+                the line-box and get clipped by the section's outer
+                `overflow-hidden` (which we keep so the radial gradients
+                don't bleed past the rounded corners).
+                The title is rendered directly rather than wrapped in a
+                `.truncate` span — that wrapper added its own
+                `overflow: hidden` clipping the descender at a second
+                layer. Page-hero titles are short ("Settings",
+                "Audit trail", "Health"), so unconstrained wrapping is
+                fine. */}
+            <h1 className="text-display flex flex-wrap items-baseline gap-3 pb-1 text-[34px] font-semibold leading-[1.12] tracking-[-0.022em] sm:text-[40px]">
+              {title}
               {badge}
             </h1>
             {subtitle && (

@@ -97,7 +97,14 @@ export function ListHero({
 
         <div className="mt-5 grid grid-cols-1 gap-6 md:grid-cols-[1fr_auto] md:items-end">
           <div>
-            <h1 className="text-display flex items-baseline gap-3 text-[40px] font-semibold leading-[1.02] tracking-[-0.025em] sm:text-[44px]">
+            {/* leading-[1.1] + pb-1 leave room for descenders. With the
+                previous 1.02, titles containing g/y/p/q (e.g. anything
+                ending in "Settings" or "Pricing") had their bottom hairs
+                clipped by the section's outer `overflow-hidden`. The
+                existing catalog titles ("Brands", "Products",
+                "Categories") have no descenders so the bug stayed
+                dormant. */}
+            <h1 className="text-display flex items-baseline gap-3 pb-1 text-[40px] font-semibold leading-[1.1] tracking-[-0.025em] sm:text-[44px]">
               {title}
               <span
                 aria-label={`${totalCount ?? 0} items total`}
