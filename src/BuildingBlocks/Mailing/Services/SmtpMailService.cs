@@ -132,8 +132,13 @@ public class SmtpMailService(IOptions<MailOptions> settings, ILogger<SmtpMailSer
 
         try
         {
-            await client.ConnectAsync(_settings.Smtp!.Host, _settings.Smtp.Port, SecureSocketOptions.StartTls, ct);
-            await client.AuthenticateAsync(_settings.Smtp.UserName, _settings.Smtp.Password, ct);
+            var smtp = _settings.Smtp ?? throw new InvalidOperationException("SMTP settings are not configured.");
+            string host = smtp.Host ?? throw new InvalidOperationException("SMTP Host is not configured.");
+            string user = smtp.UserName ?? throw new InvalidOperationException("SMTP UserName is not configured.");
+            string pass = smtp.Password ?? throw new InvalidOperationException("SMTP Password is not configured.");
+
+            await client.ConnectAsync(host, smtp.Port, SecureSocketOptions.StartTls, ct);
+            await client.AuthenticateAsync(user, pass, ct);
             await client.SendAsync(email, ct);
         }
         // Broad catch is intentional: any SMTP failure (auth, network, protocol) is logged

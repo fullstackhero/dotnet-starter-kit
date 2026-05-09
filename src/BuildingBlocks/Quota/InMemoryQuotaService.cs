@@ -15,7 +15,7 @@ public sealed class InMemoryQuotaService : IQuotaService
     private readonly QuotaOptions _options;
     private readonly QuotaPlanResolver _planResolver;
     private readonly IMultiTenantContextAccessor<AppTenantInfo>? _tenantAccessor;
-    private readonly IReadOnlyDictionary<QuotaResource, IQuotaGaugeProvider> _gauges;
+    private readonly Dictionary<QuotaResource, IQuotaGaugeProvider> _gauges;
     private readonly TimeProvider _timeProvider;
 
     internal InMemoryQuotaService(
