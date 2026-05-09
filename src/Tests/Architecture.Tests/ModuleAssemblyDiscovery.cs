@@ -25,25 +25,32 @@ internal static class ModuleAssemblyDiscovery
 
     private static Assembly[] Discover()
     {
-        // Force-load the known module assemblies so they appear in AppDomain.
-        // These act as "seed" references — the project must reference them for
-        // the tests to have anything to check. New modules are added by adding
-        // a ProjectReference to Architecture.Tests.csproj only.
-        _ = typeof(AuditingModule);
-        _ = typeof(IdentityModule);
-        _ = typeof(MultitenancyModule);
+        // Get the directory where the tests are running
+        string baseDir = AppContext.BaseDirectory;
 
-        // Enumerate all loaded assemblies that look like FSH module runtime assemblies.
-        // We exclude *.Contracts assemblies because those are contract-only and
-        // have different dependency rules.
-        return AppDomain.CurrentDomain
-            .GetAssemblies()
-            .Where(a =>
+        // Scan for FSH.Modules.*.dll files (excluding Contracts)
+        var moduleFiles = Directory.GetFiles(baseDir, "FSH.Modules.*.dll")
+            .Where(f => !f.EndsWith(".Contracts.dll", StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        var assemblies = new List<Assembly>();
+
+        foreach (var file in moduleFiles)
+        {
+            try
             {
-                var name = a.GetName().Name ?? string.Empty;
-                return name.StartsWith("FSH.Modules.", StringComparison.Ordinal)
-                       && !name.EndsWith(".Contracts", StringComparison.Ordinal);
-            })
+                var assemblyName = AssemblyName.GetAssemblyName(file);
+                assemblies.Add(Assembly.Load(assemblyName));
+            }
+#pragma warning disable CA1031 // Do not catch general exception types
+            catch (Exception)
+            {
+                // Skip if not a valid .NET assembly or other load error
+            }
+#pragma warning restore CA1031
+        }
+
+        return assemblies
             .OrderBy(a => a.GetName().Name, StringComparer.Ordinal)
             .ToArray();
     }
@@ -60,8 +67,13 @@ public sealed class ModuleAssemblyDiscoveryGuardTests
     {
         var assemblies = ModuleAssemblyDiscovery.GetModuleAssemblies();
 
-        assemblies.ShouldNotBeEmpty(
-            "ModuleAssemblyDiscovery found no FSH module assemblies. " +
-            "Ensure Architecture.Tests.csproj references at least one Modules.* project.");
+        if (assemblies.Length == 0)
+        {
+            throw new InvalidOperationException(
+                "ModuleAssemblyDiscovery found no FSH module assemblies. " +
+                "Ensure Architecture.Tests.csproj references at least one Modules.* project.");
+        }
+
+        assemblies.ShouldNotBeEmpty();
     }
 }

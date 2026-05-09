@@ -16,7 +16,6 @@
 	<ItemGroup>
 		<PackageReference Include="Finbuckle.MultiTenant" />
 		<PackageReference Include="Finbuckle.MultiTenant.Abstractions" />
-
 	</ItemGroup>
 	
 	<ItemGroup>

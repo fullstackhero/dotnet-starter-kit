@@ -4,8 +4,14 @@ using Mediator;
 
 namespace FSH.Modules.Catalog.Contracts.v1.Brands;
 
-// SortBy: Sort column. One of: name | slug | createdAtUtc.
-// SortDir: Sort direction. One of: asc | desc.
+/// <summary>
+/// Search for brands with pagination and sorting.
+/// </summary>
+/// <param name="Search">Search term.</param>
+/// <param name="PageNumber">Page number.</param>
+/// <param name="PageSize">Page size.</param>
+/// <param name="SortBy">Sort column. One of: name | slug | createdAtUtc.</param>
+/// <param name="SortDir">Sort direction. One of: asc | desc.</param>
 public sealed record SearchBrandsQuery(
     string? Search = null,
     int PageNumber = 1,

@@ -138,11 +138,6 @@ public class SmtpMailService(IOptions<MailOptions> settings, ILogger<SmtpMailSer
             {
                 await client.AuthenticateAsync(_settings.Smtp.UserName, _settings.Smtp.Password, ct);
             }
-            else if (!string.IsNullOrWhiteSpace(_settings.Smtp.UserName) || !string.IsNullOrWhiteSpace(_settings.Smtp.Password))
-            {
-                await client.AuthenticateAsync(_settings.Smtp.UserName ?? string.Empty, _settings.Smtp.Password ?? string.Empty, ct);
-            }
-
             await client.SendAsync(email, ct);
         }
         // Broad catch is intentional: any SMTP failure (auth, network, protocol) is logged

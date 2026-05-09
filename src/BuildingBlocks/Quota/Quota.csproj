@@ -13,7 +13,6 @@
 	<ItemGroup>
 		<PackageReference Include="Finbuckle.MultiTenant" />
 		<PackageReference Include="Finbuckle.MultiTenant.Abstractions" />
-
 		<PackageReference Include="StackExchange.Redis" />
 	</ItemGroup>
 

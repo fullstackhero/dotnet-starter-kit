@@ -74,7 +74,10 @@ internal sealed class DevDataSeeder : BackgroundService
         // Default-on in Development unless explicitly disabled.
         if (!_config.GetValue("Seed:Demo", true))
         {
-            _logger.LogInformation("[DevDataSeeder] disabled via Seed:Demo=false");
+            if (_logger.IsEnabled(LogLevel.Information))
+            {
+                _logger.LogInformation("[DevDataSeeder] disabled via Seed:Demo=false");
+            }
             return;
         }
 
@@ -148,7 +151,10 @@ internal sealed class DevDataSeeder : BackgroundService
             }
             await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken).ConfigureAwait(false);
         }
-        _logger.LogWarning("[DevDataSeeder] tenant '{TenantId}' did not finish provisioning within 2 minutes; skipping user seed", tenantId);
+        if (_logger.IsEnabled(LogLevel.Warning))
+        {
+            _logger.LogWarning("[DevDataSeeder] tenant '{TenantId}' did not finish provisioning within 2 minutes; skipping user seed", tenantId);
+        }
     }
 
     private async Task SeedRootSuperAdminAsync(CancellationToken cancellationToken)
@@ -246,11 +252,14 @@ internal sealed class DevDataSeeder : BackgroundService
                 var created = await userManager.CreateAsync(user).ConfigureAwait(false);
                 if (!created.Succeeded)
                 {
-                    _logger.LogWarning(
-                        "[DevDataSeeder] [{Tenant}] failed to create '{Email}': {Errors}",
-                        tenant.Id,
-                        demoUser.Email,
-                        string.Join("; ", created.Errors.Select(e => e.Description)));
+                    if (_logger.IsEnabled(LogLevel.Warning))
+                    {
+                        _logger.LogWarning(
+                            "[DevDataSeeder] [{Tenant}] failed to create '{Email}': {Errors}",
+                            tenant.Id,
+                            demoUser.Email,
+                            string.Join("; ", created.Errors.Select(e => e.Description)));
+                    }
                     continue;
                 }
                 existing = user;
@@ -314,10 +323,13 @@ internal sealed class DevDataSeeder : BackgroundService
         var result = await userManager.UpdateAsync(user).ConfigureAwait(false);
         if (!result.Succeeded)
         {
-            _logger.LogWarning(
-                "[DevDataSeeder] failed to reset password for '{Email}': {Errors}",
-                user.Email,
-                string.Join("; ", result.Errors.Select(e => e.Description)));
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning(
+                    "[DevDataSeeder] failed to reset password for '{Email}': {Errors}",
+                    user.Email,
+                    string.Join("; ", result.Errors.Select(e => e.Description)));
+            }
             return;
         }
 
