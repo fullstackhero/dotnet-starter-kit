@@ -255,7 +255,16 @@ public class EndpointConventionTests
                                name.StartsWith("Enroll", StringComparison.Ordinal) ||
                                name.StartsWith("Verify", StringComparison.Ordinal) ||
                                name.StartsWith("Disable", StringComparison.Ordinal) ||
-                               name.StartsWith("Enable", StringComparison.Ordinal);
+                               name.StartsWith("Enable", StringComparison.Ordinal) ||
+                               name.StartsWith("Restore", StringComparison.Ordinal) ||
+                               name.StartsWith("Adjust", StringComparison.Ordinal) ||
+                               name.StartsWith("Resolve", StringComparison.Ordinal) ||
+                               name.StartsWith("Reopen", StringComparison.Ordinal) ||
+                               name.StartsWith("Test", StringComparison.Ordinal) ||
+                               name.StartsWith("Void", StringComparison.Ordinal) ||
+                               name.StartsWith("Mark", StringComparison.Ordinal) ||
+                               name.StartsWith("Issue", StringComparison.Ordinal) ||
+                               name.StartsWith("Capture", StringComparison.Ordinal);
 
                 if (!hasVerb)
                 {
