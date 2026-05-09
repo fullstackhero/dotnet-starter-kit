@@ -1,0 +1,36 @@
+@page "/water/meter-readings"
+
+<PageHeader Title="Meter Readings" Header="Meter Readings" SubHeader="Manage water meter consumption readings." />
+
+<EntityTable @ref="_table" TEntity="MeterReadingResponse" TId="Guid" TRequest="MeterReadingViewModel" Context="@Context">
+
+    <AdvancedSearchContent>
+    </AdvancedSearchContent>
+
+    <EditFormContent>
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Meter Id" For="@(() => context.MeterId)" @bind-Value="context.MeterId" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Reading Date" For="@(() => context.ReadingDate)" @bind-Value="context.ReadingDate" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Reading Value" For="@(() => context.ReadingValue)" @bind-Value="context.ReadingValue" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Previous Reading Value" For="@(() => context.PreviousReadingValue)" @bind-Value="context.PreviousReadingValue" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudSelect T="ReadingSource" Label="Source" @bind-Value="context.Source">
+                @foreach (ReadingSource source in Enum.GetValues(typeof(ReadingSource)))
+                {
+                    <MudSelectItem T="ReadingSource" Value="source">@source</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Notes" For="@(() => context.Notes)" @bind-Value="context.Notes" />
+        </MudItem>
+    </EditFormContent>
+
+</EntityTable>

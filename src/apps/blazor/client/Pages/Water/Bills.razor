@@ -1,0 +1,45 @@
+@page "/water/bills"
+
+<PageHeader Title="Bills" Header="Bills" SubHeader="Manage water billing records." />
+
+<EntityTable @ref="_table" TEntity="BillResponse" TId="Guid" TRequest="BillViewModel" Context="@Context">
+
+    <AdvancedSearchContent>
+    </AdvancedSearchContent>
+
+    <EditFormContent>
+        <MudItem xs="12" md="6">
+            <MudSelect T="Guid" Label="Customer" @bind-Value="context.CustomerId">
+                @foreach (var customer in _customers)
+                {
+                    <MudSelectItem T="Guid" Value="customer.Id!.Value">@customer.FullName</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Tariff Id" For="@(() => context.TariffId)" @bind-Value="context.TariffId" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Billing Month" For="@(() => context.BillingMonth)" @bind-Value="context.BillingMonth" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Billing Year" For="@(() => context.BillingYear)" @bind-Value="context.BillingYear" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Total Consumption" For="@(() => context.TotalConsumption)" @bind-Value="context.TotalConsumption" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Fixed Charge" For="@(() => context.FixedCharge)" @bind-Value="context.FixedCharge" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Variable Charge" For="@(() => context.VariableCharge)" @bind-Value="context.VariableCharge" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Total Amount" For="@(() => context.TotalAmount)" @bind-Value="context.TotalAmount" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Due Date" For="@(() => context.DueDate)" @bind-Value="context.DueDate" />
+        </MudItem>
+    </EditFormContent>
+
+</EntityTable>

@@ -1,0 +1,33 @@
+@page "/water/payments"
+
+<PageHeader Title="Payments" Header="Payments" SubHeader="Record water bill payments." />
+
+<EntityTable @ref="_table" TEntity="PaymentResponse" TId="Guid" TRequest="PaymentViewModel" Context="@Context">
+
+    <AdvancedSearchContent>
+    </AdvancedSearchContent>
+
+    <EditFormContent>
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Bill Id" For="@(() => context.BillId)" @bind-Value="context.BillId" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Amount Paid" For="@(() => context.AmountPaid)" @bind-Value="context.AmountPaid" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudDatePicker Label="Payment Date" For="@(() => context.PaymentDate)" @bind-Value="context.PaymentDate" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudSelect T="PaymentMethod" Label="Payment Method" @bind-Value="context.PaymentMethod">
+                @foreach (PaymentMethod method in Enum.GetValues(typeof(PaymentMethod)))
+                {
+                    <MudSelectItem T="PaymentMethod" Value="method">@method</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Transaction Reference" For="@(() => context.TransactionReference)" @bind-Value="context.TransactionReference" />
+        </MudItem>
+    </EditFormContent>
+
+</EntityTable>

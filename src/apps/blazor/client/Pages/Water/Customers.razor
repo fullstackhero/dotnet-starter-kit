@@ -1,0 +1,69 @@
+@page "/water/customers"
+
+<PageHeader Title="Customers" Header="Customers" SubHeader="Manage water consumer registrations." />
+
+<EntityTable @ref="_table" TEntity="CustomerResponse" TId="Guid" TRequest="CustomerViewModel" Context="@Context">
+
+    <AdvancedSearchContent>
+    </AdvancedSearchContent>
+
+    <EditFormContent>
+        @if (!Context.AddEditModal.IsCreate)
+        {
+            <MudItem xs="12" md="6">
+                <MudTextField Value="context.Id" Underline=false ReadOnly Label="Customer Id" />
+            </MudItem>
+        }
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Customer Code" For="@(() => context.CustomerCode)" @bind-Value="context.CustomerCode" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Full Name" For="@(() => context.FullName)" @bind-Value="context.FullName" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Address" For="@(() => context.Address)" @bind-Value="context.Address" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Contact Number" For="@(() => context.ContactNumber)" @bind-Value="context.ContactNumber" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Email" For="@(() => context.Email)" @bind-Value="context.Email" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudSelect T="ConnectionType" Label="Connection Type" @bind-Value="context.ConnectionType">
+                <MudSelectItem Value="ConnectionType._0">Residential</MudSelectItem>
+                <MudSelectItem Value="ConnectionType._1">Commercial</MudSelectItem>
+                <MudSelectItem Value="ConnectionType._2">Industrial</MudSelectItem>
+            </MudSelect>
+        </MudItem>
+        @if (!Context.AddEditModal.IsCreate)
+        {
+            <MudItem xs="12" md="6">
+                <MudSelect T="CustomerStatus" Label="Status" @bind-Value="context.Status">
+                    <MudSelectItem Value="CustomerStatus._0">Active</MudSelectItem>
+                    <MudSelectItem Value="CustomerStatus._1">Inactive</MudSelectItem>
+                    <MudSelectItem Value="CustomerStatus._2">Disconnected</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+        }
+        <MudItem xs="12" md="12">
+            <MudItem>
+                <div>
+                    @if(!Context.AddEditModal.IsCreate)
+                    {
+                        <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" Target="_blank"
+                            StartIcon="@Icons.Material.Filled.RemoveRedEye" Style="margin-left: 5px;" >
+                            View
+                        </MudButton>
+
+                        <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Error" Size="Size.Small"
+                                   StartIcon="@Icons.Material.Filled.Delete" Style="margin-left: 5px;">
+                            Delete
+                        </MudButton>
+                    }
+                </div>
+            </MudItem>
+        </MudItem>
+    </EditFormContent>
+
+</EntityTable>

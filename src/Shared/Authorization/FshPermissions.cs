@@ -72,18 +72,24 @@ public static class FshPermissions
         new("View Meter Readings", FshActions.View, FshResources.MeterReadings, IsBasic: true),
         new("Search Meter Readings", FshActions.Search, FshResources.MeterReadings, IsBasic: true),
         new("Create Meter Readings", FshActions.Create, FshResources.MeterReadings),
+        new("Update Meter Readings", FshActions.Update, FshResources.MeterReadings),
+        new("Delete Meter Readings", FshActions.Delete, FshResources.MeterReadings),
         new("Export Meter Readings", FshActions.Export, FshResources.MeterReadings),
 
         //water - bills
         new("View Bills", FshActions.View, FshResources.Bills, IsBasic: true),
         new("Search Bills", FshActions.Search, FshResources.Bills, IsBasic: true),
         new("Create Bills", FshActions.Create, FshResources.Bills),
+        new("Update Bills", FshActions.Update, FshResources.Bills),
+        new("Delete Bills", FshActions.Delete, FshResources.Bills),
         new("Export Bills", FshActions.Export, FshResources.Bills),
 
         //water - payments
         new("View Payments", FshActions.View, FshResources.Payments, IsBasic: true),
         new("Search Payments", FshActions.Search, FshResources.Payments, IsBasic: true),
         new("Create Payments", FshActions.Create, FshResources.Payments),
+        new("Update Payments", FshActions.Update, FshResources.Payments),
+        new("Delete Payments", FshActions.Delete, FshResources.Payments),
         new("Export Payments", FshActions.Export, FshResources.Payments),
 
         //water - tariffs

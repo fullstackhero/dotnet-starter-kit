@@ -1,0 +1,64 @@
+@page "/water/meters"
+
+<PageHeader Title="Meters" Header="Meters" SubHeader="Manage water meters." />
+
+<EntityTable @ref="_table" TEntity="MeterResponse" TId="Guid" TRequest="MeterViewModel" Context="@Context">
+
+    <AdvancedSearchContent>
+    </AdvancedSearchContent>
+
+    <EditFormContent>
+        @if (!Context.AddEditModal.IsCreate)
+        {
+            <MudItem xs="12" md="6">
+                <MudTextField Value="context.Id" Underline=false ReadOnly Label="Meter Id" />
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudTextField Value="context.MeterNumber" Underline=false ReadOnly Label="Meter Number" />
+            </MudItem>
+        }
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Model" For="@(() => context.Model)" @bind-Value="context.Model" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudDatePicker Label="Installation Date" @bind-Date="context.InstallationDate" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudSelect T="Guid" Label="Customer" @bind-Value="context.CustomerId">
+                @foreach (var customer in _customers)
+                {
+                    <MudSelectItem T="Guid" Value="customer.Id!.Value">@customer.FullName</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        @if (!Context.AddEditModal.IsCreate)
+        {
+            <MudItem xs="12" md="6">
+                <MudSelect T="MeterStatus" Label="Status" @bind-Value="context.Status">
+                    <MudSelectItem Value="MeterStatus._0">Active</MudSelectItem>
+                    <MudSelectItem Value="MeterStatus._1">Inactive</MudSelectItem>
+                    <MudSelectItem Value="MeterStatus._2">Faulty</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+        }
+        <MudItem xs="12" md="12">
+            <MudItem>
+                <div>
+                    @if(!Context.AddEditModal.IsCreate)
+                    {
+                        <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" Target="_blank"
+                            StartIcon="@Icons.Material.Filled.RemoveRedEye" Style="margin-left: 5px;" >
+                            View
+                        </MudButton>
+
+                        <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Error" Size="Size.Small"
+                                   StartIcon="@Icons.Material.Filled.Delete" Style="margin-left: 5px;">
+                            Delete
+                        </MudButton>
+                    }
+                </div>
+            </MudItem>
+        </MudItem>
+    </EditFormContent>
+
+</EntityTable>

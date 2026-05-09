@@ -1,0 +1,60 @@
+@page "/water/trouble-tickets"
+
+<PageHeader Title="Trouble Tickets" Header="Trouble Tickets" SubHeader="Manage meter issue reports." />
+
+<EntityTable @ref="_table" TEntity="MeterTroubleTicketResponse" TId="Guid" TRequest="MeterTroubleTicketViewModel" Context="@Context">
+
+    <AdvancedSearchContent>
+    </AdvancedSearchContent>
+
+    <EditFormContent>
+        @if (!Context.AddEditModal.IsCreate)
+        {
+            <MudItem xs="12" md="6">
+                <MudTextField Value="context.Id" Underline=false ReadOnly Label="Ticket Id" />
+            </MudItem>
+        }
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Meter Id" For="@(() => context.MeterId)" @bind-Value="context.MeterId" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Issue Description" For="@(() => context.IssueDescription)" @bind-Value="context.IssueDescription" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Reported Date" For="@(() => context.ReportedDate)" @bind-Value="context.ReportedDate" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudSelect T="TicketStatus" Label="Status" @bind-Value="context.Status">
+                <MudSelectItem T="TicketStatus" Value="TicketStatus._0">Open</MudSelectItem>
+                <MudSelectItem T="TicketStatus" Value="TicketStatus._1">In Progress</MudSelectItem>
+                <MudSelectItem T="TicketStatus" Value="TicketStatus._2">Resolved</MudSelectItem>
+                <MudSelectItem T="TicketStatus" Value="TicketStatus._3">Closed</MudSelectItem>
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Resolved Date" For="@(() => context.ResolvedDate)" @bind-Value="context.ResolvedDate" />
+        </MudItem>
+        <MudItem xs="12" md="12">
+            <MudTextField Label="Resolution Notes" For="@(() => context.ResolutionNotes)" @bind-Value="context.ResolutionNotes" />
+        </MudItem>
+        <MudItem xs="12" md="12">
+            <MudItem>
+                <div>
+                    @if(!Context.AddEditModal.IsCreate)
+                    {
+                        <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" Target="_blank"
+                            StartIcon="@Icons.Material.Filled.RemoveRedEye" Style="margin-left: 5px;" >
+                            View
+                        </MudButton>
+
+                        <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Error" Size="Size.Small"
+                                   StartIcon="@Icons.Material.Filled.Delete" Style="margin-left: 5px;">
+                            Delete
+                        </MudButton>
+                    }
+                </div>
+            </MudItem>
+        </MudItem>
+    </EditFormContent>
+
+</EntityTable>

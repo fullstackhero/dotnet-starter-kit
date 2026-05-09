@@ -1,4 +1,4 @@
-﻿<PersonCard Style="background-color: var(--mud-palette-drawer-background);color: var(--mud-palette-drawer-text); margin-bottom:0px!important" />
+<PersonCard Style="background-color: var(--mud-palette-drawer-background);color: var(--mud-palette-drawer-text); margin-bottom:0px!important" />
 <MudNavMenu>
     <MudText Typo="Typo.subtitle2" Color="Color.Surface" Class="ml-4 my-3">Start</MudText>
     <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
@@ -12,6 +12,39 @@
          <MudNavLink Href="/catalog/products" Icon="@Icons.Material.Filled.ShoppingBag" Class="fsh-nav-child">Products</MudNavLink>
         <MudNavLink Href="/catalog/brands" Icon="@Icons.Material.Filled.Label" Class="fsh-nav-child">Brands</MudNavLink>
     </MudNavGroup>
+    @if (_canViewCustomers || _canViewMeters || _canViewMeterReadings || _canViewBills || _canViewPayments || _canViewTariffs || _canViewTroubleTickets)
+    {
+        <MudNavGroup Title="Water" Icon="@Icons.Material.Filled.WaterDrop">
+            @if (_canViewCustomers)
+            {
+                <MudNavLink Href="/water/customers" Icon="@Icons.Material.Filled.People" Class="fsh-nav-child">Customers</MudNavLink>
+            }
+            @if (_canViewMeters)
+            {
+                <MudNavLink Href="/water/meters" Icon="@Icons.Material.Filled.Speed" Class="fsh-nav-child">Meters</MudNavLink>
+            }
+            @if (_canViewMeterReadings)
+            {
+                <MudNavLink Href="/water/meter-readings" Icon="@Icons.Material.Filled.TableView" Class="fsh-nav-child">Readings</MudNavLink>
+            }
+            @if (_canViewBills)
+            {
+                <MudNavLink Href="/water/bills" Icon="@Icons.Material.Filled.Receipt" Class="fsh-nav-child">Bills</MudNavLink>
+            }
+            @if (_canViewPayments)
+            {
+                <MudNavLink Href="/water/payments" Icon="@Icons.Material.Filled.Payments" Class="fsh-nav-child">Payments</MudNavLink>
+            }
+            @if (_canViewTariffs)
+            {
+                <MudNavLink Href="/water/tariffs" Icon="@Icons.Material.Filled.PriceChange" Class="fsh-nav-child">Tariffs</MudNavLink>
+            }
+            @if (_canViewTroubleTickets)
+            {
+                <MudNavLink Href="/water/trouble-tickets" Icon="@Icons.Material.Filled.BugReport" Class="fsh-nav-child">Tickets</MudNavLink>
+            }
+        </MudNavGroup>
+    }
     <MudNavLink Href="/todos" Icon="@Icons.Material.Filled.Checklist" Class="fsh-nav-child">Todos</MudNavLink>
     @if (CanViewAdministrationGroup)
     {

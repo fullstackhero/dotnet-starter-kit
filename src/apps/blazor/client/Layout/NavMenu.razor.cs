@@ -1,4 +1,4 @@
-﻿using FSH.Starter.Blazor.Infrastructure.Auth;
+using FSH.Starter.Blazor.Infrastructure.Auth;
 using FSH.Starter.Shared.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
@@ -22,6 +22,13 @@ public partial class NavMenu
     private bool _canViewTodos;
     private bool _canViewTenants;
     private bool _canViewAuditTrails;
+    private bool _canViewCustomers;
+    private bool _canViewMeters;
+    private bool _canViewMeterReadings;
+    private bool _canViewBills;
+    private bool _canViewPayments;
+    private bool _canViewTariffs;
+    private bool _canViewTroubleTickets;
     private bool CanViewAdministrationGroup => _canViewUsers || _canViewRoles || _canViewTenants;
 
     protected override async Task OnParametersSetAsync()
@@ -36,5 +43,12 @@ public partial class NavMenu
         _canViewTodos = await AuthService.HasPermissionAsync(user, FshActions.View, FshResources.Todos);
         _canViewTenants = await AuthService.HasPermissionAsync(user, FshActions.View, FshResources.Tenants);
         _canViewAuditTrails = await AuthService.HasPermissionAsync(user, FshActions.View, FshResources.AuditTrails);
+        _canViewCustomers = await AuthService.HasPermissionAsync(user, FshActions.View, FshResources.Customers);
+        _canViewMeters = await AuthService.HasPermissionAsync(user, FshActions.View, FshResources.Meters);
+        _canViewMeterReadings = await AuthService.HasPermissionAsync(user, FshActions.View, FshResources.MeterReadings);
+        _canViewBills = await AuthService.HasPermissionAsync(user, FshActions.View, FshResources.Bills);
+        _canViewPayments = await AuthService.HasPermissionAsync(user, FshActions.View, FshResources.Payments);
+        _canViewTariffs = await AuthService.HasPermissionAsync(user, FshActions.View, FshResources.Tariffs);
+        _canViewTroubleTickets = await AuthService.HasPermissionAsync(user, FshActions.View, FshResources.MeterTroubleTickets);
     }
 }

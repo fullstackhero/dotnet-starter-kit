@@ -1,0 +1,58 @@
+@page "/water/tariffs"
+
+<PageHeader Title="Tariffs" Header="Tariffs" SubHeader="Manage water pricing tariffs." />
+
+<EntityTable @ref="_table" TEntity="TariffResponse" TId="Guid" TRequest="TariffViewModel" Context="@Context">
+
+    <AdvancedSearchContent>
+    </AdvancedSearchContent>
+
+    <EditFormContent>
+        @if (!Context.AddEditModal.IsCreate)
+        {
+            <MudItem xs="12" md="6">
+                <MudTextField Value="context.Id" Underline=false ReadOnly Label="Tariff Id" />
+            </MudItem>
+        }
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Name" For="@(() => context.Name)" @bind-Value="context.Name" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Description" For="@(() => context.Description)" @bind-Value="context.Description" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudDatePicker Label="Effective Date" @bind-Date="context.EffectiveDate" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudDatePicker Label="End Date" @bind-Date="context.EndDate" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Rate Per Unit" For="@(() => context.RatePerUnit)" @bind-Value="context.RatePerUnit" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudTextField Label="Fixed Charge" For="@(() => context.FixedCharge)" @bind-Value="context.FixedCharge" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudSwitch T="bool" Value="context.IsActive.GetValueOrDefault()" ValueChanged="v => context.IsActive = v" Color="Color.Primary" Label="Is Active" />
+        </MudItem>
+        <MudItem xs="12" md="12">
+            <MudItem>
+                <div>
+                    @if(!Context.AddEditModal.IsCreate)
+                    {
+                        <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" Target="_blank"
+                            StartIcon="@Icons.Material.Filled.RemoveRedEye" Style="margin-left: 5px;" >
+                            View
+                        </MudButton>
+
+                        <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Error" Size="Size.Small"
+                                   StartIcon="@Icons.Material.Filled.Delete" Style="margin-left: 5px;">
+                            Delete
+                        </MudButton>
+                    }
+                </div>
+            </MudItem>
+        </MudItem>
+    </EditFormContent>
+
+</EntityTable>
