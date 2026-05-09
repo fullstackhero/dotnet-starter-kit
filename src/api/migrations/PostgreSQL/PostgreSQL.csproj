@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>FSH.Starter.WebApi.Migrations.PostgreSQL</RootNamespace>
     <AssemblyName>FSH.Starter.WebApi.Migrations.PostgreSQL</AssemblyName>
@@ -7,11 +7,13 @@
     <ProjectReference Include="..\..\framework\Infrastructure\Infrastructure.csproj" />
     <ProjectReference Include="..\..\modules\Catalog\Catalog.Infrastructure\Catalog.Infrastructure.csproj" />
     <ProjectReference Include="..\..\modules\Todo\Todo.csproj" />
+    <ProjectReference Include="..\..\modules\Water\Water.Infrastructure\Water.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Catalog\" />
     <Folder Include="Identity\" />
     <Folder Include="Tenant\" />
     <Folder Include="Todo\" />
+    <Folder Include="Water\" />
   </ItemGroup>
 </Project>

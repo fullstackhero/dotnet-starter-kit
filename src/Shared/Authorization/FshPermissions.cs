@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 
 namespace FSH.Starter.Shared.Authorization;
 
@@ -51,6 +51,56 @@ public static class FshPermissions
         new("Update Todos", FshActions.Update, FshResources.Todos),
         new("Delete Todos", FshActions.Delete, FshResources.Todos),
         new("Export Todos", FshActions.Export, FshResources.Todos),
+
+        //water - customers
+        new("View Customers", FshActions.View, FshResources.Customers, IsBasic: true),
+        new("Search Customers", FshActions.Search, FshResources.Customers, IsBasic: true),
+        new("Create Customers", FshActions.Create, FshResources.Customers),
+        new("Update Customers", FshActions.Update, FshResources.Customers),
+        new("Delete Customers", FshActions.Delete, FshResources.Customers),
+        new("Export Customers", FshActions.Export, FshResources.Customers),
+
+        //water - meters
+        new("View Meters", FshActions.View, FshResources.Meters, IsBasic: true),
+        new("Search Meters", FshActions.Search, FshResources.Meters, IsBasic: true),
+        new("Create Meters", FshActions.Create, FshResources.Meters),
+        new("Update Meters", FshActions.Update, FshResources.Meters),
+        new("Delete Meters", FshActions.Delete, FshResources.Meters),
+        new("Export Meters", FshActions.Export, FshResources.Meters),
+
+        //water - meter readings
+        new("View Meter Readings", FshActions.View, FshResources.MeterReadings, IsBasic: true),
+        new("Search Meter Readings", FshActions.Search, FshResources.MeterReadings, IsBasic: true),
+        new("Create Meter Readings", FshActions.Create, FshResources.MeterReadings),
+        new("Export Meter Readings", FshActions.Export, FshResources.MeterReadings),
+
+        //water - bills
+        new("View Bills", FshActions.View, FshResources.Bills, IsBasic: true),
+        new("Search Bills", FshActions.Search, FshResources.Bills, IsBasic: true),
+        new("Create Bills", FshActions.Create, FshResources.Bills),
+        new("Export Bills", FshActions.Export, FshResources.Bills),
+
+        //water - payments
+        new("View Payments", FshActions.View, FshResources.Payments, IsBasic: true),
+        new("Search Payments", FshActions.Search, FshResources.Payments, IsBasic: true),
+        new("Create Payments", FshActions.Create, FshResources.Payments),
+        new("Export Payments", FshActions.Export, FshResources.Payments),
+
+        //water - tariffs
+        new("View Tariffs", FshActions.View, FshResources.Tariffs, IsBasic: true),
+        new("Search Tariffs", FshActions.Search, FshResources.Tariffs, IsBasic: true),
+        new("Create Tariffs", FshActions.Create, FshResources.Tariffs),
+        new("Update Tariffs", FshActions.Update, FshResources.Tariffs),
+        new("Delete Tariffs", FshActions.Delete, FshResources.Tariffs),
+        new("Export Tariffs", FshActions.Export, FshResources.Tariffs),
+
+        //water - trouble tickets
+        new("View Trouble Tickets", FshActions.View, FshResources.MeterTroubleTickets, IsBasic: true),
+        new("Search Trouble Tickets", FshActions.Search, FshResources.MeterTroubleTickets, IsBasic: true),
+        new("Create Trouble Tickets", FshActions.Create, FshResources.MeterTroubleTickets),
+        new("Update Trouble Tickets", FshActions.Update, FshResources.MeterTroubleTickets),
+        new("Delete Trouble Tickets", FshActions.Delete, FshResources.MeterTroubleTickets),
+        new("Export Trouble Tickets", FshActions.Export, FshResources.MeterTroubleTickets),
 
          new("View Hangfire", FshActions.View, FshResources.Hangfire),
          new("View Dashboard", FshActions.View, FshResources.Dashboard),

@@ -1,4 +1,4 @@
-﻿namespace FSH.Starter.Shared.Authorization;
+namespace FSH.Starter.Shared.Authorization;
 public static class FshResources
 {
     public const string Tenants = nameof(Tenants);
@@ -11,5 +11,12 @@ public static class FshResources
     public const string Products = nameof(Products);
     public const string Brands = nameof(Brands);
     public const string Todos = nameof(Todos);
+    public const string Customers = nameof(Customers);
+    public const string Meters = nameof(Meters);
+    public const string MeterReadings = nameof(MeterReadings);
+    public const string Bills = nameof(Bills);
+    public const string Payments = nameof(Payments);
+    public const string Tariffs = nameof(Tariffs);
+    public const string MeterTroubleTickets = nameof(MeterTroubleTickets);
     public const string AuditTrails = nameof(AuditTrails);
 }

@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>FSH.Starter.WebApi.Water.Application</RootNamespace>
+    <AssemblyName>FSH.Starter.WebApi.Water.Application</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\framework\Core\Core.csproj" />
+    <ProjectReference Include="..\Water.Domain\Water.Domain.csproj" />
+  </ItemGroup>
+</Project>
