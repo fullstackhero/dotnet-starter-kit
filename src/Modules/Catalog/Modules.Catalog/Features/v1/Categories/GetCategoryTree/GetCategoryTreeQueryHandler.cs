@@ -20,17 +20,11 @@ public sealed class GetCategoryTreeQueryHandler(CatalogDbContext dbContext)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        var byParent = all
-            .GroupBy(c => c.ParentCategoryId)
-            .ToDictionary(g => g.Key, g => g.ToList());
+        var byParent = all.ToLookup(c => c.ParentCategoryId);
 
         IReadOnlyList<CategoryTreeNodeDto> Build(Guid? parentId)
         {
-            if (!byParent.TryGetValue(parentId, out var children))
-            {
-                return Array.Empty<CategoryTreeNodeDto>();
-            }
-            return children
+            return byParent[parentId]
                 .Select(c => new CategoryTreeNodeDto(c.Id, c.Name, c.Slug, c.Description, Build(c.Id)))
                 .ToList();
         }

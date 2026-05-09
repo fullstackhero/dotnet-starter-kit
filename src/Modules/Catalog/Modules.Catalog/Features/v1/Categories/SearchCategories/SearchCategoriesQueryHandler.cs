@@ -57,10 +57,10 @@ public sealed class SearchCategoriesQueryHandler(CatalogDbContext dbContext)
     private static IQueryable<Category> ApplySort(IQueryable<Category> q, string? sortBy, string? sortDir)
     {
         bool desc = string.Equals(sortDir, "desc", StringComparison.OrdinalIgnoreCase);
-        return (sortBy?.ToLowerInvariant()) switch
+        return (sortBy?.ToUpperInvariant()) switch
         {
-            "slug" => desc ? q.OrderByDescending(c => c.Slug) : q.OrderBy(c => c.Slug),
-            "createdatutc" or "created" => desc
+            "SLUG" => desc ? q.OrderByDescending(c => c.Slug) : q.OrderBy(c => c.Slug),
+            "CREATEDATUTC" or "CREATED" => desc
                 ? q.OrderByDescending(c => c.CreatedAtUtc)
                 : q.OrderBy(c => c.CreatedAtUtc),
             _ => desc ? q.OrderByDescending(c => c.Name) : q.OrderBy(c => c.Name),

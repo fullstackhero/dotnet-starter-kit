@@ -55,10 +55,10 @@ public sealed class SearchBrandsQueryHandler(CatalogDbContext dbContext)
     private static IQueryable<Brand> ApplySort(IQueryable<Brand> q, string? sortBy, string? sortDir)
     {
         bool desc = string.Equals(sortDir, "desc", StringComparison.OrdinalIgnoreCase);
-        return (sortBy?.ToLowerInvariant()) switch
+        return (sortBy?.ToUpperInvariant()) switch
         {
-            "slug" => desc ? q.OrderByDescending(b => b.Slug) : q.OrderBy(b => b.Slug),
-            "createdatutc" or "created" => desc
+            "SLUG" => desc ? q.OrderByDescending(b => b.Slug) : q.OrderBy(b => b.Slug),
+            "CREATEDATUTC" or "CREATED" => desc
                 ? q.OrderByDescending(b => b.CreatedAtUtc)
                 : q.OrderBy(b => b.CreatedAtUtc),
             _ => desc ? q.OrderByDescending(b => b.Name) : q.OrderBy(b => b.Name),

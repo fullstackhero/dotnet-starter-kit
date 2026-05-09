@@ -19,7 +19,7 @@ public sealed class ListTrashedBrandsQueryHandler(CatalogDbContext dbContext)
         int page = query.PageNumber < 1 ? 1 : query.PageNumber;
         int size = query.PageSize is < 1 or > 200 ? 20 : query.PageSize;
 
-        // IgnoreQueryFilters([SoftDelete]) bypasses ONLY the soft-delete filter;
+        // Bypasses the soft-delete filter only. Finbuckle tenant scoping remains active.
         // tenant scoping (Finbuckle) stays in force, so a tenant only sees its
         // own trashed rows. Most-recently-deleted first.
         var q = dbContext.Brands

@@ -20,7 +20,7 @@ public sealed class QuotaOptions
     public string DefaultPlan { get; set; } = "free";
 
     /// <summary>Plan name → per-resource limit map. Use -1 or long.MaxValue for "unlimited".</summary>
-    public Dictionary<string, Dictionary<QuotaResource, long>> Plans { get; set; } = new();
+    public Dictionary<string, Dictionary<QuotaResource, long>> Plans { get; } = new();
 
     /// <summary>
     /// Whether the root/platform tenant is exempt from quota enforcement. Defaults to true; platform

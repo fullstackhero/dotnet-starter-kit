@@ -21,11 +21,17 @@ public sealed class MonthlyInvoiceJob
     public async Task RunAsync(CancellationToken cancellationToken)
     {
         var previous = DateTime.UtcNow.AddMonths(-1);
-        _logger.LogInformation("[Billing] MonthlyInvoiceJob generating invoices for period {Year}-{Month:00}",
-            previous.Year, previous.Month);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("[Billing] MonthlyInvoiceJob generating invoices for period {Year}-{Month:00}",
+                previous.Year, previous.Month);
+        }
 
         var count = await _billing.GenerateInvoicesForAllTenantsAsync(previous.Year, previous.Month, cancellationToken).ConfigureAwait(false);
-        _logger.LogInformation("[Billing] MonthlyInvoiceJob generated {Count} draft invoices for {Year}-{Month:00}",
-            count, previous.Year, previous.Month);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("[Billing] MonthlyInvoiceJob generated {Count} draft invoices for {Year}-{Month:00}",
+                count, previous.Year, previous.Month);
+        }
     }
 }
