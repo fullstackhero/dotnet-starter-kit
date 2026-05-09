@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 
 namespace FSH.Modules.Identity.Contracts.Services;
 
@@ -9,7 +9,7 @@ public interface IIdentityService
     /// </summary>
     /// <param name="email">User email or username</param>
     /// <param name="password">User password</param>
-    /// <param name="tenant">Optional tenant ID</param>
+    /// <param name="twoFactorCode">Optional two-factor authentication code</param>
     /// <param name="ct">Cancellation token</param>
     /// <returns>Subject ID and claims, or null if invalid</returns>
     Task<(string Subject, IEnumerable<Claim> Claims)?>

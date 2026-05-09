@@ -68,12 +68,12 @@ public sealed class SearchProductsQueryHandler(CatalogDbContext dbContext)
         // Default to descending unless caller explicitly opts into ascending —
         // admins typically want newest-first when they don't pick a direction.
         bool desc = !string.Equals(sortDir, "asc", StringComparison.OrdinalIgnoreCase);
-        return (sortBy?.ToLowerInvariant()) switch
+        return (sortBy?.ToUpperInvariant()) switch
         {
-            "name" => desc ? q.OrderByDescending(p => p.Name) : q.OrderBy(p => p.Name),
-            "sku" => desc ? q.OrderByDescending(p => p.Sku) : q.OrderBy(p => p.Sku),
-            "stock" => desc ? q.OrderByDescending(p => p.Stock) : q.OrderBy(p => p.Stock),
-            "price" => desc
+            "NAME" => desc ? q.OrderByDescending(p => p.Name) : q.OrderBy(p => p.Name),
+            "SKU" => desc ? q.OrderByDescending(p => p.Sku) : q.OrderBy(p => p.Sku),
+            "STOCK" => desc ? q.OrderByDescending(p => p.Stock) : q.OrderBy(p => p.Stock),
+            "PRICE" => desc
                 ? q.OrderByDescending(p => p.Price.Amount)
                 : q.OrderBy(p => p.Price.Amount),
             _ => desc

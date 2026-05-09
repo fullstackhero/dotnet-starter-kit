@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<RootNamespace>FSH.Framework.Storage</RootNamespace>
@@ -16,7 +16,7 @@
 	<ItemGroup>
 		<PackageReference Include="Finbuckle.MultiTenant" />
 		<PackageReference Include="Finbuckle.MultiTenant.Abstractions" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+
 	</ItemGroup>
 	
 	<ItemGroup>

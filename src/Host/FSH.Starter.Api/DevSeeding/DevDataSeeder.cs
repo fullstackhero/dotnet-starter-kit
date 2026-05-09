@@ -18,7 +18,7 @@ namespace FSH.Starter.Api.DevSeeding;
 /// idempotent — every step checks before creating, so subsequent restarts are no-ops.
 ///
 /// Activation:
-///   - Only registered when <see cref="IHostEnvironment.IsDevelopment"/>.
+///   - Only registered when <c>IHostEnvironment.IsDevelopment()</c>.
 ///   - Additionally gated on <c>Seed:Demo == true</c> in configuration so a developer can
 ///     opt out without code changes.
 ///
@@ -87,7 +87,10 @@ internal sealed class DevDataSeeder : BackgroundService
             await SeedRootSuperAdminAsync(stoppingToken).ConfigureAwait(false);
             await SeedTenantUsersAsync(Acme, stoppingToken).ConfigureAwait(false);
             await SeedTenantUsersAsync(Globex, stoppingToken).ConfigureAwait(false);
-            _logger.LogInformation("[DevDataSeeder] complete · superadmin@root.com · acme + globex demo users · password '{Password}'", SharedPassword);
+            if (_logger.IsEnabled(LogLevel.Information))
+            {
+                _logger.LogInformation("[DevDataSeeder] complete · superadmin@root.com · acme + globex demo users · password '{Password}'", SharedPassword);
+            }
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -107,7 +110,10 @@ internal sealed class DevDataSeeder : BackgroundService
                 continue;
             }
 
-            _logger.LogInformation("[DevDataSeeder] creating demo tenant '{TenantId}'", demo.Id);
+            if (_logger.IsEnabled(LogLevel.Information))
+            {
+                _logger.LogInformation("[DevDataSeeder] creating demo tenant '{TenantId}'", demo.Id);
+            }
             await tenantService.CreateAsync(
                 demo.Id,
                 demo.Name,
@@ -195,7 +201,10 @@ internal sealed class DevDataSeeder : BackgroundService
             {
                 role = new FshRole(demoRole.Name, demoRole.Description);
                 await roleManager.CreateAsync(role).ConfigureAwait(false);
-                _logger.LogInformation("[DevDataSeeder] [{Tenant}] created custom role '{Role}'", tenant.Id, demoRole.Name);
+                if (_logger.IsEnabled(LogLevel.Information))
+                {
+                    _logger.LogInformation("[DevDataSeeder] [{Tenant}] created custom role '{Role}'", tenant.Id, demoRole.Name);
+                }
             }
 
             var existingClaims = await roleManager.GetClaimsAsync(role).ConfigureAwait(false);
@@ -312,20 +321,23 @@ internal sealed class DevDataSeeder : BackgroundService
             return;
         }
 
-        _logger.LogInformation(
-            "[DevDataSeeder] aligned '{Email}' to shared dev password", user.Email);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation(
+                "[DevDataSeeder] aligned '{Email}' to shared dev password", user.Email);
+        }
     }
 
     // ─── Demo content (mirrors clients/dashboard/src/pages/login.demo-accounts.ts) ───
 
-    public sealed record DemoTenant(string Id, string Name, string AdminEmail, string Issuer, bool Populated);
-    public sealed record DemoUser(
+    internal sealed record DemoTenant(string Id, string Name, string AdminEmail, string Issuer, bool Populated);
+    internal sealed record DemoUser(
         string UserName,
         string Email,
         string FirstName,
         string LastName,
         IReadOnlyList<string> Roles);
-    public sealed record DemoRole(string Name, string Description, IReadOnlyList<string> Permissions);
+    internal sealed record DemoRole(string Name, string Description, IReadOnlyList<string> Permissions);
 
     private static IReadOnlyList<DemoUser> BuildRootUsers() =>
     [
