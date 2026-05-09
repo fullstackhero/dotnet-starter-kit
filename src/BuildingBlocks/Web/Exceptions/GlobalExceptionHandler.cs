@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
+using System;
 using FSH.Framework.Core.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
@@ -52,10 +53,23 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
                 problemDetails.Extensions["errors"] = e.ErrorMessages;
             }
         }
+        else if (exception is UnauthorizedAccessException)
+        {
+            statusCode = StatusCodes.Status401Unauthorized;
+            problemDetails.Status = statusCode;
+            problemDetails.Title = "Unauthorized";
+            problemDetails.Detail = exception.Message;
+        }
+        else if (exception is KeyNotFoundException)
+        {
+            statusCode = StatusCodes.Status404NotFound;
+            problemDetails.Status = statusCode;
+            problemDetails.Title = "Not Found";
+            problemDetails.Detail = exception.Message;
+        }
         else
         {
             statusCode = StatusCodes.Status500InternalServerError;
-
             problemDetails.Status = statusCode;
             problemDetails.Title = "An unexpected error occurred";
             problemDetails.Detail = "An unexpected error occurred. Please try again later.";

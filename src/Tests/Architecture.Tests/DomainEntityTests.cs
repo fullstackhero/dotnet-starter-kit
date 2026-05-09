@@ -1,7 +1,4 @@
 using FSH.Framework.Core.Domain;
-using FSH.Modules.Auditing;
-using FSH.Modules.Identity;
-using FSH.Modules.Multitenancy;
 using NetArchTest.Rules;
 using Shouldly;
 using System.Reflection;
@@ -14,12 +11,7 @@ namespace Architecture.Tests;
 /// </summary>
 public class DomainEntityTests
 {
-    private static readonly Assembly[] ModuleAssemblies =
-    [
-        typeof(AuditingModule).Assembly,
-        typeof(IdentityModule).Assembly,
-        typeof(MultitenancyModule).Assembly
-    ];
+    private static readonly Assembly[] ModuleAssemblies = ModuleAssemblyDiscovery.GetModuleAssemblies();
 
     [Fact]
     public void Domain_Events_Should_Implement_IDomainEvent()
@@ -157,11 +149,9 @@ public class DomainEntityTests
             }
         }
 
-        // This is a warning, not a hard failure
-        // Log as informational - aggregate references should be by ID in strict DDD
-        // but some designs allow direct references within the same bounded context
-        // Assert that we processed aggregates (test ran successfully)
-        failures.ShouldNotBeNull();
+        failures.ShouldBeEmpty(
+            $"Aggregate roots should not directly reference other aggregate roots — use ID references instead. " +
+            $"Violations: {string.Join(", ", failures)}");
     }
 
     [Fact]

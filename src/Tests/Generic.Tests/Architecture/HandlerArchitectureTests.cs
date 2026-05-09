@@ -10,12 +10,7 @@ namespace Generic.Tests.Architecture;
 /// </summary>
 public sealed class HandlerArchitectureTests
 {
-    private static readonly Assembly[] ModuleAssemblies =
-    [
-        typeof(FSH.Modules.Auditing.AuditingModule).Assembly,
-        typeof(FSH.Modules.Identity.IdentityModule).Assembly,
-        typeof(FSH.Modules.Multitenancy.MultitenancyModule).Assembly
-    ];
+    private static readonly Assembly[] ModuleAssemblies = ModuleAssemblyDiscovery.GetModuleAssemblies();
 
     [Fact]
     public void QueryHandlers_Should_FollowNamingConvention()

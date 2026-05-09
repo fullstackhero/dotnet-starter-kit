@@ -6,6 +6,9 @@ using FSH.Framework.Mailing;
 using FSH.Framework.Mailing.Services;
 using FSH.Framework.Persistence;
 using FSH.Framework.Shared.Multitenancy;
+using Microsoft.AspNetCore.WebUtilities;
+using System.Text;
+using FSH.Modules.Multitenancy.Data;
 using FSH.Framework.Web.Modules;
 using Hangfire;
 using Hangfire.InMemory;
@@ -22,6 +25,7 @@ namespace Integration.Tests.Infrastructure;
 
 public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
+    private static readonly SemaphoreSlim _migrationLock = new(1, 1);
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
         .WithImage("postgres:17-alpine")
         .WithDatabase("fsh_integration_tests")
@@ -39,9 +43,17 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
         _ = Server;
 
         // Run migrations and seed data for the root tenant.
-        // We do this explicitly rather than relying on Hangfire background jobs
-        // to guarantee deterministic ordering: migrate ALL schemas first, then seed.
-        await ProvisionRootTenantAsync();
+        // We use a semaphore to prevent multiple test classes (which might share the same DB)
+        // from attempting to migrate simultaneously.
+        await _migrationLock.WaitAsync();
+        try
+        {
+            await ProvisionRootTenantAsync();
+        }
+        finally
+        {
+            _migrationLock.Release();
+        }
     }
 
     public new async Task DisposeAsync()
@@ -92,19 +104,23 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
 
         builder.ConfigureServices(services =>
         {
-            // Replace Hangfire: use InMemory storage and a single fast-polling server.
-            // Remove ALL existing Hangfire hosted services (production registers a 30s-polling
-            // server + stale lock cleanup that tries to hit PostgreSQL Hangfire schema).
-            // Remove hosted services that depend on infrastructure not available in tests:
+            // Remove hosted services that depend on infrastructure not available in tests or cause race conditions:
+            // - TenantStoreInitializerHostedService (causes race conditions during migration)
+            // - RolePermissionSyncHostedService (queries identity schema before migrations run)
             // - Hangfire server + stale lock cleanup (we register our own InMemory server below)
             // - OutboxDispatcherHostedService (queries OutboxMessages table before migrations run)
             var hostedServicesToRemove = services
-                .Where(d => d.ServiceType == typeof(IHostedService)
-                    && (d.ImplementationType?.FullName?.Contains("Hangfire", StringComparison.Ordinal) == true
-                        || d.ImplementationType?.Name == "HangfireStaleLockCleanupService"
-                        || d.ImplementationType?.Name == "OutboxDispatcherHostedService"))
+                .Where(d => d.ServiceType == typeof(IHostedService) && 
+                    (d.ImplementationType?.Name == "TenantStoreInitializerHostedService" || 
+                     d.ImplementationType?.Name == "RolePermissionSyncHostedService" ||
+                     d.ImplementationType?.FullName?.Contains("Hangfire", StringComparison.Ordinal) == true ||
+                     d.ImplementationType?.Name == "HangfireStaleLockCleanupService" ||
+                     d.ImplementationType?.Name == "OutboxDispatcherHostedService"))
                 .ToList();
-            foreach (var svc in hostedServicesToRemove) services.Remove(svc);
+            foreach (var service in hostedServicesToRemove)
+            {
+                services.Remove(service);
+            }
 
             services.AddHangfire(config => config.UseInMemoryStorage());
             services.AddHangfireServer(options =>
@@ -146,34 +162,30 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
 
     private async Task ProvisionRootTenantAsync()
     {
-        // Wait for TenantStoreInitializerHostedService (BackgroundService) to
-        // migrate the tenant catalog and seed the root tenant.
-        AppTenantInfo? rootTenant = null;
-        for (int i = 0; i < 60; i++)
-        {
-            try
-            {
-                using var scope = Services.CreateScope();
-                var store = scope.ServiceProvider.GetRequiredService<IMultiTenantStore<AppTenantInfo>>();
-                rootTenant = await store.GetAsync(MultitenancyConstants.Root.Id);
-                if (rootTenant is not null) break;
-            }
-            catch (Exception) when (i < 59)
-            {
-                // Tenant catalog DB not yet migrated — retry
-            }
-
-            await Task.Delay(500);
-        }
-
-        if (rootTenant is null)
-        {
-            throw new TimeoutException("Root tenant was not seeded within 30 seconds.");
-        }
-
-        // Run all module migrations (identity, audit, webhook schemas)
+        // 1. Explicitly migrate the tenant catalog FIRST.
         using (var scope = Services.CreateScope())
         {
+            var tenantDbContext = scope.ServiceProvider.GetRequiredService<TenantDbContext>();
+            await tenantDbContext.Database.MigrateAsync();
+
+            // 2. Seed Root Tenant if missing (ensures we don't wait for background service)
+            var rootTenant = await tenantDbContext.TenantInfo.FindAsync(MultitenancyConstants.Root.Id);
+            if (rootTenant is null)
+            {
+                rootTenant = new AppTenantInfo(
+                    MultitenancyConstants.Root.Id,
+                    MultitenancyConstants.Root.Name,
+                    string.Empty,
+                    MultitenancyConstants.Root.EmailAddress,
+                    issuer: MultitenancyConstants.Root.Issuer);
+
+                var validUpto = DateTime.UtcNow.AddYears(1);
+                rootTenant.SetValidity(validUpto);
+                await tenantDbContext.TenantInfo.AddAsync(rootTenant);
+                await tenantDbContext.SaveChangesAsync();
+            }
+
+            // 3. Run all module migrations (identity, audit, webhook schemas)
             var setter = scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>();
             setter.MultiTenantContext = new MultiTenantContext<AppTenantInfo>(rootTenant);
 
@@ -181,28 +193,14 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
             {
                 await init.MigrateAsync(CancellationToken.None);
             }
-        }
 
-        // Seed all modules (admin user, roles, permissions, groups)
-        using (var scope = Services.CreateScope())
-        {
-            var setter = scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>();
-            setter.MultiTenantContext = new MultiTenantContext<AppTenantInfo>(rootTenant);
-
+            // 4. Seed all modules (admin user, roles, permissions, groups)
             foreach (var init in scope.ServiceProvider.GetServices<IDbInitializer>())
             {
                 await init.SeedAsync(CancellationToken.None);
             }
-        }
 
-        // Run the role-permission syncer through the production code path.
-        // Catches regressions where new module permissions never reach existing
-        // tenants (the bug that produced 401s in dev when the Catalog module was added).
-        using (var scope = Services.CreateScope())
-        {
-            var setter = scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>();
-            setter.MultiTenantContext = new MultiTenantContext<AppTenantInfo>(rootTenant);
-
+            // 5. Run the role-permission syncer through the production code path.
             var syncer = scope.ServiceProvider.GetRequiredService<FSH.Modules.Identity.Authorization.RolePermissionSyncer>();
             await syncer.SyncAsync(CancellationToken.None);
         }

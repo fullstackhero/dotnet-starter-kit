@@ -1,11 +1,6 @@
-using FSH.Modules.Auditing;
-using FSH.Modules.Identity;
-using FSH.Modules.Multitenancy;
 using Mediator;
 using Shouldly;
-using System.Globalization;
 using System.Reflection;
-using System.Text;
 using Xunit;
 
 namespace Architecture.Tests;
@@ -16,12 +11,7 @@ namespace Architecture.Tests;
 /// </summary>
 public class HandlerValidatorPairingTests
 {
-    private static readonly Assembly[] ModuleAssemblies =
-    [
-        typeof(AuditingModule).Assembly,
-        typeof(IdentityModule).Assembly,
-        typeof(MultitenancyModule).Assembly
-    ];
+    private static readonly Assembly[] ModuleAssemblies = ModuleAssemblyDiscovery.GetModuleAssemblies();
 
     [Fact]
     public void CommandHandlers_Should_Have_Corresponding_Validators()
@@ -78,25 +68,10 @@ public class HandlerValidatorPairingTests
             }
         }
 
-        // Report as informational - not all commands require validators (simple commands)
-        // but this helps identify coverage gaps
-        if (missingValidators.Count > 0)
-        {
-            var message = new StringBuilder();
-            message.AppendLine(CultureInfo.InvariantCulture, $"Found {missingValidators.Count} command handler(s) without validators:");
-            foreach (var missing in missingValidators.Take(20)) // Limit output
-            {
-                message.AppendLine(CultureInfo.InvariantCulture, $"  - {missing}");
-            }
-            if (missingValidators.Count > 20)
-            {
-                message.AppendLine(CultureInfo.InvariantCulture, $"  ... and {missingValidators.Count - 20} more");
-            }
-
-            // This is informational - you may want to make this a hard failure
-            // depending on your validation coverage requirements
-            message.ShouldNotBeNull();
-        }
+        missingValidators.ShouldBeEmpty(
+            $"Found {missingValidators.Count} command handler(s) without validators. " +
+            $"Every command handler must have a corresponding FluentValidation validator. " +
+            $"Missing: {string.Join(", ", missingValidators)}");
     }
 
     [Fact]
@@ -205,8 +180,9 @@ public class HandlerValidatorPairingTests
             }
         }
 
-        // Informational check - naming conventions help maintain codebase consistency
-        // Assert that we processed validators (test ran successfully)
-        orphanedValidators.ShouldNotBeNull();
+        orphanedValidators.ShouldBeEmpty(
+            $"Found {orphanedValidators.Count} validator(s) with incorrect naming. " +
+            $"Validators must be named {{CommandName}}Validator or {{CommandName}}CommandValidator. " +
+            $"Violations: {string.Join(", ", orphanedValidators)}");
     }
 }
