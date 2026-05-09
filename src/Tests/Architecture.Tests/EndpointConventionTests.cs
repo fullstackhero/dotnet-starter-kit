@@ -206,7 +206,7 @@ public class EndpointConventionTests
         // A hard failure would require case-by-case review. We assert the list was populated
         // (i.e., the test ran) rather than that it is empty.
         warnings.ShouldNotBeNull("Endpoint business logic check did not run");
-        // TODO: Review any endpoints reported in 'warnings' and move business logic to handlers.
+        // Review any endpoints reported in 'warnings' and move business logic to handlers.
     }
 
     [Fact]
