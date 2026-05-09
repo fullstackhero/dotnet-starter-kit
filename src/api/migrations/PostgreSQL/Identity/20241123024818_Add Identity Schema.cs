@@ -20,6 +20,7 @@ namespace FSH.Starter.WebApi.Migrations.PostgreSQL.Identity
                 schema: "identity",
                 columns: table => new
                 {
+                    
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     Operation = table.Column<string>(type: "text", nullable: true),
