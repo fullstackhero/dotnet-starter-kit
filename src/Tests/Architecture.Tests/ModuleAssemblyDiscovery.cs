@@ -42,10 +42,12 @@ internal static class ModuleAssemblyDiscovery
                 var assemblyName = AssemblyName.GetAssemblyName(file);
                 assemblies.Add(Assembly.Load(assemblyName));
             }
-            catch
+#pragma warning disable CA1031 // Do not catch general exception types
+            catch (Exception)
             {
                 // Skip if not a valid .NET assembly or other load error
             }
+#pragma warning restore CA1031
         }
 
         return assemblies
@@ -67,12 +69,9 @@ public sealed class ModuleAssemblyDiscoveryGuardTests
 
         if (assemblies.Length == 0)
         {
-            var allAssemblies = AppDomain.CurrentDomain.GetAssemblies()
-                .Select(a => a.GetName().Name)
-                .OrderBy(n => n)
-                .ToList();
-            
-            throw new Exception($"ModuleAssemblyDiscovery found no FSH module assemblies. All loaded assemblies: {string.Join(", ", allAssemblies)}");
+            throw new InvalidOperationException(
+                "ModuleAssemblyDiscovery found no FSH module assemblies. " +
+                "Ensure Architecture.Tests.csproj references at least one Modules.* project.");
         }
 
         assemblies.ShouldNotBeEmpty();

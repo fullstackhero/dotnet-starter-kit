@@ -17,7 +17,7 @@
 
 		<!-- Docs -->
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<NoWarn>$(NoWarn);CS1591</NoWarn>
+		<NoWarn>$(NoWarn);CS1591;CA1054;CA1056</NoWarn>
 		<!-- Suppress warning about missing XML docs -->
 
 		<!-- Container tags (if using container builds) -->

@@ -14,9 +14,9 @@ public sealed class TicketComment : BaseEntity<Guid>, ISoftDeletable
     public string Body { get; private set; } = default!;
     public DateTime CreatedAtUtc { get; private set; }
 
-    public bool IsDeleted { get; private set; }
-    public DateTimeOffset? DeletedOnUtc { get; private set; }
-    public string? DeletedBy { get; private set; }
+    public bool IsDeleted { get; }
+    public DateTimeOffset? DeletedOnUtc { get; }
+    public string? DeletedBy { get; }
 
     private TicketComment() { }
 
