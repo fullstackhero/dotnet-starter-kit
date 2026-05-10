@@ -92,7 +92,7 @@ internal sealed class DevDataSeeder : BackgroundService
             await SeedTenantUsersAsync(Globex, stoppingToken).ConfigureAwait(false);
             if (_logger.IsEnabled(LogLevel.Information))
             {
-                _logger.LogInformation("[DevDataSeeder] complete · superadmin@root.com · acme + globex demo users · password '{Password}'", SharedPassword);
+                _logger.LogInformation("[DevDataSeeder] complete · superadmin@root.com · acme + globex demo users seeded (shared dev password configured)");
             }
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
