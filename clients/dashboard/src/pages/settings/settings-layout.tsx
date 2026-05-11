@@ -40,6 +40,14 @@ export function SettingsLayout() {
         subtitle="Manage your profile, security, appearance, and tenant preferences."
       />
 
+      {/* Inset the tabs + outlet to align with the hero's title.
+          PageHero's card extends edge-to-edge, but its eyebrow / title /
+          subtitle live inside `px-6 sm:px-8 md:px-10`. Mirroring that
+          padding here puts the active pill on the same vertical baseline
+          as "Settings" above, instead of flush with the hero card's
+          outer rounded corner. Wrapper takes over the section spacing
+          so the children stay tight. */}
+      <div className="space-y-6 px-6 sm:px-8 md:px-10">
       {/* Pill tab nav. flex-wrap so it lays sensibly on narrow viewports;
           the active pill takes brand-soft + brand text, idle pills sit
           on the surface with a hover hint. */}
@@ -74,6 +82,7 @@ export function SettingsLayout() {
       <section>
         <Outlet />
       </section>
+      </div>
     </div>
   );
 }
