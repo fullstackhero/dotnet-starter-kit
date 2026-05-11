@@ -62,8 +62,11 @@ public sealed class UsageReporter : IUsageReporter
         }
 
         await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-        _logger.LogInformation("[Billing] captured {Count} usage snapshots for tenant {TenantId} period {Year}-{Month:00}",
-            snapshots.Count, tenantId, periodYear, periodMonth);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("[Billing] captured {Count} usage snapshots for tenant {TenantId} period {Year}-{Month:00}",
+                snapshots.Count, tenantId, periodYear, periodMonth);
+        }
         return snapshots;
     }
 }

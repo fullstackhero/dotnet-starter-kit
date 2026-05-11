@@ -75,12 +75,12 @@ public sealed class SearchTicketsQueryHandler(TicketsDbContext dbContext)
     private static IQueryable<Ticket> ApplySort(IQueryable<Ticket> q, string? sortBy, string? sortDir)
     {
         bool desc = !string.Equals(sortDir, "asc", StringComparison.OrdinalIgnoreCase);
-        return (sortBy?.ToLowerInvariant()) switch
+        return (sortBy?.ToUpperInvariant()) switch
         {
-            "title"    => desc ? q.OrderByDescending(t => t.Title)    : q.OrderBy(t => t.Title),
-            "priority" => desc ? q.OrderByDescending(t => t.Priority) : q.OrderBy(t => t.Priority),
-            "status"   => desc ? q.OrderByDescending(t => t.Status)   : q.OrderBy(t => t.Status),
-            "number"   => desc ? q.OrderByDescending(t => t.Number)   : q.OrderBy(t => t.Number),
+            "TITLE"    => desc ? q.OrderByDescending(t => t.Title)    : q.OrderBy(t => t.Title),
+            "PRIORITY" => desc ? q.OrderByDescending(t => t.Priority) : q.OrderBy(t => t.Priority),
+            "STATUS"   => desc ? q.OrderByDescending(t => t.Status)   : q.OrderBy(t => t.Status),
+            "NUMBER"   => desc ? q.OrderByDescending(t => t.Number)   : q.OrderBy(t => t.Number),
             _ => desc ? q.OrderByDescending(t => t.CreatedAtUtc) : q.OrderBy(t => t.CreatedAtUtc),
         };
     }

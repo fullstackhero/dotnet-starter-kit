@@ -84,11 +84,14 @@ public sealed class RolePermissionSyncer(
         await context.RoleClaims.AddRangeAsync(toAdd, cancellationToken).ConfigureAwait(false);
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
-        logger.LogInformation(
-            "Synced {Count} new permission claim(s) to '{Role}' for tenant '{Tenant}'",
-            toAdd.Count,
-            roleName,
-            tenantAccessor.MultiTenantContext.TenantInfo?.Id);
+        if (logger.IsEnabled(LogLevel.Information))
+        {
+            logger.LogInformation(
+                "Synced {Count} new permission claim(s) to '{Role}' for tenant '{Tenant}'",
+                toAdd.Count,
+                roleName,
+                tenantAccessor.MultiTenantContext.TenantInfo?.Id);
+        }
 
         return toAdd.Count;
     }

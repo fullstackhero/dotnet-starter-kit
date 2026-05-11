@@ -1,5 +1,6 @@
 using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Context;
+using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.Services;
@@ -39,7 +40,7 @@ public sealed class SessionService : ISessionService
     {
         if (string.IsNullOrWhiteSpace(_multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id))
         {
-            throw new UnauthorizedAccessException("Invalid tenant");
+            throw new UnauthorizedException("Invalid tenant");
         }
     }
 

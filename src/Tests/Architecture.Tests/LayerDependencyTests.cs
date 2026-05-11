@@ -1,7 +1,4 @@
 using FSH.Framework.Core;
-using FSH.Modules.Auditing;
-using FSH.Modules.Identity;
-using FSH.Modules.Multitenancy;
 using NetArchTest.Rules;
 using Shouldly;
 using System.Reflection;
@@ -15,12 +12,7 @@ namespace Architecture.Tests;
 /// </summary>
 public class LayerDependencyTests
 {
-    private static readonly Assembly[] ModuleAssemblies =
-    [
-        typeof(AuditingModule).Assembly,
-        typeof(IdentityModule).Assembly,
-        typeof(MultitenancyModule).Assembly
-    ];
+    private static readonly Assembly[] ModuleAssemblies = ModuleAssemblyDiscovery.GetModuleAssemblies();
 
     private static readonly Assembly CoreAssembly = typeof(IFshCore).Assembly;
 
