@@ -11,6 +11,8 @@ public class AppTenantInfoConfiguration : IEntityTypeConfiguration<AppTenantInfo
 {
     public void Configure(EntityTypeBuilder<AppTenantInfo> builder)
     {
+        ArgumentNullException.ThrowIfNull(builder);
+
         builder.ToTable("Tenants", MultitenancyConstants.Schema);
 
         builder.Property(t => t.Plan).HasMaxLength(64);

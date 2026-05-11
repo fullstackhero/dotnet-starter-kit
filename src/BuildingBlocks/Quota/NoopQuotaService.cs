@@ -6,7 +6,7 @@ namespace FSH.Framework.Quota;
 /// Used when quota enforcement is disabled via configuration. Every check returns allowed with
 /// an unlimited result so calling code remains unchanged.
 /// </summary>
-internal sealed class NoopQuotaService : IQuotaService
+public sealed class NoopQuotaService : IQuotaService
 {
     public ValueTask<QuotaCheckResult> CheckAsync(string tenantId, QuotaResource resource, long amount, CancellationToken ct = default)
         => ValueTask.FromResult(QuotaCheckResult.Unlimited(resource, 0));

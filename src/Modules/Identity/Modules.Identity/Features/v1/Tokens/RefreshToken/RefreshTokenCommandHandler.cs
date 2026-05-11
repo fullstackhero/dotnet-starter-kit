@@ -1,6 +1,7 @@
 using FSH.Framework.Core.Context;
 using FSH.Modules.Auditing.Contracts;
 using FSH.Modules.Identity.Contracts.Services;
+using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Identity.Contracts.v1.Tokens.RefreshToken;
 using Mediator;
 using Microsoft.Extensions.Logging;
@@ -50,7 +51,7 @@ public sealed class RefreshTokenCommandHandler
         if (validated is null)
         {
             await _securityAudit.TokenRevokedAsync("unknown", clientId!, "InvalidRefreshToken", cancellationToken);
-            throw new UnauthorizedAccessException("Invalid refresh token.");
+            throw new UnauthorizedException("Invalid refresh token.");
         }
 
         var (subject, claims) = validated.Value;
@@ -61,7 +62,7 @@ public sealed class RefreshTokenCommandHandler
         if (!isSessionValid)
         {
             await _securityAudit.TokenRevokedAsync(subject, clientId!, "SessionRevoked", cancellationToken);
-            throw new UnauthorizedAccessException("Session has been revoked.");
+            throw new UnauthorizedException("Session has been revoked.");
         }
 
         // Optionally, cross-check the provided access token subject
@@ -86,7 +87,7 @@ public sealed class RefreshTokenCommandHandler
                 !string.Equals(accessTokenSubject, subject, StringComparison.Ordinal))
             {
                 await _securityAudit.TokenRevokedAsync(subject, clientId!, "RefreshTokenSubjectMismatch", cancellationToken);
-                throw new UnauthorizedAccessException("Access token subject mismatch.");
+                throw new UnauthorizedException("Access token subject mismatch.");
             }
         }
 

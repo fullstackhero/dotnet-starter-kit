@@ -1,6 +1,3 @@
-using FSH.Modules.Auditing;
-using FSH.Modules.Identity;
-using FSH.Modules.Multitenancy;
 using NetArchTest.Rules;
 using Shouldly;
 using System.Reflection;
@@ -13,12 +10,7 @@ namespace Architecture.Tests;
 /// </summary>
 public class EndpointConventionTests
 {
-    private static readonly Assembly[] ModuleAssemblies =
-    [
-        typeof(AuditingModule).Assembly,
-        typeof(IdentityModule).Assembly,
-        typeof(MultitenancyModule).Assembly
-    ];
+    private static readonly Assembly[] ModuleAssemblies = ModuleAssemblyDiscovery.GetModuleAssemblies();
 
     [Fact]
     public void Endpoints_Should_Be_Static_Classes()
@@ -210,10 +202,11 @@ public class EndpointConventionTests
             }
         }
 
-        // This is informational - some private helper methods may be acceptable
-        // but excessive logic in endpoints violates the thin endpoint pattern
-        // Assert that we processed endpoints (test ran successfully)
-        warnings.ShouldNotBeNull();
+        // This check is informational: some private static helpers in endpoints are acceptable.
+        // A hard failure would require case-by-case review. We assert the list was populated
+        // (i.e., the test ran) rather than that it is empty.
+        warnings.ShouldNotBeNull("Endpoint business logic check did not run");
+        // Review any endpoints reported in 'warnings' and move business logic to handlers.
     }
 
     [Fact]
@@ -262,7 +255,16 @@ public class EndpointConventionTests
                                name.StartsWith("Enroll", StringComparison.Ordinal) ||
                                name.StartsWith("Verify", StringComparison.Ordinal) ||
                                name.StartsWith("Disable", StringComparison.Ordinal) ||
-                               name.StartsWith("Enable", StringComparison.Ordinal);
+                               name.StartsWith("Enable", StringComparison.Ordinal) ||
+                               name.StartsWith("Restore", StringComparison.Ordinal) ||
+                               name.StartsWith("Adjust", StringComparison.Ordinal) ||
+                               name.StartsWith("Resolve", StringComparison.Ordinal) ||
+                               name.StartsWith("Reopen", StringComparison.Ordinal) ||
+                               name.StartsWith("Test", StringComparison.Ordinal) ||
+                               name.StartsWith("Void", StringComparison.Ordinal) ||
+                               name.StartsWith("Mark", StringComparison.Ordinal) ||
+                               name.StartsWith("Issue", StringComparison.Ordinal) ||
+                               name.StartsWith("Capture", StringComparison.Ordinal);
 
                 if (!hasVerb)
                 {

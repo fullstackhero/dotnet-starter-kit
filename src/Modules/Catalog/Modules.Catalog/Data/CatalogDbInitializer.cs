@@ -51,10 +51,13 @@ public sealed class CatalogDbInitializer(
 
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
-        logger.LogInformation(
-            "[Catalog] seeded demo data: {BrandCount} brands, {CategoryCount} categories, {ProductCount} products",
-            brands.Count,
-            roots.Count + children.Count,
-            products.Count);
+        if (logger.IsEnabled(LogLevel.Information))
+        {
+            logger.LogInformation(
+                "[Catalog] seeded demo data: {BrandCount} brands, {CategoryCount} categories, {ProductCount} products",
+                brands.Count,
+                roots.Count + children.Count,
+                products.Count);
+        }
     }
 }

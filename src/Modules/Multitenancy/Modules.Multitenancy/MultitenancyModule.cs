@@ -97,6 +97,8 @@ public sealed class MultitenancyModule : IModule
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
+        ArgumentNullException.ThrowIfNull(endpoints);
+
         var versionSet = endpoints.NewApiVersionSet()
             .HasApiVersion(new ApiVersion(1))
             .ReportApiVersions()

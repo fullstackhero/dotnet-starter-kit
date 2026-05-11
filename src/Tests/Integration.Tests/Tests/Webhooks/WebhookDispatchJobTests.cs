@@ -117,13 +117,13 @@ public sealed class WebhookDispatchJobTests
 
         // Unknown subscription — job must NOT throw (avoids Hangfire retry loop on a
         // permanent condition).
-        await job.DispatchAsync(
+        await Should.NotThrowAsync(() => job.DispatchAsync(
             Guid.NewGuid(),
             TestConstants.RootTenantId,
             "noop",
             "{}",
             context: null,
-            cancellationToken: CancellationToken.None);
+            cancellationToken: CancellationToken.None));
     }
 
     [Fact]

@@ -42,8 +42,11 @@ public sealed class BillingService : IBillingService
             .ConfigureAwait(false);
         if (existing is not null)
         {
-            _logger.LogInformation("[Billing] invoice already exists for tenant {TenantId} period {Year}-{Month:00}, skipping",
-                tenantId, periodYear, periodMonth);
+            if (_logger.IsEnabled(LogLevel.Information))
+            {
+                _logger.LogInformation("[Billing] invoice already exists for tenant {TenantId} period {Year}-{Month:00}, skipping",
+                    tenantId, periodYear, periodMonth);
+            }
             return existing;
         }
 
@@ -90,8 +93,11 @@ public sealed class BillingService : IBillingService
 
         _db.Invoices.Add(invoice);
         await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-        _logger.LogInformation("[Billing] generated draft invoice {InvoiceNumber} for tenant {TenantId} period {Year}-{Month:00} total={Total} {Currency}",
-            invoice.InvoiceNumber, tenantId, periodYear, periodMonth, invoice.SubtotalAmount, invoice.Currency);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("[Billing] generated draft invoice {InvoiceNumber} for tenant {TenantId} period {Year}-{Month:00} total={Total} {Currency}",
+                invoice.InvoiceNumber, tenantId, periodYear, periodMonth, invoice.SubtotalAmount, invoice.Currency);
+        }
         return invoice;
     }
 

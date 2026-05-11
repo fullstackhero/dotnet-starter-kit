@@ -81,9 +81,12 @@ public sealed class WebhookDispatchJob
 
         if (subscription is null || !subscription.IsActive)
         {
-            _logger.LogInformation(
-                "Skipping webhook dispatch for subscription {SubscriptionId} (not found or inactive).",
-                subscriptionId);
+            if (_logger.IsEnabled(LogLevel.Information))
+            {
+                _logger.LogInformation(
+                    "Skipping webhook dispatch for subscription {SubscriptionId} (not found or inactive).",
+                    subscriptionId);
+            }
             return;
         }
 
@@ -164,6 +167,7 @@ public sealed class WebhookDispatchJob
 
 public sealed class WebhookDeliveryFailedException : Exception
 {
+    public WebhookDeliveryFailedException() { }
     public WebhookDeliveryFailedException(string message) : base(message) { }
     public WebhookDeliveryFailedException(string message, Exception innerException) : base(message, innerException) { }
 }

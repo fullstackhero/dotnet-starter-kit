@@ -132,8 +132,12 @@ public class SmtpMailService(IOptions<MailOptions> settings, ILogger<SmtpMailSer
 
         try
         {
-            await client.ConnectAsync(_settings.Smtp!.Host, _settings.Smtp.Port, SecureSocketOptions.StartTls, ct);
-            await client.AuthenticateAsync(_settings.Smtp.UserName, _settings.Smtp.Password, ct);
+            await client.ConnectAsync(_settings.Smtp!.Host!, _settings.Smtp.Port, SecureSocketOptions.StartTls, ct);
+            
+            if (!string.IsNullOrWhiteSpace(_settings.Smtp.UserName) && !string.IsNullOrWhiteSpace(_settings.Smtp.Password))
+            {
+                await client.AuthenticateAsync(_settings.Smtp.UserName, _settings.Smtp.Password, ct);
+            }
             await client.SendAsync(email, ct);
         }
         // Broad catch is intentional: any SMTP failure (auth, network, protocol) is logged
