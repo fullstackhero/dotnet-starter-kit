@@ -24,6 +24,10 @@
     <Project Path="Modules/Catalog/Modules.Catalog.Contracts/Modules.Catalog.Contracts.csproj" />
     <Project Path="Modules/Catalog/Modules.Catalog/Modules.Catalog.csproj" />
   </Folder>
+  <Folder Name="/Modules/Files/">
+    <Project Path="Modules/Files/Modules.Files.Contracts/Modules.Files.Contracts.csproj" />
+    <Project Path="Modules/Files/Modules.Files/Modules.Files.csproj" />
+  </Folder>
   <Folder Name="/Modules/Identity/">
     <Project Path="Modules/Identity/Modules.Identity.Contracts/Modules.Identity.Contracts.csproj" />
     <Project Path="Modules/Identity/Modules.Identity/Modules.Identity.csproj" Id="ebeb33cd-9cce-41b0-9bbc-43988dae9a46" />
