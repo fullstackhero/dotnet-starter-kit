@@ -45,6 +45,13 @@ var minio = builder.AddContainer("minio", "minio/minio")
 // Normalize line endings to LF — on Windows the source file is CRLF, and
 // /bin/sh inside the minio/mc container chokes on \r appearing after `do`
 // and `done` ("syntax error near unexpected token `done'").
+//
+// CORS: we configure MinIO to accept browser PUTs from the admin (:5173) and
+// dashboard (:5174) dev origins so the Files module's presigned-URL upload
+// flow works end-to-end without proxying bytes through the API.
+const string AdminOrigin = "http://localhost:5173";
+const string DashboardOrigin = "http://localhost:5174";
+
 var minioInitScript = ($$"""
 until mc alias set local http://minio:9000 "$MC_USER" "$MC_PASS"; do
   echo "waiting for minio...";
@@ -52,6 +59,10 @@ until mc alias set local http://minio:9000 "$MC_USER" "$MC_PASS"; do
 done;
 mc mb --ignore-existing local/{{MinioBucket}};
 mc anonymous set download local/{{MinioBucket}};
+mc admin config set local cors_allow_origin="$ADMIN_ORIGIN,$DASHBOARD_ORIGIN";
+mc admin config set local cors_allow_methods="GET,PUT,HEAD,POST";
+mc admin config set local cors_allow_headers="Content-Type,Authorization,x-amz-*";
+mc admin service restart local;
 """).ReplaceLineEndings("\n");
 
 var minioInit = builder.AddContainer("minio-init", "minio/mc")
@@ -59,6 +70,8 @@ var minioInit = builder.AddContainer("minio-init", "minio/mc")
     .WithArgs("-c", minioInitScript)
     .WithEnvironment("MC_USER", minioUser)
     .WithEnvironment("MC_PASS", minioPassword)
+    .WithEnvironment("ADMIN_ORIGIN", AdminOrigin)
+    .WithEnvironment("DASHBOARD_ORIGIN", DashboardOrigin)
     .WaitFor(minio);
 
 var minioApiEndpoint = minio.GetEndpoint("api");
