@@ -270,7 +270,10 @@ public class EndpointConventionTests
                                name.StartsWith("Set", StringComparison.Ordinal) ||
                                name.StartsWith("Reorder", StringComparison.Ordinal) ||
                                name.StartsWith("Archive", StringComparison.Ordinal) ||
-                               name.StartsWith("Find", StringComparison.Ordinal);
+                               name.StartsWith("Find", StringComparison.Ordinal) ||
+                               name.StartsWith("Edit", StringComparison.Ordinal) ||
+                               name.StartsWith("Send", StringComparison.Ordinal) ||
+                               name.StartsWith("Discover", StringComparison.Ordinal);
 
                 if (!hasVerb)
                 {

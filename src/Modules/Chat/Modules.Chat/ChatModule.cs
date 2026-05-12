@@ -8,10 +8,18 @@ using FSH.Modules.Chat.Data;
 using FSH.Modules.Chat.Features.v1.Channels.AddChannelMembers;
 using FSH.Modules.Chat.Features.v1.Channels.ArchiveChannel;
 using FSH.Modules.Chat.Features.v1.Channels.CreateChannel;
+using FSH.Modules.Chat.Features.v1.Channels.DiscoverChannels;
 using FSH.Modules.Chat.Features.v1.Channels.FindOrCreateDm;
+using FSH.Modules.Chat.Features.v1.Channels.GetChannelById;
+using FSH.Modules.Chat.Features.v1.Channels.ListMyChannels;
+using FSH.Modules.Chat.Features.v1.Channels.MarkChannelRead;
 using FSH.Modules.Chat.Features.v1.Channels.RemoveChannelMember;
 using FSH.Modules.Chat.Features.v1.Channels.RestoreChannel;
 using FSH.Modules.Chat.Features.v1.Channels.UpdateChannel;
+using FSH.Modules.Chat.Features.v1.Messages.DeleteMessage;
+using FSH.Modules.Chat.Features.v1.Messages.EditMessage;
+using FSH.Modules.Chat.Features.v1.Messages.ListChannelMessages;
+using FSH.Modules.Chat.Features.v1.Messages.SendMessage;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -57,13 +65,25 @@ public sealed class ChatModule : IModule
             .WithApiVersionSet(versionSet)
             .RequireAuthorization();
 
+        // Channel reads — literal routes first
+        group.MapListMyChannelsEndpoint();           // GET /channels/me
+        group.MapDiscoverChannelsEndpoint();         // GET /channels/discover
+
         // Channel lifecycle
         group.MapCreateChannelEndpoint();
         group.MapFindOrCreateDmEndpoint();           // POST /dms — literal route comes before /{id}
         group.MapRestoreChannelEndpoint();           // literal /restore must precede catch-alls
         group.MapAddChannelMembersEndpoint();
         group.MapRemoveChannelMemberEndpoint();
+        group.MapMarkChannelReadEndpoint();
         group.MapUpdateChannelEndpoint();
         group.MapArchiveChannelEndpoint();
+        group.MapGetChannelByIdEndpoint();           // GET /channels/{id} — must follow literal routes
+
+        // Messages
+        group.MapListChannelMessagesEndpoint();      // GET /channels/{id}/messages
+        group.MapSendMessageEndpoint();              // POST /channels/{id}/messages
+        group.MapEditMessageEndpoint();              // PUT /messages/{id}
+        group.MapDeleteMessageEndpoint();            // DELETE /messages/{id}
     }
 }
