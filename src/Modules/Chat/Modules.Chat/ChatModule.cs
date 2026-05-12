@@ -5,7 +5,13 @@ using FSH.Framework.Shared.Constants;
 using FSH.Framework.Web.Modules;
 using FSH.Modules.Chat.Contracts.Authorization;
 using FSH.Modules.Chat.Data;
+using FSH.Modules.Chat.Features.v1.Channels.AddChannelMembers;
+using FSH.Modules.Chat.Features.v1.Channels.ArchiveChannel;
 using FSH.Modules.Chat.Features.v1.Channels.CreateChannel;
+using FSH.Modules.Chat.Features.v1.Channels.FindOrCreateDm;
+using FSH.Modules.Chat.Features.v1.Channels.RemoveChannelMember;
+using FSH.Modules.Chat.Features.v1.Channels.RestoreChannel;
+using FSH.Modules.Chat.Features.v1.Channels.UpdateChannel;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -51,6 +57,13 @@ public sealed class ChatModule : IModule
             .WithApiVersionSet(versionSet)
             .RequireAuthorization();
 
+        // Channel lifecycle
         group.MapCreateChannelEndpoint();
+        group.MapFindOrCreateDmEndpoint();           // POST /dms — literal route comes before /{id}
+        group.MapRestoreChannelEndpoint();           // literal /restore must precede catch-alls
+        group.MapAddChannelMembersEndpoint();
+        group.MapRemoveChannelMemberEndpoint();
+        group.MapUpdateChannelEndpoint();
+        group.MapArchiveChannelEndpoint();
     }
 }
