@@ -3,6 +3,7 @@ using FluentValidation;
 using FSH.Framework.Persistence;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Web.Modules;
+using FSH.Framework.Web.Realtime;
 using FSH.Modules.Chat.Contracts.Authorization;
 using FSH.Modules.Chat.Data;
 using FSH.Modules.Chat.Features.v1.Channels.AddChannelMembers;
@@ -20,6 +21,7 @@ using FSH.Modules.Chat.Features.v1.Messages.DeleteMessage;
 using FSH.Modules.Chat.Features.v1.Messages.EditMessage;
 using FSH.Modules.Chat.Features.v1.Messages.ListChannelMessages;
 using FSH.Modules.Chat.Features.v1.Messages.SendMessage;
+using FSH.Modules.Chat.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -45,6 +47,11 @@ public sealed class ChatModule : IModule
         builder.Services.AddHeroDbContext<ChatDbContext>();
         builder.Services.AddScoped<IDbInitializer, ChatDbInitializer>();
         builder.Services.AddValidatorsFromAssembly(typeof(ChatModule).Assembly);
+
+        // Realtime adapters consumed by AppHub (BuildingBlocks/Web). These let the shared hub
+        // verify channel membership and pre-join channel groups without depending on Chat.
+        builder.Services.AddScoped<IChannelMembershipChecker, ChannelMembershipChecker>();
+        builder.Services.AddScoped<IUserChannelLookup, UserChannelLookup>();
 
         builder.Services.AddHealthChecks().AddDbContextCheck<ChatDbContext>(
             name: "db:chat",

@@ -153,10 +153,19 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
             OnMessageReceived = context =>
             {
                 var accessToken = context.Request.Query["access_token"];
-                if (!string.IsNullOrEmpty(accessToken) &&
-                    context.HttpContext.Request.Path.StartsWithSegments("/notifications", StringComparison.OrdinalIgnoreCase))
+                if (string.IsNullOrEmpty(accessToken))
                 {
-                    // Read the token out of the query string
+                    return Task.CompletedTask;
+                }
+
+                var path = context.HttpContext.Request.Path;
+                // Browser EventSource / SignalR cannot send an Authorization header from the
+                // browser context — they authenticate via ?access_token=. The path allow-list
+                // keeps that exemption narrow so cookie-style query-string tokens can't leak
+                // into other endpoints via referrer logs.
+                if (path.StartsWithSegments("/notifications", StringComparison.OrdinalIgnoreCase)
+                    || path.StartsWithSegments("/api/v1/realtime/hub", StringComparison.OrdinalIgnoreCase))
+                {
                     context.Token = accessToken;
                 }
                 return Task.CompletedTask;

@@ -1,16 +1,19 @@
 using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
+using FSH.Framework.Web.Realtime;
 using FSH.Modules.Chat.Contracts.v1.Commands;
 using FSH.Modules.Chat.Data;
 using FSH.Modules.Chat.Features.v1.Internal;
 using Mediator;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Modules.Chat.Features.v1.Channels.MarkChannelRead;
 
 public sealed class MarkChannelReadCommandHandler(
     ChatDbContext db,
-    ICurrentUser currentUser)
+    ICurrentUser currentUser,
+    IHubContext<AppHub> hub)
     : ICommandHandler<MarkChannelReadCommand, Unit>
 {
     public async ValueTask<Unit> Handle(MarkChannelReadCommand cmd, CancellationToken cancellationToken)
@@ -33,6 +36,13 @@ public sealed class MarkChannelReadCommandHandler(
 
         channel.MarkRead(currentUserId, cmd.MessageId);
         await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        // Push to the user's other tabs so the badge clears everywhere at once.
+        await hub.Clients.Group($"user:{currentUserId}")
+            .SendAsync("ChatChannelRead",
+                new { channelId = cmd.ChannelId, lastReadMessageId = cmd.MessageId },
+                cancellationToken)
+            .ConfigureAwait(false);
         return Unit.Value;
     }
 }

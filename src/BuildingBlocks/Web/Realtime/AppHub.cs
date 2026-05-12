@@ -1,0 +1,111 @@
+using FSH.Framework.Core.Context;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Logging;
+
+namespace FSH.Framework.Web.Realtime;
+
+/// <summary>
+/// Single shared SignalR hub for app-wide realtime: chat messages, typing indicators, presence,
+/// notifications. Modules don't depend on this hub directly — they emit through
+/// <see cref="IHubContext{AppHub}"/> and target the well-known SignalR groups.
+///
+/// Group naming convention:
+/// <list type="bullet">
+///   <item><c>user:{userId}</c> — every connection a user has open. Used for cross-channel pushes
+///   (notifications, channel-added, etc.).</item>
+///   <item><c>channel:{channelId}</c> — every connection of every member of that channel. Used
+///   for chat message broadcasts.</item>
+/// </list>
+/// </summary>
+[Authorize]
+public sealed class AppHub : Hub
+{
+    /// <summary>Throttle window for typing indicators per (channel, user).</summary>
+    private static readonly TimeSpan TypingThrottle = TimeSpan.FromSeconds(3);
+
+    private readonly ICurrentUser _currentUser;
+    private readonly IChannelMembershipChecker _membership;
+    private readonly IDistributedCache _cache;
+    private readonly IUserChannelLookup _channels;
+    private readonly ILogger<AppHub> _logger;
+
+    public AppHub(
+        ICurrentUser currentUser,
+        IChannelMembershipChecker membership,
+        IDistributedCache cache,
+        IUserChannelLookup channels,
+        ILogger<AppHub> logger)
+    {
+        _currentUser = currentUser;
+        _membership = membership;
+        _cache = cache;
+        _channels = channels;
+        _logger = logger;
+    }
+
+    public override async Task OnConnectedAsync()
+    {
+        var userId = _currentUser.GetUserId().ToString();
+        if (string.IsNullOrEmpty(userId) || userId == Guid.Empty.ToString())
+        {
+            Context.Abort();
+            return;
+        }
+
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"user:{userId}", Context.ConnectionAborted)
+            .ConfigureAwait(false);
+
+        var channelIds = await _channels
+            .ListMyChannelIdsAsync(userId, Context.ConnectionAborted)
+            .ConfigureAwait(false);
+
+        foreach (var channelId in channelIds)
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"channel:{channelId}", Context.ConnectionAborted)
+                .ConfigureAwait(false);
+        }
+
+        AppHubLog.Connected(_logger, Context.ConnectionId, userId, channelIds.Count);
+
+        await base.OnConnectedAsync().ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Client invokes <c>Typing(channelId)</c> while composing. Throttled to once per 3s per
+    /// (channel, user) via the distributed cache so chatty UIs don't flood the wire.
+    /// </summary>
+    public async Task Typing(Guid channelId)
+    {
+        var userId = _currentUser.GetUserId().ToString();
+        if (string.IsNullOrEmpty(userId)) return;
+
+        if (!await _membership.IsMemberAsync(channelId, userId, Context.ConnectionAborted).ConfigureAwait(false))
+        {
+            return;
+        }
+
+        var key = $"typing:{channelId}:{userId}";
+        var existing = await _cache.GetStringAsync(key, Context.ConnectionAborted).ConfigureAwait(false);
+        if (!string.IsNullOrEmpty(existing)) return;
+
+        await _cache.SetStringAsync(
+                key,
+                "1",
+                new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TypingThrottle },
+                Context.ConnectionAborted)
+            .ConfigureAwait(false);
+
+        await Clients.OthersInGroup($"channel:{channelId}")
+            .SendAsync("ChatTypingStarted", new { channelId, userId }, Context.ConnectionAborted)
+            .ConfigureAwait(false);
+    }
+}
+
+internal static partial class AppHubLog
+{
+    [LoggerMessage(EventId = 1, Level = LogLevel.Debug,
+        Message = "AppHub connection {ConnectionId} for user {UserId} pre-joined {ChannelCount} channel groups")]
+    public static partial void Connected(ILogger logger, string connectionId, string userId, int channelCount);
+}

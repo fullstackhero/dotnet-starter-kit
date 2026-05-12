@@ -1,11 +1,13 @@
 using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
+using FSH.Framework.Web.Realtime;
 using FSH.Modules.Chat.Contracts.Authorization;
 using FSH.Modules.Chat.Contracts.v1.Commands;
 using FSH.Modules.Chat.Data;
 using FSH.Modules.Chat.Features.v1.Internal;
 using FSH.Modules.Identity.Contracts.Services;
 using Mediator;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Modules.Chat.Features.v1.Messages.DeleteMessage;
@@ -13,7 +15,8 @@ namespace FSH.Modules.Chat.Features.v1.Messages.DeleteMessage;
 public sealed class DeleteMessageCommandHandler(
     ChatDbContext db,
     ICurrentUser currentUser,
-    IUserPermissionService permissions)
+    IUserPermissionService permissions,
+    IHubContext<AppHub> hub)
     : ICommandHandler<DeleteMessageCommand, Unit>
 {
     public async ValueTask<Unit> Handle(DeleteMessageCommand cmd, CancellationToken cancellationToken)
@@ -47,6 +50,10 @@ public sealed class DeleteMessageCommandHandler(
         }
 
         await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        await hub.Clients.Group($"channel:{channel.Id}")
+            .SendAsync("ChatMessageDeleted", new { channelId = channel.Id, messageId = message.Id }, cancellationToken)
+            .ConfigureAwait(false);
         return Unit.Value;
     }
 }

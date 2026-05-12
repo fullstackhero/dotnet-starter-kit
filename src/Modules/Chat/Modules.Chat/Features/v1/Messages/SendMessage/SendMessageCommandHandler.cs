@@ -1,19 +1,22 @@
 using System.Net;
 using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
+using FSH.Framework.Web.Realtime;
 using FSH.Modules.Chat.Contracts.v1.Commands;
 using FSH.Modules.Chat.Contracts.v1.DTOs;
 using FSH.Modules.Chat.Data;
 using FSH.Modules.Chat.Domain;
 using FSH.Modules.Chat.Features.v1.Internal;
 using Mediator;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Modules.Chat.Features.v1.Messages.SendMessage;
 
 public sealed class SendMessageCommandHandler(
     ChatDbContext db,
-    ICurrentUser currentUser)
+    ICurrentUser currentUser,
+    IHubContext<AppHub> hub)
     : ICommandHandler<SendMessageCommand, MessageDto>
 {
     public async ValueTask<MessageDto> Handle(SendMessageCommand cmd, CancellationToken cancellationToken)
@@ -62,6 +65,10 @@ public sealed class SendMessageCommandHandler(
 
         await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
-        return message.ToDto();
+        var dto = message.ToDto();
+        await hub.Clients.Group($"channel:{channel.Id}")
+            .SendAsync("ChatMessageCreated", dto, cancellationToken)
+            .ConfigureAwait(false);
+        return dto;
     }
 }

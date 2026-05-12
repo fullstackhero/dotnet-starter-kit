@@ -75,6 +75,7 @@ builder.AddHeroPlatform(o =>
     o.EnableJobs = true;
     o.EnableQuotas = true;
     o.EnableSse = true;
+    o.EnableRealtime = true;
 });
 
 builder.AddModules(moduleAssemblies);
@@ -93,6 +94,7 @@ app.UseHeroPlatform(p =>
     p.ServeStaticFiles = true;
     p.UseQuotas = true;
     p.MapSseEndpoints = true;
+    p.MapRealtime = true;
 });
 
 app.MapGet("/", () => Results.Ok(new { message = "hello world!" }))

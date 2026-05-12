@@ -18,6 +18,7 @@ using FSH.Framework.Web.Observability.OpenTelemetry;
 using FSH.Framework.Web.OpenApi;
 using FSH.Framework.Web.Origin;
 using FSH.Framework.Web.RateLimiting;
+using FSH.Framework.Web.Realtime;
 using FSH.Framework.Web.Security;
 using FSH.Framework.Web.Versioning;
 using Microsoft.AspNetCore.Builder;
@@ -118,6 +119,11 @@ public static class Extensions
             builder.Services.AddHeroSse();
         }
 
+        if (options.EnableRealtime)
+        {
+            builder.Services.AddHeroRealtime(builder.Configuration);
+        }
+
         if (options.EnableQuotas)
         {
             builder.Services.AddHeroQuotas(builder.Configuration);
@@ -208,6 +214,11 @@ public static class Extensions
         {
             app.MapHeroSseEndpoints();
         }
+
+        if (options.MapRealtime)
+        {
+            app.MapHeroRealtime();
+        }
         app.UseMiddleware<CurrentUserMiddleware>();
         return app;
     }
@@ -236,6 +247,7 @@ public sealed class FshPlatformOptions
     public bool EnableFeatureFlags { get; set; } = false;
     public bool EnableIdempotency { get; set; } = false;
     public bool EnableSse { get; set; } = false;
+    public bool EnableRealtime { get; set; } = false;
     public bool EnableQuotas { get; set; } = false;
 }
 
@@ -246,5 +258,6 @@ public sealed class FshPipelineOptions
     public bool ServeStaticFiles { get; set; } = true;
     public bool MapModules { get; set; } = true;
     public bool MapSseEndpoints { get; set; } = false;
+    public bool MapRealtime { get; set; } = false;
     public bool UseQuotas { get; set; } = false;
 }
