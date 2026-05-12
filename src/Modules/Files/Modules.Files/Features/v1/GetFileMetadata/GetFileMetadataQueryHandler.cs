@@ -1,3 +1,4 @@
+using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Storage.Services;
 using FSH.Modules.Files.Contracts;
@@ -8,7 +9,6 @@ using FSH.Modules.Files.Domain;
 using FSH.Modules.Files.Features.v1.Internal;
 using FSH.Modules.Files.Services;
 using Mediator;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -17,7 +17,7 @@ namespace FSH.Modules.Files.Features.v1.GetFileMetadata;
 internal sealed class GetFileMetadataQueryHandler(
     FilesDbContext db,
     FileAccessPolicyRegistry policies,
-    IHttpContextAccessor httpContext,
+    ICurrentUser currentUser,
     IStorageService storage,
     IOptions<FilesOptions> options)
     : IQueryHandler<GetFileMetadataQuery, FileAssetDto>
@@ -31,12 +31,12 @@ internal sealed class GetFileMetadataQueryHandler(
             .ConfigureAwait(false)
             ?? throw new NotFoundException("file not found");
 
-        var user = httpContext.HttpContext?.User ?? throw new UnauthorizedException("no user");
+        var userId = currentUser.GetUserId().ToString();
         var policy = policies.Resolve(f.OwnerType)
             ?? throw new NotFoundException("file not found"); // don't leak existence on missing policy
 
         var ctx = new FileAccessContext(f.Id, f.OwnerType, f.OwnerId, f.CreatedByUserId, (int)f.Visibility);
-        if (!await policy.CanReadAsync(ctx, user, cancellationToken).ConfigureAwait(false))
+        if (!await policy.CanReadAsync(ctx, userId, cancellationToken).ConfigureAwait(false))
         {
             throw new NotFoundException("file not found");
         }

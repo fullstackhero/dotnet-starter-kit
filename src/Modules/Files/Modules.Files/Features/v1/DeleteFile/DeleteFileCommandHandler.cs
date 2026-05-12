@@ -1,11 +1,10 @@
+using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
-using FSH.Modules.Files.Contracts.Authorization;
 using FSH.Modules.Files.Contracts;
 using FSH.Modules.Files.Contracts.v1.Commands;
 using FSH.Modules.Files.Data;
 using FSH.Modules.Files.Services;
 using Mediator;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Modules.Files.Features.v1.DeleteFile;
@@ -13,7 +12,7 @@ namespace FSH.Modules.Files.Features.v1.DeleteFile;
 internal sealed class DeleteFileCommandHandler(
     FilesDbContext db,
     FileAccessPolicyRegistry policies,
-    IHttpContextAccessor httpContext)
+    ICurrentUser currentUser)
     : ICommandHandler<DeleteFileCommand, Unit>
 {
     public async ValueTask<Unit> Handle(DeleteFileCommand cmd, CancellationToken cancellationToken)
@@ -25,18 +24,13 @@ internal sealed class DeleteFileCommandHandler(
             .ConfigureAwait(false)
             ?? throw new NotFoundException("file not found");
 
-        var user = httpContext.HttpContext?.User ?? throw new UnauthorizedException("no user");
-        var hasDeleteAny = user.HasClaim("Permission", FilesPermissions.DeleteAny);
-
-        if (!hasDeleteAny)
+        var userId = currentUser.GetUserId().ToString();
+        var policy = policies.Resolve(f.OwnerType)
+            ?? throw new ForbiddenException("no policy");
+        var ctx = new FileAccessContext(f.Id, f.OwnerType, f.OwnerId, f.CreatedByUserId, (int)f.Visibility);
+        if (!await policy.CanDeleteAsync(ctx, userId, cancellationToken).ConfigureAwait(false))
         {
-            var policy = policies.Resolve(f.OwnerType)
-                ?? throw new ForbiddenException("no policy");
-            var ctx = new FileAccessContext(f.Id, f.OwnerType, f.OwnerId, f.CreatedByUserId, (int)f.Visibility);
-            if (!await policy.CanDeleteAsync(ctx, user, cancellationToken).ConfigureAwait(false))
-            {
-                throw new ForbiddenException("not allowed to delete this file");
-            }
+            throw new ForbiddenException("not allowed to delete this file");
         }
 
         // Soft-delete: the framework's AuditableEntitySaveChangesInterceptor sets IsDeleted +

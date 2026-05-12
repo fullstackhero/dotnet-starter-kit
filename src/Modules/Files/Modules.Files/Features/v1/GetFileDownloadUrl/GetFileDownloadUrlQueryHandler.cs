@@ -1,3 +1,4 @@
+using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Storage.Services;
 using FSH.Modules.Files.Contracts;
@@ -6,7 +7,6 @@ using FSH.Modules.Files.Contracts.v1.Queries;
 using FSH.Modules.Files.Data;
 using FSH.Modules.Files.Services;
 using Mediator;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -16,7 +16,7 @@ internal sealed class GetFileDownloadUrlQueryHandler(
     FilesDbContext db,
     IStorageService storage,
     FileAccessPolicyRegistry policies,
-    IHttpContextAccessor httpContext,
+    ICurrentUser currentUser,
     IOptions<FilesOptions> options)
     : IQueryHandler<GetFileDownloadUrlQuery, PresignedDownloadResponse>
 {
@@ -29,12 +29,12 @@ internal sealed class GetFileDownloadUrlQueryHandler(
             .ConfigureAwait(false)
             ?? throw new NotFoundException("file not found");
 
-        var user = httpContext.HttpContext?.User ?? throw new UnauthorizedException("no user");
+        var userId = currentUser.GetUserId().ToString();
         var policy = policies.Resolve(f.OwnerType)
             ?? throw new NotFoundException("file not found");
 
         var ctx = new FileAccessContext(f.Id, f.OwnerType, f.OwnerId, f.CreatedByUserId, (int)f.Visibility);
-        if (!await policy.CanReadAsync(ctx, user, cancellationToken).ConfigureAwait(false))
+        if (!await policy.CanReadAsync(ctx, userId, cancellationToken).ConfigureAwait(false))
         {
             throw new NotFoundException("file not found");
         }

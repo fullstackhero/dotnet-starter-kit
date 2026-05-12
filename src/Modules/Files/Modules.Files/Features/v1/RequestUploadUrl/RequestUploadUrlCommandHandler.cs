@@ -11,7 +11,6 @@ using FSH.Modules.Files.Data;
 using FSH.Modules.Files.Domain;
 using FSH.Modules.Files.Services;
 using Mediator;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
 namespace FSH.Modules.Files.Features.v1.RequestUploadUrl;
@@ -22,7 +21,6 @@ internal sealed class RequestUploadUrlCommandHandler(
     FileAccessPolicyRegistry policies,
     IQuotaService quotas,
     ICurrentUser currentUser,
-    IHttpContextAccessor httpContext,
     IOptions<FilesOptions> options)
     : ICommandHandler<RequestUploadUrlCommand, PresignedUploadResponse>
 {
@@ -62,11 +60,9 @@ internal sealed class RequestUploadUrlCommandHandler(
         }
 
         // Authorization: policy must exist and allow the attach.
-        var principal = httpContext.HttpContext?.User
-            ?? throw new UnauthorizedException("no http context");
         var policy = policies.Resolve(cmd.OwnerType)
             ?? throw new ForbiddenException($"No file access policy registered for owner type '{cmd.OwnerType}'.");
-        if (!await policy.CanAttachAsync(cmd.OwnerId, principal, cancellationToken).ConfigureAwait(false))
+        if (!await policy.CanAttachAsync(cmd.OwnerId, userId.ToString(), cancellationToken).ConfigureAwait(false))
         {
             throw new ForbiddenException("Not allowed to attach files to this owner.");
         }
