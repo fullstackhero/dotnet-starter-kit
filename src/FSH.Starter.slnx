@@ -40,6 +40,10 @@
     <Project Path="Modules/Multitenancy/Modules.Multitenancy.Contracts/Modules.Multitenancy.Contracts.csproj" Id="61165a24-94b0-402c-9d9f-345898ce79c4" />
     <Project Path="Modules/Multitenancy/Modules.Multitenancy/Modules.Multitenancy.csproj" Id="69bca64d-0cf5-4236-8da6-1d775aa2a1cc" />
   </Folder>
+  <Folder Name="/Modules/Notifications/">
+    <Project Path="Modules/Notifications/Modules.Notifications.Contracts/Modules.Notifications.Contracts.csproj" />
+    <Project Path="Modules/Notifications/Modules.Notifications/Modules.Notifications.csproj" />
+  </Folder>
   <Folder Name="/Modules/Tickets/">
     <Project Path="Modules/Tickets/Modules.Tickets.Contracts/Modules.Tickets.Contracts.csproj" />
     <Project Path="Modules/Tickets/Modules.Tickets/Modules.Tickets.csproj" />

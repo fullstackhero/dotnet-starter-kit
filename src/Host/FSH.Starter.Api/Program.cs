@@ -52,7 +52,10 @@ builder.Services.AddMediator(o =>
         typeof(FSH.Modules.Files.Contracts.v1.Commands.RequestUploadUrlCommand),
         typeof(FSH.Modules.Files.FilesModule),
         typeof(FSH.Modules.Chat.Contracts.v1.Commands.CreateChannelCommand),
-        typeof(FSH.Modules.Chat.ChatModule)];
+        typeof(FSH.Modules.Chat.ChatModule)
+        // Notifications markers intentionally omitted until Slice 3.3 adds the first ICommand/IQuery.
+        // Mediator source-gen errors (MSG0007) if a marker assembly doesn't consume Mediator types.
+    ];
 });
 
 var moduleAssemblies = new Assembly[]
@@ -66,6 +69,7 @@ var moduleAssemblies = new Assembly[]
     typeof(CatalogModule).Assembly,
     typeof(TicketsModule).Assembly,
     typeof(FSH.Modules.Chat.ChatModule).Assembly,
+    typeof(FSH.Modules.Notifications.NotificationsModule).Assembly,
 };
 
 builder.AddHeroPlatform(o =>
