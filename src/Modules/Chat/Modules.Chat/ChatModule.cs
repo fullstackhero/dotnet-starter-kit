@@ -24,6 +24,7 @@ using FSH.Modules.Chat.Features.v1.Messages.ListMessageReplies;
 using FSH.Modules.Chat.Features.v1.Messages.SendMessage;
 using FSH.Modules.Chat.Features.v1.Reactions.AddReaction;
 using FSH.Modules.Chat.Features.v1.Reactions.RemoveReaction;
+using FSH.Modules.Chat.Features.v1.Search;
 using FSH.Modules.Chat.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -104,5 +105,8 @@ public sealed class ChatModule : IModule
         // Reactions
         group.MapAddReactionEndpoint();              // POST /messages/{id}/reactions
         group.MapRemoveReactionEndpoint();           // DELETE /messages/{id}/reactions/{emoji}
+
+        // Search
+        group.MapSearchMessagesEndpoint();           // GET /search
     }
 }
