@@ -56,6 +56,7 @@ var moduleAssemblies = new Assembly[]
     typeof(IdentityModule).Assembly,
     typeof(MultitenancyModule).Assembly,
     typeof(AuditingModule).Assembly,
+    typeof(FSH.Modules.Files.FilesModule).Assembly,
     typeof(WebhooksModule).Assembly,
     typeof(BillingModule).Assembly,
     typeof(CatalogModule).Assembly,
