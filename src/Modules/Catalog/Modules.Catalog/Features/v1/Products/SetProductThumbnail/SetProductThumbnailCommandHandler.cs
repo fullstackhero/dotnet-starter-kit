@@ -18,6 +18,13 @@ public sealed class SetProductThumbnailCommandHandler(CatalogDbContext dbContext
             .ConfigureAwait(false)
             ?? throw new NotFoundException($"Product {command.ProductId} not found.");
 
+        // Domain throws InvalidOperationException for unknown imageId; translate to a
+        // framework-aware 404 so the API surfaces NotFound rather than a 500.
+        if (!product.Images.Any(i => i.Id == command.ImageId))
+        {
+            throw new NotFoundException($"Image {command.ImageId} not found on product {command.ProductId}.");
+        }
+
         product.SetThumbnail(command.ImageId);
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         return Unit.Value;

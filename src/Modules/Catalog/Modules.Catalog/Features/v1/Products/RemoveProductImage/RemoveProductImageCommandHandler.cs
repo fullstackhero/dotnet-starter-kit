@@ -18,6 +18,12 @@ public sealed class RemoveProductImageCommandHandler(CatalogDbContext dbContext)
             .ConfigureAwait(false)
             ?? throw new NotFoundException($"Product {command.ProductId} not found.");
 
+        // Domain throws InvalidOperationException for unknown imageId; translate to 404.
+        if (!product.Images.Any(i => i.Id == command.ImageId))
+        {
+            throw new NotFoundException($"Image {command.ImageId} not found on product {command.ProductId}.");
+        }
+
         product.RemoveImage(command.ImageId);
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         return Unit.Value;

@@ -87,6 +87,56 @@ public sealed class ProductImagesTests
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 
+    [Fact]
+    public async Task SetProductThumbnail_Should_Move_The_Cover_To_The_Second_Image()
+    {
+        using var client = await _auth.CreateRootAdminClientAsync();
+        var (brandId, categoryId) = await PickExistingBrandAndCategoryAsync(client);
+        var productId = await CreateProductAsync(client, brandId, categoryId);
+
+        // Attach two images. The first auto-promotes to thumbnail; the second comes in as
+        // non-thumbnail. We want to flip the cover to the second.
+        var firstId = (await AttachImageAsync(client, productId)).Id;
+        var secondId = (await AttachImageAsync(client, productId)).Id;
+
+        // Sanity: state before the flip.
+        var before = await GetProductAsync(client, productId);
+        before.Images.Single(i => i.Id == firstId).IsThumbnail.ShouldBeTrue();
+        before.Images.Single(i => i.Id == secondId).IsThumbnail.ShouldBeFalse();
+
+        // Promote the second image to thumbnail.
+        using var promote = await client.PutAsync(
+            $"{TestConstants.CatalogBasePath}/products/{productId}/images/{secondId}/thumbnail",
+            content: null);
+
+        if (promote.StatusCode != HttpStatusCode.NoContent)
+        {
+            var body = await promote.Content.ReadAsStringAsync();
+            throw new InvalidOperationException($"SetProductThumbnail failed: {promote.StatusCode}\n{body}");
+        }
+
+        // Verify the flip.
+        var after = await GetProductAsync(client, productId);
+        after.Images.Single(i => i.Id == secondId).IsThumbnail.ShouldBeTrue("the second image must become the new cover");
+        after.Images.Single(i => i.Id == firstId).IsThumbnail.ShouldBeFalse("the previous cover must be demoted");
+        after.ThumbnailUrl.ShouldBe(after.Images.Single(i => i.Id == secondId).Url);
+    }
+
+    [Fact]
+    public async Task SetProductThumbnail_Should_Return404_For_Unknown_Image()
+    {
+        using var client = await _auth.CreateRootAdminClientAsync();
+        var (brandId, categoryId) = await PickExistingBrandAndCategoryAsync(client);
+        var productId = await CreateProductAsync(client, brandId, categoryId);
+        // No image attached — ImageId is unknown.
+
+        using var response = await client.PutAsync(
+            $"{TestConstants.CatalogBasePath}/products/{productId}/images/{Guid.NewGuid()}/thumbnail",
+            content: null);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
     // ── helpers ────────────────────────────────────────────────────────────
 
     private static async Task<(Guid BrandId, Guid CategoryId)> PickExistingBrandAndCategoryAsync(HttpClient client)
@@ -126,6 +176,27 @@ public sealed class ProductImagesTests
             throw new InvalidOperationException($"CreateProduct failed: {createResp.StatusCode}\n{body}");
         }
         return await createResp.DeserializeAsync<Guid>();
+    }
+
+    private static async Task<ProductImageDto> AttachImageAsync(HttpClient client, Guid productId)
+    {
+        var (fileAssetId, publicUrl) = await UploadImageAsync(client, productId);
+        using var attach = await client.PostAsJsonAsync(
+            $"{TestConstants.CatalogBasePath}/products/{productId}/images",
+            new { fileAssetId, url = publicUrl });
+        if (attach.StatusCode != HttpStatusCode.OK)
+        {
+            var body = await attach.Content.ReadAsStringAsync();
+            throw new InvalidOperationException($"AttachImage failed: {attach.StatusCode}\n{body}");
+        }
+        return await attach.DeserializeAsync<ProductImageDto>();
+    }
+
+    private static async Task<ProductDto> GetProductAsync(HttpClient client, Guid productId)
+    {
+        using var resp = await client.GetAsync(
+            $"{TestConstants.CatalogBasePath}/products/{productId}");
+        return await resp.DeserializeAsync<ProductDto>();
     }
 
     private static async Task<(Guid FileAssetId, string PublicUrl)> UploadImageAsync(HttpClient client, Guid productId)
