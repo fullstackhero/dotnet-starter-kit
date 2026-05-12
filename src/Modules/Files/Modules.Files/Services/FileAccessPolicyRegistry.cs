@@ -8,7 +8,7 @@ namespace FSH.Modules.Files.Services;
 /// Lookup is case-insensitive. Unknown OwnerType returns null — handlers should treat that as
 /// "policy missing → forbidden" (closed-by-default).
 /// </summary>
-internal sealed class FileAccessPolicyRegistry
+public sealed class FileAccessPolicyRegistry
 {
     private readonly Dictionary<string, IFileAccessPolicy> _policies;
 

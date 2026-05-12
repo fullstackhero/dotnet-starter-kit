@@ -24,6 +24,7 @@
         <PackageReference Include="Microsoft.NET.Test.Sdk" />
         <PackageReference Include="Testcontainers.PostgreSql" />
         <PackageReference Include="Testcontainers.Redis" />
+        <PackageReference Include="Testcontainers.Minio" />
         <PackageReference Include="Hangfire.InMemory" />
         <PackageReference Include="xunit" />
         <PackageReference Include="xunit.runner.visualstudio">

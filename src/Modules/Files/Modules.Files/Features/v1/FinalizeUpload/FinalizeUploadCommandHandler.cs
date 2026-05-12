@@ -18,7 +18,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Modules.Files.Features.v1.FinalizeUpload;
 
-internal sealed class FinalizeUploadCommandHandler(
+public sealed class FinalizeUploadCommandHandler(
     FilesDbContext db,
     IStorageService storage,
     IFileScanner scanner,

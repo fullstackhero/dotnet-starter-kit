@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Modules.Files.Features.v1.RestoreFile;
 
-internal sealed class RestoreFileCommandHandler(FilesDbContext db)
+public sealed class RestoreFileCommandHandler(FilesDbContext db)
     : ICommandHandler<RestoreFileCommand, Unit>
 {
     public async ValueTask<Unit> Handle(RestoreFileCommand cmd, CancellationToken cancellationToken)

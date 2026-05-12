@@ -29,5 +29,9 @@
 	<ItemGroup>
 	  <PackageReference Include="AWSSDK.S3" />
 	</ItemGroup>
-	
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="Integration.Tests" />
+	</ItemGroup>
+
 </Project>

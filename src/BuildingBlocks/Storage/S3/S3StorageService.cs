@@ -237,7 +237,8 @@ internal sealed class S3StorageService : IStorageService
             Key = key,
             Verb = HttpVerb.PUT,
             Expires = expiresAt.UtcDateTime,
-            ContentType = contentType
+            ContentType = contentType,
+            Protocol = ResolvePresignProtocol()
         };
 
         var url = await _s3.GetPreSignedURLAsync(request).ConfigureAwait(false);
@@ -271,7 +272,8 @@ internal sealed class S3StorageService : IStorageService
             BucketName = _options.Bucket,
             Key = key,
             Verb = HttpVerb.GET,
-            Expires = DateTime.UtcNow.Add(ttl)
+            Expires = DateTime.UtcNow.Add(ttl),
+            Protocol = ResolvePresignProtocol()
         };
 
         if (!string.IsNullOrWhiteSpace(responseContentDisposition))
@@ -329,6 +331,20 @@ internal sealed class S3StorageService : IStorageService
             _logger.LogWarning(ex, "Unexpected error on S3 HEAD for {Key}", storageKey);
             return null;
         }
+    }
+
+    // MinIO and other S3-compatible services commonly serve over plain HTTP. The SDK defaults
+    // presigned URLs to HTTPS regardless of ServiceURL scheme, which makes them un-PUTable in
+    // those environments. Infer the protocol from the configured ServiceURL.
+    private Protocol ResolvePresignProtocol()
+    {
+        if (!string.IsNullOrWhiteSpace(_options.ServiceUrl)
+            && Uri.TryCreate(_options.ServiceUrl, UriKind.Absolute, out var uri)
+            && string.Equals(uri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase))
+        {
+            return Protocol.HTTP;
+        }
+        return Protocol.HTTPS;
     }
 
     private string BuildKey<T>(string fileName) where T : class

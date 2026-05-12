@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Modules.Files.Features.v1.ListMyFiles;
 
-internal sealed class ListMyFilesQueryHandler(
+public sealed class ListMyFilesQueryHandler(
     FilesDbContext db,
     ICurrentUser currentUser)
     : IQueryHandler<ListMyFilesQuery, ReadOnlyCollection<FileAssetDto>>

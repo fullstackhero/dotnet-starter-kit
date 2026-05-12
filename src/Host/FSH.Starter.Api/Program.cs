@@ -48,7 +48,9 @@ builder.Services.AddMediator(o =>
         typeof(FSH.Modules.Catalog.Contracts.CatalogContractsMarker),
         typeof(FSH.Modules.Catalog.CatalogModule),
         typeof(FSH.Modules.Tickets.Contracts.TicketsContractsMarker),
-        typeof(FSH.Modules.Tickets.TicketsModule)];
+        typeof(FSH.Modules.Tickets.TicketsModule),
+        typeof(FSH.Modules.Files.Contracts.v1.Commands.RequestUploadUrlCommand),
+        typeof(FSH.Modules.Files.FilesModule)];
 });
 
 var moduleAssemblies = new Assembly[]

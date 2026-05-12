@@ -15,7 +15,7 @@ using Microsoft.Extensions.Options;
 
 namespace FSH.Modules.Files.Features.v1.RequestUploadUrl;
 
-internal sealed class RequestUploadUrlCommandHandler(
+public sealed class RequestUploadUrlCommandHandler(
     FilesDbContext db,
     IStorageService storage,
     FileAccessPolicyRegistry policies,

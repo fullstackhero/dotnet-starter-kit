@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Modules.Files.Features.v1.DeleteFile;
 
-internal sealed class DeleteFileCommandHandler(
+public sealed class DeleteFileCommandHandler(
     FilesDbContext db,
     FileAccessPolicyRegistry policies,
     ICurrentUser currentUser)

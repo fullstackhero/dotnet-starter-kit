@@ -12,7 +12,7 @@ using Microsoft.Extensions.Options;
 
 namespace FSH.Modules.Files.Features.v1.GetFileDownloadUrl;
 
-internal sealed class GetFileDownloadUrlQueryHandler(
+public sealed class GetFileDownloadUrlQueryHandler(
     FilesDbContext db,
     IStorageService storage,
     FileAccessPolicyRegistry policies,

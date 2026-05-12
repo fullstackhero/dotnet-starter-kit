@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Modules.Files.Features.v1.ListTrashedFiles;
 
-internal sealed class ListTrashedFilesQueryHandler(FilesDbContext db)
+public sealed class ListTrashedFilesQueryHandler(FilesDbContext db)
     : IQueryHandler<ListTrashedFilesQuery, ReadOnlyCollection<FileAssetDto>>
 {
     public async ValueTask<ReadOnlyCollection<FileAssetDto>> Handle(ListTrashedFilesQuery q, CancellationToken cancellationToken)

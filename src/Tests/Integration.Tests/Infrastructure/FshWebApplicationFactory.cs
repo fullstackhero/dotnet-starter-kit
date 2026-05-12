@@ -1,4 +1,6 @@
 using System.Reflection;
+using Amazon.S3;
+using Amazon.S3.Model;
 using Finbuckle.MultiTenant;
 using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Jobs.Services;
@@ -19,12 +21,17 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Testcontainers.Minio;
 using Testcontainers.PostgreSql;
 
 namespace Integration.Tests.Infrastructure;
 
 public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
+    private const string MinioAccessKey = "minioadmin";
+    private const string MinioSecretKey = "minioadmin";
+    private const string MinioBucket = "fsh-integration-test-uploads";
+
     private static readonly SemaphoreSlim _migrationLock = new(1, 1);
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
         .WithImage("postgres:17-alpine")
@@ -35,9 +42,18 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
         .WithCleanUp(true)
         .Build();
 
+    private readonly MinioContainer _minio = new MinioBuilder()
+        .WithImage("minio/minio:latest")
+        .WithUsername(MinioAccessKey)
+        .WithPassword(MinioSecretKey)
+        .WithAutoRemove(true)
+        .WithCleanUp(true)
+        .Build();
+
     public async Task InitializeAsync()
     {
-        await _postgres.StartAsync();
+        await Task.WhenAll(_postgres.StartAsync(), _minio.StartAsync());
+        await CreateMinioBucketAsync();
 
         // Force host creation via the Server property (no leaked HttpClient)
         _ = Server;
@@ -60,6 +76,34 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
     {
         await base.DisposeAsync();
         await _postgres.DisposeAsync();
+        await _minio.DisposeAsync();
+    }
+
+    /// <summary>The MinIO endpoint URL exposed to the host configuration; useful for tests that need to PUT bytes directly.</summary>
+    public string MinioServiceUrl => _minio.GetConnectionString();
+
+    private async Task CreateMinioBucketAsync()
+    {
+        var config = new AmazonS3Config
+        {
+            ServiceURL = _minio.GetConnectionString(),
+            ForcePathStyle = true,
+            UseHttp = true,
+            AuthenticationRegion = "us-east-1"
+        };
+
+        using var client = new AmazonS3Client(
+            new Amazon.Runtime.BasicAWSCredentials(MinioAccessKey, MinioSecretKey),
+            config);
+
+        try
+        {
+            await client.PutBucketAsync(new PutBucketRequest { BucketName = MinioBucket });
+        }
+        catch (AmazonS3Exception ex) when (ex.ErrorCode == "BucketAlreadyOwnedByYou" || ex.ErrorCode == "BucketAlreadyExists")
+        {
+            // Idempotent across factory re-creations.
+        }
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -99,6 +143,14 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
                 ["RateLimitingOptions:Enabled"] = "false",
                 ["PasswordPolicy:EnforcePasswordExpiry"] = "false",
                 ["SecurityHeadersOptions:Enabled"] = "false",
+                ["Storage:Provider"] = "s3",
+                ["Storage:S3:Bucket"] = MinioBucket,
+                ["Storage:S3:ServiceUrl"] = _minio.GetConnectionString(),
+                ["Storage:S3:AccessKey"] = MinioAccessKey,
+                ["Storage:S3:SecretKey"] = MinioSecretKey,
+                ["Storage:S3:ForcePathStyle"] = "true",
+                ["Storage:S3:PublicRead"] = "false",
+                ["Storage:S3:Region"] = "us-east-1",
             });
         });
 
@@ -144,7 +196,52 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
                 d.ServiceType == typeof(Microsoft.AspNetCore.Diagnostics.IExceptionHandler)).ToList();
             foreach (var h in existingHandlers) services.Remove(h);
             services.AddExceptionHandler<DetailedTestExceptionHandler>();
+
+            // AddHeroStorage reads `Storage:Provider` eagerly at registration time, before the test
+            // factory's in-memory configuration overlay is applied — so the production registration
+            // wires up LocalStorageService. Replace it with the S3 stack pointed at the MinIO
+            // testcontainer here, after all module registrations have run.
+            RewireStorageForS3(services);
         });
+    }
+
+    private void RewireStorageForS3(IServiceCollection services)
+    {
+        var toRemove = services
+            .Where(d => d.ServiceType == typeof(FSH.Framework.Storage.Services.IStorageService)
+                     || d.ServiceType == typeof(FSH.Framework.Storage.Local.LocalStorageService)
+                     || d.ServiceType == typeof(FSH.Framework.Storage.S3.S3StorageService)
+                     || d.ServiceType == typeof(IAmazonS3))
+            .ToList();
+        foreach (var d in toRemove) services.Remove(d);
+
+        services.Configure<FSH.Framework.Storage.S3.S3StorageOptions>(opts =>
+        {
+            opts.Bucket = MinioBucket;
+            opts.ServiceUrl = _minio.GetConnectionString();
+            opts.AccessKey = MinioAccessKey;
+            opts.SecretKey = MinioSecretKey;
+            opts.ForcePathStyle = true;
+            opts.PublicRead = false;
+            opts.Region = "us-east-1";
+        });
+
+        services.AddSingleton<IAmazonS3>(_ =>
+        {
+            var config = new AmazonS3Config
+            {
+                ServiceURL = _minio.GetConnectionString(),
+                ForcePathStyle = true,
+                UseHttp = true,
+                AuthenticationRegion = "us-east-1"
+            };
+            return new AmazonS3Client(
+                new Amazon.Runtime.BasicAWSCredentials(MinioAccessKey, MinioSecretKey),
+                config);
+        });
+        services.AddTransient<FSH.Framework.Storage.S3.S3StorageService>();
+        services.AddTransient<FSH.Framework.Storage.Services.IStorageService>(sp =>
+            sp.GetRequiredService<FSH.Framework.Storage.S3.S3StorageService>());
     }
 
     protected override IHost CreateHost(IHostBuilder builder)

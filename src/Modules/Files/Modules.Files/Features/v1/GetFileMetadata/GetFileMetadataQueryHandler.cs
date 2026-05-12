@@ -14,7 +14,7 @@ using Microsoft.Extensions.Options;
 
 namespace FSH.Modules.Files.Features.v1.GetFileMetadata;
 
-internal sealed class GetFileMetadataQueryHandler(
+public sealed class GetFileMetadataQueryHandler(
     FilesDbContext db,
     FileAccessPolicyRegistry policies,
     ICurrentUser currentUser,
