@@ -330,6 +330,11 @@ const FieldTrigger = ({
     <button
       id={id}
       type="button"
+      // role="combobox" requires aria-controls + aria-expanded. This
+      // component is intended as a Radix Popover.Trigger child via
+      // asChild, which sets both at runtime via prop forwarding —
+      // ESLint can't see that statically.
+      // eslint-disable-next-line jsx-a11y/role-has-required-aria-props
       role="combobox"
       aria-required={required}
       disabled={disabled}

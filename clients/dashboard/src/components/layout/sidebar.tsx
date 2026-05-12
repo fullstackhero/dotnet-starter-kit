@@ -1,105 +1,21 @@
 import { useCallback, useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
-  Activity,
   ChevronDown,
-  FolderTree,
-  HeartPulse,
-  LayoutDashboard,
-  Package,
   PanelLeftClose,
   PanelLeftOpen,
-  Receipt,
-  ScrollText,
-  Settings,
-  ShieldCheck,
-  Tags,
-  Ticket,
-  Trash2,
-  Users,
-  UsersRound,
-  Wifi,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import {
+  findSectionForPath,
+  sections,
+  topNavBottom,
+  topNavTop,
+  type NavSection,
+  type NavSpec,
+} from "@/components/layout/nav-data";
 
 const COLLAPSED_KEY = "fsh.sidebar.collapsed";
-
-type NavSpec = {
-  to: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-};
-
-type NavSection = {
-  id: string;
-  caption: string;
-  /** Section-level icon used as a fallback when the sidebar is
-   *  collapsed and the section is rendered as a stack of item icons. */
-  icon: React.ComponentType<{ className?: string }>;
-  items: NavSpec[];
-};
-
-// Top-level items live OUTSIDE any section. Overview opens the app;
-// Settings is account-scoped and lives at the very bottom.
-const topNavTop: NavSpec[] = [
-  { to: "/", label: "Overview", icon: LayoutDashboard },
-];
-
-const topNavBottom: NavSpec[] = [
-  { to: "/settings", label: "Settings", icon: Settings },
-];
-
-// Section accordion. Single-select — only one section open at a time.
-const sections: NavSection[] = [
-  {
-    id: "operations",
-    caption: "Operations",
-    icon: Activity,
-    items: [
-      { to: "/activity", label: "Live activity", icon: Activity },
-      { to: "/invoices", label: "Invoices", icon: Receipt },
-    ],
-  },
-  {
-    id: "catalog",
-    caption: "Catalog",
-    icon: Package,
-    items: [
-      { to: "/catalog/products", label: "Products", icon: Package },
-      { to: "/catalog/brands", label: "Brands", icon: Tags },
-      { to: "/catalog/categories", label: "Categories", icon: FolderTree },
-    ],
-  },
-  {
-    id: "helpdesk",
-    caption: "Helpdesk",
-    icon: Ticket,
-    items: [
-      { to: "/tickets", label: "Tickets", icon: Ticket },
-    ],
-  },
-  {
-    id: "identity",
-    caption: "Identity",
-    icon: Users,
-    items: [
-      { to: "/identity/users", label: "Users", icon: Users },
-      { to: "/identity/roles", label: "Roles", icon: ShieldCheck },
-      { to: "/identity/groups", label: "Groups", icon: UsersRound },
-    ],
-  },
-  {
-    id: "system",
-    caption: "System",
-    icon: HeartPulse,
-    items: [
-      { to: "/system/health", label: "Health", icon: HeartPulse },
-      { to: "/system/audits", label: "Audit trail", icon: ScrollText },
-      { to: "/system/sessions", label: "Sessions", icon: Wifi },
-      { to: "/system/trash", label: "Trash", icon: Trash2 },
-    ],
-  },
-];
 
 /** Persisted collapsed state. Reads localStorage on mount; writes on change. */
 function useCollapsedSidebar() {
@@ -123,26 +39,6 @@ function useCollapsedSidebar() {
     collapsed,
     toggle: () => setCollapsed(!collapsed),
   };
-}
-
-/** Find the section whose items contain the given path (best prefix match). */
-function findSectionForPath(pathname: string): string | null {
-  let bestId: string | null = null;
-  let bestLen = 0;
-  for (const s of sections) {
-    for (const item of s.items) {
-      if (
-        (item.to === "/" && pathname === "/") ||
-        (item.to !== "/" && pathname.startsWith(item.to))
-      ) {
-        if (item.to.length > bestLen) {
-          bestLen = item.to.length;
-          bestId = s.id;
-        }
-      }
-    }
-  }
-  return bestId;
 }
 
 export function Sidebar() {
@@ -227,69 +123,11 @@ export function Sidebar() {
         )}
       </div>
 
-      {/* Nav scrolls vertically when item count exceeds available height.
-          `overflow-x: clip` keeps the collapsed-mode hover tooltips from
-          spawning a horizontal scrollbar — those tooltips will be
-          clipped, but the native title= attribute is the fallback. */}
-      <nav className="flex-1 space-y-1.5 overflow-y-auto overflow-x-clip px-2.5 py-3.5">
-        {/* Top-level: Overview */}
-        <div className="space-y-0.5">
-          {topNavTop.map((item) => (
-            <NavItemLink key={item.to} item={item} collapsed={collapsed} indent={false} />
-          ))}
-        </div>
-
-        {/* Section accordions */}
-        {!collapsed && (
-          <div className="space-y-1.5 pt-1.5">
-            {sections.map((section) => (
-              <AccordionSection
-                key={section.id}
-                section={section}
-                isOpen={openSection === section.id}
-                onToggle={() =>
-                  setOpenSection((cur) => (cur === section.id ? null : section.id))
-                }
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Collapsed mode: render every section's items inline as a flat
-            list with thin dividers between sections — accordion is a
-            label-driven affordance and isn't useful at 64px wide. */}
-        {collapsed && (
-          <div className="space-y-1 pt-1.5">
-            {sections.map((section, idx) => (
-              <div key={section.id}>
-                {idx > 0 && (
-                  <div
-                    aria-hidden
-                    className="mx-2 my-2 h-px bg-[var(--color-border)]"
-                  />
-                )}
-                <div className="space-y-0.5">
-                  {section.items.map((item) => (
-                    <NavItemLink
-                      key={item.to}
-                      item={item}
-                      collapsed
-                      indent={false}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Top-level: Settings */}
-        <div className="space-y-0.5 pt-1.5">
-          {topNavBottom.map((item) => (
-            <NavItemLink key={item.to} item={item} collapsed={collapsed} indent={false} />
-          ))}
-        </div>
-      </nav>
+      <SidebarNavBody
+        collapsed={collapsed}
+        openSection={openSection}
+        setOpenSection={setOpenSection}
+      />
 
       {/* Footer */}
       <div
@@ -325,6 +163,95 @@ export function Sidebar() {
 }
 
 // ────────────────────────────────────────────────────────────────────────
+// SidebarNavBody — the actual nav (top + section accordions + bottom).
+// Extracted so both the desktop <Sidebar> and the mobile drawer can
+// render the same nav from one source of truth. Pass `onNavigate` from
+// the mobile drawer so item clicks dismiss the sheet.
+// ────────────────────────────────────────────────────────────────────────
+
+export function SidebarNavBody({
+  collapsed,
+  openSection,
+  setOpenSection,
+  onNavigate,
+}: {
+  collapsed: boolean;
+  openSection: string | null;
+  setOpenSection: React.Dispatch<React.SetStateAction<string | null>>;
+  /** Called after a nav item link is clicked. Used by the mobile
+   *  drawer to close itself on navigation. */
+  onNavigate?: () => void;
+}) {
+  return (
+    /* Nav scrolls vertically when item count exceeds available height.
+       `overflow-x: clip` keeps the collapsed-mode hover tooltips from
+       spawning a horizontal scrollbar — those tooltips will be
+       clipped, but the native title= attribute is the fallback. */
+    <nav className="flex-1 space-y-1.5 overflow-y-auto overflow-x-clip px-2.5 py-3.5">
+      {/* Top-level: Overview */}
+      <div className="space-y-0.5">
+        {topNavTop.map((item) => (
+          <NavItemLink key={item.to} item={item} collapsed={collapsed} indent={false} onNavigate={onNavigate} />
+        ))}
+      </div>
+
+      {/* Section accordions */}
+      {!collapsed && (
+        <div className="space-y-1.5 pt-1.5">
+          {sections.map((section) => (
+            <AccordionSection
+              key={section.id}
+              section={section}
+              isOpen={openSection === section.id}
+              onToggle={() =>
+                setOpenSection((cur) => (cur === section.id ? null : section.id))
+              }
+              onNavigate={onNavigate}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Collapsed mode: render every section's items inline as a flat
+          list with thin dividers between sections — accordion is a
+          label-driven affordance and isn't useful at 64px wide. */}
+      {collapsed && (
+        <div className="space-y-1 pt-1.5">
+          {sections.map((section, idx) => (
+            <div key={section.id}>
+              {idx > 0 && (
+                <div
+                  aria-hidden
+                  className="mx-2 my-2 h-px bg-[var(--color-border)]"
+                />
+              )}
+              <div className="space-y-0.5">
+                {section.items.map((item) => (
+                  <NavItemLink
+                    key={item.to}
+                    item={item}
+                    collapsed
+                    indent={false}
+                    onNavigate={onNavigate}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Top-level: Settings */}
+      <div className="space-y-0.5 pt-1.5">
+        {topNavBottom.map((item) => (
+          <NavItemLink key={item.to} item={item} collapsed={collapsed} indent={false} onNavigate={onNavigate} />
+        ))}
+      </div>
+    </nav>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────
 // Accordion section (expanded sidebar only).
 //
 // Closed: a flat hover-able row showing the section icon + caption + a
@@ -339,10 +266,12 @@ function AccordionSection({
   section,
   isOpen,
   onToggle,
+  onNavigate,
 }: {
   section: NavSection;
   isOpen: boolean;
   onToggle: () => void;
+  onNavigate?: () => void;
 }) {
   const SectionIcon = section.icon;
   return (
@@ -422,7 +351,7 @@ function AccordionSection({
             )}
           >
             {section.items.map((item) => (
-              <NavItemLink key={item.to} item={item} collapsed={false} indent />
+              <NavItemLink key={item.to} item={item} collapsed={false} indent onNavigate={onNavigate} />
             ))}
           </div>
         </div>
@@ -441,12 +370,16 @@ function NavItemLink({
   item,
   collapsed,
   indent,
+  onNavigate,
 }: {
   item: NavSpec;
   collapsed: boolean;
   /** Adds a small left padding so accordion items align under the
    *  section caption with breathing room. Not applied to top-level. */
   indent: boolean;
+  /** Fired after the link click. Used by the mobile sheet to close
+   *  itself once the user navigates somewhere. */
+  onNavigate?: () => void;
 }) {
   const Icon = item.icon;
   return (
@@ -454,6 +387,7 @@ function NavItemLink({
       to={item.to}
       end={item.to === "/"}
       title={collapsed ? item.label : undefined}
+      onClick={onNavigate}
       className={({ isActive }) =>
         cn(
           "group/nav relative flex h-9 items-center gap-3 rounded-md text-sm font-medium",
@@ -484,7 +418,10 @@ function NavItemLink({
             <span className="whitespace-nowrap">{item.label}</span>
           )}
 
-          {/* Hover tooltip — only rendered in collapsed mode. */}
+          {/* Tooltip in collapsed mode — surfaces on hover OR keyboard
+              focus so keyboard-only users can discover the label. The
+              `title=` attribute on the link is the fallback for AT users
+              who never see the popup. */}
           {collapsed && (
             <span
               role="tooltip"
@@ -493,7 +430,7 @@ function NavItemLink({
                 "rounded-md border border-[var(--color-border)] bg-[var(--color-popover)] px-2 py-1",
                 "text-xs text-[var(--color-popover-foreground)] shadow-[var(--shadow-md)]",
                 "opacity-0 transition-opacity duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
-                "group-hover/nav:opacity-100",
+                "group-hover/nav:opacity-100 group-focus-visible/nav:opacity-100",
               )}
             >
               {item.label}

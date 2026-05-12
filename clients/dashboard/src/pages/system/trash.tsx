@@ -83,10 +83,6 @@ export function TrashPage() {
         subtitle="Soft-deleted records, kept indefinitely until you restore or purge them. Restoring a row brings it back to its parent list with the same ID and history intact."
       />
 
-      {/* Inset everything below the hero so it aligns with the hero's
-          title (which sits inside the card's px-6 sm:px-8 md:px-10
-          internal padding). */}
-      <div className="space-y-6 px-6 sm:px-8 md:px-10">
       {/* Tab bar — pill nav, mono-caps eyebrow per tab */}
       <nav
         aria-label="Trash sections"
@@ -136,7 +132,6 @@ export function TrashPage() {
           <TicketsTab pageNumber={pageNumber} setPageNumber={setPageNumber} />
         )}
       </section>
-      </div>
     </div>
   );
 }
@@ -418,7 +413,7 @@ function TrashShell<T>({
         />
       ) : (
         <>
-          <ul role="list">{items.map((it) => renderRow(it))}</ul>
+          <ul>{items.map((it) => renderRow(it))}</ul>
           <div className="px-6 py-4">
             <Pagination
               page={query.data?.pageNumber ?? pageNumber}

@@ -322,7 +322,7 @@ export function TicketsPage() {
             );
           })()
         ) : (
-          <ul role="list">
+          <ul>
             {items.map((ticket, i) => (
               <Row
                 key={ticket.id}
@@ -605,21 +605,21 @@ function PeopleStack({
   return (
     <div className="flex items-center gap-2">
       {assignedToUserId ? (
-        <Avatar id={assignedToUserId} role="Assignee" />
+        <Avatar id={assignedToUserId} kind="Assignee" />
       ) : (
         <UnassignedBadge />
       )}
       <span aria-hidden className="h-px w-3 bg-[var(--color-border-strong)]" />
-      <Avatar id={reporterUserId} role="Reporter" muted />
+      <Avatar id={reporterUserId} kind="Reporter" muted />
     </div>
   );
 }
 
-function Avatar({ id, role, muted }: { id: string; role: string; muted?: boolean }) {
+function Avatar({ id, kind, muted }: { id: string; kind: string; muted?: boolean }) {
   const initial = id.replace(/[^a-z0-9]/gi, "").charAt(0).toUpperCase() || "?";
   return (
     <span
-      title={`${role}: ${id}`}
+      title={`${kind}: ${id}`}
       className={cn(
         "grid h-6 w-6 place-items-center rounded-full",
         "font-mono text-[10px] font-semibold tracking-tight",

@@ -205,7 +205,7 @@ export function SessionsPage() {
           )}
         </div>
 
-        <label className="inline-flex cursor-pointer items-center gap-2.5 rounded-full bg-[var(--color-surface-3)] px-3 py-1.5 ring-1 ring-inset ring-[var(--color-border)]">
+        <div className="inline-flex items-center gap-2.5 rounded-full bg-[var(--color-surface-3)] px-3 py-1.5 ring-1 ring-inset ring-[var(--color-border)]">
           <Switch
             checked={includeInactive}
             onCheckedChange={setIncludeInactive}
@@ -214,7 +214,7 @@ export function SessionsPage() {
           <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
             Show inactive
           </span>
-        </label>
+        </div>
       </div>
 
       {query.isError && <ErrorBand message={describe(query.error)} />}
@@ -258,7 +258,7 @@ export function SessionsPage() {
             }
           />
         ) : (
-          <ul role="list">
+          <ul>
             {items.map((session, i) => (
               <SessionRow
                 key={session.id}

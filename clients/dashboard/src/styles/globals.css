@@ -1662,3 +1662,118 @@
   }
   body { background-image: none; }
 }
+
+/* CHAT — page-specific atmospherics + motion. Lives at the bottom so it
+   inherits every var() defined above and doesn't fight Tailwind's layer
+   ordering. */
+@keyframes fsh-chat-typing {
+  0%   { transform: translateY(0);    opacity: 0.45; }
+  30%  { transform: translateY(-2px); opacity: 1; }
+  60%  { transform: translateY(0);    opacity: 0.45; }
+  100% { transform: translateY(0);    opacity: 0.45; }
+}
+
+.chat-typing-dot {
+  animation: fsh-chat-typing 1100ms infinite var(--ease-out-cubic);
+}
+.chat-typing-dot:nth-child(2) { animation-delay: 160ms; }
+.chat-typing-dot:nth-child(3) { animation-delay: 320ms; }
+
+.chat-unread-divider {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.25rem 0.5rem;
+}
+.chat-unread-divider::before,
+.chat-unread-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, oklch(from var(--color-primary) l c h / 0.55), transparent);
+}
+.chat-unread-divider > span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: oklch(from var(--color-primary) l c h / 0.10);
+  border: 1px solid oklch(from var(--color-primary) l c h / 0.35);
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+}
+
+.chat-day-rule {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+}
+.chat-day-rule::before,
+.chat-day-rule::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background-color: var(--color-border);
+}
+.chat-day-rule > span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-muted-foreground);
+}
+
+.chat-reaction-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  height: 22px;
+  padding: 0 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface-2);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--color-foreground);
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-out-cubic),
+              background-color var(--duration-fast) var(--ease-out-cubic),
+              border-color var(--duration-fast) var(--ease-out-cubic);
+}
+.chat-reaction-chip:hover {
+  transform: translateY(-1px);
+  background-color: var(--color-surface-4);
+}
+.chat-reaction-chip[data-mine="true"] {
+  background-color: var(--color-primary-soft);
+  border-color: oklch(from var(--color-primary) l c h / 0.40);
+  color: var(--color-primary);
+}
+
+.chat-mention {
+  display: inline;
+  padding: 0 0.25rem;
+  border-radius: 4px;
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.chat-channel-header {
+  position: relative;
+  isolation: isolate;
+}
+.chat-channel-header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 80% at 100% 0%, oklch(from var(--color-primary) l c h / 0.08), transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+}

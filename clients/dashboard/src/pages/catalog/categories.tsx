@@ -311,7 +311,7 @@ export function CategoriesPage() {
               );
             })()
           ) : (
-            <ul role="list">
+            <ul>
               {sortedItems.map((category, i) => (
                 <Row
                   key={category.id}
@@ -383,7 +383,6 @@ function Row({
 
   return (
     <li
-      role="listitem"
       className={cn(
         "fsh-enter group/row relative flex items-center gap-4 border-b border-[var(--color-border)] px-5 last:border-b-0 sm:px-6",
         padY,

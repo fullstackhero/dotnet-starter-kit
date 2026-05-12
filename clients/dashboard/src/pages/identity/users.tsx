@@ -295,7 +295,7 @@ export function UsersPage() {
               }
             />
           ) : (
-            <ul role="list">
+            <ul>
               {items.map((user, i) => (
                 <UserRow
                   key={user.id ?? i}
@@ -490,7 +490,6 @@ function UserRow({
 
   return (
     <li
-      role="listitem"
       className={cn(
         "fsh-enter group/row relative border-b border-[var(--color-border)] last:border-b-0",
         "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",

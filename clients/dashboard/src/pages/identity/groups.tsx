@@ -316,19 +316,19 @@ function CreateGroupDialog({ open, onClose }: { open: boolean; onClose: () => vo
                 maxLength={512}
               />
             </Field>
-            <label className="flex items-center justify-between gap-3 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2.5">
-              <span className="min-w-0">
+            <div className="flex items-center justify-between gap-3 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2.5">
+              <div className="min-w-0">
                 <span className="block text-sm font-medium tracking-tight">Default group</span>
                 <span className="mt-0.5 block text-[12px] text-[var(--color-muted-foreground)]">
                   Newly registered users join automatically.
                 </span>
-              </span>
+              </div>
               <Switch
                 checked={isDefault}
                 onCheckedChange={setIsDefault}
                 aria-label="Default group"
               />
-            </label>
+            </div>
           </DialogBody>
           <DialogFooter>
             <DialogClose asChild>

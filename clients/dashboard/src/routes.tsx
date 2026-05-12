@@ -80,6 +80,7 @@ const GroupDetailPage = lazyNamed(
   "GroupDetailPage",
 );
 const MyFilesPage = lazyNamed(() => import("@/pages/files/my-files"), "MyFilesPage");
+const ChatPage = lazyNamed(() => import("@/pages/chat/chat-page"), "ChatPage");
 
 /**
  * RouteFallback — what shows while a lazy chunk is downloading. Mirrors
@@ -137,6 +138,8 @@ export const router = createBrowserRouter([
           { path: "system/trash", element: withSuspense(<TrashPage />) },
           { path: "system/sessions", element: withSuspense(<SessionsPage />) },
           { path: "files", element: withSuspense(<MyFilesPage />) },
+          { path: "chat", element: withSuspense(<ChatPage />) },
+          { path: "chat/:channelId", element: withSuspense(<ChatPage />) },
           { path: "tickets", element: withSuspense(<TicketsPage />) },
           { path: "tickets/:ticketId", element: withSuspense(<TicketDetailPage />) },
           { path: "identity", element: <Navigate to="/identity/users" replace /> },

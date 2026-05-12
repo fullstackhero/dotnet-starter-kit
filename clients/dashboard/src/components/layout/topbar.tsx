@@ -13,6 +13,8 @@ import {
   UserRound,
 } from "lucide-react";
 import { useCommandPalette } from "@/components/command-palette/command-palette";
+import { MobileNavTrigger } from "@/components/layout/mobile-nav";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -221,11 +223,35 @@ export function Topbar() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-30 flex h-14 shrink-0 items-center justify-end gap-2",
+        "sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2",
         "border-b border-[var(--color-border)] bg-[oklch(from_var(--color-surface-1)_l_c_h_/_0.72)]",
-        "px-4 backdrop-blur-xl backdrop-saturate-150",
+        "px-3 backdrop-blur-xl backdrop-saturate-150 md:px-4",
       )}
     >
+      {/* Mobile nav trigger — leading edge on small screens, hidden
+          on md+ where the desktop sidebar is always visible. */}
+      <MobileNavTrigger />
+
+      {/* Spacer pushes the rest of the topbar (search + profile) to
+          the trailing edge on every viewport. */}
+      <div className="flex-1" />
+
+      {/* Mobile search button — palette is reachable via icon since
+          the desktop search chip is hidden below md. */}
+      <button
+        type="button"
+        onClick={() => setPaletteOpen(true)}
+        aria-label="Open command palette"
+        className={cn(
+          "grid h-9 w-9 cursor-pointer place-items-center rounded-md md:hidden",
+          "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
+          "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
+        )}
+      >
+        <Search className="h-4 w-4" aria-hidden />
+      </button>
+
       {/* Command palette trigger — opens via ⌘K from anywhere; the
           chip in the topbar is a discoverability affordance. */}
       <button
@@ -246,6 +272,11 @@ export function Topbar() {
           ⌘K
         </kbd>
       </button>
+
+      {/* Notification bell — bell badge + dropdown inbox. Mirrors the
+          atmospheric brand-glow panel of the profile dropdown for visual
+          family. */}
+      <NotificationBell />
 
       {/* `modal={false}` is required because we open the sign-out
           confirmation Dialog from a DropdownMenuItem. Default modal mode
