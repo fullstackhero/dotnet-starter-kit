@@ -192,6 +192,15 @@ export type MoneyDto = {
   currency: string;
 };
 
+export type ProductImageDto = {
+  id: string;
+  fileAssetId?: string | null;
+  url: string;
+  isThumbnail: boolean;
+  sortOrder: number;
+  createdAtUtc: string;
+};
+
 export type ProductDto = {
   id: string;
   sku: string;
@@ -203,7 +212,9 @@ export type ProductDto = {
   price: MoneyDto;
   stock: number;
   isActive: boolean;
-  imageUrl?: string | null;
+  /** Convenience: the URL of the thumbnail image (if any). Derived server-side from images[]. */
+  thumbnailUrl?: string | null;
+  images: ProductImageDto[];
   createdAtUtc: string;
   updatedAtUtc?: string | null;
   deletedOnUtc?: string | null;
@@ -230,7 +241,6 @@ export type CreateProductInput = {
   priceAmount: number;
   priceCurrency: string;
   stock: number;
-  imageUrl?: string | null;
 };
 
 export type UpdateProductInput = {
@@ -239,7 +249,6 @@ export type UpdateProductInput = {
   description?: string | null;
   brandId: string;
   categoryId: string;
-  imageUrl?: string | null;
   isActive: boolean;
 };
 
@@ -288,7 +297,6 @@ export async function createProduct(input: CreateProductInput): Promise<string> 
       priceAmount: input.priceAmount,
       priceCurrency: input.priceCurrency,
       stock: input.stock,
-      imageUrl: input.imageUrl ?? null,
     }),
   });
 }
@@ -304,9 +312,50 @@ export async function updateProduct(input: UpdateProductInput): Promise<string> 
         description: input.description ?? null,
         brandId: input.brandId,
         categoryId: input.categoryId,
-        imageUrl: input.imageUrl ?? null,
         isActive: input.isActive,
       }),
+    },
+  );
+}
+
+// ─── Product images ───────────────────────────────────────────────────
+
+export function addProductImage(
+  productId: string,
+  input: { fileAssetId?: string | null; url: string },
+): Promise<ProductImageDto> {
+  return apiFetch<ProductImageDto>(
+    `/api/v1/catalog/products/${encodeURIComponent(productId)}/images`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        fileAssetId: input.fileAssetId ?? null,
+        url: input.url,
+      }),
+    },
+  );
+}
+
+export async function removeProductImage(productId: string, imageId: string): Promise<void> {
+  await apiFetch<void>(
+    `/api/v1/catalog/products/${encodeURIComponent(productId)}/images/${encodeURIComponent(imageId)}`,
+    { method: "DELETE" },
+  );
+}
+
+export async function setProductThumbnail(productId: string, imageId: string): Promise<void> {
+  await apiFetch<void>(
+    `/api/v1/catalog/products/${encodeURIComponent(productId)}/images/${encodeURIComponent(imageId)}/thumbnail`,
+    { method: "PUT" },
+  );
+}
+
+export async function reorderProductImages(productId: string, orderedImageIds: string[]): Promise<void> {
+  await apiFetch<void>(
+    `/api/v1/catalog/products/${encodeURIComponent(productId)}/images/order`,
+    {
+      method: "PUT",
+      body: JSON.stringify({ orderedImageIds }),
     },
   );
 }

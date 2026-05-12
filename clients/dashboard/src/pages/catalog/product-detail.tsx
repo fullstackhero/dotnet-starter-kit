@@ -61,7 +61,7 @@ import {
   ErrorBand,
   Field,
 } from "@/components/list";
-import { ImageInput } from "@/components/file/image-input";
+import { ProductImageManager } from "@/components/file/product-image-manager";
 import { cn } from "@/lib/cn";
 import {
   describe,
@@ -142,6 +142,23 @@ export function ProductDetailPage() {
             <DescriptionPanel product={product} />
             <MetadataPanel product={product} brand={brandQuery.data} category={categoryQuery.data} />
           </div>
+
+          <section
+            aria-label="Product images"
+            className="fsh-enter fsh-enter-3 card-shell space-y-4 rounded-2xl bg-[var(--color-surface-2)] p-5"
+          >
+            <header className="flex items-baseline justify-between gap-3">
+              <h2 className="text-display text-lg font-semibold tracking-tight">Images</h2>
+              <span className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
+                Drop more to add · star to set cover
+              </span>
+            </header>
+            <ProductImageManager
+              productId={product.id}
+              images={product.images}
+              invalidateKey={["catalog", "products", productId]}
+            />
+          </section>
 
           <ProductEditorDialog
             open={dialog.mode === "edit"}
@@ -275,7 +292,7 @@ function Hero({
         {/* Showroom image */}
         <div className="relative">
           <ProductShowcase
-            imageUrl={product.imageUrl}
+            imageUrl={product.thumbnailUrl}
             initial={product.name.trim().charAt(0).toUpperCase() || "·"}
           />
           {!product.isActive && (
@@ -762,7 +779,6 @@ function ProductEditorDialog({
   const [description, setDescription] = useState(product.description ?? "");
   const [brandId, setBrandId] = useState(product.brandId);
   const [categoryId, setCategoryId] = useState(product.categoryId);
-  const [imageUrl, setImageUrl] = useState(product.imageUrl ?? "");
   const [isActive, setIsActive] = useState(product.isActive);
 
   useEffect(() => {
@@ -771,7 +787,6 @@ function ProductEditorDialog({
       setDescription(product.description ?? "");
       setBrandId(product.brandId);
       setCategoryId(product.categoryId);
-      setImageUrl(product.imageUrl ?? "");
       setIsActive(product.isActive);
     }
   }, [open, product]);
@@ -798,7 +813,6 @@ function ProductEditorDialog({
       description: description.trim() || null,
       brandId,
       categoryId,
-      imageUrl: imageUrl.trim() || null,
       isActive,
     });
   };
@@ -867,15 +881,6 @@ function ProductEditorDialog({
                 />
               </Field>
             </div>
-
-            <Field id="edit-image" label="Product image" hint="Upload an image or paste an external URL.">
-              <ImageInput
-                value={imageUrl}
-                onChange={setImageUrl}
-                ownerType="Product"
-                ownerId={product.id}
-              />
-            </Field>
 
             <Field id="edit-description" label="Description" hint="Shown on listing and product detail pages.">
               <textarea

@@ -20,7 +20,17 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.HasIndex(x => x.Slug).IsUnique().HasFilter("\"IsDeleted\" = FALSE");
 
         builder.Property(x => x.Description).HasMaxLength(4000);
-        builder.Property(x => x.ImageUrl).HasMaxLength(512);
+
+        // Child collection: ProductImage rows cascade-delete with the product. AutoInclude
+        // because product reads typically need the cover image and the join is small.
+        builder.HasMany(x => x.Images)
+            .WithOne()
+            .HasForeignKey(i => i.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Navigation(x => x.Images).AutoInclude();
+
+        // Derived from the Images collection — not a column.
+        builder.Ignore(x => x.ThumbnailUrl);
 
         builder.Property(x => x.BrandId).IsRequired();
         builder.HasIndex(x => x.BrandId);

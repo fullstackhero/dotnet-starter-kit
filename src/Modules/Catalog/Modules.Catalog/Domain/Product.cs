@@ -14,13 +14,20 @@ public sealed class Product : AggregateRoot<Guid>, ISoftDeletable
     public Money Price { get; private set; } = default!;
     public int Stock { get; private set; }
     public bool IsActive { get; private set; }
-    public string? ImageUrl { get; private set; }
     public DateTime CreatedAtUtc { get; private set; }
     public DateTime? UpdatedAtUtc { get; private set; }
 
     public bool IsDeleted { get; private set; }
     public DateTimeOffset? DeletedOnUtc { get; private set; }
     public string? DeletedBy { get; private set; }
+
+    // EF populates this via the navigation property; aggregate methods mutate through the
+    // private list so invariants (single thumbnail, contiguous SortOrder) hold.
+    private readonly List<ProductImage> _images = [];
+    public IReadOnlyList<ProductImage> Images => _images;
+
+    /// <summary>The thumbnail (cover) image URL, or null when the product has no images.</summary>
+    public string? ThumbnailUrl => _images.FirstOrDefault(i => i.IsThumbnail)?.Url;
 
     public void Restore()
     {
@@ -40,8 +47,7 @@ public sealed class Product : AggregateRoot<Guid>, ISoftDeletable
         Guid brandId,
         Guid categoryId,
         Money price,
-        int stock,
-        string? imageUrl)
+        int stock)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sku);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -71,7 +77,6 @@ public sealed class Product : AggregateRoot<Guid>, ISoftDeletable
             Price = price,
             Stock = stock,
             IsActive = true,
-            ImageUrl = imageUrl?.Trim(),
             CreatedAtUtc = DateTime.UtcNow
         };
 
@@ -86,7 +91,6 @@ public sealed class Product : AggregateRoot<Guid>, ISoftDeletable
         string? description,
         Guid brandId,
         Guid categoryId,
-        string? imageUrl,
         bool isActive)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -104,7 +108,6 @@ public sealed class Product : AggregateRoot<Guid>, ISoftDeletable
         Description = description?.Trim();
         BrandId = brandId;
         CategoryId = categoryId;
-        ImageUrl = imageUrl?.Trim();
         IsActive = isActive;
         UpdatedAtUtc = DateTime.UtcNow;
     }
@@ -140,6 +143,76 @@ public sealed class Product : AggregateRoot<Guid>, ISoftDeletable
 
         AddDomainEvent(DomainEvent.Create((id, ts) =>
             new ProductStockAdjustedDomainEvent(Id, oldStock, newStock, delta, id, ts)));
+    }
+
+    // ─── Image management ─────────────────────────────────────────────────
+
+    /// <summary>
+    /// Attach a new image. The first image attached is automatically the thumbnail; subsequent
+    /// images come in non-thumbnail and the caller can promote one via <see cref="SetThumbnail"/>.
+    /// </summary>
+    public ProductImage AddImage(Guid? fileAssetId, string url)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(url);
+        bool isFirst = _images.Count == 0;
+        int order = isFirst ? 0 : _images.Max(i => i.SortOrder) + 1;
+        var image = ProductImage.Create(Id, fileAssetId, url, isThumbnail: isFirst, sortOrder: order);
+        _images.Add(image);
+        UpdatedAtUtc = DateTime.UtcNow;
+        return image;
+    }
+
+    /// <summary>
+    /// Remove an image. If the removed image was the thumbnail and other images remain, the
+    /// lowest-sorted remaining image is promoted to thumbnail so the product always has a cover.
+    /// </summary>
+    public void RemoveImage(Guid imageId)
+    {
+        var image = _images.FirstOrDefault(i => i.Id == imageId)
+            ?? throw new InvalidOperationException($"Image {imageId} not found on product {Id}.");
+        bool wasThumbnail = image.IsThumbnail;
+        _images.Remove(image);
+
+        if (wasThumbnail && _images.Count > 0)
+        {
+            var promoted = _images.OrderBy(i => i.SortOrder).First();
+            promoted.MarkThumbnail(true);
+        }
+        UpdatedAtUtc = DateTime.UtcNow;
+    }
+
+    /// <summary>Mark <paramref name="imageId"/> as the thumbnail; clears the flag on every other image.</summary>
+    public void SetThumbnail(Guid imageId)
+    {
+        var image = _images.FirstOrDefault(i => i.Id == imageId)
+            ?? throw new InvalidOperationException($"Image {imageId} not found on product {Id}.");
+        if (image.IsThumbnail) return;
+
+        foreach (var i in _images)
+        {
+            i.MarkThumbnail(i.Id == imageId);
+        }
+        UpdatedAtUtc = DateTime.UtcNow;
+    }
+
+    /// <summary>Reorder images by the supplied id sequence. Ids not in <paramref name="orderedImageIds"/> are appended in their existing order after the rest.</summary>
+    public void ReorderImages(IReadOnlyList<Guid> orderedImageIds)
+    {
+        ArgumentNullException.ThrowIfNull(orderedImageIds);
+        int order = 0;
+        var seen = new HashSet<Guid>();
+        foreach (var id in orderedImageIds)
+        {
+            var image = _images.FirstOrDefault(i => i.Id == id);
+            if (image is null) continue;
+            image.SetSortOrder(order++);
+            seen.Add(id);
+        }
+        foreach (var trailing in _images.Where(i => !seen.Contains(i.Id)).OrderBy(i => i.SortOrder).ToList())
+        {
+            trailing.SetSortOrder(order++);
+        }
+        UpdatedAtUtc = DateTime.UtcNow;
     }
 
     private static string Slugify(string value)

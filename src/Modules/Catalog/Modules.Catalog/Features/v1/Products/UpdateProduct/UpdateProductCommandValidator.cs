@@ -12,6 +12,5 @@ public sealed class UpdateProductCommandValidator : AbstractValidator<UpdateProd
         RuleFor(x => x.Description).MaximumLength(4000);
         RuleFor(x => x.BrandId).NotEmpty();
         RuleFor(x => x.CategoryId).NotEmpty();
-        RuleFor(x => x.ImageUrl).MaximumLength(512);
     }
 }

@@ -46,7 +46,6 @@ public sealed class UpdateProductCommandHandler(CatalogDbContext dbContext)
             command.Description,
             command.BrandId,
             command.CategoryId,
-            command.ImageUrl,
             command.IsActive);
 
         bool slugTaken = await dbContext.Products

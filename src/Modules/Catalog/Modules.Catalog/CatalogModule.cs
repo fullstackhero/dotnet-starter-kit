@@ -21,14 +21,18 @@ using FSH.Modules.Catalog.Features.v1.Categories.ListTrashedCategories;
 using FSH.Modules.Catalog.Features.v1.Categories.RestoreCategory;
 using FSH.Modules.Catalog.Features.v1.Categories.SearchCategories;
 using FSH.Modules.Catalog.Features.v1.Categories.UpdateCategory;
+using FSH.Modules.Catalog.Features.v1.Products.AddProductImage;
 using FSH.Modules.Catalog.Features.v1.Products.AdjustProductStock;
 using FSH.Modules.Catalog.Features.v1.Products.ChangeProductPrice;
 using FSH.Modules.Catalog.Features.v1.Products.CreateProduct;
 using FSH.Modules.Catalog.Features.v1.Products.DeleteProduct;
 using FSH.Modules.Catalog.Features.v1.Products.GetProductById;
 using FSH.Modules.Catalog.Features.v1.Products.ListTrashedProducts;
+using FSH.Modules.Catalog.Features.v1.Products.RemoveProductImage;
+using FSH.Modules.Catalog.Features.v1.Products.ReorderProductImages;
 using FSH.Modules.Catalog.Features.v1.Products.RestoreProduct;
 using FSH.Modules.Catalog.Features.v1.Products.SearchProducts;
+using FSH.Modules.Catalog.Features.v1.Products.SetProductThumbnail;
 using FSH.Modules.Catalog.Features.v1.Products.UpdateProduct;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -109,6 +113,13 @@ public sealed class CatalogModule : IModule
         group.MapDeleteProductEndpoint();
         group.MapChangeProductPriceEndpoint();
         group.MapAdjustProductStockEndpoint();
+
+        // Product images — collection sub-resource under /products/{id}/images.
+        group.MapAddProductImageEndpoint();
+        group.MapRemoveProductImageEndpoint();
+        group.MapSetProductThumbnailEndpoint();
+        group.MapReorderProductImagesEndpoint();
+
         group.MapGetProductByIdEndpoint();
         group.MapSearchProductsEndpoint();
     }

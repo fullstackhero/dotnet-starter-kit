@@ -16,7 +16,11 @@ internal static class ProductMappings
         new MoneyDto(p.Price.Amount, p.Price.Currency),
         p.Stock,
         p.IsActive,
-        p.ImageUrl,
+        p.ThumbnailUrl,
+        p.Images
+            .OrderBy(i => i.SortOrder)
+            .Select(i => new ProductImageDto(i.Id, i.FileAssetId, i.Url, i.IsThumbnail, i.SortOrder, i.CreatedAtUtc))
+            .ToList(),
         p.CreatedAtUtc,
         p.UpdatedAtUtc,
         p.DeletedOnUtc,

@@ -74,7 +74,6 @@ import {
   type SortDir,
   type SortOption,
 } from "@/components/list";
-import { ImageInput } from "@/components/file/image-input";
 import { useAuth } from "@/auth/use-auth";
 import { cn } from "@/lib/cn";
 import {
@@ -551,7 +550,7 @@ function Row({
       />
 
       <ProductImage
-        imageUrl={product.imageUrl}
+        imageUrl={product.thumbnailUrl}
         initial={product.name.trim().charAt(0).toUpperCase() || "·"}
         size={density === "compact" ? 40 : 56}
       />
@@ -831,7 +830,6 @@ function ProductEditorDialog({
       priceAmount: product?.price.amount ?? 0,
       priceCurrency: product?.price.currency ?? "USD",
       stock: product?.stock ?? 0,
-      imageUrl: product?.imageUrl ?? "",
       isActive: product?.isActive ?? true,
     }),
     [product],
@@ -845,7 +843,6 @@ function ProductEditorDialog({
   const [priceAmount, setPriceAmount] = useState(String(initial.priceAmount));
   const [priceCurrency, setPriceCurrency] = useState(initial.priceCurrency);
   const [stock, setStock] = useState(String(initial.stock));
-  const [imageUrl, setImageUrl] = useState(initial.imageUrl);
   const [isActive, setIsActive] = useState(initial.isActive);
 
   useEffect(() => {
@@ -858,7 +855,6 @@ function ProductEditorDialog({
       setPriceAmount(String(initial.priceAmount));
       setPriceCurrency(initial.priceCurrency);
       setStock(String(initial.stock));
-      setImageUrl(initial.imageUrl);
       setIsActive(initial.isActive);
     }
   }, [isOpen, initial]);
@@ -910,7 +906,6 @@ function ProductEditorDialog({
         description: description.trim() || null,
         brandId,
         categoryId,
-        imageUrl: imageUrl.trim() || null,
         isActive,
       });
     } else {
@@ -923,7 +918,6 @@ function ProductEditorDialog({
         priceAmount: priceNum,
         priceCurrency,
         stock: stockNum,
-        imageUrl: imageUrl.trim() || null,
       });
     }
   };
@@ -949,7 +943,7 @@ function ProductEditorDialog({
               name={trimmedName}
               sku={trimmedSku}
               description={description}
-              imageUrl={imageUrl}
+              imageUrl={product?.thumbnailUrl ?? null}
               brandName={brands.find((b) => b.id === brandId)?.name ?? null}
               categoryName={categories.find((c) => c.id === categoryId)?.name ?? null}
               priceAmount={Number.isNaN(priceNum) ? 0 : priceNum}
@@ -1052,14 +1046,11 @@ function ProductEditorDialog({
               </div>
             )}
 
-            <Field id="product-image" label="Product image" hint="Upload an image or paste an external URL.">
-              <ImageInput
-                value={imageUrl}
-                onChange={setImageUrl}
-                ownerType="Product"
-                ownerId={product?.id ?? null}
-              />
-            </Field>
+            {!product && (
+              <p className="rounded-md border border-dashed border-[var(--color-border-strong)] bg-[var(--color-surface-2)] px-3 py-2 text-xs text-[var(--color-muted-foreground)]">
+                Images can be uploaded on the product detail page after the product is created.
+              </p>
+            )}
 
             <Field id="product-description" label="Description" hint="Shown on listing and product detail pages.">
               <textarea
@@ -1127,7 +1118,7 @@ function RowPreview({
   name: string;
   sku: string;
   description: string;
-  imageUrl: string;
+  imageUrl: string | null;
   brandName: string | null;
   categoryName: string | null;
   priceAmount: number;
@@ -1147,7 +1138,7 @@ function RowPreview({
       </div>
       <div className="flex items-center gap-3">
         <ProductImage
-          imageUrl={imageUrl.trim() || null}
+          imageUrl={imageUrl}
           initial={name.trim().charAt(0).toUpperCase() || "·"}
           size={48}
         />
