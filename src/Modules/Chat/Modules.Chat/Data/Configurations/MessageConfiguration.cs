@@ -38,6 +38,12 @@ public sealed class MessageConfiguration : IEntityTypeConfiguration<Message>
             .OnDelete(DeleteBehavior.Cascade);
         builder.Navigation(x => x.Attachments).AutoInclude();
 
+        builder.HasMany(x => x.Mentions)
+            .WithOne()
+            .HasForeignKey(m => m.MessageId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Navigation(x => x.Mentions).AutoInclude();
+
         builder.Ignore(x => x.DomainEvents);
     }
 }

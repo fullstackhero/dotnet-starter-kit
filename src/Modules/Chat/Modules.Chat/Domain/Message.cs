@@ -21,9 +21,17 @@ public sealed class Message : AggregateRoot<Guid>
     private readonly List<MessageAttachment> _attachments = [];
     public IReadOnlyList<MessageAttachment> Attachments => _attachments;
 
+    private readonly List<MessageMention> _mentions = [];
+    public IReadOnlyList<MessageMention> Mentions => _mentions;
+
     private Message() { }
 
-    public static Message Create(Guid channelId, string authorUserId, string body, Guid? parentMessageId = null)
+    public static Message Create(
+        Guid channelId,
+        string authorUserId,
+        string body,
+        Guid? parentMessageId = null,
+        IReadOnlyList<ParsedMention>? mentions = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(authorUserId);
         ArgumentException.ThrowIfNullOrWhiteSpace(body);
@@ -41,10 +49,23 @@ public sealed class Message : AggregateRoot<Guid>
             ParentMessageId = parentMessageId,
             CreatedAtUtc = DateTime.UtcNow,
         };
+        if (mentions is not null)
+        {
+            foreach (var pm in mentions)
+            {
+                m._mentions.Add(MessageMention.Create(m.Id, pm.MentionedUserId, pm.StartIndex, pm.Length));
+            }
+        }
         m.AddDomainEvent(DomainEvent.Create((id, ts) =>
             new MessageCreatedDomainEvent(channelId, m.Id, authorUserId, parentMessageId, id, ts)));
         return m;
     }
+
+    /// <summary>
+    /// Input shape for <see cref="Create"/>: a resolved mention with the original position range
+    /// in the body so the UI can render the highlight without re-parsing.
+    /// </summary>
+    public readonly record struct ParsedMention(string MentionedUserId, int StartIndex, int Length);
 
     public void Edit(string newBody, string editingUserId)
     {

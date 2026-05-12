@@ -53,6 +53,10 @@ public sealed class ChatModule : IModule
         builder.Services.AddScoped<IChannelMembershipChecker, ChannelMembershipChecker>();
         builder.Services.AddScoped<IUserChannelLookup, UserChannelLookup>();
 
+        // @username resolution for SendMessage. Goes through Identity contracts so the user
+        // directory stays the single source of truth.
+        builder.Services.AddScoped<IMentionResolver, MentionResolver>();
+
         builder.Services.AddHealthChecks().AddDbContextCheck<ChatDbContext>(
             name: "db:chat",
             failureStatus: HealthStatus.Unhealthy);
