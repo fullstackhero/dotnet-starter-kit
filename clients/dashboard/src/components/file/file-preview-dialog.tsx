@@ -64,9 +64,11 @@ export function FilePreviewDialog({ fileAssetId, initial, onClose }: Props) {
   });
 
   // Private files need a presigned GET to render — fetch lazily once we know visibility.
+  // Ask for ?inline=true so the URL carries Content-Disposition: inline, letting the
+  // browser PDF viewer / image renderer show the file in place instead of downloading.
   const downloadQuery = useQuery({
-    queryKey: ["files", "download", fileAssetId],
-    queryFn: () => getFileDownloadUrl(fileAssetId!),
+    queryKey: ["files", "download", fileAssetId, "inline"],
+    queryFn: () => getFileDownloadUrl(fileAssetId!, { inline: true }),
     enabled: open && metaQuery.data?.visibility === Visibility.Private,
     staleTime: 60 * 1000, // 1 min — short, since presigned URLs have a TTL of their own
   });
@@ -104,19 +106,8 @@ export function FilePreviewDialog({ fileAssetId, initial, onClose }: Props) {
         </DialogBody>
 
         <DialogFooter>
-          {metaQuery.data && (metaQuery.data.publicUrl || downloadQuery.data?.url) && (
-            <a
-              href={metaQuery.data.publicUrl ?? downloadQuery.data?.url ?? "#"}
-              target="_blank"
-              rel="noopener noreferrer"
-              download={metaQuery.data.originalFileName}
-              className="inline-flex"
-            >
-              <Button size="sm" variant="outline">
-                <Download className="h-3.5 w-3.5" />
-                Download
-              </Button>
-            </a>
+          {metaQuery.data && metaQuery.data.status === FileAssetStatus.Available && (
+            <DownloadButton file={metaQuery.data} />
           )}
           <DialogClose asChild>
             <Button size="sm">Close</Button>
@@ -248,6 +239,34 @@ function MetadataPanel({ file }: { file: FileAssetDto }) {
         </div>
       ))}
     </dl>
+  );
+}
+
+// Click-to-download. Mints a fresh attachment-disposition presigned URL each click for
+// private files so we don't reuse the inline URL the iframe is consuming. For public
+// files there's no inline/attachment distinction — both buttons use the same publicUrl.
+function DownloadButton({ file }: { file: FileAssetDto }) {
+  const [busy, setBusy] = useState(false);
+  const handle = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const url = file.visibility === Visibility.Public && file.publicUrl
+        ? file.publicUrl
+        : (await getFileDownloadUrl(file.id, { inline: false })).url;
+      // Triggering navigation in a new tab; the response carries
+      // Content-Disposition: attachment for private files, so the browser saves rather
+      // than navigates. For public files we just open in a new tab.
+      window.open(url, "_blank", "noopener,noreferrer");
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Button size="sm" variant="outline" onClick={handle} disabled={busy}>
+      {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+      Download
+    </Button>
   );
 }
 

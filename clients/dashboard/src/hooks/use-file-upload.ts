@@ -12,8 +12,12 @@ import { ApiRequestError } from "@/lib/api-client";
 export type UploadOptions = {
   ownerType?: string;
   ownerId?: string | null;
-  /** Server-side category — must match a key in appsettings Files:Categories (e.g. Image, Document, Archive). */
-  category: string;
+  /**
+   * Server-side category — must match a key in appsettings Files:Categories (e.g. Image, Document,
+   * Archive). Can be a static string OR a function that picks the category per file based on its
+   * type/extension, so a single dropzone can accept multiple categories at once (My Files page).
+   */
+  category: string | ((file: File) => string);
   visibility?: VisibilityValue;
   /**
    * Optional client-side allowed extensions (lower-case, with leading dot, e.g. [".pdf", ".docx"]).
@@ -130,6 +134,8 @@ export function useFileUpload(options: UploadOptions): UseFileUploadResult {
       });
 
       // ── Step 1 — mint the presigned URL ─────────────────────────
+      const resolvedCategory =
+        typeof opts.category === "function" ? opts.category(file) : opts.category;
       const requestInput: RequestUploadUrlInput = {
         ownerType: opts.ownerType ?? DEFAULT_OPTIONS.ownerType,
         ownerId: opts.ownerId ?? null,
@@ -137,7 +143,7 @@ export function useFileUpload(options: UploadOptions): UseFileUploadResult {
         contentType: file.type || "application/octet-stream",
         sizeBytes: file.size,
         visibility: opts.visibility ?? DEFAULT_OPTIONS.visibility,
-        category: opts.category,
+        category: resolvedCategory,
       };
 
       let presigned;

@@ -229,7 +229,7 @@ function detailFor(
     const cap = options.maxBytes ? ` · up to ${formatBytes(options.maxBytes)}` : "";
     return `Allowed: ${ext}${cap}`;
   }
-  return options.category;
+  return typeof options.category === "string" ? options.category : "Drop a file";
 }
 
 function ProgressBar({ percent, loaded, total }: { percent: number; loaded: number; total: number }) {

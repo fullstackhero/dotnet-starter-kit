@@ -30,15 +30,39 @@ type Props = {
   queryKey?: readonly unknown[];
   /** Hide the delete control (e.g. read-only consumers like ticket attachments). */
   readOnly?: boolean;
+  /** Show section headers grouping items by inferred kind (Images / Documents / Archives / Other). */
+  groupByKind?: boolean;
   className?: string;
 };
+
+type Kind = "Images" | "Documents" | "Archives" | "Other";
+const KIND_ORDER: readonly Kind[] = ["Images", "Documents", "Archives", "Other"];
+
+function kindOf(file: FileAssetDto): Kind {
+  const ct = file.contentType.toLowerCase();
+  if (ct.startsWith("image/")) return "Images";
+  if (ct === "application/zip" || ct.includes("compressed") || ct === "application/x-zip-compressed") {
+    return "Archives";
+  }
+  if (
+    ct.startsWith("text/")
+    || ct === "application/pdf"
+    || ct.includes("officedocument")
+    || ct === "application/msword"
+    || ct === "application/vnd.ms-excel"
+    || ct === "application/vnd.ms-powerpoint"
+  ) {
+    return "Documents";
+  }
+  return "Other";
+}
 
 /**
  * FileGallery — grid of finalized file cards with mime-aware iconography,
  * an inline download CTA (which mints a fresh presigned GET each click) and
  * an optional delete CTA backed by the soft-delete endpoint.
  */
-export function FileGallery({ files, isLoading, queryKey, readOnly, className }: Props) {
+export function FileGallery({ files, isLoading, queryKey, readOnly, groupByKind, className }: Props) {
   const [previewId, setPreviewId] = useState<string | null>(null);
   const previewSeed = files?.find((f) => f.id === previewId);
 
@@ -54,6 +78,51 @@ export function FileGallery({ files, isLoading, queryKey, readOnly, className }:
   if (!files || files.length === 0) {
     return null;
   }
+
+  if (groupByKind) {
+    const grouped = new Map<Kind, FileAssetDto[]>();
+    for (const f of files) {
+      const k = kindOf(f);
+      const bucket = grouped.get(k) ?? [];
+      bucket.push(f);
+      grouped.set(k, bucket);
+    }
+    return (
+      <>
+        <div className={cn("space-y-6", className)}>
+          {KIND_ORDER.filter((k) => grouped.has(k)).map((k) => {
+            const items = grouped.get(k)!;
+            return (
+              <section key={k} className="space-y-3">
+                <h3 className="flex items-baseline gap-2 font-mono text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
+                  <span>{k}</span>
+                  <span className="text-[var(--color-foreground)]/40">·</span>
+                  <span>{items.length}</span>
+                </h3>
+                <div role="list" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {items.map((f) => (
+                    <FileCard
+                      key={f.id}
+                      file={f}
+                      queryKey={queryKey}
+                      readOnly={readOnly}
+                      onOpen={() => setPreviewId(f.id)}
+                    />
+                  ))}
+                </div>
+              </section>
+            );
+          })}
+        </div>
+        <FilePreviewDialog
+          fileAssetId={previewId}
+          initial={previewSeed}
+          onClose={() => setPreviewId(null)}
+        />
+      </>
+    );
+  }
+
   return (
     <>
       <div role="list" className={cn("grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3", className)}>

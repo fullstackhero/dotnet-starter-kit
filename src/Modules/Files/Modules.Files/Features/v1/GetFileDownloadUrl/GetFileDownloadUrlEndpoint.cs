@@ -10,9 +10,10 @@ public static class GetFileDownloadUrlEndpoint
 {
     internal static RouteHandlerBuilder MapGetFileDownloadUrlEndpoint(this IEndpointRouteBuilder endpoints)
         => endpoints.MapGet("/{id:guid}/url",
-                async (Guid id, IMediator mediator, CancellationToken cancellationToken) =>
-                    Results.Ok(await mediator.Send(new GetFileDownloadUrlQuery(id), cancellationToken)))
+                async (Guid id, bool? inline, IMediator mediator, CancellationToken cancellationToken) =>
+                    Results.Ok(await mediator.Send(new GetFileDownloadUrlQuery(id, inline ?? false), cancellationToken)))
             .WithName("GetFileDownloadUrl")
             .WithSummary("Mint a short-lived presigned download URL")
+            .WithDescription("Default disposition is attachment (click-to-save). Pass ?inline=true to get an inline disposition for browser preview (PDF viewer, image render, etc.).")
             .RequireAuthorization();
 }

@@ -40,7 +40,8 @@ public sealed class GetFileDownloadUrlQueryHandler(
         }
 
         var ttl = TimeSpan.FromMinutes(options.Value.DownloadUrlTtlMinutes);
-        var disposition = $"attachment; filename=\"{f.OriginalFileName}\"";
+        var mode = q.Inline ? "inline" : "attachment";
+        var disposition = $"{mode}; filename=\"{f.OriginalFileName}\"";
         var url = await storage.GenerateDownloadUrlAsync(f.StorageKey, ttl, disposition, cancellationToken).ConfigureAwait(false);
         return new PresignedDownloadResponse(url, DateTimeOffset.UtcNow.Add(ttl));
     }

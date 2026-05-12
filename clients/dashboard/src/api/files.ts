@@ -71,9 +71,13 @@ export function getFileMetadata(fileAssetId: string): Promise<FileAssetDto> {
   return apiFetch<FileAssetDto>(`/api/v1/files/${encodeURIComponent(fileAssetId)}`);
 }
 
-export function getFileDownloadUrl(fileAssetId: string): Promise<PresignedDownloadResponse> {
+export function getFileDownloadUrl(
+  fileAssetId: string,
+  options: { inline?: boolean } = {},
+): Promise<PresignedDownloadResponse> {
+  const qs = options.inline ? "?inline=true" : "";
   return apiFetch<PresignedDownloadResponse>(
-    `/api/v1/files/${encodeURIComponent(fileAssetId)}/url`,
+    `/api/v1/files/${encodeURIComponent(fileAssetId)}/url${qs}`,
   );
 }
 
