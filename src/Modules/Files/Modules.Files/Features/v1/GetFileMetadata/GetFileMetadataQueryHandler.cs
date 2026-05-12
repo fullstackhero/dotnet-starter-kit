@@ -10,7 +10,6 @@ using FSH.Modules.Files.Features.v1.Internal;
 using FSH.Modules.Files.Services;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 
 namespace FSH.Modules.Files.Features.v1.GetFileMetadata;
 
@@ -18,8 +17,7 @@ public sealed class GetFileMetadataQueryHandler(
     FilesDbContext db,
     FileAccessPolicyRegistry policies,
     ICurrentUser currentUser,
-    IStorageService storage,
-    IOptions<FilesOptions> options)
+    IStorageService storage)
     : IQueryHandler<GetFileMetadataQuery, FileAssetDto>
 {
     public async ValueTask<FileAssetDto> Handle(GetFileMetadataQuery q, CancellationToken cancellationToken)
@@ -41,15 +39,12 @@ public sealed class GetFileMetadataQueryHandler(
             throw new NotFoundException("file not found");
         }
 
-        string? publicUrl = null;
-        if (f.Visibility == Visibility.Public)
-        {
-            var uri = await storage.GenerateDownloadUrlAsync(
-                f.StorageKey,
-                TimeSpan.FromMinutes(options.Value.DownloadUrlTtlMinutes),
-                cancellationToken: cancellationToken).ConfigureAwait(false);
-            publicUrl = uri.ToString();
-        }
+        // Public files get a durable URL so the caller can persist it on a long-lived entity
+        // (e.g. Product.imageUrl). Private files use the auth-gated /url endpoint to mint a
+        // short-lived presigned GET on demand.
+        var publicUrl = f.Visibility == Visibility.Public
+            ? storage.BuildPublicUrl(f.StorageKey)
+            : null;
 
         return FileAssetMapper.ToDto(f, publicUrl);
     }

@@ -57,4 +57,16 @@ public interface IStorageService
     Task<StoredObjectMetadata?> HeadObjectAsync(
         string storageKey,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Compute a durable, non-expiring public URL for an object. Used when a <c>FileAsset</c> with
+    /// <c>Visibility=Public</c> is consumed by a long-lived persisted reference (e.g. a Product's
+    /// <c>imageUrl</c>) where a presigned 5-minute URL would expire shortly after save.
+    ///
+    /// S3 backends build this from <c>PublicBaseUrl</c> (or the bucket's S3 host) and assume the
+    /// bucket policy grants public-read on the object. Local storage returns a path relative to the
+    /// API origin's wwwroot. Callers that want auth-gated access should use
+    /// <see cref="GenerateDownloadUrlAsync"/> instead.
+    /// </summary>
+    string BuildPublicUrl(string storageKey);
 }

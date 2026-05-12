@@ -2,8 +2,10 @@ using Asp.Versioning;
 using FSH.Framework.Persistence;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Web.Modules;
+using FSH.Modules.Catalog.Authorization;
 using FSH.Modules.Catalog.Contracts.Authorization;
 using FSH.Modules.Catalog.Data;
+using FSH.Modules.Files.Contracts;
 using FSH.Modules.Catalog.Features.v1.Brands.CreateBrand;
 using FSH.Modules.Catalog.Features.v1.Brands.DeleteBrand;
 using FSH.Modules.Catalog.Features.v1.Brands.GetBrandById;
@@ -49,6 +51,9 @@ public sealed class CatalogModule : IModule
 
         builder.Services.AddHeroDbContext<CatalogDbContext>();
         builder.Services.AddScoped<IDbInitializer, CatalogDbInitializer>();
+
+        // OwnerType=Product policy for Files module attachments (product images).
+        builder.Services.AddScoped<IFileAccessPolicy, ProductFileAccessPolicy>();
 
         builder.Services.AddHealthChecks()
             .AddDbContextCheck<CatalogDbContext>(

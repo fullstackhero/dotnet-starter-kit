@@ -127,4 +127,6 @@ internal sealed class QuotaMeteredStorageService : IStorageService
 
     public Task<StoredObjectMetadata?> HeadObjectAsync(string storageKey, CancellationToken cancellationToken = default)
         => _inner.HeadObjectAsync(storageKey, cancellationToken);
+
+    public string BuildPublicUrl(string storageKey) => _inner.BuildPublicUrl(storageKey);
 }

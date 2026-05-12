@@ -104,6 +104,25 @@ internal sealed class UserProfileService(
         }
     }
 
+    public async Task SetImageUrlAsync(string userId, string? imageUrl, CancellationToken cancellationToken)
+    {
+        EnsureValidTenant();
+        var user = await userManager.FindByIdAsync(userId)
+            ?? throw new NotFoundException("user not found");
+
+        user.ImageUrl = string.IsNullOrWhiteSpace(imageUrl)
+            ? null
+            : new Uri(imageUrl, UriKind.RelativeOrAbsolute);
+
+        var result = await userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            throw new CustomException("Update profile image failed");
+        }
+
+        await signInManager.RefreshSignInAsync(user);
+    }
+
     public async Task<bool> ExistsWithEmailAsync(string email, string? exceptId = null)
     {
         EnsureValidTenant();

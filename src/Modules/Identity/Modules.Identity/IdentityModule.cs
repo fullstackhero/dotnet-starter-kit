@@ -57,6 +57,7 @@ using FSH.Modules.Identity.Features.v1.Users.RegisterUser;
 using FSH.Modules.Identity.Features.v1.Users.ResetPassword;
 using FSH.Modules.Identity.Features.v1.Users.SearchUsers;
 using FSH.Modules.Identity.Features.v1.Users.SelfRegistration;
+using FSH.Modules.Identity.Features.v1.Users.SetProfileImage;
 using FSH.Modules.Identity.Features.v1.Users.ToggleUserStatus;
 using FSH.Modules.Identity.Features.v1.Users.UpdateUser;
 using FSH.Modules.Identity.Services;
@@ -216,6 +217,7 @@ public class IdentityModule : IModule
         group.MapSelfRegisterUserEndpoint().RequireRateLimiting("auth");
         group.MapToggleUserStatusEndpoint();
         group.MapUpdateUserEndpoint();
+        group.MapSetProfileImageEndpoint();
 
         // sessions - user endpoints
         group.MapGetMySessionsEndpoint();

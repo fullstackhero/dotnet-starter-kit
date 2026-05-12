@@ -74,6 +74,7 @@ import {
   type SortDir,
   type SortOption,
 } from "@/components/list";
+import { ImageInput } from "@/components/file/image-input";
 import { useAuth } from "@/auth/use-auth";
 import { cn } from "@/lib/cn";
 import {
@@ -364,7 +365,7 @@ export function ProductsPage() {
               );
             })()
           ) : (
-            <ul role="list">
+            <ul>
               {sortedItems.map((product, i) => (
                 <Row
                   key={product.id}
@@ -531,7 +532,6 @@ function Row({
 
   return (
     <li
-      role="listitem"
       className={cn(
         "fsh-enter group/row relative flex items-center gap-4 border-b border-[var(--color-border)] px-5 last:border-b-0 sm:px-6",
         padY,
@@ -1052,14 +1052,12 @@ function ProductEditorDialog({
               </div>
             )}
 
-            <Field id="product-image" label="Image URL" hint="Optional. Public URL to a product image.">
-              <Input
-                id="product-image"
+            <Field id="product-image" label="Product image" hint="Upload an image or paste an external URL.">
+              <ImageInput
                 value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://…"
-                maxLength={512}
-                type="url"
+                onChange={setImageUrl}
+                ownerType="Product"
+                ownerId={product?.id ?? null}
               />
             </Field>
 

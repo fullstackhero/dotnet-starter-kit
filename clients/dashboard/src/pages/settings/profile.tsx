@@ -1,5 +1,9 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { useAuth } from "@/auth/use-auth";
+import { getMyProfile, setProfileImage } from "@/api/identity";
+import { ApiRequestError } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,24 +14,81 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ImageInput } from "@/components/file/image-input";
+
+const PROFILE_KEY = ["identity", "me"] as const;
 
 export function ProfileSettings() {
   const { user } = useAuth();
-  const [firstName, setFirstName] = useState(user?.name?.split(" ")[0] ?? "");
-  const [lastName, setLastName] = useState(user?.name?.split(" ").slice(1).join(" ") ?? "");
+  const queryClient = useQueryClient();
+
+  const profileQuery = useQuery({
+    queryKey: PROFILE_KEY,
+    queryFn: getMyProfile,
+  });
+
+  const profile = profileQuery.data;
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
   const [saving, setSaving] = useState(false);
+
+  // Seed form state from the fetched profile (falls back to the JWT-derived
+  // user while the query is in flight so the form isn't empty on first paint).
+  useEffect(() => {
+    if (profile) {
+      setFirstName(profile.firstName ?? "");
+      setLastName(profile.lastName ?? "");
+      setPhone(profile.phoneNumber ?? "");
+    } else if (user) {
+      setFirstName(user.name?.split(" ")[0] ?? "");
+      setLastName(user.name?.split(" ").slice(1).join(" ") ?? "");
+    }
+  }, [profile, user]);
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSaving(true);
-    // TODO: wire to /api/v1/identity/profile when the endpoint is available.
+    // TODO: wire to /api/v1/identity/profile when the JSON endpoint accepts these fields.
     await new Promise((r) => setTimeout(r, 800));
     setSaving(false);
   };
 
+  const imageMutation = useMutation({
+    mutationFn: (url: string | null) => setProfileImage(url),
+    onSuccess: () => {
+      toast.success("Profile image updated");
+      queryClient.invalidateQueries({ queryKey: PROFILE_KEY });
+    },
+    onError: (e: unknown) => {
+      const message =
+        e instanceof ApiRequestError
+          ? (e.problem?.detail ?? e.problem?.title ?? e.message)
+          : "Failed to update profile image";
+      toast.error(message);
+    },
+  });
+
   return (
     <form onSubmit={onSubmit} className="space-y-6 fsh-enter">
+      <Card>
+        <CardHeader>
+          <CardTitle>Profile photo</CardTitle>
+          <CardDescription>
+            Shown in the topbar and on your activity. Square crops work best — JPG, PNG, or WebP.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="px-6 pb-5 pt-1">
+          <ImageInput
+            value={profile?.imageUrl ?? ""}
+            onChange={(next) => imageMutation.mutate(next.length > 0 ? next : null)}
+            ownerType="User"
+            ownerId={profile?.id ?? null}
+            shape="circle"
+          />
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Public profile</CardTitle>
@@ -56,7 +117,7 @@ export function ProfileSettings() {
             <Input
               id="email"
               type="email"
-              value={user?.email ?? ""}
+              value={profile?.email ?? user?.email ?? ""}
               readOnly
               disabled
               className="cursor-not-allowed"
@@ -87,7 +148,7 @@ export function ProfileSettings() {
         </CardHeader>
         <CardContent className="px-6 pb-5 pt-1">
           <code className="block w-full overflow-x-auto rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 font-mono text-xs">
-            {user?.id ?? "—"}
+            {profile?.id ?? user?.id ?? "—"}
           </code>
         </CardContent>
       </Card>

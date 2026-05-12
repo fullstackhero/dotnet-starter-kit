@@ -29,6 +29,13 @@ public interface IUserProfileService
     Task UpdateAsync(string userId, string firstName, string lastName, string phoneNumber, FileUploadRequest image, bool deleteCurrentImage);
 
     /// <summary>
+    /// Sets the profile image URL directly (no upload). Used by the presigned-upload flow:
+    /// the client uploads via the Files module, then calls this with the resulting durable
+    /// <c>publicUrl</c>. Passing <c>null</c> clears the image.
+    /// </summary>
+    Task SetImageUrlAsync(string userId, string? imageUrl, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Checks if a user exists with the given email.
     /// </summary>
     Task<bool> ExistsWithEmailAsync(string email, string? exceptId = null);

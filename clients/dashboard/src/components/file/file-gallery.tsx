@@ -21,6 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ApiRequestError } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
 import { formatBytes } from "@/hooks/use-file-upload";
+import { FilePreviewDialog } from "@/components/file/file-preview-dialog";
 
 type Props = {
   files: FileAssetDto[] | undefined;
@@ -38,6 +39,9 @@ type Props = {
  * an optional delete CTA backed by the soft-delete endpoint.
  */
 export function FileGallery({ files, isLoading, queryKey, readOnly, className }: Props) {
+  const [previewId, setPreviewId] = useState<string | null>(null);
+  const previewSeed = files?.find((f) => f.id === previewId);
+
   if (isLoading) {
     return (
       <div className={cn("grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3", className)}>
@@ -51,11 +55,24 @@ export function FileGallery({ files, isLoading, queryKey, readOnly, className }:
     return null;
   }
   return (
-    <ul className={cn("grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3", className)}>
-      {files.map((f) => (
-        <FileCard key={f.id} file={f} queryKey={queryKey} readOnly={readOnly} />
-      ))}
-    </ul>
+    <>
+      <div role="list" className={cn("grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3", className)}>
+        {files.map((f) => (
+          <FileCard
+            key={f.id}
+            file={f}
+            queryKey={queryKey}
+            readOnly={readOnly}
+            onOpen={() => setPreviewId(f.id)}
+          />
+        ))}
+      </div>
+      <FilePreviewDialog
+        fileAssetId={previewId}
+        initial={previewSeed}
+        onClose={() => setPreviewId(null)}
+      />
+    </>
   );
 }
 
@@ -63,10 +80,12 @@ function FileCard({
   file,
   queryKey,
   readOnly,
+  onOpen,
 }: {
   file: FileAssetDto;
   queryKey?: readonly unknown[];
   readOnly?: boolean;
+  onOpen: () => void;
 }) {
   const queryClient = useQueryClient();
   const [downloading, setDownloading] = useState(false);
@@ -108,11 +127,26 @@ function FileCard({
   const isImage = file.contentType.startsWith("image/");
   const isAvailable = file.status === FileAssetStatus.Available;
 
+  // The card is clickable — Download / Delete are stopPropagation'd so they don't open
+  // the preview dialog.
+  const handleCardKey = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onOpen();
+    }
+  };
+
   return (
-    <li
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={handleCardKey}
+      aria-label={`Preview ${file.originalFileName}`}
       className={cn(
-        "group relative flex items-start gap-3 rounded-2xl border bg-[var(--color-surface-2)] p-3 transition-colors",
+        "group relative flex cursor-pointer items-start gap-3 rounded-2xl border bg-[var(--color-surface-2)] p-3 transition-colors",
         "border-[var(--color-border-strong)] hover:bg-[var(--color-surface-3)]",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-background)]",
       )}
     >
       {/* Thumbnail / icon plate */}
@@ -151,7 +185,10 @@ function FileCard({
           size="icon"
           variant="ghost"
           aria-label="Download"
-          onClick={handleDownload}
+          onClick={(e) => {
+            e.stopPropagation();
+            void handleDownload();
+          }}
           disabled={!isAvailable || downloading}
           title={isAvailable ? "Download" : "Not yet available"}
         >
@@ -164,7 +201,10 @@ function FileCard({
             size="icon"
             variant="ghost"
             aria-label="Delete"
-            onClick={() => deleteMutation.mutate()}
+            onClick={(e) => {
+              e.stopPropagation();
+              deleteMutation.mutate();
+            }}
             disabled={deleteMutation.isPending}
             title="Move to trash"
           >
@@ -172,7 +212,7 @@ function FileCard({
           </Button>
         )}
       </div>
-    </li>
+    </div>
   );
 }
 

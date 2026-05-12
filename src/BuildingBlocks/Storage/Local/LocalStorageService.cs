@@ -168,6 +168,16 @@ public class LocalStorageService : IStorageService
         return Task.FromResult(new Uri($"/{normalized}", UriKind.Relative));
     }
 
+    public string BuildPublicUrl(string storageKey)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(storageKey);
+        var normalized = storageKey.TrimStart('/').Replace("\\", "/", StringComparison.Ordinal);
+        // Resolved later by the dashboard's API origin (UserProfileService already does this for
+        // legacy avatar paths). Keeping the leading slash lets clients distinguish absolute URLs
+        // from server-relative ones.
+        return $"/{normalized}";
+    }
+
     public Task<StoredObjectMetadata?> HeadObjectAsync(
         string storageKey, CancellationToken cancellationToken = default)
     {

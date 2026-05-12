@@ -359,13 +359,21 @@ internal sealed class S3StorageService : IStorageService
         return relativePath;
     }
 
-    private string BuildPublicUrl(string key)
+    public string BuildPublicUrl(string storageKey)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(storageKey);
+        var key = NormalizeKey(storageKey);
         var safeKey = key.TrimStart('/');
 
         if (!string.IsNullOrWhiteSpace(_options.PublicBaseUrl))
         {
             return $"{_options.PublicBaseUrl.TrimEnd('/')}/{safeKey}";
+        }
+
+        // S3-compatible endpoint with path-style addressing (MinIO and friends).
+        if (!string.IsNullOrWhiteSpace(_options.ServiceUrl))
+        {
+            return $"{_options.ServiceUrl.TrimEnd('/')}/{_options.Bucket}/{safeKey}";
         }
 
         if (!_options.PublicRead)

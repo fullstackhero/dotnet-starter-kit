@@ -110,6 +110,22 @@ export async function deleteUser(userId: string): Promise<void> {
   });
 }
 
+/**
+ * Persist a durable avatar URL on the authenticated user. Typically the publicUrl returned
+ * by the Files module after a presigned upload; pass null/empty to clear.
+ */
+export async function setProfileImage(imageUrl: string | null): Promise<void> {
+  await apiFetch<void>(`/api/v1/identity/profile/image`, {
+    method: "PUT",
+    body: JSON.stringify({ imageUrl }),
+  });
+}
+
+/** Fetch the authenticated user's full profile (name, email, phone, imageUrl, etc.). */
+export async function getMyProfile(): Promise<UserDto> {
+  return apiFetch<UserDto>("/api/v1/identity/profile");
+}
+
 export async function registerUser(input: RegisterUserInput): Promise<RegisterUserResponse> {
   return apiFetch<RegisterUserResponse>(`/api/v1/identity/register`, {
     method: "POST",

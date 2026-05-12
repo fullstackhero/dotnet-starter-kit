@@ -61,6 +61,7 @@ import {
   ErrorBand,
   Field,
 } from "@/components/list";
+import { ImageInput } from "@/components/file/image-input";
 import { cn } from "@/lib/cn";
 import {
   describe,
@@ -867,14 +868,12 @@ function ProductEditorDialog({
               </Field>
             </div>
 
-            <Field id="edit-image" label="Image URL" hint="Optional. Public URL to a product image.">
-              <Input
-                id="edit-image"
+            <Field id="edit-image" label="Product image" hint="Upload an image or paste an external URL.">
+              <ImageInput
                 value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                type="url"
-                maxLength={512}
-                placeholder="https://…"
+                onChange={setImageUrl}
+                ownerType="Product"
+                ownerId={product.id}
               />
             </Field>
 
