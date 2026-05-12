@@ -61,6 +61,11 @@ public sealed class ChatModule : IModule
         // directory stays the single source of truth.
         builder.Services.AddScoped<IMentionResolver, MentionResolver>();
 
+        // File attachments for chat messages — channel members can attach + read; only the
+        // uploader can delete. Registered as IFileAccessPolicy so the Files module's
+        // RequestUploadUrl + finalize + read-URL endpoints route through it for OwnerType=ChatChannel.
+        builder.Services.AddScoped<FSH.Modules.Files.Contracts.IFileAccessPolicy, Authorization.ChatChannelFileAccessPolicy>();
+
         builder.Services.AddHealthChecks().AddDbContextCheck<ChatDbContext>(
             name: "db:chat",
             failureStatus: HealthStatus.Unhealthy);
