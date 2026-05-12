@@ -17,6 +17,15 @@ import {
   FileAssetStatus,
 } from "@/api/files";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ApiRequestError } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
@@ -64,6 +73,7 @@ function kindOf(file: FileAssetDto): Kind {
  */
 export function FileGallery({ files, isLoading, queryKey, readOnly, groupByKind, className }: Props) {
   const [previewId, setPreviewId] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<FileAssetDto | null>(null);
   const previewSeed = files?.find((f) => f.id === previewId);
 
   if (isLoading) {
@@ -78,6 +88,21 @@ export function FileGallery({ files, isLoading, queryKey, readOnly, groupByKind,
   if (!files || files.length === 0) {
     return null;
   }
+
+  const dialogs = (
+    <>
+      <FilePreviewDialog
+        fileAssetId={previewId}
+        initial={previewSeed}
+        onClose={() => setPreviewId(null)}
+      />
+      <DeleteFileDialog
+        file={pendingDelete}
+        queryKey={queryKey}
+        onClose={() => setPendingDelete(null)}
+      />
+    </>
+  );
 
   if (groupByKind) {
     const grouped = new Map<Kind, FileAssetDto[]>();
@@ -104,9 +129,9 @@ export function FileGallery({ files, isLoading, queryKey, readOnly, groupByKind,
                     <FileCard
                       key={f.id}
                       file={f}
-                      queryKey={queryKey}
                       readOnly={readOnly}
                       onOpen={() => setPreviewId(f.id)}
+                      onDelete={() => setPendingDelete(f)}
                     />
                   ))}
                 </div>
@@ -114,11 +139,7 @@ export function FileGallery({ files, isLoading, queryKey, readOnly, groupByKind,
             );
           })}
         </div>
-        <FilePreviewDialog
-          fileAssetId={previewId}
-          initial={previewSeed}
-          onClose={() => setPreviewId(null)}
-        />
+        {dialogs}
       </>
     );
   }
@@ -130,51 +151,29 @@ export function FileGallery({ files, isLoading, queryKey, readOnly, groupByKind,
           <FileCard
             key={f.id}
             file={f}
-            queryKey={queryKey}
             readOnly={readOnly}
             onOpen={() => setPreviewId(f.id)}
+            onDelete={() => setPendingDelete(f)}
           />
         ))}
       </div>
-      <FilePreviewDialog
-        fileAssetId={previewId}
-        initial={previewSeed}
-        onClose={() => setPreviewId(null)}
-      />
+      {dialogs}
     </>
   );
 }
 
 function FileCard({
   file,
-  queryKey,
   readOnly,
   onOpen,
+  onDelete,
 }: {
   file: FileAssetDto;
-  queryKey?: readonly unknown[];
   readOnly?: boolean;
   onOpen: () => void;
+  onDelete: () => void;
 }) {
-  const queryClient = useQueryClient();
   const [downloading, setDownloading] = useState(false);
-
-  const deleteMutation = useMutation({
-    mutationFn: () => deleteFile(file.id),
-    onSuccess: () => {
-      toast.success(`${file.originalFileName} moved to trash`);
-      if (queryKey) {
-        void queryClient.invalidateQueries({ queryKey });
-      }
-    },
-    onError: (e: unknown) => {
-      const message =
-        e instanceof ApiRequestError
-          ? (e.problem?.detail ?? e.problem?.title ?? e.message)
-          : "Failed to delete file";
-      toast.error(message);
-    },
-  });
 
   const handleDownload = async () => {
     if (downloading) return;
@@ -272,9 +271,8 @@ function FileCard({
             aria-label="Delete"
             onClick={(e) => {
               e.stopPropagation();
-              deleteMutation.mutate();
+              onDelete();
             }}
-            disabled={deleteMutation.isPending}
             title="Move to trash"
           >
             <Trash2 className="h-4 w-4" />
@@ -282,6 +280,78 @@ function FileCard({
         )}
       </div>
     </div>
+  );
+}
+
+/**
+ * Confirmation dialog shown before a file is moved to trash. The actual mutation lives here
+ * (not on each FileCard) so we mount one dialog at the gallery level. Pattern mirrors
+ * DeleteBrandDialog in pages/catalog/brands.tsx.
+ */
+function DeleteFileDialog({
+  file,
+  queryKey,
+  onClose,
+}: {
+  file: FileAssetDto | null;
+  queryKey?: readonly unknown[];
+  onClose: () => void;
+}) {
+  const queryClient = useQueryClient();
+  const isOpen = file !== null;
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteFile(id),
+    onSuccess: () => {
+      toast.success(`${file?.originalFileName ?? "File"} moved to trash`);
+      if (queryKey) {
+        void queryClient.invalidateQueries({ queryKey });
+      }
+      onClose();
+    },
+    onError: (e: unknown) => {
+      const message =
+        e instanceof ApiRequestError
+          ? (e.problem?.detail ?? e.problem?.title ?? e.message)
+          : "Failed to delete file";
+      toast.error(message);
+    },
+  });
+
+  return (
+    <Dialog open={isOpen} onOpenChange={(o) => (!o ? onClose() : undefined)}>
+      <DialogContent>
+        <DialogHeader>
+          <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-destructive)]">
+            Move to trash
+          </span>
+          <DialogTitle>Delete file</DialogTitle>
+          <DialogDescription>
+            This soft-deletes{" "}
+            <span className="font-medium text-[var(--color-foreground)]">{file?.originalFileName}</span>{" "}
+            <span className="opacity-70">
+              ({file ? `${formatBytes(file.sizeBytes)}` : ""})
+            </span>
+            . The file stays in trash until the retention window passes; you can restore it from
+            there before then.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button type="button" variant="outline" disabled={deleteMutation.isPending}>
+              Cancel
+            </Button>
+          </DialogClose>
+          <Button
+            variant="destructive"
+            onClick={() => file && deleteMutation.mutate(file.id)}
+            disabled={deleteMutation.isPending || !file}
+          >
+            {deleteMutation.isPending ? "Deleting…" : "Move to trash"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
