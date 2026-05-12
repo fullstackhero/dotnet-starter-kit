@@ -66,11 +66,16 @@ export function FilePreviewDialog({ fileAssetId, initial, onClose }: Props) {
   // Private files need a presigned GET to render — fetch lazily once we know visibility.
   // Ask for ?inline=true so the URL carries Content-Disposition: inline, letting the
   // browser PDF viewer / image renderer show the file in place instead of downloading.
+  //
+  // staleTime: 0 + gcTime: 0 force a fresh URL on every modal open. The presigned URL has
+  // a TTL of its own (see Files:DownloadUrlTtlMinutes); reusing a cached URL from a previous
+  // open across sessions risks serving an expired URL that the <img> fails on silently.
   const downloadQuery = useQuery({
     queryKey: ["files", "download", fileAssetId, "inline"],
     queryFn: () => getFileDownloadUrl(fileAssetId!, { inline: true }),
     enabled: open && metaQuery.data?.visibility === Visibility.Private,
-    staleTime: 60 * 1000, // 1 min — short, since presigned URLs have a TTL of their own
+    staleTime: 0,
+    gcTime: 0,
   });
 
   return (
@@ -99,7 +104,11 @@ export function FilePreviewDialog({ fileAssetId, initial, onClose }: Props) {
             <PreviewSkeleton />
           ) : (
             <>
-              <Preview file={metaQuery.data} downloadUrl={downloadQuery.data?.url} />
+              <Preview
+                file={metaQuery.data}
+                downloadUrl={downloadQuery.data?.url}
+                onUrlError={() => void downloadQuery.refetch()}
+              />
               <MetadataPanel file={metaQuery.data} />
             </>
           )}
@@ -118,10 +127,19 @@ export function FilePreviewDialog({ fileAssetId, initial, onClose }: Props) {
   );
 }
 
-function Preview({ file, downloadUrl }: { file: FileAssetDto; downloadUrl?: string }) {
+function Preview({
+  file,
+  downloadUrl,
+  onUrlError,
+}: {
+  file: FileAssetDto;
+  downloadUrl?: string;
+  onUrlError: () => void;
+}) {
   // For private files we need the presigned URL; for public we use the durable URL.
   const url = file.publicUrl ?? downloadUrl ?? null;
   const isAvailable = file.status === FileAssetStatus.Available;
+  const [errored, setErrored] = useState(false);
 
   if (!isAvailable) {
     return (
@@ -139,6 +157,26 @@ function Preview({ file, downloadUrl }: { file: FileAssetDto; downloadUrl?: stri
     return <PreviewSkeleton />;
   }
 
+  if (errored) {
+    return (
+      <div className="flex flex-col items-center gap-3 rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-surface-2)] px-4 py-10 text-center">
+        <p className="text-sm text-[var(--color-muted-foreground)]">
+          Preview link expired or unreachable.
+        </p>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => {
+            setErrored(false);
+            onUrlError();
+          }}
+        >
+          Retry
+        </Button>
+      </div>
+    );
+  }
+
   if (file.contentType.startsWith("image/")) {
     return (
       <div className="grid place-items-center overflow-hidden rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-surface-1)]">
@@ -146,6 +184,7 @@ function Preview({ file, downloadUrl }: { file: FileAssetDto; downloadUrl?: stri
           src={url}
           alt={file.originalFileName}
           className="max-h-[60vh] w-auto object-contain"
+          onError={() => setErrored(true)}
         />
       </div>
     );
