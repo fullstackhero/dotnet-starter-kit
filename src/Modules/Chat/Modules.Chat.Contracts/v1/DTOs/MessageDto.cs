@@ -10,4 +10,5 @@ public sealed record MessageDto(
     DateTime? EditedAtUtc,
     DateTime? DeletedAtUtc,
     DateTime CreatedAtUtc,
-    IReadOnlyList<MessageAttachmentDto> Attachments);
+    IReadOnlyList<MessageAttachmentDto> Attachments,
+    IReadOnlyList<MessageReactionDto> Reactions);

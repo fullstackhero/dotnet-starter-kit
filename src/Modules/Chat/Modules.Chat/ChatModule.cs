@@ -20,7 +20,10 @@ using FSH.Modules.Chat.Features.v1.Channels.UpdateChannel;
 using FSH.Modules.Chat.Features.v1.Messages.DeleteMessage;
 using FSH.Modules.Chat.Features.v1.Messages.EditMessage;
 using FSH.Modules.Chat.Features.v1.Messages.ListChannelMessages;
+using FSH.Modules.Chat.Features.v1.Messages.ListMessageReplies;
 using FSH.Modules.Chat.Features.v1.Messages.SendMessage;
+using FSH.Modules.Chat.Features.v1.Reactions.AddReaction;
+using FSH.Modules.Chat.Features.v1.Reactions.RemoveReaction;
 using FSH.Modules.Chat.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -93,8 +96,13 @@ public sealed class ChatModule : IModule
 
         // Messages
         group.MapListChannelMessagesEndpoint();      // GET /channels/{id}/messages
+        group.MapListMessageRepliesEndpoint();       // GET /messages/{id}/replies
         group.MapSendMessageEndpoint();              // POST /channels/{id}/messages
         group.MapEditMessageEndpoint();              // PUT /messages/{id}
         group.MapDeleteMessageEndpoint();            // DELETE /messages/{id}
+
+        // Reactions
+        group.MapAddReactionEndpoint();              // POST /messages/{id}/reactions
+        group.MapRemoveReactionEndpoint();           // DELETE /messages/{id}/reactions/{emoji}
     }
 }

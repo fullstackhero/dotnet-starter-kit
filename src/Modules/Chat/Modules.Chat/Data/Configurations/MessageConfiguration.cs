@@ -44,6 +44,12 @@ public sealed class MessageConfiguration : IEntityTypeConfiguration<Message>
             .OnDelete(DeleteBehavior.Cascade);
         builder.Navigation(x => x.Mentions).AutoInclude();
 
+        builder.HasMany(x => x.Reactions)
+            .WithOne()
+            .HasForeignKey(r => r.MessageId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Navigation(x => x.Reactions).AutoInclude();
+
         builder.Ignore(x => x.DomainEvents);
     }
 }

@@ -26,6 +26,9 @@ internal static class ChatMappers
     public static MessageAttachmentDto ToDto(this MessageAttachment a) =>
         new(a.Id, a.FileAssetId, a.Url, a.ContentType, a.OriginalFileName, a.SizeBytes);
 
+    public static MessageReactionDto ToDto(this MessageReaction r) =>
+        new(r.Id, r.MessageId, r.UserId, r.Emoji, r.CreatedAtUtc);
+
     public static MessageDto ToDto(this Message m) =>
         new(
             m.Id,
@@ -37,5 +40,6 @@ internal static class ChatMappers
             m.EditedAtUtc,
             m.DeletedAtUtc,
             m.CreatedAtUtc,
-            m.Attachments.Select(a => a.ToDto()).ToList());
+            m.Attachments.Select(a => a.ToDto()).ToList(),
+            m.Reactions.Select(r => r.ToDto()).ToList());
 }

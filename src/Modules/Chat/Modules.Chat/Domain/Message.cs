@@ -24,6 +24,9 @@ public sealed class Message : AggregateRoot<Guid>
     private readonly List<MessageMention> _mentions = [];
     public IReadOnlyList<MessageMention> Mentions => _mentions;
 
+    private readonly List<MessageReaction> _reactions = [];
+    public IReadOnlyList<MessageReaction> Reactions => _reactions;
+
     private Message() { }
 
     public static Message Create(
@@ -103,6 +106,46 @@ public sealed class Message : AggregateRoot<Guid>
         var attachment = MessageAttachment.Create(Id, fileAssetId, url, contentType, fileName, sizeBytes);
         _attachments.Add(attachment);
         return attachment;
+    }
+
+    /// <summary>
+    /// Toggle-on a reaction. Returns the new <see cref="MessageReaction"/>, or <c>null</c> if the
+    /// (user, emoji) pair already exists — the unique index would reject the duplicate row.
+    /// </summary>
+    public MessageReaction? AddReaction(string userId, string emoji)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(emoji);
+        if (DeletedAtUtc.HasValue)
+        {
+            throw new InvalidOperationException("Cannot react to a deleted message.");
+        }
+        var trimmed = emoji.Trim();
+        if (_reactions.Any(r => string.Equals(r.UserId, userId, StringComparison.Ordinal)
+                             && string.Equals(r.Emoji, trimmed, StringComparison.Ordinal)))
+        {
+            return null;
+        }
+        var reaction = MessageReaction.Create(Id, userId, trimmed);
+        _reactions.Add(reaction);
+        return reaction;
+    }
+
+    /// <summary>
+    /// Toggle-off a reaction. Returns <c>true</c> if a row was removed; <c>false</c> if the user
+    /// hadn't reacted with that emoji.
+    /// </summary>
+    public bool RemoveReaction(string userId, string emoji)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(emoji);
+        var trimmed = emoji.Trim();
+        var existing = _reactions.FirstOrDefault(r =>
+            string.Equals(r.UserId, userId, StringComparison.Ordinal)
+            && string.Equals(r.Emoji, trimmed, StringComparison.Ordinal));
+        if (existing is null) return false;
+        _reactions.Remove(existing);
+        return true;
     }
 
     internal void IncrementReplyCount() => ReplyCount++;

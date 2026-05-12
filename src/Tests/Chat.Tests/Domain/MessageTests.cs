@@ -143,4 +143,73 @@ public class MessageTests
     }
 
     #endregion
+
+    #region Reactions
+
+    [Fact]
+    public void AddReaction_Should_Append_Row_For_New_User_Emoji_Pair()
+    {
+        var m = Message.Create(Guid.CreateVersion7(), "u1", "hi");
+
+        var added = m.AddReaction("u2", "🚀");
+
+        added.ShouldNotBeNull();
+        m.Reactions.ShouldHaveSingleItem();
+        m.Reactions[0].UserId.ShouldBe("u2");
+        m.Reactions[0].Emoji.ShouldBe("🚀");
+    }
+
+    [Fact]
+    public void AddReaction_Should_Return_Null_When_Duplicate()
+    {
+        var m = Message.Create(Guid.CreateVersion7(), "u1", "hi");
+        m.AddReaction("u2", "🚀");
+
+        var duplicate = m.AddReaction("u2", "🚀");
+
+        duplicate.ShouldBeNull();
+        m.Reactions.Count.ShouldBe(1);
+    }
+
+    [Fact]
+    public void AddReaction_Should_Reject_When_Message_Deleted()
+    {
+        var m = Message.Create(Guid.CreateVersion7(), "u1", "hi");
+        m.SoftDelete("u1", isModerator: false);
+
+        Should.Throw<InvalidOperationException>(() => m.AddReaction("u2", "🚀"));
+    }
+
+    [Fact]
+    public void RemoveReaction_Should_Remove_When_Present()
+    {
+        var m = Message.Create(Guid.CreateVersion7(), "u1", "hi");
+        m.AddReaction("u2", "🚀");
+
+        var removed = m.RemoveReaction("u2", "🚀");
+
+        removed.ShouldBeTrue();
+        m.Reactions.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void RemoveReaction_Should_Return_False_When_Absent()
+    {
+        var m = Message.Create(Guid.CreateVersion7(), "u1", "hi");
+
+        m.RemoveReaction("u2", "🚀").ShouldBeFalse();
+    }
+
+    [Fact]
+    public void AddReaction_Should_Trim_Emoji_For_Comparison()
+    {
+        var m = Message.Create(Guid.CreateVersion7(), "u1", "hi");
+        m.AddReaction("u2", " 🚀 ");
+
+        var dup = m.AddReaction("u2", "🚀");
+
+        dup.ShouldBeNull("emoji is trimmed before equality comparison");
+    }
+
+    #endregion
 }
