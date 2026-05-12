@@ -12,7 +12,9 @@ using FSH.Modules.Files.Features.v1.FinalizeUpload;
 using FSH.Modules.Files.Features.v1.GetFileDownloadUrl;
 using FSH.Modules.Files.Features.v1.GetFileMetadata;
 using FSH.Modules.Files.Features.v1.ListMyFiles;
+using FSH.Modules.Files.Features.v1.ListTrashedFiles;
 using FSH.Modules.Files.Features.v1.RequestUploadUrl;
+using FSH.Modules.Files.Features.v1.RestoreFile;
 using FSH.Modules.Files.Jobs;
 using FSH.Modules.Files.Services;
 using Hangfire;
@@ -78,6 +80,8 @@ public sealed class FilesModule : IModule
         // pattern for /trash etc.).
         group.MapRequestUploadUrlEndpoint();     // POST /upload-url
         group.MapListMyFilesEndpoint();          // GET  /mine
+        group.MapListTrashedFilesEndpoint();     // GET  /trash
+        group.MapRestoreFileEndpoint();          // POST /{id}/restore  (literal verb path)
 
         group.MapFinalizeUploadEndpoint();       // POST /{id}/finalize
         group.MapGetFileDownloadUrlEndpoint();   // GET  /{id}/url
