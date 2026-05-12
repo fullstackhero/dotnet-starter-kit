@@ -13,7 +13,9 @@ using FSH.Modules.Files.Features.v1.GetFileDownloadUrl;
 using FSH.Modules.Files.Features.v1.GetFileMetadata;
 using FSH.Modules.Files.Features.v1.ListMyFiles;
 using FSH.Modules.Files.Features.v1.RequestUploadUrl;
+using FSH.Modules.Files.Jobs;
 using FSH.Modules.Files.Services;
+using Hangfire;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -81,5 +83,23 @@ public sealed class FilesModule : IModule
         group.MapGetFileDownloadUrlEndpoint();   // GET  /{id}/url
         group.MapGetFileMetadataEndpoint();      // GET  /{id}
         group.MapDeleteFileEndpoint();           // DELETE /{id}
+
+        // Recurring Hangfire jobs (orphan + retention purges). Registration here matches the
+        // pattern Billing uses for MonthlyInvoiceJob.
+        var jobManager = endpoints.ServiceProvider.GetService<IRecurringJobManager>();
+        if (jobManager is not null)
+        {
+            jobManager.AddOrUpdate<PurgeOrphanedFilesJob>(
+                "files-purge-orphans",
+                j => j.RunAsync(CancellationToken.None),
+                "0 * * * *", // hourly
+                new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+
+            jobManager.AddOrUpdate<PurgeDeletedFilesJob>(
+                "files-purge-deleted",
+                j => j.RunAsync(CancellationToken.None),
+                "30 3 * * *", // daily 03:30 UTC
+                new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+        }
     }
 }
