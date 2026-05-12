@@ -1,4 +1,4 @@
-using FSH.Framework.Core.Context;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Caching.Distributed;
@@ -25,29 +25,41 @@ public sealed class AppHub : Hub
     /// <summary>Throttle window for typing indicators per (channel, user).</summary>
     private static readonly TimeSpan TypingThrottle = TimeSpan.FromSeconds(3);
 
-    private readonly ICurrentUser _currentUser;
     private readonly IChannelMembershipChecker _membership;
     private readonly IDistributedCache _cache;
     private readonly IUserChannelLookup _channels;
     private readonly ILogger<AppHub> _logger;
 
     public AppHub(
-        ICurrentUser currentUser,
         IChannelMembershipChecker membership,
         IDistributedCache cache,
         IUserChannelLookup channels,
         ILogger<AppHub> logger)
     {
-        _currentUser = currentUser;
         _membership = membership;
         _cache = cache;
         _channels = channels;
         _logger = logger;
     }
 
+    /// <summary>
+    /// Reads the authenticated user id off the connection's principal. Cannot use
+    /// <c>ICurrentUser</c> here because it resolves through <c>IHttpContextAccessor</c> — the
+    /// originating negotiate <c>HttpContext</c> is not pinned to subsequent hub method invocations,
+    /// so any indirection through it returns nulls.
+    /// </summary>
+    private string? GetUserId()
+    {
+        var user = Context.User;
+        if (user?.Identity?.IsAuthenticated != true) return null;
+        return user.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? user.FindFirstValue("sub")
+            ?? user.FindFirstValue("uid");
+    }
+
     public override async Task OnConnectedAsync()
     {
-        var userId = _currentUser.GetUserId().ToString();
+        var userId = GetUserId();
         if (string.IsNullOrEmpty(userId) || userId == Guid.Empty.ToString())
         {
             Context.Abort();
@@ -78,7 +90,7 @@ public sealed class AppHub : Hub
     /// </summary>
     public async Task Typing(Guid channelId)
     {
-        var userId = _currentUser.GetUserId().ToString();
+        var userId = GetUserId();
         if (string.IsNullOrEmpty(userId)) return;
 
         if (!await _membership.IsMemberAsync(channelId, userId, Context.ConnectionAborted).ConfigureAwait(false))
