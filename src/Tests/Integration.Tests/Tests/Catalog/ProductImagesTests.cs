@@ -123,6 +123,48 @@ public sealed class ProductImagesTests
     }
 
     [Fact]
+    public async Task SetProductThumbnail_Should_Survive_Repeated_Flips_Across_Three_Images()
+    {
+        // Regression: a partial UNIQUE index on (ProductId) WHERE IsThumbnail=TRUE was firing
+        // whenever EF emitted promote-before-demote, leaving the constraint with two TRUE rows
+        // mid-statement. The aggregate enforces the single-thumbnail invariant on its own; the
+        // DB-level constraint was belt-and-suspenders that broke for half the EF orderings.
+        // Walking the thumbnail through every image, both forward and backward, is the
+        // ordering-agnostic way to lock that bug down.
+        using var client = await _auth.CreateRootAdminClientAsync();
+        var (brandId, categoryId) = await PickExistingBrandAndCategoryAsync(client);
+        var productId = await CreateProductAsync(client, brandId, categoryId);
+
+        var ids = new[]
+        {
+            (await AttachImageAsync(client, productId)).Id,
+            (await AttachImageAsync(client, productId)).Id,
+            (await AttachImageAsync(client, productId)).Id,
+        };
+
+        // Walk the cover through each image, then back to the start. Each step exercises a
+        // different demote→promote pair.
+        foreach (var nextCoverId in new[] { ids[1], ids[2], ids[0], ids[2], ids[1], ids[0] })
+        {
+            using var promote = await client.PutAsync(
+                $"{TestConstants.CatalogBasePath}/products/{productId}/images/{nextCoverId}/thumbnail",
+                content: null);
+
+            if (promote.StatusCode != HttpStatusCode.NoContent)
+            {
+                var body = await promote.Content.ReadAsStringAsync();
+                throw new InvalidOperationException(
+                    $"SetThumbnail to {nextCoverId} failed: {promote.StatusCode}\n{body}");
+            }
+
+            var after = await GetProductAsync(client, productId);
+            after.Images.Single(i => i.Id == nextCoverId).IsThumbnail.ShouldBeTrue(
+                $"after flipping to {nextCoverId}, it must be the thumbnail");
+            after.Images.Count(i => i.IsThumbnail).ShouldBe(1, "exactly one image should be the cover at any time");
+        }
+    }
+
+    [Fact]
     public async Task SetProductThumbnail_Should_Return404_For_Unknown_Image()
     {
         using var client = await _auth.CreateRootAdminClientAsync();
