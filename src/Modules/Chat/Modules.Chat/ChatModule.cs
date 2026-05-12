@@ -5,6 +5,7 @@ using FSH.Framework.Shared.Constants;
 using FSH.Framework.Web.Modules;
 using FSH.Modules.Chat.Contracts.Authorization;
 using FSH.Modules.Chat.Data;
+using FSH.Modules.Chat.Features.v1.Channels.CreateChannel;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -50,7 +51,6 @@ public sealed class ChatModule : IModule
             .WithApiVersionSet(versionSet)
             .RequireAuthorization();
 
-        // Endpoints wired here as features are added in subsequent tasks (1.8+).
-        _ = group;
+        group.MapCreateChannelEndpoint();
     }
 }

@@ -50,11 +50,9 @@ builder.Services.AddMediator(o =>
         typeof(FSH.Modules.Tickets.Contracts.TicketsContractsMarker),
         typeof(FSH.Modules.Tickets.TicketsModule),
         typeof(FSH.Modules.Files.Contracts.v1.Commands.RequestUploadUrlCommand),
-        typeof(FSH.Modules.Files.FilesModule)];
-    // Chat markers will be added in Task 1.7+ once the first command + handler land.
-    // The Mediator source generator only recognizes assemblies that actually consume
-    // Mediator types (ICommand/IQuery/IHandler implementations), not those that merely
-    // declare the package reference in csproj.
+        typeof(FSH.Modules.Files.FilesModule),
+        typeof(FSH.Modules.Chat.Contracts.v1.Commands.CreateChannelCommand),
+        typeof(FSH.Modules.Chat.ChatModule)];
 });
 
 var moduleAssemblies = new Assembly[]
