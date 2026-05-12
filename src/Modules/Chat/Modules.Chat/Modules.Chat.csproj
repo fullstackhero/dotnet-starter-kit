@@ -8,6 +8,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Mediator.Abstractions" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\..\..\BuildingBlocks\Persistence\Persistence.csproj" />
 		<ProjectReference Include="..\..\..\BuildingBlocks\Web\Web.csproj" />
 		<ProjectReference Include="..\..\..\BuildingBlocks\Eventing\Eventing.csproj" />

@@ -51,6 +51,10 @@ builder.Services.AddMediator(o =>
         typeof(FSH.Modules.Tickets.TicketsModule),
         typeof(FSH.Modules.Files.Contracts.v1.Commands.RequestUploadUrlCommand),
         typeof(FSH.Modules.Files.FilesModule)];
+    // Chat markers will be added in Task 1.7+ once the first command + handler land.
+    // The Mediator source generator only recognizes assemblies that actually consume
+    // Mediator types (ICommand/IQuery/IHandler implementations), not those that merely
+    // declare the package reference in csproj.
 });
 
 var moduleAssemblies = new Assembly[]
@@ -62,7 +66,8 @@ var moduleAssemblies = new Assembly[]
     typeof(WebhooksModule).Assembly,
     typeof(BillingModule).Assembly,
     typeof(CatalogModule).Assembly,
-    typeof(TicketsModule).Assembly
+    typeof(TicketsModule).Assembly,
+    typeof(FSH.Modules.Chat.ChatModule).Assembly,
 };
 
 builder.AddHeroPlatform(o =>
