@@ -168,7 +168,9 @@ public class LocalStorageService : IStorageService
         return Task.FromResult(new Uri($"/{normalized}", UriKind.Relative));
     }
 
+#pragma warning disable CA1055 // returns a server-relative path, not a well-formed Uri — see IStorageService.BuildPublicUrl
     public string BuildPublicUrl(string storageKey)
+#pragma warning restore CA1055
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(storageKey);
         var normalized = storageKey.TrimStart('/').Replace("\\", "/", StringComparison.Ordinal);

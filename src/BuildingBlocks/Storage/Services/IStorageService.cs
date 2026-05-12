@@ -68,5 +68,11 @@ public interface IStorageService
     /// API origin's wwwroot. Callers that want auth-gated access should use
     /// <see cref="GenerateDownloadUrlAsync"/> instead.
     /// </summary>
+    /// <remarks>
+    /// Returns <c>string</c> intentionally — local storage produces a server-relative path
+    /// (resolved later by the client against the API origin) which is not a well-formed Uri.
+    /// </remarks>
+#pragma warning disable CA1055 // Uri vs string — see remarks above
     string BuildPublicUrl(string storageKey);
+#pragma warning restore CA1055
 }

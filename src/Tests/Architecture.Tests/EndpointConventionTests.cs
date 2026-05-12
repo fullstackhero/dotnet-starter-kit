@@ -266,7 +266,8 @@ public class EndpointConventionTests
                                name.StartsWith("Issue", StringComparison.Ordinal) ||
                                name.StartsWith("Capture", StringComparison.Ordinal) ||
                                name.StartsWith("Request", StringComparison.Ordinal) ||
-                               name.StartsWith("Finalize", StringComparison.Ordinal);
+                               name.StartsWith("Finalize", StringComparison.Ordinal) ||
+                               name.StartsWith("Set", StringComparison.Ordinal);
 
                 if (!hasVerb)
                 {
