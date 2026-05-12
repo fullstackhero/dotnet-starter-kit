@@ -17,6 +17,7 @@
 	  <ProjectReference Include="..\..\Modules\Billing\Modules.Billing\Modules.Billing.csproj" />
 	  <ProjectReference Include="..\..\Modules\Catalog\Modules.Catalog\Modules.Catalog.csproj" />
 	  <ProjectReference Include="..\..\Modules\Tickets\Modules.Tickets\Modules.Tickets.csproj" />
+	  <ProjectReference Include="..\..\Modules\Chat\Modules.Chat\Modules.Chat.csproj" />
 	  <ProjectReference Include="..\..\Modules\Files\Modules.Files\Modules.Files.csproj" />
 	</ItemGroup>
 
@@ -26,6 +27,7 @@
 	  <Folder Include="Billing\" />
 	  <Folder Include="Catalog\" />
 	  <Folder Include="Tickets\" />
+	  <Folder Include="Chat\" />
 	  <Folder Include="Files\" />
 	</ItemGroup>
 
