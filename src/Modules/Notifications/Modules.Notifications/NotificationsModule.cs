@@ -6,6 +6,10 @@ using FSH.Framework.Shared.Constants;
 using FSH.Framework.Web.Modules;
 using FSH.Modules.Notifications.Contracts.Authorization;
 using FSH.Modules.Notifications.Data;
+using FSH.Modules.Notifications.Features.v1.GetUnreadCount;
+using FSH.Modules.Notifications.Features.v1.ListNotifications;
+using FSH.Modules.Notifications.Features.v1.MarkAllNotificationsRead;
+using FSH.Modules.Notifications.Features.v1.MarkNotificationRead;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -54,7 +58,10 @@ public sealed class NotificationsModule : IModule
             .WithApiVersionSet(versionSet)
             .RequireAuthorization();
 
-        // Endpoints registered in Slice 3.3 — list / unread-count / mark-read / read-all.
-        _ = group;
+        // Literal routes first; /{id:guid}/read is the only param-route and lives last.
+        group.MapListNotificationsEndpoint();              // GET /
+        group.MapGetUnreadCountEndpoint();                 // GET /unread-count
+        group.MapMarkAllNotificationsReadEndpoint();       // POST /read-all
+        group.MapMarkNotificationReadEndpoint();           // POST /{id:guid}/read
     }
 }

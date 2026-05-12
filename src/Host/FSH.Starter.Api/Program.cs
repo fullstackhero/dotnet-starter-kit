@@ -52,10 +52,9 @@ builder.Services.AddMediator(o =>
         typeof(FSH.Modules.Files.Contracts.v1.Commands.RequestUploadUrlCommand),
         typeof(FSH.Modules.Files.FilesModule),
         typeof(FSH.Modules.Chat.Contracts.v1.Commands.CreateChannelCommand),
-        typeof(FSH.Modules.Chat.ChatModule)
-        // Notifications markers intentionally omitted until Slice 3.3 adds the first ICommand/IQuery.
-        // Mediator source-gen errors (MSG0007) if a marker assembly doesn't consume Mediator types.
-    ];
+        typeof(FSH.Modules.Chat.ChatModule),
+        typeof(FSH.Modules.Notifications.Contracts.v1.Commands.MarkNotificationReadCommand),
+        typeof(FSH.Modules.Notifications.NotificationsModule)];
 });
 
 var moduleAssemblies = new Assembly[]
