@@ -66,7 +66,7 @@ public sealed class ChatModule : IModule
             .RequireAuthorization();
 
         // Channel reads — literal routes first
-        group.MapListMyChannelsEndpoint();           // GET /channels/me
+        group.MapListMyChannelsEndpoint();           // GET /channels
         group.MapDiscoverChannelsEndpoint();         // GET /channels/discover
 
         // Channel lifecycle
