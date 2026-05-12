@@ -25,4 +25,36 @@ public interface IStorageService
     Task<long> GetSizeAsync(string path, CancellationToken cancellationToken = default);
 
     Task RemoveAsync(string path, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Mint a short-lived presigned PUT URL the browser uses to upload bytes directly to S3-compatible storage.
+    /// Returns the URL plus any headers the browser MUST include verbatim in its PUT (typically Content-Type
+    /// when the signature constrains it). Used by the Files module's <c>RequestUploadUrl</c> endpoint.
+    /// </summary>
+    Task<PresignedUploadUrl> GenerateUploadUrlAsync(
+        string storageKey,
+        string contentType,
+        long maxBytes,
+        TimeSpan ttl,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Mint a short-lived presigned GET URL. When <paramref name="responseContentDisposition"/> is
+    /// supplied, S3 echoes it in the download response so the browser surfaces the original filename
+    /// rather than the storage key.
+    /// </summary>
+    Task<Uri> GenerateDownloadUrlAsync(
+        string storageKey,
+        TimeSpan ttl,
+        string? responseContentDisposition = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// HEAD the object at <paramref name="storageKey"/>. Returns <c>null</c> when the object does not
+    /// exist. The Files module's finalize handler uses this to verify size + content-type vs declared
+    /// values before transitioning a row out of <c>PendingUpload</c>.
+    /// </summary>
+    Task<StoredObjectMetadata?> HeadObjectAsync(
+        string storageKey,
+        CancellationToken cancellationToken = default);
 }

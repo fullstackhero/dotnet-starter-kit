@@ -138,4 +138,61 @@ public class LocalStorageService : IStorageService
     {
         return Regex.Replace(fileName, @"[^a-zA-Z0-9_\.-]", "_");
     }
+
+    // Local presigning is a development fallback when Storage:Provider != s3. Production deployments
+    // use S3StorageService. The token store is process-static so the dev middleware (registered in
+    // the host when Provider=local) can consume the token without re-resolving DI scope.
+    private static LocalPresignTokenStore? _staticTokenStore;
+    public static LocalPresignTokenStore SharedTokenStore => _staticTokenStore ??= new LocalPresignTokenStore();
+
+    public Task<PresignedUploadUrl> GenerateUploadUrlAsync(
+        string storageKey, string contentType, long maxBytes, TimeSpan ttl,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(storageKey);
+        ArgumentException.ThrowIfNullOrWhiteSpace(contentType);
+
+        var token = SharedTokenStore.Issue(storageKey, contentType, maxBytes, ttl);
+        var url = new Uri($"local://upload/{token}", UriKind.Absolute);
+        var headers = new Dictionary<string, string>(StringComparer.Ordinal) { ["Content-Type"] = contentType };
+        return Task.FromResult(new PresignedUploadUrl(url, headers, DateTimeOffset.UtcNow.Add(ttl)));
+    }
+
+    public Task<Uri> GenerateDownloadUrlAsync(
+        string storageKey, TimeSpan ttl, string? responseContentDisposition = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(storageKey);
+        // Local mode serves files from /wwwroot — no signing required.
+        var normalized = storageKey.TrimStart('/').Replace("\\", "/", StringComparison.Ordinal);
+        return Task.FromResult(new Uri($"/{normalized}", UriKind.Relative));
+    }
+
+    public Task<StoredObjectMetadata?> HeadObjectAsync(
+        string storageKey, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(storageKey))
+        {
+            return Task.FromResult<StoredObjectMetadata?>(null);
+        }
+
+        var normalizedPath = storageKey.Replace("/", Path.DirectorySeparatorChar.ToString(), StringComparison.Ordinal);
+        var fullPath = Path.Combine(_rootPath, normalizedPath);
+        if (!File.Exists(fullPath))
+        {
+            return Task.FromResult<StoredObjectMetadata?>(null);
+        }
+
+        var info = new FileInfo(fullPath);
+        if (!_contentTypeProvider.TryGetContentType(info.Name, out var contentType))
+        {
+            contentType = "application/octet-stream";
+        }
+
+        return Task.FromResult<StoredObjectMetadata?>(new StoredObjectMetadata(
+            info.Length,
+            contentType!,
+            new DateTimeOffset(info.LastWriteTimeUtc, TimeSpan.Zero),
+            ETag: null));
+    }
 }

@@ -115,4 +115,16 @@ internal sealed class QuotaMeteredStorageService : IStorageService
                 .ConfigureAwait(false);
         }
     }
+
+    // Presigned URL minting + HEAD are pass-throughs — they don't move bytes, so quota isn't touched.
+    // The Files module debits bytes on finalize (when it knows the actual size from HEAD) and refunds
+    // on hard purge (where the existing RemoveAsync path above already debits negative).
+    public Task<PresignedUploadUrl> GenerateUploadUrlAsync(string storageKey, string contentType, long maxBytes, TimeSpan ttl, CancellationToken cancellationToken = default)
+        => _inner.GenerateUploadUrlAsync(storageKey, contentType, maxBytes, ttl, cancellationToken);
+
+    public Task<Uri> GenerateDownloadUrlAsync(string storageKey, TimeSpan ttl, string? responseContentDisposition = null, CancellationToken cancellationToken = default)
+        => _inner.GenerateDownloadUrlAsync(storageKey, ttl, responseContentDisposition, cancellationToken);
+
+    public Task<StoredObjectMetadata?> HeadObjectAsync(string storageKey, CancellationToken cancellationToken = default)
+        => _inner.HeadObjectAsync(storageKey, cancellationToken);
 }

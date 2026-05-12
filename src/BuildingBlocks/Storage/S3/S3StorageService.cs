@@ -218,6 +218,119 @@ internal sealed class S3StorageService : IStorageService
         }
     }
 
+    public async Task<PresignedUploadUrl> GenerateUploadUrlAsync(
+        string storageKey,
+        string contentType,
+        long maxBytes,
+        TimeSpan ttl,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(storageKey);
+        ArgumentException.ThrowIfNullOrWhiteSpace(contentType);
+
+        var key = NormalizeKey(storageKey);
+        var expiresAt = DateTimeOffset.UtcNow.Add(ttl);
+
+        var request = new GetPreSignedUrlRequest
+        {
+            BucketName = _options.Bucket,
+            Key = key,
+            Verb = HttpVerb.PUT,
+            Expires = expiresAt.UtcDateTime,
+            ContentType = contentType
+        };
+
+        var url = await _s3.GetPreSignedURLAsync(request).ConfigureAwait(false);
+
+        var requiredHeaders = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["Content-Type"] = contentType
+        };
+
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("Issued presigned PUT URL for bucket {Bucket} key {Key} expires {ExpiresAt}",
+                _options.Bucket, key, expiresAt);
+        }
+
+        return new PresignedUploadUrl(new Uri(url), requiredHeaders, expiresAt);
+    }
+
+    public async Task<Uri> GenerateDownloadUrlAsync(
+        string storageKey,
+        TimeSpan ttl,
+        string? responseContentDisposition = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(storageKey);
+
+        var key = NormalizeKey(storageKey);
+
+        var request = new GetPreSignedUrlRequest
+        {
+            BucketName = _options.Bucket,
+            Key = key,
+            Verb = HttpVerb.GET,
+            Expires = DateTime.UtcNow.Add(ttl)
+        };
+
+        if (!string.IsNullOrWhiteSpace(responseContentDisposition))
+        {
+            request.ResponseHeaderOverrides.ContentDisposition = responseContentDisposition;
+        }
+
+        var url = await _s3.GetPreSignedURLAsync(request).ConfigureAwait(false);
+        return new Uri(url);
+    }
+
+    public async Task<StoredObjectMetadata?> HeadObjectAsync(
+        string storageKey,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(storageKey))
+        {
+            return null;
+        }
+
+        try
+        {
+            var key = NormalizeKey(storageKey);
+            var metadata = await _s3.GetObjectMetadataAsync(new GetObjectMetadataRequest
+            {
+                BucketName = _options.Bucket,
+                Key = key
+            }, cancellationToken).ConfigureAwait(false);
+
+            var contentType = string.IsNullOrWhiteSpace(metadata.Headers.ContentType)
+                ? "application/octet-stream"
+                : metadata.Headers.ContentType;
+
+            var lastModified = metadata.LastModified.HasValue
+                ? new DateTimeOffset(DateTime.SpecifyKind(metadata.LastModified.Value, DateTimeKind.Utc), TimeSpan.Zero)
+                : DateTimeOffset.UtcNow;
+
+            return new StoredObjectMetadata(
+                metadata.ContentLength,
+                contentType,
+                lastModified,
+                metadata.ETag);
+        }
+        catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+        catch (AmazonS3Exception ex)
+        {
+            _logger.LogWarning(ex, "S3 HEAD failed for {Key}: {StatusCode}", storageKey, ex.StatusCode);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Unexpected error on S3 HEAD for {Key}", storageKey);
+            return null;
+        }
+    }
+
     private string BuildKey<T>(string fileName) where T : class
     {
         var folder = Regex.Replace(typeof(T).Name.ToLowerInvariant(), @"[^a-z0-9]", "_");
