@@ -29,7 +29,18 @@ var redisConnectionString = ReferenceExpression.Create(
     $"{redisPlainTcp.Property(EndpointProperty.HostAndPort)},password={redis.Resource.PasswordParameter!}");
 
 // Object storage (MinIO, S3-compatible)
+//
+// CORS: we configure MinIO to accept browser PUTs from the admin (:5173) and
+// dashboard (:5174) dev origins so the Files module's presigned-URL upload
+// flow works end-to-end without proxying bytes through the API. Modern MinIO
+// (RELEASE.2024-*+) exposes this via the MINIO_API_CORS_ALLOW_ORIGIN server
+// env var rather than `mc admin config set cors_*` — the old subsystem names
+// were removed, and configuring it at server start also avoids the
+// `mc admin service restart` TTY-not-available error inside the init container.
 const string MinioBucket = "fsh-uploads";
+const string AdminOrigin = "http://localhost:5173";
+const string DashboardOrigin = "http://localhost:5174";
+
 var minioUser = builder.AddParameter("minio-user", "minioadmin");
 var minioPassword = builder.AddParameter("minio-password", "minioadmin", secret: true);
 
@@ -39,19 +50,17 @@ var minio = builder.AddContainer("minio", "minio/minio")
     .WithHttpEndpoint(port: 9001, targetPort: 9001, name: "console")
     .WithEnvironment("MINIO_ROOT_USER", minioUser)
     .WithEnvironment("MINIO_ROOT_PASSWORD", minioPassword)
+    .WithEnvironment("MINIO_API_CORS_ALLOW_ORIGIN", $"{AdminOrigin},{DashboardOrigin}")
     .WithVolume("fsh-minio-data", "/data")
     .WithLifetime(ContainerLifetime.Persistent);
 
+// Init container: just bucket bootstrap (creation + public-read policy). CORS
+// is handled by the env var above, so no `mc admin config set` / `service
+// restart` is needed.
+//
 // Normalize line endings to LF — on Windows the source file is CRLF, and
 // /bin/sh inside the minio/mc container chokes on \r appearing after `do`
 // and `done` ("syntax error near unexpected token `done'").
-//
-// CORS: we configure MinIO to accept browser PUTs from the admin (:5173) and
-// dashboard (:5174) dev origins so the Files module's presigned-URL upload
-// flow works end-to-end without proxying bytes through the API.
-const string AdminOrigin = "http://localhost:5173";
-const string DashboardOrigin = "http://localhost:5174";
-
 var minioInitScript = ($$"""
 until mc alias set local http://minio:9000 "$MC_USER" "$MC_PASS"; do
   echo "waiting for minio...";
@@ -59,10 +68,6 @@ until mc alias set local http://minio:9000 "$MC_USER" "$MC_PASS"; do
 done;
 mc mb --ignore-existing local/{{MinioBucket}};
 mc anonymous set download local/{{MinioBucket}};
-mc admin config set local cors_allow_origin="$ADMIN_ORIGIN,$DASHBOARD_ORIGIN";
-mc admin config set local cors_allow_methods="GET,PUT,HEAD,POST";
-mc admin config set local cors_allow_headers="Content-Type,Authorization,x-amz-*";
-mc admin service restart local;
 """).ReplaceLineEndings("\n");
 
 var minioInit = builder.AddContainer("minio-init", "minio/mc")
@@ -70,8 +75,6 @@ var minioInit = builder.AddContainer("minio-init", "minio/mc")
     .WithArgs("-c", minioInitScript)
     .WithEnvironment("MC_USER", minioUser)
     .WithEnvironment("MC_PASS", minioPassword)
-    .WithEnvironment("ADMIN_ORIGIN", AdminOrigin)
-    .WithEnvironment("DASHBOARD_ORIGIN", DashboardOrigin)
     .WaitFor(minio);
 
 var minioApiEndpoint = minio.GetEndpoint("api");
