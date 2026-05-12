@@ -12,6 +12,12 @@ public sealed class ProductImageConfiguration : IEntityTypeConfiguration<Product
         builder.ToTable("ProductImages");
         builder.HasKey(x => x.Id);
 
+        // The application sets Id via Guid.CreateVersion7() in ProductImage.Create. Without this,
+        // EF's default ValueGeneratedOnAdd treats the non-default Guid as "already persisted"
+        // when the entity is reached through a tracked parent's nav collection, so SaveChanges
+        // emits an UPDATE that affects 0 rows → DbUpdateConcurrencyException.
+        builder.Property(x => x.Id).ValueGeneratedNever();
+
         builder.Property(x => x.ProductId).IsRequired();
         builder.HasIndex(x => x.ProductId);
 

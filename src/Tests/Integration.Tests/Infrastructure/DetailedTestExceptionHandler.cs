@@ -56,6 +56,28 @@ public sealed class DetailedTestExceptionHandler : IExceptionHandler
             {
                 problemDetails.Detail += $" --> {exception.InnerException.GetType().Name}: {exception.InnerException.Message}";
             }
+
+            // EF concurrency exceptions carry the failed entries — surfacing entity type + key
+            // + state turns "0 rows affected" into something actionable.
+            if (exception is Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
+            {
+                var entries = dbEx.Entries
+                    .Select(e => new
+                    {
+                        EntityType = e.Metadata.ClrType.Name,
+                        State = e.State.ToString(),
+                        PrimaryKey = string.Join(",", e.Properties
+                            .Where(p => p.Metadata.IsPrimaryKey())
+                            .Select(p => $"{p.Metadata.Name}={p.CurrentValue}"))
+                    })
+                    .ToArray();
+                problemDetails.Extensions["entries"] = entries;
+
+                // Stack trace head — first user-code frame is usually the smoking gun.
+                problemDetails.Extensions["stack"] = string.Join(
+                    "\n",
+                    (exception.StackTrace ?? "").Split('\n').Take(10));
+            }
         }
 
         problemDetails.Status = statusCode;
