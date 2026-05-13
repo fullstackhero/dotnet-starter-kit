@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/cn";
 import { useUserByUsername, useUserDisplay } from "@/lib/use-user-display";
+import { usePresence } from "@/realtime/use-presence";
 import { groupReactions, shortTime } from "@/pages/chat/chat-utils";
 
 const QUICK_REACTIONS = ["👍", "🎉", "❤️", "👀", "🔥", "🚀"] as const;
@@ -83,6 +84,9 @@ export function Message({
   const isPending = message.id.startsWith("temp:");
   const reactions = groupReactions(message, selfUserId);
   const author = useUserDisplay(message.authorUserId);
+  // Only call usePresence for the other-side branch — own messages don't
+  // need a presence dot on their own avatar (and we hide it anyway).
+  const authorOnline = usePresence(!isOwn ? message.authorUserId : null);
   const queryClient = useQueryClient();
 
   // Look up the parent message from the channel's top-level cache so the
@@ -122,7 +126,12 @@ export function Message({
       {!isOwn && (
         <div className="w-9 shrink-0 self-end">
           {!isMerged && (
-            <Avatar name={author.name} src={author.imageUrl ?? null} size="sm" />
+            <Avatar
+              name={author.name}
+              src={author.imageUrl ?? null}
+              size="sm"
+              status={authorOnline ? "online" : "offline"}
+            />
           )}
         </div>
       )}

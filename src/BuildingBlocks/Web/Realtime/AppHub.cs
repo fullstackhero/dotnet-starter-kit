@@ -28,17 +28,20 @@ public sealed class AppHub : Hub
     private readonly IChannelMembershipChecker _membership;
     private readonly IDistributedCache _cache;
     private readonly IUserChannelLookup _channels;
+    private readonly IPresenceTracker _presence;
     private readonly ILogger<AppHub> _logger;
 
     public AppHub(
         IChannelMembershipChecker membership,
         IDistributedCache cache,
         IUserChannelLookup channels,
+        IPresenceTracker presence,
         ILogger<AppHub> logger)
     {
         _membership = membership;
         _cache = cache;
         _channels = channels;
+        _presence = presence;
         _logger = logger;
     }
 
@@ -81,7 +84,32 @@ public sealed class AppHub : Hub
 
         AppHubLog.Connected(_logger, Context.ConnectionId, userId, channelIds.Count);
 
+        // Track presence — if this is the user's first open connection,
+        // broadcast PresenceChanged so any interested clients flip the dot.
+        if (_presence.Connect(userId))
+        {
+            await Clients.All.SendAsync(
+                    "PresenceChanged",
+                    new { userId, online = true },
+                    Context.ConnectionAborted)
+                .ConfigureAwait(false);
+        }
+
         await base.OnConnectedAsync().ConfigureAwait(false);
+    }
+
+    public override async Task OnDisconnectedAsync(Exception? exception)
+    {
+        var userId = GetUserId();
+        if (!string.IsNullOrEmpty(userId) && _presence.Disconnect(userId))
+        {
+            await Clients.All.SendAsync(
+                    "PresenceChanged",
+                    new { userId, online = false })
+                .ConfigureAwait(false);
+        }
+
+        await base.OnDisconnectedAsync(exception).ConfigureAwait(false);
     }
 
     /// <summary>

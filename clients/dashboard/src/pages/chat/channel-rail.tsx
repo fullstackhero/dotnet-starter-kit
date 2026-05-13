@@ -24,6 +24,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { RealtimeStatusPill } from "@/components/realtime/realtime-status-pill";
 import { cn } from "@/lib/cn";
 import { useUserDisplay } from "@/lib/use-user-display";
+import { usePresence } from "@/realtime/use-presence";
 import { channelTitle } from "@/pages/chat/chat-utils";
 
 /**
@@ -253,6 +254,7 @@ function ChannelRow({
   const otherDmMember =
     channel.type === 0 ? channel.members.find((m) => m.userId !== selfUserId) : null;
   const dmPartner = useUserDisplay(otherDmMember?.userId);
+  const dmPartnerOnline = usePresence(otherDmMember?.userId);
   const title =
     channel.type === 0 && otherDmMember ? dmPartner.name : channelTitle(channel, selfUserId);
   const hasUnread = channel.unreadCount > 0;
@@ -289,6 +291,7 @@ function ChannelRow({
           name={dmPartner.name}
           src={dmPartner.imageUrl ?? null}
           size="xs"
+          status={dmPartnerOnline ? "online" : "offline"}
           className="shrink-0"
         />
       ) : (

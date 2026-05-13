@@ -254,6 +254,18 @@ export function removeReaction(messageId: string, emoji: string): Promise<void> 
   );
 }
 
+// ── Presence ───────────────────────────────────────────────────────────
+
+export type PresenceEntry = { userId: string; online: boolean };
+
+export function getPresence(userIds: string[]): Promise<PresenceEntry[]> {
+  const csv = userIds.filter((id) => !!id).join(",");
+  if (csv.length === 0) return Promise.resolve([]);
+  return apiFetch<PresenceEntry[]>(
+    `/api/v1/realtime/presence?userIds=${encodeURIComponent(csv)}`,
+  );
+}
+
 // ── Search ─────────────────────────────────────────────────────────────
 
 export function searchMessages(params: {
