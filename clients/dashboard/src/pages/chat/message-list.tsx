@@ -143,17 +143,43 @@ export const MessageList = forwardRef<
     "ChatMessageCreated",
     (payload) => {
       if (payload.channelId !== channelId) return;
+
+      // Own-send echo: SendMessageCommandHandler broadcasts via SignalR
+      // before flushing the HTTP response, so the echo usually beats
+      // composer's onSuccess. Without dedup against the pending temp we'd
+      // briefly render BOTH the temp and the real bubble — the "send
+      // stutter". Locate the temp by author+body+parent (the only fields we
+      // control on the client; no clientId/idempotencyKey echo from server).
+      const findOwnTempIndex = (cached: MessageDto[] | undefined) => {
+        if (!cached || payload.authorUserId !== selfUserId) return -1;
+        return cached.findIndex(
+          (m) =>
+            m.id.startsWith("temp:") &&
+            m.authorUserId === payload.authorUserId &&
+            (m.body ?? "") === (payload.body ?? "") &&
+            (m.parentMessageId ?? null) === (payload.parentMessageId ?? null),
+        );
+      };
+
       if (payload.parentMessageId) {
         // Bump replyCount on the parent — also acts as the trigger that
         // adds this parent to parentIdsWithReplies, which fires a useQueries
-        // fetch for the per-parent cache if it isn't already loaded.
-        queryClient.setQueryData<MessageDto[] | undefined>(queryKey, (prev) =>
-          prev?.map((m) =>
+        // fetch for the per-parent cache if it isn't already loaded. Drop
+        // our own pending temp (Composer onMutate parks reply temps in
+        // messagesKey too) — the real DTO lands in the replies cache below.
+        queryClient.setQueryData<MessageDto[] | undefined>(queryKey, (prev) => {
+          if (!prev) return prev;
+          const tempIdx = findOwnTempIndex(prev);
+          const base =
+            tempIdx >= 0
+              ? prev.slice(0, tempIdx).concat(prev.slice(tempIdx + 1))
+              : prev;
+          return base.map((m) =>
             m.id === payload.parentMessageId
               ? { ...m, replyCount: (m.replyCount ?? 0) + 1 }
               : m,
-          ),
-        );
+          );
+        });
         // Append to the per-parent cache if it's already loaded; otherwise
         // useQueries' first fetch will pick up the new reply naturally.
         queryClient.setQueryData<MessageDto[] | undefined>(
@@ -169,10 +195,16 @@ export const MessageList = forwardRef<
       queryClient.setQueryData<MessageDto[] | undefined>(queryKey, (prev) => {
         if (!prev) return [payload];
         if (prev.some((m) => m.id === payload.id)) return prev;
+        const tempIdx = findOwnTempIndex(prev);
+        if (tempIdx >= 0) {
+          const next = prev.slice();
+          next[tempIdx] = payload;
+          return next;
+        }
         return [payload, ...prev];
       });
     },
-    [channelId, queryKey, queryClient],
+    [channelId, queryKey, queryClient, selfUserId],
   );
 
   useRealtimeEvent<MessageDto>(
