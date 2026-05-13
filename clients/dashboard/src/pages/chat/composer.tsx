@@ -26,24 +26,27 @@ export function Composer({
   const queryClient = useQueryClient();
   const realtime = useRealtime();
 
+  // mutate() takes the trimmed text as a variable so the value is captured at
+  // call time. If we closed over `body` in mutationFn, onMutate's setBody("")
+  // would commit the re-render before TanStack Query reads the latest options
+  // ref, and we'd POST an empty body. (Reproduced as a 400 "'Body' must not
+  // be empty" before this fix.)
   const mutation = useMutation({
-    mutationFn: () =>
+    mutationFn: (text: string) =>
       sendMessage({
         channelId,
-        body: body.trim(),
+        body: text,
         parentMessageId,
         idempotencyKey: crypto.randomUUID(),
       }),
-    onMutate: async () => {
-      // Optimistic prepend — the realtime broadcast will reconcile when it
-      // lands. We use a temp id so the row gets replaced cleanly.
+    onMutate: () => {
+      // Clear + refocus optimistically. The realtime ChatMessageCreated event
+      // from MessageList patches the cache when the broadcast lands.
       setBody("");
       requestAnimationFrame(() => textareaRef.current?.focus());
     },
     onSuccess: () => {
-      // The realtime ChatMessageCreated event from MessageList already
-      // patches the cache; nothing to do here. Invalidate the channel
-      // list so the LastMessageAtUtc + sort order refreshes.
+      // Invalidate the channel list so LastMessageAtUtc + sort order refreshes.
       void queryClient.invalidateQueries({ queryKey: ["chat", "my-channels"] });
     },
   });
@@ -56,10 +59,16 @@ export function Composer({
     el.style.height = `${Math.min(el.scrollHeight, 6 * 24 + 16)}px`;
   }, [body]);
 
+  const send = () => {
+    const trimmed = body.trim();
+    if (!trimmed || mutation.isPending) return;
+    mutation.mutate(trimmed);
+  };
+
   const onKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement> = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      if (body.trim() && !mutation.isPending) mutation.mutate();
+      send();
     }
   };
 
@@ -103,7 +112,7 @@ export function Composer({
           type="button"
           aria-label="Send message"
           disabled={!body.trim() || mutation.isPending}
-          onClick={() => mutation.mutate()}
+          onClick={send}
           className={cn(
             "absolute bottom-2 right-2 grid h-8 w-8 cursor-pointer place-items-center rounded-md",
             "transition-all duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
