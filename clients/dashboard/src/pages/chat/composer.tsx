@@ -1,15 +1,22 @@
-import { useEffect, useRef, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Send } from "lucide-react";
 import { sendMessage, type ChannelTypeValue } from "@/api/chat";
+import { searchUsers, type UserDto } from "@/api/identity";
 import { useRealtime } from "@/realtime/realtime-context";
 import { cn } from "@/lib/cn";
+import { MentionPicker } from "@/pages/chat/mention-picker";
 
 /**
- * Composer plinth — deliberately styled, brand-tinted on focus. Single-line
- * Enter-to-send; Shift+Enter inserts a newline. Calls Typing(channelId) on
- * each keystroke (the hub itself rate-limits to 1 broadcast per 3s per
- * (channel, user) so we don't need a debounce here).
+ * Composer plinth — deliberately styled, brand-tinted on focus. Enter-to-send;
+ * Shift+Enter inserts a newline. Calls Typing(channelId) on each keystroke
+ * (the hub itself rate-limits to 1 broadcast per 3s per (channel, user) so
+ * we don't need a debounce here).
+ *
+ * @-mentions: when the user types `@` followed by 2+ alphanumeric chars at
+ * a word boundary, a floating picker appears above the textarea with
+ * matching users from /api/v1/identity/users/search. ↑↓ navigates, Enter
+ * selects (inserts `@username ` and closes), Esc dismisses.
  */
 export function Composer({
   channelId,
@@ -29,6 +36,60 @@ export function Composer({
   const queryClient = useQueryClient();
   const realtime = useRealtime();
 
+  // ── Mention picker state ───────────────────────────────────────────────
+  // `mention` is non-null whenever the caret is sitting at the end of an
+  // active @-token. `mention.query` is the chars typed after the @. The
+  // picker is only visible when query.length >= 2 AND we have candidates.
+  const [mention, setMention] = useState<{ query: string; atPos: number } | null>(null);
+  const [highlight, setHighlight] = useState(0);
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+
+  useEffect(() => {
+    if (!mention || mention.query.length < 2) {
+      setDebouncedQuery("");
+      return;
+    }
+    const t = setTimeout(() => setDebouncedQuery(mention.query), 200);
+    return () => clearTimeout(t);
+  }, [mention]);
+
+  const mentionUsersQuery = useQuery({
+    queryKey: ["chat", "mention-search", debouncedQuery],
+    queryFn: () => searchUsers({ search: debouncedQuery, pageSize: 6, isActive: true }),
+    enabled: debouncedQuery.length >= 2,
+    staleTime: 30_000,
+  });
+
+  const candidates = useMemo<UserDto[]>(
+    () => (mentionUsersQuery.data?.items ?? []).filter((u) => !!u.id),
+    [mentionUsersQuery.data],
+  );
+
+  const pickerOpen =
+    mention !== null && mention.query.length >= 2 && candidates.length > 0;
+
+  // Reset highlight whenever the candidate list changes — keeps the
+  // selection sensible even as the query narrows.
+  useEffect(() => {
+    setHighlight(0);
+  }, [debouncedQuery, candidates.length]);
+
+  // ── Detection: walk back from the caret to find an active @ token ──────
+  // Triggers when the @ is at the start of input or after whitespace
+  // (avoids false positives inside emails like "foo@bar.com"). The token
+  // body matches the same regex shape the server uses
+  // (Modules.Chat MentionParser): [A-Za-z0-9._-]
+  const detectMention = (value: string, caretPos: number) => {
+    const before = value.slice(0, caretPos);
+    const match = before.match(/(?:^|\s)@([A-Za-z0-9._-]*)$/);
+    if (!match) {
+      setMention(null);
+      return;
+    }
+    setMention({ query: match[1], atPos: caretPos - match[1].length - 1 });
+  };
+
+  // ── Send mutation ──────────────────────────────────────────────────────
   // mutate() takes the trimmed text as a variable so the value is captured at
   // call time. If we closed over `body` in mutationFn, onMutate's setBody("")
   // would commit the re-render before TanStack Query reads the latest options
@@ -46,6 +107,7 @@ export function Composer({
       // Clear + refocus optimistically. The realtime ChatMessageCreated event
       // from MessageList patches the cache when the broadcast lands.
       setBody("");
+      setMention(null);
       requestAnimationFrame(() => textareaRef.current?.focus());
     },
     onSuccess: () => {
@@ -68,7 +130,56 @@ export function Composer({
     mutation.mutate(trimmed);
   };
 
+  // Replace the partial @<query> with @<userName> + space.
+  const applyMention = (user: UserDto) => {
+    if (!mention) return;
+    const handle = (user.userName ?? "").trim();
+    if (!handle) return; // can't mention someone without a username
+    const before = body.slice(0, mention.atPos);
+    const after = body.slice(mention.atPos + 1 + mention.query.length);
+    const insertion = `@${handle} `;
+    const next = before + insertion + after;
+    setBody(next);
+    setMention(null);
+    const newCaret = (before + insertion).length;
+    // Re-position the caret after the inserted handle. Needs to happen after
+    // React commits the textarea value, so defer to rAF.
+    requestAnimationFrame(() => {
+      const el = textareaRef.current;
+      if (!el) return;
+      el.focus();
+      el.setSelectionRange(newCaret, newCaret);
+    });
+  };
+
   const onKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement> = (e) => {
+    // Picker key handling — short-circuits Enter so a selection doesn't
+    // send the message, and consumes Esc so it dismisses the picker
+    // instead of blurring the textarea.
+    if (pickerOpen) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setHighlight((h) => (h + 1) % candidates.length);
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setHighlight((h) => (h - 1 + candidates.length) % candidates.length);
+        return;
+      }
+      if (e.key === "Enter" || e.key === "Tab") {
+        e.preventDefault();
+        const choice = candidates[highlight];
+        if (choice) applyMention(choice);
+        return;
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setMention(null);
+        return;
+      }
+    }
+
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       send();
@@ -76,7 +187,7 @@ export function Composer({
   };
 
   return (
-    <div className="px-4 pb-4 pt-2">
+    <div className="relative px-4 pb-4 pt-2">
       <div
         className={cn(
           "relative rounded-xl border bg-[var(--color-surface-3)] transition-all",
@@ -86,16 +197,45 @@ export function Composer({
             : "border-[var(--color-border)]",
         )}
       >
+        {/* Mention picker floats above the plinth so it never covers the
+            text the caller is typing. Positioned within the relative plinth
+            container so it tracks the composer's width. */}
+        {pickerOpen && (
+          <MentionPicker
+            candidates={candidates}
+            highlight={highlight}
+            onHighlight={setHighlight}
+            onSelect={applyMention}
+            loading={mentionUsersQuery.isLoading}
+            className="absolute inset-x-0 bottom-full mb-2"
+          />
+        )}
+
         <textarea
           ref={textareaRef}
           value={body}
           onChange={(e) => {
-            setBody(e.target.value);
+            const next = e.target.value;
+            setBody(next);
+            detectMention(next, e.target.selectionStart ?? next.length);
             // Fire-and-forget — hub itself throttles per (channel, user).
             void realtime.invoke("Typing", channelId);
           }}
+          onSelect={(e) => {
+            // Caret moves via arrow keys / mouse click without changing value.
+            // Re-check mention context so navigating into a token reopens
+            // the picker.
+            const el = e.currentTarget;
+            detectMention(el.value, el.selectionStart ?? el.value.length);
+          }}
           onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
+          onBlur={() => {
+            setFocused(false);
+            // Close the picker when focus actually leaves the textarea.
+            // Mouse-down in the picker preventsDefault so blur doesn't fire
+            // for in-picker clicks.
+            setMention(null);
+          }}
           onKeyDown={onKeyDown}
           placeholder={
             parentMessageId
@@ -133,7 +273,7 @@ export function Composer({
 
       <div className="mt-1.5 flex items-center justify-between px-1">
         <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
-          ↵ Send · ⇧↵ Newline · Type @username to mention
+          ↵ Send · ⇧↵ Newline · Type @ + 2 chars to mention
         </span>
         {mutation.isError && (
           <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-destructive)]">
