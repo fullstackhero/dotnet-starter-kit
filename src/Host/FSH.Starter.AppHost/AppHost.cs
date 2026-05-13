@@ -79,6 +79,19 @@ var minioInit = builder.AddContainer("minio-init", "minio/mc")
 
 var minioApiEndpoint = minio.GetEndpoint("api");
 
+// Database migrator — runs once on each AppHost launch, applies pending
+// migrations across the tenant catalog + every tenant's per-module
+// databases, then exits. The API depends on its completion below, so
+// the API never starts against an unmigrated database. Production
+// deployments use this same project as an explicit deploy step.
+var migrator = builder.AddProject<Projects.FSH_Starter_DbMigrator>("fsh-db-migrator")
+    .WithReference(postgres)
+    .WaitFor(postgres)
+    .WithEnvironment("DatabaseOptions__Provider", "POSTGRESQL")
+    .WithEnvironment("DatabaseOptions__ConnectionString", postgres.Resource.ConnectionStringExpression)
+    .WithEnvironment("DatabaseOptions__MigrationsAssembly", "FSH.Starter.Migrations.PostgreSQL")
+    .WithArgs("apply");
+
 // API Service
 var api = builder.AddProject<Projects.FSH_Starter_Api>("fsh-api")
     .WithReference(postgres)
@@ -86,6 +99,7 @@ var api = builder.AddProject<Projects.FSH_Starter_Api>("fsh-api")
     .WaitFor(postgres)
     .WaitFor(redis)
     .WaitForCompletion(minioInit)
+    .WaitForCompletion(migrator)
     .WithExternalHttpEndpoints()
     .WithEnvironment("DatabaseOptions__Provider", "POSTGRESQL")
     .WithEnvironment("DatabaseOptions__ConnectionString", postgres.Resource.ConnectionStringExpression)

@@ -18,6 +18,7 @@ using FSH.Modules.Webhooks;
 using FSH.Starter.DbMigrator;
 using Finbuckle.MultiTenant.Abstractions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -122,6 +123,25 @@ var logger = host.Services.GetRequiredService<ILogger<MigratorCommand>>();
 
 try
 {
+    // ── Step 0 — wait for the database to come up ────────────────────────
+    // Aspire / Kubernetes cold-starts can leave Postgres still initialising
+    // when the migrator's container is scheduled. Exponential backoff up to
+    // two minutes catches the common 5–30s startup gap; longer outages
+    // surface as a clean TimeoutException + exit code 1.
+    var connectionString = host.Services.GetRequiredService<IConfiguration>()["DatabaseOptions:ConnectionString"]
+        ?? throw new InvalidOperationException("DatabaseOptions:ConnectionString is not configured.");
+    await PostgresMigratorLock.WaitForDatabaseAsync(connectionString, logger, CancellationToken.None)
+        .ConfigureAwait(false);
+
+    // ── Step 0b — acquire the advisory lock ──────────────────────────────
+    // Postgres session-level advisory lock. Concurrent migrator runs
+    // (CI-races, ops-vs-Helm-hook overlap, replicas: 2 by accident) block
+    // here until the holder finishes. The lock auto-releases on connection
+    // close, so even a crashed migrator doesn't leave the lock orphaned.
+    await using var migratorLock = await PostgresMigratorLock
+        .AcquireAsync(connectionString, logger, CancellationToken.None)
+        .ConfigureAwait(false);
+
     // ── Step 1 — tenant catalog ───────────────────────────────────────────
     // Always applied first because the per-tenant migrator below reads
     // every tenant out of this database.

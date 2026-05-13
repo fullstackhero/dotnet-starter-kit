@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FSH.Starter.Api\FSH.Starter.Api.csproj" />
+    <ProjectReference Include="..\FSH.Starter.DbMigrator\FSH.Starter.DbMigrator.csproj" />
   </ItemGroup>
 
 </Project>
