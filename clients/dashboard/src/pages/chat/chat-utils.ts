@@ -56,6 +56,12 @@ export function shortTime(iso: string): string {
   return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 }
 
+/** "Today 10:42" / "Yesterday 4:18 PM" / "Mar 3 9:01 AM" — for search results
+ *  and other contexts where the date matters alongside the time. */
+export function shortDateTime(iso: string): string {
+  return `${dayRuleLabel(iso)} ${shortTime(iso)}`;
+}
+
 /** Returns true when two messages can be visually merged (same author, < 5min apart, same thread). */
 export function canMerge(a: MessageDto, b: MessageDto): boolean {
   if (a.authorUserId !== b.authorUserId) return false;

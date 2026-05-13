@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Hash, Lock, MessageCircle, Users2 } from "lucide-react";
+import { Hash, Lock, MessageCircle, Search, Users2 } from "lucide-react";
+import { toast } from "sonner";
 import {
   getChannelById,
   listChannelMessages,
@@ -11,8 +12,12 @@ import {
 } from "@/api/chat";
 import { useAuth } from "@/auth/use-auth";
 import { ChannelRail } from "@/pages/chat/channel-rail";
+import { ChatSearchOverlay } from "@/pages/chat/chat-search";
 import { Composer } from "@/pages/chat/composer";
-import { MessageList } from "@/pages/chat/message-list";
+import {
+  MessageList,
+  type MessageListHandle,
+} from "@/pages/chat/message-list";
 import { TypingIndicator } from "@/pages/chat/typing-indicator";
 import { channelTitle } from "@/pages/chat/chat-utils";
 import { cn } from "@/lib/cn";
@@ -126,10 +131,13 @@ function ActiveChannel({
 }) {
   const queryClient = useQueryClient();
   const [replyTo, setReplyTo] = useState<MessageDto | null>(null);
+  const [searching, setSearching] = useState(false);
+  const messageListRef = useRef<MessageListHandle | null>(null);
 
-  // Clear the reply context when the user switches channels.
+  // Clear ephemeral state when the user switches channels.
   useEffect(() => {
     setReplyTo(null);
+    setSearching(false);
   }, [channelId]);
 
   const channelQuery = useQuery({
@@ -197,38 +205,64 @@ function ActiveChannel({
     channel.type === 2 ? (channel.isPrivate ? Lock : Hash) : Users2;
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      {/* Channel header — atmospheric brand glow tucked under the title. */}
-      <header
-        className={cn(
-          "chat-channel-header flex h-14 shrink-0 items-center gap-3 border-b border-[var(--color-border)] px-4",
-        )}
-      >
-        <span
-          aria-hidden
-          className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-[var(--color-surface-3)] text-[var(--color-muted-foreground)]"
-        >
-          <Icon className="h-3.5 w-3.5" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <h1 className="text-display truncate text-sm font-semibold tracking-tight">
-            {title}
-          </h1>
-          {channel.description && channel.type === 2 && (
-            <p className="truncate text-[11px] text-[var(--color-muted-foreground)]">
-              {channel.description}
-            </p>
+    <div className="relative flex h-full min-h-0 flex-col">
+      {searching ? (
+        <ChatSearchOverlay
+          channelId={channelId}
+          onClose={() => setSearching(false)}
+          onJump={(id) => {
+            const ok = messageListRef.current?.jumpToMessage(id) ?? false;
+            if (!ok) {
+              toast.info("That message is older than the loaded window.");
+            }
+          }}
+        />
+      ) : (
+        <header
+          className={cn(
+            "chat-channel-header flex h-14 shrink-0 items-center gap-3 border-b border-[var(--color-border)] px-4",
           )}
-        </div>
-        <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-0.5 font-mono text-[10.5px] text-[var(--color-muted-foreground)]">
-          <span className="tabular-nums">{channel.members.length}</span>{" "}
-          {channel.members.length === 1 ? "member" : "members"}
-        </span>
-      </header>
+        >
+          <span
+            aria-hidden
+            className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-[var(--color-surface-3)] text-[var(--color-muted-foreground)]"
+          >
+            <Icon className="h-3.5 w-3.5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-display truncate text-sm font-semibold tracking-tight">
+              {title}
+            </h1>
+            {channel.description && channel.type === 2 && (
+              <p className="truncate text-[11px] text-[var(--color-muted-foreground)]">
+                {channel.description}
+              </p>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => setSearching(true)}
+            aria-label="Search messages"
+            title="Search messages"
+            className={cn(
+              "grid h-7 w-7 cursor-pointer place-items-center rounded-md",
+              "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
+              "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
+            )}
+          >
+            <Search className="h-3.5 w-3.5" />
+          </button>
+          <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-0.5 font-mono text-[10.5px] text-[var(--color-muted-foreground)]">
+            <span className="tabular-nums">{channel.members.length}</span>{" "}
+            {channel.members.length === 1 ? "member" : "members"}
+          </span>
+        </header>
+      )}
 
       {/* Message list — fills the remaining height. */}
       <div className="min-h-0 flex-1">
         <MessageList
+          ref={messageListRef}
           channelId={channelId}
           selfUserId={selfUserId}
           lastReadMessageId={lastReadMessageId}

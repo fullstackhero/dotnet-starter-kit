@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { ChevronDown } from "lucide-react";
@@ -10,6 +18,12 @@ import {
 import { useRealtimeEvent } from "@/realtime/realtime-context";
 import { canMerge, dayKey, dayRuleLabel } from "@/pages/chat/chat-utils";
 import { Message } from "@/pages/chat/message";
+
+export type MessageListHandle = {
+  /** Scroll the feed to a message id in the loaded window and flash it.
+   *  Returns true if the message was in the loaded window, false otherwise. */
+  jumpToMessage(messageId: string): boolean;
+};
 
 type Row =
   | { kind: "day"; key: string; label: string }
@@ -29,20 +43,26 @@ const PINNED_THRESHOLD = 200;
  * counter that surfaces a jump-to-bottom pill. The unread watermark is
  * snapshotted once per channel session so it doesn't move as mark-read fires.
  */
-export function MessageList({
-  channelId,
-  selfUserId,
-  lastReadMessageId,
-  onReply,
-}: {
-  channelId: string;
-  selfUserId?: string;
-  /** Caller's lastReadMessageId on the channel — used to place the unread divider. */
-  lastReadMessageId?: string | null;
-  /** Sets the composer's reply context. The composer renders the quote and
-   *  posts the next send with parentMessageId = parent.id. Teams-DM style. */
-  onReply?: (parent: MessageDto) => void;
-}) {
+export const MessageList = forwardRef<
+  MessageListHandle,
+  {
+    channelId: string;
+    selfUserId?: string;
+    /** Caller's lastReadMessageId on the channel — used to place the unread divider. */
+    lastReadMessageId?: string | null;
+    /** Sets the composer's reply context. The composer renders the quote and
+     *  posts the next send with parentMessageId = parent.id. Teams-DM style. */
+    onReply?: (parent: MessageDto) => void;
+  }
+>(function MessageList(
+  {
+    channelId,
+    selfUserId,
+    lastReadMessageId,
+    onReply,
+  },
+  ref,
+) {
   const queryClient = useQueryClient();
   const queryKey = ["chat", "messages", channelId];
 
@@ -322,21 +342,24 @@ export function MessageList({
   }, []);
 
   const jumpToMessage = useCallback(
-    (messageId: string) => {
+    (messageId: string): boolean => {
       const index = rows.findIndex(
         (r) => r.kind === "message" && r.message.id === messageId,
       );
-      if (index < 0) return;
-      virtualizer.scrollToIndex(index, { align: "center" });
+      if (index < 0) return false;
+      virtualizer.scrollToIndex(index, { align: "center", behavior: "smooth" });
       setFlashingMessageId(messageId);
       if (flashTimerRef.current) window.clearTimeout(flashTimerRef.current);
       flashTimerRef.current = window.setTimeout(
         () => setFlashingMessageId(null),
         1600,
       );
+      return true;
     },
     [rows, virtualizer],
   );
+
+  useImperativeHandle(ref, () => ({ jumpToMessage }), [jumpToMessage]);
 
   if (messagesQuery.isLoading) {
     return (
@@ -427,4 +450,4 @@ export function MessageList({
       )}
     </div>
   );
-}
+});
