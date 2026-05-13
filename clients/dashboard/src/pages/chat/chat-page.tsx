@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Hash, Lock, MessageCircle, Users2 } from "lucide-react";
@@ -7,6 +7,7 @@ import { useAuth } from "@/auth/use-auth";
 import { ChannelRail } from "@/pages/chat/channel-rail";
 import { Composer } from "@/pages/chat/composer";
 import { MessageList } from "@/pages/chat/message-list";
+import { ThreadPanel } from "@/pages/chat/thread-panel";
 import { TypingIndicator } from "@/pages/chat/typing-indicator";
 import { channelTitle } from "@/pages/chat/chat-utils";
 import { cn } from "@/lib/cn";
@@ -119,6 +120,13 @@ function ActiveChannel({
   selfUserId?: string;
 }) {
   const queryClient = useQueryClient();
+  const [replyParentId, setReplyParentId] = useState<string | null>(null);
+
+  // Close the thread when the user switches channels.
+  useEffect(() => {
+    setReplyParentId(null);
+  }, [channelId]);
+
   const channelQuery = useQuery({
     queryKey: ["chat", "channel", channelId],
     queryFn: () => getChannelById(channelId),
@@ -184,7 +192,7 @@ function ActiveChannel({
     channel.type === 2 ? (channel.isPrivate ? Lock : Hash) : Users2;
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className="relative flex h-full min-h-0 flex-col">
       {/* Channel header — atmospheric brand glow tucked under the title. */}
       <header
         className={cn(
@@ -219,6 +227,7 @@ function ActiveChannel({
           channelId={channelId}
           selfUserId={selfUserId}
           lastReadMessageId={lastReadMessageId}
+          onReply={setReplyParentId}
         />
       </div>
 
@@ -227,6 +236,17 @@ function ActiveChannel({
 
       {/* Composer plinth — brand-tinted on focus. */}
       <Composer channelId={channelId} channelTitle={title} channelType={channel.type} />
+
+      {replyParentId && (
+        <ThreadPanel
+          channelId={channelId}
+          channelTitle={title}
+          channelType={channel.type}
+          parentMessageId={replyParentId}
+          selfUserId={selfUserId}
+          onClose={() => setReplyParentId(null)}
+        />
+      )}
     </div>
   );
 }
