@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ImageIcon, Loader2, Paperclip, Send, X } from "lucide-react";
 import { toast } from "sonner";
 import { sendMessage, type ChannelTypeValue, type MessageDto } from "@/api/chat";
-import { Visibility } from "@/api/files";
+import { getFileDownloadUrl, Visibility } from "@/api/files";
 import { searchUsers, type UserDto } from "@/api/identity";
 import { useRealtime } from "@/realtime/realtime-context";
 import { formatBytes, useFileUpload } from "@/hooks/use-file-upload";
@@ -83,9 +83,22 @@ export function Composer({
     }
     try {
       const asset = await fileUpload.upload(file);
+      // Chat attachments are uploaded Private (ChatChannelFileAccessPolicy
+      // gates reads), so `asset.publicUrl` is null. Mint a presigned read
+      // URL immediately so the resulting message's MessageAttachment.Url
+      // satisfies the server's non-empty validation AND the recipient can
+      // render the attachment without an extra round-trip. The URL is
+      // short-lived; older attachments would need a re-presign on render
+      // (future work — make MessageAttachment.Url nullable + resolve at
+      // read time via fileAssetId).
+      let url = asset.publicUrl ?? "";
+      if (!url) {
+        const presigned = await getFileDownloadUrl(asset.id, { inline: true });
+        url = presigned.url;
+      }
       setPendingAttachment({
         fileAssetId: asset.id,
-        url: asset.publicUrl ?? "",
+        url,
         contentType: asset.contentType,
         fileName: asset.originalFileName,
         sizeBytes: asset.sizeBytes,
