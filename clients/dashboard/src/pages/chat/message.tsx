@@ -1,7 +1,7 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ChevronUp, Pencil, SmilePlus, Trash2 } from "lucide-react";
+import { Pencil, SmilePlus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   addReaction,
@@ -35,12 +35,13 @@ import { groupReactions, shortTime } from "@/pages/chat/chat-utils";
 const QUICK_REACTIONS = ["👍", "🎉", "❤️", "👀", "🔥", "🚀"] as const;
 
 /**
- * One message row. The visual moves:
- *   - Author has a 12-col avatar gutter on the left so successive messages
- *     from the same person can hide the gutter and merge into a thread block.
- *   - Author of own messages gets a 2px brand strip on the left edge.
- *   - Hover reveals an action rail (react / edit / delete).
- *   - Mention tokens render as inline `chat-mention` pills.
+ * One message row, Teams-style:
+ *   - Own messages: no avatar, right-aligned brand-tinted bubble, time below.
+ *   - Other messages: avatar on the left, surface-tinted bubble on the right.
+ *   - Reply messages render a quoted preview of the parent inside the bubble
+ *     so scrolling history still tells you who-said-what.
+ *   - Hover reveals an action rail floating above the bubble.
+ *   - Mention tokens render as inline `chat-mention` pills (with profile peek).
  *   - Reaction chips light up in primary tones for the caller's own reactions.
  */
 export function Message({
@@ -48,64 +49,71 @@ export function Message({
   selfUserId,
   isMerged,
   onReply,
-  onToggleReplies,
-  isExpanded,
 }: {
   message: MessageDto;
   selfUserId?: string;
-  /** When true, this row continues a thread block — hide the avatar gutter. */
+  /** When true, this row continues a block from the same author — hide the
+   *  author header (and avatar on the other-side branch). */
   isMerged: boolean;
   /** Called when the user clicks "Reply" on the hover rail. The composer
    *  in chat-page reacts by entering reply mode with a quoted preview. */
   onReply?: (parent: MessageDto) => void;
-  /** Called when the user clicks the "N replies" chip. MessageList toggles
-   *  inline expansion below the parent (Teams-channel style). */
-  onToggleReplies?: (parentMessageId: string) => void;
-  /** Drives the chevron orientation on the reply-count chip. */
-  isExpanded?: boolean;
 }) {
   const isOwn = selfUserId === message.authorUserId;
   const isDeleted = message.deletedAtUtc !== null && message.deletedAtUtc !== undefined;
   const reactions = groupReactions(message, selfUserId);
   const author = useUserDisplay(message.authorUserId);
+  const queryClient = useQueryClient();
+
+  // Look up the parent message from the channel's top-level cache so the
+  // bubble can render a quoted preview ("Replying to Alice: hello team").
+  // Non-reactive: we let the parent component re-render this when the
+  // upstream cache changes (which MessageList already watches).
+  const parent = useMemo<MessageDto | null>(() => {
+    if (!message.parentMessageId) return null;
+    const cached = queryClient.getQueryData<MessageDto[]>([
+      "chat",
+      "messages",
+      message.channelId,
+    ]);
+    return cached?.find((m) => m.id === message.parentMessageId) ?? null;
+  }, [queryClient, message.parentMessageId, message.channelId]);
 
   return (
     <div
       data-mine={isOwn || undefined}
       data-merged={isMerged || undefined}
       className={cn(
-        "group/message relative flex gap-3 px-4 py-1",
-        // Subtle highlight on hover so the action rail has a backdrop.
-        "hover:bg-[oklch(from_var(--color-foreground)_l_c_h_/_0.025)]",
+        "group/message relative flex gap-2 px-4 py-1",
+        isOwn ? "justify-end" : "justify-start",
         isMerged ? "pt-0.5" : "pt-2",
       )}
     >
-      {/* Own-author hairline — brand-tinted accent on the left edge. */}
-      {isOwn && (
-        <span
-          aria-hidden
-          className="absolute left-0 top-0 h-full w-0.5 rounded-r-full bg-[var(--color-primary)] opacity-50"
-        />
+      {/* Avatar gutter — only on the other-side branch, only on first-of-block.
+          When merged, the gutter holds the timestamp on hover. */}
+      {!isOwn && (
+        <div className="w-9 shrink-0 self-end">
+          {isMerged ? (
+            <span className="invisible block pb-2 text-[10px] text-[var(--color-muted-foreground)] group-hover/message:visible">
+              {shortTime(message.createdAtUtc)}
+            </span>
+          ) : (
+            <Avatar name={author.name} src={author.imageUrl ?? null} size="sm" />
+          )}
+        </div>
       )}
 
-      {/* Avatar gutter — shown only on the first message of a block. When
-          merged, the gutter holds the time stamp on hover so users can still
-          see when each line was posted. */}
-      <div className="w-9 shrink-0">
-        {isMerged ? (
-          <span className="invisible block text-[10px] text-[var(--color-muted-foreground)] group-hover/message:visible">
-            {shortTime(message.createdAtUtc)}
-          </span>
-        ) : (
-          <Avatar name={author.name} src={author.imageUrl ?? null} size="sm" />
+      <div
+        className={cn(
+          "flex min-w-0 max-w-[78%] flex-col",
+          isOwn ? "items-end" : "items-start",
         )}
-      </div>
-
-      <div className="min-w-0 flex-1">
-        {!isMerged && (
-          <div className="flex items-baseline gap-2">
+      >
+        {/* Other-side author header — name + handle, shown only on first-of-block. */}
+        {!isOwn && !isMerged && (
+          <div className="mb-0.5 flex items-baseline gap-2 px-1">
             <span
-              className="text-sm font-semibold tracking-tight text-[var(--color-foreground)]"
+              className="text-[12px] font-semibold tracking-tight text-[var(--color-foreground)]"
               title={author.handle ? `@${author.handle}` : undefined}
             >
               {author.name}
@@ -115,54 +123,60 @@ export function Message({
                 @{author.handle}
               </span>
             )}
-            <span className="font-mono text-[10.5px] tabular-nums text-[var(--color-muted-foreground)]">
-              {shortTime(message.createdAtUtc)}
-            </span>
-            {message.editedAtUtc && (
-              <span className="font-mono text-[10px] uppercase tracking-[0.10em] text-[var(--color-muted-foreground)]">
-                · edited
-              </span>
-            )}
           </div>
         )}
 
-        {isDeleted ? (
-          <span className="text-sm italic text-[var(--color-muted-foreground)]">
-            [message deleted]
-          </span>
-        ) : (
-          <MessageBody body={message.body ?? ""} />
-        )}
+        {/* The bubble. */}
+        <div
+          className={cn(
+            "break-words rounded-2xl px-3 py-2",
+            isOwn
+              ? "bg-[var(--color-primary-soft)] text-[var(--color-foreground)] rounded-tr-md"
+              : "bg-[var(--color-surface-2)] text-[var(--color-foreground)] rounded-tl-md",
+            "shadow-[0_1px_0_oklch(from_var(--color-foreground)_l_c_h_/_0.03)]",
+          )}
+        >
+          {/* Reply context preview — quotes the parent so the reader can tell
+              what the author replied to without scrolling. */}
+          {message.parentMessageId && (
+            <ReplyContextPreview parent={parent} isOwn={isOwn} />
+          )}
 
-        {/* Reply count chip — toggles inline expansion of the replies below
-            this parent (Teams-channel style). */}
-        {message.replyCount > 0 && onToggleReplies && (
-          <button
-            type="button"
-            onClick={() => onToggleReplies(message.id)}
-            aria-expanded={isExpanded ? true : false}
+          {isDeleted ? (
+            <span className="text-sm italic text-[var(--color-muted-foreground)]">
+              [message deleted]
+            </span>
+          ) : (
+            <MessageBody body={message.body ?? ""} />
+          )}
+        </div>
+
+        {/* Meta row below the bubble: own gets time + edited badge here;
+            other side keeps time below too for symmetry with own's "Me" pattern. */}
+        <div
+          className={cn(
+            "mt-0.5 flex items-center gap-1.5 px-1",
+            isOwn ? "justify-end" : "justify-start",
+          )}
+        >
+          <span className="font-mono text-[10px] tabular-nums text-[var(--color-muted-foreground)]">
+            {shortTime(message.createdAtUtc)}
+          </span>
+          {message.editedAtUtc && (
+            <span className="font-mono text-[10px] uppercase tracking-[0.10em] text-[var(--color-muted-foreground)]">
+              · edited
+            </span>
+          )}
+        </div>
+
+        {/* Reactions — align toward the bubble's outer edge. */}
+        {reactions.length > 0 && (
+          <div
             className={cn(
-              "mt-1 inline-flex h-6 cursor-pointer items-center gap-1 rounded-md border px-1.5",
-              "border-[var(--color-border)] bg-[var(--color-surface-2)]",
-              "text-[11px] text-[var(--color-muted-foreground)]",
-              "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
-              "hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]",
-              isExpanded && "border-[var(--color-primary)] text-[var(--color-primary)]",
+              "mt-1 flex flex-wrap gap-1 px-1",
+              isOwn ? "justify-end" : "justify-start",
             )}
           >
-            <span className="font-mono tabular-nums">{message.replyCount}</span>
-            <span>{message.replyCount === 1 ? "reply" : "replies"}</span>
-            {isExpanded ? (
-              <ChevronUp className="h-3 w-3" aria-hidden />
-            ) : (
-              <ChevronDown className="h-3 w-3" aria-hidden />
-            )}
-          </button>
-        )}
-
-        {/* Reaction row */}
-        {reactions.length > 0 && (
-          <div className="mt-1.5 flex flex-wrap gap-1">
             {reactions.map((r) => (
               <ReactionChip
                 key={r.emoji}
@@ -176,8 +190,55 @@ export function Message({
         )}
       </div>
 
-      {/* Hover action rail — top-right of the row. */}
+      {/* Hover action rail — floats in the empty space opposite the bubble
+          (left side for own, right side for others). */}
       <MessageActions message={message} isOwn={isOwn} onReply={onReply} />
+    </div>
+  );
+}
+
+/**
+ * Inline quoted preview of the parent message, rendered inside the reply's
+ * own bubble. Allows readers to identify the context without clicking into
+ * a thread surface. Falls back to a generic "Replying to a message" caption
+ * when the parent isn't in the loaded window (rare — usually it is).
+ */
+function ReplyContextPreview({
+  parent,
+  isOwn,
+}: {
+  parent: MessageDto | null;
+  isOwn: boolean;
+}) {
+  const author = useUserDisplay(parent?.authorUserId);
+  const body = parent ? (parent.body ?? "").trim() : "";
+  const preview = body || "(no text — attachment or empty)";
+  return (
+    <div
+      className={cn(
+        "mb-1.5 -mt-0.5 border-l-2 pl-2",
+        // Brand accent on own bubbles uses a slightly darker primary so it
+        // reads against the primary-soft background; on other-side surface
+        // bubbles, the primary is fine.
+        isOwn
+          ? "border-l-[var(--color-primary)]"
+          : "border-l-[var(--color-primary)]",
+      )}
+    >
+      <div className="flex items-center gap-1">
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+          Replying to
+        </span>
+        <span className="truncate text-[10.5px] font-semibold tracking-tight text-[var(--color-foreground)]">
+          {parent ? author.name : "a message"}
+        </span>
+      </div>
+      <p
+        className="line-clamp-1 text-[11px] leading-snug text-[var(--color-muted-foreground)]"
+        title={preview}
+      >
+        {preview}
+      </p>
     </div>
   );
 }
@@ -400,9 +461,12 @@ function MessageActions({
     <>
       <div
         className={cn(
-          "absolute right-3 top-1 z-10 hidden gap-0.5 rounded-md border border-[var(--color-border)]",
+          "absolute top-1 z-10 hidden gap-0.5 rounded-md border border-[var(--color-border)]",
           "bg-[var(--color-popover)] p-0.5 shadow-[var(--shadow-md)]",
           "group-hover/message:flex",
+          // Float on the empty side: own messages sit right, so the rail
+          // floats on the left; other messages sit left, so the rail floats right.
+          isOwn ? "left-3" : "right-3",
         )}
       >
         <ActionButton title="React" onClick={() => setPickerOpen((v) => !v)}>
@@ -432,8 +496,9 @@ function MessageActions({
       {pickerOpen && (
         <div
           className={cn(
-            "absolute right-3 top-9 z-20 flex gap-1 rounded-md border border-[var(--color-border)]",
+            "absolute top-9 z-20 flex gap-1 rounded-md border border-[var(--color-border)]",
             "bg-[var(--color-popover)] p-1 shadow-[var(--shadow-lg)]",
+            isOwn ? "left-3" : "right-3",
           )}
         >
           {QUICK_REACTIONS.map((emoji) => (

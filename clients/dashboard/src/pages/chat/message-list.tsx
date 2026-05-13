@@ -8,27 +8,12 @@ import {
   type MessageDto,
 } from "@/api/chat";
 import { useRealtimeEvent } from "@/realtime/realtime-context";
-import { cn } from "@/lib/cn";
 import { canMerge, dayKey, dayRuleLabel } from "@/pages/chat/chat-utils";
 import { Message } from "@/pages/chat/message";
 
 type Row =
   | { kind: "day"; key: string; label: string }
-  | {
-      kind: "message";
-      key: string;
-      message: MessageDto;
-      merged: boolean;
-      isExpanded: boolean;
-    }
-  | {
-      kind: "reply";
-      key: string;
-      message: MessageDto;
-      merged: boolean;
-      parentId: string;
-      isLast: boolean;
-    }
+  | { kind: "message"; key: string; message: MessageDto; merged: boolean }
   | { kind: "unread"; key: string };
 
 const PINNED_THRESHOLD = 200;
@@ -72,13 +57,16 @@ export function MessageList({
 
   // Subscribe to realtime hub events targeting this channel and patch cache.
   // Replies (parentMessageId set) are kept out of the top-level cache — they
-  // belong in the per-parent ["chat","replies",parentId] cache.
+  // belong in the per-parent ["chat","replies",parentId] cache and get merged
+  // into the chronological feed below.
   useRealtimeEvent<MessageDto>(
     "ChatMessageCreated",
     (payload) => {
       if (payload.channelId !== channelId) return;
       if (payload.parentMessageId) {
-        // Bump the parent's replyCount in the top-level cache so the chip appears.
+        // Bump replyCount on the parent — also acts as the trigger that
+        // adds this parent to parentIdsWithReplies, which fires a useQueries
+        // fetch for the per-parent cache if it isn't already loaded.
         queryClient.setQueryData<MessageDto[] | undefined>(queryKey, (prev) =>
           prev?.map((m) =>
             m.id === payload.parentMessageId
@@ -86,11 +74,12 @@ export function MessageList({
               : m,
           ),
         );
-        // Append into the replies cache if the thread is loaded (i.e. expanded).
+        // Append to the per-parent cache if it's already loaded; otherwise
+        // useQueries' first fetch will pick up the new reply naturally.
         queryClient.setQueryData<MessageDto[] | undefined>(
           ["chat", "replies", payload.parentMessageId],
           (prev) => {
-            if (!prev) return prev; // not loaded yet → wait for the user to expand
+            if (!prev) return prev;
             if (prev.some((m) => m.id === payload.id)) return prev;
             return [...prev, payload];
           },
@@ -161,47 +150,53 @@ export function MessageList({
   const watermark =
     watermarkRef.current.channelId === channelId ? watermarkRef.current.messageId : null;
 
-  // ── Inline thread expansion (Teams-channel style) ─────────────────────
-  // Click the "N replies" chip → fetch this parent's replies and render
-  // them indented under the parent. Each toggle adds/removes the parentId
-  // from this set; useQueries below tracks one query per expanded parent.
-  const [expandedThreads, setExpandedThreads] = useState<Set<string>>(new Set());
-
-  const toggleThread = useCallback((parentMessageId: string) => {
-    setExpandedThreads((prev) => {
-      const next = new Set(prev);
-      if (next.has(parentMessageId)) next.delete(parentMessageId);
-      else next.add(parentMessageId);
-      return next;
-    });
-  }, []);
-
-  // Reset expansion when switching channels — replies are channel-local.
-  useEffect(() => {
-    setExpandedThreads(new Set());
-  }, [channelId]);
-
-  const expandedIds = useMemo(() => Array.from(expandedThreads), [expandedThreads]);
+  // ── Auto-load all threads (Teams DM/chat style) ────────────────────────
+  // Every parent with replyCount > 0 gets its replies fetched in parallel
+  // so they appear inline in chronological order with top-level messages.
+  // TanStack dedupes; typical channels have <10 active threads.
+  const parentIdsWithReplies = useMemo(
+    () => messages.filter((m) => (m.replyCount ?? 0) > 0).map((m) => m.id),
+    [messages],
+  );
 
   const repliesQueries = useQueries({
-    queries: expandedIds.map((parentId) => ({
+    queries: parentIdsWithReplies.map((parentId) => ({
       queryKey: ["chat", "replies", parentId] as const,
       queryFn: () => listMessageReplies(parentId, { pageSize: 100 }),
-      staleTime: 0,
+      staleTime: 30_000,
     })),
   });
 
-  const repliesByParent = useMemo(() => {
-    const map = new Map<string, MessageDto[]>();
-    expandedIds.forEach((id, i) => {
-      const data = repliesQueries[i]?.data;
-      if (data) map.set(id, data);
-    });
-    return map;
-    // repliesQueries is a fresh array on every render; depend on the data
-    // refs instead so we don't churn the memo unnecessarily.
+  const replyMessages = useMemo<MessageDto[]>(() => {
+    const out: MessageDto[] = [];
+    for (const q of repliesQueries) {
+      if (q.data) out.push(...q.data);
+    }
+    return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [expandedIds, ...repliesQueries.map((q) => q.data)]);
+  }, [parentIdsWithReplies.length, ...repliesQueries.map((q) => q.data)]);
+
+  // Merge top-level + replies into one chronological list. Each reply's
+  // parent context is preserved via the bubble-internal ReplyContextPreview
+  // inside the Message component — no need to group here.
+  const chronological = useMemo<MessageDto[]>(() => {
+    const seen = new Set<string>();
+    const merged: MessageDto[] = [];
+    for (const m of messages) {
+      if (!seen.has(m.id)) {
+        seen.add(m.id);
+        merged.push(m);
+      }
+    }
+    for (const r of replyMessages) {
+      if (!seen.has(r.id)) {
+        seen.add(r.id);
+        merged.push(r);
+      }
+    }
+    merged.sort((a, b) => a.createdAtUtc.localeCompare(b.createdAtUtc));
+    return merged;
+  }, [messages, replyMessages]);
 
   const rows = useMemo<Row[]>(() => {
     const out: Row[] = [];
@@ -212,13 +207,15 @@ export function MessageList({
     // there are messages newer than it — otherwise the divider would land on
     // the bottom (nothing unread) or off-screen (all unread, fallback below).
     const watermarkIndex = watermark
-      ? messages.findIndex((m) => m.id === watermark)
+      ? chronological.findIndex((m) => m.id === watermark)
       : -1;
     const insertDividerAfter =
-      watermarkIndex >= 0 && watermarkIndex < messages.length - 1 ? watermarkIndex : -1;
+      watermarkIndex >= 0 && watermarkIndex < chronological.length - 1
+        ? watermarkIndex
+        : -1;
 
-    for (let i = 0; i < messages.length; i++) {
-      const m = messages[i];
+    for (let i = 0; i < chronological.length; i++) {
+      const m = chronological[i];
       const k = dayKey(m.createdAtUtc);
       if (k !== lastDay) {
         out.push({ kind: "day", key: `day-${k}`, label: dayRuleLabel(m.createdAtUtc) });
@@ -226,38 +223,16 @@ export function MessageList({
         prevMessage = null;
       }
       const merged = prevMessage !== null && canMerge(prevMessage, m);
-      const isExpanded = expandedThreads.has(m.id);
-      out.push({ kind: "message", key: m.id, message: m, merged, isExpanded });
+      out.push({ kind: "message", key: m.id, message: m, merged });
       prevMessage = m;
-
-      // Inline-expand replies for this parent if the chip was clicked.
-      if (isExpanded) {
-        const replies = repliesByParent.get(m.id) ?? [];
-        let prevReply: MessageDto | null = null;
-        for (let r = 0; r < replies.length; r++) {
-          const reply = replies[r];
-          const mergedReply = prevReply !== null && canMerge(prevReply, reply);
-          out.push({
-            kind: "reply",
-            key: `${m.id}::${reply.id}`,
-            message: reply,
-            merged: mergedReply,
-            parentId: m.id,
-            isLast: r === replies.length - 1,
-          });
-          prevReply = reply;
-        }
-        // The next top-level message starts a fresh author block.
-        prevMessage = null;
-      }
 
       if (i === insertDividerAfter) {
         out.push({ kind: "unread", key: "unread-divider" });
-        prevMessage = null; // first unread starts a fresh author block
+        prevMessage = null;
       }
     }
     return out;
-  }, [messages, watermark, expandedThreads, repliesByParent]);
+  }, [chronological, watermark]);
 
   const parentRef = useRef<HTMLDivElement | null>(null);
   const virtualizer = useVirtualizer({
@@ -267,8 +242,7 @@ export function MessageList({
       const r = rows[index];
       if (r?.kind === "day") return 32;
       if (r?.kind === "unread") return 36;
-      if (r?.kind === "reply") return 56;
-      return 64;
+      return 72;
     },
     overscan: 8,
   });
@@ -277,7 +251,7 @@ export function MessageList({
   // lands while the user is scrolled away from the bottom.
   const [unseenCount, setUnseenCount] = useState(0);
   const prevLastIdRef = useRef<string | undefined>(undefined);
-  const lastMessageId = messages.at(-1)?.id;
+  const lastMessageId = chronological.at(-1)?.id;
 
   useEffect(() => {
     const el = parentRef.current;
@@ -390,31 +364,12 @@ export function MessageList({
                       <span>New</span>
                     </div>
                   </div>
-                ) : row.kind === "reply" ? (
-                  // Indented reply row — Teams-channel style. The 9-col
-                  // left margin matches the parent's avatar gutter so the
-                  // connector line aligns under the parent's avatar.
-                  <div
-                    className={cn(
-                      "ml-9 border-l border-[var(--color-border)]",
-                      row.isLast && "pb-2",
-                    )}
-                  >
-                    <Message
-                      message={row.message}
-                      selfUserId={selfUserId}
-                      isMerged={row.merged}
-                      onReply={onReply}
-                    />
-                  </div>
                 ) : (
                   <Message
                     message={row.message}
                     selfUserId={selfUserId}
                     isMerged={row.merged}
                     onReply={onReply}
-                    onToggleReplies={toggleThread}
-                    isExpanded={row.isExpanded}
                   />
                 )}
               </div>
