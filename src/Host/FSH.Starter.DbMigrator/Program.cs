@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Reflection;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Web;
@@ -42,7 +43,7 @@ using Microsoft.Extensions.Logging;
 var cli = MigratorCommand.Parse(args);
 if (cli.Help)
 {
-    Console.WriteLine(MigratorCommand.HelpText);
+    await Console.Out.WriteLineAsync(MigratorCommand.HelpText).ConfigureAwait(false);
     return 0;
 }
 
@@ -150,21 +151,21 @@ try
     // surface as a clean TimeoutException + exit code 1.
     var connectionString = host.Services.GetRequiredService<IConfiguration>()["DatabaseOptions:ConnectionString"]
         ?? throw new InvalidOperationException("DatabaseOptions:ConnectionString is not configured.");
-    Console.WriteLine("[migrator] waiting for postgres…");
+    await Console.Out.WriteLineAsync("[migrator] waiting for postgres…").ConfigureAwait(false);
     await PostgresMigratorLock.WaitForDatabaseAsync(connectionString, logger, CancellationToken.None)
         .ConfigureAwait(false);
-    Console.WriteLine("[migrator] postgres ready");
+    await Console.Out.WriteLineAsync("[migrator] postgres ready").ConfigureAwait(false);
 
     // ── Step 0b — acquire the advisory lock ──────────────────────────────
     // Postgres session-level advisory lock. Concurrent migrator runs
     // (CI-races, ops-vs-Helm-hook overlap, replicas: 2 by accident) block
     // here until the holder finishes. The lock auto-releases on connection
     // close, so even a crashed migrator doesn't leave the lock orphaned.
-    Console.WriteLine("[migrator] acquiring advisory lock…");
+    await Console.Out.WriteLineAsync("[migrator] acquiring advisory lock…").ConfigureAwait(false);
     await using var migratorLock = await PostgresMigratorLock
         .AcquireAsync(connectionString, logger, CancellationToken.None)
         .ConfigureAwait(false);
-    Console.WriteLine("[migrator] advisory lock acquired");
+    await Console.Out.WriteLineAsync("[migrator] advisory lock acquired").ConfigureAwait(false);
 
     // ── Step 1 — tenant catalog ───────────────────────────────────────────
     // Always applied first because the per-tenant migrator below reads
@@ -177,18 +178,27 @@ try
 
         if (cli.Command == "list-pending")
         {
-            Console.WriteLine($"[tenant-catalog] {pending.Count} pending migration(s)");
-            foreach (var name in pending) Console.WriteLine($"  · {name}");
+            await Console.Out.WriteLineAsync(string.Create(
+                CultureInfo.InvariantCulture,
+                $"[tenant-catalog] {pending.Count} pending migration(s)"))
+                .ConfigureAwait(false);
+            foreach (var name in pending)
+            {
+                await Console.Out.WriteLineAsync($"  · {name}").ConfigureAwait(false);
+            }
         }
         else if (pending.Count > 0)
         {
-            Console.WriteLine($"[tenant-catalog] applying {pending.Count} migration(s)…");
+            await Console.Out.WriteLineAsync(string.Create(
+                CultureInfo.InvariantCulture,
+                $"[tenant-catalog] applying {pending.Count} migration(s)…"))
+                .ConfigureAwait(false);
             await tenantDb.Database.MigrateAsync(CancellationToken.None).ConfigureAwait(false);
-            Console.WriteLine("[tenant-catalog] done");
+            await Console.Out.WriteLineAsync("[tenant-catalog] done").ConfigureAwait(false);
         }
         else
         {
-            Console.WriteLine("[tenant-catalog] already at head");
+            await Console.Out.WriteLineAsync("[tenant-catalog] already at head").ConfigureAwait(false);
         }
 
         // Seed the root tenant the first time the catalog comes up so the
@@ -207,7 +217,7 @@ try
             rootTenant.SetValidity(TimeProvider.System.GetUtcNow().UtcDateTime.AddYears(1));
             await tenantDb.TenantInfo.AddAsync(rootTenant, CancellationToken.None).ConfigureAwait(false);
             await tenantDb.SaveChangesAsync(CancellationToken.None).ConfigureAwait(false);
-            Console.WriteLine("[tenant-catalog] seeded root tenant");
+            await Console.Out.WriteLineAsync("[tenant-catalog] seeded root tenant").ConfigureAwait(false);
         }
     }
 
@@ -224,42 +234,51 @@ try
 
         if (tenants.Count == 0)
         {
-            Console.WriteLine($"[migrator] no tenants matched {cli.Tenant ?? "(all)"}");
+            await Console.Out.WriteLineAsync($"[migrator] no tenants matched {cli.Tenant ?? "(all)"}")
+                .ConfigureAwait(false);
         }
 
         foreach (var tenant in tenants)
         {
             if (cli.Command == "list-pending")
             {
-                Console.WriteLine($"[{tenant.Id}] migrations are evaluated per-tenant by each module's IDbInitializer");
+                await Console.Out.WriteLineAsync(
+                    $"[{tenant.Id}] migrations are evaluated per-tenant by each module's IDbInitializer")
+                    .ConfigureAwait(false);
                 continue;
             }
             if (cli.Command == "seed")
             {
-                Console.WriteLine($"[{tenant.Id}] seeding…");
+                await Console.Out.WriteLineAsync($"[{tenant.Id}] seeding…").ConfigureAwait(false);
                 await tenantService.SeedTenantAsync(tenant, CancellationToken.None).ConfigureAwait(false);
                 continue;
             }
 
-            Console.WriteLine($"[{tenant.Id}] migrating…");
+            await Console.Out.WriteLineAsync($"[{tenant.Id}] migrating…").ConfigureAwait(false);
             await tenantService.MigrateTenantAsync(tenant, CancellationToken.None).ConfigureAwait(false);
 
             if (cli.SeedAfter)
             {
-                Console.WriteLine($"[{tenant.Id}] seeding…");
+                await Console.Out.WriteLineAsync($"[{tenant.Id}] seeding…").ConfigureAwait(false);
                 await tenantService.SeedTenantAsync(tenant, CancellationToken.None).ConfigureAwait(false);
             }
         }
     }
 
-    Console.WriteLine("[migrator] finished successfully.");
+    await Console.Out.WriteLineAsync("[migrator] finished successfully.").ConfigureAwait(false);
     return 0;
 }
+#pragma warning disable CA1031 // Top-level Main intentionally catches every exception to convert any failure into exit code 1.
 catch (Exception ex)
+#pragma warning restore CA1031
 {
     logger.LogError(ex, "DbMigrator failed");
-    Console.Error.WriteLine($"[migrator] FAILED: {ex.GetType().Name}: {ex.Message}");
-    Console.Error.WriteLine(ex.StackTrace);
+    await Console.Error.WriteLineAsync($"[migrator] FAILED: {ex.GetType().Name}: {ex.Message}")
+        .ConfigureAwait(false);
+    if (ex.StackTrace is { } stack)
+    {
+        await Console.Error.WriteLineAsync(stack).ConfigureAwait(false);
+    }
     return 1;
 }
 finally

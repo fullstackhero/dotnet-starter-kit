@@ -10,24 +10,32 @@ namespace FSH.Starter.DbMigrator;
 ///          --seed           after apply, also run SeedAsync per tenant
 ///          --help / -h      print help text
 /// </summary>
-public sealed record MigratorCommand(
+internal sealed record MigratorCommand(
     string Command,
     string? Tenant,
     bool CatalogOnly,
     bool SeedAfter,
     bool Help)
 {
+    private static readonly string[] KnownVerbs = ["apply", "seed", "list-pending"];
+
     public static MigratorCommand Parse(string[] args)
     {
         ArgumentNullException.ThrowIfNull(args);
 
-        var verb = args.FirstOrDefault(a => !a.StartsWith('-')) ?? "apply";
+        var rawVerb = args.FirstOrDefault(a => !a.StartsWith('-')) ?? "apply";
+        // Canonicalise to one of the known verbs via case-insensitive match.
+        // Using OrdinalIgnoreCase here (CA1308 forbids ToLowerInvariant for
+        // security-sensitive normalisation) keeps the lookup explicit.
+        var verb = KnownVerbs.FirstOrDefault(v => string.Equals(v, rawVerb, StringComparison.OrdinalIgnoreCase))
+            ?? rawVerb;
+
         var tenant = ExtractValue(args, "--tenant");
         var catalogOnly = args.Any(a => string.Equals(a, "--catalog-only", StringComparison.OrdinalIgnoreCase));
         var seedAfter = args.Any(a => string.Equals(a, "--seed", StringComparison.OrdinalIgnoreCase));
         var help = args.Any(a => a is "-h" or "--help");
 
-        return new MigratorCommand(verb.ToLowerInvariant(), tenant, catalogOnly, seedAfter, help);
+        return new MigratorCommand(verb, tenant, catalogOnly, seedAfter, help);
     }
 
     private static string? ExtractValue(string[] args, string flag)

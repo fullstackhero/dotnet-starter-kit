@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using FSH.Framework.Jobs.Services;
 
@@ -13,6 +14,8 @@ namespace FSH.Starter.DbMigrator;
 /// never enqueue jobs. If a regression starts enqueuing during migration
 /// the throw makes the misuse obvious.
 /// </summary>
+[SuppressMessage("Performance", "CA1812",
+    Justification = "Activated by the DI container at runtime via AddSingleton<IJobService, NoOpJobService>; analyzer can't see that path.")]
 internal sealed class NoOpJobService : IJobService
 {
     private static InvalidOperationException Reject(string method) =>

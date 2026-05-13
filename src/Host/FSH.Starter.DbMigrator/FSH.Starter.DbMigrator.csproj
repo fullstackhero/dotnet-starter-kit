@@ -12,6 +12,11 @@
     <ContainerUser>root</ContainerUser>
     <ContainerRepository>fsh-db-migrator</ContainerRepository>
     <PublishProfile>DefaultContainer</PublishProfile>
+
+    <!-- This is an internal operator-facing CLI — no localization, all
+         operator messages are literal strings. CA1303 (use resource tables
+         for user-facing strings) is the wrong rule for this project. -->
+    <NoWarn>$(NoWarn);CA1303</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
