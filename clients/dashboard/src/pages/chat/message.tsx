@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Pencil, SmilePlus, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Pencil, SmilePlus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   addReaction,
@@ -48,12 +48,21 @@ export function Message({
   selfUserId,
   isMerged,
   onReply,
+  onToggleReplies,
+  isExpanded,
 }: {
   message: MessageDto;
   selfUserId?: string;
   /** When true, this row continues a thread block — hide the avatar gutter. */
   isMerged: boolean;
-  onReply?: (parentMessageId: string) => void;
+  /** Called when the user clicks "Reply" on the hover rail. The composer
+   *  in chat-page reacts by entering reply mode with a quoted preview. */
+  onReply?: (parent: MessageDto) => void;
+  /** Called when the user clicks the "N replies" chip. MessageList toggles
+   *  inline expansion below the parent (Teams-channel style). */
+  onToggleReplies?: (parentMessageId: string) => void;
+  /** Drives the chevron orientation on the reply-count chip. */
+  isExpanded?: boolean;
 }) {
   const isOwn = selfUserId === message.authorUserId;
   const isDeleted = message.deletedAtUtc !== null && message.deletedAtUtc !== undefined;
@@ -125,21 +134,29 @@ export function Message({
           <MessageBody body={message.body ?? ""} />
         )}
 
-        {/* Reply count chip — small affordance to open the thread. */}
-        {message.replyCount > 0 && onReply && (
+        {/* Reply count chip — toggles inline expansion of the replies below
+            this parent (Teams-channel style). */}
+        {message.replyCount > 0 && onToggleReplies && (
           <button
             type="button"
-            onClick={() => onReply(message.id)}
+            onClick={() => onToggleReplies(message.id)}
+            aria-expanded={isExpanded ? true : false}
             className={cn(
               "mt-1 inline-flex h-6 cursor-pointer items-center gap-1 rounded-md border px-1.5",
               "border-[var(--color-border)] bg-[var(--color-surface-2)]",
               "text-[11px] text-[var(--color-muted-foreground)]",
               "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
               "hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]",
+              isExpanded && "border-[var(--color-primary)] text-[var(--color-primary)]",
             )}
           >
             <span className="font-mono tabular-nums">{message.replyCount}</span>
             <span>{message.replyCount === 1 ? "reply" : "replies"}</span>
+            {isExpanded ? (
+              <ChevronUp className="h-3 w-3" aria-hidden />
+            ) : (
+              <ChevronDown className="h-3 w-3" aria-hidden />
+            )}
           </button>
         )}
 
@@ -164,6 +181,8 @@ export function Message({
     </div>
   );
 }
+
+
 
 /**
  * Renders message body with @mention tokens promoted to inline pills. We
@@ -350,7 +369,7 @@ function MessageActions({
 }: {
   message: MessageDto;
   isOwn: boolean;
-  onReply?: (parentMessageId: string) => void;
+  onReply?: (parent: MessageDto) => void;
 }) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -390,7 +409,7 @@ function MessageActions({
           <SmilePlus className="h-3.5 w-3.5" />
         </ActionButton>
         {!message.parentMessageId && onReply && (
-          <ActionButton title="Reply in thread" onClick={() => onReply(message.id)}>
+          <ActionButton title="Reply" onClick={() => onReply(message)}>
             <span className="font-mono text-[10px] font-semibold tracking-tight">↪</span>
           </ActionButton>
         )}

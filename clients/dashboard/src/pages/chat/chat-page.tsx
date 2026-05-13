@@ -2,12 +2,17 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Hash, Lock, MessageCircle, Users2 } from "lucide-react";
-import { getChannelById, listChannelMessages, listMyChannels, markChannelRead } from "@/api/chat";
+import {
+  getChannelById,
+  listChannelMessages,
+  listMyChannels,
+  markChannelRead,
+  type MessageDto,
+} from "@/api/chat";
 import { useAuth } from "@/auth/use-auth";
 import { ChannelRail } from "@/pages/chat/channel-rail";
 import { Composer } from "@/pages/chat/composer";
 import { MessageList } from "@/pages/chat/message-list";
-import { ThreadPanel } from "@/pages/chat/thread-panel";
 import { TypingIndicator } from "@/pages/chat/typing-indicator";
 import { channelTitle } from "@/pages/chat/chat-utils";
 import { cn } from "@/lib/cn";
@@ -120,11 +125,11 @@ function ActiveChannel({
   selfUserId?: string;
 }) {
   const queryClient = useQueryClient();
-  const [replyParentId, setReplyParentId] = useState<string | null>(null);
+  const [replyTo, setReplyTo] = useState<MessageDto | null>(null);
 
-  // Close the thread when the user switches channels.
+  // Clear the reply context when the user switches channels.
   useEffect(() => {
-    setReplyParentId(null);
+    setReplyTo(null);
   }, [channelId]);
 
   const channelQuery = useQuery({
@@ -192,7 +197,7 @@ function ActiveChannel({
     channel.type === 2 ? (channel.isPrivate ? Lock : Hash) : Users2;
 
   return (
-    <div className="relative flex h-full min-h-0 flex-col">
+    <div className="flex h-full min-h-0 flex-col">
       {/* Channel header — atmospheric brand glow tucked under the title. */}
       <header
         className={cn(
@@ -227,26 +232,22 @@ function ActiveChannel({
           channelId={channelId}
           selfUserId={selfUserId}
           lastReadMessageId={lastReadMessageId}
-          onReply={setReplyParentId}
+          onReply={setReplyTo}
         />
       </div>
 
       {/* Typing presence row — reserved height so the composer doesn't jump. */}
       <TypingIndicator channelId={channelId} selfUserId={selfUserId} />
 
-      {/* Composer plinth — brand-tinted on focus. */}
-      <Composer channelId={channelId} channelTitle={title} channelType={channel.type} />
-
-      {replyParentId && (
-        <ThreadPanel
-          channelId={channelId}
-          channelTitle={title}
-          channelType={channel.type}
-          parentMessageId={replyParentId}
-          selfUserId={selfUserId}
-          onClose={() => setReplyParentId(null)}
-        />
-      )}
+      {/* Composer plinth — brand-tinted on focus. Renders a quoted preview
+          when replyTo is set; clearing it returns the composer to normal. */}
+      <Composer
+        channelId={channelId}
+        channelTitle={title}
+        channelType={channel.type}
+        replyTo={replyTo}
+        onClearReply={() => setReplyTo(null)}
+      />
     </div>
   );
 }

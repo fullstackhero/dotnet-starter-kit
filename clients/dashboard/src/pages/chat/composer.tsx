@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Send } from "lucide-react";
-import { sendMessage, type ChannelTypeValue } from "@/api/chat";
+import { Send, X } from "lucide-react";
+import { sendMessage, type ChannelTypeValue, type MessageDto } from "@/api/chat";
 import { searchUsers, type UserDto } from "@/api/identity";
 import { useRealtime } from "@/realtime/realtime-context";
 import { cn } from "@/lib/cn";
+import { useUserDisplay } from "@/lib/use-user-display";
 import { MentionPicker } from "@/pages/chat/mention-picker";
 
 /**
@@ -22,14 +23,19 @@ export function Composer({
   channelId,
   channelTitle,
   channelType,
-  parentMessageId,
+  replyTo,
+  onClearReply,
 }: {
   channelId: string;
   channelTitle: string;
   /** Discriminator for the placeholder: only channels (type=2) get the # prefix. */
   channelType?: ChannelTypeValue;
-  parentMessageId?: string;
+  /** When set, the composer renders a quoted preview of this message and posts
+   *  the next send with parentMessageId = replyTo.id. Teams-DM style. */
+  replyTo?: MessageDto | null;
+  onClearReply?: () => void;
 }) {
+  const parentMessageId = replyTo?.id;
   const [body, setBody] = useState("");
   const [focused, setFocused] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -108,6 +114,7 @@ export function Composer({
       // from MessageList patches the cache when the broadcast lands.
       setBody("");
       setMention(null);
+      onClearReply?.();
       requestAnimationFrame(() => textareaRef.current?.focus());
     },
     onSuccess: () => {
@@ -184,6 +191,11 @@ export function Composer({
       e.preventDefault();
       send();
     }
+
+    if (e.key === "Escape" && replyTo) {
+      e.preventDefault();
+      onClearReply?.();
+    }
   };
 
   return (
@@ -210,6 +222,10 @@ export function Composer({
             className="absolute inset-x-0 bottom-full mb-2"
           />
         )}
+
+        {/* Reply quote preview — Teams DM style. Shows above the textarea
+            inside the plinth's border so it shares the focus halo. */}
+        {replyTo && <ReplyQuote replyTo={replyTo} onClear={() => onClearReply?.()} />}
 
         <textarea
           ref={textareaRef}
@@ -238,8 +254,8 @@ export function Composer({
           }}
           onKeyDown={onKeyDown}
           placeholder={
-            parentMessageId
-              ? "Reply in thread…"
+            replyTo
+              ? "Type your reply…"
               : channelType === 2
                 ? `Message #${channelTitle}`
                 : `Message ${channelTitle}`
@@ -273,7 +289,9 @@ export function Composer({
 
       <div className="mt-1.5 flex items-center justify-between px-1">
         <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
-          ↵ Send · ⇧↵ Newline · Type @ + 2 chars to mention
+          {replyTo
+            ? "↵ Send reply · ⇧↵ Newline · Esc clear"
+            : "↵ Send · ⇧↵ Newline · Type @ + 2 chars to mention"}
         </span>
         {mutation.isError && (
           <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-destructive)]">
@@ -281,6 +299,62 @@ export function Composer({
           </span>
         )}
       </div>
+    </div>
+  );
+}
+
+/**
+ * Quoted preview of the message being replied to. Sits inside the composer's
+ * rounded-xl border above the textarea so it shares the brand-tinted focus
+ * halo. Body is truncated to 2 lines; clicking the X dismisses the reply
+ * context without losing the in-progress text.
+ */
+function ReplyQuote({
+  replyTo,
+  onClear,
+}: {
+  replyTo: MessageDto;
+  onClear: () => void;
+}) {
+  const author = useUserDisplay(replyTo.authorUserId);
+  const body = (replyTo.body ?? "").trim() || "(no text — attachment or empty)";
+
+  return (
+    <div
+      className={cn(
+        "mx-3 mt-3 flex items-start gap-2.5 rounded-md border-l-2 px-3 py-2",
+        "border-l-[var(--color-primary)] bg-[var(--color-surface-2)]",
+      )}
+    >
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5">
+          <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+            Replying to
+          </span>
+          <span className="truncate text-[11px] font-semibold tracking-tight text-[var(--color-foreground)]">
+            {author.name}
+          </span>
+        </div>
+        <p
+          className="mt-0.5 line-clamp-2 text-[12px] leading-snug text-[var(--color-muted-foreground)]"
+          title={body}
+        >
+          {body}
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={onClear}
+        aria-label="Clear reply context"
+        title="Clear reply"
+        className={cn(
+          "grid h-5 w-5 shrink-0 cursor-pointer place-items-center rounded",
+          "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
+          "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
+        )}
+      >
+        <X className="h-3 w-3" aria-hidden />
+      </button>
     </div>
   );
 }
