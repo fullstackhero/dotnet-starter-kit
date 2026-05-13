@@ -279,6 +279,7 @@ function ActiveChannel({
         channelId={channelId}
         channelTitle={title}
         channelType={channel.type}
+        selfUserId={selfUserId}
         replyTo={replyTo}
         onClearReply={() => setReplyTo(null)}
       />

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Send, X } from "lucide-react";
+import { toast } from "sonner";
 import { sendMessage, type ChannelTypeValue, type MessageDto } from "@/api/chat";
 import { searchUsers, type UserDto } from "@/api/identity";
 import { useRealtime } from "@/realtime/realtime-context";
@@ -23,6 +24,7 @@ export function Composer({
   channelId,
   channelTitle,
   channelType,
+  selfUserId,
   replyTo,
   onClearReply,
 }: {
@@ -30,6 +32,8 @@ export function Composer({
   channelTitle: string;
   /** Discriminator for the placeholder: only channels (type=2) get the # prefix. */
   channelType?: ChannelTypeValue;
+  /** Caller's user id — used to author the optimistic temp message. */
+  selfUserId?: string;
   /** When set, the composer renders a quoted preview of this message and posts
    *  the next send with parentMessageId = replyTo.id. Teams-DM style. */
   replyTo?: MessageDto | null;
@@ -95,31 +99,66 @@ export function Composer({
     setMention({ query: match[1], atPos: caretPos - match[1].length - 1 });
   };
 
-  // ── Send mutation ──────────────────────────────────────────────────────
-  // mutate() takes the trimmed text as a variable so the value is captured at
-  // call time. If we closed over `body` in mutationFn, onMutate's setBody("")
-  // would commit the re-render before TanStack Query reads the latest options
-  // ref, and we'd POST an empty body. (Reproduced as a 400 "'Body' must not
-  // be empty" before this fix.)
+  // ── Send mutation (optimistic) ─────────────────────────────────────────
+  // We insert a temp MessageDto into the channel's cache immediately so the
+  // user sees their message land in the feed without waiting for the HTTP
+  // round-trip or the SignalR echo. The temp uses an id prefixed with
+  // "temp:" so Message can dim it; we replace it with the real DTO once the
+  // HTTP response (or the SignalR broadcast) arrives. The two paths
+  // converge harmlessly — whichever wins the race patches the cache.
+  type SendArgs = { text: string; clientId: string };
+
+  const messagesKey = ["chat", "messages", channelId] as const;
+
   const mutation = useMutation({
-    mutationFn: (text: string) =>
+    mutationFn: ({ text }: SendArgs) =>
       sendMessage({
         channelId,
         body: text,
         parentMessageId,
         idempotencyKey: crypto.randomUUID(),
       }),
-    onMutate: () => {
-      // Clear + refocus optimistically. The realtime ChatMessageCreated event
-      // from MessageList patches the cache when the broadcast lands.
+    onMutate: ({ text, clientId }) => {
+      const now = new Date().toISOString();
+      const temp: MessageDto = {
+        id: `temp:${clientId}`,
+        channelId,
+        authorUserId: selfUserId ?? "",
+        body: text,
+        parentMessageId: parentMessageId ?? null,
+        replyCount: 0,
+        editedAtUtc: null,
+        deletedAtUtc: null,
+        createdAtUtc: now,
+        attachments: [],
+        reactions: [],
+      };
+      queryClient.setQueryData<MessageDto[] | undefined>(messagesKey, (prev) => [
+        temp,
+        ...(prev ?? []),
+      ]);
+
       setBody("");
       setMention(null);
       onClearReply?.();
       requestAnimationFrame(() => textareaRef.current?.focus());
     },
-    onSuccess: () => {
-      // Invalidate the channel list so LastMessageAtUtc + sort order refreshes.
+    onSuccess: (realMessage, { clientId }) => {
+      queryClient.setQueryData<MessageDto[] | undefined>(messagesKey, (prev) => {
+        if (!prev) return [realMessage];
+        const withoutTemp = prev.filter((m) => m.id !== `temp:${clientId}`);
+        if (withoutTemp.some((m) => m.id === realMessage.id)) return withoutTemp;
+        return [realMessage, ...withoutTemp];
+      });
       void queryClient.invalidateQueries({ queryKey: ["chat", "my-channels"] });
+    },
+    onError: (_err, { text, clientId }) => {
+      queryClient.setQueryData<MessageDto[] | undefined>(messagesKey, (prev) =>
+        prev?.filter((m) => m.id !== `temp:${clientId}`),
+      );
+      // Restore the text so the user can retry instead of re-typing.
+      setBody(text);
+      toast.error("Message failed to send — try again.");
     },
   });
 
@@ -134,7 +173,7 @@ export function Composer({
   const send = () => {
     const trimmed = body.trim();
     if (!trimmed || mutation.isPending) return;
-    mutation.mutate(trimmed);
+    mutation.mutate({ text: trimmed, clientId: crypto.randomUUID() });
   };
 
   // Replace the partial @<query> with @<userName> + space.

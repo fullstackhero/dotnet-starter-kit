@@ -69,6 +69,7 @@ export function Message({
 }) {
   const isOwn = selfUserId === message.authorUserId;
   const isDeleted = message.deletedAtUtc !== null && message.deletedAtUtc !== undefined;
+  const isPending = message.id.startsWith("temp:");
   const reactions = groupReactions(message, selfUserId);
   const author = useUserDisplay(message.authorUserId);
   const queryClient = useQueryClient();
@@ -91,10 +92,14 @@ export function Message({
     <div
       data-mine={isOwn || undefined}
       data-merged={isMerged || undefined}
+      data-pending={isPending || undefined}
       className={cn(
         "group/message relative flex gap-2 px-4 py-1",
         isOwn ? "justify-end" : "justify-start",
         isMerged ? "pt-0.5" : "pt-2",
+        // Tentative own messages fade until the realtime echo (or HTTP
+        // response) replaces them with the real DTO.
+        isPending && "opacity-70",
       )}
     >
       {/* Avatar gutter — only on the other-side branch and only on the
