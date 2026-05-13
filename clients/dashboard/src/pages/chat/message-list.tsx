@@ -64,7 +64,7 @@ export const MessageList = forwardRef<
   ref,
 ) {
   const queryClient = useQueryClient();
-  const queryKey = ["chat", "messages", channelId];
+  const queryKey = useMemo(() => ["chat", "messages", channelId] as const, [channelId]);
 
   const messagesQuery = useQuery({
     queryKey,
@@ -74,6 +74,62 @@ export const MessageList = forwardRef<
 
   // Cache returns newest-first (Guid v7 desc); reverse for chronological display.
   const messages = useMemo(() => (messagesQuery.data ?? []).slice().reverse(), [messagesQuery.data]);
+
+  // ── Older-message pagination ──────────────────────────────────────────
+  // Initial fetch is the newest 100. When the user scrolls near the top of
+  // the feed, fetch the next 50 older via the existing `before` cursor and
+  // prepend them into the cache (which stores newest-first). We adjust
+  // scrollTop by the height delta so the user's visual position doesn't
+  // jump — otherwise the near-top trigger would fire again immediately.
+  const [hasMoreOlder, setHasMoreOlder] = useState(true);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+
+  useEffect(() => {
+    if (!messagesQuery.data) return;
+    if (messagesQuery.data.length < 100) setHasMoreOlder(false);
+  }, [messagesQuery.data]);
+
+  useEffect(() => {
+    setHasMoreOlder(true);
+    setLoadingOlder(false);
+  }, [channelId]);
+
+  const fetchOlder = useCallback(async () => {
+    if (loadingOlder || !hasMoreOlder) return;
+    const cached = queryClient.getQueryData<MessageDto[]>(queryKey);
+    const oldest = cached?.[cached.length - 1];
+    if (!oldest) return;
+    setLoadingOlder(true);
+    const el = parentRef.current;
+    const prevScrollHeight = el?.scrollHeight ?? 0;
+    const prevScrollTop = el?.scrollTop ?? 0;
+    try {
+      const older = await listChannelMessages(channelId, {
+        before: oldest.id,
+        pageSize: 50,
+      });
+      if (older.length < 50) setHasMoreOlder(false);
+      if (older.length > 0) {
+        queryClient.setQueryData<MessageDto[] | undefined>(queryKey, (prev) => {
+          if (!prev) return older;
+          const known = new Set(prev.map((m) => m.id));
+          const fresh = older.filter((m) => !known.has(m.id));
+          return [...prev, ...fresh];
+        });
+        // Preserve visual position — virtualizer's measure pass will set
+        // a new scrollHeight; re-anchor scrollTop so the same message
+        // stays under the user's eye.
+        requestAnimationFrame(() => {
+          const next = parentRef.current;
+          if (!next) return;
+          const delta = next.scrollHeight - prevScrollHeight;
+          if (delta > 0) next.scrollTop = prevScrollTop + delta;
+        });
+      }
+    } finally {
+      setLoadingOlder(false);
+    }
+  }, [loadingOlder, hasMoreOlder, queryClient, queryKey, channelId]);
 
   // Subscribe to realtime hub events targeting this channel and patch cache.
   // Replies (parentMessageId set) are kept out of the top-level cache — they
@@ -321,7 +377,11 @@ export const MessageList = forwardRef<
     if (!el) return;
     const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
     if (distanceFromBottom < 80) setUnseenCount(0);
-  }, []);
+    // Near top → fetch older. Cooldown is implicit: fetchOlder no-ops while
+    // loadingOlder is true, and the scrollTop adjustment after the fetch
+    // moves the user away from the trigger zone.
+    if (el.scrollTop < 200) void fetchOlder();
+  }, [fetchOlder]);
 
   const jumpToBottom = useCallback(() => {
     if (rows.length === 0) return;
@@ -387,6 +447,16 @@ export const MessageList = forwardRef<
   return (
     <div className="relative h-full">
       <div ref={parentRef} onScroll={onScroll} className="h-full overflow-y-auto">
+        {loadingOlder && (
+          <div className="flex h-8 items-center justify-center font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+            Loading older…
+          </div>
+        )}
+        {!hasMoreOlder && messages.length >= 100 && (
+          <div className="flex h-8 items-center justify-center font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+            Beginning of the conversation
+          </div>
+        )}
         <div style={{ height: virtualizer.getTotalSize(), position: "relative" }}>
           {virtualizer.getVirtualItems().map((virtualRow) => {
             const row = rows[virtualRow.index];
