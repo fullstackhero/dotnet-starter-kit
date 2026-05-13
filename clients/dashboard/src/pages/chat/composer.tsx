@@ -1,13 +1,25 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Send, X } from "lucide-react";
+import { ImageIcon, Loader2, Paperclip, Send, X } from "lucide-react";
 import { toast } from "sonner";
 import { sendMessage, type ChannelTypeValue, type MessageDto } from "@/api/chat";
+import { Visibility } from "@/api/files";
 import { searchUsers, type UserDto } from "@/api/identity";
 import { useRealtime } from "@/realtime/realtime-context";
+import { formatBytes, useFileUpload } from "@/hooks/use-file-upload";
 import { cn } from "@/lib/cn";
 import { useUserDisplay } from "@/lib/use-user-display";
 import { MentionPicker } from "@/pages/chat/mention-picker";
+
+type PendingAttachment = {
+  fileAssetId: string;
+  url: string;
+  contentType: string;
+  fileName: string;
+  sizeBytes: number;
+};
+
+const ATTACHMENT_MAX_BYTES = 50 * 1024 * 1024; // 50 MB
 
 /**
  * Composer plinth — deliberately styled, brand-tinted on focus. Enter-to-send;
@@ -42,9 +54,50 @@ export function Composer({
   const parentMessageId = replyTo?.id;
   const [body, setBody] = useState("");
   const [focused, setFocused] = useState(false);
+  const [pendingAttachment, setPendingAttachment] = useState<PendingAttachment | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const queryClient = useQueryClient();
   const realtime = useRealtime();
+
+  // ── File upload ────────────────────────────────────────────────────────
+  // ownerType + ownerId match the ChatChannelFileAccessPolicy on the server
+  // so channel members get read access to whatever lands in the channel.
+  // Category is picked per-file: image vs document; server validates.
+  const fileUpload = useFileUpload({
+    ownerType: "ChatChannel",
+    ownerId: channelId,
+    visibility: Visibility.Private,
+    category: (file) =>
+      file.type.startsWith("image/") ? "Image" : "Document",
+    maxBytes: ATTACHMENT_MAX_BYTES,
+  });
+
+  const handleFilePick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-picking the same file
+    if (!file) return;
+    if (pendingAttachment) {
+      toast.info("Replace the existing attachment first.");
+      return;
+    }
+    try {
+      const asset = await fileUpload.upload(file);
+      setPendingAttachment({
+        fileAssetId: asset.id,
+        url: asset.publicUrl ?? "",
+        contentType: asset.contentType,
+        fileName: asset.originalFileName,
+        sizeBytes: asset.sizeBytes,
+      });
+      // Reset progress UI now that the chip carries the state.
+      fileUpload.reset();
+    } catch {
+      // useFileUpload already reflects the error in `progress.status`;
+      // surface a toast so the user notices when scrolled away.
+      toast.error("Couldn't attach that file.");
+    }
+  };
 
   // ── Mention picker state ───────────────────────────────────────────────
   // `mention` is non-null whenever the caret is sitting at the end of an
@@ -106,19 +159,24 @@ export function Composer({
   // "temp:" so Message can dim it; we replace it with the real DTO once the
   // HTTP response (or the SignalR broadcast) arrives. The two paths
   // converge harmlessly — whichever wins the race patches the cache.
-  type SendArgs = { text: string; clientId: string };
+  type SendArgs = {
+    text: string;
+    clientId: string;
+    attachment: PendingAttachment | null;
+  };
 
   const messagesKey = ["chat", "messages", channelId] as const;
 
   const mutation = useMutation({
-    mutationFn: ({ text }: SendArgs) =>
+    mutationFn: ({ text, attachment }: SendArgs) =>
       sendMessage({
         channelId,
         body: text,
         parentMessageId,
         idempotencyKey: crypto.randomUUID(),
+        attachments: attachment ? [attachment] : [],
       }),
-    onMutate: ({ text, clientId }) => {
+    onMutate: ({ text, clientId, attachment }) => {
       const now = new Date().toISOString();
       const temp: MessageDto = {
         id: `temp:${clientId}`,
@@ -130,7 +188,18 @@ export function Composer({
         editedAtUtc: null,
         deletedAtUtc: null,
         createdAtUtc: now,
-        attachments: [],
+        attachments: attachment
+          ? [
+              {
+                id: `temp-att:${clientId}`,
+                fileAssetId: attachment.fileAssetId,
+                url: attachment.url,
+                contentType: attachment.contentType,
+                originalFileName: attachment.fileName,
+                sizeBytes: attachment.sizeBytes,
+              },
+            ]
+          : [],
         reactions: [],
       };
       queryClient.setQueryData<MessageDto[] | undefined>(messagesKey, (prev) => [
@@ -140,6 +209,7 @@ export function Composer({
 
       setBody("");
       setMention(null);
+      setPendingAttachment(null);
       onClearReply?.();
       requestAnimationFrame(() => textareaRef.current?.focus());
     },
@@ -152,12 +222,13 @@ export function Composer({
       });
       void queryClient.invalidateQueries({ queryKey: ["chat", "my-channels"] });
     },
-    onError: (_err, { text, clientId }) => {
+    onError: (_err, { text, clientId, attachment }) => {
       queryClient.setQueryData<MessageDto[] | undefined>(messagesKey, (prev) =>
         prev?.filter((m) => m.id !== `temp:${clientId}`),
       );
-      // Restore the text so the user can retry instead of re-typing.
+      // Restore the text + attachment so the user can retry.
       setBody(text);
+      if (attachment) setPendingAttachment(attachment);
       toast.error("Message failed to send — try again.");
     },
   });
@@ -172,8 +243,14 @@ export function Composer({
 
   const send = () => {
     const trimmed = body.trim();
-    if (!trimmed || mutation.isPending) return;
-    mutation.mutate({ text: trimmed, clientId: crypto.randomUUID() });
+    if (mutation.isPending) return;
+    // Allow send with attachment only — at least one of body / attachment.
+    if (!trimmed && !pendingAttachment) return;
+    mutation.mutate({
+      text: trimmed,
+      clientId: crypto.randomUUID(),
+      attachment: pendingAttachment,
+    });
   };
 
   // Replace the partial @<query> with @<userName> + space.
@@ -266,6 +343,27 @@ export function Composer({
             inside the plinth's border so it shares the focus halo. */}
         {replyTo && <ReplyQuote replyTo={replyTo} onClear={() => onClearReply?.()} />}
 
+        {/* Attachment in flight or staged — sits above the textarea, also
+            inside the plinth so it shares the focus halo. */}
+        {fileUpload.progress && fileUpload.progress.status !== "done" && (
+          <UploadingChip
+            fileName={fileUpload.progress.fileName}
+            percent={fileUpload.progress.percent}
+            status={fileUpload.progress.status}
+            error={fileUpload.progress.error}
+            onCancel={() => {
+              fileUpload.cancel();
+              fileUpload.reset();
+            }}
+          />
+        )}
+        {pendingAttachment && (
+          <PendingAttachmentChip
+            attachment={pendingAttachment}
+            onClear={() => setPendingAttachment(null)}
+          />
+        )}
+
         <textarea
           ref={textareaRef}
           value={body}
@@ -301,23 +399,52 @@ export function Composer({
           }
           rows={1}
           className={cn(
-            "block w-full resize-none border-0 bg-transparent px-4 py-3 pr-14 text-sm",
+            "block w-full resize-none border-0 bg-transparent px-4 py-3 pl-12 pr-14 text-sm",
             "leading-relaxed text-[var(--color-foreground)]",
             "placeholder:text-[var(--color-muted-foreground)]",
             "focus:outline-none",
           )}
         />
 
+        {/* Hidden file input — driven by the paperclip below. */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="sr-only"
+          onChange={handleFilePick}
+          aria-hidden
+          tabIndex={-1}
+        />
+
+        {/* Paperclip — bottom-left of the plinth, mirrors the send button on the right. */}
+        <button
+          type="button"
+          aria-label="Attach a file"
+          title="Attach a file"
+          disabled={fileUpload.isUploading || mutation.isPending}
+          onClick={() => fileInputRef.current?.click()}
+          className={cn(
+            "absolute bottom-2 left-2 grid h-8 w-8 cursor-pointer place-items-center rounded-md",
+            "text-[var(--color-muted-foreground)]",
+            "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
+            "hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
+            "disabled:cursor-not-allowed disabled:opacity-50",
+          )}
+        >
+          <Paperclip className="h-3.5 w-3.5" aria-hidden />
+        </button>
+
         <button
           type="button"
           aria-label="Send message"
-          disabled={!body.trim() || mutation.isPending}
+          disabled={(!body.trim() && !pendingAttachment) || mutation.isPending}
           onClick={send}
           className={cn(
             "absolute bottom-2 right-2 grid h-8 w-8 cursor-pointer place-items-center rounded-md",
             "transition-all duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
-            body.trim() && !mutation.isPending
+            (body.trim() || pendingAttachment) && !mutation.isPending
               ? "bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:scale-105 hover:bg-[var(--color-primary-hover)]"
               : "bg-[var(--color-surface-2)] text-[var(--color-muted-foreground)]",
           )}
@@ -390,6 +517,158 @@ function ReplyQuote({
           "grid h-5 w-5 shrink-0 cursor-pointer place-items-center rounded",
           "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
           "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
+        )}
+      >
+        <X className="h-3 w-3" aria-hidden />
+      </button>
+    </div>
+  );
+}
+
+/**
+ * Live upload progress chip. Mounts during the preparing / uploading /
+ * finalizing phases of useFileUpload; replaced by the ready chip below
+ * when the upload lands.
+ */
+function UploadingChip({
+  fileName,
+  percent,
+  status,
+  error,
+  onCancel,
+}: {
+  fileName: string;
+  percent: number;
+  status: "preparing" | "uploading" | "finalizing" | "done" | "error";
+  error?: string;
+  onCancel: () => void;
+}) {
+  const isError = status === "error";
+  const label =
+    status === "preparing"
+      ? "Preparing…"
+      : status === "uploading"
+        ? `Uploading… ${percent}%`
+        : status === "finalizing"
+          ? "Finalizing…"
+          : isError
+            ? error ?? "Upload failed"
+            : "Done";
+  return (
+    <div
+      className={cn(
+        "mx-3 mt-3 flex items-center gap-2.5 rounded-md border-l-2 px-3 py-2",
+        isError
+          ? "border-l-[var(--color-destructive)] bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.06)]"
+          : "border-l-[var(--color-primary)] bg-[var(--color-surface-2)]",
+      )}
+    >
+      {isError ? (
+        <X className="h-3.5 w-3.5 shrink-0 text-[var(--color-destructive)]" aria-hidden />
+      ) : (
+        <Loader2
+          className="h-3.5 w-3.5 shrink-0 animate-spin text-[var(--color-primary)]"
+          aria-hidden
+        />
+      )}
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[12px] font-medium text-[var(--color-foreground)]" title={fileName}>
+          {fileName}
+        </p>
+        <p
+          className={cn(
+            "font-mono text-[10px] uppercase tracking-[0.14em]",
+            isError ? "text-[var(--color-destructive)]" : "text-[var(--color-muted-foreground)]",
+          )}
+        >
+          {label}
+        </p>
+      </div>
+      {/* Inline progress strip, hidden on error. */}
+      {!isError && (
+        <div className="relative h-1 w-16 overflow-hidden rounded-full bg-[var(--color-surface-3)]">
+          <span
+            className="absolute inset-y-0 left-0 bg-[var(--color-primary)] transition-[width] duration-[var(--duration-fast)]"
+            style={{ width: `${Math.max(4, percent)}%` }}
+          />
+        </div>
+      )}
+      <button
+        type="button"
+        onClick={onCancel}
+        aria-label="Cancel upload"
+        title="Cancel"
+        className={cn(
+          "grid h-5 w-5 shrink-0 cursor-pointer place-items-center rounded",
+          "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
+        )}
+      >
+        <X className="h-3 w-3" aria-hidden />
+      </button>
+    </div>
+  );
+}
+
+/**
+ * Ready-to-send attachment chip. Image attachments show a small preview
+ * tile; everything else shows a paperclip glyph + name + formatted size.
+ * The X removes the attachment without disturbing the typed body.
+ */
+function PendingAttachmentChip({
+  attachment,
+  onClear,
+}: {
+  attachment: PendingAttachment;
+  onClear: () => void;
+}) {
+  const isImage = attachment.contentType.startsWith("image/");
+  return (
+    <div
+      className={cn(
+        "mx-3 mt-3 flex items-center gap-2.5 rounded-md border px-3 py-2",
+        "border-[var(--color-border)] bg-[var(--color-surface-2)]",
+      )}
+    >
+      {isImage && attachment.url ? (
+        <img
+          src={attachment.url}
+          alt=""
+          className="h-9 w-9 shrink-0 rounded-md object-cover ring-1 ring-[var(--color-border)]"
+        />
+      ) : (
+        <span
+          aria-hidden
+          className={cn(
+            "grid h-9 w-9 shrink-0 place-items-center rounded-md",
+            "bg-[var(--color-surface-3)] text-[var(--color-muted-foreground)]",
+          )}
+        >
+          {isImage ? (
+            <ImageIcon className="h-4 w-4" />
+          ) : (
+            <Paperclip className="h-4 w-4" />
+          )}
+        </span>
+      )}
+      <div className="min-w-0 flex-1">
+        <p
+          className="truncate text-[12.5px] font-medium text-[var(--color-foreground)]"
+          title={attachment.fileName}
+        >
+          {attachment.fileName}
+        </p>
+        <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+          {formatBytes(attachment.sizeBytes)} · ready to send
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={onClear}
+        aria-label="Remove attachment"
+        title="Remove attachment"
+        className={cn(
+          "grid h-5 w-5 shrink-0 cursor-pointer place-items-center rounded",
+          "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
         )}
       >
         <X className="h-3 w-3" aria-hidden />

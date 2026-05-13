@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Pencil, SmilePlus, Trash2 } from "lucide-react";
+import { Download, Paperclip, Pencil, SmilePlus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   addReaction,
@@ -9,8 +9,10 @@ import {
   editMessage,
   findOrCreateDm,
   removeReaction,
+  type MessageAttachmentDto,
   type MessageDto,
 } from "@/api/chat";
+import { formatBytes } from "@/hooks/use-file-upload";
 import { useAuth } from "@/auth/use-auth";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -203,7 +205,17 @@ export function Message({
               [message deleted]
             </span>
           ) : (
-            <MessageBody body={message.body ?? ""} />
+            <>
+              {message.body && message.body.length > 0 && (
+                <MessageBody body={message.body} />
+              )}
+              {message.attachments.length > 0 && (
+                <MessageAttachments
+                  attachments={message.attachments}
+                  hasBody={Boolean(message.body && message.body.length > 0)}
+                />
+              )}
+            </>
           )}
         </div>
 
@@ -298,6 +310,110 @@ function ReplyContextPreview({
  * pills are interactive — clicking one copies "@username" so it's easy to
  * tag the same person back in a reply. Profile-peek is a future iteration.
  */
+/**
+ * Renders message attachments inside the bubble. Images become small inline
+ * tiles (clickable to open the underlying signed URL in a new tab); other
+ * file types render as a chip with a paperclip icon, file name, size, and
+ * a download glyph.
+ */
+function MessageAttachments({
+  attachments,
+  hasBody,
+}: {
+  attachments: MessageAttachmentDto[];
+  hasBody: boolean;
+}) {
+  return (
+    <div className={cn("flex flex-col gap-1.5", hasBody && "mt-2")}>
+      {attachments.map((a) => (
+        <AttachmentTile key={a.id} attachment={a} />
+      ))}
+    </div>
+  );
+}
+
+function AttachmentTile({ attachment }: { attachment: MessageAttachmentDto }) {
+  const isImage = attachment.contentType.startsWith("image/");
+  const canOpen = Boolean(attachment.url);
+
+  if (isImage && attachment.url) {
+    return (
+      <a
+        href={attachment.url}
+        target="_blank"
+        rel="noreferrer noopener"
+        className={cn(
+          "group/att relative block max-w-[280px] overflow-hidden rounded-lg",
+          "ring-1 ring-[var(--color-border)]",
+          "transition-shadow duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
+          "hover:ring-[var(--color-primary)]",
+        )}
+        title={attachment.originalFileName}
+      >
+        <img
+          src={attachment.url}
+          alt={attachment.originalFileName}
+          className="block h-auto max-h-[260px] w-full object-cover"
+          loading="lazy"
+        />
+        <span
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 px-2.5 py-1.5",
+            "bg-gradient-to-t from-[oklch(0_0_0_/_0.55)] to-transparent",
+            "font-mono text-[10px] uppercase tracking-[0.12em] text-white",
+            "opacity-0 transition-opacity duration-[var(--duration-fast)] group-hover/att:opacity-100",
+          )}
+        >
+          <span className="truncate">{attachment.originalFileName}</span>
+          <span className="tabular-nums">{formatBytes(attachment.sizeBytes)}</span>
+        </span>
+      </a>
+    );
+  }
+
+  return (
+    <a
+      href={canOpen ? attachment.url : undefined}
+      target="_blank"
+      rel="noreferrer noopener"
+      aria-disabled={!canOpen}
+      className={cn(
+        "flex items-center gap-2.5 rounded-md border px-3 py-2 max-w-[320px]",
+        "border-[var(--color-border)] bg-[var(--color-surface-1)]",
+        "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
+        canOpen && "hover:border-[var(--color-primary)] hover:bg-[var(--color-surface-2)]",
+        !canOpen && "pointer-events-none opacity-70",
+      )}
+      title={attachment.originalFileName}
+    >
+      <span
+        aria-hidden
+        className={cn(
+          "grid h-9 w-9 shrink-0 place-items-center rounded-md",
+          "bg-[var(--color-surface-3)] text-[var(--color-muted-foreground)]",
+        )}
+      >
+        <Paperclip className="h-4 w-4" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[12.5px] font-medium text-[var(--color-foreground)]">
+          {attachment.originalFileName}
+        </p>
+        <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+          {formatBytes(attachment.sizeBytes)}
+        </p>
+      </div>
+      {canOpen && (
+        <Download
+          className="h-3.5 w-3.5 shrink-0 text-[var(--color-muted-foreground)]"
+          aria-hidden
+        />
+      )}
+    </a>
+  );
+}
+
 function MessageBody({ body }: { body: string }) {
   const segments: Array<{ type: "text" | "mention"; value: string }> = [];
   const re = /(?<!\w)@([A-Za-z0-9._-]+)/g;
