@@ -236,6 +236,31 @@ export const MessageList = forwardRef<
     [channelId, queryKey, queryClient],
   );
 
+  // Read-receipt cross-broadcast: another channel member just advanced their
+  // read watermark. Patch the channel cache so ReadReceipt below the caller's
+  // latest message recomputes without a refresh.
+  useRealtimeEvent<{ channelId: string; userId: string; lastReadMessageId: string }>(
+    "ChatChannelMemberRead",
+    (payload) => {
+      if (payload.channelId !== channelId) return;
+      queryClient.setQueryData<import("@/api/chat").ChannelDto | undefined>(
+        ["chat", "channel", channelId],
+        (prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            members: prev.members.map((m) =>
+              m.userId === payload.userId
+                ? { ...m, lastReadMessageId: payload.lastReadMessageId }
+                : m,
+            ),
+          };
+        },
+      );
+    },
+    [channelId, queryClient],
+  );
+
   useRealtimeEvent<MessageDto>(
     "ChatMessageUnpinned",
     (payload) => {
