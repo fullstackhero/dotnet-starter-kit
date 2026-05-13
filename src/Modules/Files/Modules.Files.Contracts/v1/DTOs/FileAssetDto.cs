@@ -11,4 +11,6 @@ public sealed record FileAssetDto(
     int Status,
     int ScanStatus,
     DateTime CreatedAtUtc,
-    string? PublicUrl);
+    string? PublicUrl,
+    DateTimeOffset? DeletedOnUtc = null,
+    string? DeletedBy = null);

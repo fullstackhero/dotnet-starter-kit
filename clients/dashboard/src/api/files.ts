@@ -1,4 +1,5 @@
 import { apiFetch } from "@/lib/api-client";
+import type { PagedResponse } from "@/api/catalog";
 
 // Mirrors FSH.Modules.Files.Domain.Visibility — Public/Private numeric codes
 // match the server's int? Visibility shape on the FileAssetDto.
@@ -29,6 +30,8 @@ export type FileAssetDto = {
   scanStatus: number;
   createdAtUtc: string;
   publicUrl?: string | null;
+  deletedOnUtc?: string | null;
+  deletedBy?: string | null;
 };
 
 export type PresignedUploadResponse = {
@@ -93,9 +96,12 @@ export function deleteFile(fileAssetId: string): Promise<void> {
   });
 }
 
-export function listTrashedFiles(page = 1, pageSize = 50): Promise<FileAssetDto[]> {
-  return apiFetch<FileAssetDto[]>(
-    `/api/v1/files/trash?page=${page}&pageSize=${pageSize}`,
+export function listTrashedFiles(
+  pageNumber = 1,
+  pageSize = 20,
+): Promise<PagedResponse<FileAssetDto>> {
+  return apiFetch<PagedResponse<FileAssetDto>>(
+    `/api/v1/files/trash?pageNumber=${pageNumber}&pageSize=${pageSize}`,
   );
 }
 

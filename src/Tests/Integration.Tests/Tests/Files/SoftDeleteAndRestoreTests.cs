@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using FSH.Framework.Shared.Persistence;
 using FSH.Modules.Files.Contracts.v1.DTOs;
 using Integration.Tests.Infrastructure;
 using Integration.Tests.Infrastructure.Extensions;
@@ -42,8 +43,8 @@ public sealed class SoftDeleteAndRestoreTests
         using var trashResp = await client.GetAsync($"{FilesBasePath}/trash");
         trashResp.StatusCode.ShouldBe(HttpStatusCode.OK);
 
-        var trashed = await trashResp.DeserializeAsync<IReadOnlyList<FileAssetDto>>();
-        trashed.ShouldContain(f => f.Id == id);
+        var trashed = await trashResp.DeserializeAsync<PagedResponse<FileAssetDto>>();
+        trashed.Items.ShouldContain(f => f.Id == id);
     }
 
     [Fact]

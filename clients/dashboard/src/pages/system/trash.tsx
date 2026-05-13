@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Boxes,
+  FileText,
   FolderTree,
   Package,
   RotateCcw,
@@ -27,6 +28,11 @@ import {
   restoreTicket,
   type TicketDto,
 } from "@/api/tickets";
+import {
+  listTrashedFiles,
+  restoreFile,
+  type FileAssetDto,
+} from "@/api/files";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/auth/use-auth";
@@ -46,7 +52,7 @@ import {
 
 const PAGE_SIZE = 20;
 
-type TabKey = "products" | "brands" | "categories" | "tickets";
+type TabKey = "products" | "brands" | "categories" | "tickets" | "files";
 
 const TABS: ReadonlyArray<{
   key: TabKey;
@@ -57,6 +63,7 @@ const TABS: ReadonlyArray<{
   { key: "brands", label: "Brands", icon: Tags },
   { key: "categories", label: "Categories", icon: FolderTree },
   { key: "tickets", label: "Tickets", icon: Ticket },
+  { key: "files", label: "Files", icon: FileText },
 ];
 
 // ───────────────────────────────────────────────────────────────────────
@@ -130,6 +137,9 @@ export function TrashPage() {
         )}
         {tab === "tickets" && (
           <TicketsTab pageNumber={pageNumber} setPageNumber={setPageNumber} />
+        )}
+        {tab === "files" && (
+          <FilesTab pageNumber={pageNumber} setPageNumber={setPageNumber} />
         )}
       </section>
     </div>
@@ -317,6 +327,50 @@ function TicketsTab({
   );
 }
 
+function FilesTab({
+  pageNumber,
+  setPageNumber,
+}: {
+  pageNumber: number;
+  setPageNumber: (n: number) => void;
+}) {
+  const queryClient = useQueryClient();
+  const query = useQuery({
+    queryKey: ["trash", "files", pageNumber],
+    queryFn: () => listTrashedFiles(pageNumber, PAGE_SIZE),
+  });
+  const restore = useMutation({
+    mutationFn: (id: string) => restoreFile(id),
+    onSuccess: () => {
+      toast.success("File restored");
+      void queryClient.invalidateQueries({ queryKey: ["trash", "files"] });
+      void queryClient.invalidateQueries({ queryKey: ["files"] });
+    },
+    onError: (e) => toast.error(describe(e)),
+  });
+  return (
+    <TrashShell
+      icon={FileText}
+      label="Files"
+      query={query}
+      pageNumber={pageNumber}
+      setPageNumber={setPageNumber}
+      renderRow={(f: FileAssetDto) => (
+        <TrashRow
+          key={f.id}
+          title={f.originalFileName}
+          id={f.id}
+          subtitle={f.contentType}
+          deletedOnUtc={f.deletedOnUtc}
+          deletedBy={f.deletedBy}
+          onRestore={() => restore.mutate(f.id)}
+          isRestoring={restore.isPending && restore.variables === f.id}
+        />
+      )}
+    />
+  );
+}
+
 // ───────────────────────────────────────────────────────────────────────
 //  Shared shell — handles the loading/empty/error/list rendering so each
 //  tab body stays focused on the per-resource details.
@@ -439,6 +493,7 @@ function tabPath(label: string): string {
     case "Brands": return "catalog/brands";
     case "Categories": return "catalog/categories";
     case "Tickets": return "tickets";
+    case "Files": return "files";
     default: return "";
   }
 }

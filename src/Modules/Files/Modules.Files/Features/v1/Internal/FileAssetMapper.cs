@@ -10,5 +10,6 @@ internal static class FileAssetMapper
 {
     public static FileAssetDto ToDto(FileAsset f, string? publicUrl = null) =>
         new(f.Id, f.OwnerType, f.OwnerId, f.OriginalFileName, f.ContentType, f.SizeBytes,
-            (int)f.Visibility, (int)f.Status, (int)f.ScanStatus, f.CreatedAtUtc, publicUrl);
+            (int)f.Visibility, (int)f.Status, (int)f.ScanStatus, f.CreatedAtUtc, publicUrl,
+            f.DeletedOnUtc, f.DeletedBy);
 }
