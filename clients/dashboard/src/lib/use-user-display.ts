@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getUserById } from "@/api/identity";
+import { getUserById, searchUsers, type UserDto } from "@/api/identity";
 
 export type UserDisplay = {
   /** Best display name: "First Last" → username → email → shortened GUID. */
@@ -53,5 +53,48 @@ export function useUserDisplay(userId: string | null | undefined): UserDisplay {
     handle: u.userName ?? undefined,
     imageUrl: u.imageUrl ?? undefined,
     loading: false,
+  };
+}
+
+export type UserByUsername = {
+  resolved: UserDto | null;
+  loading: boolean;
+  error: boolean;
+};
+
+/**
+ * Resolves an @username (case-insensitive) to a full UserDto via
+ * /api/v1/identity/users/search. Used by the mention profile peek so
+ * the popover can show the user's avatar / email and open a DM.
+ *
+ * Cached separately from useUserDisplay (which is keyed by userId).
+ * Two consumers of the same @handle on the same page share one fetch.
+ *
+ * `enabled` is controlled by the caller — passing `false` keeps the
+ * query dormant until the popover actually opens.
+ */
+export function useUserByUsername(
+  username: string | null | undefined,
+  enabled: boolean,
+): UserByUsername {
+  const normalized = (username ?? "").trim().toLowerCase();
+
+  const query = useQuery({
+    queryKey: ["identity", "by-username", normalized],
+    queryFn: async () => {
+      const page = await searchUsers({ search: normalized, pageSize: 5, isActive: true });
+      const items: UserDto[] = page.items ?? [];
+      return items.find((u) => (u.userName ?? "").toLowerCase() === normalized) ?? null;
+    },
+    enabled: enabled && normalized.length > 0,
+    staleTime: 5 * 60_000,
+    gcTime: 30 * 60_000,
+    retry: 1,
+  });
+
+  return {
+    resolved: query.data ?? null,
+    loading: query.isPending && enabled && normalized.length > 0,
+    error: query.isError,
   };
 }

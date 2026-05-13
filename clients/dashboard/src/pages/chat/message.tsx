@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Pencil, SmilePlus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -6,9 +7,11 @@ import {
   addReaction,
   deleteMessage,
   editMessage,
+  findOrCreateDm,
   removeReaction,
   type MessageDto,
 } from "@/api/chat";
+import { useAuth } from "@/auth/use-auth";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,8 +23,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/cn";
-import { useUserDisplay } from "@/lib/use-user-display";
+import { useUserByUsername, useUserDisplay } from "@/lib/use-user-display";
 import { groupReactions, shortTime } from "@/pages/chat/chat-utils";
 
 const QUICK_REACTIONS = ["👍", "🎉", "❤️", "👀", "🔥", "🚀"] as const;
@@ -189,23 +197,117 @@ function MessageBody({ body }: { body: string }) {
 }
 
 function MentionPill({ username }: { username: string }) {
-  const handleClick = () => {
+  const [open, setOpen] = useState(false);
+  const { user } = useAuth();
+  const { resolved, loading, error } = useUserByUsername(username, open);
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
+  const isSelf = !!resolved?.id && resolved.id === user?.id;
+
+  const copy = () => {
     const text = `@${username}`;
     void navigator.clipboard
       ?.writeText(text)
       .then(() => toast.success(`Copied ${text}`))
       .catch(() => toast.error("Couldn't copy to clipboard"));
   };
+
+  const dmMutation = useMutation({
+    mutationFn: () => {
+      if (!resolved?.id) throw new Error("Cannot DM an unresolved user");
+      return findOrCreateDm([resolved.id]);
+    },
+    onSuccess: (channelId) => {
+      void queryClient.invalidateQueries({ queryKey: ["chat", "my-channels"] });
+      setOpen(false);
+      navigate(`/chat/${channelId}`);
+    },
+    onError: () => toast.error("Couldn't open DM"),
+  });
+
+  const displayName =
+    [resolved?.firstName, resolved?.lastName].filter(Boolean).join(" ").trim() ||
+    resolved?.userName ||
+    resolved?.email ||
+    `@${username}`;
+
   return (
-    <button
-      type="button"
-      className="chat-mention"
-      onClick={handleClick}
-      title={`Copy @${username}`}
-      aria-label={`Mention of ${username}, click to copy`}
-    >
-      @{username}
-    </button>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className="chat-mention"
+          title={`Mention of ${username}`}
+          aria-label={`Mention of ${username}, click to open profile`}
+        >
+          @{username}
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-[280px] p-0">
+        <div className="flex items-start gap-3 p-3">
+          <Avatar
+            name={displayName}
+            src={resolved?.imageUrl ?? null}
+            size="md"
+            className="shrink-0"
+          />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <span className="truncate text-sm font-semibold tracking-tight text-[var(--color-foreground)]">
+                {loading ? `@${username}` : displayName}
+              </span>
+              {isSelf && (
+                <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
+                  you
+                </span>
+              )}
+            </div>
+            <div className="truncate font-mono text-[10.5px] text-[var(--color-muted-foreground)]">
+              @{resolved?.userName ?? username}
+            </div>
+            {resolved?.email && (
+              <div className="truncate font-mono text-[10.5px] text-[var(--color-muted-foreground)]">
+                {resolved.email}
+              </div>
+            )}
+            {loading && (
+              <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+                Looking up…
+              </div>
+            )}
+            {!loading && !resolved && !error && (
+              <div className="mt-1 text-xs italic text-[var(--color-muted-foreground)]">
+                User not found.
+              </div>
+            )}
+            {error && (
+              <div className="mt-1 text-xs italic text-[var(--color-destructive)]">
+                Couldn&apos;t load this user.
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center justify-end gap-1.5 border-t border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={copy}
+            disabled={dmMutation.isPending}
+          >
+            Copy @{resolved?.userName ?? username}
+          </Button>
+          <Button
+            size="sm"
+            disabled={!resolved?.id || isSelf || dmMutation.isPending}
+            onClick={() => dmMutation.mutate()}
+            title={isSelf ? "That's you" : undefined}
+          >
+            {dmMutation.isPending ? "Opening…" : "Open DM"}
+          </Button>
+        </div>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
