@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Hash, Lock, MessageCircle, Search, Users2 } from "lucide-react";
+import { Hash, Lock, MessageCircle, Search, Settings, Users2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   getChannelById,
@@ -12,6 +12,7 @@ import {
 } from "@/api/chat";
 import { useAuth } from "@/auth/use-auth";
 import { ChannelRail } from "@/pages/chat/channel-rail";
+import { ChannelSettingsDialog } from "@/pages/chat/channel-settings";
 import { ChatSearchOverlay } from "@/pages/chat/chat-search";
 import { Composer } from "@/pages/chat/composer";
 import {
@@ -132,12 +133,14 @@ function ActiveChannel({
   const queryClient = useQueryClient();
   const [replyTo, setReplyTo] = useState<MessageDto | null>(null);
   const [searching, setSearching] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const messageListRef = useRef<MessageListHandle | null>(null);
 
   // Clear ephemeral state when the user switches channels.
   useEffect(() => {
     setReplyTo(null);
     setSearching(false);
+    setSettingsOpen(false);
   }, [channelId]);
 
   const channelQuery = useQuery({
@@ -252,12 +255,34 @@ function ActiveChannel({
           >
             <Search className="h-3.5 w-3.5" />
           </button>
+          {channel.type === 2 && (
+            <button
+              type="button"
+              onClick={() => setSettingsOpen(true)}
+              aria-label="Channel settings"
+              title="Channel settings"
+              className={cn(
+                "grid h-7 w-7 cursor-pointer place-items-center rounded-md",
+                "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
+                "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
+              )}
+            >
+              <Settings className="h-3.5 w-3.5" />
+            </button>
+          )}
           <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-0.5 font-mono text-[10.5px] text-[var(--color-muted-foreground)]">
             <span className="tabular-nums">{channel.members.length}</span>{" "}
             {channel.members.length === 1 ? "member" : "members"}
           </span>
         </header>
       )}
+
+      <ChannelSettingsDialog
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        channel={channel}
+        selfUserId={selfUserId}
+      />
 
       {/* Message list — fills the remaining height. */}
       <div className="min-h-0 flex-1">
