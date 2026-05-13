@@ -41,5 +41,8 @@ internal static class ChatMappers
             m.DeletedAtUtc,
             m.CreatedAtUtc,
             m.Attachments.Select(a => a.ToDto()).ToList(),
-            m.Reactions.Select(r => r.ToDto()).ToList());
+            m.Reactions.Select(r => r.ToDto()).ToList(),
+            m.IsPinned,
+            m.PinnedByUserId,
+            m.PinnedAtUtc);
 }

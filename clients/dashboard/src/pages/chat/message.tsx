@@ -1,14 +1,16 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Download, Eye, Paperclip, Pencil, SmilePlus, Trash2 } from "lucide-react";
+import { Download, Eye, Paperclip, Pencil, Pin, PinOff, SmilePlus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   addReaction,
   deleteMessage,
   editMessage,
   findOrCreateDm,
+  pinMessage,
   removeReaction,
+  unpinMessage,
   type ChannelMemberDto,
   type MessageAttachmentDto,
   type MessageDto,
@@ -183,6 +185,21 @@ export function Message({
           </div>
         )}
 
+        {/* Pinned indicator — above the bubble. */}
+        {message.isPinned && (
+          <span
+            className={cn(
+              "mb-0.5 inline-flex items-center gap-1 self-end px-1",
+              "font-mono text-[10px] uppercase tracking-[0.14em]",
+              "text-[var(--color-primary)]",
+            )}
+            aria-label="Pinned"
+          >
+            <Pin className="h-2.5 w-2.5" aria-hidden />
+            Pinned
+          </span>
+        )}
+
         {/* The bubble. */}
         <div
           className={cn(
@@ -194,6 +211,11 @@ export function Message({
             // Brand-tinted ring flashes when this message was the target of
             // a reply-preview jump; fades back via the transition above.
             isFlashing && "shadow-[0_0_0_3px_var(--color-primary)]",
+            // A subtler ring when pinned — distinguishes pinned messages
+            // visually but doesn't dominate.
+            message.isPinned &&
+              !isFlashing &&
+              "ring-1 ring-[oklch(from_var(--color-primary)_l_c_h_/_0.35)]",
           )}
         >
           {/* Reply context preview — quotes the parent so the reader can tell
@@ -684,6 +706,20 @@ function MessageActions({
     onError: () => toast.error("Couldn't delete the message"),
   });
 
+  const pinMutation = useMutation({
+    mutationFn: () =>
+      message.isPinned ? unpinMessage(message.id) : pinMessage(message.id),
+    onSuccess: () => {
+      // Realtime ChatMessagePinned / Unpinned will patch the cache too —
+      // invalidate as a defensive belt to cover initial loads + the
+      // pinned-panel cache.
+      void queryClient.invalidateQueries({ queryKey: ["chat", "messages"] });
+      void queryClient.invalidateQueries({ queryKey: ["chat", "pinned", message.channelId] });
+      toast.success(message.isPinned ? "Unpinned" : "Pinned");
+    },
+    onError: () => toast.error("Couldn't update the pin."),
+  });
+
   if (isDeleted) return null;
 
   return (
@@ -706,6 +742,16 @@ function MessageActions({
             <span className="font-mono text-[10px] font-semibold tracking-tight">↪</span>
           </ActionButton>
         )}
+        <ActionButton
+          title={message.isPinned ? "Unpin" : "Pin"}
+          onClick={() => pinMutation.mutate()}
+        >
+          {message.isPinned ? (
+            <PinOff className="h-3.5 w-3.5" />
+          ) : (
+            <Pin className="h-3.5 w-3.5" />
+          )}
+        </ActionButton>
         {isOwn && (
           <ActionButton title="Edit" onClick={() => setEditing(true)}>
             <Pencil className="h-3.5 w-3.5" />

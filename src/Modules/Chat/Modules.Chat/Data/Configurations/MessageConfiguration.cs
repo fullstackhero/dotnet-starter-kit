@@ -21,6 +21,14 @@ public sealed class MessageConfiguration : IEntityTypeConfiguration<Message>
         builder.Property(x => x.EditedAtUtc);
         builder.Property(x => x.DeletedAtUtc);
         builder.Property(x => x.CreatedAtUtc).IsRequired();
+        builder.Property(x => x.IsPinned).IsRequired();
+        builder.Property(x => x.PinnedByUserId).HasMaxLength(64);
+        builder.Property(x => x.PinnedAtUtc);
+
+        // Partial index on pinned messages — small set per channel, used by
+        // GetPinnedMessages query (filters by ChannelId).
+        builder.HasIndex(x => new { x.ChannelId, x.IsPinned })
+            .HasFilter("\"IsPinned\" = true");
 
         // Reverse-chronological paging by (ChannelId, Id) — Guid v7 is monotonically sortable
         // so Id desc is the time order. Index is descending on Id only.

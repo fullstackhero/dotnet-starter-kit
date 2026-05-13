@@ -17,6 +17,9 @@ public sealed class Message : AggregateRoot<Guid>
     public DateTime? EditedAtUtc { get; private set; }
     public DateTime? DeletedAtUtc { get; private set; }
     public DateTime CreatedAtUtc { get; private set; }
+    public bool IsPinned { get; private set; }
+    public string? PinnedByUserId { get; private set; }
+    public DateTime? PinnedAtUtc { get; private set; }
 
     private readonly List<MessageAttachment> _attachments = [];
     public IReadOnlyList<MessageAttachment> Attachments => _attachments;
@@ -151,4 +154,45 @@ public sealed class Message : AggregateRoot<Guid>
     internal void IncrementReplyCount() => ReplyCount++;
 
     internal void DecrementReplyCount() => ReplyCount = Math.Max(0, ReplyCount - 1);
+
+    /// <summary>
+    /// Pin the message to its channel. Idempotent — re-pinning by a different user updates the
+    /// PinnedByUserId / PinnedAtUtc stamp but doesn't produce a duplicate event. Pinning a
+    /// soft-deleted message is rejected; pinning a reply is permitted (channels can pin a
+    /// specific thread reply, e.g. an answer).
+    /// </summary>
+    public void Pin(string pinningUserId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(pinningUserId);
+        if (DeletedAtUtc.HasValue)
+        {
+            throw new InvalidOperationException("Cannot pin a deleted message.");
+        }
+        if (IsPinned && string.Equals(PinnedByUserId, pinningUserId, StringComparison.Ordinal))
+        {
+            // Already pinned by this user — no-op, no event.
+            return;
+        }
+
+        IsPinned = true;
+        PinnedByUserId = pinningUserId;
+        PinnedAtUtc = DateTime.UtcNow;
+        AddDomainEvent(DomainEvent.Create((id, ts) =>
+            new MessagePinnedDomainEvent(ChannelId, Id, pinningUserId, id, ts)));
+    }
+
+    /// <summary>
+    /// Unpin the message. Idempotent — unpinning an already-unpinned message is a no-op.
+    /// </summary>
+    public void Unpin(string unpinningUserId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(unpinningUserId);
+        if (!IsPinned) return;
+
+        IsPinned = false;
+        PinnedByUserId = null;
+        PinnedAtUtc = null;
+        AddDomainEvent(DomainEvent.Create((id, ts) =>
+            new MessageUnpinnedDomainEvent(ChannelId, Id, unpinningUserId, id, ts)));
+    }
 }

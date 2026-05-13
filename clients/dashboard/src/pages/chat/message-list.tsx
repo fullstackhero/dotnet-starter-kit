@@ -215,6 +215,45 @@ export const MessageList = forwardRef<
     [channelId, queryKey, queryClient],
   );
 
+  // Pin / unpin broadcast carries the full MessageDto so we just patch
+  // by id wherever the message lives (top-level cache or per-parent
+  // replies cache) and invalidate the pinned-panel list.
+  useRealtimeEvent<MessageDto>(
+    "ChatMessagePinned",
+    (payload) => {
+      if (payload.channelId !== channelId) return;
+      queryClient.setQueryData<MessageDto[] | undefined>(queryKey, (prev) =>
+        prev?.map((m) => (m.id === payload.id ? payload : m)),
+      );
+      if (payload.parentMessageId) {
+        queryClient.setQueryData<MessageDto[] | undefined>(
+          ["chat", "replies", payload.parentMessageId],
+          (prev) => prev?.map((m) => (m.id === payload.id ? payload : m)),
+        );
+      }
+      void queryClient.invalidateQueries({ queryKey: ["chat", "pinned", channelId] });
+    },
+    [channelId, queryKey, queryClient],
+  );
+
+  useRealtimeEvent<MessageDto>(
+    "ChatMessageUnpinned",
+    (payload) => {
+      if (payload.channelId !== channelId) return;
+      queryClient.setQueryData<MessageDto[] | undefined>(queryKey, (prev) =>
+        prev?.map((m) => (m.id === payload.id ? payload : m)),
+      );
+      if (payload.parentMessageId) {
+        queryClient.setQueryData<MessageDto[] | undefined>(
+          ["chat", "replies", payload.parentMessageId],
+          (prev) => prev?.map((m) => (m.id === payload.id ? payload : m)),
+        );
+      }
+      void queryClient.invalidateQueries({ queryKey: ["chat", "pinned", channelId] });
+    },
+    [channelId, queryKey, queryClient],
+  );
+
   // Latch the unread watermark exactly once per channel session. We can't use
   // a useEffect for this because the rows useMemo below needs the value during
   // the same render that channelId changes, otherwise the divider flickers in

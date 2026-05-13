@@ -11,4 +11,7 @@ public sealed record MessageDto(
     DateTime? DeletedAtUtc,
     DateTime CreatedAtUtc,
     IReadOnlyList<MessageAttachmentDto> Attachments,
-    IReadOnlyList<MessageReactionDto> Reactions);
+    IReadOnlyList<MessageReactionDto> Reactions,
+    bool IsPinned = false,
+    string? PinnedByUserId = null,
+    DateTime? PinnedAtUtc = null);

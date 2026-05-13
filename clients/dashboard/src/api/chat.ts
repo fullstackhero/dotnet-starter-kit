@@ -68,6 +68,9 @@ export type MessageDto = {
   createdAtUtc: string;
   attachments: MessageAttachmentDto[];
   reactions: MessageReactionDto[];
+  isPinned?: boolean;
+  pinnedByUserId?: string | null;
+  pinnedAtUtc?: string | null;
 };
 
 // ── Channels ───────────────────────────────────────────────────────────
@@ -211,6 +214,28 @@ export function editMessage(messageId: string, body: string): Promise<void> {
 
 export function deleteMessage(messageId: string): Promise<void> {
   return apiFetch<void>(`/api/v1/chat/messages/${encodeURIComponent(messageId)}`, { method: "DELETE" });
+}
+
+// ── Pinning ────────────────────────────────────────────────────────────
+
+export function pinMessage(messageId: string): Promise<void> {
+  return apiFetch<void>(
+    `/api/v1/chat/messages/${encodeURIComponent(messageId)}/pin`,
+    { method: "POST" },
+  );
+}
+
+export function unpinMessage(messageId: string): Promise<void> {
+  return apiFetch<void>(
+    `/api/v1/chat/messages/${encodeURIComponent(messageId)}/pin`,
+    { method: "DELETE" },
+  );
+}
+
+export function listPinnedMessages(channelId: string): Promise<MessageDto[]> {
+  return apiFetch<MessageDto[]>(
+    `/api/v1/chat/channels/${encodeURIComponent(channelId)}/pinned`,
+  );
 }
 
 // ── Reactions ──────────────────────────────────────────────────────────

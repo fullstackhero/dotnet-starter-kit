@@ -21,6 +21,7 @@ import {
 import { useAuth } from "@/auth/use-auth";
 import { ChannelRail } from "@/pages/chat/channel-rail";
 import { ChannelSettingsDialog } from "@/pages/chat/channel-settings";
+import { ChatPinnedDropdown } from "@/pages/chat/chat-pinned";
 import { ChatSearchOverlay } from "@/pages/chat/chat-search";
 import { Composer } from "@/pages/chat/composer";
 import {
@@ -288,6 +289,15 @@ function ActiveChannel({
           >
             <Search className="h-3.5 w-3.5" />
           </button>
+          <ChatPinnedDropdown
+            channelId={channelId}
+            onJump={(id) => {
+              const ok = messageListRef.current?.jumpToMessage(id) ?? false;
+              if (!ok) {
+                toast.info("That message is older than the loaded window.");
+              }
+            }}
+          />
           {channel.type === 2 && (
             <button
               type="button"
