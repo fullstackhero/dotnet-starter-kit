@@ -109,13 +109,14 @@ export function Message({
       data-merged={isMerged || undefined}
       data-pending={isPending || undefined}
       className={cn(
-        "group/message relative flex gap-2 px-4 pb-1",
+        "group/message relative flex gap-2 px-4 pb-1.5",
         isOwn ? "justify-end" : "justify-start",
         // Spacing between consecutive bubbles. Merged rows (same author
-        // within the merge window) keep a clearly-readable gap so short
-        // back-to-back bubbles ("hi", "?") don't visually fuse into one
-        // shape. Non-merged rows get more space to mark the author change.
-        isMerged ? "pt-2" : "pt-4",
+        // within the merge window) need clearly-readable space so short
+        // back-to-back bubbles ("hi", "?") read as distinct items. Non-
+        // merged rows get more space to mark the author / time change.
+        // Total gaps: merged → 6 + 14 = 20px; author change → 6 + 24 = 30px.
+        isMerged ? "pt-3.5" : "pt-6",
         // Tentative own messages fade until the realtime echo (or HTTP
         // response) replaces them with the real DTO.
         isPending && "opacity-70",
@@ -210,19 +211,20 @@ export function Message({
           </span>
         )}
 
-        {/* The bubble. */}
+        {/* The bubble. Crisp styling — no transitions or layered shadows that
+            would bleed into a halo around the rounded fill (consecutive
+            bubbles previously read as a fused glow because shadow interpolation
+            mid-flash was leaving ghost rings). */}
         <div
           className={cn(
-            "break-words rounded-2xl px-3 py-2 transition-shadow duration-500",
+            "break-words rounded-2xl px-3 py-2",
             isOwn
               ? "bg-[var(--color-primary-soft)] text-[var(--color-foreground)] rounded-tr-md"
               : "bg-[var(--color-surface-2)] text-[var(--color-foreground)] rounded-tl-md",
-            "shadow-[0_1px_0_oklch(from_var(--color-foreground)_l_c_h_/_0.03)]",
-            // Brand-tinted ring flashes when this message was the target of
-            // a reply-preview jump; fades back via the transition above.
-            isFlashing && "shadow-[0_0_0_3px_var(--color-primary)]",
-            // A subtler ring when pinned — distinguishes pinned messages
-            // visually but doesn't dominate.
+            // Sharp brand-tinted ring while flashing from a jump-to-parent;
+            // pinned messages get a thinner static ring. Either ring renders
+            // crisply because there's no transition smearing between states.
+            isFlashing && "ring-2 ring-[var(--color-primary)]",
             message.isPinned &&
               !isFlashing &&
               "ring-1 ring-[oklch(from_var(--color-primary)_l_c_h_/_0.35)]",
