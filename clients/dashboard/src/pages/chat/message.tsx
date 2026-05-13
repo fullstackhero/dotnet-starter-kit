@@ -49,6 +49,8 @@ export function Message({
   selfUserId,
   isMerged,
   onReply,
+  onJumpTo,
+  isFlashing,
 }: {
   message: MessageDto;
   selfUserId?: string;
@@ -58,6 +60,12 @@ export function Message({
   /** Called when the user clicks "Reply" on the hover rail. The composer
    *  in chat-page reacts by entering reply mode with a quoted preview. */
   onReply?: (parent: MessageDto) => void;
+  /** Called when the user clicks the reply-context preview at the top of a
+   *  reply bubble. MessageList scrolls to and flashes the parent. */
+  onJumpTo?: (messageId: string) => void;
+  /** Briefly true after another row's reply preview jumps here; drives the
+   *  brand-tinted ring + fade. */
+  isFlashing?: boolean;
 }) {
   const isOwn = selfUserId === message.authorUserId;
   const isDeleted = message.deletedAtUtc !== null && message.deletedAtUtc !== undefined;
@@ -89,18 +97,31 @@ export function Message({
         isMerged ? "pt-0.5" : "pt-2",
       )}
     >
-      {/* Avatar gutter — only on the other-side branch, only on first-of-block.
-          When merged, the gutter holds the timestamp on hover. */}
+      {/* Avatar gutter — only on the other-side branch and only on the
+          first-of-block row. Merged rows just hold an empty 9-col slot so
+          the bubble lines up under the previous one. */}
       {!isOwn && (
         <div className="w-9 shrink-0 self-end">
-          {isMerged ? (
-            <span className="invisible block pb-2 text-[10px] text-[var(--color-muted-foreground)] group-hover/message:visible">
-              {shortTime(message.createdAtUtc)}
-            </span>
-          ) : (
+          {!isMerged && (
             <Avatar name={author.name} src={author.imageUrl ?? null} size="sm" />
           )}
         </div>
+      )}
+
+      {/* Hover-only timestamp on the side opposite the avatar — visible
+          only while the row is hovered, so merged blocks stay quiet by
+          default and the time is still discoverable on demand. */}
+      {isMerged && (
+        <span
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute top-1.5 hidden font-mono text-[10px] tabular-nums",
+            "text-[var(--color-muted-foreground)] group-hover/message:block",
+            isOwn ? "left-4" : "right-4",
+          )}
+        >
+          {shortTime(message.createdAtUtc)}
+        </span>
       )}
 
       <div
@@ -109,18 +130,37 @@ export function Message({
           isOwn ? "items-end" : "items-start",
         )}
       >
-        {/* Other-side author header — name + handle, shown only on first-of-block. */}
-        {!isOwn && !isMerged && (
-          <div className="mb-0.5 flex items-baseline gap-2 px-1">
-            <span
-              className="text-[12px] font-semibold tracking-tight text-[var(--color-foreground)]"
-              title={author.handle ? `@${author.handle}` : undefined}
-            >
-              {author.name}
+        {/* Header row — name + handle + time for others, just time for own
+            (the user knows who they are). Shown only on first-of-block;
+            merged rows pick up the time via the hover-only label above. */}
+        {!isMerged && (
+          <div
+            className={cn(
+              "mb-0.5 flex items-baseline gap-2 px-1",
+              isOwn && "justify-end",
+            )}
+          >
+            {!isOwn && (
+              <>
+                <span
+                  className="text-[12px] font-semibold tracking-tight text-[var(--color-foreground)]"
+                  title={author.handle ? `@${author.handle}` : undefined}
+                >
+                  {author.name}
+                </span>
+                {author.handle && author.handle.toLowerCase() !== author.name.toLowerCase() && (
+                  <span className="font-mono text-[10.5px] text-[var(--color-muted-foreground)]">
+                    @{author.handle}
+                  </span>
+                )}
+              </>
+            )}
+            <span className="font-mono text-[10px] tabular-nums text-[var(--color-muted-foreground)]">
+              {shortTime(message.createdAtUtc)}
             </span>
-            {author.handle && author.handle.toLowerCase() !== author.name.toLowerCase() && (
-              <span className="font-mono text-[10.5px] text-[var(--color-muted-foreground)]">
-                @{author.handle}
+            {message.editedAtUtc && (
+              <span className="font-mono text-[10px] uppercase tracking-[0.10em] text-[var(--color-muted-foreground)]">
+                · edited
               </span>
             )}
           </div>
@@ -129,17 +169,28 @@ export function Message({
         {/* The bubble. */}
         <div
           className={cn(
-            "break-words rounded-2xl px-3 py-2",
+            "break-words rounded-2xl px-3 py-2 transition-shadow duration-500",
             isOwn
               ? "bg-[var(--color-primary-soft)] text-[var(--color-foreground)] rounded-tr-md"
               : "bg-[var(--color-surface-2)] text-[var(--color-foreground)] rounded-tl-md",
             "shadow-[0_1px_0_oklch(from_var(--color-foreground)_l_c_h_/_0.03)]",
+            // Brand-tinted ring flashes when this message was the target of
+            // a reply-preview jump; fades back via the transition above.
+            isFlashing && "shadow-[0_0_0_3px_var(--color-primary)]",
           )}
         >
           {/* Reply context preview — quotes the parent so the reader can tell
-              what the author replied to without scrolling. */}
+              what the author replied to without scrolling. Clickable: jumps
+              the feed to the parent message. */}
           {message.parentMessageId && (
-            <ReplyContextPreview parent={parent} isOwn={isOwn} />
+            <ReplyContextPreview
+              parent={parent}
+              onClick={
+                onJumpTo
+                  ? () => onJumpTo(message.parentMessageId!)
+                  : undefined
+              }
+            />
           )}
 
           {isDeleted ? (
@@ -148,24 +199,6 @@ export function Message({
             </span>
           ) : (
             <MessageBody body={message.body ?? ""} />
-          )}
-        </div>
-
-        {/* Meta row below the bubble: own gets time + edited badge here;
-            other side keeps time below too for symmetry with own's "Me" pattern. */}
-        <div
-          className={cn(
-            "mt-0.5 flex items-center gap-1.5 px-1",
-            isOwn ? "justify-end" : "justify-start",
-          )}
-        >
-          <span className="font-mono text-[10px] tabular-nums text-[var(--color-muted-foreground)]">
-            {shortTime(message.createdAtUtc)}
-          </span>
-          {message.editedAtUtc && (
-            <span className="font-mono text-[10px] uppercase tracking-[0.10em] text-[var(--color-muted-foreground)]">
-              · edited
-            </span>
           )}
         </div>
 
@@ -200,31 +233,31 @@ export function Message({
 /**
  * Inline quoted preview of the parent message, rendered inside the reply's
  * own bubble. Allows readers to identify the context without clicking into
- * a thread surface. Falls back to a generic "Replying to a message" caption
- * when the parent isn't in the loaded window (rare — usually it is).
+ * a thread surface. When `onClick` is provided, the preview becomes a
+ * button that jumps the feed to the parent.
  */
 function ReplyContextPreview({
   parent,
-  isOwn,
+  onClick,
 }: {
   parent: MessageDto | null;
-  isOwn: boolean;
+  onClick?: () => void;
 }) {
   const author = useUserDisplay(parent?.authorUserId);
   const body = parent ? (parent.body ?? "").trim() : "";
   const preview = body || "(no text — attachment or empty)";
-  return (
-    <div
-      className={cn(
-        "mb-1.5 -mt-0.5 border-l-2 pl-2",
-        // Brand accent on own bubbles uses a slightly darker primary so it
-        // reads against the primary-soft background; on other-side surface
-        // bubbles, the primary is fine.
-        isOwn
-          ? "border-l-[var(--color-primary)]"
-          : "border-l-[var(--color-primary)]",
-      )}
-    >
+
+  const className = cn(
+    "mb-1.5 -mt-0.5 block w-full border-l-2 pl-2 text-left",
+    "border-l-[var(--color-primary)]",
+    onClick && [
+      "cursor-pointer rounded-sm transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
+      "hover:bg-[oklch(from_var(--color-foreground)_l_c_h_/_0.04)]",
+    ],
+  );
+
+  const content = (
+    <>
       <div className="flex items-center gap-1">
         <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
           Replying to
@@ -239,7 +272,15 @@ function ReplyContextPreview({
       >
         {preview}
       </p>
-    </div>
+    </>
+  );
+
+  return onClick ? (
+    <button type="button" onClick={onClick} className={className}>
+      {content}
+    </button>
+  ) : (
+    <div className={className}>{content}</div>
   );
 }
 

@@ -309,6 +309,35 @@ export function MessageList({
     setUnseenCount(0);
   }, [virtualizer, rows.length]);
 
+  // ── Jump-to-parent on reply preview click ──────────────────────────────
+  // Click a reply's "Replying to {Alice}: ..." block → scroll the feed to
+  // the parent and flash it briefly so the user can see the landing spot.
+  const [flashingMessageId, setFlashingMessageId] = useState<string | null>(null);
+  const flashTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (flashTimerRef.current) window.clearTimeout(flashTimerRef.current);
+    };
+  }, []);
+
+  const jumpToMessage = useCallback(
+    (messageId: string) => {
+      const index = rows.findIndex(
+        (r) => r.kind === "message" && r.message.id === messageId,
+      );
+      if (index < 0) return;
+      virtualizer.scrollToIndex(index, { align: "center" });
+      setFlashingMessageId(messageId);
+      if (flashTimerRef.current) window.clearTimeout(flashTimerRef.current);
+      flashTimerRef.current = window.setTimeout(
+        () => setFlashingMessageId(null),
+        1600,
+      );
+    },
+    [rows, virtualizer],
+  );
+
   if (messagesQuery.isLoading) {
     return (
       <div className="flex h-full items-center justify-center px-6">
@@ -370,6 +399,8 @@ export function MessageList({
                     selfUserId={selfUserId}
                     isMerged={row.merged}
                     onReply={onReply}
+                    onJumpTo={jumpToMessage}
+                    isFlashing={row.message.id === flashingMessageId}
                   />
                 )}
               </div>
