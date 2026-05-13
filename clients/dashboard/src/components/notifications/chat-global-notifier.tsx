@@ -49,11 +49,11 @@ export function ChatGlobalNotifier() {
       // non-/chat pages.
       void queryClient.invalidateQueries({ queryKey: ["chat", "my-channels"] });
 
-      // unstyled: true bypasses sonner's internal defaults; classNames.toast
-      // REPLACES the FshToaster's global "fsh-toast" class on this single
-      // wrapper li (otherwise the tone-rail CSS would inject a lowercase
-      // "note" pill above our preview). The replacement class is intentionally
-      // bare — globals.css carries no rules for it.
+      // `className` is APPENDED to the toaster's global classNames.toast
+      // ("fsh-toast"), so the wrapper li ends up with both .fsh-toast and
+      // .fsh-chat-toast-wrapper. globals.css uses that compound selector
+      // to neutralise the tone-rail chrome (bg, drain bar, "note" pseudo)
+      // without touching the children sonner actually renders for our JSX.
       toast.custom(
         (id) => (
           <ChatToast
@@ -65,16 +65,7 @@ export function ChatGlobalNotifier() {
             onDismiss={() => toast.dismiss(id)}
           />
         ),
-        {
-          duration: 6_000,
-          unstyled: true,
-          classNames: {
-            toast: "fsh-chat-toast-wrapper",
-            title: "fsh-chat-toast-wrapper-title",
-            description: "fsh-chat-toast-wrapper-desc",
-            closeButton: "fsh-chat-toast-wrapper-close",
-          },
-        },
+        { duration: 6_000, className: "fsh-chat-toast-wrapper" },
       );
     },
     [user?.id],

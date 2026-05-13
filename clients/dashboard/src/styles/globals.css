@@ -1535,14 +1535,20 @@
   }
 
   /* ── CHAT TOASTS — opt out of the tone-rail treatment.
-        Sonner concatenates per-toast classNames with the toaster's global,
-        so the wrapper always carries both .fsh-toast and our
-        .fsh-chat-toast-wrapper. The rules below match BOTH classes (high
-        specificity) and neutralise the chrome that doesn't fit a chat
-        preview — the "note" pill via .fsh-toast-title::before, the
-        background fill, the border-left tone rail, the drain bar, and
-        the structural paddings. The chat-message card inside owns all
-        visuals. ─────────────────────────────────────────────────────── */
+        Sonner appends per-toast `className` to the toaster's global
+        classNames.toast, so the wrapper li carries BOTH .fsh-toast (from
+        FshToaster) AND .fsh-chat-toast-wrapper (per-toast). The rules
+        below match the compound selector and neutralise the chrome that
+        doesn't fit a chat preview: the "note" pill drawn via
+        .fsh-toast-title::before, the background fill, the border-left
+        tone rail, the inset paddings, and the bottom drain bar.
+
+        We deliberately DO NOT `display: none` the title / description /
+        content elements themselves, because for toast.custom() sonner
+        may host our JSX inside the title slot — hiding it hides the
+        preview entirely. Removing only the cosmetic pseudo + chrome is
+        enough; sonner's structural divs collapse to a transparent
+        wrapper that our chat card paints over. ───────────────────── */
   [data-sonner-toast].fsh-toast.fsh-chat-toast-wrapper {
     background: transparent !important;
     border: none !important;
@@ -1554,12 +1560,22 @@
     /* Drain bar — would otherwise hover under our floating card. */
     display: none !important;
   }
+  [data-sonner-toast].fsh-toast.fsh-chat-toast-wrapper .fsh-toast-title::before {
+    /* "note" pseudo-pill — kill the content, not the host element. */
+    content: none !important;
+    display: none !important;
+  }
+  [data-sonner-toast].fsh-toast.fsh-chat-toast-wrapper .fsh-toast-title {
+    /* The host element may carry tone-rail flex/padding rules; flatten
+       so our card fills the wrapper edge-to-edge. */
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+    color: inherit !important;
+  }
   [data-sonner-toast].fsh-toast.fsh-chat-toast-wrapper [data-icon],
-  [data-sonner-toast].fsh-toast.fsh-chat-toast-wrapper .fsh-toast-title,
-  [data-sonner-toast].fsh-toast.fsh-chat-toast-wrapper .fsh-toast-description,
-  [data-sonner-toast].fsh-toast.fsh-chat-toast-wrapper .fsh-toast-close,
-  [data-sonner-toast].fsh-toast.fsh-chat-toast-wrapper .fsh-toast-action,
-  [data-sonner-toast].fsh-toast.fsh-chat-toast-wrapper .fsh-toast-cancel {
+  [data-sonner-toast].fsh-toast.fsh-chat-toast-wrapper .fsh-toast-close {
+    /* Sonner's icon plate + close button — our card has its own X. */
     display: none !important;
   }
 }
