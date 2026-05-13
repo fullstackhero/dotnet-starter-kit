@@ -55,7 +55,7 @@
   <Folder Name="/Host/">
     <Project Path="Host/FSH.Starter.AppHost/FSH.Starter.AppHost.csproj" Id="86bd02ee-f1b5-472c-b5bd-bc607fe084de" />
     <Project Path="Host/FSH.Starter.Api/FSH.Starter.Api.csproj" Id="187ce245-0a57-469c-96c2-a88902f2d40d" />
-
+    <Project Path="Host/FSH.Starter.DbMigrator/FSH.Starter.DbMigrator.csproj" />
   </Folder>
   <Folder Name="/Host/Migrations/">
     <Project Path="Host/FSH.Starter.Migrations.PostgreSQL/FSH.Starter.Migrations.PostgreSQL.csproj" Id="2c21903e-5dfa-47e0-82d9-1a0bd627fcbd" />
