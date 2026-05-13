@@ -1533,6 +1533,35 @@
       to   { opacity: 1; }
     }
   }
+
+  /* ── CHAT TOASTS — opt out of the tone-rail treatment.
+        Sonner concatenates per-toast classNames with the toaster's global,
+        so the wrapper always carries both .fsh-toast and our
+        .fsh-chat-toast-wrapper. The rules below match BOTH classes (high
+        specificity) and neutralise the chrome that doesn't fit a chat
+        preview — the "note" pill via .fsh-toast-title::before, the
+        background fill, the border-left tone rail, the drain bar, and
+        the structural paddings. The chat-message card inside owns all
+        visuals. ─────────────────────────────────────────────────────── */
+  [data-sonner-toast].fsh-toast.fsh-chat-toast-wrapper {
+    background: transparent !important;
+    border: none !important;
+    border-left: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+  }
+  [data-sonner-toast].fsh-toast.fsh-chat-toast-wrapper::after {
+    /* Drain bar — would otherwise hover under our floating card. */
+    display: none !important;
+  }
+  [data-sonner-toast].fsh-toast.fsh-chat-toast-wrapper [data-icon],
+  [data-sonner-toast].fsh-toast.fsh-chat-toast-wrapper .fsh-toast-title,
+  [data-sonner-toast].fsh-toast.fsh-chat-toast-wrapper .fsh-toast-description,
+  [data-sonner-toast].fsh-toast.fsh-chat-toast-wrapper .fsh-toast-close,
+  [data-sonner-toast].fsh-toast.fsh-chat-toast-wrapper .fsh-toast-action,
+  [data-sonner-toast].fsh-toast.fsh-chat-toast-wrapper .fsh-toast-cancel {
+    display: none !important;
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────

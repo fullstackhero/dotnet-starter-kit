@@ -7,6 +7,7 @@ import type { ChannelDto, MessageDto } from "@/api/chat";
 import { useAuth } from "@/auth/use-auth";
 import { useRealtimeEvent } from "@/realtime/realtime-context";
 import { useUserDisplay } from "@/lib/use-user-display";
+import { Avatar } from "@/components/ui/avatar";
 import { cn } from "@/lib/cn";
 
 /**
@@ -48,6 +49,11 @@ export function ChatGlobalNotifier() {
       // non-/chat pages.
       void queryClient.invalidateQueries({ queryKey: ["chat", "my-channels"] });
 
+      // unstyled: true bypasses sonner's internal defaults; classNames.toast
+      // REPLACES the FshToaster's global "fsh-toast" class on this single
+      // wrapper li (otherwise the tone-rail CSS would inject a lowercase
+      // "note" pill above our preview). The replacement class is intentionally
+      // bare — globals.css carries no rules for it.
       toast.custom(
         (id) => (
           <ChatToast
@@ -59,7 +65,16 @@ export function ChatGlobalNotifier() {
             onDismiss={() => toast.dismiss(id)}
           />
         ),
-        { duration: 6_000 },
+        {
+          duration: 6_000,
+          unstyled: true,
+          classNames: {
+            toast: "fsh-chat-toast-wrapper",
+            title: "fsh-chat-toast-wrapper-title",
+            description: "fsh-chat-toast-wrapper-desc",
+            closeButton: "fsh-chat-toast-wrapper-close",
+          },
+        },
       );
     },
     [user?.id],
@@ -92,7 +107,7 @@ function ChatToast({
       : channel.type === 0
         ? "direct message"
         : "group chat";
-  const Icon = !channel
+  const ChannelIcon = !channel
     ? MessageCircle
     : channel.type === 2
       ? channel.isPrivate
@@ -101,63 +116,107 @@ function ChatToast({
       : Users2;
 
   const body = (payload.body ?? "").trim();
-  const preview = body.length > 120 ? `${body.slice(0, 120)}…` : body;
+  const preview = body.length > 140 ? `${body.slice(0, 140)}…` : body;
 
   return (
     <div
-      className={cn(
-        "relative flex w-[360px] items-start gap-3 rounded-xl border p-3 pr-9 text-left",
-        "border-[var(--color-border)] bg-[var(--color-surface-1)] shadow-[var(--shadow-lift)]",
-        // Subtle brand glow along the leading edge so the toast reads as a
-        // chat affordance, not a system notice.
-        "before:pointer-events-none before:absolute before:inset-y-2 before:left-0 before:w-0.5",
-        "before:rounded-r-full before:bg-[var(--color-primary)] before:opacity-70",
-      )}
       role="status"
       aria-live="polite"
+      className={cn(
+        // Sized to feel like a chat-message preview, not a system note.
+        "fsh-chat-toast relative w-[380px] overflow-hidden rounded-xl",
+        "border border-[var(--color-border)] bg-[var(--color-card)]",
+        "shadow-[var(--shadow-lift)]",
+      )}
     >
+      {/* Atmospheric brand wash on the leading edge — mirrors the
+          chat-channel-header pseudo so a toast reads as part of the
+          chat family, not the .fsh-toast tone-rail family. */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 left-0 w-1 bg-[var(--color-primary)] opacity-90"
+      />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse 50% 80% at 0% 50%, oklch(from var(--color-primary) l c h / 0.10), transparent 65%)",
+        }}
+      />
+
+      {/* The card body — clickable for navigation. The dismiss button is
+          rendered as a sibling so its click can stopPropagation cleanly. */}
       <button
         type="button"
         onClick={onView}
+        title="Open conversation"
         className={cn(
-          "flex flex-1 cursor-pointer items-start gap-3 text-left",
-          "rounded-md outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
+          "relative flex w-full items-start gap-3 p-3 pr-9 text-left",
+          "cursor-pointer transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
+          "hover:bg-[oklch(from_var(--color-primary)_l_c_h_/_0.04)]",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
         )}
       >
-        <span
-          aria-hidden
-          className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-[var(--color-primary-soft)] text-[var(--color-primary)]"
-        >
-          <Icon className="h-3.5 w-3.5" />
-        </span>
+        <Avatar
+          name={author.name}
+          src={author.imageUrl ?? null}
+          size="md"
+          className="shrink-0"
+        />
+
         <div className="min-w-0 flex-1">
-          <div className="flex items-baseline gap-1.5">
-            <span className="truncate text-sm font-semibold tracking-tight text-[var(--color-foreground)]">
+          {/* Author row */}
+          <div className="flex items-center gap-2">
+            <span className="truncate text-[13.5px] font-semibold tracking-tight text-[var(--color-foreground)]">
               {author.name}
             </span>
-            <span className="truncate font-mono text-[10.5px] uppercase tracking-[0.10em] text-[var(--color-muted-foreground)]">
-              in {channelLabel}
+            <span
+              aria-hidden
+              className="h-1 w-1 shrink-0 rounded-full bg-[var(--color-primary)] opacity-70"
+            />
+            <span className="truncate font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+              just now
             </span>
           </div>
+
+          {/* Channel context */}
+          <div className="mt-0.5 flex items-center gap-1.5 text-[var(--color-muted-foreground)]">
+            <ChannelIcon className="h-3 w-3 shrink-0" aria-hidden />
+            <span className="truncate font-mono text-[10.5px] uppercase tracking-[0.12em]">
+              {channelLabel}
+            </span>
+          </div>
+
+          {/* Body preview */}
           {preview ? (
-            <p className="mt-0.5 line-clamp-2 text-[12.5px] leading-relaxed text-[var(--color-muted-foreground)]">
+            <p
+              className={cn(
+                "mt-2 line-clamp-2 text-[13px] leading-relaxed text-[var(--color-foreground)]",
+                // Subtle italic so the preview reads as "quoted" content
+                // rather than a UI label.
+                "[font-feature-settings:'ss01','cv11']",
+              )}
+            >
               {preview}
             </p>
           ) : (
-            <p className="mt-0.5 font-mono text-[10.5px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+            <p className="mt-2 font-mono text-[10.5px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
               (attachment or empty body)
             </p>
           )}
         </div>
       </button>
 
+      {/* Dismiss — top-right, sibling to the click target so its onClick
+          short-circuits the card's onView. */}
       <button
         type="button"
         onClick={(e) => {
           e.stopPropagation();
           onDismiss();
         }}
-        aria-label="Dismiss"
+        aria-label="Dismiss notification"
         title="Dismiss"
         className={cn(
           "absolute right-2 top-2 grid h-6 w-6 cursor-pointer place-items-center rounded-md",
