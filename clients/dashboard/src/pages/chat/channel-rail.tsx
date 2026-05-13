@@ -39,10 +39,14 @@ export function ChannelRail({
   selectedChannelId,
   onSelect,
   selfUserId,
+  hasActiveChannel = false,
 }: {
   selectedChannelId?: string;
   onSelect: (channelId: string) => void;
   selfUserId?: string;
+  /** When true and viewport is below md, the rail collapses so the
+   *  message column can take over the screen. */
+  hasActiveChannel?: boolean;
 }) {
   const [filter, setFilter] = useState("");
   const [createChannelOpen, setCreateChannelOpen] = useState(false);
@@ -70,7 +74,15 @@ export function ChannelRail({
   const totalShown = namedChannels.length + dms.length;
 
   return (
-    <aside className="flex h-full w-64 shrink-0 flex-col border-r border-[var(--color-border)] bg-[var(--color-surface-2)]">
+    <aside
+      className={cn(
+        "h-full shrink-0 flex-col border-r border-[var(--color-border)] bg-[var(--color-surface-2)]",
+        // Mobile: full-width when no channel is active; collapsed when one is.
+        // Desktop: always a fixed 256px column alongside the message area.
+        "md:flex md:w-64",
+        hasActiveChannel ? "hidden md:flex" : "flex w-full",
+      )}
+    >
       {/* Brand mark + section title */}
       <div className="flex h-14 shrink-0 items-center gap-2 border-b border-[var(--color-border)] px-4">
         <span

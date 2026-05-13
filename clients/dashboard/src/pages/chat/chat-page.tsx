@@ -1,7 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Hash, Lock, MessageCircle, Search, Settings, Users2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Hash,
+  Lock,
+  MessageCircle,
+  Search,
+  Settings,
+  Users2,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   getChannelById,
@@ -70,8 +78,17 @@ export function ChatPage() {
         selectedChannelId={routeChannelId}
         onSelect={(id) => navigate(`/chat/${id}`)}
         selfUserId={user?.id}
+        hasActiveChannel={Boolean(routeChannelId)}
       />
-      <main className="flex min-w-0 flex-1 flex-col bg-[var(--color-surface-1)]">
+      <main
+        className={cn(
+          "min-w-0 flex-1 flex-col bg-[var(--color-surface-1)]",
+          // Mobile: only one of rail / main is visible at a time. With an
+          // active channel selected, the main column takes over and the
+          // rail collapses; without one, the rail fills the screen.
+          routeChannelId ? "flex" : "hidden md:flex",
+        )}
+      >
         {routeChannelId ? (
           <ActiveChannel channelId={routeChannelId} selfUserId={user?.id} />
         ) : (
@@ -130,6 +147,7 @@ function ActiveChannel({
   channelId: string;
   selfUserId?: string;
 }) {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [replyTo, setReplyTo] = useState<MessageDto | null>(null);
   const [searching, setSearching] = useState(false);
@@ -223,12 +241,27 @@ function ActiveChannel({
       ) : (
         <header
           className={cn(
-            "chat-channel-header flex h-14 shrink-0 items-center gap-3 border-b border-[var(--color-border)] px-4",
+            "chat-channel-header flex h-14 shrink-0 items-center gap-2 border-b border-[var(--color-border)] px-3 md:gap-3 md:px-4",
           )}
         >
+          {/* Mobile back button — returns to the rail-only view. Hidden
+              from md+ where the rail is always visible alongside. */}
+          <button
+            type="button"
+            onClick={() => navigate("/chat")}
+            aria-label="Back to channels"
+            title="Back to channels"
+            className={cn(
+              "grid h-8 w-8 shrink-0 cursor-pointer place-items-center rounded-md md:hidden",
+              "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
+              "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
+            )}
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </button>
           <span
             aria-hidden
-            className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-[var(--color-surface-3)] text-[var(--color-muted-foreground)]"
+            className="hidden h-7 w-7 shrink-0 place-items-center rounded-md bg-[var(--color-surface-3)] text-[var(--color-muted-foreground)] md:grid"
           >
             <Icon className="h-3.5 w-3.5" />
           </span>
@@ -270,7 +303,7 @@ function ActiveChannel({
               <Settings className="h-3.5 w-3.5" />
             </button>
           )}
-          <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-0.5 font-mono text-[10.5px] text-[var(--color-muted-foreground)]">
+          <span className="hidden rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-0.5 font-mono text-[10.5px] text-[var(--color-muted-foreground)] md:inline">
             <span className="tabular-nums">{channel.members.length}</span>{" "}
             {channel.members.length === 1 ? "member" : "members"}
           </span>
