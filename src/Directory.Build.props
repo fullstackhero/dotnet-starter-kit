@@ -8,9 +8,12 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 
-		<!-- Code quality & analysis -->
-		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-		<CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
+		<!-- Code quality & analysis. Warnings are errors locally so the
+		     dev loop matches CI (.github/workflows/ci.yml passes
+		     -warnaserror to dotnet build); previously the divergence
+		     let analyzer regressions slip through to CI. -->
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 		<AnalysisLevel>latest</AnalysisLevel>
 		<AnalysisMode>AllEnabledByDefault</AnalysisMode>
