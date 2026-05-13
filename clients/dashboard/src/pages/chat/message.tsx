@@ -109,16 +109,17 @@ export function Message({
       data-merged={isMerged || undefined}
       data-pending={isPending || undefined}
       className={cn(
-        "group/message relative flex gap-2 px-4 pb-1.5",
+        "group/message relative flex gap-2 px-4 pt-2 pb-1",
         isOwn ? "justify-end" : "justify-start",
-        // Spacing between consecutive bubbles. Merged rows (same author
-        // within the merge window) need clearly-readable space so short
-        // back-to-back bubbles ("hi", "?") read as distinct items. Non-
-        // merged rows get more space to mark the author / time change.
-        // Total gaps: merged → 6 + 14 = 20px; author change → 6 + 24 = 30px.
-        isMerged ? "pt-3.5" : "pt-6",
-        // Tentative own messages fade until the realtime echo (or HTTP
-        // response) replaces them with the real DTO.
+        // Uniform row padding regardless of merge state — every bubble is
+        // separated from the previous one by the same 12px (next pt-2 +
+        // previous pb-1 = 12). When the row is non-merged, the author
+        // header that renders inside the inner column adds its own visual
+        // break ABOVE the bubble; the row's outer padding stays constant.
+        // Earlier conditional pt-3.5 / pt-6 was the source of the "weird,
+        // non-uniform" spacing — every transition (merged↔merged,
+        // merged↔non-merged) produced a slightly different gap.
+        // Tentative own messages fade until the realtime echo lands.
         isPending && "opacity-70",
       )}
     >
@@ -162,11 +163,14 @@ export function Message({
       >
         {/* Header row — name + handle + time for others, just time for own
             (the user knows who they are). Shown only on first-of-block;
-            merged rows pick up the time via the hover-only label above. */}
+            merged rows pick up the time via the hover-only label above.
+            Sits as its own flex item ABOVE the bubble inside the inner
+            column; outer row padding is uniform so the author-header's
+            visual break is the SAME between every author-change boundary. */}
         {!isMerged && (
           <div
             className={cn(
-              "mb-0.5 flex items-baseline gap-2 px-1",
+              "mb-1 flex items-baseline gap-2 px-1",
               isOwn && "justify-end",
             )}
           >
