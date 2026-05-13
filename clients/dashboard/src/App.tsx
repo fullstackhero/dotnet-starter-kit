@@ -1,6 +1,13 @@
 import { RouterProvider } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
+import {
+  AlertCircle,
+  AlertTriangle,
+  CheckCircle2,
+  Info,
+  Loader2,
+} from "lucide-react";
 import { queryClient } from "@/lib/query-client";
 import { AuthProvider } from "@/auth/auth-context";
 import { ThemeProvider, useTheme } from "@/components/theme/theme-provider";
@@ -23,18 +30,18 @@ export function App() {
 }
 
 /**
- * FSH-native toaster — "tone rail" treatment.
+ * FSH-native toaster — frosted "console card" treatment.
  *
- * `richColors` is intentionally off; the colour story lives in a 3px tone-coloured left rail
- * (border-left, never repainted) and a small lowercase mono pill that lines up inline with the
- * title (`ok` / `err` / `warn` / `info` / `note`). The default sonner icon plate is hidden —
- * type is announced typographically. All chrome lives in globals.css under the `.fsh-toast`
- * family; the `closeButton` flag below makes sonner render the hairline X we re-style there.
+ * Per-type Lucide icon rendered inside a tone-tinted disc (top-left), a
+ * frosted gradient-bordered surface that matches the DropdownMenu /
+ * Dialog vocabulary, a radial brand-tone glow behind the card, and a
+ * refined drain bar tinted with the same tone. All chrome lives in
+ * globals.css under the `.fsh-toast` family; the `closeButton` flag
+ * makes sonner render the hairline X we re-style there.
  *
- * `theme` is sourced from the app's ThemeProvider (light/dark) rather than sonner's "system"
- * default — otherwise the toast follows the OS prefers-color-scheme instead of the in-app
- * theme toggle, so a user on a light OS who switched the dashboard to dark gets a glaring
- * white toast.
+ * `theme` is sourced from the app's ThemeProvider (light/dark) rather
+ * than sonner's "system" default — otherwise the toast follows the OS
+ * prefers-color-scheme instead of the in-app theme toggle.
  */
 function FshToaster() {
   const { resolved } = useTheme();
@@ -46,6 +53,13 @@ function FshToaster() {
       gap={10}
       expand
       visibleToasts={4}
+      icons={{
+        success: <CheckCircle2 className="fsh-toast-glyph" strokeWidth={2.25} />,
+        error: <AlertCircle className="fsh-toast-glyph" strokeWidth={2.25} />,
+        warning: <AlertTriangle className="fsh-toast-glyph" strokeWidth={2.25} />,
+        info: <Info className="fsh-toast-glyph" strokeWidth={2.25} />,
+        loading: <Loader2 className="fsh-toast-glyph fsh-toast-glyph-spin" strokeWidth={2.25} />,
+      }}
       toastOptions={{
         duration: 4200,
         classNames: {
