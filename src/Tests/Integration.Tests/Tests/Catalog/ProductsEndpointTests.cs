@@ -506,14 +506,16 @@ public sealed class ProductsEndpointTests
     private static string UniqueName(string prefix) =>
         $"Product-{prefix}-{Guid.NewGuid().ToString("N")[..8]}";
 
+    // The Product aggregate canonicalises the SKU to upper-case on Create, so
+    // the helper emits an already-canonical form to keep assertions trivial.
     private static string UniqueSku(string prefix) =>
-        $"TST-{prefix}-{Guid.NewGuid().ToString("N")[..6].ToUpperInvariant()}";
+        $"TST-{prefix.ToUpperInvariant()}-{Guid.NewGuid().ToString("N")[..6].ToUpperInvariant()}";
 
     private static async Task<(Guid BrandId, Guid CategoryId)> PickBrandAndCategoryAsync(HttpClient client)
     {
         using var brandsResp = await client.GetAsync(
             $"{TestConstants.CatalogBasePath}/brands?pageNumber=1&pageSize=1");
-        var brands = await brandsResp.DeserializeAsync<PagedResult<BrandDto>>();
+        var brands = await brandsResp.DeserializeAsync<PagedResult<Infrastructure.BrandDto>>();
         brands.Items.Count.ShouldBeGreaterThan(0, "seed data should provide at least one brand");
 
         using var categoriesResp = await client.GetAsync(
