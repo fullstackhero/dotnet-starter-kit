@@ -12,6 +12,6 @@ public sealed record SendMessageAttachmentInput(
 
 public sealed record SendMessageCommand(
     Guid ChannelId,
-    string Body,
+    string? Body,
     Guid? ParentMessageId,
     IReadOnlyList<SendMessageAttachmentInput> Attachments) : ICommand<MessageDto>;

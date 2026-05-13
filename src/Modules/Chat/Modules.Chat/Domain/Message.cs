@@ -35,23 +35,27 @@ public sealed class Message : AggregateRoot<Guid>
     public static Message Create(
         Guid channelId,
         string authorUserId,
-        string body,
+        string? body,
         Guid? parentMessageId = null,
         IReadOnlyList<ParsedMention>? mentions = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(authorUserId);
-        ArgumentException.ThrowIfNullOrWhiteSpace(body);
         if (channelId == Guid.Empty)
         {
             throw new ArgumentException("ChannelId is required.", nameof(channelId));
         }
+
+        // Body is optional at the aggregate level — the SendMessage validator
+        // enforces "body OR at least one attachment" since attachments attach
+        // AFTER Create via AddAttachment.
+        var trimmed = string.IsNullOrWhiteSpace(body) ? null : body.Trim();
 
         var m = new Message
         {
             Id = Guid.CreateVersion7(),
             ChannelId = channelId,
             AuthorUserId = authorUserId,
-            Body = body.Trim(),
+            Body = trimmed,
             ParentMessageId = parentMessageId,
             CreatedAtUtc = DateTime.UtcNow,
         };

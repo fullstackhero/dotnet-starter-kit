@@ -24,7 +24,7 @@ public static class SendMessageEndpoint
             .WithIdempotency();
 
     public sealed record SendMessageBody(
-        string Body,
+        string? Body,
         Guid? ParentMessageId,
         IReadOnlyList<SendMessageAttachmentInput>? Attachments);
 }

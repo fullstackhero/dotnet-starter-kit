@@ -197,6 +197,10 @@ function ActiveChannel({
 
   useEffect(() => {
     if (!latestMessageId) return;
+    // Skip optimistic temp messages — the server can't parse "temp:xxx" as
+    // a Guid and the request 500s. Real id arrives via realtime; this
+    // effect re-fires then.
+    if (latestMessageId.startsWith("temp:")) return;
     markReadMutation.mutate({ id: latestMessageId });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [latestMessageId, channelId]);
