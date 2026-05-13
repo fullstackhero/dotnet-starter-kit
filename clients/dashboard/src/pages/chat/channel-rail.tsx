@@ -272,7 +272,16 @@ function ChannelRow({
         )}
       />
 
-      <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
+      {channel.type === 0 && otherDmMember ? (
+        <Avatar
+          name={dmPartner.name}
+          src={dmPartner.imageUrl ?? null}
+          size="xs"
+          className="shrink-0"
+        />
+      ) : (
+        <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
+      )}
       <span
         className={cn(
           "truncate text-sm",

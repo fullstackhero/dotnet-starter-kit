@@ -1,7 +1,7 @@
 import * as React from "react";
 import { cn } from "@/lib/cn";
 
-type AvatarSize = "sm" | "md" | "lg";
+type AvatarSize = "xs" | "sm" | "md" | "lg";
 
 type AvatarProps = React.HTMLAttributes<HTMLSpanElement> & {
   /** Display name; up to two leading characters become the fallback initials. */
@@ -16,12 +16,14 @@ type AvatarProps = React.HTMLAttributes<HTMLSpanElement> & {
 };
 
 const sizeClass: Record<AvatarSize, string> = {
+  xs: "h-5 w-5 text-[10px]",
   sm: "h-7 w-7 text-[11px]",
   md: "h-9 w-9 text-[13px]",
   lg: "h-12 w-12 text-[16px]",
 };
 
 const dotSize: Record<AvatarSize, string> = {
+  xs: "h-1 w-1",
   sm: "h-1.5 w-1.5",
   md: "h-2 w-2",
   lg: "h-2.5 w-2.5",
