@@ -21,7 +21,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/cn";
-import { groupReactions, shortenUserId, shortTime } from "@/pages/chat/chat-utils";
+import { useUserDisplay } from "@/lib/use-user-display";
+import { groupReactions, shortTime } from "@/pages/chat/chat-utils";
 
 const QUICK_REACTIONS = ["👍", "🎉", "❤️", "👀", "🔥", "🚀"] as const;
 
@@ -49,6 +50,7 @@ export function Message({
   const isOwn = selfUserId === message.authorUserId;
   const isDeleted = message.deletedAtUtc !== null && message.deletedAtUtc !== undefined;
   const reactions = groupReactions(message, selfUserId);
+  const author = useUserDisplay(message.authorUserId);
 
   return (
     <div
@@ -78,16 +80,24 @@ export function Message({
             {shortTime(message.createdAtUtc)}
           </span>
         ) : (
-          <Avatar name={shortenUserId(message.authorUserId)} size="sm" />
+          <Avatar name={author.name} src={author.imageUrl ?? null} size="sm" />
         )}
       </div>
 
       <div className="min-w-0 flex-1">
         {!isMerged && (
           <div className="flex items-baseline gap-2">
-            <span className="text-sm font-semibold tracking-tight text-[var(--color-foreground)]">
-              {shortenUserId(message.authorUserId)}
+            <span
+              className="text-sm font-semibold tracking-tight text-[var(--color-foreground)]"
+              title={author.handle ? `@${author.handle}` : undefined}
+            >
+              {author.name}
             </span>
+            {author.handle && author.handle.toLowerCase() !== author.name.toLowerCase() && (
+              <span className="font-mono text-[10.5px] text-[var(--color-muted-foreground)]">
+                @{author.handle}
+              </span>
+            )}
             <span className="font-mono text-[10.5px] tabular-nums text-[var(--color-muted-foreground)]">
               {shortTime(message.createdAtUtc)}
             </span>

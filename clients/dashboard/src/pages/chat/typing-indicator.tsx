@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRealtimeEvent } from "@/realtime/realtime-context";
-import { shortenUserId } from "@/pages/chat/chat-utils";
+import { useUserDisplay } from "@/lib/use-user-display";
 
 /** Auto-clear typing markers after 4s — slightly longer than the hub's 3s throttle. */
 const TYPING_TTL_MS = 4_000;
@@ -53,14 +53,6 @@ export function TypingIndicator({
     return <div className="h-5 px-4" aria-hidden />;
   }
 
-  const names = markers.map((m) => shortenUserId(m.userId));
-  const label =
-    names.length === 1
-      ? `${names[0]} is typing`
-      : names.length === 2
-        ? `${names[0]} and ${names[1]} are typing`
-        : `${names[0]} and ${names.length - 1} others are typing`;
-
   return (
     <div className="flex h-5 items-center gap-2 px-4 font-mono text-[10.5px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
       <span aria-hidden className="inline-flex items-center gap-0.5">
@@ -68,7 +60,32 @@ export function TypingIndicator({
         <span className="chat-typing-dot inline-block h-1 w-1 rounded-full bg-[var(--color-primary)]" />
         <span className="chat-typing-dot inline-block h-1 w-1 rounded-full bg-[var(--color-primary)]" />
       </span>
-      <span>{label}…</span>
+      <span>
+        {markers.length === 1 ? (
+          <>
+            <UserName userId={markers[0].userId} /> is typing…
+          </>
+        ) : markers.length === 2 ? (
+          <>
+            <UserName userId={markers[0].userId} /> and <UserName userId={markers[1].userId} /> are
+            typing…
+          </>
+        ) : (
+          <>
+            <UserName userId={markers[0].userId} /> and {markers.length - 1} others are typing…
+          </>
+        )}
+      </span>
     </div>
   );
+}
+
+/**
+ * Inline name resolver — extracted so each marker can have its own
+ * useUserDisplay hook (you can't call hooks inside an array .map). Renders
+ * just the resolved name as a fragment.
+ */
+function UserName({ userId }: { userId: string }) {
+  const u = useUserDisplay(userId);
+  return <>{u.name}</>;
 }

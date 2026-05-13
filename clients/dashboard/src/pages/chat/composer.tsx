@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Send } from "lucide-react";
-import { sendMessage } from "@/api/chat";
+import { sendMessage, type ChannelTypeValue } from "@/api/chat";
 import { useRealtime } from "@/realtime/realtime-context";
 import { cn } from "@/lib/cn";
 
@@ -14,10 +14,13 @@ import { cn } from "@/lib/cn";
 export function Composer({
   channelId,
   channelTitle,
+  channelType,
   parentMessageId,
 }: {
   channelId: string;
   channelTitle: string;
+  /** Discriminator for the placeholder: only channels (type=2) get the # prefix. */
+  channelType?: ChannelTypeValue;
   parentMessageId?: string;
 }) {
   const [body, setBody] = useState("");
@@ -97,7 +100,9 @@ export function Composer({
           placeholder={
             parentMessageId
               ? "Reply in thread…"
-              : `Message ${channelTitle.startsWith("@") ? channelTitle : `#${channelTitle}`}`
+              : channelType === 2
+                ? `Message #${channelTitle}`
+                : `Message ${channelTitle}`
           }
           rows={1}
           className={cn(

@@ -10,6 +10,7 @@ import { MessageList } from "@/pages/chat/message-list";
 import { TypingIndicator } from "@/pages/chat/typing-indicator";
 import { channelTitle } from "@/pages/chat/chat-utils";
 import { cn } from "@/lib/cn";
+import { useUserDisplay } from "@/lib/use-user-display";
 
 /**
  * /chat — top-level chat shell.
@@ -134,6 +135,11 @@ function ActiveChannel({
   const latestMessageId = useMemo(() => messagesQuery.data?.[0]?.id, [messagesQuery.data]);
   const selfMember = channel?.members.find((m) => m.userId === selfUserId);
   const lastReadMessageId = selfMember?.lastReadMessageId ?? null;
+  // For 1-on-1 DMs, resolve the other member's real name so the header +
+  // composer placeholder show "Alice Anderson" instead of "@4d3a45fc".
+  const otherDmMember =
+    channel?.type === 0 ? channel.members.find((m) => m.userId !== selfUserId) : null;
+  const dmPartner = useUserDisplay(otherDmMember?.userId);
 
   // Mark-read effect — every time the latest message id changes (new
   // messages land via realtime), advance the watermark. We swallow errors
@@ -172,7 +178,8 @@ function ActiveChannel({
     );
   }
 
-  const title = channelTitle(channel, selfUserId);
+  const title =
+    channel.type === 0 && otherDmMember ? dmPartner.name : channelTitle(channel, selfUserId);
   const Icon =
     channel.type === 2 ? (channel.isPrivate ? Lock : Hash) : Users2;
 
@@ -219,7 +226,7 @@ function ActiveChannel({
       <TypingIndicator channelId={channelId} selfUserId={selfUserId} />
 
       {/* Composer plinth — brand-tinted on focus. */}
-      <Composer channelId={channelId} channelTitle={title} />
+      <Composer channelId={channelId} channelTitle={title} channelType={channel.type} />
     </div>
   );
 }

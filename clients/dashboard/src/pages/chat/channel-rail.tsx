@@ -23,6 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar } from "@/components/ui/avatar";
 import { RealtimeStatusPill } from "@/components/realtime/realtime-status-pill";
 import { cn } from "@/lib/cn";
+import { useUserDisplay } from "@/lib/use-user-display";
 import { channelTitle } from "@/pages/chat/chat-utils";
 
 /**
@@ -235,7 +236,13 @@ function ChannelRow({
   selected: boolean;
   onSelect: () => void;
 }) {
-  const title = channelTitle(channel, selfUserId);
+  // For 1-on-1 DMs, resolve the partner's real name. Group DMs (type=1) and
+  // named channels (type=2) keep channelTitle's fallback formatting.
+  const otherDmMember =
+    channel.type === 0 ? channel.members.find((m) => m.userId !== selfUserId) : null;
+  const dmPartner = useUserDisplay(otherDmMember?.userId);
+  const title =
+    channel.type === 0 && otherDmMember ? dmPartner.name : channelTitle(channel, selfUserId);
   const hasUnread = channel.unreadCount > 0;
   const Icon =
     channel.type === 2 ? (channel.isPrivate ? Lock : Hash) : Users2;
