@@ -71,19 +71,41 @@ export function ChatPage() {
 
 function EmptyState() {
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-3 px-6">
-      <span
-        aria-hidden
-        className="grid h-12 w-12 place-items-center rounded-xl bg-[var(--color-primary-soft)] text-[var(--color-primary)]"
-      >
-        <MessageCircle className="h-5 w-5" />
-      </span>
-      <p className="text-display text-base font-semibold tracking-tight">
-        Select a channel
-      </p>
-      <p className="max-w-md text-center text-sm text-[var(--color-muted-foreground)]">
-        Pick a conversation on the left, or create a channel to start one.
-      </p>
+    <div className="flex h-full items-center justify-center p-6 md:p-10">
+      <div className="chat-empty-hero relative flex max-w-lg flex-col items-start gap-4 text-left">
+        <span
+          aria-hidden
+          className="grid h-12 w-12 place-items-center rounded-xl bg-[var(--color-primary-soft)] text-[var(--color-primary)] ring-1 ring-[oklch(from_var(--color-primary)_l_c_h_/_0.25)]"
+        >
+          <MessageCircle className="h-5 w-5" />
+        </span>
+        <div className="flex flex-col gap-1.5">
+          <p className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-primary)]">
+            FSH · Chat
+          </p>
+          <h2 className="text-display text-2xl font-semibold leading-tight tracking-tight">
+            Pick a conversation
+            <br />
+            or start one.
+          </h2>
+          <p className="text-sm leading-relaxed text-[var(--color-muted-foreground)]">
+            Choose a channel on the left to jump in. Channels are public to your
+            tenant; DMs are private to the people in them. Mentions land in the
+            notification bell, top right.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+          <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+            ↵ Send
+          </span>
+          <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+            ⇧↵ Newline
+          </span>
+          <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+            @ Mention
+          </span>
+        </div>
+      </div>
     </div>
   );
 }
@@ -110,6 +132,8 @@ function ActiveChannel({
 
   const channel = channelQuery.data;
   const latestMessageId = useMemo(() => messagesQuery.data?.[0]?.id, [messagesQuery.data]);
+  const selfMember = channel?.members.find((m) => m.userId === selfUserId);
+  const lastReadMessageId = selfMember?.lastReadMessageId ?? null;
 
   // Mark-read effect — every time the latest message id changes (new
   // messages land via realtime), advance the watermark. We swallow errors
@@ -184,7 +208,11 @@ function ActiveChannel({
 
       {/* Message list — fills the remaining height. */}
       <div className="min-h-0 flex-1">
-        <MessageList channelId={channelId} selfUserId={selfUserId} />
+        <MessageList
+          channelId={channelId}
+          selfUserId={selfUserId}
+          lastReadMessageId={lastReadMessageId}
+        />
       </div>
 
       {/* Typing presence row — reserved height so the composer doesn't jump. */}

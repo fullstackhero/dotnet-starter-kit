@@ -16,6 +16,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { RealtimeStatusPill } from "@/components/realtime/realtime-status-pill";
 import { cn } from "@/lib/cn";
 
 /**
@@ -182,9 +183,7 @@ export function NotificationBell() {
         </div>
 
         <div className="flex items-center justify-between border-t border-[var(--color-border)] px-4 py-2.5">
-          <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
-            Live · realtime
-          </p>
+          <RealtimeStatusPill />
           <button
             type="button"
             onClick={() => {

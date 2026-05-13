@@ -119,7 +119,7 @@ export function Composer({
 
       <div className="mt-1.5 flex items-center justify-between px-1">
         <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
-          ↵ Send · ⇧↵ Newline · @ Mention
+          ↵ Send · ⇧↵ Newline · Type @username to mention
         </span>
         {mutation.isError && (
           <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-destructive)]">

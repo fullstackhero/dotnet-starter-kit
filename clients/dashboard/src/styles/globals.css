@@ -1756,15 +1756,6 @@
   color: var(--color-primary);
 }
 
-.chat-mention {
-  display: inline;
-  padding: 0 0.25rem;
-  border-radius: 4px;
-  background-color: var(--color-primary-soft);
-  color: var(--color-primary);
-  font-weight: 500;
-}
-
 .chat-channel-header {
   position: relative;
   isolation: isolate;
@@ -1776,4 +1767,160 @@
   background: radial-gradient(ellipse 60% 80% at 100% 0%, oklch(from var(--color-primary) l c h / 0.08), transparent 70%);
   pointer-events: none;
   z-index: -1;
+}
+
+/* Jump-to-bottom pill — floats above the composer when the user has scrolled
+   up and new messages have arrived. Brand-tinted ring + glow, mono caption,
+   spring-in on mount. */
+@keyframes fsh-chat-jump-in {
+  0%   { transform: translateY(8px) scale(0.96); opacity: 0; }
+  100% { transform: translateY(0)    scale(1);    opacity: 1; }
+}
+.chat-jump-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 30px;
+  padding: 0 0.75rem 0 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid oklch(from var(--color-primary) l c h / 0.45);
+  background-color: oklch(from var(--color-surface-1) l c h / 0.92);
+  backdrop-filter: blur(8px);
+  box-shadow:
+    0 8px 24px -10px oklch(from var(--color-primary) l c h / 0.45),
+    0 0 0 4px oklch(from var(--color-primary) l c h / 0.08);
+  color: var(--color-foreground);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  animation: fsh-chat-jump-in var(--duration-default) var(--ease-out-cubic) both;
+  transition: transform var(--duration-fast) var(--ease-out-cubic),
+              box-shadow var(--duration-fast) var(--ease-out-cubic),
+              border-color var(--duration-fast) var(--ease-out-cubic);
+}
+.chat-jump-pill:hover {
+  transform: translateY(-1px);
+  border-color: var(--color-primary);
+  box-shadow:
+    0 12px 28px -10px oklch(from var(--color-primary) l c h / 0.55),
+    0 0 0 4px oklch(from var(--color-primary) l c h / 0.12);
+}
+.chat-jump-pill:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--color-ring),
+    0 8px 24px -10px oklch(from var(--color-primary) l c h / 0.45);
+}
+.chat-jump-pill .chat-jump-pill-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9999px;
+  background-color: var(--color-primary);
+  color: var(--color-primary-foreground);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+/* Connection-state pill — used in the rail footer + bell footer to honestly
+   reflect SignalR status. The dot pulses while reconnecting. */
+@keyframes fsh-chat-status-pulse {
+  0%, 100% { opacity: 1;   transform: scale(1);    }
+  50%      { opacity: 0.4; transform: scale(0.78); }
+}
+.chat-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-muted-foreground);
+}
+.chat-status-pill[data-status="connected"] .chat-status-dot {
+  background-color: var(--color-success);
+  box-shadow: 0 0 0 3px oklch(from var(--color-success) l c h / 0.18);
+}
+.chat-status-pill[data-status="reconnecting"] .chat-status-dot,
+.chat-status-pill[data-status="connecting"]   .chat-status-dot {
+  background-color: var(--color-warning);
+  box-shadow: 0 0 0 3px oklch(from var(--color-warning) l c h / 0.18);
+  animation: fsh-chat-status-pulse 1.2s var(--ease-in-out-cubic) infinite;
+}
+.chat-status-pill[data-status="error"] .chat-status-dot,
+.chat-status-pill[data-status="idle"]  .chat-status-dot {
+  background-color: var(--color-destructive);
+  box-shadow: 0 0 0 3px oklch(from var(--color-destructive) l c h / 0.18);
+}
+.chat-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+/* Empty-state hero panel for /chat when nothing is selected — atmospheric
+   brand wash, mirrors the NotificationBell dropdown hero family. */
+.chat-empty-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 1.25rem;
+  background-color: var(--color-surface-1);
+  padding: 2.5rem 2rem;
+}
+.chat-empty-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 60% at 0% 0%, oklch(from var(--color-primary) l c h / 0.18), transparent 65%),
+    radial-gradient(ellipse 50% 50% at 100% 100%, oklch(from var(--color-primary) calc(l + 0.08) c calc(h + 30) / 0.12), transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+}
+.chat-empty-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 50% 50%, oklch(from var(--color-primary) l c h / 0.32) 0.8px, transparent 0.9px);
+  background-size: 18px 18px;
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Interactive mention pill — keyboard-focusable, brand-tinted hover. */
+.chat-mention {
+  display: inline;
+  padding: 0 0.25rem;
+  border-radius: 4px;
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-weight: 500;
+}
+button.chat-mention {
+  cursor: pointer;
+  font: inherit;
+  border: 1px solid transparent;
+  transition: background-color var(--duration-fast) var(--ease-out-cubic),
+              border-color var(--duration-fast) var(--ease-out-cubic);
+}
+button.chat-mention:hover {
+  background-color: oklch(from var(--color-primary) l c h / 0.22);
+  border-color: oklch(from var(--color-primary) l c h / 0.45);
+}
+button.chat-mention:focus-visible {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-ring);
 }

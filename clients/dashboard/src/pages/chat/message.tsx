@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Pencil, SmilePlus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import {
   addReaction,
   deleteMessage,
@@ -10,7 +11,15 @@ import {
 } from "@/api/chat";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/cn";
 import { groupReactions, shortenUserId, shortTime } from "@/pages/chat/chat-utils";
 
@@ -141,7 +150,9 @@ export function Message({
 /**
  * Renders message body with @mention tokens promoted to inline pills. We
  * don't sanitize HTML — the body is rendered as plain text via React text
- * nodes; mentions are matched and split into segments client-side.
+ * nodes; mentions are matched and split into segments client-side. Mention
+ * pills are interactive — clicking one copies "@username" so it's easy to
+ * tag the same person back in a reply. Profile-peek is a future iteration.
  */
 function MessageBody({ body }: { body: string }) {
   const segments: Array<{ type: "text" | "mention"; value: string }> = [];
@@ -161,13 +172,30 @@ function MessageBody({ body }: { body: string }) {
   return (
     <p className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--color-foreground)]">
       {segments.map((seg, i) =>
-        seg.type === "mention" ? (
-          <span key={i} className="chat-mention">@{seg.value}</span>
-        ) : (
-          <span key={i}>{seg.value}</span>
-        ),
+        seg.type === "mention" ? <MentionPill key={i} username={seg.value} /> : <span key={i}>{seg.value}</span>,
       )}
     </p>
+  );
+}
+
+function MentionPill({ username }: { username: string }) {
+  const handleClick = () => {
+    const text = `@${username}`;
+    void navigator.clipboard
+      ?.writeText(text)
+      .then(() => toast.success(`Copied ${text}`))
+      .catch(() => toast.error("Couldn't copy to clipboard"));
+  };
+  return (
+    <button
+      type="button"
+      className="chat-mention"
+      onClick={handleClick}
+      title={`Copy @${username}`}
+      aria-label={`Mention of ${username}, click to copy`}
+    >
+      @{username}
+    </button>
   );
 }
 
@@ -214,6 +242,7 @@ function MessageActions({
 }) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const queryClient = useQueryClient();
   const isDeleted = message.deletedAtUtc !== null && message.deletedAtUtc !== undefined;
 
@@ -228,7 +257,10 @@ function MessageActions({
     mutationFn: () => deleteMessage(message.id),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["chat", "messages"] });
+      setConfirmingDelete(false);
+      toast.success("Message deleted");
     },
+    onError: () => toast.error("Couldn't delete the message"),
   });
 
   if (isDeleted) return null;
@@ -258,7 +290,7 @@ function MessageActions({
         {isOwn && (
           <ActionButton
             title="Delete"
-            onClick={() => deleteMutation.mutate()}
+            onClick={() => setConfirmingDelete(true)}
             destructive
           >
             <Trash2 className="h-3.5 w-3.5" />
@@ -303,7 +335,69 @@ function MessageActions({
           }}
         />
       )}
+
+      <DeleteMessageDialog
+        message={message}
+        open={confirmingDelete}
+        onOpenChange={setConfirmingDelete}
+        onConfirm={() => deleteMutation.mutate()}
+        pending={deleteMutation.isPending}
+      />
     </>
+  );
+}
+
+function DeleteMessageDialog({
+  message,
+  open,
+  onOpenChange,
+  onConfirm,
+  pending,
+}: {
+  message: MessageDto;
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  onConfirm: () => void;
+  pending: boolean;
+}) {
+  const preview = (message.body ?? "").trim();
+  const display = preview.length > 140 ? `${preview.slice(0, 140)}…` : preview;
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Delete this message?</DialogTitle>
+          <DialogDescription>
+            This can&apos;t be undone. Everyone in the channel will see the
+            message disappear in real time.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogBody>
+          {display ? (
+            <blockquote
+              className={cn(
+                "rounded-md border-l-2 border-[var(--color-primary)] bg-[var(--color-surface-2)]",
+                "px-3 py-2 text-sm italic text-[var(--color-muted-foreground)]",
+              )}
+            >
+              {display}
+            </blockquote>
+          ) : (
+            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+              (No text preview — attachments or empty body.)
+            </p>
+          )}
+        </DialogBody>
+        <DialogFooter>
+          <Button variant="outline" size="sm" onClick={() => onOpenChange(false)} disabled={pending}>
+            Cancel
+          </Button>
+          <Button variant="destructive" size="sm" onClick={onConfirm} disabled={pending}>
+            {pending ? "Deleting…" : "Delete message"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -347,30 +441,83 @@ function EditMessageInline({
   onSaved: () => void;
 }) {
   const [body, setBody] = useState(message.body ?? "");
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const mutation = useMutation({
     mutationFn: () => editMessage(message.id, body.trim()),
     onSuccess: onSaved,
   });
+
+  // Auto-grow up to 6 lines — mirrors the composer's behaviour so multi-line
+  // bodies render at their natural height instead of being truncated to one row.
+  useLayoutEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 6 * 24 + 16)}px`;
+  }, [body]);
+
+  // Park the caret at the end of the prefilled body on mount so users can
+  // continue typing without re-positioning their cursor.
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    const len = el.value.length;
+    el.setSelectionRange(len, len);
+  }, []);
+
+  const onKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement> = (e) => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      onClose();
+      return;
+    }
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      if (body.trim() && !mutation.isPending) mutation.mutate();
+    }
+  };
+
   return (
-    <div className="ml-12 mt-1.5 flex items-center gap-1.5">
-      <Input
-        value={body}
-        onChange={(e) => setBody(e.target.value)}
-        autoFocus
-        onKeyDown={(e) => {
-          if (e.key === "Escape") onClose();
-          if (e.key === "Enter" && body.trim()) {
-            e.preventDefault();
-            mutation.mutate();
-          }
-        }}
-      />
-      <Button size="sm" disabled={!body.trim()} onClick={() => mutation.mutate()}>
-        Save
-      </Button>
-      <Button size="sm" variant="ghost" onClick={onClose}>
-        Cancel
-      </Button>
+    <div className="ml-12 mt-1.5 space-y-1.5">
+      <div
+        className={cn(
+          "relative rounded-lg border bg-[var(--color-surface-3)] transition-all",
+          "duration-[var(--duration-default)] ease-[var(--ease-out-cubic)]",
+          "border-[var(--color-border)] focus-within:border-[var(--color-primary)]",
+          "focus-within:shadow-[0_0_0_3px_var(--color-primary-soft)]",
+        )}
+      >
+        <textarea
+          ref={textareaRef}
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          onKeyDown={onKeyDown}
+          autoFocus
+          rows={1}
+          aria-label="Edit message"
+          className={cn(
+            "block w-full resize-none border-0 bg-transparent px-3 py-2 text-sm",
+            "leading-relaxed text-[var(--color-foreground)] focus:outline-none",
+          )}
+        />
+      </div>
+      <div className="flex items-center justify-between gap-2">
+        <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+          ↵ Save · ⇧↵ Newline · Esc Cancel
+        </span>
+        <div className="flex items-center gap-1.5">
+          <Button size="sm" variant="ghost" onClick={onClose} disabled={mutation.isPending}>
+            Cancel
+          </Button>
+          <Button
+            size="sm"
+            disabled={!body.trim() || mutation.isPending}
+            onClick={() => mutation.mutate()}
+          >
+            {mutation.isPending ? "Saving…" : "Save"}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
