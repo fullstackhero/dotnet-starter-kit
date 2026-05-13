@@ -13,6 +13,7 @@ import { ChevronDown } from "lucide-react";
 import {
   listChannelMessages,
   listMessageReplies,
+  type ChannelMemberDto,
   type MessageDto,
 } from "@/api/chat";
 import { useRealtimeEvent } from "@/realtime/realtime-context";
@@ -50,6 +51,8 @@ export const MessageList = forwardRef<
     selfUserId?: string;
     /** Caller's lastReadMessageId on the channel — used to place the unread divider. */
     lastReadMessageId?: string | null;
+    /** Channel members — drives read receipts under the caller's latest message. */
+    members?: ChannelMemberDto[];
     /** Sets the composer's reply context. The composer renders the quote and
      *  posts the next send with parentMessageId = parent.id. Teams-DM style. */
     onReply?: (parent: MessageDto) => void;
@@ -59,6 +62,7 @@ export const MessageList = forwardRef<
     channelId,
     selfUserId,
     lastReadMessageId,
+    members,
     onReply,
   },
   ref,
@@ -329,6 +333,18 @@ export const MessageList = forwardRef<
   const prevLastIdRef = useRef<string | undefined>(undefined);
   const lastMessageId = chronological.at(-1)?.id;
 
+  // Latest own top-level message — used as the anchor for the read receipt
+  // below the bubble. We only render the receipt once, on this message, so
+  // a long stream of own messages doesn't show a forest of "Seen by N".
+  const latestOwnMessageId = useMemo(() => {
+    if (!selfUserId) return null;
+    for (let i = chronological.length - 1; i >= 0; i--) {
+      const m = chronological[i];
+      if (m.authorUserId === selfUserId && !m.parentMessageId) return m.id;
+    }
+    return null;
+  }, [chronological, selfUserId]);
+
   useEffect(() => {
     const el = parentRef.current;
     if (!el || rows.length === 0) return;
@@ -494,6 +510,8 @@ export const MessageList = forwardRef<
                     onReply={onReply}
                     onJumpTo={jumpToMessage}
                     isFlashing={row.message.id === flashingMessageId}
+                    members={members}
+                    isLatestOwn={row.message.id === latestOwnMessageId}
                   />
                 )}
               </div>

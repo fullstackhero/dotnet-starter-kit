@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Download, Paperclip, Pencil, SmilePlus, Trash2 } from "lucide-react";
+import { Download, Eye, Paperclip, Pencil, SmilePlus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   addReaction,
@@ -9,6 +9,7 @@ import {
   editMessage,
   findOrCreateDm,
   removeReaction,
+  type ChannelMemberDto,
   type MessageAttachmentDto,
   type MessageDto,
 } from "@/api/chat";
@@ -53,6 +54,8 @@ export function Message({
   onReply,
   onJumpTo,
   isFlashing,
+  members,
+  isLatestOwn,
 }: {
   message: MessageDto;
   selfUserId?: string;
@@ -68,6 +71,10 @@ export function Message({
   /** Briefly true after another row's reply preview jumps here; drives the
    *  brand-tinted ring + fade. */
   isFlashing?: boolean;
+  /** Channel members — used by ReadReceipt below the latest own message. */
+  members?: ChannelMemberDto[];
+  /** Anchors the read receipt to this message (the latest own top-level). */
+  isLatestOwn?: boolean;
 }) {
   const isOwn = selfUserId === message.authorUserId;
   const isDeleted = message.deletedAtUtc !== null && message.deletedAtUtc !== undefined;
@@ -238,6 +245,15 @@ export function Message({
             ))}
           </div>
         )}
+
+        {/* Read receipt — anchored to the caller's latest top-level message. */}
+        {isOwn && isLatestOwn && members && (
+          <ReadReceipt
+            messageId={message.id}
+            members={members}
+            selfUserId={selfUserId}
+          />
+        )}
       </div>
 
       {/* Hover action rail — floats in the empty space opposite the bubble
@@ -310,6 +326,54 @@ function ReplyContextPreview({
  * pills are interactive — clicking one copies "@username" so it's easy to
  * tag the same person back in a reply. Profile-peek is a future iteration.
  */
+/**
+ * "Seen by" caption under the caller's latest own top-level message.
+ * Filters channel members to those whose lastReadMessageId watermark is
+ * at or past this message id (Guid v7 sorts lexically by time, so a
+ * string compare gives a chronological compare). In 1-on-1 DMs collapses
+ * to a simple "Seen"; in larger channels it shows "Seen by N".
+ */
+function ReadReceipt({
+  messageId,
+  members,
+  selfUserId,
+}: {
+  messageId: string;
+  members: ChannelMemberDto[];
+  selfUserId?: string;
+}) {
+  const readers = useMemo(
+    () =>
+      members.filter(
+        (m) =>
+          m.userId !== selfUserId &&
+          !!m.lastReadMessageId &&
+          m.lastReadMessageId >= messageId,
+      ),
+    [members, selfUserId, messageId],
+  );
+  if (readers.length === 0) return null;
+  const totalOthers = members.filter((m) => m.userId !== selfUserId).length;
+  const label =
+    totalOthers === 1
+      ? "Seen"
+      : readers.length === totalOthers
+        ? "Seen by everyone"
+        : `Seen by ${readers.length}`;
+  return (
+    <span
+      className={cn(
+        "mt-0.5 flex items-center gap-1 self-end px-1",
+        "font-mono text-[10px] tabular-nums text-[var(--color-muted-foreground)]",
+      )}
+      aria-label={label}
+    >
+      <Eye className="h-2.5 w-2.5" aria-hidden />
+      {label}
+    </span>
+  );
+}
+
 /**
  * Renders message attachments inside the bubble. Images become small inline
  * tiles (clickable to open the underlying signed URL in a new tab); other

@@ -291,6 +291,7 @@ function ActiveChannel({
           channelId={channelId}
           selfUserId={selfUserId}
           lastReadMessageId={lastReadMessageId}
+          members={channel.members}
           onReply={setReplyTo}
         />
       </div>
