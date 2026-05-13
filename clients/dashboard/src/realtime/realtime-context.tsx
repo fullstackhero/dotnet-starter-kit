@@ -46,6 +46,17 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   const connectionRef = useRef<HubConnection | null>(null);
   const listenersRef = useRef<Map<string, Set<Listener>>>(new Map());
   const stoppedRef = useRef(false);
+  // Re-subscribed effect dep — bumped by tokenStore changes so that login,
+  // refresh-token rotation, and impersonation switches all force a rebuild.
+  const [tokenEpoch, setTokenEpoch] = useState(0);
+
+  // Re-subscribe to tokenStore once on mount. Any change (set/clear/refresh
+  // rotation) bumps the epoch which re-runs the connect effect below. Without
+  // this the provider mounts once, snapshots whatever state existed at mount,
+  // and never rebuilds — so a logout-then-login (or a token refresh) leaves
+  // the hub running on a stale token (or worse, never connected at all if
+  // mount happened before the token landed in storage).
+  useEffect(() => tokenStore.subscribe(() => setTokenEpoch((n) => n + 1)), []);
 
   useEffect(() => {
     stoppedRef.current = false;
@@ -55,7 +66,21 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       const url = `${env.apiBase || ""}/api/v1/realtime/hub`;
       return new HubConnectionBuilder()
         .withUrl(url, {
-          accessTokenFactory: () => tokenStore.getAccessToken() ?? "",
+          // Returning null here tells SignalR's AccessTokenHttpClient to skip
+          // adding the Authorization header rather than adding `Bearer ""` —
+          // and gets a clear console warning when it happens so the failure
+          // mode (provider running while signed out) is visible.
+          accessTokenFactory: () => {
+            const token = tokenStore.getAccessToken();
+            if (!token) {
+              console.warn(
+                "[realtime] accessTokenFactory called with no stored token — SignalR negotiate will 401. " +
+                  "This usually means the provider is alive while the user is signed out.",
+              );
+              return "";
+            }
+            return token;
+          },
           transport:
             HttpTransportType.WebSockets |
             HttpTransportType.ServerSentEvents |
@@ -145,7 +170,10 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       }
       setStatus("idle");
     };
-  }, []);
+    // tokenEpoch is the only intentional re-run trigger — see the subscribe
+    // effect above. Re-running on epoch change tears down the old connection
+    // and rebuilds with whatever the factory now returns from storage.
+  }, [tokenEpoch]);
 
   const on = useCallback(<T,>(event: string, handler: (payload: T) => void) => {
     let bucket = listenersRef.current.get(event);
