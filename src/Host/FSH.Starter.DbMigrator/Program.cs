@@ -113,13 +113,33 @@ builder.AddHeroPlatform(o =>
 
 builder.AddModules(moduleAssemblies);
 
-// Suppress the API-only background services so the migrator doesn't try to
-// start the tenant-store seeder twice (it runs explicitly below) and the
-// background workers (Hangfire, etc.) don't fight for resources.
-builder.Services.RemoveAll<Microsoft.Extensions.Hosting.IHostedService>();
+// The Multitenancy module's TenantProvisioningService depends on IJobService —
+// Hangfire's IJobService is only registered when EnableJobs is true, which we
+// don't want in the migrator (Hangfire needs its own schema bootstrap + workers).
+// Provide a throwing no-op so the DI graph resolves; the migration code paths
+// don't enqueue jobs.
+builder.Services.AddSingleton<FSH.Framework.Jobs.Services.IJobService, NoOpJobService>();
+
+// Surgically remove the only hosted service that would race with this
+// migrator — TenantStoreInitializerHostedService also calls MigrateAsync
+// on the tenant catalog. The advisory lock + EF's __EFMigrationsHistory
+// would make it eventually safe, but having two writers fight is ugly in
+// the logs. Hangfire, etc. are already disabled via EnableJobs=false on
+// AddHeroPlatform above. Serilog's flush-on-shutdown hosted service is
+// preserved so log output actually reaches stdout/stderr.
+foreach (var descriptor in builder.Services
+    .Where(d => d.ServiceType == typeof(Microsoft.Extensions.Hosting.IHostedService)
+        && d.ImplementationType?.Name == "TenantStoreInitializerHostedService")
+    .ToList())
+{
+    builder.Services.Remove(descriptor);
+}
 
 using var host = builder.Build();
 var logger = host.Services.GetRequiredService<ILogger<MigratorCommand>>();
+
+// Start the host so logging providers / option validators initialise.
+await host.StartAsync().ConfigureAwait(false);
 
 try
 {
@@ -130,17 +150,21 @@ try
     // surface as a clean TimeoutException + exit code 1.
     var connectionString = host.Services.GetRequiredService<IConfiguration>()["DatabaseOptions:ConnectionString"]
         ?? throw new InvalidOperationException("DatabaseOptions:ConnectionString is not configured.");
+    Console.WriteLine("[migrator] waiting for postgres…");
     await PostgresMigratorLock.WaitForDatabaseAsync(connectionString, logger, CancellationToken.None)
         .ConfigureAwait(false);
+    Console.WriteLine("[migrator] postgres ready");
 
     // ── Step 0b — acquire the advisory lock ──────────────────────────────
     // Postgres session-level advisory lock. Concurrent migrator runs
     // (CI-races, ops-vs-Helm-hook overlap, replicas: 2 by accident) block
     // here until the holder finishes. The lock auto-releases on connection
     // close, so even a crashed migrator doesn't leave the lock orphaned.
+    Console.WriteLine("[migrator] acquiring advisory lock…");
     await using var migratorLock = await PostgresMigratorLock
         .AcquireAsync(connectionString, logger, CancellationToken.None)
         .ConfigureAwait(false);
+    Console.WriteLine("[migrator] advisory lock acquired");
 
     // ── Step 1 — tenant catalog ───────────────────────────────────────────
     // Always applied first because the per-tenant migrator below reads
@@ -158,13 +182,13 @@ try
         }
         else if (pending.Count > 0)
         {
-            logger.LogInformation("[tenant-catalog] applying {Count} migration(s)…", pending.Count);
+            Console.WriteLine($"[tenant-catalog] applying {pending.Count} migration(s)…");
             await tenantDb.Database.MigrateAsync(CancellationToken.None).ConfigureAwait(false);
-            logger.LogInformation("[tenant-catalog] done");
+            Console.WriteLine("[tenant-catalog] done");
         }
         else
         {
-            logger.LogInformation("[tenant-catalog] already at head");
+            Console.WriteLine("[tenant-catalog] already at head");
         }
 
         // Seed the root tenant the first time the catalog comes up so the
@@ -183,7 +207,7 @@ try
             rootTenant.SetValidity(TimeProvider.System.GetUtcNow().UtcDateTime.AddYears(1));
             await tenantDb.TenantInfo.AddAsync(rootTenant, CancellationToken.None).ConfigureAwait(false);
             await tenantDb.SaveChangesAsync(CancellationToken.None).ConfigureAwait(false);
-            logger.LogInformation("[tenant-catalog] seeded root tenant");
+            Console.WriteLine("[tenant-catalog] seeded root tenant");
         }
     }
 
@@ -200,7 +224,7 @@ try
 
         if (tenants.Count == 0)
         {
-            logger.LogWarning("No tenants matched {Tenant}", cli.Tenant ?? "(all)");
+            Console.WriteLine($"[migrator] no tenants matched {cli.Tenant ?? "(all)"}");
         }
 
         foreach (var tenant in tenants)
@@ -212,27 +236,35 @@ try
             }
             if (cli.Command == "seed")
             {
-                logger.LogInformation("[{Tenant}] seeding…", tenant.Id);
+                Console.WriteLine($"[{tenant.Id}] seeding…");
                 await tenantService.SeedTenantAsync(tenant, CancellationToken.None).ConfigureAwait(false);
                 continue;
             }
 
-            logger.LogInformation("[{Tenant}] migrating…", tenant.Id);
+            Console.WriteLine($"[{tenant.Id}] migrating…");
             await tenantService.MigrateTenantAsync(tenant, CancellationToken.None).ConfigureAwait(false);
 
             if (cli.SeedAfter)
             {
-                logger.LogInformation("[{Tenant}] seeding…", tenant.Id);
+                Console.WriteLine($"[{tenant.Id}] seeding…");
                 await tenantService.SeedTenantAsync(tenant, CancellationToken.None).ConfigureAwait(false);
             }
         }
     }
 
-    logger.LogInformation("DbMigrator finished successfully.");
+    Console.WriteLine("[migrator] finished successfully.");
     return 0;
 }
 catch (Exception ex)
 {
     logger.LogError(ex, "DbMigrator failed");
+    Console.Error.WriteLine($"[migrator] FAILED: {ex.GetType().Name}: {ex.Message}");
+    Console.Error.WriteLine(ex.StackTrace);
     return 1;
+}
+finally
+{
+    // Flush logging buffers + run host shutdown so the operator (and any
+    // CI log collector) sees the final lines before the process exits.
+    await host.StopAsync().ConfigureAwait(false);
 }
