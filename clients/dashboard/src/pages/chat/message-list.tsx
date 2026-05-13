@@ -183,6 +183,26 @@ export function MessageList({
     prevLastIdRef.current = undefined;
   }, [channelId]);
 
+  // Land at the latest message on first paint of each channel session.
+  // Without this, opening a channel scrolls to the top (oldest message) since
+  // the list is chronological top→bottom. The scroll-to-latest is what makes
+  // a toast-click "take me to the latest message of that thread" actually
+  // land on it. Latched via a ref keyed on channelId so it fires exactly
+  // once per channel session, after the first batch of rows has loaded.
+  const initializedSessionRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (rows.length === 0) return;
+    if (initializedSessionRef.current === channelId) return;
+    initializedSessionRef.current = channelId;
+    // Defer one frame so the virtualizer's scroll element has its real
+    // height before scrollToIndex runs.
+    requestAnimationFrame(() => {
+      virtualizer.scrollToIndex(rows.length - 1, { align: "end" });
+    });
+    prevLastIdRef.current = lastMessageId;
+    setUnseenCount(0);
+  }, [channelId, rows.length, virtualizer, lastMessageId]);
+
   const onScroll = useCallback(() => {
     const el = parentRef.current;
     if (!el) return;
