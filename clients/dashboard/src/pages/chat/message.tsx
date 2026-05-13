@@ -103,9 +103,12 @@ export function Message({
       data-merged={isMerged || undefined}
       data-pending={isPending || undefined}
       className={cn(
-        "group/message relative flex gap-2 px-4 py-1",
+        "group/message relative flex gap-2 px-4 py-1.5",
         isOwn ? "justify-end" : "justify-start",
-        isMerged ? "pt-0.5" : "pt-2",
+        // Spacing between merged messages from the same author. Earlier
+        // pt-0.5 read as overlap on short bubbles — bumped so consecutive
+        // bubbles visibly separate without breaking the block grouping.
+        isMerged ? "pt-1" : "pt-3",
         // Tentative own messages fade until the realtime echo (or HTTP
         // response) replaces them with the real DTO.
         isPending && "opacity-70",
