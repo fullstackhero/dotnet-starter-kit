@@ -113,13 +113,35 @@ Run as a step before the deploy step:
 
 ### Local development
 
-`appsettings.Development.json` currently sets
-`MultitenancyOptions:RunTenantMigrationsOnStartup = true`, which makes
-the API still self-migrate in dev for convenience. That's a no-op once
-the migrator has caught up, so the two coexist safely.
+There is **no** development-only auto-migration in the API. In every
+environment, the migrator is the only path that touches schema. The
+two convenient ways to run it locally are:
 
-`appsettings.Production.json` sets that flag to `false`, so in
-production the API expects the migrator to have already run.
+- **Aspire**: `dotnet run --project src/Host/FSH.Starter.AppHost` —
+  Aspire already chains the migrator as a `WaitForCompletion`
+  dependency of the API, so the API never starts against an
+  unmigrated database.
+- **Raw**: run the migrator once after pulling, before starting the
+  API:
+
+  ```bash
+  dotnet run --project src/Host/FSH.Starter.DbMigrator -- apply --seed
+  dotnet run --project src/Host/FSH.Starter.Api
+  ```
+
+## API behavior when schema is behind
+
+If the API boots against a database whose schema is behind the running
+build, the `db:tenants-migrations` health check returns `Unhealthy`
+and `GET /health/ready` returns `503 Service Unavailable` with the
+list of pending tenants + migration names in the response body.
+`GET /health/live` continues to return `200 OK` because the process
+itself is alive — so Kubernetes will not crash-loop the pod, but the
+readiness probe will keep it out of rotation until DbMigrator runs.
+
+This means: a failed (or skipped) migrator step surfaces as a clear
+operator-visible health-check failure rather than as cryptic EF
+errors per request.
 
 ## What it actually does
 

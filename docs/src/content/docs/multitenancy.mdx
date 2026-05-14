@@ -136,21 +136,7 @@ All endpoints are grouped under `api/v1/tenants` with API versioning.
 
 ## Configuration
 
-The module is configured via `MultitenancyOptions` in `appsettings.json`:
-
-```json
-{
-  "MultitenancyOptions": {
-    "RunTenantMigrationsOnStartup": false,
-    "AutoProvisionOnStartup": true
-  }
-}
-```
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `RunTenantMigrationsOnStartup` | `false` | Runs per-tenant migrations and seeding for all tenants during startup. Recommended for development only. |
-| `AutoProvisionOnStartup` | `true` | Enqueues Hangfire provisioning jobs on startup for tenants that have not completed provisioning. |
+The multitenancy module has no startup-time configuration of its own — schema migrations are run as an explicit deployment step by the standalone `FSH.Starter.DbMigrator` console application, and new-tenant provisioning happens on demand when `POST /tenants` is called. See [Tenant Provisioning](/tenant-provisioning) for the provisioning workflow and the [DbMigrator README](https://github.com/fullstackhero/dotnet-starter-kit/blob/main/src/Host/FSH.Starter.DbMigrator/README.md) for migration operations.
 
 The tenant store uses a **distributed cache** (Redis) with a 60-minute TTL for fast lookups. When a tenant is resolved from the EF Core store, it is automatically promoted into the distributed cache for subsequent requests.
 

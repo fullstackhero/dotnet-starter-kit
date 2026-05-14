@@ -40,16 +40,11 @@ public sealed class MultitenancyModule : IModule
         FSH.Framework.Shared.Constants.PermissionConstants.Register(
             FSH.Modules.Multitenancy.Contracts.Authorization.MultitenancyPermissions.All);
 
-        builder.Services.AddOptions<MultitenancyOptions>()
-            .Bind(builder.Configuration.GetSection(nameof(MultitenancyOptions)));
-
         builder.Services.AddScoped<ITenantService, TenantService>();
         builder.Services.AddScoped<ITenantThemeService, TenantThemeService>();
         builder.Services.AddTransient<IConnectionStringValidator, ConnectionStringValidator>();
         builder.Services.AddScoped<ITenantProvisioningService, TenantProvisioningService>();
-        builder.Services.AddHostedService<TenantStoreInitializerHostedService>();
         builder.Services.AddTransient<TenantProvisioningJob>();
-        builder.Services.AddHostedService<TenantAutoProvisioningHostedService>();
 
         builder.Services.AddHeroDbContext<TenantDbContext>();
 

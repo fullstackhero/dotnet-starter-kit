@@ -135,6 +135,64 @@ jobs:
           path: '**/*.trx'
           retention-days: 7
 
+  migrator-smoke:
+    name: DbMigrator Container Smoke
+    runs-on: ubuntu-latest
+    needs: build
+    # Catches container-publish regressions (Dockerfile-less SDK container) and DI-graph
+    # breakage in the migrator. Publishes the image locally, runs `apply --catalog-only`
+    # against an ephemeral Postgres, asserts exit 0.
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: migrator_smoke_pwd
+          POSTGRES_DB: fsh_migrator_smoke
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+          dotnet-quality: 'preview'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Publish DbMigrator container (local daemon)
+        run: |
+          dotnet publish src/Host/FSH.Starter.DbMigrator/FSH.Starter.DbMigrator.csproj \
+            -c Release -r linux-x64 \
+            /t:PublishContainer \
+            -p:ContainerRepository=fsh-db-migrator \
+            -p:ContainerImageTag=smoke
+
+      - name: Run DbMigrator against ephemeral Postgres
+        run: |
+          docker run --rm --network host \
+            -e DatabaseOptions__Provider=POSTGRESQL \
+            -e DatabaseOptions__ConnectionString="Host=localhost;Port=5432;Database=fsh_migrator_smoke;Username=postgres;Password=migrator_smoke_pwd" \
+            -e DatabaseOptions__MigrationsAssembly=FSH.Starter.Migrations.PostgreSQL \
+            fsh-db-migrator:smoke apply --catalog-only \
+            | tee migrator.log
+          grep -q "finished successfully" migrator.log
+
   integration-test:
     name: Integration Tests
     runs-on: ubuntu-latest

@@ -49,6 +49,18 @@ if (cli.Help)
 
 var builder = Host.CreateApplicationBuilder(args);
 
+// Fail-fast before option-validation runs at host build time: if the operator
+// forgot to set DatabaseOptions__ConnectionString, give them a single clear
+// line they'll actually read rather than a validation exception stack trace.
+if (string.IsNullOrWhiteSpace(builder.Configuration["DatabaseOptions:ConnectionString"]))
+{
+    await Console.Error.WriteLineAsync(
+        "[migrator] FAILED: DatabaseOptions:ConnectionString is empty — refusing to run against an unconfigured target. "
+        + "Set DatabaseOptions__ConnectionString to an elevated-DDL connection string before invoking the migrator.")
+        .ConfigureAwait(false);
+    return 1;
+}
+
 // Mirror the API's mediator registration so module handlers wire correctly —
 // some module DbInitializers depend on services that mediator pipelines build.
 builder.Services.AddMediator(o =>
@@ -155,6 +167,11 @@ try
     await PostgresMigratorLock.WaitForDatabaseAsync(connectionString, logger, CancellationToken.None)
         .ConfigureAwait(false);
     await Console.Out.WriteLineAsync("[migrator] postgres ready").ConfigureAwait(false);
+
+    // Log the connected role + database so operators catch a misconfigured low-priv
+    // connection string immediately, rather than at the first "permission denied
+    // for schema public" during MigrateAsync.
+    await LogConnectionIdentityAsync(connectionString).ConfigureAwait(false);
 
     // ── Step 0b — acquire the advisory lock ──────────────────────────────
     // Postgres session-level advisory lock. Concurrent migrator runs
@@ -286,4 +303,32 @@ finally
     // Flush logging buffers + run host shutdown so the operator (and any
     // CI log collector) sees the final lines before the process exits.
     await host.StopAsync().ConfigureAwait(false);
+}
+
+static async Task LogConnectionIdentityAsync(string connectionString)
+{
+    // Best-effort identity probe — never fail the migrator over a logging step.
+    try
+    {
+        await using var conn = new Npgsql.NpgsqlConnection(connectionString);
+        await conn.OpenAsync().ConfigureAwait(false);
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT current_user, current_database()";
+        await using var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false);
+        if (await reader.ReadAsync().ConfigureAwait(false))
+        {
+            var role = reader.GetString(0);
+            var db = reader.GetString(1);
+            await Console.Out.WriteLineAsync(string.Create(
+                System.Globalization.CultureInfo.InvariantCulture,
+                $"[migrator] connected as role={role} database={db}")).ConfigureAwait(false);
+        }
+    }
+#pragma warning disable CA1031 // Logging-only path: any exception swallowed and reported, never fatal.
+    catch (Exception ex)
+#pragma warning restore CA1031
+    {
+        await Console.Out.WriteLineAsync($"[migrator] WARN: could not log connection identity: {ex.Message}")
+            .ConfigureAwait(false);
+    }
 }

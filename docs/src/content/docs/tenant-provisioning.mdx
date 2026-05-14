@@ -54,13 +54,13 @@ Each provisioning run also tracks individual **TenantProvisioningStep** records 
 | `Seeding` | 3 | Seed default roles and admin user |
 | `CacheWarm` | 4 | Warm the distributed tenant cache |
 
-## Auto-Provisioning
+## Schema Migrations
 
-The `TenantAutoProvisioningHostedService` runs on application startup and ensures all tenants are provisioned:
+Tenant catalog and per-tenant schema migrations are **not** run by the API at startup. They are applied by the standalone `FSH.Starter.DbMigrator` console application as an explicit deployment step (Helm `pre-install`/`pre-upgrade` hook, CI deploy step, or Aspire `WaitForCompletion` dependency). See the [DbMigrator README](https://github.com/fullstackhero/dotnet-starter-kit/blob/main/src/Host/FSH.Starter.DbMigrator/README.md) for operational details.
 
-- When `AutoProvisionOnStartup` is `true` (the default), it checks each tenant for a completed provisioning record and enqueues jobs for any that are missing or failed.
-- When `RunTenantMigrationsOnStartup` is `true`, it unconditionally enqueues provisioning for all tenants - useful in development to keep databases up to date.
-- The service checks that Hangfire storage is initialized before attempting to enqueue. If Hangfire is not ready, it logs a warning and skips.
+If the API boots against a database whose schema is behind the running build, the `db:tenants-migrations` health check returns `Unhealthy` and `/health/ready` returns `503 Service Unavailable`. Kubernetes readiness probes (and any load balancer that respects readiness) will keep the pod out of rotation until DbMigrator runs and the schema catches up.
+
+The `TenantProvisioningJob` described above only runs for **new** tenants created via `POST /tenants` — it does not migrate existing tenants on startup.
 
 ## Provisioning Endpoints
 

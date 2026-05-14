@@ -14,11 +14,12 @@ namespace FSH.Modules.Identity.Authorization;
 /// only writes when there's something new, so it's safe to run unconditionally.
 /// </summary>
 /// <remarks>
-/// Implemented as a <see cref="BackgroundService"/> rather than <see cref="IHostedService"/>
-/// because the tenant catalog DB is migrated by another <see cref="BackgroundService"/>
-/// (<c>TenantStoreInitializerHostedService</c>). All <c>BackgroundService.ExecuteAsync</c>
-/// methods run in parallel after every <c>IHostedService.StartAsync</c> returns, so we
-/// poll the tenant store until it's ready before running the sync.
+/// Implemented as a <see cref="BackgroundService"/> so it does not block host startup.
+/// In production, the tenant catalog is migrated by the standalone <c>FSH.Starter.DbMigrator</c>
+/// console application before the API process starts, so the tenant store is already
+/// populated when this service runs. The polling loop covers test environments and the
+/// brief window during local Aspire startup where catalog migration may overlap with
+/// other startup work.
 /// </remarks>
 internal sealed class RolePermissionSyncHostedService(
     IServiceProvider serviceProvider,

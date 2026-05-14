@@ -33,8 +33,7 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
     private const string MinioBucket = "fsh-integration-test-uploads";
 
     private static readonly SemaphoreSlim _migrationLock = new(1, 1);
-    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
-        .WithImage("postgres:17-alpine")
+    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:17-alpine")
         .WithDatabase("fsh_integration_tests")
         .WithUsername("postgres")
         .WithPassword("integration_test_pwd")
@@ -42,8 +41,7 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
         .WithCleanUp(true)
         .Build();
 
-    private readonly MinioContainer _minio = new MinioBuilder()
-        .WithImage("minio/minio:latest")
+    private readonly MinioContainer _minio = new MinioBuilder("minio/minio:latest")
         .WithUsername(MinioAccessKey)
         .WithPassword(MinioSecretKey)
         .WithAutoRemove(true)
@@ -126,8 +124,6 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
                 ["JwtOptions:AccessTokenMinutes"] = "30",
                 ["JwtOptions:RefreshTokenDays"] = "7",
                 ["OriginOptions:OriginUrl"] = "http://localhost",
-                ["MultitenancyOptions:RunTenantMigrationsOnStartup"] = "false",
-                ["MultitenancyOptions:AutoProvisionOnStartup"] = "false",
                 ["OpenTelemetryOptions:Enabled"] = "false",
                 ["EventingOptions:UseHostedServiceDispatcher"] = "false",
                 ["Serilog:MinimumLevel:Default"] = "Warning",
@@ -157,14 +153,12 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
         builder.ConfigureServices(services =>
         {
             // Remove hosted services that depend on infrastructure not available in tests or cause race conditions:
-            // - TenantStoreInitializerHostedService (causes race conditions during migration)
             // - RolePermissionSyncHostedService (queries identity schema before migrations run)
             // - Hangfire server + stale lock cleanup (we register our own InMemory server below)
             // - OutboxDispatcherHostedService (queries OutboxMessages table before migrations run)
             var hostedServicesToRemove = services
-                .Where(d => d.ServiceType == typeof(IHostedService) && 
-                    (d.ImplementationType?.Name == "TenantStoreInitializerHostedService" || 
-                     d.ImplementationType?.Name == "RolePermissionSyncHostedService" ||
+                .Where(d => d.ServiceType == typeof(IHostedService) &&
+                    (d.ImplementationType?.Name == "RolePermissionSyncHostedService" ||
                      d.ImplementationType?.FullName?.Contains("Hangfire", StringComparison.Ordinal) == true ||
                      d.ImplementationType?.Name == "HangfireStaleLockCleanupService" ||
                      d.ImplementationType?.Name == "OutboxDispatcherHostedService"))
