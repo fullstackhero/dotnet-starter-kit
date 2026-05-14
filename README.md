@@ -114,6 +114,6 @@ Prereqs: .NET 10 SDK, Aspire workload, Docker running (for Postgres/Redis).
 ## Development notes
 - Target framework: `net10.0`; nullable enabled; analyzers on.
 - Tests: `dotnet test src/FSH.Starter.slnx` (includes architecture guardrails).
-- Want the deeper story? Start with `docs/framework/architecture.md` and the developer cookbook in `docs/framework/developer-cookbook.md`.
+- Want the deeper story? Browse the docs site under `docs/` (Astro Starlight) — start with [`docs/src/content/docs/architecture.mdx`](docs/src/content/docs/architecture.mdx), [`project-structure.mdx`](docs/src/content/docs/project-structure.mdx), and the [`adding-a-feature.mdx`](docs/src/content/docs/adding-a-feature.mdx) walkthrough. Run `cd docs && npm install && npm run dev` to read it locally.
 
 Built and maintained by Mukesh Murugan for teams that want to ship faster without sacrificing architecture discipline.
