@@ -100,9 +100,11 @@ public class MessageTests
     }
 
     [Fact]
-    public void Create_Should_Reject_Empty_Body()
+    public void Create_Should_Normalize_Whitespace_Body_To_Null()
     {
-        Should.Throw<ArgumentException>(() => Message.Create(Guid.CreateVersion7(), "u1", "   "));
+        var m = Message.Create(Guid.CreateVersion7(), "u1", "   ");
+
+        m.Body.ShouldBeNull();
     }
 
     [Fact]
