@@ -33,8 +33,7 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
     private const string MinioBucket = "fsh-integration-test-uploads";
 
     private static readonly SemaphoreSlim _migrationLock = new(1, 1);
-    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
-        .WithImage("postgres:17-alpine")
+    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:17-alpine")
         .WithDatabase("fsh_integration_tests")
         .WithUsername("postgres")
         .WithPassword("integration_test_pwd")
@@ -42,8 +41,7 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
         .WithCleanUp(true)
         .Build();
 
-    private readonly MinioContainer _minio = new MinioBuilder()
-        .WithImage("minio/minio:latest")
+    private readonly MinioContainer _minio = new MinioBuilder("minio/minio:latest")
         .WithUsername(MinioAccessKey)
         .WithPassword(MinioSecretKey)
         .WithAutoRemove(true)
