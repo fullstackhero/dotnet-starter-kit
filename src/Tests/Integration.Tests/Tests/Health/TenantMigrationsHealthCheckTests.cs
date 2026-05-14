@@ -19,7 +19,8 @@ namespace Integration.Tests.Tests.Health;
 /// </summary>
 public sealed class TenantMigrationsHealthCheckTests : IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:17-alpine")
+    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
+        .WithImage("postgres:17-alpine")
         .WithDatabase("fsh_migrations_check")
         .WithUsername("postgres")
         .WithPassword("integration_test_pwd")

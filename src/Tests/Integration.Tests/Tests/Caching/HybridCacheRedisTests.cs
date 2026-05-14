@@ -16,7 +16,8 @@ namespace Integration.Tests.Tests.Caching;
 /// </summary>
 public sealed class HybridCacheRedisTests : IAsyncLifetime
 {
-    private readonly RedisContainer _redis = new RedisBuilder("redis:7-alpine")
+    private readonly RedisContainer _redis = new RedisBuilder()
+        .WithImage("redis:7-alpine")
         .Build();
 
     public Task InitializeAsync() => _redis.StartAsync();
