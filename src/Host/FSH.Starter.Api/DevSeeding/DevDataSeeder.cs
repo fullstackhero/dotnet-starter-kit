@@ -31,8 +31,6 @@ namespace FSH.Starter.Api.DevSeeding;
 /// </summary>
 internal sealed class DevDataSeeder : BackgroundService
 {
-    public const string SharedPassword = "Password123!";
-
     public static readonly DemoTenant Acme = new(
         Id: "acme",
         Name: "Acme Corp",
@@ -51,6 +49,10 @@ internal sealed class DevDataSeeder : BackgroundService
     private readonly IHostEnvironment _env;
     private readonly IConfiguration _config;
     private readonly ILogger<DevDataSeeder> _logger;
+    // Resolved from config inside ExecuteAsync after the IsDevelopment + Seed:Demo gates pass.
+    // Read lazily so integration tests (which run in Development but don't set Seed:Demo=true)
+    // don't fail host startup when this key is absent.
+    private string _sharedPassword = string.Empty;
 
     public DevDataSeeder(
         IServiceProvider services,
@@ -86,6 +88,12 @@ internal sealed class DevDataSeeder : BackgroundService
 
         try
         {
+            // Sourced from configuration to keep the demo credential out of C# source.
+            // Resolved here (post-gate, inside try) so a missing key logs cleanly instead of crashing the host.
+            _sharedPassword = _config["Seed:DemoPassword"]
+                ?? throw new InvalidOperationException(
+                    "Seed:DemoPassword must be configured when Seed:Demo is enabled (see appsettings.Development.json).");
+
             await EnsureTenantsAsync(stoppingToken).ConfigureAwait(false);
             await SeedRootSuperAdminAsync(stoppingToken).ConfigureAwait(false);
             await SeedTenantUsersAsync(Acme, stoppingToken).ConfigureAwait(false);
@@ -248,7 +256,7 @@ internal sealed class DevDataSeeder : BackgroundService
                     NormalizedEmail = demoUser.Email.ToUpperInvariant(),
                     NormalizedUserName = demoUser.UserName.ToUpperInvariant(),
                 };
-                user.PasswordHash = hasher.HashPassword(user, SharedPassword);
+                user.PasswordHash = hasher.HashPassword(user, _sharedPassword);
                 var created = await userManager.CreateAsync(user).ConfigureAwait(false);
                 if (!created.Succeeded)
                 {
@@ -302,7 +310,7 @@ internal sealed class DevDataSeeder : BackgroundService
     }
 
     /// <summary>
-    /// Idempotently realigns a user's password to <see cref="SharedPassword"/>.
+    /// Idempotently realigns a user's password to the configured dev password.
     /// No-ops when the password already matches, so restarts don't churn
     /// the hash on every boot. Bypasses Identity's password-validator
     /// pipeline in favour of a direct hash overwrite — matches the rest
@@ -314,12 +322,12 @@ internal sealed class DevDataSeeder : BackgroundService
         PasswordHasher<FshUser> hasher,
         FshUser user)
     {
-        if (await userManager.CheckPasswordAsync(user, SharedPassword).ConfigureAwait(false))
+        if (await userManager.CheckPasswordAsync(user, _sharedPassword).ConfigureAwait(false))
         {
             return;
         }
 
-        user.PasswordHash = hasher.HashPassword(user, SharedPassword);
+        user.PasswordHash = hasher.HashPassword(user, _sharedPassword);
         var result = await userManager.UpdateAsync(user).ConfigureAwait(false);
         if (!result.Succeeded)
         {

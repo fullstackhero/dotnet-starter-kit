@@ -79,8 +79,8 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
                     .CreateLogger("FSH.Identity.JwtAuth");
                 failedLogger.LogWarning(context.Exception,
                     "JwtBearer authentication FAILED for {Method} {Path}: {Reason}",
-                    context.HttpContext.Request.Method,
-                    context.HttpContext.Request.Path,
+                    SanitizeForLog(context.HttpContext.Request.Method),
+                    SanitizeForLog(context.HttpContext.Request.Path.ToString()),
                     context.Exception.Message);
                 return Task.CompletedTask;
             },
@@ -132,8 +132,8 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
                             .CreateLogger("FSH.Identity.JwtAuth");
                         challengeLogger.LogWarning(
                             "JwtBearer challenge for {Method} {Path}: hadAuthHeader={HadHeader} reason={Reason}",
-                            context.HttpContext.Request.Method,
-                            context.HttpContext.Request.Path,
+                            SanitizeForLog(context.HttpContext.Request.Method),
+                            SanitizeForLog(context.HttpContext.Request.Path.ToString()),
                             hadAuthHeader,
                             problem.Extensions["reason"]);
                     }
@@ -171,5 +171,23 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
                 return Task.CompletedTask;
             }
         };
+    }
+
+    // Strip CR/LF and other control characters so attacker-controlled request data
+    // cannot forge log lines (CodeQL cs/log-injection). Kestrel already rejects
+    // truly malformed URIs, but defending in depth keeps console-rendered output safe.
+    private static string SanitizeForLog(string? value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return string.Empty;
+        }
+
+        var buffer = new StringBuilder(value.Length);
+        foreach (var c in value)
+        {
+            buffer.Append(char.IsControl(c) ? '_' : c);
+        }
+        return buffer.ToString();
     }
 }
