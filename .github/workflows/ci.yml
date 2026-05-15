@@ -181,7 +181,7 @@ jobs:
             -c Release -r linux-x64 \
             /t:PublishContainer \
             -p:ContainerRepository=fsh-db-migrator \
-            -p:ContainerImageTag=smoke
+            -p:ContainerImageTags=smoke
 
       - name: Run DbMigrator against ephemeral Postgres
         run: |
