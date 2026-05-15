@@ -5,11 +5,12 @@
 		<AssemblyName>FSH.Starter.Api</AssemblyName>
 		<IsPackable>false</IsPackable>
 
-		<!-- Container configuration -->
+		<!-- Container configuration — image is built via `dotnet publish /t:PublishContainer`.
+		     No PublishProfile needed (the legacy "DefaultContainer" profile auto-populates
+		     ContainerImageTag from $(Version), which collides with ContainerImageTags). -->
 		<ContainerPort>8080</ContainerPort>
 		<ContainerUser>root</ContainerUser>
 		<ContainerRepository>fsh-api</ContainerRepository>
-    	<PublishProfile>DefaultContainer</PublishProfile>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -8,10 +8,12 @@
 
     <!-- Container configuration — published as a one-shot job image used as
          the migrate step in a Kubernetes Job / Helm pre-install hook / Aspire
-         dependency. Same base image as the API for parity. -->
+         dependency. Same base image as the API for parity. Image is built via
+         `dotnet publish /t:PublishContainer` — no PublishProfile needed (the
+         legacy "DefaultContainer" profile auto-populates ContainerImageTag
+         from $(Version), colliding with ContainerImageTags). -->
     <ContainerUser>root</ContainerUser>
     <ContainerRepository>fsh-db-migrator</ContainerRepository>
-    <PublishProfile>DefaultContainer</PublishProfile>
 
     <!-- This is an internal operator-facing CLI — no localization, all
          operator messages are literal strings. CA1303 (use resource tables

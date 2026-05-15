@@ -63,7 +63,7 @@ stay in lock-step). Override anything via environment variables:
 
 Use a `Job` (or `pre-install`/`pre-upgrade` Helm hook) that runs the
 migrator container image, then deploy the API only after the Job
-succeeds. The image is built by the `DefaultContainer` publish profile:
+succeeds. The image is built via the `PublishContainer` target:
 
 ```bash
 dotnet publish src/Host/FSH.Starter.DbMigrator -c Release \

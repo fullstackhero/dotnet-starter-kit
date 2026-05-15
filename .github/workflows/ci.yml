@@ -265,7 +265,7 @@ jobs:
         run: |
           dotnet publish src/Host/FSH.Starter.Api/FSH.Starter.Api.csproj \
             -c Release -r linux-x64 \
-            -p:PublishProfile=DefaultContainer \
+            /t:PublishContainer \
             -p:ContainerRepository=ghcr.io/${{ github.repository_owner }}/fsh-api \
             -p:ContainerImageTags='"dev-${{ github.sha }};dev-latest"'
 
@@ -356,7 +356,7 @@ jobs:
         run: |
           dotnet publish src/Host/FSH.Starter.Api/FSH.Starter.Api.csproj \
             -c Release -r linux-x64 \
-            -p:PublishProfile=DefaultContainer \
+            /t:PublishContainer \
             -p:ContainerRepository=ghcr.io/${{ github.repository_owner }}/fsh-api \
             -p:ContainerImageTags='"${{ steps.version.outputs.version }};latest"'
 
