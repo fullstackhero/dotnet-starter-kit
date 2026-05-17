@@ -27,7 +27,7 @@ public sealed class TenantThemeService : ITenantThemeService
     private static readonly string[] DefaultThemeTags = [CacheKeys.Tags.Themes];
 
     private readonly ITenantCacheService _cache;
-    private readonly HybridCache _globalCache; // for cross-tenant entries like DefaultTheme
+    private readonly IGlobalCacheService _globalCache; // for cross-tenant entries like DefaultTheme
     private readonly TenantDbContext _dbContext;
     private readonly IMultiTenantContextAccessor<AppTenantInfo> _tenantAccessor;
     private readonly IStorageService _storageService;
@@ -36,7 +36,7 @@ public sealed class TenantThemeService : ITenantThemeService
 
     public TenantThemeService(
         ITenantCacheService cache,
-        HybridCache globalCache,
+        IGlobalCacheService globalCache,
         TenantDbContext dbContext,
         IMultiTenantContextAccessor<AppTenantInfo> tenantAccessor,
         IStorageService storageService,

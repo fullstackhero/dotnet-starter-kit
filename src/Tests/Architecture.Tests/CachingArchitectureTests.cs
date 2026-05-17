@@ -1,7 +1,8 @@
 using FSH.Framework.Caching;
-using Microsoft.Extensions.Caching.Hybrid;
 using NetArchTest.Rules;
+using Shouldly;
 using System.Reflection;
+using Xunit;
 
 namespace Architecture.Tests;
 
@@ -11,9 +12,12 @@ namespace Architecture.Tests;
 /// directly into business module code, which would bypass the automatic per-tenant
 /// key scoping provided by <see cref="ITenantCacheService"/>.
 ///
-/// The rule: <b>module assemblies must inject <see cref="ITenantCacheService"/></b>,
-/// not <see cref="HybridCache"/> directly. <see cref="HybridCache"/> is allowed only in
-/// BuildingBlocks (the implementation layer) and in designated cross-tenant infrastructure.
+/// The two-cache pattern:
+/// <list type="bullet">
+///   <item><see cref="ITenantCacheService"/> — per-tenant scoped, for all business data.</item>
+///   <item><see cref="IGlobalCacheService"/> — cross-tenant singleton, for shared system defaults.</item>
+/// </list>
+/// Neither role requires module code to inject <c>HybridCache</c> directly.
 /// </summary>
 public sealed class CachingArchitectureTests
 {
@@ -25,55 +29,56 @@ public sealed class CachingArchitectureTests
         ModuleAssemblyDiscovery.GetModuleAssemblies();
 
     // -------------------------------------------------------------------------
-    // Rule 1 — No direct HybridCache injection in module constructors
+    // Rule 1 — No direct HybridCache dependency in any module class
     // -------------------------------------------------------------------------
 
     /// <summary>
-    /// Verifies that no class in any business module has a constructor parameter
-    /// of type <see cref="HybridCache"/>. All module code must inject
-    /// <see cref="ITenantCacheService"/> so tenant isolation is enforced structurally.
+    /// Verifies that no class in any business module injects <see cref="HybridCache"/> directly.
+    /// All module code must inject either <see cref="ITenantCacheService"/> (tenant-scoped data)
+    /// or <see cref="IGlobalCacheService"/> (intentionally cross-tenant data).
+    /// <para>
+    /// Note: <c>HybridCacheEntryOptions</c> (a pure data/options type from the same namespace)
+    /// is intentionally allowed — it carries no state and is safe to use as a method argument.
+    /// We check for the cache service class by its full name, not the namespace.
+    /// </para>
     /// </summary>
     [Fact]
     public void ModuleClasses_Should_Not_Depend_On_HybridCache_Directly()
     {
-        // NetArchTest detects HybridCache as a dependency via the assembly's metadata.
-        // A constructor injection of HybridCache creates a dependency on its declaring
-        // namespace: Microsoft.Extensions.Caching.Hybrid.
+        // We check by fully-qualified class name rather than namespace because:
+        // - HybridCache (the abstract class) is what we want to ban from constructors.
+        // - HybridCacheEntryOptions (a data record in the same namespace) is legitimately
+        //   used in module code as options arguments to ITenantCacheService / IGlobalCacheService.
+        const string hybridCacheClass = "Microsoft.Extensions.Caching.Hybrid.HybridCache";
+
         foreach (var assembly in ModuleAssemblies)
         {
             var result = Types
                 .InAssembly(assembly)
                 .ShouldNot()
-                .HaveDependencyOn("Microsoft.Extensions.Caching.Hybrid")
+                .HaveDependencyOn(hybridCacheClass)
                 .GetResult();
 
             var failingTypes = result.FailingTypeNames ?? [];
 
-            // TenantThemeService is a known, intentional exception:
-            // it holds a secondary HybridCache reference for the cross-tenant DefaultTheme entry.
-            // All other violations are real bugs.
-            var realViolations = failingTypes
-                .Where(t => !t.EndsWith("TenantThemeService", StringComparison.Ordinal))
-                .ToList();
-
-            realViolations.ShouldBeEmpty(
-                $"Module '{assembly.GetName().Name}' contains types that depend directly on " +
-                $"HybridCache. Use ITenantCacheService instead to guarantee per-tenant key scoping. " +
-                $"Violating types: {string.Join(", ", realViolations)}");
+            failingTypes.ShouldBeEmpty(
+                $"Module '{assembly.GetName().Name}' contains types that inject HybridCache directly. " +
+                $"Use ITenantCacheService for per-tenant data or IGlobalCacheService for " +
+                $"cross-tenant shared data. Violating types: {string.Join(", ", failingTypes)}");
         }
     }
 
     // -------------------------------------------------------------------------
-    // Rule 2 — ITenantCacheService is registered (DI contract)
+    // Rule 2 — ITenantCacheService is a public interface (DI contract)
     // -------------------------------------------------------------------------
 
     /// <summary>
-    /// Verifies that the <see cref="ITenantCacheService"/> type is publicly accessible
-    /// from the Caching assembly. If someone accidentally changes its visibility,
-    /// module code would break at DI resolution time rather than compile time.
+    /// Verifies that <see cref="ITenantCacheService"/> is a public interface so that
+    /// module assemblies can depend on it. If someone accidentally changes its
+    /// visibility, module code would break at DI resolution time rather than compile time.
     /// </summary>
     [Fact]
-    public void ITenantCacheService_Should_Be_Public()
+    public void ITenantCacheService_Should_Be_A_Public_Interface()
     {
         var type = typeof(ITenantCacheService);
 
@@ -85,37 +90,62 @@ public sealed class CachingArchitectureTests
     }
 
     // -------------------------------------------------------------------------
-    // Rule 3 — TenantHybridCache implementation remains internal (encapsulation)
+    // Rule 3 — IGlobalCacheService is a public interface (DI contract)
     // -------------------------------------------------------------------------
 
     /// <summary>
-    /// Verifies that the concrete <c>TenantHybridCache</c> implementation is internal,
-    /// preventing modules from bypassing the interface and newing it up directly.
+    /// Verifies that <see cref="IGlobalCacheService"/> is a public interface, enabling
+    /// modules that legitimately need cross-tenant caching (e.g. system defaults)
+    /// to depend on it explicitly and intentionally.
     /// </summary>
     [Fact]
-    public void TenantHybridCache_Implementation_Should_Be_Internal()
+    public void IGlobalCacheService_Should_Be_A_Public_Interface()
     {
-        var cachingAssembly = typeof(ITenantCacheService).Assembly;
+        var type = typeof(IGlobalCacheService);
 
-        var implType = cachingAssembly
-            .GetTypes()
-            .FirstOrDefault(t => t.Name == "TenantHybridCache");
+        type.IsInterface.ShouldBeTrue(
+            $"{type.FullName} must be an interface so modules can depend on the abstraction.");
 
-        implType.ShouldNotBeNull(
-            "TenantHybridCache implementation type must exist in the Caching assembly.");
-
-        implType!.IsPublic.ShouldBeFalse(
-            "TenantHybridCache should be internal so module code cannot instantiate it directly. " +
-            "All consumption must go through ITenantCacheService resolved via DI.");
+        type.IsPublic.ShouldBeTrue(
+            $"{type.FullName} must be public so module assemblies can reference it.");
     }
 
     // -------------------------------------------------------------------------
-    // Rule 4 — Guard: at least one module was scanned
+    // Rule 4 — Implementations stay internal (prevent module bypass)
     // -------------------------------------------------------------------------
 
     /// <summary>
-    /// Prevents the tenant isolation check from silently passing with an empty assembly list
-    /// (which would make rules 1 vacuously true and miss real violations in new modules).
+    /// Verifies that the concrete implementations (<c>TenantHybridCache</c> and
+    /// <c>GlobalHybridCache</c>) are internal, preventing modules from
+    /// newing them up directly and bypassing the DI contract.
+    /// </summary>
+    [Fact]
+    public void CacheService_Implementations_Should_Be_Internal()
+    {
+        var cachingAssembly = typeof(ITenantCacheService).Assembly;
+
+        foreach (var implName in new[] { "TenantHybridCache", "GlobalHybridCache" })
+        {
+            var implType = cachingAssembly
+                .GetTypes()
+                .FirstOrDefault(t => t.Name == implName);
+
+            implType.ShouldNotBeNull(
+                $"{implName} implementation must exist in the Caching assembly.");
+
+            implType!.IsPublic.ShouldBeFalse(
+                $"{implName} should be internal so module code cannot instantiate it directly. " +
+                $"All consumption must go through the interface resolved via DI.");
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Rule 5 — Guard: at least one module was scanned (prevents vacuous pass)
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Prevents Rule 1 from silently passing with an empty assembly list,
+    /// which would make it vacuously true and miss real violations in new modules.
     /// </summary>
     [Fact]
     public void CachingArchitectureTests_Should_HaveAtLeastOneModuleToScan()
