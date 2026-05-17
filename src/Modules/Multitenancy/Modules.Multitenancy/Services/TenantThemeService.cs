@@ -26,7 +26,8 @@ public sealed class TenantThemeService : ITenantThemeService
 
     private static readonly string[] DefaultThemeTags = [CacheKeys.Tags.Themes];
 
-    private readonly HybridCache _cache;
+    private readonly ITenantCacheService _cache;
+    private readonly HybridCache _globalCache; // for cross-tenant entries like DefaultTheme
     private readonly TenantDbContext _dbContext;
     private readonly IMultiTenantContextAccessor<AppTenantInfo> _tenantAccessor;
     private readonly IStorageService _storageService;
@@ -34,7 +35,8 @@ public sealed class TenantThemeService : ITenantThemeService
     private readonly ICurrentUser _currentUser;
 
     public TenantThemeService(
-        HybridCache cache,
+        ITenantCacheService cache,
+        HybridCache globalCache,
         TenantDbContext dbContext,
         IMultiTenantContextAccessor<AppTenantInfo> tenantAccessor,
         IStorageService storageService,
@@ -42,6 +44,7 @@ public sealed class TenantThemeService : ITenantThemeService
         ICurrentUser currentUser)
     {
         _cache = cache;
+        _globalCache = globalCache;
         _dbContext = dbContext;
         _tenantAccessor = tenantAccessor;
         _storageService = storageService;
@@ -60,9 +63,9 @@ public sealed class TenantThemeService : ITenantThemeService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
 
-        // Per-tenant tag array — one small alloc per call is unavoidable because the tag is
-        // parameterized by tenantId. Keeping the array allocation local (not LOH) and short-lived.
-        var tags = new[] { CacheKeys.Tags.Themes, CacheKeys.Tags.Tenant(tenantId) };
+        // Tags are relative — TenantHybridCache automatically adds the tenant prefix.
+        // CacheKeys.Tags.Themes is enough; the per-tenant tag is injected structurally.
+        var tags = new[] { CacheKeys.Tags.Themes };
 
         // Stateless factory via a static method group — no closure allocation even on L1 hits.
         var state = new TenantFactoryState(_dbContext, tenantId);
@@ -77,7 +80,9 @@ public sealed class TenantThemeService : ITenantThemeService
 
     public Task<TenantThemeDto> GetDefaultThemeAsync(CancellationToken ct = default)
     {
-        return _cache.GetOrCreateAsync(
+        // DefaultTheme is intentionally cross-tenant (same for all tenants).
+        // We use the underlying HybridCache (not the tenant-scoped wrapper) for this entry.
+        return _globalCache.GetOrCreateAsync(
             CacheKeys.DefaultTheme,
             _dbContext,
             LoadDefaultThemeAsync,
@@ -246,8 +251,8 @@ public sealed class TenantThemeService : ITenantThemeService
         entity.IsDefault = true;
         await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
 
-        // Invalidate default theme cache
-        await _cache.RemoveAsync(CacheKeys.DefaultTheme, ct).ConfigureAwait(false);
+        // Invalidate default theme cache (global cache, not tenant-scoped)
+        await _globalCache.RemoveAsync(CacheKeys.DefaultTheme, ct).ConfigureAwait(false);
 
         if (_logger.IsEnabled(LogLevel.Information))
         {
@@ -257,9 +262,10 @@ public sealed class TenantThemeService : ITenantThemeService
 
     public async Task InvalidateCacheAsync(string tenantId, CancellationToken ct = default)
     {
-        // Purge both the tenant-specific entry and anything tagged for this tenant.
+        // With TenantHybridCache the key is already prefixed, so removing the logical key
+        // purges the tenant-scoped entry. RemoveByTagAsync similarly purges only this tenant's data.
         await _cache.RemoveAsync(CacheKeys.TenantTheme(tenantId), ct).ConfigureAwait(false);
-        await _cache.RemoveByTagAsync(CacheKeys.Tags.Tenant(tenantId), ct).ConfigureAwait(false);
+        await _cache.RemoveByTagAsync(CacheKeys.Tags.Themes, ct).ConfigureAwait(false);
     }
 
     private static TenantThemeDto MapEntityToDto(TenantTheme entity)

@@ -64,4 +64,20 @@ public sealed class HeroCachingRegistrationTests
 
         Should.Throw<ArgumentNullException>(() => services.AddHeroCaching(null!));
     }
+
+    [Fact]
+    public void AddHeroCaching_Should_RegisterITenantCacheService()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        var config = new ConfigurationBuilder().Build();
+
+        // Act
+        services.AddHeroCaching(config);
+
+        // Assert — ITenantCacheService must be registered (descriptor exists)
+        var descriptor = services.FirstOrDefault(d => d.ServiceType == typeof(ITenantCacheService));
+        descriptor.ShouldNotBeNull();
+        descriptor.Lifetime.ShouldBe(ServiceLifetime.Scoped);
+    }
 }

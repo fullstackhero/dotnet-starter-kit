@@ -7,7 +7,6 @@ using FSH.Modules.Identity.Domain;
 using Finbuckle.MultiTenant.Abstractions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 
 namespace FSH.Modules.Identity.Authorization;
@@ -21,7 +20,7 @@ public sealed class RolePermissionSyncer(
     IdentityDbContext context,
     RoleManager<FshRole> roleManager,
     IMultiTenantContextAccessor<AppTenantInfo> tenantAccessor,
-    HybridCache cache,
+    ITenantCacheService cache,
     TimeProvider timeProvider,
     ILogger<RolePermissionSyncer> logger)
 {
