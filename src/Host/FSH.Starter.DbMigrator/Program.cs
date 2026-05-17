@@ -49,6 +49,12 @@ if (cli.Help)
 
 var builder = Host.CreateApplicationBuilder(args);
 
+// In local development (dotnet run), the working directory is the project folder,
+// but appsettings.json is linked and copied to the output directory.
+// We explicitly load it from AppContext.BaseDirectory so IdentityModule's JwtOptions validate.
+builder.Configuration.AddJsonFile(Path.Combine(AppContext.BaseDirectory, "appsettings.json"), optional: true);
+builder.Configuration.AddJsonFile(Path.Combine(AppContext.BaseDirectory, $"appsettings.{builder.Environment.EnvironmentName}.json"), optional: true);
+
 // Fail-fast before option-validation runs at host build time: if the operator
 // forgot to set DatabaseOptions__ConnectionString, give them a single clear
 // line they'll actually read rather than a validation exception stack trace.
