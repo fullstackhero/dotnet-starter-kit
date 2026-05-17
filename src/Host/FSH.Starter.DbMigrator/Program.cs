@@ -46,7 +46,6 @@ if (cli.Help)
     await Console.Out.WriteLineAsync(MigratorCommand.HelpText).ConfigureAwait(false);
     return 0;
 }
-
 var builder = Host.CreateApplicationBuilder(args);
 
 // In local development (dotnet run), the working directory is the project folder,
@@ -54,6 +53,10 @@ var builder = Host.CreateApplicationBuilder(args);
 // We explicitly load it from AppContext.BaseDirectory so IdentityModule's JwtOptions validate.
 builder.Configuration.AddJsonFile(Path.Combine(AppContext.BaseDirectory, "appsettings.json"), optional: true);
 builder.Configuration.AddJsonFile(Path.Combine(AppContext.BaseDirectory, $"appsettings.{builder.Environment.EnvironmentName}.json"), optional: true);
+
+// Re-add environment variables and command line args so they maintain priority over the manually added JSON files.
+builder.Configuration.AddEnvironmentVariables();
+builder.Configuration.AddCommandLine(args);
 
 // Fail-fast before option-validation runs at host build time: if the operator
 // forgot to set DatabaseOptions__ConnectionString, give them a single clear
