@@ -75,9 +75,26 @@ public sealed class HeroCachingRegistrationTests
         // Act
         services.AddHeroCaching(config);
 
-        // Assert — ITenantCacheService must be registered (descriptor exists)
+        // Assert — ITenantCacheService must be registered as Scoped (per-request tenant context)
         var descriptor = services.FirstOrDefault(d => d.ServiceType == typeof(ITenantCacheService));
         descriptor.ShouldNotBeNull();
         descriptor.Lifetime.ShouldBe(ServiceLifetime.Scoped);
+    }
+
+    [Fact]
+    public void AddHeroCaching_Should_RegisterIGlobalCacheService_AsSingleton()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        var config = new ConfigurationBuilder().Build();
+
+        // Act
+        services.AddHeroCaching(config);
+
+        // Assert — IGlobalCacheService must be registered as Singleton (no per-request state)
+        var descriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IGlobalCacheService));
+        descriptor.ShouldNotBeNull("IGlobalCacheService should be registered by AddHeroCaching");
+        descriptor.Lifetime.ShouldBe(ServiceLifetime.Singleton,
+            "IGlobalCacheService carries no per-request state and should live as Singleton");
     }
 }

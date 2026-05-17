@@ -1,4 +1,5 @@
 using FSH.Framework.Caching;
+using Microsoft.Extensions.Caching.Hybrid;
 using NetArchTest.Rules;
 using Shouldly;
 using System.Reflection;
