@@ -99,10 +99,10 @@
   }
 
   /* Dark-mode primary text — paired-token routing.
-     The --primary token in dark mode is tuned darker (#6850e8) so white
-     text on a primary-colored button passes WCAG AA. As a CONSEQUENCE,
-     --primary as text on a dark surface fails (3.29:1). Reroute text-primary
-     to --primary-soft (brighter) so it passes on dark surfaces.
+     The --primary token in dark mode is tuned (#15803d / green-700) so
+     white text on a primary-colored button passes WCAG AA. As a CONSEQUENCE,
+     --primary as text on a dark surface fails contrast. Reroute text-primary
+     to --primary-soft (brighter green-400) so it passes on dark surfaces.
      Same routing applies to inline style="color: var(--primary)" usages
      (many components use it for tinted accent text).
      EXCEPTION: inside .bg-white containers (popups, over-image CTAs) the
