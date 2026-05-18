@@ -3,7 +3,6 @@ import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers';
-import orama from '@orama/plugin-astro';
 import astroExpressiveCode from 'astro-expressive-code';
 import icon from 'astro-icon';
 import { defineConfig, fontProviders } from 'astro/config';
@@ -22,12 +21,6 @@ export default defineConfig({
     defaultStrategy: 'hover',
   },
   integrations: [
-    // orama({
-    //   search: {
-    //     pathMatcher: /^\/docs\//,
-    //     contentSelectors: ['h1', 'h2', '[data-search-meta]'],
-    //   },
-    // }),
     icon(),
     astroExpressiveCode({
       themes: ['github-light', houston],

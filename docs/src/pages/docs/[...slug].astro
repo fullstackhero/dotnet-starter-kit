@@ -35,7 +35,7 @@ const slugForCrumb = entry.id.replace(/\.mdx$/, '').replace(/\/index$/, '');
     pageType={entry.data.pageType}
     lastUpdated={entry.data.lastUpdated}
   />
-  <article class="prose max-w-none">
+  <article class="prose max-w-none" data-pagefind-body>
     <Content components={mdxComponents} />
   </article>
   <PrevNext currentHref={currentHref} />

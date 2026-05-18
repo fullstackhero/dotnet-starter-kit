@@ -1,6 +1,7 @@
 ---
 import '../styles/globals.css';
 import siteConfig from '../data/site';
+import SearchModal from '../components/docs/SearchModal.astro';
 
 interface Props {
   title?: string;
@@ -51,5 +52,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? siteConfig.url).t
   <body>
     <a href="#main" class="skip-to-content">Skip to content</a>
     <slot />
+    <SearchModal />
   </body>
 </html>
