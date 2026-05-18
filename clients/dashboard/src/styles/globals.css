@@ -373,6 +373,61 @@
     color-scheme: var(--color-scheme);
   }
 
+  /* Cursor affordance — restore the classic "anything clickable shows a
+     pointer" behavior. Tailwind v4 follows the new browser default of
+     `cursor: default` on <button>, which leaves users guessing whether
+     an element is interactive. We override globally so every actionable
+     surface (native controls, ARIA-roled widgets, labels bound to inputs,
+     <summary> for collapsibles) reads as a clickable from the cursor alone.
+
+     Disabled / aria-disabled variants fall through to `not-allowed` so the
+     feedback flips cleanly when an action is unavailable. */
+  button:not(:disabled):not([aria-disabled="true"]),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="link"]:not([aria-disabled="true"]),
+  [role="menuitem"]:not([aria-disabled="true"]),
+  [role="menuitemcheckbox"]:not([aria-disabled="true"]),
+  [role="menuitemradio"]:not([aria-disabled="true"]),
+  [role="option"]:not([aria-disabled="true"]),
+  [role="tab"]:not([aria-disabled="true"]),
+  [role="switch"]:not([aria-disabled="true"]),
+  [role="checkbox"]:not([aria-disabled="true"]),
+  [role="radio"]:not([aria-disabled="true"]),
+  [role="treeitem"]:not([aria-disabled="true"]),
+  a[href],
+  summary,
+  label[for]:not([data-disabled]),
+  select:not(:disabled),
+  input[type="submit"]:not(:disabled),
+  input[type="reset"]:not(:disabled),
+  input[type="button"]:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled),
+  input[type="image"]:not(:disabled),
+  input[type="file"]:not(:disabled),
+  input[type="color"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  button[aria-disabled="true"],
+  [role="button"][aria-disabled="true"],
+  [role="link"][aria-disabled="true"],
+  [role="menuitem"][aria-disabled="true"],
+  [role="menuitemcheckbox"][aria-disabled="true"],
+  [role="menuitemradio"][aria-disabled="true"],
+  [role="option"][aria-disabled="true"],
+  [role="tab"][aria-disabled="true"],
+  [role="switch"][aria-disabled="true"],
+  [role="checkbox"][aria-disabled="true"],
+  [role="radio"][aria-disabled="true"],
+  select:disabled,
+  input:disabled,
+  fieldset:disabled,
+  fieldset:disabled * {
+    cursor: not-allowed;
+  }
+
   html {
     font-family: var(--font-sans);
     font-feature-settings: var(--font-feature-default);
