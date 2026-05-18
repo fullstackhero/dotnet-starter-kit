@@ -1,0 +1,107 @@
+---
+/**
+ * Footer — adapted from codewithmukesh/blog Footer.
+ * Newsletter section dropped (no forms in v1). Visual chrome preserved:
+ * brand block + nav columns + hairline copyright bar.
+ */
+import siteConfig from '../../data/site';
+
+const projectLinks = [
+  { name: 'Docs',            url: '/docs/' },
+  { name: 'Getting Started', url: '/docs/getting-started/install/' },
+  { name: 'Releases',        url: 'https://github.com/fullstackhero/dotnet-starter-kit/releases', external: true },
+  { name: 'GitHub',          url: siteConfig.repo, external: true },
+];
+
+const resourceLinks = [
+  { name: 'Architecture', url: '/docs/concepts/architecture/' },
+  { name: 'Modules',      url: '/docs/modules/' },
+  { name: 'Recipes',      url: '/docs/recipes/' },
+  { name: 'Reference',    url: '/docs/reference/' },
+  { name: 'Contributing', url: '/docs/contributing/' },
+  { name: 'License',      url: 'https://github.com/fullstackhero/dotnet-starter-kit/blob/main/LICENSE', external: true },
+  { name: 'codewithmukesh blog', url: 'https://codewithmukesh.com', external: true },
+];
+---
+
+<footer class="relative border-t border-border bg-background">
+  <div class="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col items-center gap-12 py-14 text-center md:grid md:grid-cols-12 md:items-start md:gap-x-8 md:gap-y-10 md:py-16 md:text-left">
+      <div class="flex flex-col items-center md:col-span-5 md:items-start">
+        <a href="/" class="inline-flex items-baseline gap-1" aria-label="FullStackHero — home">
+          <span class="font-display text-[20px] tracking-[-0.03em] text-foreground lowercase leading-none">
+            <span class="font-light">fullstack</span><span class="font-semibold">hero</span>
+          </span>
+          <span class="font-mono text-[11px] font-medium text-muted-foreground leading-none">/docs</span>
+        </a>
+        <p class="mt-4 max-w-sm text-[13.5px] leading-relaxed text-muted-foreground">
+          {siteConfig.description}
+        </p>
+        <a
+          href={siteConfig.repo}
+          target="_blank"
+          rel="noopener"
+          class="mt-6 inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[12.5px] text-muted-foreground hover:border-border-strong hover:text-foreground transition-colors"
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.55v-2.06c-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.27-1.68-1.27-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.69 1.25 3.35.96.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.17 1.18.92-.26 1.91-.39 2.89-.39s1.97.13 2.89.39c2.2-1.49 3.17-1.18 3.17-1.18.62 1.58.23 2.75.11 3.04.74.8 1.18 1.83 1.18 3.09 0 4.42-2.69 5.4-5.25 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.55C20.21 21.38 23.5 17.07 23.5 12 23.5 5.65 18.35.5 12 .5z"/>
+          </svg>
+          fullstackhero/dotnet-starter-kit
+        </a>
+      </div>
+
+      <nav class="md:col-span-3" aria-label="Footer project nav">
+        <h2 class="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">Project</h2>
+        <ul class="mt-4 space-y-2.5 text-[13.5px]">
+          {projectLinks.map((item) => (
+            <li>
+              <a
+                href={item.url}
+                target={item.external ? '_blank' : undefined}
+                rel={item.external ? 'noopener' : undefined}
+                class="text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {item.name}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <nav class="md:col-span-4" aria-label="Footer resources">
+        <h2 class="text-[11px] font-medium uppercase tracking-[0.18em] text-primary">Resources</h2>
+        <ul class="mt-4 space-y-2.5 text-[13.5px]">
+          {resourceLinks.map((item) => (
+            <li>
+              <a
+                href={item.url}
+                target={item.external ? '_blank' : undefined}
+                rel={item.external ? 'noopener' : undefined}
+                class="text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {item.name}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </div>
+
+    <div class="flex flex-col items-center justify-between gap-3 border-t border-border py-5 text-[12px] tabular-nums text-muted-foreground sm:flex-row">
+      <p>
+        &copy; {new Date().getFullYear()} {siteConfig.author}. All rights reserved.
+      </p>
+      <a
+        href={siteConfig.repo}
+        target="_blank"
+        rel="noopener"
+        class="inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
+      >
+        Star on GitHub
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 12h14M13 5l7 7-7 7" />
+        </svg>
+      </a>
+    </div>
+  </div>
+</footer>
