@@ -1,8 +1,36 @@
-// Dev builds proxy `/api` → VITE_API_BASE_URL via vite.config.ts, so the app can use relative URLs.
-// Production builds should set VITE_API_BASE_URL to the fully-qualified API origin.
-const apiBase = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
+// Runtime config — fetched once at boot from /config.json. See
+// clients/admin/src/env.ts for the rationale; the dashboard doesn't
+// need dashboardUrl (the handoff is one-way: admin → dashboard).
+type RuntimeConfig = {
+  apiBase: string;
+  defaultTenant: string;
+};
+
+let cached: RuntimeConfig | null = null;
+
+export async function loadRuntimeConfig(): Promise<void> {
+  if (cached !== null) return;
+  const res = await fetch("/config.json", { cache: "no-store" });
+  if (!res.ok) {
+    throw new Error(`Failed to load /config.json: ${res.status} ${res.statusText}`);
+  }
+  const cfg = (await res.json()) as Partial<RuntimeConfig>;
+  cached = {
+    apiBase: (cfg.apiBase ?? "").replace(/\/$/, ""),
+    defaultTenant: cfg.defaultTenant ?? "root",
+  };
+}
+
+function get(): RuntimeConfig {
+  if (cached === null) {
+    throw new Error(
+      "Runtime config not loaded. main.tsx must await loadRuntimeConfig() before mounting React.",
+    );
+  }
+  return cached;
+}
 
 export const env = {
-  apiBase,
-  defaultTenant: import.meta.env.VITE_DEFAULT_TENANT ?? "root",
+  get apiBase(): string { return get().apiBase; },
+  get defaultTenant(): string { return get().defaultTenant; },
 };

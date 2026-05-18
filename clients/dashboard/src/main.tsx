@@ -2,7 +2,12 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "@/App";
 import { installImpersonationFromHash } from "@/auth/impersonation-handoff";
+import { loadRuntimeConfig } from "@/env";
 import "@/styles/globals.css";
+
+// Runtime config must resolve before React mounts so env.apiBase reads
+// inside components see the right value on first paint.
+await loadRuntimeConfig();
 
 const rootElement = document.getElementById("root");
 if (!rootElement) {
