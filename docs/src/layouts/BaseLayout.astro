@@ -1,5 +1,6 @@
 ---
 import '../styles/globals.css';
+import { Font } from 'astro:assets';
 import siteConfig from '../data/site';
 import SearchModal from '../components/docs/SearchModal.astro';
 
@@ -39,6 +40,10 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? siteConfig.url).t
     <meta name="twitter:image" content={pageImage} />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <Font cssVariable="--font-outfit" preload />
+    <Font cssVariable="--font-figtree" preload />
+    <Font cssVariable="--font-jetbrains-mono" />
 
     <script is:inline>
       (() => {
