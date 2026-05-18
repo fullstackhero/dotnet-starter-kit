@@ -45,6 +45,18 @@ Click **"Use this template"** on GitHub, or open in Codespaces for a zero-instal
 
 > Prerequisites: [.NET 10 SDK](https://dotnet.microsoft.com/download), [Docker](https://www.docker.com/) (for Postgres/Redis via Aspire)
 
+## Deploy
+
+Production-style single-host deployment via Docker Compose:
+
+```bash
+cd deploy/docker
+cp .env.example .env && $EDITOR .env
+docker compose up -d --build
+```
+
+Full walkthrough — prereqs, external proxy wiring, backup, swapping to managed services — in [`deploy/docker/README.md`](deploy/docker/README.md).
+
 ## FSH CLI Commands
 
 | Command | Description |
