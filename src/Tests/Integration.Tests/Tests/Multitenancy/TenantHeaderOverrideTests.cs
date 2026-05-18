@@ -180,6 +180,7 @@ public sealed class TenantHeaderOverrideTests : IAsyncLifetime
             name = $"THOT {tenantId}",
             connectionString = (string?)null,
             adminEmail,
+            adminPassword = TestConstants.DefaultPassword,
             issuer = $"{tenantId}.issuer",
         });
         response.StatusCode.ShouldBe(HttpStatusCode.Created);

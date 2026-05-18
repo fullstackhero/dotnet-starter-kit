@@ -16,8 +16,40 @@ namespace FSH.Modules.Identity.Features.v1.Roles;
 public sealed class RoleService(RoleManager<FshRole> roleManager,
     IdentityDbContext context,
     IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
-    ICurrentUser currentUser) : IRoleService
+    ICurrentUser currentUser,
+    IUserPermissionService userPermissionService) : IRoleService
 {
+    // Invalidate every user whose effective permission set may have shifted as a
+    // result of a role-level mutation. "Direct" = AspNetUserRoles, "via groups"
+    // = members of groups that carry this role.
+    private async Task InvalidateAffectedUsersAsync(string roleId, CancellationToken cancellationToken)
+    {
+        var role = await roleManager.FindByIdAsync(roleId);
+        if (role?.Name is null)
+        {
+            return;
+        }
+
+        // Direct role holders via AspNetUserRoles join.
+        var directUserIds = await context.UserRoles
+            .Where(ur => ur.RoleId == roleId)
+            .Select(ur => ur.UserId)
+            .ToListAsync(cancellationToken);
+
+        // Group-derived role holders.
+        var groupUserIds = await context.GroupRoles
+            .Where(gr => gr.RoleId == roleId)
+            .SelectMany(gr => context.UserGroups
+                .Where(ug => ug.GroupId == gr.GroupId)
+                .Select(ug => ug.UserId))
+            .ToListAsync(cancellationToken);
+
+        foreach (var userId in directUserIds.Concat(groupUserIds).Distinct())
+        {
+            await userPermissionService.InvalidatePermissionCacheAsync(userId, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
     public async Task<IEnumerable<RoleDto>> GetRolesAsync(CancellationToken cancellationToken = default)
     {
         if (roleManager is null)
@@ -81,6 +113,10 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
 
         EnsureNotSystemRole(role.Name, "System roles cannot be deleted.");
 
+        // Snapshot affected users BEFORE the cascade removes the role-mapping rows,
+        // otherwise the lookup returns an empty set after delete.
+        await InvalidateAffectedUsersAsync(id, cancellationToken).ConfigureAwait(false);
+
         await roleManager.DeleteAsync(role);
     }
 
@@ -111,6 +147,10 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
         var currentClaims = await roleManager.GetClaimsAsync(role);
         await RemoveRevokedPermissionsAsync(role, currentClaims, permissions, cancellationToken);
         await AddNewPermissionsAsync(role, currentClaims, permissions, cancellationToken);
+
+        // Permissions on the role just changed — every user reachable through this
+        // role (directly or via group membership) now has a stale cache entry.
+        await InvalidateAffectedUsersAsync(roleId, cancellationToken).ConfigureAwait(false);
 
         return "permissions updated";
     }

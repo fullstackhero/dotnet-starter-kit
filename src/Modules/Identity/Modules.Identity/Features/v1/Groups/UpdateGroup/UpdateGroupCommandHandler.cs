@@ -1,6 +1,7 @@
 using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
 using FSH.Modules.Identity.Contracts.DTOs;
+using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Contracts.v1.Groups.UpdateGroup;
 using FSH.Modules.Identity.Data;
 using FSH.Modules.Identity.Domain;
@@ -13,11 +14,13 @@ public sealed class UpdateGroupCommandHandler : ICommandHandler<UpdateGroupComma
 {
     private readonly IdentityDbContext _dbContext;
     private readonly ICurrentUser _currentUser;
+    private readonly IUserPermissionService _userPermissionService;
 
-    public UpdateGroupCommandHandler(IdentityDbContext dbContext, ICurrentUser currentUser)
+    public UpdateGroupCommandHandler(IdentityDbContext dbContext, ICurrentUser currentUser, IUserPermissionService userPermissionService)
     {
         _dbContext = dbContext;
         _currentUser = currentUser;
+        _userPermissionService = userPermissionService;
     }
 
     public async ValueTask<GroupDto> Handle(UpdateGroupCommand command, CancellationToken cancellationToken)
@@ -40,8 +43,23 @@ public sealed class UpdateGroupCommandHandler : ICommandHandler<UpdateGroupComma
         group.Update(command.Name, command.Description, userId);
         group.SetAsDefault(command.IsDefault, userId);
 
+        var currentRoleIdsBefore = group.GroupRoles.Select(gr => gr.RoleId).ToHashSet();
         var newRoleIds = UpdateRoleAssignments(group, command.RoleIds);
         await _dbContext.SaveChangesAsync(cancellationToken);
+
+        // If the set of group→role assignments actually changed, every member's
+        // effective permission set may have shifted — invalidate each.
+        if (!currentRoleIdsBefore.SetEquals(newRoleIds))
+        {
+            var memberIds = await _dbContext.UserGroups
+                .Where(ug => ug.GroupId == command.Id)
+                .Select(ug => ug.UserId)
+                .ToListAsync(cancellationToken);
+            foreach (var memberId in memberIds)
+            {
+                await _userPermissionService.InvalidatePermissionCacheAsync(memberId, cancellationToken).ConfigureAwait(false);
+            }
+        }
 
         return await BuildResponseAsync(group, newRoleIds, cancellationToken);
     }

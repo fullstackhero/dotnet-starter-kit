@@ -906,6 +906,7 @@ public sealed class ImpersonationTests : IAsyncLifetime
             name = $"Imp Test {tenantId}",
             connectionString = (string?)null,
             adminEmail,
+            adminPassword = TestConstants.DefaultPassword,
             issuer = $"{tenantId}.issuer",
         });
         response.StatusCode.ShouldBe(HttpStatusCode.Created);

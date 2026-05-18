@@ -18,7 +18,8 @@ internal sealed class UserRoleService(
     RoleManager<FshRole> roleManager,
     IdentityDbContext db,
     IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
-    ICurrentUser currentUser) : IUserRoleService
+    ICurrentUser currentUser,
+    IUserPermissionService userPermissionService) : IUserRoleService
 {
     public async Task<string> AssignRolesAsync(string userId, List<UserRoleDto> userRoles, CancellationToken cancellationToken)
     {
@@ -32,6 +33,11 @@ internal sealed class UserRoleService(
         var assignedRoles = await ProcessRoleAssignmentsAsync(user, userRoles);
 
         await RaiseRolesAssignedEventAsync(user, assignedRoles, cancellationToken);
+
+        // Any role mutation invalidates the cached permission set for this user —
+        // both additions and removals, so flush unconditionally rather than
+        // gating on assignedRoles (which only tracks additions).
+        await userPermissionService.InvalidatePermissionCacheAsync(userId, cancellationToken).ConfigureAwait(false);
 
         return "User Roles Updated Successfully.";
     }

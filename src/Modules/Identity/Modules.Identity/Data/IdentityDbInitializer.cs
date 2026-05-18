@@ -6,6 +6,7 @@ using FSH.Framework.Web.Origin;
 using FSH.Modules.Identity.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -18,7 +19,9 @@ internal sealed class IdentityDbInitializer(
     UserManager<FshUser> userManager,
     TimeProvider timeProvider,
     IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
-    IOptions<OriginOptions> originSettings) : IDbInitializer
+    IOptions<OriginOptions> originSettings,
+    ITenantInitialPasswordBuffer passwordBuffer,
+    IConfiguration configuration) : IDbInitializer
 {
     public async Task MigrateAsync(CancellationToken cancellationToken)
     {
@@ -204,8 +207,9 @@ internal sealed class IdentityDbInitializer(
             {
                 logger.LogInformation("Seeding Default Admin User for '{TenantId}' Tenant.", multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id);
             }
+            var initialPassword = ResolveInitialAdminPassword(multiTenantContextAccessor.MultiTenantContext.TenantInfo!.Id!);
             var password = new PasswordHasher<FshUser>();
-            adminUser.PasswordHash = password.HashPassword(adminUser, MultitenancyConstants.DefaultPassword);
+            adminUser.PasswordHash = password.HashPassword(adminUser, initialPassword);
             await userManager.CreateAsync(adminUser);
         }
 
@@ -218,5 +222,36 @@ internal sealed class IdentityDbInitializer(
             }
             await userManager.AddToRoleAsync(adminUser, RoleConstants.Admin);
         }
+    }
+
+    /// <summary>
+    /// Resolve the initial password for the admin user being seeded into a tenant.
+    /// Lookup order:
+    ///   1. <see cref="ITenantInitialPasswordBuffer"/> — set by <c>CreateTenantCommandHandler</c>
+    ///      for runtime-created tenants (atomic consume, gone after this call).
+    ///   2. <c>Seed:DefaultAdminPassword</c> from configuration — covers the framework's
+    ///      root-tenant seed at startup and any test-host bootstrap. Operators set this
+    ///      via env var / user-secrets / production secrets manager.
+    /// Throws if neither source supplies a password — refusing to seed is safer than
+    /// minting an admin user with a predictable secret.
+    /// </summary>
+    private string ResolveInitialAdminPassword(string tenantId)
+    {
+        var buffered = passwordBuffer.TryConsume(tenantId);
+        if (!string.IsNullOrWhiteSpace(buffered))
+        {
+            return buffered;
+        }
+
+        var fromConfig = configuration["Seed:DefaultAdminPassword"];
+        if (!string.IsNullOrWhiteSpace(fromConfig))
+        {
+            return fromConfig;
+        }
+
+        throw new InvalidOperationException(
+            $"No initial admin password available for tenant '{tenantId}'. " +
+            "Supply AdminPassword on the CreateTenant request, or set " +
+            "'Seed:DefaultAdminPassword' in configuration for the root/startup seed.");
     }
 }

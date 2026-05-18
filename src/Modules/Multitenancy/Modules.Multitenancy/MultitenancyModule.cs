@@ -48,6 +48,12 @@ public sealed class MultitenancyModule : IModule
         builder.Services.AddScoped<ITenantProvisioningService, TenantProvisioningService>();
         builder.Services.AddTransient<TenantProvisioningJob>();
 
+        // Singleton — the buffer survives the request scope that calls Store(...)
+        // so the background Hangfire-scheduled seed scope can still TryConsume(...).
+        builder.Services.AddSingleton<
+            FSH.Framework.Shared.Multitenancy.ITenantInitialPasswordBuffer,
+            Services.TenantInitialPasswordBuffer>();
+
         builder.Services.AddHeroDbContext<TenantDbContext>();
 
         builder.Services

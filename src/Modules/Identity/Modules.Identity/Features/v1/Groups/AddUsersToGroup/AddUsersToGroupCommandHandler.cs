@@ -1,5 +1,6 @@
 using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
+using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Contracts.v1.Groups.AddUsersToGroup;
 using FSH.Modules.Identity.Data;
 using FSH.Modules.Identity.Domain;
@@ -12,11 +13,13 @@ public sealed class AddUsersToGroupCommandHandler : ICommandHandler<AddUsersToGr
 {
     private readonly IdentityDbContext _dbContext;
     private readonly ICurrentUser _currentUser;
+    private readonly IUserPermissionService _userPermissionService;
 
-    public AddUsersToGroupCommandHandler(IdentityDbContext dbContext, ICurrentUser currentUser)
+    public AddUsersToGroupCommandHandler(IdentityDbContext dbContext, ICurrentUser currentUser, IUserPermissionService userPermissionService)
     {
         _dbContext = dbContext;
         _currentUser = currentUser;
+        _userPermissionService = userPermissionService;
     }
 
     public async ValueTask<AddUsersToGroupResponse> Handle(AddUsersToGroupCommand command, CancellationToken cancellationToken)
@@ -61,6 +64,14 @@ public sealed class AddUsersToGroupCommandHandler : ICommandHandler<AddUsersToGr
         }
 
         await _dbContext.SaveChangesAsync(cancellationToken);
+
+        // Joining a group can grant new roles (via GroupRoles) which feed the user's
+        // effective role claims at JWT mint time. Invalidate the cached permission set
+        // for each newly-added user so their next request reflects the change.
+        foreach (var userId in usersToAdd)
+        {
+            await _userPermissionService.InvalidatePermissionCacheAsync(userId, cancellationToken).ConfigureAwait(false);
+        }
 
         return new AddUsersToGroupResponse(usersToAdd.Count, alreadyMemberUserIds);
     }

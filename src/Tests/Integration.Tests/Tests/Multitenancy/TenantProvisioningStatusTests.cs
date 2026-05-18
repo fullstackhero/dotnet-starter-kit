@@ -42,6 +42,7 @@ public sealed class TenantProvisioningStatusTests
             name = $"Provisioning Test Tenant {uniqueId}",
             connectionString = (string?)null,
             adminEmail,
+            adminPassword = TestConstants.DefaultPassword,
             issuer = $"{tenantId}.issuer"
         });
         createResponse.StatusCode.ShouldBe(HttpStatusCode.Created);

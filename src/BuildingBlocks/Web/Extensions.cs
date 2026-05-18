@@ -245,7 +245,7 @@ public sealed class FshPlatformOptions
     public bool EnableMailing { get; set; } = false;
     public bool EnableOpenTelemetry { get; set; } = true;
     public bool EnableFeatureFlags { get; set; } = false;
-    public bool EnableIdempotency { get; set; } = false;
+    public bool EnableIdempotency { get; set; } = true;
     public bool EnableSse { get; set; } = false;
     public bool EnableRealtime { get; set; } = false;
     public bool EnableQuotas { get; set; } = false;

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,19 +42,30 @@ public static class Extensions
         }
         else
         {
+            // Connect once at registration time and share the multiplexer across the
+            // Redis cache, Data Protection key persistence, and any future Redis-backed
+            // consumers — one connection pool per host instead of one per feature.
+            var redisConfig = ConfigurationOptions.Parse(cacheOptions.Redis);
+            redisConfig.AbortOnConnectFail = false;
+            if (cacheOptions.EnableSsl.HasValue)
+            {
+                redisConfig.Ssl = cacheOptions.EnableSsl.Value;
+            }
+            var sharedMultiplexer = ConnectionMultiplexer.Connect(redisConfig);
+            services.AddSingleton<IConnectionMultiplexer>(sharedMultiplexer);
+
             services.AddStackExchangeRedisCache(options =>
             {
-                var config = ConfigurationOptions.Parse(cacheOptions.Redis);
-                config.AbortOnConnectFail = false;
-
-                // Only override SSL if explicitly configured — respect the connection string default otherwise.
-                if (cacheOptions.EnableSsl.HasValue)
-                {
-                    config.Ssl = cacheOptions.EnableSsl.Value;
-                }
-
-                options.ConfigurationOptions = config;
+                options.ConnectionMultiplexerFactory = () =>
+                    Task.FromResult<IConnectionMultiplexer>(sharedMultiplexer);
             });
+
+            // Persist Data Protection keys (auth cookies, password-reset tokens, email-
+            // confirmation tokens, antiforgery) to Redis so multi-instance hosts share a
+            // key ring and tokens survive after a rolling restart on any node.
+            services.AddDataProtection()
+                .PersistKeysToStackExchangeRedis(sharedMultiplexer, "DataProtection-Keys")
+                .SetApplicationName("FSH.Starter");
         }
 
         // HybridCache auto-composes with whatever IDistributedCache is registered above.
