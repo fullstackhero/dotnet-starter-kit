@@ -207,10 +207,10 @@
     @apply mx-0.5 inline-block break-all rounded-md px-1.5 py-0.5 align-baseline text-[0.875em] leading-5;
     background: linear-gradient(
       135deg,
-      rgb(118 89 236 / 0.15) 0%,
-      rgb(118 89 236 / 0.08) 100%
+      rgb(22 163 74 / 0.15) 0%,
+      rgb(22 163 74 / 0.08) 100%
     );
-    border: 1px solid rgb(118 89 236 / 0.2);
+    border: 1px solid rgb(22 163 74 / 0.2);
     color: var(--primary);
     font-family:
       'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
@@ -226,10 +226,10 @@
   & :where(p, li) code:hover {
     background: linear-gradient(
       135deg,
-      rgb(118 89 236 / 0.25) 0%,
-      rgb(118 89 236 / 0.15) 100%
+      rgb(22 163 74 / 0.25) 0%,
+      rgb(22 163 74 / 0.15) 100%
     );
-    border-color: rgb(118 89 236 / 0.4);
+    border-color: rgb(22 163 74 / 0.4);
   }
 
   & > p a > code {
@@ -257,7 +257,7 @@
   }
 
   & > .expressive-code figure:hover pre {
-    border-color: rgb(118 89 236 / 0.3) !important;
+    border-color: rgb(22 163 74 / 0.3) !important;
   }
 }
 
@@ -282,7 +282,7 @@
   }
 
   .prose > & figure:hover pre {
-    border-color: rgb(118 89 236 / 0.3) !important;
+    border-color: rgb(22 163 74 / 0.3) !important;
   }
 
   /* Copy button styling */
@@ -291,7 +291,7 @@
   }
 
   & .copy button:hover {
-    background: rgb(118 89 236 / 0.2) !important;
+    background: rgb(22 163 74 / 0.2) !important;
     transform: scale(1.05);
   }
 
@@ -307,7 +307,7 @@
     top: 0;
     bottom: 0;
     width: 3px;
-    background: linear-gradient(180deg, var(--primary), #4bf3c8);
+    background: linear-gradient(180deg, var(--primary), #4ade80);
     border-radius: 0 2px 2px 0;
   }
 }
@@ -319,7 +319,7 @@
   }
 
   .expressive-code & button:hover {
-    background: rgb(118 89 236 / 0.2) !important;
+    background: rgb(22 163 74 / 0.2) !important;
     transform: scale(1.05);
   }
 }
@@ -337,7 +337,7 @@
     top: 0;
     bottom: 0;
     width: 3px;
-    background: linear-gradient(180deg, var(--primary), #4bf3c8);
+    background: linear-gradient(180deg, var(--primary), #4ade80);
     border-radius: 0 2px 2px 0;
   }
 }
@@ -346,8 +346,8 @@
 
   code {
     @apply mx-0.5 inline-block break-all rounded-md px-1.5 py-0.5 align-baseline text-[0.875em] leading-5;
-    background: linear-gradient(135deg, rgb(118 89 236 / 0.15) 0%, rgb(118 89 236 / 0.08) 100%);
-    border: 1px solid rgb(118 89 236 / 0.2);
+    background: linear-gradient(135deg, rgb(22 163 74 / 0.15) 0%, rgb(22 163 74 / 0.08) 100%);
+    border: 1px solid rgb(22 163 74 / 0.2);
     color: var(--primary);
     font-family: var(--font-mono);
     font-weight: 500;
