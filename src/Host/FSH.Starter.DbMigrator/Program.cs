@@ -59,6 +59,22 @@ builder.Configuration.AddJsonFile(Path.Combine(AppContext.BaseDirectory, $"appse
 builder.Configuration.AddEnvironmentVariables();
 builder.Configuration.AddCommandLine(args);
 
+// The migrator loads the Identity module so its seed initializers can run, but
+// the migrator itself never mints JWTs. IdentityModule wires JwtOptions with
+// ValidateOnStart() (rightly so for the API), which trips on the empty
+// SigningKey now in the base appsettings.json. Inject a deterministic, clearly-
+// labelled placeholder ONLY when nothing real is configured — env vars and
+// JSON-supplied keys both win over this. Same treatment for Issuer/Audience.
+if (string.IsNullOrWhiteSpace(builder.Configuration["JwtOptions:SigningKey"]))
+{
+    builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+    {
+        ["JwtOptions:SigningKey"] = "fsh-dbmigrator-placeholder-never-mints-tokens-32+",
+        ["JwtOptions:Issuer"] = builder.Configuration["JwtOptions:Issuer"] ?? "fsh.local",
+        ["JwtOptions:Audience"] = builder.Configuration["JwtOptions:Audience"] ?? "fsh.clients",
+    });
+}
+
 // Fail-fast before option-validation runs at host build time: if the operator
 // forgot to set DatabaseOptions__ConnectionString, give them a single clear
 // line they'll actually read rather than a validation exception stack trace.
