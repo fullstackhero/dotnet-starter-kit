@@ -1,24 +1,69 @@
 ---
+import CopyCommand from './CopyCommand.astro';
 import siteConfig from '../../data/site';
 ---
-<section class="relative mx-auto max-w-5xl px-6 pt-20 pb-28 text-center sm:pt-28">
+<section class="relative isolate overflow-hidden">
+  <!-- Subtle paper grain + dot field + brand shadow blur -->
+  <div class="section-dots-subtle absolute inset-0 -z-10" aria-hidden="true"></div>
   <div class="brand-shadow" aria-hidden="true"></div>
-  <p class="mx-auto inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 text-xs font-medium text-muted-foreground">
-    <span class="size-1.5 rounded-full bg-success pulse-dot"></span>
-    v1 in progress
-  </p>
-  <h1 class="mt-6 text-4xl font-bold tracking-tight sm:text-6xl">
-    The <span class="gradient-text">.NET starter kit</span> that ships.
-  </h1>
-  <p class="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-    {siteConfig.description}
-  </p>
-  <div class="mt-10 flex flex-wrap justify-center gap-3">
-    <a href="/docs/getting-started/install/" class="rounded-md bg-primary px-5 py-2.5 font-medium text-primary-foreground hover:bg-primary-hover transition-colors">
-      Get started
-    </a>
-    <a href={siteConfig.repo} target="_blank" rel="noopener" class="rounded-md border border-border px-5 py-2.5 font-medium hover:bg-muted transition-colors">
-      Star on GitHub
-    </a>
+
+  <div class="mx-auto max-w-6xl px-6 pt-20 pb-24 sm:pt-28 sm:pb-32 lg:pt-32">
+    <!-- Eyebrow -->
+    <div class="flex justify-center">
+      <a
+        href={siteConfig.repo + '/releases'}
+        target="_blank"
+        rel="noopener"
+        class="group inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur-sm transition-colors hover:border-border-strong hover:text-foreground"
+      >
+        <span class="relative inline-flex h-1.5 w-1.5">
+          <span class="absolute inline-flex h-full w-full rounded-full bg-success opacity-60 pulse-dot"></span>
+          <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-success"></span>
+        </span>
+        v1 in progress
+        <span aria-hidden="true" class="text-muted-foreground/60 transition-transform group-hover:translate-x-0.5">→</span>
+      </a>
+    </div>
+
+    <!-- Editorial display headline. Two-line, with single gradient phrase. -->
+    <h1 class="mt-8 text-center font-display text-5xl font-semibold leading-[1.02] tracking-[-0.035em] text-foreground sm:text-6xl md:text-7xl lg:text-[88px]">
+      The <span class="gradient-text">.NET starter kit</span>
+      <span class="block">that actually ships.</span>
+    </h1>
+
+    <!-- Refined subhead — one strong line, large measure -->
+    <p class="mx-auto mt-7 max-w-2xl text-center text-[17px] leading-relaxed text-muted-foreground sm:text-lg">
+      Production-ready modular monolith with multitenancy, identity, and observability already wired up — so you write features, not scaffolding.
+    </p>
+
+    <!-- CTAs -->
+    <div class="mt-10 flex flex-wrap items-center justify-center gap-3">
+      <a
+        href="/docs/getting-started/install/"
+        class="group inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-[14px] font-semibold text-primary-foreground transition-all hover:bg-primary-hover hover:gap-2.5"
+      >
+        Get started
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="transition-transform group-hover:translate-x-0.5">
+          <path d="M5 12h14M13 5l7 7-7 7" />
+        </svg>
+      </a>
+      <a
+        href={siteConfig.repo}
+        target="_blank"
+        rel="noopener"
+        class="inline-flex items-center gap-2 rounded-md border border-border bg-card px-5 py-2.5 text-[14px] font-semibold text-foreground transition-colors hover:border-border-strong hover:bg-muted"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.55v-2.06c-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.27-1.68-1.27-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.69 1.25 3.35.96.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.17 1.18.92-.26 1.91-.39 2.89-.39s1.97.13 2.89.39c2.2-1.49 3.17-1.18 3.17-1.18.62 1.58.23 2.75.11 3.04.74.8 1.18 1.83 1.18 3.09 0 4.42-2.69 5.4-5.25 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.55C20.21 21.38 23.5 17.07 23.5 12 23.5 5.65 18.35.5 12 .5z"/>
+        </svg>
+        Star on GitHub
+      </a>
+    </div>
+
+    <!-- Install command, immediately visible, no scroll -->
+    <div class="mt-12 flex flex-col items-center">
+      <p class="mb-3 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">Get running locally</p>
+      <CopyCommand command="git clone https://github.com/fullstackhero/dotnet-starter-kit.git" />
+    </div>
   </div>
 </section>

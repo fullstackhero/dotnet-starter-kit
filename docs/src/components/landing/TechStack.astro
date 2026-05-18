@@ -1,0 +1,31 @@
+---
+const stack = [
+  { name: '.NET 10',       sub: 'C# 14, latest LTS' },
+  { name: 'Aspire',        sub: 'local orchestration' },
+  { name: 'EF Core 10',    sub: 'PostgreSQL provider' },
+  { name: 'Mediator 3',    sub: 'source-generator' },
+  { name: 'FluentValidation', sub: '12.x' },
+  { name: 'Hangfire',      sub: 'background jobs' },
+  { name: 'Redis',         sub: 'StackExchange' },
+  { name: 'Serilog',       sub: 'structured logs' },
+  { name: 'OpenTelemetry', sub: 'OTLP exporter' },
+  { name: 'Scalar',        sub: 'OpenAPI 3.1 UI' },
+  { name: 'Finbuckle',     sub: 'multitenancy 10' },
+  { name: 'React + Vite',  sub: 'admin + dashboard' },
+];
+---
+<section class="border-t border-border">
+  <div class="mx-auto max-w-6xl px-6 py-20">
+    <p class="text-center text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+      Under the hood
+    </p>
+    <ul class="mt-10 grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3 lg:grid-cols-6">
+      {stack.map((t) => (
+        <li class="border-l-2 border-border pl-3 transition-colors hover:border-primary">
+          <p class="font-display text-[14px] font-semibold tracking-[-0.01em] text-foreground">{t.name}</p>
+          <p class="text-[11.5px] text-muted-foreground">{t.sub}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>

@@ -1,0 +1,97 @@
+---
+import { Icon } from 'astro-icon/components';
+
+const modules = [
+  {
+    name: 'Identity',
+    icon: 'lucide:shield-check',
+    tagline: 'Auth that gets out of your way.',
+    bullets: [
+      'JWT bearer + refresh tokens',
+      'ASP.NET Identity with roles + permissions',
+      'Operator impersonation with audit trail',
+      'Per-tenant SSO hooks',
+    ],
+    snippet: `endpoints.MapPost("/users", handler)\n  .RequirePermission(IdentityPermissions.Users.Create);`,
+    href: '/docs/modules/identity/',
+  },
+  {
+    name: 'Multitenancy',
+    icon: 'lucide:building-2',
+    tagline: 'Isolation by default. Cross-tenant by opt-in.',
+    bullets: [
+      'Finbuckle.MultiTenant 10 (claim, header, query)',
+      'EF Core global query filter for tenant scoping',
+      'IGlobalEntity opt-out for system-wide rows',
+      'Tenant-aware caching + jobs + outbox',
+    ],
+    snippet: `public class Invoice : BaseEntity, IHasTenant\n  { /* tenant-scoped automatically */ }`,
+    href: '/docs/modules/multitenancy/',
+  },
+  {
+    name: 'Auditing',
+    icon: 'lucide:scroll-text',
+    tagline: 'A forensic record of every change.',
+    bullets: [
+      'EF SaveChanges interceptor captures all writes',
+      'Per-entity before/after snapshot',
+      'User, tenant, correlation ID, request path',
+      'Queryable via /audits with filters + redaction',
+    ],
+    snippet: `services.AddDbContext<AppDb>(opts =>\n  opts.AddInterceptors(new AuditingInterceptor()));`,
+    href: '/docs/modules/auditing/',
+  },
+];
+---
+<section class="relative border-t border-border bg-subtle/30">
+  <div class="mx-auto max-w-6xl px-6 py-24 sm:py-32">
+    <div class="max-w-2xl">
+      <p class="text-[11px] font-medium uppercase tracking-[0.18em] text-primary">The three modules</p>
+      <h2 class="mt-4 font-display text-4xl font-semibold leading-[1.05] tracking-[-0.03em] sm:text-5xl">
+        Opinionated <span class="gradient-text">where it matters</span>.
+      </h2>
+      <p class="mt-5 max-w-xl text-[15.5px] leading-relaxed text-muted-foreground">
+        Three modules ship with the kit. Each is an honest answer to a question every B2B app has to solve eventually.
+      </p>
+    </div>
+
+    <div class="mt-14 grid gap-6 md:grid-cols-3">
+      {modules.map((m) => (
+        <article
+          data-magnetic-card
+          class="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:border-border-strong hover:shadow-lg hover:-translate-y-0.5"
+        >
+          <div class="flex items-center gap-3">
+            <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Icon name={m.icon} class="size-5" />
+            </span>
+            <h3 class="font-display text-[20px] font-semibold tracking-[-0.02em]">{m.name}</h3>
+          </div>
+
+          <p class="mt-5 text-[14.5px] font-medium leading-relaxed text-foreground">{m.tagline}</p>
+
+          <ul class="mt-4 space-y-2 text-[13px] text-muted-foreground">
+            {m.bullets.map((b) => (
+              <li class="flex items-start gap-2">
+                <span class="mt-1.5 inline-flex h-1 w-1 shrink-0 rounded-full bg-primary-soft"></span>
+                <span>{b}</span>
+              </li>
+            ))}
+          </ul>
+
+          <pre class="mt-5 overflow-x-auto rounded-lg border border-border bg-background/60 px-3 py-2.5 font-mono text-[11.5px] leading-relaxed text-muted-foreground"><code>{m.snippet}</code></pre>
+
+          <a
+            href={m.href}
+            class="mt-6 inline-flex items-center gap-1.5 text-[13.5px] font-medium text-primary transition-all group-hover:gap-2"
+          >
+            Explore {m.name}
+            <span aria-hidden="true">→</span>
+          </a>
+
+          <div class="magnetic-shimmer" aria-hidden="true"></div>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>

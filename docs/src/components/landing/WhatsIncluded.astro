@@ -1,0 +1,43 @@
+---
+const items = [
+  { title: 'Identity & Permissions',     body: 'JWT bearer, refresh, role + permission gates with .RequirePermission().' },
+  { title: 'Multitenancy by default',    body: 'Tenant isolation enforced via global query filters; opt out by interface.' },
+  { title: 'EF Core + PostgreSQL',       body: 'Migrations, value converters, soft delete, audit interceptors wired up.' },
+  { title: 'Redis caching',              body: 'Distributed cache with tenant-scoped cache-busting on writes.' },
+  { title: 'Hangfire jobs',              body: 'Background processing with tenant context preserved across queues.' },
+  { title: 'Serilog + OpenTelemetry',    body: 'Structured logs to console + file + OTLP traces, metrics, and logs.' },
+  { title: 'Scalar OpenAPI',             body: 'Versioned APIs, OpenAPI 3.1 docs, interactive Scalar UI at /scalar/.' },
+  { title: 'Idempotency + Webhooks',     body: 'Idempotency-Key header, HMAC-signed tenant webhooks, replay protection.' },
+  { title: '.NET Aspire AppHost',        body: 'Local orchestration of API + DB + frontends + Redis + Hangfire dashboard.' },
+  { title: 'React admin + dashboard',    body: 'Hot Vite apps with auth flow, permission UI, audit log viewer.' },
+  { title: 'Health, rate limits, SSE',   body: 'Probe endpoints, fixed-window limiter, server-sent events for live data.' },
+  { title: 'Feature flags',              body: 'Microsoft.FeatureManagement with tenant-scoped overrides.' },
+];
+---
+<section class="border-t border-border">
+  <div class="mx-auto max-w-6xl px-6 py-24 sm:py-32">
+    <div class="max-w-2xl">
+      <p class="text-[11px] font-medium uppercase tracking-[0.18em] text-primary">What's included</p>
+      <h2 class="mt-4 font-display text-4xl font-semibold leading-[1.05] tracking-[-0.03em] sm:text-5xl">
+        Everything you'd build anyway.
+      </h2>
+      <p class="mt-5 text-[15.5px] leading-relaxed text-muted-foreground">
+        The unglamorous parts of every production .NET app — pre-wired, opinionated, and out of your way.
+      </p>
+    </div>
+
+    <ul class="mt-14 grid gap-x-10 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
+      {items.map((item) => (
+        <li class="flex items-start gap-3 border-t border-border pt-5">
+          <svg class="mt-1 size-4 shrink-0 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <div>
+            <h3 class="font-display text-[15px] font-semibold tracking-[-0.01em] text-foreground">{item.title}</h3>
+            <p class="mt-1 text-[13.5px] leading-relaxed text-muted-foreground">{item.body}</p>
+          </div>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
