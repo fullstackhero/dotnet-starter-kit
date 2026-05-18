@@ -52,6 +52,18 @@ const ProfileSettings = lazyNamed(() => import("@/pages/settings/profile"), "Pro
 const SecuritySettings = lazyNamed(() => import("@/pages/settings/security"), "SecuritySettings");
 const SessionsSettings = lazyNamed(() => import("@/pages/settings/sessions"), "SessionsSettings");
 const AppearanceSettings = lazyNamed(() => import("@/pages/settings/appearance"), "AppearanceSettings");
+const ForgotPasswordPage = lazyNamed(
+  () => import("@/pages/auth/forgot-password"),
+  "ForgotPasswordPage",
+);
+const ResetPasswordPage = lazyNamed(
+  () => import("@/pages/auth/reset-password"),
+  "ResetPasswordPage",
+);
+const ConfirmEmailPage = lazyNamed(
+  () => import("@/pages/auth/confirm-email"),
+  "ConfirmEmailPage",
+);
 
 // Each route's element is wrapped in RouteGuard with the same permissions the
 // server endpoint requires, so the UI mirrors server-side authorization. Auth
@@ -59,6 +71,9 @@ const AppearanceSettings = lazyNamed(() => import("@/pages/settings/appearance")
 
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage />, errorElement: <RouteError /> },
+  { path: "/forgot-password", element: <ForgotPasswordPage />, errorElement: <RouteError /> },
+  { path: "/reset-password", element: <ResetPasswordPage />, errorElement: <RouteError /> },
+  { path: "/confirm-email", element: <ConfirmEmailPage />, errorElement: <RouteError /> },
   {
     element: <ProtectedRoute />,
     errorElement: <RouteError />,

@@ -7,7 +7,9 @@
     "dev": "vite --port 5173",
     "build": "tsc -b && vite build",
     "preview": "vite preview --port 4173",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -31,6 +33,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@tailwindcss/vite": "^4.0.6",
     "@types/node": "^22.13.1",
     "@types/react": "^19.0.8",

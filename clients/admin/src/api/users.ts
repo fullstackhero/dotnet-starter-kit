@@ -129,3 +129,70 @@ export async function assignUserRoles(id: string, roles: UserRoleDto[]): Promise
     body: JSON.stringify({ userId: id, userRoles: roles }),
   });
 }
+
+// -----------------------------
+// Anonymous password-reset trio
+//   forgot-password → reset-password → confirm-email
+// -----------------------------
+
+/**
+ * Step 1 of the forgot-password flow. Server resolves the user by
+ * (email, tenant), generates a reset token, and emails them the link.
+ * Server always returns 200 regardless of whether the email exists —
+ * never leak account presence to the UI.
+ */
+export async function requestPasswordReset(input: {
+  email: string;
+  tenant: string;
+}): Promise<void> {
+  await apiFetch<string>(`${IDENTITY}/forgot-password`, {
+    method: "POST",
+    skipAuth: true,
+    headers: { tenant: input.tenant },
+    body: JSON.stringify({ email: input.email }),
+  });
+}
+
+/**
+ * Step 2 — caller carries (token, email, tenant) from the emailed link
+ * plus a new password from the form. Existing JWTs stay valid until
+ * natural expiry; the UI should bounce to /login after success.
+ */
+export async function resetPassword(input: {
+  email: string;
+  password: string;
+  token: string;
+  tenant: string;
+}): Promise<void> {
+  await apiFetch<string>(`${IDENTITY}/reset-password`, {
+    method: "POST",
+    skipAuth: true,
+    headers: { tenant: input.tenant },
+    body: JSON.stringify({
+      email: input.email,
+      password: input.password,
+      token: input.token,
+    }),
+  });
+}
+
+/**
+ * Confirm-email link landing. Server expects (userId, code, tenant) as
+ * query parameters from the registration email.
+ */
+export async function confirmEmail(input: {
+  userId: string;
+  code: string;
+  tenant: string;
+}): Promise<string> {
+  const qs = new URLSearchParams({
+    userId: input.userId,
+    code: input.code,
+    tenant: input.tenant,
+  }).toString();
+  return apiFetch<string>(`${IDENTITY}/confirm-email?${qs}`, {
+    method: "GET",
+    skipAuth: true,
+    headers: { tenant: input.tenant },
+  });
+}

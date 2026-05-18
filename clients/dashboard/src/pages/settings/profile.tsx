@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuth } from "@/auth/use-auth";
-import { getMyProfile, setProfileImage } from "@/api/identity";
+import { getMyProfile, setProfileImage, updateMyProfile } from "@/api/identity";
 import { ApiRequestError } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,7 +31,6 @@ export function ProfileSettings() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
-  const [saving, setSaving] = useState(false);
 
   // Seed form state from the fetched profile (falls back to the JWT-derived
   // user while the query is in flight so the form isn't empty on first paint).
@@ -46,13 +45,52 @@ export function ProfileSettings() {
     }
   }, [profile, user]);
 
-  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const saveMutation = useMutation({
+    // The endpoint accepts (firstName, lastName, phoneNumber, email, image).
+    // Passing null on a field would NULL it server-side, so updateMyProfile
+    // reads the current profile and only sends the changed fields' values
+    // (everything else passes through unchanged). Image + email use their
+    // own dedicated endpoints — see the ImageInput card above and the
+    // tenant-admin email-change story respectively.
+    mutationFn: () =>
+      updateMyProfile({
+        firstName: firstName.trim() || null,
+        lastName: lastName.trim() || null,
+        phoneNumber: phone.trim() || null,
+      }),
+    onSuccess: () => {
+      toast.success("Profile saved");
+      // Refetch so the topbar / settings header pick up the new name +
+      // any normalisation the server performed (trimming, casing).
+      queryClient.invalidateQueries({ queryKey: PROFILE_KEY });
+    },
+    onError: (err: unknown) => {
+      const message =
+        err instanceof ApiRequestError
+          ? err.problem?.detail ?? err.problem?.title ?? err.message
+          : "Failed to save profile";
+      toast.error("Save failed", { description: message });
+    },
+  });
+
+  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSaving(true);
-    // TODO: wire to /api/v1/identity/profile when the JSON endpoint accepts these fields.
-    await new Promise((r) => setTimeout(r, 800));
-    setSaving(false);
+    saveMutation.mutate();
   };
+
+  const onReset = () => {
+    if (profile) {
+      setFirstName(profile.firstName ?? "");
+      setLastName(profile.lastName ?? "");
+      setPhone(profile.phoneNumber ?? "");
+    }
+  };
+
+  const saving = saveMutation.isPending;
+  const dirty =
+    (profile?.firstName ?? "") !== firstName ||
+    (profile?.lastName ?? "") !== lastName ||
+    (profile?.phoneNumber ?? "") !== phone;
 
   const imageMutation = useMutation({
     mutationFn: (url: string | null) => setProfileImage(url),
@@ -154,10 +192,10 @@ export function ProfileSettings() {
       </Card>
 
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="ghost" disabled={saving}>
+        <Button type="button" variant="ghost" onClick={onReset} disabled={saving || !dirty}>
           Reset
         </Button>
-        <Button type="submit" disabled={saving}>
+        <Button type="submit" disabled={saving || !dirty}>
           {saving ? "Saving…" : "Save changes"}
         </Button>
       </div>

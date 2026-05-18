@@ -5,7 +5,7 @@ import {
   type FormEvent,
   type RefObject,
 } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import {
   AlertCircle,
   ArrowRight,
@@ -432,6 +432,20 @@ export function LoginPage() {
                   required
                   autoComplete="current-password"
                 />
+
+                <div className="-mt-1 flex justify-end">
+                  <Link
+                    to="/forgot-password"
+                    className={cn(
+                      "font-mono text-[10.5px] uppercase tracking-[0.16em]",
+                      "text-[var(--color-muted-foreground)] underline-offset-4",
+                      "transition-colors duration-[var(--duration-fast)]",
+                      "hover:text-[var(--color-foreground)] hover:underline",
+                    )}
+                  >
+                    // forgot password?
+                  </Link>
+                </div>
 
                 {error && (
                   <div

@@ -39,6 +39,7 @@ import {
   type TicketPriority,
   type TicketStatus,
 } from "@/api/tickets";
+import { UserPicker } from "@/components/identity/user-picker";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -50,7 +51,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorBand, Field } from "@/components/list";
 import { cn } from "@/lib/cn";
@@ -886,23 +886,22 @@ function AssignDialog({
         </DialogHeader>
         <form onSubmit={onSubmit}>
           <DialogBody className="space-y-4">
-            <Field id="assignee" label="Assignee user ID" hint="Leave blank to unassign.">
-              <Input
-                id="assignee"
-                value={assignee}
-                onChange={(e) => {
-                  setAssignee(e.target.value);
+            <Field
+              id="assignee"
+              label="Assignee"
+              hint="Search by name or email. Clear the selection to unassign."
+            >
+              <UserPicker
+                value={assignee || null}
+                onChange={(userId) => {
+                  setAssignee(userId ?? "");
                   setTouched(true);
                 }}
-                placeholder="00000000-0000-0000-0000-000000000000"
-                spellCheck={false}
-                autoComplete="off"
-                className="font-mono text-[12.5px]"
               />
             </Field>
             {touched && assignee.trim() === "" && (
               <p className="text-[12px] text-[var(--color-muted-foreground)]">
-                Leaving the field blank will <span className="font-medium text-[var(--color-foreground)]">unassign</span> the ticket.
+                Clearing the assignee will <span className="font-medium text-[var(--color-foreground)]">unassign</span> the ticket.
               </p>
             )}
           </DialogBody>

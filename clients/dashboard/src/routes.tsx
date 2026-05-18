@@ -29,6 +29,18 @@ function lazyNamed<T extends Record<string, ComponentType<unknown>>, K extends k
 }
 
 const LoginPage = lazyNamed(() => import("@/pages/login"), "LoginPage");
+const ForgotPasswordPage = lazyNamed(
+  () => import("@/pages/auth/forgot-password"),
+  "ForgotPasswordPage",
+);
+const ResetPasswordPage = lazyNamed(
+  () => import("@/pages/auth/reset-password"),
+  "ResetPasswordPage",
+);
+const ConfirmEmailPage = lazyNamed(
+  () => import("@/pages/auth/confirm-email"),
+  "ConfirmEmailPage",
+);
 const OverviewPage = lazyNamed(() => import("@/pages/overview"), "OverviewPage");
 const ActivityPage = lazyNamed(() => import("@/pages/activity"), "ActivityPage");
 const InvoicesPage = lazyNamed(() => import("@/pages/invoices"), "InvoicesPage");
@@ -120,6 +132,21 @@ export const router = createBrowserRouter([
   {
     path: "/login",
     element: withSuspense(<LoginPage />),
+    errorElement: <RouteError />,
+  },
+  {
+    path: "/forgot-password",
+    element: withSuspense(<ForgotPasswordPage />),
+    errorElement: <RouteError />,
+  },
+  {
+    path: "/reset-password",
+    element: withSuspense(<ResetPasswordPage />),
+    errorElement: <RouteError />,
+  },
+  {
+    path: "/confirm-email",
+    element: withSuspense(<ConfirmEmailPage />),
     errorElement: <RouteError />,
   },
   {

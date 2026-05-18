@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { ClipboardCheck, Copy, FlaskConical } from "lucide-react";
 import { useAuth } from "@/auth/use-auth";
 import { Button } from "@/components/ui/button";
@@ -191,6 +191,15 @@ export function LoginPage() {
             <Button type="submit" variant="signal" className="w-full" disabled={submitting}>
               {submitting ? "Authenticating…" : "Sign in →"}
             </Button>
+
+            <div className="flex justify-end">
+              <Link
+                to="/forgot-password"
+                className="meta text-[var(--color-muted-foreground)] underline-offset-4 transition-colors hover:text-[var(--color-foreground)] hover:underline"
+              >
+                // forgot password?
+              </Link>
+            </div>
           </form>
 
           {import.meta.env.DEV && (

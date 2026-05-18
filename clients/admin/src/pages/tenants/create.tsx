@@ -26,6 +26,10 @@ const schema = z.object({
     .regex(TENANT_ID_RE, "Lowercase letters, digits, hyphens. 3–64 chars. No leading/trailing hyphen."),
   name: z.string().trim().min(2, "At least 2 characters.").max(128),
   adminEmail: z.string().trim().email("Enter a valid email."),
+  adminPassword: z
+    .string()
+    .min(8, "At least 8 characters.")
+    .max(128, "Maximum 128 characters."),
   issuer: z.string().trim().min(2, "Required.").max(256),
   connectionString: z.string().trim().max(2048).optional(),
 });
@@ -46,6 +50,7 @@ export function CreateTenantPage() {
       id: "",
       name: "",
       adminEmail: "",
+      adminPassword: "",
       issuer: "",
       connectionString: "",
     },
@@ -57,6 +62,7 @@ export function CreateTenantPage() {
         id: values.id,
         name: values.name,
         adminEmail: values.adminEmail,
+        adminPassword: values.adminPassword,
         issuer: values.issuer,
         connectionString: values.connectionString?.trim() ? values.connectionString : null,
       }),
@@ -131,6 +137,22 @@ export function CreateTenantPage() {
                 className="font-mono"
                 aria-invalid={errors.adminEmail ? true : undefined}
                 {...register("adminEmail")}
+              />
+            </Field>
+            <Field
+              id="adminPassword"
+              label="Initial admin password"
+              required
+              hint="The first admin will sign in with this. They can rotate it after first login."
+              error={errors.adminPassword?.message}
+            >
+              <Input
+                id="adminPassword"
+                type="password"
+                autoComplete="new-password"
+                placeholder="Min 8 characters"
+                aria-invalid={errors.adminPassword ? true : undefined}
+                {...register("adminPassword")}
               />
             </Field>
           </FormSection>

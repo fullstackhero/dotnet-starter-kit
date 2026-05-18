@@ -7,7 +7,9 @@
     "dev": "vite --port 5174",
     "build": "tsc -b && vite build",
     "preview": "vite preview --port 4174",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -22,6 +24,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "lucide-react": "^0.475.0",
+    "qrcode": "^1.5.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.54.2",
@@ -32,9 +35,11 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@tailwindcss/vite": "^4.0.6",
     "@types/lodash": "^4.17.24",
     "@types/node": "^22.13.1",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "@vitejs/plugin-react": "^4.3.4",

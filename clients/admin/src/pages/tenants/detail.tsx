@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/auth/use-auth";
 import { ImpersonateDialog } from "@/components/impersonation/impersonate-dialog";
 import { ActiveGrantsCard } from "@/components/impersonation/active-grants-card";
+import { TenantBrandingCard } from "@/components/tenants/tenant-branding-card";
 import { IdentityPermissions } from "@/lib/permissions";
 import {
   changeTenantActivation,
@@ -164,6 +165,8 @@ export function TenantDetailPage() {
           />
 
           <ActiveGrantsCard tenantId={tenant.id} />
+
+          <TenantBrandingCard tenantId={tenant.id} />
 
           <FormShell>
             <FormSection
