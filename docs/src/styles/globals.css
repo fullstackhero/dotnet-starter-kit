@@ -10,9 +10,6 @@
 @import './formkit.css';
 @import './loader.css' layer(base);
 
-@plugin 'tailwindcss-animate';
-@plugin '@tailwindcss/forms';
-
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
