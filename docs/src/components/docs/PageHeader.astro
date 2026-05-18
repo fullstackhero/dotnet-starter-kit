@@ -1,0 +1,26 @@
+---
+interface Props {
+  title: string;
+  description: string;
+  pageType: 'guide' | 'reference' | 'concept' | 'recipe';
+  lastUpdated?: Date;
+}
+
+const { title, description, pageType, lastUpdated } = Astro.props;
+const typeLabel = {
+  guide: 'Guide',
+  reference: 'Reference',
+  concept: 'Concept',
+  recipe: 'Recipe',
+}[pageType];
+---
+<header class="mb-10 border-b border-border pb-6">
+  <p class="text-xs font-medium uppercase tracking-wider text-primary">{typeLabel}</p>
+  <h1 class="mt-2 text-4xl font-bold tracking-tight">{title}</h1>
+  <p class="mt-3 text-lg text-muted-foreground">{description}</p>
+  {lastUpdated && (
+    <p class="mt-4 text-xs text-muted-foreground">
+      Last updated <time datetime={lastUpdated.toISOString()}>{lastUpdated.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</time>
+    </p>
+  )}
+</header>

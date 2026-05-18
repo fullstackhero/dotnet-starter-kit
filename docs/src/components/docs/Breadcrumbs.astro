@@ -1,0 +1,29 @@
+---
+import { sections } from '../../content/docs/_sections';
+
+interface Props {
+  slug: string;
+  title: string;
+}
+const { slug, title } = Astro.props;
+
+const parts = slug.split('/').filter(Boolean);
+const items: Array<{ label: string; href: string | null }> = [{ label: 'Docs', href: '/docs/' }];
+
+if (parts.length > 0 && parts[0] !== 'index') {
+  const section = sections.find((s) => s.dir === parts[0]);
+  if (section) items.push({ label: section.label, href: `/docs/${section.dir}/` });
+}
+
+items.push({ label: title, href: null });
+---
+<nav aria-label="Breadcrumb" class="mb-6 text-sm">
+  <ol class="flex flex-wrap items-center gap-1.5 text-muted-foreground">
+    {items.map((item, i) => (
+      <li class="flex items-center gap-1.5">
+        {i > 0 && <span aria-hidden="true">/</span>}
+        {item.href ? <a href={item.href} class="hover:text-foreground transition-colors">{item.label}</a> : <span class="text-foreground">{item.label}</span>}
+      </li>
+    ))}
+  </ol>
+</nav>

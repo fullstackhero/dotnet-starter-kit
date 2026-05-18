@@ -1,0 +1,44 @@
+---
+import { buildSidebar, isActivePath } from '../../helpers/sidebar';
+
+const sidebar = await buildSidebar();
+const currentPath = Astro.url.pathname;
+---
+<nav aria-label="Docs sidebar" class="text-sm">
+  <ul class="space-y-6">
+    {sidebar.map((section) => (
+      <li>
+        <div class="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          {section.indexHref ? (
+            <a href={section.indexHref} class="hover:text-foreground transition-colors">{section.label}</a>
+          ) : (
+            section.label
+          )}
+        </div>
+        {section.pages.length > 0 && (
+          <ul class="space-y-0.5">
+            {section.pages.map((page) => {
+              const active = isActivePath(currentPath, page.href);
+              return (
+                <li>
+                  <a
+                    href={page.href}
+                    class:list={[
+                      'block rounded-md px-3 py-1.5 transition-colors',
+                      active
+                        ? 'bg-primary/10 font-medium text-primary'
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                    ]}
+                    aria-current={active ? 'page' : undefined}
+                  >
+                    {page.title}
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </li>
+    ))}
+  </ul>
+</nav>

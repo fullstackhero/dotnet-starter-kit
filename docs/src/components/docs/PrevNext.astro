@@ -1,0 +1,30 @@
+---
+import { buildSidebar } from '../../helpers/sidebar';
+
+interface Props {
+  currentHref: string;
+}
+const { currentHref } = Astro.props;
+const sidebar = await buildSidebar();
+
+const flat = sidebar.flatMap((s) => s.pages);
+const idx = flat.findIndex((p) => p.href === currentHref);
+const prev = idx > 0 ? flat[idx - 1] : null;
+const next = idx >= 0 && idx < flat.length - 1 ? flat[idx + 1] : null;
+---
+{(prev || next) && (
+  <nav aria-label="Previous and next page" class="mt-16 grid gap-4 border-t border-border pt-8 sm:grid-cols-2">
+    {prev ? (
+      <a href={prev.href} class="group rounded-lg border border-border p-4 transition-colors hover:bg-muted">
+        <span class="block text-xs uppercase tracking-wider text-muted-foreground">Previous</span>
+        <span class="mt-1 block font-medium group-hover:text-primary">{prev.title}</span>
+      </a>
+    ) : <span />}
+    {next ? (
+      <a href={next.href} class="group rounded-lg border border-border p-4 text-right transition-colors hover:bg-muted sm:col-start-2">
+        <span class="block text-xs uppercase tracking-wider text-muted-foreground">Next</span>
+        <span class="mt-1 block font-medium group-hover:text-primary">{next.title}</span>
+      </a>
+    ) : <span />}
+  </nav>
+)}
