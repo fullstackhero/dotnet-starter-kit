@@ -1,0 +1,42 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import PageHeader from '../../components/docs/PageHeader.astro';
+import Breadcrumbs from '../../components/docs/Breadcrumbs.astro';
+import PrevNext from '../../components/docs/PrevNext.astro';
+import { mdxComponents } from '../../components/mdx';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('docs');
+  return entries.map((entry) => {
+    const norm = entry.id.replace(/\.mdx$/, '');
+    const slug = norm === 'index' ? undefined : norm.replace(/\/index$/, '');
+    return {
+      params: { slug },
+      props: { entry },
+    };
+  });
+}
+
+interface Props {
+  entry: CollectionEntry<'docs'>;
+}
+
+const { entry } = Astro.props;
+const { Content, headings } = await render(entry);
+const currentHref = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : `${Astro.url.pathname}/`;
+const slugForCrumb = entry.id.replace(/\.mdx$/, '').replace(/\/index$/, '');
+---
+<DocsLayout title={entry.data.title} description={entry.data.description} {headings}>
+  <Breadcrumbs slug={slugForCrumb} title={entry.data.title} />
+  <PageHeader
+    title={entry.data.title}
+    description={entry.data.description}
+    pageType={entry.data.pageType}
+    lastUpdated={entry.data.lastUpdated}
+  />
+  <article class="prose max-w-none">
+    <Content components={mdxComponents} />
+  </article>
+  <PrevNext currentHref={currentHref} />
+</DocsLayout>
