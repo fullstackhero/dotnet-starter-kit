@@ -1,0 +1,36 @@
+---
+title: Install
+description: Clone, build, and run FullStackHero locally.
+sidebar:
+  order: 1
+pageType: guide
+---
+
+# Install
+
+## Prerequisites
+
+- .NET 10 SDK
+- PostgreSQL 15+ (or use the Aspire AppHost which spins one up)
+- Node 20+ (for the admin and dashboard apps)
+
+## Clone
+
+```bash
+git clone https://github.com/fullstackhero/dotnet-starter-kit.git
+cd dotnet-starter-kit
+```
+
+## Build
+
+```bash
+dotnet build src/FSH.Starter.slnx
+```
+
+## Run
+
+```bash
+dotnet run --project src/Host/FSH.Starter.AppHost
+```
+
+Open the Aspire dashboard to see the API, database, and frontend apps starting up.
