@@ -1,15 +1,42 @@
-// Dev builds proxy `/api` → VITE_API_BASE_URL via vite.config.ts, so the app can use relative URLs.
-// Production builds should set VITE_API_BASE_URL to the fully-qualified API origin.
-const apiBase = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
+// Runtime config — fetched once at boot from /config.json (served by the
+// frontend's own nginx in production, by Vite from public/config.json in
+// dev). One image works for every deploy; the operator wires API_URL /
+// DASHBOARD_URL into the JSON file via envsubst at container start.
+type RuntimeConfig = {
+  apiBase: string;
+  defaultTenant: string;
+  dashboardUrl: string;
+};
 
-// Tenant dashboard origin used by impersonation handoff. Dev default mirrors
-// `clients/dashboard/package.json` dev port. Production deployments should set
-// VITE_DASHBOARD_URL explicitly to the dashboard's public origin so the new
-// tab opens on the right host.
-const dashboardUrl = (import.meta.env.VITE_DASHBOARD_URL ?? "http://localhost:5174").replace(/\/$/, "");
+let cached: RuntimeConfig | null = null;
+
+export async function loadRuntimeConfig(): Promise<void> {
+  if (cached !== null) return;
+  const res = await fetch("/config.json", { cache: "no-store" });
+  if (!res.ok) {
+    throw new Error(`Failed to load /config.json: ${res.status} ${res.statusText}`);
+  }
+  const cfg = (await res.json()) as Partial<RuntimeConfig>;
+  cached = {
+    apiBase: (cfg.apiBase ?? "").replace(/\/$/, ""),
+    defaultTenant: cfg.defaultTenant ?? "root",
+    // Dashboard origin used by the impersonation handoff. Dev default
+    // mirrors clients/dashboard/package.json's vite port.
+    dashboardUrl: (cfg.dashboardUrl ?? "http://localhost:5174").replace(/\/$/, ""),
+  };
+}
+
+function get(): RuntimeConfig {
+  if (cached === null) {
+    throw new Error(
+      "Runtime config not loaded. main.tsx must await loadRuntimeConfig() before mounting React.",
+    );
+  }
+  return cached;
+}
 
 export const env = {
-  apiBase,
-  defaultTenant: import.meta.env.VITE_DEFAULT_TENANT ?? "root",
-  dashboardUrl,
+  get apiBase(): string { return get().apiBase; },
+  get defaultTenant(): string { return get().defaultTenant; },
+  get dashboardUrl(): string { return get().dashboardUrl; },
 };
