@@ -23,7 +23,7 @@
     "@iconify-json/lucide": "^1.2.108",
     "@orama/plugin-astro": "^3.1.18",
     "@radix-ui/react-dialog": "^1.1.15",
-    "@tailwindcss/vite": "^4.3.0",
+    "@tailwindcss/vite": "^4.2.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "astro": "^6.3.5",
@@ -35,7 +35,7 @@
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "tailwind-merge": "^3.6.0",
-    "tailwindcss": "^4.3.0",
+    "tailwindcss": "^4.2.2",
     "typescript": "^6.0.3"
   },
   "devDependencies": {

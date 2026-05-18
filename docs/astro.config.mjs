@@ -1,4 +1,3 @@
-import cloudflare from '@astrojs/cloudflare';
 import mdx from '@astrojs/mdx';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
@@ -23,12 +22,12 @@ export default defineConfig({
     defaultStrategy: 'hover',
   },
   integrations: [
-    orama({
-      search: {
-        pathMatcher: /^\/docs\//,
-        contentSelectors: ['h1', 'h2', '[data-search-meta]'],
-      },
-    }),
+    // orama({
+    //   search: {
+    //     pathMatcher: /^\/docs\//,
+    //     contentSelectors: ['h1', 'h2', '[data-search-meta]'],
+    //   },
+    // }),
     icon(),
     astroExpressiveCode({
       themes: ['github-light', houston],
@@ -93,9 +92,6 @@ export default defineConfig({
     build: { target: 'es2022' },
     server: { watch: { ignored: ['**/.wrangler/**'] } },
     resolve: {
-      alias: import.meta.env.PROD && {
-        'react-dom/server': 'react-dom/server.edge',
-      },
       dedupe: ['react', 'react-dom'],
     },
     optimizeDeps: { include: ['react', 'react-dom'] },
@@ -103,33 +99,30 @@ export default defineConfig({
   markdown: {
     remarkPlugins: [remarkModifiedTime],
   },
-  experimental: {
-    fonts: [
-      {
-        provider: fontProviders.google(),
-        name: 'Outfit',
-        cssVariable: '--font-outfit',
-        weights: ['400', '500', '600', '700', '800'],
-        subsets: ['latin'],
-        fallbacks: ['ui-sans-serif', 'system-ui', 'sans-serif'],
-      },
-      {
-        provider: fontProviders.google(),
-        name: 'Figtree',
-        cssVariable: '--font-figtree',
-        weights: ['400', '500', '600', '700', '800'],
-        subsets: ['latin'],
-        fallbacks: ['ui-sans-serif', 'system-ui', 'sans-serif'],
-      },
-      {
-        provider: fontProviders.google(),
-        name: 'JetBrains Mono',
-        cssVariable: '--font-jetbrains-mono',
-        weights: ['400', '500', '700'],
-        subsets: ['latin'],
-        fallbacks: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
-      },
-    ],
-  },
-  adapter: cloudflare({ imageService: 'compile' }),
+  fonts: [
+    {
+      provider: fontProviders.google(),
+      name: 'Outfit',
+      cssVariable: '--font-outfit',
+      weights: ['400', '500', '600', '700', '800'],
+      subsets: ['latin'],
+      fallbacks: ['ui-sans-serif', 'system-ui', 'sans-serif'],
+    },
+    {
+      provider: fontProviders.google(),
+      name: 'Figtree',
+      cssVariable: '--font-figtree',
+      weights: ['400', '500', '600', '700', '800'],
+      subsets: ['latin'],
+      fallbacks: ['ui-sans-serif', 'system-ui', 'sans-serif'],
+    },
+    {
+      provider: fontProviders.google(),
+      name: 'JetBrains Mono',
+      cssVariable: '--font-jetbrains-mono',
+      weights: ['400', '500', '700'],
+      subsets: ['latin'],
+      fallbacks: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
+    },
+  ],
 });
