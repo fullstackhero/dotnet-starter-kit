@@ -39,6 +39,12 @@ dotnet run --project src/Host/FSH.Starter.DbMigrator -- apply --seed
 
 # Just the seed step (assumes schema is already current).
 dotnet run --project src/Host/FSH.Starter.DbMigrator -- seed
+
+# Dev only — provision the demo tenants (acme, globex) with users,
+# custom roles, sample catalog, tickets, and chat. Hard-refuses outside
+# Development. Idempotent: safe to re-run.
+ASPNETCORE_ENVIRONMENT=Development \
+  dotnet run --project src/Host/FSH.Starter.DbMigrator -- seed-demo
 ```
 
 Exit codes: `0` on success, `1` on any failure (see logged exception).
@@ -113,21 +119,32 @@ Run as a step before the deploy step:
 
 ### Local development
 
-There is **no** development-only auto-migration in the API. In every
-environment, the migrator is the only path that touches schema. The
-two convenient ways to run it locally are:
+There is **no** development-only auto-migration *or* auto-seed in the
+API. In every environment, the migrator is the only path that touches
+schema OR data. The two convenient ways to run it locally are:
 
 - **Aspire**: `dotnet run --project src/Host/FSH.Starter.AppHost` —
   Aspire already chains the migrator as a `WaitForCompletion`
   dependency of the API, so the API never starts against an
   unmigrated database.
 - **Raw**: run the migrator once after pulling, before starting the
-  API:
+  API. Add `seed-demo` for a populated dev environment:
 
   ```bash
-  dotnet run --project src/Host/FSH.Starter.DbMigrator -- apply --seed
+  # Schema only (every env)
+  dotnet run --project src/Host/FSH.Starter.DbMigrator -- apply
+
+  # Dev: also provision acme + globex with rich demo content
+  dotnet run --project src/Host/FSH.Starter.DbMigrator -- seed-demo
+
+  # Then start the API
   dotnet run --project src/Host/FSH.Starter.Api
   ```
+
+`seed-demo` is the **only** way to get the demo tenants and their
+users / catalog / tickets / chat. Fresh tenants created via
+`POST /api/v1/tenants` come up with just a tenant admin user — no
+catalogue, no demo content. This matches production behaviour.
 
 ## API behavior when schema is behind
 

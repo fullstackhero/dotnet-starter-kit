@@ -18,7 +18,7 @@ namespace FSH.Starter.Migrations.PostgreSQL.Tickets
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("tickets")
-                .HasAnnotation("ProductVersion", "10.0.7")
+                .HasAnnotation("ProductVersion", "10.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -77,6 +77,10 @@ namespace FSH.Starter.Migrations.PostgreSQL.Tickets
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(160)
@@ -91,15 +95,18 @@ namespace FSH.Starter.Migrations.PostgreSQL.Tickets
 
                     b.HasIndex("IsDeleted");
 
-                    b.HasIndex("Number")
-                        .IsUnique()
-                        .HasFilter("\"IsDeleted\" = FALSE");
-
                     b.HasIndex("ReporterUserId");
 
                     b.HasIndex("Status");
 
+                    b.HasIndex("Number", "TenantId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Tickets_Number")
+                        .HasFilter("\"IsDeleted\" = FALSE");
+
                     b.ToTable("Tickets", "tickets");
+
+                    b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
             modelBuilder.Entity("FSH.Modules.Tickets.Domain.TicketComment", b =>
@@ -129,6 +136,10 @@ namespace FSH.Starter.Migrations.PostgreSQL.Tickets
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<Guid>("TicketId")
                         .HasColumnType("uuid");
 
@@ -139,6 +150,8 @@ namespace FSH.Starter.Migrations.PostgreSQL.Tickets
                     b.HasIndex("TicketId");
 
                     b.ToTable("TicketComments", "tickets");
+
+                    b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
             modelBuilder.Entity("FSH.Modules.Tickets.Domain.TicketComment", b =>

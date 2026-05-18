@@ -37,4 +37,10 @@ public static class CacheKeys
 
     /// <summary>Key for an idempotency replay entry, scoped by tenant.</summary>
     public static string IdempotencyEntry(string tenantId, string key) => $"idem:t:{tenantId}:{key}";
+
+    /// <summary>
+    /// Key for the impersonation-grant revocation marker, indexed by JWT id.
+    /// Read on every authenticated request that carries an act_sub claim.
+    /// </summary>
+    public static string ImpersonationGrantStatus(string jti) => $"impgrant:{jti}";
 }

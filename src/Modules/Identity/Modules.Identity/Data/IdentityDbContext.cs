@@ -40,6 +40,8 @@ public class IdentityDbContext : MultiTenantIdentityDbContext<FshUser,
 
     public DbSet<UserGroup> UserGroups => Set<UserGroup>();
 
+    public DbSet<ImpersonationGrant> ImpersonationGrants => Set<ImpersonationGrant>();
+
     public IdentityDbContext(
         IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
         DbContextOptions<IdentityDbContext> options,
@@ -63,6 +65,14 @@ public class IdentityDbContext : MultiTenantIdentityDbContext<FshUser,
 
         builder.ApplyConfiguration(new OutboxMessageConfiguration(IdentityModuleConstants.SchemaName));
         builder.ApplyConfiguration(new InboxMessageConfiguration(IdentityModuleConstants.SchemaName));
+
+        // Default-on tenant isolation — any entity not marked IGlobalEntity gets
+        // IsMultiTenant() applied automatically. ImpersonationGrant, OutboxMessage,
+        // and InboxMessage opt out via IGlobalEntity. ASP.NET Identity tables
+        // (Users/Roles/Claims/etc.) are already marked IsMultiTenant in
+        // IdentityConfigurations.cs; the auto-apply detects that annotation and
+        // skips re-applying.
+        builder.ApplyTenantIsolationByDefault();
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

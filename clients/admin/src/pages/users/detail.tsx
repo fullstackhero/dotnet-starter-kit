@@ -8,12 +8,20 @@ import {
   getUser,
   getUserRoles,
   toggleUserStatus,
-  type UserDto,
   type UserRoleDto,
 } from "@/api/users";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Monogram } from "@/components/monogram";
-import { SectionRule } from "@/components/section-rule";
+import { UserSessionsCard } from "@/components/sessions/user-sessions-card";
+import {
+  PageHeader,
+  ErrorBand,
+  LoadingRow,
+  FormShell,
+  FormSection,
+  FormActions,
+} from "@/components/list";
 import { ApiRequestError } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
 
@@ -47,58 +55,66 @@ export function UserDetailPage() {
   const user = userQuery.data;
   const roles = rolesQuery.data;
 
+  const displayName =
+    [user?.firstName, user?.lastName].filter(Boolean).join(" ").trim() ||
+    user?.userName ||
+    user?.email ||
+    id;
+
   return (
     <div className="space-y-8">
-      <SectionRule
+      <PageHeader
         crumbs={[
           { label: "\\ Users" },
           { label: user?.userName ?? user?.email ?? id, muted: true },
         ]}
         trailing={id ? `ID · ${shortId(id)}` : undefined}
+        title={displayName}
+        description={user?.email}
+        actions={
+          <Button variant="ghost" size="sm" onClick={() => navigate("/users")}>
+            <ArrowLeft className="mr-1 h-3.5 w-3.5" /> Directory
+          </Button>
+        }
       />
 
-      <div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate("/users")}
-          className="-ml-2 mb-2 font-mono text-[0.6875rem] uppercase tracking-[0.18em]"
-        >
-          <ArrowLeft className="mr-1 h-3.5 w-3.5" /> Directory
-        </Button>
+      {userQuery.isError && <ErrorBand message={describe(userQuery.error)} />}
 
-        {userQuery.isError && (
-          <ErrorPanel error={userQuery.error} />
-        )}
+      {userQuery.isLoading && !user && <LoadingRow label="Loading account" />}
 
-        {user ? (
-          <div className="flex flex-col items-start gap-6 md:flex-row md:items-center md:justify-between">
+      {user && (
+        <>
+          <header className="card-shell flex flex-col items-start gap-6 px-6 py-6 sm:px-8 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-5">
               <Monogram
                 seed={user.id ?? user.userName ?? "user"}
-                firstName={user.firstName}
-                lastName={user.lastName}
-                fallback={user.userName ?? user.email}
+                firstName={user.firstName ?? undefined}
+                lastName={user.lastName ?? undefined}
+                fallback={user.userName ?? user.email ?? undefined}
                 size="lg"
               />
               <div>
-                <h1 className="font-display text-4xl font-semibold tracking-tight md:text-5xl">
-                  {[user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
-                    user.userName ||
-                    user.email ||
-                    "Unnamed"}
-                </h1>
+                <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
+                  {displayName}
+                </h2>
                 <div className="mt-1 flex flex-wrap items-baseline gap-x-4 gap-y-1 font-mono text-xs text-[var(--color-muted-foreground)]">
-                  {user.userName && <span>@{user.userName}</span>}
+                  {user.userName && <code className="code-chip">@{user.userName}</code>}
                   {user.email && <span className="truncate">{user.email}</span>}
                 </div>
-                <div className="mt-3 flex flex-wrap items-center gap-3">
-                  <Pill icon={<Dot active={user.isActive} />}>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <Badge
+                    variant={user.isActive ? "success" : "muted"}
+                    className="font-mono uppercase tracking-[0.14em]"
+                  >
                     {user.isActive ? "Active" : "Disabled"}
-                  </Pill>
-                  <Pill icon={<Mail className="h-3 w-3" />}>
+                  </Badge>
+                  <Badge
+                    variant={user.emailConfirmed ? "info" : "warning"}
+                    className="font-mono uppercase tracking-[0.14em]"
+                  >
+                    <Mail className="h-3 w-3" />
                     {user.emailConfirmed ? "Email confirmed" : "Email pending"}
-                  </Pill>
+                  </Badge>
                 </div>
               </div>
             </div>
@@ -115,18 +131,26 @@ export function UserDetailPage() {
                   ? "Deactivate account"
                   : "Activate account"}
             </Button>
-          </div>
-        ) : userQuery.isLoading ? (
-          <div className="font-mono text-xs uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-            Loading account…
-          </div>
-        ) : null}
-      </div>
+          </header>
 
-      {/* Dossier */}
-      {user && (
-        <div className="grid gap-12 border-t border-[var(--color-border)] pt-8 md:grid-cols-[20rem_1fr]">
-          <IdentitySpine user={user} />
+          <FormShell>
+            <FormSection
+              title="Identity"
+              description="Account identifiers and contact details captured at registration."
+            >
+              <dl className="divide-y divide-[var(--color-border)]">
+                <DetailRow label="User ID" mono>{user.id ?? "—"}</DetailRow>
+                <DetailRow label="Username" mono>{user.userName ?? "—"}</DetailRow>
+                <DetailRow label="Email" mono>{user.email ?? "—"}</DetailRow>
+                <DetailRow label="Phone" mono>{user.phoneNumber ?? "—"}</DetailRow>
+                <DetailRow label="Status">{user.isActive ? "Active" : "Disabled"}</DetailRow>
+                <DetailRow label="Email confirmed">
+                  {user.emailConfirmed ? "Yes" : "Pending confirmation"}
+                </DetailRow>
+              </dl>
+            </FormSection>
+          </FormShell>
+
           <RolesEditor
             userId={user.id ?? id}
             roles={roles ?? []}
@@ -137,47 +161,31 @@ export function UserDetailPage() {
               queryClient.invalidateQueries({ queryKey: ["users"] });
             }}
           />
-        </div>
+
+          <UserSessionsCard userId={user.id ?? id} />
+        </>
       )}
     </div>
   );
 }
 
-function IdentitySpine({ user }: { user: UserDto }) {
-  return (
-    <div className="space-y-5">
-      <div>
-        <p className="font-mono text-[0.6875rem] uppercase tracking-[0.22em] text-[var(--color-foreground)] border-t border-[var(--color-foreground)] pt-3">
-          \\ Identity
-        </p>
-      </div>
-      <dl className="space-y-3 text-sm">
-        <Row label="User ID" mono>
-          {user.id ?? "—"}
-        </Row>
-        <Row label="Username" mono>
-          {user.userName ?? "—"}
-        </Row>
-        <Row label="Email" mono>
-          {user.email ?? "—"}
-        </Row>
-        <Row label="Phone" mono>
-          {user.phoneNumber ?? "—"}
-        </Row>
-        <Row label="Status">{user.isActive ? "Active" : "Disabled"}</Row>
-        <Row label="Email">{user.emailConfirmed ? "Confirmed" : "Pending"}</Row>
-      </dl>
-    </div>
-  );
-}
+// ─── subcomponents ──────────────────────────────────────────────────────
 
-function Row({ label, children, mono }: { label: string; children: React.ReactNode; mono?: boolean }) {
+function DetailRow({
+  label,
+  children,
+  mono,
+}: {
+  label: string;
+  children: React.ReactNode;
+  mono?: boolean;
+}) {
   return (
-    <div className="grid grid-cols-[7rem_1fr] gap-4 border-b border-[var(--color-border)] pb-2.5">
-      <dt className="font-mono text-[0.6875rem] uppercase tracking-[0.18em] text-[var(--color-muted-foreground)] pt-0.5">
-        {label}
-      </dt>
-      <dd className={cn("min-w-0 break-words", mono && "font-mono text-[0.8125rem]")}>{children}</dd>
+    <div className="grid grid-cols-[10rem_1fr] items-baseline gap-4 py-2.5">
+      <dt className="meta text-[var(--color-muted-foreground)]">{label}</dt>
+      <dd className={cn("min-w-0 break-words text-sm", mono && "font-mono text-[0.8125rem]")}>
+        {children}
+      </dd>
     </div>
   );
 }
@@ -198,7 +206,6 @@ function RolesEditor({
   const queryClient = useQueryClient();
   const [draft, setDraft] = useState<Record<string, boolean>>({});
 
-  // Sync draft → server state whenever the source-of-truth roles change.
   useEffect(() => {
     setDraft(Object.fromEntries(roles.map((r) => [r.roleId, r.enabled])));
   }, [roles]);
@@ -230,40 +237,34 @@ function RolesEditor({
     const next = roles.map<UserRoleDto>((r) => ({ ...r, enabled: !!draft[r.roleId] }));
     mutation.mutate(next);
   };
-
   const onDiscard = () => setDraft(original);
 
   return (
-    <div className="space-y-5">
-      <div className="flex items-baseline justify-between border-t border-[var(--color-foreground)] pt-3">
-        <p className="font-mono text-[0.6875rem] uppercase tracking-[0.22em] text-[var(--color-foreground)]">
-          \\ Roles
-        </p>
-        {!loading && roles.length > 0 && (
-          <p className="font-mono text-[0.6875rem] uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-            {dirtyCount === 0
-              ? "No pending changes"
-              : `${dirtyCount} ${dirtyCount === 1 ? "change" : "changes"} pending`}
+    <FormShell>
+      <FormSection
+        title="Roles"
+        description={
+          <>
+            Tap any role to toggle. Changes are batched — review and save when ready.
+            <span className="mt-2 block font-mono text-[10.5px] uppercase tracking-[0.18em]">
+              {dirtyCount === 0
+                ? "no pending changes"
+                : `${dirtyCount} ${dirtyCount === 1 ? "change" : "changes"} pending`}
+            </span>
+          </>
+        }
+      >
+        {error ? (
+          <ErrorBand message={describe(error)} />
+        ) : loading ? (
+          <p className="meta text-[var(--color-muted-foreground)]">
+            Loading<span className="caret text-[var(--color-accent-signal)]" />
           </p>
-        )}
-      </div>
-
-      {error ? (
-        <p className="text-sm text-[var(--color-destructive)]">{describe(error)}</p>
-      ) : loading ? (
-        <p className="font-mono text-xs uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-          Loading…
-        </p>
-      ) : roles.length === 0 ? (
-        <p className="text-sm text-[var(--color-muted-foreground)]">
-          No roles defined for this tenant.
-        </p>
-      ) : (
-        <>
-          <p className="max-w-prose text-sm text-[var(--color-muted-foreground)]">
-            Click any role to toggle. Changes are batched — review and save when ready.
+        ) : roles.length === 0 ? (
+          <p className="text-sm text-[var(--color-muted-foreground)]">
+            No roles defined for this tenant.
           </p>
-
+        ) : (
           <div className="flex flex-wrap gap-2">
             {roles.map((r) => (
               <RoleChip
@@ -271,25 +272,29 @@ function RolesEditor({
                 role={r}
                 enabled={!!draft[r.roleId]}
                 changed={Boolean(draft[r.roleId]) !== Boolean(original[r.roleId])}
-                onToggle={() =>
-                  setDraft((d) => ({ ...d, [r.roleId]: !d[r.roleId] }))
-                }
+                onToggle={() => setDraft((d) => ({ ...d, [r.roleId]: !d[r.roleId] }))}
               />
             ))}
           </div>
+        )}
+      </FormSection>
 
-          <div className="flex items-center gap-2 pt-2">
-            <Button onClick={onSave} disabled={dirtyCount === 0 || mutation.isPending}>
-              <Check className="mr-1 h-3.5 w-3.5" />
-              {mutation.isPending ? "Saving…" : "Save changes"}
-            </Button>
-            <Button variant="outline" onClick={onDiscard} disabled={dirtyCount === 0 || mutation.isPending}>
-              Discard
-            </Button>
-          </div>
-        </>
+      {!loading && roles.length > 0 && (
+        <FormActions>
+          <Button onClick={onSave} disabled={dirtyCount === 0 || mutation.isPending}>
+            <Check className="mr-1 h-3.5 w-3.5" />
+            {mutation.isPending ? "Saving…" : "Save changes"}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={onDiscard}
+            disabled={dirtyCount === 0 || mutation.isPending}
+          >
+            Discard
+          </Button>
+        </FormActions>
       )}
-    </div>
+    </FormShell>
   );
 }
 
@@ -314,48 +319,19 @@ function RoleChip({
         enabled
           ? "border-[var(--color-foreground)] bg-[var(--color-foreground)] text-[var(--color-background)]"
           : "border-[var(--color-border)] text-[var(--color-foreground)] hover:bg-[var(--color-muted)]",
-        changed && "ring-1 ring-offset-2 ring-offset-[var(--color-background)] ring-[var(--color-foreground)]/40",
+        changed &&
+          "ring-1 ring-offset-2 ring-offset-[var(--color-background)] ring-[var(--color-accent-signal)]/60",
       )}
     >
       <ShieldCheck
-        className={cn(
-          "h-3 w-3",
-          enabled ? "" : "opacity-40 group-hover:opacity-70",
-        )}
+        className={cn("h-3 w-3", enabled ? "" : "opacity-40 group-hover:opacity-70")}
       />
       <span className="tracking-wide">{role.roleName}</span>
     </button>
   );
 }
 
-function Pill({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-border)] px-2.5 py-1 font-mono text-[0.6875rem] uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-      {icon}
-      {children}
-    </span>
-  );
-}
-
-function Dot({ active }: { active: boolean }) {
-  return (
-    <span
-      aria-hidden
-      className={cn(
-        "h-1.5 w-1.5 rounded-full",
-        active ? "bg-[var(--color-foreground)]" : "border border-[var(--color-foreground)]/40 bg-transparent",
-      )}
-    />
-  );
-}
-
-function ErrorPanel({ error }: { error: unknown }) {
-  return (
-    <div className="my-4 border-l-2 border-[var(--color-destructive)] bg-[var(--color-destructive)]/5 px-4 py-3 text-sm text-[var(--color-destructive)]">
-      {describe(error)}
-    </div>
-  );
-}
+// ─── helpers ────────────────────────────────────────────────────────────
 
 function shortId(id: string): string {
   if (id.length <= 12) return id;

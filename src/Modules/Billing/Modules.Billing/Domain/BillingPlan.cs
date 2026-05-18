@@ -7,8 +7,11 @@ namespace FSH.Modules.Billing.Domain;
 /// Priced side of a tenant plan. The plan key matches the key used by quota configuration so a
 /// plan named "pro" in QuotaOptions.Plans corresponds to the BillingPlan with Key "pro". Limits
 /// come from QuotaOptions; prices and overage rates come from here.
+///
+/// <see cref="IGlobalEntity"/>: plans are platform-wide catalogue rows, NOT per-tenant.
+/// Every tenant subscribes to one of these shared plans.
 /// </summary>
-public sealed class BillingPlan : BaseEntity<Guid>
+public sealed class BillingPlan : BaseEntity<Guid>, IGlobalEntity
 {
     private readonly Dictionary<QuotaResource, decimal> _overageRates = new();
 

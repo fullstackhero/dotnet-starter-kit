@@ -1,13 +1,11 @@
 using FSH.Framework.Persistence;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace FSH.Modules.Catalog.Data;
 
 public sealed class CatalogDbInitializer(
     CatalogDbContext dbContext,
-    IHostEnvironment environment,
     ILogger<CatalogDbInitializer> logger) : IDbInitializer
 {
     public async Task MigrateAsync(CancellationToken cancellationToken)
@@ -19,45 +17,12 @@ public sealed class CatalogDbInitializer(
         }
     }
 
-    public async Task SeedAsync(CancellationToken cancellationToken)
-    {
-        if (!environment.IsDevelopment())
-        {
-            return;
-        }
-
-        // Skip if anything already exists for this tenant — idempotent across restarts.
-        bool alreadySeeded = await dbContext.Brands.AnyAsync(cancellationToken).ConfigureAwait(false)
-            || await dbContext.Categories.AnyAsync(cancellationToken).ConfigureAwait(false)
-            || await dbContext.Products.AnyAsync(cancellationToken).ConfigureAwait(false);
-        if (alreadySeeded)
-        {
-            return;
-        }
-
-        var brands = CatalogSeedData.Brands;
-        dbContext.Brands.AddRange(brands);
-
-        var (roots, children) = CatalogSeedData.BuildCategories();
-        dbContext.Categories.AddRange(roots);
-        dbContext.Categories.AddRange(children);
-
-        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-
-        var brandsByName = brands.ToDictionary(b => b.Name, b => b);
-        var categoriesByName = roots.Concat(children).ToDictionary(c => c.Name, c => c);
-        var products = CatalogSeedData.BuildProducts(brandsByName, categoriesByName);
-        dbContext.Products.AddRange(products);
-
-        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-
-        if (logger.IsEnabled(LogLevel.Information))
-        {
-            logger.LogInformation(
-                "[Catalog] seeded demo data: {BrandCount} brands, {CategoryCount} categories, {ProductCount} products",
-                brands.Count,
-                roots.Count + children.Count,
-                products.Count);
-        }
-    }
+    /// <summary>
+    /// Catalog has NO per-tenant auto-seed. A fresh tenant comes up with an empty
+    /// catalog and is expected to be populated by the operator via the API / UI.
+    /// Demo content for the <c>acme</c> and <c>globex</c> tenants lives in the
+    /// DbMigrator's <c>seed-demo</c> command, which calls
+    /// <see cref="CatalogSeedData"/> directly under a tenant-scoped DbContext.
+    /// </summary>
+    public Task SeedAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }

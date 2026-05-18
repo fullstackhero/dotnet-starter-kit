@@ -17,6 +17,7 @@ using FSH.Modules.Multitenancy.Features.v1.GetTenantStatus;
 using FSH.Modules.Tickets;
 using FSH.Modules.Webhooks;
 using FSH.Starter.DbMigrator;
+using FSH.Starter.DbMigrator.DemoSeed;
 using Finbuckle.MultiTenant.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -127,7 +128,7 @@ builder.AddHeroPlatform(o =>
 builder.AddModules(moduleAssemblies);
 
 // The Multitenancy module's TenantProvisioningService depends on IJobService —
-// Hangfire's IJobService is only registered when EnableJobs is true, which we
+// Hangfire's IJobService is only registered when EnableJobs is true, which we 
 // don't want in the migrator (Hangfire needs its own schema bootstrap + workers).
 // Provide a throwing no-op so the DI graph resolves; the migration code paths
 // don't enqueue jobs.
@@ -147,6 +148,10 @@ foreach (var descriptor in builder.Services
 {
     builder.Services.Remove(descriptor);
 }
+
+// DemoSeeder is opt-in via the `seed-demo` verb. Register unconditionally so
+// the DI graph is satisfied; the verb dispatch below decides whether to call it.
+builder.Services.AddScoped<DemoSeeder>();
 
 using var host = builder.Build();
 var logger = host.Services.GetRequiredService<ILogger<MigratorCommand>>();
@@ -239,7 +244,9 @@ try
     }
 
     // ── Step 2 — per-tenant migrations + (optional) seeds ────────────────
-    if (!cli.CatalogOnly)
+    // `seed-demo` short-circuits Step 2 because it provisions its own demo tenants
+    // (acme, globex) by running migrate + seed inline against each — handled below.
+    if (!cli.CatalogOnly && cli.Command != "seed-demo")
     {
         var tenantStore = host.Services.GetRequiredService<IMultiTenantStore<AppTenantInfo>>();
         var tenantService = host.Services.GetRequiredService<ITenantService>();
@@ -280,6 +287,31 @@ try
                 await tenantService.SeedTenantAsync(tenant, CancellationToken.None).ConfigureAwait(false);
             }
         }
+    }
+
+    // ── Step 3 — demo seed (verb: `seed-demo`) ───────────────────────────
+    // Dev-only. Provisions acme + globex tenants with rich demo content
+    // (users, custom roles, catalog, tickets, chat) so a fresh dev DB
+    // comes up feeling lived-in. Hard-fails outside Development to keep
+    // demo data out of staging / prod by accident.
+    if (cli.Command == "seed-demo")
+    {
+        var env = host.Services.GetRequiredService<IHostEnvironment>();
+        if (!env.IsDevelopment())
+        {
+            await Console.Error.WriteLineAsync(
+                $"[demo-seed] REFUSING to run — ASPNETCORE_ENVIRONMENT is '{env.EnvironmentName}'. "
+                + "seed-demo is dev-only by design.")
+                .ConfigureAwait(false);
+            return 1;
+        }
+
+        await Console.Out.WriteLineAsync("[demo-seed] provisioning acme + globex with demo content…")
+            .ConfigureAwait(false);
+        using var scope = host.Services.CreateScope();
+        var seeder = scope.ServiceProvider.GetRequiredService<DemoSeeder>();
+        await seeder.RunAsync(CancellationToken.None).ConfigureAwait(false);
+        await Console.Out.WriteLineAsync("[demo-seed] done").ConfigureAwait(false);
     }
 
     await Console.Out.WriteLineAsync("[migrator] finished successfully.").ConfigureAwait(false);

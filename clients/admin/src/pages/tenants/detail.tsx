@@ -1,7 +1,12 @@
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, RefreshCw } from "lucide-react";
+import { ArrowLeft, CheckCircle2, CircleDashed, Loader2, RefreshCw, UserCog, XCircle } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/auth/use-auth";
+import { ImpersonateDialog } from "@/components/impersonation/impersonate-dialog";
+import { ActiveGrantsCard } from "@/components/impersonation/active-grants-card";
+import { IdentityPermissions } from "@/lib/permissions";
 import {
   changeTenantActivation,
   getTenantProvisioningStatus,
@@ -10,13 +15,27 @@ import {
   type TenantProvisioningStep,
 } from "@/api/tenants";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Monogram } from "@/components/monogram";
+import {
+  PageHeader,
+  ErrorBand,
+  LoadingRow,
+  FormShell,
+  FormSection,
+} from "@/components/list";
 import { ApiRequestError } from "@/lib/api-client";
+import { cn } from "@/lib/cn";
 
 export function TenantDetailPage() {
   const { id = "" } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user: currentUser } = useAuth();
+  const [impersonateOpen, setImpersonateOpen] = useState(false);
+  const canImpersonate = (currentUser?.permissions ?? []).includes(
+    IdentityPermissions.Users.Impersonate,
+  );
 
   const tenantQuery = useQuery({
     queryKey: ["tenant", id],
@@ -28,7 +47,7 @@ export function TenantDetailPage() {
     queryKey: ["tenant", id, "provisioning"],
     queryFn: () => getTenantProvisioningStatus(id),
     enabled: !!id,
-    // Poll while provisioning is still in flight; back off once terminal.
+    // Poll while provisioning is in flight; stop once terminal.
     refetchInterval: (query) => {
       const status = query.state.data?.status;
       if (status === "Completed" || status === "Failed") return false;
@@ -59,134 +78,298 @@ export function TenantDetailPage() {
   const provisioning = provisioningQuery.data;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <Button variant="ghost" size="sm" onClick={() => navigate("/tenants")} className="mb-2 -ml-2">
-            <ArrowLeft className="mr-1 h-4 w-4" /> All tenants
+    <div className="space-y-8">
+      <PageHeader
+        crumbs={[
+          { label: "\\ Tenants" },
+          { label: tenant?.name ?? id, muted: true },
+        ]}
+        trailing={id ? `ID · ${shortId(id)}` : undefined}
+        title={tenant?.name ?? "Tenant"}
+        description={tenant?.adminEmail}
+        actions={
+          <Button variant="ghost" size="sm" onClick={() => navigate("/tenants")}>
+            <ArrowLeft className="mr-1 h-3.5 w-3.5" /> Registry
           </Button>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {tenant?.name ?? id}
-          </h1>
-          <p className="text-sm text-[var(--color-muted-foreground)] font-mono">{id}</p>
-        </div>
-        {tenant && (
-          <Button
-            variant={tenant.isActive ? "outline" : "default"}
-            onClick={() => activationMutation.mutate(!tenant.isActive)}
-            disabled={activationMutation.isPending}
-          >
-            {activationMutation.isPending
-              ? "Updating…"
-              : tenant.isActive
-                ? "Deactivate"
-                : "Activate"}
+        }
+      />
+
+      {tenantQuery.isError && (
+        <ErrorBand message={describe(tenantQuery.error)} />
+      )}
+
+      {tenantQuery.isLoading && !tenant && <LoadingRow label="Loading tenant" />}
+
+      {tenant && (
+        <>
+          <header className="card-shell flex flex-col items-start gap-6 px-6 py-6 sm:px-8 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-5">
+              <Monogram seed={tenant.id} fallback={tenant.name} size="lg" />
+              <div>
+                <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
+                  {tenant.name}
+                </h2>
+                <div className="mt-1 flex flex-wrap items-baseline gap-x-4 gap-y-1 font-mono text-xs text-[var(--color-muted-foreground)]">
+                  <code className="code-chip">{tenant.id}</code>
+                  <span className="truncate">{tenant.adminEmail}</span>
+                </div>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <Badge variant={tenant.isActive ? "success" : "muted"} className="font-mono uppercase tracking-[0.14em]">
+                    {tenant.isActive ? "Active" : "Inactive"}
+                  </Badge>
+                  <Badge variant="outline" className="font-mono uppercase tracking-[0.14em]">
+                    valid · {formatDate(tenant.validUpto)}
+                  </Badge>
+                  {tenant.issuer && (
+                    <Badge variant="outline" className="font-mono uppercase tracking-[0.14em]">
+                      iss · {tenant.issuer}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {canImpersonate && tenant.isActive && (
+                <Button
+                  variant="signal"
+                  onClick={() => setImpersonateOpen(true)}
+                  className="shrink-0"
+                  title="Sign in as a user inside this tenant"
+                >
+                  <UserCog className="mr-1.5 h-3.5 w-3.5" />
+                  Impersonate user
+                </Button>
+              )}
+              <Button
+                variant={tenant.isActive ? "outline" : "default"}
+                onClick={() => activationMutation.mutate(!tenant.isActive)}
+                disabled={activationMutation.isPending}
+                className="shrink-0"
+              >
+                {activationMutation.isPending
+                  ? "Updating…"
+                  : tenant.isActive
+                    ? "Deactivate tenant"
+                    : "Activate tenant"}
+              </Button>
+            </div>
+          </header>
+
+          <ImpersonateDialog
+            open={impersonateOpen}
+            onOpenChange={setImpersonateOpen}
+            tenantId={tenant.id}
+            tenantName={tenant.name}
+          />
+
+          <ActiveGrantsCard tenantId={tenant.id} />
+
+          <FormShell>
+            <FormSection
+              title="Details"
+              description="The tenant's identity, contact, and subscription window. Identifiers are immutable; the issuer is used to scope JWTs."
+            >
+              <dl className="divide-y divide-[var(--color-border)]">
+                <DetailRow label="Identifier" mono>{tenant.id}</DetailRow>
+                <DetailRow label="Name">{tenant.name}</DetailRow>
+                <DetailRow label="Admin email" mono>{tenant.adminEmail}</DetailRow>
+                <DetailRow label="JWT issuer" mono>{tenant.issuer ?? "—"}</DetailRow>
+                <DetailRow label="Valid until">{formatDate(tenant.validUpto)}</DetailRow>
+                <DetailRow label="Status">{tenant.isActive ? "Active" : "Inactive"}</DetailRow>
+              </dl>
+            </FormSection>
+          </FormShell>
+
+          <FormShell>
+            <FormSection
+              title="Provisioning"
+              description={
+                <>
+                  Live status of the background pipeline that seeds the tenant database,
+                  default roles, and admin user. Polls every 2 seconds while running.
+                </>
+              }
+            >
+              <ProvisioningPanel
+                steps={provisioning?.steps ?? []}
+                status={provisioning?.status}
+                currentStep={provisioning?.currentStep ?? undefined}
+                errorBody={provisioning?.error ?? undefined}
+                loading={provisioningQuery.isLoading}
+                error={provisioningQuery.error}
+                onRetry={() => retryMutation.mutate()}
+                retryPending={retryMutation.isPending}
+              />
+            </FormSection>
+          </FormShell>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── subcomponents ──────────────────────────────────────────────────────
+
+function DetailRow({
+  label,
+  children,
+  mono,
+}: {
+  label: string;
+  children: React.ReactNode;
+  mono?: boolean;
+}) {
+  return (
+    <div className="grid grid-cols-[10rem_1fr] items-baseline gap-4 py-2.5">
+      <dt className="meta text-[var(--color-muted-foreground)]">{label}</dt>
+      <dd className={cn("min-w-0 break-words text-sm", mono && "font-mono text-[0.8125rem]")}>
+        {children}
+      </dd>
+    </div>
+  );
+}
+
+function ProvisioningPanel({
+  steps,
+  status,
+  currentStep,
+  errorBody,
+  loading,
+  error,
+  onRetry,
+  retryPending,
+}: {
+  steps: TenantProvisioningStep[];
+  status?: string;
+  currentStep?: string;
+  errorBody?: string;
+  loading: boolean;
+  error: unknown;
+  onRetry: () => void;
+  retryPending: boolean;
+}) {
+  const overall = status ?? (loading ? "Loading" : "Unknown");
+  const overallVariant =
+    status === "Completed"
+      ? "success"
+      : status === "Failed"
+        ? "danger"
+        : status === "Running"
+          ? "info"
+          : "outline";
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Badge variant={overallVariant} className="font-mono uppercase tracking-[0.14em]">
+          {status === "Failed"
+            ? `Failed at ${currentStep ?? "unknown step"}`
+            : currentStep
+              ? `${overall} · ${currentStep}`
+              : overall}
+        </Badge>
+        {status === "Failed" && (
+          <Button size="sm" variant="outline" onClick={onRetry} disabled={retryPending}>
+            <RefreshCw className={cn("mr-1 h-3.5 w-3.5", retryPending && "animate-spin")} />
+            {retryPending ? "Re-queuing…" : "Retry provisioning"}
           </Button>
         )}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Details</CardTitle>
-            <CardDescription>Identity and lifecycle metadata.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
-            {tenantQuery.isLoading && <span className="text-[var(--color-muted-foreground)]">Loading…</span>}
-            {tenantQuery.isError && (
-              <span className="text-[var(--color-destructive)]">{describe(tenantQuery.error)}</span>
-            )}
-            {tenant && (
-              <>
-                <Detail label="Status" value={tenant.isActive ? "Active" : "Inactive"} />
-                <Detail label="Admin email" value={tenant.adminEmail} />
-                <Detail label="Issuer" value={tenant.issuer ?? "—"} />
-                <Detail label="Valid until" value={formatDate(tenant.validUpto)} />
-              </>
-            )}
-          </CardContent>
-        </Card>
+      {error ? (
+        <ErrorBand message={describe(error)} />
+      ) : loading && steps.length === 0 ? (
+        <p className="meta text-[var(--color-muted-foreground)]">
+          Loading<span className="caret text-[var(--color-accent-signal)]" />
+        </p>
+      ) : steps.length === 0 ? (
+        <p className="text-sm text-[var(--color-muted-foreground)]">
+          No provisioning runs recorded.
+        </p>
+      ) : (
+        <ol className="divide-y divide-[var(--color-border)] border-y border-[var(--color-border)]">
+          {steps.map((step, i) => (
+            <StepRow key={step.step} step={step} index={i + 1} />
+          ))}
+        </ol>
+      )}
 
-        <Card>
-          <CardHeader className="flex flex-row items-start justify-between space-y-0">
-            <div>
-              <CardTitle>Provisioning</CardTitle>
-              <CardDescription>
-                {provisioning ? (
-                  <ProvisioningSummary provisioning={provisioning} />
-                ) : (
-                  "Loading provisioning status…"
-                )}
-              </CardDescription>
-            </div>
-            {provisioning?.status === "Failed" && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => retryMutation.mutate()}
-                disabled={retryMutation.isPending}
-              >
-                <RefreshCw className="mr-1 h-3.5 w-3.5" /> Retry
-              </Button>
-            )}
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            {provisioningQuery.isError && (
-              <span className="text-[var(--color-destructive)]">{describe(provisioningQuery.error)}</span>
-            )}
-            {provisioning?.steps.map((step) => <StepRow key={step.step} step={step} />)}
-            {provisioning?.error && (
-              <pre className="mt-3 max-h-40 overflow-auto rounded-md bg-[var(--color-muted)] p-2 text-xs text-[var(--color-destructive)]">
-                {provisioning.error}
-              </pre>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      {errorBody && (
+        <pre className="max-h-44 overflow-auto rounded-md border border-[var(--color-destructive)]/40 bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.06)] p-3 font-mono text-[11px] whitespace-pre-wrap text-[var(--color-destructive)]">
+          {errorBody}
+        </pre>
+      )}
     </div>
   );
 }
 
-function Detail({ label, value }: { label: string; value: string }) {
+function StepRow({ step, index }: { step: TenantProvisioningStep; index: number }) {
+  const tone =
+    step.status === "Completed"
+      ? "text-[var(--color-success)]"
+      : step.status === "Failed"
+        ? "text-[var(--color-destructive)]"
+        : step.status === "Running"
+          ? "text-[var(--color-info)]"
+          : "text-[var(--color-muted-foreground)]";
+  const Icon =
+    step.status === "Completed"
+      ? CheckCircle2
+      : step.status === "Failed"
+        ? XCircle
+        : step.status === "Running"
+          ? Loader2
+          : CircleDashed;
+
+  const duration =
+    step.startedUtc && step.completedUtc
+      ? formatDuration(step.startedUtc, step.completedUtc)
+      : step.startedUtc
+        ? "in flight"
+        : null;
+
   return (
-    <div className="flex justify-between gap-4">
-      <span className="text-[var(--color-muted-foreground)]">{label}</span>
-      <span className="font-medium text-right">{value}</span>
-    </div>
+    <li className="grid grid-cols-[2rem_auto_1fr_auto_auto] items-center gap-3 py-2.5">
+      <span className="font-mono text-[10.5px] tabular-nums text-[var(--color-muted-foreground)]">
+        {String(index).padStart(2, "0")}
+      </span>
+      <Icon className={cn("h-4 w-4", tone, step.status === "Running" && "animate-spin")} />
+      <span className="truncate font-mono text-[13px]">{step.step}</span>
+      {duration && (
+        <span className="font-mono text-[10.5px] tabular-nums text-[var(--color-muted-foreground)]">
+          {duration}
+        </span>
+      )}
+      <span className={cn("meta", tone)}>{step.status}</span>
+    </li>
   );
 }
 
-function StepRow({ step }: { step: TenantProvisioningStep }) {
-  return (
-    <div className="flex items-center justify-between border-b border-[var(--color-border)] py-1.5 last:border-b-0">
-      <span className="font-mono text-xs">{step.step}</span>
-      <StatusBadge status={step.status} />
-    </div>
-  );
-}
+// ─── helpers ────────────────────────────────────────────────────────────
 
-function StatusBadge({ status }: { status: string }) {
-  const colors =
-    status === "Completed"
-      ? "bg-emerald-500/15 text-emerald-500"
-      : status === "Failed"
-        ? "bg-red-500/15 text-red-500"
-        : status === "Running"
-          ? "bg-blue-500/15 text-blue-500"
-          : "bg-[var(--color-muted)] text-[var(--color-muted-foreground)]";
-  return <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${colors}`}>{status}</span>;
-}
-
-function ProvisioningSummary({ provisioning }: { provisioning: { status: string; currentStep?: string | null } }) {
-  if (provisioning.status === "Completed") return <span>Completed.</span>;
-  if (provisioning.status === "Failed") return <span>Failed at {provisioning.currentStep ?? "unknown step"}.</span>;
-  return <span>{provisioning.status}{provisioning.currentStep ? ` — ${provisioning.currentStep}` : ""}…</span>;
+function shortId(id: string): string {
+  if (id.length <= 12) return id;
+  return `${id.slice(0, 4)}…${id.slice(-4)}`;
 }
 
 function formatDate(value: string | undefined): string {
   if (!value) return "—";
   const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? value : d.toLocaleString();
+  return Number.isNaN(d.getTime()) ? value : d.toLocaleDateString();
+}
+
+function formatDuration(start: string, end: string): string {
+  const a = new Date(start).getTime();
+  const b = new Date(end).getTime();
+  if (Number.isNaN(a) || Number.isNaN(b)) return "—";
+  const ms = Math.max(0, b - a);
+  if (ms < 1000) return `${ms}ms`;
+  const s = ms / 1000;
+  if (s < 60) return `${s.toFixed(1)}s`;
+  const m = Math.floor(s / 60);
+  const rem = Math.round(s - m * 60);
+  return `${m}m ${rem}s`;
 }
 
 function describe(err: unknown): string {

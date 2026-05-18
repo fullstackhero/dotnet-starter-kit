@@ -22,6 +22,8 @@ using FSH.Modules.Identity.Features.v1.Groups.GetGroups;
 using FSH.Modules.Identity.Features.v1.Groups.RemoveUserFromGroup;
 using FSH.Modules.Identity.Features.v1.Groups.UpdateGroup;
 using FSH.Modules.Identity.Features.v1.Impersonation.EndImpersonation;
+using FSH.Modules.Identity.Features.v1.Impersonation.GetImpersonationGrants;
+using FSH.Modules.Identity.Features.v1.Impersonation.RevokeImpersonationGrant;
 using FSH.Modules.Identity.Features.v1.Impersonation.StartImpersonation;
 using FSH.Modules.Identity.Features.v1.Roles;
 using FSH.Modules.Identity.Features.v1.Roles.DeleteRole;
@@ -94,6 +96,7 @@ public class IdentityModule : IModule
         services.AddScoped<IRequestContextService, RequestContextService>();
         services.AddScoped<IRequestContext>(sp => sp.GetRequiredService<IRequestContextService>());
         services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IImpersonationGrantService, ImpersonationGrantService>();
 
         // User services - focused single-responsibility services
         services.AddTransient<IUserRegistrationService, UserRegistrationService>();
@@ -246,6 +249,8 @@ public class IdentityModule : IModule
         // impersonation
         group.MapStartImpersonationEndpoint();
         group.MapEndImpersonationEndpoint();
+        group.MapGetImpersonationGrantsEndpoint();
+        group.MapRevokeImpersonationGrantEndpoint();
 
         // two-factor authentication (TOTP)
         group.MapEnrollTwoFactorEndpoint();

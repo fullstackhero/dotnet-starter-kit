@@ -27,6 +27,8 @@ internal sealed class UserProfileService(
 
     public async Task<UserDto> GetAsync(string userId, CancellationToken cancellationToken)
     {
+        // Relies on Finbuckle's tenant filter — callers can only ever read
+        // their own user record, which is in the request's resolved tenant.
         var user = await userManager.Users
             .AsNoTracking()
             .Where(u => u.Id == userId)
@@ -42,7 +44,10 @@ internal sealed class UserProfileService(
             FirstName = user.FirstName,
             LastName = user.LastName,
             ImageUrl = ResolveImageUrl(user.ImageUrl),
-            IsActive = user.IsActive
+            IsActive = user.IsActive,
+            EmailConfirmed = user.EmailConfirmed,
+            PhoneNumber = user.PhoneNumber,
+            TwoFactorEnabled = user.TwoFactorEnabled,
         };
     }
 

@@ -18,7 +18,7 @@ namespace FSH.Starter.Migrations.PostgreSQL.Files
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("files")
-                .HasAnnotation("ProductVersion", "10.0.7")
+                .HasAnnotation("ProductVersion", "10.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -84,6 +84,10 @@ namespace FSH.Starter.Migrations.PostgreSQL.Files
                         .HasMaxLength(512)
                         .HasColumnType("character varying(512)");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
@@ -98,18 +102,20 @@ namespace FSH.Starter.Migrations.PostgreSQL.Files
                     b.HasIndex("Status")
                         .HasDatabaseName("IX_FileAsset_Status");
 
-                    b.HasIndex("StorageKey")
-                        .IsUnique()
-                        .HasDatabaseName("UX_FileAsset_StorageKey")
-                        .HasFilter("\"IsDeleted\" = FALSE");
-
                     b.HasIndex("IsDeleted", "DeletedOnUtc")
                         .HasDatabaseName("IX_FileAsset_Deletion");
 
                     b.HasIndex("OwnerType", "OwnerId")
                         .HasDatabaseName("IX_FileAsset_Owner");
 
+                    b.HasIndex("StorageKey", "TenantId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_FileAsset_StorageKey")
+                        .HasFilter("\"IsDeleted\" = FALSE");
+
                     b.ToTable("FileAssets", "files");
+
+                    b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 #pragma warning restore 612, 618
         }

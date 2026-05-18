@@ -1,119 +1,381 @@
 @import "tailwindcss";
 
+/* Typeface system — modern duo on a single family:
+   · Geist        — display + body sans. Sharp grotesque made for screens.
+   · Geist Mono   — every fact: IDs, timestamps, status, table data, crumbs.
+   One family across display + body + code so weights cascade consistently.
+   Both free from Google Fonts. */
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap");
+
 @custom-variant dark (&:is(.dark *));
 
+/* ============================================================================
+   "Console" — Editorial-terminal design tokens
+   ----------------------------------------------------------------------------
+   The admin app sits at the intersection of a Bloomberg terminal and an
+   editorial magazine: dense, factual, opinionated, beautifully typeset. The
+   palette is monochrome with a single chartreuse-lime signal accent. Mono
+   is load-bearing — anywhere you see mono, you are looking at data.
+
+   Architecture (top-down):
+     1. PRIMITIVES   — raw oklch scales. Never reference in components.
+     2. SEMANTICS    — purpose-named tokens (--background, --primary, …).
+     3. SURFACES     — explicit elevation tiers for layout chrome.
+     4. SYSTEM       — typography, motion, radii, shadows.
+   ========================================================================== */
+
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --radius: 0.625rem;
+  /* ── 1. PRIMITIVES ──────────────────────────────────────────────────── */
+
+  /* Neutrals — cool-cast (hue 240, near-zero chroma) for a quiet,
+     deliberately not-quite-grey chassis that gives the accent room. */
+  --neutral-0:    oklch(1.000 0.000 240);
+  --neutral-50:   oklch(0.985 0.003 240);
+  --neutral-100:  oklch(0.965 0.004 240);
+  --neutral-200:  oklch(0.928 0.006 240);
+  --neutral-300:  oklch(0.870 0.008 240);
+  --neutral-400:  oklch(0.745 0.010 240);
+  --neutral-500:  oklch(0.585 0.012 240);
+  --neutral-600:  oklch(0.475 0.014 240);
+  --neutral-700:  oklch(0.380 0.014 240);
+  --neutral-800:  oklch(0.265 0.012 240);
+  --neutral-850:  oklch(0.205 0.012 240);
+  --neutral-900:  oklch(0.165 0.010 240);
+  --neutral-925:  oklch(0.135 0.008 240);
+  --neutral-950:  oklch(0.115 0.006 240);
+  --neutral-1000: oklch(0.085 0.005 240);
+
+  /* Signal — chartreuse-lime. The only chromatic stop allowed in chrome.
+     One accent, deliberately recognizable. Reserved for primary affordances,
+     active nav, the "live" pulse, and the brand mark. Not for "this is OK"
+     — that's what `--success` is for. */
+  --signal-300:  oklch(0.940 0.140 125);
+  --signal-400:  oklch(0.900 0.180 125);
+  --signal-500:  oklch(0.860 0.200 125);
+  --signal-600:  oklch(0.770 0.205 125);
+  --signal-700:  oklch(0.660 0.180 125);
+
+  /* Status scales — emerald / amber / cyan / rose. Only show up on
+     status badges and status pills; never used for chrome. */
+  --success-500: oklch(0.690 0.160 162);
+  --success-600: oklch(0.605 0.160 162);
+  --warning-500: oklch(0.790 0.150  76);
+  --warning-600: oklch(0.700 0.150  76);
+  --info-500:    oklch(0.720 0.130 215);
+  --info-600:    oklch(0.635 0.135 215);
+  --danger-500:  oklch(0.680 0.205  22);
+  --danger-600:  oklch(0.585 0.215  22);
+
+  /* ── 2. SEMANTICS — light theme is the *secondary* surface. Dark is
+     primary and the file's defaults follow that mental model below.
+     But we write light first so users who land here in light see a
+     fully-considered scheme too. ───────────────────────────────────── */
+  --background:                 var(--neutral-50);
+  --foreground:                 var(--neutral-950);
+
+  --card:                       var(--neutral-0);
+  --card-foreground:            var(--neutral-950);
+  --popover:                    var(--neutral-0);
+  --popover-foreground:         var(--neutral-950);
+
+  --primary:                    var(--neutral-950);
+  --primary-foreground:         var(--neutral-50);
+  --primary-soft:               oklch(0.115 0.006 240 / 0.08);
+
+  /* Signal/accent — same in both modes (chartreuse needs no inversion). */
+  --accent-signal:              var(--signal-500);
+  --accent-signal-soft:         oklch(0.860 0.200 125 / 0.14);
+  --accent-signal-foreground:   var(--neutral-1000);
+
+  --secondary:                  var(--neutral-100);
+  --secondary-foreground:       var(--neutral-900);
+
+  --muted:                      var(--neutral-100);
+  --muted-foreground:           var(--neutral-500);
+
+  --accent:                     var(--neutral-100);
+  --accent-foreground:          var(--neutral-900);
+
+  --destructive:                var(--danger-600);
+  --destructive-foreground:     oklch(0.990 0.005 22);
+
+  --success:                    var(--success-600);
+  --success-foreground:         oklch(0.990 0.005 162);
+  --warning:                    var(--warning-600);
+  --warning-foreground:         var(--neutral-950);
+  --info:                       var(--info-600);
+  --info-foreground:            oklch(0.990 0.005 215);
+
+  --border:                     oklch(0.870 0.008 240 / 0.55);
+  --border-strong:              oklch(0.745 0.010 240);
+  --border-emphasis:            var(--neutral-900);
+  --input:                      var(--neutral-200);
+  --ring:                       var(--signal-500);
+
+  /* ── 3. SURFACES — elevation tiers. ─────────────────────────────────── */
+  --surface-1:                  var(--neutral-50);   /* page canvas */
+  --surface-2:                  var(--neutral-0);    /* sidebar, panels, code chips */
+  --surface-3:                  var(--neutral-0);    /* cards */
+  --surface-4:                  var(--neutral-100);  /* hover, raised */
+  --surface-overlay:            oklch(0.115 0.006 240 / 0.35);
+
+  /* Grid texture alpha — 4px hairline subgrid on the canvas. Light-mode
+     subtle; dark-mode slightly more visible since the near-black canvas
+     needs more contrast to read the texture. */
+  --grid-alpha:                 0.04;
+
+  --color-scheme: light;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.556 0 0);
+  --background:                 var(--neutral-1000);
+  --foreground:                 var(--neutral-50);
+
+  --card:                       var(--neutral-925);
+  --card-foreground:            var(--neutral-50);
+  --popover:                    var(--neutral-900);
+  --popover-foreground:         var(--neutral-50);
+
+  --primary:                    var(--neutral-50);
+  --primary-foreground:         var(--neutral-1000);
+  --primary-soft:               oklch(0.985 0.003 240 / 0.10);
+
+  --accent-signal:              var(--signal-500);
+  --accent-signal-soft:         oklch(0.860 0.200 125 / 0.18);
+  --accent-signal-foreground:   var(--neutral-1000);
+
+  --secondary:                  var(--neutral-800);
+  --secondary-foreground:       var(--neutral-50);
+
+  --muted:                      var(--neutral-900);
+  --muted-foreground:           var(--neutral-400);
+
+  --accent:                     var(--neutral-900);
+  --accent-foreground:          var(--neutral-50);
+
+  --destructive:                var(--danger-500);
+  --destructive-foreground:     oklch(0.145 0.040 22);
+
+  --success:                    var(--success-500);
+  --success-foreground:         oklch(0.145 0.040 162);
+  --warning:                    var(--warning-500);
+  --warning-foreground:         var(--neutral-1000);
+  --info:                       var(--info-500);
+  --info-foreground:            oklch(0.145 0.040 215);
+
+  --border:                     oklch(0.265 0.012 240 / 0.75);
+  --border-strong:              oklch(0.345 0.012 240);
+  --border-emphasis:            var(--neutral-50);
+  --input:                      var(--neutral-800);
+  --ring:                       var(--signal-500);
+
+  --surface-1:                  var(--neutral-1000);
+  --surface-2:                  var(--neutral-925);
+  --surface-3:                  var(--neutral-900);
+  --surface-4:                  var(--neutral-850);
+  --surface-overlay:            oklch(0.085 0.005 240 / 0.60);
+
+  --grid-alpha:                 0.045;
+
+  --color-scheme: dark;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --color-background:                 var(--background);
+  --color-foreground:                 var(--foreground);
+  --color-card:                       var(--card);
+  --color-card-foreground:            var(--card-foreground);
+  --color-popover:                    var(--popover);
+  --color-popover-foreground:         var(--popover-foreground);
+  --color-primary:                    var(--primary);
+  --color-primary-foreground:         var(--primary-foreground);
+  --color-primary-soft:               var(--primary-soft);
+  --color-accent-signal:              var(--accent-signal);
+  --color-accent-signal-soft:         var(--accent-signal-soft);
+  --color-accent-signal-foreground:   var(--accent-signal-foreground);
+  --color-secondary:                  var(--secondary);
+  --color-secondary-foreground:       var(--secondary-foreground);
+  --color-muted:                      var(--muted);
+  --color-muted-foreground:           var(--muted-foreground);
+  --color-accent:                     var(--accent);
+  --color-accent-foreground:          var(--accent-foreground);
+  --color-destructive:                var(--destructive);
+  --color-destructive-foreground:     var(--destructive-foreground);
+  --color-success:                    var(--success);
+  --color-success-foreground:         var(--success-foreground);
+  --color-warning:                    var(--warning);
+  --color-warning-foreground:         var(--warning-foreground);
+  --color-info:                       var(--info);
+  --color-info-foreground:            var(--info-foreground);
+  --color-border:                     var(--border);
+  --color-border-strong:              var(--border-strong);
+  --color-border-emphasis:            var(--border-emphasis);
+  --color-input:                      var(--input);
+  --color-ring:                       var(--ring);
+  --color-surface-1:                  var(--surface-1);
+  --color-surface-2:                  var(--surface-2);
+  --color-surface-3:                  var(--surface-3);
+  --color-surface-4:                  var(--surface-4);
+
+  --radius:     0.5rem;          /* 8 — buttons */
+  --radius-sm:  calc(var(--radius) - 4px);
+  --radius-md:  calc(var(--radius) - 2px);
+  --radius-lg:  calc(var(--radius) + 2px);   /* 10 */
+  --radius-xl:  1rem;            /* 16 — cards */
+  --radius-2xl: 1.25rem;         /* 20 — sheets / hero cards */
+
+  /* Card elevation — multi-stop, intentionally restrained. The hover
+     state lifts slightly and adds a chartreuse-tinted outer ring at
+     extremely low alpha; depth from elevation, not chrome. */
+  --shadow-card:
+    0 1px 2px 0 oklch(0 0 0 / 0.04),
+    0 1px 3px -1px oklch(0 0 0 / 0.05);
+  --shadow-card-hover:
+    0 1px 2px 0 oklch(0 0 0 / 0.04),
+    0 8px 16px -8px oklch(0 0 0 / 0.10),
+    0 14px 32px -16px oklch(0 0 0 / 0.16);
+  --shadow-card-hover-dark:
+    0 1px 2px 0 oklch(0 0 0 / 0.40),
+    0 8px 16px -8px oklch(0 0 0 / 0.45),
+    0 18px 40px -16px oklch(0 0 0 / 0.55);
+
+  /* Top-edge highlight — the subtle "lit from above" line that gives
+     elevated surfaces depth without a heavy border. */
+  --highlight-top-light: inset 0 1px 0 oklch(1 0 0 / 0.55);
+  --highlight-top-dark:  inset 0 1px 0 oklch(1 0 0 / 0.04);
+
+  --font-display: "Geist", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-sans:    "Geist", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono:    "Geist Mono", "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --ease-out-cubic:    cubic-bezier(0.215, 0.610, 0.355, 1.000);
+  --ease-out-quart:    cubic-bezier(0.165, 0.840, 0.440, 1.000);
+  --ease-in-out-cubic: cubic-bezier(0.645, 0.045, 0.355, 1.000);
+  --duration-fast:     140ms;
+  --duration-default:  240ms;
+  --duration-slow:     360ms;
+
+  --tracking-display: -0.028em;
+  --tracking-tight:   -0.012em;
+  --tracking-meta:    0.22em;
 }
 
+/* ============================================================================
+   Base layer
+   ========================================================================== */
+
 @layer base {
-  * {
+  *,
+  *::before,
+  *::after {
     border-color: var(--color-border);
   }
 
-  html, body {
+  html {
+    color-scheme: var(--color-scheme);
     background-color: var(--color-background);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-feature-settings: "ss01", "cv11";
+    letter-spacing: var(--tracking-tight);
+  }
+
+  /* Selection reads as "selected by the system" — chartreuse signal. */
+  ::selection {
+    background-color: oklch(from var(--color-accent-signal) l c h / 0.35);
     color: var(--color-foreground);
   }
 
-  /* Editorial display utility — Fraunces with subtle optical sizing baked in. */
-  .font-display {
-    font-family: var(--font-display);
-    font-optical-sizing: auto;
-    font-variation-settings: "opsz" 96, "SOFT" 50;
-    letter-spacing: -0.018em;
+  /* Scrollbar — thin, monochrome, never indigo. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-strong) transparent;
   }
-  .font-mono {
-    font-family: var(--font-mono);
+  *::-webkit-scrollbar { width: 9px; height: 9px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+  *::-webkit-scrollbar-thumb {
+    background-color: oklch(from var(--color-border-strong) l c h / 0.65);
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    letter-spacing: var(--tracking-display);
   }
 }
 
-/* ------------------------------------------------------------------------- */
-/* Editorial section rule used across the admin module surfaces.              */
-/* "\\ USERS" hairline header lives at the top of every page in a section.   */
-/* ------------------------------------------------------------------------- */
+/* ============================================================================
+   Utilities — typography
+   ========================================================================== */
+
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: var(--tracking-display);
+  font-feature-settings: "ss01", "ss02";
+}
+
+.font-sans  { font-family: var(--font-sans); }
+.font-mono  { font-family: var(--font-mono); }
+
+/* Display weight applied to KPI / hero numbers. Tabular figures so columns
+   align when nested in tables; tighter tracking than body. */
+.text-display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.030em;
+  font-feature-settings: "ss01", "ss02", "tnum";
+  font-variant-numeric: tabular-nums;
+}
+
+/* Mono crumb — the all-caps lockup used in section rules, KPI tile
+   labels, status meta. Mono + wide tracking + tiny size. */
+.meta {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-meta);
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+/* ============================================================================
+   Utilities — section rule
+   The double-slash crumb headline used to introduce every page section.
+   The chartreuse hairline overlay at the start is small but recognisable.
+   ========================================================================== */
+
 .section-rule {
   position: relative;
   display: flex;
   align-items: baseline;
-  gap: 0.625rem;
+  gap: 0.75rem;
   padding-top: 0.625rem;
-  border-top: 1px solid var(--color-foreground);
+  border-top: 1px solid var(--color-border-emphasis);
+}
+.section-rule::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 56px;
+  height: 2px;
+  background-color: var(--color-accent-signal);
 }
 .section-rule__crumb {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   font-weight: 500;
-  letter-spacing: 0.22em;
+  letter-spacing: var(--tracking-meta);
   text-transform: uppercase;
   color: var(--color-foreground);
 }
@@ -122,37 +384,260 @@
   font-weight: 400;
 }
 
-/* ------------------------------------------------------------------------- */
-/* Deterministic monogram tones — chroma=0 to honour the existing palette.   */
-/* ------------------------------------------------------------------------- */
+/* ============================================================================
+   Utilities — gridded canvas
+   Barely-visible 4px subgrid on the page background. Telegraphs "this is
+   a console" without competing with content.
+   ========================================================================== */
+
+.canvas-grid {
+  background-image:
+    linear-gradient(to right,  currentColor 1px, transparent 1px),
+    linear-gradient(to bottom, currentColor 1px, transparent 1px);
+  background-size: 4px 4px;
+  color: oklch(0 0 0 / var(--grid-alpha));
+}
+.dark .canvas-grid { color: oklch(1 0 0 / var(--grid-alpha)); }
+
+/* 32px coordinate grid + 4px subgrid used on Login + Dashboard hero. */
+.canvas-mesh {
+  background-image:
+    linear-gradient(to right,  oklch(from var(--color-foreground) l c h / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(from var(--color-foreground) l c h / 0.06) 1px, transparent 1px),
+    linear-gradient(to right,  oklch(from var(--color-foreground) l c h / 0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(from var(--color-foreground) l c h / 0.025) 1px, transparent 1px);
+  background-size: 32px 32px, 32px 32px, 4px 4px, 4px 4px;
+}
+
+/* ============================================================================
+   Utilities — terminal caret
+   Slow blink, reads as "system idle, awaiting input" rather than misbehaving.
+   ========================================================================== */
+
+@keyframes caret-blink {
+  0%, 49%   { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.caret {
+  display: inline-block;
+  width: 0.55ch;
+  margin-left: 0.15ch;
+  height: 1em;
+  vertical-align: -0.15em;
+  background-color: currentColor;
+  animation: caret-blink 1.05s steps(1, end) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .caret { animation: none; opacity: 0.6; }
+}
+
+/* ============================================================================
+   Utilities — pulse (live indicator)
+   Chartreuse dot with a slow halo expansion. Used on live data + realtime.
+   ========================================================================== */
+
+@keyframes pulse-ring {
+  0%   { transform: scale(1);   opacity: 0.55; }
+  70%  { transform: scale(2.4); opacity: 0;    }
+  100% { transform: scale(2.4); opacity: 0;    }
+}
+.pulse-dot {
+  position: relative;
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 9999px;
+  background-color: var(--color-accent-signal);
+}
+.pulse-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background-color: var(--color-accent-signal);
+  animation: pulse-ring 2.4s var(--ease-out-cubic) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pulse-dot::after { animation: none; opacity: 0; }
+}
+
+/* ============================================================================
+   Utilities — entrance animations
+   ========================================================================== */
+
+@keyframes fsh-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fsh-enter   { animation: fsh-enter var(--duration-slow) var(--ease-out-cubic) both; }
+.fsh-enter-1 { animation-delay:  40ms; }
+.fsh-enter-2 { animation-delay:  90ms; }
+.fsh-enter-3 { animation-delay: 140ms; }
+.fsh-enter-4 { animation-delay: 200ms; }
+.fsh-enter-5 { animation-delay: 260ms; }
+
+@keyframes rule-draw {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+.rule-draw {
+  transform-origin: left;
+  animation: rule-draw var(--duration-slow) var(--ease-out-quart) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fsh-enter, .fsh-enter-1, .fsh-enter-2, .fsh-enter-3, .fsh-enter-4, .fsh-enter-5,
+  .rule-draw {
+    animation: none;
+  }
+}
+
+/* ============================================================================
+   Utilities — skeleton shimmer
+   ========================================================================== */
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-muted);
+  border-radius: var(--radius-md);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    oklch(1 0 0 / 0.12) 50%,
+    transparent 100%);
+  animation: skeleton-sweep 1.4s linear infinite;
+}
+.dark .skeleton::after {
+  background: linear-gradient(90deg,
+    transparent 0%,
+    oklch(1 0 0 / 0.05) 50%,
+    transparent 100%);
+}
+@keyframes skeleton-sweep {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(100%);  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after { animation: none; }
+}
+
+/* ============================================================================
+   Utilities — card surface
+   ========================================================================== */
+
+/* Card — luminous base treatment. The top-edge highlight gives even resting
+   cards a "lit from above" feel; depth comes from elevation rather than
+   border weight (border alpha is intentionally low). */
+.card-shell {
+  background-color: var(--color-card);
+  color: var(--color-card-foreground);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card), var(--highlight-top-light);
+}
+.dark .card-shell {
+  box-shadow:
+    0 1px 2px 0 oklch(0 0 0 / 0.30),
+    0 1px 3px -1px oklch(0 0 0 / 0.40),
+    var(--highlight-top-dark);
+}
+
+/* Interactive card — a slight lift, a deeper shadow, and a hint of
+   chartreuse on the outer ring at hover. The cubic-bezier matches Apple's
+   standard curve for natural "tap" response. */
+.card-shell-interactive {
+  transition:
+    transform var(--duration-default) var(--ease-out-cubic),
+    border-color var(--duration-default) var(--ease-out-cubic),
+    box-shadow var(--duration-default) var(--ease-out-cubic);
+  will-change: transform, box-shadow;
+}
+.card-shell-interactive:hover {
+  transform: translateY(-1px);
+  border-color: var(--color-border-strong);
+  box-shadow:
+    var(--shadow-card-hover),
+    var(--highlight-top-light),
+    0 0 0 1px oklch(from var(--color-accent-signal) l c h / 0.05);
+}
+.dark .card-shell-interactive:hover {
+  box-shadow:
+    var(--shadow-card-hover-dark),
+    var(--highlight-top-dark),
+    0 0 0 1px oklch(from var(--color-accent-signal) l c h / 0.10);
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-shell-interactive:hover { transform: none; }
+}
+
+/* Card — "luminous" marquee variant. Uses an opt-in gradient border via
+   the background-clip + mask trick. Only apply to genuine hero cards
+   (Login pane, dashboard hero); otherwise prefer the plain card-shell. */
+.card-luminous {
+  position: relative;
+  border: 1px solid transparent;
+  border-radius: var(--radius-xl);
+  background:
+    linear-gradient(var(--color-card), var(--color-card)) padding-box,
+    linear-gradient(
+      135deg,
+      oklch(from var(--color-accent-signal) l c h / 0.45),
+      oklch(from var(--color-border) l c h / 0.6) 35%,
+      oklch(from var(--color-border) l c h / 0.4) 100%
+    ) border-box;
+  box-shadow: var(--shadow-card), var(--highlight-top-light);
+}
+.dark .card-luminous {
+  background:
+    linear-gradient(var(--color-card), var(--color-card)) padding-box,
+    linear-gradient(
+      135deg,
+      oklch(from var(--color-accent-signal) l c h / 0.45),
+      oklch(0.30 0.012 240) 35%,
+      oklch(0.22 0.012 240) 100%
+    ) border-box;
+  box-shadow:
+    0 1px 2px 0 oklch(0 0 0 / 0.30),
+    0 1px 3px -1px oklch(0 0 0 / 0.40),
+    var(--highlight-top-dark);
+}
+
+/* ============================================================================
+   Utilities — code chip
+   Mono pill used for IDs, plan keys, invoice numbers. Replaces ad-hoc
+   "we used a Badge for a code thing" inconsistencies.
+   ========================================================================== */
+
+.code-chip {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-tight);
+  padding: 0.125rem 0.375rem;
+  background-color: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-foreground);
+  white-space: nowrap;
+}
+
+/* ============================================================================
+   Misc — legacy monogram tones kept for back-compat (deterministic colour
+   by tenant id, used by the avatar component).
+   ========================================================================== */
+
 .mono-tone-0 { background: oklch(0.94 0 0); color: oklch(0.20 0 0); }
 .mono-tone-1 { background: oklch(0.86 0 0); color: oklch(0.18 0 0); }
 .mono-tone-2 { background: oklch(0.32 0 0); color: oklch(0.96 0 0); }
 .mono-tone-3 { background: oklch(0.18 0 0); color: oklch(0.95 0 0); }
-
 .dark .mono-tone-0 { background: oklch(0.32 0 0); color: oklch(0.93 0 0); }
 .dark .mono-tone-1 { background: oklch(0.42 0 0); color: oklch(0.97 0 0); }
 .dark .mono-tone-2 { background: oklch(0.86 0 0); color: oklch(0.18 0 0); }
 .dark .mono-tone-3 { background: oklch(0.96 0 0); color: oklch(0.18 0 0); }
-
-.mono-grid {
-  position: relative;
-  isolation: isolate;
-}
-.mono-grid::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(to right, rgb(0 0 0 / 0.06) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(0 0 0 / 0.06) 1px, transparent 1px);
-  background-size: 4px 4px;
-  mix-blend-mode: multiply;
-  pointer-events: none;
-}
-.dark .mono-grid::after {
-  background-image:
-    linear-gradient(to right, rgb(255 255 255 / 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(255 255 255 / 0.05) 1px, transparent 1px);
-  mix-blend-mode: screen;
-}

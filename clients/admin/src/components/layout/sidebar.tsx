@@ -1,48 +1,14 @@
-import { NavLink } from "react-router-dom";
-import { LayoutDashboard, Building2, UsersRound, Receipt, Gauge } from "lucide-react";
-import { cn } from "@/lib/cn";
+import { SidebarContent } from "@/components/layout/sidebar-content";
 
-type NavItem = {
-  to: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-};
-
-const items: NavItem[] = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/tenants", label: "Tenants", icon: Building2 },
-  { to: "/users", label: "Users", icon: UsersRound },
-  { to: "/billing", label: "Billing", icon: Receipt },
-  { to: "/quota", label: "Quota", icon: Gauge },
-];
-
+/**
+ * Sidebar — desktop-only fixed-width rail. Below `md` the AppShell mounts
+ * <MobileNav /> instead, which uses the same <SidebarContent /> in a
+ * slide-over drawer.
+ */
 export function Sidebar() {
   return (
-    <aside className="hidden w-60 shrink-0 border-r border-[var(--color-border)] bg-[var(--color-card)] md:flex md:flex-col">
-      <div className="flex h-14 items-center gap-2 border-b border-[var(--color-border)] px-5">
-        <div className="h-6 w-6 rounded bg-[var(--color-primary)]" aria-hidden />
-        <span className="font-semibold tracking-tight">FullStackHero</span>
-      </div>
-      <nav className="flex-1 space-y-0.5 p-3">
-        {items.map(({ to, label, icon: Icon }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={to === "/"}
-            className={({ isActive }) =>
-              cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-[var(--color-accent)] text-[var(--color-accent-foreground)]"
-                  : "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-accent-foreground)]",
-              )
-            }
-          >
-            <Icon className="h-4 w-4" />
-            {label}
-          </NavLink>
-        ))}
-      </nav>
+    <aside className="hidden w-64 shrink-0 border-r border-[var(--color-border)] bg-[var(--color-surface-2)] md:flex md:flex-col">
+      <SidebarContent />
     </aside>
   );
 }

@@ -64,6 +64,15 @@ public static class IdentityPermissions
         public const string ManageMembers = $"Permissions.{Resource}.ManageMembers";
     }
 
+    public static class Impersonation
+    {
+        public const string Resource = nameof(Impersonation);
+        /// <summary>List impersonation grants (read-only access to the grant history).</summary>
+        public const string View   = $"Permissions.{Resource}.View";
+        /// <summary>Revoke an active impersonation grant before its natural expiry.</summary>
+        public const string Revoke = $"Permissions.{Resource}.Revoke";
+    }
+
     public static IReadOnlyList<FshPermission> All { get; } =
     [
         new("View Users",          ActionConstants.View,   Users.Resource, IsBasic: true),
@@ -96,5 +105,8 @@ public static class IdentityPermissions
         new("Update Groups",       ActionConstants.Update, Groups.Resource),
         new("Delete Groups",       ActionConstants.Delete, Groups.Resource),
         new("Manage Group Members","ManageMembers",        Groups.Resource),
+
+        new("View Impersonation Grants",   ActionConstants.View, Impersonation.Resource),
+        new("Revoke Impersonation Grants", "Revoke",             Impersonation.Resource),
     ];
 }

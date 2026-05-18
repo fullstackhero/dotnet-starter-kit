@@ -20,7 +20,6 @@ public sealed class AuditDbContext : BaseDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
-        base.OnModelCreating(modelBuilder);
 
         // Required for the trigram GIN indexes on Source / UserName. The
         // extension is idempotent (CREATE EXTENSION IF NOT EXISTS) — the
@@ -28,5 +27,9 @@ public sealed class AuditDbContext : BaseDbContext
         modelBuilder.HasPostgresExtension("pg_trgm");
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AuditDbContext).Assembly);
+
+        // base.OnModelCreating runs LAST so BaseDbContext's auto-apply sees
+        // fully-configured entities (including HasMany child types).
+        base.OnModelCreating(modelBuilder);
     }
 }

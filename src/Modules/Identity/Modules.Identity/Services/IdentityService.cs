@@ -98,27 +98,30 @@ public sealed class IdentityService : IIdentityService
 
     public async Task StoreRefreshTokenAsync(string subject, string refreshToken, DateTime expiresAtUtc, CancellationToken ct = default)
     {
-        var tenant = GetValidatedTenant();
-        var user = await _userManager.FindByIdAsync(subject)
-            ?? throw new UnauthorizedException("user not found");
-
+        // ExecuteUpdateAsync issues a single targeted UPDATE bypassing both
+        // entity tracking and Finbuckle's MultiTenant interceptors (which NRE
+        // on cross-tenant `IgnoreQueryFilters` use in MultiTenantIdentityDbContext).
+        // Safe because user IDs are globally unique GUIDs — there is exactly
+        // one row matching `Id == subject` regardless of tenant scope.
         var hashedToken = HashToken(refreshToken);
-        user.RefreshToken = hashedToken;
-        user.RefreshTokenExpiryTime = expiresAtUtc;
+        var updated = await _dbContext.Users
+            .IgnoreQueryFilters()
+            .Where(u => u.Id == subject)
+            .ExecuteUpdateAsync(
+                s => s.SetProperty(u => u.RefreshToken, hashedToken)
+                      .SetProperty(u => u.RefreshTokenExpiryTime, expiresAtUtc),
+                ct).ConfigureAwait(false);
+
+        if (updated == 0)
+        {
+            throw new UnauthorizedException("user not found");
+        }
 
         if (_logger.IsEnabled(LogLevel.Debug))
         {
             _logger.LogDebug(
-                "Storing refresh token for user {UserId} in tenant {TenantId}. Token hash: {TokenHash}, Expires: {ExpiresAt}",
-                subject, tenant.Id, hashedToken[..Math.Min(8, hashedToken.Length)], expiresAtUtc);
-        }
-
-        var result = await _userManager.UpdateAsync(user);
-        if (!result.Succeeded)
-        {
-            _logger.LogError("Failed to persist refresh token for user {UserId}: {Errors}",
-                subject, string.Join(", ", result.Errors.Select(e => e.Description)));
-            throw new UnauthorizedException("could not persist refresh token");
+                "Stored refresh token for user {UserId}. Token hash: {TokenHash}, Expires: {ExpiresAt}",
+                subject, hashedToken[..Math.Min(8, hashedToken.Length)], expiresAtUtc);
         }
     }
 

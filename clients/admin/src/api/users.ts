@@ -11,6 +11,7 @@ export type UserDto = {
   emailConfirmed: boolean;
   phoneNumber?: string | null;
   imageUrl?: string | null;
+  twoFactorEnabled?: boolean;
 };
 
 export type UserRoleDto = {
@@ -28,6 +29,12 @@ export type SearchUsersParams = {
   isActive?: boolean;
   emailConfirmed?: boolean;
   roleId?: string;
+  /**
+   * When set, sends a `tenant` header overriding the operator's active tenant
+   * for this request only. Used by impersonation flows so a root operator can
+   * browse another tenant's users without flipping their global session.
+   */
+  tenantId?: string;
 };
 
 export type RegisterUserInput = {
@@ -46,6 +53,39 @@ export type RegisterUserResponse = {
 };
 
 const BASE = "/api/v1/identity/users";
+const IDENTITY = "/api/v1/identity";
+
+/**
+ * Returns the permission strings the current user holds. The JWT only carries
+ * role names — permissions are resolved server-side per role on this endpoint,
+ * so client-side route guards must call it after login (and after a refresh
+ * if grants may have changed).
+ */
+export async function getMyPermissions(): Promise<string[]> {
+  return (await apiFetch<string[] | null>(`${IDENTITY}/permissions`)) ?? [];
+}
+
+export async function getMyProfile(): Promise<UserDto> {
+  return apiFetch<UserDto>(`${IDENTITY}/profile`);
+}
+
+export async function setProfileImage(imageUrl: string | null): Promise<void> {
+  await apiFetch<void>(`${IDENTITY}/profile/image`, {
+    method: "PUT",
+    body: JSON.stringify({ imageUrl }),
+  });
+}
+
+export async function changePassword(input: {
+  password: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}): Promise<string> {
+  return apiFetch<string>(`${BASE}/change-password`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
 
 export async function searchUsers(params: SearchUsersParams = {}): Promise<PagedResponse<UserDto>> {
   const q = new URLSearchParams();
@@ -56,7 +96,9 @@ export async function searchUsers(params: SearchUsersParams = {}): Promise<Paged
   if (params.isActive !== undefined) q.set("IsActive", String(params.isActive));
   if (params.emailConfirmed !== undefined) q.set("EmailConfirmed", String(params.emailConfirmed));
   if (params.roleId) q.set("RoleId", params.roleId);
-  return apiFetch<PagedResponse<UserDto>>(`${BASE}/search?${q.toString()}`);
+  return apiFetch<PagedResponse<UserDto>>(`${BASE}/search?${q.toString()}`, {
+    headers: params.tenantId ? { tenant: params.tenantId } : undefined,
+  });
 }
 
 export async function getUser(id: string): Promise<UserDto> {

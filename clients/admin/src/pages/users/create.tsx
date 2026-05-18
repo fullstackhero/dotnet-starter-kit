@@ -1,271 +1,223 @@
-import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
-import { registerUser, type RegisterUserInput } from "@/api/users";
+import { registerUser } from "@/api/users";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { SectionRule } from "@/components/section-rule";
+import {
+  PageHeader,
+  Field,
+  FormShell,
+  FormSection,
+  FormActions,
+} from "@/components/list";
 import { ApiRequestError } from "@/lib/api-client";
-import { cn } from "@/lib/cn";
 
 const USERNAME_RE = /^[a-zA-Z][a-zA-Z0-9._-]{2,31}$/;
+
+const schema = z
+  .object({
+    firstName: z.string().trim().min(1, "Required.").max(64),
+    lastName: z.string().trim().min(1, "Required.").max(64),
+    userName: z
+      .string()
+      .trim()
+      .regex(USERNAME_RE, "3–32 chars. Letters, digits, dot, dash, underscore. Start with a letter."),
+    email: z.string().trim().email("Enter a valid email."),
+    phoneNumber: z.string().trim().max(32).optional(),
+    password: z.string().min(8, "At least 8 characters."),
+    confirmPassword: z.string().min(8),
+  })
+  .refine((d) => d.password === d.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "Passwords don't match.",
+  });
+
+type FormValues = z.infer<typeof schema>;
 
 export function CreateUserPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const [form, setForm] = useState<RegisterUserInput>({
-    firstName: "",
-    lastName: "",
-    email: "",
-    userName: "",
-    password: "",
-    confirmPassword: "",
-    phoneNumber: "",
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      userName: "",
+      email: "",
+      phoneNumber: "",
+      password: "",
+      confirmPassword: "",
+    },
   });
 
-  const usernameInvalid = form.userName.length > 0 && !USERNAME_RE.test(form.userName);
-  const passwordsMismatch =
-    form.confirmPassword.length > 0 && form.password !== form.confirmPassword;
-
   const mutation = useMutation({
-    mutationFn: (input: RegisterUserInput) => registerUser(input),
+    mutationFn: registerUser,
     onSuccess: (result) => {
       toast.success("User created", {
         description: result.message ?? "Confirmation email queued.",
       });
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      if (result.userId) {
-        navigate(`/users/${result.userId}`);
-      } else {
-        navigate("/users");
-      }
+      navigate(result.userId ? `/users/${result.userId}` : "/users");
     },
     onError: (err) => {
       const detail =
         err instanceof ApiRequestError
           ? err.problem?.detail ?? err.problem?.title ?? err.message
-          : err instanceof Error
-            ? err.message
-            : "Failed to create user";
+          : (err as Error).message;
       toast.error("Create failed", { description: detail });
     },
   });
 
-  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (usernameInvalid || passwordsMismatch) return;
+  const onSubmit = handleSubmit((values) =>
     mutation.mutate({
-      firstName: form.firstName.trim(),
-      lastName: form.lastName.trim(),
-      email: form.email.trim(),
-      userName: form.userName.trim(),
-      password: form.password,
-      confirmPassword: form.confirmPassword,
-      phoneNumber: form.phoneNumber?.trim() || undefined,
-    });
-  };
+      firstName: values.firstName,
+      lastName: values.lastName,
+      userName: values.userName,
+      email: values.email,
+      password: values.password,
+      confirmPassword: values.confirmPassword,
+      phoneNumber: values.phoneNumber?.trim() || undefined,
+    }),
+  );
 
-  const set = <K extends keyof RegisterUserInput>(k: K) => (v: RegisterUserInput[K]) =>
-    setForm((f) => ({ ...f, [k]: v }));
+  const submitting = isSubmitting || mutation.isPending;
 
   return (
     <div className="space-y-8">
-      <SectionRule
+      <PageHeader
         crumbs={[{ label: "\\ Users" }, { label: "New", muted: true }]}
         trailing="Account · Draft"
+        title="New account"
+        description="The new user is created in the current tenant and emailed a confirmation link. Roles can be assigned from the detail page after creation."
+        actions={
+          <Button variant="ghost" size="sm" onClick={() => navigate("/users")}>
+            <ArrowLeft className="mr-1 h-3.5 w-3.5" /> Directory
+          </Button>
+        }
       />
 
-      <div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate("/users")}
-          className="-ml-2 mb-2 font-mono text-[0.6875rem] uppercase tracking-[0.18em]"
-        >
-          <ArrowLeft className="mr-1 h-3.5 w-3.5" /> Directory
-        </Button>
-        <h1 className="font-display text-4xl font-semibold tracking-tight md:text-5xl">
-          New account
-        </h1>
-        <p className="mt-2 max-w-xl text-sm text-[var(--color-muted-foreground)]">
-          The new user is created in the current tenant and emailed a confirmation link.
-          Roles can be assigned from the detail page after creation.
-        </p>
-      </div>
+      <form onSubmit={onSubmit}>
+        <FormShell>
+          <FormSection
+            title="Identity"
+            description="Personal details and the username they'll use to sign in."
+          >
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field id="firstName" label="First name" required error={errors.firstName?.message}>
+                <Input
+                  id="firstName"
+                  autoComplete="given-name"
+                  aria-invalid={errors.firstName ? true : undefined}
+                  {...register("firstName")}
+                />
+              </Field>
+              <Field id="lastName" label="Last name" required error={errors.lastName?.message}>
+                <Input
+                  id="lastName"
+                  autoComplete="family-name"
+                  aria-invalid={errors.lastName ? true : undefined}
+                  {...register("lastName")}
+                />
+              </Field>
+            </div>
 
-      <form onSubmit={onSubmit} className="grid gap-10 md:grid-cols-[20rem_1fr]">
-        <aside className="space-y-2 border-t border-[var(--color-foreground)] pt-3">
-          <p className="font-mono text-[0.6875rem] uppercase tracking-[0.22em] text-[var(--color-foreground)]">
-            \\ Identity
-          </p>
-          <p className="text-sm text-[var(--color-muted-foreground)]">
-            Personal details and the username they'll use to sign in.
-          </p>
-        </aside>
-
-        <div className="space-y-5">
-          <div className="grid gap-5 sm:grid-cols-2">
             <Field
-              id="firstName"
-              label="First name"
-              value={form.firstName}
-              onChange={set("firstName")}
-              autoComplete="given-name"
+              id="userName"
+              label="Username"
               required
-            />
-            <Field
-              id="lastName"
-              label="Last name"
-              value={form.lastName}
-              onChange={set("lastName")}
-              autoComplete="family-name"
-              required
-            />
-          </div>
-
-          <Field
-            id="userName"
-            label="Username"
-            hint="Letters, digits, dot, dash or underscore. 3–32 characters."
-            value={form.userName}
-            onChange={set("userName")}
-            autoComplete="off"
-            required
-            mono
-            error={usernameInvalid ? "Invalid format." : undefined}
-            placeholder="m.chen"
-          />
-
-          <Field
-            id="email"
-            label="Email"
-            type="email"
-            value={form.email}
-            onChange={set("email")}
-            autoComplete="email"
-            required
-            mono
-            placeholder="user@example.com"
-          />
-
-          <Field
-            id="phoneNumber"
-            label="Phone (optional)"
-            type="tel"
-            value={form.phoneNumber ?? ""}
-            onChange={set("phoneNumber")}
-            autoComplete="tel"
-            mono
-            placeholder="+1 555 0100"
-          />
-        </div>
-
-        <aside className="space-y-2 border-t border-[var(--color-foreground)] pt-3">
-          <p className="font-mono text-[0.6875rem] uppercase tracking-[0.22em] text-[var(--color-foreground)]">
-            \\ Credentials
-          </p>
-          <p className="text-sm text-[var(--color-muted-foreground)]">
-            Initial password. The user is encouraged to change it on first sign-in.
-          </p>
-        </aside>
-
-        <div className="space-y-5">
-          <Field
-            id="password"
-            label="Password"
-            type="password"
-            value={form.password}
-            onChange={set("password")}
-            autoComplete="new-password"
-            required
-            mono
-          />
-          <Field
-            id="confirmPassword"
-            label="Confirm password"
-            type="password"
-            value={form.confirmPassword}
-            onChange={set("confirmPassword")}
-            autoComplete="new-password"
-            required
-            mono
-            error={passwordsMismatch ? "Passwords don't match." : undefined}
-          />
-        </div>
-
-        <div className="md:col-start-2">
-          <div className="flex items-center gap-2 border-t border-[var(--color-border)] pt-5">
-            <Button
-              type="submit"
-              disabled={
-                mutation.isPending ||
-                usernameInvalid ||
-                passwordsMismatch ||
-                !form.firstName.trim() ||
-                !form.lastName.trim() ||
-                !form.email.trim() ||
-                !form.userName.trim() ||
-                !form.password ||
-                !form.confirmPassword
-              }
+              hint="Letters, digits, dot, dash or underscore. 3–32 characters."
+              error={errors.userName?.message}
             >
-              {mutation.isPending ? "Creating…" : "Create account"}
+              <Input
+                id="userName"
+                placeholder="m.chen"
+                autoComplete="off"
+                className="font-mono"
+                aria-invalid={errors.userName ? true : undefined}
+                {...register("userName")}
+              />
+            </Field>
+
+            <Field id="email" label="Email" required error={errors.email?.message}>
+              <Input
+                id="email"
+                type="email"
+                placeholder="user@example.com"
+                autoComplete="email"
+                className="font-mono"
+                aria-invalid={errors.email ? true : undefined}
+                {...register("email")}
+              />
+            </Field>
+
+            <Field id="phoneNumber" label="Phone (optional)" error={errors.phoneNumber?.message}>
+              <Input
+                id="phoneNumber"
+                type="tel"
+                placeholder="+1 555 0100"
+                autoComplete="tel"
+                className="font-mono"
+                {...register("phoneNumber")}
+              />
+            </Field>
+          </FormSection>
+
+          <FormSection
+            title="Credentials"
+            description="Initial password. The user is encouraged to change it on first sign-in."
+          >
+            <Field id="password" label="Password" required error={errors.password?.message}>
+              <Input
+                id="password"
+                type="password"
+                autoComplete="new-password"
+                className="font-mono"
+                aria-invalid={errors.password ? true : undefined}
+                {...register("password")}
+              />
+            </Field>
+            <Field
+              id="confirmPassword"
+              label="Confirm password"
+              required
+              error={errors.confirmPassword?.message}
+            >
+              <Input
+                id="confirmPassword"
+                type="password"
+                autoComplete="new-password"
+                className="font-mono"
+                aria-invalid={errors.confirmPassword ? true : undefined}
+                {...register("confirmPassword")}
+              />
+            </Field>
+          </FormSection>
+
+          <FormActions>
+            <Button type="submit" disabled={submitting}>
+              {submitting ? "Creating…" : "Create account"}
             </Button>
             <Button
               type="button"
               variant="outline"
               onClick={() => navigate("/users")}
-              disabled={mutation.isPending}
+              disabled={submitting}
             >
               Cancel
             </Button>
-          </div>
-        </div>
+          </FormActions>
+        </FormShell>
       </form>
-    </div>
-  );
-}
-
-type FieldProps = {
-  id: string;
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  type?: string;
-  required?: boolean;
-  hint?: string;
-  error?: string;
-  placeholder?: string;
-  autoComplete?: string;
-  mono?: boolean;
-};
-
-function Field({ id, label, value, onChange, type, required, hint, error, placeholder, autoComplete, mono }: FieldProps) {
-  return (
-    <div className="space-y-1.5">
-      <Label
-        htmlFor={id}
-        className="font-mono text-[0.6875rem] uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]"
-      >
-        {label}
-      </Label>
-      <Input
-        id={id}
-        type={type ?? "text"}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        required={required}
-        placeholder={placeholder}
-        autoComplete={autoComplete}
-        aria-invalid={error ? true : undefined}
-        className={cn(mono && "font-mono")}
-      />
-      {hint && <p className="text-xs text-[var(--color-muted-foreground)]">{hint}</p>}
-      {error && <p className="text-xs text-[var(--color-destructive)]">{error}</p>}
     </div>
   );
 }

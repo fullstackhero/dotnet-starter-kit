@@ -1,4 +1,5 @@
 using Asp.Versioning;
+using Finbuckle.MultiTenant;
 using Finbuckle.MultiTenant.Abstractions;
 using Finbuckle.MultiTenant.AspNetCore.Extensions;
 using Finbuckle.MultiTenant.EntityFrameworkCore.Stores;
@@ -28,6 +29,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
+using System.Security.Claims;
 
 namespace FSH.Modules.Multitenancy;
 
@@ -66,6 +68,16 @@ public sealed class MultitenancyModule : IModule
                     await Task.CompletedTask;
                 };
             })
+            // ── Strategy chain — first hit wins ────────────────────────
+            // Finbuckle runs strategies in registration order, first non-null
+            // identifier wins. ClaimStrategy reads HttpContext.User.Claims, so
+            // it only works when auth has already populated User. In FSH the
+            // app pipeline runs UseMultiTenant() BEFORE UseAuthentication(),
+            // so at strategy-resolution time User is still anonymous and
+            // ClaimStrategy effectively no-ops. That's intentional: tenant
+            // resolution stays header-driven, and the root-operator header
+            // override is implemented as a post-auth middleware below
+            // (see ConfigureMiddleware) where User claims are available.
             .WithClaimStrategy(ClaimConstants.Tenant)
             .WithHeaderStrategy(MultitenancyConstants.Identifier)
             .WithDelegateStrategy(async context =>
@@ -88,6 +100,47 @@ public sealed class MultitenancyModule : IModule
             .AddCheck<TenantMigrationsHealthCheck>(
                 name: "db:tenants-migrations",
                 failureStatus: HealthStatus.Unhealthy);
+    }
+
+    public void ConfigureMiddleware(IApplicationBuilder app)
+    {
+        ArgumentNullException.ThrowIfNull(app);
+
+        // ── Root-operator header override ──────────────────────────────
+        // Lets a SuperAdmin (caller whose JWT tenant claim is "root") scope
+        // a single request to another tenant by sending the `tenant` header
+        // (e.g. admin app searching users in tenant X before impersonation).
+        //
+        // Implemented as a post-auth middleware (registered via
+        // UseModuleMiddlewares, which runs AFTER UseAuthentication) because
+        // Finbuckle's strategy chain runs BEFORE auth — User.Claims is empty
+        // at strategy-resolution time. By the time this middleware runs,
+        // Finbuckle has already resolved a tenant (root, from the matching
+        // header sent by the admin app) and JWT bearer has populated User.
+        // We re-resolve only when the override conditions are satisfied:
+        //   - caller's claim tenant == "root"  (gate: prevents cross-tenant escape)
+        //   - request `tenant` header is set and != "root"
+        //   - the requested tenant exists in the store
+        app.Use(async (ctx, next) =>
+        {
+            var callerTenant = ctx.User?.FindFirstValue(ClaimConstants.Tenant);
+            if (string.Equals(callerTenant, MultitenancyConstants.Root.Id, StringComparison.Ordinal))
+            {
+                var headerValue = ctx.Request.Headers[MultitenancyConstants.Identifier].FirstOrDefault();
+                if (!string.IsNullOrEmpty(headerValue) &&
+                    !string.Equals(headerValue, MultitenancyConstants.Root.Id, StringComparison.Ordinal))
+                {
+                    var store = ctx.RequestServices.GetRequiredService<IMultiTenantStore<AppTenantInfo>>();
+                    var target = await store.GetAsync(headerValue).ConfigureAwait(false);
+                    if (target is not null)
+                    {
+                        var setter = ctx.RequestServices.GetRequiredService<IMultiTenantContextSetter>();
+                        setter.MultiTenantContext = new MultiTenantContext<AppTenantInfo>(target);
+                    }
+                }
+            }
+            await next(ctx).ConfigureAwait(false);
+        });
     }
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)

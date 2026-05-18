@@ -18,7 +18,7 @@ namespace FSH.Starter.Migrations.PostgreSQL.Notifications
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("notifications")
-                .HasAnnotation("ProductVersion", "10.0.7")
+                .HasAnnotation("ProductVersion", "10.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -51,6 +51,10 @@ namespace FSH.Starter.Migrations.PostgreSQL.Notifications
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(256)
@@ -72,6 +76,8 @@ namespace FSH.Starter.Migrations.PostgreSQL.Notifications
                         .HasDatabaseName("IX_Notifications_User_Read_Created");
 
                     b.ToTable("Notifications", "notifications");
+
+                    b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 #pragma warning restore 612, 618
         }

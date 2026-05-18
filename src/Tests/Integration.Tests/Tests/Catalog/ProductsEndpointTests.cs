@@ -511,19 +511,33 @@ public sealed class ProductsEndpointTests
     private static string UniqueSku(string prefix) =>
         $"TST-{prefix.ToUpperInvariant()}-{Guid.NewGuid().ToString("N")[..6].ToUpperInvariant()}";
 
+    /// <summary>
+    /// Returns a brand id + category id usable as foreign keys for product
+    /// creation. As of 2026-05-17 the framework no longer auto-seeds catalog
+    /// data per tenant (demo content lives only in the DbMigrator's
+    /// <c>seed-demo</c> verb and only applies to acme / globex), so each test
+    /// creates its own. Names are unique per call so two parallel tests
+    /// don't collide on the unique-per-tenant index.
+    /// </summary>
     private static async Task<(Guid BrandId, Guid CategoryId)> PickBrandAndCategoryAsync(HttpClient client)
     {
-        using var brandsResp = await client.GetAsync(
-            $"{TestConstants.CatalogBasePath}/brands?pageNumber=1&pageSize=1");
-        var brands = await brandsResp.DeserializeAsync<PagedResult<Infrastructure.BrandDto>>();
-        brands.Items.Count.ShouldBeGreaterThan(0, "seed data should provide at least one brand");
+        var brandName = UniqueName("Brand");
+        using var brandResp = await client.PostAsJsonAsync(
+            $"{TestConstants.CatalogBasePath}/brands",
+            new { name = brandName, description = (string?)null, logoUrl = (string?)null });
+        brandResp.StatusCode.ShouldBe(HttpStatusCode.OK,
+            $"setup helper failed to create brand: {await brandResp.Content.ReadAsStringAsync()}");
+        var brandId = await brandResp.DeserializeAsync<Guid>();
 
-        using var categoriesResp = await client.GetAsync(
-            $"{TestConstants.CatalogBasePath}/categories?pageNumber=1&pageSize=1");
-        var categories = await categoriesResp.DeserializeAsync<PagedResult<CategoryRow>>();
-        categories.Items.Count.ShouldBeGreaterThan(0, "seed data should provide at least one category");
+        var categoryName = UniqueName("Cat");
+        using var categoryResp = await client.PostAsJsonAsync(
+            $"{TestConstants.CatalogBasePath}/categories",
+            new { name = categoryName, description = (string?)null, parentCategoryId = (Guid?)null });
+        categoryResp.StatusCode.ShouldBe(HttpStatusCode.OK,
+            $"setup helper failed to create category: {await categoryResp.Content.ReadAsStringAsync()}");
+        var categoryId = await categoryResp.DeserializeAsync<Guid>();
 
-        return (brands.Items[0].Id, categories.Items[0].Id);
+        return (brandId, categoryId);
     }
 
     private static async Task<Guid> CreateAsync(

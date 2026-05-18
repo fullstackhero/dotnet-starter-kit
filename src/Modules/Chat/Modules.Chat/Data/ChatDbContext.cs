@@ -25,8 +25,10 @@ public sealed class ChatDbContext : BaseDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
-        base.OnModelCreating(modelBuilder);
         modelBuilder.HasDefaultSchema(Schema);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ChatDbContext).Assembly);
+        // base.OnModelCreating runs LAST so BaseDbContext's auto-apply sees
+        // fully-configured entities (including HasMany child types).
+        base.OnModelCreating(modelBuilder);
     }
 }

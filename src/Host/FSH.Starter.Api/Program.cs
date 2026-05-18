@@ -83,10 +83,9 @@ builder.AddHeroPlatform(o =>
 
 builder.AddModules(moduleAssemblies);
 
-if (builder.Environment.IsDevelopment())
-{
-    builder.Services.AddHostedService<FSH.Starter.Api.DevSeeding.DevDataSeeder>();
-}
+// Demo data (acme, globex, demo users, sample catalog/tickets/chat) is provisioned
+// by the DbMigrator's `seed-demo` verb — not by the API. The API never mutates data
+// on startup. See src/Host/FSH.Starter.DbMigrator/README.md.
 
 var app = builder.Build();
 
