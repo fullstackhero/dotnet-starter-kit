@@ -3,10 +3,8 @@
   "type": "module",
   "version": "0.1.0",
   "private": true,
-  "engines": { "node": ">=20.0.0" },
-  "overrides": {
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4"
+  "engines": {
+    "node": ">=20.0.0"
   },
   "scripts": {
     "dev": "astro dev",
@@ -15,5 +13,36 @@
     "preview": "astro preview",
     "check": "astro check",
     "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "^13.5.2",
+    "@astrojs/mdx": "^5.0.6",
+    "@astrojs/react": "^5.0.5",
+    "@astrojs/sitemap": "^3.7.2",
+    "@expressive-code/plugin-line-numbers": "^0.42.0",
+    "@iconify-json/lucide": "^1.2.108",
+    "@orama/plugin-astro": "^3.1.18",
+    "@radix-ui/react-dialog": "^1.1.15",
+    "@tailwindcss/vite": "^4.3.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "astro": "^6.3.5",
+    "astro-expressive-code": "^0.42.0",
+    "astro-icon": "^1.1.5",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.16.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "tailwind-merge": "^3.6.0",
+    "tailwindcss": "^4.3.0",
+    "typescript": "^6.0.3"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "@types/node": "^25.9.0",
+    "prettier": "^3.8.3",
+    "prettier-plugin-astro": "^0.14.1",
+    "prettier-plugin-tailwindcss": "^0.8.0"
   }
 }
