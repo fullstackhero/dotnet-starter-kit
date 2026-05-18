@@ -88,7 +88,7 @@ services:
       CachingOptions__Redis: redis,password=${REDIS_PASSWORD}
       JwtOptions__SigningKey: ${JWT_SIGNING_KEY:?JWT_SIGNING_KEY is required}
       Seed__DefaultAdminPassword: ${SEED_ADMIN_PASSWORD:?SEED_ADMIN_PASSWORD is required}
-    command: ["apply"]
+    command: ["apply", "--seed"]
 
   api:
     build:
@@ -115,6 +115,9 @@ services:
       Storage__S3__SecretKey: ${MINIO_ROOT_PASSWORD}
       Storage__S3__Bucket: fsh
       Storage__S3__ForcePathStyle: "true"
+      AllowedHosts: "*"
+      HangfireOptions__UserName: ${HANGFIRE_USERNAME:?HANGFIRE_USERNAME is required}
+      HangfireOptions__Password: ${HANGFIRE_PASSWORD:?HANGFIRE_PASSWORD is required}
       CorsOptions__AllowedOrigins__0: ${FSH_ADMIN_URL:?FSH_ADMIN_URL is required}
       CorsOptions__AllowedOrigins__1: ${FSH_DASHBOARD_URL:?FSH_DASHBOARD_URL is required}
       OpenTelemetryOptions__Exporter__Otlp__Endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
