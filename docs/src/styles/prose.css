@@ -1,0 +1,390 @@
+/* Forked from codewithmukesh/blog src/styles/prose.css on 2026-05-19.
+   Keep in sync manually until shared package extracted. */
+
+@utility bg-grid {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  background-image:
+    linear-gradient(to right, #8080803f 1px, transparent 1px),
+    linear-gradient(to bottom, #8080803f 1px, transparent 1px);
+  background-size: 24px 24px;
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    transparent 5%,
+    rgba(0, 0, 0, 1) 52%,
+    rgba(0, 0, 0, 1) 44%,
+    transparent 95%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 1) 0%,
+    transparent 100%
+  );
+}
+
+@utility dot {
+  position: absolute;
+  inset: 0;
+  top: 5%;
+  height: 80%;
+  width: 100%;
+  background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+  background-size: 16px 16px;
+  opacity: 0.2;
+  z-index: -3;
+  -webkit-mask-image: radial-gradient(
+    ellipse 50% 50% at 50% 50%,
+    #000 60%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    ellipse 50% 50% at 50% 50%,
+    #000 60%,
+    transparent 100%
+  );
+}
+
+@utility body {
+  @apply font-sans text-base font-light;
+}
+
+@utility body-large {
+  @apply font-sans text-xl leading-normal lg:text-2xl;
+}
+
+@utility bleed-full {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+}
+
+@utility container {
+  @apply mx-auto w-full max-w-[1800px] px-4 md:px-8;
+}
+
+@utility heading-1 {
+  @apply text-6xl leading-tight;
+}
+
+@utility heading-2 {
+  @apply text-5xl leading-tight;
+}
+
+@utility heading-3 {
+  @apply text-4xl font-medium leading-tight;
+}
+
+@utility landing-section {
+  @apply flex flex-col items-center justify-center text-center;
+}
+
+@utility prose {
+  @apply dark:text-gray-300 lg:text-lg;
+  line-height: 1.75em;
+
+  /* Mobile overflow defense — long unbreakable strings (URLs, type names,
+     identifiers) wrap instead of pushing the article column past the
+     viewport edge. Combined with `min-w-0` on the article tag, this stops
+     the page from getting clipped on narrow screens. */
+  min-width: 0;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+
+  /* Embedded media — iframes (YouTube/CodePen) without explicit max-width
+     in their MDX call site would happily render at their HTML width attribute
+     (e.g. 800px) and push the column wider than mobile viewport. */
+  & :where(iframe, video, object, embed) {
+    max-width: 100%;
+  }
+
+  & > p {
+    @apply my-4;
+  }
+
+  & > hr {
+    @apply my-8;
+  }
+
+  & > h2 {
+    @apply heading-2 mb-4 mt-10 text-3xl font-light leading-10 tracking-tight dark:text-white lg:text-[40px];
+  }
+
+  & > h3 {
+    @apply heading-3 mb-4 mt-10 text-2xl leading-tight tracking-tight dark:text-white;
+  }
+
+  & > img,
+  & > p > img {
+    @apply my-4;
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* CLS prevention: images without width/height get a placeholder aspect ratio */
+  & :where(img):not([width]) {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: contain;
+    background-color: #f8fafc;
+    border-radius: 0.75rem;
+  }
+
+  :is(.dark) & :where(img):not([width]) {
+    background-color: #0f172a;
+  }
+
+  & strong {
+    @apply font-medium;
+  }
+
+  & ul {
+    @apply my-4 pl-8;
+  }
+
+  /* the ::marker selector doesn't allow customizing the spacing around the marker as easily */
+  & ul li::before {
+    content: '';
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 8px;
+    margin-left: -18px;
+    background-color: currentColor;
+    -webkit-mask-image: url('../icons/svgs/star.svg');
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-image: url('../icons/svgs/star.svg');
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+  }
+
+  & ol {
+    @apply my-4 list-inside list-decimal pl-4;
+  }
+
+  & ol ::marker {
+    @apply inline-block font-mono font-bold text-inherit;
+  }
+
+  & li {
+    @apply my-0.5;
+  }
+
+  & :where(a) {
+    @apply underline underline-offset-2 hover:no-underline;
+  }
+
+  /* Table responsive wrapper */
+  & :where(table) {
+    @apply w-full text-sm;
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  & :where(thead) {
+    @apply border-b border-slate-300 dark:border-slate-700;
+  }
+
+  & :where(th) {
+    @apply whitespace-nowrap px-4 py-3 text-left font-semibold text-slate-900 dark:text-white;
+  }
+
+  & :where(td) {
+    @apply px-4 py-3 text-slate-700 dark:text-slate-300;
+  }
+
+  & :where(tbody tr) {
+    @apply border-b border-slate-200 dark:border-slate-800;
+  }
+
+  & :where(tbody tr:last-child) {
+    @apply border-b-0;
+  }
+
+  /* Inline code styling — consolidated selector */
+  & :where(p, li, h2, h3, h4) code {
+    @apply mx-0.5 inline-block break-all rounded-md px-1.5 py-0.5 align-baseline text-[0.875em] leading-5;
+    background: linear-gradient(
+      135deg,
+      rgb(118 89 236 / 0.15) 0%,
+      rgb(118 89 236 / 0.08) 100%
+    );
+    border: 1px solid rgb(118 89 236 / 0.2);
+    color: var(--primary);
+    font-family:
+      'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+      monospace;
+    font-weight: 500;
+    transition: background 0.2s ease, border-color 0.2s ease;
+  }
+
+  :is(.dark) & :where(p, li, h2, h3, h4) code {
+    color: var(--primary-soft);
+  }
+
+  & :where(p, li) code:hover {
+    background: linear-gradient(
+      135deg,
+      rgb(118 89 236 / 0.25) 0%,
+      rgb(118 89 236 / 0.15) 100%
+    );
+    border-color: rgb(118 89 236 / 0.4);
+  }
+
+  & > p a > code {
+    @apply text-inherit;
+    text-decoration: inherit;
+  }
+
+  /* Expressive Code block styling */
+  & > .expressive-code {
+    @apply my-8;
+  }
+
+  & > .expressive-code figure {
+    position: relative;
+  }
+
+  & > .expressive-code figure::before {
+    display: none;
+  }
+
+  & > .expressive-code pre {
+    @apply rounded-xl;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    transition: border-color 0.3s ease;
+  }
+
+  & > .expressive-code figure:hover pre {
+    border-color: rgb(118 89 236 / 0.3) !important;
+  }
+}
+
+@utility expressive-code {
+  /* Expressive Code block styling */
+  .prose > & {
+    @apply my-8;
+  }
+
+  .prose > & figure {
+    position: relative;
+  }
+
+  .prose > & figure::before {
+    display: none;
+  }
+
+  .prose > & pre {
+    @apply rounded-xl;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    transition: border-color 0.3s ease;
+  }
+
+  .prose > & figure:hover pre {
+    border-color: rgb(118 89 236 / 0.3) !important;
+  }
+
+  /* Copy button styling */
+  & .copy button {
+    transition: background 0.2s ease, transform 0.2s ease !important;
+  }
+
+  & .copy button:hover {
+    background: rgb(118 89 236 / 0.2) !important;
+    transform: scale(1.05);
+  }
+
+  /* Line highlight glow effect */
+  & .highlight {
+    position: relative;
+  }
+
+  & .highlight::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--primary), #4bf3c8);
+    border-radius: 0 2px 2px 0;
+  }
+}
+
+@utility copy {
+  /* Copy button styling */
+  .expressive-code & button {
+    transition: background 0.2s ease, transform 0.2s ease !important;
+  }
+
+  .expressive-code & button:hover {
+    background: rgb(118 89 236 / 0.2) !important;
+    transform: scale(1.05);
+  }
+}
+
+@utility highlight {
+  /* Line highlight glow effect */
+  .expressive-code & {
+    position: relative;
+  }
+
+  .expressive-code &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--primary), #4bf3c8);
+    border-radius: 0 2px 2px 0;
+  }
+}
+
+@layer components {
+
+  code {
+    @apply mx-0.5 inline-block break-all rounded-md px-1.5 py-0.5 align-baseline text-[0.875em] leading-5;
+    background: linear-gradient(135deg, rgb(118 89 236 / 0.15) 0%, rgb(118 89 236 / 0.08) 100%);
+    border: 1px solid rgb(118 89 236 / 0.2);
+    color: var(--primary);
+    font-family: var(--font-mono);
+    font-weight: 500;
+  }
+
+  :is(.dark) code {
+    color: var(--primary-soft);
+  }
+
+  /* Reset inline-code styling when <code> is nested inside <pre>. Code
+     blocks own their own background and border; the inline-code chrome
+     would otherwise paint an extra rectangle inside the block. */
+  pre code {
+    display: inline;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    color: inherit;
+    font: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    white-space: inherit;
+    word-break: normal;
+  }
+
+  :where(h2, h3, h4, h5, h6)[id]::before {
+    content: "";
+    display: block;
+    height: 120px;
+    margin-top: -120px;
+    visibility: hidden;
+  }
+}

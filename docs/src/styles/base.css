@@ -1,0 +1,268 @@
+/* Forked from codewithmukesh/blog src/styles/base.css on 2026-05-19.
+   Keep in sync manually until shared package extracted. */
+
+/* ════════════════════════════════════════════════════════════════════════
+   BASE TOKENS — codewithmukesh
+   ────────────────────────────────────────────────────────────────────────
+   Token system mirrored from dentalstackstudio (refined-clinical aesthetic:
+   warm paper neutrals light, warm-dark surfaces dark) and re-anchored on
+   the codewithmukesh brand purple #4c33d8.
+
+   Direct hex values (no HSL conversion). Tailwind classes resolve via the
+   --color-* mapping in globals.css @theme inline.
+
+   Two non-DSS additions kept for hover/soft states:
+     --primary-hover  (slightly darker than --primary)
+     --primary-soft   (lighter purple for tinted backgrounds)
+   ════════════════════════════════════════════════════════════════════════ */
+
+@layer base {
+  :root {
+    color-scheme: light;
+
+    /* Surfaces — warm paper */
+    --background: #faf7f2;
+    --foreground: #1a1814;
+    --card: #ffffff;
+    --card-foreground: #1a1814;
+    --popover: #ffffff;
+    --popover-foreground: #1a1814;
+
+    /* Brand purple */
+    --primary: #4c33d8;
+    --primary-foreground: #ffffff;
+    --primary-hover: #3f29b3;
+    --primary-soft: #9682fb;
+
+    /* Accent — warm beige tint, saffron-toned foreground (matches DSS) */
+    --accent: #f4ecdc;
+    --accent-foreground: #8a5a10;
+    --saffron: #e8a54b;
+
+    --secondary: #f3ede2;
+    --secondary-foreground: #1a1814;
+    --muted: #f3ede2;
+    --muted-foreground: #5b5247; /* WCAG AA: ~6.5:1 vs --background — headroom so /70-/80 opacity uses still pass */
+    --subtle: #efe9dc;
+
+    --destructive: #d1252b;
+    --destructive-foreground: #ffffff;
+
+    --border: #e8e0d0;
+    --border-strong: #d6cab2;
+    --input: #ddd3bf;
+    --ring: #4c33d8;
+
+    --success: #1a7a3a; /* WCAG AA: ≥4.5:1 vs --background and bg-foreground/[0.04] */
+    --success-foreground: #ffffff;
+    --warning: #e8a54b;
+    --warning-foreground: #3a2a08;
+    --info: #2b6cb8;
+    --info-foreground: #ffffff;
+
+    --radius: 0.625rem;
+  }
+
+  .dark {
+    color-scheme: dark;
+
+    --background: #0d0e11;
+    --foreground: #ede8df;
+    --card: #17181c;
+    --card-foreground: #ede8df;
+    --popover: #17181c;
+    --popover-foreground: #ede8df;
+
+    /* In dark mode primary serves two roles with opposing contrast needs:
+       (a) as a background under white text (button), needs primary darker;
+       (b) as text on a dark surface (link, accent), needs primary brighter.
+       --primary is tuned for (a). The .text-primary override below uses
+       --primary-soft to satisfy (b). */
+    --primary: #6850e8; /* WCAG AA: ≥4.5:1 vs #ffffff (button white text) */
+    --primary-foreground: #ffffff;
+    --primary-hover: #5942d8;
+    --primary-soft: #a596fb; /* WCAG AA: ≥4.5:1 vs --card (dark bg text) */
+
+    --accent: #241f18;
+    --accent-foreground: #e8a54b;
+    --saffron: #e8a54b;
+
+    --secondary: #1c1d22;
+    --secondary-foreground: #ede8df;
+    --muted: #1a1b1f;
+    --muted-foreground: #b3aca0; /* WCAG AA: ~7.3:1 vs --background — headroom so /70-/80 opacity uses still pass */
+    --subtle: #14151a;
+
+    --destructive: #ef4444;
+    --destructive-foreground: #ffffff;
+
+    --border: #1f2027;
+    --border-strong: #2c2d35;
+    --input: #1f2027;
+    --ring: #4c33d8;
+
+    --success: #4ade80;
+    --success-foreground: #0b1a12;
+    --warning: #e8a54b;
+    --warning-foreground: #1a1205;
+    --info: #60a5fa;
+    --info-foreground: #06121f;
+  }
+}
+
+@layer base {
+  .wave {
+    animation-name: wave-animation;
+    animation-duration: 2.5s;
+    animation-iteration-count: infinite;
+    transform-origin: 70% 70%;
+    display: inline-block;
+  }
+
+  @keyframes wave-animation {
+    0%   { transform: rotate(0deg); }
+    10%  { transform: rotate(14deg); }
+    20%  { transform: rotate(-8deg); }
+    30%  { transform: rotate(14deg); }
+    40%  { transform: rotate(-4deg); }
+    50%  { transform: rotate(10deg); }
+    60%  { transform: rotate(0deg); }
+    100% { transform: rotate(0deg); }
+  }
+
+  table :is(td, th) {
+    border-width: 1px;
+    border-color: var(--border);
+    padding: 0.5rem 1rem;
+    text-align: left;
+  }
+
+  blockquote {
+    font-style: italic;
+    padding: 1rem;
+    margin-block: 1rem;
+    border-inline-start: 2px solid var(--border);
+    background-color: var(--accent);
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   CATPPUCCIN — theme-adaptive code colors
+   Light mode = Latte. Dark mode = Mocha. Used by .nl-codeblock and any
+   `<pre style="background:#1e1e2e">` snippets that ship with raw inline
+   syntax colors. The `[style*="#xxx"]` overrides remap inline Mocha hex
+   to Latte hex when html is not .dark, so existing inline-styled blocks
+   adapt without touching the markup. !important is required because
+   inline style attributes win against external CSS.
+   ════════════════════════════════════════════════════════════════════════ */
+@layer base {
+  :root {
+    --ctp-base: #eff1f5;
+    --ctp-mantle: #e6e9ef;
+    --ctp-surface: #ccd0da;
+    --ctp-text: #4c4f69;
+    --ctp-subtext: #5c5f77;
+    --ctp-overlay: #6c6f85;
+    --ctp-mauve: #8839ef;
+    --ctp-blue: #1e66f5;
+    --ctp-green: #40a02b;
+    --ctp-peach: #fe640b;
+    --ctp-yellow: #df8e1d;
+    --ctp-red: #d20f39;
+    --ctp-teal: #179299;
+    --ctp-border: color-mix(in oklab, #4c4f69 14%, #eff1f5);
+  }
+
+  .dark {
+    --ctp-base: #1e1e2e;
+    --ctp-mantle: #181825;
+    --ctp-surface: #313244;
+    --ctp-text: #cdd6f4;
+    --ctp-subtext: #a6adc8;
+    --ctp-overlay: #6c7086;
+    --ctp-mauve: #cba6f7;
+    --ctp-blue: #89b4fa;
+    --ctp-green: #a6e3a1;
+    --ctp-peach: #fab387;
+    --ctp-yellow: #f9e2af;
+    --ctp-red: #f38ba8;
+    --ctp-teal: #94e2d5;
+    --ctp-border: color-mix(in oklab, #cdd6f4 14%, #1e1e2e);
+  }
+
+  /* Light-mode overrides for inline Mocha hex colors → Latte equivalents.
+     These let pre/span blocks that hard-code Catppuccin Mocha (for email
+     rendering fidelity) adapt to light mode on the blog without rewriting
+     the markup. */
+  html:not(.dark) [style*="background: #1e1e2e"],
+  html:not(.dark) [style*="background:#1e1e2e"],
+  html:not(.dark) [style*="background-color: #1e1e2e"],
+  html:not(.dark) [style*="background-color:#1e1e2e"] {
+    background-color: var(--ctp-base) !important;
+  }
+  html:not(.dark) [style*="background: #181825"],
+  html:not(.dark) [style*="background:#181825"] {
+    background-color: var(--ctp-mantle) !important;
+  }
+  html:not(.dark) [style*="color: #cdd6f4"],
+  html:not(.dark) [style*="color:#cdd6f4"] {
+    color: var(--ctp-text) !important;
+  }
+  html:not(.dark) [style*="color: #cba6f7"],
+  html:not(.dark) [style*="color:#cba6f7"] {
+    color: var(--ctp-mauve) !important;
+  }
+  html:not(.dark) [style*="color: #89b4fa"],
+  html:not(.dark) [style*="color:#89b4fa"] {
+    color: var(--ctp-blue) !important;
+  }
+  html:not(.dark) [style*="color: #a6e3a1"],
+  html:not(.dark) [style*="color:#a6e3a1"] {
+    color: var(--ctp-green) !important;
+  }
+  html:not(.dark) [style*="color: #fab387"],
+  html:not(.dark) [style*="color:#fab387"] {
+    color: var(--ctp-peach) !important;
+  }
+  html:not(.dark) [style*="color: #f9e2af"],
+  html:not(.dark) [style*="color:#f9e2af"] {
+    color: var(--ctp-yellow) !important;
+  }
+  html:not(.dark) [style*="color: #f38ba8"],
+  html:not(.dark) [style*="color:#f38ba8"] {
+    color: var(--ctp-red) !important;
+  }
+  html:not(.dark) [style*="color: #6c7086"],
+  html:not(.dark) [style*="color:#6c7086"] {
+    color: var(--ctp-overlay) !important;
+  }
+  /* Traffic-light dots use background: #f38ba8 / #f9e2af / #a6e3a1 — these
+     are intentional and should stay vivid in both themes, so override the
+     `background:` form back. Comment dots use Mocha hex bg + already-handled. */
+  html:not(.dark) [style*="background: #f38ba8"],
+  html:not(.dark) [style*="background:#f38ba8"] {
+    background-color: #d20f39 !important;
+  }
+  html:not(.dark) [style*="background: #f9e2af"],
+  html:not(.dark) [style*="background:#f9e2af"] {
+    background-color: #df8e1d !important;
+  }
+  html:not(.dark) [style*="background: #a6e3a1"],
+  html:not(.dark) [style*="background:#a6e3a1"] {
+    background-color: #40a02b !important;
+  }
+}

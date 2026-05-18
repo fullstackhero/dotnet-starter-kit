@@ -1,0 +1,17 @@
+/* Forked from codewithmukesh/blog src/styles/brand-tokens.css on 2026-05-19.
+   Keep in sync manually until shared package extracted. */
+
+/* ════════════════════════════════════════════════════════════════════════
+   BRAND GRADIENT — codewithmukesh
+   ────────────────────────────────────────────────────────────────────────
+   The numeric accent..950 scale was retired in the DSS-flat migration.
+   Semantic tokens (--primary, --primary-hover, --primary-soft, --accent,
+   --border, --border-strong, --foreground) live in src/styles/base.css.
+
+   Only the canonical gradient remains — kept as a single token because it
+   composes three stops that aren't expressible via the flat scheme.
+   ════════════════════════════════════════════════════════════════════════ */
+
+@theme {
+  --gradient-brand: linear-gradient(135deg, #4c33d8 0%, #7659ec 50%, #9682fb 100%);
+}
