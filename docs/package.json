@@ -1,21 +1,19 @@
 {
-  "name": "fullstackhero",
+  "name": "fullstackhero-docs",
   "type": "module",
-  "version": "0.0.1",
+  "version": "0.1.0",
+  "private": true,
+  "engines": { "node": ">=20.0.0" },
+  "overrides": {
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build && npx pagefind --site dist/client",
+    "build": "astro build",
     "preview": "astro preview",
+    "check": "astro check",
     "astro": "astro"
-  },
-  "dependencies": {
-    "@astrojs/cloudflare": "^13.1.4",
-    "@astrojs/mdx": "^5.0.3",
-    "@astrojs/sitemap": "^3.3.0",
-    "astro": "^6.0.8",
-    "lucide-static": "^1.7.0",
-    "pagefind": "^1.4.0",
-    "sharp": "^0.34.5"
   }
 }
