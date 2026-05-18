@@ -2,18 +2,19 @@
    Keep in sync manually until shared package extracted. */
 
 /* ════════════════════════════════════════════════════════════════════════
-   BASE TOKENS — codewithmukesh
+   BASE TOKENS — fullstackhero docs
    ────────────────────────────────────────────────────────────────────────
-   Token system mirrored from dentalstackstudio (refined-clinical aesthetic:
-   warm paper neutrals light, warm-dark surfaces dark) and re-anchored on
-   the codewithmukesh brand purple #4c33d8.
+   Token system inherited from codewithmukesh/blog (warm paper neutrals
+   light, warm-dark surfaces dark), re-anchored on FSH brand green #15803d
+   with the user-facing brand green #16a34a carried in --primary-soft for
+   accent text / tinted backgrounds / gradient mid-stop.
 
    Direct hex values (no HSL conversion). Tailwind classes resolve via the
    --color-* mapping in globals.css @theme inline.
 
-   Two non-DSS additions kept for hover/soft states:
+   Non-DSS additions kept for hover/soft states:
      --primary-hover  (slightly darker than --primary)
-     --primary-soft   (lighter purple for tinted backgrounds)
+     --primary-soft   (lighter green for tinted backgrounds)
    ════════════════════════════════════════════════════════════════════════ */
 
 @layer base {
@@ -28,11 +29,11 @@
     --popover: #ffffff;
     --popover-foreground: #1a1814;
 
-    /* Brand purple */
-    --primary: #4c33d8;
+    /* Brand green */
+    --primary: #15803d;
     --primary-foreground: #ffffff;
-    --primary-hover: #3f29b3;
-    --primary-soft: #9682fb;
+    --primary-hover: #166534;
+    --primary-soft: #16a34a;
 
     /* Accent — warm beige tint, saffron-toned foreground (matches DSS) */
     --accent: #f4ecdc;
@@ -51,7 +52,7 @@
     --border: #e8e0d0;
     --border-strong: #d6cab2;
     --input: #ddd3bf;
-    --ring: #4c33d8;
+    --ring: #15803d;
 
     --success: #1a7a3a; /* WCAG AA: ≥4.5:1 vs --background and bg-foreground/[0.04] */
     --success-foreground: #ffffff;
@@ -78,10 +79,10 @@
        (b) as text on a dark surface (link, accent), needs primary brighter.
        --primary is tuned for (a). The .text-primary override below uses
        --primary-soft to satisfy (b). */
-    --primary: #6850e8; /* WCAG AA: ≥4.5:1 vs #ffffff (button white text) */
+    --primary: #15803d; /* green-700. WCAG AA: 4.5:1 vs #ffffff (button white text) */
     --primary-foreground: #ffffff;
-    --primary-hover: #5942d8;
-    --primary-soft: #a596fb; /* WCAG AA: ≥4.5:1 vs --card (dark bg text) */
+    --primary-hover: #166534;
+    --primary-soft: #4ade80; /* green-400. WCAG AA: ≥4.5:1 vs --card (dark bg text) */
 
     --accent: #241f18;
     --accent-foreground: #e8a54b;
@@ -99,7 +100,7 @@
     --border: #1f2027;
     --border-strong: #2c2d35;
     --input: #1f2027;
-    --ring: #4c33d8;
+    --ring: #15803d;
 
     --success: #4ade80;
     --success-foreground: #0b1a12;
