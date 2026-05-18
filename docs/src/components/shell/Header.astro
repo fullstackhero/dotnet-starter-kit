@@ -1,0 +1,344 @@
+---
+/**
+ * Header — DSS-pattern sticky header, ported from codewithmukesh/blog.
+ *
+ * Behavior:
+ *   - Sticky to top, scroll-aware backdrop fades in once scrollY > 12.
+ *   - Centre floating-pill nav with liquid hover indicator (md+).
+ *   - Mobile drawer slides in from the right with scrim fade.
+ *
+ * Nav config is inline (no children → no resources-dropdown branch).
+ */
+import ThemeToggle from './ThemeToggle.astro';
+import siteConfig from '../../data/site';
+
+const nav = [
+  { name: 'Docs',      url: '/docs/' },
+  { name: 'Modules',   url: '/docs/modules/' },
+  { name: 'Recipes',   url: '/docs/recipes/' },
+  { name: 'Reference', url: '/docs/reference/' },
+];
+
+const pathname = new URL(Astro.request.url).pathname;
+const isActive = (url: string): boolean => {
+  if (url === '/') return pathname === '/' || pathname === '';
+  return pathname === url || pathname === url + '/' || pathname.startsWith(url);
+};
+---
+
+<header class="sticky top-0 z-header w-full" data-site-header>
+  <div
+    class="absolute inset-x-0 top-0 h-16 pointer-events-none opacity-0 transition-opacity duration-300"
+    data-header-bg
+    aria-hidden="true"
+  >
+    <div class="h-full w-full bg-background/85 backdrop-blur-md border-b border-border/40 dark:border-border/20"></div>
+  </div>
+
+  <div class="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
+    <div class="relative flex h-16 items-center justify-between gap-4" data-header-inner>
+      <!-- Brand -->
+      <a
+        href="/"
+        data-astro-prefetch
+        aria-label="FullStackHero — home"
+        class="brand-link group inline-flex items-baseline gap-1"
+      >
+        <span class="font-display text-[18px] tracking-[-0.03em] text-foreground lowercase leading-none">
+          <span class="font-light">fullstack</span><span class="font-semibold">hero</span>
+        </span>
+        <span class="font-mono text-[11px] font-medium text-muted-foreground leading-none">/docs</span>
+      </a>
+
+      <!-- Center pill nav -->
+      <nav
+        class="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 md:block"
+        aria-label="Primary"
+      >
+        <ul
+          class="relative flex items-center gap-0.5 rounded-full border border-border/60 bg-card/70 px-1.5 py-1 shadow-[0_1px_0_0_rgba(255,255,255,0.5)_inset,0_8px_24px_-12px_rgba(26,24,20,0.12)] backdrop-blur-md dark:border-border/30 dark:shadow-[0_1px_0_0_rgba(255,255,255,0.04)_inset,0_8px_24px_-12px_rgba(0,0,0,0.4)]"
+          data-nav-list
+        >
+          <span
+            class="pointer-events-none absolute inset-y-1 left-0 hidden rounded-full bg-foreground/[0.08] transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
+            data-nav-indicator
+            aria-hidden="true"
+          ></span>
+          {nav.map((item) => {
+            const active = isActive(item.url);
+            return (
+              <li>
+                <a
+                  href={item.url}
+                  data-astro-prefetch
+                  aria-current={active ? 'page' : undefined}
+                  class:list={[
+                    'relative z-10 inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors',
+                    active ? 'text-foreground bg-foreground/[0.06]' : 'text-muted-foreground hover:text-foreground',
+                  ]}
+                  data-nav-item
+                >
+                  {item.name}
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+
+      <!-- Right -->
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          onclick="window.openSearchModal && window.openSearchModal()"
+          aria-label="Search docs (Ctrl+K)"
+          class="hidden md:inline-flex h-9 items-center gap-2 rounded-full border border-border/60 bg-card/70 px-3 text-[12.5px] text-muted-foreground hover:border-border-strong hover:text-foreground backdrop-blur-md transition-colors dark:border-border/30"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path stroke-linecap="round" d="m21 21-4.35-4.35"></path>
+          </svg>
+          <span class="hidden xl:inline">Search</span>
+          <kbd class="hidden xl:inline-flex items-center gap-0.5 rounded bg-foreground/[0.04] border border-border/60 px-1.5 py-0.5 font-mono text-[10px] font-semibold">
+            <span>Ctrl</span><span class="opacity-40">·</span><span>K</span>
+          </kbd>
+        </button>
+
+        <div class="hidden md:block">
+          <ThemeToggle buttonId="theme-toggle" />
+        </div>
+
+        <a
+          href={siteConfig.repo}
+          target="_blank"
+          rel="noopener"
+          class="hidden md:inline-flex h-9 items-center gap-1.5 rounded-full bg-primary px-4 text-[12.5px] font-medium text-primary-foreground hover:bg-primary-hover transition-colors"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.55v-2.06c-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.27-1.68-1.27-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.69 1.25 3.35.96.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.17 1.18.92-.26 1.91-.39 2.89-.39s1.97.13 2.89.39c2.2-1.49 3.17-1.18 3.17-1.18.62 1.58.23 2.75.11 3.04.74.8 1.18 1.83 1.18 3.09 0 4.42-2.69 5.4-5.25 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.55C20.21 21.38 23.5 17.07 23.5 12 23.5 5.65 18.35.5 12 .5z"/>
+          </svg>
+          GitHub
+        </a>
+
+        <button
+          type="button"
+          class="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/60 bg-card/70 text-foreground hover:border-border-strong backdrop-blur-md dark:border-border/30"
+          aria-label="Open menu"
+          aria-expanded="false"
+          aria-controls="mobile-menu"
+          data-mobile-menu-toggle
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="4" y1="7" x2="20" y2="7"></line>
+            <line x1="4" y1="13" x2="20" y2="13"></line>
+            <line x1="4" y1="19" x2="14" y2="19"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile drawer -->
+  <div
+    id="mobile-menu"
+    class="md:hidden fixed inset-0 z-modal pointer-events-none overflow-hidden"
+    data-mobile-menu
+    data-open="false"
+    inert
+  >
+    <div
+      class="mobile-scrim absolute inset-0 bg-foreground/40 backdrop-blur-sm"
+      data-mobile-menu-close
+      data-mobile-scrim
+    ></div>
+    <nav
+      class="mobile-drawer absolute right-0 top-0 h-full w-[88%] max-w-sm bg-card border-l border-border p-6 shadow-2xl overflow-y-auto"
+      aria-label="Mobile primary"
+      data-mobile-drawer
+    >
+      <div class="flex items-center justify-between mb-8">
+        <span class="text-[12px] font-medium uppercase tracking-[0.12em] text-muted-foreground">Menu</span>
+        <div class="flex items-center gap-2">
+          <ThemeToggle buttonId="mobile-theme-toggle" />
+          <button
+            type="button"
+            class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border text-foreground hover:border-border-strong"
+            aria-label="Close menu"
+            data-mobile-menu-close
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onclick="window.openSearchModal && window.openSearchModal()"
+        class="mb-6 flex w-full items-center gap-2 rounded-full border border-border bg-background px-4 py-2.5 text-[13.5px] text-muted-foreground hover:border-border-strong"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path stroke-linecap="round" d="m21 21-4.35-4.35"></path>
+        </svg>
+        Search docs
+      </button>
+
+      <p class="text-[11px] uppercase tracking-[0.12em] text-muted-foreground mb-3">Menu</p>
+      <ul class="flex flex-col gap-1 mb-7">
+        {nav.map((item) => {
+          const active = isActive(item.url);
+          return (
+            <li>
+              <a
+                href={item.url}
+                data-astro-prefetch
+                aria-current={active ? 'page' : undefined}
+                class:list={[
+                  'block rounded-md px-3 py-2.5 text-[15px] font-medium',
+                  active ? 'bg-foreground/[0.08] text-foreground' : 'text-foreground hover:bg-foreground/[0.06]',
+                ]}
+              >
+                {item.name}
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+
+      <a
+        href={siteConfig.repo}
+        target="_blank"
+        rel="noopener"
+        class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-5 py-2.5 font-medium text-primary-foreground hover:bg-primary-hover transition-colors"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.55v-2.06c-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.27-1.68-1.27-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.69 1.25 3.35.96.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.17 1.18.92-.26 1.91-.39 2.89-.39s1.97.13 2.89.39c2.2-1.49 3.17-1.18 3.17-1.18.62 1.58.23 2.75.11 3.04.74.8 1.18 1.83 1.18 3.09 0 4.42-2.69 5.4-5.25 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.55C20.21 21.38 23.5 17.07 23.5 12 23.5 5.65 18.35.5 12 .5z"/>
+        </svg>
+        Star on GitHub
+      </a>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .mobile-scrim {
+    opacity: 0;
+    transition: opacity 280ms cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  .mobile-drawer {
+    transform: translateX(100%);
+    transition: transform 380ms cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  [data-mobile-menu][data-open="true"] {
+    pointer-events: auto;
+  }
+  [data-mobile-menu][data-open="true"] .mobile-scrim {
+    opacity: 1;
+  }
+  [data-mobile-menu][data-open="true"] .mobile-drawer {
+    transform: translateX(0);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .mobile-scrim,
+    .mobile-drawer {
+      transition: none !important;
+    }
+  }
+</style>
+
+<script>
+  function setupHeader() {
+    const menu = document.querySelector<HTMLElement>('[data-mobile-menu]');
+    const menuToggle = document.querySelector<HTMLElement>('[data-mobile-menu-toggle]');
+    const menuCloses = document.querySelectorAll<HTMLElement>('[data-mobile-menu-close]');
+
+    function openMenu() {
+      if (!menu) return;
+      menu.dataset.open = 'true';
+      menu.inert = false;
+      menuToggle?.setAttribute('aria-expanded', 'true');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeMenu() {
+      if (!menu) return;
+      const wasOpen = menu.dataset.open === 'true';
+      menu.dataset.open = 'false';
+      menu.inert = true;
+      menuToggle?.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+      if (wasOpen) menuToggle?.focus();
+    }
+    if (menuToggle && menuToggle.dataset.headerAttached !== 'true') {
+      menuToggle.dataset.headerAttached = 'true';
+      menuToggle.addEventListener('click', openMenu);
+    }
+    menuCloses.forEach((el) => {
+      if (el.dataset.headerAttached === 'true') return;
+      el.dataset.headerAttached = 'true';
+      el.addEventListener('click', closeMenu);
+    });
+
+    // Liquid hover indicator
+    const navList = document.querySelector<HTMLElement>('[data-nav-list]');
+    const indicator = document.querySelector<HTMLElement>('[data-nav-indicator]');
+    const navItems = document.querySelectorAll<HTMLElement>('[data-nav-item]');
+
+    function moveIndicatorTo(target: HTMLElement) {
+      if (!indicator || !navList) return;
+      const listRect = navList.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      indicator.style.display = 'block';
+      indicator.style.width = `${targetRect.width}px`;
+      indicator.style.left = `${targetRect.left - listRect.left}px`;
+      indicator.style.opacity = '1';
+    }
+    function hideIndicator() {
+      if (!indicator) return;
+      indicator.style.opacity = '0';
+    }
+
+    navItems.forEach((it) => {
+      if (it.dataset.headerAttached === 'true') return;
+      it.dataset.headerAttached = 'true';
+      it.addEventListener('mouseenter', () => moveIndicatorTo(it));
+      it.addEventListener('focus', () => moveIndicatorTo(it));
+    });
+    if (navList && navList.dataset.headerAttached !== 'true') {
+      navList.dataset.headerAttached = 'true';
+      navList.addEventListener('mouseleave', hideIndicator);
+    }
+
+    // Escape closes menu
+    type WindowWithEsc = Window & { __headerEsc?: (e: KeyboardEvent) => void };
+    const w = window as WindowWithEsc;
+    if (w.__headerEsc) document.removeEventListener('keydown', w.__headerEsc);
+    const escHandler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeMenu();
+    };
+    w.__headerEsc = escHandler;
+    document.addEventListener('keydown', escHandler);
+
+    // Scroll-aware backdrop
+    type WindowWithScroll = Window & { __headerScroll?: () => void };
+    const ws = window as WindowWithScroll;
+    const headerBg = document.querySelector<HTMLElement>('[data-header-bg]');
+    let lastScrolled: boolean | null = null;
+    function onScroll() {
+      if (!headerBg) return;
+      const scrolled = window.scrollY > 12;
+      if (scrolled === lastScrolled) return;
+      lastScrolled = scrolled;
+      headerBg.style.opacity = scrolled ? '1' : '0';
+    }
+    if (ws.__headerScroll) window.removeEventListener('scroll', ws.__headerScroll);
+    ws.__headerScroll = onScroll;
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  }
+
+  setupHeader();
+  document.addEventListener('astro:after-swap', setupHeader);
+</script>
