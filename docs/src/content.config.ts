@@ -12,7 +12,7 @@ const docs = defineCollection({
         order: z.number().default(999),
         hidden: z.boolean().default(false),
       })
-      .default({}),
+      .default({ order: 999, hidden: false }),
     pageType: z.enum(['guide', 'reference', 'concept', 'recipe']).default('guide'),
     lastUpdated: z.date().optional(),
   }),
