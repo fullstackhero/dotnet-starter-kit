@@ -148,19 +148,14 @@
   & ul li::before {
     content: '';
     display: inline-block;
-    width: 10px;
-    height: 10px;
-    margin-right: 8px;
-    margin-left: -18px;
-    background-color: currentColor;
-    -webkit-mask-image: url('../icons/svgs/star.svg');
-    -webkit-mask-size: contain;
-    -webkit-mask-repeat: no-repeat;
-    -webkit-mask-position: center;
-    mask-image: url('../icons/svgs/star.svg');
-    mask-size: contain;
-    mask-repeat: no-repeat;
-    mask-position: center;
+    width: 5px;
+    height: 5px;
+    margin-top: 0.65em;
+    margin-right: 10px;
+    margin-left: -16px;
+    border-radius: 999px;
+    background-color: var(--primary);
+    vertical-align: top;
   }
 
   & ol {

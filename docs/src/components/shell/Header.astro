@@ -20,10 +20,19 @@ const nav = [
 ];
 
 const pathname = new URL(Astro.request.url).pathname;
-const isActive = (url: string): boolean => {
-  if (url === '/') return pathname === '/' || pathname === '';
-  return pathname === url || pathname === url + '/' || pathname.startsWith(url);
-};
+const normalize = (p: string) => (p.endsWith('/') ? p : p + '/');
+const navUrls = nav.map((n) => normalize(n.url));
+
+// "Docs" is the most general entry (/docs/) and is a prefix of every other
+// section URL. Naive startsWith() would highlight both "Docs" and the
+// matching section on /docs/modules/. Fix: pick the LONGEST matching prefix
+// as the single active item.
+const currentNorm = normalize(pathname);
+const activeUrl = navUrls
+  .filter((u) => currentNorm === u || currentNorm.startsWith(u))
+  .sort((a, b) => b.length - a.length)[0];
+
+const isActive = (url: string): boolean => normalize(url) === activeUrl;
 ---
 
 <header class="sticky top-0 z-header w-full" data-site-header>
@@ -35,7 +44,7 @@ const isActive = (url: string): boolean => {
     <div class="h-full w-full bg-background/85 backdrop-blur-md border-b border-border/40 dark:border-border/20"></div>
   </div>
 
-  <div class="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
+  <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="relative flex h-16 items-center justify-between gap-4" data-header-inner>
       <!-- Brand -->
       <a

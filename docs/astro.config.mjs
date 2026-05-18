@@ -1,5 +1,4 @@
 import mdx from '@astrojs/mdx';
-import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import astroExpressiveCode from 'astro-expressive-code';
@@ -21,7 +20,6 @@ export default defineConfig({
   integrations: [
     icon(),
     astroExpressiveCode(),
-    react({ experimentalReactChildren: true }),
     mdx(),
     sitemap(),
   ],
@@ -29,10 +27,6 @@ export default defineConfig({
     plugins: [tailwindcss()],
     build: { target: 'es2022' },
     server: { watch: { ignored: ['**/.wrangler/**'] } },
-    resolve: {
-      dedupe: ['react', 'react-dom'],
-    },
-    optimizeDeps: { include: ['react', 'react-dom'] },
   },
   markdown: {
     remarkPlugins: [remarkModifiedTime],

@@ -56,54 +56,40 @@ const { buttonId } = Astro.props;
   </svg>
 </button>
 
-<script>
-  type Theme = "light" | "dark";
-  const STORAGE_KEY = "theme";
+<script is:inline>
+  // Inline + plain JS so this runs synchronously after the button parses,
+  // with no bundler ambiguity. View Transitions removed to eliminate a
+  // potential timing source of flaky toggles.
+  (function () {
+    var STORAGE_KEY = 'theme';
 
-  function applyTheme(theme: Theme) {
-    document.documentElement.classList.toggle("dark", theme === "dark");
-    try {
-      localStorage.setItem(STORAGE_KEY, theme);
-    } catch {
-      /* ignore — private mode / storage blocked */
-    }
-  }
-
-  function toggle() {
-    const isDark = document.documentElement.classList.contains("dark");
-    const next: Theme = isDark ? "light" : "dark";
-
-    const reduced = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-
-    const supportsViewTransitions =
-      typeof (document as Document & { startViewTransition?: unknown })
-        .startViewTransition === "function";
-
-    if (!supportsViewTransitions || reduced) {
-      applyTheme(next);
-      return;
+    function applyTheme(theme) {
+      var root = document.documentElement;
+      if (theme === 'dark') root.classList.add('dark');
+      else root.classList.remove('dark');
+      try { localStorage.setItem(STORAGE_KEY, theme); } catch (_) {}
     }
 
-    (
-      document as Document & {
-        startViewTransition: (cb: () => void) => unknown;
+    function handleClick() {
+      var isDark = document.documentElement.classList.contains('dark');
+      applyTheme(isDark ? 'light' : 'dark');
+    }
+
+    function attach() {
+      var buttons = document.querySelectorAll('[data-theme-toggle]');
+      for (var i = 0; i < buttons.length; i++) {
+        var btn = buttons[i];
+        if (btn.dataset.themeAttached === 'true') continue;
+        btn.dataset.themeAttached = 'true';
+        btn.addEventListener('click', handleClick);
       }
-    ).startViewTransition(() => applyTheme(next));
-  }
+    }
 
-  function init() {
-    document
-      .querySelectorAll<HTMLButtonElement>("[data-theme-toggle]")
-      .forEach((btn) => {
-        if (btn.dataset.themeAttached === "true") return;
-        btn.dataset.themeAttached = "true";
-        btn.addEventListener("click", toggle);
-      });
-  }
-
-  init();
-  document.addEventListener("astro:page-load", init);
-  document.addEventListener("astro:after-swap", init);
+    attach();
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', attach);
+    }
+    document.addEventListener('astro:page-load', attach);
+    document.addEventListener('astro:after-swap', attach);
+  })();
 </script>
