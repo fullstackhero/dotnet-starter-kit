@@ -1,0 +1,18 @@
+---
+interface Props {
+  type?: 'note' | 'warning' | 'tip' | 'danger';
+  title?: string;
+}
+const { type = 'note', title } = Astro.props;
+
+const styles = {
+  note:    { wrap: 'bg-muted/40 border-border',               label: 'text-info' },
+  tip:     { wrap: 'bg-success/10 border-success/40',         label: 'text-success' },
+  warning: { wrap: 'bg-warning/10 border-warning/40',         label: 'text-warning-foreground' },
+  danger:  { wrap: 'bg-destructive/10 border-destructive/40', label: 'text-destructive' },
+}[type];
+---
+<aside class:list={['my-6 rounded-lg border-l-4 border p-4', styles.wrap]} role="note">
+  {title && <p class:list={['mb-1 text-sm font-semibold', styles.label]}>{title}</p>}
+  <div class="text-sm"><slot /></div>
+</aside>

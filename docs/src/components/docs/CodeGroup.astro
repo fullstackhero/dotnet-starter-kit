@@ -1,0 +1,40 @@
+---
+interface Props {
+  labels: string[];
+}
+const { labels } = Astro.props;
+const id = `cg-${Math.random().toString(36).slice(2, 9)}`;
+---
+<div class="my-6 overflow-hidden rounded-lg border border-border">
+  <div role="tablist" class="flex border-b border-border bg-muted/40">
+    {labels.map((label, i) => (
+      <button
+        type="button"
+        role="tab"
+        data-cg-tab={i}
+        data-cg-id={id}
+        aria-selected={i === 0 ? 'true' : 'false'}
+        class="px-4 py-2 text-sm text-muted-foreground aria-selected:bg-card aria-selected:text-foreground"
+      >{label}</button>
+    ))}
+  </div>
+  <div data-cg-panels={id}>
+    <slot />
+  </div>
+</div>
+
+<script is:inline define:vars={{ id }}>
+  (() => {
+    const tabs = document.querySelectorAll(`[data-cg-id="${id}"]`);
+    const panelsRoot = document.querySelector(`[data-cg-panels="${id}"]`);
+    const panels = panelsRoot ? Array.from(panelsRoot.children) : [];
+    panels.forEach((p, i) => { p.style.display = i === 0 ? '' : 'none'; });
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const target = Number(tab.getAttribute('data-cg-tab'));
+        tabs.forEach((t) => t.setAttribute('aria-selected', t === tab ? 'true' : 'false'));
+        panels.forEach((p, i) => { p.style.display = i === target ? '' : 'none'; });
+      });
+    });
+  })();
+</script>
