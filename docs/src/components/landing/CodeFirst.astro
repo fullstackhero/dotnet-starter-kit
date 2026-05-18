@@ -32,18 +32,43 @@ const validatorCode = `public sealed class RegisterUserCommandValidator
     }
 }`;
 
+// Active files (clickable). Order matters for indices.
 const files = [
-  { name: 'RegisterUserEndpoint.cs',         code: endpointCode,  lines: 9 },
-  { name: 'RegisterUserCommandHandler.cs',   code: handlerCode,   lines: 7 },
-  { name: 'RegisterUserCommandValidator.cs', code: validatorCode, lines: 10 },
+  {
+    name: 'RegisterUserEndpoint.cs',
+    short: 'Endpoint.cs',
+    lines: 9,
+    code: endpointCode,
+  },
+  {
+    name: 'RegisterUserCommandHandler.cs',
+    short: 'Handler.cs',
+    lines: 7,
+    code: handlerCode,
+  },
+  {
+    name: 'RegisterUserCommandValidator.cs',
+    short: 'Validator.cs',
+    lines: 10,
+    code: validatorCode,
+  },
+];
+
+// Collapsed feature folders (visual-only — show the breadth of VSA)
+const otherFeatures = [
+  'LoginUser',
+  'AssignUserRole',
+  'ChangePassword',
+  'DeleteUser',
+  'RefreshToken',
 ];
 ---
 <section class="relative border-t border-border bg-subtle/40">
   <div class="section-dots absolute inset-0 -z-10 opacity-60" aria-hidden="true"></div>
 
-  <div class="mx-auto max-w-6xl px-6 py-24 sm:py-32">
+  <div class="mx-auto max-w-7xl px-6 py-24 sm:py-32">
     <div class="grid items-start gap-12 lg:grid-cols-[minmax(0,_5fr)_minmax(0,_7fr)] lg:gap-16">
-      <!-- Left: editorial copy -->
+      <!-- LEFT: editorial copy -->
       <div class="lg:sticky lg:top-24">
         <p class="text-[11px] font-medium uppercase tracking-[0.18em] text-primary">Vertical Slice Architecture</p>
         <h2 class="mt-4 font-display text-4xl font-semibold leading-[1.05] tracking-[-0.03em] text-foreground sm:text-5xl">
@@ -82,60 +107,128 @@ const files = [
         </a>
       </div>
 
-      <!-- Right: custom-framed editor window -->
-      <div class="code-window relative">
-        <!-- Glow behind window (only intense on hover) -->
-        <div class="code-window-glow" aria-hidden="true"></div>
+      <!-- RIGHT: VS-Code-style editor with file tree + code -->
+      <div class="editor relative">
+        <!-- Glow behind the window (visible on hover) -->
+        <div class="editor-glow" aria-hidden="true"></div>
 
-        <div class="code-window-frame relative overflow-hidden rounded-xl border border-border bg-card shadow-[0_30px_60px_-30px_rgba(21,128,61,0.18),0_8px_24px_-12px_rgba(0,0,0,0.08)] dark:shadow-[0_30px_60px_-30px_rgba(74,222,128,0.12),0_8px_24px_-12px_rgba(0,0,0,0.5)]">
-          <!-- Title bar with traffic lights + path + langauge badge -->
-          <div class="flex items-center gap-3 border-b border-border bg-subtle/50 px-4 py-2.5">
+        <div class="editor-frame relative overflow-hidden rounded-xl border border-border bg-card shadow-[0_30px_60px_-30px_rgba(21,128,61,0.18),0_8px_24px_-12px_rgba(0,0,0,0.08)] dark:shadow-[0_30px_60px_-30px_rgba(74,222,128,0.12),0_8px_24px_-12px_rgba(0,0,0,0.5)]">
+          <!-- Title bar -->
+          <div class="flex items-center gap-3 border-b border-border bg-subtle/60 px-4 py-2.5">
             <!-- Traffic lights -->
             <div class="flex items-center gap-1.5" aria-hidden="true">
               <span class="size-3 rounded-full bg-[#ff5f57]"></span>
               <span class="size-3 rounded-full bg-[#febc2e]"></span>
               <span class="size-3 rounded-full bg-[#28c840]"></span>
             </div>
-            <!-- Path -->
-            <p class="hidden flex-1 truncate font-mono text-[11.5px] text-muted-foreground sm:block">
-              Modules.Identity / Features / v1 / Users / <span class="text-foreground">RegisterUser</span> /
+            <!-- Breadcrumb path (updates with active file) -->
+            <p class="hidden min-w-0 flex-1 truncate font-mono text-[11.5px] text-muted-foreground sm:block">
+              <span>Modules.Identity</span>
+              <span class="text-border">/</span>
+              <span>Features</span>
+              <span class="text-border">/</span>
+              <span>v1</span>
+              <span class="text-border">/</span>
+              <span>Users</span>
+              <span class="text-border">/</span>
+              <span class="text-foreground/80">RegisterUser</span>
+              <span class="text-border">/</span>
+              <span class="text-foreground" data-vsa-path>RegisterUserEndpoint.cs</span>
             </p>
-            <!-- C# language badge -->
-            <span class="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2 py-0.5 font-mono text-[10px] font-semibold tracking-wide text-muted-foreground">
+            <!-- Language badge -->
+            <span class="ml-auto inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2 py-0.5 font-mono text-[10px] font-semibold tracking-wide text-muted-foreground">
               <span class="size-1.5 rounded-full bg-primary"></span>
               C#
             </span>
           </div>
 
-          <!-- File tabs -->
-          <div role="tablist" class="flex overflow-x-auto border-b border-border bg-subtle/30 px-1.5 pt-1.5 no-scrollbar">
-            {files.map((f, i) => (
-              <button
-                type="button"
-                role="tab"
-                data-cf-tab={i}
-                aria-selected={i === 0 ? 'true' : 'false'}
-                class="cf-tab relative shrink-0 rounded-t-md px-3.5 py-2 font-mono text-[11.5px] text-muted-foreground transition-colors aria-selected:text-foreground"
-              >
-                <span class="aria-selected:text-foreground">{f.name}</span>
-              </button>
-            ))}
+          <!-- Editor body: file tree + code -->
+          <div class="grid grid-cols-1 md:grid-cols-[200px_minmax(0,_1fr)]">
+            <!-- File tree -->
+            <aside class="file-tree border-r-0 border-b border-border bg-subtle/30 py-3 font-mono text-[12px] md:border-b-0 md:border-r">
+              <ul class="space-y-0.5">
+                <!-- Users folder header -->
+                <li>
+                  <div class="flex items-center gap-1.5 px-3 py-1 text-muted-foreground">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="text-primary/70">
+                      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    <span class="text-foreground">Users</span>
+                  </div>
+                </li>
+
+                <!-- RegisterUser/ — expanded, active feature folder -->
+                <li class="relative">
+                  <!-- Vertical indent guide -->
+                  <span aria-hidden="true" class="pointer-events-none absolute left-[26px] top-7 bottom-1 w-px bg-border"></span>
+
+                  <div class="flex items-center gap-1.5 px-3 py-1 pl-5 text-foreground">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="text-primary">
+                      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    <span class="font-medium">RegisterUser</span>
+                  </div>
+
+                  <ul class="ml-2">
+                    {files.map((f, i) => (
+                      <li>
+                        <button
+                          type="button"
+                          data-vsa-tab={i}
+                          aria-selected={i === 0 ? 'true' : 'false'}
+                          class="vsa-file group flex w-full items-center gap-2 rounded-md px-3 py-1 pl-9 text-left text-muted-foreground transition-colors aria-selected:bg-primary/10 aria-selected:text-primary hover:bg-foreground/5"
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="opacity-70">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                          </svg>
+                          <span class="truncate">{f.short}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+
+                <!-- Other feature folders (collapsed, visual only) -->
+                {otherFeatures.map((feature) => (
+                  <li>
+                    <div class="flex items-center gap-1.5 rounded-md px-3 py-1 pl-5 text-muted-foreground/80 transition-colors hover:bg-foreground/[0.04]">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="opacity-60">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                      </svg>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="opacity-70">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                      </svg>
+                      <span class="truncate">{feature}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </aside>
+
+            <!-- Code panels -->
+            <div class="relative">
+              {files.map((f, i) => (
+                <div data-vsa-panel={i} class={`vsa-panel ${i === 0 ? '' : 'hidden'}`}>
+                  <Code code={f.code} lang="csharp" frame="none" />
+                </div>
+              ))}
+            </div>
           </div>
 
-          <!-- Code panels (no EC frame) -->
-          {files.map((f, i) => (
-            <div data-cf-panel={i} class={`cf-panel ${i === 0 ? '' : 'hidden'}`}>
-              <Code code={f.code} lang="csharp" frame="none" />
-            </div>
-          ))}
-
           <!-- Status footer -->
-          <div class="flex items-center justify-between border-t border-border bg-subtle/30 px-4 py-2 font-mono text-[10.5px] text-muted-foreground">
+          <div class="flex items-center justify-between border-t border-border bg-subtle/40 px-4 py-2 font-mono text-[10.5px] text-muted-foreground">
             <span class="inline-flex items-center gap-3">
               <span class="inline-flex items-center gap-1.5"><span class="size-1.5 rounded-full bg-primary"></span>vsa</span>
               <span class="hidden sm:inline">utf-8 · LF · spaces: 4</span>
             </span>
-            <span data-cf-lineinfo>{files[0].lines} lines</span>
+            <span data-vsa-lineinfo>{files[0].lines} lines</span>
           </div>
         </div>
       </div>
@@ -144,26 +237,13 @@ const files = [
 </section>
 
 <style>
-  /* Tab active-state — green underline that animates between tabs. We use
-     box-shadow as the underline so we can transition it smoothly, and add
-     a subtle background tint on the active tab. */
-  .cf-tab[aria-selected='true'] {
-    background-color: var(--card);
-    box-shadow: inset 0 -2px 0 0 var(--primary);
-  }
-  .cf-tab[aria-selected='false']:hover {
-    color: var(--foreground);
-    background-color: color-mix(in oklab, var(--foreground) 4%, transparent);
-  }
-
-  /* Window glow — appears on hover. Sits behind the frame and uses the brand
-     gradient. Designed to feel subtle, not the cliché "neon glow" trope. */
-  .code-window-glow {
+  /* Hover glow behind the editor — same idiom as the rest of the site */
+  .editor-glow {
     position: absolute;
     inset: -1px;
     border-radius: 0.85rem;
     padding: 1px;
-    background: linear-gradient(135deg, transparent, color-mix(in oklab, var(--primary) 28%, transparent), transparent);
+    background: linear-gradient(135deg, transparent, color-mix(in oklab, var(--primary) 30%, transparent), transparent);
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;
             mask-composite: exclude;
@@ -171,47 +251,73 @@ const files = [
     transition: opacity 320ms ease;
     pointer-events: none;
   }
-  .code-window:hover .code-window-glow {
+  .editor:hover .editor-glow {
     opacity: 1;
   }
 
-  /* Tame Expressive Code's default outer frame so it integrates with our
-     custom chrome cleanly. Targeting only inside this section to avoid
-     bleeding into docs pages. */
-  .code-window-frame :global(.expressive-code) {
-    margin: 0;
-    border-radius: 0;
+  /* Active file row: subtle left-border accent that animates in */
+  .vsa-file[aria-selected='true'] {
+    position: relative;
   }
-  .code-window-frame :global(.expressive-code pre) {
-    border: 0;
-    border-radius: 0;
+  .vsa-file[aria-selected='true']::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 4px;
+    bottom: 4px;
+    width: 2px;
+    border-radius: 0 2px 2px 0;
+    background: var(--primary);
+  }
+
+  /* Tame Expressive Code inside the panel (no chrome, just code body) */
+  .vsa-panel :global(.expressive-code) {
+    margin: 0;
+  }
+  .vsa-panel :global(.expressive-code pre) {
+    border: 0 !important;
+    border-radius: 0 !important;
     background-color: var(--card) !important;
   }
-  .code-window-frame :global(.expressive-code .frame.has-title) {
-    --code-background: var(--card);
+  .vsa-panel :global(.expressive-code pre code) {
+    padding-block: 1rem !important;
+    padding-inline: 1.25rem !important;
   }
-  /* Reduced motion */
+
   @media (prefers-reduced-motion: reduce) {
-    .code-window-glow { transition: none; }
+    .editor-glow { transition: none; }
   }
 </style>
 
-<script is:inline define:vars={{ lineCounts: files.map(f => f.lines) }}>
-  (() => {
-    const tabs = document.querySelectorAll('[data-cf-tab]');
-    const panels = document.querySelectorAll('[data-cf-panel]');
-    const info = document.querySelector('[data-cf-lineinfo]');
+<script is:inline>
+  (function () {
+    var lineCounts = [9, 7, 10];
+    var fileNames = [
+      'RegisterUserEndpoint.cs',
+      'RegisterUserCommandHandler.cs',
+      'RegisterUserCommandValidator.cs',
+    ];
+
     function select(idx) {
-      tabs.forEach((t) => t.setAttribute('aria-selected', t.getAttribute('data-cf-tab') === String(idx) ? 'true' : 'false'));
-      panels.forEach((p) => {
-        if (p.getAttribute('data-cf-panel') === String(idx)) p.classList.remove('hidden');
+      document.querySelectorAll('[data-vsa-tab]').forEach(function (t) {
+        t.setAttribute(
+          'aria-selected',
+          t.getAttribute('data-vsa-tab') === String(idx) ? 'true' : 'false',
+        );
+      });
+      document.querySelectorAll('[data-vsa-panel]').forEach(function (p) {
+        if (p.getAttribute('data-vsa-panel') === String(idx)) p.classList.remove('hidden');
         else p.classList.add('hidden');
       });
-      if (info) info.textContent = `${lineCounts[idx]} lines`;
+      var info = document.querySelector('[data-vsa-lineinfo]');
+      if (info) info.textContent = lineCounts[idx] + ' lines';
+      var path = document.querySelector('[data-vsa-path]');
+      if (path) path.textContent = fileNames[idx];
     }
-    tabs.forEach((t) => {
-      const idx = t.getAttribute('data-cf-tab');
-      t.addEventListener('click', () => select(Number(idx)));
+
+    document.querySelectorAll('[data-vsa-tab]').forEach(function (t) {
+      var idx = t.getAttribute('data-vsa-tab');
+      t.addEventListener('click', function () { select(Number(idx)); });
     });
   })();
 </script>
