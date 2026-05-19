@@ -24,7 +24,7 @@ const heroStats = [
   { value: '10',  unit: '',  label: 'Modules',          note: 'Identity · Multitenancy · Auditing · +7 more', icon: 'lucide:box'         },
   { value: '12',  unit: '',  label: 'Building blocks',  note: 'EF · Redis · Hangfire · OTel · Eventing · …',  icon: 'lucide:layers'      },
   { value: '900', unit: '+', label: 'Tests',            note: 'Unit + integration · green',                   icon: 'lucide:check-check' },
-  { value: '1',   unit: '',  label: 'Command to run',   note: '`dotnet run` boots the whole stack via Aspire',icon: 'lucide:rocket'      },
+  { value: '1',   unit: '',  label: 'Command',          note: '`dotnet run` boots the whole stack via Aspire 13',icon: 'lucide:rocket'    },
 ];
 ---
 
@@ -79,7 +79,7 @@ const heroStats = [
         <span class="font-light text-muted-foreground">The .NET 10 starter kit</span>
         <span class="mt-1 block">
           <span class="relative inline-block text-foreground">
-            <span class="relative z-[1] font-bold">that actually ships.</span>
+            <span class="relative z-[1] font-bold">you'd actually inherit.</span>
             <span
               aria-hidden="true"
               class="absolute -bottom-1 left-0 right-0 h-2 rounded-full"
@@ -89,17 +89,16 @@ const heroStats = [
         </span>
       </h1>
 
-      {/* Subtitle with bold inline stats — fact-dense for AI citability */}
-      <p class="mt-6 max-w-xl text-[16px] leading-relaxed text-muted-foreground sm:text-[17.5px]">
-        FullStackHero is a
-        <span class="font-semibold text-foreground">free, MIT-licensed</span>,
-        production-ready
-        <span class="font-semibold text-foreground">.NET 10</span>
-        modular monolith with
-        <span class="font-semibold text-foreground">multitenancy</span>,
-        <span class="font-semibold text-foreground">identity</span>, and
-        <span class="font-semibold text-foreground">observability</span>
-        already wired up — so your day one is feature work, not scaffolding.
+      {/* Subtitle — citable definition paragraph for AI + keyword density */}
+      <p class="mt-6 max-w-2xl text-[16px] leading-relaxed text-muted-foreground sm:text-[17.5px]">
+        FullStackHero is the
+        <span class="font-semibold text-foreground">free, MIT-licensed .NET 10 starter kit</span>
+        for teams shipping production SaaS.
+        <span class="font-semibold text-foreground">Ten modules</span> — identity, multitenancy, auditing, files, chat, notifications, webhooks, billing, catalog, tickets — wired through a
+        <span class="font-semibold text-foreground">modular monolith</span> with
+        <span class="font-semibold text-foreground">Vertical Slice Architecture</span>.
+        <span class="font-semibold text-foreground">A real codebase, not a tutorial.</span>
+        No vendor framework. No lock-in.
       </p>
 
       {/* CTAs — ink-on-paper primary + secondary */}

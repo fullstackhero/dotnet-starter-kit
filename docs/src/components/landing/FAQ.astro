@@ -34,6 +34,14 @@ const faqs = [
     q: 'How do I receive updates after I clone it?',
     a: "FullStackHero is a copy-and-own starter, not a runtime dependency. You take the snapshot you cloned and evolve it however you want. Pull individual fixes from upstream when you want to; cherry-pick patches; or freeze your fork and never look back. There is no upstream package you have to keep upgrading.",
   },
+  {
+    q: 'How does it scale as my product grows?',
+    a: "It scales the way a modular monolith scales. Each module is a separate project with its own DbContext and HTTP boundary, talking to the rest only through its Contracts assembly. When a module hits a true horizontal-scaling need, you extract it into its own service without rewriting the consumers — the contract is already the contract. Until then you ship one process, one deploy, one set of logs, which is faster for most teams than running ten services from day one.",
+  },
+  {
+    q: 'Can I deploy it to Azure, AWS, or Kubernetes?',
+    a: "Yes. The API, DbMigrator, admin and dashboard apps each ship as a normal Docker image — they don't depend on any orchestrator. deploy/docker/docker-compose.yml runs everything on a single VM; the same images run on Azure App Service, AWS ECS / App Runner, Google Cloud Run, or any Kubernetes cluster. PostgreSQL, Redis, and MinIO are off-the-shelf — swap them for managed services (Azure Postgres, AWS ElastiCache, S3) when you're ready.",
+  },
 ];
 ---
 
