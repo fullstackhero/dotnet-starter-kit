@@ -9,7 +9,7 @@
 		     No PublishProfile needed (the legacy "DefaultContainer" profile auto-populates
 		     ContainerImageTag from $(Version), which collides with ContainerImageTags). -->
 		<ContainerPort>8080</ContainerPort>
-		<ContainerUser>$APP_UID</ContainerUser>
+		<ContainerUser>1654</ContainerUser>
 		<ContainerFamily>noble-chiseled</ContainerFamily>
 		<ContainerRepository>fsh-api</ContainerRepository>
 	</PropertyGroup>

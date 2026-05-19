@@ -12,7 +12,7 @@
          `dotnet publish /t:PublishContainer` — no PublishProfile needed (the
          legacy "DefaultContainer" profile auto-populates ContainerImageTag
          from $(Version), colliding with ContainerImageTags). -->
-    <ContainerUser>$APP_UID</ContainerUser>
+    <ContainerUser>1654</ContainerUser>
     <ContainerFamily>noble-chiseled</ContainerFamily>
     <ContainerRepository>fsh-db-migrator</ContainerRepository>
 
