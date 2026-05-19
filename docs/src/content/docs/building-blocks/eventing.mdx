@@ -1,0 +1,149 @@
+---
+title: Eventing building block
+description: Event bus implementation (InMemory or RabbitMQ), outbox/inbox stores for durable delivery, and the open-generic handler registration that lets modules subscribe with one method.
+sidebar:
+  label: Eventing
+  order: 7
+pageType: reference
+seo:
+  title: 'Event bus + Outbox/Inbox in .NET 10 — InMemory or RabbitMQ'
+  description: 'How the Eventing block ships an in-memory or RabbitMQ event bus, EF Core outbox/inbox stores for transactional delivery, and the open-generic handler registration that auto-wires IIntegrationEventHandler<T> implementations.'
+  keywords: '.net event bus, rabbitmq dotnet integration events, outbox pattern ef core, inbox idempotency .net, in-memory event bus dotnet'
+---
+
+The Eventing block is the runtime side of the kit's integration-event story. It ships two `IEventBus` implementations — `InMemoryEventBus` (synchronous, in-process) and `RabbitMqEventBus` (durable, cross-service) — an EF Core-backed outbox store for transactional delivery, an inbox store for receiver-side idempotency, a `JsonEventSerializer`, and the auto-discovery hook that registers every `IIntegrationEventHandler<TEvent>` in your module assemblies.
+
+<Callout type="tip" title="Outbox + Inbox = exactly-once you can trust">
+Publish goes through the outbox in the same transaction as your business write. A background dispatcher hands it to RabbitMQ. The receiver's inbox dedupes by event id, so if the broker redelivers (network blip, consumer crash) the handler doesn't fire twice. Two stores, one obvious pattern.
+</Callout>
+
+## What it ships
+
+### Extensions
+
+- **`AddEventingCore(services, configuration)`** — registers `IEventSerializer` and picks the right `IEventBus` from `EventingOptions:Provider`. Optionally adds the outbox dispatcher hosted service.
+- **`AddEventingForDbContext<TDbContext>(services)`** — registers `EfCoreOutboxStore` + `EfCoreInboxStore` against your DbContext, plus the `OutboxDispatcher` scoped service.
+- **`AddIntegrationEventHandlers(services, assemblies[])`** — scans the supplied assemblies for `IIntegrationEventHandler<TEvent>` implementations and registers them in DI.
+
+### Event bus implementations
+
+- **`InMemoryEventBus`** — synchronous, in-process. Publishes by resolving handlers from the current scope and awaiting them in order. Great for dev/test and for single-process production hosts.
+- **`RabbitMqEventBus`** — async, durable; uses `RabbitMQ.Client`. Topic + queue conventions baked in.
+
+### Outbox / inbox
+
+- **`IOutboxStore`** + `EfCoreOutboxStore<TDbContext>` — write integration events to a table in your module's DbContext, committed atomically with your business changes.
+- **`IInboxStore`** + `EfCoreInboxStore<TDbContext>` — check incoming event ids against a dedupe table before running handlers.
+- **`OutboxDispatcher`** — scoped service; reads pending outbox rows, publishes them via `IEventBus`, marks them processed. Polls in batches (`EventingOptions:OutboxBatchSize`, default 100).
+- **`OutboxDispatcherHostedService`** — background loop calling the dispatcher every `EventingOptions:OutboxDispatchIntervalSeconds` (default 10).
+- **`OutboxMessage`** — `EventId`, `EventType`, `EventData`, `CreatedAt`, `ProcessedAt`, `RetryCount`.
+- **`InboxMessage`** — `EventId`, `EventType`, `ProcessedAt`.
+
+### Serializer
+
+- **`JsonEventSerializer`** — Newtonsoft.Json by default; emits `EventType` as a string so the receiver can rehydrate without the publisher's runtime types.
+
+## How modules consume Eventing
+
+Register against your DbContext during module startup:
+
+```csharp
+public void ConfigureServices(IHostApplicationBuilder builder)
+{
+    builder.Services.AddHeroDbContext<TicketsDbContext>();
+    builder.Services.AddEventingForDbContext<TicketsDbContext>();
+}
+```
+
+Then publish from a handler, inside the same transaction as the business write:
+
+```csharp
+public async ValueTask<Unit> Handle(ResolveTicketCommand cmd, CancellationToken ct)
+{
+    var ticket = await _db.Tickets.FindAsync([cmd.TicketId], ct).ConfigureAwait(false);
+    ticket!.Resolve(cmd.ResolutionNote);
+
+    await _bus.PublishAsync(new TicketResolvedIntegrationEvent(/* … */), ct).ConfigureAwait(false);
+
+    await _db.SaveChangesAsync(ct).ConfigureAwait(false);    // commits ticket + outbox row atomically
+    return Unit.Value;
+}
+```
+
+The `OutboxDispatcher` picks up the outbox row on the next interval (or you can call it directly from a Hangfire job if you don't want a hosted-service loop). The receiving side declares a handler:
+
+```csharp
+public sealed class TicketResolvedNotifyHandler(/* … */)
+    : IIntegrationEventHandler<TicketResolvedIntegrationEvent>
+{
+    public async ValueTask HandleAsync(TicketResolvedIntegrationEvent evt, CancellationToken ct)
+    {
+        // write a notification, send an email, etc.
+    }
+}
+```
+
+Host registers handlers in bulk via `AddIntegrationEventHandlers` against all module marker assemblies:
+
+```csharp
+builder.Services.AddIntegrationEventHandlers(moduleAssemblies);
+```
+
+## Configuration
+
+```jsonc
+{
+  "EventingOptions": {
+    "Provider": "InMemory",                       // or "RabbitMQ"
+    "OutboxBatchSize": 100,
+    "OutboxMaxRetries": 5,
+    "EnableInbox": true,
+    "OutboxDispatchIntervalSeconds": 10,
+    "UseHostedServiceDispatcher": true,
+    "RabbitMQ": {
+      "HostName": "rabbitmq",
+      "Port": 5672,
+      "UserName": "guest",
+      "Password": "guest",
+      "VirtualHost": "/"
+    }
+  }
+}
+```
+
+Set `UseHostedServiceDispatcher = false` when you'd rather drive the dispatcher from Hangfire on a fixed schedule (more deterministic for some ops setups).
+
+## How to extend
+
+### Add another transport
+
+Implement `IEventBus`; register your implementation in place of `InMemoryEventBus` / `RabbitMqEventBus`. Bus consumers don't care which one is wired.
+
+### Add a side-channel like Outbox-to-Kafka
+
+`OutboxDispatcher` is small and replaceable. Subclass or wrap it to publish to Kafka in addition to RabbitMQ, or to write to multiple destinations.
+
+### Skip the outbox for cheap fire-and-forget
+
+If a particular event doesn't need transactional durability (a cache invalidation hint, a metrics ping), publish via a different `IEventBus` instance that goes straight to the bus without the outbox detour. Wire it as a keyed service.
+
+## Gotchas
+
+- **Domain events vs integration events** are different things in the kit. Domain events fire **inside the SaveChanges interceptor** (synchronous, in-module, via Mediator). Integration events go through the outbox and `IEventBus` (asynchronous, cross-module / cross-service). Use the right one — domain events for invariants and bookkeeping inside the module, integration events for everything else.
+- **Outbox dispatcher is scoped per cycle.** Each poll gets a fresh DbContext scope; a failing handler doesn't mark its outbox row processed and will be retried on the next interval up to `OutboxMaxRetries`. After that, the row stays unprocessed forever — add a dead-letter cleanup step.
+- **Inbox dedupes by `EventId`.** If you mint events with the same id from two publishers, the second is silently dropped. `IIntegrationEvent.Id` is required to be unique (the kit always generates fresh `Guid.NewGuid()`).
+- **`RabbitMqEventBus` doesn't await consumer ack.** Fire-and-forget on publish; consumers handle their own durability via inbox + retry. If you want guaranteed delivery semantics, run the publisher with publisher-confirms enabled (set in the RabbitMQ options).
+
+## Critical files
+
+- `src/BuildingBlocks/Eventing/ServiceCollectionExtensions.cs`
+- `src/BuildingBlocks/Eventing/InMemory/InMemoryEventBus.cs`
+- `src/BuildingBlocks/Eventing/RabbitMq/RabbitMqEventBus.cs`
+- `src/BuildingBlocks/Eventing/Outbox/OutboxDispatcher.cs`
+- `src/BuildingBlocks/Eventing/Inbox/EfCoreInboxStore.cs`
+
+## Related
+
+- [Eventing.Abstractions](/docs/building-blocks/eventing-abstractions/) — the dependency-free contracts.
+- [Notifications module](/docs/modules/notifications/) — consumes integration events into inbox rows.
+- [Webhooks module](/docs/modules/webhooks/) — uses an open-generic handler to fan all events to HTTP subscribers.

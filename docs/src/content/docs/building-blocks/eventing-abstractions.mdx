@@ -1,0 +1,155 @@
+---
+title: Eventing.Abstractions building block
+description: Dependency-free contracts for cross-module and cross-service events — IIntegrationEvent, IIntegrationEventHandler, IEventBus, IEventSerializer.
+sidebar:
+  label: Eventing.Abstractions
+  order: 6
+pageType: reference
+seo:
+  title: 'Cross-module event contracts in .NET 10 — IIntegrationEvent & IEventBus'
+  description: 'The Eventing.Abstractions block ships dependency-free interfaces (IIntegrationEvent, IIntegrationEventHandler, IEventBus, IEventSerializer) that contracts assemblies reference without dragging in EF Core or RabbitMQ.'
+  keywords: 'integration event interface dotnet, ieventbus .net, event-driven architecture .net 10, dependency free event contracts'
+---
+
+The Eventing.Abstractions block exists for one reason: **contracts assemblies should not pull in EF Core, RabbitMQ, or the Eventing runtime when they declare an event.** This block has zero NuGet dependencies — just four interfaces. It's the smallest building block in the kit.
+
+<Callout type="tip" title="Reference this block from .Contracts, the runtime from the module">
+A module's `*.Contracts` assembly references **only** `Eventing.Abstractions`. The module's runtime assembly references both this block and the heavier `Eventing` block (which carries the EF Core / RabbitMQ implementations). That keeps cross-module dependencies one-way, contract-only, and lightweight.
+</Callout>
+
+## What it ships
+
+Four interfaces. That's it.
+
+```csharp
+// IIntegrationEvent.cs
+public interface IIntegrationEvent
+{
+    Guid Id { get; }
+    DateTime OccurredOnUtc { get; }
+    Guid? TenantId { get; }
+    Guid? CorrelationId { get; }
+    string Source { get; }       // e.g. "Modules.Identity"
+}
+
+// IIntegrationEventHandler.cs
+public interface IIntegrationEventHandler<TEvent> where TEvent : IIntegrationEvent
+{
+    ValueTask HandleAsync(TEvent @event, CancellationToken ct);
+}
+
+// IEventBus.cs
+public interface IEventBus
+{
+    ValueTask PublishAsync<TEvent>(TEvent @event, CancellationToken ct = default)
+        where TEvent : IIntegrationEvent;
+}
+
+// IEventSerializer.cs
+public interface IEventSerializer
+{
+    string Serialize<T>(T @event) where T : IIntegrationEvent;
+    object Deserialize(string json, Type type);
+}
+```
+
+## Pattern: where each interface lives
+
+```
+src/Modules/Notifications/
+├── Modules.Notifications.Contracts/
+│   └── (no references except Eventing.Abstractions + Core)
+└── Modules.Notifications/
+    └── (references Eventing — gets InMemoryEventBus, OutboxDispatcher, etc.)
+
+src/Modules/Chat/
+├── Modules.Chat.Contracts/
+│   ├── IntegrationEvents/MentionedInChannelIntegrationEvent.cs
+│   │   └── implements IIntegrationEvent  (Eventing.Abstractions)
+│   └── (no reference to Modules.Notifications.Contracts)
+└── Modules.Chat/
+    └── publishes via IEventBus (Eventing.Abstractions)
+```
+
+When Chat publishes a `MentionedInChannelIntegrationEvent`, Notifications consumes it through `IIntegrationEventHandler<MentionedInChannelIntegrationEvent>`. Neither runtime references the other; both just reference the event type declared in `Modules.Chat.Contracts`. The Eventing runtime (and your event bus of choice) wires the publish-to-subscribe path at runtime.
+
+## How modules consume the contracts
+
+Define a custom event in your contracts assembly:
+
+```csharp
+// src/Modules/Tickets/Modules.Tickets.Contracts/IntegrationEvents/TicketResolvedIntegrationEvent.cs
+public sealed record TicketResolvedIntegrationEvent(
+    Guid TicketId,
+    long TicketNumber,
+    Guid ReporterUserId,
+    Guid? AssigneeUserId,
+    string? ResolutionNote,
+    Guid Id,
+    DateTime OccurredOnUtc,
+    Guid? TenantId,
+    Guid? CorrelationId)
+    : IIntegrationEvent
+{
+    public string Source => "Modules.Tickets";
+}
+```
+
+Publish from a handler in the runtime module:
+
+```csharp
+public sealed class ResolveTicketCommandHandler(ITicketsDbContext db, IEventBus bus, ICurrentUser current)
+    : ICommandHandler<ResolveTicketCommand, Unit>
+{
+    public async ValueTask<Unit> Handle(ResolveTicketCommand cmd, CancellationToken ct)
+    {
+        var ticket = await db.Tickets.FindAsync([cmd.TicketId], ct).ConfigureAwait(false);
+        ticket!.Resolve(cmd.ResolutionNote);
+        await db.SaveChangesAsync(ct).ConfigureAwait(false);
+
+        await bus.PublishAsync(new TicketResolvedIntegrationEvent(
+            ticket.Id, ticket.Number, ticket.ReporterUserId, ticket.AssignedToUserId,
+            cmd.ResolutionNote,
+            Id: Guid.NewGuid(),
+            OccurredOnUtc: DateTime.UtcNow,
+            TenantId: current.GetTenant(),
+            CorrelationId: /* …if propagating */),
+            ct).ConfigureAwait(false);
+
+        return Unit.Value;
+    }
+}
+```
+
+Consume from another module's runtime project:
+
+```csharp
+public sealed class TicketResolvedNotifyHandler(/* deps */)
+    : IIntegrationEventHandler<TicketResolvedIntegrationEvent>
+{
+    public ValueTask HandleAsync(TicketResolvedIntegrationEvent evt, CancellationToken ct)
+    {
+        // ...
+    }
+}
+```
+
+## Gotchas
+
+- **No base class.** `IIntegrationEvent` is a pure interface. Use sealed records to implement it; do not invent a base class in this block — it would force every contracts assembly to pull in that base type's transitive deps.
+- **`Source` is a free-form string.** Use the canonical module name (`Modules.Tickets`, `Modules.Chat`). The kit's audit module uses this field for the "Source" column in audit records, so consistency matters.
+- **`TenantId` is nullable.** Platform-wide events (`UserRegisteredIntegrationEvent` for a SuperAdmin registration, plan-change events) carry a null `TenantId`. Consumers that key on tenant must guard. The Webhooks module skips null-tenant events entirely.
+- **Handler registration is open-generic friendly.** The Webhooks module registers `IIntegrationEventHandler<>` as a generic implementation, so a single handler type covers every event. If you do this, be deliberate about the side effects.
+
+## Critical files
+
+- `src/BuildingBlocks/Eventing.Abstractions/IIntegrationEvent.cs`
+- `src/BuildingBlocks/Eventing.Abstractions/IIntegrationEventHandler.cs`
+- `src/BuildingBlocks/Eventing.Abstractions/IEventBus.cs`
+- `src/BuildingBlocks/Eventing.Abstractions/IEventSerializer.cs`
+
+## Related
+
+- [Eventing](/docs/building-blocks/eventing/) — the implementation block with `InMemoryEventBus`, `RabbitMqEventBus`, outbox/inbox stores.
+- [Webhooks module](/docs/modules/webhooks/) — uses the open-generic `IIntegrationEventHandler<>` pattern to fan every event to subscribers.
+- [Notifications module](/docs/modules/notifications/) — consumes integration events into per-user inbox rows.

@@ -1,0 +1,158 @@
+---
+title: Persistence building block
+description: EF Core base context with auto-applied multitenancy and soft-delete filters, the Specification pattern, audit + domain-event interceptors, and per-tenant connection strings.
+sidebar:
+  label: Persistence
+  order: 2
+pageType: reference
+seo:
+  title: 'EF Core + Multitenancy + Specifications in .NET 10 — Persistence block'
+  description: 'How fullstackhero wires EF Core 10 with auto-applied tenant isolation, soft-delete query filters, the Specification pattern, audit + domain-event interceptors, and per-tenant connection strings.'
+  keywords: 'ef core 10 .net 10, base dbcontext multitenancy, ef core query filter tenant, specification pattern dotnet, savechanges interceptor'
+---
+
+The Persistence block is the EF Core configuration layer every module sits on top of. It ships a `BaseDbContext` that auto-applies tenant isolation and the soft-delete query filter, the `Specification<T>` pattern for composable queries, two `ISaveChangesInterceptor` implementations (audit + domain events), and a `DatabaseOptions` switch between PostgreSQL and SQL Server. Around **400-600 lines of code**.
+
+<Callout type="tip" title="Subclass the base, get tenancy for free">
+Make your module's DbContext inherit `BaseDbContext`, call `base.OnModelCreating(builder)` **last** in your override, and every tenant-aware entity is filtered automatically. No per-entity opt-in.
+</Callout>
+
+## What it ships
+
+### Extensions
+
+- **`AddHeroDatabaseOptions(services, configuration)`** — binds and validates `DatabaseOptions`; registers `AuditableEntitySaveChangesInterceptor` and `DomainEventsInterceptor`.
+- **`AddHeroDbContext<TContext>(services)`** — registers a DbContext with provider switching, interceptors attached, and the connection string resolved at runtime.
+
+### Base type
+
+- **`BaseDbContext`** — extends Finbuckle's `MultiTenantDbContext`. In `OnModelCreating` it applies the global tenant filter (everything except `IGlobalEntity`) and the named `SoftDelete` query filter. In `SaveChangesAsync` it sets `TenantNotSetMode.Overwrite` so unsaved entities without an explicit tenant inherit the current one.
+
+### Specification pattern
+
+- **`Specification<T>`** — composable query base with fluent `Where()`, `Include()`, `Include(string)`, `OrderBy()` / `Then…`, `AsNoTrackingQuery()` (no-op; it's the default), `AsSplitQuery()`, and `IgnoreQueryFilters()`. Multi-`Where` combines via expression-tree AND.
+- **`SpecificationExtensions.ApplySpecification<T>(IQueryable<T>, Specification<T>)`** — turns a spec into an `IQueryable<T>`.
+
+### Interceptors
+
+- **`AuditableEntitySaveChangesInterceptor`** — fills in `CreatedAt`, `CreatedBy`, `UpdatedAt`, `UpdatedBy` from `ICurrentUser` for any `IAuditableEntity` row entering Added or Modified state.
+- **`DomainEventsInterceptor`** — after `SaveChangesAsync` succeeds, walks tracked entities implementing `IHasDomainEvents`, dispatches each event through Mediator, then clears the lists.
+
+### Model-builder helpers
+
+- **`ApplyTenantIsolationByDefault(modelBuilder)`** — marks every entity that isn't `IGlobalEntity` as `IsMultiTenant()`.
+- **`AppendGlobalQueryFilter<T>(modelBuilder, expr)`** — appends a global filter without overwriting existing ones.
+
+### Options
+
+- **`DatabaseOptions`** — `Provider` (`PostgreSQL` default or `MSSQL`), `ConnectionString`, `MigrationsAssembly`.
+
+## How modules consume it
+
+```csharp
+// Your module's DbContext
+public sealed class CatalogDbContext(
+    IMultiTenantContextAccessor accessor,
+    DbContextOptions<CatalogDbContext> options,
+    IOptions<DatabaseOptions> settings)
+    : BaseDbContext(accessor, options, settings)
+{
+    public DbSet<Product> Products => Set<Product>();
+    public DbSet<Brand> Brands => Set<Brand>();
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        builder.ApplyConfigurationsFromAssembly(typeof(CatalogDbContext).Assembly);
+        builder.HasDefaultSchema("catalog");
+        base.OnModelCreating(builder);   // CRITICAL — must be last
+    }
+}
+
+// Register in CatalogModule.ConfigureServices
+services.AddHeroDbContext<CatalogDbContext>();
+```
+
+Anywhere you need a tenant-scoped query, just `await db.Products.ToListAsync(ct)` — the filter is applied transparently.
+
+For composable queries:
+
+```csharp
+public sealed class ActiveProductsByBrandSpec(Guid brandId) : Specification<Product>
+{
+    public ActiveProductsByBrandSpec(Guid brandId)
+    {
+        Where(p => p.BrandId == brandId && p.IsActive);
+        Include(p => p.Images);
+        OrderByDescending(p => p.CreatedAt);
+    }
+}
+
+// Handler
+var products = await _db.Products
+    .ApplySpecification(new ActiveProductsByBrandSpec(brandId))
+    .ToListAsync(ct).ConfigureAwait(false);
+```
+
+## Configuration
+
+```jsonc
+{
+  "DatabaseOptions": {
+    "Provider": "PostgreSQL",
+    "ConnectionString": "Host=localhost;Port=5432;Database=fsh;Username=postgres;Password=postgres",
+    "MigrationsAssembly": "FSH.Starter.Migrations.PostgreSQL"
+  }
+}
+```
+
+`OptionsBuilderExtensions.ConfigureHeroDatabase()` picks `UseNpgsql()` or `UseSqlServer()` from the `Provider` value. Tenant-specific connection strings, when set on `AppTenantInfo`, override the default at request time via Finbuckle.
+
+## How to extend
+
+### Add a new interceptor
+
+```csharp
+public sealed class FullTextSearchInterceptor : SaveChangesInterceptor
+{
+    public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
+        DbContextEventData eventData, InterceptionResult<int> result, CancellationToken ct = default)
+    {
+        // rewrite a generated tsvector column based on Body, e.g.
+        return base.SavingChangesAsync(eventData, result, ct);
+    }
+}
+
+// register
+services.AddScoped<ISaveChangesInterceptor, FullTextSearchInterceptor>();
+```
+
+Then attach it to whichever `DbContext` should run it via the `AddDbContext` options.
+
+### Add a named query filter
+
+```csharp
+modelBuilder.Entity<MyEntity>().HasQueryFilter("ActiveOnly", e => e.IsActive);
+// then to bypass: db.MyEntities.IgnoreNamedQueryFilter("ActiveOnly")
+```
+
+The kit already uses this pattern for `SoftDelete` so cross-tenant audit queries can `IgnoreQueryFilters()` while still respecting soft-delete (using `IgnoreNamedQueryFilter("SoftDelete")` would be the inverse).
+
+## Gotchas
+
+- **`base.OnModelCreating(builder)` must come last** in your subclass's override. The base applies the global tenant filter + soft-delete filter; if you run it first your per-entity configurations can stomp on those filters (or vice versa).
+- **`Specification<T>.AsNoTracking` is `true` by default.** This is a deliberate guard against unbounded tracking of large query results. Call out tracked queries explicitly if you need write semantics.
+- **Multi-`Where()` calls combine via AND**, not OR. The base doesn't compose `||`; if you need OR, write it inside a single expression.
+- **`TenantNotSetMode.Overwrite`** in `SaveChangesAsync` means saving an entity without a tenant set will be silently filled in with the current tenant. That's intentional — without it, every handler would have to remember `entity.TenantId = current.GetTenant()` — but it does mean entities created in a null-tenant context get assigned to whichever tenant the current request belongs to. Don't run write paths from background threads without restoring tenant context first.
+
+## Critical files
+
+- `src/BuildingBlocks/Persistence/Context/BaseDbContext.cs`
+- `src/BuildingBlocks/Persistence/Specifications/Specification.cs`
+- `src/BuildingBlocks/Persistence/PersistenceExtensions.cs`
+- `src/BuildingBlocks/Persistence/Inteceptors/AuditableEntitySaveChangesInterceptor.cs`
+
+## Related
+
+- [Core](/docs/building-blocks/core/) — `BaseEntity`, `IHasTenant`, `ISoftDeletable`, `IGlobalEntity`.
+- [Multitenancy module](/docs/modules/multitenancy/) — the Finbuckle setup `BaseDbContext` builds on.
+- [Architecture: multitenancy deep-dive](/docs/architecture/) — `IgnoreQueryFilters` vs `IgnoreNamedQueryFilter` discipline.

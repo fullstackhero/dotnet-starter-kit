@@ -1,0 +1,134 @@
+---
+title: Caching building block
+description: HybridCache (L1 in-memory + L2 Redis or distributed memory) with OpenTelemetry instrumentation, stampede protection, and a shared multiplexer for DataProtection.
+sidebar:
+  label: Caching
+  order: 5
+pageType: reference
+seo:
+  title: 'HybridCache + Redis in .NET 10 — fullstackhero Caching block'
+  description: 'How the Caching building block configures HybridCache (L1 in-memory + L2 Redis) with stampede protection, OpenTelemetry metrics, a shared Redis multiplexer for DataProtection, and configurable TTLs.'
+  keywords: 'hybridcache .net 10, hybridcache redis backplane, l1 l2 cache dotnet, stampede protection .net, opentelemetry cache metrics'
+---
+
+The Caching block wires `Microsoft.Extensions.Caching.Hybrid` for the whole platform. L1 is in-process memory; L2 is Redis when `CachingOptions:Redis` is set, otherwise the in-process `DistributedMemoryCache`. The block decorates the underlying `HybridCache` with `ObservableHybridCache` to emit OpenTelemetry metrics + activities, and it shares the `IConnectionMultiplexer` with DataProtection so the whole host opens **one Redis connection pool**, not three.
+
+<Callout type="tip" title="Stampede protection is the win">
+HybridCache coalesces concurrent identical requests into a single source fetch automatically. The first caller blocks on the source; the rest of the wave wait on the same task. You don't write lock code; you just call `GetOrCreateAsync` and the cache does the right thing.
+</Callout>
+
+## What it ships
+
+### Extension
+
+- **`AddHeroCaching(services, configuration)`** — wires HybridCache + L2 + the OTel decorator. Reads `CachingOptions`.
+
+### Decorator
+
+- **`ObservableHybridCache(inner)`** — wraps the framework `HybridCache` to emit:
+  - `cache.hits` / `cache.misses` (OTel counter)
+  - `cache.duration` (OTel histogram, ms)
+  - `cache.payload.bytes` (OTel histogram)
+  - Activities under `ActivitySource("Hero.Caching")` with `cache.key`, `cache.hit`, `cache.payload.bytes` tags.
+
+### Options
+
+- **`CachingOptions`**:
+  - `Redis` — connection string; empty falls back to in-memory `DistributedMemoryCache`
+  - `EnableSsl` — TLS toggle (defaults to inference from the connection string)
+  - `DefaultExpiration` — TimeSpan; default 1 hour, applies to L1 + L2
+  - `DefaultLocalCacheExpiration` — TimeSpan; default 2 minutes; bounds cross-node staleness after RemoveByTag on peers
+  - `MaximumKeyLength` — default 1024 chars; longer keys are rejected
+  - `MaximumPayloadBytes` — default 1 MB; larger payloads are silently skipped
+
+### Telemetry helper
+
+- **`CachingTelemetry`** — the `ActivitySource` + meters the decorator emits. Use it directly if you wrap further.
+
+## How modules consume it
+
+Inject `HybridCache` and call `GetOrCreateAsync`:
+
+```csharp
+public sealed class GetTenantConfigQueryHandler(HybridCache cache, ITenantConfigRepo repo)
+    : IQueryHandler<GetTenantConfigQuery, TenantConfig>
+{
+    public ValueTask<TenantConfig> Handle(GetTenantConfigQuery q, CancellationToken ct)
+        => cache.GetOrCreateAsync(
+            $"tenant-config:{q.TenantId}",
+            async (innerCt) => await repo.LoadAsync(q.TenantId, innerCt).ConfigureAwait(false),
+            cancellationToken: ct);
+}
+```
+
+For tag-based invalidation:
+
+```csharp
+await cache.GetOrCreateAsync(key, factory, tags: ["tenant:" + tenantId.ToString()], cancellationToken: ct);
+
+// later, on tenant config change
+await cache.RemoveByTagAsync("tenant:" + tenantId.ToString(), ct).ConfigureAwait(false);
+```
+
+Identity uses HybridCache for role-permission lookups (the `RolePermissionSyncer` warms the cache); Multitenancy uses it as the `DistributedCacheStore` in front of the tenant EF store; Webhooks uses it for typing-indicator throttle keys; Chat uses it for the typing throttle.
+
+## Configuration
+
+```jsonc
+{
+  "CachingOptions": {
+    "Redis": "localhost:6379",
+    "DefaultExpiration": "01:00:00",
+    "DefaultLocalCacheExpiration": "00:02:00",
+    "MaximumKeyLength": 1024,
+    "MaximumPayloadBytes": 1048576
+  }
+}
+```
+
+When `Redis` is empty the block falls back to in-memory L2 (`DistributedMemoryCache`) — fine for dev/test, **not** for multi-instance production. Always set Redis (or another distributed cache) for production.
+
+## How to extend
+
+### Use the shared multiplexer for your own Redis work
+
+The block exposes the `IConnectionMultiplexer` through DI; resolve it and reuse instead of opening a second pool:
+
+```csharp
+public sealed class MyRedisService(IConnectionMultiplexer redis)
+{
+    public async Task<string?> ReadAsync(string key)
+    {
+        var db = redis.GetDatabase();
+        return await db.StringGetAsync(key);
+    }
+}
+```
+
+### Add another decorator
+
+Decorate the registered `HybridCache` with another wrapper to add e.g. circuit-breaker logic. Pull the existing descriptor out of the service collection, register your decorator, and chain — `ObservableHybridCache` does this exact dance for OTel.
+
+### Pre-warm on startup
+
+Resolve `HybridCache` from a hosted service and `GetOrCreateAsync` your hot keys before traffic arrives. The Identity module's `RolePermissionSyncHostedService` is the template.
+
+## Gotchas
+
+- **L1 has no backplane.** After `RemoveByTag` on one instance, peer instances' L1 copies aren't invalidated. The `DefaultLocalCacheExpiration` (2 min default) bounds the staleness window — don't set it too high if you rely on fast invalidation.
+- **Payload size cap is silent.** Entries larger than `MaximumPayloadBytes` are skipped (with a warning log), not stored. If your hot-path cache value is suddenly 1.5 MB, lookup will miss every time. Log-search for "payload too large" warnings before assuming the cache is broken.
+- **One multiplexer, three consumers.** Caching, DataProtection, and SignalR (when realtime is enabled) share the same `IConnectionMultiplexer`. Bumping connection pool size affects all three.
+- **`DistributedMemoryCache` is per-process.** Two instances of the API can't see each other's cache. This is intentional for test fixtures; if you accidentally ship it to multi-instance prod, multi-tenant cache invalidation breaks. Always check `CachingOptions:Redis` is set in production config.
+
+## Critical files
+
+- `src/BuildingBlocks/Caching/Extensions.cs`
+- `src/BuildingBlocks/Caching/ObservableHybridCache.cs`
+- `src/BuildingBlocks/Caching/CachingOptions.cs`
+- `src/BuildingBlocks/Caching/Telemetry/CachingTelemetry.cs`
+
+## Related
+
+- [Web](/docs/building-blocks/web/) — `FshPlatformOptions.EnableCaching` toggle.
+- [Multitenancy module](/docs/modules/multitenancy/) — uses HybridCache as the `DistributedCacheStore`.
+- [Chat module](/docs/modules/chat/) — typing-indicator throttle uses the cache.

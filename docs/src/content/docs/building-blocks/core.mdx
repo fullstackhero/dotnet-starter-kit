@@ -1,0 +1,150 @@
+---
+title: Core building block
+description: The foundational types every module composes against — BaseEntity, AggregateRoot, DomainEvent, ICurrentUser, and the CustomException hierarchy.
+sidebar:
+  label: Core
+  order: 1
+pageType: reference
+seo:
+  title: 'Core domain primitives in .NET 10 — BaseEntity, AggregateRoot, DomainEvent'
+  description: 'The Core building block ships BaseEntity, AggregateRoot, DomainEvent, ICurrentUser, IHasTenant, ISoftDeletable, IGlobalEntity, and the CustomException hierarchy that every fullstackhero module composes against.'
+  keywords: '.net domain primitives, base entity dotnet, aggregate root .net, domain event record, ICurrentUser asp.net core'
+---
+
+`FSH.Framework.Core` (package id) is the foundation every other module and building block depends on. It ships nothing runtime-active — no DI registrations, no middleware, no hosted services — just the **shared abstractions** every domain layer needs: entity bases, aggregate-root markers, the `DomainEvent` record, current-user / tenant interfaces, and the framework's exception hierarchy. Around **a few hundred lines** of interface + abstract-class definitions.
+
+<Callout type="tip" title="Read this block first">
+If you're writing a new module, the first file you'll touch is the domain. Every aggregate inherits from one of the bases here. Get familiar with the contracts and the rest of the kit reads naturally.
+</Callout>
+
+## What it ships
+
+### Entity bases
+
+- **`BaseEntity<TId>`** — abstract; carries `Id`, a private `_domainEvents` list, and a protected `AddDomainEvent(IDomainEvent)`. Every persisted entity inherits from this.
+- **`AggregateRoot<TId>`** — extends `BaseEntity<TId>`; a marker for aggregate roots. The kit's `Specification<T>` and audit interceptor key off this distinction.
+- **`IEntity<TId>`** — empty marker interface for "this is a domain entity."
+
+### Cross-cutting interfaces
+
+- **`IHasTenant`** — `Guid? TenantId { get; }`. Persistence's global query filter auto-applies to anything implementing this.
+- **`IAuditableEntity`** — `CreatedAt`, `CreatedBy`, `UpdatedAt`, `UpdatedBy`. `AuditableEntitySaveChangesInterceptor` fills them in automatically.
+- **`ISoftDeletable`** — `IsDeleted`, `DeletedOnUtc`, `DeletedBy`. The named query filter `SoftDelete` filters these out by default; opt out with `IgnoreNamedQueryFilter("SoftDelete")`.
+- **`IHasDomainEvents`** — implemented by `BaseEntity`; surfaces the domain-event list so the `DomainEventsInterceptor` can dispatch them after SaveChanges.
+- **`IGlobalEntity`** — opt-out of tenant isolation for platform-wide rows (plans, impersonation grants, outbox messages).
+
+### Domain events
+
+`DomainEvent` is an abstract record:
+
+```csharp
+// src/BuildingBlocks/Core/Domain/DomainEvent.cs
+public abstract record DomainEvent(
+    Guid EventId,
+    DateTimeOffset OccurredOnUtc,
+    Guid? CorrelationId = null,
+    Guid? TenantId = null) : IDomainEvent
+{
+    public static T Create<T>(Func<Guid, DateTimeOffset, T> factory)
+        => factory(Guid.NewGuid(), DateTimeOffset.UtcNow);
+}
+```
+
+Concrete events inherit it:
+
+```csharp
+public sealed record ProductPriceChangedDomainEvent(
+    Guid ProductId,
+    Money OldPrice,
+    Money NewPrice,
+    Guid EventId,
+    DateTimeOffset OccurredOnUtc) : DomainEvent(EventId, OccurredOnUtc);
+```
+
+…and aggregates raise them inside their methods. The `DomainEventsInterceptor` dispatches via Mediator after `SaveChangesAsync` completes.
+
+### Current-user + request context
+
+- **`ICurrentUser`** — the request-time view of the authenticated user: `GetUserId()`, `GetUserEmail()`, `GetTenant()`, `IsAuthenticated()`, `IsInRole(role)`, `GetUserClaims()`.
+- **`ICurrentUserInitializer`** — implemented by the Identity module; populates `ICurrentUser` from the `ClaimsPrincipal`. The kit's `CurrentUserMiddleware` calls this at the end of the request pipeline.
+- **`IRequestContext`** — broader request abstraction beyond user identity.
+
+### Exception hierarchy
+
+The kit's global exception handler (in the Web block) turns these into `ProblemDetails` (RFC 9457):
+
+| Type | Status | Use when |
+|---|---|---|
+| `CustomException(message, HttpStatusCode)` | configurable | Generic domain failure; pick the status |
+| `NotFoundException` | 404 | Resource missing |
+| `ForbiddenException` | 403 | Authenticated but not authorised |
+| `UnauthorizedException` | 401 | Not authenticated |
+
+All four are simple records; no message templating, no inner-exception chaining. Domain code throws them; the handler does the HTTP translation.
+
+## How modules consume Core
+
+Every aggregate inherits one of the bases. Every persisted entity opts in or out of the cross-cutting interfaces:
+
+```csharp
+// Example from Catalog
+public sealed class Product : AggregateRoot<Guid>, ISoftDeletable
+{
+    public Guid? TenantId { get; private set; }  // satisfies IHasTenant via BaseEntity
+    public bool IsDeleted { get; private set; }
+    public DateTime? DeletedOnUtc { get; private set; }
+    public string? DeletedBy { get; private set; }
+
+    public void ChangePrice(Money newPrice)
+    {
+        var old = Price;
+        Price = newPrice;
+        AddDomainEvent(DomainEvent.Create((id, when) =>
+            new ProductPriceChangedDomainEvent(Id, old, newPrice, id, when)));
+    }
+}
+```
+
+`ICurrentUser` is injected by constructor anywhere you need to attribute work to a user:
+
+```csharp
+public sealed class StartImpersonationCommandHandler(IIdentityDbContext db, ICurrentUser current)
+    : ICommandHandler<StartImpersonationCommand, ImpersonationResponse>
+{
+    public async ValueTask<ImpersonationResponse> Handle(StartImpersonationCommand cmd, CancellationToken ct)
+    {
+        var actor = current.GetUserId();    // never null inside an authenticated endpoint
+        // ...
+    }
+}
+```
+
+## How to extend
+
+### Add a new cross-cutting interface
+
+If you want every entity to track, say, `LastViewedAt`, add `IHasLastViewed` to Core, add the auto-update logic to a new EF Core interceptor in Persistence, and implement the interface on the entities that care. The kit's pattern is: cross-cutting capability = interface + interceptor.
+
+### Add a new exception type
+
+Inherit `CustomException`, pass the right status code in the base constructor. Don't bypass the handler — keep the handler's RFC 9457 mapping as the single source of truth for HTTP error shape.
+
+## Gotchas
+
+- **`AddDomainEvent` is `protected`** on `BaseEntity`. Domain events must be raised from inside the aggregate, not from a handler. That's by design: it keeps invariants and event emission co-located.
+- **`DomainEvent.Create<T>(factory)`** is the static helper that fills in `EventId` and `OccurredOnUtc` automatically. Use it; don't construct events manually with `Guid.NewGuid()` scattered through code.
+- **`CustomException` has no inner exception**. If you want to wrap a lower-level failure, catch it, log it, and throw a `CustomException` with a clean message — don't pile inner exceptions into the response.
+
+## Critical files
+
+- `src/BuildingBlocks/Core/Domain/BaseEntity.cs`
+- `src/BuildingBlocks/Core/Domain/AggregateRoot.cs`
+- `src/BuildingBlocks/Core/Domain/DomainEvent.cs`
+- `src/BuildingBlocks/Core/Context/ICurrentUser.cs`
+- `src/BuildingBlocks/Core/Exceptions/CustomException.cs`
+
+## Related
+
+- [Persistence](/docs/building-blocks/persistence/) — `BaseDbContext` and the interceptors that consume these interfaces.
+- [Web](/docs/building-blocks/web/) — `CurrentUserMiddleware` populates `ICurrentUser`.
+- [Architecture overview](/docs/architecture/) — modular monolith + Vertical Slice patterns.

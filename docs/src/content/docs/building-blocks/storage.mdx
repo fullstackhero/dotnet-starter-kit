@@ -1,0 +1,154 @@
+---
+title: Storage building block
+description: File storage abstraction — local filesystem or S3-compatible (MinIO / AWS S3) — with presigned URLs, tenant isolation, and optional quota metering.
+sidebar:
+  label: Storage
+  order: 10
+pageType: reference
+seo:
+  title: 'S3 / MinIO file storage in .NET 10 — IStorageService + presigned URLs'
+  description: 'How the Storage building block exposes IStorageService with two implementations (local filesystem, S3-compatible via AWS SDK), tenant-isolated paths, presigned upload/download URLs, and optional quota metering.'
+  keywords: '.net s3 storage, minio dotnet, presigned url .net, aws sdk dotnet storage, tenant scoped file paths'
+---
+
+The Storage block is the kit's blob-storage abstraction. One interface (`IStorageService`), two implementations — `LocalStorageService` (filesystem) and `S3StorageService` (AWS S3 + MinIO compatible) — with presigned URL support, tenant-isolated paths, and an optional `QuotaMeteredStorageService` decorator that records usage against the Quota block.
+
+<Callout type="tip" title="Presigned URLs keep bytes out of your API">
+Clients PUT directly to S3 / MinIO using a short-lived presigned URL minted by your API. Your API never proxies bytes. Same on the read side — `GenerateDownloadUrlAsync` mints a presigned GET URL the browser hits directly.
+</Callout>
+
+## What it ships
+
+### Extensions
+
+- **`AddHeroLocalFileStorage(services)`** — registers `LocalStorageService` for `wwwroot`-based file I/O. Useful for dev.
+- **`AddHeroStorage(services, configuration)`** — reads `Storage:Provider`. `"s3"` registers `S3StorageService`; anything else falls back to `LocalStorageService`. Wraps with `QuotaMeteredStorageService` if `QuotaOptions:Enabled` is true.
+
+### Interface
+
+```csharp
+public interface IStorageService
+{
+    Task<StoredObjectMetadata> UploadAsync<T>(FileUploadRequest request, FileType fileType, CancellationToken ct);
+    Task<FileDownloadResponse> DownloadAsync(string path, CancellationToken ct);
+    Task<bool> ExistsAsync(string path, CancellationToken ct);
+    Task<long> GetSizeAsync(string path, CancellationToken ct);
+    Task RemoveAsync(string path, CancellationToken ct);
+
+    Task<PresignedUploadUrl> GenerateUploadUrlAsync(
+        string key, string contentType, long maxBytes, TimeSpan ttl, CancellationToken ct);
+
+    Task<Uri> GenerateDownloadUrlAsync(
+        string key, TimeSpan ttl, string? contentDisposition, CancellationToken ct);
+
+    Task<StoredObjectMetadata> HeadObjectAsync(string key, CancellationToken ct);
+
+    string BuildPublicUrl(string key);
+}
+```
+
+### Implementations
+
+- **`LocalStorageService`** — stores under `wwwroot/{tenant}/{fileType}/{filename}`. `GenerateUploadUrlAsync` / `GenerateDownloadUrlAsync` raise `NotSupportedException` (no presigned URLs on local FS).
+- **`S3StorageService`** — uses `AWSSDK.S3`. Path-style addressing by default for compatibility with MinIO and other self-hosted S3-compatible servers. Presigned URLs via the SDK's request signer.
+- **`QuotaMeteredStorageService`** — decorator. Calls `IQuotaService.CheckAndRecordAsync(tenantId, QuotaResource.StorageBytes, fileSize, ct)` on upload; debits on delete.
+
+### Request / response
+
+- **`FileUploadRequest`** — `Name`, `Extension`, `Data` (byte[]), `Type` (FileType enum).
+- **`FileDownloadResponse`** — `FileName`, `ContentType`, `Data` (byte[]).
+- **`PresignedUploadUrl`** — `Url` (Uri), `Headers` (Dict; mandatory client headers like Content-Type).
+- **`StoredObjectMetadata`** — `Size`, `ContentType` (from HEAD).
+
+### Options
+
+- **`S3StorageOptions`** — `Bucket`, `ServiceUrl` (custom endpoint for MinIO etc.), `Region`, `ForcePathStyle`, `AccessKey`, `SecretKey`, `PublicBaseUrl` (for non-expiring public URLs).
+
+## How modules consume Storage
+
+The Files module is the canonical consumer: it mints presigned upload URLs on `POST /files/upload-url`, validates the file finalises within the deadline, and clears orphans.
+
+Direct usage (without the Files module) looks like:
+
+```csharp
+public sealed class UploadAvatarHandler(IStorageService storage, ICurrentUser current)
+    : ICommandHandler<UploadAvatarCommand, string>   // returns the public URL
+{
+    public async ValueTask<string> Handle(UploadAvatarCommand cmd, CancellationToken ct)
+    {
+        var metadata = await storage.UploadAsync<UserAvatarMetadata>(
+            new FileUploadRequest { Name = $"{current.GetUserId()}-avatar", Extension = ".png", Data = cmd.Data, Type = FileType.Image },
+            FileType.Image,
+            ct).ConfigureAwait(false);
+
+        var key = /* derived storage key */;
+        return storage.BuildPublicUrl(key);
+    }
+}
+```
+
+## Configuration
+
+```jsonc
+{
+  "Storage": {
+    "Provider": "s3",                              // or "local"
+    "S3": {
+      "Bucket": "fsh-uploads",
+      "ServiceUrl": "http://minio:9000",           // omit for AWS S3 default
+      "Region": "us-east-1",
+      "ForcePathStyle": true,                      // required for MinIO
+      "AccessKey": "minioadmin",
+      "SecretKey": "set-via-secrets",
+      "PublicBaseUrl": "https://cdn.example.com"   // for non-expiring public URLs
+    }
+  }
+}
+```
+
+## How to extend
+
+### Add Azure Blob Storage
+
+Implement `IStorageService` against the Azure SDK and register it in place of the S3 implementation:
+
+```csharp
+services.AddSingleton<IStorageService, AzureBlobStorageService>();
+```
+
+Wrap with the quota decorator if you want:
+
+```csharp
+services.Decorate<IStorageService, QuotaMeteredStorageService>();
+```
+
+(The kit doesn't ship Scrutor; copy its `Decorate` pattern or register manually with `IConfigureOptions`.)
+
+### Use AWS IAM role for credentials
+
+Omit `AccessKey` and `SecretKey` from `S3StorageOptions`; the AWS SDK falls through to the instance-profile / EKS-pod-identity / web-identity chain automatically.
+
+### Scan files post-upload
+
+The Files module ships an `IFileScanner` hook. If you're using `IStorageService` directly without the Files module, kick off the scan in the same handler that finalises the upload.
+
+## Gotchas
+
+- **MinIO needs `ForcePathStyle = true`.** Virtual-hosted-style addressing puts the bucket name in the subdomain, which MinIO can't service without DNS gymnastics. Path-style addressing works for both MinIO and AWS S3 (since 2020). Default to true; revisit only for very-large-scale AWS-only deployments.
+- **Presigned URLs have a TTL.** Once it expires, the URL is dead. Use `BuildPublicUrl` for non-expiring public URLs (and a bucket policy that grants public-read on that prefix).
+- **`QuotaMeteredStorageService` is scoped.** It depends on `IQuotaService` which is scoped per request. Don't resolve it from a singleton or a hosted service without creating a scope.
+- **Local storage paths use tenant isolation.** `wwwroot/{tenant}/{fileType}/{filename}`. Cross-tenant access is by path traversal; there is no policy enforcement on the local provider. Don't use `LocalStorageService` in multi-tenant production.
+
+## Critical files
+
+- `src/BuildingBlocks/Storage/Extensions.cs`
+- `src/BuildingBlocks/Storage/Services/IStorageService.cs`
+- `src/BuildingBlocks/Storage/Local/LocalStorageService.cs`
+- `src/BuildingBlocks/Storage/S3/S3StorageService.cs`
+- `src/BuildingBlocks/Storage/S3/S3StorageOptions.cs`
+
+## Related
+
+- [Files module](/docs/modules/files/) — the policy + lifecycle layer on top of this block.
+- [Quota](/docs/building-blocks/quota/) — usage metering wrapper.
+- [Catalog module](/docs/modules/catalog/) — product images flow through here.

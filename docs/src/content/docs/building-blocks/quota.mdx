@@ -1,0 +1,152 @@
+---
+title: Quota building block
+description: Per-tenant resource limits with Redis or in-memory counters, gauge-based live usage, calendar-month windows, and HTTP middleware enforcement.
+sidebar:
+  label: Quota
+  order: 11
+pageType: reference
+seo:
+  title: 'Per-tenant quotas in .NET 10 — Redis counters + plan limits + middleware'
+  description: 'How the Quota building block enforces per-tenant resource limits via Redis counters (or in-memory fallback), plan-based limit resolution, IQuotaGaugeProvider for live usage, and a request middleware that returns 429 when limits are exceeded.'
+  keywords: '.net usage quota limits, multi-tenant rate limit dotnet, redis counter quota, plan limits saas dotnet'
+---
+
+The Quota block enforces per-tenant resource limits. Storage bytes used, number of active users, API calls per month, anything you care to meter. It ships Redis-backed counters with an in-memory fallback (for dev/test only), plan-driven limits with per-tenant overrides, an `IQuotaGaugeProvider` hook for modules that expose live counts (the Identity module exposes user count this way), and a request middleware that returns 429 when a tenant blows past its plan.
+
+<Callout type="tip" title="Plans first, overrides second">
+Most tenants are on a plan. Plans live in `appsettings:QuotaOptions:Plans`. A tenant's `AppTenantInfo.QuotaLimits` is the per-tenant override dict — set values there only when you've negotiated a bespoke contract.
+</Callout>
+
+## What it ships
+
+### Extensions
+
+- **`AddHeroQuotas(services, configuration)`** — registers an `IQuotaService` based on `QuotaOptions:Enabled` and whether Redis is configured. Disabled → `NoopQuotaService`. Enabled + Redis → `RedisQuotaService`. Enabled + no Redis → `InMemoryQuotaService`. Also registers `QuotaPlanResolver` + `QuotaEnforcementMiddleware`.
+- **`UseHeroQuotas(app)`** — inserts the enforcement middleware into the pipeline (after authentication, before authorization).
+
+### Service interfaces
+
+- **`IQuotaService`** — `CheckAsync`, `RecordAsync`, `CheckAndRecordAsync`, `GetCurrentAsync`. The atomic check-and-record is the one you want for any "this counts towards the quota" path.
+- **`IQuotaGaugeProvider`** — extensibility hook for modules that expose live usage. Each provider declares which `QuotaResource` it gauges and an async function that returns the current value.
+
+### Implementations
+
+- **`RedisQuotaService`** — hash-per-tenant-per-period counters with a TTL that aligns with the period end.
+- **`InMemoryQuotaService`** — `ConcurrentDictionary` counters in-process. Single-instance only.
+- **`NoopQuotaService`** — drop-in for when quotas are off; every check passes.
+
+### Models
+
+- **`QuotaCheckResult`** — `Allowed`, `LimitAmount`, `CurrentAmount`.
+- **`QuotaPlanResolver`** — resolves a tenant's plan to a `Dictionary<QuotaResource, long>` of limits, merging plan defaults with tenant overrides.
+
+### Middleware
+
+- **`QuotaEnforcementMiddleware`** — runs once per request after auth. Inspects the request's primary resource (configured per endpoint) and returns `429 TooManyRequests` if the limit's exceeded.
+
+### Options
+
+- **`QuotaOptions`** — `Enabled` (bool, default true), `Redis` (connection string), `DefaultPlan` (string; e.g. `free`), `Plans` (Dict — `Plans:free:StorageBytes = 1073741824`), `ExemptRootTenant` (bool, default true).
+
+## How modules consume Quota
+
+The Storage block wraps `IStorageService` with `QuotaMeteredStorageService` to record bytes used on upload:
+
+```csharp
+public async Task<StoredObjectMetadata> UploadAsync<T>(FileUploadRequest req, FileType type, CancellationToken ct)
+{
+    var size = req.Data.Length;
+    var check = await _quota.CheckAndRecordAsync(_current.GetTenant(), QuotaResource.StorageBytes, size, ct).ConfigureAwait(false);
+    if (!check.Allowed)
+        throw new CustomException($"Storage quota exceeded: {check.CurrentAmount}/{check.LimitAmount} bytes",
+            HttpStatusCode.TooManyRequests);
+    return await _inner.UploadAsync<T>(req, type, ct).ConfigureAwait(false);
+}
+```
+
+The Identity module exposes user count as a gauge:
+
+```csharp
+public sealed class IdentityUserCountGaugeProvider(UserManager<FshUser> users) : IQuotaGaugeProvider
+{
+    public QuotaResource Resource => QuotaResource.Users;
+    public async ValueTask<long> ReadAsync(Guid tenantId, CancellationToken ct)
+        => await users.Users.LongCountAsync(u => u.TenantId == tenantId && u.IsActive, ct).ConfigureAwait(false);
+}
+```
+
+The quota service compares the gauge value against the plan limit on every `CheckAsync`.
+
+## Configuration
+
+```jsonc
+{
+  "QuotaOptions": {
+    "Enabled": true,
+    "Redis": "localhost:6379",
+    "DefaultPlan": "free",
+    "ExemptRootTenant": true,
+    "Plans": {
+      "free": {
+        "StorageBytes": 1073741824,           // 1 GB
+        "Users": 5,
+        "Requests": 100000
+      },
+      "growth": {
+        "StorageBytes": 53687091200,          // 50 GB
+        "Users": 50,
+        "Requests": 1000000
+      }
+    }
+  }
+}
+```
+
+Per-tenant overrides go on `AppTenantInfo.QuotaLimits`. Anything you set there wins over the plan's default.
+
+## How to extend
+
+### Add a new gauge
+
+```csharp
+public sealed class TicketsCountGaugeProvider(ITicketsDbContext db) : IQuotaGaugeProvider
+{
+    public QuotaResource Resource => QuotaResource.OpenTickets;
+    public async ValueTask<long> ReadAsync(Guid tenantId, CancellationToken ct)
+        => await db.Tickets.LongCountAsync(t => t.TenantId == tenantId && t.Status != TicketStatus.Closed, ct).ConfigureAwait(false);
+}
+
+services.AddScoped<IQuotaGaugeProvider, TicketsCountGaugeProvider>();
+```
+
+…and add `OpenTickets` to the `QuotaResource` enum + `Plans` dict in config.
+
+### Disable quotas for a specific endpoint
+
+The middleware reads endpoint metadata. Add `.AllowAnonymousQuota()` (custom helper in the kit) — or just don't call `CheckAndRecordAsync` from the handler. For request-count quotas, the middleware enforces; tag the endpoint with `[QuotaExempt]` to bypass.
+
+### Use a different period
+
+The default period is the calendar month. To use a sliding window or a custom window, replace `QuotaPlanResolver.GetPeriodStart` with your own logic and update `RedisQuotaService` TTL accordingly.
+
+## Gotchas
+
+- **Period is calendar-month, UTC.** Counters reset at midnight UTC on the 1st. Cross-timezone customers see "your usage reset" at 4 PM PT on the 31st. Document this in your dashboard.
+- **Gauges are read on-demand.** Each `CheckAsync` invokes the gauge providers, which usually do a DB query. Cache the results inside the gauge if the data is expensive to compute and slightly stale is fine.
+- **`InMemoryQuotaService` is not cluster-safe.** Two instances of the API hold separate counters. Use Redis (or any distributed cache) in production.
+- **Root tenant exemption is global.** With `ExemptRootTenant = true`, the root/platform tenant has unlimited everything. Don't disable this in production unless you have a reason — internal admin actions tend to exceed all the limits you set for paying customers.
+- **Redis TTL.** Period keys carry a TTL aligned to the period end. Clock skew between instances can produce off-by-one errors at the period boundary. Use NTP.
+
+## Critical files
+
+- `src/BuildingBlocks/Quota/Extensions.cs`
+- `src/BuildingBlocks/Quota/IQuotaService.cs`
+- `src/BuildingBlocks/Quota/RedisQuotaService.cs`
+- `src/BuildingBlocks/Quota/QuotaPlanResolver.cs`
+- `src/BuildingBlocks/Quota/QuotaEnforcementMiddleware.cs`
+
+## Related
+
+- [Storage](/docs/building-blocks/storage/) — uses the metered decorator for `StorageBytes`.
+- [Identity module](/docs/modules/identity/) — exposes the user-count gauge.
+- [Billing module](/docs/modules/billing/) — plan keys here must match plan keys there.
