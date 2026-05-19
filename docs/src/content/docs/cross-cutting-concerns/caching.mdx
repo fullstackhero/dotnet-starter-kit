@@ -1,0 +1,110 @@
+---
+title: Caching
+description: HybridCache (L1 in-memory + L2 Redis) with OpenTelemetry instrumentation, stampede protection, and tag-based invalidation.
+sidebar:
+  label: Caching
+  order: 1
+pageType: concept
+seo:
+  title: 'Caching in .NET 10 — HybridCache + Redis backplane + tag eviction'
+  description: 'How fullstackhero wires HybridCache with L1 in-memory + L2 Redis, OpenTelemetry hit/miss/duration metrics, stampede protection, tag-based invalidation for per-tenant eviction, and a shared Redis multiplexer for Data Protection.'
+  keywords: 'hybridcache .net 10, redis cache asp.net core, tag based cache eviction, stampede protection cache, l1 l2 cache pattern'
+---
+
+`HybridCache` is the .NET 10 framework cache primitive. L1 is in-process memory; L2 is Redis (or `DistributedMemoryCache` for dev). The kit wraps it with `ObservableHybridCache` so every call emits OpenTelemetry metrics — hits, misses, duration, payload size.
+
+<Callout type="tip" title="Stampede protection is the win">
+HybridCache coalesces concurrent identical requests into a single source fetch automatically. The first caller blocks on the source; the rest of the wave wait on the same task. You don't write lock code; just call `GetOrCreateAsync` and the cache does the right thing.
+</Callout>
+
+## How it's wired
+
+```csharp
+// Program.cs (via AddHeroPlatform when EnableCaching = true)
+builder.AddHeroPlatform(o => o.EnableCaching = true);
+```
+
+`AddHeroCaching` reads `CachingOptions:Redis` from configuration. When set, L2 is `RedisCache` with a shared `IConnectionMultiplexer`. When empty, L2 falls back to `DistributedMemoryCache` (single-process; dev/test only).
+
+## Using the cache
+
+Inject `HybridCache` and call `GetOrCreateAsync`:
+
+```csharp
+public sealed class GetTenantConfigQueryHandler(HybridCache cache, ITenantConfigRepo repo)
+    : IQueryHandler<GetTenantConfigQuery, TenantConfig>
+{
+    public ValueTask<TenantConfig> Handle(GetTenantConfigQuery q, CancellationToken ct)
+        => cache.GetOrCreateAsync(
+            $"tenant-config:{q.TenantId}",
+            async (innerCt) => await repo.LoadAsync(q.TenantId, innerCt).ConfigureAwait(false),
+            tags: [$"tenant:{q.TenantId}"],
+            cancellationToken: ct);
+}
+```
+
+Three things happen automatically:
+
+1. **L1 hit** returns immediately without touching Redis or the source.
+2. **L1 miss / L2 hit** populates L1 and returns.
+3. **Both miss** runs the factory, populates L1 + L2, returns.
+
+The `tags` array enables targeted invalidation:
+
+```csharp
+// after the tenant's config changes
+await cache.RemoveByTagAsync($"tenant:{tenantId}", ct).ConfigureAwait(false);
+```
+
+This evicts every cache entry tagged with that tenant id across L1 + L2.
+
+## Configuration
+
+```jsonc
+{
+  "CachingOptions": {
+    "Redis": "localhost:6379",
+    "DefaultExpiration": "01:00:00",
+    "DefaultLocalCacheExpiration": "00:02:00",
+    "MaximumKeyLength": 1024,
+    "MaximumPayloadBytes": 1048576
+  }
+}
+```
+
+| Option | Default | Purpose |
+|---|---|---|
+| `Redis` | empty | Connection string; empty falls back to in-memory L2 |
+| `DefaultExpiration` | 1 hour | TTL applied to both L1 + L2 |
+| `DefaultLocalCacheExpiration` | 2 minutes | L1-only TTL; bounds cross-node staleness after `RemoveByTag` on peers |
+| `MaximumKeyLength` | 1024 | Keys longer than this are rejected |
+| `MaximumPayloadBytes` | 1 MB | Larger payloads are skipped silently (warning logged) |
+
+## Shared multiplexer
+
+`AddHeroCaching` registers a single `IConnectionMultiplexer` and shares it with:
+
+- **Data Protection** key persistence — so cookies survive rolling deploys.
+- **SignalR** Redis backplane (when realtime is enabled) — so realtime events fan out across instances.
+
+One Redis connection pool per host, not three. Bumping connection pool size affects all three consumers.
+
+## Who uses it in the kit
+
+- **Multitenancy module** uses HybridCache as Finbuckle's `DistributedCacheStore` for resolved tenants (60-minute TTL).
+- **Identity module** caches role-permission lookups via `RolePermissionSyncer` warming the cache at startup.
+- **Chat module** uses it for the 3-second typing-indicator throttle per (channel, user).
+- **Idempotency** uses it to cache request responses by `Idempotency-Key`.
+- **Webhooks module** uses tagged invalidation for tenant subscription updates.
+
+## Gotchas
+
+- **L1 has no backplane.** After `RemoveByTagAsync` on one instance, peer instances' L1 copies aren't invalidated. The `DefaultLocalCacheExpiration` (default 2 min) bounds staleness — don't set it too high if you rely on fast cross-node invalidation.
+- **Payload size cap is silent.** Entries larger than `MaximumPayloadBytes` are skipped with a warning log, not stored. Lookup will then miss every time. Log-search for "payload too large" warnings before assuming the cache is broken.
+- **`DistributedMemoryCache` is per-process.** Two instances of the API can't see each other's cache. Always check `CachingOptions:Redis` is set in production.
+
+## Related
+
+- [Caching building block](/docs/building-blocks/caching/) — the implementation reference.
+- [Idempotency](/docs/cross-cutting-concerns/idempotency/) — uses HybridCache to replay requests.
+- [Multitenancy module](/docs/modules/multitenancy/) — uses HybridCache for tenant resolution.

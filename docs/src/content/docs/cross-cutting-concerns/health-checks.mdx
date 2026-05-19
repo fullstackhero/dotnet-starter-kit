@@ -1,0 +1,168 @@
+---
+title: Health checks
+description: Liveness + readiness endpoints — database, Redis, MinIO, tenant migrations — for Kubernetes / Docker Compose / load balancer probes.
+sidebar:
+  label: Health checks
+  order: 7
+pageType: concept
+seo:
+  title: 'Health checks in .NET 10 — Postgres + Redis + MinIO + tenant migrations'
+  description: 'How fullstackhero exposes /health and /health/ready endpoints with database (per-DbContext), Redis, MinIO, and tenant-migration health checks ready for Kubernetes liveness/readiness probes.'
+  keywords: 'asp.net core health checks, kubernetes liveness readiness probe, health endpoint .net 10, redis health check, postgres health check'
+---
+
+Two health endpoints ship out of the box: `GET /health` for overall liveness, `GET /health/ready` for readiness. The kit registers checks for every dependency the host needs to function — database connections per registered `DbContext`, Redis when caching or jobs are enabled, MinIO when storage is configured, and a per-tenant migration check that reports whether every tenant DB is on the latest schema.
+
+<Callout type="tip" title="Liveness vs readiness">
+Liveness asks "is the process alive?" — restart if it fails. Readiness asks "is the process ready to take traffic?" — stop sending requests if it fails. The kit's `/health` is liveness (just respond), `/health/ready` is readiness (all dependencies green).
+</Callout>
+
+## What's checked
+
+| Check | Source | When registered |
+|---|---|---|
+| Per-DbContext | `Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore` | Always — one per `DbContext` |
+| Redis | Kit's `RedisHealthCheck` | When `CachingOptions:Redis` is set |
+| Hangfire | Kit's `HangfireHealthCheck` | When `EnableJobs = true` |
+| MinIO / S3 | `S3StorageService.HeadObjectAsync` against the bucket | When storage provider is `s3` |
+| Tenant migrations | Kit's `TenantMigrationsHealthCheck` | When `EnableHeroMultiTenantDatabases` is on |
+
+`AddHeroPlatform` registers everything based on which options you enabled.
+
+## How to wire probes
+
+### Kubernetes
+
+```yaml
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 8080
+  initialDelaySeconds: 30
+  periodSeconds: 10
+readinessProbe:
+  httpGet:
+    path: /health/ready
+    port: 8080
+  initialDelaySeconds: 10
+  periodSeconds: 5
+```
+
+### Docker Compose
+
+```yaml
+services:
+  api:
+    image: fsh-api:latest
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+```
+
+### Cloud load balancers
+
+Point them at `/health/ready` — they'll only route traffic to instances that report ready.
+
+## Response shape
+
+```http
+GET /health HTTP/1.1
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "status": "Healthy",
+  "totalDuration": "00:00:00.0123456",
+  "entries": {
+    "self": { "status": "Healthy" }
+  }
+}
+```
+
+```http
+GET /health/ready HTTP/1.1
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "status": "Healthy",
+  "totalDuration": "00:00:00.0543210",
+  "entries": {
+    "db:identity":    { "status": "Healthy", "duration": "00:00:00.0123456" },
+    "db:catalog":     { "status": "Healthy", "duration": "00:00:00.0234567" },
+    "redis":          { "status": "Healthy", "duration": "00:00:00.0098765" },
+    "minio":          { "status": "Healthy", "duration": "00:00:00.0234567" },
+    "tenant-migrations": { "status": "Healthy", "data": { "lagging": 0 } }
+  }
+}
+```
+
+When a check fails, the corresponding entry reports `Unhealthy` and the overall response is HTTP 503.
+
+## Adding your own check
+
+Implement `IHealthCheck` and register it during module startup:
+
+```csharp
+public sealed class CustomerApiHealthCheck(HttpClient http) : IHealthCheck
+{
+    public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken ct)
+    {
+        try
+        {
+            using var resp = await http.GetAsync("/health", ct).ConfigureAwait(false);
+            return resp.IsSuccessStatusCode
+                ? HealthCheckResult.Healthy()
+                : HealthCheckResult.Degraded($"Upstream returned {(int)resp.StatusCode}");
+        }
+        catch (Exception ex)
+        {
+            return HealthCheckResult.Unhealthy("Upstream unreachable", ex);
+        }
+    }
+}
+
+// register in the module's ConfigureServices
+services.AddHealthChecks().AddCheck<CustomerApiHealthCheck>("customer-api");
+```
+
+## Tagging checks for different endpoints
+
+Health checks support tag-based filtering. The kit uses two tags: `live` (for liveness — minimal checks) and `ready` (for readiness — everything). Register your custom check with the right tag:
+
+```csharp
+services.AddHealthChecks().AddCheck<MyCheck>("my-check", tags: new[] { "ready" });
+```
+
+`UseHeroPlatform` maps `/health` to `live`-tagged checks and `/health/ready` to `ready`-tagged checks.
+
+## Tenant migrations check
+
+`TenantMigrationsHealthCheck` is unusual — it queries every tenant's database and reports how many are behind the latest migration. Output:
+
+```json
+{
+  "tenant-migrations": {
+    "status": "Healthy",
+    "data": { "total": 42, "lagging": 0 }
+  }
+}
+```
+
+If `lagging > 0`, the check is `Degraded` (not `Unhealthy` — degraded keeps the host serving requests for healthy tenants while you investigate). Add an alert on `tenant-migrations.data.lagging > 0` so deployments that miss a tenant don't drift unnoticed.
+
+## What health checks don't tell you
+
+- **Per-endpoint health** — `/health` reports infrastructure state, not "is this specific endpoint working." Use synthetic monitoring (probing real endpoints with known payloads) for that.
+- **Latency** — health is binary; latency is a spectrum. Use the OpenTelemetry HTTP server metrics for latency SLOs.
+- **Tenant-specific outages** — one tenant's DB failing won't fail the overall health if other tenants' DBs are fine. Add a custom check that aggregates per-tenant connectivity if your SLA covers per-tenant availability.
+
+## Related
+
+- [Observability](/docs/cross-cutting-concerns/observability/) — for latency + error-rate signals.
+- [Deployment guide](/docs/deployment/) — how the probes are wired in the kit's docker-compose and Kubernetes manifests.
+- [Multitenancy module](/docs/modules/multitenancy/) — owns the per-tenant migration check.

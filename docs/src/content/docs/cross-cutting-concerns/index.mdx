@@ -1,211 +1,29 @@
 ---
 title: Cross-Cutting Concerns
-description: Caching, jobs, observability, idempotency, feature flags, rate limiting, health, SSE, realtime, HTTP resilience, and error handling — wired once, applied everywhere.
+description: Platform features that span every module — caching, jobs, observability, idempotency, feature flags, rate limiting, health, realtime, SSE, HTTP resilience, and error handling.
 sidebar:
   order: 1
 pageType: concept
 seo:
-  title: 'Cross-cutting concerns in .NET 10 — HybridCache, Hangfire, OpenTelemetry, idempotency'
-  description: 'How fullstackhero wires the platform features that span every module — HybridCache (L1+L2), Hangfire jobs, OpenTelemetry traces/metrics/logs, idempotency, feature flags with tenant overrides, rate limiting, health checks, SSE, SignalR, HTTP resilience.'
-  keywords: 'cross-cutting concerns .net 10, hybridcache hangfire opentelemetry, idempotency key dotnet, feature flags tenant override, http resilience polly'
+  title: 'Cross-cutting concerns in .NET 10 — fullstackhero platform features'
+  description: 'The eleven platform-level features that wire once and apply across every module in fullstackhero — caching, jobs, observability, idempotency, feature flags, rate limiting, health checks, SSE, realtime, HTTP resilience, error handling.'
+  keywords: 'cross-cutting concerns .net 10, platform features asp.net core, hybridcache hangfire opentelemetry, idempotency feature flags'
 ---
 
-Eleven platform features span every module in fullstackhero. They wire once at the host layer, then any module consumes them through the same interfaces and conventions — no per-module bespoke setup. This page is the inventory.
+Eleven platform features span every module in fullstackhero. They wire once at the host layer, then any module consumes them through the same interfaces and conventions — no per-module bespoke setup.
 
-<Callout type="tip" title="Feature flags everywhere, on by default for the cheap stuff">
-The kit's `FshPlatformOptions` (passed to `AddHeroPlatform`) toggle the optional sub-systems. Caching, jobs, mailing, feature flags, idempotency, SSE, realtime, and quotas are **off by default** — opt in to what you need. OpenAPI, OpenTelemetry, and global exception handling are on by default because the cost is negligible.
+<Callout type="tip" title="Toggle what you need">
+The kit's `FshPlatformOptions` (passed to `AddHeroPlatform`) toggle each optional sub-system. Caching, jobs, mailing, feature flags, idempotency, SSE, realtime, and quotas are **off by default** — opt in to what you need. OpenAPI, OpenTelemetry, and global exception handling are on by default because the cost is negligible.
 </Callout>
 
-## The eleven
+## The eleven concerns
 
-| Concern | Implementation | Building block |
-|---|---|---|
-| Caching | HybridCache (L1 in-memory + L2 Redis) | [Caching](/docs/building-blocks/caching/) |
-| Background jobs | Hangfire 1.8 (Postgres / in-memory) | [Jobs](/docs/building-blocks/jobs/) |
-| Observability | Serilog 4 + OpenTelemetry 1.15 (OTLP) | Web |
-| Idempotency | Idempotency-Key header + cache replay | Web |
-| Feature flags | Microsoft.FeatureManagement + tenant overrides | Web |
-| Rate limiting | ASP.NET Core RateLimiting, `auth` policy | Web |
-| Health checks | `Microsoft.Extensions.Diagnostics.HealthChecks` | Web |
-| Server-Sent Events | Custom SSE endpoints | Web |
-| Realtime | SignalR over Redis backplane | Web |
-| HTTP resilience | `Microsoft.Extensions.Http.Resilience` (Polly v8) | Web |
-| Errors | `ProblemDetails` (RFC 9457) global handler | Web |
+<SectionIndex section="cross-cutting-concerns" />
 
-## Caching
-
-`HybridCache` is the .NET 10 framework cache primitive. L1 lives in process memory; L2 lives in Redis (or `DistributedMemoryCache` for dev). The kit wraps it with `ObservableHybridCache` so every call emits OpenTelemetry metrics (hits, misses, duration, payload size).
-
-```csharp
-// inside any handler
-public ValueTask<TenantConfig> Handle(GetTenantConfigQuery q, CancellationToken ct)
-    => cache.GetOrCreateAsync(
-        $"tenant-config:{q.TenantId}",
-        async (ct) => await repo.LoadAsync(q.TenantId, ct).ConfigureAwait(false),
-        tags: [$"tenant:{q.TenantId}"],
-        cancellationToken: ct);
-```
-
-Stampede protection coalesces concurrent identical requests into a single source fetch. Tag-based invalidation lets you wipe an entire tenant's cache on plan change, suspension, or sign-out. L1 has no backplane, so `DefaultLocalCacheExpiration` (default 2 min) bounds cross-node staleness after `RemoveByTagAsync`.
-
-The kit shares the `IConnectionMultiplexer` between Caching, Data Protection, and SignalR — one Redis connection pool per host, not three.
-
-## Background jobs
-
-Hangfire 1.8 runs against Postgres (`Hangfire.PostgreSql`) or SQL Server. The kit's custom filters give you:
-
-- **`FshJobFilter`** — captures tenant + user at enqueue and restores them inside the job's scope.
-- **`FshJobActivator`** — resolves jobs from a fresh `IServiceScope` per execution, so each job gets a clean DbContext + ICurrentUser.
-- **`HangfireTelemetryFilter`** — OpenTelemetry activities per job with `job.name`, `job.queue`, `job.id` tags.
-- **`LogJobFilter`** — logs every state transition (Enqueued, Processing, Succeeded, Failed) via `ILogger`.
-- **`HangfireStaleLockCleanupService`** — releases orphaned locks after host startup.
-
-Recurring jobs in the kit:
-
-| Job | Module | Cron |
-|---|---|---|
-| `MonthlyInvoiceJob` | Billing | `5 0 1 * *` — 00:05 UTC on the 1st |
-| `PurgeOrphanedFilesJob` | Files | hourly |
-| `PurgeDeletedFilesJob` | Files | `30 3 * * *` — 03:30 UTC daily |
-| `AuditRetentionJob` | Auditing | `30 3 * * *` — daily (opt-in via `Auditing:Retention:Enabled`) |
-| `identity-outbox-dispatcher` | Identity | every minute |
-
-Dashboard at `/hangfire` (basic-auth gated).
-
-## Observability — Serilog + OpenTelemetry
-
-`AddHeroLogging` configures Serilog with HTTP-context enrichers (`RequestId`, `TraceId`, `UserId`, `TenantId`, `CorrelationId`). Output sinks: console + file by default; add OTLP for Loki/Grafana/etc.
-
-`AddHeroOpenTelemetry` wires the full stack against the OTLP exporter:
-
-- **Traces** — ASP.NET Core, HttpClient, EF Core, StackExchange.Redis, Npgsql, and a kit-specific `MediatorTracingBehavior` that spans every Mediator command/query.
-- **Metrics** — runtime metrics (GC, threadpool), HTTP server metrics, custom counters (cache hits/misses from the Caching block, job counters from the Hangfire telemetry filter).
-- **Logs** — Serilog-to-OTLP bridge so structured logs land in the same exporter.
-
-Point `OTLP_EXPORTER_OTLP_ENDPOINT` at your collector (Aspire dashboard locally, Honeycomb/Datadog/Grafana Cloud/Tempo/Loki in prod).
-
-## Idempotency
-
-Mutating endpoints carry a `.WithIdempotency()` extension. Callers send an `Idempotency-Key` header on each request; the kit caches the response (status + body) keyed on `(tenant, route, key)` for a configurable window (default 24h). Duplicate requests within the window return the cached response without re-executing the handler.
-
-```csharp
-endpoints.MapPost("/orders", handler)
-         .RequirePermission(perm)
-         .WithIdempotency();
-```
-
-Use it on every state-changing endpoint where double-submits or retries are realistic — checkouts, sends, creates that aren't naturally idempotent. The cache uses HybridCache, so the L2 (Redis) backing makes it work across instances.
-
-## Feature flags with tenant overrides
-
-`Microsoft.FeatureManagement.AspNetCore` is wired in `AddHeroPlatform` when `EnableFeatureFlags = true`. The kit ships a custom `TenantFeatureFilter` so flags can be enabled per tenant:
-
-```jsonc
-{
-  "FeatureManagement": {
-    "BetaProductImagesV2": {
-      "EnabledFor": [
-        { "Name": "Tenant", "Parameters": { "Tenants": ["acme", "globex"] } }
-      ]
-    }
-  }
-}
-```
-
-In code:
-
-```csharp
-public ValueTask<ProductDto> Handle(GetProductByIdQuery q, IFeatureManager features, CancellationToken ct)
-{
-    if (await features.IsEnabledAsync("BetaProductImagesV2").ConfigureAwait(false))
-        return await GetProductWithImagesV2(q, ct).ConfigureAwait(false);
-    return await GetProductLegacy(q, ct).ConfigureAwait(false);
-}
-```
-
-Toggle per environment, per tenant, per request. Removed flags should be cleaned up — `Microsoft.FeatureManagement` has no auto-cleanup.
-
-## Rate limiting
-
-`Microsoft.AspNetCore.RateLimiting`. The kit registers an `auth` policy applied to login / refresh / forgot / reset / self-register endpoints (fixed-window, per IP). For application-level rate limits, register additional policies in `RateLimitOptions` and apply with `.RequireRateLimiting("policy")`.
-
-The Quota block is a different concern — quotas enforce per-tenant resource budgets that span a calendar month, not requests per minute.
-
-## Health checks
-
-`AddHeroPlatform` registers health checks for:
-
-- **Database** — one per registered DbContext (`Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore`).
-- **Redis** — via `HangfireHealthCheck` and `RedisHealthCheck` when caching/jobs are enabled.
-- **MinIO / S3** — verifies the storage endpoint responds.
-- **Tenant migrations** — `TenantMigrationsHealthCheck` reports whether every tenant DB is on the latest migration.
-
-Endpoints:
-
-- `GET /health` — overall liveness.
-- `GET /health/ready` — readiness (everything green).
-
-Wire into your platform's probe configuration (Kubernetes `livenessProbe` + `readinessProbe`, Docker Compose `healthcheck`).
-
-## Server-Sent Events
-
-The kit ships a small SSE endpoint scaffold for one-way streaming (think "live audit log" or "tenant usage gauge"). Wire your own SSE endpoint via `MapHeroSse(...)` and the framework handles backpressure + client disconnection. The kit doesn't expose SSE endpoints by default — they're a primitive for you to mount per use case.
-
-## Realtime — SignalR
-
-`AppHub` lives in `BuildingBlocks/Web/Realtime` and is wired by `AddHeroRealtime`. Every connection joins `user:{userId}` plus every `channel:{channelId}` the user belongs to (Chat uses this). The Redis backplane (`AddStackExchangeRedis`) handles fan-out across instances.
-
-Handlers broadcast post-SaveChanges. The Chat module is the canonical example — `SendMessageCommandHandler` saves the message, then `IHubContext<AppHub>.Clients.Group($"channel:{id}").SendAsync(...)` pushes the event.
-
-For typing indicators, the kit uses a 3-second distributed-cache throttle per (channel, user) to suppress per-keystroke chatter.
-
-## HTTP resilience
-
-`Microsoft.Extensions.Http.Resilience` is built on Polly v8. Every named `HttpClient` in the kit (`"Webhooks"`, optional `"Email"`, etc.) gets:
-
-- **Retry** with exponential backoff on transient failures (5xx, 408, 429).
-- **Circuit breaker** to fail fast when a downstream is consistently broken.
-- **Timeout** to prevent hung requests from holding threadpool slots.
-- **Hedging** (optional) for read-only calls where latency variance matters more than load.
-
-Tune via `HeroResilience` extension or `Microsoft.Extensions.Http.Resilience`'s standard configuration patterns.
-
-## Errors — RFC 9457 ProblemDetails
-
-The `GlobalExceptionHandler` converts every uncaught exception into a `ProblemDetails` response:
-
-```http
-HTTP/1.1 409 Conflict
-Content-Type: application/problem+json
-
-{
-  "type": "https://docs.fullstackhero.net/errors/conflict",
-  "title": "Cannot resolve a closed ticket.",
-  "status": 409,
-  "detail": "Cannot resolve a closed ticket.",
-  "instance": "/api/v1/tickets/abc.../resolve",
-  "traceId": "00-..."
-}
-```
-
-The handler maps the kit's exception hierarchy (`NotFoundException` → 404, `ForbiddenException` → 403, `UnauthorizedException` → 401, `CustomException` → caller-specified status) to the response's status code. Production exposes title + status + traceId only; development includes details.
-
-Throw domain exceptions from inside aggregates; the handler does the HTTP translation. Don't wrap exceptions with try/catch in handlers just to return a custom response shape — let the global handler do it.
-
-## Mediator pipeline behaviors
-
-Three behaviors run before every Mediator handler:
-
-1. **`ValidationBehavior`** — runs FluentValidation against the request; throws `ValidationException` → 400 with the field errors as a `ProblemDetails`.
-2. **`MediatorTracingBehavior`** — opens an OpenTelemetry activity per command/query.
-3. **(any custom behavior you register)** — runs in the order registered.
-
-Add a timing behavior, a logging behavior, an idempotency behavior — the pipeline is open. Each gets a `next` delegate to invoke the next link.
+Each page covers one concern in depth — how it's wired, where the implementation lives, how modules consume it, and the gotchas worth knowing.
 
 ## Related
 
-- [Web building block](/docs/building-blocks/web/) — the composition glue.
-- [Caching](/docs/building-blocks/caching/) — HybridCache details.
-- [Jobs](/docs/building-blocks/jobs/) — Hangfire wiring.
-- [Auditing module](/docs/modules/auditing/) — observability of state changes.
-- [Security](/docs/security/) — auth, authorization, tenant isolation.
+- [Web building block](/docs/building-blocks/web/) — the composition root that wires every concern.
+- [Modules overview](/docs/modules/) — every module composes against these features.
+- [Architecture: dependency injection](/docs/architecture/dependency-injection/) — how `AddHeroPlatform` ties it together.

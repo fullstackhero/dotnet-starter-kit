@@ -1,0 +1,162 @@
+---
+title: Realtime
+description: SignalR with a Redis backplane, group conventions for users + channels, post-SaveChanges broadcast pattern, and distributed-cache typing throttle.
+sidebar:
+  label: Realtime (SignalR)
+  order: 9
+pageType: concept
+seo:
+  title: 'Realtime in .NET 10 — SignalR + Redis backplane + AppHub conventions'
+  description: 'How fullstackhero wires SignalR over a Redis backplane with AppHub group conventions (user:{id}, channel:{id}), post-SaveChanges broadcast from handlers, and the 3-second distributed-cache typing throttle pattern.'
+  keywords: 'asp.net core signalr .net 10, signalr redis backplane, signalr group conventions, realtime chat dotnet, signalr authentication query token'
+---
+
+The kit's realtime surface is a single SignalR hub — `AppHub` in `BuildingBlocks/Web/Realtime/` — serving every realtime concern. On connect, every user joins their personal `user:{userId}` group plus every `channel:{channelId}` they belong to. Handlers broadcast via `IHubContext<AppHub>` after `SaveChanges` commits; the Redis backplane fans the broadcast across instances.
+
+<Callout type="tip" title="One hub, many concerns">
+A second hub would mean a second auth pipeline, a second backplane configuration, a second pile of client-side connection state. Keep all realtime traffic on `AppHub`; identify event types via the SignalR method name (`ChatMessageCreated`, `NotificationCreated`, `TicketResolved`).
+</Callout>
+
+## Opt in
+
+```csharp
+builder.AddHeroPlatform(o => o.EnableRealtime = true);
+app.UseHeroPlatform(p => p.MapRealtime = true);
+```
+
+`AddHeroRealtime` wires the hub registration; if `CachingOptions:Redis` is set, it also calls `AddStackExchangeRedis(...)` so cross-instance message fan-out works. Without Redis, every instance broadcasts only to its own connected clients — fine for dev, not for multi-instance production.
+
+## Group conventions
+
+When a user's `HubConnection` lands at `/realtime/hub`, the hub's `OnConnectedAsync` joins:
+
+1. `user:{userId}` — for events targeted at this user (notifications, DM events, ticket-assigned).
+2. `channel:{channelId}` for every channel the user belongs to (the kit's `IUserChannelLookup` returns the list).
+
+The result: broadcasting to `Clients.Group($"user:{userId}")` reaches every device that user is signed in on; broadcasting to `Clients.Group($"channel:{channelId}")` reaches every member of the channel.
+
+For domain-specific groups (e.g. "everyone watching this dashboard"), invent a stable group name (`dashboard:{tenantId}:{dashboardId}`) and call `Groups.AddToGroupAsync` from a hub method or post-connect logic.
+
+## Broadcasting from a handler
+
+The kit's pattern is "save changes, then broadcast":
+
+```csharp
+public sealed class SendMessageCommandHandler(
+    IChatDbContext db,
+    IHubContext<AppHub> hub,
+    ICurrentUser current)
+    : ICommandHandler<SendMessageCommand, MessageDto>
+{
+    public async ValueTask<MessageDto> Handle(SendMessageCommand cmd, CancellationToken ct)
+    {
+        var message = Message.Create(/* ... */);
+        db.Messages.Add(message);
+        await db.SaveChangesAsync(ct).ConfigureAwait(false);  // first commit, then broadcast
+
+        var dto = MessageDto.From(message);
+        await hub.Clients.Group($"channel:{cmd.ChannelId}")
+            .SendAsync("ChatMessageCreated", dto, ct).ConfigureAwait(false);
+        return dto;
+    }
+}
+```
+
+The order matters: if you broadcast before SaveChanges and the commit fails, you've leaked a phantom event to clients. Always commit first, broadcast second.
+
+## Typing indicator with throttle
+
+Chat-style typing indicators flood the wire if you broadcast every keystroke. The kit's pattern is a **3-second distributed-cache throttle** per (channel, user):
+
+```csharp
+// AppHub.cs (simplified)
+public async Task Typing(Guid channelId)
+{
+    if (!await _membership.IsMemberAsync(channelId, UserId, ct).ConfigureAwait(false)) return;
+
+    var throttleKey = $"chat:typing:{channelId}:{UserId}";
+    if (!await _cache.TryClaimAsync(throttleKey, TimeSpan.FromSeconds(3), ct).ConfigureAwait(false))
+        return;
+
+    await Clients.Group($"channel:{channelId}").SendAsync(
+        "ChatTypingStarted",
+        new { channelId, userId = UserId },
+        ct).ConfigureAwait(false);
+}
+```
+
+`TryClaimAsync` returns true exactly once per (channel, user) per 3-second window. With Redis, the throttle is cluster-wide — chatty clients can't bypass by reconnecting to a different node.
+
+## Authenticating SignalR connections
+
+Browsers' native `WebSocket` API doesn't accept `Authorization` headers on the initial handshake. SignalR's JS client routes around this by accepting an `accessTokenFactory`:
+
+```ts
+const conn = new HubConnectionBuilder()
+  .withUrl('/realtime/hub', { accessTokenFactory: () => getAccessToken() })
+  .withAutomaticReconnect()
+  .build();
+```
+
+The factory returns the JWT; the SignalR client appends it as `?access_token=...`. The kit's `ConfigureJwtBearerOptions` has `OnMessageReceived` extended to accept `?access_token=` for `/realtime/hub` and `/notifications` so the standard JWT pipeline validates it.
+
+## Reading the user from the hub
+
+`AppHub` reads identity from `Context.User`, not from a constructor-injected `ICurrentUser`. The reason: `ICurrentUser` depends on `IHttpContextAccessor`, and the originating `HttpContext` from the SignalR negotiate request is not pinned to subsequent hub-method invocations. Read claims directly:
+
+```csharp
+private Guid UserId
+{
+    get
+    {
+        var raw = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+               ?? Context.User?.FindFirst("sub")?.Value
+               ?? Context.User?.FindFirst("uid")?.Value
+               ?? throw new HubException("No user id in JWT claims.");
+        return Guid.Parse(raw);
+    }
+}
+```
+
+This is a memory-noted gotcha — `ICurrentUser` in a hub method returns the wrong identity (or null) once the connection has been alive for any length of time. Always go through `Context.User`.
+
+## Integration testing SignalR
+
+`TestServer` (which the kit uses for integration tests) has **no WebSocket transport**. Tests must force long-polling on the connection:
+
+```csharp
+var hub = new HubConnectionBuilder()
+    .WithUrl(client.BaseAddress + "realtime/hub", options =>
+    {
+        options.Transports = HttpTransportType.LongPolling;
+        options.WebSocketFactory = (_, _) => throw new NotSupportedException();
+    })
+    .Build();
+```
+
+This is in `Tests/Integration.Tests/Infrastructure/SignalRTestClient.cs`. Use it as the template for any new realtime integration test.
+
+## Configuration
+
+```jsonc
+{
+  "CachingOptions": {
+    "Redis": "localhost:6379"           // SignalR backplane uses the same multiplexer
+  },
+  "Cors": {
+    "AllowedOrigins": ["https://app.example.com"]
+  }
+}
+```
+
+Two important config notes:
+
+- **CORS for credentialed requests.** Dev's "allow any origin" silently breaks SignalR — credentialed CORS requires an explicit origin whitelist. Use `SetIsOriginAllowed(_ => true) + AllowCredentials()` in dev; explicit origin allow-list in prod.
+- **Sticky sessions / connection affinity.** Long-polling fallback needs sticky sessions on the load balancer; WebSockets don't. Configure both layers to be safe.
+
+## Related
+
+- [Chat module](/docs/modules/chat/) — the canonical consumer of every realtime feature listed here.
+- [Notifications module](/docs/modules/notifications/) — `NotificationCreated` push.
+- [Server-Sent Events](/docs/cross-cutting-concerns/server-sent-events/) — one-way streaming when SignalR is overkill.
+- [Caching](/docs/cross-cutting-concerns/caching/) — the Redis backplane is shared with the cache.

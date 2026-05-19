@@ -1,0 +1,116 @@
+---
+title: Background jobs
+description: Hangfire 1.8 wired with tenant context preservation, DI-aware scoped activation, OpenTelemetry instrumentation, and a basic-auth-gated dashboard.
+sidebar:
+  label: Background jobs
+  order: 2
+pageType: concept
+seo:
+  title: 'Background jobs in .NET 10 — Hangfire with multi-tenant + OTel'
+  description: 'How fullstackhero wires Hangfire 1.8 with PostgreSQL or SQL Server storage, FshJobFilter preserving tenant context across enqueue → execute, FshJobActivator for scoped DI per job, and OpenTelemetry activities per job execution.'
+  keywords: 'hangfire .net 10, hangfire multi-tenant context, hangfire dependency injection, hangfire opentelemetry, hangfire postgres storage'
+---
+
+Hangfire 1.8 powers every background job in fullstackhero. The Jobs building block wraps it with four kit-specific filters: `FshJobFilter` preserves tenant + user context across enqueue → execute, `FshJobActivator` resolves jobs from a scoped DI container per execution, `HangfireTelemetryFilter` opens an OpenTelemetry activity per job, and `LogJobFilter` logs every state transition.
+
+<Callout type="tip" title="Enqueue from a request, run with the same tenant">
+Without `FshJobFilter`, a job dequeued on a background thread has no `HttpContext` and therefore no tenant. The filter captures `ICurrentUser.GetTenant()` at enqueue time and pushes it onto `IMultiTenantContextSetter` before the job body runs. The job sees the same tenant the originating request did — without you writing any boilerplate.
+</Callout>
+
+## How it's wired
+
+```csharp
+builder.AddHeroPlatform(o => o.EnableJobs = true);   // turns on AddHeroJobs
+
+app.UseHeroJobDashboard(builder.Configuration);       // mounts /hangfire
+```
+
+Storage provider falls out of `DatabaseOptions:Provider`:
+
+- `PostgreSQL` → `Hangfire.PostgreSql`
+- `MSSQL` → SQL Server storage
+
+The kit defaults to 5 workers, 30-second heartbeat, queues `default` + `email`, 30-second polling.
+
+## Enqueueing a job
+
+Inject `IJobService` and call `EnqueueAsync` / `ScheduleAsync`:
+
+```csharp
+public sealed class SendInvoiceEmailCommandHandler(IJobService jobs)
+    : ICommandHandler<SendInvoiceEmailCommand, Unit>
+{
+    public ValueTask<Unit> Handle(SendInvoiceEmailCommand cmd, CancellationToken ct)
+    {
+        jobs.Enqueue<SendInvoiceEmailJob>(j => j.RunAsync(cmd.InvoiceId, CancellationToken.None));
+        return ValueTask.FromResult(Unit.Value);
+    }
+}
+```
+
+Hangfire serializes the call signature; the activator resolves `SendInvoiceEmailJob` from a fresh DI scope when the job dequeues. The job can inject `DbContext`, `IMailService`, `ICurrentUser`, etc.
+
+## Recurring jobs in the kit
+
+| Job | Module | Cron |
+|---|---|---|
+| `MonthlyInvoiceJob` | Billing | `5 0 1 * *` — 00:05 UTC on the 1st of each month |
+| `PurgeOrphanedFilesJob` | Files | hourly |
+| `PurgeDeletedFilesJob` | Files | `30 3 * * *` — 03:30 UTC daily |
+| `AuditRetentionJob` | Auditing | `30 3 * * *` — daily (opt-in via `Auditing:Retention:Enabled`) |
+| `identity-outbox-dispatcher` | Identity | every minute |
+
+Register your own with `IRecurringJobManager`:
+
+```csharp
+recurringJobs.AddOrUpdate<MyHourlyJob>(
+    "my-hourly-job",
+    job => job.RunAsync(CancellationToken.None),
+    "0 * * * *",                         // top of every hour
+    TimeZoneInfo.Utc);
+```
+
+## Retry policies
+
+Per-job retry via the `[AutomaticRetry]` attribute:
+
+```csharp
+[AutomaticRetry(Attempts = 4, OnAttemptsExceeded = AttemptsExceededAction.Fail,
+                DelaysInSeconds = new[] { 30, 120, 600, 3600 })]
+public sealed class WebhookDispatchJob
+{
+    public async Task RunAsync(/* ... */) { /* ... */ }
+}
+```
+
+The Webhooks module uses this exact pattern — 5 attempts total (1 initial + 4 retries) with 30 s / 2 min / 10 min / 1 h exponential backoff.
+
+## Dashboard
+
+`UseHeroJobDashboard(app, config)` mounts the Hangfire dashboard at `HangfireOptions:Route` (default `/hangfire`), gated by `HangfireCustomBasicAuthenticationFilter`.
+
+```jsonc
+{
+  "HangfireOptions": {
+    "UserName": "admin",
+    "Password": "set-via-secrets",
+    "Route": "/hangfire"
+  }
+}
+```
+
+Always HTTPS in production. Consider IP whitelisting in the reverse proxy on top of basic auth.
+
+## Gotchas
+
+- **Hangfire serializes arguments.** Pass primitives (Guid, string, int) — not large object graphs. If you need state, look it up inside the job from the DI-resolved DbContext.
+- **`FshJobActivator` creates a new scope per job.** Don't try to share state via scoped services across job invocations; each gets a clean container. Use Redis / DB for cross-job state.
+- **Stale-lock cleanup runs ~10s after host startup.** `HangfireStaleLockCleanupService` releases locks from servers that crashed without releasing. The delay avoids interfering with legitimate startup-time job acquisition.
+- **Background jobs and tenant context.** Enqueuing happens inside a request scope (so `ICurrentUser` works). Execution happens on a background thread (so it doesn't). `FshJobFilter` bridges this — but if you write your own filter or skip the kit's activator, restore the tenant context manually.
+
+## Related
+
+- [Jobs building block](/docs/building-blocks/jobs/) — the implementation reference.
+- [Billing module](/docs/modules/billing/) — `MonthlyInvoiceJob` recurring schedule.
+- [Files module](/docs/modules/files/) — orphan + retention purge jobs.
+- [Webhooks module](/docs/modules/webhooks/) — `[AutomaticRetry]` with exponential backoff.

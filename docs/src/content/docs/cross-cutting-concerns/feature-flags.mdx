@@ -1,0 +1,156 @@
+---
+title: Feature flags
+description: Microsoft.FeatureManagement with a custom TenantFeatureFilter so flags can be enabled per tenant.
+sidebar:
+  label: Feature flags
+  order: 5
+pageType: concept
+seo:
+  title: 'Feature flags in .NET 10 — Microsoft.FeatureManagement + tenant overrides'
+  description: 'How fullstackhero wires Microsoft.FeatureManagement.AspNetCore with a custom TenantFeatureFilter so flags can be enabled per tenant — for staged rollouts, beta cohorts, kill switches.'
+  keywords: 'microsoft featuremanagement .net 10, feature flag tenant override, asp.net core feature toggle, staged rollout dotnet'
+---
+
+`Microsoft.FeatureManagement.AspNetCore` is the kit's feature-flag system. The kit ships a custom `TenantFeatureFilter` so flags can be enabled for specific tenants — useful for staged rollouts, beta cohorts, kill switches per customer, and per-environment toggles without code changes.
+
+<Callout type="tip" title="Use flags for risky deploys, not as permanent config">
+A feature flag's job is to ship a risky change behind a switch you can flip if it goes wrong. Once the feature is stable, **remove the flag**. Flags that linger forever become a different (worse) kind of dead code than the alternative they were meant to replace.
+</Callout>
+
+## Opt in
+
+```csharp
+builder.AddHeroPlatform(o => o.EnableFeatureFlags = true);
+```
+
+`AddHeroPlatform` registers `Microsoft.FeatureManagement` services plus `TenantFeatureFilter` so per-tenant evaluation works.
+
+## Declaring flags
+
+Flags live in `appsettings.json` under `FeatureManagement`. Three example shapes:
+
+```jsonc
+{
+  "FeatureManagement": {
+    // 1. simple on/off
+    "BetaCheckoutFlow": true,
+
+    // 2. tenant-scoped — only enabled for listed tenants
+    "BetaProductImagesV2": {
+      "EnabledFor": [
+        { "Name": "Tenant", "Parameters": { "Tenants": ["acme", "globex"] } }
+      ]
+    },
+
+    // 3. multi-filter (tenant + percentage rollout)
+    "NewSearchUi": {
+      "EnabledFor": [
+        { "Name": "Tenant", "Parameters": { "Tenants": ["acme"] } },
+        { "Name": "Percentage", "Parameters": { "Value": 10 } }
+      ]
+    }
+  }
+}
+```
+
+The `Tenant` filter is the kit's `TenantFeatureFilter`; the `Percentage` filter is built into `Microsoft.FeatureManagement`. You can stack filters — they OR together by default (any filter passing enables the flag).
+
+## Checking a flag
+
+Inject `IFeatureManager` and call `IsEnabledAsync`:
+
+```csharp
+public sealed class GetProductByIdQueryHandler(
+    ICatalogDbContext db,
+    IFeatureManager features,
+    IImageEnricher images)
+    : IQueryHandler<GetProductByIdQuery, ProductResponse>
+{
+    public async ValueTask<ProductResponse> Handle(GetProductByIdQuery q, CancellationToken ct)
+    {
+        var product = await db.Products.FindAsync([q.ProductId], ct).ConfigureAwait(false);
+
+        if (await features.IsEnabledAsync("BetaProductImagesV2").ConfigureAwait(false))
+            return await images.EnrichV2Async(product, ct).ConfigureAwait(false);
+
+        return ProductResponse.From(product);
+    }
+}
+```
+
+The check resolves the current tenant context (via `ICurrentUser.GetTenant()`) and consults the registered filters. No flag definition? `IsEnabledAsync` returns `false`.
+
+## Gating endpoints
+
+For all-or-nothing endpoint gating, use the `[FeatureGate]` attribute:
+
+```csharp
+endpoints.MapGet("/catalog/products/recommended", handler)
+         .RequirePermission(perm)
+         .WithMetadata(new FeatureGateAttribute("RecommendationsEndpoint"));
+```
+
+When the flag is off, the endpoint returns 404 (or whichever fallback the gate is configured with). Use this for shipping new endpoints behind a flag without exposing them broadly.
+
+## Common patterns
+
+### Staged rollout
+
+Enable for one tenant first, then add more once you're confident:
+
+```jsonc
+{
+  "FeatureManagement": {
+    "NewBilling": {
+      "EnabledFor": [
+        { "Name": "Tenant", "Parameters": { "Tenants": ["test-tenant"] } }
+      ]
+    }
+  }
+}
+```
+
+Re-deploy with more tenants in the array as confidence grows; eventually drop the filter and set the flag to `true` globally.
+
+### Kill switch
+
+```jsonc
+{ "FeatureManagement": { "ChatRealtimeEnabled": true } }
+```
+
+Set to `false` in an incident to instantly disable the SignalR push path without redeploying. Have the handler fall back to polling, or return a graceful "feature temporarily unavailable" response.
+
+### Per-environment
+
+`appsettings.Production.json` overrides `appsettings.json`. Set flags to `false` for production until they ship:
+
+```jsonc
+// appsettings.Production.json
+{
+  "FeatureManagement": {
+    "BetaCheckoutFlow": false
+  }
+}
+```
+
+## Where flag state lives
+
+In **configuration**. The kit doesn't ship a database-backed flag store. That's deliberate: editing JSON config is cheap, auditable through git history, and doesn't require a separate management UI.
+
+If you outgrow JSON — you need runtime flag toggles without redeploy, or per-user (not per-tenant) flags — wire a custom `IFeatureDefinitionProvider` against your store of choice (Redis, EF Core, ConfigCat, LaunchDarkly). The kit's `TenantFeatureFilter` pattern is the template for custom filters.
+
+## Removing a flag
+
+When a flag has been on globally for a while and the alternative is gone:
+
+1. Delete the flag definition from `appsettings.json`.
+2. Remove the `IFeatureManager.IsEnabledAsync` call in the handler — collapse the conditional to the always-on branch.
+3. Delete the dead alternative path.
+
+Don't skip step 3. Lingering "old" branches are technical debt and a security risk (un-tested code that might still be reachable).
+
+## Related
+
+- [Multitenancy module](/docs/modules/multitenancy/) — the tenant resolution that `TenantFeatureFilter` reads.
+- [Production checklist](/docs/security/) — flag hygiene before a major release.
+- [Web building block](/docs/building-blocks/web/) — `EnableFeatureFlags` toggle.

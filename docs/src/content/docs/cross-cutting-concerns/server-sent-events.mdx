@@ -1,0 +1,119 @@
+---
+title: Server-Sent Events
+description: A small SSE endpoint scaffold for one-way streaming (live audit log, usage gauge, build status) without the complexity of SignalR.
+sidebar:
+  label: Server-Sent Events
+  order: 8
+pageType: concept
+seo:
+  title: 'Server-Sent Events in .NET 10 — one-way streaming primitives'
+  description: 'How fullstackhero exposes a small SSE endpoint scaffold for one-way streaming use cases — live audit log tail, usage gauge updates, build status feeds — without taking on the connection-state complexity of SignalR.'
+  keywords: 'asp.net core server-sent events, sse dotnet, one-way streaming .net 10, eventsource api'
+---
+
+Server-Sent Events (SSE) are a small HTTP-streaming primitive: one connection, one direction, plain-text frames. The kit ships a thin SSE endpoint scaffold for the cases where SignalR is overkill — live audit log tails, usage gauge updates, build-status feeds.
+
+<Callout type="tip" title="SSE vs SignalR — when to use which">
+**Use SSE** when the server pushes to the client and the client doesn't push back. Smaller surface, no client library required (browsers ship `EventSource`), works through most proxies, lower memory footprint.
+<br /><br />
+**Use SignalR** when you need bidirectional messaging (typing indicators, presence, chat), automatic reconnection logic, or you already have it wired (the Chat + Notifications modules already use SignalR — adding SSE alongside is fine).
+</Callout>
+
+## Opt in
+
+```csharp
+builder.AddHeroPlatform(o => o.EnableSse = true);    // service registration
+app.UseHeroPlatform(p => p.MapSseEndpoints = true);  // pipeline mapping
+```
+
+`AddHeroSse` registers the kit's SSE plumbing (a connection registry, a default heartbeat interval, a backpressure-aware writer). `MapSseEndpoints` is a no-op unless you map specific endpoints — the kit doesn't expose SSE endpoints by default.
+
+## A minimal SSE endpoint
+
+Map a route that writes Server-Sent Events to the response:
+
+```csharp
+endpoints.MapGet("/api/v1/usage/stream", async (
+    HttpContext ctx,
+    IUsageStreamer usage,
+    CancellationToken ct) =>
+{
+    ctx.Response.Headers.ContentType = "text/event-stream";
+    ctx.Response.Headers.CacheControl = "no-cache";
+    ctx.Response.Headers["X-Accel-Buffering"] = "no";    // disable nginx buffering
+
+    await foreach (var update in usage.SubscribeAsync(ct).ConfigureAwait(false))
+    {
+        var json = JsonSerializer.Serialize(update);
+        await ctx.Response.WriteAsync($"event: usage\ndata: {json}\n\n", ct).ConfigureAwait(false);
+        await ctx.Response.Body.FlushAsync(ct).ConfigureAwait(false);
+    }
+})
+.RequirePermission(perm);
+```
+
+Three things make SSE work:
+
+- `Content-Type: text/event-stream` so browsers recognise the stream.
+- `Cache-Control: no-cache` so proxies don't buffer the stream.
+- Periodic flushes so the bytes actually reach the client.
+
+## Client side
+
+Native `EventSource` is one line:
+
+```js
+const stream = new EventSource('/api/v1/usage/stream');
+stream.addEventListener('usage', (e) => {
+  const update = JSON.parse(e.data);
+  // ... render
+});
+stream.onerror = () => console.warn('Stream dropped; will auto-reconnect');
+```
+
+`EventSource` auto-reconnects on drop. The browser respects the `retry: N` field if you send one, otherwise defaults to ~3s.
+
+## What SSE doesn't do
+
+- **No bidirectional messaging.** Server → client only. If the client needs to send anything back, use a separate HTTP request or switch to SignalR.
+- **No authentication via headers in the browser.** `EventSource` doesn't accept `Authorization` headers. Pass the token as a query string parameter, validate it server-side, and prefer short-lived tokens. (The kit's auth pipeline accepts `?access_token=` for SignalR's `/realtime/hub` for the same reason; reuse the pattern.)
+- **No native message ack.** If you need delivery guarantees, the client needs to send back a "last seen" cursor and the server replays from there. Build this into your application protocol if you need it.
+
+## Authenticating SSE
+
+For browser-initiated streams, pass the token in the URL:
+
+```js
+const url = `/api/v1/usage/stream?access_token=${encodeURIComponent(token)}`;
+const stream = new EventSource(url);
+```
+
+In the endpoint handler, validate `?access_token=` via the existing JWT pipeline. Use short-lived tokens (the kit's default 60-minute access tokens are fine), and treat the URL as sensitive (no logging full URLs).
+
+## Backpressure + slow clients
+
+Slow clients build up bytes in the server's send buffer. The kit's SSE writer enforces a configurable timeout on individual writes; if the timeout expires, the connection is dropped (the client reconnects, the server starts a fresh subscription).
+
+```jsonc
+{
+  "SseOptions": {
+    "WriteTimeout": "00:00:05",
+    "HeartbeatInterval": "00:00:15"
+  }
+}
+```
+
+A 15-second heartbeat (empty `:\n\n` comment frame) prevents intermediaries (corporate proxies, load balancers) from killing idle-looking connections.
+
+## When to reach for SignalR instead
+
+- **Chat-like patterns** — bidirectional, presence, typing indicators, multi-channel.
+- **Need client-driven actions** — start / stop / pause / resume the stream from the client.
+- **Web-worker / SharedWorker complexity** — SignalR's `HubConnection` works well across multiple tabs sharing a connection.
+- **You already have SignalR enabled** — adding SSE alongside is fine but each new mechanism is a maintenance surface. Pick one.
+
+## Related
+
+- [Realtime (SignalR)](/docs/cross-cutting-concerns/realtime/) — bidirectional mode.
+- [Chat module](/docs/modules/chat/) — SignalR usage example.
+- [Web building block](/docs/building-blocks/web/) — `EnableSse` toggle.
