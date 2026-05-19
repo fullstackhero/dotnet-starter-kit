@@ -1,0 +1,128 @@
+---
+import SectionEyebrow from './SectionEyebrow.astro';
+
+const faqs = [
+  {
+    q: 'Is FullStackHero really 100% free?',
+    a: "Yes. The whole repository is MIT-licensed end-to-end — backend, both React apps, all ten modules, all deployment templates. There is no paid tier, no premium module, no commercial license, and no telemetry phoning home. Use it for a hobby project or for a venture-backed company; the licence is the same.",
+  },
+  {
+    q: 'How production-ready is it?',
+    a: "The kit is at v1.0.0-rc.1 with around 900 [Fact]/[Theory] tests across unit, integration and architecture suites passing on every build. It uses only first-party Microsoft and best-in-class OSS libraries (EF Core 10, Hangfire 1.8, Finbuckle 10, Mediator 3, FluentValidation 12, OpenTelemetry 1.15) — no bespoke runtime framework you'd be locked into. v1 ships when the remaining release-candidate items are closed.",
+  },
+  {
+    q: 'How is this different from ABP Framework?',
+    a: "ABP is a heavyweight opinionated framework with its own DI conventions, CLI, and module system. FullStackHero is closer to a great-defaults reference application: it uses standard ASP.NET Core minimal APIs, plain Microsoft.Extensions.DependencyInjection, and the same Mediator/FluentValidation primitives the rest of the .NET ecosystem already knows. You own the code on day one and can refactor it freely.",
+  },
+  {
+    q: "How is this different from Jason Taylor's or Ardalis's Clean Architecture templates?",
+    a: "Those templates ship an architecture; FullStackHero ships ten production modules on top of an architecture. Clean Architecture templates are intentionally minimal — they give you the four-project layout and let you build everything else. FullStackHero gives you Identity, Multitenancy, Auditing, Files, Chat, Notifications, Webhooks, Billing, Catalog and Tickets already wired up, so your first commit is feature code.",
+  },
+  {
+    q: 'Do I have to use all ten modules?',
+    a: "No. Each module is its own project and registers itself through the IModule contract. Delete the ones you don't need from the moduleAssemblies array in Program.cs and remove the project from the solution — the rest of the kit keeps working. Cross-module communication only happens through *.Contracts assemblies, so removing a module never breaks another.",
+  },
+  {
+    q: 'Can I use it to build a multi-tenant SaaS?',
+    a: "Yes — multitenancy is the default, not an add-on. Tenant isolation is enforced on every entity through an EF Core global query filter; entities opt in by inheriting BaseEntity or marking IHasTenant. System-wide rows (plans, impersonation grants, outbox messages) opt out by implementing IGlobalEntity. Caching, background jobs, and the outbox pattern are all tenant-aware.",
+  },
+  {
+    q: 'How do I deploy it?',
+    a: "Two paths. For development, .NET Aspire orchestrates everything with a single dotnet run command. For production, deploy/docker/docker-compose.yml ships a complete stack (PostgreSQL, Redis, MinIO, API, Admin, Dashboard, DbMigrator) you can stand up on a single host. Each service is also a normal Docker image you can ship to Kubernetes, Azure App Service, AWS ECS, or anywhere else.",
+  },
+  {
+    q: 'How do I receive updates after I clone it?',
+    a: "FullStackHero is a copy-and-own starter, not a runtime dependency. You take the snapshot you cloned and evolve it however you want. Pull individual fixes from upstream when you want to; cherry-pick patches; or freeze your fork and never look back. There is no upstream package you have to keep upgrading.",
+  },
+];
+---
+
+<section class="relative isolate overflow-hidden border-t border-border" id="faq">
+  <div class="mx-auto w-full max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
+    <SectionEyebrow n="06" right="Answers in plain English">Frequently asked</SectionEyebrow>
+
+    <div class="max-w-2xl">
+      <h2 class="text-balance font-display font-semibold tracking-[-0.035em] text-[36px] leading-[1.04] sm:text-[48px] md:text-[56px]">
+        <span class="font-light text-muted-foreground">The questions</span>
+        <span class="mt-1 block">
+          <span class="relative inline-block text-foreground">
+            <span class="relative z-[1] font-bold">developers actually ask.</span>
+            <span
+              aria-hidden="true"
+              class="absolute -bottom-1 left-0 right-0 h-2 rounded-full"
+              style="background: color-mix(in oklab, var(--primary) 50%, transparent);"
+            ></span>
+          </span>
+        </span>
+      </h2>
+      <p class="mt-6 max-w-xl text-[15.5px] leading-relaxed text-muted-foreground sm:text-[16.5px]">
+        Honest answers to what we get asked the most. If your question isn't here,
+        <a href="https://github.com/fullstackhero/dotnet-starter-kit/discussions" class="underline underline-offset-4 hover:text-foreground">
+          open a discussion
+        </a>
+        on GitHub.
+      </p>
+    </div>
+
+    <ul class="mt-14 divide-y divide-border rounded-2xl border border-border bg-card/40 backdrop-blur-sm">
+      {faqs.map((item, i) => (
+        <li>
+          <details class="faq-item group" open={i === 0}>
+            <summary class="flex cursor-pointer items-center justify-between gap-4 px-5 py-5 transition-colors hover:bg-foreground/[0.02] sm:px-6">
+              <div class="flex items-baseline gap-4">
+                <span class="font-mono text-[10.5px] font-semibold uppercase tracking-[0.18em] tabular-nums text-primary">
+                  Q.{String(i + 1).padStart(2, '0')}
+                </span>
+                <h3 class="font-display text-[16px] font-semibold tracking-[-0.01em] text-foreground sm:text-[17px]">
+                  {item.q}
+                </h3>
+              </div>
+              <span
+                aria-hidden="true"
+                class="faq-icon inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-all group-open:rotate-45 group-open:border-primary/40 group-open:bg-primary/5 group-open:text-primary"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+              </span>
+            </summary>
+            <div class="px-5 pb-6 pl-[68px] pr-12 text-[14.5px] leading-relaxed text-muted-foreground sm:px-6 sm:pl-[88px]">
+              {item.a}
+            </div>
+          </details>
+        </li>
+      ))}
+    </ul>
+  </div>
+
+  {/* FAQPage structured data so AI engines can extract the Q&A pairs directly */}
+  <script
+    type="application/ld+json"
+    set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: faqs.map((item) => ({
+        '@type': 'Question',
+        name: item.q,
+        acceptedAnswer: { '@type': 'Answer', text: item.a },
+      })),
+    })}
+  />
+</section>
+
+<style>
+  /* Smooth open animation for the disclosure body. <details> doesn't
+     animate its children natively in all browsers; this gives us a small
+     fade-in for the answer paragraph. */
+  .faq-item[open] > div {
+    animation: faq-reveal 240ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  @keyframes faq-reveal {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .faq-item[open] > div { animation: none; }
+  }
+</style>

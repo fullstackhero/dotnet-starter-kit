@@ -3,24 +3,24 @@ import { Icon } from 'astro-icon/components';
 import SectionEyebrow from './SectionEyebrow.astro';
 
 const stack = [
-  { name: '.NET 10',          version: 'C# 14',     sub: 'latest LTS',         icon: 'lucide:hexagon'      },
-  { name: 'Aspire',           version: '10.0',      sub: 'orchestration',      icon: 'lucide:layers'       },
-  { name: 'EF Core 10',       version: 'pg 16',     sub: 'PostgreSQL',         icon: 'lucide:database'    },
-  { name: 'Mediator 3',       version: 'srcgen',    sub: 'CQRS',               icon: 'lucide:radio'        },
-  { name: 'FluentValidation', version: '12.x',      sub: 'request validation', icon: 'lucide:shield-check' },
+  { name: '.NET 10',          version: 'C# latest', sub: 'net10.0 LTS',        icon: 'lucide:hexagon'      },
+  { name: 'Aspire',           version: '13.3',      sub: 'orchestration',      icon: 'lucide:layers'       },
+  { name: 'EF Core',          version: '10.0.8',    sub: 'PostgreSQL 17',      icon: 'lucide:database'     },
+  { name: 'Mediator',         version: '3.0',       sub: 'source generator',   icon: 'lucide:radio'        },
+  { name: 'FluentValidation', version: '12.1',      sub: 'request validation', icon: 'lucide:shield-check' },
   { name: 'Hangfire',         version: '1.8',       sub: 'background jobs',    icon: 'lucide:zap'          },
-  { name: 'Redis',            version: 'StackEx',   sub: 'distributed cache',  icon: 'lucide:server'       },
+  { name: 'Redis',            version: 'SE 2.11',   sub: 'distributed cache',  icon: 'lucide:server'       },
   { name: 'Serilog',          version: '4.x',       sub: 'structured logs',    icon: 'lucide:scroll-text'  },
-  { name: 'OpenTelemetry',    version: 'OTLP',      sub: 'traces · metrics',   icon: 'lucide:activity'     },
-  { name: 'Scalar',           version: 'OAS 3.1',   sub: 'API browser',        icon: 'lucide:book-open'    },
-  { name: 'Finbuckle',        version: '10.x',      sub: 'multitenancy',       icon: 'lucide:building-2'   },
-  { name: 'React + Vite',     version: 'TS 5',      sub: 'admin · dashboard',  icon: 'lucide:code'         },
+  { name: 'OpenTelemetry',    version: '1.15',      sub: 'OTLP exporter',      icon: 'lucide:activity'     },
+  { name: 'Scalar',           version: '2.14',      sub: 'OpenAPI 3.1 browser',icon: 'lucide:book-open'    },
+  { name: 'Finbuckle',        version: '10.0',      sub: 'multitenancy',       icon: 'lucide:building-2'   },
+  { name: 'React + Vite',     version: 'TS 5.7',    sub: 'admin · dashboard',  icon: 'lucide:code'         },
 ];
 ---
 
 <section class="relative isolate overflow-hidden border-t border-border" id="tech-stack">
   <div class="mx-auto w-full max-w-7xl px-4 py-20 sm:px-6 sm:py-24 lg:px-8">
-    <SectionEyebrow n="04" right="12 production-grade libraries">Under the hood</SectionEyebrow>
+    <SectionEyebrow n="04" right=".NET 10 · EF Core 10 · Aspire 13">Under the hood</SectionEyebrow>
 
     <ul class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 lg:gap-4">
       {stack.map((t) => (

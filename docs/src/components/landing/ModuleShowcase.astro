@@ -11,7 +11,7 @@ const modules = [
       'JWT bearer + refresh tokens',
       'ASP.NET Identity with roles + permissions',
       'Operator impersonation with audit trail',
-      'Per-tenant SSO hooks',
+      'Rate-limited login, register & password reset',
     ],
     snippet: `endpoints.MapPost("/users", handler)\n  .RequirePermission(Permissions.Users.Create);`,
     href: '/docs/modules/identity/',
@@ -43,6 +43,17 @@ const modules = [
     href: '/docs/modules/auditing/',
   },
 ];
+
+// The other 7 modules that ship in v1 alongside the three pillars above.
+const auxModules = [
+  { name: 'Files',         icon: 'lucide:file',           summary: 'Tenant-scoped object storage on MinIO / S3' },
+  { name: 'Chat',          icon: 'lucide:message-square', summary: 'Realtime channels, DMs, @mentions, threads' },
+  { name: 'Notifications', icon: 'lucide:bell',           summary: 'User inbox with real-time SignalR push'      },
+  { name: 'Webhooks',      icon: 'lucide:webhook',        summary: 'Tenant subscriptions, HMAC-signed payloads'  },
+  { name: 'Billing',       icon: 'lucide:credit-card',    summary: 'Subscription plans and usage metering'       },
+  { name: 'Catalog',       icon: 'lucide:shopping-bag',   summary: 'Products, categories, images'                },
+  { name: 'Tickets',       icon: 'lucide:ticket',         summary: 'Support tickets and conversations'           },
+];
 ---
 
 <section
@@ -57,14 +68,14 @@ const modules = [
   ></div>
 
   <div class="mx-auto w-full max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
-    <SectionEyebrow n="03" right="3 bounded contexts in v1">The three modules</SectionEyebrow>
+    <SectionEyebrow n="03" right="10 modules ship in v1">Ten production modules ship in v1</SectionEyebrow>
 
     <div class="max-w-2xl">
       <h2 class="text-balance font-display font-semibold tracking-[-0.035em] text-[36px] leading-[1.04] sm:text-[48px] md:text-[56px]">
-        <span class="font-light text-muted-foreground">Opinionated</span>
+        <span class="font-light text-muted-foreground">Three pillars,</span>
         <span class="mt-1 block">
           <span class="relative inline-block text-foreground">
-            <span class="relative z-[1] font-bold">where it matters.</span>
+            <span class="relative z-[1] font-bold">seven more in the box.</span>
             <span
               aria-hidden="true"
               class="absolute -bottom-1 left-0 right-0 h-2 rounded-full"
@@ -74,9 +85,11 @@ const modules = [
         </span>
       </h2>
       <p class="mt-6 max-w-xl text-[15.5px] leading-relaxed text-muted-foreground sm:text-[16.5px]">
-        Three modules ship with the kit. Each is an
-        <span class="font-semibold text-foreground">honest answer</span>
-        to a question every B2B app has to solve eventually — so you don't reinvent it.
+        Identity, Multitenancy and Auditing are the
+        <span class="font-semibold text-foreground">architectural pillars</span> —
+        the questions every B2B SaaS has to answer.
+        Seven more modules (Files, Chat, Notifications, Webhooks, Billing, Catalog, Tickets) ship alongside them so you're
+        <span class="font-semibold text-foreground">not building basics on day one</span>.
       </p>
     </div>
 
@@ -156,6 +169,34 @@ const modules = [
           <div class="magnetic-shimmer" aria-hidden="true"></div>
         </article>
       ))}
+    </div>
+
+    {/* Aux modules strip — the other 7 that ship in v1 */}
+    <div class="mt-14">
+      <div class="mb-6 flex items-center gap-3">
+        <span class="font-mono text-[10.5px] font-semibold uppercase tracking-[0.22em] tabular-nums text-muted-foreground">
+          And seven more in the box
+        </span>
+        <span aria-hidden class="h-px flex-1 bg-border"></span>
+      </div>
+
+      <ul class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
+        {auxModules.map((m) => (
+          <li class="aux-module group relative overflow-hidden rounded-xl border border-border bg-card/60 p-4 transition-all hover:-translate-y-0.5 hover:border-border-strong">
+            <div class="flex items-center gap-2.5">
+              <span class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-primary transition-colors group-hover:border-primary/40 group-hover:bg-primary/5">
+                <Icon name={m.icon} class="h-4 w-4" />
+              </span>
+              <p class="font-display text-[14.5px] font-semibold tracking-[-0.01em] text-foreground">
+                {m.name}
+              </p>
+            </div>
+            <p class="mt-2 text-[12px] leading-relaxed text-muted-foreground">
+              {m.summary}
+            </p>
+          </li>
+        ))}
+      </ul>
     </div>
   </div>
 </section>

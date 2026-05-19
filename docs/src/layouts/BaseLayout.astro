@@ -44,6 +44,49 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? siteConfig.url).t
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="apple-touch-icon" href="/logo-fullstackhero.png" />
+    <meta name="theme-color" content="#15803d" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0d0e11" media="(prefers-color-scheme: dark)" />
+
+    {/* Structured data — Organization + WebSite for the whole site */}
+    <script type="application/ld+json" set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'Organization',
+          '@id': new URL('/#organization', siteConfig.url).toString(),
+          name: 'FullStackHero',
+          url: siteConfig.url,
+          logo: new URL('/logo-fullstackhero.png', siteConfig.url).toString(),
+          sameAs: [
+            'https://github.com/fullstackhero',
+            'https://github.com/fullstackhero/dotnet-starter-kit',
+            'https://codewithmukesh.com',
+          ],
+        },
+        {
+          '@type': 'WebSite',
+          '@id': new URL('/#website', siteConfig.url).toString(),
+          url: siteConfig.url,
+          name: siteConfig.title,
+          description: siteConfig.description,
+          publisher: { '@id': new URL('/#organization', siteConfig.url).toString() },
+          inLanguage: 'en',
+        },
+        {
+          '@type': 'SoftwareSourceCode',
+          '@id': new URL('/#software', siteConfig.url).toString(),
+          name: 'FullStackHero — .NET 10 Starter Kit',
+          description: 'Free, MIT-licensed, production-ready .NET 10 starter kit. Modular monolith with vertical slice architecture, multitenancy-first, ten ready-to-ship modules.',
+          url: siteConfig.url,
+          codeRepository: siteConfig.repo,
+          programmingLanguage: ['C#', 'TypeScript'],
+          runtimePlatform: '.NET 10',
+          license: 'https://opensource.org/licenses/MIT',
+          author: { '@id': new URL('/#organization', siteConfig.url).toString() },
+          maintainer: { '@type': 'Person', name: siteConfig.author },
+        },
+      ],
+    })} />
 
     <Font cssVariable="--font-outfit" preload />
     <Font cssVariable="--font-figtree" preload />

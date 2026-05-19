@@ -21,10 +21,10 @@ import Button from '../brand/Button.astro';
 import siteConfig from '../../data/site';
 
 const heroStats = [
-  { value: '3',   unit: '',   label: 'Modules',    note: 'Identity · Multitenancy · Auditing', icon: 'lucide:box'         },
-  { value: '12',  unit: '+',  label: 'Building blocks', note: 'EF · Redis · Hangfire · OTel',  icon: 'lucide:layers'      },
-  { value: '598', unit: '',   label: 'Tests',      note: 'Unit + integration · green',         icon: 'lucide:check-check' },
-  { value: '5',   unit: 'min',label: 'To localhost', note: 'Clone → docker compose up',         icon: 'lucide:rocket'      },
+  { value: '10',  unit: '',  label: 'Modules',          note: 'Identity · Multitenancy · Auditing · +7 more', icon: 'lucide:box'         },
+  { value: '12',  unit: '',  label: 'Building blocks',  note: 'EF · Redis · Hangfire · OTel · Eventing · …',  icon: 'lucide:layers'      },
+  { value: '900', unit: '+', label: 'Tests',            note: 'Unit + integration · green',                   icon: 'lucide:check-check' },
+  { value: '1',   unit: '',  label: 'Command to run',   note: '`dotnet run` boots the whole stack via Aspire',icon: 'lucide:rocket'      },
 ];
 ---
 
@@ -76,7 +76,7 @@ const heroStats = [
 
       {/* Display headline — light/bold split with gradient underline */}
       <h1 class="mt-7 text-balance font-display font-semibold tracking-[-0.035em] text-[42px] leading-[1.02] sm:text-[60px] md:text-[72px]">
-        <span class="font-light text-muted-foreground">The .NET starter kit</span>
+        <span class="font-light text-muted-foreground">The .NET 10 starter kit</span>
         <span class="mt-1 block">
           <span class="relative inline-block text-foreground">
             <span class="relative z-[1] font-bold">that actually ships.</span>
@@ -89,13 +89,17 @@ const heroStats = [
         </span>
       </h1>
 
-      {/* Subtitle with bold inline stats */}
+      {/* Subtitle with bold inline stats — fact-dense for AI citability */}
       <p class="mt-6 max-w-xl text-[16px] leading-relaxed text-muted-foreground sm:text-[17.5px]">
-        Production-ready modular monolith with
+        FullStackHero is a
+        <span class="font-semibold text-foreground">free, MIT-licensed</span>,
+        production-ready
+        <span class="font-semibold text-foreground">.NET 10</span>
+        modular monolith with
         <span class="font-semibold text-foreground">multitenancy</span>,
         <span class="font-semibold text-foreground">identity</span>, and
         <span class="font-semibold text-foreground">observability</span>
-        already wired up. Clone, run, ship — your day one is feature work, not scaffolding.
+        already wired up — so your day one is feature work, not scaffolding.
       </p>
 
       {/* CTAs — ink-on-paper primary + secondary */}
@@ -153,44 +157,54 @@ const heroStats = [
             <span class="text-emerald-400">$</span><span class="text-slate-300" id="hero-typewriter"></span><span class="terminal-cursor inline-block h-4 w-[2px] translate-y-[2px] bg-emerald-400"></span>
           </div>
 
-          {/* Aspire orchestration boot lines */}
+          {/* Aspire orchestration boot lines — mirror the actual AppHost.cs */}
           <div class="terminal-line mt-3 hidden" data-delay="2200">
             <span class="text-amber-400">↪</span>
-            <span class="text-slate-300"> Starting Aspire orchestration…</span>
+            <span class="text-slate-300"> Starting Aspire 13 orchestration…</span>
           </div>
-          <div class="terminal-line mt-1 hidden" data-delay="3000">
+          <div class="terminal-line mt-1 hidden" data-delay="2900">
             <span class="text-emerald-400">✓</span>
-            <span class="text-slate-300"> PostgreSQL</span>
-            <span class="text-slate-500">  → localhost:5432</span>
+            <span class="text-slate-300"> postgres</span>
+            <span class="text-slate-500">       tcp/5432</span>
           </div>
-          <div class="terminal-line mt-1 hidden" data-delay="3400">
+          <div class="terminal-line mt-1 hidden" data-delay="3200">
             <span class="text-emerald-400">✓</span>
-            <span class="text-slate-300"> Redis</span>
-            <span class="text-slate-500">       → localhost:6379</span>
+            <span class="text-slate-300"> redis</span>
+            <span class="text-slate-500">          tcp/6379</span>
+          </div>
+          <div class="terminal-line mt-1 hidden" data-delay="3500">
+            <span class="text-emerald-400">✓</span>
+            <span class="text-slate-300"> minio (S3)</span>
+            <span class="text-slate-500">     :9000 · :9001</span>
           </div>
           <div class="terminal-line mt-1 hidden" data-delay="3800">
             <span class="text-emerald-400">✓</span>
-            <span class="text-slate-300"> FSH.Starter.Api</span>
-            <span class="text-slate-500"> → localhost:5000</span>
+            <span class="text-slate-300"> db-migrator</span>
+            <span class="text-slate-500">    schema applied</span>
           </div>
-          <div class="terminal-line mt-1 hidden" data-delay="4200">
+          <div class="terminal-line mt-1 hidden" data-delay="4100">
             <span class="text-emerald-400">✓</span>
-            <span class="text-slate-300"> React.Dashboard</span>
-            <span class="text-slate-500"> → localhost:5173</span>
+            <span class="text-slate-300"> fsh-api</span>
+            <span class="text-slate-500">        http://localhost:5000</span>
           </div>
-          <div class="terminal-line mt-1 hidden" data-delay="4600">
+          <div class="terminal-line mt-1 hidden" data-delay="4400">
             <span class="text-emerald-400">✓</span>
-            <span class="text-slate-300"> Hangfire dashboard</span>
-            <span class="text-slate-500"> → /hangfire</span>
+            <span class="text-slate-300"> fsh-admin</span>
+            <span class="text-slate-500">      http://localhost:5173</span>
+          </div>
+          <div class="terminal-line mt-1 hidden" data-delay="4700">
+            <span class="text-emerald-400">✓</span>
+            <span class="text-slate-300"> fsh-dashboard</span>
+            <span class="text-slate-500">  http://localhost:5174</span>
           </div>
 
-          {/* Verdict */}
-          <div class="terminal-line mt-3 hidden" data-delay="5400">
-            <span style="color: var(--primary-soft);" class="font-semibold">Ready in 4.2s</span>
-            <span class="text-slate-600"> ·</span>
-            <span class="text-slate-300"> 5 services orchestrated</span>
+          {/* Verdict — no fictional timing */}
+          <div class="terminal-line mt-3 hidden" data-delay="5300">
+            <span style="color: var(--primary-soft);" class="font-semibold">All services up</span>
             <span class="text-slate-600"> ·</span>
             <span class="text-slate-300"> multitenancy enforced</span>
+            <span class="text-slate-600"> ·</span>
+            <span class="text-slate-300"> traces flowing to OTLP</span>
           </div>
         </div>
       </div>
@@ -198,8 +212,9 @@ const heroStats = [
       {/* Below-terminal caption */}
       <p class="mt-4 text-center font-mono text-[11.5px] uppercase tracking-[0.18em] tabular-nums text-muted-foreground">
         Live preview ·
-        <span class="text-foreground font-semibold">4.2s cold start</span>
-        · 5 services orchestrated by Aspire
+        <span class="text-foreground font-semibold">7 services</span>
+        orchestrated by
+        <span class="text-foreground font-semibold">Aspire 13</span>
       </p>
     </div>
 
