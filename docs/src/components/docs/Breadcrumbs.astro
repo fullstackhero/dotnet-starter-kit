@@ -8,7 +8,7 @@ interface Props {
 const { slug, title } = Astro.props;
 
 const parts = slug.split('/').filter(Boolean);
-const items: Array<{ label: string; href: string | null }> = [{ label: 'Docs', href: '/docs/getting-started/introduction/' }];
+const items: Array<{ label: string; href: string | null }> = [{ label: 'Docs', href: '/docs/' }];
 
 if (parts.length > 0 && parts[0] !== 'index') {
   const section = sections.find((s) => s.dir === parts[0]);

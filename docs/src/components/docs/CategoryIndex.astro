@@ -1,0 +1,322 @@
+---
+/**
+ * CategoryIndex — "chapter plate" card grid for the /docs/ hub.
+ *
+ * Usage (inside the root `docs/index.mdx`):
+ *   <CategoryIndex />
+ *
+ * Pulls labels + ordering from `_sections.ts`, descriptions from each
+ * section's index.mdx frontmatter, and page count by counting child
+ * MDX entries. Each card carries:
+ *
+ *   - A lucide icon mapped per section (visual anchor)
+ *   - A monospace "CHAPTER · 01" eyebrow
+ *   - A huge watermark numeral behind the content (editorial accent)
+ *   - Title + line-clamped description
+ *   - Live page-count meta ("4 pages" / "In progress")
+ *   - A footer arrow that nudges + tints on hover
+ *
+ * Hover choreography is unified — lift, border, watermark, icon, and
+ * arrow all transition on one cubic-bezier curve so the card feels
+ * like a single object responding to focus rather than five elements.
+ */
+import { Icon } from 'astro-icon/components';
+import { getCollection } from 'astro:content';
+import { sections } from '../../content/docs/_sections';
+
+// Lucide icon per section directory. Picked for immediate semantic
+// recognition; all are stroke icons so they sit at the same visual
+// weight as the rest of the docs chrome.
+const sectionIcons: Record<string, string> = {
+  'getting-started':       'lucide:rocket',
+  'architecture':          'lucide:layers',
+  'modules':               'lucide:box',
+  'building-blocks':       'lucide:package-2',
+  'cross-cutting-concerns':'lucide:zap',
+  'security':              'lucide:shield-check',
+  'frontend':              'lucide:monitor',
+  'cli':                   'lucide:terminal',
+  'testing':               'lucide:check-check',
+  'guides':                'lucide:book-open',
+  'deployment':            'lucide:cloud-upload',
+  'compare':               'lucide:git-compare',
+  'contributing':          'lucide:git-pull-request',
+  'changelog':             'lucide:list-tree',
+};
+
+const all = await getCollection('docs');
+
+const cards = sections
+  .slice()
+  .sort((a, b) => a.order - b.order)
+  .map((sec) => {
+    const indexEntry = all.find((e) => {
+      const id = e.id.replace(/\.mdx$/, '');
+      return id === `${sec.dir}/index`;
+    });
+    const childCount = all.filter((e) => {
+      const id = e.id.replace(/\.mdx$/, '');
+      const parts = id.split('/');
+      return (
+        parts[0] === sec.dir &&
+        parts.length > 1 &&
+        parts[parts.length - 1] !== 'index' &&
+        !e.data.sidebar.hidden
+      );
+    }).length;
+    return {
+      label: sec.label,
+      href: `/docs/${sec.dir}/`,
+      description: indexEntry?.data.description ?? '',
+      icon: sectionIcons[sec.dir] ?? 'lucide:book',
+      pageCount: childCount,
+    };
+  });
+---
+<ul class="fsh-cat-grid not-prose my-10 grid gap-3 sm:grid-cols-2 lg:gap-4">
+  {cards.map((card, i) => {
+    const num = String(i + 1).padStart(2, '0');
+    const hasPages = card.pageCount > 0;
+    return (
+      <li>
+        <a href={card.href} class="fsh-cat-card group">
+          {/* Huge watermark numeral — pure design accent.
+              Sits absolutely positioned bottom-right, clipped by the
+              card's overflow-hidden. Scales subtly on hover. */}
+          <span class="fsh-cat-watermark" aria-hidden="true">{num}</span>
+
+          {/* Icon (alone — the numeral carries the chapter context) */}
+          <div class="relative">
+            <span class="fsh-cat-icon">
+              <Icon name={card.icon} class="h-[18px] w-[18px]" />
+            </span>
+          </div>
+
+          {/* Title + description */}
+          <div class="relative mt-7 flex-1">
+            <h3 class="fsh-cat-title">{card.label}</h3>
+            {card.description && (
+              <p class="fsh-cat-desc">{card.description}</p>
+            )}
+          </div>
+
+          {/* Footer: page count + arrow */}
+          <div class="fsh-cat-footer">
+            <span class="fsh-cat-meta">
+              {hasPages
+                ? `${card.pageCount} ${card.pageCount === 1 ? 'page' : 'pages'}`
+                : 'In progress'}
+            </span>
+            <span class="fsh-cat-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </span>
+          </div>
+        </a>
+      </li>
+    );
+  })}
+</ul>
+
+<style>
+  /* ──────────────────────────────────────────────────────────────
+     Category card — "chapter plate".
+     One transition curve across the whole card so the hover feels
+     orchestrated, not noisy. All colours route through CSS tokens
+     so the design adapts cleanly to light/dark.
+     ────────────────────────────────────────────────────────────── */
+
+  .fsh-cat-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 196px;
+    padding: 1.25rem 1.25rem 1rem;
+    overflow: hidden;
+    border-radius: 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    text-decoration: none;          /* kill prose's :where(a) underline */
+    color: inherit;
+    transition:
+      transform 320ms cubic-bezier(0.2, 0, 0, 1),
+      border-color 320ms cubic-bezier(0.2, 0, 0, 1),
+      box-shadow 320ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  .fsh-cat-card,
+  .fsh-cat-card:hover,
+  .fsh-cat-card:focus,
+  .fsh-cat-card:visited,
+  .fsh-cat-card * {
+    text-decoration: none !important;
+  }
+
+  .fsh-cat-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-strong);
+    box-shadow:
+      0 1px 2px -1px color-mix(in oklab, var(--foreground) 8%, transparent),
+      0 12px 28px -16px color-mix(in oklab, var(--foreground) 20%, transparent);
+  }
+
+  /* Subtle top inner highlight — feels like an actual physical card */
+  .fsh-cat-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, var(--foreground) 5%, transparent),
+      transparent
+    );
+    pointer-events: none;
+  }
+
+  /* Watermark numeral — Outfit display, very low contrast.
+     Sits behind everything; clip-cropped at the corner. */
+  .fsh-cat-watermark {
+    position: absolute;
+    bottom: -0.25em;
+    right: -0.08em;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 132px;
+    line-height: 0.85;
+    letter-spacing: -0.06em;
+    color: color-mix(in oklab, var(--foreground) 5%, transparent);
+    pointer-events: none;
+    user-select: none;
+    transition:
+      color 320ms cubic-bezier(0.2, 0, 0, 1),
+      transform 480ms cubic-bezier(0.2, 0, 0, 1);
+    will-change: transform;
+  }
+  .fsh-cat-card:hover .fsh-cat-watermark {
+    color: color-mix(in oklab, var(--primary) 12%, transparent);
+    transform: scale(1.06);
+  }
+  .dark .fsh-cat-card:hover .fsh-cat-watermark {
+    color: color-mix(in oklab, var(--primary-soft) 12%, transparent);
+  }
+
+  /* Icon box */
+  .fsh-cat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    color: var(--foreground);
+    background: color-mix(in oklab, var(--foreground) 4%, transparent);
+    border: 1px solid color-mix(in oklab, var(--foreground) 5%, transparent);
+    transition:
+      background 320ms cubic-bezier(0.2, 0, 0, 1),
+      border-color 320ms cubic-bezier(0.2, 0, 0, 1),
+      color 320ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  .fsh-cat-card:hover .fsh-cat-icon {
+    background: color-mix(in oklab, var(--primary) 9%, transparent);
+    border-color: color-mix(in oklab, var(--primary) 22%, transparent);
+    color: var(--primary);
+  }
+  .dark .fsh-cat-card:hover .fsh-cat-icon {
+    background: color-mix(in oklab, var(--primary-soft) 11%, transparent);
+    border-color: color-mix(in oklab, var(--primary-soft) 24%, transparent);
+    color: var(--primary-soft);
+  }
+
+  /* Title — body font, not display. Cleaner, less editorial-loud. */
+  .fsh-cat-title {
+    font-family: var(--font-body);
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    color: var(--foreground);
+    line-height: 1.25;
+  }
+
+  /* Description — line-clamped so any-length copy keeps cards
+     at a consistent height. */
+  .fsh-cat-desc {
+    margin-top: 0.4rem;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--muted-foreground);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Footer: meta + arrow */
+  .fsh-cat-footer {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  }
+
+  /* Page count — sentence case in the body font. No mono caps, no
+     tracking aggression. Reads as a quiet label, not a slug. */
+  .fsh-cat-meta {
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--muted-foreground);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .fsh-cat-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    color: var(--muted-foreground);
+    transition:
+      color 320ms cubic-bezier(0.2, 0, 0, 1),
+      transform 320ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  .fsh-cat-arrow svg {
+    width: 14px;
+    height: 14px;
+  }
+  .fsh-cat-card:hover .fsh-cat-arrow {
+    color: var(--primary);
+    transform: translateX(3px);
+  }
+  .dark .fsh-cat-card:hover .fsh-cat-arrow {
+    color: var(--primary-soft);
+  }
+
+  /* Focus ring for keyboard nav — uses brand ring token */
+  .fsh-cat-card:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fsh-cat-card,
+    .fsh-cat-watermark,
+    .fsh-cat-icon,
+    .fsh-cat-arrow {
+      transition: none !important;
+    }
+    .fsh-cat-card:hover {
+      transform: none;
+    }
+    .fsh-cat-card:hover .fsh-cat-watermark {
+      transform: none;
+    }
+  }
+</style>

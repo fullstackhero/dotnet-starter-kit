@@ -19,9 +19,8 @@ const stars = await getStars();
 
 const nav = [
   { name: 'Home',    url: '/' },
-  // Docs points directly at the introduction page (no redirect hop), but
-  // its active-state still covers any /docs/* path via the `match` prefix.
-  { name: 'Docs',    url: '/docs/getting-started/introduction/', match: '/docs/' },
+  // Docs lands on the overview hub (card grid of every section).
+  { name: 'Docs',    url: '/docs/' },
   { name: 'Modules', url: '/docs/modules/' },
   { name: 'Guides',  url: '/docs/guides/' },
 ];
