@@ -1,0 +1,140 @@
+---
+/**
+ * Card primitive (ported from codewithmukesh/blog; purple hexes substituted
+ * with var(--primary) via color-mix so the green brand token flows through
+ * automatically).
+ *
+ * Variants:
+ *   elevated — white surface with multi-layer soft shadow, subtle hairline border
+ *   outline  — transparent surface with prominent border (for secondary content)
+ *   subtle   — slate-tinted surface, no border (for grouping in lists)
+ *
+ * If `href` is set, renders <a> with hover lift + brand-tinted border + soft glow.
+ */
+type CardVariant = 'elevated' | 'outline' | 'subtle';
+
+interface Props {
+  variant?: CardVariant;
+  href?: string;
+  class?: string;
+}
+
+const { variant = 'elevated', href, class: classList } = Astro.props as Props;
+
+const variantClasses: Record<CardVariant, string> = {
+  elevated: 'card-elevated',
+  outline:  'card-outline',
+  subtle:   'card-subtle',
+};
+
+const baseClasses = 'card-base rounded-2xl p-6 sm:p-7 relative';
+const interactiveClasses = href ? 'card-interactive block' : '';
+
+const Tag = href ? 'a' : 'div';
+---
+
+<Tag
+  href={href}
+  class:list={[baseClasses, variantClasses[variant], interactiveClasses, classList]}
+>
+  <slot />
+</Tag>
+
+<style is:global>
+  .card-base {
+    transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 200ms cubic-bezier(0.22, 1, 0.36, 1),
+                border-color 200ms ease,
+                background-color 200ms ease;
+  }
+
+  /* ── Elevated ────────────────────────────────────────────────────── */
+  .card-elevated {
+    background: var(--card);
+    border: 1px solid var(--border);
+    box-shadow:
+      0 1px 0 rgb(255 255 255 / 0.6) inset,
+      0 1px 2px rgb(15 23 42 / 0.04),
+      0 4px 12px -4px rgb(15 23 42 / 0.06),
+      0 12px 28px -10px rgb(15 23 42 / 0.08);
+  }
+  .dark .card-elevated {
+    background: color-mix(in oklab, var(--card) 70%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow:
+      0 1px 0 rgb(255 255 255 / 0.04) inset,
+      0 1px 2px rgb(0 0 0 / 0.5),
+      0 12px 28px -10px rgb(0 0 0 / 0.6);
+  }
+
+  /* ── Outline ─────────────────────────────────────────────────────── */
+  .card-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+  }
+
+  /* ── Subtle ──────────────────────────────────────────────────────── */
+  .card-subtle {
+    background: color-mix(in oklab, var(--subtle) 70%, transparent);
+    border: 1px solid transparent;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .dark .card-subtle {
+    background: color-mix(in oklab, var(--subtle) 40%, transparent);
+  }
+
+  /* ── Interactive (clickable card) ─────────────────────────────────── */
+  .card-interactive {
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+  }
+  .card-interactive:hover {
+    transform: translateY(-2px);
+  }
+  .card-interactive:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
+  }
+
+  .card-elevated.card-interactive:hover {
+    border-color: color-mix(in oklab, var(--primary) 18%, var(--border));
+    box-shadow:
+      0 1px 0 rgb(255 255 255 / 0.6) inset,
+      0 4px 12px -4px color-mix(in oklab, var(--primary) 12%, transparent),
+      0 24px 48px -12px color-mix(in oklab, var(--primary) 18%, transparent);
+  }
+  .dark .card-elevated.card-interactive:hover {
+    border-color: color-mix(in oklab, var(--primary-soft) 30%, var(--border));
+    box-shadow:
+      0 1px 0 rgb(255 255 255 / 0.06) inset,
+      0 4px 12px -4px color-mix(in oklab, var(--primary) 40%, transparent),
+      0 24px 48px -12px color-mix(in oklab, var(--primary) 50%, transparent);
+  }
+
+  .card-outline.card-interactive:hover {
+    border-color: color-mix(in oklab, var(--primary) 40%, transparent);
+    background: color-mix(in oklab, var(--primary) 3%, transparent);
+  }
+  .dark .card-outline.card-interactive:hover {
+    border-color: color-mix(in oklab, var(--primary-soft) 40%, transparent);
+    background: color-mix(in oklab, var(--primary-soft) 5%, transparent);
+  }
+
+  .card-subtle.card-interactive:hover {
+    background: color-mix(in oklab, var(--card) 90%, transparent);
+    border-color: color-mix(in oklab, var(--primary) 15%, transparent);
+    box-shadow: 0 8px 20px -8px color-mix(in oklab, var(--primary) 15%, transparent);
+  }
+  .dark .card-subtle.card-interactive:hover {
+    background: color-mix(in oklab, var(--card) 60%, transparent);
+    border-color: color-mix(in oklab, var(--primary-soft) 25%, transparent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card-base { transition: none; }
+    .card-interactive:hover { transform: none; }
+  }
+</style>

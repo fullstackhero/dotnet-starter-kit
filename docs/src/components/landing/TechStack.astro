@@ -1,4 +1,6 @@
 ---
+import SectionEyebrow from './SectionEyebrow.astro';
+
 const stack = [
   { name: '.NET 10',       sub: 'C# 14, latest LTS' },
   { name: 'Aspire',        sub: 'local orchestration' },
@@ -16,9 +18,9 @@ const stack = [
 ---
 <section class="border-t border-border">
   <div class="mx-auto max-w-6xl px-6 py-20">
-    <p class="text-center text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-      Under the hood
-    </p>
+    <div class="flex justify-center">
+      <SectionEyebrow n="04">Under the hood</SectionEyebrow>
+    </div>
     <ul class="mt-10 grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3 lg:grid-cols-6">
       {stack.map((t) => (
         <li class="border-l-2 border-border pl-3 transition-colors hover:border-primary">

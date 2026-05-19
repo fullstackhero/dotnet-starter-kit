@@ -1,0 +1,26 @@
+---
+/**
+ * Kbd primitive — keyboard shortcut display (ported from codewithmukesh/blog).
+ *
+ * Renders a `<kbd>` with monospace font, slate background, subtle border,
+ * and tight padding. Use for inline keyboard hints inside articles or UI.
+ */
+interface Props {
+  class?: string;
+}
+
+const { class: classList } = Astro.props as Props;
+---
+
+<kbd
+  class:list={[
+    'inline-flex items-center justify-center px-1.5 py-0.5 mx-0.5 rounded-md',
+    'font-mono text-[0.8125em] leading-none font-semibold',
+    'bg-slate-100 text-slate-700 border border-slate-300 shadow-sm',
+    'dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:shadow-none',
+    'align-baseline',
+    classList,
+  ]}
+>
+  <slot />
+</kbd>

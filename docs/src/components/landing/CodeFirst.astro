@@ -1,5 +1,7 @@
 ---
 import { Code } from 'astro-expressive-code/components';
+import AnimatedIde from './AnimatedIde.astro';
+import SectionEyebrow from './SectionEyebrow.astro';
 
 const endpointCode = `public static class RegisterUserEndpoint
 {
@@ -70,7 +72,7 @@ const otherFeatures = [
     <div class="grid items-start gap-12 lg:grid-cols-[minmax(0,_5fr)_minmax(0,_7fr)] lg:gap-16">
       <!-- LEFT: editorial copy -->
       <div class="lg:sticky lg:top-24">
-        <p class="text-[11px] font-medium uppercase tracking-[0.18em] text-primary">Vertical Slice Architecture</p>
+        <SectionEyebrow n="01">Vertical Slice Architecture</SectionEyebrow>
         <h2 class="mt-4 font-display text-4xl font-semibold leading-[1.05] tracking-[-0.03em] text-foreground sm:text-5xl">
           One feature.<br />
           <span class="gradient-text">One folder.</span>
@@ -107,8 +109,8 @@ const otherFeatures = [
         </a>
       </div>
 
-      <!-- RIGHT: VS-Code-style editor with file tree + code -->
-      <div class="editor relative">
+      <!-- RIGHT: VS-Code-style editor with file tree + code, wrapped in AnimatedIde -->
+      <AnimatedIde class="editor relative">
         <!-- Glow behind the window (visible on hover) -->
         <div class="editor-glow" aria-hidden="true"></div>
 
@@ -231,7 +233,7 @@ const otherFeatures = [
             <span data-vsa-lineinfo>{files[0].lines} lines</span>
           </div>
         </div>
-      </div>
+      </AnimatedIde>
     </div>
   </div>
 </section>

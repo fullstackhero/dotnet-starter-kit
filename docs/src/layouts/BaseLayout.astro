@@ -58,5 +58,10 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? siteConfig.url).t
     <a href="#main" class="skip-to-content">Skip to content</a>
     <slot />
     <SearchModal />
+    <script>
+      import { initMagneticEffects } from '../scripts/magnetic-cards';
+      initMagneticEffects();
+      document.addEventListener('astro:after-swap', initMagneticEffects);
+    </script>
   </body>
 </html>

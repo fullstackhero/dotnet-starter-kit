@@ -1,0 +1,49 @@
+---
+/**
+ * SectionEyebrow — editorial section header label.
+ *
+ * Renders a small, mono, uppercase eyebrow with a primary-tinted
+ * tabular-numeric prefix and a thin accent rule that draws the eye
+ * across into the title. Mirrors the magazine-style "01 · The problem"
+ * rhythm used on the codewithmukesh blog.
+ *
+ * Props:
+ *   n  — section number string, e.g. "01" (renders before the label)
+ *
+ * Default slot is the eyebrow label text.
+ */
+interface Props {
+  n?: string;
+  class?: string;
+}
+
+const { n, class: classList } = Astro.props as Props;
+---
+
+<p
+  class:list={[
+    'section-eyebrow inline-flex items-center gap-2.5 font-mono text-[11px] font-semibold uppercase tracking-[0.18em] tabular-nums text-muted-foreground',
+    classList,
+  ]}
+>
+  {n && (
+    <>
+      <span class="section-eyebrow-num text-primary">{n}</span>
+      <span class="section-eyebrow-rule" aria-hidden="true"></span>
+    </>
+  )}
+  <span class="section-eyebrow-label"><slot /></span>
+</p>
+
+<style>
+  .section-eyebrow-rule {
+    display: inline-block;
+    width: 1.75rem;
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      color-mix(in oklab, var(--primary) 60%, transparent),
+      color-mix(in oklab, var(--primary) 0%, transparent)
+    );
+  }
+</style>

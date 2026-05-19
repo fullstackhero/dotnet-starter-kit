@@ -1,0 +1,58 @@
+---
+/**
+ * Pill primitive (ported from codewithmukesh/blog).
+ *
+ * Variants:
+ *   default — tinted brand background with brand text
+ *   active  — filled gradient background (selected/active state)
+ *   outline — transparent background with brand-tinted border + text
+ *   ghost   — neutral slate background, no brand color
+ *
+ * Sizes:    sm | md (default md)
+ */
+type PillVariant = 'default' | 'active' | 'outline' | 'ghost';
+type PillSize = 'sm' | 'md';
+
+interface Props {
+  variant?: PillVariant;
+  size?: PillSize;
+  href?: string;
+  class?: string;
+}
+
+const { variant = 'default', size = 'md', href, class: classList } = Astro.props as Props;
+
+const variantClasses: Record<PillVariant, string> = {
+  default:
+    'bg-accent text-primary-hover border border-border hover:bg-border hover:border-border-strong ' +
+    'dark:bg-primary/15 dark:text-border-strong dark:border-primary/25 dark:hover:bg-primary/25',
+  active:
+    'text-white border border-transparent shadow-md shadow-primary/30 ' +
+    '[background:var(--gradient-brand)] hover:brightness-110',
+  outline:
+    'bg-transparent text-primary-hover border border-border-strong hover:bg-accent ' +
+    'dark:text-border-strong dark:border-primary/40 dark:hover:bg-primary/10',
+  ghost:
+    'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 ' +
+    'dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700',
+};
+
+const sizeClasses: Record<PillSize, string> = {
+  sm: 'px-2.5 py-1 text-xs gap-1',
+  md: 'px-3.5 py-1.5 text-sm gap-1.5',
+};
+
+const baseClasses =
+  'inline-flex items-center font-medium tracking-tight rounded-full ' +
+  'transition-colors ' +
+  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
+
+const Tag = href ? 'a' : 'span';
+---
+
+<Tag
+  href={href}
+  class:list={[baseClasses, variantClasses[variant], sizeClasses[size], classList]}
+>
+  <slot />
+</Tag>

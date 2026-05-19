@@ -19,6 +19,9 @@ export default defineConfig({
   },
   integrations: [
     icon(),
+    // Full EC config lives in ec.config.mjs — required to keep the <Code>
+    // component working (function-valued options aren't JSON-serializable
+    // when inlined here).
     astroExpressiveCode(),
     mdx(),
     sitemap(),

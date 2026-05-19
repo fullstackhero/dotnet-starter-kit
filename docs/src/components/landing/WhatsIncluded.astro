@@ -1,4 +1,6 @@
 ---
+import SectionEyebrow from './SectionEyebrow.astro';
+
 const items = [
   { title: 'Identity & Permissions',     body: 'JWT bearer, refresh, role + permission gates with .RequirePermission().' },
   { title: 'Multitenancy by default',    body: 'Tenant isolation enforced via global query filters; opt out by interface.' },
@@ -17,7 +19,7 @@ const items = [
 <section class="border-t border-border">
   <div class="mx-auto max-w-6xl px-6 py-24 sm:py-32">
     <div class="max-w-2xl">
-      <p class="text-[11px] font-medium uppercase tracking-[0.18em] text-primary">What's included</p>
+      <SectionEyebrow n="02">What's included</SectionEyebrow>
       <h2 class="mt-4 font-display text-4xl font-semibold leading-[1.05] tracking-[-0.03em] sm:text-5xl">
         Everything you'd build anyway.
       </h2>

@@ -1,0 +1,75 @@
+---
+/**
+ * AnimatedIde — wrapper that adds pointer-tracked 3D tilt and a
+ * cursor-following brand-tinted radial spotlight to any editor-style
+ * panel.
+ *
+ * Mechanic:
+ *   - data-magnetic-ide on the wrapper picks up the tilt script
+ *     defined in src/scripts/magnetic-cards.ts (perspective + rotateX/Y
+ *     + scale3d on mousemove, easing back on mouseleave).
+ *   - The script also writes --mouse-x and --mouse-y custom properties
+ *     each frame; an ::after layer renders a soft radial gradient that
+ *     follows the cursor for a "lit panel" effect.
+ *
+ * Reduced-motion + touch: the script is a no-op there, so the wrapper
+ * gracefully degrades to a static panel.
+ */
+interface Props {
+  class?: string;
+}
+
+const { class: classList } = Astro.props as Props;
+---
+
+<div
+  data-magnetic-ide
+  class:list={['animated-ide', classList]}
+>
+  <slot />
+</div>
+
+<style>
+  .animated-ide {
+    position: relative;
+    transform-style: preserve-3d;
+    will-change: transform;
+    isolation: isolate;
+  }
+
+  /* Cursor-tracked spotlight overlay. Sits above the panel content
+     (z-index 1) but below interactive elements that opt-out via their
+     own z-index. The radial-gradient uses the brand colour via
+     color-mix so it auto-themes. */
+  .animated-ide::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 280ms ease;
+    background: radial-gradient(
+      360px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+      color-mix(in oklab, var(--primary) 14%, transparent),
+      transparent 70%
+    );
+    mix-blend-mode: screen;
+  }
+  .animated-ide:hover::after {
+    opacity: 1;
+  }
+  .dark .animated-ide::after {
+    background: radial-gradient(
+      360px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+      color-mix(in oklab, var(--primary-soft) 22%, transparent),
+      transparent 70%
+    );
+  }
+
+  @media (hover: none), (prefers-reduced-motion: reduce) {
+    .animated-ide::after { display: none; }
+    .animated-ide { transform: none !important; }
+  }
+</style>

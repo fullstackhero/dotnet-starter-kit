@@ -144,18 +144,24 @@
     @apply my-4 pl-8;
   }
 
-  /* the ::marker selector doesn't allow customizing the spacing around the marker as easily */
+  /* Star list marker — matches blog. The ::marker selector doesn't allow
+     customizing spacing as easily, so we use a ::before with a mask-image. */
   & ul li::before {
     content: '';
     display: inline-block;
-    width: 5px;
-    height: 5px;
-    margin-top: 0.65em;
-    margin-right: 10px;
-    margin-left: -16px;
-    border-radius: 999px;
+    width: 10px;
+    height: 10px;
+    margin-right: 8px;
+    margin-left: -18px;
     background-color: var(--primary);
-    vertical-align: top;
+    -webkit-mask-image: url('../icons/svgs/star.svg');
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-image: url('../icons/svgs/star.svg');
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
   }
 
   & ol {
