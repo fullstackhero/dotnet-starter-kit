@@ -1,4 +1,10 @@
-name = "fullstackhero-docs"
-compatibility_date = "2025-09-23"
-compatibility_flags = ["nodejs_compat"]
-pages_build_output_dir = "dist"
+name = 'fullstackhero'
+compatibility_date = '2025-09-23'
+compatibility_flags = ['nodejs_compat']
+
+# Workers-with-Static-Assets — replaces `pages_build_output_dir`.
+# `wrangler deploy` reads this; `wrangler pages deploy` is being unified
+# under Workers in 2025-2026 and this config is the forward-compatible form.
+[assets]
+directory = './dist'
+not_found_handling = '404-page'
