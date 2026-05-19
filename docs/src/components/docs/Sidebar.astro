@@ -1,6 +1,13 @@
 ---
 import { buildSidebar, getRootPage, isActivePath } from '../../helpers/sidebar';
 
+interface Props {
+  /** ID prefix — required when rendering more than one Sidebar on the page
+      so aria-controls / labelledby pairs stay unique. */
+  prefix?: string;
+}
+const { prefix = 'fsh' } = Astro.props;
+
 const sidebar = await buildSidebar();
 const rootPage = await getRootPage();
 const currentPath = Astro.url.pathname;
@@ -43,8 +50,8 @@ const isRootActive = rootPage ? isActivePath(currentPath, rootPage.href) : false
     {sidebar.map((section, idx) => {
       const num = String(idx + 1).padStart(2, '0');
       const isOpen = idx === activeIdx;
-      const triggerId = `fsh-acc-trigger-${section.dir}`;
-      const panelId = `fsh-acc-panel-${section.dir}`;
+      const triggerId = `${prefix}-acc-trigger-${section.dir}`;
+      const panelId = `${prefix}-acc-panel-${section.dir}`;
       return (
         <li
           class:list={[
