@@ -1,0 +1,207 @@
+---
+title: Unit tests
+description: xUnit + Shouldly + NSubstitute + AutoFixture for fast in-process tests of handlers, aggregates, and validators — no DbContext, no file system, no network.
+sidebar:
+  label: Unit tests
+  order: 1
+pageType: guide
+seo:
+  title: 'Unit testing in .NET 10 — xUnit + Shouldly + NSubstitute + AutoFixture'
+  description: 'How fullstackhero writes unit tests — xUnit + Shouldly readable assertions + NSubstitute mocks + AutoFixture random data. Conventions: Method_Should_X_When_Y naming, no DI container, no real infrastructure.'
+  keywords: 'xunit unit testing .net 10, shouldly assertions, nsubstitute mocking, autofixture test data, unit test naming convention'
+---
+
+Unit tests in fullstackhero are **fast, in-process, no infrastructure**. They test domain invariants on aggregates, handler logic with substituted dependencies, and validators against constructed commands. No `DbContext`. No file system. No network. No DI container. Sub-second per project; the entire kit's unit suite runs in a few seconds.
+
+## The stack
+
+| Library | Used for |
+|---|---|
+| xUnit 2.x | Test runner, `[Fact]` / `[Theory]` discovery |
+| Shouldly 4.x | Readable assertions — `result.ShouldBe(...)`, `.ShouldThrow<>()`, `.ShouldSatisfyAllConditions(...)` |
+| NSubstitute 5.x | Mocking service interfaces, verifying calls |
+| AutoFixture 4.x | Random DTO / fixture generation |
+
+All four come from the kit's `Directory.Packages.props` central package management.
+
+## Naming convention
+
+`MethodName_Should_ExpectedBehavior_When_Condition`. The shape forces you to write the assertion as a sentence:
+
+```csharp
+[Fact]
+public async Task Handle_Should_DelegateToRegistrationService_When_CommandIsValid() { /* ... */ }
+
+[Fact]
+public void ChangePrice_Should_RaiseDomainEvent_When_NewPriceIsDifferent() { /* ... */ }
+
+[Fact]
+public void Resolve_Should_ThrowConflict_When_TicketIsAlreadyClosed() { /* ... */ }
+```
+
+Three rules:
+
+- **`Method_Should_...`** — start with what's being called.
+- **`_Should_X`** — then what the test asserts.
+- **`_When_Y`** — then the condition (or omit if the test is a single fact about default behaviour).
+
+## Layout: Arrange / Act / Assert
+
+Each test reads top to bottom in three sections, grouped under `#region` blocks if there are many tests per class:
+
+```csharp
+public sealed class RegisterUserCommandHandlerTests
+{
+    private readonly Fixture _fixture = new();
+    private readonly IUserRegistrationService _registration = Substitute.For<IUserRegistrationService>();
+
+    [Fact]
+    public async Task Handle_Should_DelegateToRegistrationService_When_CommandIsValid()
+    {
+        // Arrange
+        var command = _fixture.Build<RegisterUserCommand>()
+            .With(c => c.Email, "valid@example.com")
+            .With(c => c.Password, "Pa55w0rd!Strong#Enough")
+            .Create();
+        var expected = new RegisterUserResponse(Guid.NewGuid(), command.Email);
+        _registration.RegisterAsync(command, Arg.Any<CancellationToken>())
+                     .Returns(ValueTask.FromResult(expected));
+
+        // Act
+        var sut = new RegisterUserCommandHandler(_registration);
+        var actual = await sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        actual.UserId.ShouldBe(expected.UserId);
+        await _registration.Received(1).RegisterAsync(command, Arg.Any<CancellationToken>());
+    }
+}
+```
+
+## Three ground rules
+
+### 1. Use Shouldly, never raw `Assert`
+
+```csharp
+// good
+result.ShouldBe(42);
+result.ShouldNotBeNull();
+() => action().ShouldThrow<CustomException>().Message.ShouldContain("conflict");
+
+// not this
+Assert.Equal(42, result);
+Assert.True(result != null, "result should not be null");
+```
+
+Shouldly's failure messages carry actual + expected without you writing the assertion message. Less typing, better failure output.
+
+### 2. Construct the SUT directly; no DI container
+
+```csharp
+var sut = new RegisterUserCommandHandler(_registration);   // direct construction
+// not this
+using var scope = serviceProvider.CreateScope();
+var sut = scope.ServiceProvider.GetRequiredService<RegisterUserCommandHandler>();
+```
+
+Unit tests test the handler. If your handler is too coupled to its DI container to be unit-tested in isolation, that's a sign to refactor — extract the logic, depend on interfaces.
+
+### 3. No infrastructure, no network, no file system
+
+Anything that touches `DbContext`, `HttpClient`, file I/O, or Redis is an [integration test](/docs/testing/integration-tests/). Unit tests stay in memory.
+
+## Testing aggregates
+
+Domain aggregates carry invariants. Test them directly — no handler, no DI:
+
+```csharp
+public sealed class TicketTests
+{
+    [Fact]
+    public void Resolve_Should_ThrowConflict_When_TicketIsAlreadyClosed()
+    {
+        var ticket = Ticket.Create(number: 1, title: "x", description: null,
+            priority: TicketPriority.Medium, reporterUserId: Guid.NewGuid());
+        ticket.Resolve(resolutionNote: null);
+        // ... advance to Closed somehow
+
+        var act = () => ticket.Resolve(resolutionNote: "again");
+
+        var ex = act.ShouldThrow<CustomException>();
+        ex.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public void AddComment_Should_RaiseDomainEvent_When_TicketIsOpen()
+    {
+        var ticket = Ticket.Create(/* ... */);
+
+        var commentId = ticket.AddComment(authorUserId: Guid.NewGuid(), body: "Hello");
+
+        ticket.DomainEvents.ShouldContain(e => e is TicketCommentAddedDomainEvent);
+    }
+}
+```
+
+`ChatChannelTests`, `MessageTests`, and the per-module `*Tests` projects in `src/Tests/{Module}.Tests/Domain/` are full of these. They run in milliseconds and they're the most direct way to verify an aggregate's invariants.
+
+## Testing validators
+
+```csharp
+public sealed class RegisterUserCommandValidatorTests
+{
+    private readonly IUserService _users = Substitute.For<IUserService>();
+    private readonly RegisterUserCommandValidator _sut;
+
+    public RegisterUserCommandValidatorTests()
+    {
+        _users.ExistsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(ValueTask.FromResult(false));
+        _sut = new RegisterUserCommandValidator(_users);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("not-an-email")]
+    public async Task Validate_Should_Fail_When_EmailIsInvalid(string email)
+    {
+        var command = ValidCommandWith(email);
+        var result = await _sut.ValidateAsync(command);
+        result.IsValid.ShouldBeFalse();
+        result.Errors.ShouldContain(e => e.PropertyName == nameof(RegisterUserCommand.Email));
+    }
+
+    private static RegisterUserCommand ValidCommandWith(string email) => /* ... */;
+}
+```
+
+`[Theory] + [InlineData]` is the right pattern for table-driven validator tests.
+
+## Verifying mock interactions
+
+NSubstitute's `Received(n)` checks how many times a method was called:
+
+```csharp
+await _registration.Received(1).RegisterAsync(command, Arg.Any<CancellationToken>());
+await _registration.DidNotReceive().RegisterAsync(/* different command */, Arg.Any<CancellationToken>());
+```
+
+Use this to assert "the handler delegated correctly," not just "the result happens to be right." Both matter — a handler that returns the right answer for the wrong reason is a bug waiting to happen.
+
+## Running
+
+```bash
+# A single module's unit tests
+dotnet test src/Tests/Identity.Tests/
+
+# Filter by test name
+dotnet test --filter "FullyQualifiedName~RegisterUserCommandHandlerTests"
+```
+
+Unit projects run sub-second; no `[xunit.runner.json]` tweaks needed. Architecture tests (also fast) are covered separately on the [architecture tests page](/docs/testing/architecture-tests/).
+
+## Related
+
+- [Integration tests](/docs/testing/integration-tests/) — when you need real infrastructure.
+- [Architecture tests](/docs/testing/architecture-tests/) — the NetArchTest rule families.
+- [Vertical slice architecture](/docs/architecture/vertical-slice/) — the slice shape unit tests mirror.

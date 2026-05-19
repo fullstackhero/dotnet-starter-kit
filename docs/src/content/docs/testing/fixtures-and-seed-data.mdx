@@ -1,0 +1,192 @@
+---
+title: Fixtures & seed data
+description: Shared test fixtures (containers, factory, seeded users + tenants + catalog) used across the integration suite.
+sidebar:
+  label: Fixtures & seed data
+  order: 4
+pageType: guide
+seo:
+  title: 'Test fixtures in .NET 10 — Testcontainers + seed data sharing'
+  description: 'How fullstackhero shares Testcontainers + WebApplicationFactory + seeded tenants / users / catalog across the integration test project so per-test cost stays low.'
+  keywords: 'iclassfixture testcontainers, webapplicationfactory shared, seed data integration tests, xunit collection fixture'
+---
+
+The single `Integration.Tests` project shares one set of containers + one host + a small set of seeded fixtures across every test in the suite. Each test runs in milliseconds once the containers are warm. This page is how the sharing works.
+
+<Callout type="tip" title="Read this before adding a test that creates a tenant">
+Seeded tenants (acme, globex, root) live throughout the suite. Don't create new tenants per test — fixtures already give you everything you need. Adding a fourth seeded tenant is a deliberate, documented change.
+</Callout>
+
+## The shared fixtures
+
+| Fixture | Type | Shared by |
+|---|---|---|
+| `DatabaseFixture` | `IAsyncLifetime` — Testcontainers Postgres 17 | The whole test project |
+| `RedisFixture` | `IAsyncLifetime` — Testcontainers Redis 7 | The whole test project |
+| `MinioFixture` | `IAsyncLifetime` — Testcontainers MinIO | The whole test project |
+| `FshWebApplicationFactory` | `WebApplicationFactory<Program>` | Class-level via `IClassFixture<>` |
+| `Seed.*` | Static — pre-inserted users / tenants / brands / categories | Read-only across the project |
+
+`DatabaseFixture`, `RedisFixture`, and `MinioFixture` are composed into a single xUnit **collection fixture** so they start once at the beginning of the test session and stop at the end. Subsequent `dotnet test` runs reuse the same containers as long as the runner process stays alive.
+
+## Connection wiring
+
+The factory pulls connection details from the fixtures during `ConfigureWebHost`:
+
+```csharp
+public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>
+{
+    private readonly DatabaseFixture _db;
+    private readonly RedisFixture _redis;
+    private readonly MinioFixture _minio;
+
+    // ... constructor wiring
+
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        builder.ConfigureAppConfiguration((ctx, cfg) =>
+        {
+            cfg.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["DatabaseOptions:ConnectionString"] = _db.ConnectionString,
+                ["CachingOptions:Redis"]             = _redis.ConnectionString,
+                ["Storage:Provider"]                 = "s3",
+                ["Storage:S3:ServiceUrl"]            = _minio.Endpoint,
+                ["Storage:S3:AccessKey"]             = _minio.AccessKey,
+                ["Storage:S3:SecretKey"]             = _minio.SecretKey,
+                ["Jwt:SigningKey"]                   = TestJwtSigningKey,
+            });
+        });
+    }
+
+    public HttpClient CreateAuthenticatedClient(string tenant = "acme") { /* ... */ }
+    public HttpClient CreateAnonymousClient() { /* ... */ }
+    public HttpClient CreateClientWithoutPermissions(string tenant = "acme") { /* ... */ }
+}
+```
+
+Every override is a clean overlay — the production `appsettings.json` is still read, then the test config layers on top.
+
+## Seeded data
+
+After the database is migrated, the factory's `IAsyncLifetime.InitializeAsync` calls the demo-seeder (the same `FSH.Starter.DbMigrator seed-demo` codepath used in dev) to populate tenants, users, catalog data, etc.
+
+Static accessor lives in `src/Tests/Integration.Tests/Infrastructure/Seed.cs`:
+
+```csharp
+public static class Seed
+{
+    public static class Tenants
+    {
+        public static readonly TenantSeed Root  = new("root",  Guid.Parse("..."));
+        public static readonly TenantSeed Acme  = new("acme",  Guid.Parse("..."));
+        public static readonly TenantSeed Globex = new("globex", Guid.Parse("..."));
+    }
+
+    public static class Users
+    {
+        public static UserSeed AcmeAdmin = new(/* ... */);
+        public static UserSeed AcmeMember = new(/* ... */);
+        public static UserSeed RootSuperAdmin = new(/* ... */);
+    }
+
+    public static class Brands
+    {
+        public static BrandSeed Default = new(Guid.Parse("..."), "default");
+    }
+
+    public static class Categories
+    {
+        public static CategorySeed Default = new(Guid.Parse("..."), "default");
+    }
+}
+```
+
+Reference these to satisfy foreign keys without re-seeding per test:
+
+```csharp
+var command = new CreateProductCommand(
+    Sku: $"TEST-{Guid.NewGuid():N}",
+    Name: "Test",
+    Description: null,
+    BrandId: Seed.Brands.Default.Id,         // existing seeded row
+    CategoryId: Seed.Categories.Default.Id,  // existing seeded row
+    PriceAmount: 10m,
+    PriceCurrency: "USD",
+    Stock: 1);
+```
+
+## When tests need their own state
+
+Tests should **insert**, not **mutate** the seed. The pattern:
+
+```csharp
+[Fact]
+public async Task MyTest()
+{
+    // Arrange — insert a fresh row scoped to this test
+    using var scope = factory.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<ICatalogDbContext>();
+    var brand = Brand.Create("test-brand-" + Guid.NewGuid().ToString("N")[..8],
+                             "Test brand", null);
+    db.Brands.Add(brand);
+    await db.SaveChangesAsync(CancellationToken.None);
+
+    // Act — use the new brand
+    // ...
+}
+```
+
+A new brand per test prevents cross-test contention. AutoFixture can generate unique SKUs / emails / slugs cheaply.
+
+## Authentication helpers
+
+```csharp
+public HttpClient CreateAuthenticatedClient(string tenant = "acme")
+{
+    var user = tenant switch
+    {
+        "root"   => Seed.Users.RootSuperAdmin,
+        "acme"   => Seed.Users.AcmeAdmin,
+        "globex" => Seed.Users.GlobexAdmin,
+        _        => throw new ArgumentException($"Unknown tenant: {tenant}"),
+    };
+    var token = IssueJwt(user, allPermissions: true);
+    var client = CreateClient();
+    client.DefaultRequestHeaders.Authorization = new("Bearer", token);
+    client.DefaultRequestHeaders.Add("tenant", tenant);
+    return client;
+}
+```
+
+`IssueJwt` signs the JWT with the same `Jwt:SigningKey` the test host uses — so the kit's auth pipeline accepts it as a real token. The seeded test users have `EmailConfirmed = true` already (via the seeder pattern in `Tests/Users/EmailConfirmationTests.cs`); freshly-registered users in your own tests need the flag flipped manually.
+
+## When to add a new fixture
+
+- **New shared infrastructure.** If you need RabbitMQ, Elasticsearch, etc., add a new `RabbitMqFixture : IAsyncLifetime` modelled on `RedisFixture`.
+- **New seed data that every module depends on.** Add to `Seed.cs` with a deliberate code review.
+- **One-off setup per test class.** Don't add a global fixture; use a private constructor on the test class and insert there.
+
+## Cleanup discipline
+
+`IAsyncLifetime.DisposeAsync` is called once at session end. Testcontainers handles container teardown automatically; the kit's database isn't dropped between sessions — Postgres preserves the test schema across runs for speed. To start fresh:
+
+```bash
+docker volume ls | grep testcontainers
+docker volume rm <volume-id>
+```
+
+…or just stop the containers and let the next run create fresh ones.
+
+## Common mistakes
+
+- **Sharing a `DbContext` across tests.** Each scope should be its own — use `factory.Services.CreateScope()` inside the test, don't reach into the factory's root provider.
+- **Mutating seed data.** The seed is read-only in spirit; tests that update `Seed.Brands.Default.Name` break other tests that read it.
+- **Forgetting to set the `tenant` header.** Without it, Finbuckle resolves no tenant, and tenant-aware queries return no rows. Authenticated client helpers set this for you; if you build an `HttpClient` manually, set it manually.
+- **`Thread.Sleep(...)` in tests.** "Wait 200 ms for the cache to settle" is the smell of a missing event signal. Find the deterministic completion (a poll, a hub event, a domain assertion) and assert against that.
+
+## Related
+
+- [Integration tests](/docs/testing/integration-tests/) — the test layer that uses these fixtures.
+- [Running tests](/docs/testing/running-tests/) — how to invoke the suite locally + in CI.
+- [Writing new tests](/docs/testing/writing-new-tests/) — recipes for each layer.

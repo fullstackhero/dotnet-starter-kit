@@ -1,0 +1,289 @@
+---
+title: Writing new tests
+description: Step-by-step recipes for adding a unit test, an integration test, or an architecture rule — copy-paste-ready.
+sidebar:
+  label: Writing new tests
+  order: 6
+pageType: recipe
+seo:
+  title: 'Writing tests in .NET 10 — step-by-step recipes for fullstackhero'
+  description: 'Copy-paste-ready recipes for adding new unit tests (xUnit), integration tests (WebApplicationFactory + Testcontainers), and architecture tests (NetArchTest) to fullstackhero.'
+  keywords: 'how to write unit test dotnet, integration test recipe asp.net core, netarchtest rule example, test driven development .net 10'
+---
+
+Three recipes — unit test, integration test, architecture rule. Each is copy-paste-ready and follows the conventions the rest of the kit uses.
+
+<Callout type="tip" title="Pick the right layer">
+Test the smallest unit that fully exercises the behaviour. An invariant on an aggregate is a domain unit test (no DbContext). An endpoint's HTTP response is an integration test (real round trip). An architectural rule is an architecture test (compile-time predicate). Don't reach for integration when unit will do.
+</Callout>
+
+## Recipe 1 — A unit test for a new handler
+
+You've just added `Modules.Catalog/Features/v1/Products/AdjustProductStock/AdjustProductStockCommandHandler.cs`. You want to verify it delegates to the aggregate's `AdjustStock` method.
+
+### 1. Create the test file
+
+Mirror the handler's path:
+
+```
+src/Tests/Catalog.Tests/Features/v1/Products/AdjustProductStock/AdjustProductStockCommandHandlerTests.cs
+```
+
+(If the test project doesn't exist yet, create it via `dotnet new xunit -n Catalog.Tests -o src/Tests/Catalog.Tests` and add references to `Modules.Catalog`, `Shouldly`, `NSubstitute`, `AutoFixture`.)
+
+### 2. Write the test
+
+```csharp
+using AutoFixture;
+using FSH.Framework.Core.Domain.Contracts;
+using Modules.Catalog.Contracts.v1.Products.AdjustProductStock;
+using Modules.Catalog.Domain;
+using Modules.Catalog.Features.v1.Products.AdjustProductStock;
+using NSubstitute;
+using Shouldly;
+
+namespace Catalog.Tests.Features.v1.Products.AdjustProductStock;
+
+public sealed class AdjustProductStockCommandHandlerTests
+{
+    private readonly Fixture _fixture = new();
+    private readonly ICatalogDbContext _db = Substitute.For<ICatalogDbContext>();
+
+    [Fact]
+    public async Task Handle_Should_AdjustStock_And_SaveChanges_When_ProductExists()
+    {
+        // Arrange
+        var product = Product.Create(/* … create a product fixture … */);
+        _db.Products.FindAsync(Arg.Is<object[]>(o => (Guid)o[0] == product.Id),
+                               Arg.Any<CancellationToken>())
+           .Returns(ValueTask.FromResult<Product?>(product));
+
+        var command = new AdjustProductStockCommand(product.Id, Delta: 5m);
+
+        var sut = new AdjustProductStockCommandHandler(_db);
+
+        // Act
+        await sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        product.Stock.ShouldBe(105m);                                      // assumes starting 100
+        await _db.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        product.DomainEvents.ShouldContain(e => e is ProductStockAdjustedDomainEvent);
+    }
+
+    [Fact]
+    public async Task Handle_Should_ThrowNotFound_When_ProductDoesNotExist()
+    {
+        _db.Products.FindAsync(Arg.Any<object[]>(), Arg.Any<CancellationToken>())
+           .Returns(ValueTask.FromResult<Product?>(null));
+
+        var sut = new AdjustProductStockCommandHandler(_db);
+
+        await Should.ThrowAsync<NotFoundException>(async () =>
+            await sut.Handle(new AdjustProductStockCommand(Guid.NewGuid(), 5m),
+                             CancellationToken.None));
+    }
+}
+```
+
+### 3. Run it
+
+```bash
+dotnet test src/Tests/Catalog.Tests/ \
+  --filter "FullyQualifiedName~AdjustProductStockCommandHandlerTests"
+```
+
+Should pass sub-second.
+
+## Recipe 2 — An integration test for a new endpoint
+
+You've added `PATCH /api/v1/catalog/products/{productId}/stock` and want to verify the HTTP round-trip.
+
+### 1. Create the test file
+
+Under `src/Tests/Integration.Tests/Tests/Catalog/`:
+
+```
+src/Tests/Integration.Tests/Tests/Catalog/AdjustProductStockEndpointTests.cs
+```
+
+### 2. Write the test
+
+```csharp
+using System.Net;
+using System.Net.Http.Json;
+using Integration.Tests.Infrastructure;
+using Modules.Catalog.Contracts.v1.Products.AdjustProductStock;
+using Modules.Catalog.Contracts.v1.Products.GetProductById;
+using Shouldly;
+
+namespace Integration.Tests.Tests.Catalog;
+
+public sealed class AdjustProductStockEndpointTests(FshWebApplicationFactory factory)
+    : IClassFixture<FshWebApplicationFactory>
+{
+    private readonly HttpClient _client = factory.CreateAuthenticatedClient(tenant: "acme");
+
+    [Fact]
+    public async Task PATCH_stock_Should_ReturnNoContent_And_UpdateStock_When_PayloadIsValid()
+    {
+        // Arrange — create a product to mutate
+        var create = await _client.PostAsJsonAsync("/api/v1/catalog/products",
+            new CreateProductCommand(
+                Sku: $"TEST-{Guid.NewGuid():N}",
+                Name: "Test",
+                Description: null,
+                BrandId: Seed.Brands.Default.Id,
+                CategoryId: Seed.Categories.Default.Id,
+                PriceAmount: 10m,
+                PriceCurrency: "USD",
+                Stock: 100m));
+        create.EnsureSuccessStatusCode();
+        var product = (await create.Content.ReadFromJsonAsync<ProductResponse>())!;
+
+        // Act
+        var resp = await _client.PatchAsJsonAsync(
+            $"/api/v1/catalog/products/{product.Id}/stock",
+            new AdjustProductStockCommand(product.Id, Delta: 5m));
+
+        // Assert HTTP
+        resp.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        // Assert via GET
+        var get = await _client.GetAsync($"/api/v1/catalog/products/{product.Id}");
+        get.EnsureSuccessStatusCode();
+        var dto = (await get.Content.ReadFromJsonAsync<ProductResponse>())!;
+        dto.Stock.ShouldBe(105m);
+    }
+
+    [Fact]
+    public async Task PATCH_stock_Should_ReturnForbidden_When_CallerLacksPermission()
+    {
+        var weak = factory.CreateClientWithoutPermissions(tenant: "acme");
+        var resp = await weak.PatchAsJsonAsync(
+            $"/api/v1/catalog/products/{Seed.Catalog.SeededProduct.Id}/stock",
+            new AdjustProductStockCommand(Seed.Catalog.SeededProduct.Id, 5m));
+
+        resp.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+}
+```
+
+### 3. Run it
+
+```bash
+dotnet test src/Tests/Integration.Tests/ \
+  --filter "FullyQualifiedName~AdjustProductStockEndpointTests"
+```
+
+Docker must be running. Cold start ~30 s; warm runs ~5-10 s.
+
+## Recipe 3 — A new architecture rule
+
+You've added a convention: "every command handler must call `SaveChangesAsync` exactly once." Encode it as a test.
+
+### 1. Pick the file
+
+Architecture tests live under `src/Tests/Architecture.Tests/`. Group by topic:
+
+```
+src/Tests/Architecture.Tests/Handlers/SaveChangesAsyncRuleTests.cs
+```
+
+### 2. Write the rule
+
+```csharp
+using System.Reflection;
+using NetArchTest.Rules;
+using Shouldly;
+
+namespace Architecture.Tests.Handlers;
+
+public sealed class SaveChangesAsyncRuleTests
+{
+    /// <summary>
+    /// Specification: every Mediator command handler that takes an `*DbContext`
+    /// must call SaveChangesAsync at least once.
+    /// Why: handlers that mutate state but forget to call SaveChangesAsync are
+    /// a common silent failure mode — the changes hold in the tracker but never
+    /// hit the DB. Catching this at the architecture-test level prevents that
+    /// class of bug.
+    /// </summary>
+    [Fact]
+    public void Command_handlers_with_DbContext_should_call_SaveChangesAsync()
+    {
+        var assemblies = new[]
+        {
+            typeof(Modules.Catalog.CatalogModule).Assembly,
+            typeof(Modules.Identity.IdentityModule).Assembly,
+            // ... other runtime modules
+        };
+
+        foreach (var asm in assemblies)
+        {
+            var handlerTypes = asm.GetTypes()
+                .Where(t => t.IsClass && !t.IsAbstract &&
+                            t.Name.EndsWith("CommandHandler", StringComparison.Ordinal) &&
+                            t.GetInterfaces().Any(i => i.IsGenericType &&
+                                                       i.GetGenericTypeDefinition() == typeof(ICommandHandler<,>)))
+                .ToList();
+
+            foreach (var handler in handlerTypes)
+            {
+                var ctorParams = handler.GetConstructors().First().GetParameters();
+                var hasDbContext = ctorParams.Any(p => p.ParameterType.Name.EndsWith("DbContext", StringComparison.Ordinal));
+                if (!hasDbContext) continue;
+
+                var handleMethod = handler.GetMethod("Handle")!;
+                var il = handleMethod.GetMethodBody()!.GetILAsByteArray()!;
+                // (use a real IL-walker like Mono.Cecil for production-quality;
+                //  for sketch purposes, check string literal in disassembly)
+
+                var disassembly = DisassembleMethod(handleMethod);
+                disassembly.ShouldContain("SaveChangesAsync",
+                    $"{handler.FullName} accepts a DbContext but never calls SaveChangesAsync.");
+            }
+        }
+    }
+
+    private static string DisassembleMethod(MethodInfo method)
+    {
+        // Real impl: Mono.Cecil or similar. Placeholder.
+        return string.Empty;
+    }
+}
+```
+
+The example is illustrative — IL-walking architecture rules are harder than the kit's standard "type X must inherit Y" style. For most rules, the existing NetArchTest fluent API is enough:
+
+```csharp
+var result = Types.InAssembly(typeof(MyModule).Assembly)
+    .That()
+    .HaveNameEndingWith("CommandHandler")
+    .Should()
+    .ImplementInterface(typeof(ICommandHandler<,>))
+    .GetResult();
+result.IsSuccessful.ShouldBeTrue();
+```
+
+### 3. Run it
+
+```bash
+dotnet test src/Tests/Architecture.Tests/ \
+  --filter "FullyQualifiedName~SaveChangesAsyncRuleTests"
+```
+
+Should run sub-second. If it fails, the message names the offending types.
+
+## Three rules of thumb
+
+1. **Smallest possible test.** A domain invariant on an aggregate is a unit test, not an integration test.
+2. **One arrangement per test.** If a single test asserts six things across three setups, split it into three tests.
+3. **Name the test by what would fail.** `Resolve_Should_ThrowConflict_When_TicketIsAlreadyClosed` tells you the intent. `TicketsTest1` doesn't.
+
+## Related
+
+- [Unit tests](/docs/testing/unit-tests/) — conventions and assertion style.
+- [Integration tests](/docs/testing/integration-tests/) — fixtures and authenticated clients.
+- [Architecture tests](/docs/testing/architecture-tests/) — the rule families that ship.
+- [Running tests](/docs/testing/running-tests/) — `dotnet test` invocations.
