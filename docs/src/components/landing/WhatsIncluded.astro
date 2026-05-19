@@ -1,43 +1,78 @@
 ---
+import { Icon } from 'astro-icon/components';
 import SectionEyebrow from './SectionEyebrow.astro';
 
 const items = [
-  { title: 'Identity & Permissions',     body: 'JWT bearer, refresh, role + permission gates with .RequirePermission().' },
-  { title: 'Multitenancy by default',    body: 'Tenant isolation enforced via global query filters; opt out by interface.' },
-  { title: 'EF Core + PostgreSQL',       body: 'Migrations, value converters, soft delete, audit interceptors wired up.' },
-  { title: 'Redis caching',              body: 'Distributed cache with tenant-scoped cache-busting on writes.' },
-  { title: 'Hangfire jobs',              body: 'Background processing with tenant context preserved across queues.' },
-  { title: 'Serilog + OpenTelemetry',    body: 'Structured logs to console + file + OTLP traces, metrics, and logs.' },
-  { title: 'Scalar OpenAPI',             body: 'Versioned APIs, OpenAPI 3.1 docs, interactive Scalar UI at /scalar/.' },
-  { title: 'Idempotency + Webhooks',     body: 'Idempotency-Key header, HMAC-signed tenant webhooks, replay protection.' },
-  { title: '.NET Aspire AppHost',        body: 'Local orchestration of API + DB + frontends + Redis + Hangfire dashboard.' },
-  { title: 'React admin + dashboard',    body: 'Hot Vite apps with auth flow, permission UI, audit log viewer.' },
-  { title: 'Health, rate limits, SSE',   body: 'Probe endpoints, fixed-window limiter, server-sent events for live data.' },
-  { title: 'Feature flags',              body: 'Microsoft.FeatureManagement with tenant-scoped overrides.' },
+  { tag: 'AUTH',        icon: 'lucide:shield-check',  title: 'Identity & Permissions',   body: 'JWT bearer, refresh, role + permission gates with .RequirePermission().' },
+  { tag: 'ISOLATION',   icon: 'lucide:building-2',    title: 'Multitenancy by default',  body: 'Tenant isolation enforced via global query filters; opt out by interface.' },
+  { tag: 'DATA',        icon: 'lucide:database',      title: 'EF Core + PostgreSQL',     body: 'Migrations, value converters, soft delete, audit interceptors wired up.' },
+  { tag: 'CACHE',       icon: 'lucide:server',        title: 'Redis caching',            body: 'Distributed cache with tenant-scoped cache-busting on writes.' },
+  { tag: 'JOBS',        icon: 'lucide:cog',           title: 'Hangfire jobs',            body: 'Background processing with tenant context preserved across queues.' },
+  { tag: 'OBSERVE',     icon: 'lucide:activity',      title: 'Serilog + OpenTelemetry',  body: 'Structured logs to console + file + OTLP traces, metrics, and logs.' },
+  { tag: 'API',         icon: 'lucide:book-open',     title: 'Scalar OpenAPI',           body: 'Versioned APIs, OpenAPI 3.1 docs, interactive Scalar UI at /scalar/.' },
+  { tag: 'RESILIENCE',  icon: 'lucide:repeat-2',      title: 'Idempotency + Webhooks',   body: 'Idempotency-Key header, HMAC-signed tenant webhooks, replay protection.' },
+  { tag: 'ORCHESTRATE', icon: 'lucide:layers',        title: '.NET Aspire AppHost',      body: 'Local orchestration of API + DB + frontends + Redis + Hangfire dashboard.' },
+  { tag: 'UI',          icon: 'lucide:layout-grid',   title: 'React admin + dashboard',  body: 'Hot Vite apps with auth flow, permission UI, audit log viewer.' },
+  { tag: 'OPS',         icon: 'lucide:heart-pulse',   title: 'Health, rate limits, SSE', body: 'Probe endpoints, fixed-window limiter, server-sent events for live data.' },
+  { tag: 'FLAGS',       icon: 'lucide:flag',          title: 'Feature flags',            body: 'Microsoft.FeatureManagement with tenant-scoped overrides.' },
 ];
 ---
-<section class="border-t border-border">
-  <div class="mx-auto max-w-6xl px-6 py-24 sm:py-32">
+
+<section class="relative isolate overflow-hidden border-t border-border" id="whats-included">
+  <div class="mx-auto w-full max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
+    <SectionEyebrow n="02" right="12 building blocks">Everything pre-wired</SectionEyebrow>
+
+    {/* Headline + subtitle, left-aligned */}
     <div class="max-w-2xl">
-      <SectionEyebrow n="02">What's included</SectionEyebrow>
-      <h2 class="mt-4 font-display text-4xl font-semibold leading-[1.05] tracking-[-0.03em] sm:text-5xl">
-        Everything you'd build anyway.
+      <h2 class="text-balance font-display font-semibold tracking-[-0.035em] text-[36px] leading-[1.04] sm:text-[48px] md:text-[56px]">
+        <span class="font-light text-muted-foreground">Everything you'd</span>
+        <span class="mt-1 block">
+          <span class="relative inline-block text-foreground">
+            <span class="relative z-[1] font-bold">build anyway.</span>
+            <span
+              aria-hidden="true"
+              class="absolute -bottom-1 left-0 right-0 h-2 rounded-full"
+              style="background: color-mix(in oklab, var(--primary) 50%, transparent);"
+            ></span>
+          </span>
+        </span>
       </h2>
-      <p class="mt-5 text-[15.5px] leading-relaxed text-muted-foreground">
-        The unglamorous parts of every production .NET app — pre-wired, opinionated, and out of your way.
+      <p class="mt-6 max-w-xl text-[15.5px] leading-relaxed text-muted-foreground sm:text-[16.5px]">
+        The
+        <span class="font-semibold text-foreground">unglamorous parts</span>
+        of every production .NET app — pre-wired, opinionated, and out of your way so you can focus on
+        <span class="font-semibold text-foreground">your feature work</span>.
       </p>
     </div>
 
-    <ul class="mt-14 grid gap-x-10 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
-      {items.map((item) => (
-        <li class="flex items-start gap-3 border-t border-border pt-5">
-          <svg class="mt-1 size-4 shrink-0 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
-          <div>
-            <h3 class="font-display text-[15px] font-semibold tracking-[-0.01em] text-foreground">{item.title}</h3>
-            <p class="mt-1 text-[13.5px] leading-relaxed text-muted-foreground">{item.body}</p>
+    {/* Building-block grid */}
+    <ul class="mt-14 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
+      {items.map((it) => (
+        <li class="wi-card group relative overflow-hidden rounded-2xl border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-border-strong">
+          {/* Corner glow on hover */}
+          <div
+            aria-hidden="true"
+            class="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+            style="background: radial-gradient(circle, color-mix(in oklab, var(--primary) 14%, transparent), transparent 70%);"
+          ></div>
+
+          {/* Top row: icon chip + mono category */}
+          <div class="relative flex items-center justify-between gap-2">
+            <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-background text-primary transition-colors group-hover:border-primary/40 group-hover:bg-primary/5">
+              <Icon name={it.icon} class="h-4 w-4" />
+            </span>
+            <span class="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              {it.tag}
+            </span>
           </div>
+
+          {/* Title + body */}
+          <h3 class="relative mt-5 font-display text-[15.5px] font-semibold tracking-[-0.01em] text-foreground">
+            {it.title}
+          </h3>
+          <p class="relative mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
+            {it.body}
+          </p>
         </li>
       ))}
     </ul>

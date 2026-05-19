@@ -36,24 +36,9 @@ const validatorCode = `public sealed class RegisterUserCommandValidator
 
 // Active files (clickable). Order matters for indices.
 const files = [
-  {
-    name: 'RegisterUserEndpoint.cs',
-    short: 'Endpoint.cs',
-    lines: 9,
-    code: endpointCode,
-  },
-  {
-    name: 'RegisterUserCommandHandler.cs',
-    short: 'Handler.cs',
-    lines: 7,
-    code: handlerCode,
-  },
-  {
-    name: 'RegisterUserCommandValidator.cs',
-    short: 'Validator.cs',
-    lines: 10,
-    code: validatorCode,
-  },
+  { name: 'RegisterUserEndpoint.cs',       short: 'Endpoint.cs',  lines: 9,  code: endpointCode  },
+  { name: 'RegisterUserCommandHandler.cs', short: 'Handler.cs',   lines: 7,  code: handlerCode   },
+  { name: 'RegisterUserCommandValidator.cs', short: 'Validator.cs', lines: 10, code: validatorCode },
 ];
 
 // Collapsed feature folders (visual-only — show the breadth of VSA)
@@ -64,42 +49,90 @@ const otherFeatures = [
   'DeleteUser',
   'RefreshToken',
 ];
----
-<section class="relative border-t border-border bg-subtle/40">
-  <div class="section-dots absolute inset-0 -z-10 opacity-60" aria-hidden="true"></div>
 
-  <div class="mx-auto max-w-7xl px-6 py-24 sm:py-32">
+// Mini stats under the headline
+const microStats = [
+  { value: '4', unit: '',  label: 'files / feature' },
+  { value: '0', unit: '',  label: 'project jumps'   },
+  { value: '1', unit: '',  label: 'endpoint / slice'},
+];
+
+// Editorial bullets (uses star marker via inline SVG)
+const points = [
+  { strong: 'Mediator 3',          rest: 'source-generator — zero reflection at runtime.' },
+  { strong: 'FluentValidation',    rest: 'auto-wired by the module loader.'              },
+  { strong: '.RequirePermission()', rest: 'enforces auth at the endpoint, not the handler.' },
+  { strong: 'ValueTask<T>',        rest: '+ ConfigureAwait(false) on every async call.'  },
+];
+---
+
+<section
+  class="relative isolate overflow-hidden border-t border-border bg-subtle/40"
+  id="code-first"
+>
+  <div
+    class="section-dots absolute inset-0 -z-10 opacity-60"
+    style="mask-image: radial-gradient(80% 70% at 50% 30%, black, transparent); -webkit-mask-image: radial-gradient(80% 70% at 50% 30%, black, transparent);"
+    aria-hidden="true"
+  ></div>
+
+  <div class="mx-auto w-full max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
+    <SectionEyebrow n="01" right="Modules.Identity / Features / v1 / Users">Vertical Slice Architecture</SectionEyebrow>
+
     <div class="grid items-start gap-12 lg:grid-cols-[minmax(0,_5fr)_minmax(0,_7fr)] lg:gap-16">
-      <!-- LEFT: editorial copy -->
+      {/* LEFT: editorial copy (sticky on lg+) */}
       <div class="lg:sticky lg:top-24">
-        <SectionEyebrow n="01">Vertical Slice Architecture</SectionEyebrow>
-        <h2 class="mt-4 font-display text-4xl font-semibold leading-[1.05] tracking-[-0.03em] text-foreground sm:text-5xl">
-          One feature.<br />
-          <span class="gradient-text">One folder.</span>
+        {/* Light/bold split headline with green underline */}
+        <h2 class="text-balance font-display font-semibold tracking-[-0.035em] text-[36px] leading-[1.04] sm:text-[48px] md:text-[56px]">
+          <span class="font-light text-muted-foreground">One feature.</span>
+          <span class="mt-1 block">
+            <span class="relative inline-block text-foreground">
+              <span class="relative z-[1] font-bold">One folder.</span>
+              <span
+                aria-hidden="true"
+                class="absolute -bottom-1 left-0 right-0 h-2 rounded-full"
+                style="background: color-mix(in oklab, var(--primary) 50%, transparent);"
+              ></span>
+            </span>
+          </span>
         </h2>
-        <p class="mt-5 max-w-md text-[15.5px] leading-relaxed text-muted-foreground">
-          Every feature lives in one place — endpoint, handler, validator, the lot. No jumping between five projects to add a button. No layered ceremony.
+
+        {/* Subtitle with bold inline */}
+        <p class="mt-6 max-w-md text-[15.5px] leading-relaxed text-muted-foreground sm:text-[16.5px]">
+          Every feature lives in
+          <span class="font-semibold text-foreground">one place</span>
+          — endpoint, handler, validator, the lot. No jumping between five projects to add a button. No layered ceremony.
         </p>
 
-        <ul class="mt-8 space-y-3 text-[14px]">
-          <li class="flex items-start gap-3">
-            <span class="mt-1 inline-flex h-1.5 w-1.5 shrink-0 rounded-full bg-primary"></span>
-            <span class="text-muted-foreground"><span class="text-foreground font-medium">Mediator 3</span> source-generator — zero reflection at runtime.</span>
-          </li>
-          <li class="flex items-start gap-3">
-            <span class="mt-1 inline-flex h-1.5 w-1.5 shrink-0 rounded-full bg-primary"></span>
-            <span class="text-muted-foreground"><span class="text-foreground font-medium">FluentValidation</span> auto-wired by the module loader.</span>
-          </li>
-          <li class="flex items-start gap-3">
-            <span class="mt-1 inline-flex h-1.5 w-1.5 shrink-0 rounded-full bg-primary"></span>
-            <span class="text-muted-foreground"><span class="text-foreground font-medium">.RequirePermission()</span> enforces auth at the endpoint, not the handler.</span>
-          </li>
-          <li class="flex items-start gap-3">
-            <span class="mt-1 inline-flex h-1.5 w-1.5 shrink-0 rounded-full bg-primary"></span>
-            <span class="text-muted-foreground"><span class="text-foreground font-medium">ValueTask&lt;T&gt;</span> + ConfigureAwait(false) on every async call.</span>
-          </li>
+        {/* Mini stat row — tabular-nums micro readout */}
+        <ul class="mt-8 flex flex-wrap items-end gap-x-6 gap-y-3">
+          {microStats.map((s) => (
+            <li class="flex items-baseline gap-2">
+              <span class="font-display text-[28px] font-bold tabular-nums leading-none text-foreground sm:text-[32px]">
+                {s.value}
+              </span>
+              <span class="font-mono text-[10.5px] uppercase tracking-[0.16em] text-muted-foreground">
+                {s.label}
+              </span>
+            </li>
+          ))}
         </ul>
 
+        {/* Bullets with star markers */}
+        <ul class="mt-8 space-y-2.5 text-[13.5px]">
+          {points.map((p) => (
+            <li class="flex items-start gap-2.5">
+              <svg class="mt-1 h-3 w-3 shrink-0 text-primary" viewBox="0 0 9 10" fill="currentColor" aria-hidden="true">
+                <path d="M4.37316 0.851288C4.47459 0.59117 4.85275 0.624255 4.90746 0.898033L5.48015 3.76369C5.49882 3.85714 5.56384 3.93463 5.65263 3.96925L8.37531 5.03085C8.63543 5.13228 8.60234 5.51044 8.32856 5.56515L5.4629 6.13784C5.36945 6.15651 5.29197 6.22153 5.25735 6.31032L4.19574 9.033C4.09432 9.29312 3.71616 9.26003 3.66145 8.98625L3.08876 6.12059C3.07008 6.02714 3.00506 5.94966 2.91627 5.91504L0.193598 4.85343C-0.0665204 4.75201 -0.0334351 4.37385 0.240343 4.31914L3.106 3.74645C3.19945 3.72777 3.27694 3.66275 3.31156 3.57396L4.37316 0.851288Z" />
+              </svg>
+              <span class="text-muted-foreground">
+                <span class="font-medium text-foreground">{p.strong}</span> {p.rest}
+              </span>
+            </li>
+          ))}
+        </ul>
+
+        {/* Explore link */}
         <a
           href="/docs/concepts/architecture/"
           class="mt-10 inline-flex items-center gap-1.5 text-[14px] font-medium text-primary transition-all hover:gap-2"
@@ -109,21 +142,18 @@ const otherFeatures = [
         </a>
       </div>
 
-      <!-- RIGHT: VS-Code-style editor with file tree + code, wrapped in AnimatedIde -->
+      {/* RIGHT: VS-Code-style editor wrapped in AnimatedIde */}
       <AnimatedIde class="editor relative">
-        <!-- Glow behind the window (visible on hover) -->
         <div class="editor-glow" aria-hidden="true"></div>
 
         <div class="editor-frame relative overflow-hidden rounded-xl border border-border bg-card shadow-[0_30px_60px_-30px_rgba(21,128,61,0.18),0_8px_24px_-12px_rgba(0,0,0,0.08)] dark:shadow-[0_30px_60px_-30px_rgba(74,222,128,0.12),0_8px_24px_-12px_rgba(0,0,0,0.5)]">
-          <!-- Title bar -->
+          {/* Title bar */}
           <div class="flex items-center gap-3 border-b border-border bg-subtle/60 px-4 py-2.5">
-            <!-- Traffic lights -->
             <div class="flex items-center gap-1.5" aria-hidden="true">
               <span class="size-3 rounded-full bg-[#ff5f57]"></span>
               <span class="size-3 rounded-full bg-[#febc2e]"></span>
               <span class="size-3 rounded-full bg-[#28c840]"></span>
             </div>
-            <!-- Breadcrumb path (updates with active file) -->
             <p class="hidden min-w-0 flex-1 truncate font-mono text-[11.5px] text-muted-foreground sm:block">
               <span>Modules.Identity</span>
               <span class="text-border">/</span>
@@ -137,19 +167,17 @@ const otherFeatures = [
               <span class="text-border">/</span>
               <span class="text-foreground" data-vsa-path>RegisterUserEndpoint.cs</span>
             </p>
-            <!-- Language badge -->
             <span class="ml-auto inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2 py-0.5 font-mono text-[10px] font-semibold tracking-wide text-muted-foreground">
               <span class="size-1.5 rounded-full bg-primary"></span>
               C#
             </span>
           </div>
 
-          <!-- Editor body: file tree + code -->
+          {/* Editor body: file tree + code */}
           <div class="grid grid-cols-1 md:grid-cols-[200px_minmax(0,_1fr)]">
-            <!-- File tree -->
+            {/* File tree */}
             <aside class="file-tree border-r-0 border-b border-border bg-subtle/30 py-3 font-mono text-[12px] md:border-b-0 md:border-r">
               <ul class="space-y-0.5">
-                <!-- Users folder header -->
                 <li>
                   <div class="flex items-center gap-1.5 px-3 py-1 text-muted-foreground">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -162,10 +190,8 @@ const otherFeatures = [
                   </div>
                 </li>
 
-                <!-- RegisterUser/ — expanded, active feature folder -->
                 <li class="relative">
-                  <!-- Vertical indent guide -->
-                  <span aria-hidden="true" class="pointer-events-none absolute left-[26px] top-7 bottom-1 w-px bg-border"></span>
+                  <span aria-hidden="true" class="pointer-events-none absolute bottom-1 left-[26px] top-7 w-px bg-border"></span>
 
                   <div class="flex items-center gap-1.5 px-3 py-1 pl-5 text-foreground">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -197,7 +223,6 @@ const otherFeatures = [
                   </ul>
                 </li>
 
-                <!-- Other feature folders (collapsed, visual only) -->
                 {otherFeatures.map((feature) => (
                   <li>
                     <div class="flex items-center gap-1.5 rounded-md px-3 py-1 pl-5 text-muted-foreground/80 transition-colors hover:bg-foreground/[0.04]">
@@ -214,7 +239,7 @@ const otherFeatures = [
               </ul>
             </aside>
 
-            <!-- Code panels -->
+            {/* Code panels */}
             <div class="relative">
               {files.map((f, i) => (
                 <div data-vsa-panel={i} class={`vsa-panel ${i === 0 ? '' : 'hidden'}`}>
@@ -224,7 +249,7 @@ const otherFeatures = [
             </div>
           </div>
 
-          <!-- Status footer -->
+          {/* Status footer */}
           <div class="flex items-center justify-between border-t border-border bg-subtle/40 px-4 py-2 font-mono text-[10.5px] text-muted-foreground">
             <span class="inline-flex items-center gap-3">
               <span class="inline-flex items-center gap-1.5"><span class="size-1.5 rounded-full bg-primary"></span>vsa</span>

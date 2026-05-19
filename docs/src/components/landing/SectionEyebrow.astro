@@ -1,49 +1,43 @@
 ---
 /**
- * SectionEyebrow — editorial section header label.
+ * SectionEyebrow — magazine-style section heading rule.
  *
- * Renders a small, mono, uppercase eyebrow with a primary-tinted
- * tabular-numeric prefix and a thin accent rule that draws the eye
- * across into the title. Mirrors the magazine-style "01 · The problem"
- * rhythm used on the codewithmukesh blog.
+ * Renders a full-width row with:
+ *   ─ left:  mono primary-tinted label, e.g. "01 · Vertical Slice"
+ *   ─ mid:   hairline rule (border) that fills available space
+ *   ─ right: optional mono muted meta tag (hidden on mobile)
+ *
+ * Matches the eyebrow rule used on the Hero so every section opens
+ * with the same magazine rhythm.
  *
  * Props:
- *   n  — section number string, e.g. "01" (renders before the label)
+ *   n      — section number string (renders before the label, optional)
+ *   right  — small meta line on the far right (optional, hidden < sm)
  *
  * Default slot is the eyebrow label text.
  */
 interface Props {
   n?: string;
+  right?: string;
   class?: string;
 }
 
-const { n, class: classList } = Astro.props as Props;
+const { n, right, class: classList } = Astro.props as Props;
 ---
 
-<p
+<div
   class:list={[
-    'section-eyebrow inline-flex items-center gap-2.5 font-mono text-[11px] font-semibold uppercase tracking-[0.18em] tabular-nums text-muted-foreground',
+    'mb-10 flex items-center gap-3 sm:mb-14 sm:gap-4',
     classList,
   ]}
 >
-  {n && (
-    <>
-      <span class="section-eyebrow-num text-primary">{n}</span>
-      <span class="section-eyebrow-rule" aria-hidden="true"></span>
-    </>
+  <span class="shrink-0 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] tabular-nums text-primary">
+    {n && <><span class="tabular-nums">{n}</span><span class="mx-1.5 opacity-50">·</span></>}<slot />
+  </span>
+  <span class="h-px flex-1 bg-border" aria-hidden="true"></span>
+  {right && (
+    <span class="hidden shrink-0 font-mono text-[11px] font-medium uppercase tracking-[0.16em] tabular-nums text-muted-foreground sm:inline">
+      {right}
+    </span>
   )}
-  <span class="section-eyebrow-label"><slot /></span>
-</p>
-
-<style>
-  .section-eyebrow-rule {
-    display: inline-block;
-    width: 1.75rem;
-    height: 1px;
-    background: linear-gradient(
-      to right,
-      color-mix(in oklab, var(--primary) 60%, transparent),
-      color-mix(in oklab, var(--primary) 0%, transparent)
-    );
-  }
-</style>
+</div>

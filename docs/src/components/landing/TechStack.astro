@@ -1,33 +1,67 @@
 ---
+import { Icon } from 'astro-icon/components';
 import SectionEyebrow from './SectionEyebrow.astro';
 
 const stack = [
-  { name: '.NET 10',       sub: 'C# 14, latest LTS' },
-  { name: 'Aspire',        sub: 'local orchestration' },
-  { name: 'EF Core 10',    sub: 'PostgreSQL provider' },
-  { name: 'Mediator 3',    sub: 'source-generator' },
-  { name: 'FluentValidation', sub: '12.x' },
-  { name: 'Hangfire',      sub: 'background jobs' },
-  { name: 'Redis',         sub: 'StackExchange' },
-  { name: 'Serilog',       sub: 'structured logs' },
-  { name: 'OpenTelemetry', sub: 'OTLP exporter' },
-  { name: 'Scalar',        sub: 'OpenAPI 3.1 UI' },
-  { name: 'Finbuckle',     sub: 'multitenancy 10' },
-  { name: 'React + Vite',  sub: 'admin + dashboard' },
+  { name: '.NET 10',          version: 'C# 14',     sub: 'latest LTS',         icon: 'lucide:hexagon'      },
+  { name: 'Aspire',           version: '10.0',      sub: 'orchestration',      icon: 'lucide:layers'       },
+  { name: 'EF Core 10',       version: 'pg 16',     sub: 'PostgreSQL',         icon: 'lucide:database'    },
+  { name: 'Mediator 3',       version: 'srcgen',    sub: 'CQRS',               icon: 'lucide:radio'        },
+  { name: 'FluentValidation', version: '12.x',      sub: 'request validation', icon: 'lucide:shield-check' },
+  { name: 'Hangfire',         version: '1.8',       sub: 'background jobs',    icon: 'lucide:zap'          },
+  { name: 'Redis',            version: 'StackEx',   sub: 'distributed cache',  icon: 'lucide:server'       },
+  { name: 'Serilog',          version: '4.x',       sub: 'structured logs',    icon: 'lucide:scroll-text'  },
+  { name: 'OpenTelemetry',    version: 'OTLP',      sub: 'traces · metrics',   icon: 'lucide:activity'     },
+  { name: 'Scalar',           version: 'OAS 3.1',   sub: 'API browser',        icon: 'lucide:book-open'    },
+  { name: 'Finbuckle',        version: '10.x',      sub: 'multitenancy',       icon: 'lucide:building-2'   },
+  { name: 'React + Vite',     version: 'TS 5',      sub: 'admin · dashboard',  icon: 'lucide:code'         },
 ];
 ---
-<section class="border-t border-border">
-  <div class="mx-auto max-w-6xl px-6 py-20">
-    <div class="flex justify-center">
-      <SectionEyebrow n="04">Under the hood</SectionEyebrow>
-    </div>
-    <ul class="mt-10 grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3 lg:grid-cols-6">
+
+<section class="relative isolate overflow-hidden border-t border-border" id="tech-stack">
+  <div class="mx-auto w-full max-w-7xl px-4 py-20 sm:px-6 sm:py-24 lg:px-8">
+    <SectionEyebrow n="04" right="12 production-grade libraries">Under the hood</SectionEyebrow>
+
+    <ul class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 lg:gap-4">
       {stack.map((t) => (
-        <li class="border-l-2 border-border pl-3 transition-colors hover:border-primary">
-          <p class="font-display text-[14px] font-semibold tracking-[-0.01em] text-foreground">{t.name}</p>
-          <p class="text-[11.5px] text-muted-foreground">{t.sub}</p>
+        <li class="tech-cell group relative overflow-hidden rounded-xl border border-border bg-card/40 p-4 transition-all hover:-translate-y-0.5 hover:border-border-strong">
+          {/* Brand left-accent that slides in on hover */}
+          <span
+            aria-hidden="true"
+            class="tech-cell-accent pointer-events-none absolute inset-y-3 left-0 w-[2px] rounded-full bg-primary opacity-0 transition-all duration-300"
+          ></span>
+
+          <div class="flex items-center gap-2.5">
+            <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border bg-background text-primary transition-colors group-hover:border-primary/40 group-hover:bg-primary/5">
+              <Icon name={t.icon} class="h-3.5 w-3.5" />
+            </span>
+            <p class="truncate font-display text-[14.5px] font-semibold tracking-[-0.01em] text-foreground">
+              {t.name}
+            </p>
+          </div>
+
+          <p class="mt-2 truncate font-mono text-[11px] tabular-nums text-muted-foreground">
+            <span class="text-foreground/70">{t.version}</span>
+            <span class="opacity-50"> · </span>
+            {t.sub}
+          </p>
         </li>
       ))}
     </ul>
   </div>
 </section>
+
+<style>
+  .tech-cell:hover .tech-cell-accent {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+  .tech-cell .tech-cell-accent {
+    transform-origin: center;
+    transform: scaleY(0.5);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tech-cell:hover { transform: none; }
+    .tech-cell .tech-cell-accent { transition: none; }
+  }
+</style>
