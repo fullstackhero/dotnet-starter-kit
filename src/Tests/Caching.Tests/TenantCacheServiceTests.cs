@@ -130,4 +130,87 @@ public sealed class TenantCacheServiceTests
             () => sut.GetOrCreateAsync("key", "state",
                 (_, _) => ValueTask.FromResult("v")).AsTask());
     }
+
+    /// <summary>
+    /// Regression test for the tag-format mismatch bug: entries tagged with a logical
+    /// tag (e.g. "themes") must be evictable via <see cref="ITenantCacheService.RemoveByTagAsync(string, CancellationToken)"/>
+    /// using the same logical tag string. Without the <c>t:{tenantId}:</c> prefix applied
+    /// consistently on both SET and REMOVE paths, this round-trip silently fails.
+    /// </summary>
+    [Fact]
+    public async Task RemoveByTagAsync_RoundTrip_Should_EvictTaggedEntry()
+    {
+        // Arrange
+        var (sut, _) = CreateSut("tenant-tag-rt");
+        int factoryCallCount = 0;
+
+        // Prime the cache — entry is stored with tag "my-tag"
+        await sut.GetOrCreateAsync(
+            "tagged-key",
+            "state",
+            (_, _) =>
+            {
+                factoryCallCount++;
+                return ValueTask.FromResult("original-value");
+            },
+            tags: ["my-tag"]);
+
+        factoryCallCount.ShouldBe(1, "factory should have run once to prime the cache");
+
+        // Act — evict by the same logical tag string
+        await sut.RemoveByTagAsync("my-tag");
+
+        // Re-read: entry must be gone, so factory runs again
+        var result = await sut.GetOrCreateAsync(
+            "tagged-key",
+            "state",
+            (_, _) =>
+            {
+                factoryCallCount++;
+                return ValueTask.FromResult("refreshed-value");
+            },
+            tags: ["my-tag"]);
+
+        // Assert
+        factoryCallCount.ShouldBe(2, "factory must run a second time — RemoveByTagAsync should have evicted the entry");
+        result.ShouldBe("refreshed-value");
+    }
+
+    /// <summary>
+    /// Same round-trip guarantee for the multi-tag overload.
+    /// </summary>
+    [Fact]
+    public async Task RemoveByTagAsync_MultiTag_RoundTrip_Should_EvictTaggedEntry()
+    {
+        // Arrange
+        var (sut, _) = CreateSut("tenant-multitag-rt");
+        int factoryCallCount = 0;
+
+        await sut.GetOrCreateAsync(
+            "multi-tagged-key",
+            "state",
+            (_, _) =>
+            {
+                factoryCallCount++;
+                return ValueTask.FromResult("initial");
+            },
+            tags: ["tag-a", "tag-b"]);
+
+        factoryCallCount.ShouldBe(1);
+
+        // Act — evict via the multi-tag overload using one of the stored tags
+        await sut.RemoveByTagAsync(["tag-a", "tag-b"]);
+
+        // Assert — must miss
+        await sut.GetOrCreateAsync(
+            "multi-tagged-key",
+            "state",
+            (_, _) =>
+            {
+                factoryCallCount++;
+                return ValueTask.FromResult("re-fetched");
+            });
+
+        factoryCallCount.ShouldBe(2, "multi-tag removal must evict the entry");
+    }
 }

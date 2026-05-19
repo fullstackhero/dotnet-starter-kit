@@ -54,16 +54,26 @@ internal sealed class TenantHybridCache : ITenantCacheService
     private string ScopeKey(string key) => $"t:{GetTenantId()}:{key}";
 
     /// <summary>
-    /// Prepends a per-tenant tag (<c>tenant:{tenantId}</c>) to any caller-supplied tags.
-    /// This guarantees that a <see cref="RemoveByTagAsync(string, CancellationToken)"/> on the
-    /// <see cref="CacheKeys.Tags.Tenant(string)"/> tag correctly purges all entries for a tenant.
+    /// Returns the full tag set for a cache entry:
+    /// <list type="bullet">
+    ///   <item><c>tenant:{tenantId}</c> — whole-tenant purge tag (used by <see cref="CacheKeys.Tags.Tenant"/>).</item>
+    ///   <item><c>t:{tenantId}:{callerTag}</c> for every caller-supplied tag — scoped so
+    ///     <see cref="RemoveByTagAsync(string, CancellationToken)"/> can look up the same
+    ///     prefixed tag and actually find the stored entries.</item>
+    /// </list>
+    /// Without the per-tag prefix the SET and REMOVE paths would use different tag strings,
+    /// making all tag-based invalidation a silent no-op.
     /// </summary>
     private static IEnumerable<string> ScopeTags(string tenantId, IEnumerable<string>? callerTags)
     {
+        // Whole-tenant purge tag — lets callers blow away an entire tenant's cache.
         yield return CacheKeys.Tags.Tenant(tenantId);
 
         if (callerTags is null) yield break;
-        foreach (var tag in callerTags) yield return tag;
+
+        // Per-tag scoped form — must match the lookup key built in RemoveByTagAsync.
+        foreach (var tag in callerTags)
+            yield return $"t:{tenantId}:{tag}";
     }
 
     // -----------------------------------------------------------------------
