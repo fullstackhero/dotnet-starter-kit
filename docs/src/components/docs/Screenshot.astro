@@ -9,13 +9,16 @@
  *
  * Behaviour:
  *   - If `src` is provided AND the asset exists at build time, renders a
- *     real <img> with caption.
- *   - Otherwise renders a styled placeholder box that displays the alt
- *     text + caption, making it obvious in the dev preview which
- *     screenshot still needs to be captured.
+ *     real <img> with caption (any environment).
+ *   - Otherwise:
+ *       • dev (`astro dev`): styled placeholder box so the author sees
+ *         which screenshot still needs to be captured + the target path
+ *         to drop it at.
+ *       • production (`astro build`): renders nothing. Missing screenshots
+ *         shouldn't leak placeholder boxes into shipped docs.
  *
- * Authors can drop screenshots into docs/public/screenshots/ and the
- * placeholder switches to the real image without changing the MDX.
+ * Authors capture, drop into docs/public/screenshots/, and the placeholder
+ * flips to a real image on the next build — no MDX edits required.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -38,6 +41,11 @@ const { src, alt, caption, width, aspect = '16/9' } = Astro.props as Props;
 // Resolve whether the src actually exists at build time.
 const publicPath = src ? path.join(process.cwd(), 'public', src.replace(/^\//, '')) : null;
 const exists = publicPath ? fs.existsSync(publicPath) : false;
+
+// Hide placeholders in production builds — missing screenshots leave no
+// trace in shipped docs. Dev keeps showing them so the author can see
+// what's still needed.
+const showPlaceholder = !exists && import.meta.env.DEV;
 ---
 
 {exists && src ? (
@@ -56,7 +64,7 @@ const exists = publicPath ? fs.existsSync(publicPath) : false;
       </figcaption>
     )}
   </figure>
-) : (
+) : showPlaceholder ? (
   <figure class="my-8 not-prose">
     <div
       class="screenshot-placeholder flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border-strong bg-subtle/40 px-6 py-10 text-center"
@@ -89,4 +97,4 @@ const exists = publicPath ? fs.existsSync(publicPath) : false;
       )}
     </div>
   </figure>
-)}
+) : null}
