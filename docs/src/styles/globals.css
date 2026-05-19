@@ -266,6 +266,27 @@
   .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
   .no-scrollbar::-webkit-scrollbar { display: none; }
 
+  /* Edge-fade — signals scrollability without a visible scrollbar.
+     Used on scroll containers with `no-scrollbar`. Top fade only kicks
+     in once the user has scrolled; bottom fade is constant while there
+     is overflow below. Uses CSS mask so the fade is purely visual. */
+  .fsh-edge-fade {
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      #000 1.25rem,
+      #000 calc(100% - 1.5rem),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      #000 1.25rem,
+      #000 calc(100% - 1.5rem),
+      transparent 100%
+    );
+  }
+
   /* Section reveal — used by motion-driven inView observer in BaseLayout */
   [data-reveal] {
     opacity: 0;

@@ -1,44 +1,300 @@
 ---
-import { buildSidebar, isActivePath } from '../../helpers/sidebar';
+import { buildSidebar, getRootPage, isActivePath } from '../../helpers/sidebar';
 
 const sidebar = await buildSidebar();
+const rootPage = await getRootPage();
 const currentPath = Astro.url.pathname;
+
+// Which chapter contains the current page (auto-expand on load).
+const activeIdx = sidebar.findIndex((sec) =>
+  (sec.indexHref && isActivePath(currentPath, sec.indexHref)) ||
+  sec.pages.some((p) => isActivePath(currentPath, p.href))
+);
+
+const isRootActive = rootPage ? isActivePath(currentPath, rootPage.href) : false;
 ---
-<nav aria-label="Docs sidebar" class="text-sm">
-  <ul class="space-y-6">
-    {sidebar.map((section) => (
-      <li>
-        <div class="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          {section.indexHref ? (
-            <a href={section.indexHref} class="hover:text-foreground transition-colors">{section.label}</a>
-          ) : (
-            section.label
-          )}
-        </div>
-        {section.pages.length > 0 && (
-          <ul class="space-y-0.5">
-            {section.pages.map((page) => {
-              const active = isActivePath(currentPath, page.href);
-              return (
-                <li>
-                  <a
-                    href={page.href}
-                    class:list={[
-                      'block rounded-md px-3 py-1.5 transition-colors',
-                      active
-                        ? 'bg-primary/10 font-medium text-primary'
-                        : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                    ]}
-                    aria-current={active ? 'page' : undefined}
-                  >
-                    {page.title}
-                  </a>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </li>
-    ))}
+<nav aria-label="Docs sidebar" class="fsh-sidebar text-sm">
+  {rootPage && (
+    <a
+      href={rootPage.href}
+      class:list={[
+        'group fsh-root-link mb-3 flex items-center gap-3 rounded-xl border px-4 py-3 transition-all',
+        isRootActive
+          ? 'fsh-root-link-active'
+          : 'border-border bg-card hover:border-border-strong',
+      ]}
+    >
+      <span class="font-mono text-[10px] tracking-[0.2em] text-muted-foreground/70 tabular-nums">00</span>
+      <span class:list={['flex-1 font-medium tracking-tight', isRootActive ? 'text-primary' : 'text-foreground/90']}>
+        {rootPage.title}
+      </span>
+      <svg
+        class="h-3.5 w-3.5 text-muted-foreground/60 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-foreground"
+        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+      >
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+        <polyline points="12 5 19 12 12 19"></polyline>
+      </svg>
+    </a>
+  )}
+
+  <ul class="space-y-2.5" data-accordion>
+    {sidebar.map((section, idx) => {
+      const num = String(idx + 1).padStart(2, '0');
+      const isOpen = idx === activeIdx;
+      const triggerId = `fsh-acc-trigger-${section.dir}`;
+      const panelId = `fsh-acc-panel-${section.dir}`;
+      return (
+        <li
+          class:list={[
+            'fsh-chapter overflow-hidden rounded-xl border bg-card',
+            isOpen ? 'fsh-chapter-open' : 'border-border hover:border-border-strong',
+          ]}
+          data-accordion-item
+          data-open={isOpen ? 'true' : 'false'}
+        >
+          <button
+            type="button"
+            id={triggerId}
+            aria-expanded={isOpen}
+            aria-controls={panelId}
+            data-accordion-trigger
+            class="group/btn flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50"
+          >
+            <span
+              class:list={[
+                'font-mono text-[10px] tracking-[0.2em] tabular-nums transition-colors',
+                isOpen ? 'text-primary' : 'text-muted-foreground/60 group-hover/btn:text-muted-foreground',
+              ]}
+            >
+              {num}
+            </span>
+            <span
+              class:list={[
+                'flex-1 text-[11px] font-semibold uppercase tracking-[0.14em] transition-colors',
+                isOpen ? 'text-foreground' : 'text-muted-foreground group-hover/btn:text-foreground',
+              ]}
+            >
+              {section.label}
+            </span>
+            <svg
+              data-chevron
+              class:list={[
+                'h-3.5 w-3.5 shrink-0 transition-all duration-300',
+                isOpen ? 'rotate-180 text-primary' : 'text-muted-foreground/60 group-hover/btn:text-muted-foreground',
+              ]}
+              viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+            >
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+
+          <div
+            id={panelId}
+            role="region"
+            aria-labelledby={triggerId}
+            data-accordion-panel
+            class="fsh-panel grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.2,0,0,1)]"
+            style={`grid-template-rows: ${isOpen ? '1fr' : '0fr'}`}
+          >
+            <div class="min-h-0 overflow-hidden">
+              <div class="mx-4 mb-3 border-t border-border/60"></div>
+              <ul class="space-y-0.5 px-2 pb-3">
+                {section.indexHref && (() => {
+                  const active = isActivePath(currentPath, section.indexHref);
+                  return (
+                    <li>
+                      <a
+                        href={section.indexHref}
+                        class:list={['fsh-item', active ? 'fsh-item-active' : 'fsh-item-idle']}
+                        aria-current={active ? 'page' : undefined}
+                      >
+                        {active && <span class="fsh-rail" aria-hidden="true"></span>}
+                        <span class="fsh-item-text">Overview</span>
+                      </a>
+                    </li>
+                  );
+                })()}
+                {section.pages.map((page) => {
+                  const active = isActivePath(currentPath, page.href);
+                  return (
+                    <li>
+                      <a
+                        href={page.href}
+                        class:list={['fsh-item', active ? 'fsh-item-active' : 'fsh-item-idle']}
+                        aria-current={active ? 'page' : undefined}
+                      >
+                        {active && <span class="fsh-rail" aria-hidden="true"></span>}
+                        <span class="fsh-item-text">{page.title}</span>
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </div>
+        </li>
+      );
+    })}
   </ul>
 </nav>
+
+<style>
+  /* ──────────────────────────────────────────────────────────────
+     Sidebar — "field manual" aesthetic.
+     Numbered chapter cards on warm-paper surfaces; one open at a
+     time. Animated open via grid-template-rows 0fr → 1fr (no JS
+     height measuring), respects prefers-reduced-motion.
+     ────────────────────────────────────────────────────────────── */
+
+  .fsh-sidebar {
+    /* Hairline outer rhythm: keep edges crisp against warm paper. */
+    --rail-w: 2px;
+  }
+
+  /* Root index pill — active state (neutral chrome, green only on text/icon) */
+  .fsh-root-link-active {
+    border-color: var(--border-strong);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--foreground) 3%, transparent),
+        transparent
+      ),
+      var(--card);
+    box-shadow: 0 1px 2px -1px color-mix(in oklab, var(--foreground) 12%, transparent);
+  }
+
+  /* Chapter cards — open state: neutral border, soft neutral lift */
+  .fsh-chapter {
+    transition: border-color 200ms ease, box-shadow 250ms ease, background-color 200ms ease;
+  }
+  .fsh-chapter-open {
+    border-color: var(--border-strong);
+    box-shadow:
+      0 1px 2px -1px color-mix(in oklab, var(--foreground) 10%, transparent),
+      0 8px 24px -16px color-mix(in oklab, var(--foreground) 18%, transparent);
+  }
+
+  /* Panel rows-grid animation */
+  .fsh-panel { will-change: grid-template-rows; }
+
+  /* Items */
+  .fsh-item {
+    position: relative;
+    display: block;
+    padding: 0.4rem 0.75rem;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.45;
+    transition: background-color 150ms ease, color 150ms ease, padding-left 180ms ease, transform 180ms ease;
+  }
+  .fsh-item-idle {
+    color: var(--muted-foreground);
+  }
+  .fsh-item-idle:hover {
+    color: var(--foreground);
+    background-color: color-mix(in oklab, var(--muted-foreground) 8%, transparent);
+    padding-left: calc(0.75rem + 4px);
+  }
+  .fsh-item-active {
+    color: var(--primary);
+    font-weight: 500;
+    background-color: color-mix(in oklab, var(--primary) 9%, transparent);
+    padding-left: calc(0.75rem + 6px);
+  }
+  .dark .fsh-item-active {
+    color: var(--primary-soft);
+    background-color: color-mix(in oklab, var(--primary-soft) 12%, transparent);
+  }
+
+  /* Vertical accent rail on active item */
+  .fsh-rail {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: var(--rail-w);
+    height: 1rem;
+    transform: translateY(-50%);
+    border-radius: 999px;
+    background: var(--primary);
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--primary) 28%, transparent);
+  }
+  .dark .fsh-rail {
+    background: var(--primary-soft);
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--primary-soft) 30%, transparent);
+  }
+
+  /* Item text — render after rail with no shifting */
+  .fsh-item-text { position: relative; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fsh-panel { transition: none; }
+    .fsh-item, .fsh-item-idle:hover { transition: none; padding-left: 0.75rem; }
+    .fsh-chapter { transition: none; }
+    [data-chevron] { transition: none !important; }
+  }
+</style>
+
+<script>
+  // Single-expand accordion. Keep state on the <li data-accordion-item>
+  // via data-open + style.grid-template-rows. aria-expanded mirrors state.
+  (() => {
+    const init = () => {
+      document.querySelectorAll<HTMLElement>('[data-accordion]').forEach((acc) => {
+        const items = Array.from(
+          acc.querySelectorAll<HTMLElement>('[data-accordion-item]'),
+        );
+
+        items.forEach((item) => {
+          const trigger = item.querySelector<HTMLButtonElement>(
+            '[data-accordion-trigger]',
+          );
+          if (!trigger || trigger.dataset.fshBound === '1') return;
+          trigger.dataset.fshBound = '1';
+          trigger.addEventListener('click', () => {
+            const willOpen = item.dataset.open !== 'true';
+            items.forEach((other) => {
+              const open = other === item && willOpen;
+              setOpen(other, open);
+            });
+          });
+        });
+      });
+    };
+
+    const setOpen = (item: HTMLElement, open: boolean) => {
+      item.dataset.open = open ? 'true' : 'false';
+      const panel = item.querySelector<HTMLElement>('[data-accordion-panel]');
+      const trigger = item.querySelector<HTMLButtonElement>('[data-accordion-trigger]');
+      const chevron = item.querySelector<HTMLElement>('[data-chevron]');
+      if (panel) panel.style.gridTemplateRows = open ? '1fr' : '0fr';
+      if (trigger) trigger.setAttribute('aria-expanded', String(open));
+      if (chevron) {
+        chevron.classList.toggle('rotate-180', open);
+        chevron.classList.toggle('text-primary', open);
+        chevron.classList.toggle('text-muted-foreground/60', !open);
+      }
+      item.classList.toggle('fsh-chapter-open', open);
+      item.classList.toggle('border-border', !open);
+      item.classList.toggle('hover:border-border-strong', !open);
+
+      // Also re-color the trigger's number + label to active/idle.
+      const num = trigger?.querySelector<HTMLElement>('span:nth-child(1)');
+      const lbl = trigger?.querySelector<HTMLElement>('span:nth-child(2)');
+      if (num) {
+        num.classList.toggle('text-primary', open);
+        num.classList.toggle('text-muted-foreground/60', !open);
+      }
+      if (lbl) {
+        lbl.classList.toggle('text-foreground', open);
+        lbl.classList.toggle('text-muted-foreground', !open);
+      }
+    };
+
+    init();
+    document.addEventListener('astro:page-load', init);
+  })();
+</script>

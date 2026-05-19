@@ -41,6 +41,17 @@ function isRootIndex(id: string): boolean {
   return normalizeId(id) === 'index';
 }
 
+export async function getRootPage(): Promise<SidebarPage | null> {
+  const all = await getCollection('docs');
+  const root = all.find((e) => isRootIndex(e.id));
+  if (!root || root.data.sidebar.hidden) return null;
+  return {
+    title: root.data.sidebar.label ?? root.data.title,
+    href: pathFromId(root.id),
+    order: root.data.sidebar.order,
+  };
+}
+
 export async function buildSidebar(): Promise<SidebarSection[]> {
   const all = await getCollection('docs');
   const bySection = new Map<string, CollectionEntry<'docs'>[]>();

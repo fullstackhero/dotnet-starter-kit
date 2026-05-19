@@ -9,16 +9,217 @@ const { headings } = Astro.props;
 const items = headings.filter((h) => h.depth === 2 || h.depth === 3);
 ---
 {items.length > 0 && (
-  <nav aria-label="On this page" class="text-sm">
-    <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">On this page</p>
-    <ul class="space-y-1.5">
-      {items.map((h) => (
-        <li class:list={[h.depth === 3 && 'ml-4']}>
-          <a href={`#${h.slug}`} class="block text-muted-foreground transition-colors hover:text-foreground">
-            {h.text}
-          </a>
-        </li>
-      ))}
-    </ul>
+  <nav aria-label="On this page" class="fsh-toc text-sm">
+    <div class="rounded-xl border border-border bg-card">
+      <div class="flex items-center gap-3 px-4 py-3">
+        <svg
+          class="h-3.5 w-3.5 text-muted-foreground/70"
+          viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+        >
+          <line x1="3" y1="6"  x2="3" y2="6.01" />
+          <line x1="3" y1="12" x2="3" y2="12.01" />
+          <line x1="3" y1="18" x2="3" y2="18.01" />
+          <line x1="8" y1="6"  x2="21" y2="6" />
+          <line x1="8" y1="12" x2="21" y2="12" />
+          <line x1="8" y1="18" x2="15" y2="18" />
+        </svg>
+        <span class="flex-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground">
+          On this page
+        </span>
+      </div>
+
+      <div class="mx-4 border-t border-border/60"></div>
+
+      <div class="px-2 py-3">
+        <ul class="fsh-toc-list space-y-0.5" data-toc-list>
+          {items.map((h) => {
+            const isSub = h.depth === 3;
+            return (
+              <li>
+                <a
+                  href={`#${h.slug}`}
+                  data-toc-link
+                  data-toc-target={h.slug}
+                  class:list={['fsh-toc-link', isSub && 'fsh-toc-link-sub']}
+                >
+                  {!isSub && <span class="fsh-toc-dot" aria-hidden="true"></span>}
+                  <span class="fsh-toc-text">{h.text}</span>
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </div>
   </nav>
 )}
+
+<style>
+  /* ──────────────────────────────────────────────────────────────
+     TOC — companion to the sidebar's "field manual" aesthetic.
+     A vertical hairline rail runs through the list with station-
+     marker dots on each top-level (h2) item. Sub-items (h3) sit
+     indented beside the rail with no marker. Active item swells
+     its dot, tints its label, and gets a soft halo on the marker.
+     ────────────────────────────────────────────────────────────── */
+
+  .fsh-toc-list {
+    position: relative;
+  }
+  /* The rail */
+  .fsh-toc-list::before {
+    content: "";
+    position: absolute;
+    left: 12px;
+    top: 0.55rem;
+    bottom: 0.55rem;
+    width: 1px;
+    background: var(--border);
+  }
+
+  .fsh-toc-link {
+    position: relative;
+    display: block;
+    padding: 0.4rem 0.5rem 0.4rem 1.65rem; /* 26px left → text past the rail */
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--muted-foreground);
+    transition:
+      color 150ms ease,
+      background-color 150ms ease;
+  }
+  .fsh-toc-link-sub {
+    padding-left: 2.5rem;            /* h3 indented further from rail */
+    font-size: 12.5px;
+    color: color-mix(in oklab, var(--muted-foreground) 78%, transparent);
+  }
+  .fsh-toc-link:hover {
+    color: var(--foreground);
+    background-color: color-mix(in oklab, var(--muted-foreground) 8%, transparent);
+  }
+
+  /* Station marker — sits centered on the rail.
+     dot: 7px @ left 9px → center at 12.5px; rail centerline at 12.5px. */
+  .fsh-toc-dot {
+    position: absolute;
+    left: 9px;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    transform: translateY(-50%);
+    border-radius: 999px;
+    background: var(--card);
+    border: 1.5px solid var(--border-strong);
+    transition:
+      background 180ms ease,
+      border-color 180ms ease,
+      transform 180ms ease,
+      box-shadow 180ms ease;
+  }
+  .fsh-toc-link:hover .fsh-toc-dot {
+    border-color: var(--muted-foreground);
+  }
+
+  /* Active link */
+  .fsh-toc-link[data-active="true"] {
+    color: var(--primary);
+    font-weight: 500;
+    background-color: color-mix(in oklab, var(--primary) 8%, transparent);
+  }
+  .dark .fsh-toc-link[data-active="true"] {
+    color: var(--primary-soft);
+    background-color: color-mix(in oklab, var(--primary-soft) 12%, transparent);
+  }
+  .fsh-toc-link[data-active="true"] .fsh-toc-dot {
+    background: var(--primary);
+    border-color: var(--primary);
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 18%, transparent);
+  }
+  .dark .fsh-toc-link[data-active="true"] .fsh-toc-dot {
+    background: var(--primary-soft);
+    border-color: var(--primary-soft);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary-soft) 22%, transparent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fsh-toc-link,
+    .fsh-toc-dot { transition: none; }
+  }
+</style>
+
+<script>
+  // Scroll-spy: highlight the heading nearest the top of the viewport.
+  // Re-binds on view-transitions via astro:page-load.
+  (() => {
+    let cleanup: (() => void) | null = null;
+
+    const init = () => {
+      if (cleanup) cleanup();
+
+      const list = document.querySelector<HTMLElement>('[data-toc-list]');
+      if (!list) return;
+
+      const links = Array.from(
+        list.querySelectorAll<HTMLAnchorElement>('[data-toc-link]'),
+      );
+      if (!links.length) return;
+
+      const targets: HTMLElement[] = links
+        .map((l) => l.dataset.tocTarget)
+        .filter((s): s is string => !!s)
+        .map((s) => document.getElementById(s))
+        .filter((el): el is HTMLElement => !!el);
+      if (!targets.length) return;
+
+      const offset = 120;
+      let raf = 0;
+      let activeId: string | null = null;
+
+      const setActive = (id: string | null) => {
+        if (id === activeId) return;
+        activeId = id;
+        for (const link of links) {
+          if (link.dataset.tocTarget === id) link.setAttribute('data-active', 'true');
+          else link.removeAttribute('data-active');
+        }
+      };
+
+      const measure = () => {
+        let current: string | null = null;
+        for (const t of targets) {
+          const top = t.getBoundingClientRect().top;
+          if (top - offset <= 0) current = t.id;
+          else break;
+        }
+        // Before the first heading scrolls past the offset, surface
+        // the first heading so the rail is never empty.
+        if (!current) current = targets[0].id;
+        setActive(current);
+      };
+
+      const onScroll = () => {
+        if (raf) return;
+        raf = requestAnimationFrame(() => {
+          raf = 0;
+          measure();
+        });
+      };
+
+      measure();
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', onScroll, { passive: true });
+
+      cleanup = () => {
+        window.removeEventListener('scroll', onScroll);
+        window.removeEventListener('resize', onScroll);
+        if (raf) cancelAnimationFrame(raf);
+      };
+    };
+
+    init();
+    document.addEventListener('astro:page-load', init);
+  })();
+</script>
