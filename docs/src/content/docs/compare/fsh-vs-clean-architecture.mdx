@@ -1,0 +1,90 @@
+---
+title: fullstackhero vs Clean Architecture templates
+description: How fullstackhero compares to the Jason Taylor and Ardalis Clean Architecture templates — the difference between shipping an architecture and shipping production modules on top of one.
+sidebar:
+  label: vs Clean Architecture
+  order: 2
+pageType: concept
+seo:
+  title: 'fullstackhero vs Clean Architecture templates — Jason Taylor & Ardalis compared'
+  description: 'How fullstackhero compares to Jason Taylor and Ardalis Clean Architecture templates. The short version: those templates ship an architecture, fullstackhero ships ten production modules on top of an architecture.'
+  keywords: 'Clean Architecture template .NET 10, Jason Taylor Clean Architecture, Ardalis Clean Architecture, fullstackhero vs Clean Architecture, .NET starter kit'
+---
+
+The Clean Architecture templates by Jason Taylor and Steve Smith (Ardalis) are the two most popular starting points for new .NET projects on GitHub. Together they sit at around 38,000 stars. They're excellent — and they solve a different problem than fullstackhero.
+
+> **TL;DR.** Clean Architecture templates ship an *architecture*: the four-project layout, dependency inversion, MediatR plumbing, a sample feature. fullstackhero ships ten production *modules* on top of an architecture: Identity, Multitenancy, Auditing, Files, Chat, Notifications, Webhooks, Billing, Catalog, Tickets — already wired through a modular monolith. Pick a CA template if you want to learn or assemble; pick fullstackhero if you want to start shipping features today.
+
+## What each template actually contains
+
+| | **Jason Taylor CA** | **Ardalis CA** | **fullstackhero** |
+|---|---|---|---|
+| Project layout | Domain / Application / Infrastructure / Web | Core / Infrastructure / Web | BuildingBlocks / Modules (each with runtime + Contracts) / Host |
+| Architectural style | Clean Architecture (layered + dependency inversion) | Clean Architecture (layered + dependency inversion) | Modular monolith + Vertical Slice Architecture per module |
+| Sample feature | One sample (e.g. TodoList) | One sample | Ten production modules + sample features per module |
+| Identity / Auth | Stub / sample | Stub / sample | JWT bearer + refresh + permissions + impersonation + rate-limited auth flows |
+| Multitenancy | Not included | Not included | Finbuckle 10 with EF Core global query filter, IGlobalEntity opt-out, tenant-aware cache + jobs + outbox |
+| Auditing | Not included | Not included | EF SaveChanges interceptor + per-entity before/after + queryable `/audits` |
+| Background jobs | Not included | Not included | Hangfire 1.8 with tenant context preserved |
+| Observability | Console logging | Serilog example | Serilog 4 + OpenTelemetry 1.15 (OTLP) pre-wired |
+| Caching | Not included | Not included | HybridCache (in-memory + Redis) with tenant-scoped invalidation |
+| API browser | Swagger | Swagger | Scalar (OpenAPI 3.1) on `/scalar/` |
+| Frontend | Angular 21 / React 19 (sample) | None (API-only) | React 19 + Vite admin + dashboard, in the repo |
+| Stars (May 2026) | ~20,100★ | ~18,200★ | ~6,400★ |
+| License | MIT | MIT | MIT |
+| Maintainer | Jason Taylor | Steve "Ardalis" Smith | Mukesh Murugan + community |
+
+## What Jason Taylor's template is great at
+
+Jason Taylor's [`CleanArchitecture`](https://github.com/jasontaylordev/CleanArchitecture) template is the de-facto reference for layered CA in .NET. It ships:
+
+- A polished four-project layout (Domain / Application / Infrastructure / Web).
+- A complete sample feature — `TodoList` with CRUD endpoints, validators, MediatR handlers.
+- Frontend SPAs to choose between (Angular 21 or React 19).
+- Excellent code commentary so you can learn CA conventions by reading.
+
+It is intentionally minimal in what it *adds*. There is no identity beyond ASP.NET Identity scaffolding, no multitenancy, no observability beyond console logging, no file storage, no webhooks, no realtime. That is by design — the template's job is to teach you the layout and let you fill in the rest.
+
+## What Ardalis's template is great at
+
+Ardalis's [`CleanArchitecture`](https://github.com/ardalis/CleanArchitecture) is the other canonical CA template. It ships:
+
+- A simpler three-project layout (Core / Infrastructure / Web) tuned for the common case.
+- The same dependency-inversion discipline as Jason Taylor's, with NuGet packages (`Ardalis.Specification`, `Ardalis.Result`, `Ardalis.GuardClauses`) Steve maintains alongside.
+- A long pedagogical lineage — there's a Pluralsight course and an O'Reilly book that walk through it.
+- An explicit statement in the README: "this template does not include every possible framework or feature."
+
+If you want CA the way Steve teaches it, this is the most authentic source.
+
+## What fullstackhero is great at
+
+fullstackhero starts from a different premise: most production B2B and SaaS apps are going to need the same ten or so modules anyway (identity, multitenancy, auditing, file storage, chat, notifications, webhooks, billing, catalog, tickets) plus the same dozen infrastructure pieces (caching, jobs, observability, idempotency, feature flags, …). So ship them.
+
+That means:
+
+- **Day one is feature work.** The unglamorous parts are done. You don't decide where the JWT keys live, how multitenancy plugs into EF Core, how Hangfire respects tenant context, or how to wire OpenTelemetry — they're decided, wired, and tested.
+- **The architecture is Vertical Slice inside a modular monolith.** Each feature lives in one folder — endpoint, command, handler, validator, tests. No three-layer round-trip to add a button.
+- **Two React frontends ship in the repo** (admin console + tenant dashboard), so you don't reinvent the auth-flow / permission-UI / audit-viewer wheel.
+
+## Honest trade-offs
+
+There are real reasons to pick a CA template over fullstackhero:
+
+- **You want to *learn* Clean Architecture.** Jason Taylor's template is the better classroom. fullstackhero assumes you know what handlers, repositories, and the dependency rule are.
+- **You're building a small focused service** that doesn't need ten modules. fullstackhero is over-engineered for a single-purpose internal tool. Use a CA template (or `dotnet new webapi`) instead.
+- **Your team is already deeply invested in CA.** If three years of code is structured around the four-project layout and `IApplicationDbContext`, switching to Vertical Slice is a real conversion. Refactor in place rather than swap.
+- **You want a layered service / domain split** that lets non-feature-developers work on infrastructure without touching features. CA's layer split makes that explicit; VSA blurs it.
+
+## Can I use Clean Architecture inside fullstackhero?
+
+Yes, with caveats. Each fullstackhero module is its own project — nothing stops you from organising the *inside* of a module as Domain / Application / Infrastructure layers. The kit's outer shape (modular monolith with `*.Contracts` boundaries) stays the same; the inner shape becomes CA.
+
+You'd be paddling against the grain, though. The defaults — endpoint + handler + validator in one folder — are tuned for Vertical Slice. If you want strict CA discipline, a CA template is a less ambiguous starting point.
+
+## Where to go next
+
+- [Architecture overview](/docs/architecture/) — Vertical Slice Architecture inside a modular monolith.
+- [Quick Start](/docs/getting-started/quick-start/) — try fullstackhero in a minute.
+- [vs ABP Framework](/docs/compare/fsh-vs-abp/) — the other big alternative.
+- [Jason Taylor's `CleanArchitecture`](https://github.com/jasontaylordev/CleanArchitecture) — if a CA template is the right call.
+- [Ardalis's `CleanArchitecture`](https://github.com/ardalis/CleanArchitecture) — the other canonical CA template.

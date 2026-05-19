@@ -9,13 +9,9 @@ import siteConfig from './src/data/site';
 
 export default defineConfig({
   site: siteConfig.url,
-  redirects: {
-    // `/docs/` redirects to the introduction so the header's "Docs" tab still
-    // lands somewhere sensible. Each section now has its own index page
-    // (cards for every child page), so we no longer redirect /docs/getting-started/.
-    '/docs': '/docs/getting-started/introduction/',
-    '/docs/': '/docs/getting-started/introduction/',
-  },
+  // No /docs/* redirects — /docs/ is now a real overview hub (cards
+  // for every section), and each section index renders cards for its
+  // own child pages. Astro handles trailing-slash normalization itself.
   image: {
     layout: 'constrained',
     responsiveStyles: true,
@@ -66,6 +62,11 @@ export default defineConfig({
         // Guides and recipes — high-quality content, refreshed over time.
         else if (path.startsWith('/docs/guides/')) {
           item.priority = 0.75;
+          item.changefreq = 'monthly';
+        }
+        // Comparison pages — high-converting + rank for "X alternative" queries.
+        else if (path.startsWith('/docs/compare/')) {
+          item.priority = 0.8;
           item.changefreq = 'monthly';
         }
         // Cross-cutting, security, deployment — important reference.

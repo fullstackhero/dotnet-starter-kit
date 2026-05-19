@@ -16,6 +16,7 @@ export const sections: Section[] = [
   { dir: 'testing',                 label: 'Testing',                 order: 9  },
   { dir: 'guides',                  label: 'Guides',                  order: 10 },
   { dir: 'deployment',              label: 'Deployment',              order: 11 },
-  { dir: 'contributing',            label: 'Contributing',            order: 12 },
-  { dir: 'changelog',               label: 'Changelog',               order: 13 },
+  { dir: 'compare',                 label: 'Compare',                 order: 12 },
+  { dir: 'contributing',            label: 'Contributing',            order: 13 },
+  { dir: 'changelog',               label: 'Changelog',               order: 14 },
 ];

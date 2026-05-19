@@ -1,0 +1,89 @@
+---
+title: fullstackhero vs ABP Framework
+description: A fair comparison of fullstackhero and ABP Framework for building production .NET 10 applications. License, architecture, learning curve, and when to pick which.
+sidebar:
+  label: vs ABP Framework
+  order: 1
+pageType: concept
+seo:
+  title: 'fullstackhero vs ABP Framework — free .NET 10 alternative compared'
+  description: 'Side-by-side comparison of fullstackhero (free, MIT) and ABP Framework. Architecture, modules, license, learning curve, and when to choose each for a .NET 10 SaaS.'
+  keywords: 'fullstackhero vs ABP, ABP Framework alternative, free ABP, .NET 10 modular monolith vs ABP, ASP.NET starter kit comparison'
+---
+
+ABP Framework and fullstackhero both target the same problem — getting a production-grade .NET application off the ground without spending months on the infrastructure plumbing every multi-tenant app needs. They pick very different shapes to solve it. This page is an honest comparison so you can pick the right one for your team.
+
+> **TL;DR.** ABP is a complete opinionated framework — its own DI conventions, its own CLI, its own module system, a paid commercial tier with admin UI and support contracts. fullstackhero is a copy-and-own starter: standard ASP.NET Core, plain DI, free under MIT, with ten production modules pre-wired and the source code in your repo from day one. If you want named vendor support and an admin app generator, pick ABP. If you want to own the code and use the .NET your team already knows, pick fullstackhero.
+
+## Side-by-side
+
+| | **fullstackhero** | **ABP Framework** |
+|---|---|---|
+| License | MIT — every line | LGPL (free) + ABP Commercial (paid) |
+| Cost | Free | Free tier; ABP Commercial from \$1,490+/yr (per team / app) |
+| Distribution | Clone the repo, install `FullStackHero.CLI`, or `dotnet new fsh` | NuGet packages (`Volo.Abp.*`) + ABP Studio / ABP Suite |
+| Architecture | Modular monolith with Vertical Slice Architecture inside each module | Layered DDD module system (Domain / Application / HttpApi / Web / EntityFrameworkCore per module) |
+| Code ownership | You own the entire codebase from day one | You consume Volo NuGet packages; the framework lives upstream |
+| DI | Standard `Microsoft.Extensions.DependencyInjection` | Custom `IServiceCollection` extensions and module-level conventions |
+| Mediator | Mediator 3.0.2 source generator (no runtime reflection) | ABP's own service registration + dynamic proxying |
+| Validation | FluentValidation 12.1 | DataAnnotations + ABP's `IValidatableObject` extensions |
+| Multitenancy | Finbuckle.MultiTenant 10.0.8 — claim / header / query strategies | First-party module: `Volo.Abp.MultiTenancy` |
+| ORM | EF Core 10.0.8 (PostgreSQL 17 default; SQL Server provider available) | EF Core with abstraction layer + LINQ via repository pattern |
+| Background jobs | Hangfire 1.8 | ABP's `IBackgroundJobManager` (multiple providers) |
+| Realtime | SignalR + Server-Sent Events | SignalR via ABP modules |
+| Observability | Serilog 4 + OpenTelemetry 1.15 (OTLP exporter), pre-wired | OpenTelemetry support; configuration via ABP modules |
+| Frontend included | React + Vite admin and dashboard, in the repo | MVC + Razor / Blazor / Angular options — Lepton theme is paid in ABP Commercial |
+| CLI scaffolding | `fsh new <name>` | `abp new <name>` (Studio offers a GUI) |
+| Stars (May 2026) | 6.4k★ | 14.2k★ |
+| Maintainer | Mukesh Murugan + community | Volosoft (commercial company) |
+
+## When to choose ABP Framework
+
+You should pick ABP — happily — if any of the following are true:
+
+- **You need vendor support contracts.** ABP Commercial includes a paid support tier with SLAs. fullstackhero is community-maintained; there is no enterprise hotline.
+- **You want a UI admin app generator.** ABP Studio and ABP Suite can scaffold CRUD UIs against your entities. fullstackhero ships an admin console but not a code generator for new screens.
+- **You'd rather consume framework upgrades as NuGet bumps.** ABP's framework lives in your package references. Major framework improvements arrive as `dotnet add package` upgrades. fullstackhero is copy-and-own — improvements arrive as upstream commits you cherry-pick.
+- **Your team is already fluent in ABP conventions.** ABP's module system, DI extensions, and repository pattern are a real learning investment. If you've made it, throwing it away is expensive.
+
+## When to choose fullstackhero
+
+Pick fullstackhero — also happily — if any of these match:
+
+- **You want the code in your repo, not a framework above it.** Every file is yours. Every line is editable. No DLL surprises during a major .NET upgrade; no licence changes to react to.
+- **You'd rather use the .NET your team already knows.** Plain ASP.NET Core minimal APIs, plain `IServiceCollection`, Mediator + FluentValidation. Anyone who knows current-day .NET can be productive in fullstackhero within an afternoon.
+- **You need the entire stack free under MIT.** ABP's framework is LGPL, but the commercial admin UI, theme, code generators, and support are paid. fullstackhero is end-to-end free including the React admin console and the dashboard.
+- **You want Vertical Slice Architecture inside a modular monolith.** ABP defaults to layered DDD per module (Domain / Application / HttpApi / …). fullstackhero defaults to one feature, one folder, one PR. Both are valid; pick the one that matches how you ship.
+- **You want zero vendor lock-in.** No upstream framework to track. No commercial roadmap that might pivot away from your needs. Fork the kit, freeze it, and never look back if that's what your project requires.
+
+## What the two share
+
+Worth saying out loud: ABP and fullstackhero agree on most of what matters.
+
+- Both are production-ready, multi-tenant by default, with identity, audit, background jobs, caching, and OpenAPI built in.
+- Both ship as full reference implementations with hundreds of integration tests.
+- Both can scale to large teams and large codebases — ABP through its module catalogue, fullstackhero through extract-a-module-to-a-service when you need to.
+
+The choice is mostly about **how much framework you want above your code**, and **whether you need paid support**.
+
+## Migration notes
+
+If you're moving from ABP to fullstackhero (or thinking about it):
+
+- **Modules map.** ABP's `Volo.Abp.Identity` lines up with fullstackhero's `Modules.Identity`. `Volo.Abp.MultiTenancy` lines up with `Modules.Multitenancy`. `Volo.Abp.AuditLogging` lines up with `Modules.Auditing`.
+- **Repositories become DbContexts.** Where ABP uses `IRepository<TEntity>` and the Specification pattern, fullstackhero uses EF Core `DbSet<T>` directly inside the slice handler. Less indirection; same SQL.
+- **App services become Mediator handlers.** What ABP calls an "application service" is split into a command/query + handler in fullstackhero. The contract lives in `Modules.X.Contracts`; the handler lives in `Modules.X`.
+- **No upstream NuGet to keep current.** Once you've cloned fullstackhero you own the code. There's no `dotnet add package Volo.Abp.X` upgrade cycle.
+
+## Honest disclaimers
+
+This page is maintained by fullstackhero, so treat it as our perspective. ABP is a serious project with a mature community and a long track record — for many teams it's the right answer. The intent here is not to win an argument, just to be specific about where the two diverge so you can pick deliberately.
+
+If anything on this page is out of date or unfair to ABP, please [open an issue](https://github.com/fullstackhero/dotnet-starter-kit/issues) — we'll fix it.
+
+## Where to go next
+
+- [Architecture overview](/docs/architecture/) — how fullstackhero is put together.
+- [Modules](/docs/modules/) — the ten modules that ship in v1.
+- [Quick Start](/docs/getting-started/quick-start/) — try fullstackhero in under a minute.
+- [ABP Framework documentation](https://docs.abp.io/) — the canonical reference for the alternative.
