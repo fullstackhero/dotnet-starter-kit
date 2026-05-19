@@ -19,25 +19,28 @@ const stars = await getStars();
 
 const nav = [
   { name: 'Home',    url: '/' },
-  { name: 'Docs',    url: '/docs/' },
+  // Docs points directly at the introduction page (no redirect hop), but
+  // its active-state still covers any /docs/* path via the `match` prefix.
+  { name: 'Docs',    url: '/docs/getting-started/introduction/', match: '/docs/' },
   { name: 'Modules', url: '/docs/modules/' },
   { name: 'Guides',  url: '/docs/guides/' },
 ];
 
 const pathname = new URL(Astro.request.url).pathname;
 const normalize = (p: string) => (p.endsWith('/') ? p : p + '/');
-const navUrls = nav.map((n) => normalize(n.url));
+const matchUrls = nav.map((n) => normalize(n.match ?? n.url));
 
-// "Docs" is the most general entry (/docs/) and is a prefix of every other
-// section URL. Naive startsWith() would highlight both "Docs" and the
-// matching section on /docs/modules/. Fix: pick the LONGEST matching prefix
-// as the single active item.
+// Pick the LONGEST matching prefix as the single active item so
+// /docs/modules/* highlights Modules (not Docs) even though /docs/ also
+// matches. Decouples the link target (`url`) from the active-state
+// scope (`match`) so a deep-link nav entry can still own a whole subtree.
 const currentNorm = normalize(pathname);
-const activeUrl = navUrls
+const activeMatch = matchUrls
   .filter((u) => currentNorm === u || currentNorm.startsWith(u))
   .sort((a, b) => b.length - a.length)[0];
 
-const isActive = (url: string): boolean => normalize(url) === activeUrl;
+const isActive = (item: typeof nav[number]): boolean =>
+  normalize(item.match ?? item.url) === activeMatch;
 ---
 
 <header class="sticky top-0 z-header w-full" data-site-header>
@@ -87,7 +90,7 @@ const isActive = (url: string): boolean => normalize(url) === activeUrl;
             aria-hidden="true"
           ></span>
           {nav.map((item) => {
-            const active = isActive(item.url);
+            const active = isActive(item);
             return (
               <li>
                 <a
@@ -220,7 +223,7 @@ const isActive = (url: string): boolean => normalize(url) === activeUrl;
       <p class="text-[11px] uppercase tracking-[0.12em] text-muted-foreground mb-3">Menu</p>
       <ul class="flex flex-col gap-1 mb-7">
         {nav.map((item) => {
-          const active = isActive(item.url);
+          const active = isActive(item);
           return (
             <li>
               <a
