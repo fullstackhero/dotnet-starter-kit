@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Caching;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -24,6 +25,10 @@ namespace FSH.Framework.Web.Idempotency;
 /// benefit from L1 and the regular tag invalidation story. Tenant scoping is
 /// applied automatically by <see cref="ITenantCacheService"/> — no manual key
 /// prefixing required in the write path.
+/// Both the probe-read key construction and the write path resolve the tenant
+/// from <see cref="IMultiTenantContextAccessor"/> so they agree even during
+/// root-operator impersonation, where the JWT claim may differ from the
+/// middleware-resolved tenant.
 /// Using <c>HybridCache</c> with <c>DisableUnderlyingData</c> as a "get-only probe" is a
 /// known anti-pattern tracked at dotnet/aspnetcore#57191.
 /// </remarks>
@@ -54,10 +59,12 @@ public sealed class IdempotencyEndpointFilter : IEndpointFilter
         var distributedCache = httpContext.RequestServices.GetRequiredService<IDistributedCache>();
         var tenantCache = httpContext.RequestServices.GetRequiredService<ITenantCacheService>();
         var logger = httpContext.RequestServices.GetRequiredService<ILogger<IdempotencyEndpointFilter>>();
+        var tenantAccessor = httpContext.RequestServices.GetRequiredService<IMultiTenantContextAccessor>();
 
-        // ITenantCacheService prefixes keys with t:{tenantId}: automatically.
-        // For the IDistributedCache probe-read we reconstruct the full key to match.
-        var tenantId = httpContext.User.FindFirst("tenant")?.Value ?? "global";
+        // Resolve tenant from IMultiTenantContextAccessor — must match ITenantCacheService which
+        // also uses the accessor internally. Using the JWT claim would diverge from the write path
+        // during root-operator impersonation (claim = "root", resolved tenant = override target).
+        var tenantId = tenantAccessor.MultiTenantContext?.TenantInfo?.Id ?? "global";
         var logicalKey = CacheKeys.IdempotencyEntry(idempotencyKey);
         var fullKey = CacheKeys.IdempotencyEntryFull(tenantId, idempotencyKey);
         var tags = new[] { CacheKeys.Tags.Idempotency }; // tenant tag injected automatically by ITenantCacheService
