@@ -266,6 +266,26 @@
   .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
   .no-scrollbar::-webkit-scrollbar { display: none; }
 
+  /* `not-prose` opt-out — reverses prose-specific styling for component
+     subtrees rendered inside an .prose container (e.g. card grids in
+     MDX section-index pages). Without this, the prose's star li::before
+     marker and underlined :where(a) links leak into the cards. */
+  .not-prose ul li::before,
+  .not-prose ol li::before {
+    content: none !important;
+    display: none !important;
+    background: none !important;
+    margin: 0 !important;
+  }
+  .not-prose ul,
+  .not-prose ol {
+    padding-left: 0 !important;
+    list-style: none !important;
+  }
+  .not-prose a {
+    text-decoration: none !important;
+  }
+
   /* Edge-fade — signals scrollability without a visible scrollbar.
      Used on scroll containers with `no-scrollbar`. Top fade only kicks
      in once the user has scrolled; bottom fade is constant while there
