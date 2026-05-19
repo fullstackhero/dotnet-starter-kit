@@ -1,0 +1,307 @@
+---
+title: Frontend architecture
+description: Shared patterns across the admin + dashboard apps — folder layout, API client, route guards, realtime context, error handling, ProblemDetails parsing.
+sidebar:
+  label: Architecture
+  order: 3
+pageType: concept
+seo:
+  title: 'React + Vite architecture in fullstackhero — shared frontend patterns'
+  description: 'Shared frontend patterns across the admin + dashboard apps — folder layout, typed API client, route guards, JWT auth context, realtime context, ProblemDetails error rendering.'
+  keywords: 'react vite architecture, tanstack query patterns, jwt auth react, react permission guard, problem details react'
+---
+
+Both `clients/admin` and `clients/dashboard` follow the same folder layout, the same auth model, the same API client conventions, and the same realtime patterns. They're separate apps because their audiences are separate, but the patterns shouldn't surprise you when you move between them.
+
+<Callout type="tip" title="Read both, copy patterns into one">
+If you're forking only the dashboard (deleting admin), copy admin's audit-log viewer + role editor patterns into a tenant-admin-page in your dashboard if you ever need them. The patterns transfer; the audience separation doesn't have to.
+</Callout>
+
+## Folder layout
+
+```
+clients/{app}/
+├── package.json              React 19, Vite 7, TS 5.7, TanStack Query, Radix, etc.
+├── vite.config.ts            Vite + React plugin + proxy config
+├── tsconfig.json
+├── index.html                Single-page-app shell
+├── .env.development          VITE_API_BASE_URL etc.
+├── public/                   Static assets
+└── src/
+    ├── main.tsx              React.createRoot + providers + <App />
+    ├── App.tsx               Top-level provider stack + RouterProvider
+    ├── routes.tsx            createBrowserRouter config
+    ├── env.ts                Typed env wrapper
+    ├── api/                  One file per backend module — typed wrappers
+    ├── auth/                 JWT, token store, auth context, route guards
+    ├── components/           Shared components (layout, primitives)
+    ├── lib/                  Shared helpers — apiClient, queryClient, cn, types
+    ├── pages/                One folder per feature area
+    ├── realtime/             SignalR context + hooks
+    └── styles/               Global CSS + Tailwind base
+```
+
+Dashboard adds `hooks/` (shared hooks beyond the auth + realtime contexts) and `sse/` (Server-Sent Events).
+
+## The provider stack
+
+```tsx
+// main.tsx
+createRoot(document.getElementById('root')!).render(
+  <QueryClientProvider client={queryClient}>
+    <AuthProvider>
+      <RealtimeProvider>
+        <ThemeProvider>
+          <Toaster />
+          <RouterProvider router={router} />
+        </ThemeProvider>
+      </RealtimeProvider>
+    </AuthProvider>
+  </QueryClientProvider>
+);
+```
+
+Order matters:
+
+1. `QueryClientProvider` outermost so every child can use TanStack Query.
+2. `AuthProvider` next — every context below depends on the JWT being available.
+3. `RealtimeProvider` reads the access token from `AuthProvider` to open the SignalR connection.
+4. `ThemeProvider` (dashboard only) reads the resolved tenant to apply per-tenant theming.
+5. `Toaster` + the router come last.
+
+## The API client
+
+`clients/{app}/src/lib/api-client.ts` is the kit's HTTP wrapper. Two responsibilities:
+
+```ts
+// Simplified
+export const apiClient = axios.create({
+  baseURL: env.API_BASE_URL,
+  headers: { 'Content-Type': 'application/json' },
+});
+
+apiClient.interceptors.request.use((config) => {
+  const token = getAccessToken();
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+
+  const tenant = getActiveTenant();
+  if (tenant) config.headers.tenant = tenant;
+
+  return config;
+});
+
+apiClient.interceptors.response.use(
+  (resp) => resp,
+  async (error) => {
+    if (error.response?.status === 401 && !isRefreshing()) {
+      const fresh = await refreshTokens(getRefreshToken());
+      if (fresh) {
+        saveTokens(fresh);
+        return apiClient(error.config);   // retry original request
+      }
+      signOut();
+    }
+    if (error.response?.data?.type) {
+      throw new ProblemDetailsError(error.response.data);   // typed error
+    }
+    throw error;
+  }
+);
+```
+
+Two interceptors:
+
+- **Request**: attach the `Authorization` and `tenant` headers.
+- **Response**: on 401, try refreshing; on `ProblemDetails`, throw a typed error TanStack Query can render.
+
+The `ProblemDetailsError` wraps the RFC 9457 response shape, so React components can destructure:
+
+```tsx
+const { isError, error } = useQuery(...);
+
+if (isError && error instanceof ProblemDetailsError) {
+  return <Banner type="danger" title={error.title} detail={error.detail} />;
+}
+```
+
+For validation errors (400 with an `errors` field), the kit's components render inline field errors next to inputs:
+
+```tsx
+const mutation = useMutation({ mutationFn: createProduct });
+
+if (mutation.isError && mutation.error instanceof ProblemDetailsError) {
+  const fieldErrors = mutation.error.errors ?? {};
+  return (
+    <form>
+      <input name="sku" />
+      {fieldErrors.Sku?.map((msg) => <span class="error">{msg}</span>)}
+    </form>
+  );
+}
+```
+
+## TanStack Query conventions
+
+One file per backend module under `src/api/`. Each function returns typed data:
+
+```ts
+// clients/admin/src/api/users.ts
+export const usersApi = {
+  list: (params: ListUsersParams) =>
+    apiClient.get<Page<UserDto>>('/api/v1/identity/users', { params }).then(r => r.data),
+
+  getById: (id: string) =>
+    apiClient.get<UserDto>(`/api/v1/identity/users/${id}`).then(r => r.data),
+
+  create: (body: RegisterUserCommand) =>
+    apiClient.post<UserDto>('/api/v1/identity/users/register', body).then(r => r.data),
+
+  update: (id: string, body: UpdateUserCommand) =>
+    apiClient.put(`/api/v1/identity/users/${id}`, body).then(r => r.data),
+
+  delete: (id: string) =>
+    apiClient.delete(`/api/v1/identity/users/${id}`),
+};
+```
+
+Pages consume via React Query:
+
+```tsx
+const usersQuery = useQuery({
+  queryKey: ['users', { search, page }],
+  queryFn: () => usersApi.list({ search, page }),
+});
+
+const createMut = useMutation({
+  mutationFn: usersApi.create,
+  onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
+});
+```
+
+The `queryKey` is the canonical cache key. The kit uses arrays with one filter object per key entry — TanStack Query handles the hashing.
+
+For mutations that touch multiple resource caches (e.g. deleting a user that affects roles + groups), invalidate them all:
+
+```tsx
+const deleteMut = useMutation({
+  mutationFn: usersApi.delete,
+  onSuccess: (_, userId) => {
+    queryClient.invalidateQueries({ queryKey: ['users'] });
+    queryClient.invalidateQueries({ queryKey: ['groups'] });
+    queryClient.invalidateQueries({ queryKey: ['roles', { userId }] });
+  },
+});
+```
+
+## Route guards
+
+`clients/{app}/src/auth/route-guard.tsx` ships two guards:
+
+```tsx
+// Just requires authentication
+<Route element={<ProtectedRoute />}>
+  <Route path="/profile" element={<ProfilePage />} />
+</Route>
+
+// Requires authentication + a specific permission
+<Route element={<RouteGuard permission="Identity.Impersonation.Start" />}>
+  <Route path="/impersonation" element={<ImpersonationListPage />} />
+</Route>
+
+// Requires any of several permissions
+<Route element={<RouteGuard permissions={['Audit.Read', 'Security.Read']} />}>
+  <Route path="/audits" element={<AuditsPage />} />
+</Route>
+```
+
+Unauthorised users see a `<ForbiddenView>` with a "go home" link. Unauthenticated users are redirected to `/login` with the original destination preserved in the URL.
+
+## Realtime context
+
+`src/realtime/realtime-context.tsx` (in both apps) exposes one shared `HubConnection`:
+
+```tsx
+export const RealtimeProvider = ({ children }) => {
+  const { accessToken } = useAuth();
+  const [connection, setConnection] = useState<HubConnection | null>(null);
+  const [status, setStatus] = useState<'idle' | 'connecting' | 'connected' | 'reconnecting' | 'disconnected'>('idle');
+
+  useEffect(() => {
+    if (!accessToken) return;
+
+    const conn = new HubConnectionBuilder()
+      .withUrl(`${env.API_BASE_URL}/realtime/hub`,
+               { accessTokenFactory: () => accessToken })
+      .withAutomaticReconnect()
+      .build();
+
+    conn.onreconnecting(() => setStatus('reconnecting'));
+    conn.onreconnected(() => setStatus('connected'));
+    conn.onclose(() => setStatus('disconnected'));
+
+    setStatus('connecting');
+    conn.start().then(() => {
+      setConnection(conn);
+      setStatus('connected');
+    });
+
+    return () => { conn.stop(); };
+  }, [accessToken]);
+
+  return <RealtimeContext.Provider value={{ connection, status }}>{children}</RealtimeContext.Provider>;
+};
+```
+
+One connection per user session; every subscriber attaches via `.on(eventName, handler)` and detaches via `.off(...)`. The dashboard's chat page is the canonical user of this pattern — see the [dashboard page](/docs/frontend/dashboard/#chat--the-realtime-showcase) for the subscription example.
+
+## Error handling
+
+The `ProblemDetailsError` shape (from `clients/{app}/src/lib/api-types.ts`):
+
+```ts
+export class ProblemDetailsError extends Error {
+  type: string;
+  title: string;
+  status: number;
+  detail?: string;
+  instance?: string;
+  traceId?: string;
+  errors?: Record<string, string[]>;   // field validation errors
+
+  constructor(payload: ProblemDetails) { /* ... */ }
+}
+```
+
+Components render this via:
+
+- `<ProblemBanner error={...} />` for page-level errors.
+- `<FieldError name="sku" error={...} />` for inline form errors.
+- A toast for ephemeral errors that don't need persistent UI.
+
+Trace ids are surfaced in the banner ("Reference 00-...") so when a user reports an issue, support can search the server logs.
+
+## Environment configuration
+
+```ts
+// clients/{app}/src/env.ts
+export const env = {
+  API_BASE_URL: import.meta.env.VITE_API_BASE_URL ?? '/api',
+  SIGNALR_HUB_URL: import.meta.env.VITE_SIGNALR_HUB_URL ?? '/realtime/hub',
+  APP_NAME: import.meta.env.VITE_APP_NAME ?? 'fullstackhero',
+};
+```
+
+For runtime configuration (i.e. when the same built bundle ships to multiple environments and reads env at boot), the kit's deploy/docker container uses `envsubst` at startup to inject `window.__ENV__` from environment variables and the apps read from there. See [development](/docs/frontend/development/).
+
+## What both apps don't do
+
+- **No Redux / Zustand / global state manager.** TanStack Query is the server state; React's `useState` / `useReducer` is the local state. Avoid pulling in a global store unless you have a genuine cross-page client-state need.
+- **No CSS-in-JS.** Tailwind + small per-component CSS modules. The kit's editorial design language stays consistent through utility classes.
+- **No microfrontends.** Both apps are single-bundle SPAs. Module federation is appealing in slide decks; it's a real maintenance tax in practice.
+
+## Related
+
+- [Admin console](/docs/frontend/admin/) — operator-facing surface.
+- [Tenant dashboard](/docs/frontend/dashboard/) — end-user surface.
+- [Theming](/docs/frontend/theming/) — per-tenant brand customisation.
+- [Local development](/docs/frontend/development/) — running, building, deploying.

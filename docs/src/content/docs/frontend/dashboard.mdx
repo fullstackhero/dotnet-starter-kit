@@ -1,0 +1,217 @@
+---
+title: Tenant dashboard
+description: The end-user-facing React + Vite app at clients/dashboard — catalog, chat, files, tickets, profile, plus per-tenant theming and real-time SignalR + SSE feeds.
+sidebar:
+  label: Tenant dashboard
+  order: 2
+pageType: guide
+seo:
+  title: 'Tenant dashboard in fullstackhero — React + Vite end-user app'
+  description: 'The clients/dashboard app is fullstackhero''s tenant-facing dashboard — catalog browsing, realtime chat, file uploads, ticket management, profile + sessions, all themed per tenant.'
+  keywords: 'react tenant dashboard, fullstackhero dashboard app, signalr realtime react, react chat ui, tenant theming react'
+---
+
+`clients/dashboard` is what your tenants' users see when they log in. Catalog browsing, realtime chat, file uploads, ticket filing, profile management — all themed by the tenant's brand (colours, logo, typography pulled from the Multitenancy module). It's the surface your customers spend most of their time in, so it's the one to invest UX care in first.
+
+<Screenshot src="/screenshots/dashboard/overview.png"
+            alt="Tenant dashboard overview"
+            caption="The dashboard after sign-in — tenant-themed chrome (logo + palette), main work area, notifications bell." />
+
+## Tech stack
+
+Same shape as the [admin console](/docs/frontend/admin/) — React 19 + Vite 7 + TypeScript 5.7 + TanStack Query + React Router + Tailwind + Radix + Lucide. Two additions:
+
+| | Used for |
+|---|---|
+| `clients/dashboard/src/realtime/` | SignalR subscriptions (chat, notifications, presence) |
+| `clients/dashboard/src/sse/` | Server-Sent Events feeds (live audit, build-status, etc.) |
+
+The dashboard subscribes to **more** realtime than admin — chat is a continuous-conversation surface, so SignalR is on the hot path.
+
+## Page inventory
+
+```
+clients/dashboard/src/pages/
+├── auth/         Login, signup, 2FA, forgot/reset password
+├── catalog/      Product browsing, search, detail, image gallery
+├── chat/         Channels, DMs, threads, mentions, reactions, pinning
+├── files/        Upload, list, share, trash, restore
+├── identity/     Profile, sessions, 2FA setup, password change
+├── settings/     Theme preview, notification preferences
+├── system/       Health, audit (limited to caller's events)
+└── tickets/      File ticket, list, detail, comments
+```
+
+Plus shared chrome (sidebar, top bar, notification bell) in `clients/dashboard/src/components/`.
+
+## Per-tenant theming
+
+When a tenant signs in, the dashboard fetches the tenant's `TenantTheme` from `GET /api/v1/tenants/{id}/theme` and applies the palette + brand + typography via CSS custom properties. The result: a single React build, one app, but every tenant gets their own brand.
+
+<Screenshot src="/screenshots/dashboard/themed-tenants.png"
+            alt="Three tenants of the dashboard showing different themes"
+            caption="Same React build, three tenants — palette + logo + typography all swap based on which tenant is signed in." />
+
+Full details: [theming](/docs/frontend/theming/).
+
+## Chat — the realtime showcase
+
+`clients/dashboard/src/pages/chat/` is the densest page in either frontend. Slack-style channels with:
+
+- Three channel kinds — Channel (named), Direct Message (1:1), Group DM (3+).
+- Message threads with reply count badges.
+- Emoji reactions (toggle on/off, one row per emoji + count).
+- Pinned messages with a dedicated panel.
+- `@mention` autocomplete via `mention-picker.tsx` (queries `/users` API as you type).
+- Typing indicators throttled to 3 seconds.
+- Cursor-paginated message history with infinite scroll.
+- Real-time updates via SignalR — new messages, edits, deletes, reactions, channel reads.
+- Full-text search across messages.
+
+<Screenshot src="/screenshots/dashboard/chat-channel.png"
+            alt="Chat channel view with message list, composer, and member list"
+            caption="A named channel — message list with virtualised scrolling, composer with mention picker, member list in the right rail." />
+
+<Screenshot src="/screenshots/dashboard/chat-thread.png"
+            alt="Chat reply thread expanded inline under the parent message"
+            caption="Threads expand inline under the parent (Teams-channel style), not in a side panel." />
+
+<Screenshot src="/screenshots/dashboard/chat-mention-picker.png"
+            alt="Mention picker dropdown showing user avatars"
+            caption="Type @ to open the picker — fuzzy search against the tenant's users, debounced to 250ms." />
+
+The chat page is the canonical example of how to build realtime UI against `AppHub`:
+
+```tsx
+// clients/dashboard/src/pages/chat/chat-page.tsx (simplified)
+const realtime = useRealtime();
+
+useEffect(() => {
+  if (!realtime.connection) return;
+
+  const onMessage = (msg) => queryClient.setQueryData(...);
+  const onEdit    = (msg) => queryClient.setQueryData(...);
+  const onDelete  = (id)  => queryClient.setQueryData(...);
+
+  realtime.connection.on('ChatMessageCreated', onMessage);
+  realtime.connection.on('ChatMessageEdited',  onEdit);
+  realtime.connection.on('ChatMessageDeleted', onDelete);
+
+  return () => {
+    realtime.connection.off('ChatMessageCreated', onMessage);
+    realtime.connection.off('ChatMessageEdited',  onEdit);
+    realtime.connection.off('ChatMessageDeleted', onDelete);
+  };
+}, [realtime.connection, queryClient]);
+```
+
+`useRealtime()` returns the shared `HubConnection` from `realtime-context.tsx`. One connection, many subscriptions.
+
+## Catalog — search + product detail
+
+A product browsing surface that renders the Catalog module's data. Search, filter by brand + category, product detail with image gallery.
+
+<Screenshot src="/screenshots/dashboard/catalog-search.png"
+            alt="Catalog search results page"
+            caption="Paginated search with brand + category filters; click a product to open the detail page." />
+
+<Screenshot src="/screenshots/dashboard/catalog-product-detail.png"
+            alt="Product detail page with image gallery"
+            caption="Multi-image gallery with thumbnail strip; stock indicator + price; admin-only edit affordance for users with Catalog.Products.Update." />
+
+## Files — presigned upload flow
+
+`clients/dashboard/src/pages/files/` implements the kit's two-step upload:
+
+1. Browser calls `POST /api/v1/files/upload-url` with metadata (file name, size, content type, category, owner type).
+2. Backend returns a presigned PUT URL.
+3. Browser uploads bytes directly to MinIO / S3 via the presigned URL — no proxy through the API.
+4. Browser calls `POST /api/v1/files/{id}/finalize` to flip the file from `PendingUpload` to `Available`.
+
+<Screenshot src="/screenshots/dashboard/files-upload.png"
+            alt="File upload with drag-and-drop area"
+            caption="Drag-drop or click-to-pick. Per-category extension + size validation runs client-side first, then enforced server-side." />
+
+<Screenshot src="/screenshots/dashboard/files-list.png"
+            alt="File list with download + delete actions"
+            caption="Caller's files only (tenant-scoped). Download via presigned GET URL; delete moves to trash with a 30-day retention." />
+
+## Tickets — file + track support requests
+
+Filing tickets from the dashboard, with priority + (optional) assignee + comments thread.
+
+<Screenshot src="/screenshots/dashboard/tickets-list.png"
+            alt="Tickets list filtered by status"
+            caption="Filter by status (Open / In Progress / Resolved / Closed) + priority. Status pills colour-coded." />
+
+<Screenshot src="/screenshots/dashboard/ticket-detail.png"
+            alt="Ticket detail with comments thread"
+            caption="Ticket detail with comment composer + thread; immutable comments." />
+
+## Identity — profile + sessions + 2FA
+
+Self-service for the signed-in user:
+
+<Screenshot src="/screenshots/dashboard/profile.png"
+            alt="User profile page"
+            caption="First/last name, profile image, phone, email-confirmation status." />
+
+<Screenshot src="/screenshots/dashboard/sessions.png"
+            alt="Active sessions list"
+            caption="Every device + browser the user is signed in on; one-click revoke per session, or revoke-all." />
+
+<Screenshot src="/screenshots/dashboard/two-factor-setup.png"
+            alt="Two-factor TOTP setup with QR code"
+            caption="Scan the QR with an authenticator app, then verify with the first generated code." />
+
+## Settings — preferences + theme preview
+
+<Screenshot src="/screenshots/dashboard/settings.png"
+            alt="User settings page with theme preview"
+            caption="Preview the tenant theme in light + dark mode; toggle notification preferences per channel." />
+
+## Realtime architecture
+
+`clients/dashboard/src/realtime/realtime-context.tsx` exposes a single shared `HubConnection`:
+
+```tsx
+const realtime = useRealtime();
+
+// Subscribe in a component
+useEffect(() => {
+  if (!realtime.connection) return;
+  const handler = (n: NotificationDto) => /* ... */;
+  realtime.connection.on('NotificationCreated', handler);
+  return () => realtime.connection.off('NotificationCreated', handler);
+}, [realtime.connection]);
+```
+
+The context handles:
+
+- Authentication via `accessTokenFactory` from the auth context.
+- Automatic reconnect via `withAutomaticReconnect()`.
+- Connection state changes (connecting, connected, reconnecting, disconnected) surfaced as a state pill.
+
+<Screenshot src="/screenshots/dashboard/realtime-status-pill.png"
+            alt="Realtime status pill in the sidebar"
+            caption="The pill turns amber when reconnecting and red when offline." />
+
+## Local development
+
+```bash
+cd clients/dashboard
+npm install
+npm run dev               # http://localhost:5174 with HMR
+```
+
+The dev server proxies API calls to the backend's URL configured in `clients/dashboard/.env`.
+
+When run via the kit's Aspire AppHost, the dashboard wires automatically — `fsh-api`, `fsh-admin`, `fsh-dashboard` all come up with one command, and service discovery handles the URLs.
+
+## Related
+
+- [Admin console](/docs/frontend/admin/) — operator-facing companion.
+- [Frontend architecture](/docs/frontend/architecture/) — shared patterns.
+- [Theming](/docs/frontend/theming/) — per-tenant brand customisation.
+- [Chat module](/docs/modules/chat/) — the API the chat surface wraps.
+- [Files module](/docs/modules/files/) — the API the upload flow wraps.

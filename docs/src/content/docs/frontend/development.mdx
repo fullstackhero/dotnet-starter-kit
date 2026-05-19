@@ -1,0 +1,271 @@
+---
+title: Local development
+description: Running the React frontends with Vite HMR, building for production, deploying to static hosts or behind Nginx, runtime config injection patterns.
+sidebar:
+  label: Local development
+  order: 5
+pageType: guide
+seo:
+  title: 'React + Vite development in fullstackhero — running, building, deploying'
+  description: 'How to run the admin + dashboard apps locally with Vite HMR, build for production, deploy to Nginx / Vercel / Netlify / S3+CDN, and inject runtime config without rebuilding.'
+  keywords: 'vite dev server, react production build, nginx static spa, runtime config envsubst, dockerfile react vite'
+---
+
+Both `clients/admin` and `clients/dashboard` are Vite-based React SPAs. Standard `npm` lifecycle, standard build output, no special tooling required.
+
+<Callout type="tip" title="Aspire is the easiest local dev">
+`dotnet run --project src/Host/FSH.Starter.AppHost` brings up Postgres, Redis, MinIO, the API, the admin, and the dashboard — all at once, with service discovery handling URLs. You don't need to run `npm run dev` separately unless you're isolating frontend work.
+</Callout>
+
+## Running locally
+
+### Via Aspire (recommended)
+
+```bash
+dotnet run --project src/Host/FSH.Starter.AppHost
+```
+
+This starts everything:
+
+- API at http://localhost:5000
+- Admin at http://localhost:5173
+- Dashboard at http://localhost:5174
+- Postgres at tcp/5432, Redis at tcp/6379, MinIO at :9000
+
+Vite HMR works through Aspire — edits to frontend files reload instantly in the browser.
+
+### Via npm (frontend-only)
+
+```bash
+cd clients/admin           # or clients/dashboard
+npm install                # first time only
+npm run dev                # http://localhost:5173
+```
+
+This requires the backend to be running separately (either via Aspire, docker-compose, or `dotnet run` against the API project).
+
+The dev server reads `clients/{app}/.env.development` for the backend URL:
+
+```ini
+# clients/admin/.env.development
+VITE_API_BASE_URL=http://localhost:5000
+```
+
+## The npm scripts
+
+```jsonc
+// clients/admin/package.json
+{
+  "scripts": {
+    "dev":      "vite",                  // dev server with HMR
+    "build":    "tsc -b && vite build",  // typecheck + production bundle
+    "preview":  "vite preview",          // serve the production bundle locally
+    "lint":     "eslint .",
+    "test":     "vitest"
+  }
+}
+```
+
+The `build` script runs the TypeScript project-references compiler first (`tsc -b`) so type errors fail the build. Vite handles transpilation + bundling.
+
+## Production build
+
+```bash
+cd clients/admin
+npm run build
+```
+
+Output:
+
+```
+clients/admin/dist/
+├── index.html
+├── assets/
+│   ├── index-{hash}.js
+│   ├── index-{hash}.css
+│   └── ...
+└── ...
+```
+
+`dist/` is a static site — pure HTML / JS / CSS. No server runtime required.
+
+## Runtime configuration (env-var-driven)
+
+Vite hardcodes `VITE_*` env vars into the bundle at build time. That's fine for static URLs, but you usually want **one built image** that runs against multiple environments (dev, staging, prod) with different API URLs.
+
+The kit's solution: inject a `window.__ENV__` script at container startup via `envsubst`. The frontend reads from `window.__ENV__` at boot.
+
+### The container pattern
+
+```dockerfile
+# clients/admin/Dockerfile (simplified)
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM nginx:1.27-alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY env.template.js /usr/share/nginx/html/env.template.js
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+```
+
+```sh
+# entrypoint.sh
+#!/bin/sh
+envsubst < /usr/share/nginx/html/env.template.js > /usr/share/nginx/html/env.js
+exec nginx -g 'daemon off;'
+```
+
+```js
+// env.template.js — substituted at container start
+window.__ENV__ = {
+  API_BASE_URL: '${API_BASE_URL}',
+  SIGNALR_HUB_URL: '${SIGNALR_HUB_URL}',
+};
+```
+
+```html
+<!-- index.html -->
+<script src="/env.js"></script>
+```
+
+At deploy time, set the env vars on the container:
+
+```bash
+docker run -e API_BASE_URL=https://api.example.com fsh-admin
+```
+
+The same image runs everywhere; only env vars differ.
+
+### Reading runtime config in code
+
+```ts
+// clients/{app}/src/env.ts
+declare global {
+  interface Window { __ENV__?: { API_BASE_URL?: string; SIGNALR_HUB_URL?: string }; }
+}
+
+export const env = {
+  API_BASE_URL:   window.__ENV__?.API_BASE_URL  ?? import.meta.env.VITE_API_BASE_URL  ?? '/api',
+  SIGNALR_HUB_URL: window.__ENV__?.SIGNALR_HUB_URL ?? import.meta.env.VITE_SIGNALR_HUB_URL ?? '/realtime/hub',
+};
+```
+
+`window.__ENV__` (runtime) takes precedence; `import.meta.env` (build-time) is the fallback; a default URL is the last resort.
+
+## Nginx configuration for SPAs
+
+`nginx.conf` (simplified — the kit's actual file is more detailed):
+
+```nginx
+server {
+    listen 80;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # SPA routing — every non-asset path falls through to index.html
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Long-cache static assets (their filenames carry hashes)
+    location /assets/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Never cache index.html so runtime config updates immediately
+    location = /index.html {
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+    }
+
+    # gzip + brotli compression
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+}
+```
+
+## Deploying to a CDN
+
+The kit's frontends are CDN-friendly. Three deployment shapes:
+
+### Vercel / Netlify
+
+Drag-drop the `dist/` folder, or connect the repo and configure:
+
+- Build command: `cd clients/admin && npm install && npm run build`
+- Output directory: `clients/admin/dist`
+- Environment variables: `VITE_API_BASE_URL=https://api.example.com` (build-time)
+
+For runtime config, use the platform's edge config or rewrite `env.js` from an edge function.
+
+### S3 + CloudFront
+
+1. `npm run build`, then `aws s3 sync dist/ s3://fsh-admin-bucket/`
+2. CloudFront distribution in front, with a default-root-object of `index.html` + a custom error response that serves `index.html` for 404 (so SPA routing works).
+3. Set cache TTLs: short on `index.html`, long on `/assets/*`.
+
+### Cloudflare Pages
+
+Connect the repo, configure build command + output directory. Cloudflare's Workers can inject runtime env via Pages Functions if needed.
+
+## Testing
+
+The kit ships Vitest configuration. Run:
+
+```bash
+npm test                   # all tests
+npm test -- --watch        # watch mode
+```
+
+Tests live alongside source as `*.test.ts(x)`. The setup is minimal — the kit doesn't ship a full Storybook / Chromatic visual-regression stack.
+
+## Linting + formatting
+
+ESLint + Prettier are wired:
+
+```bash
+npm run lint               # report
+npm run lint -- --fix      # auto-fix
+```
+
+The kit's ESLint config sits in `clients/{app}/eslint.config.js` (flat config). It extends the standard React + TypeScript + a11y rule sets.
+
+## When the dev server proxies API calls
+
+Vite's dev server can proxy API calls to the backend so you don't deal with CORS during development:
+
+```ts
+// clients/{app}/vite.config.ts
+export default defineConfig({
+  server: {
+    proxy: {
+      '/api':      { target: env.VITE_API_BASE_URL, changeOrigin: true },
+      '/realtime': { target: env.VITE_API_BASE_URL, changeOrigin: true, ws: true },
+    },
+  },
+});
+```
+
+With this in place, you can use relative URLs (`/api/v1/...`) in code and the dev server forwards them. Production builds embed the full URL via `env.API_BASE_URL`.
+
+## Common issues
+
+- **CORS errors in dev** — your `vite.config.ts` proxy isn't picking up the right backend URL, or you're using absolute URLs in client code. Switch to relative URLs + verify the proxy config.
+- **SignalR fails to connect after deploy** — your reverse proxy isn't forwarding WebSocket upgrade headers. Add `proxy_set_header Upgrade $http_upgrade; proxy_set_header Connection "upgrade";` to Nginx.
+- **"Refused to load script" CSP violations** — your `Content-Security-Policy` `script-src` doesn't include the inline `env.js` script. Either widen the policy, or use a hash, or move runtime config to a non-inline mechanism.
+- **HMR not updating in Aspire** — `dotnet watch` doesn't always proxy WebSocket upgrades for Vite. Run `npm run dev` separately in that case.
+
+## Related
+
+- [Admin console](/docs/frontend/admin/) — the operator app.
+- [Tenant dashboard](/docs/frontend/dashboard/) — the end-user app.
+- [Frontend architecture](/docs/frontend/architecture/) — shared patterns.
+- [Deployment](/docs/deployment/) — production wiring across services.

@@ -1,0 +1,270 @@
+---
+title: Admin console
+description: The operator-facing React + Vite app at clients/admin — users, roles, tenants, impersonation, audits, billing, webhooks, health, notifications.
+sidebar:
+  label: Admin console
+  order: 1
+pageType: guide
+seo:
+  title: 'Admin console in fullstackhero — React + Vite operator app'
+  description: 'The clients/admin app is fullstackhero''s operator console — users, roles, tenants, impersonation, audits, billing, webhooks, health, notifications. JWT bearer auth with refresh, permission-gated routes, SignalR realtime.'
+  keywords: 'react admin console .net, fullstackhero admin app, operator dashboard react, impersonation ui react'
+---
+
+`clients/admin` is the operator-facing app. It's where support engineers reset passwords, ops sees the audit trail, billing reviews tenant invoices, and SuperAdmins start impersonation sessions. It's not customer-facing — it has no per-tenant theming; the chrome stays static.
+
+<Screenshot src="/screenshots/admin/overview-dashboard.png"
+            alt="Admin console overview dashboard"
+            caption="The admin console after sign-in — sidebar nav + main work area + notifications bell." />
+
+## Tech stack
+
+| | Version | Used for |
+|---|---|---|
+| React | 19.0 | UI framework |
+| Vite | 7.0 | Dev server + build |
+| TypeScript | 5.7 | Type safety |
+| TanStack Query | 5.x | Server-state cache + mutations |
+| React Router | 7.x | Routing + protected routes |
+| @microsoft/signalr | 8.x | Realtime connection to `AppHub` |
+| Tailwind CSS | 4.x | Styling |
+| Radix UI | 1.x | Headless primitives (Dialog, DropdownMenu, etc.) |
+| Lucide | 1.x | Icon set |
+| Vitest | 2.x | Unit tests |
+
+All pinned in `clients/admin/package.json`.
+
+## Page inventory
+
+```
+clients/admin/src/pages/
+├── audits/         Security + activity + entity-change query UI
+├── auth/           Login, refresh handshake, 2FA setup, forgot-password
+├── billing/        Plans, subscriptions, invoices, usage
+├── health/         System health probes
+├── impersonation/  Active + historical grants, start / end / revoke
+├── notifications/  Inbox, mark-read, real-time push
+├── roles/          Role CRUD + permission editor
+├── settings/       Per-operator preferences
+├── tenants/        Tenant CRUD + theme editor + provisioning status
+├── users/          User search / detail / impersonate action
+└── webhooks/       Subscription management + delivery log
+```
+
+The route definitions live in `clients/admin/src/routes.tsx` and each page is a single React component under `pages/{area}/{page}.tsx`.
+
+## Authentication
+
+`clients/admin/src/auth/` owns the auth surface:
+
+- `auth-context.tsx` — React context providing `{ user, isAuthenticated, signIn, signOut, refresh }`.
+- `token-store.ts` — wraps localStorage (or sessionStorage) for access + refresh tokens.
+- `jwt.ts` — base64url decode + claim parsing (no library needed for read-only access).
+- `protected-route.tsx` — route guard that requires authentication; redirects to `/login` if not.
+- `route-guard.tsx` — permission-aware variant; renders `<ForbiddenView>` if the user lacks the required permission.
+- `use-auth.ts` — hook for accessing the context from components.
+
+Login flow:
+
+```ts
+const { signIn } = useAuth();
+await signIn({ email, password, twoFactorCode });
+// signIn calls POST /api/v1/identity/tokens/generate, stores both tokens,
+// then triggers a router navigation to the post-login destination.
+```
+
+Token refresh runs automatically when the access token approaches expiry:
+
+```ts
+// auth-context.tsx (simplified)
+useEffect(() => {
+  const id = setInterval(async () => {
+    if (isAccessTokenAboutToExpire(accessToken)) {
+      const fresh = await refreshTokens(refreshToken);
+      saveTokens(fresh);
+    }
+  }, 60_000);
+  return () => clearInterval(id);
+}, [accessToken, refreshToken]);
+```
+
+If the refresh fails (refresh token expired / revoked), the user is signed out and redirected to `/login`.
+
+<Screenshot src="/screenshots/admin/login.png"
+            alt="Admin console login screen"
+            caption="Tenant selector + email + password + optional 2FA code." />
+
+## Permission-gated UI
+
+Endpoints are gated server-side by `.RequirePermission()`. The admin console mirrors that gating client-side so users don't see actions they can't perform:
+
+```tsx
+import { usePermissions } from '@/auth/use-auth';
+
+const { has } = usePermissions();
+
+return (
+  <>
+    {has('Identity.Users.Update') && <Button onClick={openEditUser}>Edit</Button>}
+    {has('Identity.Impersonation.Start') && <Button onClick={impersonate}>Impersonate</Button>}
+  </>
+);
+```
+
+`usePermissions().has(perm)` reads the user's effective permissions from the JWT claim. If the user gains a permission server-side (admin updates the role), they need to refresh tokens to pick it up — the kit's auto-refresh handles this within the 60-minute access window.
+
+For whole-route gating, use `<RouteGuard permission="...">`:
+
+```tsx
+<Route element={<RouteGuard permission="Identity.Impersonation.Start" />}>
+  <Route path="/impersonation" element={<ImpersonationListPage />} />
+</Route>
+```
+
+Unauthorised users see a `<ForbiddenView />` instead of the route content.
+
+## API integration
+
+`clients/admin/src/api/` carries one file per backend module. Each file exposes typed functions wrapping the relevant endpoints:
+
+```ts
+// clients/admin/src/api/impersonation.ts
+import { apiClient } from '@/lib/api-client';
+import type { StartImpersonationRequest, ImpersonationResponse } from './types';
+
+export async function startImpersonation(body: StartImpersonationRequest)
+  : Promise<ImpersonationResponse>
+{
+  const { data } = await apiClient.post<ImpersonationResponse>(
+    '/api/v1/identity/impersonation/start', body);
+  return data;
+}
+
+export async function endImpersonation(): Promise<void> {
+  await apiClient.post('/api/v1/identity/impersonation/end');
+}
+```
+
+Pages consume them via TanStack Query:
+
+```tsx
+const startMut = useMutation({
+  mutationFn: startImpersonation,
+  onSuccess: (response) => { /* open new tab with impersonation token */ },
+});
+```
+
+The `apiClient` is a configured Axios (or `fetch`) wrapper that:
+
+- Adds the `Authorization: Bearer ...` header from the token store.
+- Adds the `tenant` header when an admin scopes a request to a specific tenant.
+- Handles 401 by triggering token refresh; if refresh fails, signs the user out.
+- Surfaces `ProblemDetails` responses as typed errors React Query can render in the UI.
+
+## Realtime — notifications
+
+The admin console subscribes to `AppHub` on sign-in and listens for `NotificationCreated` events:
+
+```tsx
+// clients/admin/src/realtime/realtime-context.tsx (simplified)
+const conn = new HubConnectionBuilder()
+  .withUrl('/realtime/hub', { accessTokenFactory: () => getAccessToken() })
+  .withAutomaticReconnect()
+  .build();
+
+conn.on('NotificationCreated', (notification) => {
+  queryClient.setQueryData(['notifications'], (prev) => prev ? [notification, ...prev] : [notification]);
+  toast.info(notification.title);
+});
+
+await conn.start();
+```
+
+A bell icon in the top bar shows unread count + a popover with the recent items.
+
+<Screenshot src="/screenshots/admin/notifications-bell.png"
+            alt="Notifications bell with unread indicator"
+            caption="Real-time push from the Notifications module — security events, audit alerts, impersonation activity." />
+
+## The impersonation flow in the UI
+
+This is the admin console's most-asked-about feature. Full walkthrough lives in the [operator impersonation guide](/docs/guides/operator-impersonation/); short version:
+
+1. Find the user via **Users → search**.
+2. Open the user detail page; click **Impersonate**.
+3. Fill duration + reason; click **Start**.
+4. A new tab opens at the tenant dashboard, authenticated as the impersonated user.
+5. Use the dashboard exactly as the user would.
+6. Return to admin; click **End impersonation** to close the grant cleanly.
+
+<Screenshot src="/screenshots/admin/users-detail-impersonate-button.png"
+            alt="User detail page with the Impersonate action"
+            caption="The Impersonate button is gated by Identity.Impersonation.Start — most operators won't see it." />
+
+## Tenant + theme editor
+
+The admin console can edit tenant themes — colors, brand assets, typography, layout knobs — that the **tenant dashboard** then renders. The admin console itself stays themed in the kit's static palette (no per-tenant chrome for operator tools).
+
+<Screenshot src="/screenshots/admin/tenant-theme-editor.png"
+            alt="Tenant theme editor"
+            caption="Edit light + dark palettes, brand assets, typography, layout per tenant. Preview updates in real time before save." />
+
+See [Theming](/docs/frontend/theming/) for the full palette + asset surface.
+
+## Notable pages
+
+### Audits
+
+A full audit query UI — filter by event type, severity, tenant, user, time range, free-text. Each row expands into a detail panel with the full JSON payload (masked fields stay masked).
+
+<Screenshot src="/screenshots/admin/audits-list.png"
+            alt="Audit log list with filters"
+            caption="Filter by event type, severity, tenant, user, time. Free-text search runs against the JSON payload." />
+
+### Roles + permission editor
+
+Drag-and-drop permission assignment per role, with grouping by resource and bulk toggle for `Permissions.{Resource}.*`.
+
+<Screenshot src="/screenshots/admin/role-permissions.png"
+            alt="Role permissions editor"
+            caption="Permissions grouped by resource, with per-action toggles. Changes apply on Save." />
+
+### Webhooks
+
+Subscription list with delivery log per subscription — every attempt, response code, error message.
+
+<Screenshot src="/screenshots/admin/webhooks-delivery-log.png"
+            alt="Webhooks subscription with delivery log"
+            caption="Per-subscription log of every delivery attempt — HTTP code, duration, error, retry count." />
+
+## Local development
+
+```bash
+cd clients/admin
+npm install
+npm run dev               # http://localhost:5173 with HMR
+```
+
+The dev server proxies API calls to the backend's URL configured in `clients/admin/.env`:
+
+```ini
+# clients/admin/.env.development
+VITE_API_BASE_URL=http://localhost:5000
+```
+
+The kit's Aspire AppHost wires this automatically when you run via `dotnet run --project src/Host/FSH.Starter.AppHost` — both `fsh-api` and `fsh-admin` come up, the admin app discovers the API's URL via Aspire's service discovery.
+
+## Build + deploy
+
+```bash
+npm run build              # dist/ contains static assets
+```
+
+The `dist/` folder is a static site — drop it on any static host (Nginx, Vercel, Netlify, S3+CloudFront, GitHub Pages). The kit's `deploy/docker/docker-compose.yml` ships an Nginx-based admin container that serves the built assets + injects runtime config at startup via `envsubst`.
+
+## Related
+
+- [Tenant dashboard](/docs/frontend/dashboard/) — the end-user-facing companion.
+- [Frontend architecture](/docs/frontend/architecture/) — shared patterns.
+- [Operator impersonation guide](/docs/guides/operator-impersonation/) — end-to-end UI walkthrough.
+- [Identity module](/docs/modules/identity/) — the API the admin console wraps.
