@@ -267,22 +267,28 @@
   .no-scrollbar::-webkit-scrollbar { display: none; }
 
   /* `not-prose` opt-out — reverses prose-specific styling for component
-     subtrees rendered inside an .prose container (e.g. card grids in
+     subtrees rendered inside a .prose container (e.g. card grids in
      MDX section-index pages). Without this, the prose's star li::before
-     marker and underlined :where(a) links leak into the cards. */
-  .not-prose ul li::before,
-  .not-prose ol li::before {
+     marker and underlined :where(a) links leak into the cards.
+
+     IMPORTANT: most usages put `.not-prose` directly ON the <ul>, not on
+     an ancestor — so the selectors must accept both placements. The
+     `:where()` wrapper keeps specificity low without sacrificing reach. */
+  :where(.not-prose) li::before,
+  :where(.not-prose) li::after {
     content: none !important;
     display: none !important;
     background: none !important;
     margin: 0 !important;
   }
-  .not-prose ul,
-  .not-prose ol {
+  ul:where(.not-prose),
+  ol:where(.not-prose),
+  :where(.not-prose) ul,
+  :where(.not-prose) ol {
     padding-left: 0 !important;
     list-style: none !important;
   }
-  .not-prose a {
+  :where(.not-prose) a {
     text-decoration: none !important;
   }
 

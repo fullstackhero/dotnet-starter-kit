@@ -1,17 +1,17 @@
 ---
 /**
- * SectionIndex — auto-generated card grid of child pages for a docs section.
+ * SectionIndex — chapter-plate card grid of child pages in a section.
  *
  * Usage (inside any section's `index.mdx`):
  *   <SectionIndex section="getting-started" />
  *
- * Discovers all pages in `src/content/docs/{section}/` (excluding the index
- * itself and `sidebar.hidden` pages), sorts by `sidebar.order`, and renders
- * a 2-column card grid. Each card shows a monospace index number, the page
- * title, its description, and a chevron that nudges on hover.
+ * Visual language matches <CategoryIndex>: huge ghosted watermark
+ * numeral as the editorial accent, body-font title, line-clamped
+ * description, and a unified hover sequence (lift / border tint /
+ * watermark glow / arrow nudge on a single 320ms curve).
  *
- * `not-prose` is applied to keep the prose styles (star-bullets, large
- * heading margins, etc.) from leaking into the card grid.
+ * No icon here — every card on a section page lives in the same
+ * subject context, so iconography would be redundant noise.
  */
 import { getCollection } from 'astro:content';
 
@@ -38,46 +38,56 @@ const pages = all
       (a.data.sidebar.order ?? 999) - (b.data.sidebar.order ?? 999) ||
       a.data.title.localeCompare(b.data.title),
   );
+
+const total = pages.length;
 ---
 {pages.length > 0 ? (
-  <ul class="fsh-section-grid not-prose my-8 grid gap-3 sm:grid-cols-2">
+  <ul class="fsh-sec-grid not-prose my-10 grid gap-3 sm:grid-cols-2 lg:gap-4">
     {pages.map((page, i) => {
       const norm = page.id.replace(/\.mdx$/, '');
       const href = `/docs/${norm}/`;
       const num = String(i + 1).padStart(2, '0');
+      const totalStr = String(total).padStart(2, '0');
       return (
         <li>
-          <a
-            href={href}
-            class="fsh-section-card group relative flex h-full flex-col rounded-xl border border-border bg-card p-5 no-underline transition-all hover:-translate-y-0.5 hover:border-border-strong"
-            style="text-decoration:none"
-          >
-            <div class="flex items-start justify-between gap-3">
-              <span class="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] tabular-nums text-muted-foreground">
-                {num}
+          <a href={href} class="fsh-sec-card group">
+            {/* Watermark numeral — pure editorial accent */}
+            <span class="fsh-sec-watermark" aria-hidden="true">{num}</span>
+
+            {/* Pagination eyebrow: 01 / 04 — gives context within the section */}
+            <div class="relative">
+              <span class="fsh-sec-eyebrow">
+                <span class="fsh-sec-eyebrow-cur">{num}</span>
+                <span class="fsh-sec-eyebrow-sep">/</span>
+                <span class="fsh-sec-eyebrow-tot">{totalStr}</span>
               </span>
-              <span class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-all group-hover:bg-foreground/[0.05] group-hover:text-foreground">
-                <svg class="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            </div>
+
+            {/* Title + description */}
+            <div class="relative mt-auto pt-8">
+              <h3 class="fsh-sec-title">{page.data.title}</h3>
+              {page.data.description && (
+                <p class="fsh-sec-desc">{page.data.description}</p>
+              )}
+            </div>
+
+            {/* Footer — "Read" + arrow */}
+            <div class="fsh-sec-footer">
+              <span class="fsh-sec-meta">Read</span>
+              <span class="fsh-sec-arrow" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <line x1="5" y1="12" x2="19" y2="12"></line>
                   <polyline points="12 5 19 12 12 19"></polyline>
                 </svg>
               </span>
             </div>
-            <h3 class="mt-4 text-[15.5px] font-semibold tracking-tight text-foreground">
-              {page.data.title}
-            </h3>
-            {page.data.description && (
-              <p class="mt-1.5 text-[13px] leading-[1.5] text-muted-foreground">
-                {page.data.description}
-              </p>
-            )}
           </a>
         </li>
       );
     })}
   </ul>
 ) : (
-  <div class="not-prose my-8 rounded-xl border border-dashed border-border bg-card/40 px-5 py-8 text-center">
+  <div class="not-prose my-10 rounded-xl border border-dashed border-border bg-card/40 px-5 py-10 text-center">
     <p class="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
       In progress
     </p>
@@ -86,3 +96,192 @@ const pages = all
     </p>
   </div>
 )}
+
+<style>
+  /* ──────────────────────────────────────────────────────────────
+     Section card — companion to <CategoryIndex>'s chapter plate.
+     ────────────────────────────────────────────────────────────── */
+
+  .fsh-sec-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 220px;
+    padding: 1.5rem 1.5rem 1.125rem;
+    overflow: hidden;
+    border-radius: 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: inherit;
+    text-decoration: none;
+    transition:
+      transform 320ms cubic-bezier(0.2, 0, 0, 1),
+      border-color 320ms cubic-bezier(0.2, 0, 0, 1),
+      box-shadow 320ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  .fsh-sec-card,
+  .fsh-sec-card:hover,
+  .fsh-sec-card:focus,
+  .fsh-sec-card:visited,
+  .fsh-sec-card * {
+    text-decoration: none !important;
+  }
+  .fsh-sec-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-strong);
+    box-shadow:
+      0 1px 2px -1px color-mix(in oklab, var(--foreground) 8%, transparent),
+      0 12px 28px -16px color-mix(in oklab, var(--foreground) 20%, transparent);
+  }
+
+  /* Top hairline highlight */
+  .fsh-sec-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, var(--foreground) 5%, transparent),
+      transparent
+    );
+    pointer-events: none;
+  }
+
+  /* Watermark numeral — bottom-right, clipped at the corner */
+  .fsh-sec-watermark {
+    position: absolute;
+    bottom: -0.28em;
+    right: -0.08em;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 148px;
+    line-height: 0.85;
+    letter-spacing: -0.06em;
+    color: color-mix(in oklab, var(--foreground) 5%, transparent);
+    pointer-events: none;
+    user-select: none;
+    transition:
+      color 320ms cubic-bezier(0.2, 0, 0, 1),
+      transform 480ms cubic-bezier(0.2, 0, 0, 1);
+    will-change: transform;
+  }
+  .fsh-sec-card:hover .fsh-sec-watermark {
+    color: color-mix(in oklab, var(--primary) 11%, transparent);
+    transform: scale(1.05);
+  }
+  .dark .fsh-sec-card:hover .fsh-sec-watermark {
+    color: color-mix(in oklab, var(--primary-soft) 12%, transparent);
+  }
+
+  /* Pagination eyebrow — 01 / 04 */
+  .fsh-sec-eyebrow {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.25rem;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
+  }
+  .fsh-sec-eyebrow-cur {
+    color: var(--foreground);
+  }
+  .fsh-sec-eyebrow-sep {
+    color: var(--muted-foreground);
+    opacity: 0.5;
+  }
+  .fsh-sec-eyebrow-tot {
+    color: var(--muted-foreground);
+  }
+
+  /* Title — body font for clarity at small card sizes */
+  .fsh-sec-title {
+    font-family: var(--font-body);
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    color: var(--foreground);
+    line-height: 1.25;
+  }
+
+  /* Description — 3-line clamp, balanced for the larger card */
+  .fsh-sec-desc {
+    margin-top: 0.5rem;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--muted-foreground);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Footer */
+  .fsh-sec-footer {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  }
+
+  .fsh-sec-meta {
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--muted-foreground);
+    transition: color 320ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  .fsh-sec-card:hover .fsh-sec-meta {
+    color: var(--foreground);
+  }
+
+  .fsh-sec-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    color: var(--muted-foreground);
+    transition:
+      color 320ms cubic-bezier(0.2, 0, 0, 1),
+      transform 320ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  .fsh-sec-arrow svg {
+    width: 14px;
+    height: 14px;
+  }
+  .fsh-sec-card:hover .fsh-sec-arrow {
+    color: var(--primary);
+    transform: translateX(3px);
+  }
+  .dark .fsh-sec-card:hover .fsh-sec-arrow {
+    color: var(--primary-soft);
+  }
+
+  /* Keyboard focus */
+  .fsh-sec-card:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fsh-sec-card,
+    .fsh-sec-watermark,
+    .fsh-sec-arrow,
+    .fsh-sec-meta {
+      transition: none !important;
+    }
+    .fsh-sec-card:hover,
+    .fsh-sec-card:hover .fsh-sec-watermark {
+      transform: none;
+    }
+  }
+</style>
