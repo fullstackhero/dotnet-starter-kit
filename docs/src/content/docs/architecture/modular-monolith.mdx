@@ -1,0 +1,157 @@
+---
+title: Modular monolith
+description: How fullstackhero composes ten modules into a single deployable process with hard module boundaries enforced by NetArchTest.
+sidebar:
+  label: Modular monolith
+  order: 2
+pageType: concept
+seo:
+  title: 'Modular monolith in .NET 10 — module boundaries enforced by arch tests'
+  description: 'How fullstackhero structures ten modules as a modular monolith with hard one-way Contracts boundaries, arch-test-enforced isolation, ordered IModule loading, and a clean migration path to microservices when scaling demands it.'
+  keywords: 'modular monolith .net 10, .net module boundaries, netarchtest enforced architecture, modular monolith to microservices migration'
+---
+
+fullstackhero is a **modular monolith**. Ten modules — Identity, Multitenancy, Auditing, Files, Chat, Notifications, Webhooks, Billing, Catalog, Tickets — live in one repository, build one set of containers, and deploy as one process. Each is a bounded context with its own `DbContext`, its own feature folders, and a single one-way dependency channel (its `*.Contracts` assembly) through which the rest of the kit talks to it.
+
+<Callout type="tip" title="It's not a step on the way to microservices">
+A modular monolith is its own architecture. You ship one process, one deploy, one set of logs, one set of traces — which is faster than running ten services for most teams. When a module hits a true horizontal-scaling need, the boundaries you've already drawn make extraction a refactor, not a rewrite.
+</Callout>
+
+## The shape
+
+```
+src/
+├── BuildingBlocks/                 Shared infrastructure (12 libraries)
+│   ├── Core, Persistence, Web, Shared
+│   ├── Caching, Eventing, Eventing.Abstractions
+│   ├── Jobs, Mailing, Storage, Quota
+│   └── Blazor.UI (placeholder)
+│
+├── Modules/                        Ten bounded contexts
+│   ├── Identity/
+│   │   ├── Modules.Identity/           Runtime — endpoints, handlers, domain
+│   │   └── Modules.Identity.Contracts/ Public surface — commands, queries, DTOs, events
+│   ├── Multitenancy/  (+ Contracts)
+│   ├── Auditing/      (+ Contracts)
+│   ├── Files/         (+ Contracts)
+│   ├── Chat/          (+ Contracts)
+│   ├── Notifications/ (+ Contracts)
+│   ├── Webhooks/      (+ Contracts)
+│   ├── Billing/       (+ Contracts)
+│   ├── Catalog/       (+ Contracts)
+│   └── Tickets/       (+ Contracts)
+│
+├── Host/                           Composition root + orchestrator
+│   ├── FSH.Starter.Api/                The API process
+│   ├── FSH.Starter.AppHost/            .NET Aspire orchestrator
+│   ├── FSH.Starter.Blazor/             Blazor server app
+│   ├── FSH.Starter.DbMigrator/         Migrations + demo seeder CLI
+│   └── FSH.Starter.Migrations.PostgreSQL/
+│
+└── Tools/CLI/                      The `fsh` CLI (Spectre.Console)
+```
+
+Every module follows the same shape: a runtime project that does the work, a contracts project that defines its public surface, and (optionally) a migrations project for its EF Core schema.
+
+## The boundary rule
+
+Modules talk to each other **only through `*.Contracts` assemblies**.
+
+| Allowed | Not allowed |
+|---|---|
+| `Modules.Chat.dll` references `Modules.Notifications.Contracts.dll` | `Modules.Chat.dll` references `Modules.Notifications.dll` |
+| `Modules.Identity.dll` references `BuildingBlocks/*` | `Modules.Identity.dll` references any other module's runtime |
+| Any module's `Contracts.dll` references `Eventing.Abstractions.dll` | A `Contracts.dll` references `Eventing` (the runtime) or EF Core |
+
+The cardinal rule: **runtime modules never reference each other.** If module A needs something from module B, it asks module B's contracts — which is a thin layer of commands, queries, events, and DTOs.
+
+These rules aren't conventions; they're enforced by [NetArchTest](https://github.com/BenMorris/NetArchTest) tests in `src/Tests/Architecture.Tests/`:
+
+```csharp
+// Architecture.Tests/Modules/ModuleBoundaryTests.cs
+[Fact]
+public void Module_runtime_should_not_reference_another_module_runtime()
+{
+    var result = Types.InAssembly(typeof(IdentityModule).Assembly)
+        .ShouldNot()
+        .HaveDependencyOnAny(otherModuleRuntimeAssemblyNames)
+        .GetResult();
+    result.IsSuccessful.ShouldBeTrue();
+}
+```
+
+Break the rule and the build fails.
+
+## How modules talk to each other
+
+Three patterns, all one-way and contract-only:
+
+### 1. Request a service (rare)
+
+Some contracts expose service interfaces — `ITokenService`, `ICurrentUser`, `IUserService` — that downstream modules can resolve via DI without referencing the runtime. The interface lives in `*.Contracts`; the implementation lives in the runtime; consumers depend only on the contract.
+
+### 2. Domain events (in-module)
+
+Domain events are private to the aggregate's module. The `DomainEventsInterceptor` (from the Persistence block) dispatches them through Mediator after SaveChanges. Handlers live in the same module; cross-module dependency is zero.
+
+### 3. Integration events (cross-module)
+
+The canonical pattern. A module publishes an `IIntegrationEvent` via `IEventBus`; the kit's outbox dispatches it asynchronously; any module that implements `IIntegrationEventHandler<TEvent>` receives a copy. Examples in the kit:
+
+- **Chat → Notifications**: `MentionedInChannelIntegrationEvent` → inbox row + SignalR push.
+- **Any module → Webhooks**: open-generic `WebhookFanoutHandler<TEvent>` fans every event to subscribed tenants.
+- **Identity → outbox**: `UserRegisteredIntegrationEvent`, `TokenGeneratedIntegrationEvent` for downstream consumers.
+
+The receiver doesn't know the producer. The producer doesn't know the receivers. That's the discipline.
+
+## Module load order
+
+Modules carry `[FshModule(Order = n)]`. Lower numbers run their `ConfigureServices` and `MapEndpoints` first. The ordering matters for two specific cases:
+
+- **Cross-module integration-event handlers.** Notifications (order `750`) must load before Chat (order `800`) because Notifications registers handlers for Chat's `MentionedInChannelIntegrationEvent`. If Chat loaded first, the handler wouldn't be wired when the first mention event fires.
+- **`ICurrentUser` availability.** Identity (order `100`) loads first so every later module sees the JWT pipeline and `ICurrentUser` registered.
+
+| Order | Module |
+|---|---|
+| 100 | Identity |
+| 200 | Multitenancy |
+| 300 | Auditing |
+| 350 | Files |
+| 400 | Webhooks |
+| 500 | Billing |
+| 600 | Catalog |
+| 700 | Tickets |
+| 750 | Notifications |
+| 800 | Chat |
+
+The `ModuleLoader` (in `BuildingBlocks/Web`) runs each module's `ConfigureServices` in order, then later runs `MapEndpoints` and `ConfigureMiddleware` in order.
+
+## When a module needs to scale out
+
+The boundaries you've already drawn are the contract for extraction:
+
+1. The module's runtime moves into its own service.
+2. Its `*.Contracts` assembly is shared (either as a NuGet package or duplicated).
+3. The cross-module communication switches from in-process Mediator (for service calls) and `InMemoryEventBus` (for events) to HTTP / RabbitMQ.
+4. Consumers don't change — they still publish via `IEventBus`, still resolve services via DI. Only the transport behind them changes.
+
+The kit ships `RabbitMqEventBus` as the cross-process implementation. Wire it in `EventingOptions:Provider = "RabbitMQ"` and you can run two halves of the monolith as two processes while keeping the surface identical.
+
+You almost certainly don't need this for a long time. The point is that you don't have to commit to it on day one.
+
+## Why not microservices on day one?
+
+Two reasons.
+
+**Operational cost.** Ten services means ten deploys, ten log streams, ten sets of dashboards, ten failure modes when one service is down. A modular monolith collapses that to one — and you get genuine isolation through your code structure, not your network topology.
+
+**Wrong boundaries.** When you're shipping the first version of a SaaS, you don't yet know which boundaries are stable. Drawing service lines now means committing to API contracts that are about to change. A modular monolith lets you redraw boundaries in a refactor, not a coordinated multi-service deploy.
+
+When a module's traffic pattern, scaling needs, or team ownership genuinely diverges from the rest — extract it. Until then, keep them on one box.
+
+## Related
+
+- [Vertical Slice Architecture](/docs/architecture/vertical-slice/) — what each module looks like internally.
+- [Modules overview](/docs/modules/) — the ten that ship in v1.
+- [Eventing.Abstractions](/docs/building-blocks/eventing-abstractions/) — the contract for cross-module talk.
+- [Web building block](/docs/building-blocks/web/) — the module loader.
