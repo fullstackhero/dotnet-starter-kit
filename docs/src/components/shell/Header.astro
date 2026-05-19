@@ -53,8 +53,17 @@ const isActive = (url: string): boolean => normalize(url) === activeUrl;
         href="/"
         data-astro-prefetch
         aria-label="FullStackHero — home"
-        class="brand-link group inline-flex items-baseline gap-1"
+        class="brand-link group inline-flex items-center gap-2"
       >
+        <img
+          src="/logo-fullstackhero.png"
+          alt=""
+          width="28"
+          height="28"
+          class="h-7 w-7 rounded-md"
+          loading="eager"
+          decoding="async"
+        />
         <span class="font-display text-[18px] tracking-[-0.03em] text-foreground lowercase leading-none">
           <span class="font-light">fullstack</span><span class="font-semibold">hero</span>
         </span>
