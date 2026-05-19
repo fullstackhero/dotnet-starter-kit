@@ -10,10 +10,11 @@ import siteConfig from './src/data/site';
 export default defineConfig({
   site: siteConfig.url,
   redirects: {
+    // `/docs/` redirects to the introduction so the header's "Docs" tab still
+    // lands somewhere sensible. Each section now has its own index page
+    // (cards for every child page), so we no longer redirect /docs/getting-started/.
     '/docs': '/docs/getting-started/introduction/',
     '/docs/': '/docs/getting-started/introduction/',
-    '/docs/getting-started': '/docs/getting-started/introduction/',
-    '/docs/getting-started/': '/docs/getting-started/introduction/',
   },
   image: {
     layout: 'constrained',

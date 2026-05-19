@@ -1,0 +1,87 @@
+---
+/**
+ * SectionIndex — auto-generated card grid of child pages for a docs section.
+ *
+ * Usage (inside any section's `index.mdx`):
+ *   <SectionIndex section="getting-started" />
+ *
+ * Discovers all pages in `src/content/docs/{section}/` (excluding the index
+ * itself and `sidebar.hidden` pages), sorts by `sidebar.order`, and renders
+ * a 2-column card grid. Each card shows a monospace index number, the page
+ * title, its description, and a chevron that nudges on hover.
+ *
+ * `not-prose` is applied to keep the prose styles (star-bullets, large
+ * heading margins, etc.) from leaking into the card grid.
+ */
+import { getCollection } from 'astro:content';
+
+interface Props {
+  section: string;
+}
+
+const { section } = Astro.props;
+
+const all = await getCollection('docs');
+const pages = all
+  .filter((e) => {
+    const id = e.id.replace(/\.mdx$/, '');
+    const parts = id.split('/');
+    return (
+      parts[0] === section &&
+      parts.length > 1 &&
+      parts[parts.length - 1] !== 'index'
+    );
+  })
+  .filter((e) => !e.data.sidebar.hidden)
+  .sort(
+    (a, b) =>
+      (a.data.sidebar.order ?? 999) - (b.data.sidebar.order ?? 999) ||
+      a.data.title.localeCompare(b.data.title),
+  );
+---
+{pages.length > 0 ? (
+  <ul class="fsh-section-grid not-prose my-8 grid gap-3 sm:grid-cols-2">
+    {pages.map((page, i) => {
+      const norm = page.id.replace(/\.mdx$/, '');
+      const href = `/docs/${norm}/`;
+      const num = String(i + 1).padStart(2, '0');
+      return (
+        <li>
+          <a
+            href={href}
+            class="fsh-section-card group relative flex h-full flex-col rounded-xl border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-border-strong"
+          >
+            <div class="flex items-start justify-between gap-3">
+              <span class="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] tabular-nums text-muted-foreground">
+                {num}
+              </span>
+              <span class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-all group-hover:bg-foreground/[0.05] group-hover:text-foreground">
+                <svg class="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </span>
+            </div>
+            <h3 class="mt-4 text-[15.5px] font-semibold tracking-tight text-foreground">
+              {page.data.title}
+            </h3>
+            {page.data.description && (
+              <p class="mt-1.5 text-[13px] leading-[1.5] text-muted-foreground">
+                {page.data.description}
+              </p>
+            )}
+          </a>
+        </li>
+      );
+    })}
+  </ul>
+) : (
+  <div class="not-prose my-8 rounded-xl border border-dashed border-border bg-card/40 px-5 py-8 text-center">
+    <p class="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+      In progress
+    </p>
+    <p class="mt-2 text-[13.5px] text-muted-foreground">
+      Detailed pages for this section are being written.
+    </p>
+  </div>
+)}
