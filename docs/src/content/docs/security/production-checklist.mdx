@@ -1,0 +1,190 @@
+---
+title: Production security checklist
+description: Ten configuration items you must check before shipping fullstackhero to production. Skip none.
+sidebar:
+  label: Production checklist
+  order: 8
+pageType: guide
+seo:
+  title: 'Production security checklist for fullstackhero (.NET 10)'
+  description: 'Ten configuration items every fullstackhero deployment must verify before going to production — JWT key rotation, password policy, CORS hardening, security headers, rate limits, HTTPS, lockdown of debug endpoints, dashboard auth, Data Protection persistence, audit retention.'
+  keywords: 'production deployment checklist .net 10, asp.net core security checklist, fullstackhero deploy checklist'
+---
+
+The kit ships with secure defaults wherever possible. Some things, by their nature, you must configure for your environment — there's no "secure default" for a JWT signing key or an allowed-origins list. This page is the ten-item checklist; skip none of them.
+
+<Callout type="warning" title="Treat this as a release gate">
+Print it. Stick it on the wall. Run through every item before flipping DNS to production traffic. None of them take more than 5 minutes; missing any one of them is the kind of incident that ends up in post-mortems.
+</Callout>
+
+## 1. Rotate `Jwt:SigningKey` from the dev default
+
+The dev default is short, well-known, and committed to git. Any attacker can forge tokens against your host until you rotate.
+
+Generate a fresh 32-byte key:
+
+```bash
+openssl rand -base64 32
+```
+
+Set via secrets manager / environment variable:
+
+```bash
+JWT__SIGNINGKEY=...
+```
+
+Never check the production key into git. See [data protection](/docs/security/data-protection/) for the secrets-management patterns.
+
+## 2. Configure password policy to your compliance needs
+
+The kit defaults:
+
+- 12-character minimum
+- 5-password history (prevent reuse)
+- 90-day expiry with 14-day warning
+
+Adjust for your industry. Healthcare (HIPAA) and finance (PCI-DSS) tend to require longer histories and shorter expiries. Consumer products can be looser (12 chars + no expiry, with strong 2FA).
+
+```jsonc
+{
+  "PasswordPolicy": {
+    "PasswordHistoryCount": 12,
+    "PasswordExpiryDays": 60,
+    "PasswordExpiryWarningDays": 7,
+    "EnforcePasswordExpiry": true
+  }
+}
+```
+
+## 3. Whitelist CORS origins
+
+Replace `CorsOptions:AllowAll = true` with an explicit allowlist. Use `SetIsOriginAllowed(_ => true) + AllowCredentials()` is **dev only**. See [CORS & security headers](/docs/security/cors-and-headers/).
+
+```jsonc
+{
+  "CorsOptions": {
+    "AllowAll": false,
+    "AllowedOrigins": [
+      "https://app.example.com",
+      "https://admin.example.com"
+    ],
+    "AllowCredentials": true
+  }
+}
+```
+
+## 4. Configure security headers
+
+At minimum:
+
+- **Content-Security-Policy** restricting `script-src` / `connect-src` / `frame-ancestors` to expected origins
+- **HSTS** (`max-age=63072000; includeSubDomains`)
+- **X-Frame-Options: DENY** (or `frame-ancestors 'none'` in CSP)
+- **X-Content-Type-Options: nosniff**
+- **Referrer-Policy: strict-origin-when-cross-origin**
+
+The kit ships defaults; tune `SecurityHeadersOptions:ContentSecurityPolicy` for your UI's actual dependencies. Test with browser dev tools open.
+
+## 5. Set rate-limit values
+
+The `auth` policy defaults to **10 requests per minute per IP**. Adjust to your traffic profile:
+
+- High-volume consumer app: relax to **30 / min** so legitimate users on shared NAT don't hit limits.
+- Internal admin app: tighten to **5 / min** — abuse on this surface is more harmful than legitimate retries.
+
+```jsonc
+{
+  "RateLimitOptions": {
+    "AuthPolicy": {
+      "PermitLimit": 10,
+      "Window": "00:01:00"
+    }
+  }
+}
+```
+
+Also consider adding a global API-wide rate limit (separate policy) for protection against bot traffic.
+
+## 6. HTTPS everywhere
+
+`UseHttpsRedirection` is on by default. Verify:
+
+- Reverse proxy / load balancer terminates TLS with a valid certificate.
+- `X-Forwarded-Proto: https` forwards to the kit so the redirect middleware doesn't double-redirect.
+- HSTS header is on (`Strict-Transport-Security: max-age=63072000; includeSubDomains; preload`).
+- HTTP/2 or HTTP/3 enabled at the LB for performance.
+
+If you're behind Cloudflare / a CDN, also enable "Always Use HTTPS" + "HSTS" at the CDN.
+
+## 7. Lock down or remove debug endpoints
+
+In production, decide:
+
+- **`/scalar/v1`** (the OpenAPI browser) — usually fine to expose, but consider whether revealing your API surface to the world is what you want. Lock behind a permission or remove via `o.EnableOpenApi = false` for a hosted-only-internally posture.
+- **`/health`** + **`/health/ready`** — expose to your platform's probes; firewall externally.
+- **`/openapi/v1.json`** — same as `/scalar/v1`.
+- **OpenTelemetry collector endpoints** — these are inbound to your collector, not the kit, but verify they're not Internet-exposed.
+
+## 8. Lock down the Hangfire dashboard
+
+`/hangfire` is gated by basic auth via `HangfireOptions:UserName` / `Password`. Verify:
+
+- Username is **not** `admin` (rename to something less guessable).
+- Password is **long** (16+ random chars) and **not** the dev default.
+- Behind HTTPS.
+- IP-whitelist at the reverse proxy (Cloudflare WAF rule, Nginx `allow`/`deny`, etc.) — only your admin office IPs.
+
+```jsonc
+{
+  "HangfireOptions": {
+    "UserName": "ops-team",
+    "Password": "set-via-secrets-manager",
+    "Route": "/hangfire"
+  }
+}
+```
+
+## 9. Configure Data Protection key persistence
+
+Set `CachingOptions:Redis`. Without it, each instance maintains its own Data Protection key ring locally, and email-confirmation links, password reset links, and antiforgery tokens stop working across rolling deploys.
+
+See [data protection](/docs/security/data-protection/).
+
+## 10. Enable audit retention
+
+The kit's `AuditRetentionJob` is **opt-in**. Without it, the audit table grows forever. Configure:
+
+```jsonc
+{
+  "Auditing": {
+    "Retention": {
+      "Enabled": true,
+      "ActivityRetentionDays": 30,
+      "EntityChangeRetentionDays": 90,
+      "SecurityRetentionDays": 365,
+      "ExceptionRetentionDays": 180,
+      "DeleteBatchSize": 5000,
+      "Cron": "30 3 * * *"
+    }
+  }
+}
+```
+
+Adjust retention windows per your compliance regime. Most teams want **security events kept much longer** than activity events (a year vs a month is typical).
+
+## Bonus: items worth doing within the first month
+
+These aren't blockers, but the sooner the better:
+
+- **Make 2FA mandatory for SuperAdmin / admin roles.** A leaked admin password compromises everything; require TOTP.
+- **Add monitoring + alerts** on auth-failure spikes, permission-deny spikes, impersonation events, and 5xx error rates.
+- **Run a vulnerability scan** of the deployed image (Snyk, Trivy, Dependabot) to catch transitive CVEs early.
+- **Set up backup + restore tests** for Postgres + MinIO. Backups you haven't tested restoring are not backups.
+- **Document an incident-response runbook** — who's on-call, where the alerts go, how to invalidate every session, how to rotate the JWT signing key in an emergency.
+
+## Related
+
+- [Authentication](/docs/security/authentication/), [Authorization](/docs/security/authorization/), [Impersonation](/docs/security/impersonation/), [Two-factor](/docs/security/two-factor/) — the kit's auth primitives.
+- [Webhook signing](/docs/security/webhook-signing/) — HMAC integrity.
+- [Data protection](/docs/security/data-protection/) — key persistence.
+- [CORS & headers](/docs/security/cors-and-headers/) — the network-layer hardening.

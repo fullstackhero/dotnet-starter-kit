@@ -1,0 +1,167 @@
+---
+title: CORS & security headers
+description: CORS-before-HTTPS-redirect ordering, the SignalR-credentialed-CORS gotcha, and the production security headers you should configure before launch.
+sidebar:
+  label: CORS & headers
+  order: 7
+pageType: concept
+seo:
+  title: 'CORS & security headers in .NET 10 — credentialed CORS for SignalR'
+  description: 'How fullstackhero configures CORS (with the kit-specific "before HTTPS redirect" + "SetIsOriginAllowed for SignalR" patterns), security headers (CSP, X-Frame-Options, HSTS), and the gotchas that catch every team once.'
+  keywords: 'asp.net core cors signalr, content security policy .net 10, hsts dotnet, x-frame-options dotnet, credentialed cors gotcha'
+---
+
+CORS in fullstackhero has two non-default conventions: **CORS middleware runs before HTTPS redirect** (preflight requests can't follow redirects), and **credentialed CORS uses `SetIsOriginAllowed`** rather than `AllowAnyOrigin` (the latter silently breaks SignalR). Security headers (CSP, HSTS, X-Frame-Options, Referrer-Policy) ship with sensible defaults and configurable origins.
+
+<Callout type="warning" title="The SignalR / credentialed CORS gotcha">
+Dev's `AllowAnyOrigin()` works for REST and silently breaks SignalR. Credentialed requests (which SignalR is, because it carries the auth cookie / token) reject any wildcard origin per CORS spec. The kit's pattern is `SetIsOriginAllowed(_ => true) + AllowCredentials()` for dev, and an explicit origin whitelist in production. **Never** mix `AllowAnyOrigin()` with realtime.
+</Callout>
+
+## How the kit wires CORS
+
+`AddHeroPlatform` reads `CorsOptions` from configuration:
+
+```jsonc
+{
+  "CorsOptions": {
+    "AllowAll": false,
+    "AllowedOrigins": [
+      "https://app.example.com",
+      "https://admin.example.com"
+    ],
+    "AllowCredentials": true
+  }
+}
+```
+
+`UseHeroPlatform` mounts the middleware **before HTTPS redirect**, because OPTIONS preflight requests cannot follow HTTP→HTTPS redirects per the Fetch spec — the redirect breaks the preflight and the actual request never goes out.
+
+Pipeline order (relevant slice):
+
+```
+1. UseExceptionHandler
+2. UseResponseCompression
+3. UseCors                ← before HTTPS redirect
+4. UseHttpsRedirection
+5. Security headers
+6. ...
+```
+
+## Dev vs production
+
+**Dev** (any tenant origin allowed, credentials enabled for SignalR):
+
+```jsonc
+{
+  "CorsOptions": {
+    "AllowAll": true,            // enables SetIsOriginAllowed(_ => true)
+    "AllowCredentials": true
+  }
+}
+```
+
+**Production** (explicit allow-list):
+
+```jsonc
+{
+  "CorsOptions": {
+    "AllowAll": false,
+    "AllowedOrigins": [
+      "https://app.fullstackhero.com",
+      "https://admin.fullstackhero.com"
+    ],
+    "AllowCredentials": true
+  }
+}
+```
+
+The `AllowAll` flag should never be true in production. CORS-the-spec was designed to be opted-in to per origin; opening to the world removes a layer of defence (it doesn't directly compromise auth, since auth still gates the request, but it removes the browser-enforced "is this site allowed to call you?" check).
+
+## Why not AllowAnyOrigin for SignalR
+
+CORS spec says: when a request has `Access-Control-Allow-Credentials: true`, the `Access-Control-Allow-Origin` must be an explicit origin, not `*`. SignalR's negotiate request is credentialed (it carries `Cookie` or the JWT via `accessTokenFactory`'s query-param fallback). With `AllowAnyOrigin()`, the server emits `Allow-Origin: *`, which violates the spec — the browser silently refuses to use the response, and SignalR's `HubConnection` fails to start with a confusing CORS error.
+
+Use `SetIsOriginAllowed(origin => true)` instead. It emits the actual origin back in `Allow-Origin`, satisfying the spec, while accepting every origin in practice (which is what dev wants).
+
+## Security headers
+
+`AddHeroPlatform` registers security-header middleware that emits the following by default:
+
+| Header | Value | Purpose |
+|---|---|---|
+| `Content-Security-Policy` | configured per `SecurityHeadersOptions` | Restrict what scripts, frames, images can load |
+| `X-Content-Type-Options` | `nosniff` | Prevent MIME-type sniffing |
+| `X-Frame-Options` | `DENY` | Prevent clickjacking via iframe |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` | Limit referrer leakage |
+| `Strict-Transport-Security` | `max-age=63072000; includeSubDomains` (production only) | Enforce HTTPS |
+| `Cross-Origin-Opener-Policy` | `same-origin` | Spectre/Meltdown class mitigation |
+| `Cross-Origin-Resource-Policy` | `same-site` | Tighten cross-origin embedding |
+
+Tune via `SecurityHeadersOptions`:
+
+```jsonc
+{
+  "SecurityHeadersOptions": {
+    "ContentSecurityPolicy": "default-src 'self'; img-src 'self' https: data:; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self' wss: https:; style-src 'self' 'unsafe-inline'; font-src 'self' data:;",
+    "FrameOptions": "DENY",
+    "ReferrerPolicy": "strict-origin-when-cross-origin",
+    "StrictTransportSecurity": "max-age=63072000; includeSubDomains; preload"
+  }
+}
+```
+
+## Configuring CSP
+
+Content-Security-Policy is the most expressive and the most error-prone. The kit's default is conservative:
+
+- `default-src 'self'` — most resources only from the same origin
+- `script-src 'self' 'wasm-unsafe-eval'` — allow self-hosted scripts + WASM (for any future Blazor-WebAssembly bits)
+- `connect-src 'self' wss: https:` — XHR/fetch + WebSocket to self + any HTTPS/WSS endpoint (needed for OTel exporters, third-party integrations)
+- `style-src 'self' 'unsafe-inline'` — self-hosted CSS + inline styles (Scalar UI uses inline styles)
+- `img-src 'self' https: data:` — self + any HTTPS img + data: URIs (for QR codes in 2FA enrolment)
+- `font-src 'self' data:` — self-hosted fonts + data: URIs
+
+If you embed third-party scripts (analytics, customer-support widgets), add the origin to `script-src`. Test with browser dev tools open — CSP violations log to the console.
+
+For `wss:` to work across realtime + observability scenarios, keep that scheme in `connect-src`. If you restrict it, SignalR-over-WebSocket fails.
+
+## Sub-resource integrity
+
+CSP doesn't enforce that third-party scripts haven't been tampered with. For the few external scripts you'd ship (analytics, payment SDK), add `integrity` attributes:
+
+```html
+<script src="https://cdn.example.com/widget.js"
+        integrity="sha384-XYZ..."
+        crossorigin="anonymous"></script>
+```
+
+The browser verifies the hash before executing.
+
+## Cookies (if you swap JWT for cookie auth)
+
+The kit defaults to JWT bearer (cookies not used for auth). If you fork to cookie auth, the standard hardening applies:
+
+```csharp
+services.ConfigureApplicationCookie(o =>
+{
+    o.Cookie.HttpOnly = true;
+    o.Cookie.SameSite = SameSiteMode.Strict;     // or Lax for cross-site form-post flows
+    o.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    o.Cookie.Name = "fsh.auth";
+});
+```
+
+The cookie should be HttpOnly (no JS access — limits XSS impact), Secure (HTTPS only), and SameSite=Strict for the strongest CSRF defence.
+
+## Common mistakes
+
+- **Setting `AllowAll = true` in production.** CORS exists to give browsers a sanity check on cross-origin calls. Opening to the world removes the check.
+- **Missing HSTS.** Without HSTS, an attacker on the network can downgrade to HTTP for the first request. HSTS makes the browser refuse HTTP for the duration of the `max-age`.
+- **CSP that breaks the UI.** If Scalar / your React admin / a third-party widget breaks after enabling CSP, look at the browser console — CSP violations are logged. Add the needed origins explicitly, don't loosen the policy globally.
+- **Missing `frame-ancestors` (in CSP) or `X-Frame-Options`.** Either one is enough to prevent clickjacking via iframe. The kit ships `X-Frame-Options: DENY` — if you set `frame-ancestors` in CSP, that supersedes.
+
+## Related
+
+- [Production checklist](/docs/security/production-checklist/) — header + CORS hardening is item #4.
+- [Web building block](/docs/building-blocks/web/) — `AddHeroPlatform` + `UseHeroPlatform` registration.
+- [Realtime](/docs/cross-cutting-concerns/realtime/) — SignalR + credentialed CORS.

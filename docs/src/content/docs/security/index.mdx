@@ -1,6 +1,6 @@
 ---
 title: Security
-description: How fullstackhero handles auth, authorization, tenant isolation, secrets, rate limiting, webhooks signing, data protection, and audit — the things every team asks about on day one.
+description: Authentication, authorization, tenant isolation, impersonation, 2FA, rate limits, webhook signing, data protection, CORS — the security surface in one map.
 pageType: concept
 sidebar:
   order: 1
@@ -10,176 +10,22 @@ seo:
   keywords: 'asp.net core security, jwt bearer refresh token .net 10, permission authorization dotnet, hmac webhook signing, data protection redis, tenant isolation security'
 ---
 
-Security in fullstackhero is **layered defence with sensible defaults**. JWT bearer with rotating refresh tokens, fine-grained permission gates on every endpoint, ASP.NET Identity for the user store, multi-tenant isolation as the default behaviour of every query, rate limiting on auth-flow endpoints, HMAC-signed webhooks, Redis-backed data protection keys, audit on every state change, and JSON masking for sensitive payloads. This page is the map.
+Security in fullstackhero is **layered defence with sensible defaults**. JWT bearer with rotating refresh tokens; fine-grained permission gates on every endpoint; ASP.NET Identity for the user store; multi-tenant isolation as the default behaviour of every query; rate limiting on auth-flow endpoints; HMAC-signed webhooks; Redis-backed data protection keys; audit on every state change; JSON masking for sensitive payloads.
 
 <Callout type="warning" title="Security is configuration as much as code">
-The kit ships secure defaults, but several things you must configure correctly for production: `Jwt:SigningKey` (rotate from the dev default, store in secrets manager), `MailOptions` (credentials never in git), `S3StorageOptions` (use IAM roles where possible, never plaintext keys in appsettings.json), and the rate-limit policy values.
+The kit ships secure defaults, but several things you must configure correctly for production: `Jwt:SigningKey` (rotate from the dev default, store in secrets manager), `MailOptions` (credentials never in git), `S3StorageOptions` (use IAM roles where possible), the rate-limit policy values, the CORS origin allowlist, and security headers. The [production checklist](/docs/security/production-checklist/) covers all of them.
 </Callout>
 
 ## The pillars
 
-| Pillar | Where it lives | What it does |
-|---|---|---|
-| Authentication | Identity module | Validates credentials, mints JWT access + refresh tokens |
-| Authorization | Web block + Identity module | Permission gates on every endpoint via `.RequirePermission()` |
-| Tenant isolation | Persistence + Multitenancy module | EF Core global query filter; every entity is `IHasTenant` unless `IGlobalEntity` |
-| Audit | Auditing module | EF SaveChanges interceptor + HTTP middleware + security/exception events |
-| Rate limiting | Web block | `auth` policy on login / refresh / reset paths |
-| Webhook delivery integrity | Webhooks module | HMAC-SHA256 payload signing per subscription |
-| Secret protection | Caching block (data protection) | Redis-backed key persistence across instances |
-| Data masking | Auditing module | JSON path-based redaction in audit payloads |
+<SectionIndex section="security" />
 
-## Authentication — JWT + refresh
-
-The Identity module owns auth. Login goes through `POST /api/v1/identity/tokens/generate` and returns an access token (default 60 minutes) and a refresh token (default 14 days). The refresh token is stored in the database hashed; the kit rotates it on every `/tokens/refresh` call. Both endpoints are rate-limited by the `auth` policy.
-
-```jsonc
-// appsettings.json
-{
-  "Jwt": {
-    "Issuer": "fullstackhero",
-    "Audience": "fullstackhero-api",
-    "AccessTokenMinutes": 60,
-    "RefreshTokenDays": 14,
-    "SigningKey": "set-via-secrets-manager"
-  }
-}
-```
-
-Stronger defaults:
-
-- **Lockout** — 5 failed attempts triggers a 15-minute lockout (`IdentityOptions` defaults).
-- **Password policy** — 12 character minimum, history (last 5 passwords blocked from reuse), 90-day expiry with 14-day warning. Configure via the `PasswordPolicy` section.
-- **Email confirmation** — newly registered users are `EmailConfirmed = false` and can't issue tokens until the `confirm-email` flow completes. (Integration tests use a helper to flip the flag for fixtures.)
-- **2FA TOTP** — opt-in per user; once enrolled, `tokens/generate` requires the TOTP code.
-
-Every authenticated request carries the `tenant` claim resolved at login. Finbuckle re-resolves on every request via the `tenant` header (post-auth middleware), so the JWT carries identity, the header carries tenant scope.
-
-## Authorization — permission-based, gate-everywhere
-
-The kit uses **explicit permission gates on every endpoint**, not blanket role checks.
-
-```csharp
-endpoints.MapDelete("/products/{productId}", handler)
-         .RequirePermission(CatalogPermissions.Products.Delete);
-```
-
-`PermissionConstants` is the central registry. Each module registers its permission set during `ConfigureServices`. Roles (`AdminRole`, `BasicRole`, …) are groupings of permissions, not the authorization unit. Users are assigned to roles; roles carry permissions; endpoints check permissions. This indirection is what makes "I want one user to have *just* delete-but-not-create on products" trivial — adjust the user's role permissions, no code change.
-
-The `RequiredPermissionAuthorizationHandler` looks up the policy from endpoint metadata, finds the registered permission, and checks the user's claims. **If `RequiredPermissionAttribute` is declared in two assemblies and one doesn't implement `IRequiredPermissionMetadata`, every `.RequirePermission()` call silently no-ops.** This is the nastiest failure mode in the kit's auth pipeline — the build passes, requests succeed, no gating happens. Stick to the canonical attribute from the `Shared` building block.
-
-## Tenant isolation — the default, enforced
-
-Every entity that doesn't implement `IGlobalEntity` is tenant-aware. `BaseDbContext.OnModelCreating` calls `ApplyTenantIsolationByDefault()` so the EF Core global query filter is on for every query, every time. A handler that writes `await db.Products.ToListAsync(ct)` automatically gets `WHERE tenant_id = @currentTenantId`. You don't write the filter.
-
-The opt-outs are deliberate:
-
-- `IgnoreQueryFilters()` — turn off **all** filters. Use only in audit / admin queries with explicit re-filter logic.
-- `IgnoreNamedQueryFilter("SoftDelete")` — turn off only the named soft-delete filter. Use for "list trash" queries.
-
-The `IGlobalEntity` interface is for entities that genuinely live across tenants — `BillingPlan`, `ImpersonationGrant`, `OutboxMessage`. There are no others in the kit's domain layer.
-
-See the [Multitenancy deep-dive](/docs/architecture/multitenancy-deep-dive/) for the cross-tenant query patterns and the audit module's safe `IgnoreQueryFilters` usage.
-
-## Operator impersonation
-
-A SuperAdmin can impersonate another user via `POST /api/v1/identity/impersonation/start`. The kit issues a time-bound impersonation grant (default 30 minutes; configurable), persists it as a `ImpersonationGrant` row (with `IGlobalEntity` opt-out so it's queryable cross-tenant), and mints an access token whose `jti` is the grant id.
-
-Every token validation checks the grant against a server-side revocation list. The kit can kill a live impersonation session immediately via `DELETE /api/v1/identity/impersonation/grants/{id}`. The Auditing module records the start, end, and revoke events with full context (actor, target, reason, IP, user agent).
-
-## Rate limiting
-
-`Microsoft.AspNetCore.RateLimiting` is configured at the Web block level. The `auth` policy guards auth-flow endpoints to prevent brute force:
-
-- `POST /tokens/generate` (login)
-- `POST /tokens/refresh`
-- `POST /users/forgot-password`
-- `POST /users/reset-password`
-- `POST /users/confirm-email`
-- `POST /users/self-register`
-
-The limit is a fixed-window per IP; tune the window and request budget in the kit's `RateLimitOptions` section. For broader application rate limiting, register additional policies and apply them per endpoint group via `.RequireRateLimiting("policy-name")`.
-
-The Quota block enforces tenant-level resource quotas (storage bytes, user count, etc.) which is a different concern — quotas protect plan limits, rate limiting protects against abuse.
-
-## Webhook delivery integrity — HMAC-SHA256
-
-The Webhooks module signs every outbound payload with HMAC-SHA256 when the subscription carries a secret. The signature lives in the `X-Webhook-Signature` header as `sha256={hex}`. Subscribers verify by computing the same HMAC over the raw request body and using `CryptographicOperations.FixedTimeEquals` for comparison (timing-safe).
-
-```csharp
-// Subscriber-side verification (lifted from the Webhooks module docs)
-public static bool VerifyWebhook(string body, string signatureHeader, string secret)
-{
-    if (!signatureHeader.StartsWith("sha256=", StringComparison.Ordinal)) return false;
-    var expected = signatureHeader["sha256=".Length..];
-    using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
-    var actual = Convert.ToHexStringLower(hmac.ComputeHash(Encoding.UTF8.GetBytes(body)));
-    return CryptographicOperations.FixedTimeEquals(
-        Encoding.ASCII.GetBytes(expected), Encoding.ASCII.GetBytes(actual));
-}
-```
-
-The header `X-Webhook-Delivery-Id` is a fresh UUID per attempt; subscribers should dedupe on it to be retry-safe.
-
-## Data protection — Redis-backed keys
-
-ASP.NET Core's Data Protection API protects cookies, antiforgery tokens, and any IDataProtector-encrypted payload. By default the keys live in `%LOCALAPPDATA%` (single-process); in production with multiple instances those keys diverge and decryption fails.
-
-The Caching block fixes this by sharing the `IConnectionMultiplexer` with Data Protection and persisting the key ring in Redis:
-
-```csharp
-// configured automatically by AddHeroCaching when CachingOptions:Redis is set
-services.AddDataProtection()
-    .PersistKeysToStackExchangeRedis(redisConnection, "DataProtection-Keys");
-```
-
-Don't disable this for production — it's the reason rolling deploys don't tear up cookies.
-
-## Audit & masking
-
-Every entity change goes through `AuditingSaveChangesInterceptor`. Every HTTP request goes through `AuditHttpMiddleware`. Security events (login failures, permission denials, policy failures) and exceptions go through `Audit.ForSecurity` / `Audit.ForException` from the Auditing module's fluent API.
-
-Sensitive fields are masked by `JsonMaskingService` before storage — passwords, tokens, API keys, and anything matching the configured key patterns. Extend `JsonMaskingService` to add domain-specific patterns (PII per your compliance regime).
-
-`AuditHttpMiddleware` is configurable per `AuditHttpOptions` — body size caps, content-type filters, and an `ExcludePathStartsWith` list that skips `/health`, `/metrics`, `/scalar`, `/swagger`, etc. by default.
-
-## CORS, security headers, and HTTPS
-
-The Web block ships:
-
-- **CORS** — configured via `CorsOptions:AllowAll` (open for dev) or `AllowedOrigins` (production whitelist). **CORS middleware runs before HTTPS redirect** because preflight requests can't follow redirects.
-- **Security headers** — Content-Security-Policy, X-Content-Type-Options, X-Frame-Options, Referrer-Policy. Configure via `SecurityHeadersOptions`.
-- **HTTPS redirect** — on by default; production-only via environment-aware config.
-
-For SignalR / credentialed CORS, **do not use `AllowAnyOrigin()`** — the kit's pattern is `SetIsOriginAllowed(_ => true) + AllowCredentials()` for dev only, and an explicit origin whitelist for production. This is a memory-noted gotcha — dev CORS that "works" for REST silently breaks SignalR.
-
-## Secrets and config
-
-Never check secrets into git. Use:
-
-- **`user-secrets`** in dev: `dotnet user-secrets set "Jwt:SigningKey" "..."`
-- **Environment variables** in containers: `Jwt__SigningKey` (double underscore).
-- **Cloud secrets managers** in production: Azure Key Vault, AWS Secrets Manager, Doppler, etc. Wire them into `IConfiguration` at startup.
-
-The kit's `.env.example` in `deploy/docker/` lists every variable you need to set for a production deploy.
-
-## Day-one security checklist
-
-1. **Rotate `Jwt:SigningKey`** from the dev default; use 32+ random bytes, base64-encoded.
-2. **Set lockout + password policy** in `PasswordPolicy:*` to your compliance needs.
-3. **Whitelist CORS origins** — replace `AllowAll` with the actual UI hostnames.
-4. **Configure security headers** — at minimum CSP for your UI domain.
-5. **Set rate-limit values** appropriate to expected legitimate traffic.
-6. **Use HTTPS everywhere** — the kit's default is on; verify in your reverse-proxy config.
-7. **Lock down `/scalar/`** in production (or remove if you don't want the OpenAPI browser exposed).
-8. **Lock down `/hangfire`** dashboard with basic auth + IP whitelist (the kit's default is basic-auth only).
-9. **Configure Data Protection key persistence** to Redis (auto when `CachingOptions:Redis` is set).
-10. **Enable Auditing retention** with sensible windows so the table doesn't grow unbounded.
+Each page covers one concern in depth.
 
 ## Related
 
-- [Identity module](/docs/modules/identity/) — JWT, refresh, permissions, impersonation, 2FA.
-- [Auditing module](/docs/modules/auditing/) — capture, masking, retention.
+- [Multitenancy deep-dive](/docs/architecture/multitenancy-deep-dive/) — tenant isolation discipline.
+- [Identity module](/docs/modules/identity/) — the authentication + permission implementation.
+- [Auditing module](/docs/modules/auditing/) — capture + masking + retention.
 - [Webhooks module](/docs/modules/webhooks/) — HMAC signing.
-- [Architecture: multitenancy deep-dive](/docs/architecture/multitenancy-deep-dive/) — tenant isolation discipline.
-- [Quota building block](/docs/building-blocks/quota/) — resource limits per plan.
+- [Rate limiting (cross-cutting)](/docs/cross-cutting-concerns/rate-limiting/) — the auth-policy mechanics.

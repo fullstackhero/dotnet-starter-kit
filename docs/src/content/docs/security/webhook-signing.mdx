@@ -1,0 +1,145 @@
+---
+title: Webhook signing
+description: HMAC-SHA256 payload signing for every outbound webhook delivery, with a fresh delivery id per attempt and a complete subscriber-side verification recipe.
+sidebar:
+  label: Webhook signing
+  order: 5
+pageType: concept
+seo:
+  title: 'HMAC-signed webhooks in .NET 10 — payload integrity + replay protection'
+  description: 'How fullstackhero signs outbound webhook payloads with HMAC-SHA256, attaches a fresh delivery id per attempt, and the complete C# subscriber-side verification recipe.'
+  keywords: 'webhook hmac sha256 dotnet, webhook signing .net 10, x-webhook-signature header, webhook payload verification, fixedtimecompare hmac'
+---
+
+Every outbound webhook delivery from the kit can be signed with HMAC-SHA256. Subscribers verify the signature against the same shared secret to confirm the payload came from you and wasn't tampered with in transit. Each attempt carries a fresh `X-Webhook-Delivery-Id` so receivers can dedupe retries.
+
+<Callout type="tip" title="Always set a SecretHash">
+Subscriptions created without a secret skip signing, which is a footgun. Force the secret to be non-empty in your `CreateWebhookSubscriptionCommand` validator if your tenants' systems should be able to verify deliveries.
+</Callout>
+
+## Headers on every delivery
+
+| Header | Value | Purpose |
+|---|---|---|
+| `Content-Type` | `application/json` | Standard JSON content |
+| `X-Webhook-Event` | The event type name | Routes the payload to the right subscriber handler |
+| `X-Webhook-Delivery-Id` | A fresh UUID per attempt | Receiver-side idempotency / dedup key |
+| `X-Webhook-Signature` | `sha256={hex}` | HMAC-SHA256 of the raw request body using the subscription's secret |
+
+The signature is computed once per delivery attempt — the signature header changes across retries because the delivery id might be included in the payload, but the body shape is what gets signed.
+
+## How the kit signs
+
+```csharp
+// src/Modules/Webhooks/Modules.Webhooks/Services/WebhookPayloadSigner.cs (simplified)
+public sealed class WebhookPayloadSigner : IWebhookPayloadSigner
+{
+    public string Sign(string payload, string secret)
+    {
+        using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
+        var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(payload));
+        return Convert.ToHexStringLower(hash);          // "sha256=" prefix added at header set
+    }
+}
+```
+
+The dispatch job sets the header:
+
+```csharp
+if (!string.IsNullOrEmpty(subscription.SecretHash))
+    request.Headers.Add("X-Webhook-Signature", "sha256=" + signer.Sign(payload, subscription.SecretHash));
+```
+
+The header value is always `sha256=` + lowercase hex digest. No surrounding whitespace, no Base64 alternative — pick one format and stick to it.
+
+## Subscriber-side verification (.NET)
+
+The receiver computes the same HMAC, then compares using a timing-safe equality check:
+
+```csharp
+using System;
+using System.Security.Cryptography;
+using System.Text;
+
+public static bool VerifyWebhook(string body, string signatureHeader, string secret)
+{
+    if (string.IsNullOrEmpty(signatureHeader) || !signatureHeader.StartsWith("sha256=", StringComparison.Ordinal))
+        return false;
+
+    var expected = signatureHeader["sha256=".Length..];
+
+    using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
+    var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(body));
+    var actual = Convert.ToHexStringLower(hash);
+
+    // Timing-safe equality — critical to prevent timing-side-channel leaks
+    return CryptographicOperations.FixedTimeEquals(
+        Encoding.ASCII.GetBytes(expected),
+        Encoding.ASCII.GetBytes(actual));
+}
+```
+
+The `FixedTimeEquals` is what protects against an attacker measuring response times to guess the signature byte-by-byte. Don't use a plain string `==` for signature comparison.
+
+## Subscriber-side verification (Node / Express)
+
+```js
+import { createHmac, timingSafeEqual } from 'node:crypto';
+import express from 'express';
+
+const app = express();
+
+// Receive the raw body so we can re-hash it.
+app.post('/webhooks/fullstackhero',
+  express.raw({ type: 'application/json' }),
+  (req, res) => {
+    const signature = req.get('X-Webhook-Signature') ?? '';
+    if (!signature.startsWith('sha256=')) return res.status(401).end();
+
+    const expected = signature.slice('sha256='.length);
+    const actual = createHmac('sha256', process.env.WEBHOOK_SECRET)
+      .update(req.body)
+      .digest('hex');
+
+    if (!timingSafeEqual(Buffer.from(expected, 'utf8'), Buffer.from(actual, 'utf8')))
+      return res.status(401).end();
+
+    // … process payload
+    res.status(200).end();
+  });
+```
+
+Critical detail: hash the **raw bytes** of the request body, not the parsed JSON object. Re-serialising the parsed object reorders fields and changes the digest.
+
+## Replay protection
+
+`X-Webhook-Delivery-Id` is a fresh UUID per attempt. Receivers should:
+
+1. Track the most recent N delivery ids per subscription (in Redis / a small DB table).
+2. Reject any delivery whose id is already in the table.
+3. Expire entries older than ~24 hours.
+
+This protects against:
+
+- **Network-layer retries** — same delivery id, idempotent on second receipt.
+- **Captured-and-replayed attacks** — an attacker who captures one signed payload can't replay it because the delivery id is already recorded.
+
+For ultra-strict replay defense, include a timestamp in the signed payload and reject any payload more than N minutes old. The kit doesn't ship this by default — the delivery-id dedup is sufficient for most cases.
+
+## What signing doesn't protect against
+
+- **Compromised secrets.** If the shared secret leaks, anyone can sign payloads. Rotate via `DeleteWebhookSubscriptionCommand` + recreate with a fresh secret; communicate the rotation to tenants out-of-band.
+- **A malicious tenant attacking themselves.** The signing protects the channel between you and the subscriber. It says nothing about whether the subscriber's own systems are trustworthy.
+- **TLS downgrade.** Always use HTTPS endpoints in subscriptions. The signature doesn't substitute for transport encryption — anyone watching the wire can still read the payload, even if they can't tamper with it.
+
+## Operational tips
+
+- **Log every signature failure** server-side as a `SecurityAction.WebhookSignatureMismatch` audit event. A pattern of failures means either the subscriber's secret is out of sync or someone's probing.
+- **Don't return rich error messages on signature mismatch.** A simple 401 — no "expected X, got Y" — denies an attacker the oracle they'd need to reverse-engineer the signing scheme.
+- **Make secrets long.** 32+ random bytes (`openssl rand -hex 32`). Short secrets are guessable through offline brute force against captured signed payloads.
+
+## Related
+
+- [Webhooks module](/docs/modules/webhooks/) — the dispatcher + subscription lifecycle.
+- [HTTP resilience](/docs/cross-cutting-concerns/http-resilience/) — caller-side retry policy.
+- [Auditing module](/docs/modules/auditing/) — capture signature-mismatch events.
