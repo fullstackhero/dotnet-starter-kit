@@ -1,0 +1,44 @@
+---
+title: Quick Start
+description: Scaffold a FullStackHero project and run it locally in under a minute.
+sidebar:
+  order: 3
+pageType: guide
+---
+
+The fastest path uses the **FSH CLI** — a NuGet-distributed tool that scaffolds a new project from the latest template.
+
+## 1. Install the CLI
+
+```bash
+dotnet tool install -g FullStackHero.CLI
+```
+
+## 2. Scaffold a project
+
+```bash
+fsh new MyApp
+cd MyApp
+```
+
+The interactive wizard asks for your database provider and whether to include the Aspire AppHost. Run `fsh doctor` first if you'd like to verify your environment (SDK, Docker, Aspire workload, free ports).
+
+Want it non-interactive?
+
+```bash
+fsh new MyApp --db postgres --no-git
+```
+
+## 3. Run
+
+```bash
+dotnet run --project src/Host/MyApp.AppHost
+```
+
+Aspire brings up Postgres and Redis containers, wires connection strings, launches the API host, and enables OTLP export. Open the Aspire dashboard to watch services start; the API serves at `https://localhost:5285` with OpenAPI and Scalar at `/scalar/v1`.
+
+## Next
+
+- **[Install](/docs/getting-started/install/)** — alternative install paths (`dotnet new` template, git clone, Codespaces).
+- **[Architecture](/docs/architecture/)** — the modular monolith + VSA mental model.
+- **[CLI](/docs/cli/)** — every `fsh` command and option.

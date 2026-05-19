@@ -1,36 +1,35 @@
 ---
 title: Install
-description: Clone, build, and run FullStackHero locally.
+description: Alternative install paths — dotnet new template, git clone, and GitHub Codespaces.
 sidebar:
-  order: 1
+  order: 4
 pageType: guide
 ---
 
-# Install
+Make sure you have everything in [Prerequisites](/docs/getting-started/prerequisites/) first. The fastest path is the [Quick Start](/docs/getting-started/quick-start/) via the FSH CLI — this page covers the alternative routes.
 
-## Prerequisites
+## dotnet new template
 
-- .NET 10 SDK
-- PostgreSQL 15+ (or use the Aspire AppHost which spins one up)
-- Node 20+ (for the admin and dashboard apps)
-
-## Clone
+Install the template from NuGet, then scaffold:
 
 ```bash
-git clone https://github.com/fullstackhero/dotnet-starter-kit.git
-cd dotnet-starter-kit
+dotnet new install FullStackHero.NET.StarterKit
+dotnet new fsh -n MyApp
+cd MyApp
+dotnet run --project src/Host/MyApp.AppHost
 ```
 
-## Build
+## Clone the repository
+
+If you want the full source as-is (no project renaming):
 
 ```bash
-dotnet build src/FSH.Starter.slnx
-```
-
-## Run
-
-```bash
+git clone https://github.com/fullstackhero/dotnet-starter-kit.git MyApp
+cd MyApp
+dotnet restore src/FSH.Starter.slnx
 dotnet run --project src/Host/FSH.Starter.AppHost
 ```
 
-Open the Aspire dashboard to see the API, database, and frontend apps starting up.
+## GitHub Codespaces
+
+Open the repo on GitHub, click **Use this template** → **Open in Codespaces**. .NET 10, Docker, and the Aspire workload are pre-configured — zero local install. First boot takes a couple of minutes; subsequent ones are instant.

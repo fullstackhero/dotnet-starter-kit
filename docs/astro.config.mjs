@@ -9,6 +9,12 @@ import siteConfig from './src/data/site';
 
 export default defineConfig({
   site: siteConfig.url,
+  redirects: {
+    '/docs': '/docs/getting-started/introduction/',
+    '/docs/': '/docs/getting-started/introduction/',
+    '/docs/getting-started': '/docs/getting-started/introduction/',
+    '/docs/getting-started/': '/docs/getting-started/introduction/',
+  },
   image: {
     layout: 'constrained',
     responsiveStyles: true,

@@ -1,0 +1,36 @@
+---
+title: Prerequisites
+description: What you need installed locally before scaffolding a FullStackHero project.
+sidebar:
+  order: 2
+pageType: guide
+---
+
+A short checklist. The rest of Getting Started assumes these are in place.
+
+## Required
+
+- **.NET 10 SDK** — from [dotnet.microsoft.com/download](https://dotnet.microsoft.com/download).
+- **Docker** — used for Postgres and Redis containers (Aspire and integration tests rely on it). Docker Desktop on macOS / Windows, Docker Engine on Linux.
+- **Git** — for cloning the repo or pulling template updates.
+
+## Optional
+
+- **.NET Aspire workload** — `dotnet workload install aspire`. Needed only if you'll run the project via the AppHost (the default Quick Start path does).
+- **Node 20+** — only if you'll work on the React + Vite frontends in `clients/admin` and `clients/dashboard`.
+- **PostgreSQL 15+** — install locally if you'd rather not run Postgres in a container. Otherwise Aspire provisions one for you.
+- **Redis 7+** — same.
+
+## Verify
+
+```bash
+dotnet --version       # 10.x.x
+docker info            # should print server info, not error
+git --version
+```
+
+If `dotnet --version` reports 9.x or older, install the .NET 10 SDK before continuing — the kit targets `net10.0` and won't build on earlier SDKs.
+
+## Next
+
+[Quick Start](/docs/getting-started/quick-start/) → scaffold a project and run it.
