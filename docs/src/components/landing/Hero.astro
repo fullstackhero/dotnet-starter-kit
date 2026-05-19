@@ -19,6 +19,9 @@
 import { Icon } from 'astro-icon/components';
 import Button from '../brand/Button.astro';
 import siteConfig from '../../data/site';
+import { getStars } from '../../helpers/github-stars';
+
+const stars = await getStars();
 
 const heroStats = [
   { value: '10',  unit: '',  label: 'Modules',          note: 'Identity · Multitenancy · Auditing · +7 more', icon: 'lucide:box'         },
@@ -57,20 +60,27 @@ const heroStats = [
 
     {/* Centered hero copy */}
     <div class="relative mx-auto flex max-w-3xl flex-col items-center text-center">
-      {/* Live chip with star count */}
+      {/* Social-proof chip — lead with star count */}
       <a
         href={siteConfig.repo}
         target="_blank"
         rel="noopener noreferrer"
-        class="group inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/70 px-3 py-1 text-[12.5px] text-muted-foreground backdrop-blur-md transition-colors hover:border-border-strong hover:text-foreground dark:border-border/30"
+        aria-label={`fullstackhero on GitHub — ${stars.count.toLocaleString()} stars`}
+        class="group inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/70 py-1 pl-1 pr-3 text-[12.5px] text-muted-foreground backdrop-blur-md transition-colors hover:border-border-strong hover:text-foreground dark:border-border/30"
       >
+        <span class="inline-flex items-center gap-1.5 rounded-full bg-foreground/[0.06] px-2.5 py-0.5">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" class="text-saffron" aria-hidden="true">
+            <path d="M12 2l2.78 6.83L22 9.91l-5.46 4.73L18.18 22 12 18.27 5.82 22l1.64-7.36L2 9.91l7.22-1.08L12 2z"/>
+          </svg>
+          <span class="font-semibold tabular-nums text-foreground">{stars.formatted}</span>
+        </span>
+        <span>stars on GitHub</span>
+        <span aria-hidden="true" class="opacity-40">·</span>
         <span class="relative inline-flex h-1.5 w-1.5">
           <span class="absolute inline-flex h-full w-full rounded-full bg-success opacity-60 pulse-dot"></span>
           <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-success"></span>
         </span>
-        <span class="font-semibold text-foreground">v1 in progress</span>
-        <span aria-hidden="true" class="opacity-50">·</span>
-        <span>Star on GitHub</span>
+        <span class="font-medium text-foreground">v1 in progress</span>
         <span aria-hidden class="transition-transform group-hover:translate-x-0.5">→</span>
       </a>
 
@@ -91,9 +101,10 @@ const heroStats = [
 
       {/* Subtitle — citable definition paragraph for AI + keyword density */}
       <p class="mt-6 max-w-2xl text-[16px] leading-relaxed text-muted-foreground sm:text-[17.5px]">
-        FullStackHero is the
+        <span class="font-semibold text-foreground">fullstackhero</span> is the
         <span class="font-semibold text-foreground">free, MIT-licensed .NET 10 starter kit</span>
-        for teams shipping production SaaS.
+        for teams shipping production SaaS — paired with a
+        <span class="font-semibold text-foreground">React + Vite</span> admin and dashboard out of the box.
         <span class="font-semibold text-foreground">Ten modules</span> — identity, multitenancy, auditing, files, chat, notifications, webhooks, billing, catalog, tickets — wired through a
         <span class="font-semibold text-foreground">modular monolith</span> with
         <span class="font-semibold text-foreground">Vertical Slice Architecture</span>.
@@ -101,17 +112,30 @@ const heroStats = [
         No vendor framework. No lock-in.
       </p>
 
-      {/* CTAs — ink-on-paper primary + secondary */}
+      {/* CTAs — primary ink, secondary with live star count badge */}
       <div class="mt-9 flex flex-wrap items-center justify-center gap-3">
-        <Button href="/docs/getting-started/install/" variant="primary" size="lg" class="group">
+        <Button href="/docs/getting-started/quick-start/" variant="primary" size="lg" class="group">
           Get started
           <span aria-hidden class="transition-transform group-hover:translate-x-0.5">→</span>
         </Button>
-        <Button href={siteConfig.repo} target="_blank" variant="secondary" size="lg">
-          <Icon name="lucide:github" class="h-4 w-4" />
-          View on GitHub
-          <span aria-hidden class="text-[12px] opacity-70">↗</span>
-        </Button>
+        <a
+          href={siteConfig.repo}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Star fullstackhero on GitHub — ${stars.count.toLocaleString()} stars`}
+          class="group inline-flex h-11 items-center overflow-hidden rounded-md border border-border bg-card text-[14.5px] font-medium text-foreground transition-all hover:border-border-strong"
+        >
+          <span class="inline-flex h-full items-center gap-2 pl-4 pr-3.5">
+            <Icon name="lucide:github" class="h-4 w-4" />
+            Star on GitHub
+          </span>
+          <span class="inline-flex h-full items-center gap-1.5 border-l border-border bg-foreground/[0.04] px-3.5 tabular-nums transition-colors group-hover:bg-foreground/[0.07]">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" class="text-saffron" aria-hidden="true">
+              <path d="M12 2l2.78 6.83L22 9.91l-5.46 4.73L18.18 22 12 18.27 5.82 22l1.64-7.36L2 9.91l7.22-1.08L12 2z"/>
+            </svg>
+            <span class="text-foreground">{stars.formatted}</span>
+          </span>
+        </a>
       </div>
 
       {/* Trust strip */}
