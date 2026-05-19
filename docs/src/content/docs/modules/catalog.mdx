@@ -1,0 +1,231 @@
+---
+title: Catalog module
+description: Production-grade product catalogue — brands, hierarchical categories, products with multi-image support, price + stock domain events, and soft delete.
+sidebar:
+  label: Catalog
+  order: 9
+pageType: reference
+seo:
+  title: 'Product Catalog in .NET 10 — brands, categories, multi-image products'
+  description: 'How the Catalog module ships brands, hierarchical categories, products with multi-image support, price + stock domain events, soft delete, search, and Files-module integration.'
+  keywords: 'dotnet product catalog, .net catalog module, ef core soft delete, product images aggregate, multi-image dotnet'
+---
+
+The Catalog module is fullstackhero's most feature-complete reference implementation. It ships brands, a self-referential category tree, products with money-valued prices, a multi-image aggregate, full soft-delete plumbing, price + stock domain events, and paginated search — across **123 source files** with **31 endpoints**. Use it as the canonical example of a tenant-scoped CRUD module that's not a stub.
+
+<Callout type="tip" title="Treat this module as the template">
+If you're adding a new domain-heavy module to your fork, copy the Catalog folder structure verbatim. Three feature areas, owned-collection image management, soft delete via `ISoftDeletable`, `IFileAccessPolicy` integration with the Files module, and integration tests with Testcontainers — all the patterns the rest of the kit uses, in one place.
+</Callout>
+
+## What ships in v1
+
+- **Brands** — flat list, name + slug + description + logo. Full CRUD plus soft delete, restore, search.
+- **Categories** — self-referential hierarchical tree, optional parent, lookup via `GetCategoryTreeQuery`. Full CRUD plus soft delete, restore, search.
+- **Products** — SKU, name, slug, description, brand, category, `Money` price (value object), stock, active flag. Full CRUD plus soft delete, restore, paginated search with filters.
+- **Multi-image products** — each product owns an ordered collection of `ProductImage` entries. The aggregate guarantees exactly one thumbnail, contiguous sort order, and automatic promotion when the current thumbnail is removed.
+- **Domain events** — `ProductCreatedDomainEvent`, `ProductPriceChangedDomainEvent`, `ProductStockAdjustedDomainEvent` for cross-module reactions.
+- **Files-module integration** — `ProductFileAccessPolicy` gates upload/delete of product images, so the Files module only accepts uploads from authorised handlers and cleans up on product delete.
+- **18 fine-grained permissions** — View, Create, Update, Delete, Restore per resource (brand / category / product), plus `Catalog.Products.AdjustStock`.
+- **31 endpoints** under `/api/v1/catalog/...`.
+
+## Architecture at a glance
+
+```
+src/Modules/Catalog/
+├── Modules.Catalog/
+│   ├── CatalogModule.cs                         IModule entry — order 600
+│   ├── Domain/
+│   │   ├── Brand.cs                             ISoftDeletable
+│   │   ├── Category.cs                          Self-referential, ISoftDeletable
+│   │   ├── Product.cs                           AggregateRoot, ISoftDeletable, image owner
+│   │   ├── ProductImage.cs                      Owned by Product
+│   │   └── Money.cs                             Value object — EF persisted as owned type
+│   ├── Data/
+│   │   ├── CatalogDbContext.cs                  Tenant-aware (extends BaseDbContext)
+│   │   ├── Configurations/                      EF type configs
+│   │   └── CatalogDbInitializer.cs              Seeds demo data when DemoSeeder runs
+│   ├── Features/v1/
+│   │   ├── Brands/                              7 handlers + endpoints
+│   │   ├── Categories/                          8 handlers + endpoints
+│   │   └── Products/                            13 handlers + endpoints (including image ops)
+│   ├── Events/                                  Domain event handlers
+│   └── Authorization/
+│       └── ProductFileAccessPolicy.cs           Gates Files-module access
+└── Modules.Catalog.Contracts/                   Public commands/queries/events/DTOs
+```
+
+The module loads at order `600`, after Identity, Multitenancy, Auditing, and Billing. Its `DbContext` is tenant-aware (each tenant has its own catalogue), so multitenancy is enforced through the EF Core global query filter automatically.
+
+## The product + image aggregate
+
+The most interesting code in this module is `Product` enforcing image invariants. Images are an owned collection, not a separate aggregate. That's a deliberate choice: the rules ("exactly one thumbnail", "sort order is contiguous") are aggregate-level invariants that belong inside the root.
+
+```csharp
+// src/Modules/Catalog/Modules.Catalog/Domain/Product.cs
+
+public sealed class Product : AggregateRoot, ISoftDeletable
+{
+    private readonly List<ProductImage> _images = [];
+    public IReadOnlyCollection<ProductImage> Images => _images.AsReadOnly();
+
+    public Guid AddImage(Guid? fileAssetId, string url)
+    {
+        var image = ProductImage.Create(
+            productId: Id,
+            fileAssetId: fileAssetId,
+            url: url,
+            isThumbnail: _images.Count == 0,        // first image is auto-thumbnail
+            sortOrder: _images.Count);
+        _images.Add(image);
+        return image.Id;
+    }
+
+    public void RemoveImage(Guid imageId)
+    {
+        var image = _images.FirstOrDefault(i => i.Id == imageId)
+            ?? throw new NotFoundException(nameof(ProductImage), imageId);
+        var wasThumbnail = image.IsThumbnail;
+        _images.Remove(image);
+        Recompact();                                // re-number SortOrder 0..n-1
+        if (wasThumbnail && _images.Count > 0)
+            _images.OrderBy(i => i.SortOrder).First().PromoteToThumbnail();
+    }
+}
+```
+
+The four image endpoints (`AddProductImage`, `RemoveProductImage`, `SetProductThumbnail`, `ReorderProductImages`) each call exactly one aggregate method. The handler is one or two lines.
+
+## Public API
+
+The contracts assembly has 28 commands and queries grouped into three areas. The full list is in `Modules.Catalog.Contracts/v1/`. Highlights:
+
+```csharp
+// src/Modules/Catalog/Modules.Catalog.Contracts/v1/Products/CreateProduct/CreateProductCommand.cs
+public sealed record CreateProductCommand(
+    string Sku,
+    string Name,
+    string? Description,
+    Guid BrandId,
+    Guid CategoryId,
+    decimal PriceAmount,
+    string PriceCurrency,
+    decimal Stock)
+    : ICommand<ProductResponse>;
+
+// Price + stock get dedicated commands so callers can adjust either without
+// rewriting the product object — and so the handler can emit the right event.
+public sealed record ChangeProductPriceCommand(
+    Guid ProductId,
+    decimal Amount,
+    string Currency) : ICommand<Unit>;
+
+public sealed record AdjustProductStockCommand(
+    Guid ProductId,
+    decimal Delta) : ICommand<Unit>;
+```
+
+## Endpoints
+
+31 endpoints under `/api/v1/catalog`. Highlights of the products subtree (the most interesting):
+
+| Verb | Route | What it does |
+|---|---|---|
+| POST | `/products` | Create a product |
+| GET | `/products/{productId}` | Fetch product with images |
+| PUT | `/products/{productId}` | Update name, description, brand, category, active |
+| PATCH | `/products/{productId}/price` | Change price, emit `ProductPriceChangedDomainEvent` |
+| PATCH | `/products/{productId}/stock` | Adjust stock by delta, emit `ProductStockAdjustedDomainEvent` |
+| DELETE | `/products/{productId}` | Soft delete |
+| POST | `/products/{productId}/restore` | Restore soft-deleted product |
+| GET | `/products/trash` | List soft-deleted products |
+| GET | `/products/search` | Paginated search with `brandId`, `categoryId` filters |
+| POST | `/products/{productId}/images` | Attach an image (with or without a FileAsset) |
+| DELETE | `/products/{productId}/images/{imageId}` | Detach image (auto-promotes next thumbnail) |
+| PUT | `/products/{productId}/images/{imageId}/thumbnail` | Promote image to thumbnail |
+| PATCH | `/products/{productId}/images/reorder` | Reorder via `orderedImageIds[]` |
+
+Similar full CRUD + soft-delete + search shapes exist for `/brands` and `/categories`. Categories add a `/categories/tree` endpoint for the hierarchical view.
+
+<Callout type="note" title="Trash routes are registered first">
+`/trash` is registered before `/{id:guid}` so the literal segment wins the matcher. Adopt the same ordering if you add new soft-delete-aware subroutes.
+</Callout>
+
+## Domain events
+
+Three events ship with the module:
+
+- `ProductCreatedDomainEvent(Guid ProductId, string Sku)` — raised by `Product.Create`.
+- `ProductPriceChangedDomainEvent(Guid ProductId, Money OldPrice, Money NewPrice)` — raised by `Product.ChangePrice`.
+- `ProductStockAdjustedDomainEvent(Guid ProductId, decimal Delta, decimal NewStock)` — raised by `Product.AdjustStock`.
+
+The `Modules.Catalog/Events/` folder contains in-module handlers. To react from another module, declare an integration event in your contracts and bridge it in the catalog event handler — keep cross-module dependencies one-way and contracts-only.
+
+## Configuration
+
+The Catalog module is tenant-aware out of the box and reads no `IOptions<T>`. Configure it through:
+
+- **`CatalogDbContext`** — schema `catalog`, tenant-aware via `BaseDbContext`. Each tenant gets its own products/brands/categories.
+- **Connection string** — uses the per-tenant connection resolved by `UseHeroMultiTenantDatabases()` in the composition root.
+- **Demo seed** — `CatalogDbInitializer` populates a handful of sample brands, categories, and products when `FSH.Starter.DbMigrator seed-demo` runs. Disable by removing the call from the migrator or set the seed flag in appsettings.
+
+## How to extend
+
+### Add a new resource (e.g. Suppliers)
+
+Mirror the brand structure:
+
+1. New aggregate at `Modules.Catalog/Domain/Supplier.cs` inheriting `BaseEntity` and `ISoftDeletable`.
+2. EF configuration at `Data/Configurations/SupplierConfiguration.cs`.
+3. Feature folders at `Features/v1/Suppliers/{Create,Update,Delete,Restore,Search,GetById,ListTrashed}/`.
+4. Permission constants in `Contracts/Authorization/CatalogPermissions.cs`.
+5. Register endpoints in `CatalogModule.MapEndpoints`.
+
+Architecture tests will fail the build if you skip the `Contracts` separation or use the wrong base.
+
+### Wire price-change reactions
+
+Add an integration event in `Modules.Catalog.Contracts/IntegrationEvents/`:
+
+```csharp
+public sealed record ProductRepricedIntegrationEvent(
+    Guid ProductId,
+    string Sku,
+    decimal NewPriceAmount,
+    string NewPriceCurrency) : IIntegrationEvent;
+```
+
+Publish from the in-module domain event handler:
+
+```csharp
+public sealed class ProductPriceChangedDomainEventHandler(IEventBus bus)
+    : IDomainEventHandler<ProductPriceChangedDomainEvent>
+{
+    public async ValueTask Handle(ProductPriceChangedDomainEvent evt, CancellationToken ct)
+        => await bus.PublishAsync(new ProductRepricedIntegrationEvent(/* ... */), ct).ConfigureAwait(false);
+}
+```
+
+Then any other module can subscribe via `IIntegrationEventHandler<ProductRepricedIntegrationEvent>`.
+
+### Replace search with full-text
+
+`SearchProductsQuery` today is a `Contains()` filter. To upgrade to PostgreSQL `tsvector`, add a `BodyTsv` computed column to the EF configuration, GIN-index it, and rewrite the handler to use `EF.Functions.WebSearchToTsQuery`. The Chat module already does this — copy the pattern from `Modules.Chat/Data/Configurations/MessageConfiguration.cs`.
+
+## Tests
+
+Six integration test files in `src/Tests/Integration.Tests/Tests/Catalog/` exercise every endpoint against Testcontainers Postgres + MinIO:
+
+- `BrandsEndpointTests.cs`
+- `CategoriesEndpointTests.cs`
+- `ProductsEndpointTests.cs`
+- `ProductImagesTests.cs` — image add/remove/reorder/thumbnail flows
+- `PermissionRegistrationTests.cs` — verifies the permission constants are registered
+- `RolePermissionSyncerTests.cs` — verifies seeded role-permission mappings
+
+This is the most thoroughly tested module — use it as the reference for integration-test patterns.
+
+## Related
+
+- [Files module](/docs/modules/files/) — product images attach to a `FileAsset`; the policy lives here.
+- [Architecture: vertical slice](/docs/architecture/vertical-slice/) — the feature-folder pattern this module uses.
+- [Modules overview](/docs/modules/) — the other nine modules.

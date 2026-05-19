@@ -1,0 +1,248 @@
+---
+title: Billing module
+description: Subscription plans, invoice lifecycle, and usage metering for multi-tenant SaaS — all wired through a monthly Hangfire job.
+sidebar:
+  label: Billing
+  order: 8
+pageType: reference
+seo:
+  title: 'Subscription Billing in .NET 10 — Plans, Invoices, Usage Metering'
+  description: 'How the Billing module ships subscription plans, an invoice state machine (Draft → Issued → Paid/Void), usage metering, and a monthly Hangfire invoice-generation job — all per-tenant.'
+  keywords: 'dotnet billing module, .net subscription billing, invoice generation .net, usage metering saas .net, hangfire invoice job'
+---
+
+The Billing module gives fullstackhero a working subscription-billing skeleton: a global catalogue of plans, per-tenant subscriptions, a Draft → Issued → Paid invoice state machine, usage metering with overage rates, and a monthly Hangfire job that generates the next billing period for every active tenant. It's not a payment gateway (no Stripe SDK, no card webhooks), it's the **invoice + subscription primitives** every SaaS needs before it integrates a gateway.
+
+<Callout type="tip" title="When to use it">
+Use the Billing module if your product charges tenants on a recurring plan and you want the data model — plans, subscriptions, invoices, line items, usage snapshots — already on the table. Wire your payment gateway of choice into `MarkInvoicePaidCommand` when you're ready.
+</Callout>
+
+## What ships in v1
+
+- A **global plan catalogue** (`BillingPlan`) — `Key`, name, currency, monthly base price, per-resource overage rates. Plans are platform-wide (`IGlobalEntity`), so the same catalogue serves every tenant.
+- **Per-tenant subscriptions** with a small state machine — Active → Suspended → Active or Active → Cancelled. At most one Active subscription per tenant.
+- An **invoice aggregate** with a clean state machine: Draft → Issued → (Paid \| Void). Line items are owned; subtotals recompute on add; period (year, month) is immutable.
+- **Usage metering** — `UsageSnapshot` rows record what each tenant consumed in a window. The monthly job reads these against the subscribed plan's overage rates to add overage line items to the next invoice.
+- A **monthly Hangfire recurring job** (`billing-monthly-invoices`) registered at module startup. Runs at `0 5 1 * *` UTC — 00:05 UTC on the 1st of each month — and generates a Draft invoice per active tenant for the previous period.
+- **15 endpoints** at `/api/v1/billing/...` covering plans, subscriptions, invoices, and usage. Two coarse permissions: `Billing.View` and `Billing.Manage`.
+
+## Architecture at a glance
+
+```
+src/Modules/Billing/
+├── Modules.Billing/
+│   ├── BillingModule.cs                         IModule entry — order 500
+│   ├── Domain/
+│   │   ├── BillingPlan.cs                       Global plan (IGlobalEntity)
+│   │   ├── Subscription.cs                      Per-tenant subscription + state machine
+│   │   ├── Invoice.cs                           AggregateRoot — state machine
+│   │   ├── InvoiceLineItem.cs                   Owned by Invoice
+│   │   └── UsageSnapshot.cs                     Metering record
+│   ├── Data/
+│   │   ├── BillingDbContext.cs                  Schema: billing — NOT per-tenant
+│   │   ├── Configurations/                      EF type configs
+│   │   └── BillingDbInitializer.cs              Seeds default plans
+│   ├── Features/v1/
+│   │   ├── Plans/                               4 handlers + endpoints
+│   │   ├── Subscriptions/                       3 handlers + endpoints
+│   │   ├── Invoices/                            6 handlers + endpoints (state machine)
+│   │   └── Usage/                               2 handlers + endpoints
+│   └── Services/
+│       ├── BillingService.cs                    GenerateInvoiceForPeriodAsync logic
+│       ├── UsageReporter.cs                     IUsageReporter implementation
+│       └── MonthlyInvoiceJob.cs                 Hangfire recurring job
+└── Modules.Billing.Contracts/                   Public commands/queries/events
+```
+
+The module loads at order `500` so it boots after Identity (`10`) and Multitenancy (`30`) but before consuming modules like Catalog (`600`).
+
+<Callout type="note" title="Billing data is not per-tenant">
+Unlike Catalog, Tickets, or Chat, the Billing module uses a single shared database — not a per-tenant database. `BillingDbContext` does not inherit tenant isolation. Subscriptions, invoices, and usage snapshots all carry an explicit `TenantId` column instead, and handlers filter on it manually. This is deliberate: billing is an admin/finance concern that needs to query *across* tenants (cross-tenant invoice reports, batch monthly job, etc.).
+</Callout>
+
+## The invoice state machine
+
+`Invoice` is the load-bearing aggregate. Its lifecycle is small but strict:
+
+```csharp
+// src/Modules/Billing/Modules.Billing/Domain/Invoice.cs
+
+public sealed class Invoice : AggregateRoot
+{
+    public InvoiceStatus Status { get; private set; }    // Draft | Issued | Paid | Void
+
+    public static Invoice CreateDraft(
+        Guid tenantId,
+        string invoiceNumber,
+        int periodYear,
+        int periodMonth,
+        string currency) { /* ... */ }
+
+    public void AddLineItem(
+        InvoiceLineItemKind kind,
+        string description,
+        decimal quantity,
+        decimal unitPrice)
+    {
+        EnsureStatus(InvoiceStatus.Draft);   // only Draft accepts line items
+        // ...
+    }
+
+    public void Issue(DateTime? dueAtUtc = null)
+    {
+        EnsureStatus(InvoiceStatus.Draft);
+        Status = InvoiceStatus.Issued;
+        DueAtUtc = dueAtUtc ?? CreatedAt.AddDays(14);
+    }
+
+    public void MarkPaid()
+    {
+        EnsureStatus(InvoiceStatus.Issued);
+        Status = InvoiceStatus.Paid;
+    }
+
+    public void Void(string? reason = null)
+    {
+        if (Status == InvoiceStatus.Paid)
+            throw new CustomException("Cannot void a paid invoice.", HttpStatusCode.Conflict);
+        Status = InvoiceStatus.Void;
+    }
+}
+```
+
+Each transition enforces the source state — you can't void a Paid invoice, can't `MarkPaid` a Draft, can't add line items to an Issued invoice. Violations throw `CustomException` with `HttpStatusCode.Conflict` (409), which the global exception handler turns into a `ProblemDetails` response.
+
+## Public API
+
+The contracts assembly exposes every command, query, response, and enum that callers can use without referencing the runtime module.
+
+### Plans
+
+| Type | Purpose |
+|---|---|
+| `CreatePlanCommand(key, name, currency, monthlyBasePrice, overageRates)` | Admin: define a new plan |
+| `UpdatePlanCommand(planId, name, monthlyBasePrice, overageRates)` | Admin: re-price an existing plan |
+| `GetPlansQuery()` | List all active plans |
+
+### Subscriptions
+
+| Type | Purpose |
+|---|---|
+| `AssignSubscriptionCommand(tenantId, planId, startUtc)` | Move a tenant onto a plan (replaces the active one) |
+| `GetSubscriptionQuery(tenantId)` | Admin: fetch a tenant's current subscription |
+| `GetMySubscriptionQuery()` | Tenant: fetch its own subscription (claims-scoped) |
+
+### Invoices
+
+| Type | Purpose |
+|---|---|
+| `GenerateInvoicesCommand(periodYear, periodMonth)` | Batch: create Draft invoices for every active tenant |
+| `IssueInvoiceCommand(invoiceId, dueAtUtc?)` | Draft → Issued |
+| `MarkInvoicePaidCommand(invoiceId)` | Issued → Paid |
+| `VoidInvoiceCommand(invoiceId, reason?)` | Issued/Draft → Void |
+| `GetInvoicesQuery(tenantId?, status)` | Admin: paginated cross-tenant invoice list |
+| `GetMyInvoicesQuery(status?)` | Tenant-scoped invoice list |
+| `GetInvoiceByIdQuery(invoiceId)` | Single invoice with line items |
+
+### Usage
+
+| Type | Purpose |
+|---|---|
+| `CaptureUsageSnapshotsCommand(tenantId, resourceUsage)` | Record metering data for the overage calc |
+| `GetUsageSnapshotsQuery(tenantId, startUtc, endUtc)` | Query history for a period |
+
+## Endpoints
+
+All routes are mounted under `/api/v1/billing` and require the relevant `Billing.*` permission.
+
+| Verb | Route | Endpoint class |
+|---|---|---|
+| POST | `/plans` | `CreatePlanEndpoint` |
+| GET | `/plans` | `GetPlansEndpoint` |
+| PUT | `/plans/{planId}` | `UpdatePlanEndpoint` |
+| POST | `/subscriptions` | `AssignSubscriptionEndpoint` |
+| GET | `/subscriptions/{tenantId}` | `GetSubscriptionEndpoint` |
+| GET | `/subscriptions/my` | `GetMySubscriptionEndpoint` |
+| POST | `/invoices/generate` | `GenerateInvoicesEndpoint` |
+| POST | `/invoices/{invoiceId}/issue` | `IssueInvoiceEndpoint` |
+| POST | `/invoices/{invoiceId}/mark-paid` | `MarkInvoicePaidEndpoint` |
+| POST | `/invoices/{invoiceId}/void` | `VoidInvoiceEndpoint` |
+| GET | `/invoices` | `GetInvoicesEndpoint` |
+| GET | `/invoices/my` | `GetMyInvoicesEndpoint` |
+| GET | `/invoices/{invoiceId}` | `GetInvoiceByIdEndpoint` |
+| POST | `/usage/capture` | `CaptureUsageSnapshotsEndpoint` |
+| GET | `/usage/snapshots` | `GetUsageSnapshotsEndpoint` |
+
+## Configuration
+
+Billing reads no `IOptions<T>` — the defaults are baked into the domain. You configure it by editing two places.
+
+**Plan catalogue** — seeded by `BillingDbInitializer` when the module first starts, or manage via the `/plans` endpoints at runtime. Plan `Key` should be canonical lowercase (e.g. `starter`, `growth`, `enterprise`) and match the keys used by the Quota building block so quota and billing stay aligned.
+
+**Hangfire schedule** — the recurring job is registered at module startup via the `IRecurringJobManager`:
+
+```csharp
+// MonthlyInvoiceJob registration (BillingModule.cs)
+recurringJobs.AddOrUpdate<MonthlyInvoiceJob>(
+    "billing-monthly-invoices",
+    job => job.RunAsync(CancellationToken.None),
+    "5 0 1 * *",                  // 00:05 UTC on the 1st of every month
+    TimeZoneInfo.Utc);
+```
+
+To change the cadence, edit the cron expression. To run an ad-hoc generation (back-fill, testing), call `POST /api/v1/billing/invoices/generate` with the period.
+
+## How to extend
+
+### Wire a payment gateway
+
+`MarkInvoicePaidCommand` is the seam. Replace the handler (or add a decorator) to call your gateway:
+
+```csharp
+public sealed class MarkInvoicePaidCommandHandler(IBillingDbContext db, IStripeClient stripe)
+    : ICommandHandler<MarkInvoicePaidCommand, Unit>
+{
+    public async ValueTask<Unit> Handle(MarkInvoicePaidCommand cmd, CancellationToken ct)
+    {
+        var invoice = await db.Invoices.FirstAsync(i => i.Id == cmd.InvoiceId, ct).ConfigureAwait(false);
+        // ... charge via gateway, capture payment-method-id on the invoice, then:
+        invoice.MarkPaid();
+        await db.SaveChangesAsync(ct).ConfigureAwait(false);
+        return Unit.Value;
+    }
+}
+```
+
+For inbound webhooks (Stripe → your app), expose a webhook endpoint, validate the signature, look up the invoice by external ID, and call the same domain method.
+
+### Add a new overage resource
+
+`BillingPlan.OverageRates` is a `Dictionary<string, decimal>`. Decide a stable resource key (e.g. `api_call`, `storage_gb`), and:
+
+1. Capture usage via `CaptureUsageSnapshotsCommand` whenever the resource is consumed.
+2. Update the plan(s) via `UpdatePlanCommand` to set the per-unit overage rate.
+3. The monthly job picks it up automatically.
+
+### Emit domain events on plan changes
+
+Today the aggregates raise no domain events. If you need cross-module reactions (e.g. notify the tenant on plan upgrade), add an event to the relevant method:
+
+```csharp
+public void Reactivate()
+{
+    Status = SubscriptionStatus.Active;
+    RaiseDomainEvent(new SubscriptionReactivatedDomainEvent(Id, TenantId));
+}
+```
+
+Then handle it in another module via `IDomainEventHandler<SubscriptionReactivatedDomainEvent>`.
+
+## Tests
+
+Two integration test files at `src/Tests/Integration.Tests/Tests/Billing/` cover the end-to-end flows. There are no domain-unit tests for the state machines (they're guarded by the integration tests). If you customize the invariants, add `Modules.Billing.Tests` and unit-test the `Invoice` and `Subscription` aggregates directly.
+
+## Related
+
+- [Quota building block](/docs/building-blocks/quota/) — the plan keys here must line up with what Quota enforces.
+- [Modules overview](/docs/modules/) — the other nine modules that ship in v1.
+- [Cross-cutting concerns](/docs/cross-cutting-concerns/) — Hangfire, multitenancy, OpenTelemetry.

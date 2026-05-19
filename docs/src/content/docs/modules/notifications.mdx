@@ -1,0 +1,195 @@
+---
+title: Notifications module
+description: Per-user inbox driven by integration events from other modules — denormalized rows, real-time SignalR push, idempotent mark-read.
+sidebar:
+  label: Notifications
+  order: 6
+pageType: reference
+seo:
+  title: 'Notifications & In-App Inbox in .NET 10 — SignalR push + integration events'
+  description: 'How the Notifications module exposes a per-user inbox driven by integration events from other modules, pushes new notifications via SignalR in real time, and keeps mark-read idempotent.'
+  keywords: '.net notifications inbox, realtime notifications signalr, integration events dotnet, in-app notification module'
+---
+
+The Notifications module is the inbox layer of fullstackhero. It owns one denormalized row type (`Notification`), exposes four read/mark endpoints, and is driven entirely by integration events published by other modules (Chat mentions today; tickets, billing, webhooks can opt in next). New notifications are pushed to the recipient in real time via the same SignalR hub Chat uses, so the bell-icon badge updates without a refresh. Around **200 lines of code across the runtime project** — intentionally thin.
+
+<Callout type="tip" title="It's a bridge, not a hub">
+This module has no business logic of its own. It's a destination — other modules publish integration events that describe what happened ("user X was mentioned in channel Y"), and the handler materialises a row plus a SignalR push. Adding new notification types means adding a new `IIntegrationEventHandler` here, not redesigning the inbox.
+</Callout>
+
+## What ships in v1
+
+- **One row type** — `Notification(Id, UserId, Type, Title, Body?, Link, Source, MetadataJson, CreatedAtUtc, ReadAtUtc?)`. Denormalized so the inbox renders without back-references into the source module.
+- **Real-time push** — the integration-event handler broadcasts a `NotificationCreated` SignalR event to the recipient's `user:{id}` group immediately after writing the row.
+- **Idempotent mark-read** — `Notification.ReadAtUtc ??= DateTime.UtcNow` means calling mark-read twice is a no-op.
+- **Bulk mark-all-read** via `ExecuteUpdateAsync` — single SQL `UPDATE`, no row materialisation, scoped to the caller.
+- **Four endpoints** — `GET /` (inbox), `GET /unread-count` (badge), `POST /{id}/read` (single), `POST /read-all` (bulk).
+- **Free-form `Type` + `MetadataJson`** — source modules pick the strings (`chat.mention`, `ticket.assigned`, `billing.invoice.issued`) and the UI uses them to render the right icon and link.
+
+## Architecture at a glance
+
+```
+src/Modules/Notifications/
+├── Modules.Notifications/                       ~200 LoC
+│   ├── NotificationsModule.cs                   IModule — order 750 (BEFORE Chat 800)
+│   ├── Domain/Notification.cs                   AggregateRoot, denormalized inbox row
+│   ├── Data/NotificationsDbContext.cs           Schema: notifications
+│   ├── IntegrationEventHandlers/
+│   │   └── MentionedInChannelIntegrationEventHandler.cs   Chat mention bridge
+│   └── Features/v1/                             4 endpoints
+└── Modules.Notifications.Contracts/             Commands, queries, DTOs
+```
+
+<Callout type="warning" title="Module order matters">
+Notifications loads at order `750`, Chat at `800`. The order ensures Notifications' integration-event handlers are registered before Chat starts publishing events. Get this wrong and the first `MentionedInChannelIntegrationEvent` finds no handler and silently disappears.
+</Callout>
+
+## The handler bridge
+
+The whole module is essentially a fan-out from integration events to inbox rows + SignalR pushes. The Chat-mention handler is the canonical example:
+
+```csharp
+// src/Modules/Notifications/Modules.Notifications/IntegrationEventHandlers/MentionedInChannelIntegrationEventHandler.cs
+
+public sealed class MentionedInChannelIntegrationEventHandler(
+    INotificationsDbContext db,
+    IHubContext<AppHub> hub,
+    IUserService users)
+    : IIntegrationEventHandler<MentionedInChannelIntegrationEvent>
+{
+    public async ValueTask HandleAsync(MentionedInChannelIntegrationEvent evt, CancellationToken ct)
+    {
+        var notification = Notification.Create(
+            userId: evt.MentionedUserId,
+            type: "chat.mention",
+            title: $"@{evt.AuthorUsername} mentioned you",
+            body: evt.MessagePreview,
+            link: $"/chat/{evt.ChannelId}?message={evt.MessageId}",
+            source: "Modules.Chat",
+            metadataJson: JsonSerializer.Serialize(new { evt.ChannelId, evt.MessageId, evt.AuthorUserId }));
+
+        db.Notifications.Add(notification);
+        await db.SaveChangesAsync(ct).ConfigureAwait(false);
+
+        await hub.Clients.Group($"user:{evt.MentionedUserId}").SendAsync(
+            "NotificationCreated",
+            NotificationDto.From(notification),
+            ct).ConfigureAwait(false);
+    }
+}
+```
+
+The handler runs **synchronously** in the originating SendMessage request scope. If the write or push fails, the SendMessage call fails. That's deliberate — fail-fast over silent loss of notifications. If you need it to be optional later, wrap with a try-catch and log.
+
+## The row type
+
+```csharp
+// src/Modules/Notifications/Modules.Notifications/Domain/Notification.cs
+
+public sealed class Notification : AggregateRoot
+{
+    public Guid UserId { get; private set; }
+    public string Type { get; private set; } = default!;        // e.g. "chat.mention"
+    public string Title { get; private set; } = default!;
+    public string? Body { get; private set; }
+    public string Link { get; private set; } = default!;
+    public string Source { get; private set; } = default!;      // e.g. "Modules.Chat"
+    public string? MetadataJson { get; private set; }           // opaque, source-defined shape
+    public DateTime CreatedAtUtc { get; private set; }
+    public DateTime? ReadAtUtc { get; private set; }            // null = unread
+
+    public void MarkRead() => ReadAtUtc ??= DateTime.UtcNow;    // idempotent
+}
+```
+
+A covering composite index on `(UserId, ReadAtUtc, CreatedAtUtc DESC)` makes both the inbox list and the unread-count query single-pass.
+
+## Public API
+
+| Type | Purpose |
+|---|---|
+| `ListNotificationsQuery(pageNum, pageSize)` | Caller-scoped paginated list, newest first |
+| `GetUnreadCountQuery()` | Integer for the bell badge |
+| `MarkNotificationReadCommand(notificationId)` | Idempotent; 404 on cross-user access |
+| `MarkAllNotificationsReadCommand()` | Bulk caller-scoped via `ExecuteUpdateAsync` |
+
+## Endpoints
+
+| Verb | Route | What it does |
+|---|---|---|
+| GET | `/api/v1/notifications` | Paginated inbox |
+| GET | `/api/v1/notifications/unread-count` | Unread count for the badge |
+| POST | `/api/v1/notifications/{id}/read` | Mark single notification read |
+| POST | `/api/v1/notifications/read-all` | Mark every unread notification read |
+
+## How to extend
+
+### Add a new notification type from another module
+
+1. Define an integration event in your module's `*.Contracts` assembly:
+
+```csharp
+// Modules.Tickets.Contracts/IntegrationEvents/TicketAssignedIntegrationEvent.cs
+public sealed record TicketAssignedIntegrationEvent(
+    Guid TicketId,
+    long TicketNumber,
+    Guid AssigneeUserId,
+    string AssignerUsername) : IIntegrationEvent
+{
+    public Guid Id => Guid.NewGuid();
+    public DateTime OccurredOnUtc => DateTime.UtcNow;
+    public Guid? TenantId => /* current tenant */;
+    public Guid? CorrelationId => null;
+    public string Source => "Modules.Tickets";
+}
+```
+
+2. Publish it from the tickets module's `AssignTicketCommandHandler` via `IEventBus.PublishAsync`.
+
+3. Add an integration-event handler **in the Notifications module**:
+
+```csharp
+public sealed class TicketAssignedNotificationHandler(/* deps */)
+    : IIntegrationEventHandler<TicketAssignedIntegrationEvent>
+{
+    public async ValueTask HandleAsync(TicketAssignedIntegrationEvent evt, CancellationToken ct)
+    {
+        var notification = Notification.Create(
+            userId: evt.AssigneeUserId,
+            type: "ticket.assigned",
+            title: $"Ticket #{evt.TicketNumber} assigned to you",
+            link: $"/tickets/{evt.TicketId}",
+            source: "Modules.Tickets",
+            metadataJson: JsonSerializer.Serialize(new { evt.TicketId, evt.TicketNumber }));
+        // ... write + push as in the mention handler
+    }
+}
+```
+
+4. The handler is auto-registered by the eventing module's assembly scan.
+
+### Render type-specific notifications on the frontend
+
+`type` is a free-form string. In the dashboard's notification list, dispatch on `type` to pick the right icon and link template:
+
+```ts
+const renderers = {
+  'chat.mention':     (n) => <ChatMentionItem {...n} />,
+  'ticket.assigned':  (n) => <TicketAssignedItem {...n} />,
+  // …
+};
+```
+
+### Suppress some notification types per user
+
+Add a `NotificationPreference` aggregate (per-user mute list of `Type` strings) and check it in each integration event handler before writing the row. A self-service "Settings → Notifications" page can toggle preferences.
+
+## Tests
+
+The module has no dedicated tests — its handlers are exercised by Chat's integration tests (`src/Tests/Integration.Tests/Tests/Chat/`) which assert that a mention produces an inbox row and a SignalR push.
+
+## Related
+
+- [Chat module](/docs/modules/chat/) — the first event producer; `MentionedInChannelIntegrationEvent` is the canonical example.
+- [Eventing.Abstractions](/docs/building-blocks/eventing/) — the `IEventBus` / `IIntegrationEventHandler` contract used here.
+- [Architecture overview](/docs/architecture/) — module order and event-bus wiring.
