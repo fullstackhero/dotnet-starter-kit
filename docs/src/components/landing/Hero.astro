@@ -1,87 +1,365 @@
 ---
-import CopyCommand from './CopyCommand.astro';
+/**
+ * Hero — conversion-first landing surface.
+ *
+ * Modeled on the editorial pattern from
+ * codewithmukesh/blog/src/pages/resources/dotnet-claude-kit/_Hero.astro
+ *   ─ magazine eyebrow rule
+ *   ─ live release chip (pulse dot)
+ *   ─ display headline with light/bold split + gradient underline strip
+ *   ─ subtitle with inline bold stats
+ *   ─ primary + secondary CTAs
+ *   ─ trust strip
+ *   ─ animated terminal: typewriter command + staggered reveal of output
+ *   ─ stat-card grid with EQ-tick hover dance
+ *
+ * All animations are pointer + reduced-motion aware. The terminal script
+ * lives in src/scripts/hero-terminal.ts and is wired here via <script>.
+ */
+import { Icon } from 'astro-icon/components';
 import Button from '../brand/Button.astro';
 import siteConfig from '../../data/site';
+
+const heroStats = [
+  { value: '3',   unit: '',   label: 'Modules',    note: 'Identity · Multitenancy · Auditing', icon: 'lucide:box'         },
+  { value: '12',  unit: '+',  label: 'Building blocks', note: 'EF · Redis · Hangfire · OTel',  icon: 'lucide:layers'      },
+  { value: '598', unit: '',   label: 'Tests',      note: 'Unit + integration · green',         icon: 'lucide:check-check' },
+  { value: '5',   unit: 'min',label: 'To localhost', note: 'Clone → docker compose up',         icon: 'lucide:rocket'      },
+];
 ---
-<section class="relative isolate overflow-hidden">
-  <!-- Subtle paper grain + dot field + brand shadow blur -->
-  <div class="section-dots-subtle absolute inset-0 -z-10" aria-hidden="true"></div>
+
+<header
+  data-track-section="hero"
+  class="relative isolate overflow-hidden pt-12 sm:pt-16 md:pt-20 pb-12 sm:pb-16"
+  id="hero-section"
+>
+  {/* Dotted backdrop with radial mask — focal point under headline */}
+  <div
+    aria-hidden="true"
+    class="pointer-events-none absolute inset-0 -z-10"
+    style="background-image: radial-gradient(circle at 1px 1px, color-mix(in oklab, var(--foreground) 14%, transparent) 1px, transparent 0); background-size: 24px 24px; mask-image: radial-gradient(70% 60% at 50% 25%, black, transparent); -webkit-mask-image: radial-gradient(70% 60% at 50% 25%, black, transparent);"
+  ></div>
+
+  {/* Brand glow blob behind everything */}
   <div class="brand-shadow" aria-hidden="true"></div>
 
-  <div class="mx-auto max-w-6xl px-6 pt-20 pb-24 sm:pt-28 sm:pb-32 lg:pt-32">
-    <!-- Eyebrow release chip -->
-    <div class="flex justify-center">
+  <div class="mx-auto w-full max-w-6xl px-6">
+    {/* Magazine eyebrow rule */}
+    <div class="mb-10 sm:mb-14 flex items-center gap-3 sm:gap-4">
+      <span class="shrink-0 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] tabular-nums text-primary">
+        Open source · .NET 10 starter kit
+      </span>
+      <span class="h-px flex-1 bg-border" aria-hidden></span>
+      <span class="hidden shrink-0 font-mono text-[11px] font-medium uppercase tracking-[0.16em] tabular-nums text-muted-foreground sm:inline">
+        v1 · MIT · production-ready
+      </span>
+    </div>
+
+    {/* Centered hero copy */}
+    <div class="relative mx-auto flex max-w-3xl flex-col items-center text-center">
+      {/* Live chip with star count */}
       <a
-        href={siteConfig.repo + '/releases'}
+        href={siteConfig.repo}
         target="_blank"
-        rel="noopener"
-        class="group inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 text-[11.5px] font-medium text-muted-foreground backdrop-blur-sm transition-colors hover:border-border-strong hover:text-foreground"
+        rel="noopener noreferrer"
+        class="group inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/70 px-3 py-1 text-[12.5px] text-muted-foreground backdrop-blur-md transition-colors hover:border-border-strong hover:text-foreground dark:border-border/30"
       >
         <span class="relative inline-flex h-1.5 w-1.5">
           <span class="absolute inline-flex h-full w-full rounded-full bg-success opacity-60 pulse-dot"></span>
           <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-success"></span>
         </span>
-        <span class="font-mono uppercase tracking-[0.14em] text-[10.5px] text-foreground">v1</span>
-        <span class="text-border">·</span>
-        <span>in progress</span>
-        <span aria-hidden="true" class="text-muted-foreground/60 transition-transform group-hover:translate-x-0.5">→</span>
+        <span class="font-semibold text-foreground">v1 in progress</span>
+        <span aria-hidden="true" class="opacity-50">·</span>
+        <span>Star on GitHub</span>
+        <span aria-hidden class="transition-transform group-hover:translate-x-0.5">→</span>
       </a>
-    </div>
 
-    <!-- Editorial display headline. Two-line, with single gradient phrase. -->
-    <h1 class="mt-8 text-center font-display text-5xl font-semibold leading-[1.02] tracking-[-0.035em] text-foreground sm:text-6xl md:text-7xl lg:text-[88px]">
-      The <span class="gradient-text">.NET starter kit</span>
-      <span class="block">that actually ships.</span>
-    </h1>
+      {/* Display headline — light/bold split with gradient underline */}
+      <h1 class="mt-7 text-balance font-display font-semibold tracking-[-0.035em] text-[42px] leading-[1.02] sm:text-[60px] md:text-[72px]">
+        <span class="font-light text-muted-foreground">The .NET starter kit</span>
+        <span class="mt-1 block">
+          <span class="relative inline-block text-foreground">
+            <span class="relative z-[1] font-bold">that actually ships.</span>
+            <span
+              aria-hidden="true"
+              class="absolute -bottom-1 left-0 right-0 h-2 rounded-full"
+              style="background: color-mix(in oklab, var(--primary) 50%, transparent);"
+            ></span>
+          </span>
+        </span>
+      </h1>
 
-    <!-- Refined subhead — one strong line, large measure -->
-    <p class="mx-auto mt-7 max-w-2xl text-center text-[17px] leading-relaxed text-muted-foreground sm:text-lg">
-      Production-ready modular monolith with multitenancy, identity, and observability already wired up — so you write features, not scaffolding.
-    </p>
-
-    <!-- CTAs -->
-    <div class="mt-10 flex flex-wrap items-center justify-center gap-3">
-      <Button variant="primary" size="lg" href="/docs/getting-started/install/" class="group">
-        Get started
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="transition-transform group-hover:translate-x-0.5">
-          <path d="M5 12h14M13 5l7 7-7 7" />
-        </svg>
-      </Button>
-      <Button variant="secondary" size="lg" href={siteConfig.repo} target="_blank">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.55v-2.06c-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.27-1.68-1.27-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.69 1.25 3.35.96.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.17 1.18.92-.26 1.91-.39 2.89-.39s1.97.13 2.89.39c2.2-1.49 3.17-1.18 3.17-1.18.62 1.58.23 2.75.11 3.04.74.8 1.18 1.83 1.18 3.09 0 4.42-2.69 5.4-5.25 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.55C20.21 21.38 23.5 17.07 23.5 12 23.5 5.65 18.35.5 12 .5z"/>
-        </svg>
-        Star on GitHub
-      </Button>
-    </div>
-
-    <!-- Install command, immediately visible, no scroll -->
-    <div class="mt-12 flex flex-col items-center">
-      <p class="mb-3 font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-        <span class="text-primary">$</span> get running locally
+      {/* Subtitle with bold inline stats */}
+      <p class="mt-6 max-w-xl text-[16px] leading-relaxed text-muted-foreground sm:text-[17.5px]">
+        Production-ready modular monolith with
+        <span class="font-semibold text-foreground">multitenancy</span>,
+        <span class="font-semibold text-foreground">identity</span>, and
+        <span class="font-semibold text-foreground">observability</span>
+        already wired up. Clone, run, ship — your day one is feature work, not scaffolding.
       </p>
-      <CopyCommand command="git clone https://github.com/fullstackhero/dotnet-starter-kit.git" />
+
+      {/* CTAs — ink-on-paper primary + secondary */}
+      <div class="mt-9 flex flex-wrap items-center justify-center gap-3">
+        <Button href="/docs/getting-started/install/" variant="primary" size="lg" class="group">
+          Get started
+          <span aria-hidden class="transition-transform group-hover:translate-x-0.5">→</span>
+        </Button>
+        <Button href={siteConfig.repo} target="_blank" variant="secondary" size="lg">
+          <Icon name="lucide:github" class="h-4 w-4" />
+          View on GitHub
+          <span aria-hidden class="text-[12px] opacity-70">↗</span>
+        </Button>
+      </div>
+
+      {/* Trust strip */}
+      <ul class="mt-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[12.5px] tabular-nums text-muted-foreground">
+        <li class="inline-flex items-center gap-1.5">
+          <span class="relative inline-flex h-1.5 w-1.5 rounded-full" style="background: var(--success);" aria-hidden></span>
+          <span class="font-medium text-foreground">v1</span>
+        </li>
+        <li aria-hidden class="text-muted-foreground/40">·</li>
+        <li>MIT licensed</li>
+        <li aria-hidden class="text-muted-foreground/40">·</li>
+        <li>.NET 10 / C# 14</li>
+        <li aria-hidden class="text-muted-foreground/40">·</li>
+        <li>PostgreSQL · Redis · React</li>
+      </ul>
     </div>
 
-    <!-- Proof strip — tabular numerals for editorial credibility -->
-    <ul class="mt-14 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[12px] text-muted-foreground sm:gap-x-8 sm:gap-y-3">
-      <li class="flex items-center gap-2 whitespace-nowrap">
-        <span class="font-mono tabular-nums text-foreground font-semibold">.NET 10</span>
-        <span class="opacity-50">·</span>
-        <span>latest LTS</span>
-      </li>
-      <li class="flex items-center gap-2 whitespace-nowrap">
-        <span class="font-mono tabular-nums text-foreground font-semibold">3</span>
-        <span>modules</span>
-      </li>
-      <li class="flex items-center gap-2 whitespace-nowrap">
-        <span class="font-mono tabular-nums text-foreground font-semibold">598</span>
-        <span>tests passing</span>
-      </li>
-      <li class="flex items-center gap-2 whitespace-nowrap">
-        <span class="font-mono tabular-nums text-foreground font-semibold">5 min</span>
-        <span>to localhost</span>
-      </li>
-    </ul>
+    {/* Animated terminal preview — typewriter command + staggered reveal */}
+    <div class="relative mx-auto mt-14 max-w-3xl sm:mt-20" id="hero-terminal">
+      <div class="overflow-hidden rounded-2xl border border-border bg-[#0d1117] shadow-lg shadow-black/20 dark:shadow-black/40">
+        {/* Title bar */}
+        <div class="flex items-center justify-between gap-3 border-b border-white/5 bg-[#161b22] px-4 py-2.5">
+          <div class="flex min-w-0 items-center gap-3">
+            <span class="flex shrink-0 gap-1.5" aria-hidden="true">
+              <span class="h-2.5 w-2.5 rounded-full bg-[#ff5f56]"></span>
+              <span class="h-2.5 w-2.5 rounded-full bg-[#ffbd2e]"></span>
+              <span class="h-2.5 w-2.5 rounded-full bg-[#27c93f]"></span>
+            </span>
+            <span class="truncate font-mono text-[11px] uppercase tracking-[0.18em] text-slate-500">
+              fsh starter session
+            </span>
+          </div>
+          <span class="hidden truncate font-mono text-[11px] text-slate-500 sm:inline">
+            ~/fullstackhero
+          </span>
+        </div>
+
+        {/* Body */}
+        <div class="p-5 font-mono text-[13.5px] leading-relaxed sm:text-sm" id="hero-terminal-body">
+          {/* Line 0 — typewriter command */}
+          <div class="terminal-line flex items-baseline" data-delay="0">
+            <span class="text-emerald-400">$</span><span class="text-slate-300" id="hero-typewriter"></span><span class="terminal-cursor inline-block h-4 w-[2px] translate-y-[2px] bg-emerald-400"></span>
+          </div>
+
+          {/* Aspire orchestration boot lines */}
+          <div class="terminal-line mt-3 hidden" data-delay="2200">
+            <span class="text-amber-400">↪</span>
+            <span class="text-slate-300"> Starting Aspire orchestration…</span>
+          </div>
+          <div class="terminal-line mt-1 hidden" data-delay="3000">
+            <span class="text-emerald-400">✓</span>
+            <span class="text-slate-300"> PostgreSQL</span>
+            <span class="text-slate-500">  → localhost:5432</span>
+          </div>
+          <div class="terminal-line mt-1 hidden" data-delay="3400">
+            <span class="text-emerald-400">✓</span>
+            <span class="text-slate-300"> Redis</span>
+            <span class="text-slate-500">       → localhost:6379</span>
+          </div>
+          <div class="terminal-line mt-1 hidden" data-delay="3800">
+            <span class="text-emerald-400">✓</span>
+            <span class="text-slate-300"> FSH.Starter.Api</span>
+            <span class="text-slate-500"> → localhost:5000</span>
+          </div>
+          <div class="terminal-line mt-1 hidden" data-delay="4200">
+            <span class="text-emerald-400">✓</span>
+            <span class="text-slate-300"> React.Dashboard</span>
+            <span class="text-slate-500"> → localhost:5173</span>
+          </div>
+          <div class="terminal-line mt-1 hidden" data-delay="4600">
+            <span class="text-emerald-400">✓</span>
+            <span class="text-slate-300"> Hangfire dashboard</span>
+            <span class="text-slate-500"> → /hangfire</span>
+          </div>
+
+          {/* Verdict */}
+          <div class="terminal-line mt-3 hidden" data-delay="5400">
+            <span style="color: var(--primary-soft);" class="font-semibold">Ready in 4.2s</span>
+            <span class="text-slate-600"> ·</span>
+            <span class="text-slate-300"> 5 services orchestrated</span>
+            <span class="text-slate-600"> ·</span>
+            <span class="text-slate-300"> multitenancy enforced</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Below-terminal caption */}
+      <p class="mt-4 text-center font-mono text-[11.5px] uppercase tracking-[0.18em] tabular-nums text-muted-foreground">
+        Live preview ·
+        <span class="text-foreground font-semibold">4.2s cold start</span>
+        · 5 services orchestrated by Aspire
+      </p>
+    </div>
+
+    {/* Stat grid — 4 metric cards with EQ-tick hover */}
+    <div class="mt-14 sm:mt-20">
+      <div class="mb-6 flex items-center gap-3">
+        <span class="font-mono text-[10.5px] font-semibold uppercase tracking-[0.22em] tabular-nums text-muted-foreground">
+          What ships in v1
+        </span>
+        <span aria-hidden class="h-px flex-1 bg-border"></span>
+      </div>
+
+      <ul class="hero-stats-grid grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+        {heroStats.map((s) => (
+          <li class="hero-stat-card group relative overflow-hidden rounded-2xl border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-border-strong sm:p-6">
+            {/* Corner glow on hover */}
+            <div
+              aria-hidden="true"
+              class="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+              style="background: radial-gradient(circle, color-mix(in oklab, var(--primary) 18%, transparent), transparent 70%);"
+            ></div>
+
+            {/* Top row */}
+            <div class="relative flex items-center justify-between gap-2">
+              <span class="font-mono text-[10.5px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                {s.label}
+              </span>
+              <span
+                aria-hidden="true"
+                class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-background text-primary transition-all duration-300 group-hover:border-primary/40 group-hover:bg-primary/5"
+              >
+                <Icon name={s.icon} class="h-4 w-4" />
+              </span>
+            </div>
+
+            {/* Big number */}
+            <p class="relative mt-5 font-display font-bold leading-[0.88] tracking-[-0.045em] tabular-nums text-foreground text-[52px] sm:mt-6 sm:text-[64px] md:text-[72px]">
+              <span class="hero-stat-value inline-block">{s.value}</span>
+              {s.unit && (
+                <span class="hero-stat-unit ml-0.5 mt-[0.18em] inline-block align-top font-bold tracking-tight text-primary text-[0.4em]">
+                  {s.unit}
+                </span>
+              )}
+            </p>
+
+            {/* Bottom: EQ ticks + description */}
+            <div class="relative mt-5 flex items-end gap-3 border-t border-border pt-4">
+              <div class="hero-stat-ticks flex shrink-0 items-end gap-[3px]" aria-hidden="true">
+                <span class="h-1.5 w-[3px] rounded-full bg-primary/25"></span>
+                <span class="h-3 w-[3px] rounded-full bg-primary/55"></span>
+                <span class="h-[18px] w-[3px] rounded-full bg-primary"></span>
+                <span class="h-2.5 w-[3px] rounded-full bg-primary/45"></span>
+                <span class="h-1.5 w-[3px] rounded-full bg-primary/25"></span>
+              </div>
+              <p class="text-[12px] leading-tight text-muted-foreground">{s.note}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
   </div>
-</section>
+
+  <style is:global>
+    /* Terminal cursor blink */
+    .terminal-cursor {
+      animation: hero-cursor-blink 1s step-end infinite;
+    }
+    @keyframes hero-cursor-blink {
+      50% { opacity: 0; }
+    }
+
+    /* Modern metric-card hover: number lifts, unit tints, EQ ticks dance */
+    .hero-stat-card .hero-stat-value,
+    .hero-stat-card .hero-stat-unit {
+      transition:
+        transform 480ms cubic-bezier(0.2, 0, 0, 1),
+        color 320ms cubic-bezier(0.2, 0, 0, 1);
+      transform-origin: left center;
+    }
+    .hero-stat-card:hover .hero-stat-value {
+      transform: translateY(-2px);
+    }
+    .hero-stat-card:hover .hero-stat-unit {
+      color: color-mix(in oklab, var(--primary) 80%, var(--foreground));
+      transform: translateY(-2px) translateX(2px);
+    }
+
+    .hero-stat-ticks > span {
+      transition: transform 320ms cubic-bezier(0.2, 0, 0, 1);
+      transform-origin: bottom center;
+    }
+    @keyframes hero-tick-dance {
+      0%, 100% { transform: scaleY(0.7); }
+      50%      { transform: scaleY(1.35); }
+    }
+    .hero-stat-card:hover .hero-stat-ticks > span:nth-child(1) { animation: hero-tick-dance 1.05s ease-in-out infinite; }
+    .hero-stat-card:hover .hero-stat-ticks > span:nth-child(2) { animation: hero-tick-dance 1.05s ease-in-out 0.10s infinite; }
+    .hero-stat-card:hover .hero-stat-ticks > span:nth-child(3) { animation: hero-tick-dance 1.05s ease-in-out 0.20s infinite; }
+    .hero-stat-card:hover .hero-stat-ticks > span:nth-child(4) { animation: hero-tick-dance 1.05s ease-in-out 0.30s infinite; }
+    .hero-stat-card:hover .hero-stat-ticks > span:nth-child(5) { animation: hero-tick-dance 1.05s ease-in-out 0.40s infinite; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .terminal-cursor { animation: none !important; }
+      .hero-stat-card .hero-stat-value,
+      .hero-stat-card .hero-stat-unit,
+      .hero-stat-ticks > span { transition: none !important; animation: none !important; }
+      .hero-stat-card:hover .hero-stat-value,
+      .hero-stat-card:hover .hero-stat-unit { transform: none !important; }
+    }
+  </style>
+
+  <script>
+    function initHeroTerminal() {
+      const tw = document.getElementById('hero-typewriter');
+      if (!tw || tw.dataset.heroInit === 'true') return;
+      tw.dataset.heroInit = 'true';
+
+      const fullText = ' dotnet run --project src/Host/FSH.Starter.AppHost';
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // Reveal helper for staggered output lines
+      const lines = document.querySelectorAll<HTMLElement>('#hero-terminal-body .terminal-line[data-delay]');
+      const revealLine = (el: HTMLElement) => {
+        el.classList.remove('hidden');
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(4px)';
+        requestAnimationFrame(() => {
+          el.style.transition = 'opacity 320ms cubic-bezier(0.2, 0, 0, 1), transform 320ms cubic-bezier(0.2, 0, 0, 1)';
+          el.style.opacity = '1';
+          el.style.transform = 'translateY(0)';
+        });
+      };
+
+      // Schedule all reveals up-front
+      lines.forEach((el) => {
+        const delay = Number(el.dataset.delay ?? '0');
+        if (reduced) {
+          el.classList.remove('hidden');
+        } else {
+          setTimeout(() => revealLine(el), delay);
+        }
+      });
+
+      // Typewriter for the command
+      if (reduced) {
+        tw.textContent = fullText;
+        return;
+      }
+      let i = 0;
+      const type = () => {
+        if (i <= fullText.length) {
+          tw.textContent = fullText.slice(0, i);
+          i++;
+          setTimeout(type, 38);
+        }
+      };
+      type();
+    }
+
+    initHeroTerminal();
+    document.addEventListener('astro:after-swap', initHeroTerminal);
+  </script>
+</header>
