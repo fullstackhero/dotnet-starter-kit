@@ -14,12 +14,12 @@ const typeLabel = {
   recipe: 'Recipe',
 }[pageType];
 ---
-<header class="mb-10 border-b border-border pb-6">
-  <p class="text-xs font-medium uppercase tracking-wider text-primary">{typeLabel}</p>
-  <h1 class="mt-2 text-4xl font-bold tracking-tight">{title}</h1>
-  <p class="mt-3 text-lg text-muted-foreground">{description}</p>
+<header class="mb-8 border-b border-border pb-6">
+  <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">{typeLabel}</p>
+  <h1 class="mt-2 text-[32px] font-semibold leading-[1.15] tracking-tight">{title}</h1>
+  <p class="mt-3 text-[15.5px] leading-[1.55] text-muted-foreground">{description}</p>
   {lastUpdated && (
-    <p class="mt-4 text-xs text-muted-foreground">
+    <p class="mt-4 text-[11px] uppercase tracking-wider text-muted-foreground">
       Last updated <time datetime={lastUpdated.toISOString()}>{lastUpdated.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</time>
     </p>
   )}

@@ -82,8 +82,8 @@
 }
 
 @utility prose {
-  @apply dark:text-gray-300 lg:text-lg;
-  line-height: 1.75em;
+  @apply text-[15px] dark:text-gray-300;
+  line-height: 1.65;
 
   /* Mobile overflow defense — long unbreakable strings (URLs, type names,
      identifiers) wrap instead of pushing the article column past the
@@ -105,15 +105,22 @@
   }
 
   & > hr {
-    @apply my-8;
+    @apply my-10;
   }
 
+  /* Doc-scale headings — Stripe/Linear/Anthropic conventions.
+     Display font (Outfit) at semibold 600; sizes tuned for in-content
+     scanning rather than landing-page hero use. */
   & > h2 {
-    @apply heading-2 mb-4 mt-10 text-3xl font-light leading-10 tracking-tight dark:text-white lg:text-[40px];
+    @apply mt-12 mb-4 text-[22px] font-semibold leading-[1.25] tracking-tight dark:text-white;
   }
 
   & > h3 {
-    @apply heading-3 mb-4 mt-10 text-2xl leading-tight tracking-tight dark:text-white;
+    @apply mt-8 mb-3 text-[17px] font-semibold leading-[1.35] tracking-tight dark:text-white;
+  }
+
+  & > h4 {
+    @apply mt-6 mb-2 text-[15px] font-semibold leading-snug tracking-tight dark:text-white;
   }
 
   & > img,
