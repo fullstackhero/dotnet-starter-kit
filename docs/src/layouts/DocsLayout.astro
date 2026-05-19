@@ -12,9 +12,15 @@ interface Props {
   description: string;
   headings: MarkdownHeading[];
   image?: string;
+  /** Per-page <title> override; falls through to BaseLayout default. */
+  seoTitle?: string;
+  /** Block search-engine indexing for this page (drafts, legal, etc.). */
+  noindex?: boolean;
+  /** Additional JSON-LD schemas (BreadcrumbList, TechArticle, …). */
+  additionalSchemas?: unknown[];
 }
 
-const { title, description, headings, image } = Astro.props;
+const { title, description, headings, image, seoTitle, noindex, additionalSchemas } = Astro.props;
 
 // Identify the current docs section for the mobile trigger label.
 const pathname = new URL(Astro.request.url).pathname;
@@ -24,7 +30,7 @@ const currentSection = currentSectionDir
   ? sections.find((s) => s.dir === currentSectionDir)
   : undefined;
 ---
-<BaseLayout {title} {description} {image}>
+<BaseLayout {title} {description} {image} {seoTitle} {noindex} {additionalSchemas}>
   <Header />
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="lg:grid lg:grid-cols-[16rem_minmax(0,1fr)_14rem] lg:gap-10 xl:gap-12">

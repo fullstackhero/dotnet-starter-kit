@@ -5,6 +5,8 @@ import PageHeader from '../../components/docs/PageHeader.astro';
 import Breadcrumbs from '../../components/docs/Breadcrumbs.astro';
 import PrevNext from '../../components/docs/PrevNext.astro';
 import { mdxComponents } from '../../components/mdx';
+import { buildBreadcrumbItems, buildBreadcrumbSchema } from '../../helpers/breadcrumb';
+import siteConfig from '../../data/site';
 
 export async function getStaticPaths() {
   const entries = await getCollection('docs');
@@ -26,8 +28,55 @@ const { entry } = Astro.props;
 const { Content, headings } = await render(entry);
 const currentHref = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : `${Astro.url.pathname}/`;
 const slugForCrumb = entry.id.replace(/\.mdx$/, '').replace(/\/index$/, '');
+
+// ── Per-page SEO ────────────────────────────────────────────────────────
+const seo = entry.data.seo ?? {};
+const seoTitle = seo.title; // when set, replaces the BaseLayout default composition entirely
+const description = seo.description ?? entry.data.description;
+const image = seo.ogImage;
+const noindex = seo.noindex === true;
+
+// ── Structured data ─────────────────────────────────────────────────────
+const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? siteConfig.url).toString();
+const breadcrumbItems = buildBreadcrumbItems(
+  Astro.url.pathname,
+  (Astro.site ?? new URL(siteConfig.url)).toString(),
+  entry.data.title,
+);
+const breadcrumbSchema = buildBreadcrumbSchema(breadcrumbItems);
+
+// TechArticle covers all docs page types (guide, reference, concept, recipe)
+// — it's the most generic schema Google + AI engines understand for
+// technical documentation.
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  headline: entry.data.title,
+  description,
+  url: canonicalURL,
+  mainEntityOfPage: canonicalURL,
+  image: new URL(image ?? siteConfig.ogImage, Astro.site ?? siteConfig.url).toString(),
+  author: { '@id': new URL('/#organization', siteConfig.url).toString() },
+  publisher: { '@id': new URL('/#organization', siteConfig.url).toString() },
+  ...(entry.data.lastUpdated && {
+    dateModified: entry.data.lastUpdated.toISOString(),
+    datePublished: entry.data.lastUpdated.toISOString(),
+  }),
+  inLanguage: 'en',
+  isPartOf: { '@id': new URL('/#website', siteConfig.url).toString() },
+};
+
+const additionalSchemas = [breadcrumbSchema, articleSchema];
 ---
-<DocsLayout title={entry.data.title} description={entry.data.description} {headings}>
+<DocsLayout
+  title={entry.data.title}
+  {description}
+  {headings}
+  {image}
+  {seoTitle}
+  {noindex}
+  {additionalSchemas}
+>
   <Breadcrumbs slug={slugForCrumb} title={entry.data.title} />
   <PageHeader
     title={entry.data.title}

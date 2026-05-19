@@ -30,7 +30,73 @@ export default defineConfig({
     // when inlined here).
     astroExpressiveCode(),
     mdx(),
-    sitemap(),
+    sitemap({
+      // Per-page priority + changefreq, signalling to crawlers which
+      // surfaces matter most. lastmod is set automatically from each
+      // file's mtime by @astrojs/sitemap.
+      serialize(item) {
+        const url = new URL(item.url);
+        const path = url.pathname;
+
+        // Homepage gets max priority + weekly cadence (release chip,
+        // star counts, etc. tend to refresh).
+        if (path === '/' || path === '') {
+          item.priority = 1.0;
+          item.changefreq = 'weekly';
+        }
+        // Top-of-funnel install / quick-start pages — high priority,
+        // moderate change cadence.
+        else if (
+          path.startsWith('/docs/getting-started/') ||
+          path === '/docs/getting-started/'
+        ) {
+          item.priority = 0.9;
+          item.changefreq = 'monthly';
+        }
+        // Module + building-block deep-dives — main long-tail surfaces.
+        else if (
+          path.startsWith('/docs/modules/') ||
+          path.startsWith('/docs/building-blocks/') ||
+          path.startsWith('/docs/architecture/')
+        ) {
+          item.priority = 0.8;
+          item.changefreq = 'monthly';
+        }
+        // Guides and recipes — high-quality content, refreshed over time.
+        else if (path.startsWith('/docs/guides/')) {
+          item.priority = 0.75;
+          item.changefreq = 'monthly';
+        }
+        // Cross-cutting, security, deployment — important reference.
+        else if (
+          path.startsWith('/docs/cross-cutting-concerns/') ||
+          path.startsWith('/docs/security/') ||
+          path.startsWith('/docs/deployment/') ||
+          path.startsWith('/docs/frontend/') ||
+          path.startsWith('/docs/testing/') ||
+          path.startsWith('/docs/cli/')
+        ) {
+          item.priority = 0.7;
+          item.changefreq = 'monthly';
+        }
+        // Changelog gets weekly cadence — search engines love freshness.
+        else if (path.startsWith('/docs/changelog/')) {
+          item.priority = 0.5;
+          item.changefreq = 'weekly';
+        }
+        // Contributing / meta pages — lower priority.
+        else if (path.startsWith('/docs/contributing/')) {
+          item.priority = 0.4;
+          item.changefreq = 'yearly';
+        }
+        // Anything else under /docs/ — sensible default.
+        else if (path.startsWith('/docs/')) {
+          item.priority = 0.6;
+          item.changefreq = 'monthly';
+        }
+        return item;
+      },
+    }),
   ],
   vite: {
     plugins: [tailwindcss()],
