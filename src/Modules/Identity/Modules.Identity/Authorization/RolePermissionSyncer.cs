@@ -20,7 +20,7 @@ public sealed class RolePermissionSyncer(
     IdentityDbContext context,
     RoleManager<FshRole> roleManager,
     IMultiTenantContextAccessor<AppTenantInfo> tenantAccessor,
-    ITenantCacheService cache,
+    IGlobalCacheService cache,
     TimeProvider timeProvider,
     ILogger<RolePermissionSyncer> logger)
 {
