@@ -144,10 +144,6 @@ export async function listRoles(): Promise<RoleDto[]> {
   return result.items ?? [];
 }
 
-export async function getRoleById(id: string): Promise<RoleDto> {
-  return apiFetch<RoleDto>(`/api/v1/identity/roles/${encodeURIComponent(id)}`);
-}
-
 export async function getRoleWithPermissions(id: string): Promise<RoleDto> {
   return apiFetch<RoleDto>(`/api/v1/identity/${encodeURIComponent(id)}/permissions`);
 }

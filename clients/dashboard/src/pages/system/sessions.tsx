@@ -312,7 +312,7 @@ function SessionMobileCard({
     <div
       className={cn(
         "block rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 text-left",
-        "shadow-[0_1px_2px_oklch(0_0_0_/_0.04)]",
+        "shadow-xs",
         !session.isActive && "opacity-75",
       )}
     >

@@ -150,9 +150,11 @@ export function FilePreviewDialog({ fileAssetId, initial, onClose, onDeleted }: 
             <MimeIcon contentType={metaQuery.data?.contentType ?? "application/octet-stream"} />
             <span className="truncate">{metaQuery.data?.originalFileName ?? "File"}</span>
           </DialogTitle>
-          <DialogDescription>
-            {metaQuery.data ? `${metaQuery.data.contentType} · ${formatBytes(metaQuery.data.sizeBytes)}` : " "}
-          </DialogDescription>
+          {metaQuery.data && (
+            <DialogDescription>
+              {metaQuery.data.contentType} · {formatBytes(metaQuery.data.sizeBytes)}
+            </DialogDescription>
+          )}
         </DialogHeader>
 
         <DialogBody className="space-y-4">

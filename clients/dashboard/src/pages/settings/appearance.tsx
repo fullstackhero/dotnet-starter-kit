@@ -23,6 +23,7 @@ import {
   accents,
   buildCustomBrandStops,
   CUSTOM_ACCENT_ID,
+  ensureLazyFontsLoaded,
   fonts,
   type AccentOption,
   type CustomAccentSpec,
@@ -51,6 +52,13 @@ export function AppearanceSettings() {
   } = useTheme();
   const [reducedMotion, setReducedMotion] = useState(false);
   const [customOpen, setCustomOpen] = useState(false);
+
+  // Fetch the nine lazy-loaded selectable font families the first time
+  // this page mounts so the font picker swatches render in their own
+  // typeface instead of falling back to the system sans.
+  useEffect(() => {
+    ensureLazyFontsLoaded();
+  }, []);
 
   return (
     <div className="space-y-6 fsh-enter">

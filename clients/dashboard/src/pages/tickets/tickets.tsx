@@ -58,6 +58,7 @@ import {
 } from "@/components/list";
 import { cn } from "@/lib/cn";
 import { describe, formatRelative } from "@/lib/list-helpers";
+import { useUserDisplay } from "@/lib/use-user-display";
 
 const PAGE_SIZE = 20;
 
@@ -312,7 +313,7 @@ function MobileCard({ ticket }: { ticket: TicketDto }) {
       aria-label={`Open ticket ${ticket.title}`}
       className={cn(
         "block rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 text-left",
-        "shadow-[0_1px_2px_oklch(0_0_0_/_0.04)]",
+        "shadow-xs",
         "transition-colors hover:bg-[oklch(from_var(--color-accent)_l_c_h_/_0.4)] active:bg-[oklch(from_var(--color-accent)_l_c_h_/_0.6)]",
         "outline-none focus-visible:ring-[3px] focus-visible:ring-[oklch(from_var(--color-ring)_l_c_h_/_0.4)]",
       )}
@@ -361,7 +362,7 @@ function DesktopRow({
   ticket: TicketDto;
   isLast: boolean;
 }) {
-  const assigneeLabel = ticket.assignedToUserId ?? "Unassigned";
+  const assignee = useUserDisplay(ticket.assignedToUserId);
   return (
     <EntityListRow className={DESKTOP_GRID} isLast={isLast}>
       {/* Subject — avatar + title + number */}
@@ -398,12 +399,12 @@ function DesktopRow({
       <div className="flex min-w-0 items-center gap-2">
         {ticket.assignedToUserId ? (
           <>
-            <EntityInitialsAvatar name={ticket.assignedToUserId} size={24} />
+            <EntityInitialsAvatar name={assignee.name} size={24} />
             <span
-              title={ticket.assignedToUserId}
-              className="truncate font-mono text-[12px] text-[var(--color-muted-foreground)]"
+              title={assignee.handle ?? ticket.assignedToUserId}
+              className="truncate text-[12px] text-[var(--color-foreground)]"
             >
-              {assigneeLabel}
+              {assignee.name}
             </span>
           </>
         ) : (

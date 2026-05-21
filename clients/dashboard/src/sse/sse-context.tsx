@@ -22,13 +22,22 @@ export type SseEvent = {
   receivedAt: number;
 };
 
-type SseContextValue = {
+// Two contexts — split so consumers that only watch status (the topbar
+// SSE dot, the bell footer pill) don't re-render every time a new event
+// lands. The previous single context's value identity changed on every
+// event because `events` is a fresh array, which cascaded re-renders
+// through the entire overview tree.
+type SseStatusValue = {
   status: SseStatus;
-  events: SseEvent[];
   eventCount: number;
 };
 
-const SseContext = createContext<SseContextValue | null>(null);
+type SseEventsValue = {
+  events: SseEvent[];
+};
+
+const SseStatusContext = createContext<SseStatusValue | null>(null);
+const SseEventsContext = createContext<SseEventsValue | null>(null);
 
 const MAX_EVENTS = 200;
 const INITIAL_BACKOFF_MS = 1000;
@@ -183,18 +192,41 @@ export function SseProvider({ children }: { children: ReactNode }) {
     };
   }, [appendEvent]);
 
-  const value = useMemo(
-    () => ({ status, events, eventCount }),
-    [status, events, eventCount],
+  const statusValue = useMemo<SseStatusValue>(
+    () => ({ status, eventCount }),
+    [status, eventCount],
   );
+  const eventsValue = useMemo<SseEventsValue>(() => ({ events }), [events]);
 
-  return <SseContext.Provider value={value}>{children}</SseContext.Provider>;
+  return (
+    <SseStatusContext.Provider value={statusValue}>
+      <SseEventsContext.Provider value={eventsValue}>{children}</SseEventsContext.Provider>
+    </SseStatusContext.Provider>
+  );
 }
 
-export function useSse() {
-  const ctx = useContext(SseContext);
-  if (!ctx) {
-    throw new Error("useSse must be used within SseProvider");
-  }
+/** Status + lifetime counter. Stable across event arrivals — use this in
+ *  the topbar dot, status pills, badges. */
+export function useSseStatus(): SseStatusValue {
+  const ctx = useContext(SseStatusContext);
+  if (!ctx) throw new Error("useSseStatus must be used within SseProvider");
   return ctx;
+}
+
+/** Full event stream. Mutates on every event — only mount in components
+ *  that render the event list (overview live feed, activity page). */
+export function useSseEvents(): SseEventsValue {
+  const ctx = useContext(SseEventsContext);
+  if (!ctx) throw new Error("useSseEvents must be used within SseProvider");
+  return ctx;
+}
+
+/**
+ * Backwards-compat composite hook. Returns status + events + counter
+ * together — equivalent to the pre-split API. New consumers should
+ * prefer `useSseStatus()` or `useSseEvents()` so they only subscribe to
+ * the slice they actually need.
+ */
+export function useSse(): SseStatusValue & SseEventsValue {
+  return { ...useSseStatus(), ...useSseEvents() };
 }

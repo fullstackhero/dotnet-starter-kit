@@ -176,9 +176,9 @@ export function UserPicker({
                 No users match "{debounced}".
               </div>
             ) : (
-              <ul role="listbox" aria-label="Search results">
+              <div role="listbox" aria-label="Search results">
                 {results.map((u) => (
-                  <li key={u.id}>
+                  <div key={u.id}>
                     <button
                       type="button"
                       role="option"
@@ -208,9 +208,9 @@ export function UserPicker({
                         </div>
                       </div>
                     </button>
-                  </li>
+                  </div>
                 ))}
-              </ul>
+              </div>
             )}
           </div>
         )}

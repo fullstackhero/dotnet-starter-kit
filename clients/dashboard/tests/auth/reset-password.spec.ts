@@ -16,12 +16,11 @@ test.describe("reset-password page", () => {
   test("renders the form when token + email + tenant are present", async ({ page }) => {
     await page.goto(VALID_LINK);
 
-    await expect(page.getByText("// 03.RESET-PASSWORD")).toBeVisible();
+    // The redesigned AuthShell drops the editorial eyebrow — assert on
+    // the visible headline + echoed email/tenant + field labels.
     await expect(page.getByRole("heading", { name: /set a new password/i })).toBeVisible();
     await expect(page.getByText("alice@acme.com")).toBeVisible();
-    // Tenant rendered as a standalone <code> chip — exact-match to avoid
-    // collision with the substring "acme" inside "alice@acme.com".
-    await expect(page.locator("code").filter({ hasText: /^acme$/ })).toBeVisible();
+    await expect(page.getByText(/on acme/i)).toBeVisible();
     await expect(page.getByLabel("New password")).toBeVisible();
     await expect(page.getByLabel("Confirm password")).toBeVisible();
   });

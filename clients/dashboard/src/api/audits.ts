@@ -195,14 +195,3 @@ export async function getAuditsByCorrelation(
   );
 }
 
-export async function getAuditsByTrace(
-  traceId: string,
-  query: { fromUtc?: string; toUtc?: string } = {},
-  signal?: AbortSignal,
-): Promise<AuditSummaryDto[]> {
-  const qs = toQueryString(query);
-  return apiFetch<AuditSummaryDto[]>(
-    `/api/v1/audits/by-trace/${encodeURIComponent(traceId)}${qs ? `?${qs}` : ""}`,
-    { signal },
-  );
-}

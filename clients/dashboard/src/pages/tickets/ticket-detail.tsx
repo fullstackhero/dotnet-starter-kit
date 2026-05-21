@@ -66,6 +66,7 @@ import {
   type EntityStatusTone,
 } from "@/components/list";
 import { cn } from "@/lib/cn";
+import { useUserDisplay } from "@/lib/use-user-display";
 import {
   describe,
   formatDate,
@@ -220,8 +221,8 @@ function Hero({
   const canResolve = ticket.status !== "Resolved" && ticket.status !== "Closed";
   const canReopen = ticket.status === "Resolved" || ticket.status === "Closed";
 
-  const reporterShort = ticket.reporterUserId.slice(0, 8);
-  const assignedShort = ticket.assignedToUserId?.slice(0, 8);
+  const reporter = useUserDisplay(ticket.reporterUserId);
+  const assignee = useUserDisplay(ticket.assignedToUserId);
 
   return (
     <EntityDetailHero
@@ -247,7 +248,7 @@ function Hero({
         <>
           <span className="font-mono tabular-nums">{ticket.number}</span>
           <span className="mx-1.5 text-[var(--color-border)]">·</span>
-          opened {formatRelative(ticket.createdAtUtc)} by {reporterShort}…
+          opened {formatRelative(ticket.createdAtUtc)} by {reporter.name}
         </>
       }
       actions={
@@ -317,13 +318,13 @@ function Hero({
           <EntityDetailMeta icon={User}>
             Assignee:&nbsp;
             <span className="font-medium text-[var(--color-foreground)]">
-              {assignedShort ? `${assignedShort}…` : "Unassigned"}
+              {ticket.assignedToUserId ? assignee.name : "Unassigned"}
             </span>
           </EntityDetailMeta>
           <EntityDetailMeta icon={UserCheck}>
             Reporter:&nbsp;
             <span className="font-medium text-[var(--color-foreground)]">
-              {reporterShort}…
+              {reporter.name}
             </span>
           </EntityDetailMeta>
           <EntityDetailMeta icon={CalendarDays}>
@@ -543,24 +544,26 @@ function CommentItem({
 // ───────────────────────────────────────────────────────────────────────
 
 function PropertiesSection({ ticket }: { ticket: TicketDto }) {
+  const reporter = useUserDisplay(ticket.reporterUserId);
+  const assignee = useUserDisplay(ticket.assignedToUserId);
   return (
     <EntityDetailSection title="Properties" icon={Info}>
       <dl className="space-y-3 text-[13px]">
         <Prop label="Reporter">
           <span
-            title={ticket.reporterUserId}
+            title={reporter.handle ?? ticket.reporterUserId}
             className="font-medium text-[var(--color-foreground)]"
           >
-            {ticket.reporterUserId.slice(0, 8)}…
+            {reporter.name}
           </span>
         </Prop>
         <Prop label="Assignee">
           {ticket.assignedToUserId ? (
             <span
-              title={ticket.assignedToUserId}
+              title={assignee.handle ?? ticket.assignedToUserId}
               className="font-medium text-[var(--color-primary)]"
             >
-              {ticket.assignedToUserId.slice(0, 8)}…
+              {assignee.name}
             </span>
           ) : (
             <span className="text-[var(--color-muted-foreground)]">Unassigned</span>
@@ -828,7 +831,7 @@ function AssignDialog({
 function DetailSkeleton() {
   return (
     <>
-      <div className="overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] shadow-[0_1px_2px_oklch(0_0_0_/_0.04)]">
+      <div className="overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] shadow-xs">
         <div className="h-1 w-full bg-[var(--color-muted)]" />
         <div className="space-y-4 p-5 sm:px-6">
           <div className="flex items-center gap-4">
@@ -857,7 +860,7 @@ function NotFoundPanel({ onBack }: { onBack: () => void }) {
     <div
       className={cn(
         "rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]",
-        "shadow-[0_1px_2px_oklch(0_0_0_/_0.04)]",
+        "shadow-xs",
         "flex flex-col items-center gap-4 px-8 py-16 text-center",
       )}
     >

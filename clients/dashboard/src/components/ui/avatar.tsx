@@ -22,6 +22,15 @@ const sizeClass: Record<AvatarSize, string> = {
   lg: "h-12 w-12 text-[16px]",
 };
 
+// Pixel dims mirror `sizeClass`. Setting width + height on the <img>
+// prevents avatar swap-in from triggering CLS while the image loads.
+const sizePx: Record<AvatarSize, number> = {
+  xs: 20,
+  sm: 28,
+  md: 36,
+  lg: 48,
+};
+
 const dotSize: Record<AvatarSize, string> = {
   xs: "h-1 w-1",
   sm: "h-1.5 w-1.5",
@@ -95,6 +104,10 @@ export const Avatar = React.forwardRef<HTMLSpanElement, AvatarProps>(
               src={src ?? undefined}
               alt={name ?? ""}
               referrerPolicy="no-referrer"
+              loading="lazy"
+              decoding="async"
+              width={sizePx[size]}
+              height={sizePx[size]}
               onError={() => setImgFailed(true)}
               className="h-full w-full object-cover"
             />

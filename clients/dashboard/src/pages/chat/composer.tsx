@@ -410,6 +410,13 @@ export function Composer({
                 ? `Message #${channelTitle}`
                 : `Message ${channelTitle}`
           }
+          aria-label={
+            replyTo
+              ? "Type your reply"
+              : channelType === 2
+                ? `Message channel ${channelTitle}`
+                : `Message ${channelTitle}`
+          }
           rows={1}
           className={cn(
             "block w-full resize-none border-0 bg-transparent px-4 py-3 pl-12 pr-14 text-sm",
@@ -527,9 +534,10 @@ function ReplyQuote({
         aria-label="Clear reply context"
         title="Clear reply"
         className={cn(
-          "grid h-5 w-5 shrink-0 cursor-pointer place-items-center rounded",
+          "grid h-6 w-6 shrink-0 cursor-pointer place-items-center rounded",
           "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
           "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
         )}
       >
         <X className="h-3 w-3" aria-hidden />
@@ -612,7 +620,7 @@ function UploadingChip({
         aria-label="Cancel upload"
         title="Cancel"
         className={cn(
-          "grid h-5 w-5 shrink-0 cursor-pointer place-items-center rounded",
+          "grid h-6 w-6 shrink-0 cursor-pointer place-items-center rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
           "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
         )}
       >
@@ -680,7 +688,7 @@ function PendingAttachmentChip({
         aria-label="Remove attachment"
         title="Remove attachment"
         className={cn(
-          "grid h-5 w-5 shrink-0 cursor-pointer place-items-center rounded",
+          "grid h-6 w-6 shrink-0 cursor-pointer place-items-center rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
           "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
         )}
       >

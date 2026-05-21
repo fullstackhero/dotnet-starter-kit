@@ -182,7 +182,7 @@ export function ResetPasswordPage() {
             </p>
           </div>
 
-          <form onSubmit={onSubmit} className="space-y-5" noValidate>
+          <form onSubmit={onSubmit} className="space-y-5" noValidate aria-describedby={error ? "reset-error" : undefined}>
             <div className="space-y-1.5">
               <Label
                 htmlFor="new-password"
@@ -201,13 +201,15 @@ export function ResetPasswordPage() {
                   autoComplete="new-password"
                   autoFocus
                   minLength={8}
+                  aria-invalid={error ? true : undefined}
+                  aria-describedby={error ? "reset-error" : undefined}
                   className="h-11 pr-11 text-[14px]"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 cursor-pointer text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.6)] transition-colors hover:text-[var(--color-foreground)]"
+                  className="absolute right-3.5 top-1/2 grid h-6 w-6 -translate-y-1/2 cursor-pointer place-items-center rounded text-[var(--color-muted-foreground)] transition-colors hover:text-[var(--color-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]"
                 >
                   {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
@@ -248,13 +250,15 @@ export function ResetPasswordPage() {
                   required
                   autoComplete="new-password"
                   minLength={8}
+                  aria-invalid={error ? true : undefined}
+                  aria-describedby={error ? "reset-error" : undefined}
                   className="h-11 pr-11 text-[14px]"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirm((v) => !v)}
                   aria-label={showConfirm ? "Hide password" : "Show password"}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 cursor-pointer text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.6)] transition-colors hover:text-[var(--color-foreground)]"
+                  className="absolute right-3.5 top-1/2 grid h-6 w-6 -translate-y-1/2 cursor-pointer place-items-center rounded text-[var(--color-muted-foreground)] transition-colors hover:text-[var(--color-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]"
                 >
                   {showConfirm ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
@@ -282,6 +286,7 @@ export function ResetPasswordPage() {
 
             {error && (
               <div
+                id="reset-error"
                 role="alert"
                 className={cn(
                   "fsh-enter flex items-start gap-2 rounded-lg border px-3 py-2 text-sm",

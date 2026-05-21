@@ -36,7 +36,7 @@ export function EntityPageHeader({
         <ToneIconTile icon={icon} tone={tone} size="lg" />
         <div className="min-w-0">
           <div className="flex items-baseline gap-2">
-            <h1 className="font-display text-[22px] font-semibold tracking-tight text-[var(--color-foreground)]">
+            <h1 className="font-display text-display-page font-semibold tracking-tight text-[var(--color-foreground)]">
               {title}
             </h1>
             {total !== undefined && total !== null && (
@@ -88,7 +88,7 @@ export function EntitySearch({
           "h-[46px] w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]",
           "pl-12 pr-4 text-[14px] font-normal text-[var(--color-foreground)] outline-none",
           "placeholder:text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.5)]",
-          "shadow-[0_1px_2px_oklch(0_0_0_/_0.04)]",
+          "shadow-xs",
           "transition-all duration-200",
           "focus:border-[oklch(from_var(--color-ring)_l_c_h_/_0.30)] focus:ring-2 focus:ring-[oklch(from_var(--color-ring)_l_c_h_/_0.10)]",
         )}
@@ -242,17 +242,19 @@ export function EntityEmpty({
 export function EntityListCard({
   className,
   children,
+  ...rest
 }: {
   className?: string;
   children: React.ReactNode;
-}) {
+} & React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={cn(
         "overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]",
-        "shadow-[0_1px_2px_oklch(0_0_0_/_0.04)]",
+        "shadow-xs",
         className,
       )}
+      {...rest}
     >
       {children}
     </div>
@@ -345,7 +347,7 @@ export const EntityMobileCard = React.forwardRef<
     ref={ref}
     className={cn(
       "block rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 text-left",
-      "shadow-[0_1px_2px_oklch(0_0_0_/_0.04)]",
+      "shadow-xs",
       "transition-colors hover:bg-[oklch(from_var(--color-accent)_l_c_h_/_0.4)] active:bg-[oklch(from_var(--color-accent)_l_c_h_/_0.6)]",
       "outline-none focus-visible:ring-[3px] focus-visible:ring-[oklch(from_var(--color-ring)_l_c_h_/_0.4)]",
       dim && "opacity-75",

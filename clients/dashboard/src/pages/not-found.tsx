@@ -38,7 +38,7 @@ export function NotFoundPage() {
           <FileQuestion className="size-6 text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.5)]" />
         </div>
 
-        <h1 className="mb-2 font-display text-[28px] font-semibold tracking-tight text-[var(--color-foreground)] sm:text-[32px]">
+        <h1 className="mb-2 font-display text-display-stat font-semibold tracking-tight text-[var(--color-foreground)]">
           Page not found
         </h1>
         <p className="mb-2 max-w-[380px] text-[14px] leading-relaxed text-[var(--color-muted-foreground)]">

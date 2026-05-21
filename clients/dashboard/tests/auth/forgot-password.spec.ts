@@ -2,15 +2,12 @@ import { expect, test } from "@playwright/test";
 import { captureRequest, mockJsonResponse, mockProblemDetails } from "../helpers/api-mocks";
 
 test.describe("forgot-password page", () => {
-  test("renders the form with the editorial eyebrow + tagline", async ({ page }) => {
+  test("renders the form with the headline + field labels", async ({ page }) => {
     await page.goto("/forgot-password");
 
-    // Eyebrow tag — the // 02.FORGOT-PASSWORD chrome that establishes
-    // the page as part of the auth surface, not a generic form.
-    await expect(page.getByText("// 02.FORGOT-PASSWORD")).toBeVisible();
-    await expect(page.getByText("email · token")).toBeVisible();
-
-    // Headline copy + form scaffolding.
+    // The redesigned AuthShell drops the editorial eyebrow in favor of
+    // the brand wordmark + headline. Assert against the headline copy
+    // + form scaffolding only.
     await expect(page.getByRole("heading", { name: /reset your password/i })).toBeVisible();
     await expect(page.getByLabel("Email")).toBeVisible();
     await expect(page.getByLabel("Tenant")).toBeVisible();
@@ -40,12 +37,12 @@ test.describe("forgot-password page", () => {
     await page.getByRole("button", { name: /send reset link/i }).click();
 
     // Success heading + echoed email/tenant in the confirmation copy.
-    // The tenant is rendered as a separate <code> chip — target the
-    // exact element to avoid the strict-mode collision with "globex"
-    // inside "bob@globex.com".
+    // The redesigned success surface renders the echoed values as
+    // foreground-tinted spans inside the prose — assert against the
+    // visible body text instead.
     await expect(page.getByRole("heading", { name: /check your inbox/i })).toBeVisible();
-    await expect(page.locator("code").filter({ hasText: /^bob@globex\.com$/ })).toBeVisible();
-    await expect(page.locator("code").filter({ hasText: /^globex$/ })).toBeVisible();
+    await expect(page.getByText(/bob@globex\.com/)).toBeVisible();
+    await expect(page.getByText(/in tenant globex/i)).toBeVisible();
 
     // "Try a different address" affordance lets the user retry without
     // a page reload — important when they typo their email.

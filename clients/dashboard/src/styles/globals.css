@@ -92,7 +92,11 @@
   --secondary-foreground:       var(--neutral-900);
 
   --muted:                      var(--neutral-100);
-  --muted-foreground:           var(--neutral-500);
+  /* Bumped from neutral-500 (L=0.575) to L=0.500 so that all muted body
+     copy and micro-labels clear WCAG 2.2 AA 4.5:1 contrast on every
+     surface, including the alpha-mask variants used for placeholders
+     and chevrons. */
+  --muted-foreground:           oklch(0.500 0  0);
 
   /* Accent = neutral hover chip. Was previously a warm cream tint that
      contributed to the global yellow cast; same L as before but with
@@ -119,10 +123,13 @@
   --ring:                       var(--brand-500);
 
   /* ── 3. SURFACES — explicit elevation. Use these instead of mixing
-     card/muted/accent ad-hoc.  ──────────────────────────────────────── */
+     card/muted/accent ad-hoc.
+     Light mode: canvas → tier-2 panel → tier-3 popover/sticky → tier-4 hover.
+     Each tier is one perceptual step distinct so cards visually float
+     above the canvas instead of merging into a hairline-edged plane. */
   --surface-1:                  var(--neutral-50);   /* canvas */
   --surface-2:                  var(--neutral-0);    /* sidebar, panels */
-  --surface-3:                  var(--neutral-0);    /* cards, popovers */
+  --surface-3:                  oklch(0.992 0  0);   /* cards, popovers, sticky chrome */
   --surface-4:                  var(--neutral-100);  /* hover, raised */
   --surface-1-hover:            var(--neutral-100);
   --surface-2-hover:            var(--neutral-50);
@@ -303,7 +310,10 @@
   --secondary-foreground:       oklch(0.925 0  0);
 
   --muted:                      var(--neutral-850);
-  --muted-foreground:           oklch(0.680 0  0);
+  /* Bumped from L=0.680 to L=0.730 so muted body copy clears 4.5:1
+     against the graphite background even when consumers apply an
+     /0.6 alpha mask (placeholders, chevrons, micro-meta). */
+  --muted-foreground:           oklch(0.730 0  0);
 
   --accent:                     var(--neutral-800);
   --accent-foreground:          oklch(0.925 0  0);
@@ -406,6 +416,18 @@
   --font-sans:    var(--font-sans);
   --font-mono:    var(--font-mono);
   --font-display: var(--font-display);
+
+  /* Type scale — canonical display sizes consumed by page primitives.
+     Page = top-of-page hero (list & detail).
+     Section = nested section header inside a page (role-detail, etc.).
+     Card = card-level title.
+     Stat = big numerals on stat cards / billing widgets.
+     Tailwind v4 auto-generates `text-display-page` etc. utilities from
+     these tokens. */
+  --text-display-page:    1.5rem;        /* 24px */
+  --text-display-section: 1.25rem;       /* 20px */
+  --text-display-card:    1.0625rem;     /* 17px */
+  --text-display-stat:    1.75rem;       /* 28px */
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -1033,6 +1055,25 @@
 .animate-fsh-dialog-in   { animation: fsh-dialog-in   var(--duration-slow)    var(--ease-out-cubic) both; }
 .animate-fsh-dialog-out  { animation: fsh-dialog-out  var(--duration-fast)    var(--ease-out-cubic) both; }
 
+/* Sheet (Radix Dialog with side variant) — slides in from the four
+   edges. Consumed by mobile drawer + side sheets. */
+@keyframes fsh-sheet-in-right   { from { transform: translateX( 100%); } to { transform: translateX(0); } }
+@keyframes fsh-sheet-out-right  { from { transform: translateX(0); }     to { transform: translateX( 100%); } }
+@keyframes fsh-sheet-in-left    { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+@keyframes fsh-sheet-out-left   { from { transform: translateX(0); }     to { transform: translateX(-100%); } }
+@keyframes fsh-sheet-in-top     { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+@keyframes fsh-sheet-out-top    { from { transform: translateY(0); }     to { transform: translateY(-100%); } }
+@keyframes fsh-sheet-in-bottom  { from { transform: translateY( 100%); } to { transform: translateY(0); } }
+@keyframes fsh-sheet-out-bottom { from { transform: translateY(0); }     to { transform: translateY( 100%); } }
+.animate-fsh-sheet-in-right   { animation: fsh-sheet-in-right   var(--duration-slow) var(--ease-out-cubic) both; }
+.animate-fsh-sheet-out-right  { animation: fsh-sheet-out-right  var(--duration-fast) var(--ease-out-cubic) both; }
+.animate-fsh-sheet-in-left    { animation: fsh-sheet-in-left    var(--duration-slow) var(--ease-out-cubic) both; }
+.animate-fsh-sheet-out-left   { animation: fsh-sheet-out-left   var(--duration-fast) var(--ease-out-cubic) both; }
+.animate-fsh-sheet-in-top     { animation: fsh-sheet-in-top     var(--duration-slow) var(--ease-out-cubic) both; }
+.animate-fsh-sheet-out-top    { animation: fsh-sheet-out-top    var(--duration-fast) var(--ease-out-cubic) both; }
+.animate-fsh-sheet-in-bottom  { animation: fsh-sheet-in-bottom  var(--duration-slow) var(--ease-out-cubic) both; }
+.animate-fsh-sheet-out-bottom { animation: fsh-sheet-out-bottom var(--duration-fast) var(--ease-out-cubic) both; }
+
 /* Aurora drift — the rose + saffron upper-corner glows breathe slowly.
    Kept very low amplitude (≤6% drift) so it stays peripheral, never
    distracting. Two layers now (was three) since the SVG noise tile was
@@ -1088,169 +1129,15 @@
   body { background-image: none; }
 }
 
-/* CHAT — page-specific atmospherics + motion. Lives at the bottom so it
-   inherits every var() defined above and doesn't fight Tailwind's layer
-   ordering. */
-@keyframes fsh-chat-typing {
-  0%   { transform: translateY(0);    opacity: 0.45; }
-  30%  { transform: translateY(-2px); opacity: 1; }
-  60%  { transform: translateY(0);    opacity: 0.45; }
-  100% { transform: translateY(0);    opacity: 0.45; }
-}
+/* CHAT-ONLY page chrome (.chat-typing-dot, .chat-unread-divider,
+   .chat-day-rule, .chat-reaction-chip, .chat-channel-header,
+   .chat-jump-pill, .chat-mention) lives in `pages/chat/chat.css` so
+   Vite extracts it into the chat-route CSS chunk — every other page
+   stops shipping ~3 KB gzip of selectors it'll never use.
 
-.chat-typing-dot {
-  animation: fsh-chat-typing 1100ms infinite var(--ease-out-cubic);
-}
-.chat-typing-dot:nth-child(2) { animation-delay: 160ms; }
-.chat-typing-dot:nth-child(3) { animation-delay: 320ms; }
-
-/* Unread divider — a calm rose-tinted pill with hairline dividers. The
-   earlier version had rose-glowing gradient lines and a bright filled
-   pill; toned to match the warm-paper aesthetic (subtle rose accent,
-   hairline only on the lines). */
-.chat-unread-divider {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.25rem 0.5rem;
-}
-.chat-unread-divider::before,
-.chat-unread-divider::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background-color: oklch(from var(--color-primary) l c h / 0.35);
-}
-.chat-unread-divider > span {
-  font-family: var(--font-sans);
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  font-weight: 600;
-  color: var(--color-primary);
-  background: oklch(from var(--color-primary) l c h / 0.08);
-  padding: 0.125rem 0.625rem;
-  border-radius: 9999px;
-}
-
-.chat-day-rule {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem 0;
-}
-.chat-day-rule::before,
-.chat-day-rule::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background-color: var(--color-border);
-}
-.chat-day-rule > span {
-  font-family: var(--font-sans);
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--color-muted-foreground);
-}
-
-.chat-reaction-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  height: 24px;
-  padding: 0 0.5rem;
-  border-radius: 9999px;
-  border: 1px solid var(--color-border);
-  background-color: var(--color-card);
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  color: var(--color-foreground);
-  cursor: pointer;
-  transition: transform var(--duration-fast) var(--ease-out-cubic),
-              background-color var(--duration-fast) var(--ease-out-cubic),
-              border-color var(--duration-fast) var(--ease-out-cubic);
-}
-.chat-reaction-chip:hover {
-  transform: translateY(-1px);
-  background-color: var(--color-muted);
-}
-.chat-reaction-chip[data-mine="true"] {
-  background-color: var(--color-primary-soft);
-  border-color: oklch(from var(--color-primary) l c h / 0.40);
-  color: var(--color-primary);
-}
-
-/* Channel header — flat warm-paper bar. The earlier radial rose wash
-   in the upper-right read as console chrome and fights the calm dos
-   feel. Class kept as a positioning anchor for any sticky logic. */
-.chat-channel-header {
-  position: relative;
-}
-
-/* Jump-to-bottom pill — floats above the composer when the user has scrolled
-   up and new messages have arrived. Brand-tinted ring + glow, mono caption,
-   spring-in on mount. */
-@keyframes fsh-chat-jump-in {
-  0%   { transform: translateY(8px) scale(0.96); opacity: 0; }
-  100% { transform: translateY(0)    scale(1);    opacity: 1; }
-}
-/* Jump-to-bottom pill — calm warm-paper card with a soft warm shadow.
-   Earlier glassy rose-glow stack read as console chrome; now it reads
-   as a small notification chip floating above the composer. */
-.chat-jump-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  height: 30px;
-  padding: 0 0.75rem 0 0.5rem;
-  border-radius: 9999px;
-  border: 1px solid var(--color-border);
-  background-color: var(--color-card);
-  box-shadow:
-    0 1px 2px oklch(0 0 0 / 0.06),
-    0 8px 18px -10px oklch(0 0 0 / 0.18);
-  color: var(--color-foreground);
-  cursor: pointer;
-  font-family: var(--font-sans);
-  font-size: 12px;
-  font-weight: 500;
-  animation: fsh-chat-jump-in var(--duration-default) var(--ease-out-cubic) both;
-  transition: transform var(--duration-fast) var(--ease-out-cubic),
-              box-shadow var(--duration-fast) var(--ease-out-cubic),
-              border-color var(--duration-fast) var(--ease-out-cubic);
-}
-.chat-jump-pill:hover {
-  transform: translateY(-1px);
-  border-color: var(--color-border-strong);
-  box-shadow:
-    0 1px 2px oklch(0 0 0 / 0.08),
-    0 10px 22px -10px oklch(0 0 0 / 0.22);
-}
-.chat-jump-pill:focus-visible {
-  outline: none;
-  border-color: var(--color-ring);
-  box-shadow:
-    0 0 0 3px oklch(from var(--color-ring) l c h / 0.5),
-    0 8px 18px -10px oklch(0 0 0 / 0.18);
-}
-.chat-jump-pill .chat-jump-pill-count {
-  display: inline-grid;
-  place-items: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  border-radius: 9999px;
-  background-color: var(--color-primary);
-  color: var(--color-primary-foreground);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
+   The .chat-status-pill family below stays here because the same
+   primitive is consumed by the global notification-bell footer via
+   RealtimeStatusPill. */
 
 /* Connection-state pill — used in the rail footer + bell footer to honestly
    reflect SignalR status. The dot pulses while reconnecting. */
@@ -1290,37 +1177,3 @@
   flex-shrink: 0;
 }
 
-/* Empty-state hero — calm warm-paper card. The earlier atmospheric
-   rose washes + dot grid read as console-rack chrome; the dos shape
-   is a centered icon tile + headline + body, which the consuming
-   component renders directly. Class is kept as a positioning anchor
-   for any layout that wraps the empty state. */
-.chat-empty-hero {
-  position: relative;
-}
-
-/* Interactive mention pill — keyboard-focusable, brand-tinted hover. */
-.chat-mention {
-  display: inline;
-  padding: 0 0.25rem;
-  border-radius: 4px;
-  background-color: var(--color-primary-soft);
-  color: var(--color-primary);
-  font-weight: 500;
-}
-button.chat-mention {
-  cursor: pointer;
-  font: inherit;
-  border: 1px solid transparent;
-  transition: background-color var(--duration-fast) var(--ease-out-cubic),
-              border-color var(--duration-fast) var(--ease-out-cubic);
-}
-button.chat-mention:hover {
-  background-color: oklch(from var(--color-primary) l c h / 0.22);
-  border-color: oklch(from var(--color-primary) l c h / 0.45);
-}
-button.chat-mention:focus-visible {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-ring);
-}

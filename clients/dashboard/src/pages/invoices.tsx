@@ -196,7 +196,7 @@ export function InvoicesPage() {
 
 function MobileCard({ invoice }: { invoice: InvoiceDto }) {
   return (
-    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 shadow-[0_1px_2px_oklch(0_0_0_/_0.04)]">
+    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 shadow-xs">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <ToneIconTile icon={Receipt} tone="primary" size="md" className="rounded-xl" />

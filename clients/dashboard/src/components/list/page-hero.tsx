@@ -68,7 +68,7 @@ export function PageHero({
         {/* Title + actions */}
         <div className="mt-4 grid grid-cols-1 gap-6 md:grid-cols-[1fr_auto] md:items-end">
           <div className="min-w-0">
-            <h1 className="font-display flex flex-wrap items-baseline gap-3 pb-1 text-[26px] font-semibold leading-[1.15] tracking-tight text-[var(--color-foreground)] sm:text-[30px]">
+            <h1 className="font-display flex flex-wrap items-baseline gap-3 pb-1 text-display-page font-semibold leading-[1.15] tracking-tight text-[var(--color-foreground)]">
               {title}
               {badge}
             </h1>

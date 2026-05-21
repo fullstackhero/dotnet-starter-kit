@@ -280,7 +280,7 @@ export function ProductsPage() {
             "h-[46px] w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]",
             "pl-12 pr-4 text-[14px] font-normal text-[var(--color-foreground)] outline-none",
             "placeholder:text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.5)]",
-            "shadow-[0_1px_2px_oklch(0_0_0_/_0.04)]",
+            "shadow-xs",
             "transition-all duration-200",
             "focus:border-[oklch(from_var(--color-ring)_l_c_h_/_0.30)] focus:ring-2 focus:ring-[oklch(from_var(--color-ring)_l_c_h_/_0.10)]",
           )}
@@ -345,7 +345,7 @@ export function ProductsPage() {
           </div>
 
           {/* Desktop: table */}
-          <div className="hidden overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] shadow-[0_1px_2px_oklch(0_0_0_/_0.04)] md:block">
+          <div className="hidden overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] shadow-xs md:block">
             {/* Header */}
             <div className="grid grid-cols-[1fr_120px_24px] gap-3 border-b border-[var(--color-border)] bg-[oklch(from_var(--color-muted)_l_c_h_/_0.4)] px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)] lg:grid-cols-[1fr_140px_110px_120px_24px]">
               <span>Product</span>
@@ -444,7 +444,7 @@ function MobileCard({
       aria-label={`Open product ${product.name}`}
       className={cn(
         "block rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 text-left",
-        "shadow-[0_1px_2px_oklch(0_0_0_/_0.04)]",
+        "shadow-xs",
         "transition-colors hover:bg-[oklch(from_var(--color-accent)_l_c_h_/_0.4)] active:bg-[oklch(from_var(--color-accent)_l_c_h_/_0.6)]",
         "outline-none focus-visible:ring-[3px] focus-visible:ring-[oklch(from_var(--color-ring)_l_c_h_/_0.4)]",
       )}

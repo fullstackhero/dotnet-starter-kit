@@ -171,7 +171,7 @@ export function NotificationBell() {
         </div>
 
         <div className="flex items-center justify-between border-t border-[var(--color-border)] px-4 py-2.5">
-          <RealtimeStatusPill />
+          <RealtimeStatusPill announce />
           <button
             type="button"
             onClick={() => {

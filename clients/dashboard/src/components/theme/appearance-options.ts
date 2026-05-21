@@ -136,9 +136,9 @@ export const DEFAULT_DENSITY: DensityMode = "comfortable";
 // pump up saturation.
 // ────────────────────────────────────────────────────────────────────────
 
-export type BrandStop = { stop: number; l: number; c: number };
+type BrandStop = { stop: number; l: number; c: number };
 
-export const BRAND_LADDER: ReadonlyArray<BrandStop> = [
+const BRAND_LADDER: ReadonlyArray<BrandStop> = [
   { stop:  50, l: 0.972, c: 0.020 },
   { stop: 100, l: 0.945, c: 0.040 },
   { stop: 200, l: 0.895, c: 0.078 },
@@ -160,6 +160,42 @@ export type CustomAccentSpec = {
 };
 
 export const DEFAULT_CUSTOM_ACCENT: CustomAccentSpec = { h: 12, c: 1.0 };
+
+// ────────────────────────────────────────────────────────────────────────
+// Lazy fonts — the index.html boot only loads Figtree + Outfit +
+// JetBrains Mono so cold start stays cheap. The other nine selectable
+// families are fetched on demand the first time the user opens the
+// Appearance settings (where their swatches need to render correctly).
+// Idempotent: a second call is a no-op.
+// ────────────────────────────────────────────────────────────────────────
+
+const LAZY_FONTS_HREF =
+  "https://fonts.googleapis.com/css2?" +
+  [
+    "family=DM+Sans:opsz,wght@9..40,100..1000",
+    "family=Geist:wght@100..900",
+    "family=IBM+Plex+Sans:wght@100;200;300;400;500;600;700",
+    "family=Inter+Tight:wght@100..900",
+    "family=Lexend:wght@100..900",
+    "family=Manrope:wght@200..800",
+    "family=Onest:wght@100..900",
+    "family=Plus+Jakarta+Sans:wght@200..800",
+    "family=Roboto+Flex:opsz,wght@8..144,100..1000",
+    "family=Sora:wght@100..800",
+    "display=swap",
+  ].join("&");
+
+const LAZY_FONTS_LINK_ID = "fsh-lazy-fonts";
+
+export function ensureLazyFontsLoaded(): void {
+  if (typeof document === "undefined") return;
+  if (document.getElementById(LAZY_FONTS_LINK_ID)) return;
+  const link = document.createElement("link");
+  link.id = LAZY_FONTS_LINK_ID;
+  link.rel = "stylesheet";
+  link.href = LAZY_FONTS_HREF;
+  document.head.appendChild(link);
+}
 
 /** Build the eleven `--brand-*` value strings for a given custom spec. */
 export function buildCustomBrandStops(

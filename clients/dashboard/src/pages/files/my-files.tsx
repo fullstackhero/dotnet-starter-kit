@@ -618,7 +618,7 @@ function MobileCard({
       onClick={onOpen}
       className={cn(
         "block w-full cursor-pointer rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 text-left",
-        "shadow-[0_1px_2px_oklch(0_0_0_/_0.04)]",
+        "shadow-xs",
         "transition-colors duration-[var(--duration-fast)]",
         "hover:border-[var(--color-border-strong)] hover:bg-[oklch(from_var(--color-primary)_l_c_h_/_0.03)]",
       )}

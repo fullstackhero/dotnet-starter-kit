@@ -39,7 +39,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EntityDetailSection } from "@/components/list";
 import { useAuth } from "@/auth/use-auth";
-import { useSse, type SseEvent } from "@/sse/sse-context";
+import { useSseEvents, useSseStatus, type SseEvent, type SseStatus } from "@/sse/sse-context";
 import { cn } from "@/lib/cn";
 
 // ────────────────────────────────────────────────────────────────────────
@@ -172,7 +172,7 @@ function StatCard({
     <div
       className={cn(
         "fsh-enter group/stat flex h-full items-start gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] px-4 py-3.5 shadow-xs",
-        "transition-colors duration-200 hover:border-[oklch(from_var(--color-border)_l_c_h_/_1.4)]",
+        "transition-colors duration-200 hover:border-[var(--color-border-strong)]",
       )}
       style={{ animationDelay: `${index * 50}ms` }}
     >
@@ -406,7 +406,7 @@ function SystemStatusBody({
   sseStatus,
   eventCount,
 }: {
-  sseStatus: ReturnType<typeof useSse>["status"];
+  sseStatus: SseStatus;
   eventCount: number;
 }) {
   const live = sseStatus === "connected";
@@ -635,7 +635,7 @@ function QuickActionsBody() {
           to={a.to}
           className={cn(
             "group/qa flex items-start gap-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-3",
-            "transition-colors duration-200 hover:border-[oklch(from_var(--color-border)_l_c_h_/_1.4)] hover:bg-[var(--color-accent)]",
+            "transition-colors duration-200 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-accent)]",
           )}
         >
           <span
@@ -833,7 +833,7 @@ function SetupTile({ spec }: { spec: SetupTileSpec }) {
       to={spec.to}
       className={cn(
         "group/tile flex h-full flex-col gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-3.5",
-        "transition-colors duration-200 hover:border-[oklch(from_var(--color-border)_l_c_h_/_1.4)] hover:bg-[var(--color-accent)]",
+        "transition-colors duration-200 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-accent)]",
       )}
     >
       <div className="flex items-start justify-between">
@@ -874,7 +874,8 @@ function SetupTile({ spec }: { spec: SetupTileSpec }) {
 
 export function OverviewPage() {
   const { user } = useAuth();
-  const { status: sseStatus, eventCount, events } = useSse();
+  const { status: sseStatus, eventCount } = useSseStatus();
+  const { events } = useSseEvents();
 
   const usage = useQuery({
     queryKey: ["billing", "usage"],
@@ -981,7 +982,7 @@ export function OverviewPage() {
           <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
             {dateCaption} · {tenantLabel}
           </p>
-          <h1 className="mt-1 font-display text-[26px] font-bold leading-tight tracking-tight text-foreground sm:text-[28px]">
+          <h1 className="mt-1 font-display text-display-page font-bold leading-tight tracking-tight text-foreground">
             {greeting}, {firstName}
           </h1>
         </div>

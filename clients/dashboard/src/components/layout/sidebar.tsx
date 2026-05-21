@@ -113,7 +113,7 @@ export function Sidebar() {
             type="button"
             onClick={toggle}
             aria-label="Collapse sidebar"
-            aria-expanded
+            aria-expanded={!collapsed}
             title="Collapse sidebar"
             className={cn(
               "grid h-7 w-7 shrink-0 cursor-pointer place-items-center rounded-md",

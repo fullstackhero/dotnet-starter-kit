@@ -6,14 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>FullStackHero — Dashboard</title>
 
-    <!-- Fonts: Geist + Inter Tight + DM Sans + IBM Plex Sans (selectable
-         in Settings → Appearance) plus JetBrains Mono for tabular/code.
-         All variable axes where supported. -->
+    <!-- Fonts — only the steady-state three are loaded eagerly:
+         Figtree (body), Outfit (display), JetBrains Mono (mono/code).
+         The other nine selectable families are lazy-injected by the
+         theme provider when the user opens Settings → Appearance, so
+         we don't pay 200-400 KB of font CSS on every cold load. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,100..1000&family=Figtree:wght@300..900&family=Geist:wght@100..900&family=IBM+Plex+Sans:wght@100;200;300;400;500;600;700&family=Inter+Tight:wght@100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Lexend:wght@100..900&family=Manrope:wght@200..800&family=Onest:wght@100..900&family=Outfit:wght@100..900&family=Plus+Jakarta+Sans:wght@200..800&family=Roboto+Flex:opsz,wght@8..144,100..1000&family=Sora:wght@100..800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@300..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Outfit:wght@100..900&display=swap"
     />
 
     <!--
@@ -39,6 +41,26 @@
           onest: "'Onest', " + SHARED_FALLBACKS,
           "roboto-flex": "'Roboto Flex', " + SHARED_FALLBACKS,
         };
+        // Fonts loaded eagerly in the markup above; everything else is
+        // lazy-injected. If the user has picked a non-eager body font,
+        // we inject the lazy bundle here so first paint doesn't fall
+        // back to the system font.
+        var EAGER_FONTS = { figtree: 1, outfit: 1, "jetbrains-mono": 1 };
+        var LAZY_FONTS_HREF =
+          "https://fonts.googleapis.com/css2?" +
+          [
+            "family=DM+Sans:opsz,wght@9..40,100..1000",
+            "family=Geist:wght@100..900",
+            "family=IBM+Plex+Sans:wght@100;200;300;400;500;600;700",
+            "family=Inter+Tight:wght@100..900",
+            "family=Lexend:wght@100..900",
+            "family=Manrope:wght@200..800",
+            "family=Onest:wght@100..900",
+            "family=Plus+Jakarta+Sans:wght@200..800",
+            "family=Roboto+Flex:opsz,wght@8..144,100..1000",
+            "family=Sora:wght@100..800",
+            "display=swap",
+          ].join("&");
         var ACCENTS = ["rose", "indigo", "violet", "sky", "emerald", "amber"];
 
         try {
@@ -54,6 +76,16 @@
           var savedFont = localStorage.getItem("fsh.font");
           if (savedFont && FONT_FAMILIES[savedFont]) {
             document.documentElement.style.setProperty("--font-sans", FONT_FAMILIES[savedFont]);
+            // Inject the lazy font bundle synchronously if the user has
+            // picked a body font not in the eager set, so the chosen
+            // typeface is available before first paint.
+            if (!EAGER_FONTS[savedFont]) {
+              var lazyLink = document.createElement("link");
+              lazyLink.rel = "stylesheet";
+              lazyLink.id = "fsh-lazy-fonts";
+              lazyLink.href = LAZY_FONTS_HREF;
+              document.head.appendChild(lazyLink);
+            }
           }
 
           // Accent — toggle accent-{id} class on :root. Rose is the

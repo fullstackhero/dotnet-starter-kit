@@ -558,7 +558,15 @@ export const MessageList = forwardRef<
 
   return (
     <div className="relative h-full">
-      <div ref={parentRef} onScroll={onScroll} className="h-full overflow-y-auto">
+      <div
+        ref={parentRef}
+        onScroll={onScroll}
+        className="h-full overflow-y-auto"
+        role="log"
+        aria-live="polite"
+        aria-relevant="additions"
+        aria-label="Channel messages"
+      >
         {loadingOlder && (
           <div className="flex h-9 items-center justify-center text-[11px] text-[var(--color-muted-foreground)]">
             Loading older…

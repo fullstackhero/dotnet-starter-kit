@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar } from "@/components/ui/avatar";
 import { useAuth } from "@/auth/use-auth";
-import { useSse } from "@/sse/sse-context";
+import { useSseStatus } from "@/sse/sse-context";
 import { useTheme } from "@/components/theme/theme-provider";
 import { cn } from "@/lib/cn";
 
@@ -117,7 +117,7 @@ function SimpleMenuItem({
 
 export function Topbar() {
   const { user, logout } = useAuth();
-  const { status: sseStatus, eventCount } = useSse();
+  const { status: sseStatus, eventCount } = useSseStatus();
   const { mode, setMode } = useTheme();
   const { setOpen: setPaletteOpen } = useCommandPalette();
   const navigate = useNavigate();

@@ -92,7 +92,7 @@ export function SettingsLayout() {
                         cn(
                           "group relative flex w-full items-start gap-3 rounded-lg pl-5 pr-3 py-3 text-left transition-all cursor-pointer",
                           isActive
-                            ? "bg-[var(--color-card)] shadow-[0_1px_2px_oklch(0_0_0_/_0.04)]"
+                            ? "bg-[var(--color-card)] shadow-xs"
                             : "hover:bg-[oklch(from_var(--color-muted)_l_c_h_/_0.4)]",
                         )
                       }
@@ -210,7 +210,7 @@ export function SettingsSection({
     <section
       className={cn(
         "overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]",
-        "shadow-[0_1px_2px_oklch(0_0_0_/_0.04)]",
+        "shadow-xs",
         className,
       )}
     >

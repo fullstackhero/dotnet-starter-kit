@@ -83,15 +83,6 @@ export function listMyChannels(params: { page?: number; pageSize?: number } = {}
   return apiFetch<ChannelDto[]>(`/api/v1/chat/channels${q ? `?${q}` : ""}`);
 }
 
-export function discoverChannels(params: { search?: string; page?: number; pageSize?: number } = {}): Promise<ChannelDto[]> {
-  const qs = new URLSearchParams();
-  if (params.search) qs.set("search", params.search);
-  if (params.page) qs.set("page", String(params.page));
-  if (params.pageSize) qs.set("pageSize", String(params.pageSize));
-  const q = qs.toString();
-  return apiFetch<ChannelDto[]>(`/api/v1/chat/channels/discover${q ? `?${q}` : ""}`);
-}
-
 export function getChannelById(channelId: string): Promise<ChannelDto> {
   return apiFetch<ChannelDto>(`/api/v1/chat/channels/${encodeURIComponent(channelId)}`);
 }
@@ -112,10 +103,6 @@ export function updateChannel(input: { channelId: string; name: string; descript
 
 export function archiveChannel(channelId: string): Promise<void> {
   return apiFetch<void>(`/api/v1/chat/channels/${encodeURIComponent(channelId)}`, { method: "DELETE" });
-}
-
-export function restoreChannel(channelId: string): Promise<void> {
-  return apiFetch<void>(`/api/v1/chat/channels/${encodeURIComponent(channelId)}/restore`, { method: "POST" });
 }
 
 export function addChannelMembers(channelId: string, userIds: string[]): Promise<void> {

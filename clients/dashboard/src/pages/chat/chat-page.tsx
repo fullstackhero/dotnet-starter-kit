@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+// Per-route chat chrome — Vite extracts this into the chat-page CSS chunk
+// so other pages stop shipping the unread divider / day rule / reaction
+// chip / jump-pill / mention pill / typing dot rules they'll never use.
+import "./chat.css";
 import {
   ArrowLeft,
   Hash,
@@ -259,9 +263,9 @@ function ActiveChannel({
             <Icon className="size-3.5" />
           </span>
           <div className="min-w-0 flex-1">
-            <h1 className="truncate font-display text-[14px] font-semibold tracking-tight text-[var(--color-foreground)]">
+            <h2 className="truncate font-display text-[14px] font-semibold tracking-tight text-[var(--color-foreground)]">
               {title}
-            </h1>
+            </h2>
             {channel.description && channel.type === 2 && (
               <p className="truncate text-[11px] text-[var(--color-muted-foreground)]">
                 {channel.description}

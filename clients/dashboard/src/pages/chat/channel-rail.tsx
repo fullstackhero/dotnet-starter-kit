@@ -128,7 +128,7 @@ export function ChannelRail({
               onClick={() => setFilter("")}
               aria-label="Clear filter"
               className={cn(
-                "absolute right-1 top-1/2 grid h-5 w-5 -translate-y-1/2 cursor-pointer place-items-center rounded",
+                "absolute right-1 top-1/2 grid h-6 w-6 -translate-y-1/2 cursor-pointer place-items-center rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
                 "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
               )}
             >
@@ -226,7 +226,7 @@ function Section({
           title={actionLabel}
           aria-label={actionLabel}
           className={cn(
-            "grid h-5 w-5 cursor-pointer place-items-center rounded-md",
+            "grid h-6 w-6 cursor-pointer place-items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
             "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
             "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",

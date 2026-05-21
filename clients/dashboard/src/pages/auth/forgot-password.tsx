@@ -132,7 +132,7 @@ export function ForgotPasswordPage() {
             </p>
           </div>
 
-          <form onSubmit={onSubmit} className="space-y-5" noValidate>
+          <form onSubmit={onSubmit} className="space-y-5" noValidate aria-describedby={error ? "forgot-error" : undefined}>
             <div className="space-y-1.5">
               <Label
                 htmlFor="reset-tenant"
@@ -149,6 +149,8 @@ export function ForgotPasswordPage() {
                   placeholder="root"
                   autoComplete="organization"
                   required
+                  aria-invalid={error ? true : undefined}
+                  aria-describedby={error ? "forgot-error" : undefined}
                   className="h-11 pl-10 text-[14px]"
                 />
               </div>
@@ -172,6 +174,8 @@ export function ForgotPasswordPage() {
                   autoComplete="email"
                   required
                   autoFocus
+                  aria-invalid={error ? true : undefined}
+                  aria-describedby={error ? "forgot-error" : undefined}
                   className="h-11 pl-10 text-[14px]"
                 />
               </div>
@@ -179,6 +183,7 @@ export function ForgotPasswordPage() {
 
             {error && (
               <div
+                id="forgot-error"
                 role="alert"
                 className={cn(
                   "fsh-enter flex items-start gap-2 rounded-lg border px-3 py-2 text-sm",

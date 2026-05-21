@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Activity, Inbox } from "lucide-react";
-import { useSse, type SseEvent } from "@/sse/sse-context";
+import { useSseEvents, useSseStatus, type SseEvent } from "@/sse/sse-context";
 import { Badge } from "@/components/ui/badge";
 import {
   EntityEmpty,
@@ -67,7 +67,8 @@ function entityLabel(data: unknown): string {
 const DESKTOP_GRID = "grid-cols-[1fr_240px_120px]";
 
 export function ActivityPage() {
-  const { status, events, eventCount } = useSse();
+  const { status, eventCount } = useSseStatus();
+  const { events } = useSseEvents();
 
   const items = useMemo(() => events.slice(0, 200), [events]);
   const isLive = status === "connected";
@@ -112,14 +113,26 @@ export function ActivityPage() {
           </div>
 
           {/* Mobile: card list */}
-          <div className="space-y-2 md:hidden">
+          <div
+            className="space-y-2 md:hidden"
+            role="log"
+            aria-live="polite"
+            aria-relevant="additions"
+            aria-label="Activity events"
+          >
             {items.map((ev) => (
               <MobileCard key={ev.id} ev={ev} />
             ))}
           </div>
 
           {/* Desktop: table */}
-          <EntityListCard className="hidden md:block">
+          <EntityListCard
+            className="hidden md:block"
+            role="log"
+            aria-live="polite"
+            aria-relevant="additions"
+            aria-label="Activity events"
+          >
             <EntityListHeader className={DESKTOP_GRID}>
               <span>Action</span>
               <span>Entity</span>
@@ -143,7 +156,7 @@ export function ActivityPage() {
 // a stream of events, not a list of routable entities).
 function MobileCard({ ev }: { ev: SseEvent }) {
   return (
-    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 shadow-[0_1px_2px_oklch(0_0_0_/_0.04)]">
+    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 shadow-xs">
       <div className="flex items-center justify-between gap-2">
         <EntityStatusBadge tone={eventTone(ev.type)}>{ev.type}</EntityStatusBadge>
         <span className="font-mono text-[11px] tabular-nums text-[var(--color-muted-foreground)]">
