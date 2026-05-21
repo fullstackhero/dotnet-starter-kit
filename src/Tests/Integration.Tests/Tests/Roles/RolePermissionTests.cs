@@ -20,8 +20,8 @@ public sealed class RolePermissionTests
 
         // Find the Admin role
         var rolesResponse = await client.GetAsync($"{TestConstants.IdentityBasePath}/roles");
-        var roles = await rolesResponse.DeserializeAsync<RoleDto[]>();
-        var adminRole = roles.First(r => r.Name == "Admin");
+        var page = await rolesResponse.DeserializeAsync<PagedResponse<RoleDto>>();
+        var adminRole = page.Items.First(r => r.Name == "Admin");
 
         var response = await client.GetAsync($"{TestConstants.IdentityBasePath}/{adminRole.Id}/permissions");
 
