@@ -51,7 +51,7 @@ export function ChatUnreadBadge() {
             "absolute -right-0.5 -top-0.5 grid min-w-[16px] place-items-center rounded-full",
             "h-4 px-1 font-mono text-[9.5px] font-semibold tabular-nums leading-none",
             "bg-[var(--color-primary)] text-[var(--color-primary-foreground)]",
-            "ring-2 ring-[var(--color-surface-1)]",
+            "ring-2 ring-[var(--color-background)]",
           )}
         >
           {unread > 99 ? "99+" : unread}

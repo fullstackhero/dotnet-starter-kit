@@ -26,7 +26,7 @@ export function SseStatusBadge() {
       : "var(--color-muted-foreground)";
 
   return (
-    <div className="gradient-border inline-flex items-center gap-2 rounded-full bg-[var(--color-surface-2)] px-2.5 py-1 text-xs">
+    <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-muted)] px-2.5 py-1 text-xs">
       <span
         aria-hidden
         className={cn("inline-flex h-2 w-2 rounded-full", isLive && "pulse-dot")}

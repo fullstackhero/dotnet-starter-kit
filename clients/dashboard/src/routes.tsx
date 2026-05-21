@@ -18,13 +18,13 @@ import { cn } from "@/lib/cn";
 // shape compatible with React.lazy.
 // ─────────────────────────────────────────────────────────────────────────
 
-function lazyNamed<T extends Record<string, ComponentType<unknown>>, K extends keyof T>(
+function lazyNamed<T extends Record<string, unknown>, K extends keyof T>(
   importer: () => Promise<T>,
   name: K,
 ) {
   return lazy(async () => {
     const mod = await importer();
-    return { default: mod[name] };
+    return { default: mod[name] as ComponentType<unknown> };
   });
 }
 

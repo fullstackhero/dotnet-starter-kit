@@ -288,7 +288,7 @@ function CommandPaletteDialog({
       <DialogContent
         className={cn(
           "max-w-[640px] p-0 sm:max-w-[640px]",
-          "bg-[oklch(from_var(--color-popover)_l_c_h_/_0.92)] backdrop-blur-2xl backdrop-saturate-150",
+          "bg-[var(--color-popover)]",
         )}
       >
         <DialogTitle className="sr-only">Command palette</DialogTitle>
@@ -301,18 +301,18 @@ function CommandPaletteDialog({
           className="flex flex-col"
           // cmdk sets [cmdk-...] data attrs we hook into with selectors below.
         >
-          {/* Search row */}
-          <div className="flex items-center gap-2.5 border-b border-[var(--color-border)] px-4 py-3">
-            <Search className="h-4 w-4 shrink-0 text-[var(--color-muted-foreground)]" aria-hidden />
+          {/* Search row — mirrors EntitySearch shape (rounded-xl, soft icon left). */}
+          <div className="flex items-center gap-2.5 border-b border-border px-4 py-3">
+            <Search className="h-[18px] w-[18px] shrink-0 text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.5)]" aria-hidden />
             <Command.Input
               placeholder="Type a command or search…"
               className={cn(
-                "h-7 flex-1 bg-transparent text-sm tracking-tight placeholder:text-[var(--color-muted-foreground)]",
+                "h-7 flex-1 bg-transparent text-[14px] tracking-tight placeholder:text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.5)]",
                 "focus:outline-none focus-visible:outline-none focus-visible:shadow-none",
               )}
               autoFocus
             />
-            <kbd className="rounded border border-[var(--color-border-strong)] bg-[var(--color-surface-2)] px-1.5 py-px font-mono text-[10px] tracking-tight text-[var(--color-muted-foreground)]">
+            <kbd className="rounded border border-border bg-[var(--color-muted)] px-1.5 py-px text-[10px] tracking-tight text-[var(--color-muted-foreground)]">
               Esc
             </kbd>
           </div>
@@ -333,9 +333,9 @@ function CommandPaletteDialog({
                 className={cn(
                   // Heading text styling via cmdk's nested rendering.
                   "[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-3",
-                  "[&_[cmdk-group-heading]]:font-mono [&_[cmdk-group-heading]]:text-[10.5px]",
-                  "[&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:uppercase",
-                  "[&_[cmdk-group-heading]]:tracking-[0.12em] [&_[cmdk-group-heading]]:text-[var(--color-muted-foreground)]",
+                  "[&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-semibold",
+                  "[&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider",
+                  "[&_[cmdk-group-heading]]:text-[var(--color-muted-foreground)]",
                 )}
               >
                 {group.items.map((item) => (
@@ -346,19 +346,19 @@ function CommandPaletteDialog({
           </Command.List>
 
           {/* Footer */}
-          <div className="flex items-center justify-between border-t border-[var(--color-border)] px-4 py-2.5">
-            <div className="flex items-center gap-3 font-mono text-[10.5px] uppercase tracking-[0.08em] text-[var(--color-muted-foreground)]">
+          <div className="flex items-center justify-between border-t border-border px-4 py-2.5">
+            <div className="flex items-center gap-3 text-[11px] text-[var(--color-muted-foreground)]">
               <span className="flex items-center gap-1">
-                <kbd className="rounded border border-[var(--color-border-strong)] bg-[var(--color-surface-2)] px-1 py-px text-[9px]">↑</kbd>
-                <kbd className="rounded border border-[var(--color-border-strong)] bg-[var(--color-surface-2)] px-1 py-px text-[9px]">↓</kbd>
+                <kbd className="rounded border border-border bg-[var(--color-muted)] px-1 py-px text-[9px]">↑</kbd>
+                <kbd className="rounded border border-border bg-[var(--color-muted)] px-1 py-px text-[9px]">↓</kbd>
                 navigate
               </span>
               <span className="flex items-center gap-1">
-                <kbd className="rounded border border-[var(--color-border-strong)] bg-[var(--color-surface-2)] px-1 py-px text-[9px]">↵</kbd>
+                <kbd className="rounded border border-border bg-[var(--color-muted)] px-1 py-px text-[9px]">↵</kbd>
                 select
               </span>
             </div>
-            <span className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
+            <span className="text-[11px] text-[var(--color-muted-foreground)]">
               v0.1
             </span>
           </div>
@@ -378,14 +378,15 @@ function CommandRow({ item }: { item: ActionItem }) {
         "group/cmd flex cursor-default select-none items-center gap-3 rounded-md px-2.5 py-2 text-sm",
         "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
         "outline-none focus:outline-none focus-visible:outline-none focus-visible:shadow-none",
-        "data-[selected=true]:bg-[var(--color-accent)] data-[selected=true]:text-[var(--color-foreground)]",
+        "hover:bg-[oklch(from_var(--color-accent)_l_c_h_/_0.4)]",
+        "data-[selected=true]:bg-[var(--color-primary-soft)] data-[selected=true]:text-[var(--color-foreground)]",
       )}
     >
       <span
         aria-hidden
         className={cn(
           "grid h-7 w-7 shrink-0 place-items-center rounded-md",
-          "bg-[var(--color-surface-2)] text-[var(--color-muted-foreground)]",
+          "bg-[var(--color-muted)] text-[var(--color-muted-foreground)]",
           "transition-colors group-data-[selected=true]/cmd:bg-[var(--color-primary-soft)] group-data-[selected=true]/cmd:text-[var(--color-primary)]",
         )}
       >

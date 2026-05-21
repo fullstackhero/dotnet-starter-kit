@@ -215,7 +215,7 @@ function SwatchButton({ active, className, children, ...props }: SwatchProps) {
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2",
         active
           ? "border-[var(--color-primary)] bg-[var(--color-primary-soft)]"
-          : "border-[var(--color-border)] bg-[var(--color-surface-2)] hover:border-[var(--color-border-strong)]",
+          : "border-[var(--color-border)] bg-[var(--color-card)] hover:bg-[var(--color-muted)]",
         className,
       )}
       {...props}
@@ -227,8 +227,8 @@ function SwatchButton({ active, className, children, ...props }: SwatchProps) {
 
 function ActiveTag() {
   return (
-    <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-[var(--color-primary)]">
-      active
+    <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-primary)]">
+      Active
     </span>
   );
 }
@@ -312,12 +312,12 @@ function FontCard({
           "mb-3 grid h-12 w-full place-items-center rounded-lg border",
           active
             ? "border-[var(--color-primary)] bg-[oklch(from_var(--color-primary)_l_c_h_/_0.06)]"
-            : "border-[var(--color-border)] bg-[var(--color-surface-1)]",
+            : "border-[var(--color-border)] bg-[var(--color-muted)]",
         )}
         style={{ fontFamily: option.family }}
         aria-hidden
       >
-        <span className="text-display text-2xl font-semibold tracking-tight">
+        <span className="font-display text-2xl font-semibold tracking-tight">
           Aa <span className="font-normal text-[var(--color-muted-foreground)]">0123</span>
         </span>
       </div>
@@ -424,9 +424,6 @@ function CustomAccentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[560px]">
         <DialogHeader>
-          <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-            Accent · custom
-          </span>
           <DialogTitle>Pick your brand colour</DialogTitle>
           <DialogDescription>
             Drag the hue ribbon to recolour the accent. Saturation scales
@@ -504,7 +501,7 @@ function CustomAccentDialog({
               Preview
             </div>
             <div
-              className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-2)] p-4"
+              className="rounded-xl border border-[var(--color-border)] bg-[var(--color-muted)] p-4"
               style={previewStyle as React.CSSProperties}
             >
               <div className="flex items-center justify-between">

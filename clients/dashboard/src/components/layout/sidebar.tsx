@@ -74,33 +74,37 @@ export function Sidebar() {
       aria-label="Primary navigation"
       className={cn(
         "hidden shrink-0 flex-col border-r border-[var(--color-border)]",
-        "bg-[var(--color-surface-2)] md:flex",
+        "bg-[oklch(from_var(--color-card)_l_c_h_/_0.85)] backdrop-blur-xl backdrop-saturate-150 md:flex",
         "transition-[width] duration-[var(--duration-default)] ease-[var(--ease-out-cubic)]",
-        collapsed ? "w-[64px]" : "w-60",
+        collapsed ? "w-[52px]" : "w-[220px]",
       )}
     >
       {/* Brand row. */}
       <div
         className={cn(
-          "flex h-14 shrink-0 items-center border-b border-[var(--color-border)]",
-          collapsed ? "justify-center px-0" : "justify-between px-3",
+          "flex h-14 shrink-0 items-center",
+          collapsed ? "justify-center px-0" : "justify-between px-4",
         )}
       >
-        <div className="flex items-center gap-2.5">
+        <div className={cn("flex items-center", collapsed ? "" : "gap-2.5")}>
           <span
             aria-hidden
             className={cn(
-              "brand-mark grid h-7 w-7 place-items-center rounded-md",
-              "text-[11px] font-bold tracking-tight text-[var(--color-primary-foreground)]",
-              "shadow-[0_1px_0_oklch(1_0_0_/_0.18)_inset,0_4px_14px_-4px_oklch(from_var(--color-primary)_l_c_h_/_0.45)]",
+              "brand-mark grid size-8 place-items-center rounded-lg shrink-0",
+              "font-display text-[12px] font-bold text-[var(--color-primary-foreground)]",
             )}
           >
             F
           </span>
           {!collapsed && (
-            <span className="whitespace-nowrap font-semibold tracking-tight">
-              fullstackhero
-            </span>
+            <div className="flex flex-col">
+              <span className="whitespace-nowrap font-display text-[15px] font-bold leading-none tracking-tight text-[var(--color-foreground)]">
+                fullstack<span className="text-[var(--color-primary)]">hero</span>
+              </span>
+              <span className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.7)]">
+                Console
+              </span>
+            </div>
           )}
         </div>
 
@@ -286,8 +290,8 @@ function AccordionSection({
         "rounded-lg",
         "transition-[background-color,border-color,box-shadow,padding] duration-[var(--duration-default)] ease-[var(--ease-out-cubic)]",
         isOpen
-          ? "border border-[var(--color-border)] bg-[var(--color-surface-3)] p-1.5 shadow-[var(--highlight-top)]"
-          : "border border-transparent p-0 shadow-none",
+          ? "border border-[var(--color-border)] bg-[var(--color-muted)] p-1.5"
+          : "border border-transparent p-0",
       )}
     >
       {/* Section header. Structured to mirror NavItemLink — same height,

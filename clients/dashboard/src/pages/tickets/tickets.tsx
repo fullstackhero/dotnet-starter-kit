@@ -12,18 +12,10 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import {
-  AlertOctagon,
   AlertTriangle,
-  CheckCircle2,
-  CircleDot,
-  Clock,
-  MessageCircle,
+  ChevronRight,
   Plus,
-  Search,
-  Sparkles,
   Ticket as TicketIcon,
-  Trash2,
-  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -48,67 +40,30 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Combobox,
-  DensityToggle,
-  EmptyState,
-  ErrorBand,
+  EntityEmpty,
+  EntityFilterPill,
+  EntityInitialsAvatar,
+  EntityListCard,
+  EntityListHeader,
+  EntityListLoading,
+  EntityListRow,
+  EntityPageHeader,
+  EntityPager,
+  EntitySearch,
+  EntityStatusBadge,
   Field,
-  ListHero,
-  Pagination,
-  SortChips,
-  Stat,
-  StatStrip,
-  usePersistedDensity,
-  type Density,
-  type SortDir,
-  type SortOption,
+  type EntityStatusTone,
 } from "@/components/list";
-import { useAuth } from "@/auth/use-auth";
 import { cn } from "@/lib/cn";
-import {
-  describe,
-  formatRelative,
-  pad2,
-} from "@/lib/list-helpers";
+import { describe, formatRelative } from "@/lib/list-helpers";
 
 const PAGE_SIZE = 20;
-const DENSITY_KEY = "fsh.dashboard.tickets.density";
-
-type SortKey = "createdAtUtc" | "number" | "priority" | "status" | "title";
-
-const SORT_OPTIONS: SortOption<SortKey>[] = [
-  { key: "createdAtUtc", label: "Created" },
-  { key: "number", label: "Number" },
-  { key: "priority", label: "Priority" },
-  { key: "status", label: "Status" },
-  { key: "title", label: "Title" },
-];
 
 type EditorState = { mode: "closed" } | { mode: "create" };
 
-// ─── Status / Priority tone tables ──────────────────────────────────────
-//
-// Keep these in one place. The "tone" is the OKLCH-tinted accent that
-// drives the row's left-edge pull-tab, the badge surface, and the icon
-// fill. Mapping is centralized so changes ripple consistently.
-
-type Tone = "open" | "progress" | "resolved" | "closed";
-
-const STATUS_TONE: Record<TicketStatus, Tone> = {
-  Open: "open",
-  InProgress: "progress",
-  Resolved: "resolved",
-  Closed: "closed",
-};
-
-const STATUS_COLOR: Record<Tone, string> = {
-  open: "var(--color-primary)",
-  progress: "oklch(0.700 0.155 195)", // cyan
-  resolved: "var(--color-success)",
-  closed: "var(--color-muted-foreground)",
-};
+// ─── Status / Priority labels + tones ────────────────────────────────────
 
 const STATUS_LABEL: Record<TicketStatus, string> = {
   Open: "Open",
@@ -117,11 +72,11 @@ const STATUS_LABEL: Record<TicketStatus, string> = {
   Closed: "Closed",
 };
 
-const STATUS_ICON: Record<TicketStatus, React.ComponentType<{ className?: string }>> = {
-  Open: CircleDot,
-  InProgress: Clock,
-  Resolved: CheckCircle2,
-  Closed: CheckCircle2,
+const STATUS_TONE: Record<TicketStatus, EntityStatusTone> = {
+  Open: "info",
+  InProgress: "warning",
+  Resolved: "success",
+  Closed: "default",
 };
 
 const PRIORITY_LABEL: Record<TicketPriority, string> = {
@@ -131,12 +86,23 @@ const PRIORITY_LABEL: Record<TicketPriority, string> = {
   Critical: "Critical",
 };
 
+const PRIORITY_TONE: Record<TicketPriority, EntityStatusTone> = {
+  Low: "default",
+  Medium: "info",
+  High: "warning",
+  Critical: "danger",
+};
+
+// ─── Grid template — used by header, rows, and the loading skeleton ──────
+
+const DESKTOP_GRID =
+  "grid-cols-[1fr_100px_120px_140px_110px_24px] lg:grid-cols-[1fr_110px_140px_160px_120px_24px]";
+
 // ───────────────────────────────────────────────────────────────────────
 //  Page
 // ───────────────────────────────────────────────────────────────────────
 
 export function TicketsPage() {
-  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   const [search, setSearch] = useState("");
@@ -144,19 +110,7 @@ export function TicketsPage() {
   const [statusFilter, setStatusFilter] = useState<TicketStatus | null>(null);
   const [priorityFilter, setPriorityFilter] = useState<TicketPriority | null>(null);
   const [pageNumber, setPageNumber] = useState(1);
-  const [density, setDensity] = usePersistedDensity(DENSITY_KEY);
-  const [sortKey, setSortKey] = useState<SortKey>("createdAtUtc");
-  const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [editor, setEditor] = useState<EditorState>({ mode: "closed" });
-
-  const onSort = (next: SortKey) => {
-    if (sortKey === next) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    } else {
-      setSortKey(next);
-      setSortDir(next === "createdAtUtc" || next === "priority" ? "desc" : "asc");
-    }
-  };
 
   // Debounce search
   useEffect(() => {
@@ -170,7 +124,7 @@ export function TicketsPage() {
     queryKey: [
       "tickets",
       "list",
-      { search: debouncedSearch, statusFilter, priorityFilter, pageNumber, sortKey, sortDir },
+      { search: debouncedSearch, statusFilter, priorityFilter, pageNumber },
     ],
     queryFn: () =>
       searchTickets({
@@ -179,174 +133,161 @@ export function TicketsPage() {
         priority: priorityFilter ?? undefined,
         pageNumber,
         pageSize: PAGE_SIZE,
-        sortBy: sortKey,
-        sortDir,
+        sortBy: "createdAtUtc",
+        sortDir: "desc",
       }),
     placeholderData: keepPreviousData,
   });
 
-  const items = query.data?.items ?? [];
-
-  const stats = useMemo(() => {
-    const buckets = { open: 0, progress: 0, resolved: 0, critical: 0 };
-    for (const t of items) {
-      if (t.status === "Open") buckets.open++;
-      else if (t.status === "InProgress") buckets.progress++;
-      else if (t.status === "Resolved") buckets.resolved++;
-      if (t.priority === "Critical") buckets.critical++;
-    }
-    return buckets;
-  }, [items]);
+  const data = query.data;
+  const items = data?.items ?? [];
 
   const filtersApplied = statusFilter !== null || priorityFilter !== null;
+  const searchActive = debouncedSearch.length > 0 || filtersApplied;
 
   return (
-    <div className="space-y-6 pb-12">
-      <ListHero
-        eyebrow="Helpdesk · Tickets"
-        tenant={user?.tenant ?? "—"}
-        subEyebrow={query.data ? `page ${pad2(pageNumber)}` : undefined}
+    <div className="space-y-4 sm:space-y-6">
+      <EntityPageHeader
+        icon={TicketIcon}
         title="Tickets"
-        totalCount={query.data?.totalCount ?? null}
-        subtitle="Open work, ranked by priority. The desk where issues land, get owned, and ship."
-        searchValue={search}
-        onSearch={setSearch}
-        searchPlaceholder="Find by number, title, or description…"
-        isFetching={query.isFetching}
-        onRefresh={() => void query.refetch()}
-        ctaLabel="New ticket"
-        onCreate={() => setEditor({ mode: "create" })}
-      />
-
-      <StatStrip cols={4}>
-        <Stat
-          label="Open"
-          value={query.isLoading ? "—" : stats.open.toString()}
-          hint="Unassigned or awaiting triage"
-          accent
-        />
-        <Stat
-          label="In progress"
-          value={query.isLoading ? "—" : stats.progress.toString()}
-          hint="Owned and moving"
-        />
-        <Stat
-          label="Resolved"
-          value={query.isLoading ? "—" : stats.resolved.toString()}
-          hint="Awaiting close"
-        />
-        <Stat
-          label="Critical"
-          value={query.isLoading ? "—" : stats.critical.toString()}
-          hint="Highest-priority open work"
-          tone={stats.critical > 0 ? "danger" : "default"}
-        />
-      </StatStrip>
-
-      <FilterBar
-        statusFilter={statusFilter}
-        priorityFilter={priorityFilter}
-        onStatus={setStatusFilter}
-        onPriority={setPriorityFilter}
-        filtersApplied={filtersApplied}
-        onClearAll={() => {
-          setStatusFilter(null);
-          setPriorityFilter(null);
-        }}
-        sortKey={sortKey}
-        sortDir={sortDir}
-        onSort={onSort}
-        density={density}
-        onDensity={setDensity}
-      />
-
-      {query.isError && <ErrorBand message={describe(query.error)} />}
-
-      <section
-        aria-label="Ticket list"
-        className={cn(
-          "fsh-enter fsh-enter-3 card-shell overflow-hidden rounded-2xl",
-          "bg-[var(--color-surface-3)]",
-        )}
+        total={data?.totalCount ?? null}
+        unit="ticket"
+        description="Open work, ranked by priority. The desk where issues land, get owned, and ship."
       >
-        {query.isLoading && items.length === 0 ? (
-          <ul aria-busy>
-            {Array.from({ length: 5 }).map((_, i) => (
-              <SkeletonRow key={i} delayMs={i * 40} density={density} />
-            ))}
-          </ul>
-        ) : items.length === 0 ? (
-          (() => {
-            const filtered = debouncedSearch.length > 0 || filtersApplied;
-            return (
-              <EmptyState
-                eyebrow={filtered ? "No matches" : "Empty desk"}
-                headline={
-                  filtered
-                    ? debouncedSearch
-                      ? `Nothing matches "${debouncedSearch}".`
-                      : "No tickets match the current filters."
-                    : "Your tenant has no open tickets."
-                }
-                body={
-                  filtered
-                    ? "Try widening the filter set, or clear everything and start fresh."
-                    : "Create the first ticket to start tracking work. Tickets carry a status, priority, an optional assignee, and a comment thread."
-                }
-                icon={
-                  filtered ? (
-                    <Search className="h-6 w-6 text-[var(--color-primary)]" />
-                  ) : (
-                    <TicketIcon className="h-6 w-6 text-[var(--color-primary)]" />
-                  )
-                }
-                primaryAction={{
-                  label: filtered ? "Open a new ticket" : "Open the first ticket",
-                  onClick: () => setEditor({ mode: "create" }),
-                  icon: <Sparkles className="h-3.5 w-3.5" />,
+        <Button
+          onClick={() => setEditor({ mode: "create" })}
+          className="h-9 flex-1 gap-1.5 rounded-lg px-4 text-[13px] font-semibold sm:flex-none"
+        >
+          <Plus className="size-4" />
+          New ticket
+        </Button>
+      </EntityPageHeader>
+
+      <EntitySearch
+        value={search}
+        onChange={setSearch}
+        placeholder="Find by number, title, or description…"
+      />
+
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-2">
+        <EntityFilterPill<TicketStatus | null>
+          label="Status filter"
+          value={statusFilter}
+          onChange={setStatusFilter}
+          options={[
+            { value: null, label: "All" },
+            ...TICKET_STATUSES.map((s) => ({
+              value: s,
+              label: STATUS_LABEL[s],
+            })),
+          ]}
+        />
+        <EntityFilterPill<TicketPriority | null>
+          label="Priority filter"
+          value={priorityFilter}
+          onChange={setPriorityFilter}
+          options={[
+            { value: null, label: "Any" },
+            ...TICKET_PRIORITIES.map((p) => ({
+              value: p,
+              label: PRIORITY_LABEL[p],
+            })),
+          ]}
+        />
+      </div>
+
+      {/* Results */}
+      {query.isLoading && items.length === 0 ? (
+        <EntityListLoading desktopColumns={DESKTOP_GRID} rows={6} />
+      ) : items.length === 0 ? (
+        <EntityEmpty
+          icon={TicketIcon}
+          title={searchActive ? "No tickets found" : "No tickets yet"}
+          body={
+            searchActive
+              ? debouncedSearch
+                ? `Nothing matches "${debouncedSearch}". Try a different term or clear the filters.`
+                : "No tickets match the current filters."
+              : "Open the first ticket to start tracking work. Tickets carry a status, priority, an optional assignee, and a comment thread."
+          }
+          action={
+            searchActive ? (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSearch("");
+                  setStatusFilter(null);
+                  setPriorityFilter(null);
                 }}
-                secondaryAction={
-                  filtered
-                    ? {
-                        label: "Clear filters",
-                        onClick: () => {
-                          setSearch("");
-                          setStatusFilter(null);
-                          setPriorityFilter(null);
-                        },
-                        icon: <X className="h-3.5 w-3.5" />,
-                      }
-                    : undefined
-                }
-              />
-            );
-          })()
-        ) : (
-          <ul>
+                className="h-9 rounded-lg px-4 text-[13px]"
+              >
+                Clear filters
+              </Button>
+            ) : (
+              <Button
+                onClick={() => setEditor({ mode: "create" })}
+                className="h-9 rounded-lg px-4 text-[13px]"
+              >
+                <Plus className="mr-1.5 size-4" />
+                Open ticket
+              </Button>
+            )
+          }
+        />
+      ) : (
+        <div>
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-[12px] font-medium text-[var(--color-muted-foreground)]">
+              {data?.totalCount ?? 0} ticket{(data?.totalCount ?? 0) !== 1 ? "s" : ""} found
+            </p>
+          </div>
+
+          {/* Mobile: card list */}
+          <div className="space-y-2 md:hidden">
+            {items.map((ticket) => (
+              <MobileCard key={ticket.id} ticket={ticket} />
+            ))}
+          </div>
+
+          {/* Desktop: table */}
+          <EntityListCard className="hidden md:block">
+            <EntityListHeader className={DESKTOP_GRID}>
+              <span>Subject</span>
+              <span>Priority</span>
+              <span>Status</span>
+              <span>Assignee</span>
+              <span>Updated</span>
+              <span />
+            </EntityListHeader>
             {items.map((ticket, i) => (
-              <Row
+              <DesktopRow
                 key={ticket.id}
                 ticket={ticket}
-                density={density}
-                delayMs={Math.min(i, 8) * 30}
+                isLast={i === items.length - 1}
               />
             ))}
-          </ul>
-        )}
-      </section>
+          </EntityListCard>
 
-      {query.data && query.data.totalCount > 0 && (
-        <Pagination
-          page={query.data.pageNumber}
-          totalPages={Math.max(query.data.totalPages, 1)}
-          totalCount={query.data.totalCount}
-          shown={items.length}
-          fetching={query.isFetching}
-          hasPrev={query.data.hasPrevious}
-          hasNext={query.data.hasNext}
-          onPrev={() => setPageNumber((p) => Math.max(1, p - 1))}
-          onNext={() => setPageNumber((p) => p + 1)}
-        />
+          <EntityPager
+            page={data?.pageNumber ?? pageNumber}
+            totalPages={Math.max(data?.totalPages ?? 1, 1)}
+            hasPrev={data?.hasPrevious ?? false}
+            hasNext={data?.hasNext ?? false}
+            onPrev={() => setPageNumber((p) => Math.max(1, p - 1))}
+            onNext={() => setPageNumber((p) => p + 1)}
+          />
+        </div>
+      )}
+
+      {query.isError && (
+        <div
+          role="alert"
+          className="flex items-start gap-2 rounded-lg border border-[oklch(from_var(--color-destructive)_l_c_h_/_0.30)] bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.06)] px-3 py-2 text-sm text-[var(--color-destructive)]"
+        >
+          <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+          <span>{describe(query.error)}</span>
+        </div>
       )}
 
       <CreateTicketDialog
@@ -361,310 +302,125 @@ export function TicketsPage() {
 }
 
 // ───────────────────────────────────────────────────────────────────────
-//  FilterBar — status + priority comboboxes, sort chips, density toggle
+//  Mobile card — avatar of the reporter + title/number + status badges
 // ───────────────────────────────────────────────────────────────────────
 
-function FilterBar({
-  statusFilter,
-  priorityFilter,
-  onStatus,
-  onPriority,
-  filtersApplied,
-  onClearAll,
-  sortKey,
-  sortDir,
-  onSort,
-  density,
-  onDensity,
-}: {
-  statusFilter: TicketStatus | null;
-  priorityFilter: TicketPriority | null;
-  onStatus: (v: TicketStatus | null) => void;
-  onPriority: (v: TicketPriority | null) => void;
-  filtersApplied: boolean;
-  onClearAll: () => void;
-  sortKey: SortKey;
-  sortDir: SortDir;
-  onSort: (k: SortKey) => void;
-  density: Density;
-  onDensity: (v: Density) => void;
-}) {
+function MobileCard({ ticket }: { ticket: TicketDto }) {
   return (
-    <div className="fsh-enter fsh-enter-2 flex flex-wrap items-center gap-3">
-      <Combobox
-        variant="filter"
-        label="Status"
-        value={statusFilter}
-        onChange={(v) => onStatus(v as TicketStatus | null)}
-        clearable
-        emptyOptionLabel="All statuses"
-        options={TICKET_STATUSES.map((s) => ({
-          value: s,
-          label: STATUS_LABEL[s],
-          prefix: <span className="h-2 w-2 rounded-full" style={{ backgroundColor: STATUS_COLOR[STATUS_TONE[s]] }} />,
-        }))}
-      />
-      <Combobox
-        variant="filter"
-        label="Priority"
-        value={priorityFilter}
-        onChange={(v) => onPriority(v as TicketPriority | null)}
-        clearable
-        emptyOptionLabel="All priorities"
-        options={TICKET_PRIORITIES.map((p) => ({
-          value: p,
-          label: PRIORITY_LABEL[p],
-        }))}
-      />
-
-      {filtersApplied && (
-        <button
-          type="button"
-          onClick={onClearAll}
-          className={cn(
-            "inline-flex h-7 cursor-pointer items-center gap-1 rounded-full px-2.5",
-            "font-mono text-[10.5px] font-medium uppercase tracking-[0.14em]",
-            "bg-[var(--color-muted)] text-[var(--color-muted-foreground)]",
-            "transition-colors hover:bg-[var(--color-surface-4)] hover:text-[var(--color-foreground)]",
-          )}
-        >
-          <X className="h-3 w-3" />
-          Clear
-        </button>
+    <Link
+      to={`/tickets/${ticket.id}`}
+      aria-label={`Open ticket ${ticket.title}`}
+      className={cn(
+        "block rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 text-left",
+        "shadow-[0_1px_2px_oklch(0_0_0_/_0.04)]",
+        "transition-colors hover:bg-[oklch(from_var(--color-accent)_l_c_h_/_0.4)] active:bg-[oklch(from_var(--color-accent)_l_c_h_/_0.6)]",
+        "outline-none focus-visible:ring-[3px] focus-visible:ring-[oklch(from_var(--color-ring)_l_c_h_/_0.4)]",
       )}
-
-      <span aria-hidden className="hidden h-5 w-px bg-[var(--color-border)] sm:inline-block" />
-
-      <SortChips
-        prefixLabel="desk"
-        sortKey={sortKey}
-        sortDir={sortDir}
-        onSort={onSort}
-        options={SORT_OPTIONS}
-      />
-
-      <div className="ml-auto">
-        <DensityToggle density={density} onChange={onDensity} />
+    >
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <EntityInitialsAvatar name={ticket.reporterUserId} size={40} />
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <p className="truncate text-[14px] font-medium text-[var(--color-foreground)]">
+                {ticket.title}
+              </p>
+            </div>
+            <div className="mt-0.5 flex items-center gap-1.5">
+              <code className="font-mono text-[11px] text-[var(--color-muted-foreground)]">
+                {ticket.number}
+              </code>
+            </div>
+          </div>
+        </div>
+        <ChevronRight className="size-4 shrink-0 text-[var(--color-border)]" />
       </div>
-    </div>
+      <div className="mt-2 ml-[52px] flex flex-wrap items-center gap-2">
+        <EntityStatusBadge tone={PRIORITY_TONE[ticket.priority]}>
+          {PRIORITY_LABEL[ticket.priority]}
+        </EntityStatusBadge>
+        <EntityStatusBadge tone={STATUS_TONE[ticket.status]}>
+          {STATUS_LABEL[ticket.status]}
+        </EntityStatusBadge>
+        <span className="ml-auto font-mono text-[11px] text-[var(--color-muted-foreground)]">
+          {formatRelative(ticket.updatedAtUtc ?? ticket.createdAtUtc)}
+        </span>
+      </div>
+    </Link>
   );
 }
 
 // ───────────────────────────────────────────────────────────────────────
-//  Row — the stub card on the desk
+//  Desktop row
 // ───────────────────────────────────────────────────────────────────────
 
-function Row({
+function DesktopRow({
   ticket,
-  density,
-  delayMs,
+  isLast,
 }: {
   ticket: TicketDto;
-  density: Density;
-  delayMs: number;
+  isLast: boolean;
 }) {
-  const tone = STATUS_TONE[ticket.status];
-  const StatusIcon = STATUS_ICON[ticket.status];
-  const isCompact = density === "compact";
-
+  const assigneeLabel = ticket.assignedToUserId ?? "Unassigned";
   return (
-    <li
-      className={cn(
-        "fsh-enter group/row relative flex items-stretch gap-4 border-t border-[var(--color-border)]",
-        "first:border-t-0 transition-colors duration-[var(--duration-fast)]",
-        "hover:bg-[var(--color-surface-4)]",
-        isCompact ? "px-5 py-3" : "px-6 py-4",
-      )}
-      style={{ animationDelay: `${delayMs}ms` }}
-    >
-      {/* Status pull-tab — colored bar on the very left edge */}
-      <span
-        aria-hidden
-        className={cn(
-          "absolute inset-y-2.5 left-0 w-[3px] rounded-r-full",
-          "transition-opacity duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
-        )}
-        style={{ backgroundColor: STATUS_COLOR[tone] }}
-      />
-
-      {/* Identity column — number, title, description preview, priority + status chip */}
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5 pl-2">
-        <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-          <code
-            title={ticket.number}
-            className="rounded bg-[var(--color-muted)] px-1.5 py-0.5 font-mono text-[11px] font-medium tracking-tight text-[var(--color-muted-foreground)]"
-          >
+    <EntityListRow className={DESKTOP_GRID} isLast={isLast}>
+      {/* Subject — avatar + title + number */}
+      <Link
+        to={`/tickets/${ticket.id}`}
+        className="flex min-w-0 items-center gap-3 outline-none"
+      >
+        <EntityInitialsAvatar name={ticket.reporterUserId} size={36} />
+        <div className="min-w-0">
+          <span className="block truncate text-[14px] font-medium text-[var(--color-foreground)] transition-colors group-hover:text-[var(--color-primary)]">
+            {ticket.title}
+          </span>
+          <code className="block truncate font-mono text-[11px] text-[var(--color-muted-foreground)]">
             {ticket.number}
           </code>
-          <Link
-            to={`/tickets/${ticket.id}`}
-            className={cn(
-              "text-display truncate text-[15.5px] font-semibold leading-tight tracking-[-0.01em] sm:text-[16px]",
-              "decoration-[var(--color-border-strong)] decoration-1 underline-offset-[5px]",
-              "transition-colors duration-[var(--duration-fast)]",
-              "hover:text-[var(--color-primary)] hover:underline focus-visible:underline",
-              "focus-visible:outline-none focus-visible:text-[var(--color-primary)]",
-            )}
-          >
-            {ticket.title}
-          </Link>
-          <PriorityFlag priority={ticket.priority} />
         </div>
+      </Link>
 
-        {ticket.description && !isCompact && (
-          <p className="line-clamp-1 text-[12.5px] leading-relaxed text-[var(--color-muted-foreground)]">
-            {ticket.description}
-          </p>
+      {/* Priority */}
+      <span>
+        <EntityStatusBadge tone={PRIORITY_TONE[ticket.priority]}>
+          {PRIORITY_LABEL[ticket.priority]}
+        </EntityStatusBadge>
+      </span>
+
+      {/* Status */}
+      <span>
+        <EntityStatusBadge tone={STATUS_TONE[ticket.status]}>
+          {STATUS_LABEL[ticket.status]}
+        </EntityStatusBadge>
+      </span>
+
+      {/* Assignee */}
+      <div className="flex min-w-0 items-center gap-2">
+        {ticket.assignedToUserId ? (
+          <>
+            <EntityInitialsAvatar name={ticket.assignedToUserId} size={24} />
+            <span
+              title={ticket.assignedToUserId}
+              className="truncate font-mono text-[12px] text-[var(--color-muted-foreground)]"
+            >
+              {assigneeLabel}
+            </span>
+          </>
+        ) : (
+          <span className="font-mono text-[11px] uppercase tracking-wider text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.6)]">
+            Unassigned
+          </span>
         )}
-
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-[var(--color-muted-foreground)]">
-          <span
-            className={cn(
-              "inline-flex items-center gap-1 rounded-full px-2 py-0.5",
-              "font-mono text-[10px] font-medium uppercase tracking-[0.14em]",
-            )}
-            style={{
-              backgroundColor: `oklch(from ${STATUS_COLOR[tone]} l c h / 0.10)`,
-              color: STATUS_COLOR[tone],
-            }}
-          >
-            <StatusIcon className="h-3 w-3" />
-            {STATUS_LABEL[ticket.status]}
-          </span>
-          {ticket.commentCount > 0 && (
-            <span className="inline-flex items-center gap-1">
-              <MessageCircle className="h-3 w-3" />
-              {ticket.commentCount}
-            </span>
-          )}
-          <span className="inline-flex items-center gap-1">
-            <span className="font-mono text-[10px] uppercase tracking-[0.14em] opacity-70">
-              created
-            </span>
-            <span className="tabular-nums">{formatRelative(ticket.createdAtUtc)}</span>
-          </span>
-          {ticket.updatedAtUtc && (
-            <span className="hidden items-center gap-1 sm:inline-flex">
-              <span className="font-mono text-[10px] uppercase tracking-[0.14em] opacity-70">
-                updated
-              </span>
-              <span className="tabular-nums">{formatRelative(ticket.updatedAtUtc)}</span>
-            </span>
-          )}
-        </div>
       </div>
 
-      {/* Right column — assignee/reporter avatars */}
-      <div className="hidden shrink-0 flex-col items-end justify-center gap-2 sm:flex">
-        <PeopleStack
-          assignedToUserId={ticket.assignedToUserId}
-          reporterUserId={ticket.reporterUserId}
-        />
-      </div>
-    </li>
-  );
-}
+      {/* Updated */}
+      <span className="text-[12px] tabular-nums text-[var(--color-muted-foreground)]">
+        {formatRelative(ticket.updatedAtUtc ?? ticket.createdAtUtc)}
+      </span>
 
-function PriorityFlag({ priority }: { priority: TicketPriority }) {
-  const map: Record<
-    TicketPriority,
-    { color: string; weight: string; label: string }
-  > = {
-    Low: { color: "var(--color-muted-foreground)", weight: "▪", label: "low" },
-    Medium: { color: "oklch(0.700 0.155 195)", weight: "▪▪", label: "med" },
-    High: { color: "var(--color-warning)", weight: "▪▪▪", label: "high" },
-    Critical: { color: "var(--color-destructive)", weight: "▪▪▪▪", label: "crit" },
-  };
-  const m = map[priority];
-  return (
-    <span
-      title={`Priority: ${PRIORITY_LABEL[priority]}`}
-      className={cn(
-        "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5",
-        "font-mono text-[9.5px] font-medium uppercase tracking-[0.14em]",
-      )}
-      style={{
-        backgroundColor: `oklch(from ${m.color} l c h / 0.10)`,
-        color: m.color,
-      }}
-    >
-      {priority === "Critical" && <AlertOctagon className="h-2.5 w-2.5" />}
-      {priority === "High" && <AlertTriangle className="h-2.5 w-2.5" />}
-      {m.label}
-    </span>
-  );
-}
-
-function PeopleStack({
-  assignedToUserId,
-  reporterUserId,
-}: {
-  assignedToUserId: string | null | undefined;
-  reporterUserId: string;
-}) {
-  return (
-    <div className="flex items-center gap-2">
-      {assignedToUserId ? (
-        <Avatar id={assignedToUserId} kind="Assignee" />
-      ) : (
-        <UnassignedBadge />
-      )}
-      <span aria-hidden className="h-px w-3 bg-[var(--color-border-strong)]" />
-      <Avatar id={reporterUserId} kind="Reporter" muted />
-    </div>
-  );
-}
-
-function Avatar({ id, kind, muted }: { id: string; kind: string; muted?: boolean }) {
-  const initial = id.replace(/[^a-z0-9]/gi, "").charAt(0).toUpperCase() || "?";
-  return (
-    <span
-      title={`${kind}: ${id}`}
-      className={cn(
-        "grid h-6 w-6 place-items-center rounded-full",
-        "font-mono text-[10px] font-semibold tracking-tight",
-        muted
-          ? "bg-[var(--color-muted)] text-[var(--color-muted-foreground)] ring-1 ring-inset ring-[var(--color-border)]"
-          : "bg-[var(--color-primary-soft)] text-[var(--color-primary)] ring-1 ring-inset ring-[oklch(from_var(--color-primary)_l_c_h_/_0.30)]",
-      )}
-    >
-      {initial}
-    </span>
-  );
-}
-
-function UnassignedBadge() {
-  return (
-    <span
-      title="Unassigned"
-      className={cn(
-        "grid h-6 w-6 place-items-center rounded-full",
-        "border border-dashed border-[var(--color-border-strong)]",
-        "text-[var(--color-muted-foreground)]",
-      )}
-    >
-      <span className="text-[10px]">·</span>
-    </span>
-  );
-}
-
-function SkeletonRow({ delayMs, density }: { delayMs: number; density: Density }) {
-  const isCompact = density === "compact";
-  return (
-    <li
-      className={cn(
-        "fsh-enter flex items-stretch gap-4 border-t border-[var(--color-border)] first:border-t-0",
-        isCompact ? "px-5 py-3" : "px-6 py-4",
-      )}
-      style={{ animationDelay: `${delayMs}ms` }}
-    >
-      <Skeleton className="h-9 w-1" />
-      <div className="flex-1 space-y-2">
-        <Skeleton className="h-4 w-3/4" />
-        <Skeleton className="h-3 w-1/2" />
-      </div>
-      <Skeleton className="h-7 w-7 rounded-full" />
-    </li>
+      {/* Trailing chevron */}
+      <ChevronRight className="size-4 text-[var(--color-border)] transition-colors group-hover:text-[var(--color-muted-foreground)]" />
+    </EntityListRow>
   );
 }
 
@@ -715,28 +471,29 @@ function CreateTicketDialog({
     });
   };
 
+  const priorityOptions = useMemo(
+    () =>
+      TICKET_PRIORITIES.map((p) => ({
+        value: p,
+        label: PRIORITY_LABEL[p],
+      })),
+    [],
+  );
+
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent>
-        <DialogHeader>
-          <div className="flex items-center gap-2">
-            <span
-              aria-hidden
-              className="grid h-6 w-6 place-items-center rounded-md bg-[var(--color-primary-soft)] text-[var(--color-primary)]"
-            >
-              <TicketIcon className="h-3.5 w-3.5" />
-            </span>
-            <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-              New ticket
-            </span>
-          </div>
-          <DialogTitle>Open a ticket</DialogTitle>
-          <DialogDescription>
-            Tickets land on the desk as <code className="font-mono">Open</code>. Assign one
-            to start it; resolve it with a note when work is done.
-          </DialogDescription>
-        </DialogHeader>
         <form onSubmit={onSubmit}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <TicketIcon className="size-4 text-[var(--color-primary)]" />
+              Open a ticket
+            </DialogTitle>
+            <DialogDescription>
+              Tickets land on the desk as <code className="font-mono text-[11px]">Open</code>.
+              Assign one to start it; resolve it with a note when work is done.
+            </DialogDescription>
+          </DialogHeader>
           <DialogBody className="space-y-4">
             <Field id="ticket-title" label="Title" required>
               <Input
@@ -757,10 +514,9 @@ function CreateTicketDialog({
                 placeholder="Steps to reproduce, expected behavior, anything else useful"
                 rows={4}
                 className={cn(
-                  "block w-full rounded-md border border-[var(--color-input)] bg-[var(--color-surface-2)]",
-                  "px-3 py-2 text-sm shadow-[var(--shadow-xs)] placeholder:text-[var(--color-muted-foreground)]",
-                  "transition-[border-color,box-shadow,background-color] duration-[var(--duration-fast)]",
-                  "focus-visible:border-[var(--color-input)]",
+                  "flex w-full rounded-lg border border-[var(--color-input)] bg-transparent px-3 py-2 text-sm shadow-xs",
+                  "placeholder:text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.6)]",
+                  "focus-visible:border-[var(--color-ring)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[oklch(from_var(--color-ring)_l_c_h_/_0.5)]",
                 )}
                 maxLength={4096}
               />
@@ -772,32 +528,18 @@ function CreateTicketDialog({
                 label="Priority"
                 value={priority}
                 onChange={(v) => setPriority((v as TicketPriority) ?? "Medium")}
-                options={TICKET_PRIORITIES.map((p) => ({
-                  value: p,
-                  label: PRIORITY_LABEL[p],
-                }))}
+                options={priorityOptions}
               />
             </Field>
           </DialogBody>
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline">
+              <Button type="button" variant="outline" disabled={mutation.isPending}>
                 Cancel
               </Button>
             </DialogClose>
-            <Button
-              type="submit"
-              disabled={!title.trim() || mutation.isPending}
-              className="brand-glow gradient-sheen gap-1.5"
-            >
-              {mutation.isPending ? (
-                "Opening…"
-              ) : (
-                <>
-                  <Plus className="h-3.5 w-3.5" />
-                  Open ticket
-                </>
-              )}
+            <Button type="submit" disabled={!title.trim() || mutation.isPending}>
+              {mutation.isPending ? "Opening…" : "Open ticket"}
             </Button>
           </DialogFooter>
         </form>
@@ -805,6 +547,3 @@ function CreateTicketDialog({
     </Dialog>
   );
 }
-
-// (Trash2 is imported for symmetry with other list pages — re-exported on demand.)
-void Trash2;

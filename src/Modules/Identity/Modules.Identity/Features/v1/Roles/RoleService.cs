@@ -4,6 +4,7 @@ using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Shared.Persistence;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Data;
@@ -50,7 +51,11 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
         }
     }
 
-    public async Task<IEnumerable<RoleDto>> GetRolesAsync(CancellationToken cancellationToken = default)
+    public async Task<PagedResponse<RoleDto>> GetRolesAsync(
+        int pageNumber = 1,
+        int pageSize = 20,
+        string? search = null,
+        CancellationToken cancellationToken = default)
     {
         if (roleManager is null)
             throw new NotFoundException("RoleManager<FshRole> not resolved. Check Identity registration.");
@@ -58,13 +63,35 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
         if (roleManager.Roles is null)
             throw new NotFoundException("Role store not configured. Ensure .AddRoles<FshRole>() and EF stores.");
 
+        var page = Math.Max(1, pageNumber);
+        var size = Math.Clamp(pageSize, 1, 200);
 
-        var roles = await roleManager.Roles
-            .AsNoTracking()
-            .Select(role => new RoleDto { Id = role.Id, Name = role.Name!, Description = role.Description })
-            .ToListAsync(cancellationToken);
+        var query = roleManager.Roles.AsNoTracking();
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var needle = search.Trim().ToLowerInvariant();
+            query = query.Where(r =>
+                (r.Name != null && r.Name.ToLower().Contains(needle))
+                || (r.Description != null && r.Description.ToLower().Contains(needle)));
+        }
 
-        return roles;
+        var total = await query.LongCountAsync(cancellationToken).ConfigureAwait(false);
+        var rows = await query
+            .OrderBy(r => r.Name)
+            .Skip((page - 1) * size)
+            .Take(size)
+            .Select(r => new RoleDto { Id = r.Id, Name = r.Name!, Description = r.Description })
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return new PagedResponse<RoleDto>
+        {
+            Items = rows,
+            PageNumber = page,
+            PageSize = size,
+            TotalCount = total,
+            TotalPages = (int)Math.Ceiling(total / (double)size),
+        };
     }
 
     public async Task<RoleDto?> GetRoleAsync(string id, CancellationToken cancellationToken = default)

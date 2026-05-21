@@ -562,34 +562,33 @@ function TwoFactorEnroll() {
   return (
     <div className="space-y-5">
       <div className="grid gap-5 sm:grid-cols-[14rem_1fr] sm:items-start">
-        <div className="grid h-52 w-52 place-items-center rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] p-2 text-[var(--color-foreground)]">
+        <div className="grid h-52 w-52 place-items-center rounded-md border border-[var(--color-border)] bg-[var(--color-card)] p-2 text-[var(--color-foreground)]">
           {qrSvg ? (
             <div
               aria-label="Two-factor QR code"
               role="img"
               className="h-full w-full [&_svg]:h-full [&_svg]:w-full"
-              // eslint-disable-next-line react/no-danger
               dangerouslySetInnerHTML={{ __html: qrSvg }}
             />
           ) : (
-            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
               Rendering…
             </span>
           )}
         </div>
         <div className="space-y-3">
           <div>
-            <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
               can't scan? enter manually
             </div>
             <div className="mt-1 flex items-center gap-2">
-              <code className="break-all rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-1 font-mono text-[11px]">
+              <code className="break-all rounded-md border border-[var(--color-border)] bg-[var(--color-muted)] px-2 py-1 font-mono text-[11px]">
                 {enrollment.sharedKey}
               </code>
               <button
                 type="button"
                 onClick={copyKey}
-                className="inline-flex h-7 items-center gap-1 rounded-md px-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)] transition-colors hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]"
+                className="inline-flex h-7 items-center gap-1 rounded-md px-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)] transition-colors hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]"
               >
                 {copiedKey ? (
                   <>

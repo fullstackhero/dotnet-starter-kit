@@ -4,6 +4,7 @@ import {
   Activity,
   AlertTriangle,
   CheckCircle2,
+  ChevronDown,
   CircleAlert,
   Database,
   Flame,
@@ -17,16 +18,20 @@ import {
   Zap,
 } from "lucide-react";
 import { getReadiness, type HealthEntry, type HealthSnapshot, type HealthStatus } from "@/api/health";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PageHero } from "@/components/list";
+import {
+  EntityStatusBadge,
+  PageHero,
+  ToneIconTile,
+  type EntityStatusTone,
+  type ToneIconTileTone,
+} from "@/components/list";
 import { cn } from "@/lib/cn";
 
 // ────────────────────────────────────────────────────────────────────────
 // Tone helpers — keep status-to-aesthetic mapping in one place so the
-// hero, badges, and per-check cards stay in lockstep. Treat "Healthy"
+// hero, status pips, and per-check rows stay in lockstep. Treat "Healthy"
 // as the green path; everything else gets warning or destructive tone.
 // ────────────────────────────────────────────────────────────────────────
 
@@ -42,6 +47,21 @@ const TONE_VAR: Record<Tone, string> = {
   success: "var(--color-success)",
   warning: "var(--color-warning)",
   danger: "var(--color-destructive)",
+};
+
+// Map this page's internal Tone to the shared design-system tone names.
+// `success` and `warning` are identical; `danger` becomes `destructive`
+// for tile tinting and `danger` for the status pill (the names diverged
+// historically between the icon-tile and the pill primitives).
+const TILE_TONE: Record<Tone, ToneIconTileTone> = {
+  success: "success",
+  warning: "warning",
+  danger: "destructive",
+};
+const PILL_TONE: Record<Tone, EntityStatusTone> = {
+  success: "success",
+  warning: "warning",
+  danger: "danger",
 };
 
 const HERO_COPY: Record<HealthStatus, { headline: string; subline: string }> = {
@@ -111,6 +131,12 @@ function formatLatency(ms: number): string {
   return `${(ms / 1000).toFixed(2)} s`;
 }
 
+function splitLatency(ms: number): [string, string] {
+  if (ms < 10) return [ms.toFixed(1), "ms"];
+  if (ms < 1000) return [ms.toFixed(0), "ms"];
+  return [(ms / 1000).toFixed(2), "s"];
+}
+
 function formatRelative(iso: string, now: number = Date.now()): string {
   const delta = Math.max(0, Math.floor((now - Date.parse(iso)) / 1000));
   if (delta < 5) return "just now";
@@ -163,7 +189,7 @@ export function HealthPage() {
   }, [snapshot]);
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-7 pb-12">
       <PageHero
         eyebrow="System · Health"
         title="Health"
@@ -203,7 +229,6 @@ export function HealthPage() {
         }
       />
 
-      {/* ── Hero status panel ───────────────────────────────────────────── */}
       <section className="fsh-enter fsh-enter-2">
         {snapshot ? (
           <HeroPanel
@@ -220,19 +245,16 @@ export function HealthPage() {
         )}
       </section>
 
-      {/* ── Per-check grid ──────────────────────────────────────────────── */}
-      <section
-        aria-label="Dependencies"
-        className="fsh-enter fsh-enter-3"
-      >
-        <div className="mb-3 flex items-baseline justify-between">
-          <h2 className="text-display text-base font-semibold tracking-tight">
+      {/* ── Dependencies list ───────────────────────────────────────────── */}
+      <section aria-label="Dependencies" className="fsh-enter fsh-enter-3">
+        <div className="mb-3 flex items-baseline justify-between gap-3">
+          <h2 className="font-display text-[16px] font-semibold tracking-tight text-[var(--color-foreground)]">
             Dependencies
           </h2>
           {snapshot && (
-            <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--color-muted-foreground)]">
+            <span className="text-[11px] font-medium uppercase tracking-wider text-[var(--color-muted-foreground)]">
               {computed?.total ?? 0} checks · total{" "}
-              <span className="text-[var(--color-foreground)]">
+              <span className="font-mono tabular-nums text-[var(--color-foreground)]">
                 {formatLatency(computed?.totalDuration ?? 0)}
               </span>
             </span>
@@ -243,16 +265,7 @@ export function HealthPage() {
           snapshot.results.length === 0 ? (
             <EmptyChecks />
           ) : (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {snapshot.results.map((entry, idx) => (
-                <CheckCard
-                  key={entry.name}
-                  entry={entry}
-                  index={idx}
-                  animationDelayMs={60 * idx}
-                />
-              ))}
-            </div>
+            <DependencyList entries={snapshot.results} />
           )
         ) : (
           <ChecksSkeleton />
@@ -263,9 +276,11 @@ export function HealthPage() {
 }
 
 // ────────────────────────────────────────────────────────────────────────
-// Hero panel — the marquee status. A wide card with a saturated gloss in
-// the upper-left that's tinted by the current overall status, the big
-// headline, a vitals strip, and a slim history ribbon.
+// Hero panel — calm dentalOS surface. Outfit headline carries the
+// overall status; a vitals row sits beneath it with stat values in mono
+// tabular numerals; a slim pip-bar history ribbon docks on the right
+// (lg+) or under the vitals row (sm). Background is a single soft tone-
+// tinted radial in the upper-left, low opacity, no second channel.
 // ────────────────────────────────────────────────────────────────────────
 
 function HeroPanel({
@@ -283,103 +298,84 @@ function HeroPanel({
 }) {
   const tone = toneFor(snapshot.status);
   const copy = HERO_COPY[snapshot.status];
-  const Icon = snapshot.status === "Healthy" ? CheckCircle2 : snapshot.status === "Degraded" ? AlertTriangle : CircleAlert;
+  const Icon =
+    snapshot.status === "Healthy"
+      ? CheckCircle2
+      : snapshot.status === "Degraded"
+        ? AlertTriangle
+        : CircleAlert;
   const toneColor = TONE_VAR[tone];
 
   return (
-    <Card className="relative overflow-hidden">
-      {/* Atmospheric tint — radial in upper-left, color follows status. */}
+    <div className="relative overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]">
+      {/* Atmospheric tint — a single soft glow in the upper-left, color
+          follows status. Calmer than the previous two-channel hero. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
-          background: `radial-gradient(120% 80% at -10% -20%, oklch(from ${toneColor} l c h / 0.18), transparent 55%), radial-gradient(80% 60% at 110% 110%, oklch(from var(--color-primary) l c h / 0.10), transparent 60%)`,
+          background: `radial-gradient(80% 60% at -5% -15%, oklch(from ${toneColor} l c h / 0.10), transparent 60%)`,
         }}
       />
-      {/* Hairline inner ring so the gloss reads as a contained surface. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 rounded-[inherit] ring-1 ring-inset"
-        style={{ boxShadow: "inset 0 1px 0 oklch(1 0 0 / 0.06)" }}
-      />
 
-      <CardContent className="relative grid grid-cols-1 gap-6 px-6 py-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+      <div className="relative grid gap-7 px-7 py-7 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
         <div>
-          <div className="flex items-center gap-2.5">
-            <span
-              aria-hidden
-              className="grid h-9 w-9 place-items-center rounded-lg ring-1 ring-inset"
-              style={{
-                background: `linear-gradient(135deg, oklch(from ${toneColor} l c h / 0.20), oklch(from ${toneColor} l c h / 0.04))`,
-                color: toneColor,
-                boxShadow: `inset 0 0 0 1px oklch(from ${toneColor} l c h / 0.25)`,
-              }}
-            >
-              <Icon className="h-5 w-5" />
-            </span>
-            <Badge variant={tone === "success" ? "success" : tone === "warning" ? "warning" : "danger"}>
-              {snapshot.status === "Healthy" && (
-                <span
-                  aria-hidden
-                  className="pulse-dot inline-block h-1.5 w-1.5 rounded-full"
-                  style={{ backgroundColor: toneColor, color: toneColor }}
-                />
-              )}
-              {snapshot.status}
-            </Badge>
-            <span
-              className="font-mono text-[10.5px] uppercase tracking-[0.12em]"
-              style={{ color: "var(--color-muted-foreground)" }}
-            >
-              HTTP {snapshot.httpStatus}
-            </span>
+          {/* Status meta strip — tile + status word + HTTP code */}
+          <div className="flex items-center gap-3">
+            <ToneIconTile icon={Icon} tone={TILE_TONE[tone]} size="lg" />
+            <div className="flex items-baseline gap-2">
+              <EntityStatusBadge tone={PILL_TONE[tone]} withDot>
+                {snapshot.status}
+              </EntityStatusBadge>
+              <span className="font-mono text-[10.5px] font-medium uppercase tracking-wider text-[var(--color-muted-foreground)]">
+                HTTP {snapshot.httpStatus}
+              </span>
+            </div>
           </div>
 
-          <h2 className="text-display mt-3 text-[26px] font-semibold leading-tight tracking-tight">
+          {/* Outfit display headline */}
+          <h2 className="mt-4 font-display text-[26px] font-semibold leading-tight tracking-tight text-[var(--color-foreground)]">
             {copy.headline}
           </h2>
-          <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-[var(--color-muted-foreground)]">
+          <p className="mt-1.5 max-w-[52ch] text-[13px] leading-relaxed text-[var(--color-muted-foreground)]">
             {copy.subline}
           </p>
 
-          {/* Vitals strip */}
-          <dl className="mt-5 grid grid-cols-2 gap-x-8 gap-y-3 sm:grid-cols-4">
+          {/* Vitals row */}
+          <dl className="mt-6 grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-4">
             <Vital label="Checks" value={`${total - failing}/${total}`} hint="passing" />
             <Vital
               label="Round-trip"
               value={formatLatency(snapshot.roundTripMs)}
               hint="end-to-end"
             />
-            <Vital
-              label="Slowest"
-              value={formatLatency(slowestMs)}
-              hint="single check"
-            />
+            <Vital label="Slowest" value={formatLatency(slowestMs)} hint="single check" />
             <Vital
               label="Last poll"
               value={formatRelative(snapshot.fetchedAt)}
-              hint={new Date(snapshot.fetchedAt).toLocaleTimeString("en-US", { hour12: false })}
-              mono={false}
+              hint={new Date(snapshot.fetchedAt).toLocaleTimeString("en-US", {
+                hour12: false,
+              })}
             />
           </dl>
         </div>
 
-        {/* History ribbon — last N polls as a vertical stack of bars on lg, a
-            horizontal strip below. Each cell is the status of one tick. */}
-        <div className="lg:w-[180px]">
-          <div className="mb-1.5 flex items-center justify-between">
-            <span className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
+        {/* History ribbon — last N polls as a tight pip-bar strip.
+            Vertical on lg+, horizontal on smaller widths. */}
+        <div className="lg:w-[176px]">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-[10.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
               Recent polls
             </span>
-            <Activity className="h-3 w-3 text-[var(--color-muted-foreground)]" aria-hidden />
+            <Activity className="size-3 text-[var(--color-muted-foreground)]" aria-hidden />
           </div>
-          <HistoryRibbon ticks={history} />
-          <p className="mt-1.5 font-mono text-[10.5px] uppercase tracking-[0.08em] text-[var(--color-muted-foreground)]">
-            session · {history.length}/{HISTORY_LIMIT}
+          <HistoryPips ticks={history} />
+          <p className="mt-2 font-mono text-[10.5px] tabular-nums text-[var(--color-muted-foreground)]">
+            {history.length} / {HISTORY_LIMIT} this session
           </p>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -387,24 +383,17 @@ function Vital({
   label,
   value,
   hint,
-  mono = true,
 }: {
   label: string;
   value: React.ReactNode;
   hint?: React.ReactNode;
-  mono?: boolean;
 }) {
   return (
     <div>
-      <dt className="font-mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
+      <dt className="text-[10.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
         {label}
       </dt>
-      <dd
-        className={cn(
-          "mt-1 text-[15px] font-semibold tracking-tight tabular-nums",
-          mono && "font-mono",
-        )}
-      >
+      <dd className="mt-1 font-mono text-[15px] font-semibold tabular-nums tracking-tight text-[var(--color-foreground)]">
         {value}
       </dd>
       {hint && (
@@ -416,22 +405,32 @@ function Vital({
   );
 }
 
-function HistoryRibbon({ ticks }: { ticks: Tick[] }) {
-  // Pad with placeholders so the ribbon has a consistent length even on
-  // first paint — empty cells render as muted ticks.
-  const filled: Array<Tick | null> = [...Array(HISTORY_LIMIT - ticks.length).fill(null), ...ticks];
+/**
+ * HistoryPips — tight pip-bar visualisation. One pip per recorded poll,
+ * tone-tinted by that poll's status. Empty slots render at the front of
+ * the strip so the ribbon has consistent width even on first paint.
+ */
+function HistoryPips({ ticks }: { ticks: Tick[] }) {
+  const filled: Array<Tick | null> = [
+    ...Array(HISTORY_LIMIT - ticks.length).fill(null),
+    ...ticks,
+  ];
   return (
     <div className="flex gap-[3px]" role="img" aria-label="Recent poll history">
       {filled.map((tick, i) => (
         <span
           key={i}
-          className="h-7 flex-1 rounded-[2px] transition-colors"
-          title={tick ? `${tick.status} · ${new Date(tick.at).toLocaleTimeString()}` : "no data"}
+          className="h-6 flex-1 rounded-[2px] transition-colors"
+          title={
+            tick
+              ? `${tick.status} · ${new Date(tick.at).toLocaleTimeString()}`
+              : "no data"
+          }
           style={{
             backgroundColor: tick
               ? TONE_VAR[toneFor(tick.status)]
-              : "var(--color-muted)",
-            opacity: tick ? (tick.status === "Healthy" ? 0.8 : 1) : 0.45,
+              : "var(--color-border-strong)",
+            opacity: tick ? (tick.status === "Healthy" ? 0.85 : 1) : 0.35,
           }}
         />
       ))}
@@ -440,214 +439,313 @@ function HistoryRibbon({ ticks }: { ticks: Tick[] }) {
 }
 
 // ────────────────────────────────────────────────────────────────────────
-// Per-check card — telemetry rack-unit faceplate.
-//
-// Aesthetic vocabulary: each check reads as one slot in an instrument
-// panel. A subtle tone-tinted rail along the top edge identifies the
-// status. The slot is labelled (SLOT 01, 02 …) and the dependency name
-// is rendered in mono — it IS a service identifier, treat it like one.
-// The dominant readout is the latency, big and tabular, paired with a
-// log-curved gauge bar that tints to the status tone. A glowing LED
-// chip on the right communicates state at a glance and breathes
-// gently. Detail metadata renders as `KEY=value` env-var chips.
+// Dependencies — one card with collapsible rows. Each row is a horizontal
+// scan-line that opens to reveal details on click. Built in the same row-
+// based vocabulary as the new permissions editor so the two feel like
+// siblings: status pip + icon + name (Outfit) + latency (mono tabular)
+// + chevron, with hover/expanded states tinted by the row's status.
 // ────────────────────────────────────────────────────────────────────────
 
-function splitLatency(ms: number): [string, string] {
-  if (ms < 10) return [ms.toFixed(1), "ms"];
-  if (ms < 1000) return [ms.toFixed(0), "ms"];
-  return [(ms / 1000).toFixed(2), "s"];
+function DependencyList({ entries }: { entries: HealthEntry[] }) {
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const toggle = (name: string) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  };
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]">
+      <div className="divide-y divide-[var(--color-border)]">
+        {entries.map((entry) => (
+          <DependencyRow
+            key={entry.name}
+            entry={entry}
+            isExpanded={expanded.has(entry.name)}
+            onToggle={() => toggle(entry.name)}
+          />
+        ))}
+      </div>
+    </div>
+  );
 }
 
-function CheckCard({
+function DependencyRow({
   entry,
-  index,
-  animationDelayMs,
+  isExpanded,
+  onToggle,
 }: {
   entry: HealthEntry;
-  index: number;
-  animationDelayMs: number;
+  isExpanded: boolean;
+  onToggle: () => void;
 }) {
   const tone = toneFor(entry.status);
   const Icon = iconForCheck(entry.name);
   const toneColor = TONE_VAR[tone];
+  const [num, unit] = splitLatency(entry.durationMs);
+
+  // Same sqrt-scaled fill against a 500ms soft budget the rack-unit gauge
+  // used — keeps the visual feel of "this check is in/out of budget".
+  const pct = Math.min(100, Math.sqrt(Math.max(0, entry.durationMs) / 500) * 100);
+
   const detailEntries = entry.details
     ? Object.entries(entry.details).filter(([k]) => k !== "tag")
     : [];
 
-  // sqrt-scaled fill against a 500ms soft budget. A linear bar parks
-  // every fast check at <5% (visually dead). sqrt gives 1ms ~= 4%,
-  // 50ms ~= 31%, 250ms ~= 71%, 500ms = 100%, and saturates beyond.
-  const pct = Math.min(100, Math.sqrt(Math.max(0, entry.durationMs) / 500) * 100);
-  const [num, unit] = splitLatency(entry.durationMs);
-
   return (
-    <article
-      className="health-card fsh-enter"
-      aria-label={`${entry.name} — ${entry.status}`}
-      style={
-        {
-          animationDelay: `${animationDelayMs}ms`,
-          "--tone": toneColor,
-        } as React.CSSProperties
-      }
-    >
-      <span aria-hidden className="health-card__rail" />
+    <div>
+      <div
+        role="button"
+        tabIndex={0}
+        aria-expanded={isExpanded}
+        onClick={onToggle}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onToggle();
+          }
+        }}
+        className={cn(
+          "group/depr flex w-full cursor-pointer items-center gap-4 px-5 py-3.5 text-left",
+          "transition-colors duration-[var(--duration-fast)]",
+          isExpanded
+            ? "bg-[oklch(from_var(--color-primary)_l_c_h_/_0.03)]"
+            : "hover:bg-[oklch(from_var(--color-primary)_l_c_h_/_0.025)]",
+        )}
+      >
+        {/* Status pip — calm, no pulse */}
+        <span
+          aria-hidden
+          className="grid size-2 shrink-0 rounded-full ring-2"
+          style={{
+            backgroundColor: toneColor,
+            boxShadow: `0 0 0 3px oklch(from ${toneColor} l c h / 0.18)`,
+          }}
+        />
 
-      <header className="health-card__header">
-        <div className="health-card__id">
-          <span className="health-card__icon" aria-hidden>
-            <Icon className="h-3.5 w-3.5" />
-          </span>
-          <div className="health-card__title-block">
-            <span className="health-card__index">
-              SLOT · {String(index + 1).padStart(2, "0")}
-            </span>
-            <h3 className="health-card__name" title={entry.name}>
-              {entry.name}
-            </h3>
-          </div>
-        </div>
-
-        <span className="health-card__led-block" aria-label={entry.status}>
-          <span className="health-card__led" aria-hidden />
-          <span className="health-card__led-label">{entry.status}</span>
+        {/* Icon tile */}
+        <span
+          aria-hidden
+          className="grid size-8 shrink-0 place-items-center rounded-lg"
+          style={{
+            backgroundColor: `oklch(from ${toneColor} l c h / 0.08)`,
+            color: toneColor,
+            boxShadow: `inset 0 0 0 1px oklch(from ${toneColor} l c h / 0.18)`,
+          }}
+        >
+          <Icon className="size-3.5" />
         </span>
-      </header>
 
-      {entry.description ? (
-        <p className="health-card__desc">{entry.description}</p>
-      ) : (
-        <p className="health-card__desc health-card__desc--muted">
-          No description registered.
-        </p>
-      )}
-
-      <div className="health-card__readout">
-        <div className="health-card__numeric">
-          <span className="health-card__num">{num}</span>
-          <span className="health-card__unit">{unit}</span>
-        </div>
-        <span className="health-card__metric-label">latency</span>
-      </div>
-
-      <div className="health-card__bar" aria-hidden>
-        <span className="health-card__bar-fill" style={{ width: `${pct}%` }} />
-      </div>
-
-      {detailEntries.length > 0 && (
-        <div className="health-card__details">
-          {detailEntries.slice(0, 4).map(([k, v]) => (
-            <span
-              className="health-card__chip"
-              key={k}
-              title={`${k}: ${String(v)}`}
-            >
-              <span className="health-card__chip-key">{k}</span>
-              <span className="health-card__chip-eq">=</span>
-              <span className="health-card__chip-val">{String(v)}</span>
-            </span>
-          ))}
-          {detailEntries.length > 4 && (
-            <span className="health-card__chip-more">
-              +{detailEntries.length - 4}
-            </span>
+        {/* Name + description */}
+        <div className="min-w-0 flex-1">
+          <h3
+            className="truncate font-display text-[14px] font-semibold tracking-tight text-[var(--color-foreground)]"
+            title={entry.name}
+          >
+            {entry.name}
+          </h3>
+          {entry.description ? (
+            <p className="mt-0.5 truncate text-[11.5px] text-[var(--color-muted-foreground)]">
+              {entry.description}
+            </p>
+          ) : (
+            <p className="mt-0.5 truncate text-[11.5px] italic text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.7)]">
+              No description registered.
+            </p>
           )}
         </div>
+
+        {/* Latency readout */}
+        <div className="flex shrink-0 items-baseline gap-1">
+          <span className="font-mono text-[15px] font-semibold tabular-nums text-[var(--color-foreground)]">
+            {num}
+          </span>
+          <span className="font-mono text-[11px] text-[var(--color-muted-foreground)]">
+            {unit}
+          </span>
+        </div>
+
+        {/* Status word — small caps */}
+        <span
+          className="hidden shrink-0 text-[10.5px] font-semibold uppercase tracking-wider sm:inline"
+          style={{ color: toneColor }}
+        >
+          {entry.status}
+        </span>
+
+        {/* Chevron */}
+        <ChevronDown
+          aria-hidden
+          className={cn(
+            "size-4 shrink-0 text-[var(--color-muted-foreground)] transition-transform duration-[var(--duration-default)] ease-[var(--ease-out-cubic)]",
+            isExpanded && "rotate-180",
+          )}
+        />
+      </div>
+
+      {isExpanded && (
+        <div className="border-t border-[oklch(from_var(--color-border)_l_c_h_/_0.5)] bg-[oklch(from_var(--color-secondary)_l_c_h_/_0.4)] px-5 py-5">
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-start">
+            {/* Latency budget */}
+            <div>
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="text-[10.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
+                  Latency budget
+                </span>
+                <span className="font-mono text-[11px] tabular-nums text-[var(--color-muted-foreground)]">
+                  {formatLatency(entry.durationMs)} / 500 ms
+                </span>
+              </div>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[var(--color-border-strong)]">
+                <div
+                  className="h-full rounded-full transition-[width]"
+                  style={{
+                    width: `${pct}%`,
+                    backgroundColor: toneColor,
+                  }}
+                />
+              </div>
+              <p className="mt-2 text-[11px] leading-relaxed text-[var(--color-muted-foreground)]">
+                Scaled against a soft 500 ms readiness budget. Bars in the upper
+                third are early-warning territory.
+              </p>
+            </div>
+
+            {/* Detail key/value table */}
+            <div>
+              <span className="text-[10.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
+                Detail
+              </span>
+              {detailEntries.length === 0 ? (
+                <p className="mt-2 text-[12px] italic text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.7)]">
+                  No additional details reported.
+                </p>
+              ) : (
+                <dl className="mt-2 divide-y divide-[oklch(from_var(--color-border)_l_c_h_/_0.5)] rounded-lg border border-[var(--color-border)] bg-[var(--color-card)]">
+                  {detailEntries.slice(0, 6).map(([k, v]) => (
+                    <div
+                      key={k}
+                      className="grid grid-cols-[max-content_minmax(0,1fr)] items-baseline gap-3 px-3 py-2"
+                    >
+                      <dt className="font-mono text-[10.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
+                        {k}
+                      </dt>
+                      <dd
+                        className="truncate text-right font-mono text-[12px] tabular-nums text-[var(--color-foreground)]"
+                        title={String(v)}
+                      >
+                        {String(v)}
+                      </dd>
+                    </div>
+                  ))}
+                  {detailEntries.length > 6 && (
+                    <div className="px-3 py-1.5 text-[10.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
+                      +{detailEntries.length - 6} more
+                    </div>
+                  )}
+                </dl>
+              )}
+            </div>
+          </div>
+        </div>
       )}
-    </article>
+    </div>
   );
 }
 
 // ────────────────────────────────────────────────────────────────────────
-// Skeletons + error
+// Skeletons + error / empty
 // ────────────────────────────────────────────────────────────────────────
 
 function HeroSkeleton() {
   return (
-    <Card>
-      <CardContent className="grid grid-cols-1 gap-6 px-6 py-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] px-7 py-7">
+      <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
         <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-9 w-9 rounded-lg" />
-            <Skeleton className="h-5 w-20 rounded-full" />
+          <div className="flex items-center gap-3">
+            <Skeleton className="size-10 rounded-lg" />
+            <Skeleton className="h-5 w-24 rounded-full" />
           </div>
-          <Skeleton className="h-7 w-72" />
+          <Skeleton className="h-7 w-80" />
           <Skeleton className="h-4 w-96 max-w-full" />
-          <div className="grid grid-cols-2 gap-x-8 gap-y-3 pt-3 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-x-8 gap-y-4 pt-3 sm:grid-cols-4">
             {[0, 1, 2, 3].map((i) => (
               <div key={i} className="space-y-1.5">
-                <Skeleton className="h-3 w-16" />
-                <Skeleton className="h-5 w-20" />
                 <Skeleton className="h-3 w-14" />
+                <Skeleton className="h-5 w-20" />
+                <Skeleton className="h-3 w-12" />
               </div>
             ))}
           </div>
         </div>
-        <Skeleton className="h-7 w-[180px]" />
-      </CardContent>
-    </Card>
+        <Skeleton className="h-6 w-[176px]" />
+      </div>
+    </div>
   );
 }
 
 function ChecksSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-      {[0, 1, 2, 3, 4, 5].map((i) => (
-        <div
-          key={i}
-          className="health-card health-card--skeleton"
-          style={{ ["--tone"]: "var(--color-muted-foreground)" } as React.CSSProperties}
-        >
-          <div className="health-card__header">
-            <div className="health-card__id">
-              <Skeleton className="h-7 w-7 rounded-md" />
-              <div className="space-y-1.5">
-                <Skeleton className="h-2 w-14" />
-                <Skeleton className="h-3 w-28" />
-              </div>
+    <div className="overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]">
+      <div className="divide-y divide-[var(--color-border)]">
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="flex items-center gap-4 px-5 py-3.5">
+            <Skeleton className="size-2 rounded-full" />
+            <Skeleton className="size-8 rounded-lg" />
+            <div className="flex-1 space-y-1.5">
+              <Skeleton className="h-3.5 w-32" />
+              <Skeleton className="h-3 w-56 max-w-full" />
             </div>
-            <Skeleton className="h-5 w-20 rounded-full" />
+            <Skeleton className="h-5 w-16" />
+            <Skeleton className="size-4 rounded" />
           </div>
-          <Skeleton className="h-3 w-full" />
-          <div className="flex items-baseline justify-between gap-2">
-            <Skeleton className="h-7 w-20" />
-            <Skeleton className="h-2 w-12" />
-          </div>
-          <Skeleton className="h-1 w-full rounded-full" />
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
 
 function ErrorPanel({ message }: { message?: string }) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-[var(--color-destructive)]">
-          <CircleAlert className="h-4 w-4" />
+    <div
+      role="alert"
+      className={cn(
+        "fsh-enter flex items-start gap-3 rounded-xl border px-5 py-4",
+        "border-[oklch(from_var(--color-destructive)_l_c_h_/_0.30)]",
+        "bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.04)]",
+      )}
+    >
+      <ToneIconTile icon={CircleAlert} tone="destructive" size="md" />
+      <div className="min-w-0 flex-1">
+        <p className="font-display text-[14px] font-semibold tracking-tight text-[var(--color-destructive)]">
           Health endpoint unreachable
-        </CardTitle>
-        <CardDescription>
+        </p>
+        <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-muted-foreground)]">
           {message ??
             "The browser couldn't reach /health/ready. The API may be down, or a network policy is blocking the request."}
-        </CardDescription>
-      </CardHeader>
-    </Card>
+        </p>
+      </div>
+    </div>
   );
 }
 
 function EmptyChecks() {
   return (
-    <Card>
-      <CardContent className="flex flex-col items-center justify-center gap-2 py-10 text-center">
-        <ShieldCheck className="h-5 w-5 text-[var(--color-muted-foreground)]" />
-        <div className="text-sm font-medium tracking-tight">No checks registered</div>
-        <p className="max-w-sm text-xs leading-relaxed text-[var(--color-muted-foreground)]">
-          Modules can register dependency checks via{" "}
-          <code className="font-mono">AddHealthChecks()</code>. None are reporting yet.
-        </p>
-      </CardContent>
-    </Card>
+    <div className="flex flex-col items-center justify-center gap-2.5 rounded-xl border border-dashed border-[var(--color-border)] bg-[var(--color-card)] px-5 py-12 text-center">
+      <ToneIconTile icon={ShieldCheck} tone="muted" size="lg" className="rounded-full" />
+      <p className="font-display text-[14px] font-semibold tracking-tight text-[var(--color-foreground)]">
+        No checks registered
+      </p>
+      <p className="max-w-sm text-[11.5px] leading-relaxed text-[var(--color-muted-foreground)]">
+        Modules can register dependency checks via{" "}
+        <code className="rounded bg-[var(--color-muted)] px-1.5 py-0.5 font-mono text-[10.5px] text-[var(--color-foreground)]">
+          AddHealthChecks()
+        </code>
+        . None are reporting yet.
+      </p>
+    </div>
   );
 }

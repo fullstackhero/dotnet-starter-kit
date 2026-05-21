@@ -19,20 +19,19 @@ export const DropdownMenuGroup = DropdownMenuPrimitive.Group;
 export const DropdownMenuContent = React.forwardRef<
   React.ComponentRef<typeof DropdownMenuPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content>
->(({ className, sideOffset = 8, ...props }, ref) => (
+>(({ className, sideOffset = 6, ...props }, ref) => (
   <DropdownMenuPortal>
     <DropdownMenuPrimitive.Content
       ref={ref}
+      data-slot="dropdown-menu-content"
       sideOffset={sideOffset}
       className={cn(
-        "z-50 min-w-[14rem] overflow-hidden rounded-xl",
-        "bg-[oklch(from_var(--color-popover)_l_c_h_/_0.92)] backdrop-blur-2xl backdrop-saturate-150",
-        "shadow-[var(--shadow-lift)]",
-        "gradient-border",
-        "data-[state=open]:animate-fsh-dialog-in data-[state=closed]:animate-fsh-dialog-out",
-        // Override the dialog keyframes' default translation since
-        // dropdowns scale from their own origin (top-right typically).
+        "z-50 min-w-[12rem] max-h-[var(--radix-dropdown-menu-content-available-height)]",
+        "overflow-x-hidden overflow-y-auto",
+        "rounded-lg border border-[var(--color-border)] bg-[var(--color-popover)] p-1",
+        "text-[var(--color-popover-foreground)] shadow-md",
         "origin-[var(--radix-dropdown-menu-content-transform-origin)]",
+        "data-[state=open]:animate-fsh-dialog-in data-[state=closed]:animate-fsh-dialog-out",
         className,
       )}
       {...props}

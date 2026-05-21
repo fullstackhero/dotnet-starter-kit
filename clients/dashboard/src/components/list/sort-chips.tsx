@@ -30,13 +30,13 @@ export function SortChips<K extends string>({
     <div className="flex flex-wrap items-center gap-2">
       {prefixLabel && (
         <>
-          <span className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
             {prefixLabel}
           </span>
-          <span aria-hidden className="h-3 w-px bg-[var(--color-border-strong)]" />
+          <span aria-hidden className="h-3 w-px bg-[var(--color-border)]" />
         </>
       )}
-      <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]/70">
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]/80">
         {intro}
       </span>
       {options.map((opt) => (
@@ -71,11 +71,11 @@ function SortChip({
       aria-pressed={active}
       className={cn(
         "inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-full px-3",
-        "font-mono text-[10.5px] font-medium uppercase tracking-[0.14em]",
-        "transition-colors duration-[var(--duration-fast)]",
+        "text-[11px] font-semibold uppercase tracking-wider",
+        "border transition-colors duration-[var(--duration-fast)]",
         active
-          ? "bg-[var(--color-primary-soft)] text-[var(--color-primary)] ring-1 ring-inset ring-[oklch(from_var(--color-primary)_l_c_h_/_0.25)]"
-          : "bg-[var(--color-surface-3)] text-[var(--color-muted-foreground)] ring-1 ring-inset ring-[var(--color-border)] hover:bg-[var(--color-surface-4)] hover:text-[var(--color-foreground)]",
+          ? "border-[oklch(from_var(--color-primary)_l_c_h_/_0.25)] bg-[oklch(from_var(--color-primary)_l_c_h_/_0.10)] text-[var(--color-primary)]"
+          : "border-[var(--color-border)] bg-[var(--color-card)] text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]",
       )}
     >
       {label}

@@ -3,8 +3,9 @@ import { cn } from "@/lib/cn";
 export type StatTone = "default" | "warning" | "danger";
 
 /**
- * Atomic stat card used by every list-page stat strip. Mono-caps label,
- * display-weight value, prose hint. Tone shifts the value color.
+ * Atomic stat card used by every list-page stat strip. Calm warm-paper
+ * card with a plain uppercase label, a tabular value, and a hint line.
+ * `tone` shifts the value color.
  */
 export function Stat({
   label,
@@ -27,16 +28,16 @@ export function Stat({
   return (
     <div
       className={cn(
-        "card-shell flex h-full min-h-[92px] flex-col justify-between rounded-xl bg-[var(--color-surface-3)]",
+        "flex h-full min-h-[92px] flex-col justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] shadow-xs",
         "px-5 py-4",
       )}
     >
-      <div className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
+      <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
         {label}
       </div>
       <div
         className={cn(
-          "text-display mt-2 text-[24px] font-semibold leading-none tracking-[-0.02em] tabular-nums",
+          "font-display mt-2 text-[22px] font-semibold leading-none tracking-tight tabular-nums text-[var(--color-foreground)]",
           accent && "text-[var(--color-primary)]",
           tone === "warning" && "text-[var(--color-warning)]",
           tone === "danger" && "text-[var(--color-destructive)]",

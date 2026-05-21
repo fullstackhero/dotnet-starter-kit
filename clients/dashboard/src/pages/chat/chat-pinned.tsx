@@ -44,7 +44,7 @@ export function ChatPinnedDropdown({
           aria-label="Pinned messages"
           title="Pinned messages"
           className={cn(
-            "grid h-7 w-7 cursor-pointer place-items-center rounded-md",
+            "grid h-8 w-8 cursor-pointer place-items-center rounded-md",
             "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
             "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
           )}
@@ -54,13 +54,13 @@ export function ChatPinnedDropdown({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[320px] p-0">
         <div className="border-b border-[var(--color-border)] px-3 py-2">
-          <p className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
             Pinned messages
           </p>
         </div>
         <div className="max-h-[60vh] overflow-y-auto">
           {pinnedQuery.isLoading ? (
-            <Placeholder label="Loading…" mono />
+            <Placeholder label="Loading…" />
           ) : pinned.length === 0 ? (
             <Placeholder label="Nothing pinned in this channel yet." />
           ) : (
@@ -120,7 +120,7 @@ function PinnedRow({
             <span className="truncate text-[12.5px] font-semibold tracking-tight text-[var(--color-foreground)]">
               {author.name}
             </span>
-            <span className="font-mono text-[10px] tabular-nums text-[var(--color-muted-foreground)]">
+            <span className="text-[10px] tabular-nums text-[var(--color-muted-foreground)]">
               {shortDateTime(message.createdAtUtc)}
             </span>
           </div>
@@ -133,15 +133,10 @@ function PinnedRow({
   );
 }
 
-function Placeholder({ label, mono }: { label: string; mono?: boolean }) {
+function Placeholder({ label }: { label: string; mono?: boolean }) {
   return (
     <div className="px-3 py-8 text-center">
-      <p
-        className={cn(
-          "text-sm text-[var(--color-muted-foreground)]",
-          mono && "font-mono text-[11px] uppercase tracking-[0.14em]",
-        )}
-      >
+      <p className="text-[13px] text-[var(--color-muted-foreground)]">
         {label}
       </p>
     </div>

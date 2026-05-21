@@ -328,14 +328,14 @@ export function Composer({
   };
 
   return (
-    <div className="relative px-4 pb-4 pt-2">
+    <div className="relative border-t border-[var(--color-border)] bg-[var(--color-card)] px-4 py-3">
       <div
         className={cn(
-          "relative rounded-xl border bg-[var(--color-surface-3)] transition-all",
-          "duration-[var(--duration-default)] ease-[var(--ease-out-cubic)]",
+          "relative rounded-xl border bg-[var(--color-background)] shadow-xs transition-all",
+          "duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
           focused
-            ? "border-[var(--color-primary)] shadow-[0_0_0_3px_var(--color-primary-soft)]"
-            : "border-[var(--color-border)]",
+            ? "border-[var(--color-ring)] ring-[3px] ring-[oklch(from_var(--color-ring)_l_c_h_/_0.5)]"
+            : "border-[var(--color-input)]",
         )}
       >
         {/* Mention picker floats above the plinth so it never covers the
@@ -459,7 +459,7 @@ export function Composer({
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
             (body.trim() || pendingAttachment) && !mutation.isPending
               ? "bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:scale-105 hover:bg-[var(--color-primary-hover)]"
-              : "bg-[var(--color-surface-2)] text-[var(--color-muted-foreground)]",
+              : "bg-[var(--color-muted)] text-[var(--color-muted-foreground)]",
           )}
         >
           <Send className="h-3.5 w-3.5" aria-hidden />
@@ -467,13 +467,13 @@ export function Composer({
       </div>
 
       <div className="mt-1.5 flex items-center justify-between px-1">
-        <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+        <span className="text-[11px] text-[var(--color-muted-foreground)]">
           {replyTo
-            ? "↵ Send reply · ⇧↵ Newline · Esc clear"
-            : "↵ Send · ⇧↵ Newline · Type @ + 2 chars to mention"}
+            ? "Enter to send · Shift+Enter for newline · Esc to clear"
+            : "Enter to send · Shift+Enter for newline · @ + 2 chars to mention"}
         </span>
         {mutation.isError && (
-          <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-destructive)]">
+          <span className="text-[11px] font-medium text-[var(--color-destructive)]">
             Send failed — retry?
           </span>
         )}
@@ -501,13 +501,13 @@ function ReplyQuote({
   return (
     <div
       className={cn(
-        "mx-3 mt-3 flex items-start gap-2.5 rounded-md border-l-2 px-3 py-2",
-        "border-l-[var(--color-primary)] bg-[var(--color-surface-2)]",
+        "mx-3 mt-3 flex items-start gap-2.5 rounded-lg border-l-2 px-3 py-2",
+        "border-l-[var(--color-primary)] bg-[var(--color-muted)]",
       )}
     >
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
-          <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
             Replying to
           </span>
           <span className="truncate text-[11px] font-semibold tracking-tight text-[var(--color-foreground)]">
@@ -570,10 +570,10 @@ function UploadingChip({
   return (
     <div
       className={cn(
-        "mx-3 mt-3 flex items-center gap-2.5 rounded-md border-l-2 px-3 py-2",
+        "mx-3 mt-3 flex items-center gap-2.5 rounded-lg border-l-2 px-3 py-2",
         isError
           ? "border-l-[var(--color-destructive)] bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.06)]"
-          : "border-l-[var(--color-primary)] bg-[var(--color-surface-2)]",
+          : "border-l-[var(--color-primary)] bg-[var(--color-muted)]",
       )}
     >
       {isError ? (
@@ -590,7 +590,7 @@ function UploadingChip({
         </p>
         <p
           className={cn(
-            "font-mono text-[10px] uppercase tracking-[0.14em]",
+            "text-[11px] tabular-nums",
             isError ? "text-[var(--color-destructive)]" : "text-[var(--color-muted-foreground)]",
           )}
         >
@@ -599,7 +599,7 @@ function UploadingChip({
       </div>
       {/* Inline progress strip, hidden on error. */}
       {!isError && (
-        <div className="relative h-1 w-16 overflow-hidden rounded-full bg-[var(--color-surface-3)]">
+        <div className="relative h-1 w-16 overflow-hidden rounded-full bg-[var(--color-card)]">
           <span
             className="absolute inset-y-0 left-0 bg-[var(--color-primary)] transition-[width] duration-[var(--duration-fast)]"
             style={{ width: `${Math.max(4, percent)}%` }}
@@ -638,22 +638,22 @@ function PendingAttachmentChip({
   return (
     <div
       className={cn(
-        "mx-3 mt-3 flex items-center gap-2.5 rounded-md border px-3 py-2",
-        "border-[var(--color-border)] bg-[var(--color-surface-2)]",
+        "mx-3 mt-3 flex items-center gap-2.5 rounded-lg border px-3 py-2",
+        "border-[var(--color-border)] bg-[var(--color-muted)]",
       )}
     >
       {isImage && attachment.url ? (
         <img
           src={attachment.url}
           alt=""
-          className="h-9 w-9 shrink-0 rounded-md object-cover ring-1 ring-[var(--color-border)]"
+          className="h-9 w-9 shrink-0 rounded-lg object-cover ring-1 ring-[var(--color-border)]"
         />
       ) : (
         <span
           aria-hidden
           className={cn(
-            "grid h-9 w-9 shrink-0 place-items-center rounded-md",
-            "bg-[var(--color-surface-3)] text-[var(--color-muted-foreground)]",
+            "grid h-9 w-9 shrink-0 place-items-center rounded-lg",
+            "bg-[var(--color-card)] text-[var(--color-muted-foreground)]",
           )}
         >
           {isImage ? (
@@ -670,7 +670,7 @@ function PendingAttachmentChip({
         >
           {attachment.fileName}
         </p>
-        <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+        <p className="text-[11px] tabular-nums text-[var(--color-muted-foreground)]">
           {formatBytes(attachment.sizeBytes)} · ready to send
         </p>
       </div>

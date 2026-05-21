@@ -30,6 +30,10 @@ export type FileAssetDto = {
   scanStatus: number;
   createdAtUtc: string;
   publicUrl?: string | null;
+  /** The user that uploaded the file. Use with useUserDisplay to resolve a name.
+   *  Older server versions before the field was added send "" — guard against it
+   *  when deciding whether to render an "uploaded by" attribution row. */
+  createdByUserId: string;
   deletedOnUtc?: string | null;
   deletedBy?: string | null;
 };
@@ -87,6 +91,27 @@ export function getFileDownloadUrl(
 export function listMyFiles(page = 1, pageSize = 20): Promise<FileAssetDto[]> {
   return apiFetch<FileAssetDto[]>(
     `/api/v1/files/mine?page=${page}&pageSize=${pageSize}`,
+  );
+}
+
+export function listSharedFiles(page = 1, pageSize = 20): Promise<FileAssetDto[]> {
+  return apiFetch<FileAssetDto[]>(
+    `/api/v1/files/shared?page=${page}&pageSize=${pageSize}`,
+  );
+}
+
+/** Flip a file's visibility. Server returns the refreshed DTO so the client can patch
+ *  its preview/list without a follow-up GET. */
+export function changeFileVisibility(
+  fileAssetId: string,
+  visibility: VisibilityValue,
+): Promise<FileAssetDto> {
+  return apiFetch<FileAssetDto>(
+    `/api/v1/files/${encodeURIComponent(fileAssetId)}/visibility`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ visibility }),
+    },
   );
 }
 

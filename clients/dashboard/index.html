@@ -39,7 +39,7 @@
           onest: "'Onest', " + SHARED_FALLBACKS,
           "roboto-flex": "'Roboto Flex', " + SHARED_FALLBACKS,
         };
-        var ACCENTS = ["indigo", "violet", "sky", "emerald", "amber", "rose"];
+        var ACCENTS = ["rose", "indigo", "violet", "sky", "emerald", "amber"];
 
         try {
           // Theme.
@@ -56,10 +56,10 @@
             document.documentElement.style.setProperty("--font-sans", FONT_FAMILIES[savedFont]);
           }
 
-          // Accent — toggle accent-{id} class on :root. Indigo is the
-          // baseline (no class needed).
+          // Accent — toggle accent-{id} class on :root. Rose is the
+          // baseline (no class needed) and matches the warm-paper default.
           var savedAccent = localStorage.getItem("fsh.accent");
-          if (savedAccent && savedAccent !== "indigo" && ACCENTS.indexOf(savedAccent) !== -1) {
+          if (savedAccent && savedAccent !== "rose" && ACCENTS.indexOf(savedAccent) !== -1) {
             document.documentElement.classList.add("accent-" + savedAccent);
           }
 

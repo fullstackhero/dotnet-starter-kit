@@ -31,8 +31,9 @@ export const DialogOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Overlay
     ref={ref}
+    data-slot="dialog-overlay"
     className={cn(
-      "fixed inset-0 z-50 bg-[oklch(from_var(--color-background)_l_c_h_/_0.55)] backdrop-blur-md",
+      "fixed inset-0 z-50 bg-black/40 backdrop-blur-[6px] backdrop-grayscale",
       "data-[state=open]:animate-fsh-overlay-in data-[state=closed]:animate-fsh-overlay-out",
       className,
     )}
@@ -49,12 +50,11 @@ export const DialogContent = React.forwardRef<
     <DialogOverlay />
     <DialogPrimitive.Content
       ref={ref}
+      data-slot="dialog-content"
       className={cn(
-        "fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2",
-        // Architectural surface — single hairline border, no gradient ramp.
-        // The lift shadow is intentionally larger than card-shell hover
-        // (this is a modal — it should clearly float above the page).
-        "card-shell rounded-2xl shadow-[var(--shadow-lift)]",
+        "fixed left-1/2 top-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2",
+        "rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]",
+        "shadow-xl outline-none sm:max-w-lg",
         "data-[state=open]:animate-fsh-dialog-in data-[state=closed]:animate-fsh-dialog-out",
         className,
       )}
@@ -62,15 +62,17 @@ export const DialogContent = React.forwardRef<
     >
       {children}
       <DialogPrimitive.Close
+        data-slot="dialog-close"
         aria-label="Close"
         className={cn(
-          "absolute right-3 top-3 grid h-7 w-7 place-items-center rounded-md",
-          "text-[var(--color-muted-foreground)] transition-colors",
-          "hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
+          "absolute top-3.5 right-3.5 size-9 rounded-lg flex items-center justify-center",
+          "text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.6)] hover:text-[var(--color-foreground)]",
+          "hover:bg-[var(--color-accent)] transition-colors cursor-pointer outline-none",
+          "focus-visible:border-[var(--color-ring)] focus-visible:ring-[3px] focus-visible:ring-[oklch(from_var(--color-ring)_l_c_h_/_0.5)]",
+          "[&_svg]:pointer-events-none [&_svg]:shrink-0",
         )}
       >
-        <X className="h-4 w-4" />
+        <X className="size-4" />
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>
   </DialogPortal>

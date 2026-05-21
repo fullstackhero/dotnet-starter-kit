@@ -93,7 +93,7 @@ export function ChatSearchOverlay({
             spellCheck={false}
             autoComplete="off"
             className={cn(
-              "h-9 w-full rounded-md border bg-[var(--color-surface-1)] pl-8 pr-8 text-sm",
+              "h-9 w-full rounded-lg border bg-[var(--color-card)] pl-8 pr-8 text-sm",
               "border-[var(--color-border)] text-[var(--color-foreground)]",
               "placeholder:text-[var(--color-muted-foreground)]",
               "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
@@ -127,12 +127,12 @@ export function ChatSearchOverlay({
         <div
           className={cn(
             "absolute left-0 right-0 top-14 z-20 max-h-[60vh] overflow-y-auto",
-            "border-b border-[var(--color-border)] bg-[var(--color-surface-1)]",
+            "border-b border-[var(--color-border)] bg-[var(--color-card)]",
             "shadow-[0_18px_28px_-18px_oklch(0_0_0_/_0.18)]",
           )}
         >
           {resultsQuery.isLoading ? (
-            <ResultPlaceholder label="Searching…" mono />
+            <ResultPlaceholder label="Searching…" />
           ) : results.length === 0 ? (
             <ResultPlaceholder label={`No matches for "${debounced}".`} />
           ) : (
@@ -150,8 +150,8 @@ export function ChatSearchOverlay({
               ))}
             </ul>
           )}
-          <div className="border-t border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-1.5">
-            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+          <div className="border-t border-[var(--color-border)] bg-[var(--color-muted)] px-3 py-1.5">
+            <span className="text-[11px] text-[var(--color-muted-foreground)]">
               {results.length > 0
                 ? `${results.length} match${results.length === 1 ? "" : "es"} · click to jump · Esc to close`
                 : "Esc to close"}
@@ -197,7 +197,7 @@ function SearchResultRow({
             <span className="truncate text-[12.5px] font-semibold tracking-tight text-[var(--color-foreground)]">
               {author.name}
             </span>
-            <span className="font-mono text-[10px] tabular-nums text-[var(--color-muted-foreground)]">
+            <span className="text-[10px] tabular-nums text-[var(--color-muted-foreground)]">
               {shortDateTime(message.createdAtUtc)}
             </span>
           </div>
@@ -210,15 +210,10 @@ function SearchResultRow({
   );
 }
 
-function ResultPlaceholder({ label, mono }: { label: string; mono?: boolean }) {
+function ResultPlaceholder({ label }: { label: string; mono?: boolean }) {
   return (
     <div className="px-3 py-8 text-center">
-      <p
-        className={cn(
-          "text-sm text-[var(--color-muted-foreground)]",
-          mono && "font-mono text-[11px] uppercase tracking-[0.14em]",
-        )}
-      >
+      <p className="text-[13px] text-[var(--color-muted-foreground)]">
         {label}
       </p>
     </div>

@@ -1,5 +1,4 @@
 import {
-  useCallback,
   useEffect,
   useMemo,
   useState,
@@ -14,6 +13,8 @@ import {
 import {
   AlertTriangle,
   ArrowDown,
+  ChevronLeft,
+  ChevronRight,
   CircleDollarSign,
   Minus,
   Package,
@@ -21,9 +22,7 @@ import {
   Pencil,
   Plus,
   Search,
-  Sparkles,
   Trash2,
-  X,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -60,33 +59,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import {
   Combobox,
-  DensityToggle,
-  EmptyState,
-  ErrorBand,
+  EntityPageHeader,
   Field,
-  ListHero,
-  Pagination,
-  SortChips,
-  Stat,
-  StatStrip,
-  usePersistedDensity,
-  type Density,
-  type SortDir,
-  type SortOption,
 } from "@/components/list";
-import { useAuth } from "@/auth/use-auth";
 import { cn } from "@/lib/cn";
 import {
   describe,
   formatDate,
-  formatDateMono,
   formatMoney,
-  formatRelative,
-  pad2,
 } from "@/lib/list-helpers";
 
-const PAGE_SIZE = 20;
-const DENSITY_KEY = "fsh.dashboard.catalog.products.density";
+const PAGE_SIZE = 25;
 const LOW_STOCK = 10;
 
 type EditorState =
@@ -97,45 +80,118 @@ type EditorState =
   | { mode: "price"; product: ProductDto }
   | { mode: "stock"; product: ProductDto };
 
-type SortKey = "name" | "sku" | "createdAtUtc" | "stock";
+// ───────────────────────────────────────────────────────────────────────
+//  Filter row — simple inline filter chips above the table.
+// ───────────────────────────────────────────────────────────────────────
 
-const SORT_OPTIONS: SortOption<SortKey>[] = [
-  { key: "createdAtUtc", label: "Created" },
-  { key: "name", label: "Name" },
-  { key: "sku", label: "SKU" },
-  { key: "stock", label: "Stock" },
-];
+function FilterRow({
+  brands,
+  categories,
+  brandFilter,
+  setBrandFilter,
+  categoryFilter,
+  setCategoryFilter,
+  activeFilter,
+  setActiveFilter,
+}: {
+  brands: BrandDto[];
+  categories: CategoryDto[];
+  brandFilter: string | null;
+  setBrandFilter: (v: string | null) => void;
+  categoryFilter: string | null;
+  setCategoryFilter: (v: string | null) => void;
+  activeFilter: boolean | null;
+  setActiveFilter: (v: boolean | null) => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <Combobox
+        label="Brand"
+        value={brandFilter}
+        onChange={setBrandFilter}
+        options={brands.map((b) => ({ value: b.id, label: b.name }))}
+        variant="filter"
+        searchable
+        clearable
+      />
+      <Combobox
+        label="Category"
+        value={categoryFilter}
+        onChange={setCategoryFilter}
+        options={categories.map((c) => ({ value: c.id, label: c.name }))}
+        variant="filter"
+        searchable
+        clearable
+      />
+      <ActivePill value={activeFilter} onChange={setActiveFilter} />
+    </div>
+  );
+}
+
+function ActivePill({
+  value,
+  onChange,
+}: {
+  value: boolean | null;
+  onChange: (v: boolean | null) => void;
+}) {
+  return (
+    <div
+      role="group"
+      aria-label="Active filter"
+      className="inline-flex h-8 items-center rounded-full border border-[var(--color-border)] bg-[var(--color-card)] p-0.5 text-[11px] font-semibold uppercase tracking-wider"
+    >
+      {[
+        { v: null, label: "All" },
+        { v: true, label: "Active" },
+        { v: false, label: "Hidden" },
+      ].map((opt) => {
+        const isActive = value === opt.v;
+        return (
+          <button
+            key={String(opt.v)}
+            type="button"
+            onClick={() => onChange(opt.v)}
+            aria-pressed={isActive}
+            className={cn(
+              "h-7 cursor-pointer rounded-full px-3 transition-colors duration-[var(--duration-fast)]",
+              isActive
+                ? "bg-[var(--color-primary)] text-[var(--color-primary-foreground)]"
+                : "text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]",
+            )}
+          >
+            {opt.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 // ───────────────────────────────────────────────────────────────────────
 //  Page
 // ───────────────────────────────────────────────────────────────────────
 
 export function ProductsPage() {
-  const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [pageNumber, setPageNumber] = useState(1);
+  const [page, setPage] = useState(1);
   const [editor, setEditor] = useState<EditorState>({ mode: "closed" });
 
   const [brandFilter, setBrandFilter] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<boolean | null>(null);
 
-  const [sortKey, setSortKey] = useState<SortKey>("createdAtUtc");
-  const [sortDir, setSortDir] = useState<SortDir>("desc");
-
-  const [density, setDensity] = usePersistedDensity(DENSITY_KEY);
-
   useEffect(() => {
     const t = setTimeout(() => {
       setDebouncedSearch(search.trim());
-      setPageNumber(1);
+      setPage(1);
     }, 250);
     return () => clearTimeout(t);
   }, [search]);
 
   useEffect(() => {
-    setPageNumber(1);
+    setPage(1);
   }, [brandFilter, categoryFilter, activeFilter]);
 
   const query = useQuery({
@@ -147,10 +203,8 @@ export function ProductsPage() {
         brandId: brandFilter,
         categoryId: categoryFilter,
         isActive: activeFilter,
-        pageNumber,
+        pageNumber: page,
         pageSize: PAGE_SIZE,
-        sortKey,
-        sortDir,
       },
     ],
     queryFn: () =>
@@ -159,10 +213,10 @@ export function ProductsPage() {
         brandId: brandFilter,
         categoryId: categoryFilter,
         isActive: activeFilter,
-        pageNumber,
+        pageNumber: page,
         pageSize: PAGE_SIZE,
-        sortBy: sortKey,
-        sortDir,
+        sortBy: "createdAtUtc",
+        sortDir: "desc",
       }),
     placeholderData: keepPreviousData,
   });
@@ -193,93 +247,56 @@ export function ProductsPage() {
     return map;
   }, [categoriesQuery.data]);
 
-  // Server-side sort drives the order. Items are already sorted on arrival.
-  const sortedItems = items;
-
-  const stats = useMemo(() => {
-    if (!data) return null;
-    const total = data.totalCount;
-    const active = items.filter((p) => p.isActive).length;
-    const lowStock = items.filter((p) => p.stock > 0 && p.stock < LOW_STOCK).length;
-    const outOfStock = items.filter((p) => p.stock === 0).length;
-    const avgPrice =
-      items.length === 0
-        ? 0
-        : items.reduce((s, p) => s + p.price.amount, 0) / items.length;
-    const currency = items[0]?.price.currency ?? "USD";
-    return { total, active, lowStock, outOfStock, avgPrice, currency };
-  }, [data, items]);
-
-  const onSort = useCallback(
-    (key: SortKey) => {
-      if (sortKey === key) {
-        setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-      } else {
-        setSortKey(key);
-        setSortDir(key === "createdAtUtc" || key === "stock" ? "desc" : "asc");
-      }
-    },
-    [sortKey],
-  );
-
   const filtersApplied =
     brandFilter !== null || categoryFilter !== null || activeFilter !== null;
   const searchActive = debouncedSearch.length > 0 || filtersApplied;
 
   return (
-    <div className="space-y-7 pb-12">
-      <ListHero
-        eyebrow="Catalog · Inventory"
-        tenant={user?.tenant ?? "—"}
-        subEyebrow="stockable items"
+    <div className="space-y-4 sm:space-y-6">
+      <EntityPageHeader
+        icon={Package}
         title="Products"
-        totalCount={data?.totalCount ?? null}
-        subtitle="The stockable items customers see. Each product carries a SKU, a brand, a category, a price, and a live stock count."
-        searchValue={search}
-        onSearch={setSearch}
-        searchPlaceholder="Find a product by name, SKU, or slug…"
-        isFetching={query.isFetching}
-        onRefresh={() => void query.refetch()}
-        ctaLabel="New product"
-        onCreate={() => setEditor({ mode: "create" })}
-      />
+        total={data?.totalCount ?? null}
+        description="Browse and manage the catalog. Each product carries a SKU, brand, category, price, and live stock count."
+      >
+        <Button
+          onClick={() => setEditor({ mode: "create" })}
+          className="h-9 flex-1 gap-1.5 rounded-lg px-4 text-[13px] font-semibold sm:flex-none"
+        >
+          <Plus className="size-4" />
+          New product
+        </Button>
+      </EntityPageHeader>
 
-      {stats && data && data.totalCount > 0 && (
-        <StatStrip cols={4}>
-          <Stat label="Total products" value={pad2(stats.total)} hint="across this tenant" />
-          <Stat
-            label="Active"
-            value={pad2(stats.active)}
-            hint={`${stats.total === 0 ? 0 : Math.round((stats.active / stats.total) * 100)}% of the page`}
-            accent
-          />
-          <Stat
-            label="Stock health"
-            value={
-              stats.outOfStock > 0
-                ? `${pad2(stats.outOfStock)} OOS`
-                : stats.lowStock > 0
-                  ? `${pad2(stats.lowStock)} LOW`
-                  : "Healthy"
-            }
-            hint={
-              stats.outOfStock > 0
-                ? `${stats.outOfStock} item${stats.outOfStock === 1 ? "" : "s"} out of stock`
-                : stats.lowStock > 0
-                  ? `${stats.lowStock} below ${LOW_STOCK} units`
-                  : "every item above the floor"
-            }
-            tone={stats.outOfStock > 0 ? "danger" : stats.lowStock > 0 ? "warning" : "default"}
-          />
-          <Stat
-            label="Avg price"
-            value={stats.avgPrice === 0 ? "—" : formatMoney(stats.avgPrice, stats.currency)}
-            hint="across this page"
-          />
-        </StatStrip>
-      )}
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-4 top-1/2 size-[18px] -translate-y-1/2 text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.5)]" />
+        <input
+          type="text"
+          placeholder="Search by name, SKU, or slug…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className={cn(
+            "h-[46px] w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]",
+            "pl-12 pr-4 text-[14px] font-normal text-[var(--color-foreground)] outline-none",
+            "placeholder:text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.5)]",
+            "shadow-[0_1px_2px_oklch(0_0_0_/_0.04)]",
+            "transition-all duration-200",
+            "focus:border-[oklch(from_var(--color-ring)_l_c_h_/_0.30)] focus:ring-2 focus:ring-[oklch(from_var(--color-ring)_l_c_h_/_0.10)]",
+          )}
+        />
+        {search && (
+          <button
+            onClick={() => setSearch("")}
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-[11px] font-medium text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.5)] transition-colors hover:text-[var(--color-muted-foreground)]"
+          >
+            Clear
+          </button>
+        )}
+      </div>
 
-      <FilterBar
+      {/* Filters */}
+      <FilterRow
         brands={brandsQuery.data?.items ?? []}
         categories={categoriesQuery.data?.items ?? []}
         brandFilter={brandFilter}
@@ -290,112 +307,107 @@ export function ProductsPage() {
         setActiveFilter={setActiveFilter}
       />
 
-      {query.isError && <ErrorBand message={describe(query.error)} />}
-
-      <section className="fsh-enter fsh-enter-3 space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <SortChips
-            options={SORT_OPTIONS}
-            sortKey={sortKey}
-            sortDir={sortDir}
-            onSort={onSort}
-            prefixLabel={searchActive ? "results" : "registry"}
-          />
-          <DensityToggle density={density} onChange={setDensity} />
-        </div>
-
-        <div
-          className={cn(
-            "card-shell overflow-hidden rounded-2xl",
-            "bg-[var(--color-surface-3)]",
-          )}
-        >
-          {query.isLoading && items.length === 0 ? (
-            <ul aria-busy>
-              {Array.from({ length: 5 }).map((_, i) => (
-                <SkeletonRow key={i} delayMs={i * 40} density={density} />
-              ))}
-            </ul>
-          ) : sortedItems.length === 0 ? (
-            (() => {
-              const filtered = debouncedSearch.length > 0 || filtersApplied;
-              return (
-                <EmptyState
-                  eyebrow={filtered ? "No matches" : "Empty inventory"}
-                  headline={
-                    filtered
-                      ? debouncedSearch
-                        ? `Nothing matches "${debouncedSearch}".`
-                        : "No products match the current filters."
-                      : "No products on file yet."
-                  }
-                  body={
-                    filtered
-                      ? "Try widening the filter set, or clear everything and start fresh."
-                      : "Add a product to start selling. Each carries its own SKU, price, stock count, and image."
-                  }
-                  icon={
-                    filtered ? (
-                      <Search className="h-6 w-6 text-[var(--color-primary)]" />
-                    ) : (
-                      <PackageX className="h-6 w-6 text-[var(--color-primary)]" />
-                    )
-                  }
-                  primaryAction={{
-                    label: filtered ? "Add a new product" : "Add the first product",
-                    onClick: () => setEditor({ mode: "create" }),
-                    icon: <Sparkles className="h-3.5 w-3.5" />,
-                  }}
-                  secondaryAction={
-                    filtered
-                      ? {
-                          label: "Clear filters",
-                          onClick: () => {
-                            setSearch("");
-                            setBrandFilter(null);
-                            setCategoryFilter(null);
-                            setActiveFilter(null);
-                          },
-                          icon: <X className="h-3.5 w-3.5" />,
-                        }
-                      : undefined
-                  }
-                />
-              );
-            })()
-          ) : (
-            <ul>
-              {sortedItems.map((product, i) => (
-                <Row
-                  key={product.id}
-                  product={product}
-                  brand={brandsById.get(product.brandId)}
-                  category={categoriesById.get(product.categoryId)}
-                  density={density}
-                  delayMs={Math.min(i, 8) * 30}
-                  onEdit={() => setEditor({ mode: "edit", product })}
-                  onDelete={() => setEditor({ mode: "delete", product })}
-                  onPriceChange={() => setEditor({ mode: "price", product })}
-                  onStockAdjust={() => setEditor({ mode: "stock", product })}
-                />
-              ))}
-            </ul>
-          )}
-        </div>
-      </section>
-
-      {data && data.totalCount > 0 && (
-        <Pagination
-          page={data.pageNumber}
-          totalPages={Math.max(data.totalPages, 1)}
-          totalCount={data.totalCount}
-          shown={items.length}
-          fetching={query.isFetching}
-          onPrev={() => setPageNumber((p) => Math.max(1, p - 1))}
-          onNext={() => setPageNumber((p) => p + 1)}
-          hasPrev={data.hasPrevious}
-          hasNext={data.hasNext}
+      {/* Results */}
+      {query.isLoading && items.length === 0 ? (
+        <LoadingList />
+      ) : items.length === 0 ? (
+        <EmptyResults
+          searchActive={searchActive}
+          search={debouncedSearch}
+          onCreate={() => setEditor({ mode: "create" })}
+          onClear={() => {
+            setSearch("");
+            setBrandFilter(null);
+            setCategoryFilter(null);
+            setActiveFilter(null);
+          }}
         />
+      ) : (
+        <div>
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-[12px] font-medium text-[var(--color-muted-foreground)]">
+              {data?.totalCount ?? 0} product
+              {(data?.totalCount ?? 0) !== 1 ? "s" : ""} found
+            </p>
+          </div>
+
+          {/* Mobile: card list */}
+          <div className="space-y-2 md:hidden">
+            {items.map((product) => (
+              <MobileCard
+                key={product.id}
+                product={product}
+                brand={brandsById.get(product.brandId)}
+                category={categoriesById.get(product.categoryId)}
+                onEdit={() => setEditor({ mode: "edit", product })}
+              />
+            ))}
+          </div>
+
+          {/* Desktop: table */}
+          <div className="hidden overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] shadow-[0_1px_2px_oklch(0_0_0_/_0.04)] md:block">
+            {/* Header */}
+            <div className="grid grid-cols-[1fr_120px_24px] gap-3 border-b border-[var(--color-border)] bg-[oklch(from_var(--color-muted)_l_c_h_/_0.4)] px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)] lg:grid-cols-[1fr_140px_110px_120px_24px]">
+              <span>Product</span>
+              <span>SKU</span>
+              <span className="hidden lg:block">Brand</span>
+              <span className="hidden lg:block">Price</span>
+              <span />
+            </div>
+
+            {/* Rows */}
+            {items.map((product, i) => (
+              <DesktopRow
+                key={product.id}
+                product={product}
+                brand={brandsById.get(product.brandId)}
+                category={categoriesById.get(product.categoryId)}
+                isLast={i === items.length - 1}
+                onEdit={() => setEditor({ mode: "edit", product })}
+                onDelete={() => setEditor({ mode: "delete", product })}
+                onPriceChange={() => setEditor({ mode: "price", product })}
+                onStockAdjust={() => setEditor({ mode: "stock", product })}
+              />
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {(data?.totalPages ?? 1) > 1 && (
+            <div className="mt-3 flex items-center justify-between">
+              <p className="text-[11px] text-[var(--color-muted-foreground)]">
+                Page {page} of {data?.totalPages}
+              </p>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  disabled={!data?.hasPrevious}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  className="grid size-8 cursor-pointer place-items-center rounded-lg text-[var(--color-muted-foreground)] transition-colors hover:bg-[oklch(from_var(--color-muted)_l_c_h_/_0.5)] hover:text-[var(--color-foreground)] disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                  <ChevronLeft className="size-4" />
+                </button>
+                <button
+                  type="button"
+                  disabled={!data?.hasNext}
+                  onClick={() => setPage((p) => p + 1)}
+                  className="grid size-8 cursor-pointer place-items-center rounded-lg text-[var(--color-muted-foreground)] transition-colors hover:bg-[oklch(from_var(--color-muted)_l_c_h_/_0.5)] hover:text-[var(--color-foreground)] disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                  <ChevronRight className="size-4" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {query.isError && (
+        <div
+          role="alert"
+          className="flex items-start gap-2 rounded-lg border border-[oklch(from_var(--color-destructive)_l_c_h_/_0.30)] bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.06)] px-3 py-2 text-sm text-[var(--color-destructive)]"
+        >
+          <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+          <span>{describe(query.error)}</span>
+        </div>
       )}
 
       <ProductEditorDialog
@@ -412,106 +424,102 @@ export function ProductsPage() {
 }
 
 // ───────────────────────────────────────────────────────────────────────
-//  Filter bar — pill chip selects + active toggle
+//  Mobile card — patient-style: avatar/image + name + secondary line + chevron
 // ───────────────────────────────────────────────────────────────────────
 
-function FilterBar({
-  brands,
-  categories,
-  brandFilter,
-  setBrandFilter,
-  categoryFilter,
-  setCategoryFilter,
-  activeFilter,
-  setActiveFilter,
-}: {
-  brands: BrandDto[];
-  categories: CategoryDto[];
-  brandFilter: string | null;
-  setBrandFilter: (v: string | null) => void;
-  categoryFilter: string | null;
-  setCategoryFilter: (v: string | null) => void;
-  activeFilter: boolean | null;
-  setActiveFilter: (v: boolean | null) => void;
-}) {
-  return (
-    <div className="fsh-enter fsh-enter-2 flex flex-wrap items-center gap-2">
-      <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]/70">
-        filter
-      </span>
-      <Combobox
-        label="Brand"
-        value={brandFilter}
-        onChange={setBrandFilter}
-        options={brands.map((b) => ({ value: b.id, label: b.name }))}
-        variant="filter"
-        searchable
-        clearable
-      />
-      <Combobox
-        label="Category"
-        value={categoryFilter}
-        onChange={setCategoryFilter}
-        options={categories.map((c) => ({ value: c.id, label: c.name }))}
-        variant="filter"
-        searchable
-        clearable
-      />
-      <ActiveFilter value={activeFilter} onChange={setActiveFilter} />
-    </div>
-  );
-}
-
-function ActiveFilter({
-  value,
-  onChange,
-}: {
-  value: boolean | null;
-  onChange: (v: boolean | null) => void;
-}) {
-  return (
-    <div
-      role="group"
-      aria-label="Active filter"
-      className="surface-edge inline-flex h-7 items-center rounded-full bg-[var(--color-surface-3)] p-0.5 font-mono text-[10.5px] font-medium uppercase tracking-[0.14em]"
-    >
-      {[
-        { v: null, label: "All" },
-        { v: true, label: "Active" },
-        { v: false, label: "Hidden" },
-      ].map((opt) => {
-        const isActive = value === opt.v;
-        return (
-          <button
-            key={String(opt.v)}
-            type="button"
-            onClick={() => onChange(opt.v)}
-            aria-pressed={isActive}
-            className={cn(
-              "h-6 cursor-pointer rounded-full px-2.5 transition-colors duration-[var(--duration-fast)]",
-              isActive
-                ? "bg-[var(--color-surface-1)] text-[var(--color-foreground)] shadow-[var(--highlight-top),0_1px_2px_oklch(0.115_0.010_270/0.06)]"
-                : "text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]",
-            )}
-          >
-            {opt.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-// ───────────────────────────────────────────────────────────────────────
-//  Row
-// ───────────────────────────────────────────────────────────────────────
-
-function Row({
+function MobileCard({
   product,
   brand,
   category,
-  density,
-  delayMs,
+  onEdit,
+}: {
+  product: ProductDto;
+  brand: BrandDto | undefined;
+  category: CategoryDto | undefined;
+  onEdit: () => void;
+}) {
+  return (
+    <Link
+      to={`/catalog/products/${product.id}`}
+      aria-label={`Open product ${product.name}`}
+      className={cn(
+        "block rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 text-left",
+        "shadow-[0_1px_2px_oklch(0_0_0_/_0.04)]",
+        "transition-colors hover:bg-[oklch(from_var(--color-accent)_l_c_h_/_0.4)] active:bg-[oklch(from_var(--color-accent)_l_c_h_/_0.6)]",
+        "outline-none focus-visible:ring-[3px] focus-visible:ring-[oklch(from_var(--color-ring)_l_c_h_/_0.4)]",
+      )}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex min-w-0 items-center gap-3">
+          <ProductImage
+            imageUrl={product.thumbnailUrl}
+            initial={product.name.trim().charAt(0).toUpperCase() || "·"}
+            size={40}
+          />
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <p className="truncate text-[14px] font-medium text-[var(--color-foreground)]">
+                {product.name}
+              </p>
+              {!product.isActive && (
+                <span className="inline-flex h-4 items-center rounded-full border border-[oklch(from_var(--color-destructive)_l_c_h_/_0.20)] bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.10)] px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wider text-[var(--color-destructive)]">
+                  Hidden
+                </span>
+              )}
+            </div>
+            <div className="mt-0.5 flex items-center gap-1.5">
+              <code className="font-mono text-[11px] text-[var(--color-muted-foreground)]">
+                {product.sku}
+              </code>
+            </div>
+          </div>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            aria-label={`Edit ${product.name}`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onEdit();
+            }}
+            className="grid size-7 cursor-pointer place-items-center rounded-md text-[var(--color-muted-foreground)] transition-colors hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]"
+          >
+            <Pencil className="size-3.5" />
+          </button>
+          <ChevronRight className="size-4 text-[var(--color-border)]" />
+        </div>
+      </div>
+      <div className="mt-2 ml-[52px] flex flex-wrap items-center gap-2">
+        {brand && (
+          <span className="inline-flex h-5 items-center rounded-full bg-[var(--color-secondary)] px-2 py-0.5 text-[11px] font-medium text-[var(--color-secondary-foreground)]">
+            {brand.name}
+          </span>
+        )}
+        {category && (
+          <span className="text-[11px] text-[var(--color-muted-foreground)]">
+            {category.name}
+          </span>
+        )}
+        <span className="ml-auto font-display text-[13px] font-semibold tabular-nums text-[var(--color-foreground)]">
+          {formatMoney(product.price.amount, product.price.currency)}
+        </span>
+        <StockChip stock={product.stock} />
+      </div>
+    </Link>
+  );
+}
+
+// ───────────────────────────────────────────────────────────────────────
+//  Desktop row — patient-style grid row with hover, group-name-tint,
+//  product image, SKU, brand badge, price + stock, trailing chevron.
+// ───────────────────────────────────────────────────────────────────────
+
+function DesktopRow({
+  product,
+  brand,
+  category,
+  isLast,
   onEdit,
   onDelete,
   onPriceChange,
@@ -520,135 +528,209 @@ function Row({
   product: ProductDto;
   brand: BrandDto | undefined;
   category: CategoryDto | undefined;
-  density: Density;
-  delayMs: number;
+  isLast: boolean;
   onEdit: () => void;
   onDelete: () => void;
   onPriceChange: () => void;
   onStockAdjust: () => void;
 }) {
-  const padY = density === "compact" ? "py-3" : "py-4";
-
   return (
-    <li
+    <div
       className={cn(
-        "fsh-enter group/row relative flex items-center gap-4 border-b border-[var(--color-border)] px-5 last:border-b-0 sm:px-6",
-        padY,
-        "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
-        "hover:bg-[var(--color-surface-4)]",
+        "group grid grid-cols-[1fr_120px_24px] items-center gap-3 px-5 py-3 transition-colors duration-100",
+        "hover:bg-[oklch(from_var(--color-accent)_l_c_h_/_0.4)]",
+        "lg:grid-cols-[1fr_140px_110px_120px_24px]",
+        !isLast && "border-b border-[oklch(from_var(--color-border)_l_c_h_/_0.3)]",
         !product.isActive && "opacity-75",
       )}
-      style={{ animationDelay: `${delayMs}ms` }}
     >
-      <span
-        aria-hidden
-        className={cn(
-          "absolute inset-y-2.5 left-0 w-[2px] rounded-r-full bg-[var(--color-primary)]",
-          "opacity-0 transition-opacity duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
-          "group-hover/row:opacity-100 group-focus-within/row:opacity-100",
-        )}
-      />
-
-      <ProductImage
-        imageUrl={product.thumbnailUrl}
-        initial={product.name.trim().charAt(0).toUpperCase() || "·"}
-        size={density === "compact" ? 40 : 56}
-      />
-
-      <div className="flex min-w-0 flex-1 items-center gap-6">
-        <div className="min-w-0 flex-[1.6]">
-          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-            <Link
-              to={`/catalog/products/${product.id}`}
-              className={cn(
-                "text-display truncate text-[15.5px] font-semibold leading-tight tracking-[-0.01em] sm:text-[16px]",
-                "decoration-[var(--color-border-strong)] decoration-1 underline-offset-[5px]",
-                "transition-colors duration-[var(--duration-fast)]",
-                "hover:text-[var(--color-primary)] hover:underline focus-visible:underline",
-                "focus-visible:outline-none focus-visible:text-[var(--color-primary)]",
-              )}
-            >
-              {product.name}
-            </Link>
-            <code
-              title={product.sku}
-              className="rounded bg-[var(--color-muted)] px-1.5 py-0.5 font-mono text-[10.5px] tracking-tight text-[var(--color-muted-foreground)]"
-            >
-              {product.sku}
-            </code>
-            {!product.isActive && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-muted)] px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
-                hidden
-              </span>
-            )}
-          </div>
-
-          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 truncate text-[12.5px] leading-relaxed text-[var(--color-muted-foreground)]">
-            {brand && (
-              <span className="inline-flex items-center gap-1">
-                <span className="font-mono text-[10px] uppercase tracking-[0.14em] opacity-70">brand</span>
-                <span className="truncate">{brand.name}</span>
-              </span>
-            )}
-            {brand && category && <span className="opacity-40">·</span>}
-            {category && (
-              <span className="inline-flex items-center gap-1">
-                <span className="font-mono text-[10px] uppercase tracking-[0.14em] opacity-70">in</span>
-                <span className="truncate">{category.name}</span>
-              </span>
-            )}
-            {(brand || category) && product.description && (
-              <span className="opacity-40">·</span>
-            )}
-            {product.description && (
-              <span className="truncate" title={product.description}>
-                {product.description}
-              </span>
-            )}
-          </div>
-        </div>
-
-        <div className="hidden items-center gap-2 sm:flex">
-          <button
-            type="button"
-            onClick={onPriceChange}
-            className="text-display group/p inline-flex cursor-pointer items-baseline gap-1 rounded-md px-2 py-1 text-[15px] font-semibold tabular-nums tracking-[-0.01em] transition-colors hover:bg-[var(--color-muted)]"
-            title="Change price"
-          >
-            {formatMoney(product.price.amount, product.price.currency)}
-          </button>
-          <StockBadge stock={product.stock} onClick={onStockAdjust} />
-        </div>
-
-        <div className="hidden min-w-[110px] text-right tabular-nums lg:block">
-          <div className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[var(--color-foreground)]/85">
-            {formatDateMono(product.createdAtUtc)}
-          </div>
-          <div className="mt-0.5 text-[10.5px] text-[var(--color-muted-foreground)]">
-            {formatRelative(product.createdAtUtc)}
-          </div>
-        </div>
-      </div>
-
-      <div
-        className={cn(
-          "flex items-center gap-1",
-          "opacity-0 transition-opacity duration-[var(--duration-fast)]",
-          "group-hover/row:opacity-100 group-focus-within/row:opacity-100",
-        )}
+      {/* Image + name */}
+      <Link
+        to={`/catalog/products/${product.id}`}
+        className="flex min-w-0 items-center gap-3 outline-none"
       >
-        <RowAction label={`Edit ${product.name}`} onClick={onEdit}>
-          <Pencil className="h-3.5 w-3.5" />
-        </RowAction>
-        <RowAction label={`Delete ${product.name}`} onClick={onDelete} tone="danger">
-          <Trash2 className="h-3.5 w-3.5" />
-        </RowAction>
+        <ProductImage
+          imageUrl={product.thumbnailUrl}
+          initial={product.name.trim().charAt(0).toUpperCase() || "·"}
+          size={36}
+        />
+        <span className="truncate text-[14px] font-medium text-[var(--color-foreground)] transition-colors group-hover:text-[var(--color-primary)]">
+          {product.name}
+        </span>
+        {!product.isActive && (
+          <span className="inline-flex h-4 shrink-0 items-center rounded-full border border-[oklch(from_var(--color-destructive)_l_c_h_/_0.20)] bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.10)] px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wider text-[var(--color-destructive)]">
+            Hidden
+          </span>
+        )}
+      </Link>
+
+      {/* SKU */}
+      <code
+        title={product.sku}
+        className="truncate font-mono text-[12px] text-[var(--color-muted-foreground)]"
+      >
+        {product.sku}
+      </code>
+
+      {/* Brand (lg+) */}
+      <div className="hidden lg:block">
+        {brand ? (
+          <span className="inline-flex max-w-full items-center rounded-full bg-[var(--color-secondary)] px-2 py-0.5 text-[11px] font-medium text-[var(--color-secondary-foreground)]">
+            <span className="truncate">{brand.name}</span>
+          </span>
+        ) : (
+          <span className="text-[12px] text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.5)]">
+            —
+          </span>
+        )}
+        {category && (
+          <div className="mt-0.5 truncate text-[11px] text-[var(--color-muted-foreground)]">
+            {category.name}
+          </div>
+        )}
       </div>
-    </li>
+
+      {/* Price + stock (lg+) */}
+      <div className="hidden items-center gap-2 lg:flex">
+        <button
+          type="button"
+          onClick={onPriceChange}
+          title="Change price"
+          className="cursor-pointer rounded-md px-1.5 py-0.5 text-left font-display text-[14px] font-semibold tabular-nums transition-colors hover:bg-[var(--color-muted)]"
+        >
+          {formatMoney(product.price.amount, product.price.currency)}
+        </button>
+        <StockChip stock={product.stock} onClick={onStockAdjust} />
+      </div>
+
+      {/* Trailing actions + chevron */}
+      <div className="flex items-center justify-end gap-1">
+        <button
+          type="button"
+          aria-label={`Edit ${product.name}`}
+          onClick={onEdit}
+          className="grid size-7 cursor-pointer place-items-center rounded-md text-[var(--color-muted-foreground)] opacity-0 transition-all hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)] group-hover:opacity-100"
+        >
+          <Pencil className="size-3.5" />
+        </button>
+        <button
+          type="button"
+          aria-label={`Delete ${product.name}`}
+          onClick={onDelete}
+          className="grid size-7 cursor-pointer place-items-center rounded-md text-[var(--color-muted-foreground)] opacity-0 transition-all hover:bg-[var(--color-muted)] hover:text-[var(--color-destructive)] group-hover:opacity-100"
+        >
+          <Trash2 className="size-3.5" />
+        </button>
+        <ChevronRight className="size-4 text-[var(--color-border)] transition-colors group-hover:text-[var(--color-muted-foreground)]" />
+      </div>
+    </div>
   );
 }
 
-function StockBadge({ stock, onClick }: { stock: number; onClick: () => void }) {
+// ───────────────────────────────────────────────────────────────────────
+//  Empty state — large icon + headline + body + actions, centered.
+// ───────────────────────────────────────────────────────────────────────
+
+function EmptyResults({
+  searchActive,
+  search,
+  onCreate,
+  onClear,
+}: {
+  searchActive: boolean;
+  search: string;
+  onCreate: () => void;
+  onClear: () => void;
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center py-20 text-center">
+      <div className="mb-4 grid size-14 place-items-center rounded-2xl bg-[var(--color-muted)]">
+        {searchActive ? (
+          <Search className="size-6 text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.4)]" />
+        ) : (
+          <PackageX className="size-6 text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.4)]" />
+        )}
+      </div>
+      <h3 className="mb-1.5 font-display text-[17px] font-semibold text-[var(--color-foreground)]">
+        {searchActive ? "No products found" : "No products yet"}
+      </h3>
+      <p className="mb-6 max-w-[320px] text-[13px] text-[var(--color-muted-foreground)]">
+        {searchActive
+          ? search
+            ? `Nothing matches "${search}". Try a different term or clear the filters.`
+            : "No products match the current filters."
+          : "Add your first product to start selling. Each carries its own SKU, price, stock, and image."}
+      </p>
+      {searchActive ? (
+        <Button variant="outline" onClick={onClear} className="h-9 rounded-lg px-4 text-[13px]">
+          Clear filters
+        </Button>
+      ) : (
+        <Button onClick={onCreate} className="h-9 rounded-lg px-4 text-[13px]">
+          <Plus className="mr-1.5 size-4" />
+          Add product
+        </Button>
+      )}
+    </div>
+  );
+}
+
+// ───────────────────────────────────────────────────────────────────────
+//  Loading state — desktop table skeleton, mobile card skeleton.
+// ───────────────────────────────────────────────────────────────────────
+
+function LoadingList() {
+  return (
+    <div>
+      <div className="space-y-2 md:hidden">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div
+            key={i}
+            className="flex items-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4"
+          >
+            <Skeleton className="size-10 rounded-xl" />
+            <div className="flex-1 space-y-1.5">
+              <Skeleton className="h-3.5 w-40" />
+              <Skeleton className="h-2.5 w-28" />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="hidden overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] md:block">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div
+            key={i}
+            className={cn(
+              "grid grid-cols-[1fr_140px_110px_120px_24px] gap-3 items-center px-5 py-3",
+              i < 5 && "border-b border-[oklch(from_var(--color-border)_l_c_h_/_0.3)]",
+            )}
+          >
+            <div className="flex items-center gap-3">
+              <Skeleton className="size-9 rounded-xl" />
+              <Skeleton className="h-4 w-48" />
+            </div>
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-5 w-16 rounded-full" />
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="ml-auto size-4" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ───────────────────────────────────────────────────────────────────────
+//  Stock chip — tone-tinted pill with the count.
+// ───────────────────────────────────────────────────────────────────────
+
+function StockChip({
+  stock,
+  onClick,
+}: {
+  stock: number;
+  onClick?: () => void;
+}) {
   const tone =
     stock === 0 ? "danger" : stock < LOW_STOCK ? "warning" : "default";
   const tones = {
@@ -659,50 +741,26 @@ function StockBadge({ stock, onClick }: { stock: number; onClick: () => void }) 
     danger:
       "bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.14)] text-[var(--color-destructive)] hover:bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.22)]",
   } as const;
+  const Comp = onClick ? "button" : "span";
   return (
-    <button
-      type="button"
+    <Comp
       onClick={onClick}
-      title="Adjust stock"
+      title={onClick ? "Adjust stock" : undefined}
       className={cn(
-        "inline-flex h-7 cursor-pointer items-center gap-1 rounded-full px-2.5 font-mono text-[10.5px] font-medium uppercase tracking-[0.14em] tabular-nums transition-colors",
+        "inline-flex h-6 items-center gap-1 rounded-full px-2 text-[11px] font-semibold tabular-nums transition-colors",
+        onClick && "cursor-pointer",
         tones[tone],
       )}
     >
-      <Package className="h-3 w-3" />
+      <Package className="size-3" />
       {stock}
-    </button>
+    </Comp>
   );
 }
 
-function RowAction({
-  label,
-  onClick,
-  tone = "default",
-  children,
-}: {
-  label: string;
-  onClick: () => void;
-  tone?: "default" | "danger";
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      onClick={onClick}
-      className={cn(
-        "grid h-8 w-8 cursor-pointer place-items-center rounded-md transition-colors duration-[var(--duration-fast)]",
-        "text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)]",
-        tone === "danger"
-          ? "hover:text-[var(--color-destructive)]"
-          : "hover:text-[var(--color-foreground)]",
-      )}
-    >
-      {children}
-    </button>
-  );
-}
+// ───────────────────────────────────────────────────────────────────────
+//  Product image — image with fallback, or rose-tinted package icon.
+// ───────────────────────────────────────────────────────────────────────
 
 function ProductImage({
   imageUrl,
@@ -720,7 +778,7 @@ function ProductImage({
         style={style}
         className={cn(
           "relative grid shrink-0 place-items-center overflow-hidden rounded-xl",
-          "bg-[var(--color-surface-2)] ring-1 ring-inset ring-[var(--color-border)]",
+          "bg-[var(--color-muted)] ring-1 ring-inset ring-[var(--color-border)]",
         )}
       >
         <img
@@ -740,7 +798,7 @@ function ProductImage({
         <span
           data-fallback
           style={{ display: "none" }}
-          className="absolute inset-0 grid place-items-center text-[16px] font-semibold tracking-tight text-[var(--color-muted-foreground)]"
+          className="absolute inset-0 grid place-items-center font-display text-[14px] font-bold tracking-tight text-[var(--color-muted-foreground)]"
         >
           {initial}
         </span>
@@ -753,56 +811,19 @@ function ProductImage({
       style={style}
       className={cn(
         "relative grid shrink-0 place-items-center overflow-hidden rounded-xl",
-        "bg-[linear-gradient(135deg,oklch(from_var(--color-primary)_l_c_h_/_0.22),oklch(from_var(--color-primary)_l_c_h_/_0.04))]",
-        "ring-1 ring-inset ring-[oklch(from_var(--color-primary)_l_c_h_/_0.25)]",
-        "shadow-[var(--highlight-top)]",
+        "bg-[oklch(from_var(--color-primary)_l_c_h_/_0.10)]",
+        "ring-1 ring-inset ring-[oklch(from_var(--color-primary)_l_c_h_/_0.22)]",
       )}
     >
-      <span
-        aria-hidden
-        className="absolute -right-3 -top-3 h-8 w-8 rounded-full bg-[oklch(from_var(--color-primary)_l_c_h_/_0.18)] blur-md"
-      />
-      <Package
-        className={cn(
-          "relative text-[var(--color-primary)]",
-          size >= 48 ? "h-6 w-6" : "h-5 w-5",
-        )}
-      />
+      <span className="font-display text-[12px] font-bold text-[var(--color-primary)]">
+        {initial}
+      </span>
     </span>
   );
 }
 
-function SkeletonRow({ delayMs, density }: { delayMs: number; density: Density }) {
-  const padY = density === "compact" ? "py-3" : "py-4";
-  return (
-    <li
-      className={cn(
-        "fsh-enter flex items-center gap-4 border-b border-[var(--color-border)] px-5 last:border-b-0 sm:px-6",
-        padY,
-      )}
-      style={{ animationDelay: `${delayMs}ms` }}
-    >
-      <Skeleton className={cn("rounded-xl", density === "compact" ? "h-10 w-10" : "h-14 w-14")} />
-      <div className="flex flex-1 items-center gap-6">
-        <div className="min-w-0 flex-[1.6] space-y-2">
-          <Skeleton className="h-4 w-48" />
-          <Skeleton className="h-3 w-72" />
-        </div>
-        <Skeleton className="hidden h-7 w-20 sm:block" />
-        <Skeleton className="hidden h-7 w-14 rounded-full sm:block" />
-        <div className="hidden min-w-[110px] space-y-1.5 text-right lg:block">
-          <Skeleton className="ml-auto h-3 w-24" />
-          <Skeleton className="ml-auto h-2.5 w-16" />
-        </div>
-      </div>
-      <Skeleton className="h-7 w-16" />
-    </li>
-  );
-}
-
-
 // ───────────────────────────────────────────────────────────────────────
-//  Editor dialog (create + edit)
+//  Editor dialog (create + edit) — UNCHANGED apart from minor cleanup
 // ───────────────────────────────────────────────────────────────────────
 
 function ProductEditorDialog({
@@ -927,9 +948,6 @@ function ProductEditorDialog({
       <DialogContent className="!max-w-xl">
         <form onSubmit={onSubmit}>
           <DialogHeader>
-            <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-              {product ? "Edit entry" : "New entry"}
-            </span>
             <DialogTitle>{product ? "Edit product" : "Add a product"}</DialogTitle>
             <DialogDescription>
               {product
@@ -939,19 +957,6 @@ function ProductEditorDialog({
           </DialogHeader>
 
           <DialogBody className="space-y-5">
-            <RowPreview
-              name={trimmedName}
-              sku={trimmedSku}
-              description={description}
-              imageUrl={product?.thumbnailUrl ?? null}
-              brandName={brands.find((b) => b.id === brandId)?.name ?? null}
-              categoryName={categories.find((c) => c.id === categoryId)?.name ?? null}
-              priceAmount={Number.isNaN(priceNum) ? 0 : priceNum}
-              priceCurrency={priceCurrency}
-              stock={Number.isNaN(stockNum) ? 0 : stockNum}
-              isActive={isActive}
-            />
-
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field id="product-name" label="Name" required>
                 <Input
@@ -1046,12 +1051,6 @@ function ProductEditorDialog({
               </div>
             )}
 
-            {!product && (
-              <p className="rounded-md border border-dashed border-[var(--color-border-strong)] bg-[var(--color-surface-2)] px-3 py-2 text-xs text-[var(--color-muted-foreground)]">
-                Images can be uploaded on the product detail page after the product is created.
-              </p>
-            )}
-
             <Field id="product-description" label="Description" hint="Shown on listing and product detail pages.">
               <textarea
                 id="product-description"
@@ -1060,21 +1059,21 @@ function ProductEditorDialog({
                 rows={3}
                 maxLength={4000}
                 className={cn(
-                  "flex w-full rounded-md border border-[var(--color-input)] bg-transparent px-3 py-2 text-sm shadow-sm",
-                  "placeholder:text-[var(--color-muted-foreground)]",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2",
+                  "flex w-full rounded-lg border border-[var(--color-input)] bg-transparent px-3 py-2 text-sm shadow-xs",
+                  "placeholder:text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.6)]",
+                  "focus-visible:border-[var(--color-ring)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[oklch(from_var(--color-ring)_l_c_h_/_0.5)]",
                 )}
                 placeholder="100% organic cotton crew-neck."
               />
             </Field>
 
             {product && (
-              <div className="flex items-center justify-between rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-4 py-3">
+              <div className="flex items-center justify-between rounded-lg border border-[var(--color-border)] bg-[var(--color-muted)] px-4 py-3">
                 <div>
-                  <div className="font-mono text-[10.5px] font-medium uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
+                  <div className="text-[11.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
                     Visibility
                   </div>
-                  <div className="mt-1 text-[12.5px] text-[var(--color-muted-foreground)]">
+                  <div className="mt-0.5 text-[12.5px] text-[var(--color-muted-foreground)]">
                     {isActive ? "Listed for customers." : "Hidden from listings."}
                   </div>
                 </div>
@@ -1089,11 +1088,7 @@ function ProductEditorDialog({
                 Cancel
               </Button>
             </DialogClose>
-            <Button
-              type="submit"
-              disabled={isPending || !valid}
-              className="brand-glow gradient-sheen"
-            >
+            <Button type="submit" disabled={isPending || !valid}>
               {isPending ? "Saving…" : product ? "Save changes" : "Add product"}
             </Button>
           </DialogFooter>
@@ -1103,100 +1098,8 @@ function ProductEditorDialog({
   );
 }
 
-function RowPreview({
-  name,
-  sku,
-  description,
-  imageUrl,
-  brandName,
-  categoryName,
-  priceAmount,
-  priceCurrency,
-  stock,
-  isActive,
-}: {
-  name: string;
-  sku: string;
-  description: string;
-  imageUrl: string | null;
-  brandName: string | null;
-  categoryName: string | null;
-  priceAmount: number;
-  priceCurrency: string;
-  stock: number;
-  isActive: boolean;
-}) {
-  return (
-    <div
-      aria-label="Live preview"
-      className="surface-edge rounded-xl bg-[var(--color-surface-2)] p-3"
-    >
-      <div className="mb-2 flex items-center justify-between">
-        <span className="font-mono text-[9.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-          Live preview · registry row
-        </span>
-      </div>
-      <div className="flex items-center gap-3">
-        <ProductImage
-          imageUrl={imageUrl}
-          initial={name.trim().charAt(0).toUpperCase() || "·"}
-          size={48}
-        />
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-            <div
-              className={cn(
-                "truncate text-[15px] font-semibold leading-tight tracking-[-0.005em]",
-                !name.trim() && "text-[var(--color-muted-foreground)]",
-              )}
-            >
-              {name.trim() || "Product name"}
-            </div>
-            {sku && (
-              <code className="rounded bg-[var(--color-muted)] px-1.5 py-0.5 font-mono text-[10.5px] tracking-tight text-[var(--color-muted-foreground)]">
-                {sku}
-              </code>
-            )}
-            {!isActive && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-muted)] px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
-                hidden
-              </span>
-            )}
-          </div>
-          <div className="mt-0.5 truncate text-[12px] text-[var(--color-muted-foreground)]">
-            {brandName ? `Brand: ${brandName}` : "No brand"}
-            {categoryName && ` · in ${categoryName}`}
-          </div>
-        </div>
-        <div className="hidden text-right tabular-nums sm:block">
-          <div className="text-display text-[14px] font-semibold leading-tight">
-            {formatMoney(priceAmount, priceCurrency || "USD")}
-          </div>
-          <div
-            className={cn(
-              "mt-0.5 font-mono text-[10px] uppercase tracking-[0.14em]",
-              stock === 0
-                ? "text-[var(--color-destructive)]"
-                : stock < LOW_STOCK
-                  ? "text-[var(--color-warning)]"
-                  : "text-[var(--color-muted-foreground)]",
-            )}
-          >
-            {stock} in stock
-          </div>
-        </div>
-      </div>
-      {description.trim() && (
-        <p className="mt-2 line-clamp-2 text-[12px] leading-relaxed text-[var(--color-muted-foreground)]">
-          {description.trim()}
-        </p>
-      )}
-    </div>
-  );
-}
-
 // ───────────────────────────────────────────────────────────────────────
-//  Price / Stock dialogs
+//  Price / Stock dialogs — kept mostly intact, just retoned chrome.
 // ───────────────────────────────────────────────────────────────────────
 
 function PriceDialog({
@@ -1246,33 +1149,32 @@ function PriceDialog({
           }}
         >
           <DialogHeader>
-            <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-              <CircleDollarSign className="mr-1 inline h-3 w-3" />
-              Price change
-            </span>
-            <DialogTitle>{product?.name}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <CircleDollarSign className="size-4 text-[var(--color-primary)]" />
+              Change price
+            </DialogTitle>
             <DialogDescription>
-              Emits a <code className="font-mono text-[11px]">ProductPriceChanged</code> domain event.
+              Emits a <code className="font-mono text-[11px]">ProductPriceChanged</code> domain event for {product?.name}.
             </DialogDescription>
           </DialogHeader>
           <DialogBody className="space-y-4">
-            <div className="surface-edge flex items-center justify-between rounded-xl bg-[var(--color-surface-2)] px-4 py-3">
+            <div className="flex items-center justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-muted)] px-4 py-3">
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
-                  was
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
+                  Was
                 </div>
-                <div className="text-display mt-1 text-[18px] font-semibold tabular-nums">
+                <div className="mt-1 font-display text-[18px] font-semibold tabular-nums">
                   {product && formatMoney(product.price.amount, product.price.currency)}
                 </div>
               </div>
-              <ArrowDown className="h-4 w-4 -rotate-90 text-[var(--color-muted-foreground)]" />
+              <ArrowDown className="size-4 -rotate-90 text-[var(--color-muted-foreground)]" />
               <div className="text-right">
-                <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-primary)]">
-                  becomes
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-primary)]">
+                  Becomes
                 </div>
                 <div
                   className={cn(
-                    "text-display mt-1 text-[18px] font-semibold tabular-nums",
+                    "mt-1 font-display text-[18px] font-semibold tabular-nums",
                     delta > 0
                       ? "text-[var(--color-success)]"
                       : delta < 0
@@ -1318,11 +1220,7 @@ function PriceDialog({
                 Cancel
               </Button>
             </DialogClose>
-            <Button
-              type="submit"
-              disabled={mutation.isPending || !valid}
-              className="brand-glow gradient-sheen"
-            >
+            <Button type="submit" disabled={mutation.isPending || !valid}>
               {mutation.isPending ? "Saving…" : "Change price"}
             </Button>
           </DialogFooter>
@@ -1375,34 +1273,33 @@ function StockDialog({
           }}
         >
           <DialogHeader>
-            <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-              <Package className="mr-1 inline h-3 w-3" />
-              Stock adjustment
-            </span>
-            <DialogTitle>{product?.name}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Package className="size-4 text-[var(--color-primary)]" />
+              Adjust stock
+            </DialogTitle>
             <DialogDescription>
-              Add or remove units. Emits a{" "}
+              Add or remove units for {product?.name}. Emits a{" "}
               <code className="font-mono text-[11px]">ProductStockAdjusted</code> event.
             </DialogDescription>
           </DialogHeader>
           <DialogBody className="space-y-4">
-            <div className="surface-edge flex items-center justify-between rounded-xl bg-[var(--color-surface-2)] px-4 py-3 tabular-nums">
+            <div className="flex items-center justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-muted)] px-4 py-3 tabular-nums">
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
-                  current
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
+                  Current
                 </div>
-                <div className="text-display mt-1 text-[18px] font-semibold">
+                <div className="mt-1 font-display text-[18px] font-semibold">
                   {product?.stock ?? 0}
                 </div>
               </div>
-              <ArrowDown className="h-4 w-4 -rotate-90 text-[var(--color-muted-foreground)]" />
+              <ArrowDown className="size-4 -rotate-90 text-[var(--color-muted-foreground)]" />
               <div className="text-right">
-                <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-primary)]">
-                  becomes
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-primary)]">
+                  Becomes
                 </div>
                 <div
                   className={cn(
-                    "text-display mt-1 text-[18px] font-semibold",
+                    "mt-1 font-display text-[18px] font-semibold",
                     willGoNegative
                       ? "text-[var(--color-destructive)]"
                       : deltaNum > 0
@@ -1424,7 +1321,7 @@ function StockDialog({
                 size="sm"
                 onClick={() => setDelta(String((Number.parseInt(delta, 10) || 0) - 1))}
               >
-                <Minus className="h-3.5 w-3.5" />
+                <Minus className="size-3.5" />
               </Button>
               <Input
                 value={delta}
@@ -1440,15 +1337,15 @@ function StockDialog({
                 size="sm"
                 onClick={() => setDelta(String((Number.parseInt(delta, 10) || 0) + 1))}
               >
-                <Plus className="h-3.5 w-3.5" />
+                <Plus className="size-3.5" />
               </Button>
             </div>
 
             {willGoNegative && (
-              <div className="flex items-start gap-2 rounded-md bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.08)] px-3 py-2 text-[12.5px] text-[var(--color-destructive)]">
-                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              <div className="flex items-start gap-2 rounded-lg border border-[oklch(from_var(--color-destructive)_l_c_h_/_0.20)] bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.08)] px-3 py-2 text-[12.5px] text-[var(--color-destructive)]">
+                <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
                 <span>
-                  Stock cannot go negative. The maximum decrement here is{" "}
+                  Stock cannot go negative. Maximum decrement is{" "}
                   <span className="font-mono">{product?.stock ?? 0}</span>.
                 </span>
               </div>
@@ -1460,11 +1357,7 @@ function StockDialog({
                 Cancel
               </Button>
             </DialogClose>
-            <Button
-              type="submit"
-              disabled={mutation.isPending || !valid || willGoNegative}
-              className="brand-glow gradient-sheen"
-            >
+            <Button type="submit" disabled={mutation.isPending || !valid || willGoNegative}>
               {mutation.isPending ? "Adjusting…" : "Adjust stock"}
             </Button>
           </DialogFooter>
@@ -1503,15 +1396,12 @@ function DeleteProductDialog({
     <Dialog open={isOpen} onOpenChange={(o) => (!o ? onClose() : undefined)}>
       <DialogContent>
         <DialogHeader>
-          <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-destructive)]">
-            Permanent action
-          </span>
-          <DialogTitle>Delete product</DialogTitle>
+          <DialogTitle className="text-[var(--color-destructive)]">Delete product</DialogTitle>
           <DialogDescription>
             This permanently removes{" "}
             <span className="font-medium text-[var(--color-foreground)]">{product?.name}</span>{" "}
             <span className="opacity-70">
-              ({product && formatDate(product.createdAtUtc)})
+              (created {product && formatDate(product.createdAtUtc)})
             </span>
             . The product will no longer appear in any listing or report.
           </DialogDescription>

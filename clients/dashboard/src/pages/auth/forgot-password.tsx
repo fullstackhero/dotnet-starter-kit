@@ -1,12 +1,23 @@
 import { useState, type FormEvent } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
-import { AlertCircle, ArrowRight, Check, Loader2, MailCheck } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowRight,
+  Building2,
+  Check,
+  Loader2,
+  Mail,
+  MailCheck,
+} from "lucide-react";
 import { useAuth } from "@/auth/use-auth";
 import { Button } from "@/components/ui/button";
-import { AuthHeadline, AuthShell, FloatField } from "@/components/auth/auth-shell";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { AuthHeadline, AuthShell } from "@/components/auth/auth-shell";
 import { requestPasswordReset } from "@/api/identity";
 import { ApiRequestError } from "@/lib/api-client";
+import { cn } from "@/lib/cn";
 import { env } from "@/env";
 
 /**
@@ -52,8 +63,6 @@ export function ForgotPasswordPage() {
 
   return (
     <AuthShell
-      eyebrow="// 02.FORGOT-PASSWORD"
-      tagline="email · token"
       footer={
         <span>
           Remembered it?{" "}
@@ -67,38 +76,36 @@ export function ForgotPasswordPage() {
       }
     >
       {submitted ? (
-        <div className="fsh-enter space-y-4">
-          <div className="grid place-items-center pb-1 pt-2">
+        <div className="fsh-enter space-y-5 text-center">
+          <div className="grid place-items-center">
             <span
               aria-hidden
-              className="grid h-12 w-12 place-items-center rounded-full border border-[oklch(from_var(--color-success)_l_c_h_/_0.30)] bg-[oklch(from_var(--color-success)_l_c_h_/_0.10)] text-[var(--color-success)]"
+              className="grid size-14 place-items-center rounded-2xl bg-[oklch(from_var(--color-success)_l_c_h_/_0.10)] text-[var(--color-success)]"
             >
-              <MailCheck className="h-5 w-5" />
+              <MailCheck className="size-6" />
             </span>
           </div>
-          <AuthHeadline lead="Check your" accent="inbox." />
-          <p className="text-[13px] leading-relaxed text-[var(--color-muted-foreground)]">
-            If an account exists for{" "}
-            <code className="rounded bg-[var(--color-muted)] px-1.5 py-0.5 font-mono text-[12px] text-[var(--color-foreground)]">
-              {email}
-            </code>{" "}
-            in tenant{" "}
-            <code className="rounded bg-[var(--color-muted)] px-1.5 py-0.5 font-mono text-[12px] text-[var(--color-foreground)]">
-              {tenant}
-            </code>
-            , a one-time reset link is on its way. The link expires in 30 minutes.
-          </p>
-          <ul className="space-y-1.5 text-[12.5px] text-[var(--color-muted-foreground)]">
+          <div>
+            <AuthHeadline lead="Check your" accent="inbox" />
+            <p className="text-[13px] leading-relaxed text-[var(--color-muted-foreground)]">
+              If an account exists for{" "}
+              <span className="text-[var(--color-foreground)]">{email}</span> in
+              tenant{" "}
+              <span className="text-[var(--color-foreground)]">{tenant}</span>,
+              a one-time reset link is on its way. The link expires in 30 minutes.
+            </p>
+          </div>
+          <ul className="space-y-1.5 text-left text-[12.5px] text-[var(--color-muted-foreground)]">
             <li className="flex items-start gap-2">
-              <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--color-success)]" />
+              <Check className="mt-0.5 size-3.5 shrink-0 text-[var(--color-success)]" />
               Didn't get it? Wait a minute, then check spam.
             </li>
             <li className="flex items-start gap-2">
-              <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--color-success)]" />
+              <Check className="mt-0.5 size-3.5 shrink-0 text-[var(--color-success)]" />
               Still nothing? Confirm the email + tenant and try again.
             </li>
           </ul>
-          <div className="flex items-center gap-2 pt-2">
+          <div className="flex items-center gap-2 pt-1">
             <Button
               type="button"
               variant="ghost"
@@ -118,59 +125,92 @@ export function ForgotPasswordPage() {
         </div>
       ) : (
         <>
-          <AuthHeadline lead="Reset your" accent="password." />
-          <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-muted-foreground)]">
-            Enter the email you sign in with. We'll send a one-time link.
-          </p>
+          <div className="mb-6 sm:mb-8">
+            <AuthHeadline lead="Reset your" accent="password" />
+            <p className="text-[13px] text-[var(--color-muted-foreground)]">
+              Enter the email you sign in with. We'll send a one-time link.
+            </p>
+          </div>
 
-          <form onSubmit={onSubmit} className="mt-5 space-y-3" noValidate>
-            <FloatField
-              id="reset-tenant"
-              label="Tenant"
-              value={tenant}
-              onChange={(e) => setTenant(e.target.value)}
-              required
-              autoComplete="organization"
-            />
-            <FloatField
-              id="reset-email"
-              label="Email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-              autoFocus
-            />
+          <form onSubmit={onSubmit} className="space-y-5" noValidate>
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="reset-tenant"
+                className="block text-[11.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]"
+              >
+                Tenant
+              </Label>
+              <div className="relative">
+                <Building2 className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.6)]" />
+                <Input
+                  id="reset-tenant"
+                  value={tenant}
+                  onChange={(e) => setTenant(e.target.value)}
+                  placeholder="root"
+                  autoComplete="organization"
+                  required
+                  className="h-11 pl-10 text-[14px]"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="reset-email"
+                className="block text-[11.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]"
+              >
+                Email
+              </Label>
+              <div className="relative">
+                <Mail className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.6)]" />
+                <Input
+                  id="reset-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                  required
+                  autoFocus
+                  className="h-11 pl-10 text-[14px]"
+                />
+              </div>
+            </div>
 
             {error && (
               <div
                 role="alert"
-                className="fsh-enter flex items-start gap-2 rounded-md border border-[oklch(from_var(--color-destructive)_l_c_h_/_0.40)] bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.08)] px-3 py-2 text-sm text-[var(--color-destructive)]"
+                className={cn(
+                  "fsh-enter flex items-start gap-2 rounded-lg border px-3 py-2 text-sm",
+                  "border-[oklch(from_var(--color-destructive)_l_c_h_/_0.30)]",
+                  "bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.06)]",
+                  "text-[var(--color-destructive)]",
+                )}
               >
-                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                <AlertCircle className="mt-0.5 size-4 shrink-0" />
                 <span className="leading-snug">{error}</span>
               </div>
             )}
 
-            <Button
-              type="submit"
-              size="lg"
-              className="btn-shimmer mt-1.5 w-full"
-              disabled={mutation.isPending || !email || !tenant}
-            >
-              {mutation.isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Sending link…
-                </>
-              ) : (
-                <>
-                  Send reset link
-                  <ArrowRight className="h-4 w-4 transition-transform duration-[var(--duration-default)] group-hover/btn:translate-x-0.5" />
-                </>
-              )}
-            </Button>
+            <div className="pt-1.5">
+              <Button
+                type="submit"
+                disabled={mutation.isPending || !email || !tenant}
+                className="group h-11 w-full text-[14px] font-semibold"
+              >
+                {mutation.isPending ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    <span>Sending link…</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Send reset link</span>
+                    <ArrowRight className="size-[14px] opacity-60 transition-all duration-200 group-hover:translate-x-0.5 group-hover:opacity-100" />
+                  </>
+                )}
+              </Button>
+            </div>
           </form>
         </>
       )}

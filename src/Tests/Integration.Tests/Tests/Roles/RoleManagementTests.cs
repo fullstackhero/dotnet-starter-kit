@@ -23,10 +23,10 @@ public sealed class RoleManagementTests
         var response = await client.GetAsync($"{TestConstants.IdentityBasePath}/roles");
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
-        var roles = await response.DeserializeAsync<RoleDto[]>();
-        roles.Length.ShouldBeGreaterThanOrEqualTo(2);
-        roles.ShouldContain(r => r.Name == "Admin");
-        roles.ShouldContain(r => r.Name == "Basic");
+        var page = await response.DeserializeAsync<PagedResponse<RoleDto>>();
+        page.Items.Count.ShouldBeGreaterThanOrEqualTo(2);
+        page.Items.ShouldContain(r => r.Name == "Admin");
+        page.Items.ShouldContain(r => r.Name == "Basic");
     }
 
     [Fact]

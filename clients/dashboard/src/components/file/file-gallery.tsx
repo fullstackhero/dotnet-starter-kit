@@ -80,7 +80,7 @@ export function FileGallery({ files, isLoading, queryKey, readOnly, groupByKind,
     return (
       <div className={cn("grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3", className)}>
         {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="h-28 w-full rounded-2xl" />
+          <Skeleton key={i} className="h-28 w-full rounded-xl" />
         ))}
       </div>
     );
@@ -119,7 +119,7 @@ export function FileGallery({ files, isLoading, queryKey, readOnly, groupByKind,
             const items = grouped.get(k)!;
             return (
               <section key={k} className="space-y-3">
-                <h3 className="flex items-baseline gap-2 font-mono text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
+                <h3 className="flex items-baseline gap-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
                   <span>{k}</span>
                   <span className="text-[var(--color-foreground)]/40">·</span>
                   <span>{items.length}</span>
@@ -212,13 +212,13 @@ function FileCard({
       onKeyDown={handleCardKey}
       aria-label={`Preview ${file.originalFileName}`}
       className={cn(
-        "group relative flex cursor-pointer items-start gap-3 rounded-2xl border bg-[var(--color-surface-2)] p-3 transition-colors",
-        "border-[var(--color-border-strong)] hover:bg-[var(--color-surface-3)]",
+        "group relative flex cursor-pointer items-start gap-3 rounded-xl border bg-[var(--color-card)] p-3 transition-colors",
+        "border-border shadow-xs hover:bg-[oklch(from_var(--color-accent)_l_c_h_/_0.4)]",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-background)]",
       )}
     >
       {/* Thumbnail / icon plate */}
-      <div className="grid h-12 w-12 flex-shrink-0 place-items-center overflow-hidden rounded-xl bg-[var(--color-surface-3)] ring-1 ring-[var(--color-border-strong)]">
+      <div className="grid h-12 w-12 flex-shrink-0 place-items-center overflow-hidden rounded-xl bg-[var(--color-muted)] ring-1 ring-inset ring-border">
         {isImage && file.publicUrl ? (
           <img
             src={file.publicUrl}
@@ -238,11 +238,11 @@ function FileCard({
         >
           {file.originalFileName}
         </p>
-        <p className="text-[11px] font-mono uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+        <p className="text-[11.5px] text-[var(--color-muted-foreground)]">
           {file.contentType} · {formatBytes(file.sizeBytes)}
         </p>
         {!isAvailable && (
-          <p className="mt-1 text-[11px] font-mono uppercase tracking-[0.14em] text-[var(--color-destructive)]">
+          <p className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-destructive)]">
             {file.status === FileAssetStatus.PendingUpload ? "Pending" : "Quarantined"}
           </p>
         )}
@@ -322,7 +322,7 @@ function DeleteFileDialog({
     <Dialog open={isOpen} onOpenChange={(o) => (!o ? onClose() : undefined)}>
       <DialogContent>
         <DialogHeader>
-          <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-destructive)]">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-destructive)]">
             Move to trash
           </span>
           <DialogTitle>Delete file</DialogTitle>

@@ -28,8 +28,8 @@ export function Pagination({
 }) {
   return (
     <div className="fsh-enter fsh-enter-4 flex flex-wrap items-center justify-between gap-3 pt-1">
-      <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
-        Showing {shown} of {totalCount} · folio {page} / {totalPages}
+      <span className="text-[11px] text-[var(--color-muted-foreground)]">
+        Showing {shown} of {totalCount} · page {page} of {totalPages}
       </span>
       <div className="flex items-center gap-2">
         <Button variant="outline" size="sm" disabled={!hasPrev || fetching} onClick={onPrev}>

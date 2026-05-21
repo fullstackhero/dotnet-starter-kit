@@ -95,7 +95,7 @@ export const fonts: FontOption[] = [
   },
 ];
 
-export const DEFAULT_FONT = "geist";
+export const DEFAULT_FONT = "figtree";
 
 export type AccentOption = {
   id: string;
@@ -106,15 +106,15 @@ export type AccentOption = {
 };
 
 export const accents: AccentOption[] = [
-  { id: "indigo",  label: "Indigo",  description: "Confident tech-forward default.", swatch: "oklch(0.555 0.220 268)" },
+  { id: "rose",    label: "Rose",    description: "Editorial, warm-paper default.",  swatch: "oklch(0.575 0.232  13)" },
+  { id: "indigo",  label: "Indigo",  description: "Confident tech-forward chassis.", swatch: "oklch(0.555 0.220 268)" },
   { id: "violet",  label: "Violet",  description: "Saturated, expressive.",          swatch: "oklch(0.555 0.220 305)" },
   { id: "sky",     label: "Sky",     description: "Cool, calm, professional.",       swatch: "oklch(0.555 0.220 232)" },
   { id: "emerald", label: "Emerald", description: "Fresh, success-leaning.",         swatch: "oklch(0.555 0.220 152)" },
   { id: "amber",   label: "Amber",   description: "Warm, energetic.",                swatch: "oklch(0.620 0.180  76)" },
-  { id: "rose",    label: "Rose",    description: "Bold, attention-getting.",        swatch: "oklch(0.555 0.220  12)" },
 ];
 
-export const DEFAULT_ACCENT = "indigo";
+export const DEFAULT_ACCENT = "rose";
 export const CUSTOM_ACCENT_ID = "custom";
 
 export const FONT_STORAGE_KEY = "fsh.font";

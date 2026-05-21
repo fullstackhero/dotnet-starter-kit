@@ -192,7 +192,7 @@ export function Combobox({
                 {opt.prefix}
                 <span className="flex-1 truncate">{opt.label}</span>
                 {opt.hint && (
-                  <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]/70">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]/70">
                     {opt.hint}
                   </span>
                 )}
@@ -271,14 +271,14 @@ const FilterTrigger = ({
         aria-label={label}
         className={cn(
           "inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-full pl-3 pr-2.5",
-          "font-mono text-[10.5px] font-medium uppercase tracking-[0.14em]",
-          "transition-colors duration-[var(--duration-fast)]",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-1",
+          "text-[11px] font-semibold uppercase tracking-wider",
+          "border transition-colors duration-[var(--duration-fast)]",
+          "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[oklch(from_var(--color-ring)_l_c_h_/_0.18)]",
           "disabled:cursor-not-allowed disabled:opacity-50",
           hasValue
-            ? "bg-[var(--color-primary-soft)] text-[var(--color-primary)] ring-1 ring-inset ring-[oklch(from_var(--color-primary)_l_c_h_/_0.25)]"
-            : "bg-[var(--color-surface-3)] text-[var(--color-muted-foreground)] ring-1 ring-inset ring-[var(--color-border)] hover:bg-[var(--color-surface-4)] hover:text-[var(--color-foreground)]",
-          "data-[state=open]:bg-[var(--color-surface-4)] data-[state=open]:text-[var(--color-foreground)]",
+            ? "border-[oklch(from_var(--color-primary)_l_c_h_/_0.25)] bg-[oklch(from_var(--color-primary)_l_c_h_/_0.10)] text-[var(--color-primary)]"
+            : "border-[var(--color-border)] bg-[var(--color-card)] text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]",
+          "data-[state=open]:bg-[var(--color-muted)] data-[state=open]:text-[var(--color-foreground)]",
         )}
         {...props}
       >

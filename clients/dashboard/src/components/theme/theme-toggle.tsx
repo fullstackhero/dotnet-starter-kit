@@ -13,10 +13,9 @@ const options: Array<{
 ];
 
 /**
- * Three-segment theme switcher with an animated thumb that slides
- * between segments. The thumb position is driven by a CSS attribute
- * selector on `data-mode`, so the animation runs without React having
- * to coordinate any stateful transition.
+ * Three-segment theme switcher — plain warm-paper pill with the active
+ * segment filled in primary. No animated thumb, no gradient border —
+ * the dos vocabulary keeps it calm.
  */
 export function ThemeToggle() {
   const { mode, setMode } = useTheme();
@@ -24,10 +23,8 @@ export function ThemeToggle() {
     <div
       role="radiogroup"
       aria-label="Theme"
-      data-mode={mode}
-      className="seg-toggle gradient-border inline-flex h-8 items-center rounded-full bg-[var(--color-surface-2)] p-0.5"
+      className="inline-flex h-8 items-center rounded-full border border-[var(--color-border)] bg-[var(--color-card)] p-0.5"
     >
-      <span className="seg-thumb" aria-hidden />
       {options.map(({ value, label, Icon }) => {
         const active = mode === value;
         return (
@@ -40,11 +37,11 @@ export function ThemeToggle() {
             title={label}
             onClick={() => setMode(value)}
             className={cn(
-              "relative z-10 inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-full",
-              "transition-colors duration-[var(--duration-default)] ease-[var(--ease-out-cubic)]",
+              "inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-full",
+              "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
               active
-                ? "text-[var(--color-primary-foreground)]"
+                ? "bg-[var(--color-primary)] text-[var(--color-primary-foreground)]"
                 : "text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]",
             )}
           >

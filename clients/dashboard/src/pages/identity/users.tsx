@@ -1,5 +1,4 @@
 import {
-  useCallback,
   useEffect,
   useMemo,
   useState,
@@ -14,30 +13,20 @@ import {
 } from "@tanstack/react-query";
 import {
   ChevronRight,
-  CircleSlash2,
-  Mail,
-  MailCheck,
-  Search,
-  ShieldCheck,
-  Sparkles,
+  Plus,
   UserPlus,
-  Users as UsersIcon,
-  X,
+  Users,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
   listRoles,
   registerUser,
   searchUsers,
-  type RoleDto,
   type UserDto,
   type RegisterUserInput,
 } from "@/api/identity";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Avatar } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogBody,
@@ -49,55 +38,50 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  DensityToggle,
-  EmptyState,
-  ErrorBand,
+  Combobox,
+  EntityEmpty,
+  EntityFilterPill,
+  EntityInitialsAvatar,
+  EntityListCard,
+  EntityListHeader,
+  EntityListLoading,
+  EntityListRow,
+  EntityMobileCard,
+  EntityPageHeader,
+  EntityPager,
+  EntitySearch,
+  EntityStatusBadge,
   Field,
-  ListHero,
-  Pagination,
-  SortChips,
-  Stat,
-  StatStrip,
-  usePersistedDensity,
-  type Density,
-  type SortDir,
-  type SortOption,
 } from "@/components/list";
-import { useAuth } from "@/auth/use-auth";
 import { cn } from "@/lib/cn";
-import { describe, pad2 } from "@/lib/list-helpers";
+import { describe } from "@/lib/list-helpers";
 
 const PAGE_SIZE = 20;
-const DENSITY_KEY = "fsh.dashboard.identity.users.density";
-
-type SortKey = "userName" | "email" | "lastName";
-
-const SORT_OPTIONS: SortOption<SortKey>[] = [
-  { key: "userName", label: "Username" },
-  { key: "lastName", label: "Last name" },
-  { key: "email", label: "Email" },
-];
 
 type StatusFilter = "all" | "active" | "inactive";
 type EmailFilter = "all" | "confirmed" | "unconfirmed";
+
+// Desktop grid template, shared by header + rows + skeleton.
+const DESKTOP_COLS =
+  "grid-cols-[1fr_140px_24px] lg:grid-cols-[1.6fr_140px_180px_24px]";
+
+function fullName(u: UserDto): string {
+  const parts = [u.firstName, u.lastName].filter(Boolean);
+  if (parts.length > 0) return parts.join(" ");
+  return u.userName ?? u.email ?? "Unnamed user";
+}
 
 // ───────────────────────────────────────────────────────────────────────
 //  Page
 // ───────────────────────────────────────────────────────────────────────
 
 export function UsersPage() {
-  const { user: authedUser } = useAuth();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [pageNumber, setPageNumber] = useState(1);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [emailFilter, setEmailFilter] = useState<EmailFilter>("all");
   const [roleFilter, setRoleFilter] = useState<string | null>(null);
-
-  const [sortKey, setSortKey] = useState<SortKey>("userName");
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
-
-  const [density, setDensity] = usePersistedDensity(DENSITY_KEY);
   const [registerOpen, setRegisterOpen] = useState(false);
 
   useEffect(() => {
@@ -108,17 +92,22 @@ export function UsersPage() {
     return () => clearTimeout(t);
   }, [search]);
 
+  useEffect(() => {
+    setPageNumber(1);
+  }, [statusFilter, emailFilter, roleFilter]);
+
   const queryParams = useMemo(
     () => ({
       pageNumber,
       pageSize: PAGE_SIZE,
       search: debouncedSearch || undefined,
-      sort: `${sortKey} ${sortDir}`,
+      sort: "userName asc",
       isActive: statusFilter === "all" ? null : statusFilter === "active",
-      emailConfirmed: emailFilter === "all" ? null : emailFilter === "confirmed",
+      emailConfirmed:
+        emailFilter === "all" ? null : emailFilter === "confirmed",
       roleId: roleFilter,
     }),
-    [pageNumber, debouncedSearch, sortKey, sortDir, statusFilter, emailFilter, roleFilter],
+    [pageNumber, debouncedSearch, statusFilter, emailFilter, roleFilter],
   );
 
   const query = useQuery({
@@ -127,47 +116,18 @@ export function UsersPage() {
     placeholderData: keepPreviousData,
   });
 
-  const data = query.data;
-  const items = data?.items ?? [];
-
-  const stats = useMemo(() => {
-    if (!data) return null;
-    const active = items.filter((u) => u.isActive).length;
-    const confirmed = items.filter((u) => u.emailConfirmed).length;
-    const pendingPct =
-      items.length === 0
-        ? 0
-        : Math.round(((items.length - confirmed) / items.length) * 100);
-    return {
-      total: data.totalCount,
-      active,
-      pendingPct,
-    };
-  }, [data, items]);
-
-  const onSort = useCallback(
-    (key: SortKey) => {
-      if (sortKey === key) {
-        setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-      } else {
-        setSortKey(key);
-        setSortDir("asc");
-      }
-    },
-    [sortKey],
-  );
-
   const rolesQuery = useQuery({
     queryKey: ["identity", "roles"],
     queryFn: listRoles,
     staleTime: 60_000,
   });
 
-  const filtersActive =
-    debouncedSearch.length > 0 ||
-    statusFilter !== "all" ||
-    emailFilter !== "all" ||
-    roleFilter !== null;
+  const data = query.data;
+  const items = data?.items ?? [];
+
+  const filtersApplied =
+    statusFilter !== "all" || emailFilter !== "all" || roleFilter !== null;
+  const searchActive = debouncedSearch.length > 0 || filtersApplied;
 
   const clearFilters = () => {
     setSearch("");
@@ -177,434 +137,261 @@ export function UsersPage() {
   };
 
   return (
-    <div className="space-y-7 pb-12">
-      <ListHero
-        eyebrow="Identity · Members"
-        tenant={authedUser?.tenant ?? "—"}
-        subEyebrow="people with access"
+    <div className="space-y-4 sm:space-y-6">
+      <EntityPageHeader
+        icon={Users}
         title="Users"
-        totalCount={data?.totalCount ?? null}
-        subtitle="Every member with access to this tenant. Register newcomers, review their status, and tune the roles attached to each account."
-        searchValue={search}
-        onSearch={setSearch}
-        searchPlaceholder="Find by name, username, or email…"
-        isFetching={query.isFetching}
-        onRefresh={() => void query.refetch()}
-        ctaLabel="Register user"
-        onCreate={() => setRegisterOpen(true)}
-      />
-
-      {stats && data && data.totalCount > 0 && (
-        <StatStrip cols={3}>
-          <Stat label="Total members" value={pad2(stats.total)} hint="across this tenant" />
-          <Stat
-            label="Active on this page"
-            value={pad2(stats.active)}
-            hint={stats.active === items.length ? "all enabled" : `${items.length - stats.active} inactive`}
-            accent
-          />
-          <Stat
-            label="Email pending"
-            value={`${stats.pendingPct}%`}
-            hint={stats.pendingPct === 0 ? "all confirmed" : "still awaiting confirmation"}
-            tone={stats.pendingPct > 50 ? "warning" : "default"}
-          />
-        </StatStrip>
-      )}
-
-      <FilterBar
-        statusFilter={statusFilter}
-        emailFilter={emailFilter}
-        roleFilter={roleFilter}
-        roles={rolesQuery.data ?? []}
-        onStatusChange={(v) => {
-          setStatusFilter(v);
-          setPageNumber(1);
-        }}
-        onEmailChange={(v) => {
-          setEmailFilter(v);
-          setPageNumber(1);
-        }}
-        onRoleChange={(v) => {
-          setRoleFilter(v);
-          setPageNumber(1);
-        }}
-        active={filtersActive}
-        onClear={clearFilters}
-      />
-
-      {query.isError && <ErrorBand message={describe(query.error)} />}
-
-      <section className="fsh-enter fsh-enter-3 space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <SortChips
-            options={SORT_OPTIONS}
-            sortKey={sortKey}
-            sortDir={sortDir}
-            onSort={onSort}
-            prefixLabel={debouncedSearch ? "results" : "directory"}
-          />
-          <DensityToggle density={density} onChange={setDensity} />
-        </div>
-
-        <div
-          className={cn(
-            "card-shell overflow-hidden rounded-2xl",
-            "bg-[var(--color-surface-3)]",
-          )}
-        >
-          {query.isLoading && items.length === 0 ? (
-            <ul aria-busy>
-              {Array.from({ length: 6 }).map((_, i) => (
-                <SkeletonRow key={i} delayMs={i * 40} density={density} />
-              ))}
-            </ul>
-          ) : items.length === 0 ? (
-            <EmptyState
-              eyebrow={filtersActive ? "No matches" : "Empty directory"}
-              headline={
-                filtersActive
-                  ? "No users match those filters."
-                  : "No one's been registered yet."
-              }
-              body={
-                filtersActive
-                  ? "Search runs across name, username, and email. Try a different term, or clear the filters."
-                  : "Register the first member to seed this tenant. They'll receive a confirmation email if email confirmation is enabled."
-              }
-              icon={
-                filtersActive ? (
-                  <Search className="h-6 w-6 text-[var(--color-primary)]" />
-                ) : (
-                  <UsersIcon className="h-6 w-6 text-[var(--color-primary)]" />
-                )
-              }
-              primaryAction={{
-                label: filtersActive ? "Register a new member" : "Register the first member",
-                onClick: () => setRegisterOpen(true),
-                icon: <Sparkles className="h-3.5 w-3.5" />,
-              }}
-              secondaryAction={
-                filtersActive
-                  ? {
-                      label: "Clear filters",
-                      onClick: clearFilters,
-                      icon: <X className="h-3.5 w-3.5" />,
-                    }
-                  : undefined
-              }
-            />
-          ) : (
-            <ul>
-              {items.map((user, i) => (
-                <UserRow
-                  key={user.id ?? i}
-                  user={user}
-                  density={density}
-                  delayMs={Math.min(i, 8) * 30}
-                />
-              ))}
-            </ul>
-          )}
-        </div>
-      </section>
-
-      {data && data.totalCount > 0 && (
-        <Pagination
-          page={data.pageNumber}
-          totalPages={Math.max(data.totalPages, 1)}
-          totalCount={data.totalCount}
-          shown={items.length}
-          fetching={query.isFetching}
-          onPrev={() => setPageNumber((p) => Math.max(1, p - 1))}
-          onNext={() => setPageNumber((p) => p + 1)}
-          hasPrev={data.hasPrevious}
-          hasNext={data.hasNext}
-        />
-      )}
-
-      <RegisterUserDialog open={registerOpen} onClose={() => setRegisterOpen(false)} />
-    </div>
-  );
-}
-
-// ───────────────────────────────────────────────────────────────────────
-//  Filters
-// ───────────────────────────────────────────────────────────────────────
-
-function FilterBar({
-  statusFilter,
-  emailFilter,
-  roleFilter,
-  roles,
-  onStatusChange,
-  onEmailChange,
-  onRoleChange,
-  active,
-  onClear,
-}: {
-  statusFilter: StatusFilter;
-  emailFilter: EmailFilter;
-  roleFilter: string | null;
-  roles: RoleDto[];
-  onStatusChange: (v: StatusFilter) => void;
-  onEmailChange: (v: EmailFilter) => void;
-  onRoleChange: (v: string | null) => void;
-  active: boolean;
-  onClear: () => void;
-}) {
-  return (
-    <div className="fsh-enter fsh-enter-2 flex flex-wrap items-center gap-2">
-      <span className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
-        filter
-      </span>
-      <span aria-hidden className="h-3 w-px bg-[var(--color-border-strong)]" />
-
-      <FilterGroup
-        label="Account"
-        value={statusFilter}
-        onChange={onStatusChange}
-        options={[
-          { value: "all", label: "Any" },
-          { value: "active", label: "Active", icon: <ShieldCheck className="h-3 w-3" /> },
-          { value: "inactive", label: "Inactive", icon: <CircleSlash2 className="h-3 w-3" /> },
-        ]}
-      />
-
-      <FilterGroup
-        label="Email"
-        value={emailFilter}
-        onChange={onEmailChange}
-        options={[
-          { value: "all", label: "Any" },
-          { value: "confirmed", label: "Confirmed", icon: <MailCheck className="h-3 w-3" /> },
-          { value: "unconfirmed", label: "Pending", icon: <Mail className="h-3 w-3" /> },
-        ]}
-      />
-
-      {roles.length > 0 && (
-        <div className="surface-edge inline-flex h-8 items-center gap-1 rounded-full bg-[var(--color-surface-3)] px-2">
-          <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]/70">
-            Role
-          </span>
-          <select
-            value={roleFilter ?? ""}
-            onChange={(e) => onRoleChange(e.target.value || null)}
-            className={cn(
-              "h-7 cursor-pointer rounded-full bg-transparent px-2 text-[11px] font-medium outline-none",
-              "text-[var(--color-foreground)]",
-              "focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
-            )}
-          >
-            <option value="">Any</option>
-            {roles.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      {active && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onClear}
-          className="ml-1 h-7 gap-1 px-2 text-[11px] font-mono uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]"
-        >
-          <X className="h-3 w-3" /> Clear
-        </Button>
-      )}
-    </div>
-  );
-}
-
-function FilterGroup<T extends string>({
-  label,
-  value,
-  onChange,
-  options,
-}: {
-  label: string;
-  value: T;
-  onChange: (v: T) => void;
-  options: Array<{ value: T; label: string; icon?: React.ReactNode }>;
-}) {
-  return (
-    <div
-      role="group"
-      aria-label={label}
-      className="surface-edge inline-flex h-8 items-center rounded-full bg-[var(--color-surface-3)] p-0.5"
-    >
-      <span className="px-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]/70">
-        {label}
-      </span>
-      {options.map((opt) => {
-        const active = value === opt.value;
-        return (
-          <button
-            key={opt.value}
-            type="button"
-            onClick={() => onChange(opt.value)}
-            aria-pressed={active}
-            className={cn(
-              "inline-flex h-7 items-center gap-1 rounded-full px-2.5 text-[11px] font-medium",
-              "transition-colors duration-[var(--duration-fast)]",
-              active
-                ? "bg-[var(--color-surface-1)] text-[var(--color-foreground)] shadow-[var(--highlight-top),0_1px_2px_oklch(0.115_0.010_270/0.06)]"
-                : "text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]",
-            )}
-          >
-            {opt.icon}
-            {opt.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-// ───────────────────────────────────────────────────────────────────────
-//  Row
-// ───────────────────────────────────────────────────────────────────────
-
-function fullName(u: UserDto): string {
-  const parts = [u.firstName, u.lastName].filter(Boolean);
-  if (parts.length > 0) return parts.join(" ");
-  return u.userName ?? u.email ?? "Unnamed user";
-}
-
-function UserRow({
-  user,
-  density,
-  delayMs,
-}: {
-  user: UserDto;
-  density: Density;
-  delayMs: number;
-}) {
-  const padY = density === "compact" ? "py-3" : "py-4";
-  const id = user.id;
-  const display = fullName(user);
-
-  return (
-    <li
-      className={cn(
-        "fsh-enter group/row relative border-b border-[var(--color-border)] last:border-b-0",
-        "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
-        "hover:bg-[var(--color-surface-4)]",
-      )}
-      style={{ animationDelay: `${delayMs}ms` }}
-    >
-      <span
-        aria-hidden
-        className={cn(
-          "absolute inset-y-2.5 left-0 w-[2px] rounded-r-full bg-[var(--color-primary)]",
-          "opacity-0 transition-opacity duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
-          "group-hover/row:opacity-100 group-focus-within/row:opacity-100",
-        )}
-      />
-
-      <Link
-        to={id ? `/identity/users/${id}` : "#"}
-        aria-disabled={!id}
-        className={cn(
-          "flex items-center gap-4 px-5 sm:px-6",
-          padY,
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-background)]",
-        )}
+        total={data?.totalCount ?? null}
+        unit="user"
+        description="Every member with access to this tenant. Register newcomers, review status, and manage roles."
       >
-        <Avatar
-          name={display}
-          src={user.imageUrl ?? undefined}
-          size={density === "compact" ? "sm" : "md"}
+        <Button
+          onClick={() => setRegisterOpen(true)}
+          className="h-9 flex-1 gap-1.5 rounded-lg px-4 text-[13px] font-semibold sm:flex-none"
+        >
+          <Plus className="size-4" />
+          Register user
+        </Button>
+      </EntityPageHeader>
+
+      <EntitySearch
+        value={search}
+        onChange={setSearch}
+        placeholder="Search by name, username, or email…"
+      />
+
+      <div className="flex flex-wrap items-center gap-2">
+        <EntityFilterPill
+          label="Account status"
+          value={statusFilter}
+          onChange={setStatusFilter}
+          options={[
+            { value: "all", label: "All" },
+            { value: "active", label: "Active" },
+            { value: "inactive", label: "Inactive" },
+          ]}
         />
-
-        <div className="flex min-w-0 flex-1 items-center gap-6">
-          <div className="min-w-0 flex-[1.4]">
-            <div className="flex items-baseline gap-2">
-              <span className="text-display truncate text-[15px] font-semibold leading-tight tracking-[-0.01em] sm:text-[15.5px]">
-                {display}
-              </span>
-              {user.userName && user.userName !== display && (
-                <code
-                  title={user.userName}
-                  className="hidden truncate rounded bg-[var(--color-muted)] px-1.5 py-0.5 font-mono text-[10.5px] tracking-tight text-[var(--color-muted-foreground)] sm:inline-block"
-                >
-                  @{user.userName}
-                </code>
-              )}
-            </div>
-            <div
-              className={cn(
-                "mt-0.5 truncate text-[12.5px] leading-relaxed text-[var(--color-muted-foreground)]",
-                !user.email && "italic opacity-60",
-              )}
-            >
-              {user.email ?? "no email on file"}
-            </div>
-          </div>
-
-          <div className="hidden min-w-[200px] items-center gap-1.5 sm:flex">
-            {user.isActive ? (
-              <Badge variant="success">
-                <ShieldCheck className="h-3 w-3" /> Active
-              </Badge>
-            ) : (
-              <Badge variant="outline">
-                <CircleSlash2 className="h-3 w-3" /> Inactive
-              </Badge>
-            )}
-            {user.emailConfirmed ? (
-              <Badge variant="brand">
-                <MailCheck className="h-3 w-3" /> Confirmed
-              </Badge>
-            ) : (
-              <Badge variant="warning">
-                <Mail className="h-3 w-3" /> Pending
-              </Badge>
-            )}
-          </div>
-        </div>
-
-        <ChevronRight className="h-4 w-4 shrink-0 text-[var(--color-muted-foreground)] opacity-0 transition-opacity group-hover/row:opacity-100" />
-      </Link>
-    </li>
-  );
-}
-
-function SkeletonRow({ delayMs, density }: { delayMs: number; density: Density }) {
-  const padY = density === "compact" ? "py-3" : "py-4";
-  return (
-    <li
-      className={cn(
-        "fsh-enter flex items-center gap-4 border-b border-[var(--color-border)] px-5 last:border-b-0 sm:px-6",
-        padY,
-      )}
-      style={{ animationDelay: `${delayMs}ms` }}
-    >
-      <Skeleton className={cn("rounded-full", density === "compact" ? "h-7 w-7" : "h-9 w-9")} />
-      <div className="flex flex-1 items-center gap-6">
-        <div className="min-w-0 flex-[1.4] space-y-2">
-          <Skeleton className="h-4 w-44" />
-          <Skeleton className="h-3 w-72" />
-        </div>
-        <div className="hidden min-w-[200px] gap-2 sm:flex">
-          <Skeleton className="h-5 w-16" />
-          <Skeleton className="h-5 w-20" />
-        </div>
+        <EntityFilterPill
+          label="Email status"
+          value={emailFilter}
+          onChange={setEmailFilter}
+          options={[
+            { value: "all", label: "Any email" },
+            { value: "confirmed", label: "Confirmed" },
+            { value: "unconfirmed", label: "Pending" },
+          ]}
+        />
+        <Combobox
+          label="Role"
+          value={roleFilter}
+          onChange={setRoleFilter}
+          options={(rolesQuery.data ?? []).map((r) => ({
+            value: r.id,
+            label: r.name,
+          }))}
+          variant="filter"
+          searchable
+          clearable
+        />
       </div>
-      <Skeleton className="h-3 w-3" />
-    </li>
+
+      {query.isLoading && items.length === 0 ? (
+        <EntityListLoading desktopColumns={DESKTOP_COLS} />
+      ) : items.length === 0 ? (
+        <EntityEmpty
+          icon={Users}
+          title={searchActive ? "No users found" : "No users yet"}
+          body={
+            searchActive
+              ? debouncedSearch
+                ? `Nothing matches "${debouncedSearch}". Try a different term or clear the filters.`
+                : "No users match the current filters."
+              : "Register the first member to seed this tenant. They'll receive a confirmation email if email confirmation is enabled."
+          }
+          action={
+            searchActive ? (
+              <Button
+                variant="outline"
+                onClick={clearFilters}
+                className="h-9 rounded-lg px-4 text-[13px]"
+              >
+                Clear filters
+              </Button>
+            ) : (
+              <Button
+                onClick={() => setRegisterOpen(true)}
+                className="h-9 rounded-lg px-4 text-[13px]"
+              >
+                <Plus className="mr-1.5 size-4" />
+                Register user
+              </Button>
+            )
+          }
+        />
+      ) : (
+        <div>
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-[12px] font-medium text-[var(--color-muted-foreground)]">
+              {data?.totalCount ?? 0} user
+              {(data?.totalCount ?? 0) !== 1 ? "s" : ""} found
+            </p>
+          </div>
+
+          {/* Mobile: card list */}
+          <div className="space-y-2 md:hidden">
+            {items.map((user) => (
+              <UserMobileCard key={user.id ?? user.userName} user={user} />
+            ))}
+          </div>
+
+          {/* Desktop: table */}
+          <EntityListCard className="hidden md:block">
+            <EntityListHeader className={DESKTOP_COLS}>
+              <span>Name</span>
+              <span>Username</span>
+              <span className="hidden lg:block">Status</span>
+              <span />
+            </EntityListHeader>
+
+            {items.map((user, i) => (
+              <UserDesktopRow
+                key={user.id ?? i}
+                user={user}
+                isLast={i === items.length - 1}
+              />
+            ))}
+          </EntityListCard>
+
+          <EntityPager
+            page={data?.pageNumber ?? 1}
+            totalPages={Math.max(data?.totalPages ?? 1, 1)}
+            hasPrev={data?.hasPrevious ?? false}
+            hasNext={data?.hasNext ?? false}
+            onPrev={() => setPageNumber((p) => Math.max(1, p - 1))}
+            onNext={() => setPageNumber((p) => p + 1)}
+          />
+        </div>
+      )}
+
+      {query.isError && (
+        <div
+          role="alert"
+          className="rounded-lg border border-[oklch(from_var(--color-destructive)_l_c_h_/_0.30)] bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.06)] px-3 py-2 text-sm text-[var(--color-destructive)]"
+        >
+          {describe(query.error)}
+        </div>
+      )}
+
+      <RegisterUserDialog
+        open={registerOpen}
+        onClose={() => setRegisterOpen(false)}
+      />
+    </div>
   );
 }
 
 // ───────────────────────────────────────────────────────────────────────
-//  Register dialog
+//  Rows
 // ───────────────────────────────────────────────────────────────────────
 
-function RegisterUserDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+function UserMobileCard({ user }: { user: UserDto }) {
+  const display = fullName(user);
+  const href = user.id ? `/identity/users/${user.id}` : "#";
+  return (
+    <EntityMobileCard
+      href={href}
+      aria-label={`Open user ${display}`}
+      dim={!user.isActive}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex min-w-0 items-center gap-3">
+          <EntityInitialsAvatar name={display} size={40} />
+          <div className="min-w-0">
+            <p className="truncate text-[14px] font-medium text-[var(--color-foreground)]">
+              {display}
+            </p>
+            <p className="mt-0.5 truncate text-[11px] text-[var(--color-muted-foreground)]">
+              {user.email ?? "no email"}
+            </p>
+          </div>
+        </div>
+        <ChevronRight className="size-4 shrink-0 text-[var(--color-border)]" />
+      </div>
+      <div className="mt-2 ml-[52px] flex flex-wrap items-center gap-1.5">
+        <EntityStatusBadge tone={user.isActive ? "success" : "default"}>
+          {user.isActive ? "Active" : "Inactive"}
+        </EntityStatusBadge>
+        <EntityStatusBadge tone={user.emailConfirmed ? "info" : "warning"}>
+          {user.emailConfirmed ? "Email confirmed" : "Email pending"}
+        </EntityStatusBadge>
+      </div>
+    </EntityMobileCard>
+  );
+}
+
+function UserDesktopRow({ user, isLast }: { user: UserDto; isLast: boolean }) {
+  const display = fullName(user);
+  const href = user.id ? `/identity/users/${user.id}` : "#";
+  return (
+    <EntityListRow className={DESKTOP_COLS} isLast={isLast} dim={!user.isActive}>
+      {/* Name + email */}
+      <Link
+        to={href}
+        aria-disabled={!user.id}
+        className="flex min-w-0 items-center gap-3 outline-none"
+      >
+        <EntityInitialsAvatar name={display} size={36} />
+        <div className="min-w-0">
+          <span className="block truncate text-[14px] font-medium text-[var(--color-foreground)] transition-colors group-hover:text-[var(--color-primary)]">
+            {display}
+          </span>
+          <span
+            className={cn(
+              "block truncate text-[12px] text-[var(--color-muted-foreground)]",
+              !user.email && "italic opacity-60",
+            )}
+          >
+            {user.email ?? "no email on file"}
+          </span>
+        </div>
+      </Link>
+
+      {/* Username */}
+      <code
+        title={user.userName ?? undefined}
+        className="truncate font-mono text-[12px] text-[var(--color-muted-foreground)]"
+      >
+        {user.userName ? `@${user.userName}` : "—"}
+      </code>
+
+      {/* Status (lg+) */}
+      <div className="hidden items-center gap-1.5 lg:flex">
+        <EntityStatusBadge tone={user.isActive ? "success" : "default"}>
+          {user.isActive ? "Active" : "Inactive"}
+        </EntityStatusBadge>
+        <EntityStatusBadge tone={user.emailConfirmed ? "info" : "warning"}>
+          {user.emailConfirmed ? "Confirmed" : "Pending"}
+        </EntityStatusBadge>
+      </div>
+
+      <div className="flex items-center justify-end">
+        <ChevronRight className="size-4 text-[var(--color-border)] transition-colors group-hover:text-[var(--color-muted-foreground)]" />
+      </div>
+    </EntityListRow>
+  );
+}
+
+// ───────────────────────────────────────────────────────────────────────
+//  Register dialog — hooks/mutations preserved verbatim
+// ───────────────────────────────────────────────────────────────────────
+
+function RegisterUserDialog({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
   const queryClient = useQueryClient();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -626,7 +413,8 @@ function RegisterUserDialog({ open, onClose }: { open: boolean; onClose: () => v
     }
   }, [open]);
 
-  const passwordMismatch = confirmPassword.length > 0 && password !== confirmPassword;
+  const passwordMismatch =
+    confirmPassword.length > 0 && password !== confirmPassword;
 
   const mutation = useMutation({
     mutationFn: (input: RegisterUserInput) => registerUser(input),
@@ -637,7 +425,8 @@ function RegisterUserDialog({ open, onClose }: { open: boolean; onClose: () => v
       void queryClient.invalidateQueries({ queryKey: ["identity", "users"] });
       onClose();
     },
-    onError: (err) => toast.error("Registration failed", { description: describe(err) }),
+    onError: (err) =>
+      toast.error("Registration failed", { description: describe(err) }),
   });
 
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -659,13 +448,10 @@ function RegisterUserDialog({ open, onClose }: { open: boolean; onClose: () => v
       <DialogContent className="!max-w-lg">
         <form onSubmit={onSubmit}>
           <DialogHeader>
-            <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-              New entry · directory
-            </span>
             <DialogTitle>Register a member</DialogTitle>
             <DialogDescription>
-              Add a new user to this tenant. Username and email must be unique. Passwords need an
-              uppercase letter, lowercase letter, and a digit.
+              Add a new user to this tenant. Username and email must be unique.
+              Passwords need an uppercase letter, lowercase letter, and a digit.
             </DialogDescription>
           </DialogHeader>
 
@@ -692,7 +478,12 @@ function RegisterUserDialog({ open, onClose }: { open: boolean; onClose: () => v
               </Field>
             </div>
 
-            <Field id="reg-username" label="Username" required hint="Used at sign-in. Lowercase, no spaces.">
+            <Field
+              id="reg-username"
+              label="Username"
+              required
+              hint="Used at sign-in. Lowercase, no spaces."
+            >
               <Input
                 id="reg-username"
                 value={userName}
@@ -755,14 +546,18 @@ function RegisterUserDialog({ open, onClose }: { open: boolean; onClose: () => v
 
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline" disabled={mutation.isPending}>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={mutation.isPending}
+              >
                 Cancel
               </Button>
             </DialogClose>
             <Button
               type="submit"
               disabled={mutation.isPending || passwordMismatch}
-              className="brand-glow gradient-sheen gap-1.5"
+              className="gap-1.5"
             >
               <UserPlus className="h-4 w-4" />
               {mutation.isPending ? "Registering…" : "Register user"}

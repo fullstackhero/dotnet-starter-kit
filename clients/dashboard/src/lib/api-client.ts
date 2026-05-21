@@ -23,7 +23,42 @@ export class ApiRequestError extends Error {
   }
 }
 
-type RequestInitEx = RequestInit & { skipAuth?: boolean };
+type RequestInitEx = RequestInit & {
+  skipAuth?: boolean;
+  /**
+   * Per-request timeout in milliseconds. Browser fetch has no default timeout
+   * so a permanently stalled request would hang React Query's promise forever.
+   * Defaults to 30s; callers wiring long-poll surfaces (search streams, file
+   * uploads) should override this explicitly.
+   */
+  timeoutMs?: number;
+};
+
+const DEFAULT_TIMEOUT_MS = 30_000;
+
+function withTimeout(
+  init: RequestInit,
+  timeoutMs: number,
+  externalSignal?: AbortSignal | null,
+): { init: RequestInit; cleanup: () => void } {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(new DOMException("Request timed out", "TimeoutError")), timeoutMs);
+  const onExternalAbort = () => controller.abort(externalSignal?.reason);
+  if (externalSignal) {
+    if (externalSignal.aborted) {
+      controller.abort(externalSignal.reason);
+    } else {
+      externalSignal.addEventListener("abort", onExternalAbort, { once: true });
+    }
+  }
+  return {
+    init: { ...init, signal: controller.signal },
+    cleanup: () => {
+      window.clearTimeout(timeoutId);
+      externalSignal?.removeEventListener("abort", onExternalAbort);
+    },
+  };
+}
 
 let refreshPromise: Promise<void> | null = null;
 
@@ -77,7 +112,7 @@ export async function apiFetch<T = unknown>(
   path: string,
   init: RequestInitEx = {},
 ): Promise<T> {
-  const { skipAuth, headers, ...rest } = init;
+  const { skipAuth, headers, timeoutMs = DEFAULT_TIMEOUT_MS, signal, ...rest } = init;
 
   const mergedHeaders = new Headers(headers);
   if (!mergedHeaders.has("Content-Type") && rest.body && typeof rest.body === "string") {
@@ -108,7 +143,13 @@ export async function apiFetch<T = unknown>(
   }
 
   const url = path.startsWith("http") ? path : `${env.apiBase}${path}`;
-  let response = await fetch(url, { ...rest, headers: mergedHeaders });
+  const initialTimer = withTimeout({ ...rest, headers: mergedHeaders }, timeoutMs, signal);
+  let response: Response;
+  try {
+    response = await fetch(url, initialTimer.init);
+  } finally {
+    initialTimer.cleanup();
+  }
 
   if (response.status === 401 && !skipAuth && tokenStore.getRefreshToken()) {
     refreshPromise ??= refreshAccessToken().finally(() => {
@@ -125,7 +166,12 @@ export async function apiFetch<T = unknown>(
 
     const retryHeaders = new Headers(mergedHeaders);
     retryHeaders.set("Authorization", `Bearer ${tokenStore.getAccessToken() ?? ""}`);
-    response = await fetch(url, { ...rest, headers: retryHeaders });
+    const retryTimer = withTimeout({ ...rest, headers: retryHeaders }, timeoutMs, signal);
+    try {
+      response = await fetch(url, retryTimer.init);
+    } finally {
+      retryTimer.cleanup();
+    }
   }
 
   if (!response.ok) {

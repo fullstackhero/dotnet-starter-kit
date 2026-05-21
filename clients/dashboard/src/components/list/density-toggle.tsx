@@ -18,7 +18,7 @@ export function DensityToggle({
     <div
       role="group"
       aria-label="Row density"
-      className="surface-edge inline-flex h-9 items-center rounded-full bg-[var(--color-surface-3)] p-1"
+      className="inline-flex h-9 items-center rounded-full border border-[var(--color-border)] bg-[var(--color-card)] p-0.5"
     >
       <DensityButton
         active={density === "cozy"}
@@ -57,10 +57,10 @@ function DensityButton({
       title={label}
       onClick={onClick}
       className={cn(
-        "grid h-7 w-9 cursor-pointer place-items-center rounded-full transition-colors duration-[var(--duration-fast)]",
+        "grid h-8 w-9 cursor-pointer place-items-center rounded-full transition-colors duration-[var(--duration-fast)]",
         active
-          ? "bg-[var(--color-surface-1)] text-[var(--color-foreground)] shadow-[var(--highlight-top),0_1px_2px_oklch(0.115_0.010_270/0.06)]"
-          : "text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]",
+          ? "bg-[var(--color-primary)] text-[var(--color-primary-foreground)]"
+          : "text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]",
       )}
     >
       {children}

@@ -7,6 +7,7 @@ import {
   ArrowUpRight,
   Calendar,
   ChevronRight,
+  CreditCard,
   Gauge,
   Package,
   RefreshCw,
@@ -15,7 +16,10 @@ import {
   ShieldCheck,
   Sparkles,
   UsersRound,
+  Wifi,
+  WifiOff,
   X,
+  Zap,
 } from "lucide-react";
 import {
   getMySubscription,
@@ -30,19 +34,12 @@ import {
   listAudits,
   type AuditSummaryDto,
 } from "@/api/audits";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LiveFeed } from "@/components/sse/live-feed";
+import { EntityDetailSection } from "@/components/list";
 import { useAuth } from "@/auth/use-auth";
-import { useSse } from "@/sse/sse-context";
+import { useSse, type SseEvent } from "@/sse/sse-context";
 import { cn } from "@/lib/cn";
 
 // ────────────────────────────────────────────────────────────────────────
@@ -92,13 +89,16 @@ function periodProgress(now: Date = new Date()): number {
   return Math.min(1, Math.max(0, day / last));
 }
 
-function greetingFor(now: Date = new Date()): string {
-  const h = now.getHours();
-  if (h < 5) return "Good night";
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  if (h < 22) return "Good evening";
-  return "Good night";
+/**
+ * Time-of-day greeting. Three buckets — morning (<12), afternoon (<17),
+ * evening (rest). Mirrors the dentalOS dashboard greeting helper so the
+ * tone of voice matches across products.
+ */
+function getGreeting(): "Good morning" | "Good afternoon" | "Good evening" {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
 }
 
 function relativeTime(iso: string, now: number = Date.now()): string {
@@ -118,101 +118,133 @@ function subscriptionTone(status: SubscriptionDto["status"] | undefined) {
   return "default" as const;
 }
 
+const timeFmt = new Intl.DateTimeFormat("en-US", {
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: false,
+});
+function formatClock(ts: number) {
+  return timeFmt.format(new Date(ts));
+}
+
+function eventTone(type: string): "default" | "success" | "warning" | "danger" | "brand" {
+  const t = type.toLowerCase();
+  if (t.includes("fail") || t.includes("error") || t.includes("revoke")) return "danger";
+  if (t.includes("warn") || t.includes("retry")) return "warning";
+  if (t.includes("login") || t.includes("issued") || t.includes("created")) return "success";
+  if (t.includes("token") || t.includes("auth")) return "brand";
+  return "default";
+}
+
 // ────────────────────────────────────────────────────────────────────────
-// Subcomponents — small, focused, all client-pure. Extracted so the page
-// reads top-down without nested closures.
+// StatCard — flat, calm, four-up. Icon tile on the left, label + big
+// tabular-nums value stacked on the right. Tone tints the icon plate.
 // ────────────────────────────────────────────────────────────────────────
 
-type KpiTileProps = {
-  label: string;
-  value: React.ReactNode;
-  subtitle?: React.ReactNode;
-  trailing?: React.ReactNode;
-  icon?: React.ComponentType<{ className?: string }>;
-  href?: string;
-  className?: string;
+type StatTone = "primary" | "success" | "warning" | "info";
+
+const STAT_TONE_BG: Record<StatTone, string> = {
+  primary: "bg-[oklch(from_var(--color-primary)_l_c_h_/_0.10)] text-[var(--color-primary)]",
+  success: "bg-[oklch(from_var(--color-success)_l_c_h_/_0.10)] text-[var(--color-success)]",
+  warning: "bg-[oklch(from_var(--color-warning)_l_c_h_/_0.12)] text-[var(--color-warning)]",
+  info: "bg-[oklch(from_var(--color-info)_l_c_h_/_0.10)] text-[var(--color-info)]",
 };
 
-function KpiTile({ label, value, subtitle, trailing, icon: Icon, href, className }: KpiTileProps) {
+function StatCard({
+  index,
+  label,
+  value,
+  sublabel,
+  icon: Icon,
+  tone,
+  href,
+}: {
+  index: number;
+  label: string;
+  value: React.ReactNode;
+  sublabel?: React.ReactNode;
+  icon: React.ComponentType<{ className?: string }>;
+  tone: StatTone;
+  href?: string;
+}) {
   const body = (
-    <Card interactive className={cn("group/tile h-full", className)}>
-      <CardContent className="px-5 pb-5 pt-5">
-        <div className="flex items-center justify-between">
-          <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
-            {label}
-          </span>
-          {Icon && <Icon className="h-3.5 w-3.5 text-[var(--color-muted-foreground)]" aria-hidden />}
-        </div>
-        <div className="mt-3 flex items-end justify-between gap-3">
-          <div className="text-display text-2xl font-semibold leading-none tabular-nums">
-            {value}
-          </div>
-          {trailing}
-        </div>
-        {subtitle && (
-          <div className="mt-2 text-xs leading-relaxed text-[var(--color-muted-foreground)]">
-            {subtitle}
-          </div>
+    <div
+      className={cn(
+        "fsh-enter group/stat flex h-full items-start gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] px-4 py-3.5 shadow-xs",
+        "transition-colors duration-200 hover:border-[oklch(from_var(--color-border)_l_c_h_/_1.4)]",
+      )}
+      style={{ animationDelay: `${index * 50}ms` }}
+    >
+      <span
+        aria-hidden
+        className={cn(
+          "grid size-9 shrink-0 place-items-center rounded-lg",
+          STAT_TONE_BG[tone],
         )}
-        {href && (
-          <ArrowUpRight
-            aria-hidden
-            className={cn(
-              "absolute right-4 top-4 h-3.5 w-3.5 text-[var(--color-muted-foreground)]",
-              "opacity-0 transition-opacity duration-[var(--duration-default)]",
-              "group-hover/tile:opacity-100",
-            )}
-          />
+      >
+        <Icon className="size-4" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          {label}
+        </p>
+        <p className="mt-1 font-display text-[20px] font-bold leading-none tracking-tight tabular-nums text-foreground sm:text-[22px]">
+          {value}
+        </p>
+        {sublabel && (
+          <p className="mt-1.5 truncate text-[11px] text-muted-foreground">
+            {sublabel}
+          </p>
         )}
-      </CardContent>
-    </Card>
+      </div>
+      {href && (
+        <ArrowUpRight
+          aria-hidden
+          className="size-3.5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover/stat:opacity-100"
+        />
+      )}
+    </div>
   );
   return href ? (
-    <a href={href} className="relative block">
+    <Link to={href} className="block">
       {body}
-    </a>
+    </Link>
   ) : (
     body
   );
 }
 
-function UsageRow({ row, animationDelayMs }: { row: UsageRowVm; animationDelayMs: number }) {
+// ────────────────────────────────────────────────────────────────────────
+// Usage row — tightened single-line layout. Label · used/limit · bar.
+// ────────────────────────────────────────────────────────────────────────
+
+function UsageRow({ row }: { row: UsageRowVm }) {
   const overUtilized = row.utilization >= 80;
   const overage = row.overage > 0;
   return (
-    <li
-      className={cn(
-        "fsh-enter group/row grid grid-cols-[1fr_auto] items-center gap-x-6 gap-y-2 py-3.5",
-        "border-t border-[var(--color-border)] first:border-t-0",
-      )}
-      style={{ animationDelay: `${animationDelayMs}ms` }}
-    >
-      <div className="flex items-center gap-2.5">
-        <span className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--color-muted-foreground)]">
-          resource
-        </span>
-        <span className="text-sm font-medium tracking-tight text-[var(--color-foreground)]">
+    <li className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1.5 border-t border-[oklch(from_var(--color-border)_l_c_h_/_0.5)] py-2.5 first:border-t-0 first:pt-0">
+      <div className="flex min-w-0 items-center gap-2">
+        <span className="truncate text-[12.5px] font-medium tracking-tight text-foreground">
           {row.resource}
         </span>
-        {overage && (
-          <Badge variant="danger">+{formatNumber(row.overage)} overage</Badge>
-        )}
+        {overage && <Badge variant="danger">+{formatNumber(row.overage)}</Badge>}
       </div>
 
       <div className="text-right tabular-nums">
-        <div className="text-sm font-semibold tracking-tight">
+        <span className="text-[12.5px] font-semibold tracking-tight text-foreground">
           {formatNumber(row.used)}
-          <span className="ml-1 font-normal text-[var(--color-muted-foreground)]">
-            / {formatNumber(row.limit)}
-          </span>
-        </div>
-        <div className="font-mono text-[11px] text-[var(--color-muted-foreground)]">
-          {row.utilization.toFixed(1)}%
-        </div>
+        </span>
+        <span className="ml-1 text-[11.5px] font-normal text-muted-foreground">
+          / {formatNumber(row.limit)}
+        </span>
+        <span className="ml-2 text-[11px] tabular-nums text-muted-foreground">
+          {row.utilization.toFixed(0)}%
+        </span>
       </div>
 
       <div className="col-span-2">
-        <div className="relative h-1.5 overflow-hidden rounded-full bg-[var(--color-muted)]">
+        <div className="relative h-1 overflow-hidden rounded-full bg-[var(--color-muted)]">
           <div
             className={cn(
               "h-full rounded-full transition-[width] duration-[700ms] ease-[var(--ease-out-cubic)]",
@@ -232,61 +264,91 @@ function UsageRow({ row, animationDelayMs }: { row: UsageRowVm; animationDelayMs
 
 function UsageSkeleton() {
   return (
-    <ul className="space-y-3 px-6 pb-5">
+    <ul className="space-y-3">
       {[0, 1, 2].map((i) => (
-        <li key={i} className="space-y-2 py-2">
+        <li key={i} className="space-y-2 py-1.5">
           <div className="flex items-center justify-between">
-            <Skeleton className="h-4 w-32" />
-            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-3.5 w-32" />
+            <Skeleton className="h-3.5 w-24" />
           </div>
-          <Skeleton className="h-1.5 w-full" />
+          <Skeleton className="h-1 w-full" />
         </li>
       ))}
     </ul>
   );
 }
 
-type SubscriptionPanelProps = {
+function UsageEmpty({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-2 py-8 text-center">
+      <span
+        aria-hidden
+        className="grid size-8 place-items-center rounded-lg bg-[oklch(from_var(--color-primary)_l_c_h_/_0.10)]"
+      >
+        <Gauge className="size-3.5 text-[var(--color-primary)]" />
+      </span>
+      <div className="text-[13px] font-semibold tracking-tight text-foreground">{title}</div>
+      <p className="max-w-sm text-[11.5px] leading-relaxed text-muted-foreground">
+        {description}
+      </p>
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────
+// Subscription side card — plan name + status badge, validity window,
+// and current-period progress bar.
+// ────────────────────────────────────────────────────────────────────────
+
+function SubscriptionBody({
+  data,
+  loading,
+}: {
   data: SubscriptionDto | null | undefined;
   loading: boolean;
-};
-
-function SubscriptionPanel({ data, loading }: SubscriptionPanelProps) {
+}) {
   if (loading) {
     return (
-      <div className="space-y-4 px-6 pb-5 pt-1">
-        <Skeleton className="h-7 w-3/5" />
-        <Skeleton className="h-4 w-2/5" />
-        <Skeleton className="h-4 w-4/5" />
-        <Skeleton className="h-4 w-3/5" />
+      <div className="space-y-3">
+        <Skeleton className="h-6 w-3/5" />
+        <Skeleton className="h-3 w-2/5" />
+        <Skeleton className="h-3 w-4/5" />
+        <Skeleton className="h-2 w-full" />
       </div>
     );
   }
   if (!data) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 px-6 pb-7 pt-3 text-center">
-        <span
-          aria-hidden
-          className="grid h-9 w-9 place-items-center rounded-full bg-[var(--color-muted)]"
-        >
-          <Sparkles className="h-4 w-4 text-[var(--color-muted-foreground)]" />
-        </span>
+      <div className="flex flex-col items-start gap-3">
         <div>
-          <div className="text-sm font-medium tracking-tight">No active subscription</div>
-          <div className="mt-1 text-xs text-[var(--color-muted-foreground)]">
-            Pick a plan to enable billing.
+          <div className="text-[13px] font-semibold tracking-tight text-foreground">
+            No active subscription
           </div>
+          <p className="mt-1 text-[11.5px] leading-relaxed text-muted-foreground">
+            Pick a plan to enable billing, quotas, and overage tracking.
+          </p>
         </div>
-        <Button variant="soft" size="sm">Choose plan</Button>
+        <Button asChild variant="soft" size="sm">
+          <Link to="/invoices">Choose plan</Link>
+        </Button>
       </div>
     );
   }
 
   const tone = subscriptionTone(data.status);
+  const progressPct = Math.round(periodProgress() * 100);
+  const daysLeft = daysLeftInMonth();
+
+  const dateFmt: Intl.DateTimeFormatOptions = {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  };
+
   return (
-    <div className="space-y-5 px-6 pb-5 pt-1">
-      <div className="flex items-center gap-3">
-        <span className="text-display text-2xl font-semibold tracking-tight">
+    <div className="space-y-4">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="font-display text-[22px] font-bold tracking-tight text-foreground">
           {data.planKey}
         </span>
         <Badge variant={tone}>
@@ -301,110 +363,35 @@ function SubscriptionPanel({ data, loading }: SubscriptionPanelProps) {
         </Badge>
       </div>
 
-      <dl className="space-y-3 text-sm">
-        <DefRow
-          label="Started"
-          value={
-            <span className="font-mono tabular-nums">
-              {new Date(data.startUtc).toLocaleDateString("en-US", {
-                month: "short",
-                day: "2-digit",
-                year: "numeric",
-              })}
-            </span>
-          }
-        />
-        <DefRow
-          label="Ends"
-          value={
-            data.endUtc ? (
-              <span className="font-mono tabular-nums">
-                {new Date(data.endUtc).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "2-digit",
-                  year: "numeric",
-                })}
-              </span>
-            ) : (
-              <span className="font-mono text-[var(--color-muted-foreground)]">open-ended</span>
-            )
-          }
-        />
-        <DefRow
-          label="Plan ID"
-          value={
-            <code className="rounded bg-[var(--color-muted)] px-1.5 py-0.5 font-mono text-[11px]">
-              {data.planId.slice(0, 8)}…
-            </code>
-          }
-        />
+      <dl className="space-y-1.5 text-[12px]">
+        <div className="flex items-center justify-between gap-3">
+          <dt className="text-muted-foreground">Started</dt>
+          <dd className="tabular-nums text-foreground">
+            {new Date(data.startUtc).toLocaleDateString("en-US", dateFmt)}
+          </dd>
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <dt className="text-muted-foreground">Ends</dt>
+          <dd className="tabular-nums text-foreground">
+            {data.endUtc
+              ? new Date(data.endUtc).toLocaleDateString("en-US", dateFmt)
+              : "open-ended"}
+          </dd>
+        </div>
       </dl>
-    </div>
-  );
-}
 
-function DefRow({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <dt className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--color-muted-foreground)]">
-        {label}
-      </dt>
-      <dd>{value}</dd>
-    </div>
-  );
-}
-
-// ────────────────────────────────────────────────────────────────────────
-// Period progress ring — pure SVG. Track + arc + central percentage label
-// + day countdown. The arc length is computed from the fraction so the
-// stroke-dasharray + stroke-dashoffset combo animates smoothly via CSS.
-// ────────────────────────────────────────────────────────────────────────
-
-function PeriodRing({ fraction, daysLeft }: { fraction: number; daysLeft: number }) {
-  const size = 96;
-  const stroke = 7;
-  const r = (size - stroke) / 2;
-  const c = 2 * Math.PI * r;
-  const offset = c * (1 - Math.max(0, Math.min(1, fraction)));
-  const pct = Math.round(fraction * 100);
-  return (
-    <div className="relative grid h-[96px] w-[96px] place-items-center">
-      <svg
-        viewBox={`0 0 ${size} ${size}`}
-        width={size}
-        height={size}
-        aria-hidden
-        className="-rotate-90"
-      >
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          fill="none"
-          stroke="var(--color-muted)"
-          strokeWidth={stroke}
-        />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          fill="none"
-          stroke="var(--color-primary)"
-          strokeWidth={stroke}
-          strokeLinecap="round"
-          strokeDasharray={c}
-          strokeDashoffset={offset}
-          style={{ transition: "stroke-dashoffset 700ms var(--ease-out-cubic)" }}
-        />
-      </svg>
-      <div className="absolute inset-0 grid place-items-center text-center leading-none">
-        <div>
-          <div className="text-display text-lg font-semibold tabular-nums tracking-tight">
-            {pct}%
-          </div>
-          <div className="mt-0.5 font-mono text-[9.5px] uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
-            {daysLeft}d left
-          </div>
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between text-[11px]">
+          <span className="text-muted-foreground">Current period</span>
+          <span className="tabular-nums text-foreground">
+            {progressPct}% · {daysLeft}d left
+          </span>
+        </div>
+        <div className="h-1 overflow-hidden rounded-full bg-[var(--color-muted)]">
+          <div
+            className="h-full rounded-full bg-[var(--color-primary)] transition-[width] duration-[700ms] ease-[var(--ease-out-cubic)]"
+            style={{ width: `${progressPct}%` }}
+          />
         </div>
       </div>
     </div>
@@ -412,9 +399,83 @@ function PeriodRing({ fraction, daysLeft }: { fraction: number; daysLeft: number
 }
 
 // ────────────────────────────────────────────────────────────────────────
-// Recent audits preview — top 5 most recent audit events, severity-tinted.
-// Click a row to deep-link into the audit trail page (the drawer there
-// will pick up the filter/range and let the user expand).
+// System status — SSE pulse + event count + connection state.
+// ────────────────────────────────────────────────────────────────────────
+
+function SystemStatusBody({
+  sseStatus,
+  eventCount,
+}: {
+  sseStatus: ReturnType<typeof useSse>["status"];
+  eventCount: number;
+}) {
+  const live = sseStatus === "connected";
+  const errored = sseStatus === "error";
+  const Icon = live ? Wifi : WifiOff;
+  const tone: "success" | "danger" | "default" = live ? "success" : errored ? "danger" : "default";
+
+  const toneBg =
+    tone === "success"
+      ? "bg-[oklch(from_var(--color-success)_l_c_h_/_0.10)] text-[var(--color-success)]"
+      : tone === "danger"
+        ? "bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.10)] text-[var(--color-destructive)]"
+        : "bg-[var(--color-muted)] text-muted-foreground";
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-start gap-3">
+        <span
+          aria-hidden
+          className={cn(
+            "relative grid size-9 shrink-0 place-items-center rounded-lg",
+            toneBg,
+          )}
+        >
+          <Icon className="size-4" />
+          {live && (
+            <span
+              aria-hidden
+              className="pulse-dot absolute -right-0.5 -top-0.5 size-2 rounded-full"
+              style={{
+                backgroundColor: "var(--color-success)",
+                color: "var(--color-success)",
+              }}
+            />
+          )}
+        </span>
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-[13px] font-semibold capitalize tracking-tight text-foreground">
+              {live ? "Stream live" : sseStatus}
+            </span>
+            {live && <Badge variant="success">SSE</Badge>}
+            {errored && <Badge variant="danger">offline</Badge>}
+          </div>
+          <p className="mt-0.5 text-[11.5px] text-muted-foreground">
+            {live
+              ? "Backend events are flowing in real time."
+              : errored
+                ? "Stream disconnected. Events will queue once it recovers."
+                : "Waiting for the stream to come online."}
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between border-t border-[oklch(from_var(--color-border)_l_c_h_/_0.5)] pt-3">
+        <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
+          Events this session
+        </span>
+        <span className="font-display text-[16px] font-bold tabular-nums text-foreground">
+          {formatNumber(eventCount)}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────
+// Recent audits — top 5 of the last 24h. Severity stripe, type icon,
+// actor + relative timestamp. Click row to deep-link into the trail.
 // ────────────────────────────────────────────────────────────────────────
 
 function recentSeverityColor(severity: number): string {
@@ -431,7 +492,7 @@ function recentEventTypeIcon(eventType: number): React.ComponentType<{ className
   return Activity;
 }
 
-function RecentAuditsCard() {
+function RecentAuditsBody() {
   const recentAudits = useQuery({
     queryKey: ["audits", "recent", "overview"],
     queryFn: ({ signal }) => {
@@ -448,53 +509,40 @@ function RecentAuditsCard() {
 
   const items = recentAudits.data?.items ?? [];
 
-  return (
-    <Card className="fsh-enter fsh-enter-5 lg:col-span-7">
-      <CardHeader className="flex flex-row items-end justify-between gap-3">
-        <div>
-          <CardTitle className="flex items-center gap-2">
-            Recent operations
-            <Badge variant="default">24h</Badge>
-          </CardTitle>
-          <CardDescription>
-            Last {items.length || 5} audited actions. Tap a row to drill into the trail.
-          </CardDescription>
+  if (recentAudits.isLoading) {
+    return (
+      <ul className="space-y-2.5">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <li key={i} className="flex items-center gap-3">
+            <Skeleton className="size-7 rounded-md" />
+            <Skeleton className="h-3 w-32" />
+            <Skeleton className="ml-auto h-3 w-16" />
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <div className="flex flex-col items-center gap-2 py-6 text-center">
+        <ScrollText className="size-4 text-muted-foreground" />
+        <div className="text-[13px] font-semibold tracking-tight text-foreground">
+          No recent activity
         </div>
-        <Link
-          to="/system/audits"
-          className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]"
-        >
-          See all <ArrowUpRight className="h-3 w-3" />
-        </Link>
-      </CardHeader>
-      <CardContent className="p-0">
-        {recentAudits.isLoading ? (
-          <ul className="space-y-2 px-6 pb-5">
-            {[0, 1, 2, 3, 4].map((i) => (
-              <li key={i} className="flex items-center gap-3">
-                <Skeleton className="h-3 w-16" />
-                <Skeleton className="h-3 w-32" />
-                <Skeleton className="ml-auto h-3 w-20" />
-              </li>
-            ))}
-          </ul>
-        ) : items.length === 0 ? (
-          <div className="flex flex-col items-center gap-2 px-6 py-10 text-center">
-            <ScrollText className="h-4 w-4 text-[var(--color-muted-foreground)]" />
-            <div className="text-sm font-medium tracking-tight">No recent activity</div>
-            <p className="max-w-sm text-[11.5px] text-[var(--color-muted-foreground)]">
-              Audits will appear here as the platform handles requests in the last 24h.
-            </p>
-          </div>
-        ) : (
-          <ul className="divide-y divide-[var(--color-border)]">
-            {items.map((row) => (
-              <RecentAuditRow key={row.id} row={row} />
-            ))}
-          </ul>
-        )}
-      </CardContent>
-    </Card>
+        <p className="max-w-sm text-[11.5px] text-muted-foreground">
+          Audited actions in the last 24 hours will appear here.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <ul className="-my-1 divide-y divide-[oklch(from_var(--color-border)_l_c_h_/_0.5)]">
+      {items.map((row) => (
+        <RecentAuditRow key={row.id} row={row} />
+      ))}
+    </ul>
   );
 }
 
@@ -505,49 +553,154 @@ function RecentAuditRow({ row }: { row: AuditSummaryDto }) {
     <li>
       <Link
         to="/system/audits"
-        className="group/row relative flex items-center gap-3 px-6 py-3 transition-colors hover:bg-[var(--color-accent)]"
+        className="group/row -mx-1 flex items-center gap-3 rounded-md px-1 py-2.5 transition-colors hover:bg-[var(--color-accent)]"
       >
         <span
           aria-hidden
-          className="absolute left-0 top-0 h-full w-[2px]"
-          style={{ background: tone }}
-        />
-        <span
-          aria-hidden
-          className="grid h-7 w-7 shrink-0 place-items-center rounded-md ring-1 ring-inset"
+          className="grid size-7 shrink-0 place-items-center rounded-md"
           style={{
             color: tone,
-            background: `linear-gradient(135deg, oklch(from ${tone} l c h / 0.20), oklch(from ${tone} l c h / 0.02))`,
-            boxShadow: `inset 0 0 0 1px oklch(from ${tone} l c h / 0.25)`,
+            background: `oklch(from ${tone} l c h / 0.10)`,
           }}
         >
-          <Icon className="h-3.5 w-3.5" />
+          <Icon className="size-3.5" />
         </span>
         <div className="min-w-0 flex-1">
-          <div className="flex items-baseline gap-2">
-            <span className="truncate text-[12.5px] font-medium tracking-tight">
-              {row.source ?? AUDIT_EVENT_TYPE_LABELS[row.eventType] ?? "Event"}
-            </span>
-            <span className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
-              {AUDIT_EVENT_TYPE_LABELS[row.eventType]}
-            </span>
+          <div className="truncate text-[12.5px] font-medium tracking-tight text-foreground">
+            {row.source ?? AUDIT_EVENT_TYPE_LABELS[row.eventType] ?? "Event"}
           </div>
-          <div className="mt-0.5 flex items-center gap-2 font-mono text-[10.5px] text-[var(--color-muted-foreground)]">
-            <span>{row.userName ?? row.userId?.slice(0, 8) ?? "system"}</span>
+          <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <span className="truncate">
+              {row.userName ?? row.userId?.slice(0, 8) ?? "system"}
+            </span>
             <span aria-hidden>·</span>
             <span className="tabular-nums">{relativeTime(row.occurredAtUtc)} ago</span>
           </div>
         </div>
-        <ChevronRight className="h-3.5 w-3.5 text-[var(--color-muted-foreground)] transition-transform group-hover/row:translate-x-0.5" />
+        <ChevronRight className="size-3.5 shrink-0 text-muted-foreground transition-transform group-hover/row:translate-x-0.5" />
       </Link>
     </li>
   );
 }
 
 // ────────────────────────────────────────────────────────────────────────
-// First-run panel — shown when the tenant has no active subscription and
-// the user hasn't dismissed it. Surfaces the four most useful first
-// destinations as polished action tiles. Auto-hides as soon as the tenant
+// Quick actions — four shortcut tiles to the most useful destinations.
+// ────────────────────────────────────────────────────────────────────────
+
+type QuickAction = {
+  to: string;
+  title: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+  tone: StatTone;
+};
+
+const QUICK_ACTIONS: QuickAction[] = [
+  {
+    to: "/identity/users",
+    title: "Invite users",
+    description: "Add teammates, assign roles.",
+    icon: UsersRound,
+    tone: "info",
+  },
+  {
+    to: "/catalog/products",
+    title: "Browse catalog",
+    description: "Products, brands, categories.",
+    icon: Package,
+    tone: "success",
+  },
+  {
+    to: "/invoices",
+    title: "Subscription",
+    description: "Plans, invoices, usage.",
+    icon: CreditCard,
+    tone: "primary",
+  },
+  {
+    to: "/activity",
+    title: "Live activity",
+    description: "Real-time event stream.",
+    icon: Activity,
+    tone: "warning",
+  },
+];
+
+function QuickActionsBody() {
+  return (
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      {QUICK_ACTIONS.map((a) => (
+        <Link
+          key={a.to}
+          to={a.to}
+          className={cn(
+            "group/qa flex items-start gap-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-3",
+            "transition-colors duration-200 hover:border-[oklch(from_var(--color-border)_l_c_h_/_1.4)] hover:bg-[var(--color-accent)]",
+          )}
+        >
+          <span
+            aria-hidden
+            className={cn(
+              "grid size-8 shrink-0 place-items-center rounded-md",
+              STAT_TONE_BG[a.tone],
+            )}
+          >
+            <a.icon className="size-3.5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="text-[12.5px] font-semibold tracking-tight text-foreground">
+              {a.title}
+            </div>
+            <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
+              {a.description}
+            </p>
+          </div>
+          <ArrowRight className="size-3 shrink-0 text-muted-foreground opacity-0 transition-all group-hover/qa:translate-x-0.5 group-hover/qa:opacity-100" />
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────
+// Live feed body — slim version of the LiveFeed widget that drops the
+// outer Card chrome so it can be embedded inside an EntityDetailSection.
+// ────────────────────────────────────────────────────────────────────────
+
+function LiveFeedBody({ events }: { events: SseEvent[] }) {
+  const visible = useMemo(() => events.slice(0, 5), [events]);
+
+  if (visible.length === 0) {
+    return (
+      <div className="flex flex-col items-center gap-2 py-6 text-center">
+        <Activity className="size-4 text-muted-foreground" />
+        <div className="text-[13px] font-semibold tracking-tight text-foreground">
+          Listening for activity
+        </div>
+        <p className="max-w-sm text-[11.5px] text-muted-foreground">
+          Events will appear here as the backend publishes them.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <ul className="-my-1 divide-y divide-[oklch(from_var(--color-border)_l_c_h_/_0.5)]">
+      {visible.map((ev) => (
+        <li key={ev.id} className="flex items-center gap-3 py-2.5">
+          <span className="shrink-0 font-mono text-[10.5px] tabular-nums text-muted-foreground">
+            {formatClock(ev.receivedAt)}
+          </span>
+          <Badge variant={eventTone(ev.type)}>{ev.type}</Badge>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────
+// First-run setup card — shown when the tenant has no active subscription
+// and the user hasn't dismissed it. Auto-hides as soon as the tenant
 // picks a plan; users can also opt out per-tenant via localStorage.
 // ────────────────────────────────────────────────────────────────────────
 
@@ -577,46 +730,45 @@ function writeDismissed(tenantId: string | undefined, value: boolean): void {
 
 type SetupTileSpec = {
   to: string;
-  eyebrow: string;
+  step: string;
   title: string;
   description: string;
   icon: React.ComponentType<{ className?: string }>;
-  /** Tone OKLCH color var driving the icon plate + radial wash. */
-  toneVar: string;
+  tone: StatTone;
 };
 
 const SETUP_TILES: SetupTileSpec[] = [
   {
     to: "/invoices",
-    eyebrow: "Step 01",
+    step: "01",
     title: "Pick a plan",
-    description: "Choose a subscription to enable billing, quotas, and overage tracking.",
+    description: "Enable billing, quotas, and overage tracking.",
     icon: Sparkles,
-    toneVar: "var(--color-primary)",
+    tone: "primary",
   },
   {
     to: "/identity/users",
-    eyebrow: "Step 02",
+    step: "02",
     title: "Invite your team",
-    description: "Add teammates, assign roles, and group them for permission scopes.",
+    description: "Add teammates, assign roles, and group them.",
     icon: UsersRound,
-    toneVar: "var(--color-info)",
+    tone: "info",
   },
   {
     to: "/catalog/products",
-    eyebrow: "Step 03",
-    title: "Browse the catalog",
-    description: "See sample products, brands, and categories already wired up.",
+    step: "03",
+    title: "Browse catalog",
+    description: "Sample products, brands, categories ready to go.",
     icon: Package,
-    toneVar: "var(--color-success)",
+    tone: "success",
   },
   {
     to: "/activity",
-    eyebrow: "Step 04",
-    title: "Watch live activity",
-    description: "Server-Sent Events stream right into the dashboard in real time.",
+    step: "04",
+    title: "Watch live",
+    description: "SSE stream right into the dashboard.",
     icon: Activity,
-    toneVar: "var(--color-warning)",
+    tone: "warning",
   },
 ];
 
@@ -632,24 +784,8 @@ function FirstRunPanel({
   return (
     <section
       aria-labelledby="firstrun-heading"
-      className="fsh-enter fsh-enter-1 relative overflow-hidden rounded-[20px] border border-[var(--color-border)] bg-[var(--color-surface-3)]"
+      className="fsh-enter relative overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] shadow-xs"
     >
-      {/* Atmospheric backdrop — two soft radial washes that converge in the
-          centre. Pure decoration, pointer-events disabled so clicks pass
-          through to the action tiles below. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background: `
-            radial-gradient(60% 60% at 5% 0%, oklch(from var(--color-primary) l c h / 0.15), transparent 65%),
-            radial-gradient(50% 50% at 100% 0%, oklch(0.700 0.155 195 / 0.08), transparent 70%),
-            radial-gradient(45% 45% at 50% 110%, oklch(from var(--color-primary) l c h / 0.06), transparent 60%)
-          `,
-        }}
-      />
-
-      {/* Dismiss — top-right hairline X. */}
       <button
         type="button"
         onClick={() => {
@@ -658,33 +794,29 @@ function FirstRunPanel({
         }}
         aria-label="Dismiss setup checklist"
         title="Skip for now"
-        className="absolute right-3 top-3 z-10 grid h-7 w-7 cursor-pointer place-items-center rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] text-[var(--color-muted-foreground)] opacity-70 transition-all hover:opacity-100 hover:text-[var(--color-foreground)]"
+        className="absolute right-3 top-3 z-10 grid size-7 cursor-pointer place-items-center rounded-md text-muted-foreground transition-colors hover:bg-[var(--color-accent)] hover:text-foreground"
       >
-        <X className="h-3.5 w-3.5" />
+        <X className="size-3.5" />
       </button>
 
-      <div className="relative px-6 py-7 sm:px-8 sm:py-9">
-        <div className="max-w-3xl">
-          <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-primary)]">
-            ✦ Get started · 4 steps
-          </span>
-          <h2
-            id="firstrun-heading"
-            className="text-display mt-2 text-[28px] font-semibold leading-[1.05] tracking-[-0.02em] sm:text-[34px]"
-          >
-            Welcome to{" "}
-            <span className="text-gradient-brand">{tenantName}</span>.
-          </h2>
-          <p className="mt-2 max-w-xl text-sm leading-relaxed text-[var(--color-muted-foreground)]">
-            Your tenant is provisioned and ready. Here's where most teams start —
-            pick a plan, invite collaborators, and let the live activity feed
-            confirm everything's running.
-          </p>
-        </div>
+      <div className="px-5 py-5 sm:px-6 sm:py-6">
+        <h2
+          id="firstrun-heading"
+          className="font-display text-[20px] font-bold tracking-tight text-foreground sm:text-[22px]"
+        >
+          Welcome to {tenantName}
+        </h2>
+        <p className="mt-1 max-w-xl text-[12.5px] leading-relaxed text-muted-foreground">
+          Your tenant is provisioned and ready. Here's where most teams start.
+        </p>
 
-        <ul className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <ul className="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
           {SETUP_TILES.map((tile, idx) => (
-            <li key={tile.to} className="fsh-enter" style={{ animationDelay: `${80 + idx * 60}ms` }}>
+            <li
+              key={tile.to}
+              className="fsh-enter"
+              style={{ animationDelay: `${80 + idx * 60}ms` }}
+            >
               <SetupTile spec={tile} />
             </li>
           ))}
@@ -700,51 +832,37 @@ function SetupTile({ spec }: { spec: SetupTileSpec }) {
     <Link
       to={spec.to}
       className={cn(
-        "group/tile relative flex h-full flex-col gap-3 overflow-hidden rounded-2xl border bg-[var(--color-surface-2)] p-4",
-        "border-[var(--color-border)] transition-all duration-[var(--duration-default)] ease-[var(--ease-out-cubic)]",
-        "hover:-translate-y-0.5 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface-3)]",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
+        "group/tile flex h-full flex-col gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-3.5",
+        "transition-colors duration-200 hover:border-[oklch(from_var(--color-border)_l_c_h_/_1.4)] hover:bg-[var(--color-accent)]",
       )}
     >
-      {/* Tone wash — soft radial in the icon's tone, top-left. Fades up
-          slightly on hover. */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-90 transition-opacity duration-[var(--duration-default)] group-hover/tile:opacity-100"
-        style={{
-          background: `radial-gradient(70% 60% at 0% 0%, oklch(from ${spec.toneVar} l c h / 0.10), transparent 70%)`,
-        }}
-      />
-
-      <div className="relative flex items-start justify-between">
+      <div className="flex items-start justify-between">
         <span
           aria-hidden
-          className="grid h-9 w-9 place-items-center rounded-xl ring-1 ring-inset"
-          style={{
-            background: `linear-gradient(135deg, oklch(from ${spec.toneVar} l c h / 0.22), oklch(from ${spec.toneVar} l c h / 0.04))`,
-            color: spec.toneVar,
-            boxShadow: `inset 0 0 0 1px oklch(from ${spec.toneVar} l c h / 0.28)`,
-          }}
+          className={cn(
+            "grid size-8 place-items-center rounded-md",
+            STAT_TONE_BG[spec.tone],
+          )}
         >
-          <Icon className="h-4 w-4" />
+          <Icon className="size-3.5" />
         </span>
-        <span className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
-          {spec.eyebrow}
+        <span className="text-[10.5px] font-medium uppercase tracking-wider text-muted-foreground">
+          Step {spec.step}
         </span>
       </div>
 
-      <div className="relative">
-        <div className="text-display text-[15px] font-semibold tracking-[-0.005em]">
+      <div>
+        <div className="text-[13px] font-semibold tracking-tight text-foreground">
           {spec.title}
         </div>
-        <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-muted-foreground)]">
+        <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
           {spec.description}
         </p>
       </div>
 
-      <div className="relative mt-auto flex items-center gap-1.5 text-[11.5px] font-medium text-[var(--color-muted-foreground)] transition-colors group-hover/tile:text-[var(--color-foreground)]">
+      <div className="mt-auto flex items-center gap-1 pt-1 text-[11px] font-medium text-muted-foreground transition-colors group-hover/tile:text-foreground">
         Open
-        <ArrowRight className="h-3 w-3 transition-transform duration-[var(--duration-default)] group-hover/tile:translate-x-0.5" />
+        <ArrowRight className="size-3 transition-transform group-hover/tile:translate-x-0.5" />
       </div>
     </Link>
   );
@@ -756,7 +874,7 @@ function SetupTile({ spec }: { spec: SetupTileSpec }) {
 
 export function OverviewPage() {
   const { user } = useAuth();
-  const { status: sseStatus, eventCount } = useSse();
+  const { status: sseStatus, eventCount, events } = useSse();
 
   const usage = useQuery({
     queryKey: ["billing", "usage"],
@@ -801,76 +919,130 @@ export function OverviewPage() {
     void subscription.refetch();
   };
 
+  // ── Header strings ────────────────────────────────────────────────────
+  const now = new Date();
+  const dateCaption = now.toLocaleDateString("en-US", {
+    weekday: "long",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+  const greeting = getGreeting();
+  const firstName = (user?.name ?? user?.email?.split("@")[0] ?? "operator")
+    .toString()
+    .split(" ")[0];
+  const tenantLabel = user?.tenant ?? "your tenant";
+
+  // ── Stat values ───────────────────────────────────────────────────────
+  const planValue = subscription.isLoading ? (
+    <Skeleton className="h-5 w-16" />
+  ) : (
+    subscription.data?.planKey ?? "—"
+  );
+  const planSub = subscription.data
+    ? subscription.data.status
+    : "No subscription";
+
+  const resourcesValue = usage.isLoading ? (
+    <Skeleton className="h-5 w-10" />
+  ) : (
+    formatNumber(totalsView.resourceCount)
+  );
+  const resourcesSub = (
+    <>
+      <span className="tabular-nums">{totalsView.avgUtilization.toFixed(0)}%</span>{" "}
+      avg utilization
+      {totalsView.overage > 0 && (
+        <>
+          {" · "}
+          <span className="text-[var(--color-destructive)]">
+            {formatNumber(totalsView.overage)} overage
+          </span>
+        </>
+      )}
+    </>
+  );
+
   return (
-    <div className="space-y-7">
+    <div className="space-y-5">
       {showFirstRun && (
         <FirstRunPanel
-          tenantName={user?.tenant ?? "your tenant"}
+          tenantName={tenantLabel}
           tenantId={tenantId}
           onDismiss={() => setDismissed(true)}
         />
       )}
 
-      {/* ── Hero ────────────────────────────────────────────────────────
-          Atmospheric cockpit-style block: time-of-day greeting + tenant
-          chip + live presence on the left, period-progress ring + day
-          countdown + refresh on the right. Background glows live in
-          ::before/::after pseudo siblings via inline gradients. ── */}
-      <section className="fsh-enter fsh-enter-1 relative overflow-hidden rounded-[20px] border border-[var(--color-border)] bg-[var(--color-surface-3)]">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background: `
-              radial-gradient(55% 65% at 0% 0%, oklch(from var(--color-primary) l c h / 0.16), transparent 65%),
-              radial-gradient(45% 55% at 100% 0%, oklch(0.700 0.155 195 / 0.10), transparent 70%),
-              radial-gradient(40% 40% at 100% 100%, oklch(from var(--color-primary) l c h / 0.06), transparent 65%)
-            `,
-          }}
+      {/* ── Editorial greeting header ───────────────────────────────────
+          Direct text — no card chrome. Small caption above (date + tenant),
+          big greeting below, action buttons on the right. */}
+      <header className="fsh-enter flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div className="min-w-0">
+          <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+            {dateCaption} · {tenantLabel}
+          </p>
+          <h1 className="mt-1 font-display text-[26px] font-bold leading-tight tracking-tight text-foreground sm:text-[28px]">
+            {greeting}, {firstName}
+          </h1>
+        </div>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <Button variant="outline" size="sm" disabled={refreshing} onClick={onRefresh}>
+            <RefreshCw className={cn("mr-1.5 size-3.5", refreshing && "animate-spin")} />
+            Refresh
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link to="/activity">
+              <Activity className="mr-1.5 size-3.5" />
+              View activity
+            </Link>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link to="/system/audits">
+              <ScrollText className="mr-1.5 size-3.5" />
+              View audits
+            </Link>
+          </Button>
+        </div>
+      </header>
+
+      {/* ── Stats row — 4 cards ─────────────────────────────────────── */}
+      <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4">
+        <StatCard
+          index={0}
+          tone="primary"
+          icon={Server}
+          label="Plan"
+          value={planValue}
+          sublabel={planSub}
         />
-
-        <div className="relative grid grid-cols-1 gap-6 px-6 py-7 sm:px-8 sm:py-9 md:grid-cols-[1fr_auto] md:items-center">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-                Tenant
-              </span>
-              <code className="rounded bg-[var(--color-primary-soft)] px-1.5 py-0.5 font-mono text-[11px] font-medium text-[var(--color-primary)]">
-                {user?.tenant ?? "—"}
-              </code>
-              <span aria-hidden className="h-3 w-px bg-[var(--color-border)]" />
-              <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-                {currentPeriodLabel()}
-              </span>
-            </div>
-
-            <h1 className="text-display mt-3 text-[34px] font-semibold leading-[1.05] tracking-[-0.02em] sm:text-[42px]">
-              {greetingFor()},{" "}
-              <span className="text-gradient-brand">
-                {(user?.name ?? user?.email?.split("@")[0] ?? "operator")
-                  .toString()
-                  .split(" ")[0]}
-              </span>
-              .
-            </h1>
-
-            <p className="mt-2.5 max-w-xl text-sm leading-relaxed text-[var(--color-muted-foreground)]">
-              Live telemetry for{" "}
-              <span className="font-medium text-[var(--color-foreground)]">
-                {user?.tenant ?? "your tenant"}
-              </span>
-              . The pulse below reflects the SSE stream;{" "}
-              <span className="tabular-nums font-mono text-[var(--color-foreground)]">
-                {formatNumber(eventCount)}
-              </span>{" "}
-              events received this session.
-            </p>
-
-            <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2.5 py-1 font-mono text-[10.5px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+        <StatCard
+          index={1}
+          tone="success"
+          icon={Calendar}
+          label="Period"
+          value={currentPeriodLabel()}
+          sublabel={`${daysLeftInMonth()} days remaining`}
+        />
+        <StatCard
+          index={2}
+          tone="warning"
+          icon={Gauge}
+          label="Resources"
+          value={resourcesValue}
+          sublabel={resourcesSub}
+        />
+        <StatCard
+          index={3}
+          tone="info"
+          icon={Zap}
+          label="Live events"
+          value={<span className="tabular-nums">{formatNumber(eventCount)}</span>}
+          sublabel={
+            <span className="inline-flex items-center gap-1.5">
               <span
                 aria-hidden
                 className={cn(
-                  "inline-block h-1.5 w-1.5 rounded-full",
+                  "inline-block size-1.5 rounded-full",
                   sseStatus === "connected" && "pulse-dot",
                 )}
                 style={{
@@ -884,219 +1056,101 @@ export function OverviewPage() {
                     sseStatus === "connected" ? "var(--color-success)" : undefined,
                 }}
               />
-              <span className="capitalize tracking-[0.14em] text-[var(--color-foreground)]">
-                {sseStatus === "connected" ? "Stream live" : sseStatus}
-              </span>
-            </div>
-          </div>
+              <span className="capitalize">{sseStatus}</span>
+            </span>
+          }
+          href="/activity"
+        />
+      </div>
 
-          <div className="flex flex-row items-center gap-5 md:flex-col md:items-end">
-            <PeriodRing fraction={periodProgress()} daysLeft={daysLeftInMonth()} />
-            <Button variant="outline" size="sm" disabled={refreshing} onClick={onRefresh}>
-              <RefreshCw
-                className={cn("mr-1.5 h-3.5 w-3.5", refreshing && "animate-spin")}
-              />
-              Refresh
-            </Button>
-          </div>
-        </div>
-      </section>
+      {/* ── Multi-column widget grid ────────────────────────────────────
+          Left rail (360px) holds the subscription summary and system
+          status. The right side fills with a 2-up grid of secondary
+          widgets that all read at the same density. */}
+      <div className="flex flex-col gap-4 lg:flex-row">
+        {/* Left rail */}
+        <aside className="w-full space-y-4 lg:w-[360px] lg:shrink-0">
+          <EntityDetailSection title="Subscription" icon={CreditCard}>
+            <SubscriptionBody data={subscription.data} loading={subscription.isLoading} />
+          </EntityDetailSection>
 
-      {/* ── KPI strip ───────────────────────────────────────────────── */}
-      <section
-        aria-label="Key metrics"
-        className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"
-      >
-        <div className="fsh-enter fsh-enter-2">
-          <KpiTile
-            label="Plan"
-            icon={Server}
-            value={
-              subscription.isLoading ? (
-                <Skeleton className="h-7 w-20" />
-              ) : (
-                subscription.data?.planKey ?? "—"
-              )
+          <EntityDetailSection title="System status" icon={Wifi}>
+            <SystemStatusBody sseStatus={sseStatus} eventCount={eventCount} />
+          </EntityDetailSection>
+        </aside>
+
+        {/* Right column — 2-up widget grid */}
+        <div className="grid w-full min-w-0 flex-1 grid-cols-1 gap-4 md:grid-cols-2">
+          <EntityDetailSection
+            title="Recent audits"
+            icon={ScrollText}
+            description="Last 24 hours, top 5 events."
+            action={
+              <Link
+                to="/system/audits"
+                className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                See all <ArrowUpRight className="size-3" />
+              </Link>
             }
-            subtitle={
-              subscription.data ? (
-                <>
-                  Subscription <Badge variant={subscriptionTone(subscription.data.status)}>{subscription.data.status}</Badge>
-                </>
-              ) : (
-                "No active subscription"
-              )
-            }
-          />
-        </div>
+          >
+            <RecentAuditsBody />
+          </EntityDetailSection>
 
-        <div className="fsh-enter fsh-enter-2">
-          <KpiTile
-            label="Period"
-            icon={Calendar}
-            value={currentPeriodLabel()}
-            subtitle={
-              <span className="font-mono">
-                {daysLeftInMonth()} days remaining
-              </span>
-            }
-          />
-        </div>
-
-        <div className="fsh-enter fsh-enter-3">
-          <KpiTile
-            label="Resources"
+          <EntityDetailSection
+            title="Usage by resource"
             icon={Gauge}
-            value={
-              usage.isLoading ? (
-                <Skeleton className="h-7 w-12" />
-              ) : (
-                formatNumber(totalsView.resourceCount)
-              )
+            description="Current-month consumption against plan limits."
+            action={
+              totalsView.overage > 0 ? <Badge variant="danger">overage</Badge> : undefined
             }
-            subtitle={
-              <>
-                avg utilization{" "}
-                <span className="font-mono tabular-nums text-[var(--color-foreground)]">
-                  {totalsView.avgUtilization.toFixed(0)}%
-                </span>
-                {totalsView.overage > 0 && (
-                  <>
-                    {" · "}
-                    <span className="text-[var(--color-destructive)]">
-                      {formatNumber(totalsView.overage)} overage
-                    </span>
-                  </>
-                )}
-              </>
-            }
-          />
-        </div>
-
-        <div className="fsh-enter fsh-enter-3">
-          <KpiTile
-            label="Live events"
-            icon={Activity}
-            href="/activity"
-            value={
-              <span className="tabular-nums">{formatNumber(eventCount)}</span>
-            }
-            subtitle={
-              <span className="inline-flex items-center gap-1.5">
-                <span
-                  aria-hidden
-                  className={cn(
-                    "inline-block h-1.5 w-1.5 rounded-full",
-                    sseStatus === "connected" && "pulse-dot",
-                  )}
-                  style={{
-                    backgroundColor:
-                      sseStatus === "connected"
-                        ? "var(--color-success)"
-                        : sseStatus === "error"
-                          ? "var(--color-destructive)"
-                          : "var(--color-muted-foreground)",
-                    color:
-                      sseStatus === "connected" ? "var(--color-success)" : undefined,
-                  }}
-                />
-                <span className="capitalize">{sseStatus}</span>
-              </span>
-            }
-            trailing={
-              sseStatus === "connected" ? (
-                <Badge variant="success">live</Badge>
-              ) : null
-            }
-          />
-        </div>
-      </section>
-
-      {/* ── Usage + Subscription ─────────────────────────────────────── */}
-      <section className="grid grid-cols-1 gap-4 lg:grid-cols-12">
-        <Card className="fsh-enter fsh-enter-4 lg:col-span-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              Quota usage
-              {totalsView.overage > 0 && (
-                <Badge variant="danger">overage</Badge>
-              )}
-            </CardTitle>
-            <CardDescription>
-              Current-month consumption against plan limits, sorted by utilization.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="px-6 pb-5 pt-1">
+          >
             {usage.isLoading ? (
               <UsageSkeleton />
             ) : usage.isError ? (
-              <EmptyState
+              <UsageEmpty
                 title="Couldn't load usage"
                 description="The usage endpoint returned an error. Try refreshing."
               />
             ) : rows.length === 0 ? (
-              <EmptyState
+              <UsageEmpty
                 title="No usage captured yet"
                 description="Activity will appear here as the backend records snapshots for this period."
               />
             ) : (
-              <ul className="-mt-1">
-                {rows.map((row, idx) => (
-                  <UsageRow key={row.resource} row={row} animationDelayMs={50 * idx} />
+              <ul>
+                {rows.map((row) => (
+                  <UsageRow key={row.resource} row={row} />
                 ))}
               </ul>
             )}
-          </CardContent>
-        </Card>
+          </EntityDetailSection>
 
-        <Card className="fsh-enter fsh-enter-4 lg:col-span-4">
-          <CardHeader>
-            <CardTitle>Subscription</CardTitle>
-            <CardDescription>Current plan and validity window.</CardDescription>
-          </CardHeader>
-          <CardContent className="p-0">
-            <SubscriptionPanel data={subscription.data} loading={subscription.isLoading} />
-          </CardContent>
-        </Card>
-      </section>
+          <EntityDetailSection
+            title="Quick actions"
+            icon={Sparkles}
+            description="Jump into the most-used destinations."
+          >
+            <QuickActionsBody />
+          </EntityDetailSection>
 
-      {/* ── Recent operations + Live stream ────────────────────────────
-          Audited ops history (24h) on the left, raw SSE stream on the
-          right. The audit panel is the long-term ledger; the live feed
-          is the heart-rate monitor. */}
-      <section className="grid grid-cols-1 gap-4 lg:grid-cols-12">
-        <RecentAuditsCard />
-        <div className="fsh-enter fsh-enter-5 lg:col-span-5">
-          <LiveFeed limit={8} />
+          <EntityDetailSection
+            title="Live feed"
+            icon={Activity}
+            description="Real-time backend events over SSE."
+            action={
+              <Link
+                to="/activity"
+                className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Open <ArrowUpRight className="size-3" />
+              </Link>
+            }
+          >
+            <LiveFeedBody events={events} />
+          </EntityDetailSection>
         </div>
-      </section>
-    </div>
-  );
-}
-
-function EmptyState({ title, description }: { title: string; description: string }) {
-  // Inline status panel inside the Quota card. Smaller-scale than the
-  // shared `EmptyState` "plinth" primitive on purpose — this is a status
-  // panel, not a CTA pulse, so the chrome stays restrained.
-  return (
-    <div className="flex flex-col items-center justify-center gap-2.5 py-12 text-center">
-      <span
-        aria-hidden
-        className={cn(
-          "grid h-9 w-9 place-items-center rounded-lg",
-          "bg-[linear-gradient(135deg,oklch(from_var(--color-primary)_l_c_h_/_0.16),oklch(from_var(--color-primary)_l_c_h_/_0.02))]",
-          "ring-1 ring-inset ring-[oklch(from_var(--color-primary)_l_c_h_/_0.22)]",
-        )}
-      >
-        <Gauge className="h-4 w-4 text-[var(--color-primary)]" />
-      </span>
-      <span className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-        Quota status
-      </span>
-      <div className="text-display text-base font-semibold tracking-tight">{title}</div>
-      <p className="max-w-sm text-xs leading-relaxed text-[var(--color-muted-foreground)]">
-        {description}
-      </p>
+      </div>
     </div>
   );
 }

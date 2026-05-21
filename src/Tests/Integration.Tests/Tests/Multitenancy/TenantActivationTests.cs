@@ -25,6 +25,7 @@ public sealed class TenantActivationTests
             name = $"Deactivate Tenant {uniqueId}",
             connectionString = (string?)null,
             adminEmail = $"deact-{uniqueId}@tenant.com",
+            adminPassword = TestConstants.DefaultPassword,
             issuer = "deact.issuer"
         });
         createResponse.StatusCode.ShouldBe(HttpStatusCode.Created);
@@ -50,6 +51,7 @@ public sealed class TenantActivationTests
             name = $"Toggle Tenant {uniqueId}",
             connectionString = (string?)null,
             adminEmail = $"toggle-{uniqueId}@tenant.com",
+            adminPassword = TestConstants.DefaultPassword,
             issuer = "toggle.issuer"
         });
 

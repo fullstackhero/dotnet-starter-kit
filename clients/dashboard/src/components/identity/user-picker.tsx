@@ -101,7 +101,7 @@ export function UserPicker({
   return (
     <div ref={wrapperRef} className="space-y-2">
       {selected && (
-        <div className="flex items-center justify-between gap-2 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2">
+        <div className="flex items-center justify-between gap-2 rounded-md border border-[var(--color-border)] bg-[var(--color-muted)] px-3 py-2">
           <div className="flex min-w-0 items-center gap-2.5">
             <span
               aria-hidden

@@ -77,22 +77,25 @@ export function ChannelRail({
   return (
     <aside
       className={cn(
-        "h-full shrink-0 flex-col border-r border-[var(--color-border)] bg-[var(--color-surface-2)]",
+        "h-full shrink-0 flex-col border-r border-[var(--color-border)]",
+        "bg-[oklch(from_var(--color-card)_l_c_h_/_0.85)] backdrop-blur-xl backdrop-saturate-150",
         // Mobile: full-width when no channel is active; collapsed when one is.
-        // Desktop: always a fixed 256px column alongside the message area.
-        "md:flex md:w-64",
+        // Desktop: always a fixed 260px column alongside the message area.
+        "md:flex md:w-[260px]",
         hasActiveChannel ? "hidden md:flex" : "flex w-full",
       )}
     >
       {/* Brand mark + section title */}
-      <div className="flex h-14 shrink-0 items-center gap-2 border-b border-[var(--color-border)] px-4">
+      <div className="flex h-12 shrink-0 items-center gap-2.5 px-4">
         <span
           aria-hidden
-          className="grid h-7 w-7 place-items-center rounded-md bg-[var(--color-primary-soft)] text-[var(--color-primary)]"
+          className="grid size-7 place-items-center rounded-lg bg-[oklch(from_var(--color-primary)_l_c_h_/_0.10)] text-[var(--color-primary)] ring-1 ring-inset ring-[oklch(from_var(--color-primary)_l_c_h_/_0.22)]"
         >
-          <MessageCircle className="h-3.5 w-3.5" />
+          <MessageCircle className="size-3.5" />
         </span>
-        <span className="text-display text-sm font-semibold tracking-tight">Chat</span>
+        <span className="font-display text-[15px] font-bold tracking-tight text-[var(--color-foreground)]">
+          Chat
+        </span>
       </div>
 
       {/* Filter input — editorial mono field, recedes when empty. */}
@@ -107,17 +110,16 @@ export function ChannelRail({
             type="text"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            placeholder="Filter channels"
+            placeholder="Filter channels…"
             spellCheck={false}
             autoComplete="off"
             className={cn(
-              "h-7 w-full rounded-md border bg-[var(--color-surface-1)] pl-7 pr-7 text-[12.5px]",
-              "border-[var(--color-border)] text-[var(--color-foreground)]",
-              "placeholder:font-mono placeholder:text-[11px] placeholder:uppercase",
-              "placeholder:tracking-[0.10em] placeholder:text-[var(--color-muted-foreground)]",
-              "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
-              "focus:border-[var(--color-primary)] focus:outline-none",
-              "focus:ring-2 focus:ring-[oklch(from_var(--color-primary)_l_c_h_/_0.18)]",
+              "h-8 w-full rounded-lg border bg-[var(--color-background)] pl-7 pr-7 text-[12.5px]",
+              "border-[var(--color-input)] text-[var(--color-foreground)]",
+              "placeholder:text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.6)]",
+              "shadow-xs transition-all duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
+              "focus:border-[var(--color-ring)] focus:outline-none",
+              "focus:ring-[3px] focus:ring-[oklch(from_var(--color-ring)_l_c_h_/_0.5)]",
             )}
           />
           {filter.length > 0 && (
@@ -177,14 +179,14 @@ export function ChannelRail({
       {/* Footer — live connection state + count. */}
       <div className="flex items-center justify-between gap-2 border-t border-[var(--color-border)] px-4 py-2.5">
         <RealtimeStatusPill />
-        <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
+        <span className="text-[11px] tabular-nums text-[var(--color-muted-foreground)]">
           {filtering ? (
             <>
-              <span className="tabular-nums">{totalShown}</span> of {channels.length}
+              {totalShown} of {channels.length}
             </>
           ) : (
             <>
-              <span className="tabular-nums">{channels.length}</span> channel{channels.length === 1 ? "" : "s"}
+              {channels.length} channel{channels.length === 1 ? "" : "s"}
             </>
           )}
         </span>
@@ -215,7 +217,7 @@ function Section({
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between px-2 pb-1">
-        <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
           {caption}
         </span>
         <button
@@ -310,7 +312,7 @@ function ChannelRow({
           aria-label={`${channel.unreadCount} unread`}
           className={cn(
             "ml-auto shrink-0 rounded-full px-1.5 py-0.5",
-            "font-mono text-[10px] font-semibold tabular-nums",
+            "text-[10px] font-semibold tabular-nums",
             "bg-[var(--color-primary)] text-[var(--color-primary-foreground)]",
           )}
         >
@@ -392,7 +394,7 @@ function CreateChannelDialog({
             {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- input is nested inside the label so implicit association applies; the rule misfires when the visible text sits in nested divs */}
             <label
               htmlFor="channel-private"
-              className="flex items-start gap-2.5 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3 cursor-pointer"
+              className="flex items-start gap-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-muted)] p-3 cursor-pointer"
             >
               <input
                 id="channel-private"
@@ -456,12 +458,24 @@ function NewDmDialog({
     }
   }, [open]);
 
-  const usersQuery = useQuery({
+  // Two queries layered: a "suggested" list that fires the moment the dialog
+  // opens (no search filter, just first page of active tenant users), and an
+  // explicit search-by-typed-query list that takes over once the operator
+  // starts typing. The empty-search query is cached for 5 minutes so opening
+  // and closing the dialog is instant; the active search refetches more often.
+  const suggestedQuery = useQuery({
+    queryKey: ["chat", "user-suggested"],
+    queryFn: () => searchUsers({ pageSize: 12, isActive: true }),
+    enabled: open,
+    staleTime: 5 * 60_000,
+  });
+  const searchQuery = useQuery({
     queryKey: ["chat", "user-search", debounced],
-    queryFn: () => searchUsers({ search: debounced, pageSize: 8, isActive: true }),
+    queryFn: () => searchUsers({ search: debounced, pageSize: 12, isActive: true }),
     enabled: open && debounced.length >= 2,
     staleTime: 30_000,
   });
+  const activeQuery = debounced.length >= 2 ? searchQuery : suggestedQuery;
 
   const createDmMutation = useMutation({
     mutationFn: (userIds: string[]) => findOrCreateDm(userIds),
@@ -472,7 +486,7 @@ function NewDmDialog({
     },
   });
 
-  const users: UserDto[] = (usersQuery.data?.items ?? []).filter(
+  const users: UserDto[] = (activeQuery.data?.items ?? []).filter(
     (u) => u.id && u.id !== selfUserId,
   );
 
@@ -511,47 +525,67 @@ function NewDmDialog({
               </div>
             </div>
 
-            <div className="min-h-[160px] rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)]">
-              {debounced.length < 2 ? (
-                <EmptyPickerState label="Type at least 2 characters to search." />
-              ) : usersQuery.isLoading ? (
-                <EmptyPickerState label="Searching…" mono />
+            <div className="min-h-[260px] overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-card)]">
+              {activeQuery.isLoading && users.length === 0 ? (
+                <EmptyPickerState
+                  label={debounced.length >= 2 ? "Searching…" : "Loading people…"}
+                />
               ) : users.length === 0 ? (
-                <EmptyPickerState label={`No one matches "${debounced}".`} />
+                <EmptyPickerState
+                  label={
+                    debounced.length >= 2
+                      ? `No one matches "${debounced}".`
+                      : "No teammates in your tenant yet."
+                  }
+                />
               ) : (
-                <ul className="p-1.5">
-                  {users.map((u) => {
-                    const display = renderUserName(u);
-                    return (
-                      <li key={u.id}>
-                        <button
-                          type="button"
-                          disabled={createDmMutation.isPending}
-                          onClick={() => createDmMutation.mutate([u.id!])}
-                          className={cn(
-                            "flex w-full cursor-pointer items-center gap-2.5 rounded-md p-2 text-left",
-                            "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
-                            "hover:bg-[var(--color-accent)]",
-                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
-                            "disabled:opacity-60",
-                          )}
-                        >
-                          <Avatar name={display} src={u.imageUrl ?? undefined} size="sm" />
-                          <div className="min-w-0 flex-1">
-                            <div className="truncate text-sm font-medium text-[var(--color-foreground)]">
-                              {display}
-                            </div>
-                            {u.email && (
-                              <div className="truncate font-mono text-[10.5px] text-[var(--color-muted-foreground)]">
-                                {u.email}
-                              </div>
+                <>
+                  {/* Small section caption — explicit "suggested" header so
+                      the operator understands they're seeing the first page
+                      of teammates, not search results. Disappears once a
+                      typed query takes over the list. */}
+                  <div className="flex items-baseline justify-between gap-2 border-b border-[oklch(from_var(--color-border)_l_c_h_/_0.5)] px-3 py-2">
+                    <span className="text-[10.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
+                      {debounced.length >= 2 ? "Search results" : "Suggested"}
+                    </span>
+                    <span className="font-mono text-[10.5px] tabular-nums text-[var(--color-muted-foreground)]">
+                      {users.length}
+                    </span>
+                  </div>
+                  <ul className="max-h-[260px] overflow-y-auto p-1.5">
+                    {users.map((u) => {
+                      const display = renderUserName(u);
+                      return (
+                        <li key={u.id}>
+                          <button
+                            type="button"
+                            disabled={createDmMutation.isPending}
+                            onClick={() => createDmMutation.mutate([u.id!])}
+                            className={cn(
+                              "flex w-full cursor-pointer items-center gap-2.5 rounded-md p-2 text-left",
+                              "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
+                              "hover:bg-[var(--color-accent)]",
+                              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
+                              "disabled:opacity-60",
                             )}
-                          </div>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
+                          >
+                            <Avatar name={display} src={u.imageUrl ?? undefined} size="sm" />
+                            <div className="min-w-0 flex-1">
+                              <div className="truncate text-sm font-medium text-[var(--color-foreground)]">
+                                {display}
+                              </div>
+                              {u.email && (
+                                <div className="truncate text-[11px] text-[var(--color-muted-foreground)]">
+                                  {u.email}
+                                </div>
+                              )}
+                            </div>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </>
               )}
             </div>
           </div>
@@ -566,15 +600,10 @@ function NewDmDialog({
   );
 }
 
-function EmptyPickerState({ label, mono }: { label: string; mono?: boolean }) {
+function EmptyPickerState({ label }: { label: string; mono?: boolean }) {
   return (
     <div className="flex h-[160px] items-center justify-center px-4 text-center">
-      <p
-        className={cn(
-          "text-xs text-[var(--color-muted-foreground)]",
-          mono && "font-mono uppercase tracking-[0.14em]",
-        )}
-      >
+      <p className="text-[12px] text-[var(--color-muted-foreground)]">
         {label}
       </p>
     </div>

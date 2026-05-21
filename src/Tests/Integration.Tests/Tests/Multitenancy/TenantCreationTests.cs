@@ -28,6 +28,7 @@ public sealed class TenantCreationTests
             name = $"Test Tenant {uniqueId}",
             connectionString = (string?)null,
             adminEmail = $"admin-{uniqueId}@tenant.com",
+            adminPassword = TestConstants.DefaultPassword,
             issuer = "test.issuer"
         });
 
@@ -47,6 +48,7 @@ public sealed class TenantCreationTests
             name = $"Dup Tenant {uniqueId}",
             connectionString = (string?)null,
             adminEmail = $"dupadmin-{uniqueId}@tenant.com",
+            adminPassword = TestConstants.DefaultPassword,
             issuer = "dup.issuer"
         };
 

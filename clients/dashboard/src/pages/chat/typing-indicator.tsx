@@ -54,7 +54,7 @@ export function TypingIndicator({
   }
 
   return (
-    <div className="flex h-5 items-center gap-2 px-4 font-mono text-[10.5px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+    <div className="flex h-5 items-center gap-2 px-4 text-[11px] text-[var(--color-muted-foreground)]">
       <span aria-hidden className="inline-flex items-center gap-0.5">
         <span className="chat-typing-dot inline-block h-1 w-1 rounded-full bg-[var(--color-primary)]" />
         <span className="chat-typing-dot inline-block h-1 w-1 rounded-full bg-[var(--color-primary)]" />

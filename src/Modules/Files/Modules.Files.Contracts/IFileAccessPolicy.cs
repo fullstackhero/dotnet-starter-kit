@@ -19,6 +19,15 @@ public interface IFileAccessPolicy
     Task<bool> CanReadAsync(FileAccessContext context, string currentUserId, CancellationToken cancellationToken);
 
     Task<bool> CanDeleteAsync(FileAccessContext context, string currentUserId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Whether the caller may change a file's <see cref="FileAccessContext.Visibility"/> after
+    /// upload. Defaults to the same rule as <see cref="CanDeleteAsync"/> — only the uploader.
+    /// Modules whose files are tied to a domain entity (Catalog product images, Chat attachments)
+    /// can override to disallow visibility flips entirely.
+    /// </summary>
+    Task<bool> CanChangeVisibilityAsync(FileAccessContext context, string currentUserId, CancellationToken cancellationToken)
+        => CanDeleteAsync(context, currentUserId, cancellationToken);
 }
 
 /// <summary>

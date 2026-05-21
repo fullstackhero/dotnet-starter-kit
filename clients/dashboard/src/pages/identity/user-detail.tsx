@@ -7,12 +7,10 @@ import {
 } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  ArrowLeft,
-  AtSign,
   CheckCircle2,
   CircleSlash2,
+  Clock,
   Globe,
-  Hash,
   Mail,
   MonitorSmartphone,
   Phone,
@@ -24,6 +22,7 @@ import {
   Trash2,
   User as UserIcon,
   UserCog,
+  Users as UsersIcon,
   XCircle,
 } from "lucide-react";
 import {
@@ -40,14 +39,6 @@ import {
 } from "@/api/identity";
 import { useAuth } from "@/auth/use-auth";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -60,7 +51,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ErrorBand } from "@/components/list";
+import {
+  EntityDetailAvatar,
+  EntityDetailBack,
+  EntityDetailHero,
+  EntityDetailMeta,
+  EntityDetailSection,
+  EntityDetailStat,
+  ErrorBand,
+} from "@/components/list";
 import { describe } from "@/lib/list-helpers";
 import { cn } from "@/lib/cn";
 
@@ -253,9 +252,9 @@ export function UserDetailPage() {
   if (userQuery.isLoading) {
     return (
       <div className="space-y-6">
-        <BackLink />
-        <Skeleton className="h-32 rounded-2xl" />
-        <Skeleton className="h-64 rounded-2xl" />
+        <EntityDetailBack to="/identity/users" label="Back to users" />
+        <Skeleton className="h-32 rounded-xl" />
+        <Skeleton className="h-64 rounded-xl" />
       </div>
     );
   }
@@ -263,7 +262,7 @@ export function UserDetailPage() {
   if (userQuery.isError || !user) {
     return (
       <div className="space-y-4">
-        <BackLink />
+        <EntityDetailBack to="/identity/users" label="Back to users" />
         <ErrorBand
           message={
             userQuery.error
@@ -276,75 +275,51 @@ export function UserDetailPage() {
   }
 
   const display = fullName(user);
+  const activeRolesCount = roles.filter((r) => effective(r)).length;
+  const sessions = sessionsQuery.data ?? [];
+  const activeSessionsCount = sessions.filter((s) => s.isActive).length;
+  const subtitleParts: string[] = [];
+  if (user.userName) subtitleParts.push(`@${user.userName}`);
+  if (user.email) subtitleParts.push(user.email);
+  if (user.phoneNumber) subtitleParts.push(user.phoneNumber);
 
   return (
-    <div className="space-y-7 pb-12">
-      <BackLink />
+    <div className="space-y-5 pb-12">
+      <EntityDetailBack to="/identity/users" label="Back to users" />
 
-      {/* Hero */}
-      <section
-        className={cn(
-          "fsh-enter fsh-enter-1 card-shell relative overflow-hidden rounded-[20px]",
-          "bg-[var(--color-surface-3)]",
-        )}
-      >
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 -z-10"
-          style={{
-            backgroundImage: `
-              radial-gradient(60% 70% at 0% 0%, oklch(from var(--color-primary) l c h / 0.15), transparent 60%),
-              radial-gradient(50% 60% at 100% 0%, oklch(0.700 0.155 195 / 0.08), transparent 65%)
-            `,
-          }}
-        />
-        <div className="relative flex flex-col gap-6 px-6 py-7 sm:px-8 sm:py-9 md:flex-row md:items-center md:justify-between md:px-10">
-          <div className="flex items-center gap-5">
-            <Avatar
-              name={display}
-              src={user.imageUrl ?? undefined}
-              size="lg"
-              halo
-              status={user.isActive ? "online" : "offline"}
-            />
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-                  Member · profile
-                </span>
-              </div>
-              <h1 className="text-display mt-1 truncate text-[34px] font-semibold leading-[1.05] tracking-[-0.02em] sm:text-[38px]">
-                {display}
-              </h1>
-              <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                {user.userName && (
-                  <code className="rounded bg-[var(--color-primary-soft)] px-1.5 py-0.5 font-mono text-[11px] font-medium text-[var(--color-primary)]">
-                    @{user.userName}
-                  </code>
-                )}
-                {user.isActive ? (
-                  <Badge variant="success">
-                    <ShieldCheck className="h-3 w-3" /> Active
-                  </Badge>
-                ) : (
-                  <Badge variant="outline">
-                    <CircleSlash2 className="h-3 w-3" /> Inactive
-                  </Badge>
-                )}
-                {user.emailConfirmed ? (
-                  <Badge variant="brand">
-                    <CheckCircle2 className="h-3 w-3" /> Email confirmed
-                  </Badge>
-                ) : (
-                  <Badge variant="warning">
-                    <Mail className="h-3 w-3" /> Email pending
-                  </Badge>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 md:justify-end">
+      <EntityDetailHero
+        avatar={
+          <EntityDetailAvatar
+            name={display}
+            src={user.imageUrl ?? undefined}
+          />
+        }
+        title={display}
+        badges={
+          <>
+            {user.isActive ? (
+              <Badge variant="success">
+                <ShieldCheck className="h-3 w-3" /> Active
+              </Badge>
+            ) : (
+              <Badge variant="outline">
+                <CircleSlash2 className="h-3 w-3" /> Inactive
+              </Badge>
+            )}
+            {user.emailConfirmed ? (
+              <Badge variant="brand">
+                <CheckCircle2 className="h-3 w-3" /> Email confirmed
+              </Badge>
+            ) : (
+              <Badge variant="warning">
+                <Mail className="h-3 w-3" /> Email pending
+              </Badge>
+            )}
+          </>
+        }
+        subtitle={subtitleParts.join(" · ") || "Member"}
+        actions={
+          <>
             {canImpersonate && user.id !== actor?.id && (
               <Button
                 variant="outline"
@@ -379,143 +354,155 @@ export function UserDetailPage() {
             >
               <Trash2 className="mr-1 h-3.5 w-3.5" /> Delete
             </Button>
-          </div>
-        </div>
-      </section>
+          </>
+        }
+        stats={
+          <>
+            <EntityDetailStat
+              icon={ShieldCheck}
+              value={activeRolesCount}
+              label={activeRolesCount === 1 ? "role" : "roles"}
+              tone="primary"
+            />
+            {canViewSessions && (
+              <EntityDetailStat
+                icon={MonitorSmartphone}
+                value={activeSessionsCount}
+                label={activeSessionsCount === 1 ? "session" : "sessions"}
+                tone={activeSessionsCount > 0 ? "success" : "default"}
+              />
+            )}
+          </>
+        }
+        meta={
+          <>
+            {user.email && (
+              <EntityDetailMeta icon={Mail} hideOnMobile>
+                {user.email}
+              </EntityDetailMeta>
+            )}
+            {user.phoneNumber && (
+              <EntityDetailMeta icon={Phone} hideOnMobile>
+                {user.phoneNumber}
+              </EntityDetailMeta>
+            )}
+          </>
+        }
+      />
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-        {/* Profile card */}
-        <Card className="fsh-enter fsh-enter-2">
-          <CardHeader>
-            <span className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-              Profile · facts
-            </span>
-            <CardTitle className="text-[15px]">Identity card</CardTitle>
-            <CardDescription>
-              Read-only here. Members update their own profile from settings.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 pt-1">
-            <ProfileRow icon={<UserIcon className="h-3.5 w-3.5" />} label="Username" value={user.userName ?? "—"} />
-            <ProfileRow icon={<Mail className="h-3.5 w-3.5" />} label="Email" value={user.email ?? "—"} />
-            <ProfileRow icon={<AtSign className="h-3.5 w-3.5" />} label="First name" value={user.firstName ?? "—"} />
-            <ProfileRow icon={<AtSign className="h-3.5 w-3.5" />} label="Last name" value={user.lastName ?? "—"} />
-            <ProfileRow icon={<Phone className="h-3.5 w-3.5" />} label="Phone" value={user.phoneNumber ?? "—"} />
+        {/* Profile */}
+        <EntityDetailSection
+          title="Identity card"
+          icon={UserIcon}
+          description="Read-only here. Members update their own profile from settings."
+        >
+          <div className="space-y-3">
+            <ProfileRow label="Username" value={user.userName ?? "—"} />
+            <ProfileRow label="Email" value={user.email ?? "—"} />
+            <ProfileRow label="First name" value={user.firstName ?? "—"} />
+            <ProfileRow label="Last name" value={user.lastName ?? "—"} />
+            <ProfileRow label="Phone" value={user.phoneNumber ?? "—"} />
             <ProfileRow
-              icon={<Hash className="h-3.5 w-3.5" />}
               label="ID"
               value={<span className="font-mono text-[11px]">{user.id}</span>}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </EntityDetailSection>
 
         {/* Roles */}
-        <Card className="fsh-enter fsh-enter-3">
-          <CardHeader>
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <span className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-                  Access · roles
-                </span>
-                <CardTitle className="mt-1 text-[15px]">Role assignment</CardTitle>
-                <CardDescription>
-                  Toggle which roles apply. Changes are staged until saved.
-                </CardDescription>
+        <EntityDetailSection
+          title="Role assignment"
+          icon={ShieldCheck}
+          description="Toggle which roles apply. Changes are staged until saved."
+          action={
+            isDirty ? (
+              <Badge variant="warning">{dirtyIds.length} pending</Badge>
+            ) : undefined
+          }
+          padded={false}
+          footer={
+            roles.length > 0 ? (
+              <div className="flex items-center justify-end gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPending(new Map())}
+                  disabled={!isDirty || saveRoles.isPending}
+                >
+                  Discard
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => saveRoles.mutate()}
+                  disabled={!isDirty || saveRoles.isPending}
+                >
+                  {saveRoles.isPending ? "Saving…" : "Save changes"}
+                </Button>
               </div>
-              {isDirty && (
-                <Badge variant="warning" className="self-start">
-                  {dirtyIds.length} pending
-                </Badge>
-              )}
+            ) : undefined
+          }
+        >
+          {rolesQuery.isLoading ? (
+            <div className="space-y-3 p-5">
+              <Skeleton className="h-12 w-full rounded-md" />
+              <Skeleton className="h-12 w-full rounded-md" />
+              <Skeleton className="h-12 w-full rounded-md" />
             </div>
-          </CardHeader>
-          <CardContent className="px-0 pb-0 pt-1">
-            {rolesQuery.isLoading ? (
-              <div className="space-y-3 px-6 pb-5">
-                <Skeleton className="h-12 w-full rounded-md" />
-                <Skeleton className="h-12 w-full rounded-md" />
-                <Skeleton className="h-12 w-full rounded-md" />
-              </div>
-            ) : rolesQuery.isError ? (
-              <div className="px-6 pb-5">
-                <ErrorBand message={describe(rolesQuery.error)} />
-              </div>
-            ) : roles.length === 0 ? (
-              <div className="px-6 pb-5 text-sm text-[var(--color-muted-foreground)]">
-                No roles defined.{" "}
-                <Link to="/identity/roles" className="underline hover:text-[var(--color-foreground)]">
-                  Create one
-                </Link>{" "}
-                to start assigning access.
-              </div>
-            ) : (
-              <ul className="border-t border-[var(--color-border)]">
-                {roles.map((role) => {
-                  const isOn = effective(role);
-                  const dirty =
-                    role.roleId !== undefined &&
-                    pending.has(role.roleId) &&
-                    pending.get(role.roleId) !== role.enabled;
-                  return (
-                    <li
-                      key={role.roleId}
-                      className="flex items-center justify-between gap-3 border-b border-[var(--color-border)] px-6 py-3.5 last:border-b-0 transition-colors hover:bg-[var(--color-surface-4)]"
-                    >
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium tracking-tight">
-                            {role.roleName ?? "Untitled role"}
-                          </span>
-                          {dirty && (
-                            <span
-                              className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--color-warning)]"
-                              aria-label="modified"
-                            />
-                          )}
-                        </div>
-                        {role.description && (
-                          <div className="mt-0.5 line-clamp-1 text-[12.5px] text-[var(--color-muted-foreground)]">
-                            {role.description}
-                          </div>
+          ) : rolesQuery.isError ? (
+            <div className="p-5">
+              <ErrorBand message={describe(rolesQuery.error)} />
+            </div>
+          ) : roles.length === 0 ? (
+            <div className="p-5 text-sm text-[var(--color-muted-foreground)]">
+              No roles defined.{" "}
+              <Link to="/identity/roles" className="underline hover:text-[var(--color-foreground)]">
+                Create one
+              </Link>{" "}
+              to start assigning access.
+            </div>
+          ) : (
+            <ul>
+              {roles.map((role) => {
+                const isOn = effective(role);
+                const dirty =
+                  role.roleId !== undefined &&
+                  pending.has(role.roleId) &&
+                  pending.get(role.roleId) !== role.enabled;
+                return (
+                  <li
+                    key={role.roleId}
+                    className="flex items-center justify-between gap-3 border-b border-[var(--color-border)] px-5 py-3.5 last:border-b-0 transition-colors hover:bg-[var(--color-accent)]"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium tracking-tight">
+                          {role.roleName ?? "Untitled role"}
+                        </span>
+                        {dirty && (
+                          <span
+                            className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--color-warning)]"
+                            aria-label="modified"
+                          />
                         )}
                       </div>
-                      <Switch
-                        checked={isOn}
-                        onCheckedChange={() => toggle(role)}
-                        aria-label={`Toggle ${role.roleName ?? "role"}`}
-                      />
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </CardContent>
-          {roles.length > 0 && (
-            <div
-              className={cn(
-                "flex items-center justify-end gap-2 border-t border-[var(--color-border)] px-6 py-3",
-                "bg-[var(--color-surface-2)]",
-              )}
-            >
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPending(new Map())}
-                disabled={!isDirty || saveRoles.isPending}
-              >
-                Discard
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => saveRoles.mutate()}
-                disabled={!isDirty || saveRoles.isPending}
-                className="brand-glow gradient-sheen"
-              >
-                {saveRoles.isPending ? "Saving…" : "Save changes"}
-              </Button>
-            </div>
+                      {role.description && (
+                        <div className="mt-0.5 line-clamp-1 text-[12.5px] text-[var(--color-muted-foreground)]">
+                          {role.description}
+                        </div>
+                      )}
+                    </div>
+                    <Switch
+                      checked={isOn}
+                      onCheckedChange={() => toggle(role)}
+                      aria-label={`Toggle ${role.roleName ?? "role"}`}
+                    />
+                  </li>
+                );
+              })}
+            </ul>
           )}
-        </Card>
+        </EntityDetailSection>
       </div>
 
       {/* Sessions */}
@@ -539,9 +526,6 @@ export function UserDetailPage() {
       >
         <DialogContent>
           <DialogHeader>
-            <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-destructive)]">
-              Permanent action
-            </span>
             <DialogTitle>Delete this member</DialogTitle>
             <DialogDescription>
               This permanently removes{" "}
@@ -573,9 +557,6 @@ export function UserDetailPage() {
       >
         <DialogContent>
           <DialogHeader>
-            <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-              Account state
-            </span>
             <DialogTitle>{user.isActive ? "Deactivate user?" : "Reactivate user?"}</DialogTitle>
             <DialogDescription>
               {user.isActive
@@ -607,9 +588,6 @@ export function UserDetailPage() {
       >
         <DialogContent>
           <DialogHeader>
-            <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-warning)]">
-              Sensitive action
-            </span>
             <DialogTitle>Impersonate {display}?</DialogTitle>
             <DialogDescription>
               You'll act as this user across the dashboard. Every action you take will be
@@ -619,7 +597,7 @@ export function UserDetailPage() {
           </DialogHeader>
           <div className="px-6 pb-2">
             <label className="block">
-              <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
+              <span className="text-[11.5px] font-medium text-[var(--color-muted-foreground)]">
                 Reason (optional, recorded in the audit log)
               </span>
               <input
@@ -665,9 +643,6 @@ export function UserDetailPage() {
       >
         <DialogContent>
           <DialogHeader>
-            <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-destructive)]">
-              Disruptive action
-            </span>
             <DialogTitle>Revoke all sessions for {display}?</DialogTitle>
             <DialogDescription>
               Every active session — desktop, mobile, browser tab — will be ended immediately.
@@ -694,40 +669,20 @@ export function UserDetailPage() {
   );
 }
 
-function BackLink() {
-  return (
-    <Link
-      to="/identity/users"
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-md px-2 py-1 -ml-2 text-[12.5px]",
-        "font-medium text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-accent)]",
-        "transition-colors",
-      )}
-    >
-      <ArrowLeft className="h-3.5 w-3.5" /> All users
-    </Link>
-  );
-}
-
 function ProfileRow({
-  icon,
   label,
   value,
 }: {
-  icon: React.ReactNode;
   label: string;
   value: React.ReactNode;
 }) {
   return (
-    <div className="flex items-start gap-3 border-b border-[var(--color-border)] pb-3 last:border-b-0 last:pb-0">
-      <div className="mt-0.5 grid h-6 w-6 place-items-center rounded-md bg-[var(--color-muted)] text-[var(--color-muted-foreground)]">
-        {icon}
+    <div className="flex items-baseline justify-between gap-3 border-b border-[oklch(from_var(--color-border)_l_c_h_/_0.5)] pb-2.5 last:border-b-0 last:pb-0">
+      <div className="text-[11.5px] font-medium text-[var(--color-muted-foreground)]">
+        {label}
       </div>
-      <div className="min-w-0 flex-1">
-        <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
-          {label}
-        </div>
-        <div className="mt-0.5 truncate text-[13px]">{value}</div>
+      <div className="min-w-0 truncate text-right text-[13px] text-[var(--color-foreground)]">
+        {value}
       </div>
     </div>
   );
@@ -782,109 +737,108 @@ function SessionsCard({
   const activeCount = ordered.filter((s) => s.isActive).length;
 
   return (
-    <Card className="fsh-enter fsh-enter-4">
-      <CardHeader>
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <span className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-              Devices · sessions
-            </span>
-            <CardTitle className="mt-1 text-[15px]">Active sessions</CardTitle>
-            <CardDescription>
-              {isLoading
-                ? "Loading sessions…"
-                : `${activeCount} active · ${ordered.length} total recorded`}
-            </CardDescription>
-          </div>
-          {canRevoke && activeCount > 0 && (
-            <Button variant="outline" size="sm" onClick={onRevokeAll} className="gap-1.5">
-              <XCircle className="h-3.5 w-3.5" /> Revoke all
-            </Button>
-          )}
+    <EntityDetailSection
+      title="Active sessions"
+      icon={MonitorSmartphone}
+      description={
+        isLoading
+          ? "Loading sessions…"
+          : `${activeCount} active · ${ordered.length} total recorded`
+      }
+      action={
+        canRevoke && activeCount > 0 ? (
+          <Button variant="outline" size="sm" onClick={onRevokeAll} className="gap-1.5">
+            <XCircle className="h-3.5 w-3.5" /> Revoke all
+          </Button>
+        ) : undefined
+      }
+      padded={false}
+    >
+      {isLoading ? (
+        <div className="space-y-3 p-5">
+          <Skeleton className="h-14 w-full rounded-md" />
+          <Skeleton className="h-14 w-full rounded-md" />
         </div>
-      </CardHeader>
-      <CardContent className="px-0 pb-0 pt-1">
-        {isLoading ? (
-          <div className="space-y-3 px-6 pb-5">
-            <Skeleton className="h-14 w-full rounded-md" />
-            <Skeleton className="h-14 w-full rounded-md" />
-          </div>
-        ) : isError ? (
-          <div className="px-6 pb-5">
-            <ErrorBand message={describe(error)} />
-          </div>
-        ) : ordered.length === 0 ? (
-          <div className="px-6 pb-5 text-sm text-[var(--color-muted-foreground)]">
-            No sessions on file. The user hasn't signed in recently.
-          </div>
-        ) : (
-          <ul className="border-t border-[var(--color-border)]">
-            {ordered.map((session) => {
-              const DIcon = deviceIcon(session);
-              const isRevoking = revokingId === session.id;
-              return (
-                <li
-                  key={session.id}
+      ) : isError ? (
+        <div className="p-5">
+          <ErrorBand message={describe(error)} />
+        </div>
+      ) : ordered.length === 0 ? (
+        <div className="p-5 text-sm text-[var(--color-muted-foreground)]">
+          No sessions on file. The user hasn't signed in recently.
+        </div>
+      ) : (
+        <ul>
+          {ordered.map((session) => {
+            const DIcon = deviceIcon(session);
+            const isRevoking = revokingId === session.id;
+            return (
+              <li
+                key={session.id}
+                className={cn(
+                  "flex items-center gap-3 border-b border-[var(--color-border)] px-5 py-3.5 last:border-b-0",
+                  "transition-colors hover:bg-[var(--color-accent)]",
+                  !session.isActive && "opacity-60",
+                )}
+              >
+                <span
+                  aria-hidden
                   className={cn(
-                    "flex items-center gap-3 border-b border-[var(--color-border)] px-6 py-3.5 last:border-b-0",
-                    "transition-colors hover:bg-[var(--color-surface-4)]",
-                    !session.isActive && "opacity-60",
+                    "grid h-9 w-9 shrink-0 place-items-center rounded-lg",
+                    session.isActive
+                      ? "bg-[var(--color-primary-soft)] text-[var(--color-primary)]"
+                      : "bg-[var(--color-muted)] text-[var(--color-muted-foreground)]",
                   )}
                 >
-                  <span
-                    aria-hidden
-                    className={cn(
-                      "grid h-9 w-9 shrink-0 place-items-center rounded-lg",
-                      session.isActive
-                        ? "bg-[var(--color-primary-soft)] text-[var(--color-primary)]"
-                        : "bg-[var(--color-muted)] text-[var(--color-muted-foreground)]",
+                  <DIcon className="h-4 w-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="truncate text-sm font-medium tracking-tight">
+                      {describeDevice(session)}
+                    </span>
+                    {session.isActive ? (
+                      <Badge variant="success">Active</Badge>
+                    ) : (
+                      <Badge variant="outline">Ended</Badge>
                     )}
-                  >
-                    <DIcon className="h-4 w-4" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="truncate text-sm font-medium tracking-tight">
-                        {describeDevice(session)}
-                      </span>
-                      {session.isActive ? (
-                        <Badge variant="success">Active</Badge>
-                      ) : (
-                        <Badge variant="outline">Ended</Badge>
-                      )}
-                    </div>
-                    <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[12px] text-[var(--color-muted-foreground)]">
-                      {session.ipAddress && (
-                        <span className="inline-flex items-center gap-1 font-mono">
-                          <Globe className="h-3 w-3" /> {session.ipAddress}
-                        </span>
-                      )}
-                      <span className="font-mono text-[11px]">
-                        last seen {sessionDateFmt.format(new Date(session.lastActivityAt))}
-                      </span>
-                      <span className="font-mono text-[11px] opacity-70">
-                        started {sessionDateFmt.format(new Date(session.createdAt))}
-                      </span>
-                    </div>
                   </div>
-                  {canRevoke && session.isActive && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onRevoke(session.id)}
-                      disabled={isRevoking}
-                      className="shrink-0 text-[var(--color-muted-foreground)] hover:text-[var(--color-destructive)]"
-                    >
-                      <XCircle className="mr-1 h-3.5 w-3.5" />
-                      {isRevoking ? "Revoking…" : "Revoke"}
-                    </Button>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </CardContent>
-    </Card>
+                  <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[12px] text-[var(--color-muted-foreground)]">
+                    {session.ipAddress && (
+                      <span className="inline-flex items-center gap-1 font-mono">
+                        <Globe className="h-3 w-3" /> {session.ipAddress}
+                      </span>
+                    )}
+                    <span className="inline-flex items-center gap-1">
+                      <Clock className="h-3 w-3" /> last seen{" "}
+                      {sessionDateFmt.format(new Date(session.lastActivityAt))}
+                    </span>
+                    <span className="opacity-70">
+                      started {sessionDateFmt.format(new Date(session.createdAt))}
+                    </span>
+                  </div>
+                </div>
+                {canRevoke && session.isActive && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onRevoke(session.id)}
+                    disabled={isRevoking}
+                    className="shrink-0 text-[var(--color-muted-foreground)] hover:text-[var(--color-destructive)]"
+                  >
+                    <XCircle className="mr-1 h-3.5 w-3.5" />
+                    {isRevoking ? "Revoking…" : "Revoke"}
+                  </Button>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </EntityDetailSection>
   );
 }
+
+// Suppress unused-import warning for UsersIcon if we ever drop it; keep
+// because tooltips and future actions may reuse it.
+void UsersIcon;

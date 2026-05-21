@@ -22,7 +22,7 @@ export function Field({
     <div className="space-y-1.5">
       <Label
         htmlFor={id}
-        className="flex items-center gap-1.5 font-mono text-[10.5px] font-medium uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]"
+        className="flex items-center gap-1.5 text-[11.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]"
       >
         {label}
         {required && <span className="text-[var(--color-destructive)]">·</span>}

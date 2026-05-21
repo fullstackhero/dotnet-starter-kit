@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
-import { CloudUpload, Loader2, X, AlertCircle, CheckCircle2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, CloudUpload, Loader2, X } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 import { useFileUpload, formatBytes, type UploadOptions } from "@/hooks/use-file-upload";
@@ -41,13 +42,22 @@ export function FileDropzone({ options, onUploaded, disabled, accept, className 
       try {
         const asset = await upload(file);
         onUploaded?.(asset);
+        // Toast first (the confirmation that survives the dropzone re-arming),
+        // then reset so the surface is immediately ready for the next file.
+        // The user explicitly chose this continuous-flow over the "Upload
+        // another" success card — they were finding the extra click friction.
+        toast.success("File uploaded", {
+          description: `${asset.originalFileName} · ${formatBytes(asset.sizeBytes)}`,
+        });
+        reset();
       } catch {
-        // Surfaced via progress.status === "error" — nothing else to do here.
+        // Surfaced via progress.status === "error" — error state stays put so
+        // the user can read the inline message and Dismiss it explicitly.
       } finally {
         if (inputRef.current) inputRef.current.value = "";
       }
     },
-    [upload, onUploaded],
+    [upload, onUploaded, reset],
   );
 
   const onDrop = useCallback(
@@ -62,7 +72,10 @@ export function FileDropzone({ options, onUploaded, disabled, accept, className 
 
   const status = progress?.status;
   const isError = status === "error";
-  const isDone = status === "done";
+  // `done` is no longer reachable in the UI — handleFiles resets the dropzone
+  // synchronously after a successful upload (the toast carries confirmation),
+  // so the success card never paints. Kept as the success branch in the icon /
+  // caption helpers for resilience if that flow ever changes.
 
   return (
     <div className={cn("space-y-3", className)}>
@@ -85,28 +98,16 @@ export function FileDropzone({ options, onUploaded, disabled, accept, className 
         onDrop={onDrop}
         className={cn(
           "relative isolate flex flex-col items-center justify-center gap-3",
-          "rounded-2xl border border-dashed px-6 py-10 text-center transition-colors duration-[var(--duration-default)]",
+          "rounded-xl border border-dashed px-6 py-10 text-center transition-colors duration-[var(--duration-default)]",
           "outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-background)]",
           disabled
-            ? "cursor-not-allowed border-[var(--color-border)] bg-[var(--color-surface-2)] opacity-60"
-            : "cursor-pointer border-[var(--color-border-strong)] bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)]",
+            ? "cursor-not-allowed border-border bg-[var(--color-muted)] opacity-60"
+            : "cursor-pointer border-border bg-[var(--color-muted)] hover:bg-[oklch(from_var(--color-muted)_l_c_h_/_0.6)]",
           dragOver
             && "border-[var(--color-primary)] bg-[oklch(from_var(--color-primary)_l_c_h_/_0.06)]",
           isError && "border-[var(--color-destructive)]",
         )}
       >
-        {/* Soft brand halo — visible on drag */}
-        {dragOver && (
-          <span
-            aria-hidden
-            className="pointer-events-none absolute inset-0 -z-10 rounded-2xl"
-            style={{
-              backgroundImage:
-                "radial-gradient(50% 60% at 50% 50%, oklch(from var(--color-primary) l c h / 0.10), transparent 70%)",
-            }}
-          />
-        )}
-
         <input
           ref={inputRef}
           type="file"
@@ -131,7 +132,7 @@ export function FileDropzone({ options, onUploaded, disabled, accept, className 
           <ProgressBar percent={progress.percent} loaded={progress.loaded} total={progress.totalBytes} />
         )}
 
-        {(isError || isDone) && (
+        {isError && (
           <div className="flex items-center gap-2 pt-1">
             <Button
               size="sm"
@@ -142,7 +143,7 @@ export function FileDropzone({ options, onUploaded, disabled, accept, className 
               }}
             >
               <X className="h-3.5 w-3.5" />
-              {isError ? "Dismiss" : "Upload another"}
+              Dismiss
             </Button>
           </div>
         )}
@@ -169,27 +170,27 @@ export function FileDropzone({ options, onUploaded, disabled, accept, className 
 function DropzoneIcon({ status }: { status: string | undefined }) {
   if (status === "uploading" || status === "preparing" || status === "finalizing") {
     return (
-      <span className="grid h-12 w-12 place-items-center rounded-xl bg-[var(--color-surface-3)] ring-1 ring-[var(--color-border-strong)]">
+      <span className="grid h-12 w-12 place-items-center rounded-xl bg-[var(--color-card)] ring-1 ring-inset ring-border">
         <Loader2 className="h-5 w-5 animate-spin text-[var(--color-primary)]" />
       </span>
     );
   }
   if (status === "done") {
     return (
-      <span className="grid h-12 w-12 place-items-center rounded-xl bg-[oklch(from_var(--color-primary)_l_c_h_/_0.10)] ring-1 ring-[oklch(from_var(--color-primary)_l_c_h_/_0.30)]">
+      <span className="grid h-12 w-12 place-items-center rounded-xl bg-[oklch(from_var(--color-primary)_l_c_h_/_0.10)] ring-1 ring-inset ring-[oklch(from_var(--color-primary)_l_c_h_/_0.22)]">
         <CheckCircle2 className="h-5 w-5 text-[var(--color-primary)]" />
       </span>
     );
   }
   if (status === "error") {
     return (
-      <span className="grid h-12 w-12 place-items-center rounded-xl bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.10)] ring-1 ring-[oklch(from_var(--color-destructive)_l_c_h_/_0.30)]">
+      <span className="grid h-12 w-12 place-items-center rounded-xl bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.10)] ring-1 ring-inset ring-[oklch(from_var(--color-destructive)_l_c_h_/_0.22)]">
         <AlertCircle className="h-5 w-5 text-[var(--color-destructive)]" />
       </span>
     );
   }
   return (
-    <span className="grid h-12 w-12 place-items-center rounded-xl bg-[var(--color-surface-3)] ring-1 ring-[var(--color-border-strong)]">
+    <span className="grid h-12 w-12 place-items-center rounded-xl bg-[var(--color-card)] ring-1 ring-inset ring-border">
       <CloudUpload className="h-5 w-5 text-[var(--color-muted-foreground)]" />
     </span>
   );
@@ -235,14 +236,14 @@ function detailFor(
 function ProgressBar({ percent, loaded, total }: { percent: number; loaded: number; total: number }) {
   return (
     <div className="w-full max-w-sm space-y-1.5">
-      <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-[var(--color-surface-3)]">
+      <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-[var(--color-muted)]">
         <span
           aria-hidden
           className="absolute inset-y-0 left-0 rounded-full bg-[var(--color-primary)] transition-[width] duration-200"
           style={{ width: `${percent}%` }}
         />
       </div>
-      <div className="flex items-center justify-between text-[10.5px] font-mono uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
+      <div className="flex items-center justify-between text-[11px] tabular-nums text-[var(--color-muted-foreground)]">
         <span>{percent}%</span>
         <span>
           {formatBytes(loaded)} / {formatBytes(total)}

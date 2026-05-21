@@ -61,6 +61,16 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     stoppedRef.current = false;
     const backoffs = [0, 2_000, 5_000, 10_000, 30_000];
+    // Recursive-retry state (outside SignalR's own auto-reconnect window).
+    // Grows on consecutive failures with jitter; caps at 60s so a long
+    // outage doesn't park the dashboard in "error" forever yet doesn't
+    // hammer the API either. Resets to 0 after a successful connect.
+    let consecutiveFailures = 0;
+    const nextRetryDelay = () => {
+      const base = Math.min(60_000, 2_000 * 2 ** consecutiveFailures);
+      const jitter = Math.random() * 0.3 * base; // ±15% randomization
+      return base + jitter - 0.15 * base;
+    };
 
     const buildConnection = () => {
       const url = `${env.apiBase || ""}/api/v1/realtime/hub`;
@@ -138,23 +148,29 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       wireListeners(conn);
 
       conn.onreconnecting(() => setStatus("reconnecting"));
-      conn.onreconnected(() => setStatus("connected"));
+      conn.onreconnected(() => {
+        consecutiveFailures = 0;
+        setStatus("connected");
+      });
       conn.onclose(async () => {
         if (stoppedRef.current) return;
         setStatus("error");
         // SignalR's automatic-reconnect gives up after the backoff array runs out.
-        // Wait a bit and rebuild — handles token rotation cleanly because the
-        // accessTokenFactory will pick up the new token from the store.
-        await new Promise((r) => setTimeout(r, 5_000));
+        // Wait with exponential backoff and rebuild — handles token rotation cleanly
+        // because the accessTokenFactory will pick up the new token from the store.
+        consecutiveFailures += 1;
+        await new Promise((r) => setTimeout(r, nextRetryDelay()));
         if (!stoppedRef.current) void connect();
       });
 
       try {
         await conn.start();
+        consecutiveFailures = 0;
         setStatus("connected");
       } catch {
         setStatus("error");
-        await new Promise((r) => setTimeout(r, 5_000));
+        consecutiveFailures += 1;
+        await new Promise((r) => setTimeout(r, nextRetryDelay()));
         if (!stoppedRef.current) void connect();
       }
     };

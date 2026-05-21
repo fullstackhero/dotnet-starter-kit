@@ -34,23 +34,25 @@ import {
   type FileAssetDto,
 } from "@/api/files";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/auth/use-auth";
 import { cn } from "@/lib/cn";
 import {
-  EmptyState,
-  ErrorBand,
-  PageHero,
-  Pagination,
+  EntityEmpty,
+  EntityInitialsAvatar,
+  EntityListCard,
+  EntityListHeader,
+  EntityListLoading,
+  EntityListRow,
+  EntityPageHeader,
+  EntityPager,
 } from "@/components/list";
 import {
   describe,
   formatDateMono,
   formatRelative,
-  pad2,
 } from "@/lib/list-helpers";
 
 const PAGE_SIZE = 20;
+const DESKTOP_COLS = "grid-cols-[1.5fr_140px_140px_100px]";
 
 type TabKey = "products" | "brands" | "categories" | "tickets" | "files";
 
@@ -71,7 +73,6 @@ const TABS: ReadonlyArray<{
 // ───────────────────────────────────────────────────────────────────────
 
 export function TrashPage() {
-  const { user } = useAuth();
   const [tab, setTab] = useState<TabKey>("products");
   const [pageNumber, setPageNumber] = useState(1);
 
@@ -82,18 +83,17 @@ export function TrashPage() {
   };
 
   return (
-    <div className="space-y-6 pb-12">
-      <PageHero
-        eyebrow="System · Trash"
-        tenant={user?.tenant ?? "—"}
+    <div className="space-y-4 sm:space-y-6">
+      <EntityPageHeader
+        icon={Trash2}
         title="Recycle bin"
-        subtitle="Soft-deleted records, kept indefinitely until you restore or purge them. Restoring a row brings it back to its parent list with the same ID and history intact."
+        description="Soft-deleted records, kept indefinitely until you restore them. Restoring a row brings it back to its parent list with the same ID and history intact."
       />
 
-      {/* Tab bar — pill nav, mono-caps eyebrow per tab */}
+      {/* Tab pills */}
       <nav
         aria-label="Trash sections"
-        className="fsh-enter fsh-enter-2 -mx-1 flex flex-wrap gap-1"
+        className="flex flex-wrap items-center gap-2"
       >
         {TABS.map(({ key, label, icon: Icon }) => {
           const active = tab === key;
@@ -102,17 +102,15 @@ export function TrashPage() {
               key={key}
               type="button"
               onClick={() => onTab(key)}
-              className={cn(
-                "group/tab inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full px-3.5 text-sm font-medium",
-                "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
-                "focus-visible:outline-none",
-                active
-                  ? "bg-[var(--color-primary-soft)] text-[var(--color-primary)]"
-                  : "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
-              )}
               aria-pressed={active}
+              className={cn(
+                "inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full border px-3 text-[12px] font-medium transition-colors duration-[var(--duration-fast)]",
+                active
+                  ? "border-transparent bg-[var(--color-primary)] text-[var(--color-primary-foreground)]"
+                  : "border-[var(--color-border)] bg-[var(--color-card)] text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]",
+              )}
             >
-              <Icon className="h-3.5 w-3.5" aria-hidden />
+              <Icon className="size-3.5" aria-hidden />
               {label}
             </button>
           );
@@ -120,35 +118,27 @@ export function TrashPage() {
       </nav>
 
       {/* Active panel */}
-      <section
-        className={cn(
-          "fsh-enter fsh-enter-3 card-shell relative overflow-hidden rounded-2xl",
-          "bg-[var(--color-surface-3)]",
-        )}
-      >
-        {tab === "products" && (
-          <ProductsTab pageNumber={pageNumber} setPageNumber={setPageNumber} />
-        )}
-        {tab === "brands" && (
-          <BrandsTab pageNumber={pageNumber} setPageNumber={setPageNumber} />
-        )}
-        {tab === "categories" && (
-          <CategoriesTab pageNumber={pageNumber} setPageNumber={setPageNumber} />
-        )}
-        {tab === "tickets" && (
-          <TicketsTab pageNumber={pageNumber} setPageNumber={setPageNumber} />
-        )}
-        {tab === "files" && (
-          <FilesTab pageNumber={pageNumber} setPageNumber={setPageNumber} />
-        )}
-      </section>
+      {tab === "products" && (
+        <ProductsTab pageNumber={pageNumber} setPageNumber={setPageNumber} />
+      )}
+      {tab === "brands" && (
+        <BrandsTab pageNumber={pageNumber} setPageNumber={setPageNumber} />
+      )}
+      {tab === "categories" && (
+        <CategoriesTab pageNumber={pageNumber} setPageNumber={setPageNumber} />
+      )}
+      {tab === "tickets" && (
+        <TicketsTab pageNumber={pageNumber} setPageNumber={setPageNumber} />
+      )}
+      {tab === "files" && (
+        <FilesTab pageNumber={pageNumber} setPageNumber={setPageNumber} />
+      )}
     </div>
   );
 }
 
 // ───────────────────────────────────────────────────────────────────────
-//  Generic trash tab body — one component per resource so each can read
-//  its own typed list/restore from the api modules without unsafe casts.
+//  Per-resource tabs (each owns its own query + restore mutation)
 // ───────────────────────────────────────────────────────────────────────
 
 function ProductsTab({
@@ -174,23 +164,19 @@ function ProductsTab({
   });
   return (
     <TrashShell
-      icon={Package}
       label="Products"
       query={query}
       pageNumber={pageNumber}
       setPageNumber={setPageNumber}
-      renderRow={(p: ProductDto) => (
-        <TrashRow
-          key={p.id}
-          title={p.name}
-          id={p.id}
-          subtitle={`SKU ${p.sku}`}
-          deletedOnUtc={p.deletedOnUtc}
-          deletedBy={p.deletedBy}
-          onRestore={() => restore.mutate(p.id)}
-          isRestoring={restore.isPending && restore.variables === p.id}
-        />
-      )}
+      mapRow={(p: ProductDto) => ({
+        id: p.id,
+        title: p.name,
+        subtitle: `SKU ${p.sku}`,
+        deletedOnUtc: p.deletedOnUtc,
+        deletedBy: p.deletedBy,
+        isRestoring: restore.isPending && restore.variables === p.id,
+        onRestore: () => restore.mutate(p.id),
+      })}
     />
   );
 }
@@ -218,23 +204,19 @@ function BrandsTab({
   });
   return (
     <TrashShell
-      icon={Tags}
       label="Brands"
       query={query}
       pageNumber={pageNumber}
       setPageNumber={setPageNumber}
-      renderRow={(b: BrandDto) => (
-        <TrashRow
-          key={b.id}
-          title={b.name}
-          id={b.id}
-          subtitle={`/${b.slug}`}
-          deletedOnUtc={b.deletedOnUtc}
-          deletedBy={b.deletedBy}
-          onRestore={() => restore.mutate(b.id)}
-          isRestoring={restore.isPending && restore.variables === b.id}
-        />
-      )}
+      mapRow={(b: BrandDto) => ({
+        id: b.id,
+        title: b.name,
+        subtitle: `/${b.slug}`,
+        deletedOnUtc: b.deletedOnUtc,
+        deletedBy: b.deletedBy,
+        isRestoring: restore.isPending && restore.variables === b.id,
+        onRestore: () => restore.mutate(b.id),
+      })}
     />
   );
 }
@@ -262,23 +244,19 @@ function CategoriesTab({
   });
   return (
     <TrashShell
-      icon={FolderTree}
       label="Categories"
       query={query}
       pageNumber={pageNumber}
       setPageNumber={setPageNumber}
-      renderRow={(c: CategoryDto) => (
-        <TrashRow
-          key={c.id}
-          title={c.name}
-          id={c.id}
-          subtitle={`/${c.slug}`}
-          deletedOnUtc={c.deletedOnUtc}
-          deletedBy={c.deletedBy}
-          onRestore={() => restore.mutate(c.id)}
-          isRestoring={restore.isPending && restore.variables === c.id}
-        />
-      )}
+      mapRow={(c: CategoryDto) => ({
+        id: c.id,
+        title: c.name,
+        subtitle: `/${c.slug}`,
+        deletedOnUtc: c.deletedOnUtc,
+        deletedBy: c.deletedBy,
+        isRestoring: restore.isPending && restore.variables === c.id,
+        onRestore: () => restore.mutate(c.id),
+      })}
     />
   );
 }
@@ -306,23 +284,19 @@ function TicketsTab({
   });
   return (
     <TrashShell
-      icon={Ticket}
       label="Tickets"
       query={query}
       pageNumber={pageNumber}
       setPageNumber={setPageNumber}
-      renderRow={(t: TicketDto) => (
-        <TrashRow
-          key={t.id}
-          title={t.title}
-          id={t.id}
-          subtitle={t.number}
-          deletedOnUtc={t.deletedOnUtc}
-          deletedBy={t.deletedBy}
-          onRestore={() => restore.mutate(t.id)}
-          isRestoring={restore.isPending && restore.variables === t.id}
-        />
-      )}
+      mapRow={(t: TicketDto) => ({
+        id: t.id,
+        title: t.title,
+        subtitle: t.number,
+        deletedOnUtc: t.deletedOnUtc,
+        deletedBy: t.deletedBy,
+        isRestoring: restore.isPending && restore.variables === t.id,
+        onRestore: () => restore.mutate(t.id),
+      })}
     />
   );
 }
@@ -350,31 +324,36 @@ function FilesTab({
   });
   return (
     <TrashShell
-      icon={FileText}
       label="Files"
       query={query}
       pageNumber={pageNumber}
       setPageNumber={setPageNumber}
-      renderRow={(f: FileAssetDto) => (
-        <TrashRow
-          key={f.id}
-          title={f.originalFileName}
-          id={f.id}
-          subtitle={f.contentType}
-          deletedOnUtc={f.deletedOnUtc}
-          deletedBy={f.deletedBy}
-          onRestore={() => restore.mutate(f.id)}
-          isRestoring={restore.isPending && restore.variables === f.id}
-        />
-      )}
+      mapRow={(f: FileAssetDto) => ({
+        id: f.id,
+        title: f.originalFileName,
+        subtitle: f.contentType,
+        deletedOnUtc: f.deletedOnUtc,
+        deletedBy: f.deletedBy,
+        isRestoring: restore.isPending && restore.variables === f.id,
+        onRestore: () => restore.mutate(f.id),
+      })}
     />
   );
 }
 
 // ───────────────────────────────────────────────────────────────────────
-//  Shared shell — handles the loading/empty/error/list rendering so each
-//  tab body stays focused on the per-resource details.
+//  Shared shell — list/loading/empty/error rendering for each tab body.
 // ───────────────────────────────────────────────────────────────────────
+
+type RowVm = {
+  id: string;
+  title: string;
+  subtitle: string;
+  deletedOnUtc: string | null | undefined;
+  deletedBy: string | null | undefined;
+  isRestoring: boolean;
+  onRestore: () => void;
+};
 
 type TrashQuery<T> = {
   isLoading: boolean;
@@ -384,105 +363,95 @@ type TrashQuery<T> = {
 };
 
 function TrashShell<T>({
-  icon: Icon,
   label,
   query,
   pageNumber,
   setPageNumber,
-  renderRow,
+  mapRow,
 }: {
-  icon: React.ComponentType<{ className?: string }>;
   label: string;
   query: TrashQuery<T>;
   pageNumber: number;
   setPageNumber: (n: number) => void;
-  renderRow: (item: T) => React.ReactNode;
+  mapRow: (item: T) => RowVm;
 }) {
   const items = query.data?.items ?? [];
   const total = query.data?.totalCount ?? 0;
+  const rows = items.map(mapRow);
+
+  if (query.isLoading && rows.length === 0) {
+    return <EntityListLoading desktopColumns={DESKTOP_COLS} />;
+  }
+
+  if (query.isError) {
+    return (
+      <div
+        role="alert"
+        className="flex items-start gap-2 rounded-lg border border-[oklch(from_var(--color-destructive)_l_c_h_/_0.30)] bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.06)] px-3 py-2 text-sm text-[var(--color-destructive)]"
+      >
+        <span>{describe(query.error)}</span>
+      </div>
+    );
+  }
+
+  if (rows.length === 0) {
+    return (
+      <EntityEmpty
+        icon={Trash2}
+        title={`The ${label.toLowerCase()} trash is empty`}
+        body={`Soft-deleted ${label.toLowerCase()} land here for as long as you want — no automatic purge. Anything you remove from the main list can be recovered.`}
+        action={
+          <Button
+            variant="outline"
+            onClick={() => {
+              window.location.href = `/${tabPath(label)}`;
+            }}
+            className="h-9 rounded-lg px-4 text-[13px]"
+          >
+            Back to {label.toLowerCase()}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>
-      {/* Sub-header strip — shows the resource label and total count */}
-      <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--color-border)] px-6 py-4">
-        <div className="flex items-center gap-2.5">
-          <span
-            aria-hidden
-            className={cn(
-              "grid h-7 w-7 place-items-center rounded-md",
-              "bg-[var(--color-primary-soft)] text-[var(--color-primary)]",
-            )}
-          >
-            <Icon className="h-3.5 w-3.5" />
-          </span>
-          <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-            Soft-deleted · {label}
-          </span>
-        </div>
-        <div className="flex items-center gap-2 font-mono text-[11px] tabular-nums text-[var(--color-muted-foreground)]">
-          {!query.isLoading && (
-            <>
-              <span>{total} item{total === 1 ? "" : "s"}</span>
-              <span aria-hidden className="opacity-50">·</span>
-              <span>page {pad2(pageNumber)}</span>
-            </>
-          )}
-        </div>
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-[12px] font-medium text-[var(--color-muted-foreground)]">
+          {total} {label.toLowerCase()}
+          {total !== 1 ? "" : ""} in trash
+        </p>
       </div>
 
-      {query.isError && (
-        <div className="px-6 pt-4">
-          <ErrorBand message={describe(query.error)} />
-        </div>
-      )}
+      {/* Mobile cards */}
+      <div className="space-y-2 md:hidden">
+        {rows.map((row) => (
+          <TrashMobileCard key={row.id} row={row} />
+        ))}
+      </div>
 
-      {query.isLoading ? (
-        <ul aria-busy>
-          {Array.from({ length: 4 }).map((_, i) => (
-            <li
-              key={i}
-              className="flex items-center gap-4 border-t border-[var(--color-border)] px-6 py-4 first:border-t-0"
-            >
-              <Skeleton className="h-9 w-9 rounded-md" />
-              <div className="flex-1 space-y-2">
-                <Skeleton className="h-4 w-1/2" />
-                <Skeleton className="h-3 w-1/3" />
-              </div>
-              <Skeleton className="h-7 w-20 rounded-md" />
-            </li>
-          ))}
-        </ul>
-      ) : items.length === 0 ? (
-        <EmptyState
-          eyebrow="Nothing to recover"
-          headline={`The ${label.toLowerCase()} trash is empty.`}
-          body={`Soft-deleted ${label.toLowerCase()} land here for as long as you want — no hard-delete clock, no automatic purge. Anything you remove from the main list is recoverable from this view.`}
-          icon={<Trash2 className="h-6 w-6 text-[var(--color-primary)]" />}
-          primaryAction={{
-            label: `Back to ${label.toLowerCase()}`,
-            onClick: () => {
-              window.location.href = `/${tabPath(label)}`;
-            },
-          }}
-        />
-      ) : (
-        <>
-          <ul>{items.map((it) => renderRow(it))}</ul>
-          <div className="px-6 py-4">
-            <Pagination
-              page={query.data?.pageNumber ?? pageNumber}
-              totalPages={Math.max(query.data?.totalPages ?? 1, 1)}
-              totalCount={total}
-              shown={items.length}
-              fetching={false}
-              hasPrev={query.data?.hasPrevious ?? false}
-              hasNext={query.data?.hasNext ?? false}
-              onPrev={() => setPageNumber(Math.max(1, pageNumber - 1))}
-              onNext={() => setPageNumber(pageNumber + 1)}
-            />
-          </div>
-        </>
-      )}
+      {/* Desktop list */}
+      <EntityListCard className="hidden md:block">
+        <EntityListHeader className={DESKTOP_COLS}>
+          <span>Entity</span>
+          <span>Deleted by</span>
+          <span>Deleted at</span>
+          <span className="text-right">Actions</span>
+        </EntityListHeader>
+        {rows.map((row, i) => (
+          <TrashDesktopRow key={row.id} row={row} isLast={i === rows.length - 1} />
+        ))}
+      </EntityListCard>
+
+      <EntityPager
+        page={query.data?.pageNumber ?? pageNumber}
+        totalPages={Math.max(query.data?.totalPages ?? 1, 1)}
+        hasPrev={query.data?.hasPrevious ?? false}
+        hasNext={query.data?.hasNext ?? false}
+        onPrev={() => setPageNumber(Math.max(1, pageNumber - 1))}
+        onNext={() => setPageNumber(pageNumber + 1)}
+      />
     </div>
   );
 }
@@ -499,91 +468,106 @@ function tabPath(label: string): string {
 }
 
 // ───────────────────────────────────────────────────────────────────────
-//  Single trashed-item row
+//  Mobile card
 // ───────────────────────────────────────────────────────────────────────
 
-function TrashRow({
-  title,
-  id,
-  subtitle,
-  deletedOnUtc,
-  deletedBy,
-  onRestore,
-  isRestoring,
-}: {
-  title: string;
-  id: string;
-  subtitle: string;
-  deletedOnUtc: string | null | undefined;
-  deletedBy: string | null | undefined;
-  onRestore: () => void;
-  isRestoring: boolean;
-}) {
+function TrashMobileCard({ row }: { row: RowVm }) {
   return (
-    <li
+    <div
       className={cn(
-        "fsh-enter group/trash-row flex items-center gap-4 border-t border-[var(--color-border)]",
-        "first:border-t-0 px-6 py-4",
-        "transition-colors duration-[var(--duration-fast)]",
-        "hover:bg-[var(--color-surface-4)]",
+        "block rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 text-left",
+        "shadow-[0_1px_2px_oklch(0_0_0_/_0.04)]",
       )}
     >
-      {/* Crossed-out icon plate */}
-      <span
-        aria-hidden
-        className={cn(
-          "grid h-9 w-9 shrink-0 place-items-center rounded-md",
-          "bg-[var(--color-muted)] text-[var(--color-muted-foreground)]",
-          "ring-1 ring-inset ring-[var(--color-border)]",
-        )}
-      >
-        <Trash2 className="h-4 w-4" />
-      </span>
-
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-          <span className="text-display truncate text-[14.5px] font-medium leading-tight text-[var(--color-foreground)]">
-            {title}
-          </span>
-          <code className="rounded bg-[var(--color-muted)] px-1.5 py-0.5 font-mono text-[10.5px] tracking-tight text-[var(--color-muted-foreground)]">
-            {subtitle}
-          </code>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <EntityInitialsAvatar name={row.title} size={40} />
+          <div className="min-w-0">
+            <p className="truncate text-[14px] font-medium text-[var(--color-foreground)]">
+              {row.title}
+            </p>
+            <code className="mt-0.5 block truncate font-mono text-[11px] text-[var(--color-muted-foreground)]">
+              {row.subtitle}
+            </code>
+          </div>
         </div>
-        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11.5px] text-[var(--color-muted-foreground)]">
-          <span className="inline-flex items-center gap-1">
-            <span className="font-mono text-[10px] uppercase tracking-[0.14em] opacity-70">
-              deleted
-            </span>
-            <span className="tabular-nums">
-              {deletedOnUtc ? formatRelative(deletedOnUtc) : "—"}
-            </span>
-            {deletedOnUtc && (
-              <span className="opacity-50">({formatDateMono(deletedOnUtc)})</span>
-            )}
-          </span>
-          {deletedBy && (
-            <span className="inline-flex items-center gap-1">
-              <span className="font-mono text-[10px] uppercase tracking-[0.14em] opacity-70">
-                by
-              </span>
-              <code className="font-mono text-[10.5px]">{deletedBy.slice(0, 8)}…</code>
-            </span>
-          )}
-          <code className="font-mono text-[10px] opacity-50">id {id.slice(0, 8)}…</code>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={row.onRestore}
+          disabled={row.isRestoring}
+          className="shrink-0 gap-1.5"
+        >
+          <RotateCcw className={cn("size-3.5", row.isRestoring && "animate-spin")} />
+          {row.isRestoring ? "…" : "Restore"}
+        </Button>
+      </div>
+      <div className="mt-2 ml-[52px] flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-[var(--color-muted-foreground)]">
+        <span className="tabular-nums">
+          {row.deletedOnUtc ? formatRelative(row.deletedOnUtc) : "—"}
+        </span>
+        {row.deletedOnUtc && (
+          <span className="opacity-60">({formatDateMono(row.deletedOnUtc)})</span>
+        )}
+        {row.deletedBy && (
+          <code className="font-mono">by {row.deletedBy.slice(0, 8)}…</code>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ───────────────────────────────────────────────────────────────────────
+//  Desktop row
+// ───────────────────────────────────────────────────────────────────────
+
+function TrashDesktopRow({ row, isLast }: { row: RowVm; isLast: boolean }) {
+  return (
+    <EntityListRow className={DESKTOP_COLS} isLast={isLast}>
+      {/* Entity */}
+      <div className="flex min-w-0 items-center gap-3">
+        <EntityInitialsAvatar name={row.title} size={36} />
+        <div className="min-w-0">
+          <div className="truncate text-[14px] font-medium text-[var(--color-foreground)]">
+            {row.title}
+          </div>
+          <code className="block truncate font-mono text-[11px] text-[var(--color-muted-foreground)]">
+            {row.subtitle}
+          </code>
         </div>
       </div>
 
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={onRestore}
-        disabled={isRestoring}
-        className="gap-1.5"
-      >
-        <RotateCcw className={cn("h-3.5 w-3.5", isRestoring && "animate-spin")} />
-        {isRestoring ? "Restoring…" : "Restore"}
-      </Button>
-    </li>
+      {/* Deleted by */}
+      <code className="truncate font-mono text-[12px] text-[var(--color-muted-foreground)]">
+        {row.deletedBy ? `${row.deletedBy.slice(0, 8)}…` : "—"}
+      </code>
+
+      {/* Deleted at */}
+      <div className="text-[12px] tabular-nums text-[var(--color-muted-foreground)]">
+        {row.deletedOnUtc ? (
+          <>
+            <div>{formatRelative(row.deletedOnUtc)}</div>
+            <div className="text-[10.5px] opacity-70">{formatDateMono(row.deletedOnUtc)}</div>
+          </>
+        ) : (
+          "—"
+        )}
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center justify-end">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={row.onRestore}
+          disabled={row.isRestoring}
+          className="gap-1.5"
+        >
+          <RotateCcw className={cn("size-3.5", row.isRestoring && "animate-spin")} />
+          {row.isRestoring ? "Restoring…" : "Restore"}
+        </Button>
+      </div>
+    </EntityListRow>
   );
 }
 

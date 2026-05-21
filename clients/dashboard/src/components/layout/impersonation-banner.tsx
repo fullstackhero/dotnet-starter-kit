@@ -63,8 +63,8 @@ export function ImpersonationBanner() {
   // flip between warning / destructive without scattering conditionals.
   const tone = isCrossTenant ? "var(--color-destructive)" : "var(--color-warning)";
   const metaLabel = isCrossTenant
-    ? "// CROSS-TENANT IMPERSONATION"
-    : "// IMPERSONATING";
+    ? "Cross-tenant impersonation"
+    : "Impersonating";
 
   return (
     <div
@@ -76,7 +76,7 @@ export function ImpersonationBanner() {
       )}
       style={{
         borderColor: `oklch(from ${tone} l c h / 0.28)`,
-        backgroundColor: "var(--color-surface-2)",
+        backgroundColor: "var(--color-muted)",
       }}
     >
       {/* Soft tone wash — radial in the tone color from the top-left.
@@ -119,20 +119,17 @@ export function ImpersonationBanner() {
 
         <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
           <span
-            className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em]"
+            className="text-[11px] font-semibold uppercase tracking-wider"
             style={{ color: tone }}
           >
             {metaLabel}
           </span>
 
-          {/* Subject — the user being acted as. Display font, optional
-              gradient accent for cross-tenant where the focus matters most. */}
+          {/* Subject — the user being acted as. */}
           <span
             className={cn(
-              "text-display truncate text-[14px] font-semibold leading-tight tracking-tight",
-              isCrossTenant
-                ? "text-gradient-brand"
-                : "text-[var(--color-foreground)]",
+              "font-display truncate text-[14px] font-semibold leading-tight tracking-tight",
+              "text-[var(--color-foreground)]",
             )}
           >
             {subjectLabel}
@@ -158,10 +155,10 @@ export function ImpersonationBanner() {
           {/* Operator attribution — hidden on small screens to keep the
               bar to one line on mobile. The `acting as` phrasing covers
               both variants. */}
-          <span className="hidden items-center gap-1 font-mono text-[10.5px] uppercase tracking-[0.12em] text-[var(--color-muted-foreground)] sm:inline-flex">
+          <span className="hidden items-center gap-1 text-[12px] text-[var(--color-muted-foreground)] sm:inline-flex">
             <span>· operator</span>
             <UserCog className="h-3 w-3" aria-hidden />
-            <span className="normal-case tracking-normal text-[var(--color-foreground)]">
+            <span className="text-[var(--color-foreground)]">
               {actorLabel}
             </span>
           </span>

@@ -172,6 +172,24 @@ export async function deleteRole(id: string): Promise<void> {
   });
 }
 
+// One row in the host's permission catalog. Mirrors
+// FSH.Modules.Identity.Contracts.DTOs.PermissionCatalogEntryDto. The catalog
+// endpoint is the single source of truth — every module's permissions land
+// here at startup, filtered to the caller's tenant context (Admin set for
+// regular tenants; Admin + Root set for the root tenant).
+export type PermissionCatalogEntryDto = {
+  name: string;
+  description: string;
+  resource: string;
+  action: string;
+  isBasic: boolean;
+  isRoot: boolean;
+};
+
+export async function getPermissionsCatalog(): Promise<PermissionCatalogEntryDto[]> {
+  return apiFetch<PermissionCatalogEntryDto[]>(`/api/v1/identity/permissions/catalog`);
+}
+
 // -----------------------------
 // User sessions (admin)
 // -----------------------------

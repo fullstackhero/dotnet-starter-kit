@@ -2,11 +2,10 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 /**
- * Atmospheric page hero used across non-list surfaces (health, audit
- * trail, sessions, trash, settings). Shares the same chrome as
- * `ListHero` — radial brand wash + soft noise overlay — but omits the
- * built-in search input and CTA button. Callers slot in their own
- * actions on the right.
+ * Calm page hero used across non-list surfaces (health, audit trail,
+ * sessions, trash, settings). Shares the same calm warm-paper chrome as
+ * `ListHero` but omits the built-in search input and CTA button.
+ * Callers slot in their own actions on the right.
  *
  * Composition:
  *   eyebrow row  — section · area · tenant · sub-eyebrow
@@ -38,51 +37,28 @@ export function PageHero({
   return (
     <section
       className={cn(
-        "fsh-enter fsh-enter-1 card-shell relative overflow-hidden rounded-[20px]",
-        "bg-[var(--color-surface-3)]",
+        "fsh-enter fsh-enter-1 overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] shadow-xs",
         className,
       )}
     >
-      {/* Brand wash — three soft radial gradients. Same recipe as
-          ListHero so the two visually unify. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10"
-        style={{
-          backgroundImage: `
-            radial-gradient(60% 70% at 0% 0%, oklch(from var(--color-primary) l c h / 0.18), transparent 60%),
-            radial-gradient(50% 60% at 100% 0%, oklch(0.700 0.155 195 / 0.10), transparent 65%),
-            radial-gradient(80% 80% at 100% 100%, oklch(from var(--color-primary) l c h / 0.05), transparent 70%)
-          `,
-        }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10 opacity-[0.06] mix-blend-overlay"
-        style={{
-          backgroundImage:
-            "url(\"data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
-        }}
-      />
-
-      <div className="relative px-6 py-7 sm:px-8 sm:py-9 md:px-10">
+      <div className="relative px-6 py-6 sm:px-8 sm:py-7 md:px-8">
         {/* Eyebrow row */}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-          <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
             {eyebrow}
           </span>
           {tenant && (
             <>
-              <span aria-hidden className="h-px w-7 bg-[var(--color-border-strong)]" />
-              <code className="rounded bg-[var(--color-primary-soft)] px-1.5 py-0.5 font-mono text-[11px] font-medium text-[var(--color-primary)]">
+              <span aria-hidden className="h-px w-7 bg-[var(--color-border)]" />
+              <code className="rounded bg-[oklch(from_var(--color-primary)_l_c_h_/_0.10)] px-1.5 py-0.5 text-[11px] font-medium text-[var(--color-primary)]">
                 {tenant}
               </code>
             </>
           )}
           {subEyebrow && (
             <>
-              <span aria-hidden className="hidden h-px w-7 bg-[var(--color-border-strong)] sm:inline-block" />
-              <span className="hidden font-mono text-[10.5px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]/80 sm:inline">
+              <span aria-hidden className="hidden h-px w-7 bg-[var(--color-border)] sm:inline-block" />
+              <span className="hidden text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)] sm:inline">
                 {subEyebrow}
               </span>
             </>
@@ -90,25 +66,14 @@ export function PageHero({
         </div>
 
         {/* Title + actions */}
-        <div className="mt-5 grid grid-cols-1 gap-6 md:grid-cols-[1fr_auto] md:items-end">
+        <div className="mt-4 grid grid-cols-1 gap-6 md:grid-cols-[1fr_auto] md:items-end">
           <div className="min-w-0">
-            {/* leading-[1.12] (was 1.04) + pb-1 leave room for descenders.
-                Without the extra height, glyphs like g/y/p/q hang past
-                the line-box and get clipped by the section's outer
-                `overflow-hidden` (which we keep so the radial gradients
-                don't bleed past the rounded corners).
-                The title is rendered directly rather than wrapped in a
-                `.truncate` span — that wrapper added its own
-                `overflow: hidden` clipping the descender at a second
-                layer. Page-hero titles are short ("Settings",
-                "Audit trail", "Health"), so unconstrained wrapping is
-                fine. */}
-            <h1 className="text-display flex flex-wrap items-baseline gap-3 pb-1 text-[34px] font-semibold leading-[1.12] tracking-[-0.022em] sm:text-[40px]">
+            <h1 className="font-display flex flex-wrap items-baseline gap-3 pb-1 text-[26px] font-semibold leading-[1.15] tracking-tight text-[var(--color-foreground)] sm:text-[30px]">
               {title}
               {badge}
             </h1>
             {subtitle && (
-              <p className="mt-2 max-w-2xl text-[14px] leading-relaxed text-[var(--color-muted-foreground)]">
+              <p className="mt-1.5 max-w-2xl text-[13.5px] leading-relaxed text-[var(--color-muted-foreground)]">
                 {subtitle}
               </p>
             )}

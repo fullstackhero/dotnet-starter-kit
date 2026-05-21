@@ -125,18 +125,18 @@ export function ProductImageManager({ productId, images, invalidateKey, classNam
           Upload images
         </Button>
         {progress && progress.status !== "done" && (
-          <span className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
+          <span className="text-[11.5px] tabular-nums text-[var(--color-muted-foreground)]">
             {progress.fileName} · {progress.percent}%
           </span>
         )}
-        <span className="ml-auto font-mono text-[10.5px] uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
+        <span className="ml-auto text-[11.5px] text-[var(--color-muted-foreground)]">
           {sorted.length} image{sorted.length === 1 ? "" : "s"} · JPG / PNG / WebP / GIF · up to 10 MB
         </span>
       </div>
 
       {/* Gallery grid */}
       {sorted.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[var(--color-border-strong)] bg-[var(--color-surface-2)] px-6 py-10 text-center text-sm text-[var(--color-muted-foreground)]">
+        <div className="rounded-xl border border-dashed border-border bg-[var(--color-muted)] px-6 py-10 text-center text-sm text-[var(--color-muted-foreground)]">
           No images yet. Upload one to set the product's cover.
         </div>
       ) : (
@@ -181,10 +181,10 @@ function ImageTile({
   return (
     <div
       className={cn(
-        "group relative overflow-hidden rounded-2xl border bg-[var(--color-surface-2)] transition-colors",
+        "group relative overflow-hidden rounded-xl border bg-[var(--color-card)] shadow-xs transition-colors",
         image.isThumbnail
           ? "border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]"
-          : "border-[var(--color-border-strong)] hover:bg-[var(--color-surface-3)]",
+          : "border-border hover:bg-[oklch(from_var(--color-accent)_l_c_h_/_0.4)]",
       )}
     >
       <button
@@ -202,7 +202,7 @@ function ImageTile({
       </button>
 
       {image.isThumbnail && (
-        <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-[var(--color-primary)] px-2 py-0.5 font-mono text-[9.5px] font-medium uppercase tracking-[0.16em] text-[var(--color-primary-foreground)]">
+        <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-[var(--color-primary)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-primary-foreground)]">
           <Star className="h-3 w-3 fill-current" />
           Cover
         </span>
@@ -257,7 +257,7 @@ function PreviewDialog({ image, onClose }: { image: ProductImageDto | null; onCl
           </DialogDescription>
         </DialogHeader>
         {image && (
-          <div className="grid place-items-center overflow-hidden rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-surface-1)]">
+          <div className="grid place-items-center overflow-hidden rounded-xl border border-border bg-[var(--color-muted)]">
             <img
               src={image.url}
               alt=""
@@ -290,7 +290,7 @@ function RemoveDialog({
     <Dialog open={image !== null} onOpenChange={(o) => (o ? undefined : onCancel())}>
       <DialogContent>
         <DialogHeader>
-          <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-[var(--color-destructive)]">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-destructive)]">
             Remove image
           </span>
           <DialogTitle>Detach this image?</DialogTitle>

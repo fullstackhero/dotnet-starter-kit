@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   Download,
   ExternalLink,
@@ -8,6 +9,7 @@ import {
   FileImage,
   FileText,
   Loader2,
+  Trash2,
 } from "lucide-react";
 import {
   Dialog,
@@ -21,13 +23,18 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ErrorBand } from "@/components/list";
+import { Switch } from "@/components/ui/switch";
 import {
   FileAssetStatus,
   Visibility,
+  changeFileVisibility,
+  deleteFile,
   getFileDownloadUrl,
   getFileMetadata,
   type FileAssetDto,
 } from "@/api/files";
+import { useAuth } from "@/auth/use-auth";
+import { useUserDisplay } from "@/lib/use-user-display";
 import { ApiRequestError } from "@/lib/api-client";
 import { formatBytes } from "@/hooks/use-file-upload";
 import { cn } from "@/lib/cn";
@@ -37,7 +44,12 @@ type Props = {
   /** Seed the dialog with what the list already knows so we paint immediately while the
    *  fresh metadata refetch is in flight. */
   initial?: FileAssetDto;
+  /** Called when the dialog is dismissed (close button, overlay click, Esc). */
   onClose: () => void;
+  /** Called after a successful delete. The parent should invalidate its list query
+   *  and clear its `selectedFileId` state to dismiss the dialog. Omit to render
+   *  the dialog as read-only (no delete affordance). */
+  onDeleted?: (fileAssetId: string) => void;
 };
 
 /**
@@ -51,8 +63,32 @@ type Props = {
  * For private files, the URL is minted on demand via /url; public files use the
  * durable publicUrl shipped on the metadata DTO.
  */
-export function FilePreviewDialog({ fileAssetId, initial, onClose }: Props) {
+export function FilePreviewDialog({ fileAssetId, initial, onClose, onDeleted }: Props) {
   const open = fileAssetId !== null;
+  const { user } = useAuth();
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+
+  // Reset the inline confirm state every time the dialog closes so the next file
+  // opens cleanly in its non-armed state.
+  useEffect(() => {
+    if (!open) setConfirmingDelete(false);
+  }, [open]);
+
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteFile(fileAssetId!),
+    onSuccess: () => {
+      toast.success("File deleted");
+      onDeleted?.(fileAssetId!);
+    },
+    onError: (err) => {
+      const detail =
+        err instanceof ApiRequestError
+          ? (err.problem?.detail ?? err.problem?.title ?? err.message)
+          : (err as Error).message;
+      toast.error("Delete failed", { description: detail });
+      setConfirmingDelete(false);
+    },
+  });
 
   // Re-fetch metadata each open: the list may be stale w.r.t. status/visibility, and
   // the publicUrl/presigned URL must be current for inline rendering.
@@ -62,6 +98,34 @@ export function FilePreviewDialog({ fileAssetId, initial, onClose }: Props) {
     enabled: open,
     initialData: initial && initial.id === fileAssetId ? initial : undefined,
   });
+
+  const visibilityMutation = useMutation({
+    mutationFn: (next: typeof Visibility[keyof typeof Visibility]) =>
+      changeFileVisibility(fileAssetId!, next),
+    onSuccess: (dto) => {
+      metaQuery.refetch();
+      toast.success(
+        dto.visibility === Visibility.Public
+          ? "File is now public to your tenant"
+          : "File is now private",
+      );
+    },
+    onError: (err) => {
+      const detail =
+        err instanceof ApiRequestError
+          ? (err.problem?.detail ?? err.problem?.title ?? err.message)
+          : (err as Error).message;
+      toast.error("Visibility change failed", { description: detail });
+    },
+  });
+
+  // Caller is allowed to mutate (delete, change visibility) only if they uploaded
+  // the file. The server enforces the same rule via IFileAccessPolicy, but gating
+  // the UI here avoids rendering buttons that would 403 on click.
+  const isUploader =
+    !!metaQuery.data &&
+    !!user?.id &&
+    metaQuery.data.createdByUserId === user.id;
 
   // Private files need a presigned GET to render — fetch lazily once we know visibility.
   // Ask for ?inline=true so the URL carries Content-Disposition: inline, letting the
@@ -109,18 +173,74 @@ export function FilePreviewDialog({ fileAssetId, initial, onClose }: Props) {
                 downloadUrl={downloadQuery.data?.url}
                 onUrlError={() => void downloadQuery.refetch()}
               />
-              <MetadataPanel file={metaQuery.data} />
+              <MetadataPanel
+                file={metaQuery.data}
+                isUploader={isUploader}
+                onChangeVisibility={(next) => visibilityMutation.mutate(next)}
+                visibilityPending={visibilityMutation.isPending}
+              />
             </>
           )}
         </DialogBody>
 
-        <DialogFooter>
-          {metaQuery.data && metaQuery.data.status === FileAssetStatus.Available && (
-            <DownloadButton file={metaQuery.data} />
+        <DialogFooter className="flex-row sm:flex-row sm:justify-between">
+          {/* Left cluster — destructive action with inline confirm. Only the
+              uploader sees this; viewers of a shared file get no destructive
+              affordance. The two-step "Delete → Confirm delete" keeps the
+              modal flow on the same surface; opening a second dialog over a
+              preview would feel layered for what's still a one-click action. */}
+          {onDeleted && metaQuery.data && fileAssetId && isUploader ? (
+            confirmingDelete ? (
+              <div className="flex items-center gap-2">
+                <span className="text-[12px] text-[var(--color-muted-foreground)]">
+                  Delete this file?
+                </span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setConfirmingDelete(false)}
+                  disabled={deleteMutation.isPending}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => deleteMutation.mutate()}
+                  disabled={deleteMutation.isPending}
+                >
+                  {deleteMutation.isPending ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <Trash2 className="size-3.5" />
+                  )}
+                  {deleteMutation.isPending ? "Deleting…" : "Confirm delete"}
+                </Button>
+              </div>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setConfirmingDelete(true)}
+                className="text-[var(--color-destructive)] hover:bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.08)] hover:text-[var(--color-destructive)]"
+              >
+                <Trash2 className="size-3.5" />
+                Delete
+              </Button>
+            )
+          ) : (
+            <span aria-hidden />
           )}
-          <DialogClose asChild>
-            <Button size="sm">Close</Button>
-          </DialogClose>
+
+          {/* Right cluster — primary actions */}
+          <div className="flex items-center gap-2">
+            {metaQuery.data && metaQuery.data.status === FileAssetStatus.Available && (
+              <DownloadButton file={metaQuery.data} />
+            )}
+            <DialogClose asChild>
+              <Button size="sm">Close</Button>
+            </DialogClose>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -143,7 +263,7 @@ function Preview({
 
   if (!isAvailable) {
     return (
-      <div className="rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-surface-2)] px-4 py-8 text-center">
+      <div className="rounded-xl border border-border bg-[var(--color-muted)] px-4 py-8 text-center">
         <p className="text-sm text-[var(--color-muted-foreground)]">
           {file.status === FileAssetStatus.PendingUpload
             ? "Upload not yet finalized."
@@ -159,7 +279,7 @@ function Preview({
 
   if (errored) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-surface-2)] px-4 py-10 text-center">
+      <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-[var(--color-muted)] px-4 py-10 text-center">
         <p className="text-sm text-[var(--color-muted-foreground)]">
           Preview link expired or unreachable.
         </p>
@@ -179,7 +299,7 @@ function Preview({
 
   if (file.contentType.startsWith("image/")) {
     return (
-      <div className="grid place-items-center overflow-hidden rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-surface-1)]">
+      <div className="grid place-items-center overflow-hidden rounded-xl border border-border bg-[var(--color-muted)]">
         <img
           src={url}
           alt={file.originalFileName}
@@ -195,7 +315,7 @@ function Preview({
       <iframe
         src={url}
         title={file.originalFileName}
-        className="h-[60vh] w-full rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-surface-1)]"
+        className="h-[60vh] w-full rounded-xl border border-border bg-[var(--color-muted)]"
       />
     );
   }
@@ -205,7 +325,7 @@ function Preview({
   }
 
   return (
-    <div className="flex flex-col items-center gap-3 rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-surface-2)] px-4 py-10 text-center">
+    <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-[var(--color-muted)] px-4 py-10 text-center">
       <FileIcon className="h-8 w-8 text-[var(--color-muted-foreground)]" />
       <p className="text-sm text-[var(--color-muted-foreground)]">
         Preview not available for this file type.
@@ -248,36 +368,98 @@ function TextPreview({ url }: { url: string }) {
     return <PreviewSkeleton />;
   }
   return (
-    <pre className="max-h-[55vh] overflow-auto rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-surface-1)] p-4 font-mono text-xs leading-relaxed text-[var(--color-foreground)]">
+    <pre className="max-h-[55vh] overflow-auto rounded-xl border border-border bg-[var(--color-muted)] p-4 font-mono text-xs leading-relaxed text-[var(--color-foreground)]">
       {text}
     </pre>
   );
 }
 
-function MetadataPanel({ file }: { file: FileAssetDto }) {
-  const rows: Array<[string, React.ReactNode]> = [
-    ["File ID", <code className="font-mono text-[11px]">{file.id}</code>],
-    ["Owner type", file.ownerType],
-    ["Owner ID", file.ownerId ?? "—"],
-    ["Content type", file.contentType],
-    ["Size", formatBytes(file.sizeBytes)],
-    ["Visibility", file.visibility === Visibility.Public ? "Public" : "Private"],
-    ["Status", statusLabel(file.status)],
-    ["Created", new Date(file.createdAtUtc).toLocaleString()],
+function MetadataPanel({
+  file,
+  isUploader,
+  onChangeVisibility,
+  visibilityPending,
+}: {
+  file: FileAssetDto;
+  isUploader: boolean;
+  onChangeVisibility: (next: typeof Visibility[keyof typeof Visibility]) => void;
+  visibilityPending: boolean;
+}) {
+  // Uploader name resolved via the existing identity cache. For files older than
+  // the createdByUserId rollout this comes back empty — fall back to a hyphen so
+  // the row reads cleanly rather than as a broken loader.
+  const uploader = useUserDisplay(file.createdByUserId || null);
+  const uploaderLabel = file.createdByUserId
+    ? uploader.loading
+      ? "Loading…"
+      : uploader.name
+    : "—";
+
+  const rows: Array<[string, React.ReactNode, string?]> = [
+    ["File ID", <code className="font-mono text-[11px]">{file.id}</code>, file.id],
+    ["Owner type", file.ownerType, file.ownerType],
+    ["Uploaded by", uploaderLabel, uploaderLabel],
+    ["Content type", file.contentType, file.contentType],
+    ["Size", formatBytes(file.sizeBytes), undefined],
+    ["Status", statusLabel(file.status), undefined],
+    ["Created", new Date(file.createdAtUtc).toLocaleString(), undefined],
   ];
+
+  const isPublic = file.visibility === Visibility.Public;
+
   return (
-    <dl className="grid grid-cols-1 gap-x-6 gap-y-2 rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-surface-2)] p-4 sm:grid-cols-2">
-      {rows.map(([k, v]) => (
-        <div key={k} className="flex items-baseline justify-between gap-3 sm:block">
-          <dt className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
-            {k}
+    <div className="space-y-3 rounded-xl border border-border bg-[var(--color-muted)] p-4">
+      {/* Visibility row — switch when the caller is the uploader, static label
+          otherwise. Public state gets a small "visible to the tenant" hint so
+          the consequence is clear before flipping. */}
+      <div className="flex items-start justify-between gap-3 border-b border-[oklch(from_var(--color-border)_l_c_h_/_0.5)] pb-3">
+        <div>
+          <dt className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
+            Visibility
           </dt>
-          <dd className="truncate text-sm text-[var(--color-foreground)]" title={typeof v === "string" ? v : undefined}>
-            {v}
+          <dd
+            className={cn(
+              "mt-0.5 text-sm font-medium",
+              isPublic ? "text-[var(--color-primary)]" : "text-[var(--color-foreground)]",
+            )}
+          >
+            {isPublic ? "Public" : "Private"}
           </dd>
+          <p className="mt-0.5 text-[11px] text-[var(--color-muted-foreground)]">
+            {isPublic
+              ? "Everyone in your tenant can find this file under Shared."
+              : "Only you can preview or download this file."}
+          </p>
         </div>
-      ))}
-    </dl>
+        {isUploader ? (
+          <Switch
+            checked={isPublic}
+            onCheckedChange={(checked) =>
+              onChangeVisibility(checked ? Visibility.Public : Visibility.Private)
+            }
+            disabled={visibilityPending}
+            aria-label="Toggle public visibility"
+          />
+        ) : (
+          <span className="text-[10.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
+            Read-only
+          </span>
+        )}
+      </div>
+
+      <dl className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
+        {rows.map(([k, v, titleText]) => (
+          <div key={k} className="flex items-baseline justify-between gap-3 sm:block">
+            <dt className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
+              {k}
+            </dt>
+            <dd className="truncate text-sm text-[var(--color-foreground)]" title={titleText}>
+              {v}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
   );
 }
 
@@ -324,7 +506,7 @@ function statusLabel(status: number): string {
 
 function PreviewSkeleton() {
   return (
-    <div className="grid h-[40vh] place-items-center rounded-xl border border-dashed border-[var(--color-border-strong)] bg-[var(--color-surface-2)]">
+    <div className="grid h-[40vh] place-items-center rounded-xl border border-dashed border-border bg-[var(--color-muted)]">
       <Loader2 className="h-6 w-6 animate-spin text-[var(--color-muted-foreground)]" />
     </div>
   );

@@ -148,7 +148,7 @@ export function ChannelSettingsDialog({
             <label
               htmlFor="channel-settings-private"
               className={cn(
-                "flex cursor-pointer items-start gap-2.5 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3",
+                "flex cursor-pointer items-start gap-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-muted)] p-3",
                 !isAdmin && "cursor-not-allowed opacity-60",
               )}
             >
@@ -173,7 +173,7 @@ export function ChannelSettingsDialog({
           <section className="space-y-3">
             <SectionTitle>
               Members
-              <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+              <span className="ml-2 text-[11px] tabular-nums text-[var(--color-muted-foreground)]">
                 {channel.members.length}
               </span>
             </SectionTitle>
@@ -188,7 +188,7 @@ export function ChannelSettingsDialog({
           {/* ── Danger zone ─────────────────────────────────────────── */}
           <section className="space-y-2">
             <SectionTitle>Danger zone</SectionTitle>
-            <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3">
+            <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-muted)] p-3">
               {isAdmin ? (
                 <div className="flex items-center justify-between gap-3">
                   <div>
@@ -262,7 +262,7 @@ export function ChannelSettingsDialog({
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex items-center font-mono text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
+    <div className="flex items-center text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
       {children}
     </div>
   );
@@ -278,7 +278,7 @@ function MemberList({
   isAdmin: boolean;
 }) {
   return (
-    <ul className="divide-y divide-[var(--color-border)] rounded-md border border-[var(--color-border)] bg-[var(--color-surface-1)]">
+    <ul className="divide-y divide-[var(--color-border)] rounded-lg border border-[var(--color-border)] bg-[var(--color-card)]">
       {channel.members.map((m) => (
         <MemberRow
           key={m.id}
@@ -331,19 +331,19 @@ function MemberRow({
           <span className="truncate text-sm font-medium text-[var(--color-foreground)]">
             {display.name}
             {isSelf && (
-              <span className="ml-1.5 font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+              <span className="ml-1.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
                 you
               </span>
             )}
           </span>
           {memberIsAdmin && (
-            <span className="inline-flex items-center gap-0.5 rounded-md bg-[var(--color-primary-soft)] px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--color-primary)]">
+            <span className="inline-flex items-center gap-0.5 rounded-md bg-[var(--color-primary-soft)] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-primary)]">
               <ShieldCheck className="h-2.5 w-2.5" aria-hidden /> admin
             </span>
           )}
         </div>
         {display.handle && (
-          <div className="truncate font-mono text-[10.5px] text-[var(--color-muted-foreground)]">
+          <div className="truncate text-[11px] text-[var(--color-muted-foreground)]">
             @{display.handle}
           </div>
         )}
@@ -359,7 +359,7 @@ function MemberRow({
           disabled={mutation.isPending}
           aria-label={`Remove ${display.name}`}
           className={cn(
-            "grid h-7 w-7 cursor-pointer place-items-center rounded-md",
+            "grid h-8 w-8 cursor-pointer place-items-center rounded-md",
             "text-[var(--color-muted-foreground)] hover:bg-[var(--color-destructive)] hover:text-white",
             "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
             "disabled:opacity-50",
@@ -412,7 +412,7 @@ function AddMembersRow({ channel }: { channel: ChannelDto }) {
 
   return (
     <div className="space-y-2">
-      <Label htmlFor="channel-settings-add" className="font-mono text-[10.5px] uppercase tracking-[0.14em]">
+      <Label htmlFor="channel-settings-add" className="text-[11px] font-semibold uppercase tracking-wider">
         Add member
       </Label>
       <Input
@@ -422,9 +422,9 @@ function AddMembersRow({ channel }: { channel: ChannelDto }) {
         placeholder="Name, username, or email…"
       />
       {debounced.length >= 2 && (
-        <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface-1)]">
+        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)]">
           {usersQuery.isLoading ? (
-            <div className="px-3 py-3 font-mono text-[10.5px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+            <div className="px-3 py-3 text-[12px] text-[var(--color-muted-foreground)]">
               Searching…
             </div>
           ) : candidates.length === 0 ? (
@@ -462,7 +462,7 @@ function AddMembersRow({ channel }: { channel: ChannelDto }) {
                           {display}
                         </div>
                         {u.email && (
-                          <div className="truncate font-mono text-[10.5px] text-[var(--color-muted-foreground)]">
+                          <div className="truncate text-[11px] text-[var(--color-muted-foreground)]">
                             {u.email}
                           </div>
                         )}
