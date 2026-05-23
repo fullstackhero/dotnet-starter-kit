@@ -413,6 +413,12 @@ jobs:
       - name: Pack CLI Tool
         run: dotnet pack src/Tools/CLI/FSH.CLI.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
 
+      # The dotnet new template package — the primary distribution artifact. Packs the
+      # repo (with its root .template.config) so consumers can `dotnet new install` then
+      # `dotnet new fsh -n MyApp`. Scaffolded output is fully owned, detached source.
+      - name: Pack Template
+        run: dotnet pack templates/FullStackHero.NET.StarterKit.csproj -c Release -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
+
       - name: Push to NuGet.org
         run: dotnet nuget push "./nupkgs/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
 

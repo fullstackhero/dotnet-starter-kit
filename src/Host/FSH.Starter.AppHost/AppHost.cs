@@ -115,6 +115,7 @@ var api = builder.AddProject<Projects.FSH_Starter_Api>("fsh-api")
     .WithEnvironment("Storage__S3__ForcePathStyle", "true")
     .WithEnvironment("Storage__S3__PublicBaseUrl", ReferenceExpression.Create($"{minioApiEndpoint}/{MinioBucket}"));
 
+//#if (frontend)
 // Admin console (React + Vite).
 //
 // We target the API's HTTPS endpoint, not HTTP. The API has
@@ -139,5 +140,6 @@ builder.AddJavaScriptApp("fsh-dashboard", "../../../clients/dashboard", "dev")
     .WithHttpEndpoint(port: 5174, targetPort: 5174, isProxied: false)
     .WithExternalHttpEndpoints()
     .WithEnvironment("VITE_API_BASE_URL", api.GetEndpoint("https"));
+//#endif
 
 await builder.Build().RunAsync();

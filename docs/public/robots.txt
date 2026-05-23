@@ -1,5 +1,5 @@
 # FullStackHero docs — robots.txt
-# https://docs.fullstackhero.net
+# https://fullstackhero.net
 
 # Default policy: allow everyone
 User-agent: *
@@ -70,4 +70,4 @@ Allow: /
 User-agent: Slackbot
 Allow: /
 
-Sitemap: https://docs.fullstackhero.net/sitemap-index.xml
+Sitemap: https://fullstackhero.net/sitemap-index.xml

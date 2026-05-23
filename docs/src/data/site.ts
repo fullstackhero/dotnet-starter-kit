@@ -1,5 +1,5 @@
 const siteConfig = {
-  url: 'https://docs.fullstackhero.net',
+  url: 'https://fullstackhero.net',
   title: 'fullstackhero - .NET 10 Starter Kit with React UI',
   description:
     'Free, MIT-licensed, production-ready .NET 10 starter kit with React + Vite admin + dashboard. Modular monolith with vertical slice architecture, multitenancy-first, and ten ready-to-ship modules — so engineering teams skip the scaffolding and write features on day one.',

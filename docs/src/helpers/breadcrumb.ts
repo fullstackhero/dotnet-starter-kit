@@ -3,10 +3,10 @@
  *
  * Input  : "/docs/getting-started/install/"
  * Output : [
- *   { name: "Home",            url: "https://docs.fullstackhero.net/" },
- *   { name: "Docs",            url: "https://docs.fullstackhero.net/docs/" },
- *   { name: "Getting Started", url: "https://docs.fullstackhero.net/docs/getting-started/" },
- *   { name: "Install",         url: "https://docs.fullstackhero.net/docs/getting-started/install/" },
+ *   { name: "Home",            url: "https://fullstackhero.net/" },
+ *   { name: "Docs",            url: "https://fullstackhero.net/docs/" },
+ *   { name: "Getting Started", url: "https://fullstackhero.net/docs/getting-started/" },
+ *   { name: "Install",         url: "https://fullstackhero.net/docs/getting-started/install/" },
  * ]
  *
  * The final crumb (the current page) overrides `name` with the page's

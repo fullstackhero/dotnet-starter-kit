@@ -1,0 +1,24 @@
+# Response headers for Cloudflare Workers Static Assets.
+#
+# Restores the security headers the new Worker was NOT sending (the OLD
+# fullstackhero.net sent HSTS — don't regress on cutover) and sets long-
+# lived immutable caching for content-hashed build assets.
+#
+# NOTE: no Content-Security-Policy here on purpose. The site ships inline
+# scripts (theme bootstrap, JSON-LD, magnetic-cards) so a CSP needs script
+# hashes/nonces to avoid breaking them — do that as a separate tested step.
+
+/*
+  Strict-Transport-Security: max-age=63072000
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), interest-cohort=()
+  Cross-Origin-Opener-Policy: same-origin
+
+# Astro fingerprints these filenames, so they can be cached forever.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable

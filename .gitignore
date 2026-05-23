@@ -503,6 +503,9 @@ spec-os/
 **/wwwroot/uploads/*
 
 /.claude/settings.local.json
+/.claude/worktrees/
+/.claude/scheduled_tasks.lock
+/.claude/last30days.env
 tmpclaude**
 
 # Auto Claude data directory

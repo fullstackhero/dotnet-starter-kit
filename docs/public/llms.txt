@@ -61,14 +61,19 @@ For production deployment, `deploy/docker/docker-compose.yml` ships a complete D
 
 ## Documentation map
 
-- Landing: https://docs.fullstackhero.net/
-- Getting Started: https://docs.fullstackhero.net/docs/getting-started/
-- Install: https://docs.fullstackhero.net/docs/getting-started/install/
-- Concepts: https://docs.fullstackhero.net/docs/concepts/
-- Modules: https://docs.fullstackhero.net/docs/modules/
-- Recipes: https://docs.fullstackhero.net/docs/recipes/
-- Reference: https://docs.fullstackhero.net/docs/reference/
-- Contributing: https://docs.fullstackhero.net/docs/contributing/
+- Landing: https://fullstackhero.net/
+- Getting Started: https://fullstackhero.net/docs/getting-started/
+- Install: https://fullstackhero.net/docs/getting-started/install/
+- Architecture: https://fullstackhero.net/docs/architecture/
+- Modules: https://fullstackhero.net/docs/modules/
+- Building Blocks: https://fullstackhero.net/docs/building-blocks/
+- Cross-Cutting Concerns: https://fullstackhero.net/docs/cross-cutting-concerns/
+- Security: https://fullstackhero.net/docs/security/
+- Frontend: https://fullstackhero.net/docs/frontend/
+- Guides: https://fullstackhero.net/docs/guides/
+- Compare: https://fullstackhero.net/docs/compare/
+- Contributing: https://fullstackhero.net/docs/contributing/
+- Full documentation corpus (single file): https://fullstackhero.net/llms-full.txt
 
 ## Positioning
 
