@@ -4,6 +4,7 @@ using FSH.Modules.Auditing.Contracts.v1.GetSecurityAudits;
 using FSH.Modules.Auditing.Persistence;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
+using static FSH.Modules.Auditing.Persistence.AuditJsonbFunctions;
 
 namespace FSH.Modules.Auditing.Features.v1.GetSecurityAudits;
 
@@ -42,8 +43,10 @@ public sealed class GetSecurityAuditsQueryHandler : IQueryHandler<GetSecurityAud
         if (query.Action.HasValue && query.Action.Value != SecurityAction.None)
         {
             string actionValue = query.Action.Value.ToString();
+            // PostgreSQL renders jsonb::text in canonical form with a space after the
+            // colon ({"action": "Value"}), so the pattern must include that space.
             audits = audits.Where(a => a.PayloadJson != null &&
-                EF.Functions.ILike(a.PayloadJson, $"%\"action\":\"{actionValue}\"%"));
+                EF.Functions.ILike(AsText(a.PayloadJson), $"%\"action\": \"{actionValue}\"%"));
         }
 
         var list = await audits
