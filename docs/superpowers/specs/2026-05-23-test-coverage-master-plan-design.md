@@ -107,6 +107,11 @@ Legend: `✓` covered · `~` thin (harden) · `✗` gap (fill) · `–` N/A
 
 Each item names the *new* test(s) and explicitly notes what it must NOT duplicate.
 
+> **Status — updated 2026-05-23 (wave 1 + 2 executed via 7 parallel worktree sub-agents):**
+> DONE: #1 permission-cache invalidation, #2 forgot/reset password, #3 change password, #4 webhook HMAC signature, #5 provisioning-failure path, #6 Billing cross-tenant fetch, #7 roles tenant scoping, #9 Chat isolation, #10 Files isolation + visibility/sharing, #11 Catalog/Tickets/Groups isolation. ~33 new tests, all green.
+> **⚠️ #6 found two real P1 leaks** — `GetInvoiceById` (id-only filter) and `GetSubscription` (trusted caller `tenantId`) let any tenant read another tenant's data. Both fixed (module-local, root-operator admin read preserved). Other modules (Catalog/Tickets/Groups) confirmed clean via `BaseDbContext` tenant filter.
+> REMAINING: #8 (403 authenticated-no-permission hardening, multiple modules), #12–14 (P3 thin-cell hardening), and sub-projects **B-frontend** (Playwright E2E — the genuinely untested layer) and **C** (CI ratchet).
+
 ### P0 — T1 critical holes (wired-but-unverified or security-load-bearing)
 
 1. **Permission-cache invalidation** — `PermissionCacheInvalidationTests`: after `UpdateRolePermissions` (and `AssignRoles`, group add/remove), a previously-cached `HasPermissionAsync`/`GetPermissionsAsync` reflects the change on the next call. *Not duplicated by* `RolePermissionSyncerTests` (that tests claim restoration, not live cache eviction).
