@@ -250,7 +250,7 @@ jobs:
     # ubuntu-latest has) with coverage, then fails if line coverage regresses below the
     # floor. Ratchet: bump MIN_LINE upward as coverage improves.
     env:
-      MIN_LINE: '78'
+      MIN_LINE: '80'
 
     steps:
       - name: Checkout
