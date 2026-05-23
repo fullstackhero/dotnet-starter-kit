@@ -39,7 +39,7 @@ public sealed class AuditExceptionAndFilterTests
         rows.ShouldAllBe(r => r.EventType == AuditEventType.Exception);
     }
 
-    [Fact(Skip = "found: jsonb ILIKE bug — GetExceptionAuditsQueryHandler.ApplyPayloadFilters does EF.Functions.ILike(a.PayloadJson, ...) on a jsonb column, which Postgres rejects (42883 like_escape(jsonb, unknown) does not exist). Needs PayloadJson::text cast. See return notes.")]
+    [Fact]
     public async Task GetExceptionAudits_Should_FilterByArea_When_ApiAreaRequested()
     {
         // Arrange
@@ -70,7 +70,7 @@ public sealed class AuditExceptionAndFilterTests
         rows.ShouldAllBe(r => r.Severity == AuditSeverity.Error);
     }
 
-    [Fact(Skip = "found: jsonb ILIKE bug — exceptionType filter does EF.Functions.ILike(a.PayloadJson, ...) on a jsonb column (Postgres 42883). See return notes.")]
+    [Fact]
     public async Task GetExceptionAudits_Should_FilterByExceptionType_When_TypeProvided()
     {
         // Arrange
@@ -85,7 +85,7 @@ public sealed class AuditExceptionAndFilterTests
         rows.ShouldNotBeEmpty();
     }
 
-    [Fact(Skip = "found: jsonb ILIKE bug — exceptionType filter does EF.Functions.ILike(a.PayloadJson, ...) on a jsonb column (Postgres 42883). See return notes.")]
+    [Fact]
     public async Task GetExceptionAudits_Should_ReturnEmpty_When_UnknownExceptionType()
     {
         // Arrange
@@ -100,7 +100,7 @@ public sealed class AuditExceptionAndFilterTests
         rows.ShouldBeEmpty();
     }
 
-    [Fact(Skip = "found: jsonb ILIKE bug — routeOrLocation filter does EF.Functions.ILike(a.PayloadJson, ...) on a jsonb column (Postgres 42883). See return notes.")]
+    [Fact]
     public async Task GetExceptionAudits_Should_FilterByRouteOrLocation_When_RouteProvided()
     {
         // Arrange
@@ -152,7 +152,7 @@ public sealed class AuditExceptionAndFilterTests
         rows.ShouldAllBe(r => r.EventType == AuditEventType.Security);
     }
 
-    [Fact(Skip = "found: jsonb ILIKE bug — GetSecurityAuditsQueryHandler action filter does EF.Functions.ILike(a.PayloadJson, ...) on a jsonb column (Postgres 42883 like_escape(jsonb, unknown)). Needs PayloadJson::text cast. See return notes.")]
+    [Fact]
     public async Task GetSecurityAudits_Should_FilterByAction_When_TokenIssuedRequested()
     {
         // Arrange
@@ -266,7 +266,7 @@ public sealed class AuditExceptionAndFilterTests
         page.Items.ShouldAllBe(r => r.TraceId == seed.TraceId);
     }
 
-    [Fact(Skip = "found: jsonb ILIKE bug — GetAuditsQueryHandler.Search ORs EF.Functions.ILike(a.PayloadJson, ...) (jsonb) with Source/UserName (text). The jsonb leg makes Postgres reject the whole predicate (42883 like_escape(jsonb, unknown)), so search is unusable. Needs PayloadJson::text cast. See return notes.")]
+    [Fact]
     public async Task GetAudits_Should_SearchPayload_When_SearchTermProvided()
     {
         // Arrange
