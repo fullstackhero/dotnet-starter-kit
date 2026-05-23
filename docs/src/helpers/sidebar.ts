@@ -34,7 +34,14 @@ function pathFromId(id: string): string {
 
 function isIndexEntry(id: string, dir: string): boolean {
   const norm = normalizeId(id);
-  return norm === `${dir}/index`;
+  // A section's overview page can surface under two id shapes:
+  //   - Astro 5 / legacy loader:        '<dir>/index'
+  //   - Astro 6 glob loader (slug):     '<dir>'   (the trailing /index is stripped)
+  // Match both so the overview is always pulled out as `indexHref` (rendered
+  // first as "Overview") instead of falling into the page list. Without the
+  // bare-dir case, every section's overview leaked into the list and sorted
+  // by its `order` — e.g. Frontend showing second under "Admin console".
+  return norm === dir || norm === `${dir}/index`;
 }
 
 function isRootIndex(id: string): boolean {

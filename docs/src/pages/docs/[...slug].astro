@@ -6,6 +6,7 @@ import Breadcrumbs from '../../components/docs/Breadcrumbs.astro';
 import PrevNext from '../../components/docs/PrevNext.astro';
 import { mdxComponents } from '../../components/mdx';
 import { buildBreadcrumbItems, buildBreadcrumbSchema } from '../../helpers/breadcrumb';
+import { sections } from '../../content/docs/_sections';
 import siteConfig from '../../data/site';
 
 export async function getStaticPaths() {
@@ -38,10 +39,16 @@ const noindex = seo.noindex === true;
 
 // ── Structured data ─────────────────────────────────────────────────────
 const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? siteConfig.url).toString();
+// Section overview pages (slug is just the section dir) use the section label
+// as the final crumb, not the page title ("Overview"), so the visible
+// breadcrumb and the JSON-LD stay consistent and keep their context.
+const crumbParts = slugForCrumb.split('/').filter(Boolean);
+const sectionForCrumb = crumbParts.length === 1 ? sections.find((s) => s.dir === crumbParts[0]) : undefined;
+const breadcrumbLeafTitle = sectionForCrumb ? sectionForCrumb.label : entry.data.title;
 const breadcrumbItems = buildBreadcrumbItems(
   Astro.url.pathname,
   (Astro.site ?? new URL(siteConfig.url)).toString(),
-  entry.data.title,
+  breadcrumbLeafTitle,
 );
 const breadcrumbSchema = buildBreadcrumbSchema(breadcrumbItems);
 

@@ -10,12 +10,20 @@ const { slug, title } = Astro.props;
 const parts = slug.split('/').filter(Boolean);
 const items: Array<{ label: string; href: string | null }> = [{ label: 'Docs', href: '/docs/' }];
 
-if (parts.length > 0 && parts[0] !== 'index') {
-  const section = sections.find((s) => s.dir === parts[0]);
-  if (section) items.push({ label: section.label, href: `/docs/${section.dir}/` });
+const section = parts.length > 0 && parts[0] !== 'index' ? sections.find((s) => s.dir === parts[0]) : undefined;
+
+// A section overview page (slug is just the section dir) IS the section crumb,
+// so render the section as the final, unlinked crumb and stop — appending the
+// page title here would duplicate it (e.g. "Docs / Modules / Modules").
+const isSectionIndex = section !== undefined && parts.length === 1;
+
+if (section) {
+  items.push({ label: section.label, href: isSectionIndex ? null : `/docs/${section.dir}/` });
 }
 
-items.push({ label: title, href: null });
+if (!isSectionIndex) {
+  items.push({ label: title, href: null });
+}
 ---
 <nav aria-label="Breadcrumb" class="mb-6 text-sm">
   <ol class="flex flex-wrap items-center gap-1.5 text-muted-foreground">
