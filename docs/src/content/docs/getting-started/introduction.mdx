@@ -49,8 +49,7 @@ dotnet-starter-kit/
 │   │   ├── Mailing               MailKit / SendGrid
 │   │   ├── Storage               Local + S3-compatible
 │   │   ├── Quota                 Per-tenant limits
-│   │   ├── Shared                Permission constants, common contracts
-│   │   └── Blazor.UI             Shared Blazor primitives
+│   │   └── Shared                Permission constants, common contracts
 │   │
 │   ├── Modules/               Bounded contexts (each = runtime + contracts pair)
 │   │   ├── Identity              ASP.NET Identity, JWT, roles, permissions
@@ -64,7 +63,6 @@ dotnet-starter-kit/
 │   ├── Host/
 │   │   ├── FSH.Starter.Api               Composition root (Program.cs)
 │   │   ├── FSH.Starter.AppHost           .NET Aspire orchestrator
-│   │   ├── FSH.Starter.Blazor            Blazor server app
 │   │   ├── FSH.Starter.DbMigrator        Migrations + seed-demo CLI
 │   │   └── FSH.Starter.Migrations.PostgreSQL
 │   │
@@ -158,7 +156,6 @@ The API never mutates data on startup. Demo data (acme/globex tenants, sample ca
 |-------------|--------------------------------|
 | `clients/admin`     | React + Vite                  |
 | `clients/dashboard` | React + Vite                  |
-| `Host/FSH.Starter.Blazor` | Blazor (server)         |
 
 ### Testing
 

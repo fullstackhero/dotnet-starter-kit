@@ -116,7 +116,7 @@ Tune via `SecurityHeadersOptions`:
 Content-Security-Policy is the most expressive and the most error-prone. The kit's default is conservative:
 
 - `default-src 'self'` — most resources only from the same origin
-- `script-src 'self' 'wasm-unsafe-eval'` — allow self-hosted scripts + WASM (for any future Blazor-WebAssembly bits)
+- `script-src 'self' 'wasm-unsafe-eval'` — allow self-hosted scripts + WebAssembly modules
 - `connect-src 'self' wss: https:` — XHR/fetch + WebSocket to self + any HTTPS/WSS endpoint (needed for OTel exporters, third-party integrations)
 - `style-src 'self' 'unsafe-inline'` — self-hosted CSS + inline styles (Scalar UI uses inline styles)
 - `img-src 'self' https: data:` — self + any HTTPS img + data: URIs (for QR codes in 2FA enrolment)

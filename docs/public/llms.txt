@@ -30,9 +30,9 @@ Author: Mukesh Murugan (https://codewithmukesh.com)
 - Catalog — Products, categories, images
 - Tickets — Support tickets and conversations
 
-## Twelve building blocks (shared infrastructure)
+## Eleven building blocks (shared infrastructure)
 
-Core, Persistence, Shared, Web, Caching, Eventing, Eventing.Abstractions, Jobs, Mailing, Storage, Quota, Blazor.UI. These are framework libraries consumed by every module.
+Core, Persistence, Shared, Web, Caching, Eventing, Eventing.Abstractions, Jobs, Mailing, Storage, Quota. These are framework libraries consumed by every module.
 
 ## Tech stack
 

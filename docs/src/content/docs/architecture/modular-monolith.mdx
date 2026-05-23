@@ -22,11 +22,10 @@ A modular monolith is its own architecture. You ship one process, one deploy, on
 
 ```
 src/
-├── BuildingBlocks/                 Shared infrastructure (12 libraries)
+├── BuildingBlocks/                 Shared infrastructure (11 libraries)
 │   ├── Core, Persistence, Web, Shared
 │   ├── Caching, Eventing, Eventing.Abstractions
-│   ├── Jobs, Mailing, Storage, Quota
-│   └── Blazor.UI (placeholder)
+│   └── Jobs, Mailing, Storage, Quota
 │
 ├── Modules/                        Ten bounded contexts
 │   ├── Identity/
@@ -45,7 +44,6 @@ src/
 ├── Host/                           Composition root + orchestrator
 │   ├── FSH.Starter.Api/                The API process
 │   ├── FSH.Starter.AppHost/            .NET Aspire orchestrator
-│   ├── FSH.Starter.Blazor/             Blazor server app
 │   ├── FSH.Starter.DbMigrator/         Migrations + demo seeder CLI
 │   └── FSH.Starter.Migrations.PostgreSQL/
 │
