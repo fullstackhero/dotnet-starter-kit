@@ -68,6 +68,7 @@
     <Project Path="Tests/Chat.Tests/Chat.Tests.csproj" />
     <Project Path="Tests/Webhooks.Tests/Webhooks.Tests.csproj" />
     <Project Path="Tests/Files.Tests/Files.Tests.csproj" />
+    <Project Path="Tests/Framework.Tests/Framework.Tests.csproj" />
     <Project Path="Tests/Caching.Tests/Caching.Tests.csproj" />
     <Project Path="Tests/Generic.Tests/Generic.Tests.csproj" />
     <Project Path="Tests/Identity.Tests/Identity.Tests.csproj" />
