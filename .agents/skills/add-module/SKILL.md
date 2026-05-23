@@ -1,176 +1,135 @@
 ---
 name: add-module
-description: Create a new module (bounded context) with proper project structure, permissions, DbContext, and registration. Use when adding a new business domain that needs its own entities and endpoints.
+description: Create a new module (bounded context) — runtime + Contracts projects, IModule, DbContext, permissions, migrations, and the four registration sites. Use when adding a distinct business domain. For a feature in an existing module, use add-feature.
 argument-hint: [ModuleName]
 ---
 
 # Add Module
 
-Create a new bounded context with full project structure.
+High-ceremony. The part people get wrong is **registration — a module must be wired in FOUR places**
+(see Step 6). Architecture rules: `.agents/rules/architecture.md`.
 
-## When to Create a New Module
-
-- Has its own domain entities
-- Could be deployed independently
-- Represents a distinct business domain
-
-If it's just a feature in an existing domain, use `add-feature` instead.
-
-## Project Structure
+## Projects
 
 ```
 src/Modules/{Name}/
-├── Modules.{Name}/
-│   ├── Modules.{Name}.csproj
-│   ├── {Name}Module.cs
-│   ├── {Name}PermissionConstants.cs
-│   ├── {Name}DbContext.cs
-│   ├── Domain/
-│   │   └── {Entity}.cs
-│   └── Features/v1/
-│       └── {Feature}/
-└── Modules.{Name}.Contracts/
-    ├── Modules.{Name}.Contracts.csproj
-    └── DTOs/
+├── Modules.{Name}/            ← runtime (internal): Domain/, Data/, Features/v1/, {Name}Module.cs
+└── Modules.{Name}.Contracts/  ← public API: v1/ (commands/queries), Dtos/, Authorization/, Events/
 ```
 
-## Step 1: Create Projects
+**Copy an existing module's two `.csproj` files** (e.g. `Modules.Catalog`) and rename — don't hand-write
+project references. The runtime project references its Contracts project + the BuildingBlocks it needs;
+the Contracts project references `Mediator` + shared contracts.
 
-### Main Module Project
-`src/Modules/{Name}/Modules.{Name}/Modules.{Name}.csproj`:
-```xml
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-  </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\BuildingBlocks\Core\Core.csproj" />
-    <ProjectReference Include="..\..\BuildingBlocks\Persistence\Persistence.csproj" />
-    <ProjectReference Include="..\..\BuildingBlocks\Web\Web.csproj" />
-    <ProjectReference Include="..\Modules.{Name}.Contracts\Modules.{Name}.Contracts.csproj" />
-  </ItemGroup>
-</Project>
-```
+## Step 1 — `[FshModule]` is an ASSEMBLY attribute (not class-level)
 
-### Contracts Project
-`src/Modules/{Name}/Modules.{Name}.Contracts/Modules.{Name}.Contracts.csproj`:
-```xml
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-  </PropertyGroup>
-</Project>
-```
-
-## Step 2: Implement IModule
+In `{Name}Module.cs`, above the namespace:
 
 ```csharp
+[assembly: FshModule(typeof(FSH.Modules.{Name}.{Name}Module), 900)]   // (Type, order)
+
+namespace FSH.Modules.{Name};
+
 public sealed class {Name}Module : IModule
 {
     public void ConfigureServices(IHostApplicationBuilder builder)
     {
-        // Register DbContext
-        builder.Services.AddDbContext<{Name}DbContext>((sp, options) =>
-        {
-            var dbOptions = sp.GetRequiredService<IOptions<DatabaseOptions>>().Value;
-            options.UseNpgsql(dbOptions.ConnectionString);
-        });
+        ArgumentNullException.ThrowIfNull(builder);
+        PermissionConstants.Register({Name}Permissions.All);
+        builder.Services.AddHeroDbContext<{Name}DbContext>();
+        builder.Services.AddScoped<IDbInitializer, {Name}DbInitializer>();
 
-        // Register repositories
-        builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-        builder.Services.AddScoped(typeof(IReadRepository<>), typeof(Repository<>));
+        // Only if the module publishes/handles integration events:
+        // builder.Services.AddEventingCore(builder.Configuration);
+        // builder.Services.AddEventingForDbContext<{Name}DbContext>();
+        // builder.Services.AddIntegrationEventHandlers(typeof({Name}Module).Assembly);
+
+        builder.Services.AddHealthChecks()
+            .AddDbContextCheck<{Name}DbContext>(name: "db:{name}");
     }
+
+    public void ConfigureMiddleware(IApplicationBuilder app) { }   // optional, runs after auth
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/api/v1/{name}");
-        // Map feature endpoints here
+        ArgumentNullException.ThrowIfNull(endpoints);
+        var versionSet = endpoints.NewApiVersionSet().HasApiVersion(new ApiVersion(1)).ReportApiVersions().Build();
+        var group = endpoints.MapGroup("api/v{version:apiVersion}/{name}")
+            .WithTags("{Name}").WithApiVersionSet(versionSet).RequireAuthorization();
+        // group.MapCreate{Entity}Endpoint();  …
     }
 }
 ```
 
-## Step 3: Add Permission Constants
+`Order` controls load sequence (Auditing 300, Files 350, Webhooks 400, Billing 500, Catalog 600, Tickets 700, Notifications 750, Chat 800). If your module consumes another's events, load after it.
+
+## Step 2 — Permissions (Contracts/Authorization)
+
+`{Name}Permissions` with nested resource classes and an `All` collection registered via `PermissionConstants.Register({Name}Permissions.All)`. Mirror the shape of `CatalogPermissions`.
+
+## Step 3 — DbContext (extends `BaseDbContext`)
 
 ```csharp
-public static class {Name}PermissionConstants
+public sealed class {Name}DbContext : BaseDbContext
 {
-    public static class {Entities}
-    {
-        public const string View = "{Entities}.View";
-        public const string Create = "{Entities}.Create";
-        public const string Update = "{Entities}.Update";
-        public const string Delete = "{Entities}.Delete";
-    }
-}
-```
+    public const string Schema = "{name}";
 
-## Step 4: Create DbContext
-
-```csharp
-public sealed class {Name}DbContext : DbContext
-{
-    public {Name}DbContext(DbContextOptions<{Name}DbContext> options) : base(options) { }
+    public {Name}DbContext(
+        IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
+        DbContextOptions<{Name}DbContext> options,
+        IOptions<DatabaseOptions> settings,
+        IHostEnvironment environment)
+        : base(multiTenantContextAccessor, options, settings, environment) { }
 
     public DbSet<{Entity}> {Entities} => Set<{Entity}>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema("{name}");
+        ArgumentNullException.ThrowIfNull(modelBuilder);
+        modelBuilder.HasDefaultSchema(Schema);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof({Name}DbContext).Assembly);
+        base.OnModelCreating(modelBuilder);   // MUST be last — applies tenant + soft-delete filters
     }
 }
 ```
 
-## Step 5: Register in Program.cs
-
-```csharp
-// Add to moduleAssemblies array
-var moduleAssemblies = new Assembly[]
-{
-    typeof(IdentityModule).Assembly,
-    typeof(MultitenancyModule).Assembly,
-    typeof(AuditingModule).Assembly,
-    typeof({Name}Module).Assembly,  // Add here
-};
-
-// Add Mediator assemblies
-builder.Services.AddMediator(o =>
-{
-    o.Assemblies = [
-        // ... existing
-        typeof({Name}Module).Assembly,
-    ];
-});
-```
-
-## Step 6: Add to Solution
+## Step 4 — Solution + project references
 
 ```bash
 dotnet sln src/FSH.Starter.slnx add src/Modules/{Name}/Modules.{Name}/Modules.{Name}.csproj
 dotnet sln src/FSH.Starter.slnx add src/Modules/{Name}/Modules.{Name}.Contracts/Modules.{Name}.Contracts.csproj
 ```
 
-## Step 7: Reference from API
+Add a `<ProjectReference>` to the runtime module from **both** `FSH.Starter.Api` and `FSH.Starter.DbMigrator`, and reference the runtime project from `FSH.Starter.Migrations.PostgreSQL`.
 
-In `src/Host/FSH.Starter.Api/FSH.Starter.Api.csproj`:
-```xml
-<ProjectReference Include="..\..\Modules\{Name}\Modules.{Name}\Modules.{Name}.csproj" />
-```
+## Step 5 — Migrations folder
 
-## Step 8: Verify
+Add a `{Name}/` folder in `src/Host/FSH.Starter.Migrations.PostgreSQL`, then create the initial migration (see **create-migration**) with `--context {Name}DbContext`.
+
+## Step 6 — ⚠️ Register in ALL FOUR places (the footgun)
+
+Identical edits in **both** `FSH.Starter.Api/Program.cs` **and** `FSH.Starter.DbMigrator/Program.cs`:
+
+1. Mediator `o.Assemblies` — add **two** markers: a Contracts type (e.g. `typeof(FSH.Modules.{Name}.Contracts.{Name}ContractsMarker)`) **and** the module type (`typeof({Name}Module)`).
+2. `moduleAssemblies` array — add `typeof({Name}Module).Assembly`.
+
+Miss the Mediator marker → handlers silently undiscovered. Miss the assembly entry → module never loads. Miss the DbMigrator pair → migrate/seed skips the module.
+
+## Step 7 — Verify
 
 ```bash
-dotnet build src/FSH.Starter.slnx  # Must be 0 warnings
+dotnet build src/FSH.Starter.slnx                  # 0 warnings
+dotnet test src/Tests/Architecture.Tests           # boundary + tenant-isolation rules must pass
 dotnet test src/FSH.Starter.slnx
 ```
 
 ## Checklist
 
-- [ ] Both projects created (main + contracts)
-- [ ] IModule implemented with ConfigureServices and MapEndpoints
-- [ ] Permission constants defined
-- [ ] DbContext created with proper schema
-- [ ] Registered in Program.cs moduleAssemblies
-- [ ] Added to solution file
-- [ ] Referenced from FSH.Starter.Api
-- [ ] Build passes with 0 warnings
+- [ ] Two projects (copied csproj), added to `.slnx`, referenced from Api + DbMigrator (+ Migrations)
+- [ ] `[assembly: FshModule(typeof({Name}Module), order)]` (assembly-level, positional)
+- [ ] `IModule`: `AddHeroDbContext<T>()`, `PermissionConstants.Register`, version-set group, eventing trio if needed
+- [ ] `{Name}DbContext : BaseDbContext`, 4-arg ctor, `base.OnModelCreating` last
+- [ ] `{Name}Permissions` in Contracts/Authorization
+- [ ] Migrations folder + initial migration (`--context {Name}DbContext`)
+- [ ] **Registered in all four places** (Api + DbMigrator × Mediator + moduleAssemblies)
+- [ ] Build + Architecture.Tests green

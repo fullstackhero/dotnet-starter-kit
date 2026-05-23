@@ -1,246 +1,99 @@
----
-paths:
-  - "src/**"
----
+# Architecture rules
 
-# Architecture Rules
+Modular Monolith + Vertical Slice Architecture (VSA). Read this before adding/moving modules or touching wiring.
 
-FSH is a **Modular Monolith** — NOT microservices, NOT a traditional layered architecture.
-
-## Core Principles
-
-### 1. Modular Monolith
+## Layers & dependency direction
 
 ```
-Single deployment unit
-    ↓
-Multiple bounded contexts (modules)
-    ↓
-Each module is self-contained
-    ↓
-Communication via Contracts (interfaces/DTOs)
+Host (composition root)  →  Modules.{Name} (runtime)  →  Modules.{Name}.Contracts (public API)
+                         →  BuildingBlocks (shared framework)
 ```
 
-**Modules:**
-- Identity (users, roles, permissions)
-- Multitenancy (tenants, subscriptions)
-- Auditing (audit trails)
-- Your business modules (e.g., Catalog, Orders)
+- **BuildingBlocks** (`src/BuildingBlocks/`) — Core, Persistence, Web, Caching, Eventing, Storage, Quota, Jobs, Mailing, Shared. Consumed by all modules. **Do not modify without explicit approval.**
+- **Modules** (`src/Modules/{Name}/`) — bounded contexts. Each = a runtime project (internal) + a `.Contracts` project (public API: commands, queries, events, DTOs, service interfaces).
+- A module **MUST NOT** reference another module's runtime project — only its `.Contracts`. Enforced by `Architecture.Tests` (NetArchTest).
 
-**Rules:**
-- Modules CANNOT reference other module internals
-- Modules CAN reference other module Contracts
-- Modules share BuildingBlocks (framework code)
+## Module = runtime + Contracts
 
-### 2. CQRS (Mediator Library)
+```
+Modules.Identity/            ← runtime (internal): handlers, services, domain, data
+Modules.Identity.Contracts/  ← public: ICommand/IQuery types, DTOs, events, service interfaces
+```
 
-**Commands** (write operations):
+Cross-module communication: through Contracts service interfaces or integration events only.
+
+## Feature folder layout (VSA)
+
+Each feature is a vertical slice in `Features/v{version}/{Area}/{Feature}/`:
+
+```
+Features/v1/Users/RegisterUser/
+├── RegisterUserEndpoint.cs          # minimal API endpoint
+├── RegisterUserCommandHandler.cs    # CQRS handler (public sealed)
+└── RegisterUserCommandValidator.cs  # FluentValidation
+```
+
+Module support folders: `Domain/`, `Data/`, `Services/`, `Events/`, `Authorization/`.
+
+## IModule registration
+
+Each module implements `IModule`, declared via an **assembly-level** `[FshModule]` attribute (positional `(Type moduleType, int order = 0)`) — **not** a class-level `[FshModule(Order = n)]`:
+
 ```csharp
-public record CreateUserCommand(string Email) : ICommand<Guid>;
+[assembly: FshModule(typeof(FSH.Modules.Identity.IdentityModule), 1)]   // above the namespace
 
-public class CreateUserHandler : ICommandHandler<CreateUserCommand, Guid>
+namespace FSH.Modules.Identity;
+
+public sealed class IdentityModule : IModule
 {
-    public async ValueTask<Guid> Handle(CreateUserCommand cmd, CancellationToken ct)
-    {
-        // Write to database
-        return user.Id;
-    }
+    public void ConfigureServices(IHostApplicationBuilder builder) { ... }
+    public void ConfigureMiddleware(IApplicationBuilder app) { ... }   // optional, runs AFTER UseAuthentication
+    public void MapEndpoints(IEndpointRouteBuilder endpoints) { ... }
 }
 ```
 
-**Queries** (read operations):
-```csharp
-public record GetUserQuery(Guid Id) : IQuery<UserDto>;
+`ModuleLoader.AddModules` (`src/BuildingBlocks/Web/Modules/ModuleLoader.cs`) discovers `[FshModule]` attributes, orders by `Order` then name, instantiates each, and calls `ConfigureServices`. Endpoints map under `api/v{version:apiVersion}/{module}`.
 
-public class GetUserHandler : IQueryHandler<GetUserQuery, UserDto>
-{
-    public async ValueTask<UserDto> Handle(GetUserQuery query, CancellationToken ct)
-    {
-        // Read from database
-        return userDto;
-    }
-}
-```
+## ⚠️ The four-place registration footgun
 
-⚠️ **NOT MediatR:** FSH uses `Mediator` library (different interfaces!)
+Adding a module requires editing **four** lists. Miss one and it fails *silently*:
 
-### 3. Domain-Driven Design
+| Place | File | Symptom if missed |
+|---|---|---|
+| Mediator `o.Assemblies` (two markers: Contracts type **and** module type) | `src/Host/FSH.Starter.Api/Program.cs` | Handlers silently undiscovered |
+| `moduleAssemblies` array | `src/Host/FSH.Starter.Api/Program.cs` | Module never loaded |
+| Mediator assemblies (same pair) | `src/Host/FSH.Starter.DbMigrator/Program.cs` | Migrate/seed misses the module |
+| module assemblies array | `src/Host/FSH.Starter.DbMigrator/Program.cs` | Migrate/seed misses the module |
 
-**Entities** inherit `BaseEntity`:
-```csharp
-public class Product : BaseEntity, IAuditable
-{
-    public string Name { get; private set; } = default!;
-    public Money Price { get; private set; } = default!;
-    
-    public static Product Create(string name, Money price)
-    {
-        // Factory method, enforce invariants
-        return new Product { Name = name, Price = price };
-    }
-}
-```
+After wiring, the fastest sanity check is: build, hit the endpoint, confirm the handler runs.
 
-**Value Objects** (immutable):
-```csharp
-public record Money(decimal Amount, string Currency);
-```
+## DI & handler conventions
 
-**Aggregates:**
-- Root entity controls access to child entities
-- Enforce business rules
-- Transaction boundary
+- Mediator handlers: `public sealed`, implement `ICommandHandler<T,TResponse>` / `IQueryHandler<T,TResponse>`, return `ValueTask<T>`, `.ConfigureAwait(false)` on every await. `ServiceLifetime.Scoped`.
+- Validators auto-register via `ModuleLoader` (`AddValidatorsFromAssemblies`). Name them `{Command}Validator`.
+- Prefer constructor injection / primary constructors. Watch DI lifetimes: stateful singletons must be thread-safe (use `ConcurrentDictionary` / immutable snapshots).
 
-### 4. Multi-Tenancy
+## Middleware ordering (critical)
 
-**Finbuckle.MultiTenant:**
-- Shared database, tenant isolation via TenantId
-- Automatic query filtering
-- Tenant resolution from HTTP header or claim
+In `src/BuildingBlocks/Web/Extensions.cs` (`UseHeroPlatform`):
 
-```csharp
-// Tenant-aware entity
-public class Order : BaseEntity, IMustHaveTenant
-{
-    public Guid TenantId { get; set; }  // Auto-filtered
-}
-```
+1. ExceptionHandler → ResponseCompression
+2. **CORS before HTTPS redirect** (so OPTIONS preflight isn't 307-redirected)
+3. HttpsRedirection → SecurityHeaders → static files → Routing
+4. **`UseAuthentication`**
+5. **`UseModuleMiddlewares`** — each module's `ConfigureMiddleware`, runs **after** auth
+6. RateLimiting → Quotas → `UseAuthorization` → `MapModules`
 
-**Tenant Resolution Order:**
-1. HTTP header: `X-Tenant`
-2. JWT claim: `tenant`
-3. Host/route strategy (optional)
+`app.UseHeroMultiTenantDatabases()` (Finbuckle `UseMultiTenant()`) runs in `Program.cs` **before** `UseHeroPlatform`, i.e. **before `UseAuthentication`** — so tenant resolution is header-driven, not claim-driven. See `modules/multitenancy.md`.
 
-### 5. Vertical Slice Architecture
+## Static/global state
 
-Each feature = complete slice (command/handler/validator/endpoint in one folder).
+No global mutable static collections enumerated under concurrency. `Audit` (Auditing module) swaps an immutable `IAuditEnricher[]` atomically; `ModuleLoader` guards with a lock. Follow that pattern if you must hold process-global state.
 
-```
-Features/v1/CreateProduct/
-├── CreateProductCommand.cs
-├── CreateProductHandler.cs
-├── CreateProductValidator.cs
-└── CreateProductEndpoint.cs
-```
+## Configuration & options
 
-**Benefits:**
-- High cohesion (related code together)
-- Low coupling (features don't depend on each other)
-- Easy to find/modify
-
-### 6. BuildingBlocks (Shared Kernel)
-
-11 packages providing cross-cutting concerns:
-
-| Package | Purpose |
-|---------|---------|
-| Core | Base entities, interfaces, exceptions |
-| Persistence | EF Core, repositories, specifications |
-| Caching | Redis/memory caching |
-| Mailing | Email templates, MailKit integration |
-| Jobs | Hangfire background jobs |
-| Storage | File storage (AWS S3, local) |
-| Web | API conventions, filters, middleware |
-| Eventing | Domain events, message bus |
-
-| Shared | DTOs, constants |
-| Eventing.Abstractions | Event contracts |
-
-**Protected:** BuildingBlocks should NOT be modified without approval. See `.claude/rules/buildingblocks-protection.md`.
-
-### 7. Dependency Flow
-
-```
-API Layer (Minimal APIs)
-    ↓
-Application Layer (Commands/Queries/Handlers)
-    ↓
-Domain Layer (Entities/Value Objects)
-    ↓
-Infrastructure Layer (Persistence/External Services)
-```
-
-**Rules:**
-- Domain CANNOT depend on infrastructure
-- Application CANNOT depend on infrastructure directly
-- Infrastructure implements domain interfaces
-
-### 8. Persistence Strategy
-
-**DbContext per Module:**
-- IdentityDbContext
-- MultitenancyDbContext
-- AuditingDbContext
-- Your module DbContexts
-
-**Repository Pattern:**
-```csharp
-public interface IRepository<T> where T : BaseEntity
-{
-    Task<T?> GetByIdAsync(Guid id, CancellationToken ct);
-    Task<List<T>> ListAsync(Specification<T> spec, CancellationToken ct);
-    Task<T> AddAsync(T entity, CancellationToken ct);
-    Task UpdateAsync(T entity, CancellationToken ct);
-    Task DeleteAsync(T entity, CancellationToken ct);
-}
-```
-
-**Specification Pattern** (queries):
-```csharp
-public class ActiveProductsSpec : Specification<Product>
-{
-    public ActiveProductsSpec()
-    {
-        Query.Where(p => !p.IsDeleted && p.IsActive);
-    }
-}
-```
-
-## Architectural Tests
-
-`Architecture.Tests` project enforces rules:
-
-```csharp
-[Fact]
-public void Modules_Should_Not_Reference_Other_Modules()
-{
-    // Fails if Module A references Module B directly
-}
-
-[Fact]
-public void Domain_Should_Not_Depend_On_Infrastructure()
-{
-    // Fails if domain entities reference EF Core
-}
-```
-
-## Technology Stack
-
-- **.NET 10** (latest LTS)
-- **EF Core 10** (PostgreSQL provider)
-- **Mediator** (CQRS)
-- **FluentValidation** (input validation)
-- **Hangfire** (background jobs)
-- **Finbuckle.MultiTenant** (multi-tenancy)
-- **MailKit** (email)
-- **Scalar** (OpenAPI docs)
-- **Serilog** (logging)
-- **OpenTelemetry** (observability)
-- **Aspire** (orchestration)
-
-## Key Takeaways
-
-1. **Modular Monolith** ≠ Microservices. Modules share process, database, infrastructure.
-2. **CQRS** separates reads/writes. Use `ICommand`/`IQuery`, not `IRequest`.
-3. **DDD** enforces business rules in domain. Entities control their state.
-4. **Multi-Tenancy** is built-in. Every entity is either tenant-aware or shared.
-5. **Vertical Slices** keep features independent. No shared "services" layer.
-6. **BuildingBlocks** provide infrastructure. Don't reinvent, reuse.
-7. **Tests enforce architecture**. Violate rules → build fails.
-
----
-
-For implementation details, see:
-- `ARCHITECTURE_ANALYSIS.md` (deep dive)
-- `.claude/rules/modules.md` (module patterns)
-- `.claude/rules/persistence.md` (data access patterns)
+- `appsettings.json` (+ `.Development`/`.Production`) live in `src/Host/FSH.Starter.Api/`. DbMigrator links the same files.
+- Bind config with the Options pattern: `AddOptions<T>().BindConfiguration(nameof(T))`, section name == type name (e.g. `JwtOptions`, `DatabaseOptions`, `CachingOptions`, `CorsOptions`, `QuotaOptions`, `RateLimitingOptions`; **storage section is `Storage`**, not `StorageOptions`). Add `.ValidateDataAnnotations().ValidateOnStart()` for fail-fast.
+- Validate critical options via `IValidatableObject` — `JwtOptions` requires `SigningKey` ≥32 chars and **rejects placeholder strings containing `"replace-with"`**; `DatabaseOptions` rejects empty connection strings.
+- **Production fail-fast** (`Program.cs`, before service registration): missing `DatabaseOptions:ConnectionString`, `CachingOptions:Redis`, or `JwtOptions:SigningKey` throws. Dev secrets via `dotnet user-secrets` (AppHost has a `UserSecretsId`); MinIO creds are Aspire secret parameters.
+- Platform composition is one call each: `builder.AddHeroPlatform(o => { o.Enable... })` (DI) and `app.UseHeroPlatform(...)` (middleware). Feature flags toggle Caching/Jobs/Mailing/Quotas/Sse/Realtime/OpenTelemetry/CORS/Idempotency.

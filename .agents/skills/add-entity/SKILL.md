@@ -1,164 +1,125 @@
 ---
 name: add-entity
-description: Create a domain entity with multi-tenancy, auditing, soft-delete, and domain events. Use when adding new database entities to a module.
+description: Add a domain entity/aggregate with EF configuration and a migration to an existing FSH module. Use when adding a new database-backed entity. Pairs with add-feature and create-migration.
 argument-hint: [ModuleName] [EntityName]
 ---
 
 # Add Entity
 
-Create a domain entity following FSH patterns with full multi-tenancy support.
+Rich domain model: `sealed` aggregate, private EF ctor, static factory, behavior via methods, domain
+events. DB conventions: `.agents/rules/database.md`.
 
-## Entity Template
+## Entity — `AggregateRoot<Guid>` (or `BaseEntity<Guid>`)
+
+`BaseEntity<TId>` gives only `Id` + domain-event machinery. Audit/tenant/soft-delete are **opt-in via
+marker interfaces** (the base does NOT carry those fields). New ids use **`Guid.CreateVersion7()`**.
 
 ```csharp
 public sealed class {Entity} : AggregateRoot<Guid>, IHasTenant, IAuditableEntity, ISoftDeletable
 {
-    // Domain properties
-    public string Name { get; private set; } = null!;
-    public decimal Price { get; private set; }
-    public string? Description { get; private set; }
+    public string Name { get; private set; } = default!;
+    public Money Price { get; private set; } = default!;
 
-    // IHasTenant - automatic tenant isolation
-    public string TenantId { get; private set; } = null!;
-
-    // IAuditableEntity - automatic audit trails
-    public DateTimeOffset CreatedAt { get; set; }
+    // IHasTenant
+    public string TenantId { get; private set; } = default!;
+    // IAuditableEntity
+    public DateTimeOffset CreatedOnUtc { get; set; }
     public string? CreatedBy { get; set; }
-    public DateTimeOffset? LastModifiedAt { get; set; }
+    public DateTimeOffset? LastModifiedOnUtc { get; set; }
     public string? LastModifiedBy { get; set; }
-
-    // ISoftDeletable - automatic soft deletes
-    public DateTimeOffset? DeletedAt { get; set; }
+    // ISoftDeletable
+    public bool IsDeleted { get; set; }
+    public DateTimeOffset? DeletedOnUtc { get; set; }
     public string? DeletedBy { get; set; }
 
-    // Private constructor for EF Core
-    private {Entity}() { }
+    private {Entity}() { }   // EF
 
-    // Factory method - the only way to create
-    public static {Entity} Create(string name, decimal price, string tenantId)
+    public static {Entity} Create(string name, Money price)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(price);
+        ArgumentNullException.ThrowIfNull(price);
 
-        var entity = new {Entity}
-        {
-            Id = Guid.NewGuid(),
-            Name = name,
-            Price = price,
-            TenantId = tenantId
-        };
-
-        entity.AddDomainEvent(new {Entity}CreatedEvent(entity.Id));
+        var entity = new {Entity} { Id = Guid.CreateVersion7(), Name = name.Trim(), Price = price };
+        entity.AddDomainEvent(DomainEvent.Create((id, ts) =>
+            new {Entity}CreatedDomainEvent(entity.Id, entity.Name, id, ts)));
         return entity;
     }
 
-    // Domain methods for state changes
-    public void UpdateDetails(string name, decimal price, string? description)
+    public void Rename(string name)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(price);
-
-        Name = name;
-        Price = price;
-        Description = description;
-
-        AddDomainEvent(new {Entity}UpdatedEvent(Id));
+        Name = name.Trim();
     }
 }
 ```
 
-## Domain Events
+Notes: setters are `private set`; `TenantId`/audit/soft-delete members are settable by the framework
+(interceptor + Finbuckle) so they aren't `private set`. Use `Guid.CreateVersion7()`, never `Guid.NewGuid()`.
+
+## Domain event — inherit `DomainEvent` (abstract record)
 
 ```csharp
-public sealed record {Entity}CreatedEvent(Guid {Entity}Id) : IDomainEvent;
-public sealed record {Entity}UpdatedEvent(Guid {Entity}Id) : IDomainEvent;
-public sealed record {Entity}DeletedEvent(Guid {Entity}Id) : IDomainEvent;
+public sealed record {Entity}CreatedDomainEvent(
+    Guid {Entity}Id, string Name, Guid EventId, DateTimeOffset OccurredOnUtc)
+    : DomainEvent(EventId, OccurredOnUtc);
 ```
 
-## EF Core Configuration
+Raise with the `DomainEvent.Create((id, ts) => …)` helper + `AddDomainEvent(...)` (not `QueueDomainEvent`).
+
+## EF configuration
 
 ```csharp
 public sealed class {Entity}Configuration : IEntityTypeConfiguration<{Entity}>
 {
     public void Configure(EntityTypeBuilder<{Entity}> builder)
     {
-        builder.ToTable("{entities}");
-
+        ArgumentNullException.ThrowIfNull(builder);
+        builder.ToTable("{Entities}");                       // schema is set once on the DbContext
         builder.HasKey(x => x.Id);
+        builder.Property(x => x.Name).IsRequired().HasMaxLength(200);
 
-        builder.Property(x => x.Name)
-            .IsRequired()
-            .HasMaxLength(200);
+        // soft-deletable unique field → filter on live rows only
+        builder.HasIndex(x => x.Name).IsUnique().HasFilter("\"IsDeleted\" = FALSE");
 
-        builder.Property(x => x.Price)
-            .HasPrecision(18, 2);
+        // owned value object
+        builder.OwnsOne(x => x.Price, m =>
+        {
+            m.Property(p => p.Amount).HasColumnName("PriceAmount").HasPrecision(18, 4);
+            m.Property(p => p.Currency).HasColumnName("PriceCurrency").HasMaxLength(3);
+        });
 
-        builder.Property(x => x.TenantId)
-            .IsRequired()
-            .HasMaxLength(64);
-
-        builder.HasIndex(x => x.TenantId);
-
-        // Global query filter for soft-delete
-        builder.HasQueryFilter(x => x.DeletedAt == null);
+        builder.Ignore(x => x.DomainEvents);
     }
 }
 ```
 
-## Register in DbContext
+- **Do NOT add a manual `HasQueryFilter` for soft-delete or tenant** — `BaseDbContext` applies both automatically.
+- A child entity reached only via a parent nav-collection needs `builder.Property(x => x.Id).ValueGeneratedNever()` in **its** config, or EF inserts it as `Modified` → 0-row UPDATE. See `database.md`.
+
+## Register in the module DbContext
+
+Add a `DbSet`; configurations are picked up by `ApplyConfigurationsFromAssembly`:
 
 ```csharp
-public sealed class {Module}DbContext : DbContext
-{
-    public DbSet<{Entity}> {Entities} => Set<{Entity}>();
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        modelBuilder.HasDefaultSchema("{module}");
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof({Module}DbContext).Assembly);
-    }
-}
+public DbSet<{Entity}> {Entities} => Set<{Entity}>();
 ```
 
-## Add Migration
+The DbContext already extends `BaseDbContext` and calls `base.OnModelCreating` **last** — don't change that.
+
+## Migration
+
+Use the **create-migration** skill (build first, correct `--context`):
 
 ```bash
 dotnet ef migrations add Add{Entity} \
   --project src/Host/FSH.Starter.Migrations.PostgreSQL \
-  --startup-project src/Host/FSH.Starter.Api
-
-dotnet ef database update \
-  --project src/Host/FSH.Starter.Migrations.PostgreSQL \
-  --startup-project src/Host/FSH.Starter.Api
+  --startup-project src/Host/FSH.Starter.Api \
+  --context {X}DbContext
 ```
-
-## Interfaces Reference
-
-| Interface | Purpose | Auto-Handled |
-|-----------|---------|--------------|
-| `IHasTenant` | Tenant isolation | Query filtering |
-| `IAuditableEntity` | Created/Modified tracking | SaveChanges interceptor |
-| `ISoftDeletable` | Soft delete support | Delete interceptor |
-| `AggregateRoot<T>` | Domain events support | Event dispatcher |
-
-## Key Rules
-
-1. **Private constructor** - EF Core needs it, but users use factory methods
-2. **Factory methods** - All creation goes through `Create()` static method
-3. **Domain methods** - State changes through methods, not property setters
-4. **Domain events** - Raise events for significant state changes
-5. **Validation in methods** - Validate in factory/domain methods, not entity
-6. **No public setters** - Properties are `private set`
 
 ## Checklist
 
-- [ ] Implements `AggregateRoot<Guid>`
-- [ ] Implements `IHasTenant` for tenant isolation
-- [ ] Implements `IAuditableEntity` for audit trails
-- [ ] Implements `ISoftDeletable` for soft deletes
-- [ ] Has private constructor
-- [ ] Has static factory method
-- [ ] Domain events raised for state changes
-- [ ] EF configuration created
-- [ ] Added to DbContext
-- [ ] Migration created
+- [ ] `sealed`, `AggregateRoot<Guid>` (+ `IHasTenant`/`IAuditableEntity`/`ISoftDeletable` as needed), private ctor, static `Create` using `Guid.CreateVersion7()`
+- [ ] Domain event inherits `DomainEvent`; raised via `DomainEvent.Create` + `AddDomainEvent`
+- [ ] EF config: no manual soft-delete/tenant filter; `ValueGeneratedNever()` on nav-collection children
+- [ ] `DbSet` added; build green; migration created with `--context {X}DbContext`

@@ -1,150 +1,28 @@
 ---
-description: Create new modules (bounded contexts) with complete project structure, DbContext, permissions, and registration. Use when adding a new business domain.
+description: Orchestrate bringing up a new module (bounded context) end-to-end and verifying it loads. Use when adding a new business domain. Delegates the recipe to the add-module skill — does not restate it.
 ---
 
-You are a module creator for FullStackHero .NET Starter Kit. Your job is to scaffold complete new modules.
+You orchestrate a full module bring-up for FullStackHero. **The code recipe lives in the `add-module`
+skill** — follow it; this playbook adds the decision gate, sequencing, and verification.
 
-## When to Create a New Module
+## Decide: is this really a new module?
+A new module has its own domain entities and is a distinct bounded context. If it's just an operation in
+an existing domain → use `feature-scaffolder` instead.
 
-Ask these questions:
-- Does it have its own domain entities? → Yes = new module
-- Could it be deployed independently? → Yes = new module
-- Is it just a feature in an existing domain? → No = use existing module
+## Sequence (each step → its skill)
+1. **Scaffold the module** — follow **`add-module`**: copy an existing module's two `.csproj` files; `[assembly: FshModule(typeof({X}Module), order)]` (assembly-level); `IModule` with `AddHeroDbContext<{X}DbContext>()`, `PermissionConstants.Register({X}Permissions.All)`, a version-set endpoint group, and the eventing trio if it publishes/handles events; `{X}DbContext : BaseDbContext` with `base.OnModelCreating` **last**.
+2. **First entity** — follow **`add-entity`**.
+3. **First feature** — follow **`add-feature`** (and `add-react-page` if it has UI).
+4. **Migration** — follow **`create-migration`** with `--context {X}DbContext --output-dir {X}`; add the `{X}/` folder in the Migrations project.
+5. **⚠️ Register in ALL FOUR places** — Mediator `o.Assemblies` (Contracts marker **and** module type) + `moduleAssemblies` array, in **both** `FSH.Starter.Api/Program.cs` **and** `FSH.Starter.DbMigrator/Program.cs`. Add to `.slnx`; reference the runtime project from Api, DbMigrator, and the Migrations project.
 
-## Required Information
-
-Before generating, confirm:
-1. **Module name** - PascalCase (e.g., Catalog, Inventory, Billing)
-2. **Initial entities** - What domain entities?
-3. **Permissions** - What operations need permissions?
-
-## Generation Process
-
-### Step 1: Create Project Structure
-
-```
-src/Modules/{Name}/
-├── Modules.{Name}/
-│   ├── Modules.{Name}.csproj
-│   ├── {Name}Module.cs
-│   ├── {Name}PermissionConstants.cs
-│   ├── {Name}DbContext.cs
-│   ├── Domain/
-│   └── Features/v1/
-└── Modules.{Name}.Contracts/
-    ├── Modules.{Name}.Contracts.csproj
-    └── DTOs/
-```
-
-### Step 2: Generate Core Files
-
-**Modules.{Name}.csproj:**
-```xml
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-  </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\BuildingBlocks\Core\Core.csproj" />
-    <ProjectReference Include="..\..\BuildingBlocks\Persistence\Persistence.csproj" />
-    <ProjectReference Include="..\..\BuildingBlocks\Web\Web.csproj" />
-    <ProjectReference Include="..\Modules.{Name}.Contracts\Modules.{Name}.Contracts.csproj" />
-  </ItemGroup>
-</Project>
-```
-
-**{Name}Module.cs:**
-```csharp
-public sealed class {Name}Module : IModule
-{
-    public void ConfigureServices(IHostApplicationBuilder builder)
-    {
-        // DbContext, repositories, services
-        builder.Services.AddDbContext<{Name}DbContext>((sp, options) =>
-        {
-            var dbOptions = sp.GetRequiredService<IOptions<DatabaseOptions>>().Value;
-            options.UseNpgsql(dbOptions.ConnectionString);
-        });
-        builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-        builder.Services.AddScoped(typeof(IReadRepository<>), typeof(Repository<>));
-    }
-
-    public void MapEndpoints(IEndpointRouteBuilder endpoints)
-    {
-        var group = endpoints.MapGroup("/api/v1/{name}");
-        // Map feature endpoints
-    }
-}
-```
-
-**{Name}PermissionConstants.cs:**
-```csharp
-public static class {Name}PermissionConstants
-{
-    public static class {Entities}
-    {
-        public const string View = "{Entities}.View";
-        public const string Create = "{Entities}.Create";
-        public const string Update = "{Entities}.Update";
-        public const string Delete = "{Entities}.Delete";
-    }
-}
-```
-
-**{Name}DbContext.cs:**
-```csharp
-public sealed class {Name}DbContext : DbContext
-{
-    public {Name}DbContext(DbContextOptions<{Name}DbContext> options) : base(options) { }
-
-    public DbSet<{Entity}> {Entities} => Set<{Entity}>();
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        modelBuilder.HasDefaultSchema("{name}");
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof({Name}DbContext).Assembly);
-    }
-}
-```
-
-### Step 3: Create Contracts Project
-
-**Modules.{Name}.Contracts.csproj:**
-```xml
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-  </PropertyGroup>
-</Project>
-```
-
-### Step 4: Register Module
-
-Show changes needed in:
-1. `src/Host/FSH.Starter.Api/Program.cs` - Add to moduleAssemblies
-2. `src/Host/FSH.Starter.Api/FSH.Starter.Api.csproj` - Add ProjectReference
-3. Solution file - Add both projects
-
-### Step 5: Add to Solution
-
+## Verify it actually loaded (not just compiled)
 ```bash
-dotnet sln src/FSH.Starter.slnx add src/Modules/{Name}/Modules.{Name}/Modules.{Name}.csproj
-dotnet sln src/FSH.Starter.slnx add src/Modules/{Name}/Modules.{Name}.Contracts/Modules.{Name}.Contracts.csproj
+dotnet build src/FSH.Starter.slnx                 # 0 warnings
+dotnet test src/Tests/Architecture.Tests          # boundary + tenant-isolation rules
+dotnet run --project src/Host/FSH.Starter.DbMigrator -- list-pending   # new context shows up
 ```
+Then hit one endpoint and confirm the handler runs — a missing Mediator marker compiles fine but the handler is silently undiscovered. Finish with the `architecture-guard` workflow.
 
-## Checklist
-
-- [ ] Both projects created (main + contracts)
-- [ ] IModule implemented
-- [ ] Permission constants defined
-- [ ] DbContext created with schema
-- [ ] Registered in Program.cs
-- [ ] Added to solution
-- [ ] Referenced from FSH.Starter.Api
-- [ ] Build passes with 0 warnings
-
-## Verification
-
-```bash
-dotnet build src/FSH.Starter.slnx  # Must be 0 warnings
-```
+## The footgun, restated
+Four registration edits (2 lists × 2 host files). Miss the Mediator marker → handler not found at runtime. Miss the `moduleAssemblies` entry → module never loads. Miss the DbMigrator pair → migrate/seed skips it.
