@@ -52,15 +52,10 @@ public sealed class DeleteUserCommandHandlerTests
         using var cts = new CancellationTokenSource();
 
         // Act
-        // Note: DeleteUserCommandHandler currently doesn't pass cancellation token to DeleteAsync 
-        // based on the view_file output I saw earlier (line 20: await _userService.DeleteAsync(command.Id).ConfigureAwait(false);)
-        // I will still test the call with any CancellationToken if the method signature allows it,
-        // but based on my earlier view of DeleteUserCommandHandler, it doesn't take it in DeleteAsync.
-        // Wait, let me check IUserService.DeleteAsync signature.
         await _sut.Handle(command, cts.Token);
 
-        // Assert
-        await _userService.Received(1).DeleteAsync(userId);
+        // Assert — the handler must forward the request's token, not the default.
+        await _userService.Received(1).DeleteAsync(userId, cts.Token);
     }
 
     [Fact]

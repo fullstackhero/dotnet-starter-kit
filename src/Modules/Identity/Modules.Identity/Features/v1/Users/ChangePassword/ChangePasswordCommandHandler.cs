@@ -27,7 +27,7 @@ public sealed class ChangePasswordCommandHandler : ICommandHandler<ChangePasswor
 
         var userId = _currentUser.GetUserId().ToString();
 
-        await _userService.ChangePasswordAsync(command.Password, command.NewPassword, command.ConfirmNewPassword, userId).ConfigureAwait(false);
+        await _userService.ChangePasswordAsync(command.Password, command.NewPassword, command.ConfirmNewPassword, userId, cancellationToken).ConfigureAwait(false);
 
         return "password reset email sent";
     }

@@ -75,7 +75,7 @@ internal sealed class UserPasswordService(
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task ChangePasswordAsync(string password, string newPassword, string confirmNewPassword, string userId)
+    public async Task ChangePasswordAsync(string password, string newPassword, string confirmNewPassword, string userId, CancellationToken cancellationToken = default)
     {
         var user = await userManager.FindByIdAsync(userId);
 
@@ -92,13 +92,13 @@ internal sealed class UserPasswordService(
         // Raise domain event for password change
         var tenantId = multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id;
         user.RecordPasswordChanged(wasReset: false, tenantId);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(cancellationToken);
 
         // Update password expiry date
-        await passwordExpiryService.UpdateLastPasswordChangeDateAsync(userId);
+        await passwordExpiryService.UpdateLastPasswordChangeDateAsync(userId, cancellationToken);
 
         // Save to history
-        await passwordHistoryService.SavePasswordHistoryAsync(userId);
+        await passwordHistoryService.SavePasswordHistoryAsync(userId, cancellationToken);
     }
 
     private void EnsureValidTenant()

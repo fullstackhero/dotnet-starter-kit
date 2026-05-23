@@ -24,7 +24,7 @@ public interface IUserRegistrationService
     /// <summary>
     /// Gets or creates a user from an external authentication principal.
     /// </summary>
-    Task<string> GetOrCreateFromPrincipalAsync(ClaimsPrincipal principal);
+    Task<string> GetOrCreateFromPrincipalAsync(ClaimsPrincipal principal, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Confirms a user's email address.
@@ -34,5 +34,5 @@ public interface IUserRegistrationService
     /// <summary>
     /// Confirms a user's phone number.
     /// </summary>
-    Task<string> ConfirmPhoneNumberAsync(string userId, string code);
+    Task<string> ConfirmPhoneNumberAsync(string userId, string code, CancellationToken cancellationToken = default);
 }

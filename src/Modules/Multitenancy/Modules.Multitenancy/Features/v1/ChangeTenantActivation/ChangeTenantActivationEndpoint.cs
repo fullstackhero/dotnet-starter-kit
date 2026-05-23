@@ -31,14 +31,15 @@ public static class ChangeTenantActivationEndpoint
     private static async Task<Results<Ok<TenantLifecycleResultDto>, BadRequest>> Handler(
         [FromRoute] string id,
         [FromBody] ChangeTenantActivationCommand command,
-        IMediator mediator)
+        IMediator mediator,
+        CancellationToken cancellationToken)
     {
         if (!string.Equals(id, command.TenantId, StringComparison.Ordinal))
         {
             return TypedResults.BadRequest();
         }
 
-        TenantLifecycleResultDto result = await mediator.Send(command);
+        TenantLifecycleResultDto result = await mediator.Send(command, cancellationToken);
         return TypedResults.Ok(result);
     }
 }

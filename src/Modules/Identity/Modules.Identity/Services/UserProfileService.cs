@@ -75,7 +75,7 @@ internal sealed class UserProfileService(
         return result;
     }
 
-    public async Task UpdateAsync(string userId, string firstName, string lastName, string phoneNumber, FileUploadRequest image, bool deleteCurrentImage)
+    public async Task UpdateAsync(string userId, string firstName, string lastName, string phoneNumber, FileUploadRequest image, bool deleteCurrentImage, CancellationToken cancellationToken = default)
     {
         var user = await userManager.FindByIdAsync(userId);
 
@@ -84,11 +84,11 @@ internal sealed class UserProfileService(
         Uri imageUri = user.ImageUrl ?? null!;
         if (image.Data != null || deleteCurrentImage)
         {
-            var imageString = await storageService.UploadAsync<FshUser>(image, FileType.Image);
+            var imageString = await storageService.UploadAsync<FshUser>(image, FileType.Image, cancellationToken);
             user.ImageUrl = new Uri(imageString, UriKind.RelativeOrAbsolute);
             if (deleteCurrentImage && imageUri != null)
             {
-                await storageService.RemoveAsync(imageUri.ToString());
+                await storageService.RemoveAsync(imageUri.ToString(), cancellationToken);
             }
         }
 
@@ -128,22 +128,22 @@ internal sealed class UserProfileService(
         await signInManager.RefreshSignInAsync(user);
     }
 
-    public async Task<bool> ExistsWithEmailAsync(string email, string? exceptId = null)
+    public async Task<bool> ExistsWithEmailAsync(string email, string? exceptId = null, CancellationToken cancellationToken = default)
     {
         EnsureValidTenant();
         return await userManager.FindByEmailAsync(email.Normalize()) is FshUser user && user.Id != exceptId;
     }
 
-    public async Task<bool> ExistsWithNameAsync(string name)
+    public async Task<bool> ExistsWithNameAsync(string name, CancellationToken cancellationToken = default)
     {
         EnsureValidTenant();
         return await userManager.FindByNameAsync(name) is not null;
     }
 
-    public async Task<bool> ExistsWithPhoneNumberAsync(string phoneNumber, string? exceptId = null)
+    public async Task<bool> ExistsWithPhoneNumberAsync(string phoneNumber, string? exceptId = null, CancellationToken cancellationToken = default)
     {
         EnsureValidTenant();
-        return await userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == phoneNumber) is FshUser user && user.Id != exceptId;
+        return await userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == phoneNumber, cancellationToken) is FshUser user && user.Id != exceptId;
     }
 
     private void EnsureValidTenant()
