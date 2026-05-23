@@ -95,7 +95,7 @@ public class BuildingBlocksIndependenceTests
 
             foreach (string include in references)
             {
-                string referencedName = Path.GetFileNameWithoutExtension(include);
+                string referencedName = GetReferencedProjectName(include);
 
                 // Check if it references a Modules project
                 if (referencedName.StartsWith("Modules.", StringComparison.OrdinalIgnoreCase))
@@ -224,7 +224,7 @@ public class BuildingBlocksIndependenceTests
         var projectReferences = document
             .Descendants("ProjectReference")
             .Select(x => (string?)x.Attribute("Include") ?? string.Empty)
-            .Select(p => Path.GetFileNameWithoutExtension(p))
+            .Select(GetReferencedProjectName)
             .Where(p => !string.IsNullOrEmpty(p))
             .ToArray();
 
@@ -236,4 +236,11 @@ public class BuildingBlocksIndependenceTests
             }
         }
     }
+
+    // ProjectReference Include paths are authored with Windows separators (e.g. ..\Core\Core.csproj).
+    // Path.GetFileNameWithoutExtension only treats '\' as a separator on Windows, so on Linux CI it
+    // returns the whole path minus the extension. Normalize to '/' first to get the bare project name
+    // on every platform.
+    private static string GetReferencedProjectName(string includePath) =>
+        Path.GetFileNameWithoutExtension(includePath.Replace('\\', '/'));
 }
