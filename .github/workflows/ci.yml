@@ -234,6 +234,12 @@ jobs:
       - name: Run Integration Tests
         run: dotnet test src/Tests/Integration.Tests -c Release --verbosity normal --logger "trx;LogFileName=Integration.Tests.trx"
 
+      # Separate assembly (own process) for tests that build a host with production middleware
+      # re-wired (rate limiting, GlobalExceptionHandler, security headers) — kept out of
+      # Integration.Tests because a 2nd host there resets the static ModuleLoader.
+      - name: Run Middleware Integration Tests
+        run: dotnet test src/Tests/Integration.Middleware.Tests -c Release --verbosity normal --logger "trx;LogFileName=Integration.Middleware.Tests.trx"
+
       - name: Upload test results
         uses: actions/upload-artifact@v7
         if: always()
