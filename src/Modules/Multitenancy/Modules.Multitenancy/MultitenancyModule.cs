@@ -13,6 +13,7 @@ using FSH.Modules.Multitenancy.Contracts;
 using FSH.Modules.Multitenancy.Data;
 using FSH.Modules.Multitenancy.Features.v1.ChangeTenantActivation;
 using FSH.Modules.Multitenancy.Features.v1.CreateTenant;
+using FSH.Modules.Multitenancy.Features.v1.GetTenantMigrations;
 using FSH.Modules.Multitenancy.Features.v1.GetTenants;
 using FSH.Modules.Multitenancy.Features.v1.GetTenantStatus;
 using FSH.Modules.Multitenancy.Features.v1.GetTenantTheme;
@@ -168,6 +169,7 @@ public sealed class MultitenancyModule : IModule
         GetTenantStatusEndpoint.Map(group);
         GetTenantProvisioningStatusEndpoint.Map(group);
         RetryTenantProvisioningEndpoint.Map(group);
+        TenantMigrationsEndpoint.Map(group);
 
         // Theme endpoints
         GetTenantThemeEndpoint.Map(group);
