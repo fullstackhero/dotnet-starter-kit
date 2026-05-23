@@ -69,11 +69,7 @@ public sealed class ForgotPasswordRequestTests
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 
-    [Fact(Skip = "User-enumeration leak: ForgotPasswordAsync throws NotFoundException for an " +
-                 "unknown email, so POST /forgot-password returns 404 for non-existent accounts " +
-                 "and 200 for real ones — an attacker can enumerate registered emails. The request " +
-                 "endpoint should return a uniform 200 regardless. Reported to maintainer; test left " +
-                 "skipped rather than asserting the leaky 404 behavior.")]
+    [Fact]
     public async Task ForgotPassword_Should_ReturnUniformOk_When_EmailIsUnknown()
     {
         // Arrange
