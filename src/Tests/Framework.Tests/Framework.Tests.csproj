@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<RootNamespace>Framework.Tests</RootNamespace>
+		<AssemblyName>Framework.Tests</AssemblyName>
+		<IsPackable>false</IsPackable>
+		<IsTestProject>true</IsTestProject>
+		<NoWarn>$(NoWarn);CA1515;CA1861;CA1707;CA2007;CA1062;CA1812;CA2227;CA1002;CA1819;S1144;CA1031;S2094;S3459</NoWarn>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="AutoFixture" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" />
+		<PackageReference Include="NSubstitute" />
+		<PackageReference Include="Shouldly" />
+		<PackageReference Include="xunit" />
+		<PackageReference Include="xunit.runner.visualstudio" />
+		<PackageReference Include="coverlet.collector" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\BuildingBlocks\Core\Core.csproj" />
+		<ProjectReference Include="..\..\BuildingBlocks\Caching\Caching.csproj" />
+		<ProjectReference Include="..\..\BuildingBlocks\Eventing\Eventing.csproj" />
+		<ProjectReference Include="..\..\BuildingBlocks\Eventing.Abstractions\Eventing.Abstractions.csproj" />
+		<ProjectReference Include="..\..\BuildingBlocks\Mailing\Mailing.csproj" />
+		<ProjectReference Include="..\..\BuildingBlocks\Persistence\Persistence.csproj" />
+		<ProjectReference Include="..\..\BuildingBlocks\Quota\Quota.csproj" />
+		<ProjectReference Include="..\..\BuildingBlocks\Shared\Shared.csproj" />
+		<ProjectReference Include="..\..\BuildingBlocks\Storage\Storage.csproj" />
+		<ProjectReference Include="..\..\BuildingBlocks\Web\Web.csproj" />
+	</ItemGroup>
+
+</Project>
