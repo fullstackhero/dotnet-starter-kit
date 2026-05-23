@@ -69,6 +69,16 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 `ApplyTenantIsolationByDefault()` walks every entity that doesn't implement `IGlobalEntity` and calls `entityBuilder.IsMultiTenant()` on it — which is Finbuckle's hook to install the tenant filter. The result: a query like `await db.Products.ToListAsync(ct)` automatically becomes `WHERE tenant_id = @currentTenantId`.
 
+<Callout type="warning" title="A subclass DbContext must call base.OnModelCreating LAST">
+The filters are applied inside `BaseDbContext.OnModelCreating`. A module
+`DbContext` that overrides `OnModelCreating` to add its own entity configuration
+must call `base.OnModelCreating(modelBuilder)` **last** — EF only honors a query
+filter declared after the entity is mapped. Call `base` first (before your
+`ApplyConfigurationsFromAssembly`) and the tenant + soft-delete filters silently
+fail to attach, and every query leaks across tenants. This is the single most
+common way to accidentally break isolation in a new module.
+</Callout>
+
 `SaveChangesAsync` sets `TenantNotSetMode = TenantNotSetMode.Overwrite` so any entity entering Added state without an explicit `TenantId` inherits the current tenant. No `entity.TenantId = current.GetTenant()` lines in your handlers.
 
 ### Two opt-outs
@@ -142,6 +152,60 @@ await cache.RemoveByTagAsync($"tenant:{tenantId}", ct).ConfigureAwait(false);
 
 L1 (in-memory) cache has no backplane; the kit's `DefaultLocalCacheExpiration` (2 minutes) bounds the cross-node staleness window after a peer's `RemoveByTag`.
 
+## The documented exception: Billing
+
+One module deliberately steps outside the default. `BillingDbContext` is a plain
+`DbContext` — **not** `BaseDbContext` — so the auto-applied tenant filter does
+**not** govern it. Subscriptions, invoices, and usage snapshots instead carry an
+explicit `TenantId` column, and the billing query services filter on it by hand.
+
+This is intentional: billing is a finance/admin concern that routinely queries
+*across* tenants — the monthly invoice job iterates every active tenant, and
+operators pull cross-tenant invoice reports. Forcing it through the per-request
+tenant filter would fight the feature. The trade-off is that **billing handlers
+own their tenant scoping**: every query that should be tenant-bound must say so
+(`.Where(x => x.TenantId == current)`), because nothing does it for them.
+
+The plan catalogue (`BillingPlan`) goes further and is `IGlobalEntity` — a single
+platform-wide list of plans shared by all tenants. See the [Billing module](/docs/modules/billing/).
+
+<Callout type="note" title="The rule of thumb">
+Default to `BaseDbContext` (isolation on). Reach for a plain `DbContext` with a
+manual `TenantId` column only when the module's whole job is cross-tenant
+administration — and document it, like Billing does.
+</Callout>
+
+## Per-tenant migrations & provisioning
+
+Because each tenant can have its own schema (and optionally its own database),
+migrations run per tenant. The [DbMigrator](/docs/deployment/database-migrations/)
+applies the **tenant catalog first**, then walks **each tenant's per-module
+schema**, serialized by a Postgres advisory lock so two migrator instances can't
+collide.
+
+New tenants are provisioned asynchronously. `CreateTenantCommand` returns
+immediately, buffers the operator-supplied admin password in
+`ITenantInitialPasswordBuffer` (a singleton — there is no hard-coded default
+password), and queues a Hangfire job that walks ordered, resumable steps
+(Database → Migrations → Seeding → CacheWarm). A tenant is only **activated once
+provisioning reaches `Completed`**; a failed step is resumable via
+`RetryTenantProvisioning`. Full lifecycle in the [Multitenancy module](/docs/modules/multitenancy/).
+
+## Testing isolation
+
+Isolation is verified, not assumed. Integration tests at
+`src/Tests/Integration.Tests/Tests/Multitenancy/` assert that data created under
+tenant A is invisible to tenant B, that the header override is gated to the root
+operator, and that seeding is tenant-scoped.
+
+<Callout type="warning" title="Set the tenant context inline in tests">
+Finbuckle's tenant context flows through `AsyncLocal`. In an integration test,
+set it **in the same method** as the `DbContext` / `UserManager` call — if you
+set it inside an awaited helper, the value is lost across the async boundary and
+the tenant query filter NREs (it has no tenant to filter on). This is the most
+common cause of a flaky tenant test.
+</Callout>
+
 ## What tenancy is NOT
 
 - **Tenant isolation is not a security boundary against compromised code.** A bug that calls `IgnoreQueryFilters()` returns cross-tenant data. Architecture tests can catch obvious cases; code review catches the rest. Keep the bypass calls audited.
@@ -151,6 +215,8 @@ L1 (in-memory) cache has no backplane; the kit's `DefaultLocalCacheExpiration` (
 ## Related
 
 - [Multitenancy module](/docs/modules/multitenancy/) — the module that owns tenant lifecycle.
+- [Billing module](/docs/modules/billing/) — the documented cross-tenant exception.
+- [Database Migrations](/docs/deployment/database-migrations/) — per-tenant migration ordering.
 - [Persistence](/docs/building-blocks/persistence/) — `BaseDbContext` and the auto-applied filters.
 - [Jobs](/docs/building-blocks/jobs/) — `FshJobFilter` and tenant restoration.
 - [Webhooks module](/docs/modules/webhooks/) — the cross-thread "restore tenant context manually" pattern.

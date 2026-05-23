@@ -182,7 +182,7 @@ var audits = await db.AuditRecords
     .ToListAsync(ct).ConfigureAwait(false);
 ```
 
-The kit has a [named-query-filters decision record](/docs/architecture/) covering when to use `IgnoreQueryFilters` versus `IgnoreNamedQueryFilter("SoftDelete")` for soft-delete-aware cross-tenant queries.
+The [multitenancy deep-dive](/docs/architecture/multitenancy-deep-dive/) covers when to use `IgnoreQueryFilters` versus `IgnoreNamedQueryFilter("SoftDelete")` for soft-delete-aware cross-tenant queries.
 
 ## Tests
 
@@ -192,5 +192,5 @@ The kit has a [named-query-filters decision record](/docs/architecture/) coverin
 ## Related
 
 - [Identity module](/docs/modules/identity/) — the per-tenant user store this module's tenancy underlies.
-- [Architecture: multitenancy deep-dive](/docs/architecture/) — `IGlobalEntity`, named filters, isolation tests.
+- [Architecture: multitenancy deep-dive](/docs/architecture/multitenancy-deep-dive/) — `IGlobalEntity`, named filters, isolation tests.
 - [Persistence building block](/docs/building-blocks/persistence/) — `BaseDbContext`, the auto-applied global filter.
