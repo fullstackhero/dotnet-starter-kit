@@ -1,21 +1,67 @@
 ---
 title: Install
-lastUpdated: 2026-05-19
-description: Alternative install paths — dotnet new template, git clone, and GitHub Codespaces.
+lastUpdated: 2026-05-24
+description: Every way to get the kit — the fsh CLI, the dotnet new template, a git clone, and GitHub (Use this template / Codespaces).
 sidebar:
   order: 4
 pageType: guide
 seo:
-  title: 'Install fullstackhero — dotnet new template, git clone, Codespaces'
-  description: 'Three ways to install fullstackhero: the FullStackHero.NET.StarterKit dotnet new template, a direct git clone of the repository, or open the repo in GitHub Codespaces for a zero-install dev environment.'
-  keywords: 'install fullstackhero, dotnet new template .NET 10, fullstackhero github codespaces, fullstackhero install guide'
+  title: 'Install fullstackhero — fsh CLI, dotnet new template, git clone, Codespaces'
+  description: 'Four ways to install fullstackhero: the FullStackHero.CLI dotnet tool (recommended), the FullStackHero.NET.StarterKit dotnet new template, a direct git clone, or GitHub Use-this-template / Codespaces.'
+  keywords: 'install fullstackhero, fsh CLI, dotnet new template .NET 10, fullstackhero codespaces, use this template'
 ---
 
-Make sure you have everything in [Prerequisites](/docs/getting-started/prerequisites/) first. The fastest path is the [Quick Start](/docs/getting-started/quick-start/) via the FSH CLI — this page covers the alternative routes.
+Make sure you've got everything in [Prerequisites](/docs/getting-started/prerequisites/) first. There are four ways to get the kit — pick based on whether you want a renamed project, the raw source, or zero local install.
 
-## dotnet new template
+## Which path?
 
-Install the template from NuGet, then scaffold:
+| Path | Renames the project | Best for |
+|---|---|---|
+| **fsh CLI** *(recommended)* | Yes | Starting a new app; interactive setup + environment check |
+| **dotnet new template** | Yes | Scripted/CI scaffolding without the CLI |
+| **git clone** | No | Reading the source, contributing, or running the kit as-is |
+| **GitHub template / Codespaces** | Yes (via GitHub) | Zero local install, or your own repo from the template |
+
+<Callout type="tip" title="Not sure? Use the CLI">
+The `fsh` CLI is the smoothest path: it checks your environment, scaffolds a
+renamed project, and keeps you on the latest template.
+</Callout>
+
+## Path 1 — The fsh CLI (recommended)
+
+A NuGet-distributed dotnet tool that scaffolds a fresh project from the latest template.
+
+```bash
+dotnet tool install -g FullStackHero.CLI
+fsh doctor          # verify SDK, Docker, Aspire workload, free ports
+fsh new MyApp       # interactive: pick DB provider + whether to include Aspire
+cd MyApp
+dotnet run --project src/Host/MyApp.AppHost
+```
+
+<Screenshot
+  src="/screenshots/install/fsh-doctor.png"
+  alt="fsh doctor output checking the local environment"
+  caption="fsh doctor verifies the .NET SDK, Docker, the Aspire workload, and that the required ports are free."
+/>
+
+<Screenshot
+  src="/screenshots/install/fsh-new-wizard.png"
+  alt="fsh new interactive scaffolding wizard"
+  caption="The fsh new wizard prompts for the project name, database provider, and Aspire AppHost."
+/>
+
+Non-interactive (handy for scripts):
+
+```bash
+fsh new MyApp --db postgres --no-git
+```
+
+See the [CLI reference](/docs/cli/) for every command (`fsh new`, `doctor`, `info`, `update`) and flag.
+
+## Path 2 — The dotnet new template
+
+Install the template from NuGet, then scaffold without the CLI:
 
 ```bash
 dotnet new install FullStackHero.NET.StarterKit
@@ -24,9 +70,15 @@ cd MyApp
 dotnet run --project src/Host/MyApp.AppHost
 ```
 
-## Clone the repository
+<Screenshot
+  src="/screenshots/install/dotnet-new-fsh.png"
+  alt="dotnet new fsh scaffolding a renamed project"
+  caption="dotnet new fsh -n MyApp produces a fully renamed solution."
+/>
 
-If you want the full source as-is (no project renaming):
+## Path 3 — Clone the repository
+
+Get the full source as-is, with no project renaming (the solution keeps its `FSH.Starter` names):
 
 ```bash
 git clone https://github.com/fullstackhero/dotnet-starter-kit.git MyApp
@@ -35,6 +87,32 @@ dotnet restore src/FSH.Starter.slnx
 dotnet run --project src/Host/FSH.Starter.AppHost
 ```
 
-## GitHub Codespaces
+This is the path for reading the code, [contributing](/docs/contributing/), or running the kit unchanged.
 
-Open the repo on GitHub, click **Use this template** → **Open in Codespaces**. .NET 10, Docker, and the Aspire workload are pre-configured — zero local install. First boot takes a couple of minutes; subsequent ones are instant.
+## Path 4 — GitHub: Use this template / Codespaces
+
+On the [GitHub repo](https://github.com/fullstackhero/dotnet-starter-kit), click **Use this template** to create your own repository from the kit — or **Open in Codespaces** for a fully provisioned, zero-install dev environment (.NET 10, Docker, and the Aspire workload are preconfigured).
+
+<Screenshot
+  src="/screenshots/install/use-this-template.png"
+  alt="GitHub Use this template button on the repository"
+  caption="Use this template creates a fresh repo from the kit; Open in Codespaces gives you a browser-based dev environment."
+/>
+
+First Codespaces boot takes a couple of minutes; subsequent ones are instant.
+
+## Verify it's running
+
+However you installed, the AppHost launches the Aspire dashboard. Every service should reach a healthy/running state, and the API serves OpenAPI + Scalar at `/scalar`.
+
+<Screenshot
+  src="/screenshots/install/aspire-dashboard.png"
+  alt="Aspire dashboard showing all services running"
+  caption="Postgres, Redis, MinIO, the migrator, the API, and both React apps, healthy in the Aspire dashboard."
+/>
+
+## Next
+
+- **[Quick Start](/docs/getting-started/quick-start/)** — the minimal CLI walkthrough.
+- **[Local Orchestration with Aspire](/docs/deployment/aspire/)** — what each service is and why it's wired that way.
+- **[Architecture](/docs/architecture/)** — the modular monolith + vertical slice mental model.

@@ -1,0 +1,131 @@
+---
+title: Database Migrations (DbMigrator)
+lastUpdated: 2026-05-24
+description: The FSH DbMigrator — the one-shot tool that applies EF Core migrations across the tenant catalog and every tenant's per-module databases. The database is never migrated at API startup.
+sidebar:
+  label: Database Migrations
+  order: 3
+pageType: guide
+seo:
+  title: 'FSH DbMigrator — EF Core migrations for a multi-tenant .NET app'
+  description: 'How fullstackhero applies database migrations: a dedicated one-shot DbMigrator that migrates the tenant catalog and every tenant module database as an explicit step — never at API startup. Commands, multitenancy, seeding, and production usage.'
+  keywords: 'EF Core migrations multi-tenant, DbMigrator, fullstackhero migrations, apply migrations production, tenant catalog migration'
+---
+
+`FSH.Starter.DbMigrator` is a standalone console app that applies EF Core
+migrations. It is the **single, authoritative way** the database schema is
+created and evolved — locally and in production.
+
+<Callout type="warning" title="The database is never migrated at API startup">
+The API does **not** run migrations when it boots. Schema changes are always an
+explicit, observable step you run on purpose. This avoids racing instances all
+trying to migrate at once, gives you a clear go/no-go before traffic shifts, and
+keeps a multi-tenant migration (which touches many databases) out of the request
+path.
+</Callout>
+
+## What it does
+
+Each run migrates, in order:
+
+1. **The tenant catalog** — the control-plane database that lists tenants.
+2. **Every tenant's per-module databases** — one pass per tenant, applying each module's migrations.
+
+Migrations themselves live in `src/Host/FSH.Starter.Migrations.PostgreSQL`,
+organized per module by folder.
+
+## Commands
+
+```bash
+dotnet run --project src/Host/FSH.Starter.DbMigrator -- [verb] [options]
+```
+
+| Verb | What it does |
+|---|---|
+| `apply` *(default)* | Apply pending migrations. Add `--seed` to also run the per-tenant seed. |
+| `seed` | Run only the seed step per tenant (no migration). |
+| `seed-demo` | Provision demo tenants (`acme`, `globex`) with users, catalog, tickets, and chat. **Dev-only** — refuses to run unless `ASPNETCORE_ENVIRONMENT=Development`. |
+| `list-pending` | Print pending migrations without applying anything. |
+
+| Option | Effect |
+|---|---|
+| `--tenant <id>` | Restrict to a single tenant id (default: all tenants). |
+| `--catalog-only` | Migrate only the tenant catalog; skip the per-tenant pass. |
+| `--seed` | After `apply`, also call `SeedTenantAsync` per tenant. |
+| `-h`, `--help` | Print help. |
+
+**Exit codes:** `0` success · `1` failure (the exception is logged). The non-zero
+code is what your CI/CD pipeline should gate the deploy on.
+
+```bash
+# preview, apply, apply+seed, scope to one tenant, catalog only
+dotnet run --project src/Host/FSH.Starter.DbMigrator -- list-pending
+dotnet run --project src/Host/FSH.Starter.DbMigrator -- apply
+dotnet run --project src/Host/FSH.Starter.DbMigrator -- apply --seed
+dotnet run --project src/Host/FSH.Starter.DbMigrator -- apply --tenant acme
+dotnet run --project src/Host/FSH.Starter.DbMigrator -- apply --catalog-only
+```
+
+## Local development
+
+When you run the stack via Aspire, the migrator runs **for you** as the
+`fsh-db-migrator` resource: it executes `apply` on each AppHost launch and exits,
+and the API is gated on its completion (`WaitForCompletion`) so it never starts
+against an unmigrated database. See [Local Orchestration with Aspire](/docs/deployment/aspire/).
+
+You can also run it directly any time:
+
+```bash
+dotnet run --project src/Host/FSH.Starter.DbMigrator -- apply --seed
+```
+
+To populate demo tenants for a local demo or test drive:
+
+```bash
+dotnet run --project src/Host/FSH.Starter.DbMigrator -- seed-demo
+```
+
+## Production
+
+In production the migrator is the **explicit deploy step that runs before the
+new API serves traffic**. It's published as its own container image
+(`fsh-db-migrator`) so you can run it as a one-off task right next to the API.
+
+<Callout type="note" title="It must run inside the VPC">
+RDS lives in private subnets, so the migrator has to run somewhere that can
+reach it — typically a one-off **ECS Fargate task** using the `fsh-db-migrator`
+image in the same private subnets and security group context as the API. A
+laptop or a CI runner outside the VPC can't connect to a private RDS instance.
+</Callout>
+
+A typical pipeline order:
+
+1. Build & push the new `fsh-api` and `fsh-db-migrator` images (same tag).
+2. `terraform apply` to provision/update infra.
+3. Run the migrator as a one-off ECS task: `aws ecs run-task` with the
+   `fsh-db-migrator` image, command `apply`, in the private subnets. Wait for it
+   to exit `0`.
+4. Roll out the new API task definition.
+
+<Callout type="warning" title="deploy.sh does not run migrations for you">
+The [one-command AWS deploy](/docs/deployment/aws-terraform/) provisions infra
+and ships the API + SPAs, but it does **not** run the migrator (that needs
+in-VPC access to RDS). Run the migrator task as the step between `terraform
+apply` and shifting traffic — wire it into your CI/CD or run it as a one-off
+ECS task.
+</Callout>
+
+## Adding a module or a migration
+
+- **New migration** — generate it against `FSH.Starter.Migrations.PostgreSQL` (see the database rules / `create-migration` recipe), build, then `list-pending` to confirm and `apply`.
+- **New module** — the migrator has its **own** module wiring. Registering a module touches `DbMigrator/Program.cs` as well as the API's `Program.cs`; miss it and the module's migrations silently never run. See [Architecture](/docs/architecture/) for the full "four places" checklist.
+
+<Callout type="tip" title="Always preview before you apply">
+`list-pending` is free and side-effect-free. Run it in CI on every PR to catch
+un-applied or accidentally-removed migrations before they reach an environment.
+</Callout>
+
+## Next
+
+- [Local Orchestration with Aspire](/docs/deployment/aspire/) — how the migrator is wired into the dev loop.
+- [Deploy to AWS with Terraform](/docs/deployment/aws-terraform/) — where the migrator step fits in a cloud rollout.
