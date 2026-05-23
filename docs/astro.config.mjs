@@ -4,7 +4,6 @@ import tailwindcss from '@tailwindcss/vite';
 import astroExpressiveCode from 'astro-expressive-code';
 import icon from 'astro-icon';
 import { defineConfig, fontProviders } from 'astro/config';
-import { remarkModifiedTime } from './src/remark/remark-modified-time.mjs';
 import siteConfig from './src/data/site';
 
 export default defineConfig({
@@ -104,9 +103,6 @@ export default defineConfig({
     plugins: [tailwindcss()],
     build: { target: 'es2022' },
     server: { watch: { ignored: ['**/.wrangler/**'] } },
-  },
-  markdown: {
-    remarkPlugins: [remarkModifiedTime],
   },
   fonts: [
     {
