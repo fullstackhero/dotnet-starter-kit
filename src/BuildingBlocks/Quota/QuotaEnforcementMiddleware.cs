@@ -26,22 +26,26 @@ public sealed class QuotaEnforcementMiddleware : IMiddleware
     private readonly IMultiTenantContextAccessor<AppTenantInfo> _tenantAccessor;
     private readonly QuotaOptions _options;
     private readonly ILogger<QuotaEnforcementMiddleware> _logger;
+    private readonly TimeProvider _timeProvider;
 
     public QuotaEnforcementMiddleware(
         IQuotaService quotaService,
         IMultiTenantContextAccessor<AppTenantInfo> tenantAccessor,
         QuotaOptions options,
-        ILogger<QuotaEnforcementMiddleware> logger)
+        ILogger<QuotaEnforcementMiddleware> logger,
+        TimeProvider timeProvider)
     {
         ArgumentNullException.ThrowIfNull(quotaService);
         ArgumentNullException.ThrowIfNull(tenantAccessor);
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(logger);
+        ArgumentNullException.ThrowIfNull(timeProvider);
 
         _quotaService = quotaService;
         _tenantAccessor = tenantAccessor;
         _options = options;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
@@ -122,14 +126,14 @@ public sealed class QuotaEnforcementMiddleware : IMiddleware
         await context.Response.WriteAsJsonAsync(problem, context.RequestAborted).ConfigureAwait(false);
     }
 
-    private static int? CalculateRetryAfter(DateTimeOffset? resetAtUtc)
+    private int? CalculateRetryAfter(DateTimeOffset? resetAtUtc)
     {
         if (resetAtUtc is null)
         {
             return null;
         }
 
-        var delta = resetAtUtc.Value - DateTimeOffset.UtcNow;
+        var delta = resetAtUtc.Value - _timeProvider.GetUtcNow();
         return delta.TotalSeconds > 0 ? (int)Math.Ceiling(delta.TotalSeconds) : null;
     }
 
