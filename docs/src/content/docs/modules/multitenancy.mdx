@@ -18,7 +18,7 @@ The Multitenancy module makes multi-tenant the default behaviour of the entire k
 Once this module is loaded (order 200), every other module's `DbContext` is tenant-aware via the EF Core global query filter. You opt **out** with `IGlobalEntity`, you don't opt in. That's the discipline.
 </Callout>
 
-## What ships in v1
+## What ships in v10
 
 - **Three-tier tenant resolution** — claim, header (`tenant` is the primary), query string (`?tenant=`). Finbuckle resolves first match wins.
 - **DistributedCacheStore** in front of the EF Core store — a resolved tenant is cached for 60 minutes to keep request hot-paths off the DB.

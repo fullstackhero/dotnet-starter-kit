@@ -1,0 +1,98 @@
+---
+title: Developing with Claude Code
+description: A practical guide to building on fullstackhero with Claude Code — how it loads AGENTS.md, invokes skills, runs review workflows, and the build/test loop to follow.
+lastUpdated: 2026-05-24
+sidebar:
+  label: Developing with Claude Code
+  order: 3
+pageType: guide
+seo:
+  title: 'Developing fullstackhero with Claude Code — skills, workflows & the dev loop'
+  description: 'How to build features on the fullstackhero .NET starter kit with Claude Code: it auto-loads AGENTS.md, activates .agents skills from your request, runs review workflows, and verifies with build + tests.'
+  keywords: 'Claude Code, .NET, AGENTS.md, AI pair programming, fullstackhero, agent skills, code review workflow'
+---
+
+[Claude Code](https://docs.claude.com/en/docs/claude-code/overview) is Anthropic's agentic CLI. Because
+this repo is wired with `AGENTS.md` and `.agents/`, Claude works *on-convention* out of the box — it
+scaffolds slices, wires modules, and writes migrations the way the kit expects.
+
+## 1. Install & open
+
+```bash
+npm install -g @anthropic-ai/claude-code   # see the official docs for native installers
+cd dotnet-starter-kit
+claude
+```
+
+On startup, Claude Code reads `CLAUDE.md`, which imports `AGENTS.md` — so the repo map, golden rules, and
+the rules index are in context immediately. The detailed rule files load **on demand** as Claude works.
+
+<Callout type="note" title="One source of truth">
+Don't paste conventions into the chat — they're already in `AGENTS.md` and `.agents/rules/`. If something
+is wrong or missing, fix the rule file; every session (and every contributor) picks it up.
+</Callout>
+
+## 2. Build features by describing them
+
+You don't invoke skills by name — describe the task and the matching skill activates:
+
+| You say… | Skill that runs |
+|---|---|
+| "Add a `CreateInvoice` feature to Billing" | `add-feature` |
+| "Scaffold a `Reviews` module" | `add-module` (incl. the four-place registration) |
+| "Add a brands list+create page to the dashboard" | `add-react-page` |
+| "Build assignee filtering end-to-end for Tickets" | `add-full-slice` |
+| "Create a migration for the new column" | `create-migration` |
+| "Publish an `InvoicePaid` event that Notifications reacts to" | `add-integration-event` |
+
+Each skill ends by building/testing, so you get working, on-convention code rather than a sketch.
+
+## 3. Review before you commit
+
+Two read-only workflows act as guardrails — ask for them by intent:
+
+```text
+"Review my changes"          → code-reviewer   (diff vs. conventions, structured report)
+"Check architecture"         → architecture-guard (boundaries, BuildingBlocks, arch tests)
+```
+
+If the Roslyn navigator MCP is configured (the `dotnet-claude-kit` plugin), the reviewer also runs
+`detect_antipatterns` and `get_diagnostics` for machine-found issues.
+
+## 4. The build/test loop
+
+```bash
+dotnet build src/FSH.Starter.slnx     # 0 warnings — the repo runs TreatWarningsAsErrors
+dotnet test src/FSH.Starter.slnx      # unit + architecture + integration
+```
+
+<Callout type="warning" title="Integration tests need Docker">
+`Integration.Tests` spins up real Postgres, Redis, and MinIO via Testcontainers. If Docker isn't running
+you'll see `DockerUnavailableException` — that's environmental, not a code regression. Run the unit
+projects (e.g. `dotnet test src/Tests/Catalog.Tests`) to validate logic without Docker.
+</Callout>
+
+To see it all running, the Aspire AppHost brings up the whole stack — Postgres, Redis, MinIO, the migrator,
+the API, and both React apps — with one command:
+
+```bash
+dotnet run --project src/Host/FSH.Starter.AppHost
+```
+
+## 5. Golden rules worth remembering
+
+Claude follows these from `AGENTS.md`; knowing them helps you review its work:
+
+- **Module boundaries** — modules talk only through `*.Contracts`. Enforced by `Architecture.Tests`.
+- **Registering a module touches four places** — Mediator assemblies + module array, in *both* the API and DbMigrator hosts. A missing Mediator marker means handlers silently don't run.
+- **Tenant isolation is default-on** via `BaseDbContext`; opt out only via `IGlobalEntity`.
+- **Every command + paginated query needs a validator**; handlers are `public sealed`, return `ValueTask<T>`.
+- **Structured logging only** — no string interpolation in log messages.
+- **Don't modify `src/BuildingBlocks`** without intent — it's shared by every module.
+
+## 6. Keep the guidance sharp
+
+The `.agents/` set is living documentation. When you establish a new convention or hit a new footgun, add
+or update a rule (or a skill), commit it, and the whole team's agents improve. The
+[AGENTS.md & .agents/](/docs/ai-development/agents-md/) page explains the structure;
+[Skills & Workflows](/docs/ai-development/skills-and-workflows/) shows how to extend the set.

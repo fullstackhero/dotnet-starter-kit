@@ -18,7 +18,7 @@ The Tickets module is a small, clean reference of a domain with a real state mac
 If you're adding a domain with strict status transitions (orders, applications, leases, courses), the `Ticket` aggregate is the cleanest example in the kit. Read `Modules.Tickets/Domain/Ticket.cs` end-to-end before writing your own.
 </Callout>
 
-## What ships in v1
+## What ships in v10
 
 - **Tickets** with auto-generated `Number`, title, optional description, status, priority (Low / Medium / High / Critical), reporter user, and optional assignee.
 - **Four-state status machine**: Open → InProgress → Resolved → Closed, with reopen-from-Resolved-or-Closed support. Every transition raises a `TicketStatusChangedDomainEvent`.

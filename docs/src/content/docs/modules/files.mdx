@@ -18,7 +18,7 @@ The Files module is the kit's shared object-storage layer. Any other module that
 If your module owns files, ship a `FileAccessPolicy : IFileAccessPolicy` next to the rest of its code. Register it during your module's `ConfigureServices`. The Files module never knows about your domain — your domain knows what's allowed.
 </Callout>
 
-## What ships in v1
+## What ships in v10
 
 - **Presigned upload flow** — `POST /files/upload-url` mints a presigned PUT URL with a 15-minute TTL (configurable). Client uploads directly to MinIO / S3. `POST /files/{id}/finalize` flips the file from `PendingUpload` to `Available`.
 - **Pluggable access policies** — `IFileAccessPolicy` interface registered per `OwnerType`. Catalog ships `ProductFileAccessPolicy`, Chat ships `ChatChannelFileAccessPolicy`, the Files module itself ships defaults for `MyFiles` and `User`.

@@ -18,7 +18,7 @@ The Webhooks module turns every integration event your kit publishes into an out
 You publish integration events anyway (Chat does, Identity does, Files does). The Webhooks module is the configuration layer that lets *your tenants* opt into those events being delivered to their systems — no per-event wiring on your side.
 </Callout>
 
-## What ships in v1
+## What ships in v10
 
 - **Tenant-scoped subscriptions** — each `WebhookSubscription` row belongs to a tenant and stores `Url`, `EventsCsv` (comma-separated list with `*` wildcard support), `SecretHash` (the HMAC key), `IsActive`.
 - **Open-generic event handler** — one `WebhookFanoutHandler<TEvent>` registered for every `IIntegrationEvent`; no per-event setup needed. When a new module publishes a new event, existing subscriptions automatically receive it.

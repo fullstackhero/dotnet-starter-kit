@@ -14,18 +14,8 @@ const faqs: FaqItem[] = [
   },
   {
     q: 'How production-ready is it?',
-    a: "The kit is at v1.0.0-rc.1 with around 900 [Fact]/[Theory] tests across unit, integration and architecture suites passing on every build. It uses only first-party Microsoft and best-in-class OSS libraries (EF Core 10, Hangfire 1.8, Finbuckle 10, Mediator 3, FluentValidation 12, OpenTelemetry 1.15) — no bespoke runtime framework you'd be locked into. v1 ships when the remaining release-candidate items are closed.",
+    a: "The kit is at 10.0.0-rc.1 with around 900 [Fact]/[Theory] tests across unit, integration and architecture suites passing on every build. It uses only first-party Microsoft and best-in-class OSS libraries (EF Core 10, Hangfire 1.8, Finbuckle 10, Mediator 3, FluentValidation 12, OpenTelemetry 1.15) — no bespoke runtime framework you'd be locked into. v10 ships when the remaining release-candidate items are closed.",
     link: { text: 'Read the testing strategy', href: '/docs/testing/' },
-  },
-  {
-    q: 'How is this different from ABP Framework?',
-    a: "ABP is a heavyweight opinionated framework with its own DI conventions, CLI, and module system. fullstackhero is closer to a great-defaults reference application: it uses standard ASP.NET Core minimal APIs, plain Microsoft.Extensions.DependencyInjection, and the same Mediator/FluentValidation primitives the rest of the .NET ecosystem already knows. You own the code on day one and can refactor it freely.",
-    link: { text: 'Read the architecture overview', href: '/docs/architecture/' },
-  },
-  {
-    q: "How is this different from Jason Taylor's or Ardalis's Clean Architecture templates?",
-    a: "Those templates ship an architecture; fullstackhero ships ten production modules on top of an architecture. Clean Architecture templates are intentionally minimal — they give you the four-project layout and let you build everything else. fullstackhero gives you Identity, Multitenancy, Auditing, Files, Chat, Notifications, Webhooks, Billing, Catalog and Tickets already wired up, so your first commit is feature code.",
-    link: { text: 'Browse the ten modules', href: '/docs/modules/' },
   },
   {
     q: 'Do I have to use all ten modules?',

@@ -18,7 +18,7 @@ The Notifications module is the inbox layer of fullstackhero. It owns one denorm
 This module has no business logic of its own. It's a destination — other modules publish integration events that describe what happened ("user X was mentioned in channel Y"), and the handler materialises a row plus a SignalR push. Adding new notification types means adding a new `IIntegrationEventHandler` here, not redesigning the inbox.
 </Callout>
 
-## What ships in v1
+## What ships in v10
 
 - **One row type** — `Notification(Id, UserId, Type, Title, Body?, Link, Source, MetadataJson, CreatedAtUtc, ReadAtUtc?)`. Denormalized so the inbox renders without back-references into the source module.
 - **Real-time push** — the integration-event handler broadcasts a `NotificationCreated` SignalR event to the recipient's `user:{id}` group immediately after writing the row.

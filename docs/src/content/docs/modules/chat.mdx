@@ -12,13 +12,13 @@ seo:
   keywords: '.net signalr chat module, realtime chat .net 10, mention notifications dotnet, signalr redis backplane, dotnet messaging module'
 ---
 
-The Chat module turns fullstackhero into a working messaging app. Named channels (Slack-style), 1:1 direct messages (idempotent via a sorted key), group DMs, file attachments via the Files module, @mentions that publish integration events to Notifications, thread replies, emoji reactions, message pinning, full-text search, typing indicators with a Redis-backed throttle, and SignalR realtime over a Redis backplane. Around **800 lines of code across the runtime project**, plus contracts. The most feature-dense module in v1.
+The Chat module turns fullstackhero into a working messaging app. Named channels (Slack-style), 1:1 direct messages (idempotent via a sorted key), group DMs, file attachments via the Files module, @mentions that publish integration events to Notifications, thread replies, emoji reactions, message pinning, full-text search, typing indicators with a Redis-backed throttle, and SignalR realtime over a Redis backplane. Around **800 lines of code across the runtime project**, plus contracts. The most feature-dense module in v10.
 
 <Callout type="tip" title="Use it as the realtime template">
 Anything else that needs realtime broadcast (live cursors, presence, collaborative editing) should follow Chat's pattern: a SignalR hub in `BuildingBlocks/Web/Realtime`, groups named `user:{id}` and `channel:{id}`, a 3-second distributed-cache throttle on noisy events, and integration events bridging to other modules.
 </Callout>
 
-## What ships in v1
+## What ships in v10
 
 - **Three channel kinds** — `Channel` (named, Slack-style), `DirectMessage` (1:1, idempotent via sorted `DirectKey`), `GroupMessage` (3+ users).
 - **Channel membership** with two roles — `Admin`, `Member`.

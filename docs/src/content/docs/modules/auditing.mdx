@@ -18,7 +18,7 @@ The Auditing module is fullstackhero's forensic record of everything that happen
 Seven read-only endpoints expose audits filtered by tenant, user, event type, severity, time, correlation, trace, source, and free-text search across the JSON payload. Plug them into your admin app and you have an investigation surface without writing any query code.
 </Callout>
 
-## What ships in v1
+## What ships in v10
 
 - **Entity-change capture** — `AuditingSaveChangesInterceptor` records every Insert / Update / Delete with before-and-after property snapshots for each entity. No code changes required in your handlers.
 - **HTTP activity capture** — `AuditHttpMiddleware` records every request / response with body, status code, duration, request id, trace id, user, tenant. Bodies are size-capped and content-type-filtered to keep audits small.

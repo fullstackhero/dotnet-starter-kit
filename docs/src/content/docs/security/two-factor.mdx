@@ -55,7 +55,7 @@ All three require the authenticated user — TOTP is a per-user setting, so call
 
 - **SMS / email 2FA**. Only TOTP. SMS is widely-acknowledged-insecure (SIM-swap attacks); email mostly defeats the second-factor purpose since it shares the same compromised channel as password recovery.
 - **Backup / recovery codes**. The kit doesn't generate one-time backup codes. If a user loses their authenticator device, support has to reset 2FA manually (disable, then re-enrol). For production with non-technical users, this is the biggest gap to fill — implement 8-10 single-use recovery codes generated at enrolment time, hashed-and-stored, displayed to the user once.
-- **WebAuthn / passkeys.** The `AspNetUserPasskeys` table exists from ASP.NET Identity but there's no end-to-end passkey UX in v1. Roadmap.
+- **WebAuthn / passkeys.** The `AspNetUserPasskeys` table exists from ASP.NET Identity but there's no end-to-end passkey UX in v10. Roadmap.
 
 ## TOTP integration
 
@@ -118,7 +118,7 @@ The TOTP check stacks on top of the lockout policy (failed 2FA attempts count to
   4. On login, accept a code in place of the TOTP code; mark the used code
   ```
 
-  This isn't shipping in v1 but it's a ~200 LoC addition you'd add in your fork.
+  This isn't shipping in v10 but it's a ~200 LoC addition you'd add in your fork.
 - **Audit every 2FA event.** Enrol, verify, disable — `Audit.ForSecurity(SecurityAction.TwoFactorEnrolled / TwoFactorDisabled)`. Spikes of disable events from one account are a red flag (account takeover trying to remove the second factor).
 
 ## Related

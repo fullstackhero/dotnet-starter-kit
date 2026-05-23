@@ -17,7 +17,7 @@ import { getStars } from '../../helpers/github-stars';
 
 const stars = await getStars();
 
-const nav = [
+const nav: { name: string; url: string; match?: string }[] = [
   { name: 'Home',    url: '/' },
   // Docs lands on the overview hub (card grid of every section).
   { name: 'Docs',    url: '/docs/' },

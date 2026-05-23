@@ -18,7 +18,7 @@ The Identity module is fullstackhero's load-bearing auth layer. It wraps ASP.NET
 If you're customising auth — adding SSO, replacing JWT with cookie auth, swapping the user store — start here. The kit puts auth on the foundation of ASP.NET Identity, so anything you'd do in a plain ASP.NET app you can do in fullstackhero. Nothing about the rest of the kit assumes a bespoke identity stack.
 </Callout>
 
-## What ships in v1
+## What ships in v10
 
 - **JWT bearer + refresh tokens** with a rotating refresh on each `POST /tokens/refresh`.
 - **ASP.NET Identity** on top of `FshUser : IdentityUser` and `FshRole : IdentityRole` — custom password policy, 5-attempt lockout for 15 minutes, custom claims, passkey table.

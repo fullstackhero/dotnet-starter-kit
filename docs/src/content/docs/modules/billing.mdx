@@ -18,7 +18,7 @@ The Billing module gives fullstackhero a working subscription-billing skeleton: 
 Use the Billing module if your product charges tenants on a recurring plan and you want the data model — plans, subscriptions, invoices, line items, usage snapshots — already on the table. Wire your payment gateway of choice into `MarkInvoicePaidCommand` when you're ready.
 </Callout>
 
-## What ships in v1
+## What ships in v10
 
 - A **global plan catalogue** (`BillingPlan`) — `Key`, name, currency, monthly base price, per-resource overage rates. Plans are platform-wide (`IGlobalEntity`), so the same catalogue serves every tenant.
 - **Per-tenant subscriptions** with a small state machine — Active → Suspended → Active or Active → Cancelled. At most one Active subscription per tenant.
@@ -245,5 +245,5 @@ Two integration test files at `src/Tests/Integration.Tests/Tests/Billing/` cover
 ## Related
 
 - [Quota building block](/docs/building-blocks/quota/) — the plan keys here must line up with what Quota enforces.
-- [Modules overview](/docs/modules/) — the other nine modules that ship in v1.
+- [Modules overview](/docs/modules/) — the other nine modules that ship in v10.
 - [Cross-cutting concerns](/docs/cross-cutting-concerns/) — Hangfire, multitenancy, OpenTelemetry.

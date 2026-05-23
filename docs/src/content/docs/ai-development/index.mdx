@@ -1,0 +1,31 @@
+---
+title: AI-Driven Development
+description: How fullstackhero is wired for AI coding tools — AGENTS.md, the .agents folder, rules, skills, and workflows — and how to build with Claude Code.
+lastUpdated: 2026-05-24
+sidebar:
+  label: Overview
+  order: 0
+pageType: concept
+seo:
+  title: 'AI-Driven Development with fullstackhero — AGENTS.md, skills & workflows'
+  description: 'fullstackhero ships agent-ready: a canonical AGENTS.md guide plus an .agents/ folder of rules, skills, and workflows so AI tools like Claude Code build features accurately and on-convention.'
+  keywords: 'AGENTS.md, .agents folder, Claude Code, AI coding agent, agent rules skills workflows, .NET starter kit AI'
+---
+
+fullstackhero ships **agent-ready**. The conventions, footguns, and step-by-step recipes that normally
+live in a senior engineer's head are written down in a form AI coding tools read on demand — so an agent
+scaffolds a feature, adds a module, or writes a migration the *same* way you would, without breaking the
+architecture.
+
+Two pieces make this work:
+
+- **AGENTS.md** — the single, tool-neutral guide at the repo root. CLAUDE.md and GEMINI.md are thin bridges that import it, so every tool reads the same source of truth.
+- **.agents/** — a folder of **rules** (conventions, read on demand), **skills** (task recipes), and **workflows** (review/orchestration playbooks).
+
+<Callout type="tip" title="Not locked to one tool">
+Everything here is plain Markdown keyed off the open <a href="https://agents.md">AGENTS.md</a> convention.
+It works with Claude Code, Gemini CLI, Cursor, Codex, and anything else that reads `AGENTS.md` — no
+vendor lock-in.
+</Callout>
+
+<SectionIndex section="ai-development" />

@@ -13,7 +13,6 @@ const modules = [
       'Operator impersonation with audit trail',
       'Rate-limited login, register & password reset',
     ],
-    snippet: `endpoints.MapPost("/users", handler)\n  .RequirePermission(Permissions.Users.Create);`,
     href: '/docs/modules/identity/',
   },
   {
@@ -26,7 +25,6 @@ const modules = [
       'IGlobalEntity opt-out for system-wide rows',
       'Tenant-aware caching + jobs + outbox',
     ],
-    snippet: `public class Invoice : BaseEntity, IHasTenant\n{ /* tenant-scoped automatically */ }`,
     href: '/docs/modules/multitenancy/',
   },
   {
@@ -39,12 +37,11 @@ const modules = [
       'User, tenant, correlation ID, request path',
       'Queryable via /audits with filters + redaction',
     ],
-    snippet: `services.AddDbContext<AppDb>(opts =>\n  opts.AddInterceptors(new AuditingInterceptor()));`,
     href: '/docs/modules/auditing/',
   },
 ];
 
-// The other 7 modules that ship in v1 alongside the three pillars above.
+// The other 7 modules that ship in v10 alongside the three pillars above.
 const auxModules = [
   { name: 'Files',         icon: 'lucide:file',           summary: 'Tenant-scoped object storage on MinIO / S3' },
   { name: 'Chat',          icon: 'lucide:message-square', summary: 'Realtime channels, DMs, @mentions, threads' },
@@ -68,7 +65,7 @@ const auxModules = [
   ></div>
 
   <div class="mx-auto w-full max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
-    <SectionEyebrow n="03" right="10 modules ship in v1">Ten production modules ship in v1</SectionEyebrow>
+    <SectionEyebrow n="03" right="10 modules ship in v10">Ten production modules ship in v10</SectionEyebrow>
 
     <div class="max-w-2xl">
       <h2 class="text-balance font-display font-semibold tracking-[-0.035em] text-[36px] leading-[1.04] sm:text-[48px] md:text-[56px]">
@@ -144,19 +141,6 @@ const auxModules = [
             ))}
           </ul>
 
-          {/* Dark terminal-style code panel */}
-          <div class="relative mt-5 overflow-hidden rounded-lg border border-white/5 bg-[#0d1117]">
-            <div class="flex items-center gap-1.5 border-b border-white/5 bg-[#161b22] px-3 py-1.5">
-              <span class="h-1.5 w-1.5 rounded-full bg-[#ff5f56]" aria-hidden></span>
-              <span class="h-1.5 w-1.5 rounded-full bg-[#ffbd2e]" aria-hidden></span>
-              <span class="h-1.5 w-1.5 rounded-full bg-[#27c93f]" aria-hidden></span>
-              <span class="ml-2 font-mono text-[9.5px] uppercase tracking-[0.18em] text-slate-500">
-                {m.name.toLowerCase()}.cs
-              </span>
-            </div>
-            <pre class="overflow-x-auto px-3.5 py-3 font-mono text-[11.5px] leading-[1.7] text-slate-300"><code>{m.snippet}</code></pre>
-          </div>
-
           {/* Explore link */}
           <a
             href={m.href}
@@ -172,7 +156,7 @@ const auxModules = [
       ))}
     </div>
 
-    {/* Aux modules strip — the other 7 that ship in v1 */}
+    {/* Aux modules strip — the other 7 that ship in v10 */}
     <div class="mt-14">
       <div class="mb-6 flex items-center gap-3">
         <span class="font-mono text-[10.5px] font-semibold uppercase tracking-[0.22em] tabular-nums text-muted-foreground">

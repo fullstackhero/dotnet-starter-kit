@@ -1,355 +1,155 @@
 ---
-import { Code } from 'astro-expressive-code/components';
-import AnimatedIde from './AnimatedIde.astro';
+/**
+ * CodeFirst — section 01, the architecture story.
+ * Two balanced "boards": (left) the modular monolith — ten isolated modules in
+ * one process; (right) a vertical slice — one feature as one folder of layered
+ * files on a rail. The highlighted Identity module on the left is the feature
+ * exploded on the right, so the two ideas read as one architecture.
+ */
+import { Icon } from 'astro-icon/components';
 import SectionEyebrow from './SectionEyebrow.astro';
 
-const endpointCode = `public static class RegisterUserEndpoint
-{
-    public static RouteHandlerBuilder MapRegisterUserEndpoint(
-        this IEndpointRouteBuilder app)
-        => app.MapPost("/register",
-                (RegisterUserCommand cmd, IMediator m, CancellationToken ct)
-                    => m.Send(cmd, ct))
-              .WithName("RegisterUser")
-              .WithSummary("Register a new user")
-              .RequirePermission(IdentityPermissions.Users.Create);
-}`;
-
-const handlerCode = `public sealed class RegisterUserCommandHandler(IUserService users)
-    : ICommandHandler<RegisterUserCommand, UserResponse>
-{
-    public ValueTask<UserResponse> Handle(
-        RegisterUserCommand cmd, CancellationToken ct)
-        => users.RegisterAsync(cmd, ct).ConfigureAwait(false);
-}`;
-
-const validatorCode = `public sealed class RegisterUserCommandValidator
-    : AbstractValidator<RegisterUserCommand>
-{
-    public RegisterUserCommandValidator()
-    {
-        RuleFor(x => x.Email).NotEmpty().EmailAddress();
-        RuleFor(x => x.Password).NotEmpty().MinimumLength(12);
-        RuleFor(x => x.UserName).NotEmpty().MinimumLength(3);
-    }
-}`;
-
-// Active files (clickable). Order matters for indices.
-const files = [
-  { name: 'RegisterUserEndpoint.cs',       short: 'Endpoint.cs',  lines: 9,  code: endpointCode  },
-  { name: 'RegisterUserCommandHandler.cs', short: 'Handler.cs',   lines: 7,  code: handlerCode   },
-  { name: 'RegisterUserCommandValidator.cs', short: 'Validator.cs', lines: 10, code: validatorCode },
+const modules = [
+  { name: 'Identity', icon: 'lucide:shield-check', active: true },
+  { name: 'Multitenancy', icon: 'lucide:building-2' },
+  { name: 'Auditing', icon: 'lucide:scroll-text' },
+  { name: 'Catalog', icon: 'lucide:shopping-bag' },
+  { name: 'Files', icon: 'lucide:file' },
+  { name: 'Chat', icon: 'lucide:message-square' },
+  { name: 'Billing', icon: 'lucide:credit-card' },
+  { name: 'Webhooks', icon: 'lucide:webhook' },
+  { name: 'Notifications', icon: 'lucide:bell' },
+  { name: 'Tickets', icon: 'lucide:ticket' },
 ];
 
-// Collapsed feature folders (visual-only — show the breadth of VSA)
-const otherFeatures = [
-  'LoginUser',
-  'AssignUserRole',
-  'ChangePassword',
-  'DeleteUser',
-  'RefreshToken',
-];
-
-// Mini stats under the headline
-const microStats = [
-  { value: '4', unit: '',  label: 'files / feature' },
-  { value: '0', unit: '',  label: 'project jumps'   },
-  { value: '1', unit: '',  label: 'endpoint / slice'},
-];
-
-// Editorial bullets (uses star marker via inline SVG)
-const points = [
-  { strong: 'Mediator 3',          rest: 'source-generator — zero reflection at runtime.' },
-  { strong: 'FluentValidation',    rest: 'auto-wired by the module loader.'              },
-  { strong: '.RequirePermission()', rest: 'enforces auth at the endpoint, not the handler.' },
-  { strong: 'ValueTask<T>',        rest: '+ ConfigureAwait(false) on every async call.'  },
+const slice = [
+  { file: 'RegisterUserEndpoint.cs', role: 'Minimal API endpoint', icon: 'lucide:route' },
+  { file: 'RegisterUserCommandHandler.cs', role: 'Mediator command handler', icon: 'lucide:cog' },
+  { file: 'RegisterUserCommandValidator.cs', role: 'FluentValidation rules', icon: 'lucide:shield-check' },
+  { file: 'RegisterUserTests.cs', role: 'Unit + integration tests', icon: 'lucide:flask-conical' },
 ];
 ---
 
-<section
-  class="relative isolate overflow-hidden border-t border-border bg-subtle/40"
-  id="code-first"
->
+<section class="relative isolate overflow-hidden border-t border-border bg-subtle/40" id="code-first">
   <div
     class="section-dots absolute inset-0 -z-10 opacity-60"
-    style="mask-image: radial-gradient(80% 70% at 50% 30%, black, transparent); -webkit-mask-image: radial-gradient(80% 70% at 50% 30%, black, transparent);"
+    style="mask-image: radial-gradient(80% 70% at 50% 25%, black, transparent); -webkit-mask-image: radial-gradient(80% 70% at 50% 25%, black, transparent);"
     aria-hidden="true"
   ></div>
 
   <div class="mx-auto w-full max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
-    <SectionEyebrow n="01" right="Modular Monolith + VSA">Vertical Slice Architecture</SectionEyebrow>
+    <SectionEyebrow n="01" right="One process · many bounded contexts">Modular monolith + vertical slice</SectionEyebrow>
 
-    <div class="grid items-start gap-12 lg:grid-cols-[minmax(0,_5fr)_minmax(0,_7fr)] lg:gap-16">
-      {/* LEFT: editorial copy (sticky on lg+) */}
-      <div class="lg:sticky lg:top-24">
-        {/* Light/bold split headline with green underline */}
-        <h2 class="text-balance font-display font-semibold tracking-[-0.035em] text-[36px] leading-[1.04] sm:text-[48px] md:text-[56px]">
-          <span class="font-light text-muted-foreground">One feature.</span>
-          <span class="mt-1 block">
-            <span class="relative inline-block text-foreground">
-              <span class="relative z-[1] font-bold">One folder.</span>
-              <span
-                aria-hidden="true"
-                class="absolute -bottom-1 left-0 right-0 h-2 rounded-full"
-                style="background: color-mix(in oklab, var(--primary) 50%, transparent);"
-              ></span>
-            </span>
+    <div class="max-w-2xl">
+      <h2 class="text-balance font-display font-semibold tracking-[-0.035em] text-[34px] leading-[1.04] sm:text-[44px] md:text-[52px]">
+        <span class="font-light text-muted-foreground">A modular monolith,</span>
+        <span class="mt-1 block">
+          <span class="relative inline-block text-foreground">
+            <span class="relative z-[1] font-bold">sliced vertically.</span>
+            <span
+              aria-hidden="true"
+              class="absolute -bottom-1 left-0 right-0 h-2 rounded-full"
+              style="background: color-mix(in oklab, var(--primary) 50%, transparent);"
+            ></span>
           </span>
-        </h2>
+        </span>
+      </h2>
+      <p class="mt-5 text-[15.5px] leading-relaxed text-muted-foreground sm:text-[16.5px]">
+        Each module is an isolated bounded context, talking to the others only through its contracts — never
+        reaching into their internals. Inside a module, every feature is a vertical slice: endpoint, handler,
+        validator, and tests in one folder.
+      </p>
+    </div>
 
-        {/* Subtitle with bold inline */}
-        <p class="mt-6 max-w-md text-[15.5px] leading-relaxed text-muted-foreground sm:text-[16.5px]">
-          Every feature in this kit lives in
-          <span class="font-semibold text-foreground">one folder</span>
-          — endpoint, command, handler, validator, tests.
-          <span class="font-semibold text-foreground">No jumping between five projects</span>
-          to add a button. No layered ceremony.
-          Add a feature in
-          <span class="font-semibold text-foreground">one PR</span>;
-          ship in one merge.
-        </p>
-
-        {/* Mini stat row — tabular-nums micro readout */}
-        <ul class="mt-8 flex flex-wrap items-end gap-x-6 gap-y-3">
-          {microStats.map((s) => (
-            <li class="flex items-baseline gap-2">
-              <span class="font-display text-[28px] font-bold tabular-nums leading-none text-foreground sm:text-[32px]">
-                {s.value}
-              </span>
-              <span class="font-mono text-[10.5px] uppercase tracking-[0.16em] text-muted-foreground">
-                {s.label}
-              </span>
-            </li>
-          ))}
-        </ul>
-
-        {/* Bullets with star markers */}
-        <ul class="mt-8 space-y-2.5 text-[13.5px]">
-          {points.map((p) => (
-            <li class="flex items-start gap-2.5">
-              <svg class="mt-1 h-3 w-3 shrink-0 text-primary" viewBox="0 0 9 10" fill="currentColor" aria-hidden="true">
-                <path d="M4.37316 0.851288C4.47459 0.59117 4.85275 0.624255 4.90746 0.898033L5.48015 3.76369C5.49882 3.85714 5.56384 3.93463 5.65263 3.96925L8.37531 5.03085C8.63543 5.13228 8.60234 5.51044 8.32856 5.56515L5.4629 6.13784C5.36945 6.15651 5.29197 6.22153 5.25735 6.31032L4.19574 9.033C4.09432 9.29312 3.71616 9.26003 3.66145 8.98625L3.08876 6.12059C3.07008 6.02714 3.00506 5.94966 2.91627 5.91504L0.193598 4.85343C-0.0665204 4.75201 -0.0334351 4.37385 0.240343 4.31914L3.106 3.74645C3.19945 3.72777 3.27694 3.66275 3.31156 3.57396L4.37316 0.851288Z" />
-              </svg>
-              <span class="text-muted-foreground">
-                <span class="font-medium text-foreground">{p.strong}</span> {p.rest}
-              </span>
-            </li>
-          ))}
-        </ul>
-
-        {/* Explore link */}
-        <a
-          href="/docs/architecture/"
-          class="mt-10 inline-flex items-center gap-1.5 text-[14px] font-medium text-primary transition-all hover:gap-2"
-        >
-          Read the architecture deep-dive
-          <span aria-hidden="true">→</span>
-        </a>
-      </div>
-
-      {/* RIGHT: VS-Code-style editor wrapped in AnimatedIde */}
-      <AnimatedIde class="editor relative">
-        <div class="editor-glow" aria-hidden="true"></div>
-
-        <div class="editor-frame relative overflow-hidden rounded-xl border border-border bg-card shadow-[0_30px_60px_-30px_rgba(21,128,61,0.18),0_8px_24px_-12px_rgba(0,0,0,0.08)] dark:shadow-[0_30px_60px_-30px_rgba(74,222,128,0.12),0_8px_24px_-12px_rgba(0,0,0,0.5)]">
-          {/* Title bar */}
-          <div class="flex items-center gap-3 border-b border-border bg-subtle/60 px-4 py-2.5">
-            <div class="flex items-center gap-1.5" aria-hidden="true">
-              <span class="size-3 rounded-full bg-[#ff5f57]"></span>
-              <span class="size-3 rounded-full bg-[#febc2e]"></span>
-              <span class="size-3 rounded-full bg-[#28c840]"></span>
-            </div>
-            <p class="hidden min-w-0 flex-1 truncate font-mono text-[11.5px] text-muted-foreground sm:block">
-              <span>Modules.Identity</span>
-              <span class="text-border">/</span>
-              <span>Features</span>
-              <span class="text-border">/</span>
-              <span>v1</span>
-              <span class="text-border">/</span>
-              <span>Users</span>
-              <span class="text-border">/</span>
-              <span class="text-foreground/80">RegisterUser</span>
-              <span class="text-border">/</span>
-              <span class="text-foreground" data-vsa-path>RegisterUserEndpoint.cs</span>
-            </p>
-            <span class="ml-auto inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2 py-0.5 font-mono text-[10px] font-semibold tracking-wide text-muted-foreground">
-              <span class="size-1.5 rounded-full bg-primary"></span>
-              C#
-            </span>
-          </div>
-
-          {/* Editor body: file tree + code */}
-          <div class="grid grid-cols-1 md:grid-cols-[200px_minmax(0,_1fr)]">
-            {/* File tree */}
-            <aside class="file-tree border-r-0 border-b border-border bg-subtle/30 py-3 font-mono text-[12px] md:border-b-0 md:border-r">
-              <ul class="space-y-0.5">
-                <li>
-                  <div class="flex items-center gap-1.5 px-3 py-1 text-muted-foreground">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="text-primary/70">
-                      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-                    </svg>
-                    <span class="text-foreground">Users</span>
-                  </div>
-                </li>
-
-                <li class="relative">
-                  <span aria-hidden="true" class="pointer-events-none absolute bottom-1 left-[26px] top-7 w-px bg-border"></span>
-
-                  <div class="flex items-center gap-1.5 px-3 py-1 pl-5 text-foreground">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="text-primary">
-                      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-                    </svg>
-                    <span class="font-medium">RegisterUser</span>
-                  </div>
-
-                  <ul class="ml-2">
-                    {files.map((f, i) => (
-                      <li>
-                        <button
-                          type="button"
-                          data-vsa-tab={i}
-                          aria-selected={i === 0 ? 'true' : 'false'}
-                          class="vsa-file group flex w-full items-center gap-2 rounded-md px-3 py-1 pl-9 text-left text-muted-foreground transition-colors aria-selected:bg-primary/10 aria-selected:text-primary hover:bg-foreground/5"
-                        >
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="opacity-70">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                            <polyline points="14 2 14 8 20 8"></polyline>
-                          </svg>
-                          <span class="truncate">{f.short}</span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </li>
-
-                {otherFeatures.map((feature) => (
-                  <li>
-                    <div class="flex items-center gap-1.5 rounded-md px-3 py-1 pl-5 text-muted-foreground/80 transition-colors hover:bg-foreground/[0.04]">
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="opacity-60">
-                        <polyline points="9 18 15 12 9 6"></polyline>
-                      </svg>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="opacity-70">
-                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-                      </svg>
-                      <span class="truncate">{feature}</span>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </aside>
-
-            {/* Code panels */}
-            <div class="relative">
-              {files.map((f, i) => (
-                <div data-vsa-panel={i} class={`vsa-panel ${i === 0 ? '' : 'hidden'}`}>
-                  <Code code={f.code} lang="csharp" frame="none" />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Status footer */}
-          <div class="flex items-center justify-between border-t border-border bg-subtle/40 px-4 py-2 font-mono text-[10.5px] text-muted-foreground">
-            <span class="inline-flex items-center gap-3">
-              <span class="inline-flex items-center gap-1.5"><span class="size-1.5 rounded-full bg-primary"></span>vsa</span>
-              <span class="hidden sm:inline">utf-8 · LF · spaces: 4</span>
-            </span>
-            <span data-vsa-lineinfo>{files[0].lines} lines</span>
+    <div class="mt-12 grid items-stretch gap-5 sm:mt-14 lg:grid-cols-2 lg:gap-6">
+      {/* ── LEFT: modular monolith ───────────────────────────── */}
+      <div class="arch-card flex flex-col rounded-2xl border border-border bg-card p-6 sm:p-7">
+        <div class="flex items-center gap-3">
+          <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-inset ring-primary/15">
+            <Icon name="lucide:layers" class="h-5 w-5" />
+          </span>
+          <div>
+            <p class="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">Modular monolith</p>
+            <h3 class="font-display text-[16px] font-semibold tracking-[-0.01em] text-foreground">Ten modules, one process</h3>
           </div>
         </div>
-      </AnimatedIde>
+
+        <div class="mt-6 grid grid-cols-2 gap-2.5">
+          {modules.map((m) => (
+            <div
+              class:list={[
+                'arch-tile flex items-center gap-2.5 rounded-xl border px-3 py-2.5',
+                m.active ? 'border-primary/45 bg-primary/[0.07]' : 'border-border bg-background/40',
+              ]}
+            >
+              <Icon name={m.icon} class:list={['h-4 w-4 shrink-0', m.active ? 'text-primary' : 'text-muted-foreground']} />
+              <span class:list={['truncate text-[13px] font-medium tracking-tight', m.active ? 'text-foreground' : 'text-foreground/75']}>
+                {m.name}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <p class="mt-auto flex items-start gap-2 border-t border-border/60 pt-5 text-[12px] leading-relaxed text-muted-foreground">
+          <Icon name="lucide:git-compare-arrows" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary/80" />
+          Cross-module calls go through <code class="mx-1 rounded bg-foreground/[0.06] px-1 font-mono text-[11px] text-foreground">*.Contracts</code> only — enforced by architecture tests.
+        </p>
+      </div>
+
+      {/* ── RIGHT: vertical slice ────────────────────────────── */}
+      <div class="arch-card flex flex-col rounded-2xl border border-border bg-card p-6 sm:p-7">
+        <div class="flex items-center gap-3">
+          <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-inset ring-primary/15">
+            <Icon name="lucide:folder-tree" class="h-5 w-5" />
+          </span>
+          <div>
+            <p class="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">Vertical slice</p>
+            <h3 class="font-display text-[16px] font-semibold tracking-[-0.01em] text-foreground">One feature, one folder</h3>
+          </div>
+        </div>
+
+        {/* breadcrumb into the highlighted module */}
+        <p class="mt-6 truncate font-mono text-[11px] text-muted-foreground">
+          <span class="text-foreground/70">Modules.Identity</span>
+          <span class="text-border">/</span> Features <span class="text-border">/</span> v1 <span class="text-border">/</span> Users
+          <span class="text-border">/</span> <span class="text-primary">RegisterUser</span>
+        </p>
+
+        <div class="relative mt-4 pl-4">
+          <span class="absolute bottom-3 left-0 top-3 w-0.5 rounded-full bg-primary/30" aria-hidden="true"></span>
+          <ul class="space-y-2.5">
+            {slice.map((s) => (
+              <li class="arch-tile flex items-center gap-3 rounded-xl border border-border bg-background/40 px-3.5 py-2.5">
+                <span class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-inset ring-primary/15">
+                  <Icon name={s.icon} class="h-4 w-4" />
+                </span>
+                <span class="flex min-w-0 flex-col">
+                  <span class="truncate font-mono text-[12.5px] text-foreground">{s.file}</span>
+                  <span class="text-[11px] text-muted-foreground">{s.role}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <p class="mt-auto flex items-start gap-2 border-t border-border/60 pt-5 text-[12px] leading-relaxed text-muted-foreground">
+          <Icon name="lucide:git-pull-request" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary/80" />
+          No jumping between five projects to add a button — one folder, one PR, one merge.
+        </p>
+      </div>
     </div>
   </div>
 </section>
 
 <style>
-  /* Hover glow behind the editor — same idiom as the rest of the site */
-  .editor-glow {
-    position: absolute;
-    inset: -1px;
-    border-radius: 0.85rem;
-    padding: 1px;
-    background: linear-gradient(135deg, transparent, color-mix(in oklab, var(--primary) 30%, transparent), transparent);
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-            mask-composite: exclude;
-    opacity: 0;
-    transition: opacity 320ms ease;
-    pointer-events: none;
+  .arch-tile {
+    transition: border-color 200ms ease, background-color 200ms ease, transform 200ms ease;
   }
-  .editor:hover .editor-glow {
-    opacity: 1;
+  .arch-tile:hover {
+    border-color: var(--border-strong);
+    transform: translateY(-1px);
   }
-
-  /* Active file row: subtle left-border accent that animates in */
-  .vsa-file[aria-selected='true'] {
-    position: relative;
-  }
-  .vsa-file[aria-selected='true']::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 4px;
-    bottom: 4px;
-    width: 2px;
-    border-radius: 0 2px 2px 0;
-    background: var(--primary);
-  }
-
-  /* Tame Expressive Code inside the panel (no chrome, just code body) */
-  .vsa-panel :global(.expressive-code) {
-    margin: 0;
-  }
-  .vsa-panel :global(.expressive-code pre) {
-    border: 0 !important;
-    border-radius: 0 !important;
-    background-color: var(--card) !important;
-  }
-  .vsa-panel :global(.expressive-code pre code) {
-    padding-block: 1rem !important;
-    padding-inline: 1.25rem !important;
-  }
-
   @media (prefers-reduced-motion: reduce) {
-    .editor-glow { transition: none; }
+    .arch-tile { transition: none; }
   }
 </style>
-
-<script is:inline>
-  (function () {
-    var lineCounts = [9, 7, 10];
-    var fileNames = [
-      'RegisterUserEndpoint.cs',
-      'RegisterUserCommandHandler.cs',
-      'RegisterUserCommandValidator.cs',
-    ];
-
-    function select(idx) {
-      document.querySelectorAll('[data-vsa-tab]').forEach(function (t) {
-        t.setAttribute(
-          'aria-selected',
-          t.getAttribute('data-vsa-tab') === String(idx) ? 'true' : 'false',
-        );
-      });
-      document.querySelectorAll('[data-vsa-panel]').forEach(function (p) {
-        if (p.getAttribute('data-vsa-panel') === String(idx)) p.classList.remove('hidden');
-        else p.classList.add('hidden');
-      });
-      var info = document.querySelector('[data-vsa-lineinfo]');
-      if (info) info.textContent = lineCounts[idx] + ' lines';
-      var path = document.querySelector('[data-vsa-path]');
-      if (path) path.textContent = fileNames[idx];
-    }
-
-    document.querySelectorAll('[data-vsa-tab]').forEach(function (t) {
-      var idx = t.getAttribute('data-vsa-tab');
-      t.addEventListener('click', function () { select(Number(idx)); });
-    });
-  })();
-</script>

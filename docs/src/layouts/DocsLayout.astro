@@ -4,6 +4,7 @@ import Header from '../components/shell/Header.astro';
 import Footer from '../components/shell/Footer.astro';
 import Sidebar from '../components/docs/Sidebar.astro';
 import TableOfContents from '../components/docs/TableOfContents.astro';
+import SponsorCard from '../components/docs/SponsorCard.astro';
 import { sections } from '../content/docs/_sections';
 import type { MarkdownHeading } from 'astro';
 
@@ -79,6 +80,7 @@ const currentSection = currentSectionDir
         <slot />
       </main>
       <aside class="hidden xl:sticky xl:top-20 xl:block xl:max-h-[calc(100vh-6rem)] xl:overflow-y-auto xl:py-8">
+        <SponsorCard />
         <TableOfContents {headings} />
       </aside>
     </div>

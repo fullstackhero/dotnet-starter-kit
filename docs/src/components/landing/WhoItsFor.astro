@@ -4,49 +4,53 @@ import SectionEyebrow from './SectionEyebrow.astro';
 
 const builtFor = [
   {
+    icon: 'lucide:layers',
     title: 'Teams shipping multitenant SaaS on .NET',
-    body: 'Tenant isolation is the default behaviour, not a bolt-on. Finbuckle + global query filter + tenant-aware cache/jobs/outbox are wired through every layer.',
+    body: 'Tenant isolation is the default, not a bolt-on. Finbuckle + a global query filter + tenant-aware cache, jobs, and outbox are wired through every layer.',
   },
   {
-    title: 'Engineering teams that want Vertical Slice + sane defaults',
-    body: 'One feature lives in one folder — endpoint, handler, validator, tests. No layered ceremony. No jumping between five projects to add a button.',
+    icon: 'lucide:folder-tree',
+    title: 'Teams that want Vertical Slice + sane defaults',
+    body: 'One feature lives in one folder — endpoint, handler, validator, tests. No layered ceremony, no jumping between five projects to add a button.',
   },
   {
-    title: 'Indie devs and small teams shipping production B2B apps',
-    body: 'Authentication, observability, background jobs, distributed cache, and two React frontends are already wired up. Day one is feature work.',
+    icon: 'lucide:rocket',
+    title: 'Indie devs and small teams shipping B2B apps',
+    body: 'Auth, observability, background jobs, distributed cache, and two React frontends are already wired up. Day one is feature work.',
   },
   {
-    title: 'Founders who want to own their code, not rent a framework',
-    body: 'MIT licence; no runtime framework you can\'t walk away from. The kit uses standard ASP.NET Core, plain Microsoft.Extensions.DependencyInjection, and Microsoft + best-in-class OSS — everything your team already knows.',
+    icon: 'lucide:key-round',
+    title: 'Founders who want to own their code',
+    body: 'MIT licence; no runtime framework you can\'t walk away from. Standard ASP.NET Core, plain DI, and best-in-class OSS — everything your team already knows.',
   },
 ];
 
 const notFor = [
   {
+    icon: 'lucide:minimize-2',
     title: 'Tiny CRUD apps with one entity and one user',
-    body: "The kit is over-engineered for hello-world. If you don't need multitenancy or modules, a standard `dotnet new webapi` is a better starting point — there's less to delete.",
+    body: "Over-engineered for hello-world. If you don't need multitenancy or modules, a plain `dotnet new webapi` is a better start — there's less to delete.",
   },
   {
+    icon: 'lucide:layout-template',
     title: 'Teams with a deep Clean-Architecture investment',
-    body: "fullstackhero is Vertical Slice inside each module, not Clean Architecture. If your team is fluent in CA and wants the four-project layout, the Jason Taylor or Ardalis templates fit better. You can layer CA inside FSH modules, but you'd be paddling against the grain.",
+    body: 'fullstackhero is Vertical Slice inside each module, not the layered four-project structure. If your team is committed to that layout, a dedicated Clean Architecture template will feel more natural.',
   },
   {
+    icon: 'lucide:network',
     title: 'Microservices-from-day-one architectures',
-    body: "FSH is a modular monolith — modules are split so they can be extracted into services later, but they ship as one process. If you need distributed services on day one, eShop or Aspire-on-microservices examples are a closer fit.",
+    body: 'FSH is a modular monolith — modules can be extracted into services later, but they ship as one process. Need distributed services on day one? A microservices-oriented start fits better.',
   },
   {
+    icon: 'lucide:headset',
     title: 'Teams who need paid vendor support',
-    body: "FSH is community-maintained. There is no SLA, no enterprise hotline, no commercial roadmap to influence. If you need contracts and named support, ABP Commercial or BlazorPlate are paid options designed for that.",
+    body: 'FSH is community-maintained — no SLA, no enterprise hotline. If you need contracts and named support, a commercially-backed framework with paid support will serve you better.',
   },
 ];
 ---
 
 <section class="relative isolate overflow-hidden border-t border-border bg-subtle/30" id="who-its-for">
-  {/* Subtle dotted backdrop */}
-  <div
-    class="section-dots-subtle absolute inset-0 -z-10 opacity-70"
-    aria-hidden="true"
-  ></div>
+  <div class="section-dots-subtle absolute inset-0 -z-10 opacity-70" aria-hidden="true"></div>
 
   <div class="mx-auto w-full max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
     <SectionEyebrow n="05" right="Honest fit-check">Who fullstackhero is for</SectionEyebrow>
@@ -66,75 +70,58 @@ const notFor = [
         </span>
       </h2>
       <p class="mt-6 max-w-xl text-[15.5px] leading-relaxed text-muted-foreground sm:text-[16.5px]">
-        Strong defaults mean strong opinions. Here's where fullstackhero is the right answer — and where it isn't. Better to know
-        <span class="font-semibold text-foreground">before you clone</span>
-        than three weeks in.
+        Strong defaults mean strong opinions. Here's where fullstackhero is the right answer — and where it
+        isn't. Better to know <span class="font-semibold text-foreground">before you clone</span> than three weeks in.
       </p>
     </div>
 
-    <div class="mt-14 grid gap-6 lg:grid-cols-2 lg:gap-8">
-      {/* Built for — primary tint */}
-      <div class="fit-column rounded-2xl border border-border bg-card p-6 sm:p-7">
-        <div class="mb-6 flex items-center gap-3">
-          <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <Icon name="lucide:check" class="h-5 w-5" />
+    <div class="fsh-fit mt-14 grid gap-5 lg:grid-cols-2 lg:gap-7">
+      {/* ── Built for ──────────────────────────────────────────── */}
+      <div>
+        <div class="mb-5 flex items-center gap-3">
+          <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-inset ring-primary/15">
+            <Icon name="lucide:check" class="h-[18px] w-[18px]" />
           </span>
           <div>
-            <p class="font-mono text-[10.5px] font-semibold uppercase tracking-[0.18em] text-primary">
-              Built for
-            </p>
-            <h3 class="font-display text-[19px] font-semibold tracking-[-0.02em] text-foreground">
-              These teams should clone today
-            </h3>
+            <p class="font-mono text-[10.5px] font-semibold uppercase tracking-[0.18em] text-primary">A great fit</p>
+            <h3 class="font-display text-[17px] font-semibold tracking-[-0.02em] text-foreground">Clone it today if you're…</h3>
           </div>
         </div>
-        <ul class="space-y-5">
+        <ul class="space-y-3">
           {builtFor.map((item) => (
-            <li class="fit-item flex items-start gap-3">
-              <svg class="mt-1 h-3 w-3 shrink-0 text-primary" viewBox="0 0 9 10" fill="currentColor" aria-hidden="true">
-                <path d="M4.37316 0.851288C4.47459 0.59117 4.85275 0.624255 4.90746 0.898033L5.48015 3.76369C5.49882 3.85714 5.56384 3.93463 5.65263 3.96925L8.37531 5.03085C8.63543 5.13228 8.60234 5.51044 8.32856 5.56515L5.4629 6.13784C5.36945 6.15651 5.29197 6.22153 5.25735 6.31032L4.19574 9.033C4.09432 9.29312 3.71616 9.26003 3.66145 8.98625L3.08876 6.12059C3.07008 6.02714 3.00506 5.94966 2.91627 5.91504L0.193598 4.85343C-0.0665204 4.75201 -0.0334351 4.37385 0.240343 4.31914L3.106 3.74645C3.19945 3.72777 3.27694 3.66275 3.31156 3.57396L4.37316 0.851288Z" />
-              </svg>
+            <li class="fit-card group relative flex gap-4 rounded-xl border border-border bg-card p-4 hover:border-primary/40 sm:p-5">
+              <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-inset ring-primary/15">
+                <Icon name={item.icon} class="h-[18px] w-[18px]" />
+              </span>
               <div class="min-w-0">
-                <p class="font-display text-[15px] font-semibold tracking-[-0.01em] text-foreground">
-                  {item.title}
-                </p>
-                <p class="mt-1 text-[13.5px] leading-relaxed text-muted-foreground">
-                  {item.body}
-                </p>
+                <p class="font-display text-[15px] font-semibold tracking-[-0.01em] text-foreground">{item.title}</p>
+                <p class="mt-1 text-[13px] leading-relaxed text-muted-foreground">{item.body}</p>
               </div>
             </li>
           ))}
         </ul>
       </div>
 
-      {/* Not for — muted */}
-      <div class="fit-column rounded-2xl border border-border bg-card/60 p-6 sm:p-7">
-        <div class="mb-6 flex items-center gap-3">
-          <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-muted-foreground">
-            <Icon name="lucide:circle-slash" class="h-5 w-5" />
+      {/* ── Probably not for ───────────────────────────────────── */}
+      <div>
+        <div class="mb-5 flex items-center gap-3">
+          <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+            <Icon name="lucide:circle-slash" class="h-[18px] w-[18px]" />
           </span>
           <div>
-            <p class="font-mono text-[10.5px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Probably not for
-            </p>
-            <h3 class="font-display text-[19px] font-semibold tracking-[-0.02em] text-foreground">
-              Use something else if any of these match
-            </h3>
+            <p class="font-mono text-[10.5px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Reach for something else</p>
+            <h3 class="font-display text-[17px] font-semibold tracking-[-0.02em] text-foreground">Skip it if any of these match…</h3>
           </div>
         </div>
-        <ul class="space-y-5">
+        <ul class="space-y-3">
           {notFor.map((item) => (
-            <li class="fit-item flex items-start gap-3">
-              <svg class="mt-1 h-3 w-3 shrink-0 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true">
-                <line x1="6" y1="12" x2="18" y2="12"></line>
-              </svg>
+            <li class="fit-card group relative flex gap-4 rounded-xl border border-border bg-card/50 p-4 hover:border-border-strong sm:p-5">
+              <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground ring-1 ring-inset ring-border">
+                <Icon name={item.icon} class="h-[18px] w-[18px]" />
+              </span>
               <div class="min-w-0">
-                <p class="font-display text-[15px] font-semibold tracking-[-0.01em] text-foreground">
-                  {item.title}
-                </p>
-                <p class="mt-1 text-[13.5px] leading-relaxed text-muted-foreground">
-                  {item.body}
-                </p>
+                <p class="font-display text-[15px] font-semibold tracking-[-0.01em] text-foreground">{item.title}</p>
+                <p class="mt-1 text-[13px] leading-relaxed text-muted-foreground">{item.body}</p>
               </div>
             </li>
           ))}
@@ -143,3 +130,19 @@ const notFor = [
     </div>
   </div>
 </section>
+
+<style>
+  /* Card lift — calm, shadow + border only (matches the rest of the site). */
+  .fit-card {
+    transition: border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease, background-color 220ms ease;
+  }
+  @media (min-width: 1024px) {
+    .fit-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px -20px color-mix(in oklab, var(--foreground) 40%, transparent);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fit-card { transition: none; }
+  }
+</style>

@@ -123,7 +123,7 @@ This stacks with the [rate-limit `auth` policy](/docs/cross-cutting-concerns/rat
 
 ## What authentication doesn't do
 
-- **Single sign-on (SSO).** No OIDC / SAML / OAuth provider integration in v1. JWT bearer is the only token type. SSO is the most-requested roadmap item; if you need it now, layer an external IdP (Keycloak, Azure AD B2C, Auth0) in front and accept the IdP's JWTs.
+- **Single sign-on (SSO).** No OIDC / SAML / OAuth provider integration in v10. JWT bearer is the only token type. SSO is the most-requested roadmap item; if you need it now, layer an external IdP (Keycloak, Azure AD B2C, Auth0) in front and accept the IdP's JWTs.
 - **Passwordless / magic links.** No built-in passwordless flow. The `forgot-password` flow uses a token-via-email; you could repurpose it but it's not a first-class passwordless mode.
 - **WebAuthn / passkeys.** The kit has an `AspNetUserPasskeys` table from ASP.NET Identity but no end-to-end passkey-only flow. Passkey support is on the roadmap.
 

@@ -1,0 +1,126 @@
+---
+/**
+ * Sponsorship — section 07. An honest open-source funding ask.
+ * Left: editorial headline + copy + CTAs. Right: a "transparency ledger"
+ * card nodding to Open Collective's open-finances ethos — the section's
+ * distinctive hook, built from the same hairline / mono system as the ToC.
+ */
+import SectionEyebrow from './SectionEyebrow.astro';
+import Button from '../brand/Button.astro';
+import { Icon } from 'astro-icon/components';
+
+const collective = 'https://opencollective.com/fullstackhero';
+
+const ledger = [
+  { label: 'Active maintenance', note: 'issues · security · .NET upgrades' },
+  { label: 'Documentation', note: 'these guides, kept current' },
+  { label: 'New modules & features', note: 'shipped in the open' },
+  { label: 'Community support', note: 'discussions & reviews' },
+];
+---
+
+<section class="relative isolate overflow-hidden border-t border-border" id="sponsor">
+  {/* Soft primary glow behind the ledger card — distinct from the FinalCta dot-grid that follows */}
+  <div
+    aria-hidden="true"
+    class="pointer-events-none absolute inset-0 -z-10"
+    style="background: radial-gradient(40rem 28rem at 82% 28%, color-mix(in oklab, var(--primary) 9%, transparent), transparent 70%);"
+  ></div>
+
+  <div class="mx-auto w-full max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
+    <SectionEyebrow right="Open Collective · transparent funding">Back the build</SectionEyebrow>
+
+    <div class="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,27rem)] lg:gap-16">
+      {/* ── Left: editorial copy + CTA ───────────────────────────── */}
+      <div>
+        <h2 class="text-balance font-display font-semibold tracking-[-0.035em] text-[32px] leading-[1.05] sm:text-[40px] md:text-[48px]">
+          <span class="font-light text-muted-foreground">Free forever.</span>
+          <span class="mt-1 block">
+            <span class="relative inline-block text-foreground">
+              <span class="relative z-[1] font-bold">Built by sponsorship.</span>
+              <span
+                aria-hidden="true"
+                class="absolute -bottom-1 left-0 right-0 h-2 rounded-full"
+                style="background: color-mix(in oklab, var(--primary) 50%, transparent);"
+              ></span>
+            </span>
+          </span>
+        </h2>
+
+        <p class="mt-6 max-w-xl text-[15.5px] leading-relaxed text-muted-foreground sm:text-[16.5px]">
+          fullstackhero is <span class="font-semibold text-foreground">MIT-licensed</span> and always will be —
+          no paid tier, no upsell. It runs on the people and companies who get value from it. Sponsorship is
+          what keeps it <span class="font-semibold text-foreground">actively maintained</span> and moving forward.
+        </p>
+
+        <div class="mt-10 flex flex-wrap items-center gap-3">
+          <Button href={collective} target="_blank" variant="primary" size="lg" class="group">
+            <Icon name="lucide:heart" class="h-4 w-4" />
+            Sponsor
+            <span aria-hidden class="transition-transform group-hover:translate-x-0.5">→</span>
+          </Button>
+          <Button href={collective} target="_blank" variant="secondary" size="lg">
+            See backers
+            <span aria-hidden class="text-[12px] opacity-70">↗</span>
+          </Button>
+        </div>
+
+        <p class="mt-8 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+          Individuals &amp; companies · cancel anytime · <span class="text-foreground">100% transparent</span>
+        </p>
+      </div>
+
+      {/* ── Right: transparency ledger ───────────────────────────── */}
+      <div class="fsh-ledger relative rounded-2xl border border-border bg-card shadow-sm">
+        <div class="flex items-center gap-3 px-5 py-4">
+          <span class="inline-flex h-6 w-6 items-center justify-center rounded-md bg-primary/10 font-mono text-[12px] font-bold text-primary" aria-hidden="true">$</span>
+          <span class="flex-1 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-foreground">
+            Where it goes
+          </span>
+          <span class="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">v10</span>
+        </div>
+
+        <div class="mx-5 border-t border-border/60"></div>
+
+        <ul class="px-2 py-2">
+          {ledger.map((row, i) => (
+            <li class="group flex items-center gap-3.5 rounded-lg px-3 py-3 transition-colors hover:bg-foreground/[0.03]">
+              <span class="font-mono text-[11px] tabular-nums text-muted-foreground/60">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <span class="relative inline-flex h-1.5 w-1.5 shrink-0 rounded-full" style="background: var(--primary);" aria-hidden="true"></span>
+              <span class="flex min-w-0 flex-1 flex-col">
+                <span class="text-[13.5px] font-semibold tracking-tight text-foreground">{row.label}</span>
+                <span class="font-mono text-[10.5px] tracking-[0.06em] text-muted-foreground">{row.note}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+
+        <div class="mx-5 border-t border-border/60"></div>
+
+        <p class="flex items-center gap-2 px-5 py-3.5 text-[11.5px] text-muted-foreground">
+          <Icon name="lucide:eye" class="h-3.5 w-3.5 text-primary/80" />
+          Every contribution is public on Open Collective.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Subtle lift on the ledger — calm, not flashy; matches the refined system. */
+  .fsh-ledger {
+    transition: box-shadow 220ms ease, border-color 220ms ease, transform 220ms ease;
+  }
+  @media (min-width: 1024px) {
+    .fsh-ledger:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-strong);
+      box-shadow: 0 12px 32px -16px color-mix(in oklab, var(--primary) 30%, transparent);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fsh-ledger { transition: none; }
+  }
+</style>
