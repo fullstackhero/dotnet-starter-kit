@@ -162,6 +162,34 @@
 }
 
 /* ════════════════════════════════════════════════════════════════════════
+   THEME CROSS-FADE — via the View Transitions API.
+   ThemeToggle wraps the `.dark` flip in document.startViewTransition(), so the
+   browser crossfades a GPU-composited snapshot of the page rather than
+   repainting every element's colour. Text stays crisp, and gradients, shadows
+   and images all fade together — no muddy mid-transition frame, no jank.
+   We keep the old snapshot static and dissolve the new one in over it, which
+   reads as a clean colour morph with no see-through ghosting.
+   Reduced motion (and unsupported browsers, which simply switch instantly) get
+   no animation.
+   ════════════════════════════════════════════════════════════════════════ */
+::view-transition-old(root) {
+  animation: none;
+}
+::view-transition-new(root) {
+  animation: fsh-theme-fade 280ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes fsh-theme-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
    CATPPUCCIN — theme-adaptive code colors
    Light mode = Latte. Dark mode = Mocha. Used by .nl-codeblock and any
    `<pre style="background:#1e1e2e">` snippets that ship with raw inline

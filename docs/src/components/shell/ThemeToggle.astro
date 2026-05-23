@@ -19,7 +19,7 @@ const { buttonId } = Astro.props;
   type="button"
   id={buttonId}
   data-theme-toggle
-  class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/60 bg-card/70 text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground backdrop-blur-md dark:border-border/30"
+  class="inline-grid h-8 w-8 place-items-center rounded-full border border-border/60 bg-card/70 text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground backdrop-blur-md dark:border-border/30"
   aria-label="Toggle theme"
   title="Toggle theme"
 >
@@ -34,7 +34,7 @@ const { buttonId } = Astro.props;
     stroke-linecap="round"
     stroke-linejoin="round"
     aria-hidden="true"
-    class="dark:hidden"
+    class="col-start-1 row-start-1 h-3.5 w-3.5 rotate-0 scale-100 opacity-100 transition-all duration-300 ease-out motion-reduce:transition-none dark:-rotate-90 dark:scale-50 dark:opacity-0"
   >
     <circle cx="12" cy="12" r="4"></circle>
     <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
@@ -50,7 +50,7 @@ const { buttonId } = Astro.props;
     stroke-linecap="round"
     stroke-linejoin="round"
     aria-hidden="true"
-    class="hidden dark:inline"
+    class="col-start-1 row-start-1 h-3.5 w-3.5 rotate-90 scale-50 opacity-0 transition-all duration-300 ease-out motion-reduce:transition-none dark:rotate-0 dark:scale-100 dark:opacity-100"
   >
     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
   </svg>
@@ -58,8 +58,10 @@ const { buttonId } = Astro.props;
 
 <script is:inline>
   // Inline + plain JS so this runs synchronously after the button parses,
-  // with no bundler ambiguity. View Transitions removed to eliminate a
-  // potential timing source of flaky toggles.
+  // with no bundler ambiguity. The seamless light↔dark feel comes from the
+  // View Transitions API: we crossfade a GPU-composited snapshot of the page
+  // (see the ::view-transition rules in base.css). Browsers without support
+  // (or users who prefer reduced motion) just switch instantly.
   (function () {
     var STORAGE_KEY = 'theme';
 
@@ -70,9 +72,19 @@ const { buttonId } = Astro.props;
       try { localStorage.setItem(STORAGE_KEY, theme); } catch (_) {}
     }
 
+    function prefersReducedMotion() {
+      return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    }
+
     function handleClick() {
       var isDark = document.documentElement.classList.contains('dark');
-      applyTheme(isDark ? 'light' : 'dark');
+      var next = isDark ? 'light' : 'dark';
+
+      if (typeof document.startViewTransition === 'function' && !prefersReducedMotion()) {
+        document.startViewTransition(function () { applyTheme(next); });
+      } else {
+        applyTheme(next);
+      }
     }
 
     function attach() {

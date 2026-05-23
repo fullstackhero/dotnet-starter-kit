@@ -26,7 +26,7 @@ const stars = await getStars();
 const heroStats = [
   { value: '10',  unit: '',  label: 'Modules',          note: 'Identity · Multitenancy · Auditing · +7 more', icon: 'lucide:box'         },
   { value: '12',  unit: '',  label: 'Building blocks',  note: 'EF · Redis · Hangfire · OTel · Eventing · …',  icon: 'lucide:layers'      },
-  { value: '900', unit: '+', label: 'Tests',            note: 'Unit + integration · green',                   icon: 'lucide:check-check' },
+  { value: '1,400', unit: '+', label: 'Tests',          note: 'Unit · integration · E2E · all green',         icon: 'lucide:check-check' },
   { value: '1',   unit: '',  label: 'Command',          note: '`dotnet run` boots the whole stack via Aspire 13',icon: 'lucide:rocket'    },
 ];
 ---
@@ -98,7 +98,7 @@ const heroStats = [
       </a>
 
       {/* Display headline — light/bold split with gradient underline */}
-      <h1 class="mt-7 text-balance font-display font-semibold tracking-[-0.035em] text-[42px] leading-[1.02] sm:text-[60px] md:text-[72px]">
+      <h1 class="mt-7 text-balance font-display font-semibold tracking-[-0.035em] text-[34px] leading-[1.02] sm:text-[60px] md:text-[72px]">
         <span class="font-light text-muted-foreground">The .NET 10 starter kit</span>
         <span class="mt-1 block">
           <span class="relative inline-block text-foreground">
@@ -187,7 +187,7 @@ const heroStats = [
         </div>
 
         {/* Body */}
-        <div class="p-5 font-mono text-[13.5px] leading-relaxed sm:text-sm" id="hero-terminal-body">
+        <div class="overflow-x-auto p-5 font-mono text-[13.5px] leading-relaxed sm:text-sm" id="hero-terminal-body">
           {/* Line 0 — typewriter command */}
           <div class="terminal-line flex items-baseline" data-delay="0">
             <span class="text-emerald-400">$</span><span class="text-slate-300" id="hero-typewriter"></span><span class="terminal-cursor inline-block h-4 w-[2px] translate-y-[2px] bg-emerald-400"></span>
@@ -263,7 +263,7 @@ const heroStats = [
         <span aria-hidden class="h-px flex-1 bg-border"></span>
       </div>
 
-      <ul class="hero-stats-grid grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+      <ul class="hero-stats-grid grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4 md:gap-4">
         {heroStats.map((s) => (
           <li class="hero-stat-card group relative overflow-hidden rounded-2xl border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-border-strong sm:p-6">
             {/* Corner glow on hover */}

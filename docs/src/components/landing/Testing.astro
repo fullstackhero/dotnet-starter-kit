@@ -1,0 +1,169 @@
+---
+/**
+ * Testing — section 05, the proof.
+ *
+ * A four-pillar scoreboard over a faux-terminal showing a green run. The
+ * selling point this section exists to make: integration tests execute against
+ * a REAL PostgreSQL (+ Redis) in Docker via Testcontainers — no mocks, no
+ * in-memory fakes — and both React apps get full Playwright E2E coverage.
+ *
+ * Counts are real, verified against the repo (1,484 backend [Fact]/[Theory] =
+ * 774 unit · 661 integration · 49 architecture; 214 Playwright E2E). Keep them
+ * honest if the suite grows — these are claims on a marketing page.
+ */
+import { Icon } from 'astro-icon/components';
+import SectionEyebrow from './SectionEyebrow.astro';
+
+type Pillar = {
+  icon: string;
+  value: string;
+  unit?: string;
+  label: string;
+  desc: string;
+  highlight?: boolean;
+};
+
+const pillars: Pillar[] = [
+  {
+    icon: 'lucide:flask-conical',
+    value: '770', unit: '+',
+    label: 'Unit',
+    desc: 'Domain rules, validators, and handlers — pure, isolated, millisecond-fast.',
+  },
+  {
+    icon: 'lucide:container',
+    value: '660', unit: '+',
+    label: 'Integration',
+    desc: 'The full HTTP stack against a real PostgreSQL + Redis in Docker, via Testcontainers. No mocks, no fakes.',
+    highlight: true,
+  },
+  {
+    icon: 'lucide:app-window',
+    value: '214',
+    label: 'End-to-end',
+    desc: 'Real browser flows across both React apps — admin and dashboard — in Playwright.',
+  },
+  {
+    icon: 'lucide:waypoints',
+    value: '49',
+    label: 'Architecture',
+    desc: 'Module boundaries and conventions enforced by NetArchTest — they can’t silently regress.',
+  },
+];
+---
+
+<section class="relative isolate overflow-hidden border-t border-border" id="testing">
+  {/* Ambient green glow — thematic "all passing", distinct from the sections around it */}
+  <div
+    aria-hidden="true"
+    class="pointer-events-none absolute inset-0 -z-10"
+    style="background: radial-gradient(48rem 30rem at 50% -4%, color-mix(in oklab, var(--primary) 9%, transparent), transparent 64%);"
+  ></div>
+
+  <div class="mx-auto w-full max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
+    <SectionEyebrow n="05" right="Real Postgres · zero mocks · green on every commit">Tested to production standard</SectionEyebrow>
+
+    <div class="max-w-2xl">
+      <h2 class="text-balance font-display font-semibold tracking-[-0.035em] text-[30px] leading-[1.04] sm:text-[44px] md:text-[52px]">
+        <span class="font-light text-muted-foreground">Not a demo —</span>
+        <span class="mt-1 block">
+          <span class="relative inline-block text-foreground">
+            <span class="relative z-[1] font-bold">a tested foundation.</span>
+            <span
+              aria-hidden="true"
+              class="absolute -bottom-1 left-0 right-0 h-2 rounded-full"
+              style="background: color-mix(in oklab, var(--primary) 50%, transparent);"
+            ></span>
+          </span>
+        </span>
+      </h2>
+      <p class="mt-5 text-[15.5px] leading-relaxed text-muted-foreground sm:text-[16.5px]">
+        Nearly <span class="font-semibold text-foreground">1,700 automated tests</span> ship green on every commit.
+        Unit tests for the domain, integration tests that run against a
+        <span class="font-semibold text-foreground">real PostgreSQL in Docker via Testcontainers</span>
+        — not mocks, not in-memory fakes — and full browser end-to-end coverage of both React apps.
+      </p>
+    </div>
+
+    {/* ── Scoreboard: the four pillars ───────────────────────── */}
+    <ul class="mt-12 grid grid-cols-1 gap-3 sm:mt-14 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
+      {pillars.map((p) => (
+        <li
+          class:list={[
+            'stat-tile group relative flex flex-col overflow-hidden rounded-2xl border p-5 sm:p-6',
+            p.highlight ? 'border-primary/40' : 'border-border bg-card',
+          ]}
+          style={p.highlight ? 'background: color-mix(in oklab, var(--primary) 5%, var(--card));' : undefined}
+        >
+          <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-inset ring-primary/15">
+            <Icon name={p.icon} class="h-5 w-5" aria-hidden="true" />
+          </span>
+
+          <p class="mt-4 font-display font-bold leading-[0.9] tracking-[-0.04em] tabular-nums text-foreground text-[40px] sm:text-[44px]">
+            {p.value}{p.unit && <span class="ml-0.5 align-top text-[0.4em] font-bold text-primary">{p.unit}</span>}
+          </p>
+
+          <p class="mt-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
+            {p.label}
+          </p>
+          <p class="mt-2 text-[12.5px] leading-relaxed text-muted-foreground">
+            {p.desc}
+          </p>
+        </li>
+      ))}
+    </ul>
+
+    {/* ── Terminal: a real green run ─────────────────────────── */}
+    <div class="mt-3 overflow-hidden rounded-2xl border border-border bg-card lg:mt-4">
+      <div class="flex items-center gap-3 border-b border-border/60 px-4 py-3">
+        <span class="flex gap-1.5" aria-hidden="true">
+          <span class="h-2.5 w-2.5 rounded-full bg-foreground/15"></span>
+          <span class="h-2.5 w-2.5 rounded-full bg-foreground/15"></span>
+          <span class="h-2.5 w-2.5 rounded-full bg-foreground/15"></span>
+        </span>
+        <span class="font-mono text-[11px] text-muted-foreground">dotnet-starter-kit — tests</span>
+        <span class="ml-auto inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/[0.06] px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-primary">
+          <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true"></span>
+          CI passing
+        </span>
+      </div>
+
+      <pre class="overflow-x-auto p-5 font-mono text-[12px] leading-[1.75] tabular-nums sm:p-6 sm:text-[12.5px]"><code><span class="text-primary">$</span> dotnet test
+<span class="text-muted-foreground/80">  ⟳  Testcontainers — postgres:17 · redis  ready</span>
+<span class="text-primary">  ✓</span>  unit ........................  <span class="text-foreground">774 passed</span>
+<span class="text-primary">  ✓</span>  integration <span class="text-muted-foreground/70">(real Postgres)</span> .  <span class="text-foreground">661 passed</span>
+<span class="text-primary">  ✓</span>  architecture <span class="text-muted-foreground/70">(NetArchTest)</span> .   <span class="text-foreground">49 passed</span>
+<span class="font-semibold text-primary">  Passed!  1,484 / 1,484  ·  0 failed</span>
+
+<span class="text-primary">$</span> npx playwright test
+<span class="text-primary">  ✓</span>  e2e — admin + dashboard .....  <span class="text-foreground">214 passed</span>
+<span class="font-semibold text-primary">  all green ✓</span></code></pre>
+    </div>
+
+    {/* Section-level explore link — mirrors WhatsIncluded / FAQ */}
+    <div class="mt-10 flex justify-center">
+      <a
+        href="/docs/testing/"
+        class="group inline-flex items-center gap-1.5 text-[14px] font-medium text-primary transition-all hover:gap-2"
+      >
+        Read the testing strategy
+        <span aria-hidden="true">→</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .stat-tile {
+    transition: border-color 240ms ease, box-shadow 240ms ease, transform 240ms ease;
+  }
+  .stat-tile:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-strong);
+    box-shadow: 0 14px 40px -22px color-mix(in oklab, var(--primary) 38%, transparent);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .stat-tile { transition: none; }
+    .stat-tile:hover { transform: none; }
+  }
+</style>

@@ -14,7 +14,7 @@ const faqs: FaqItem[] = [
   },
   {
     q: 'How production-ready is it?',
-    a: "The kit is at 10.0.0-rc.1 with around 900 [Fact]/[Theory] tests across unit, integration and architecture suites passing on every build. It uses only first-party Microsoft and best-in-class OSS libraries (EF Core 10, Hangfire 1.8, Finbuckle 10, Mediator 3, FluentValidation 12, OpenTelemetry 1.15) — no bespoke runtime framework you'd be locked into. v10 ships when the remaining release-candidate items are closed.",
+    a: "The kit is at 10.0.0-rc.1 with around 1,500 [Fact]/[Theory] backend tests across unit, integration and architecture suites — the integration suite runs against a real PostgreSQL in Docker via Testcontainers — plus 200+ Playwright end-to-end tests across both React apps, all passing on every build. It uses only first-party Microsoft and best-in-class OSS libraries (EF Core 10, Hangfire 1.8, Finbuckle 10, Mediator 3, FluentValidation 12, OpenTelemetry 1.15) — no bespoke runtime framework you'd be locked into. v10 ships when the remaining release-candidate items are closed.",
     link: { text: 'Read the testing strategy', href: '/docs/testing/' },
   },
   {
@@ -52,7 +52,7 @@ const faqs: FaqItem[] = [
 
 <section class="relative isolate overflow-hidden border-t border-border" id="faq">
   <div class="mx-auto w-full max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
-    <SectionEyebrow n="06" right="Answers in plain English">Frequently asked</SectionEyebrow>
+    <SectionEyebrow n="07" right="Answers in plain English">Frequently asked</SectionEyebrow>
 
     <div class="max-w-2xl">
       <h2 class="text-balance font-display font-semibold tracking-[-0.035em] text-[36px] leading-[1.04] sm:text-[48px] md:text-[56px]">
@@ -82,7 +82,7 @@ const faqs: FaqItem[] = [
         <li>
           <details class="faq-item group" open={i === 0}>
             <summary class="flex cursor-pointer items-center justify-between gap-4 px-5 py-5 transition-colors hover:bg-foreground/[0.02] sm:px-6">
-              <div class="flex items-baseline gap-4">
+              <div class="flex items-baseline gap-3 sm:gap-4">
                 <span class="font-mono text-[10.5px] font-semibold uppercase tracking-[0.18em] tabular-nums text-primary">
                   Q.{String(i + 1).padStart(2, '0')}
                 </span>
@@ -100,7 +100,7 @@ const faqs: FaqItem[] = [
                 </svg>
               </span>
             </summary>
-            <div class="px-5 pb-6 pl-[68px] pr-12 text-[14.5px] leading-relaxed text-muted-foreground sm:px-6 sm:pl-[88px]">
+            <div class="pb-6 pl-5 pr-5 text-[14.5px] leading-relaxed text-muted-foreground sm:px-6 sm:pl-[88px]">
               <p>{item.a}</p>
               {item.link && (
                 <a
