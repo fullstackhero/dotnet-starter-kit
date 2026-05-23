@@ -284,8 +284,8 @@ resource "aws_ecs_service" "this" {
     rollback = var.enable_circuit_breaker_rollback
   }
 
-  propagate_tags          = "SERVICE"
-  wait_for_steady_state   = var.wait_for_steady_state
+  propagate_tags        = "SERVICE"
+  wait_for_steady_state = var.wait_for_steady_state
 
   lifecycle {
     ignore_changes = [desired_count]

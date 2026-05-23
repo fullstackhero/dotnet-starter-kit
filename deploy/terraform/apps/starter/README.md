@@ -1,6 +1,63 @@
-# Playground App Stack
-Terraform stack for the Playground API. Uses shared modules from `../../modules`.
+# Starter App Stack
 
-- Env/region stacks live under `envs/<env>/<region>/` (backend.tf + *.tfvars + main.tf).
-- App composition lives under `app_stack/` (wiring ECS services, ALB, RDS, Redis, S3).
-- Images are built from GitHub Actions, pushed to ECR, and referenced in tfvars.
+Terraform root config for the FullStackHero Starter Kit on AWS. Composes the
+shared modules in `../../modules`.
+
+What it provisions:
+
+- **API** — ECS Fargate service behind an ALB (+ WAF, RDS PostgreSQL, ElastiCache Redis, app S3 bucket).
+- **Dashboard SPA** (`clients/dashboard`) — private S3 + CloudFront (OAC), tenant-facing.
+- **Admin SPA** (`clients/admin`) — private S3 + CloudFront (OAC), operator-facing.
+
+The two React SPAs replace the old server-rendered Blazor service. Terraform owns
+each SPA's `config.json` so the API/dashboard URLs are wired without rebuilding.
+
+## Layout
+
+- `app_stack/` — the root config (provider, backend, composition, variables, outputs). Run Terraform from here.
+- `envs/<env>/<region>/` — per-environment `backend.hcl` + `terraform.tfvars`, at the app root (referenced from `app_stack/` as `../envs/...`).
+
+> The previous two-layer `shared/` → `app_stack/` indirection was collapsed into
+> this single root. Migrating an existing deployment? Re-init `app_stack/` against
+> the same backend key; resource addresses lose the `module.app.` prefix, so run
+> `terraform state mv module.app.module.network module.network` (etc.) once, or
+> `terraform plan` and reconcile with `moved {}` blocks.
+
+## One-command deploy
+
+Provisions infra **and** publishes the API image + both SPAs in a single step
+(`deploy.sh` for bash/CI/macOS/Linux, `deploy.ps1` for Windows):
+
+```bash
+# bash
+./deploy.sh dev                      # use the API image tag from tfvars
+./deploy.sh prod --build-api --auto-approve   # also build+push the API image at the current git SHA
+```
+
+```powershell
+# PowerShell
+./deploy.ps1 -Environment dev
+./deploy.ps1 -Environment prod -BuildApi -AutoApprove
+```
+
+The script: `terraform init` + `apply` → (optional) build & push the API
+container → `npm run build` each SPA → `aws s3 sync` to its bucket → CloudFront
+invalidation. Requires Terraform >= 1.15.4, the AWS CLI (configured), `jq`, and
+Node; `--build-api` additionally needs the .NET SDK + a registry login. State
+backend is bootstrapped once via `../../bootstrap`.
+
+## Manual Terraform (if you prefer)
+
+```bash
+cd deploy/terraform/apps/starter/app_stack
+terraform init  -backend-config=../envs/dev/us-east-1/backend.hcl
+terraform apply -var-file=../envs/dev/us-east-1/terraform.tfvars
+```
+
+Publishing an SPA build by hand (note `--exclude config.json` — Terraform owns
+the runtime config so the API/dashboard URLs stay authoritative):
+
+```bash
+aws s3 sync clients/dashboard/dist "s3://$(terraform output -json dashboard_site | jq -r .bucket_name)" --delete --exclude config.json
+aws cloudfront create-invalidation --distribution-id "$(terraform output -json dashboard_site | jq -r .cloudfront_distribution_id)" --paths '/*'
+```

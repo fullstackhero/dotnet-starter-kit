@@ -3,19 +3,20 @@
 ################################################################################
 
 locals {
-  common_tags = merge(
-    {
-      Environment = var.environment
-      Project     = "dotnet-starter-kit"
-      ManagedBy   = "terraform"
-    },
-    var.owner != null ? { Owner = var.owner } : {}
-  )
+  # Environment/Project/ManagedBy/Owner are applied globally via provider
+  # default_tags (see providers.tf); modules only add their own Name tag, so
+  # this map is intentionally empty unless extra per-stack tags are needed.
+  common_tags = {}
+
   aspnetcore_environment = var.environment == "dev" ? "Development" : "Production"
   name_prefix            = "${var.environment}-${var.region}"
 
-  # Container images constructed from registry, name, and tag
-  api_container_image    = "${var.container_registry}/${var.api_image_name}:${var.container_image_tag}"
+  # Container image constructed from registry, name, and tag.
+  api_container_image = "${var.container_registry}/${var.api_image_name}:${var.container_image_tag}"
+
+  # Public origin of the API (no /api suffix) — used for the app OriginUrl and
+  # as the apiBase the React SPAs read from their runtime config.json.
+  api_origin = var.enable_https && var.domain_name != null ? "https://${var.domain_name}" : "http://${module.alb.dns_name}"
 }
 
 ################################################################################
@@ -39,7 +40,7 @@ module "network" {
   enable_logs_endpoint           = var.enable_logs_endpoint
   enable_secretsmanager_endpoint = var.enable_secretsmanager_endpoint
 
-  enable_flow_logs        = var.enable_flow_logs
+  enable_flow_logs         = var.enable_flow_logs
   flow_logs_retention_days = var.flow_logs_retention_days
 
   tags = local.common_tags
@@ -156,9 +157,9 @@ module "app_s3" {
   enable_public_read = var.app_s3_enable_public_read
   public_read_prefix = var.app_s3_public_read_prefix
 
-  enable_cloudfront          = var.app_s3_enable_cloudfront
-  cloudfront_price_class     = var.app_s3_cloudfront_price_class
-  cloudfront_aliases         = var.app_s3_cloudfront_aliases
+  enable_cloudfront              = var.app_s3_enable_cloudfront
+  cloudfront_price_class         = var.app_s3_cloudfront_price_class
+  cloudfront_aliases             = var.app_s3_cloudfront_aliases
   cloudfront_acm_certificate_arn = var.app_s3_cloudfront_certificate_arn
 
   enable_intelligent_tiering = var.app_s3_enable_intelligent_tiering
@@ -175,6 +176,84 @@ module "app_s3" {
   ] : []
 
   tags = local.common_tags
+}
+
+################################################################################
+# React SPA hosting (S3 private origin + CloudFront)
+#
+# Two single-page apps replace the old server-rendered Blazor service:
+#   - dashboard (clients/dashboard) — tenant-facing
+#   - admin     (clients/admin)     — operator-facing
+# Each gets its own private bucket + CloudFront distribution. Terraform owns
+# config.json so the API/dashboard URLs are wired without rebuilding the SPA.
+# CI publishes builds with:
+#   aws s3 sync clients/<app>/dist s3://<bucket> --delete --exclude config.json
+#   aws cloudfront create-invalidation --distribution-id <id> --paths '/*'
+################################################################################
+
+module "dashboard_site" {
+  count  = var.enable_dashboard_site ? 1 : 0
+  source = "../../../modules/static_site"
+
+  name          = var.dashboard_s3_bucket_name
+  force_destroy = var.environment == "dev"
+  comment       = "${local.name_prefix} dashboard (tenant) SPA"
+
+  price_class                = var.frontend_cloudfront_price_class
+  aliases                    = var.dashboard_cloudfront_aliases
+  acm_certificate_arn        = var.dashboard_cloudfront_certificate_arn
+  response_headers_policy_id = var.frontend_response_headers_policy_id
+
+  runtime_config = {
+    apiBase       = local.api_origin
+    defaultTenant = var.frontend_default_tenant
+    demoMode      = var.dashboard_demo_mode
+  }
+
+  tags = local.common_tags
+}
+
+module "admin_site" {
+  count  = var.enable_admin_site ? 1 : 0
+  source = "../../../modules/static_site"
+
+  name          = var.admin_s3_bucket_name
+  force_destroy = var.environment == "dev"
+  comment       = "${local.name_prefix} admin (operator) SPA"
+
+  price_class                = var.frontend_cloudfront_price_class
+  aliases                    = var.admin_cloudfront_aliases
+  acm_certificate_arn        = var.admin_cloudfront_certificate_arn
+  response_headers_policy_id = var.frontend_response_headers_policy_id
+
+  runtime_config = {
+    apiBase       = local.api_origin
+    defaultTenant = var.frontend_default_tenant
+    # The admin app links to the tenant dashboard for the impersonation handoff.
+    dashboardUrl = local.dashboard_url
+  }
+
+  tags = local.common_tags
+}
+
+locals {
+  # Resolved SPA origins (custom alias when set, else the CloudFront domain).
+  # Fall back to an override for SPAs hosted outside this stack.
+  admin_url     = var.enable_admin_site ? module.admin_site[0].url : (var.admin_url != null ? var.admin_url : "")
+  dashboard_url = var.enable_dashboard_site ? module.dashboard_site[0].url : (var.dashboard_url != null ? var.dashboard_url : "")
+
+  # Origins the API must accept browser requests from. The SPAs live on
+  # CloudFront (cross-origin from the API), so they must be allow-listed.
+  cors_allowed_origins = compact(concat(
+    [local.admin_url, local.dashboard_url],
+    var.enable_https && var.domain_name != null ? ["https://${var.domain_name}"] : [],
+    var.api_extra_cors_origins,
+  ))
+
+  cors_environment_variables = {
+    for idx, origin in local.cors_allowed_origins :
+    "CorsOptions__AllowedOrigins__${idx}" => origin
+  }
 }
 
 ################################################################################
@@ -208,40 +287,19 @@ data "aws_iam_policy_document" "api_task_s3" {
   }
 }
 
-# Note: The api_task role doesn't need secrets access because the connection string
-# is injected via ECS secrets (handled by task execution role in ecs_service module).
-# This policy document is kept for potential future runtime secret access needs.
-data "aws_iam_policy_document" "api_task_secrets" {
-  count = var.db_manage_master_user_password ? 1 : 0
-
-  statement {
-    sid = "AllowSecretsAccess"
-    actions = [
-      "secretsmanager:GetSecretValue"
-    ]
-    resources = [
-      aws_secretsmanager_secret.db_connection_string[0].arn
-    ]
-  }
-}
-
 resource "aws_iam_role" "api_task" {
   name               = "${var.environment}-api-task"
   assume_role_policy = data.aws_iam_policy_document.api_task_assume.json
   tags               = local.common_tags
 }
 
+# The task role only needs S3 (application file storage). The DB connection
+# string is injected as an env var from Secrets Manager by the task EXECUTION
+# role (see the ecs_service module), so the task role needs no secrets access.
 resource "aws_iam_role_policy" "api_task_s3" {
   name   = "${var.environment}-api-task-s3"
   role   = aws_iam_role.api_task.id
   policy = data.aws_iam_policy_document.api_task_s3.json
-}
-
-resource "aws_iam_role_policy" "api_task_secrets" {
-  count  = var.db_manage_master_user_password ? 1 : 0
-  name   = "${var.environment}-api-task-secrets"
-  role   = aws_iam_role.api_task.id
-  policy = data.aws_iam_policy_document.api_task_secrets[0].json
 }
 
 ################################################################################
@@ -271,11 +329,11 @@ module "rds" {
   storage_type          = var.db_storage_type
   engine_version        = var.db_engine_version
 
-  multi_az                    = var.db_multi_az
-  backup_retention_period     = var.db_backup_retention_period
-  deletion_protection         = var.db_deletion_protection
-  skip_final_snapshot         = var.environment == "dev" ? true : false
-  final_snapshot_identifier   = var.environment != "dev" ? "${local.name_prefix}-postgres-final" : null
+  multi_az                  = var.db_multi_az
+  backup_retention_period   = var.db_backup_retention_period
+  deletion_protection       = var.db_deletion_protection
+  skip_final_snapshot       = var.environment == "dev" ? true : false
+  final_snapshot_identifier = var.environment != "dev" ? "${local.name_prefix}-postgres-final" : null
 
   performance_insights_enabled = var.db_enable_performance_insights
   monitoring_interval          = var.db_enable_enhanced_monitoring ? var.db_monitoring_interval : 0
@@ -390,23 +448,21 @@ module "api_service" {
   # When not using managed password, connection string is set directly in env vars
   environment_variables = merge(
     {
-      ASPNETCORE_ENVIRONMENT = local.aspnetcore_environment
-      CachingOptions__Redis  = module.redis.connection_string
-      Storage__Provider      = "s3"
-      Storage__S3__Bucket    = var.app_s3_bucket_name
+      ASPNETCORE_ENVIRONMENT     = local.aspnetcore_environment
+      CachingOptions__Redis      = module.redis.connection_string
+      Storage__Provider          = "s3"
+      Storage__S3__Bucket        = var.app_s3_bucket_name
       Storage__S3__PublicBaseUrl = module.app_s3.cloudfront_domain_name != "" ? "https://${module.app_s3.cloudfront_domain_name}" : ""
+      OriginOptions__OriginUrl   = local.api_origin
     },
-    # Only set connection string in env vars when NOT using managed password
+    # Connection string is injected via env var only when NOT using a managed
+    # (Secrets Manager) password; otherwise it arrives via `secrets` below.
     var.db_manage_master_user_password ? {} : {
       DatabaseOptions__ConnectionString = local.db_connection_string_plain
     },
-    var.enable_https && var.domain_name != null ? {
-      OriginOptions__OriginUrl       = "https://${var.domain_name}"
-      CorsOptions__AllowedOrigins__0 = "https://${var.domain_name}"
-    } : {
-      OriginOptions__OriginUrl       = "http://${module.alb.dns_name}"
-      CorsOptions__AllowedOrigins__0 = "http://${module.alb.dns_name}"
-    },
+    # CorsOptions__AllowedOrigins__0..N — the React SPA origins plus the app
+    # domain, so browsers on those origins can call the API cross-origin.
+    local.cors_environment_variables,
     var.api_extra_environment_variables
   )
 
@@ -429,7 +485,7 @@ module "alarms" {
   count  = var.enable_alarms ? 1 : 0
   source = "../../../modules/cloudwatch_alarms"
 
-  name                 = local.name_prefix
+  name                  = local.name_prefix
   alarm_email_addresses = var.alarm_email_addresses
 
   ecs_services = {
