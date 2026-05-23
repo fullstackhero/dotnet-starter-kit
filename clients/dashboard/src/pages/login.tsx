@@ -1,80 +1,26 @@
-import {
-  useState,
-  type FormEvent,
-} from "react";
+import { useState, type FormEvent } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
-import {
-  AlertCircle,
-  ArrowRight,
-  Building2,
-  Eye,
-  EyeOff,
-  FlaskConical,
-  Loader2,
-  Mail,
-} from "lucide-react";
+import { AlertCircle, ArrowRight, Eye, EyeOff, Loader2, Sparkles } from "lucide-react";
 import { useAuth } from "@/auth/use-auth";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AuthHeadline, AuthShell } from "@/components/auth/auth-shell";
+import { AuthShell } from "@/components/auth/auth-shell";
+import { DemoAccountsDialog } from "@/components/auth/demo-accounts-dialog";
 import { ApiRequestError } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
 import { env } from "@/env";
-import { LoginDemoPanel } from "@/pages/login.demo-panel";
 import type { DemoAccount } from "@/pages/login.demo-accounts";
 
 type LocationState = { from?: { pathname: string } };
 
 // ────────────────────────────────────────────────────────────────────────
-// Demo popup — DEV only. Click "Demo accounts" under the form, the
-// LoginDemoPanel renders inside a Dialog. Picking an account closes the
-// dialog and prefills the form.
-// ────────────────────────────────────────────────────────────────────────
-
-function DemoDialog({
-  open,
-  onOpenChange,
-  current,
-  onSelect,
-}: {
-  open: boolean;
-  onOpenChange: (next: boolean) => void;
-  current: { email: string; tenant: string };
-  onSelect: (account: DemoAccount) => void;
-}) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[520px] !p-0">
-        <DialogTitle className="sr-only">Demo accounts</DialogTitle>
-        <DialogDescription className="sr-only">
-          Pick a seeded demo account to prefill the login form. DEV only.
-        </DialogDescription>
-        <div className="rounded-[inherit] overflow-hidden">
-          <LoginDemoPanel
-            current={current}
-            onSelect={(a) => {
-              onSelect(a);
-              onOpenChange(false);
-            }}
-          />
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-// ────────────────────────────────────────────────────────────────────────
-// Page — renders inside AuthShell so the chrome matches forgot-password,
-// reset-password, and confirm-email exactly. dentalOS warm-paper card on
-// rose+saffron atmospheric orbs; tenant + email get leading icons to
-// mirror the rest of the auth flow.
+// Login — dentalOS "welcome back" card on rose+saffron atmospheric orbs
+// (chrome supplied by AuthShell, shared with the rest of the auth flow).
+// FSH stays multi-tenant, so the Tenant field leads the form; Email +
+// Password follow. The demo picker ("Step into any role") signs in
+// instantly and is gated on the runtime demoMode flag — on in staging,
+// off in production.
 // ────────────────────────────────────────────────────────────────────────
 
 export function LoginPage() {
@@ -119,24 +65,34 @@ export function LoginPage() {
     await performLogin({ email, password, tenant });
   };
 
+  // Demo picker → reflect the chosen creds in the form, then sign in
+  // instantly. Each demo account carries its own tenant + password.
   const onPickDemo = (account: DemoAccount) => {
-    setError(null);
     setEmail(account.email);
     setPassword(account.password);
     setTenant(account.tenant);
+    void performLogin({ email: account.email, password: account.password, tenant: account.tenant });
   };
 
   return (
     <>
       <AuthShell>
         <div className="mb-6 sm:mb-8">
-          <AuthHeadline lead="Welcome" accent="back" />
+          <h1 className="mb-1.5 font-display text-[22px] font-semibold tracking-tight text-[var(--color-foreground)]">
+            Welcome back
+          </h1>
           <p className="text-[13px] text-[var(--color-muted-foreground)]">
-            Sign in to continue to your tenant.
+            Sign in to your account
           </p>
         </div>
 
-        <form onSubmit={onSubmit} className="space-y-5" noValidate aria-describedby={error ? "login-error" : undefined}>
+        <form
+          onSubmit={onSubmit}
+          className="space-y-5"
+          noValidate
+          aria-describedby={error ? "login-error" : undefined}
+        >
+          {/* Tenant — FSH stays multi-tenant, so this leads the form. */}
           <div className="space-y-1.5">
             <Label
               htmlFor="tenant"
@@ -144,20 +100,16 @@ export function LoginPage() {
             >
               Tenant
             </Label>
-            <div className="relative">
-              <Building2 className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.6)]" />
-              <Input
-                id="tenant"
-                value={tenant}
-                onChange={(e) => setTenant(e.target.value)}
-                placeholder="root"
-                autoComplete="organization"
-                required
-                aria-invalid={error ? true : undefined}
-                aria-describedby={error ? "login-error" : undefined}
-                className="h-11 pl-10 text-[14px]"
-              />
-            </div>
+            <Input
+              id="tenant"
+              value={tenant}
+              onChange={(e) => setTenant(e.target.value)}
+              placeholder="root"
+              autoComplete="organization"
+              required
+              aria-invalid={error ? true : undefined}
+              className="h-11 text-[14px]"
+            />
           </div>
 
           <div className="space-y-1.5">
@@ -167,21 +119,17 @@ export function LoginPage() {
             >
               Email
             </Label>
-            <div className="relative">
-              <Mail className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.6)]" />
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                autoComplete="email"
-                required
-                aria-invalid={error ? true : undefined}
-                aria-describedby={error ? "login-error" : undefined}
-                className="h-11 pl-10 text-[14px]"
-              />
-            </div>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@example.com"
+              autoComplete="email"
+              required
+              aria-invalid={error ? true : undefined}
+              className="h-11 text-[14px]"
+            />
           </div>
 
           <div className="space-y-1.5">
@@ -209,7 +157,6 @@ export function LoginPage() {
                 autoComplete="current-password"
                 required
                 aria-invalid={error ? true : undefined}
-                aria-describedby={error ? "login-error" : undefined}
                 className="h-11 pr-11 text-[14px]"
               />
               <button
@@ -260,47 +207,23 @@ export function LoginPage() {
           </div>
         </form>
 
-        {/* Demo accounts (DEV only) */}
-        {import.meta.env.DEV && (
-          <>
-            <div className="mt-8 mb-5 flex items-center gap-3">
-              <div className="h-px flex-1 bg-[var(--color-border)]" />
-              <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.6)]">
-                Quick access
-              </span>
-              <div className="h-px flex-1 bg-[var(--color-border)]" />
-            </div>
-
+        {/* Demo accounts — runtime-gated (staging on, prod off). */}
+        {env.demoMode && (
+          <div className="mt-7">
             <button
               type="button"
               onClick={() => setDemoOpen(true)}
-              className={cn(
-                "group flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg border border-transparent px-3 py-2.5 text-left text-[12px]",
-                "transition-all duration-150 hover:border-[var(--color-border)] hover:bg-[var(--color-secondary)]",
-              )}
+              className="flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-primary/25 bg-transparent text-[12.5px] font-medium text-primary/70 transition-all duration-150 hover:border-primary/40 hover:bg-primary/[0.04] hover:text-primary"
             >
-              <span className="inline-flex items-center gap-2 text-[var(--color-muted-foreground)] group-hover:text-[var(--color-foreground)]">
-                <FlaskConical className="size-3.5" />
-                <span className="font-semibold uppercase tracking-wider text-[10.5px]">
-                  Demo accounts
-                </span>
-              </span>
-              <span className="text-[10.5px] font-semibold uppercase tracking-wider text-[oklch(from_var(--color-saffron)_l_c_h_/_0.85)]">
-                DEV
-              </span>
+              <Sparkles className="size-[13px]" />
+              <span>Sign in with a demo account</span>
             </button>
-          </>
+          </div>
         )}
       </AuthShell>
 
-      {/* DEV demo popup */}
-      {import.meta.env.DEV && (
-        <DemoDialog
-          open={demoOpen}
-          onOpenChange={setDemoOpen}
-          current={{ email, tenant }}
-          onSelect={onPickDemo}
-        />
+      {env.demoMode && (
+        <DemoAccountsDialog open={demoOpen} onOpenChange={setDemoOpen} onPick={onPickDemo} />
       )}
     </>
   );

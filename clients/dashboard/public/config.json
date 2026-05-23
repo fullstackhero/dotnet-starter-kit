@@ -1,4 +1,5 @@
 {
   "apiBase": "",
-  "defaultTenant": "root"
+  "defaultTenant": "root",
+  "demoMode": true
 }

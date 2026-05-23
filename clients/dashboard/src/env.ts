@@ -4,6 +4,13 @@
 type RuntimeConfig = {
   apiBase: string;
   defaultTenant: string;
+  /**
+   * Surfaces the "Sign in with a demo account" picker on the login page.
+   * A runtime flag (not a build-time VITE_ var) so a single build artifact
+   * can be promoted across environments: set "demoMode": true in the
+   * staging config.json and false (or omit it) in production.
+   */
+  demoMode: boolean;
 };
 
 let cached: RuntimeConfig | null = null;
@@ -18,6 +25,7 @@ export async function loadRuntimeConfig(): Promise<void> {
   cached = {
     apiBase: (cfg.apiBase ?? "").replace(/\/$/, ""),
     defaultTenant: cfg.defaultTenant ?? "root",
+    demoMode: cfg.demoMode ?? false,
   };
 }
 
@@ -33,4 +41,5 @@ function get(): RuntimeConfig {
 export const env = {
   get apiBase(): string { return get().apiBase; },
   get defaultTenant(): string { return get().defaultTenant; },
+  get demoMode(): boolean { return get().demoMode; },
 };

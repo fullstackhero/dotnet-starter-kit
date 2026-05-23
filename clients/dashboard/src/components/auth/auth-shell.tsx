@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { ShieldCheck } from "lucide-react";
-import { cn } from "@/lib/cn";
 
 // ────────────────────────────────────────────────────────────────────────
 // AuthShell — calm centered-card chrome for unauthenticated pages
@@ -64,24 +63,23 @@ export function AuthShell({
 
       {/* Card column */}
       <div className="relative z-10 w-full max-w-[420px] fsh-enter fsh-enter-1">
-        {/* Brand lockup — flat rose tile + Outfit wordmark + caption */}
+        {/* Brand lockup — FSH logo + Outfit wordmark + .NET 10 caption */}
         <div className="mb-8 flex flex-col items-center">
-          <div className="mb-2 flex items-center gap-2.5">
-            <div
-              className={cn(
-                "brand-mark grid size-10 place-items-center rounded-lg",
-                "font-display text-[16px] font-bold text-[var(--color-primary-foreground)]",
-              )}
-            >
-              F
-            </div>
-            <span className="font-display text-[24px] font-semibold tracking-tight">
+          <div className="flex items-center gap-2.5">
+            <img
+              src="/logo-fullstackhero.png"
+              alt="FullStackHero"
+              className="size-9 object-contain"
+            />
+            <span className="font-display text-[26px] font-semibold tracking-tight text-[var(--color-foreground)]">
               fullstack<span className="text-[var(--color-primary)]">hero</span>
             </span>
           </div>
-          <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.7)]">
-            Console · Multi-tenant
-          </span>
+          <div className="mt-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.7)]">
+            <span aria-hidden className="h-px w-6 bg-[var(--color-border)]" />
+            <span>.NET 10 Starter Kit</span>
+            <span aria-hidden className="h-px w-6 bg-[var(--color-border)]" />
+          </div>
         </div>
 
         {/* Form card — warm-paper with backdrop blur */}

@@ -23,21 +23,24 @@ export function BrandMark({ className }: { className?: string }) {
 }
 
 /**
- * BrandMarkXL — splash version for the Login page. ASCII-art block letters
- * rendered with Fraunces at heavy weight, with a hairline rule above + a
- * mono kicker line below.
+ * BrandMarkXL — splash version for the Login page. Leads with the FSH logo
+ * mark + "fullstackhero" wordmark, then the "Console." display monogram and
+ * a one-line system blurb. The chartreuse signal carries through the wordmark
+ * accent and the monogram period.
  */
 export function BrandMarkXL({ className }: { className?: string }) {
   return (
     <div className={cn("space-y-3", className)}>
-      <div className="flex items-center gap-3">
-        <span
-          aria-hidden
-          className="block h-3 w-3 rounded-[2px] bg-[var(--color-accent-signal)] shadow-[0_0_18px_oklch(from_var(--color-accent-signal)_l_c_h_/_0.5)]"
+      <div className="flex items-center gap-2.5">
+        <img
+          src="/logo-fullstackhero.png"
+          alt="FullStackHero"
+          className="size-7 object-contain"
         />
-        <span className="meta text-[var(--color-muted-foreground)]">
-          fullstackhero · platform admin
+        <span className="font-display text-[18px] font-semibold tracking-tight text-[var(--color-foreground)]">
+          fullstack<span className="text-[var(--color-accent-signal)]">hero</span>
         </span>
+        <span className="meta text-[var(--color-muted-foreground)]">· platform admin</span>
       </div>
       <h1 className="font-display text-[clamp(3rem,7vw,5.5rem)] font-semibold leading-[0.95] tracking-[var(--tracking-display)]">
         Console<span className="text-[var(--color-accent-signal)]">.</span>
