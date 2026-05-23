@@ -18,8 +18,15 @@ public sealed class GetSubscriptionQueryHandler(
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        var tenantId = query.TenantId ?? tenantAccessor.MultiTenantContext?.TenantInfo?.Id
+        var callerTenantId = tenantAccessor.MultiTenantContext?.TenantInfo?.Id
             ?? throw new UnauthorizedException("Tenant context is required.");
+
+        // BillingDbContext is not tenant-filtered. A tenant caller may only read its OWN
+        // subscription; only the root operator may pass an arbitrary tenant id. Without this guard
+        // any tenant could read another tenant's subscription by passing its id.
+        var tenantId = callerTenantId == MultitenancyConstants.Root.Id
+            ? query.TenantId ?? callerTenantId
+            : callerTenantId;
 
         var sub = await (from s in dbContext.Subscriptions.AsNoTracking()
                          join p in dbContext.Plans.AsNoTracking() on s.PlanId equals p.Id
