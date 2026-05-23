@@ -10,6 +10,7 @@ using FSH.Modules.Auditing.Persistence;
 using FSH.Modules.Identity.Contracts.Services;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
+using static FSH.Modules.Auditing.Persistence.AuditJsonbFunctions;
 
 namespace FSH.Modules.Auditing.Features.v1.GetAudits;
 
@@ -99,7 +100,7 @@ public sealed class GetAuditsQueryHandler : IQueryHandler<GetAuditsQuery, PagedR
             // honest by scoping the scan; pair this with a GIN index on
             // PayloadJson in production for sub-second search.
             audits = audits.Where(a =>
-                (a.PayloadJson != null && EF.Functions.ILike(a.PayloadJson, $"%{term}%")) ||
+                (a.PayloadJson != null && EF.Functions.ILike(AsText(a.PayloadJson), $"%{term}%")) ||
                 (a.Source != null && EF.Functions.ILike(a.Source, $"%{term}%")) ||
                 (a.UserName != null && EF.Functions.ILike(a.UserName, $"%{term}%")));
         }
