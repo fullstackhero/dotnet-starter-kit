@@ -1,3 +1,7 @@
+# Local-dev compose: the whole stack on one host with throwaway secrets.
+# Aspire (src/Host/FSH.Starter.AppHost) is the richer local-dev path;
+# deploy/docker/ is the production compose. Use this for a quick container
+# run of API + infra. Secrets below are DEV-ONLY — never reuse them.
 services:
   postgres:
     image: postgres:17
@@ -42,6 +46,24 @@ services:
         mc mb --ignore-existing local/fsh-uploads
         mc anonymous set download local/fsh-uploads
 
+  # One-shot: apply EF migrations + seed the root tenant and admin user.
+  # The DB is NOT migrated at API startup, so without this the API runs
+  # against an empty schema. Mirrors deploy/docker's migrator.
+  migrator:
+    build:
+      context: .
+      dockerfile: src/Host/FSH.Starter.DbMigrator/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_started
+    environment:
+      DOTNET_ENVIRONMENT: Development
+      DatabaseOptions__ConnectionString: "Host=postgres;Port=5432;Database=fsh;Username=postgres;Password=password"
+      CachingOptions__Redis: "redis:6379"
+      JwtOptions__SigningKey: "dev-only-jwt-signing-key-change-me-32-chars-min"
+      Seed__DefaultAdminPassword: "Admin123!"
+    command: ["apply", "--seed"]
+
   api:
     build:
       context: .
@@ -55,10 +77,14 @@ services:
         condition: service_started
       minio-init:
         condition: service_completed_successfully
+      migrator:
+        condition: service_completed_successfully
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       DatabaseOptions__ConnectionString: "Host=postgres;Port=5432;Database=fsh;Username=postgres;Password=password"
       CachingOptions__Redis: "redis:6379"
+      JwtOptions__SigningKey: "dev-only-jwt-signing-key-change-me-32-chars-min"
+      Seed__DefaultAdminPassword: "Admin123!"
       Storage__Provider: s3
       Storage__S3__Bucket: fsh-uploads
       Storage__S3__Region: us-east-1

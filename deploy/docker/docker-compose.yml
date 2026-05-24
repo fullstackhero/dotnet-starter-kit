@@ -73,6 +73,27 @@ services:
     #   - "9000:9000"   # S3 API
     #   - "9001:9001"   # Web console
 
+  # One-shot: create the bucket the Files module writes to. The app never
+  # auto-creates it (S3StorageService just PutObjects into Storage:S3:Bucket),
+  # so without this the first upload fails with NoSuchBucket. No anonymous
+  # policy is set — objects are served via the API / presigned URLs, not a
+  # public bucket.
+  minio-init:
+    image: minio/mc:latest
+    container_name: fsh-minio-init
+    restart: "no"
+    depends_on:
+      minio: { condition: service_healthy }
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        mc alias set local http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD"
+        mc mb --ignore-existing local/fsh
+
   migrator:
     build:
       context: ../..
@@ -98,10 +119,11 @@ services:
     container_name: fsh-api
     restart: unless-stopped
     depends_on:
-      postgres: { condition: service_healthy }
-      redis:    { condition: service_healthy }
-      minio:    { condition: service_healthy }
-      migrator: { condition: service_completed_successfully }
+      postgres:   { condition: service_healthy }
+      redis:      { condition: service_healthy }
+      minio:      { condition: service_healthy }
+      minio-init: { condition: service_completed_successfully }
+      migrator:   { condition: service_completed_successfully }
     environment:
       DOTNET_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
