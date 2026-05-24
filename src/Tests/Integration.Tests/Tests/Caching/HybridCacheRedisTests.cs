@@ -9,14 +9,15 @@ using Testcontainers.Redis;
 namespace Integration.Tests.Tests.Caching;
 
 /// <summary>
-/// End-to-end tests against a real Redis container — guards against the in-memory-vs-Redis
-/// serialization divergence tracked at dotnet/extensions#6063, where caches behave differently
-/// once an actual <see cref="IDistributedCache"/> is wired. The unit-level Caching.Tests use
-/// the in-memory fallback and would not catch a Redis-specific regression.
+/// End-to-end tests against a real Valkey container (the kit's cache engine; Redis-protocol
+/// compatible) — guards against the in-memory-vs-distributed serialization divergence tracked at
+/// dotnet/extensions#6063, where caches behave differently once an actual
+/// <see cref="IDistributedCache"/> is wired. The unit-level Caching.Tests use the in-memory
+/// fallback and would not catch a distributed-cache-specific regression.
 /// </summary>
 public sealed class HybridCacheRedisTests : IAsyncLifetime
 {
-    private readonly RedisContainer _redis = new RedisBuilder("redis:7-alpine")
+    private readonly RedisContainer _redis = new RedisBuilder("valkey/valkey:8-alpine")
         .Build();
 
     public Task InitializeAsync() => _redis.StartAsync();
