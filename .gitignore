@@ -494,9 +494,6 @@ $RECYCLE.BIN/
 /.bmad
 
 team/
-docs/node_modules/
-docs/dist/
-docs/.astro/
 spec-os/
 /PLAN.md
 **/nul

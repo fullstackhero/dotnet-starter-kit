@@ -31,7 +31,6 @@ front-ends and a CLI. Multitenancy, auth, auditing, billing, files, chat and mor
 | `src/Tests/` | Per-module tests, `Architecture.Tests` (NetArchTest), `Integration.Tests` (Testcontainers). |
 | `src/Tools/CLI` | The `fsh` CLI (Spectre.Console). |
 | `clients/admin`, `clients/dashboard` | The two React apps. |
-| `docs/` | Astro docs site. |
 | `deploy/` | Infra (docker, terraform, dokploy). |
 
 ## Tech stack
