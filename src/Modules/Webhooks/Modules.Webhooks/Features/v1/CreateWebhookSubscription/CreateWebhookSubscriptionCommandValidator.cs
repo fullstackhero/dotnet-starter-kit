@@ -7,7 +7,9 @@ public sealed class CreateWebhookSubscriptionCommandValidator : AbstractValidato
 {
     public CreateWebhookSubscriptionCommandValidator()
     {
-        RuleFor(x => x.Url).NotEmpty().Must(url => Uri.TryCreate(url, UriKind.Absolute, out _))
+        RuleFor(x => x.Url).NotEmpty()
+            .Must(url => Uri.TryCreate(url, UriKind.Absolute, out var uri)
+                && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
             .WithMessage("A valid absolute URL is required.");
         RuleFor(x => x.Events).NotEmpty().WithMessage("At least one event type is required.");
     }
