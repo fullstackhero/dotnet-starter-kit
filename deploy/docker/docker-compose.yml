@@ -31,11 +31,11 @@ services:
     #   - "5432:5432"
 
   redis:
-    image: redis:7-alpine
+    image: valkey/valkey:8-alpine
     container_name: fsh-redis
     restart: unless-stopped
     command:
-      - redis-server
+      - valkey-server
       - --requirepass
       - ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
       - --appendonly
@@ -43,7 +43,7 @@ services:
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli -a $$REDIS_PASSWORD PING | grep PONG"]
+      test: ["CMD-SHELL", "valkey-cli -a $$REDIS_PASSWORD PING | grep PONG"]
       interval: 5s
       timeout: 3s
       retries: 12

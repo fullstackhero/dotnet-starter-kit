@@ -18,9 +18,20 @@ var postgresServer = builder.AddPostgres("postgres")
 
 var postgres = postgresServer.AddDatabase("fsh-db");
 
+// Valkey (BSD-3, the Linux Foundation's Redis fork) via Aspire's Redis
+// integration. Drop-in over RESP: the kit uses only StackExchange.Redis
+// (cache, data protection, SignalR backplane, quota) with no Redis Stack
+// modules, and Hangfire is on Postgres — so nothing is Redis-specific.
+// Resource name stays "redis" so connection strings / config keys don't churn.
 var redis = builder.AddRedis("redis")
+    .WithImage("valkey/valkey", "8")
     .WithDataVolume("fsh-redis-data")
-    .WithLifetime(ContainerLifetime.Persistent);
+    .WithLifetime(ContainerLifetime.Persistent)
+    // RedisInsight cache browser — Aspire auto-wires it to the resource above,
+    // so it connects to Valkey with no manual config. It's SSPL (source-available),
+    // but as a dev-only tool that's never redistributed the licensing impact is nil.
+    // Prefer a strictly-MIT toolchain? Swap to .WithRedisCommander().
+    .WithRedisInsight();
 
 // Build a plain TCP (non-TLS) Redis connection string using the secondary endpoint.
 // Aspire 13.x enables TLS on the primary Redis port by default; the secondary endpoint is plain TCP.
