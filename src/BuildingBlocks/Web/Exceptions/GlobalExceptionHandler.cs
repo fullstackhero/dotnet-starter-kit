@@ -67,6 +67,19 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
             problemDetails.Title = "Not Found";
             problemDetails.Detail = exception.Message;
         }
+        else if (exception is BadHttpRequestException badRequest)
+        {
+            // ASP.NET Core throws BadHttpRequestException for malformed requests:
+            // a missing required header/route/query parameter (e.g. the `tenant`
+            // header on tenant-scoped endpoints), an unreadable body, or a body
+            // that exceeds the size limit. These are client errors and the
+            // exception already carries the correct status (usually 400) — honour
+            // it instead of letting it fall through to a generic 500.
+            statusCode = badRequest.StatusCode;
+            problemDetails.Status = statusCode;
+            problemDetails.Title = "Bad Request";
+            problemDetails.Detail = badRequest.Message;
+        }
         else
         {
             statusCode = StatusCodes.Status500InternalServerError;
