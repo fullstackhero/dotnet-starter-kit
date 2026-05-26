@@ -48,6 +48,14 @@ public sealed class DetailedTestExceptionHandler : IExceptionHandler
                 problemDetails.Extensions["errors"] = customEx.ErrorMessages;
             }
         }
+        else if (exception is BadHttpRequestException badRequest)
+        {
+            // Mirror GlobalExceptionHandler: malformed requests (missing required
+            // header/route/query param, unreadable body) carry their own status.
+            statusCode = badRequest.StatusCode;
+            problemDetails.Title = "Bad Request";
+            problemDetails.Detail = badRequest.Message;
+        }
         else
         {
             problemDetails.Title = exception.GetType().Name;
