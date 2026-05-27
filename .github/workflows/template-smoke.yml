@@ -69,7 +69,7 @@ jobs:
         run: dotnet new install "$RUNNER_TEMP"/pkg/FullStackHero.NET.StarterKit.*.nupkg
 
       - name: Scaffold project
-        run: dotnet new fsh -n Smoke.App -o "$RUNNER_TEMP/smoke" --db postgresql --aspire true --frontend true --skipRestore true
+        run: dotnet new fsh -n Smoke.App -o "$RUNNER_TEMP/smoke" --aspire true --frontend true --skipRestore true
 
       - name: Build backend (warnings as errors)
         run: dotnet build "$RUNNER_TEMP/smoke/src/Smoke.App.slnx" -c Release -warnaserror
@@ -110,7 +110,7 @@ jobs:
       # Backend-only path must still compile — guards the //#if (frontend) and
       # (!aspire) conditional gating in AppHost.cs and the solution.
       - name: Scaffold backend-only project
-        run: dotnet new fsh -n Smoke.Api -o "$RUNNER_TEMP/min" --db postgresql --aspire false --frontend false --skipRestore true
+        run: dotnet new fsh -n Smoke.Api -o "$RUNNER_TEMP/min" --aspire false --frontend false --skipRestore true
 
       - name: Build backend (warnings as errors)
         run: dotnet build "$RUNNER_TEMP/min/src/Smoke.Api.slnx" -c Release -warnaserror
