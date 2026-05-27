@@ -48,8 +48,16 @@ export function TenantDetailPage() {
     queryKey: ["tenant", id, "provisioning"],
     queryFn: () => getTenantProvisioningStatus(id),
     enabled: !!id,
-    // Poll while provisioning is in flight; stop once terminal.
+    // A 404 means this tenant was never run through the provisioning pipeline
+    // (e.g. demo/directly-created tenants). That's a terminal "not tracked"
+    // state, not a transient failure — don't retry or poll it.
+    retry: (failureCount, err) =>
+      !(err instanceof ApiRequestError && err.status === 404) && failureCount < 3,
+    // Poll while provisioning is in flight; stop once terminal (or not tracked).
     refetchInterval: (query) => {
+      if (query.state.error instanceof ApiRequestError && query.state.error.status === 404) {
+        return false;
+      }
       const status = query.state.data?.status;
       if (status === "Completed" || status === "Failed") return false;
       return 2000;
@@ -77,6 +85,9 @@ export function TenantDetailPage() {
 
   const tenant = tenantQuery.data;
   const provisioning = provisioningQuery.data;
+  const provisioningNotTracked =
+    provisioningQuery.error instanceof ApiRequestError &&
+    provisioningQuery.error.status === 404;
 
   return (
     <div className="space-y-8">
@@ -200,7 +211,11 @@ export function TenantDetailPage() {
                 currentStep={provisioning?.currentStep ?? undefined}
                 errorBody={provisioning?.error ?? undefined}
                 loading={provisioningQuery.isLoading}
-                error={provisioningQuery.error}
+                // A 404 isn't an error to surface — it just means this tenant
+                // was never run through the pipeline. Swallow it here and let
+                // the panel render its neutral "not tracked" state instead.
+                error={provisioningNotTracked ? undefined : provisioningQuery.error}
+                notTracked={provisioningNotTracked}
                 onRetry={() => retryMutation.mutate()}
                 retryPending={retryMutation.isPending}
               />
@@ -240,6 +255,7 @@ function ProvisioningPanel({
   errorBody,
   loading,
   error,
+  notTracked = false,
   onRetry,
   retryPending,
 }: {
@@ -249,10 +265,11 @@ function ProvisioningPanel({
   errorBody?: string;
   loading: boolean;
   error: unknown;
+  notTracked?: boolean;
   onRetry: () => void;
   retryPending: boolean;
 }) {
-  const overall = status ?? (loading ? "Loading" : "Unknown");
+  const overall = notTracked ? "Not tracked" : status ?? (loading ? "Loading" : "Unknown");
   const overallVariant =
     status === "Completed"
       ? "success"
@@ -285,6 +302,11 @@ function ProvisioningPanel({
       ) : loading && steps.length === 0 ? (
         <p className="meta text-[var(--color-muted-foreground)]">
           Loading<span className="caret text-[var(--color-accent-signal)]" />
+        </p>
+      ) : notTracked ? (
+        <p className="text-sm text-[var(--color-muted-foreground)]">
+          This tenant wasn't created through the provisioning pipeline, so there's no run
+          history to show. Tenants created via the console report their seed/migrate steps here.
         </p>
       ) : steps.length === 0 ? (
         <p className="text-sm text-[var(--color-muted-foreground)]">

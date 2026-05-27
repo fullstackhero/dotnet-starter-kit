@@ -698,3 +698,204 @@
 .dark .mono-tone-1 { background: oklch(0.42 0 0); color: oklch(0.97 0 0); }
 .dark .mono-tone-2 { background: oklch(0.86 0 0); color: oklch(0.18 0 0); }
 .dark .mono-tone-3 { background: oklch(0.96 0 0); color: oklch(0.18 0 0); }
+
+/* ============================================================================
+   Sonner toasts — console card with a per-type tone. Left accent stripe +
+   tinted icon chip carry the semantic; the description is lifted toward the
+   foreground (not pure muted) so it stays legible on the near-black surface.
+   Class names are wired in App.tsx's <FshToaster> toastOptions.classNames.
+   ========================================================================== */
+
+/* Per-type tone, carried via a custom property. */
+[data-sonner-toaster] [data-sonner-toast].fsh-toast { --fsh-toast-tone: var(--color-foreground); }
+[data-sonner-toast][data-type="success"].fsh-toast { --fsh-toast-tone: var(--color-success); }
+[data-sonner-toast][data-type="error"].fsh-toast   { --fsh-toast-tone: var(--color-destructive); }
+[data-sonner-toast][data-type="warning"].fsh-toast { --fsh-toast-tone: var(--color-warning); }
+[data-sonner-toast][data-type="info"].fsh-toast    { --fsh-toast-tone: var(--color-info); }
+[data-sonner-toast][data-type="loading"].fsh-toast { --fsh-toast-tone: var(--color-primary); }
+
+/* Base shell. */
+[data-sonner-toaster] [data-sonner-toast].fsh-toast {
+  position: relative;
+  display: flex !important;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  min-width: 340px;
+  max-width: 400px;
+  padding: 13px 16px 13px 18px;
+
+  background: var(--color-card);
+  color: var(--color-foreground) !important;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 12px;
+  overflow: hidden;
+  font-family: var(--font-sans);
+
+  box-shadow:
+    0 1px 0 0 oklch(1 0 0 / 0.5) inset,
+    0 1px 2px oklch(0 0 0 / 0.05),
+    0 10px 28px -10px oklch(0 0 0 / 0.18);
+}
+.dark [data-sonner-toaster] [data-sonner-toast].fsh-toast {
+  box-shadow:
+    0 1px 0 0 oklch(1 0 0 / 0.04) inset,
+    0 1px 2px oklch(0 0 0 / 0.45),
+    0 12px 32px -10px oklch(0 0 0 / 0.6);
+}
+
+/* Left accent stripe — 3px marker inset from the rounded corners. */
+[data-sonner-toast].fsh-toast::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--fsh-toast-tone);
+}
+
+/* Content column (sonner wraps title + description in [data-content]). */
+[data-sonner-toast].fsh-toast > [data-content] {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+  padding-top: 1px;
+}
+
+/* Icon chip — soft tinted square holding the Lucide glyph. */
+[data-sonner-toast].fsh-toast [data-icon] {
+  flex-shrink: 0;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  margin: 1px 0 0 0 !important;
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--fsh-toast-tone) 13%, var(--color-card));
+  color: var(--fsh-toast-tone);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--fsh-toast-tone) 24%, transparent);
+}
+[data-sonner-toast][data-type="loading"].fsh-toast [data-icon] {
+  background: color-mix(in oklab, var(--color-primary) 10%, var(--color-card));
+}
+[data-sonner-toast].fsh-toast .fsh-toast-glyph {
+  width: 18px;
+  height: 18px;
+  color: var(--fsh-toast-tone);
+}
+[data-sonner-toast].fsh-toast .fsh-toast-glyph-spin {
+  animation: fsh-toast-glyph-spin 900ms linear infinite;
+}
+@keyframes fsh-toast-glyph-spin { to { transform: rotate(360deg); } }
+
+/* Title — display face, tight. */
+[data-sonner-toast].fsh-toast .fsh-toast-title {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.015em;
+  color: var(--color-foreground);
+  margin: 0;
+}
+[data-sonner-toast].fsh-toast .fsh-toast-title::before { display: none !important; }
+
+/* Description — lifted toward foreground for readability (the fix). */
+[data-sonner-toast].fsh-toast .fsh-toast-description {
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: color-mix(in oklab, var(--color-foreground) 62%, var(--color-muted-foreground)) !important;
+  margin: 0;
+}
+
+/* Close — hover-reveal X pinned top-right. */
+[data-sonner-toast].fsh-toast .fsh-toast-close {
+  position: absolute !important;
+  top: 9px !important;
+  right: 9px !important;
+  left: auto !important;
+  width: 20px !important;
+  height: 20px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  color: var(--color-muted-foreground) !important;
+  opacity: 0;
+  transform: none !important;
+  cursor: pointer;
+  transition: opacity 150ms ease, background-color 150ms ease, color 150ms ease;
+}
+[data-sonner-toast].fsh-toast:hover .fsh-toast-close,
+[data-sonner-toast].fsh-toast:focus-within .fsh-toast-close { opacity: 1; }
+[data-sonner-toast].fsh-toast .fsh-toast-close:hover {
+  background: var(--color-muted) !important;
+  color: var(--color-foreground) !important;
+}
+[data-sonner-toast].fsh-toast .fsh-toast-close svg { width: 11px; height: 11px; }
+
+/* Action + cancel buttons. */
+[data-sonner-toast].fsh-toast .fsh-toast-action {
+  margin-left: auto;
+  margin-top: 6px;
+  padding: 6px 12px !important;
+  font-family: var(--font-sans) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em;
+  border-radius: 8px !important;
+  background: var(--color-foreground) !important;
+  color: var(--color-background) !important;
+  border: none !important;
+  cursor: pointer;
+  transition: transform 120ms ease, opacity 120ms ease;
+}
+[data-sonner-toast].fsh-toast .fsh-toast-action:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+[data-sonner-toast].fsh-toast .fsh-toast-cancel {
+  margin-top: 6px;
+  padding: 6px 12px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: var(--color-muted-foreground) !important;
+  border: 1px solid var(--color-border) !important;
+}
+
+/* Entrance / exit. */
+[data-sonner-toaster][data-y-position="top"] [data-sonner-toast].fsh-toast[data-mounted="true"] {
+  animation: fsh-toast-enter 300ms var(--ease-out-cubic) both;
+}
+@keyframes fsh-toast-enter {
+  0%   { opacity: 0; transform: translateX(18px) scale(0.98); }
+  100% { opacity: 1; transform: translateX(0)    scale(1);    }
+}
+[data-sonner-toaster] [data-sonner-toast].fsh-toast[data-removed="true"] {
+  animation: fsh-toast-exit 180ms var(--ease-out-cubic) forwards;
+}
+@keyframes fsh-toast-exit {
+  from { opacity: 1; transform: translateX(0)    scale(1);    }
+  to   { opacity: 0; transform: translateX(14px) scale(0.98); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-sonner-toast].fsh-toast,
+  [data-sonner-toast].fsh-toast .fsh-toast-glyph-spin { animation: none !important; }
+  [data-sonner-toaster] [data-sonner-toast].fsh-toast[data-mounted="true"] {
+    animation: fsh-toast-fade-in 180ms var(--ease-out-cubic) both;
+  }
+  @keyframes fsh-toast-fade-in { from { opacity: 0; } to { opacity: 1; } }
+}
