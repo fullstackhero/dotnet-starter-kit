@@ -1,9 +1,10 @@
 import { expect, test } from "@playwright/test";
 import { mockJsonResponse } from "../helpers/api-mocks";
 import { seedAuthedSession, TEST_USER } from "../helpers/auth-seed";
-import { installAdminShellMocks, ADMIN_PERMS } from "../helpers/shell-mocks";
+import { installAdminShellMocks, ADMIN_PERMS, paged } from "../helpers/shell-mocks";
 
-// listRoles returns a bare array (not paged). System roles Admin/Basic sort first.
+// listRoles hits the paged roles endpoint (`PagedResponse<RoleDto>`) and unwraps
+// `.items`. System roles Admin/Basic sort first.
 const ROLES = [
   { id: "role-manager", name: "Manager", description: "Manages a team" },
   { id: "role-admin", name: "Admin", description: "Full system access" },
@@ -17,7 +18,7 @@ test.beforeEach(async ({ page }) => {
 
 test.describe("roles list", () => {
   test("renders the Roles heading and a role row from the mock data", async ({ page }) => {
-    await mockJsonResponse(page, "**/api/v1/identity/roles", ROLES);
+    await mockJsonResponse(page, "**/api/v1/identity/roles", paged(ROLES));
 
     await page.goto("/roles");
 
@@ -33,7 +34,7 @@ test.describe("roles list", () => {
   });
 
   test("shows the empty state when no roles are defined", async ({ page }) => {
-    await mockJsonResponse(page, "**/api/v1/identity/roles", []);
+    await mockJsonResponse(page, "**/api/v1/identity/roles", paged([]));
 
     await page.goto("/roles");
 

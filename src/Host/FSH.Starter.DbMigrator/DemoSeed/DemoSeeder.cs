@@ -12,6 +12,7 @@ using FSH.Modules.Identity.Data;
 using FSH.Modules.Identity.Domain;
 using FSH.Modules.Multitenancy.Contracts;
 using FSH.Modules.Multitenancy.Data;
+using FSH.Modules.Multitenancy.Provisioning;
 using FSH.Modules.Tickets.Contracts.Dtos;
 using FSH.Modules.Tickets.Data;
 using FSH.Modules.Tickets.Domain;
@@ -126,7 +127,40 @@ internal sealed class DemoSeeder
             // initializers are no-ops in the current design.
             await tenantService.MigrateTenantAsync(existing, cancellationToken).ConfigureAwait(false);
             await tenantService.SeedTenantAsync(existing, cancellationToken).ConfigureAwait(false);
+
+            await EnsureProvisioningRecordAsync(tenantDb, demo.Id, cancellationToken).ConfigureAwait(false);
         }
+    }
+
+    /// <summary>
+    /// Demo tenants are migrated + seeded inline above, bypassing the provisioning
+    /// pipeline — so no <see cref="TenantProvisioning"/> row exists and the admin
+    /// Provisioning panel would 404. Record a completed run (all steps done) so the
+    /// panel shows a real "Completed" history instead. Idempotent: skips if a row
+    /// already exists for the tenant.
+    /// </summary>
+    private static async Task EnsureProvisioningRecordAsync(TenantDbContext tenantDb, string tenantId, CancellationToken cancellationToken)
+    {
+        var alreadyTracked = await tenantDb.Set<TenantProvisioning>()
+            .AnyAsync(p => p.TenantId == tenantId, cancellationToken)
+            .ConfigureAwait(false);
+        if (alreadyTracked)
+        {
+            return;
+        }
+
+        var provisioning = new TenantProvisioning(tenantId, Guid.NewGuid().ToString());
+        foreach (var step in Enum.GetValues<TenantProvisioningStepName>())
+        {
+            var stepEntity = new TenantProvisioningStep(provisioning.Id, step);
+            stepEntity.MarkRunning();
+            stepEntity.MarkCompleted();
+            provisioning.Steps.Add(stepEntity);
+        }
+        provisioning.MarkCompleted();
+
+        tenantDb.Add(provisioning);
+        await tenantDb.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
     // ─── Users + roles ─────────────────────────────────────────────────
