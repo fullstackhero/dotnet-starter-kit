@@ -7,7 +7,7 @@ name: Template Smoke Test
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
     paths:
       - '.template.config/**'
       - 'templates/**'
@@ -15,7 +15,7 @@ on:
       - 'src/**'
       - '.github/workflows/template-smoke.yml'
   pull_request:
-    branches: [main, develop]
+    branches: [main]
     paths:
       - '.template.config/**'
       - 'templates/**'
