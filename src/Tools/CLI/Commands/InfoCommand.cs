@@ -52,9 +52,12 @@ public sealed class InfoCommand : AsyncCommand
         }
 
         // Template version
-        table.AddRow("Template", templateVersion is not null
-            ? $"v{templateVersion}"
-            : $"[{FshConstants.DimColor}]not installed[/]");
+        string templateDisplay;
+        if (templateVersion is null)
+            templateDisplay = $"[{FshConstants.DimColor}]not installed[/]";
+        else
+            templateDisplay = char.IsDigit(templateVersion[0]) ? $"v{templateVersion}" : templateVersion;
+        table.AddRow("Template", templateDisplay);
 
         if (latestTemplate is not null)
         {

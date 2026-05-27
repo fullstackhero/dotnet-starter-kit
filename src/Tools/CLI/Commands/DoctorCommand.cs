@@ -22,7 +22,6 @@ public sealed class DoctorCommand : AsyncCommand
                 checks.Add(await CheckDotNetSdkAsync(cancellationToken).ConfigureAwait(false));
                 checks.Add(await CheckGitAsync(cancellationToken).ConfigureAwait(false));
                 checks.Add(await CheckDockerAsync(cancellationToken).ConfigureAwait(false));
-                checks.Add(await CheckAspireWorkloadAsync(cancellationToken).ConfigureAwait(false));
                 checks.Add(await CheckFshTemplateAsync(cancellationToken).ConfigureAwait(false));
                 checks.Add(CheckPorts());
             }).ConfigureAwait(false);
@@ -107,25 +106,17 @@ public sealed class DoctorCommand : AsyncCommand
         return new("Docker", CheckStatus.Pass, version.Split('\n')[0]);
     }
 
-    private static async Task<DoctorCheck> CheckAspireWorkloadAsync(CancellationToken cancellationToken)
-    {
-        (bool ok, string output) = await ProcessRunner.CaptureAsync("dotnet", "workload list", cancellationToken)
-            .ConfigureAwait(false);
-
-        bool installed = ok && output.Contains("aspire", StringComparison.OrdinalIgnoreCase);
-        return new("Aspire Workload", installed ? CheckStatus.Pass : CheckStatus.Warn,
-            installed ? "Installed" : "Run: dotnet workload install aspire");
-    }
-
     private static async Task<DoctorCheck> CheckFshTemplateAsync(CancellationToken cancellationToken)
     {
         string? version = await NuGetClient.GetInstalledTemplateVersionAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        return new("FSH Template", version is not null ? CheckStatus.Pass : CheckStatus.Warn,
-            version is not null
-                ? $"v{version}"
-                : $"Not installed. Run: dotnet new install {FshConstants.TemplatePackageId}");
+        if (version is null)
+            return new("FSH Template", CheckStatus.Warn,
+                $"Not installed. Run: dotnet new install {FshConstants.TemplatePackageId}");
+
+        string detail = char.IsDigit(version[0]) ? $"v{version}" : version;
+        return new("FSH Template", CheckStatus.Pass, detail);
     }
 
     private static DoctorCheck CheckPorts()
