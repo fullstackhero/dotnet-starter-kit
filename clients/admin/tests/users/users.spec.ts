@@ -35,7 +35,8 @@ test.beforeEach(async ({ page }) => {
   await seedAuthedSession(page, { ...TEST_USER, permissions: [...ADMIN_PERMS] });
   await installAdminShellMocks(page);
   // Role filter dropdown source — page-specific, registered after shell.
-  await mockJsonResponse(page, "**/api/v1/identity/roles", ROLES);
+  // The roles endpoint is paged (`PagedResponse<RoleDto>`); listRoles unwraps `.items`.
+  await mockJsonResponse(page, "**/api/v1/identity/roles", paged(ROLES));
 });
 
 test.describe("users directory list", () => {
