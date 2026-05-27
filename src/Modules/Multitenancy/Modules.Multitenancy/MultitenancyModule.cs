@@ -5,6 +5,7 @@ using Finbuckle.MultiTenant.AspNetCore.Extensions;
 using Finbuckle.MultiTenant.EntityFrameworkCore.Stores;
 using Finbuckle.MultiTenant.Extensions;
 using Finbuckle.MultiTenant.Stores;
+using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Persistence;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Shared.Multitenancy;
@@ -146,6 +147,45 @@ public sealed class MultitenancyModule : IModule
                     }
                 }
             }
+            await next(ctx).ConfigureAwait(false);
+        });
+
+        // ── Deactivated-tenant guard ───────────────────────────────────
+        // Deactivation was previously a data-only flag with no enforcement:
+        // a deactivated tenant's users could still log in and call the API
+        // (the token handler never checked it, and Finbuckle resolves inactive
+        // tenants like any other). This post-auth guard — running before every
+        // endpoint, so it also covers the anonymous login/refresh requests —
+        // rejects any request whose resolved tenant is non-root and inactive.
+        //
+        // Operators (callers whose JWT tenant claim is "root") are exempt so
+        // they can still manage/reactivate or inspect a deactivated tenant
+        // cross-tenant (incl. via the root-operator override above).
+        app.Use(async (ctx, next) =>
+        {
+            var callerTenant = ctx.User?.FindFirstValue(ClaimConstants.Tenant);
+            var isOperator = string.Equals(callerTenant, MultitenancyConstants.Root.Id, StringComparison.Ordinal);
+            if (!isOperator)
+            {
+                var accessor = ctx.RequestServices.GetRequiredService<IMultiTenantContextAccessor<AppTenantInfo>>();
+                var tenant = accessor.MultiTenantContext?.TenantInfo;
+
+                // Finbuckle's claim strategy no-ops pre-auth, so an authenticated
+                // request carrying its tenant only in the JWT (no header) may have
+                // no resolved tenant here — fall back to the caller's claim.
+                if (tenant is null && !string.IsNullOrEmpty(callerTenant))
+                {
+                    var store = ctx.RequestServices.GetRequiredService<IMultiTenantStore<AppTenantInfo>>();
+                    tenant = await store.GetAsync(callerTenant).ConfigureAwait(false);
+                }
+
+                if (tenant is { IsActive: false } &&
+                    !string.Equals(tenant.Id, MultitenancyConstants.Root.Id, StringComparison.Ordinal))
+                {
+                    throw new ForbiddenException("This tenant has been deactivated. Contact your administrator.");
+                }
+            }
+
             await next(ctx).ConfigureAwait(false);
         });
     }

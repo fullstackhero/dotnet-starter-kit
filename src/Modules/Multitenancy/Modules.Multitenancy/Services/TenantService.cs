@@ -1,4 +1,5 @@
 using Finbuckle.MultiTenant.Abstractions;
+using Finbuckle.MultiTenant.Stores;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Persistence;
 using FSH.Framework.Shared.Multitenancy;
@@ -52,6 +53,7 @@ public sealed class TenantService : ITenantService
         tenant.Activate();
 
         await _tenantStore.UpdateAsync(tenant).ConfigureAwait(false);
+        await RefreshTenantCacheAsync(tenant).ConfigureAwait(false);
 
         return $"tenant {id} is now activated";
     }
@@ -119,6 +121,7 @@ public sealed class TenantService : ITenantService
 
         tenant.Deactivate();
         await _tenantStore.UpdateAsync(tenant).ConfigureAwait(false);
+        await RefreshTenantCacheAsync(tenant).ConfigureAwait(false);
         return $"tenant {id} is now deactivated";
     }
 
@@ -174,4 +177,21 @@ public sealed class TenantService : ITenantService
     private async Task<AppTenantInfo> GetTenantInfoAsync(string id, CancellationToken cancellationToken = default) =>
         await _tenantStore.GetAsync(id).ConfigureAwait(false)
             ?? throw new NotFoundException($"{typeof(AppTenantInfo).Name} {id} Not Found.");
+
+    // Finbuckle resolves tenants through the distributed-cache store first
+    // (60-min TTL), and the injected store above only writes to the EF store —
+    // so an IsActive flip wouldn't take effect until the cache expired, and the
+    // deactivated-tenant guard would keep seeing the stale "active" copy. Push
+    // the new state straight into the cache store so the guard (and tenant
+    // resolution everywhere) sees it on the very next request.
+    private async Task RefreshTenantCacheAsync(AppTenantInfo tenant)
+    {
+        var cacheStore = _serviceProvider
+            .GetServices<IMultiTenantStore<AppTenantInfo>>()
+            .FirstOrDefault(s => s.GetType() == typeof(DistributedCacheStore<AppTenantInfo>));
+        if (cacheStore is not null)
+        {
+            await cacheStore.UpdateAsync(tenant).ConfigureAwait(false);
+        }
+    }
 }
