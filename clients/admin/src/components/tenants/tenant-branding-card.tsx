@@ -5,13 +5,7 @@ import { Loader2, Palette, RotateCcw, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  ErrorBand,
-  Field,
-  FormSection,
-  FormShell,
-  LoadingRow,
-} from "@/components/list";
+import { ErrorBand, Field, LoadingRow, SettingsSection } from "@/components/list";
 import {
   DEFAULT_DARK_PALETTE,
   DEFAULT_LIGHT_PALETTE,
@@ -87,24 +81,21 @@ export function TenantBrandingCard({ tenantId }: { tenantId: string }) {
 
   if (themeQuery.isLoading) {
     return (
-      <FormShell>
-        <FormSection
-          title="Branding"
-          description="Operator-controlled colors + brand assets that drive this tenant's UI."
-        >
-          <LoadingRow label="Loading branding" />
-        </FormSection>
-      </FormShell>
+      <SettingsSection
+        title="Branding"
+        icon={Palette}
+        description="Operator-controlled colors + brand assets that drive this tenant's UI."
+      >
+        <LoadingRow label="Loading branding" />
+      </SettingsSection>
     );
   }
 
   if (themeQuery.isError) {
     return (
-      <FormShell>
-        <FormSection title="Branding" description="">
-          <ErrorBand message={apiErr(themeQuery.error)} />
-        </FormSection>
-      </FormShell>
+      <SettingsSection title="Branding" icon={Palette}>
+        <ErrorBand message={apiErr(themeQuery.error)} />
+      </SettingsSection>
     );
   }
 
@@ -120,53 +111,21 @@ export function TenantBrandingCard({ tenantId }: { tenantId: string }) {
   const onAssets = (next: Partial<BrandAssetsDto>) =>
     setDraft((d) => (d ? { ...d, brandAssets: { ...d.brandAssets, ...next } } : d));
 
-  return (
-    <FormShell>
-      <FormSection
-        title="Branding"
-        description={
-          <span className="flex flex-wrap items-center gap-2">
-            <Palette className="h-3.5 w-3.5 text-[var(--color-accent-signal)]" />
-            <span>
-              Theme tokens consumed by this tenant's apps (admin + dashboard)
-              on sign-in. Live preview shows how the primary action would render.
-            </span>
-            {draft.isDefault && !dirty && (
-              <Badge variant="outline" className="font-mono uppercase tracking-[0.14em]">
-                default
-              </Badge>
-            )}
-            {dirty && (
-              <Badge variant="warning" className="font-mono uppercase tracking-[0.14em]">
-                unsaved
-              </Badge>
-            )}
-          </span>
-        }
-      >
-        <div className="space-y-6">
-          <ThemePreview palette={draft.lightPalette} label="Light preview" />
-
-          <div className="grid gap-6 lg:grid-cols-2">
-            <PaletteEditor
-              title="Light palette"
-              palette={draft.lightPalette}
-              onChange={onLight}
-              defaults={DEFAULT_LIGHT_PALETTE}
-            />
-            <PaletteEditor
-              title="Dark palette"
-              palette={draft.darkPalette}
-              onChange={onDark}
-              defaults={DEFAULT_DARK_PALETTE}
-            />
-          </div>
-
-          <BrandAssetsEditor assets={draft.brandAssets} onChange={onAssets} />
-        </div>
-      </FormSection>
-
-      <div className="flex flex-wrap items-center justify-end gap-2 border-t border-[var(--color-border)] px-6 py-3">
+  const footer = (
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex items-center gap-2">
+        {draft.isDefault && !dirty && (
+          <Badge variant="outline" className="font-mono uppercase tracking-[0.14em]">
+            default
+          </Badge>
+        )}
+        {dirty && (
+          <Badge variant="warning" className="font-mono uppercase tracking-[0.14em]">
+            unsaved
+          </Badge>
+        )}
+      </div>
+      <div className="flex items-center gap-2">
         <Button
           type="button"
           variant="ghost"
@@ -191,7 +150,37 @@ export function TenantBrandingCard({ tenantId }: { tenantId: string }) {
           {saveMutation.isPending ? "Saving…" : "Save branding"}
         </Button>
       </div>
-    </FormShell>
+    </div>
+  );
+
+  return (
+    <SettingsSection
+      title="Branding"
+      icon={Palette}
+      description="Theme tokens consumed by this tenant's apps on sign-in. Live preview reflects the primary action with the chosen palette."
+      footer={footer}
+    >
+      <div className="space-y-6">
+        <ThemePreview palette={draft.lightPalette} label="Light preview" />
+
+        <div className="grid gap-5 lg:grid-cols-2">
+          <PaletteEditor
+            title="Light palette"
+            palette={draft.lightPalette}
+            onChange={onLight}
+            defaults={DEFAULT_LIGHT_PALETTE}
+          />
+          <PaletteEditor
+            title="Dark palette"
+            palette={draft.darkPalette}
+            onChange={onDark}
+            defaults={DEFAULT_DARK_PALETTE}
+          />
+        </div>
+
+        <BrandAssetsEditor assets={draft.brandAssets} onChange={onAssets} />
+      </div>
+    </SettingsSection>
   );
 }
 
@@ -223,18 +212,21 @@ function PaletteEditor({
   defaults: PaletteDto;
 }) {
   return (
-    <div className="space-y-3 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] p-4">
-      <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium tracking-tight">{title}</h4>
+    <div className="overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-2)]">
+      <div className="flex items-center justify-between border-b border-[oklch(from_var(--color-border)_l_c_h_/_0.5)] px-4 py-2.5">
+        <h4 className="text-[12.5px] font-semibold tracking-tight text-[var(--color-foreground)]">
+          {title}
+        </h4>
         <button
           type="button"
-          className="meta text-[var(--color-muted-foreground)] underline-offset-4 hover:text-[var(--color-foreground)] hover:underline"
+          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-[var(--color-muted-foreground)] transition-colors hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]"
           onClick={() => onChange(defaults)}
         >
-          // reset this palette
+          <RotateCcw className="h-2.5 w-2.5" aria-hidden />
+          Reset palette
         </button>
       </div>
-      <div className="grid gap-2 sm:grid-cols-2">
+      <div className="grid gap-2 p-4 sm:grid-cols-2">
         {PALETTE_FIELDS.map(({ key, label }) => (
           <ColorRow
             key={key}
@@ -259,11 +251,12 @@ function ColorRow({
 }) {
   const valid = /^#[0-9a-f]{6}$/i.test(value);
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2.5">
+      {/* Color chip — clicking opens the native color picker */}
       <label
-        className="grid h-8 w-8 shrink-0 cursor-pointer place-items-center rounded-md ring-1 ring-inset ring-[var(--color-border)]"
+        className="relative grid h-8 w-8 shrink-0 cursor-pointer place-items-center overflow-hidden rounded-lg shadow-sm ring-1 ring-inset ring-[var(--color-border)]"
         style={{ backgroundColor: valid ? value : undefined }}
-        title={`Edit ${label}`}
+        title={`Pick ${label} color`}
       >
         <input
           type="color"
@@ -273,8 +266,8 @@ function ColorRow({
           aria-label={`${label} color`}
         />
       </label>
-      <div className="flex-1">
-        <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+      <div className="min-w-0 flex-1">
+        <div className="mb-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
           {label}
         </div>
         <Input
@@ -285,7 +278,7 @@ function ColorRow({
           maxLength={9}
           className={cn(
             "h-7 px-2 font-mono text-[11.5px]",
-            !valid && "border-[var(--color-destructive)]/60",
+            !valid && "border-[var(--color-destructive)]/60 focus-visible:ring-[var(--color-destructive)]/40",
           )}
         />
       </div>
@@ -305,13 +298,17 @@ function BrandAssetsEditor({
   onChange: (next: Partial<BrandAssetsDto>) => void;
 }) {
   return (
-    <div className="space-y-3 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] p-4">
-      <h4 className="text-sm font-medium tracking-tight">Brand assets</h4>
-      <p className="text-xs leading-relaxed text-[var(--color-muted-foreground)]">
-        URLs to your hosted brand assets. For uploads, host the file via the
-        Files module first and paste the resulting public URL here.
-      </p>
-      <div className="space-y-3">
+    <div className="overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-2)]">
+      <div className="border-b border-[oklch(from_var(--color-border)_l_c_h_/_0.5)] px-4 py-2.5">
+        <h4 className="text-[12.5px] font-semibold tracking-tight text-[var(--color-foreground)]">
+          Brand assets
+        </h4>
+        <p className="mt-0.5 text-[11.5px] leading-relaxed text-[var(--color-muted-foreground)]">
+          URLs to your hosted brand assets. Upload via the Files module first,
+          then paste the resulting public URL here.
+        </p>
+      </div>
+      <div className="space-y-4 p-4">
         <AssetField
           id="logo-url"
           label="Logo URL"
@@ -374,7 +371,7 @@ function AssetField({
             onError={(e) => {
               (e.currentTarget as HTMLImageElement).style.display = "none";
             }}
-            className="h-9 w-9 shrink-0 rounded-md object-contain ring-1 ring-inset ring-[var(--color-border)] bg-[var(--color-background)]"
+            className="h-9 w-9 shrink-0 rounded-lg object-contain ring-1 ring-inset ring-[var(--color-border)] bg-[var(--color-background)]"
           />
         )}
       </div>
@@ -383,70 +380,98 @@ function AssetField({
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// Live preview swatch
+// Live preview — shows how primary-action buttons + surface tokens render
 // ─────────────────────────────────────────────────────────────────────────
 
 function ThemePreview({ palette, label }: { palette: PaletteDto; label: string }) {
   return (
     <div
-      className="rounded-md border border-[var(--color-border)] p-4"
-      style={{ backgroundColor: palette.background, color: palette.secondary }}
+      className="overflow-hidden rounded-xl border border-[var(--color-border)]"
+      style={{ backgroundColor: palette.background }}
     >
-      <div className="meta mb-3 opacity-70">// {label}</div>
+      {/* Preview header bar */}
       <div
-        className="rounded-md p-4"
-        style={{ backgroundColor: palette.surface }}
+        className="flex items-center justify-between border-b px-4 py-2"
+        style={{
+          borderColor: `${palette.surface}55`,
+          backgroundColor: palette.surface,
+        }}
       >
-        <div className="mb-3 flex items-center justify-between gap-2">
-          <span
-            className="text-sm font-semibold"
-            style={{ color: palette.secondary }}
-          >
-            Sample tenant page
-          </span>
-          <span
-            className="rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.14em]"
-            style={{ backgroundColor: palette.success, color: palette.surface }}
-          >
-            active
-          </span>
-        </div>
-        <p
-          className="mb-3 text-[12.5px] leading-relaxed"
-          style={{ color: palette.secondary, opacity: 0.75 }}
+        <span
+          className="text-[11px] font-semibold uppercase tracking-[0.12em] opacity-60"
+          style={{ color: palette.secondary }}
         >
-          A short paragraph rendered with the chosen body color over the chosen
-          surface, on the chosen page background. Action buttons use the primary token.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <span
-            className="rounded-md px-3 py-1.5 text-xs font-medium"
-            style={{ backgroundColor: palette.primary, color: palette.surface }}
+          {label}
+        </span>
+        <span
+          className="rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em]"
+          style={{ backgroundColor: palette.success, color: palette.surface }}
+        >
+          live
+        </span>
+      </div>
+
+      {/* Preview body */}
+      <div className="p-4">
+        <div
+          className="rounded-xl p-4"
+          style={{ backgroundColor: palette.surface }}
+        >
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <span
+              className="text-[13px] font-semibold"
+              style={{ color: palette.secondary }}
+            >
+              Sample tenant page
+            </span>
+            <span
+              className="rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em]"
+              style={{ backgroundColor: palette.success, color: palette.surface }}
+            >
+              active
+            </span>
+          </div>
+          <p
+            className="mb-4 text-[12.5px] leading-relaxed"
+            style={{ color: palette.secondary, opacity: 0.72 }}
           >
-            Primary action
-          </span>
-          <span
-            className="rounded-md border px-3 py-1.5 text-xs font-medium"
-            style={{
-              borderColor: palette.primary,
-              color: palette.primary,
-              backgroundColor: "transparent",
-            }}
-          >
-            Secondary
-          </span>
-          <span
-            className="rounded-md px-2 py-1 text-[10.5px] font-mono uppercase tracking-[0.14em]"
-            style={{ backgroundColor: palette.warning, color: palette.background }}
-          >
-            warn
-          </span>
-          <span
-            className="rounded-md px-2 py-1 text-[10.5px] font-mono uppercase tracking-[0.14em]"
-            style={{ backgroundColor: palette.error, color: palette.surface }}
-          >
-            error
-          </span>
+            A short paragraph rendered with the chosen body color over the chosen
+            surface, on the chosen page background. Action buttons use the primary token.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {/* Primary action */}
+            <span
+              className="inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-medium shadow-sm"
+              style={{ backgroundColor: palette.primary, color: palette.surface }}
+            >
+              Primary action
+            </span>
+            {/* Outline secondary */}
+            <span
+              className="inline-flex items-center rounded-lg border px-3 py-1.5 text-xs font-medium"
+              style={{
+                borderColor: palette.primary,
+                color: palette.primary,
+                backgroundColor: "transparent",
+              }}
+            >
+              Secondary
+            </span>
+            {/* Warning pill */}
+            <span
+              className="inline-flex items-center rounded-lg px-2.5 py-1 text-[10.5px] font-mono font-medium uppercase tracking-[0.1em]"
+              style={{ backgroundColor: palette.warning, color: palette.background }}
+            >
+              warn
+            </span>
+            {/* Error pill */}
+            <span
+              className="inline-flex items-center rounded-lg px-2.5 py-1 text-[10.5px] font-mono font-medium uppercase tracking-[0.1em]"
+              style={{ backgroundColor: palette.error, color: palette.surface }}
+            >
+              error
+            </span>
+          </div>
         </div>
       </div>
     </div>
