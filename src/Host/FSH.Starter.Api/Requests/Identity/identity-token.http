@@ -1,0 +1,13 @@
+@baseUrl = https://localhost:7030
+@tenant = root
+
+### Issue JWT token
+POST {{baseUrl}}/api/v1/identity/token
+Content-Type: application/json
+tenant: {{tenant}}
+
+{
+  "email": "admin@root.com",
+  "password": "123Pa$$word!"
+}
+

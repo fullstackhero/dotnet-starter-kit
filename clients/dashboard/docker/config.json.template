@@ -1,0 +1,4 @@
+{
+  "apiBase": "${FSH_API_URL}",
+  "defaultTenant": "${FSH_DEFAULT_TENANT}"
+}

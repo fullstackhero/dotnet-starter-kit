@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<RootNamespace>FSH.Framework.Persistence</RootNamespace>
+		<AssemblyName>FSH.Framework.Persistence</AssemblyName>
+		<PackageId>FullStackHero.Framework.Persistence</PackageId>
+		<NoWarn>$(NoWarn);S4144;CS0618</NoWarn>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Finbuckle.MultiTenant.EntityFrameworkCore" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+	  <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" />
+	  <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />
+	  <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Core\Core.csproj" />
+	  <ProjectReference Include="..\Shared\Shared.csproj" />
+	</ItemGroup>
+	
+</Project>

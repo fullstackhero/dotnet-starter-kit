@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__cwm-roslyn-navigator__get_project_graph",
+      "Bash(python3 -c \"import sys,json; print\\(json.dumps\\(json.load\\(sys.stdin\\).get\\(''mcpServers'',{}\\), indent=2\\)\\)\")",
+      "Bash(cat:*)"
+    ]
+  }
+}

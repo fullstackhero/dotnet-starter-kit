@@ -1,0 +1,31 @@
+using FSH.Framework.Shared.Identity.Authorization;
+using FSH.Framework.Shared.Multitenancy;
+using FSH.Modules.Multitenancy.Contracts.Authorization;
+using FSH.Modules.Multitenancy.Contracts.Dtos;
+using FSH.Modules.Multitenancy.Contracts.v1.TenantProvisioning;
+using Mediator;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
+
+namespace FSH.Modules.Multitenancy.Features.v1.TenantProvisioning.RetryTenantProvisioning;
+
+public static class RetryTenantProvisioningEndpoint
+{
+    public static RouteHandlerBuilder Map(IEndpointRouteBuilder endpoints)
+    {
+        return endpoints.MapPost("/{tenantId}/provisioning/retry", async (
+            [FromRoute] string tenantId,
+            [FromServices] IMediator mediator) =>
+            TypedResults.Ok(await mediator.Send(new RetryTenantProvisioningCommand(tenantId))))
+            .WithName("RetryTenantProvisioning")
+            .WithSummary("Retry tenant provisioning")
+            .RequirePermission(MultitenancyPermissions.Tenants.Update)
+            .WithDescription("Retry the provisioning workflow for a tenant.")
+            .Produces<TenantProvisioningStatusDto>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound);
+    }
+}

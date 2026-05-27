@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>FSH.Modules.Webhooks.Contracts</RootNamespace>
+    <AssemblyName>FSH.Modules.Webhooks.Contracts</AssemblyName>
+    <PackageId>FullStackHero.Modules.Webhooks.Contracts</PackageId>
+    <NoWarn>$(NoWarn);CA1054;CA1056;S2094</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Mediator.Abstractions" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\Shared\Shared.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\Core\Core.csproj" />
+  </ItemGroup>
+</Project>

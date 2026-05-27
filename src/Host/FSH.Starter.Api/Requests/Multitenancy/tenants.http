@@ -1,0 +1,57 @@
+@baseUrl = https://localhost:7030
+@tenant = root
+@token = {{access_token}}
+
+### List tenants
+GET {{baseUrl}}/api/v1/tenants
+Accept: application/json
+tenant: {{tenant}}
+Authorization: Bearer {{token}}
+
+### Get tenant by id
+GET {{baseUrl}}/api/v1/tenants/{{tenantId}}
+Accept: application/json
+tenant: {{tenant}}
+Authorization: Bearer {{token}}
+
+### Get tenant status
+GET {{baseUrl}}/api/v1/tenants/{{tenantId}}/status
+Accept: application/json
+tenant: {{tenant}}
+Authorization: Bearer {{token}}
+
+### Create tenant
+POST {{baseUrl}}/api/v1/tenants
+Content-Type: application/json
+tenant: {{tenant}}
+Authorization: Bearer {{token}}
+
+{
+  "id": "demo",
+  "name": "Demo tenant",
+  "connectionString": "",
+  "adminEmail": "admin@demo.example.com",
+  "issuer": "https://demo.example.com"
+}
+
+### Activate tenant
+POST {{baseUrl}}/api/v1/tenants/{{tenantId}}/activate
+tenant: {{tenant}}
+Authorization: Bearer {{token}}
+
+### Deactivate tenant
+POST {{baseUrl}}/api/v1/tenants/{{tenantId}}/deactivate
+tenant: {{tenant}}
+Authorization: Bearer {{token}}
+
+### Upgrade tenant subscription
+POST {{baseUrl}}/api/v1/tenants/upgrade
+Content-Type: application/json
+tenant: {{tenant}}
+Authorization: Bearer {{token}}
+
+{
+  "tenant": "{{tenantId}}",
+  "extendedExpiryDate": "2030-01-01T00:00:00Z"
+}
+

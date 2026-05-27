@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<RootNamespace>FSH.Modules.Multitenancy.Contracts</RootNamespace>
+		<AssemblyName>FSH.Modules.Multitenancy.Contracts</AssemblyName>
+		<PackageId>FullStackHero.Modules.Multitenancy.Contracts</PackageId>
+		<NoWarn>$(NoWarn);CA1056;S2094</NoWarn>
+	</PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Mediator.Abstractions" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\Shared\Shared.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<RootNamespace>FSH.Framework.Storage</RootNamespace>
+		<AssemblyName>FSH.Framework.Storage</AssemblyName>
+		<PackageId>FullStackHero.Framework.Storage</PackageId>
+		<NoWarn>$(NoWarn);CA1031;CA1056;CA1002;CA2227;CA1812;CA1308;CA1062</NoWarn>
+	</PropertyGroup>
+	
+	<ItemGroup>
+		<ProjectReference Include="..\Core\Core.csproj" />
+		<ProjectReference Include="..\Quota\Quota.csproj" />
+		<ProjectReference Include="..\Shared\Shared.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Finbuckle.MultiTenant" />
+		<PackageReference Include="Finbuckle.MultiTenant.Abstractions" />
+	</ItemGroup>
+	
+	<ItemGroup>
+	  <Folder Include="AWS\" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="AWSSDK.S3" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="Integration.Tests" />
+	</ItemGroup>
+
+</Project>

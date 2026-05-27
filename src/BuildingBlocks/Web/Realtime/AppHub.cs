@@ -1,0 +1,183 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Logging;
+
+namespace FSH.Framework.Web.Realtime;
+
+/// <summary>
+/// Single shared SignalR hub for app-wide realtime: chat messages, typing indicators, presence,
+/// notifications. Modules don't depend on this hub directly — they emit through
+/// <see cref="IHubContext{AppHub}"/> and target the well-known SignalR groups.
+///
+/// Group naming convention:
+/// <list type="bullet">
+///   <item><c>user:{userId}</c> — every connection a user has open. Used for cross-channel pushes
+///   (notifications, channel-added, etc.).</item>
+///   <item><c>channel:{channelId}</c> — every connection of every member of that channel. Used
+///   for chat message broadcasts.</item>
+/// </list>
+/// </summary>
+[Authorize]
+public sealed class AppHub : Hub
+{
+    /// <summary>Throttle window for typing indicators per (channel, user).</summary>
+    private static readonly TimeSpan TypingThrottle = TimeSpan.FromSeconds(3);
+
+    private readonly IChannelMembershipChecker _membership;
+    private readonly IDistributedCache _cache;
+    private readonly IUserChannelLookup _channels;
+    private readonly IPresenceTracker _presence;
+    private readonly ILogger<AppHub> _logger;
+
+    public AppHub(
+        IChannelMembershipChecker membership,
+        IDistributedCache cache,
+        IUserChannelLookup channels,
+        IPresenceTracker presence,
+        ILogger<AppHub> logger)
+    {
+        _membership = membership;
+        _cache = cache;
+        _channels = channels;
+        _presence = presence;
+        _logger = logger;
+    }
+
+    /// <summary>
+    /// Reads the authenticated user id off the connection's principal. Cannot use
+    /// <c>ICurrentUser</c> here because it resolves through <c>IHttpContextAccessor</c> — the
+    /// originating negotiate <c>HttpContext</c> is not pinned to subsequent hub method invocations,
+    /// so any indirection through it returns nulls.
+    /// </summary>
+    private string? GetUserId()
+    {
+        var user = Context.User;
+        if (user?.Identity?.IsAuthenticated != true) return null;
+        return user.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? user.FindFirstValue("sub")
+            ?? user.FindFirstValue("uid");
+    }
+
+    /// <summary>
+    /// Reads the tenant id off the principal — used to scope cross-tenant
+    /// broadcasts (presence) to a single tenant group so a 1000-user tenant
+    /// doesn't broadcast every connect to other tenants.
+    /// </summary>
+    private string? GetTenantId()
+    {
+        var user = Context.User;
+        if (user is null) return null;
+        return user.FindFirstValue("tenant")
+            ?? user.FindFirstValue("tid")
+            ?? user.FindFirstValue("tenantId");
+    }
+
+    public override async Task OnConnectedAsync()
+    {
+        var userId = GetUserId();
+        if (string.IsNullOrEmpty(userId) || userId == Guid.Empty.ToString())
+        {
+            Context.Abort();
+            return;
+        }
+
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"user:{userId}", Context.ConnectionAborted)
+            .ConfigureAwait(false);
+
+        // Join the tenant group — used for cross-tenant scoped broadcasts
+        // (presence) so a 1000-user tenant doesn't broadcast every connect
+        // to other tenants.
+        var tenantId = GetTenantId();
+        if (!string.IsNullOrEmpty(tenantId))
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"tenant:{tenantId}", Context.ConnectionAborted)
+                .ConfigureAwait(false);
+        }
+
+        var channelIds = await _channels
+            .ListMyChannelIdsAsync(userId, Context.ConnectionAborted)
+            .ConfigureAwait(false);
+
+        foreach (var channelId in channelIds)
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"channel:{channelId}", Context.ConnectionAborted)
+                .ConfigureAwait(false);
+        }
+
+        AppHubLog.Connected(_logger, Context.ConnectionId, userId, channelIds.Count);
+
+        // Track presence — if this is the user's first open connection,
+        // broadcast PresenceChanged so any interested clients flip the dot.
+        // Scoped to the tenant group, not Clients.All, to avoid global fan-out.
+        if (_presence.Connect(userId))
+        {
+            var target = string.IsNullOrEmpty(tenantId)
+                ? Clients.All
+                : Clients.Group($"tenant:{tenantId}");
+            await target.SendAsync(
+                    "PresenceChanged",
+                    new { userId, online = true },
+                    Context.ConnectionAborted)
+                .ConfigureAwait(false);
+        }
+
+        await base.OnConnectedAsync().ConfigureAwait(false);
+    }
+
+    public override async Task OnDisconnectedAsync(Exception? exception)
+    {
+        var userId = GetUserId();
+        if (!string.IsNullOrEmpty(userId) && _presence.Disconnect(userId))
+        {
+            var tenantId = GetTenantId();
+            var target = string.IsNullOrEmpty(tenantId)
+                ? Clients.All
+                : Clients.Group($"tenant:{tenantId}");
+            await target.SendAsync(
+                    "PresenceChanged",
+                    new { userId, online = false })
+                .ConfigureAwait(false);
+        }
+
+        await base.OnDisconnectedAsync(exception).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Client invokes <c>Typing(channelId)</c> while composing. Throttled to once per 3s per
+    /// (channel, user) via the distributed cache so chatty UIs don't flood the wire.
+    /// </summary>
+    public async Task Typing(Guid channelId)
+    {
+        var userId = GetUserId();
+        if (string.IsNullOrEmpty(userId)) return;
+
+        if (!await _membership.IsMemberAsync(channelId, userId, Context.ConnectionAborted).ConfigureAwait(false))
+        {
+            return;
+        }
+
+        var key = $"typing:{channelId}:{userId}";
+        var existing = await _cache.GetStringAsync(key, Context.ConnectionAborted).ConfigureAwait(false);
+        if (!string.IsNullOrEmpty(existing)) return;
+
+        await _cache.SetStringAsync(
+                key,
+                "1",
+                new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TypingThrottle },
+                Context.ConnectionAborted)
+            .ConfigureAwait(false);
+
+        await Clients.OthersInGroup($"channel:{channelId}")
+            .SendAsync("ChatTypingStarted", new { channelId, userId }, Context.ConnectionAborted)
+            .ConfigureAwait(false);
+    }
+}
+
+internal static partial class AppHubLog
+{
+    [LoggerMessage(EventId = 1, Level = LogLevel.Debug,
+        Message = "AppHub connection {ConnectionId} for user {UserId} pre-joined {ChannelCount} channel groups")]
+    public static partial void Connected(ILogger logger, string connectionId, string userId, int channelCount);
+}

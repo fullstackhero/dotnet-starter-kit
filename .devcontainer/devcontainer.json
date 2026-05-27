@@ -1,0 +1,17 @@
+{
+    "name": "FullStackHero .NET Starter Kit",
+    "image": "mcr.microsoft.com/dotnet/sdk:10.0",
+    "features": {
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+    },
+    "postCreateCommand": "dotnet workload install aspire && dotnet restore src/FSH.Starter.slnx",
+    "forwardPorts": [5030, 7030, 15888],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-dotnettools.csdevkit",
+                "ms-dotnettools.csharp"
+            ]
+        }
+    }
+}

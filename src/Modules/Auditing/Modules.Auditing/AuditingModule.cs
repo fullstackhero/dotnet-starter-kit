@@ -1,0 +1,109 @@
+using Asp.Versioning;
+using FSH.Framework.Persistence;
+using FSH.Framework.Web.Modules;
+using FSH.Modules.Auditing.Contracts;
+using FSH.Modules.Auditing.Features.v1.GetAuditById;
+using FSH.Modules.Auditing.Features.v1.GetAudits;
+using FSH.Modules.Auditing.Features.v1.GetAuditsByCorrelation;
+using FSH.Modules.Auditing.Features.v1.GetAuditsByTrace;
+using FSH.Modules.Auditing.Features.v1.GetAuditSummary;
+using FSH.Modules.Auditing.Features.v1.GetExceptionAudits;
+using FSH.Modules.Auditing.Features.v1.GetSecurityAudits;
+using FSH.Modules.Auditing.Persistence;
+using Hangfire;
+using Hangfire.Common;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Hosting;
+
+namespace FSH.Modules.Auditing;
+
+public class AuditingModule : IModule
+{
+    public void ConfigureServices(IHostApplicationBuilder builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        FSH.Framework.Shared.Constants.PermissionConstants.Register(
+            FSH.Modules.Auditing.Contracts.Authorization.AuditingPermissions.All);
+
+        var httpOpts = builder.Configuration.GetSection("Auditing").Get<AuditHttpOptions>() ?? new AuditHttpOptions();
+        builder.Services.AddSingleton(httpOpts);
+
+        var retentionOpts = builder.Configuration.GetSection("Auditing:Retention").Get<AuditRetentionOptions>() ?? new AuditRetentionOptions();
+        builder.Services.AddSingleton(retentionOpts);
+        builder.Services.AddTransient<AuditRetentionJob>();
+        builder.Services.AddHttpContextAccessor();
+        builder.Services.AddScoped<IAuditClient, DefaultAuditClient>();
+        builder.Services.AddScoped<ISecurityAudit, SecurityAudit>();
+        builder.Services.AddHeroDbContext<AuditDbContext>();
+        builder.Services.AddScoped<IDbInitializer, AuditDbInitializer>();
+        builder.Services.AddSingleton<IAuditSerializer, SystemTextJsonAuditSerializer>();
+        builder.Services.AddHealthChecks()
+            .AddDbContextCheck<AuditDbContext>(
+                name: "db:auditing",
+                failureStatus: HealthStatus.Unhealthy);
+
+        // Enrichers used by Audit.Configure (scoped, run on request thread)
+        builder.Services.AddScoped<IAuditMaskingService, JsonMaskingService>();
+        builder.Services.AddHostedService<AuditingConfigurator>();
+        builder.Services.AddScoped<IAuditScope, HttpAuditScope>();
+
+        builder.Services.TryAddSingleton(TimeProvider.System);
+        builder.Services.AddSingleton<ChannelAuditPublisher>();
+        builder.Services.AddSingleton<IAuditPublisher>(sp => sp.GetRequiredService<ChannelAuditPublisher>());
+        builder.Services.AddScoped<ISaveChangesInterceptor, AuditingSaveChangesInterceptor>();
+
+        builder.Services.AddSingleton<IAuditSink, SqlAuditSink>();
+        builder.Services.AddSingleton<IAuditDlqSink, FileAuditDlqSink>();
+        builder.Services.AddHostedService<AuditBackgroundWorker>();
+    }
+
+    public void ConfigureMiddleware(IApplicationBuilder app)
+    {
+        ArgumentNullException.ThrowIfNull(app);
+        app.UseMiddleware<AuditHttpMiddleware>();
+    }
+
+    public void MapEndpoints(IEndpointRouteBuilder endpoints)
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
+        var apiVersionSet = endpoints.NewApiVersionSet()
+            .HasApiVersion(new ApiVersion(1))
+            .ReportApiVersions()
+            .Build();
+
+        var group = endpoints
+            .MapGroup("api/v{version:apiVersion}/audits")
+            .WithTags("Audits")
+            .WithApiVersionSet(apiVersionSet);
+
+        group.MapGetAuditsEndpoint();
+        group.MapGetAuditByIdEndpoint();
+        group.MapGetAuditsByCorrelationEndpoint();
+        group.MapGetAuditsByTraceEndpoint();
+        group.MapGetSecurityAuditsEndpoint();
+        group.MapGetExceptionAuditsEndpoint();
+        group.MapGetAuditSummaryEndpoint();
+
+        // Schedule the retention purge. The job is a no-op when
+        // AuditRetentionOptions.Enabled is false, so registering
+        // unconditionally is safe — operators flip the switch in config.
+        var jobManager = endpoints.ServiceProvider.GetService<IRecurringJobManager>();
+        var retentionOpts = endpoints.ServiceProvider.GetService<AuditRetentionOptions>();
+        if (jobManager is not null && retentionOpts is not null)
+        {
+            jobManager.AddOrUpdate(
+                "auditing-retention",
+                Job.FromExpression<AuditRetentionJob>(j => j.RunAsync(CancellationToken.None)),
+                retentionOpts.Cron,
+                new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+        }
+    }
+}

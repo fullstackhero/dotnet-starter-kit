@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<RootNamespace>FSH.Framework.Shared</RootNamespace>
+		<AssemblyName>FSH.Framework.Shared</AssemblyName>
+		<PackageId>FullStackHero.Framework.Shared</PackageId>
+		<NoWarn>$(NoWarn);CA1716;CA1711;CA1019;CA1305;CA1002;CA2227</NoWarn>
+	</PropertyGroup>
+	<ItemGroup>
+	  <FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+	<ItemGroup>
+	  <PackageReference Include="Finbuckle.MultiTenant.Abstractions" />
+	  <PackageReference Include="Finbuckle.MultiTenant" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Core\Core.csproj" />
+	</ItemGroup>
+
+</Project>

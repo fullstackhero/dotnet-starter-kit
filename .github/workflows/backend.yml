@@ -1,0 +1,428 @@
+name: Backend CI
+
+# Backend pipeline. Only does real work when backend code changed (src/**,
+# central build props, global.json, coverage settings, or this file). A
+# client-only PR still triggers the workflow but every heavy job is skipped —
+# the always-running "Backend CI" gate job reports green so required status
+# checks resolve. SDK is pinned via global.json (GA, no preview channel).
+
+on:
+  push:
+    branches: [main, develop]
+    tags: ['v*']
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Package version (e.g., 10.0.0-rc.1)'
+        required: false
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+
+jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      # On any non-PR event (push to develop/main, tags, manual release) run the
+      # full pipeline. On PRs, run only when backend-relevant paths changed.
+      backend: ${{ github.event_name != 'pull_request' || steps.filter.outputs.backend == 'true' }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'src/**'
+              - 'global.json'
+              - 'coverage.runsettings'
+              - '.github/workflows/backend.yml'
+
+  test:
+    name: Unit Tests
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore src/FSH.Starter.slnx
+
+      - name: Build
+        run: dotnet build src/FSH.Starter.slnx -c Release --no-restore -warnaserror
+
+      # Gate on DIRECT vulnerable packages (the ones we control). Transitive
+      # advisories are surfaced but not blocking — they often can't be fixed
+      # without an upstream bump.
+      - name: Audit dependencies for known vulnerabilities
+        run: |
+          if dotnet list src/FSH.Starter.slnx package --vulnerable 2>&1 | tee vuln-direct.txt | grep -q 'has the following vulnerable'; then
+            echo "::error::Direct package(s) with known vulnerabilities detected — see log."
+            cat vuln-direct.txt
+            exit 1
+          fi
+          echo "No direct vulnerable packages."
+          echo "::group::Transitive advisories (informational)"
+          dotnet list src/FSH.Starter.slnx package --vulnerable --include-transitive 2>&1 | tee vuln-transitive.txt || true
+          echo "::endgroup::"
+
+      - name: Run unit tests with coverage
+        run: |
+          for proj in Architecture Auditing Caching Generic Identity Multitenancy Billing Catalog Chat Files Framework Webhooks; do
+            echo "::group::${proj}.Tests"
+            dotnet test "src/Tests/${proj}.Tests" -c Release --no-build \
+              --collect:"XPlat Code Coverage" --settings coverage.runsettings \
+              --results-directory ./TestResults \
+              --logger "trx;LogFileName=${proj}.trx"
+            echo "::endgroup::"
+          done
+
+      - name: Upload unit coverage
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-unit
+          path: ./TestResults/**/coverage.cobertura.xml
+          retention-days: 1
+
+      - name: Upload unit test results
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: test-results-unit
+          path: '**/*.trx'
+          retention-days: 7
+
+  integration-test:
+    name: Integration Tests
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    # Testcontainers requires Docker — ubuntu-latest has it pre-installed.
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore src/FSH.Starter.slnx
+
+      # Integration tests build a host with WebApplicationFactory + Testcontainers.
+      # Middleware tests live in a separate assembly (own process) because a 2nd
+      # production-middleware host resets the static ModuleLoader.
+      - name: Run integration tests with coverage
+        run: |
+          dotnet test src/Tests/Integration.Tests -c Release \
+            --collect:"XPlat Code Coverage" --settings coverage.runsettings \
+            --results-directory ./TestResults --logger "trx;LogFileName=Integration.Tests.trx"
+          dotnet test src/Tests/Integration.Middleware.Tests -c Release \
+            --collect:"XPlat Code Coverage" --settings coverage.runsettings \
+            --results-directory ./TestResults --logger "trx;LogFileName=Integration.Middleware.Tests.trx"
+
+      - name: Upload integration coverage
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-integration
+          path: ./TestResults/**/coverage.cobertura.xml
+          retention-days: 1
+
+      - name: Upload integration test results
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: test-results-integration
+          path: '**/*.trx'
+          retention-days: 7
+
+  migrator-smoke:
+    name: DbMigrator Container Smoke
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    # Catches container-publish regressions (Dockerfile-less SDK container) and DI-graph
+    # breakage in the migrator. Publishes the image locally, runs `apply --catalog-only`
+    # against an ephemeral Postgres, asserts exit 0.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: migrator_smoke_pwd
+          POSTGRES_DB: fsh_migrator_smoke
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Publish DbMigrator container (local daemon)
+        run: |
+          dotnet publish src/Host/FSH.Starter.DbMigrator/FSH.Starter.DbMigrator.csproj \
+            -c Release -r linux-x64 \
+            /t:PublishContainer \
+            -p:ContainerRepository=fsh-db-migrator \
+            -p:ContainerImageTags=smoke
+
+      - name: Run DbMigrator against ephemeral Postgres
+        run: |
+          docker run --rm --network host \
+            -e DatabaseOptions__Provider=POSTGRESQL \
+            -e DatabaseOptions__ConnectionString="Host=localhost;Port=5432;Database=fsh_migrator_smoke;Username=postgres;Password=migrator_smoke_pwd" \
+            -e DatabaseOptions__MigrationsAssembly=FSH.Starter.Migrations.PostgreSQL \
+            fsh-db-migrator:smoke apply --catalog-only \
+            | tee migrator.log
+          grep -q "finished successfully" migrator.log
+
+  coverage:
+    name: Coverage Gate
+    needs: [changes, test, integration-test]
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    # Merges the coverage already collected by the test + integration-test jobs
+    # (no test re-runs) and fails if line coverage regresses below the floor.
+    # Ratchet: bump MIN_LINE upward as coverage improves.
+    env:
+      MIN_LINE: '80'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Download unit coverage
+        uses: actions/download-artifact@v8
+        with:
+          name: coverage-unit
+          path: ./coverage-in/unit
+
+      - name: Download integration coverage
+        uses: actions/download-artifact@v8
+        with:
+          name: coverage-integration
+          path: ./coverage-in/integration
+
+      - name: Install ReportGenerator
+        run: |
+          dotnet tool install --global dotnet-reportgenerator-globaltool
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+
+      - name: Merge coverage and generate report
+        run: reportgenerator -reports:"./coverage-in/**/coverage.cobertura.xml" -targetdir:./coverage-report -reporttypes:"TextSummary;Html;Cobertura"
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: coverage-report
+          path: ./coverage-report
+          retention-days: 7
+
+      - name: Enforce coverage floor
+        run: |
+          LINE=$(grep -oP 'Line coverage:\s*\K[0-9.]+' coverage-report/Summary.txt | head -1)
+          echo "Line coverage: ${LINE}% (floor: ${MIN_LINE}%)"
+          awk "BEGIN { exit !(${LINE} >= ${MIN_LINE}) }" || { echo "::error::Line coverage ${LINE}% is below the ${MIN_LINE}% floor"; exit 1; }
+
+  publish-dev-containers:
+    name: Publish Dev Containers
+    needs: [changes, test, integration-test]
+    if: needs.changes.outputs.backend == 'true' && github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Login to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish API container image
+        run: |
+          dotnet publish src/Host/FSH.Starter.Api/FSH.Starter.Api.csproj \
+            -c Release -r linux-x64 \
+            /t:PublishContainer \
+            -p:ContainerRepository=ghcr.io/${{ github.repository_owner }}/fsh-api \
+            -p:ContainerImageTags='"dev-${{ github.sha }};dev-latest"'
+
+  publish-release:
+    name: Publish Release (NuGet + Containers)
+    needs: [changes, test, integration-test]
+    if: |
+      (github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch') ||
+      startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          elif [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/v}"
+          else
+            echo "No version specified and not a tag push"
+            exit 1
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Publishing version: $VERSION"
+
+      - name: Restore and Build with version
+        run: |
+          dotnet restore src/FSH.Starter.slnx
+          dotnet build src/FSH.Starter.slnx -c Release --no-restore -p:Version=${{ steps.version.outputs.version }}
+
+      - name: Pack BuildingBlocks
+        run: |
+          dotnet pack src/BuildingBlocks/Core/Core.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
+          dotnet pack src/BuildingBlocks/Shared/Shared.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
+          dotnet pack src/BuildingBlocks/Persistence/Persistence.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
+          dotnet pack src/BuildingBlocks/Caching/Caching.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
+          dotnet pack src/BuildingBlocks/Mailing/Mailing.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
+          dotnet pack src/BuildingBlocks/Jobs/Jobs.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
+          dotnet pack src/BuildingBlocks/Storage/Storage.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
+          dotnet pack src/BuildingBlocks/Eventing/Eventing.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
+          dotnet pack src/BuildingBlocks/Eventing.Abstractions/Eventing.Abstractions.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
+          dotnet pack src/BuildingBlocks/Web/Web.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
+
+      - name: Pack Modules
+        run: |
+          dotnet pack src/Modules/Auditing/Modules.Auditing.Contracts/Modules.Auditing.Contracts.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
+          dotnet pack src/Modules/Auditing/Modules.Auditing/Modules.Auditing.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
+          dotnet pack src/Modules/Identity/Modules.Identity.Contracts/Modules.Identity.Contracts.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
+          dotnet pack src/Modules/Identity/Modules.Identity/Modules.Identity.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
+          dotnet pack src/Modules/Multitenancy/Modules.Multitenancy.Contracts/Modules.Multitenancy.Contracts.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
+          dotnet pack src/Modules/Multitenancy/Modules.Multitenancy/Modules.Multitenancy.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
+          dotnet pack src/Modules/Webhooks/Modules.Webhooks.Contracts/Modules.Webhooks.Contracts.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
+          dotnet pack src/Modules/Webhooks/Modules.Webhooks/Modules.Webhooks.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
+
+      - name: Pack CLI Tool
+        run: dotnet pack src/Tools/CLI/FSH.CLI.csproj -c Release --no-build -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
+
+      # The dotnet new template package — the primary distribution artifact. Packs the
+      # repo (with its root .template.config) so consumers can `dotnet new install` then
+      # `dotnet new fsh -n MyApp`. Scaffolded output is fully owned, detached source.
+      - name: Pack Template
+        run: dotnet pack templates/FullStackHero.NET.StarterKit.csproj -c Release -o ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version }}
+
+      - name: Push to NuGet.org
+        run: dotnet nuget push "./nupkgs/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      - name: Login to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push API container
+        run: |
+          dotnet publish src/Host/FSH.Starter.Api/FSH.Starter.Api.csproj \
+            -c Release -r linux-x64 \
+            /t:PublishContainer \
+            -p:ContainerRepository=ghcr.io/${{ github.repository_owner }}/fsh-api \
+            -p:ContainerImageTags='"${{ steps.version.outputs.version }};latest"'
+
+  # Single required status check. Always runs (even when the heavy jobs are
+  # skipped on a client-only PR) so branch protection resolves. Fails only if a
+  # job it depends on actually failed or was cancelled — skipped is fine.
+  backend-ci:
+    name: Backend CI
+    needs: [changes, test, integration-test, migrator-smoke, coverage]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if a required backend job failed
+        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
+        run: |
+          echo "::error::A required backend job failed or was cancelled."
+          exit 1
+      - name: Success
+        run: echo "Backend CI passed."

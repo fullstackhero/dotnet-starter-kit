@@ -1,0 +1,7 @@
+# Static web assets root.
+#
+# This directory must exist on disk before WebApplication.CreateBuilder()
+# runs — UseStaticWebAssets reads its manifest synchronously during init
+# and constructs a PhysicalFileProvider rooted here, which throws
+# DirectoryNotFoundException if the path is missing. .gitkeep ensures the
+# folder ships in git even when it's otherwise empty.

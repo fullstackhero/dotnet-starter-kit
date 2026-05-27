@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>FSH.CLI</RootNamespace>
+    <AssemblyName>FSH.CLI</AssemblyName>
+    <IsPackable>true</IsPackable>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>fsh</ToolCommandName>
+    <PackageId>FullStackHero.CLI</PackageId>
+    <Description>CLI tool for scaffolding and managing FullStackHero .NET projects.</Description>
+
+    <!-- Strip pre-release suffix for AssemblyVersion (requires major.minor.build.revision format) -->
+    <AssemblyVersion>10.0.0.0</AssemblyVersion>
+    <FileVersion>10.0.0.0</FileVersion>
+
+    <!-- Trim for smaller tool size -->
+    <PublishTrimmed>false</PublishTrimmed>
+    <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
+
+    <!-- Suppress analyzer noise for CLI tool:
+         CA1031 = catch general exceptions (acceptable for CLI best-effort operations)
+         CA1515 = types can be internal (Spectre.Console.Cli requires public commands)
+         S1075  = hardcoded URIs (URLs are constants, not configurable paths) -->
+    <NoWarn>$(NoWarn);CA1031;CA1515;S1075</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Spectre.Console" />
+    <PackageReference Include="Spectre.Console.Cli" />
+  </ItemGroup>
+
+</Project>

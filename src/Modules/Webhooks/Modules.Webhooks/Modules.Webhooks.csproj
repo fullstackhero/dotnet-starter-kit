@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>FSH.Modules.Webhooks</RootNamespace>
+    <AssemblyName>FSH.Modules.Webhooks</AssemblyName>
+    <PackageId>FullStackHero.Modules.Webhooks</PackageId>
+    <NoWarn>$(NoWarn);CA1031;CA1054;CA1056;CA1308;CA1812;CA1859;S3267</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\Persistence\Persistence.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\Web\Web.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\Jobs\Jobs.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\Eventing.Abstractions\Eventing.Abstractions.csproj" />
+    <ProjectReference Include="..\Modules.Webhooks.Contracts\Modules.Webhooks.Contracts.csproj" />
+  </ItemGroup>
+</Project>

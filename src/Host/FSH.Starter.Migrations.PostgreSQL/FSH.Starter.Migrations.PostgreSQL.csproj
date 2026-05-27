@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<RootNamespace>FSH.Starter.Migrations.PostgreSQL</RootNamespace>
+		<AssemblyName>FSH.Starter.Migrations.PostgreSQL</AssemblyName>
+		<IsPackable>false</IsPackable>
+		<!-- Suppress analyzer warnings for EF Core auto-generated migration files -->
+		<NoWarn>$(NoWarn);CA1062;CA1861</NoWarn>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\BuildingBlocks\Persistence\Persistence.csproj" />
+	  <ProjectReference Include="..\..\Modules\Auditing\Modules.Auditing\Modules.Auditing.csproj" />
+	  <ProjectReference Include="..\..\Modules\Identity\Modules.Identity\Modules.Identity.csproj" />
+	  <ProjectReference Include="..\..\Modules\Multitenancy\Modules.Multitenancy\Modules.Multitenancy.csproj" />
+	  <ProjectReference Include="..\..\Modules\Webhooks\Modules.Webhooks\Modules.Webhooks.csproj" />
+	  <ProjectReference Include="..\..\Modules\Billing\Modules.Billing\Modules.Billing.csproj" />
+	  <ProjectReference Include="..\..\Modules\Catalog\Modules.Catalog\Modules.Catalog.csproj" />
+	  <ProjectReference Include="..\..\Modules\Tickets\Modules.Tickets\Modules.Tickets.csproj" />
+	  <ProjectReference Include="..\..\Modules\Chat\Modules.Chat\Modules.Chat.csproj" />
+	  <ProjectReference Include="..\..\Modules\Notifications\Modules.Notifications\Modules.Notifications.csproj" />
+	  <ProjectReference Include="..\..\Modules\Files\Modules.Files\Modules.Files.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Audit\" />
+	  <Folder Include="MultiTenancy\" />
+	  <Folder Include="Billing\" />
+	  <Folder Include="Catalog\" />
+	  <Folder Include="Tickets\" />
+	  <Folder Include="Chat\" />
+	  <Folder Include="Notifications\" />
+	  <Folder Include="Files\" />
+	</ItemGroup>
+
+</Project>

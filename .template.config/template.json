@@ -3,23 +3,131 @@
     "author": "Mukesh Murugan",
     "classifications": [
         "WebAPI",
-        "Clean Architecture",
+        "Modular Monolith",
+        "Vertical Slice",
         "Boilerplate",
         "ASP.NET Core",
-        "Starter Kit",
         "Cloud",
-        "Web"
+        "Web",
+        "React",
+        "Full Stack"
     ],
     "tags": {
         "language": "C#",
-        "type": "project"
+        "type": "solution"
     },
     "identity": "FullStackHero.NET.StarterKit",
     "name": "FullStackHero .NET Starter Kit",
-    "description": "The best way to start a full-stack .NET 9 Web App.",
+    "description": "A production-ready full-stack starter: modular .NET 10 monolith (VSA, CQRS, multitenancy, Identity, Aspire) + two React 19 apps + Docker/Terraform.",
     "shortName": "fsh",
     "sourceName": "FSH.Starter",
     "preferNameDirectory": true,
+    "symbols": {
+        "db": {
+            "type": "parameter",
+            "datatype": "choice",
+            "description": "Database provider for migrations and persistence.",
+            "defaultValue": "postgresql",
+            "choices": [
+                {
+                    "choice": "postgresql",
+                    "description": "PostgreSQL (default)"
+                },
+                {
+                    "choice": "sqlserver",
+                    "description": "SQL Server"
+                }
+            ]
+        },
+        "aspire": {
+            "type": "parameter",
+            "datatype": "bool",
+            "description": "Include the .NET Aspire AppHost project for orchestration.",
+            "defaultValue": "true"
+        },
+        "frontend": {
+            "type": "parameter",
+            "datatype": "bool",
+            "description": "Include the React admin + dashboard client apps (clients/).",
+            "defaultValue": "true"
+        },
+        "skipRestore": {
+            "type": "parameter",
+            "datatype": "bool",
+            "description": "Skip dotnet restore after project creation.",
+            "defaultValue": "false"
+        },
+        "includeTools": {
+            "type": "parameter",
+            "datatype": "bool",
+            "description": "Internal: keep the fsh CLI project in the solution (FSH repo only).",
+            "defaultValue": "false"
+        },
+        "contactEmail": {
+            "type": "parameter",
+            "datatype": "string",
+            "description": "Contact email written into OpenAPI metadata.",
+            "defaultValue": "noreply@example.com",
+            "replaces": "mukesh@codewithmukesh.com"
+        },
+        "contactUrl": {
+            "type": "parameter",
+            "datatype": "string",
+            "description": "Contact / company URL written into OpenAPI metadata.",
+            "defaultValue": "https://example.com",
+            "replaces": "https://codewithmukesh.com"
+        },
+        "mailFrom": {
+            "type": "parameter",
+            "datatype": "string",
+            "description": "Default 'from' address for outbound mail.",
+            "defaultValue": "noreply@example.com",
+            "replaces": "mukesh@fullstackhero.net"
+        },
+        "sendgridFrom": {
+            "type": "generated",
+            "generator": "constant",
+            "parameters": { "value": "noreply@example.com" },
+            "replaces": "sendgrid@fullstackhero.net"
+        },
+        "nameUnderscore": {
+            "type": "derived",
+            "valueSource": "name",
+            "valueTransform": "underscoreForm",
+            "replaces": "FSH_Starter"
+        },
+        "issuerSlug": {
+            "type": "derived",
+            "valueSource": "name",
+            "valueTransform": "kebabForm",
+            "replaces": "mukesh.murugan"
+        },
+        "displayBrand": {
+            "type": "derived",
+            "valueSource": "name",
+            "valueTransform": "displayForm",
+            "replaces": "FullStackHero"
+        },
+        "authorName": {
+            "type": "derived",
+            "valueSource": "name",
+            "valueTransform": "displayForm",
+            "replaces": "Mukesh Murugan"
+        },
+        "openApiTitle": {
+            "type": "derived",
+            "valueSource": "name",
+            "valueTransform": "displayForm",
+            "replaces": "FSH PlayGround"
+        }
+    },
+    "forms": {
+        "lc": { "identifier": "lowerCaseInvariant" },
+        "dashNorm": { "identifier": "replace", "pattern": "[^a-zA-Z0-9]+", "replacement": "-" },
+        "kebabForm": { "identifier": "chain", "steps": ["lc", "dashNorm"] },
+        "underscoreForm": { "identifier": "replace", "pattern": "\\.", "replacement": "_" },
+        "displayForm": { "identifier": "replace", "pattern": "[._-]+", "replacement": " " }
+    },
     "sources": [
         {
             "source": "./",
@@ -30,16 +138,56 @@
                 ".vscode/**",
                 ".vs/**",
                 ".github/**",
+                ".agents/**",
+                ".claude/**",
+                ".devcontainer/**",
+                ".git/**",
                 "templates/**/*",
+                "demo/**",
+                "docs/**",
+                "nupkgs/**",
+                "scripts/**",
+                "src/Tools/**",
+                "clients/**/node_modules/**",
+                "clients/**/dist/**",
+                "clients/**/build/**",
+                "clients/**/test-results/**",
+                "clients/**/playwright-report/**",
+                "clients/**/.turbo/**",
+                "clients/**/coverage/**",
+                "clients/**/.env",
+                "clients/**/.env.*",
                 "**/*.filelist",
                 "**/*.user",
                 "**/images",
                 "**/*.lock.json",
-                "*.nuspec"
+                "*.nuspec",
+                "**/bin/**",
+                "**/obj/**",
+                ".mcp.json",
+                "global.json",
+                "CLAUDE.md",
+                "GEMINI.md",
+                "README.md",
+                "LICENSE"
             ],
             "rename": {
                 "README-template.md": "README.md"
-            }
+            },
+            "modifiers": [
+                {
+                    "condition": "(!aspire)",
+                    "exclude": [
+                        "src/Host/FSH.Starter.AppHost/**"
+                    ]
+                },
+                {
+                    "condition": "(!frontend)",
+                    "exclude": [
+                        "clients/**"
+                    ]
+                }
+            ]
         }
     ],
     "primaryOutputs": [
@@ -49,7 +197,8 @@
     ],
     "postActions": [
         {
-            "description": "restore webapi project dependencies",
+            "condition": "(!skipRestore)",
+            "description": "Restore NuGet packages",
             "manualInstructions": [
                 {
                     "text": "Run 'dotnet restore'"

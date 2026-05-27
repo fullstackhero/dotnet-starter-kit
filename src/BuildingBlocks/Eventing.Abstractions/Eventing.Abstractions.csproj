@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<RootNamespace>FSH.Framework.Eventing.Abstractions</RootNamespace>
+		<AssemblyName>FSH.Framework.Eventing.Abstractions</AssemblyName>
+		<PackageId>FullStackHero.Framework.Eventing.Abstractions</PackageId>
+		<Description>Lightweight abstractions for FSH eventing - interfaces only, no implementation dependencies</Description>
+		<NoWarn>$(NoWarn);CA1711;CA1716</NoWarn>
+	</PropertyGroup>
+
+</Project>

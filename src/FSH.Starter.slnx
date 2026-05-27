@@ -1,0 +1,96 @@
+<Solution>
+  <Folder Name="/BuildingBlocks/">
+<Project Path="BuildingBlocks/Caching/Caching.csproj" />
+    <Project Path="BuildingBlocks/Core/Core.csproj" />
+    <Project Path="BuildingBlocks/Eventing.Abstractions/Eventing.Abstractions.csproj" />
+    <Project Path="BuildingBlocks/Eventing/Eventing.csproj" />
+    <Project Path="BuildingBlocks/Jobs/Jobs.csproj" Id="8ea652eb-ce20-4cb4-a4bd-7902d24208dd" />
+    <Project Path="BuildingBlocks/Mailing/Mailing.csproj" />
+    <Project Path="BuildingBlocks/Persistence/Persistence.csproj" Id="5a988325-a6ee-4bd9-8909-a56e60b86bad" />
+    <Project Path="BuildingBlocks/Shared/Shared.csproj" Id="3588897f-ada8-4f4f-a8f7-3457a1286769" />
+    <Project Path="BuildingBlocks/Storage/Storage.csproj" />
+    <Project Path="BuildingBlocks/Web/Web.csproj" />
+  </Folder>
+  <Folder Name="/Modules/" />
+  <Folder Name="/Modules/Auditing/">
+    <Project Path="Modules/Auditing/Modules.Auditing.Contracts/Modules.Auditing.Contracts.csproj" />
+    <Project Path="Modules/Auditing/Modules.Auditing/Modules.Auditing.csproj" Id="2764205b-8725-43a7-b499-67b98959ad50" />
+  </Folder>
+  <Folder Name="/Modules/Billing/">
+    <Project Path="Modules/Billing/Modules.Billing.Contracts/Modules.Billing.Contracts.csproj" />
+    <Project Path="Modules/Billing/Modules.Billing/Modules.Billing.csproj" />
+  </Folder>
+  <Folder Name="/Modules/Catalog/">
+    <Project Path="Modules/Catalog/Modules.Catalog.Contracts/Modules.Catalog.Contracts.csproj" />
+    <Project Path="Modules/Catalog/Modules.Catalog/Modules.Catalog.csproj" />
+  </Folder>
+  <Folder Name="/Modules/Chat/">
+    <Project Path="Modules/Chat/Modules.Chat.Contracts/Modules.Chat.Contracts.csproj" />
+    <Project Path="Modules/Chat/Modules.Chat/Modules.Chat.csproj" />
+  </Folder>
+  <Folder Name="/Modules/Files/">
+    <Project Path="Modules/Files/Modules.Files.Contracts/Modules.Files.Contracts.csproj" />
+    <Project Path="Modules/Files/Modules.Files/Modules.Files.csproj" />
+  </Folder>
+  <Folder Name="/Modules/Identity/">
+    <Project Path="Modules/Identity/Modules.Identity.Contracts/Modules.Identity.Contracts.csproj" />
+    <Project Path="Modules/Identity/Modules.Identity/Modules.Identity.csproj" Id="ebeb33cd-9cce-41b0-9bbc-43988dae9a46" />
+  </Folder>
+  <Folder Name="/Modules/Multitenancy/">
+    <Project Path="Modules/Multitenancy/Modules.Multitenancy.Contracts/Modules.Multitenancy.Contracts.csproj" Id="61165a24-94b0-402c-9d9f-345898ce79c4" />
+    <Project Path="Modules/Multitenancy/Modules.Multitenancy/Modules.Multitenancy.csproj" Id="69bca64d-0cf5-4236-8da6-1d775aa2a1cc" />
+  </Folder>
+  <Folder Name="/Modules/Notifications/">
+    <Project Path="Modules/Notifications/Modules.Notifications.Contracts/Modules.Notifications.Contracts.csproj" />
+    <Project Path="Modules/Notifications/Modules.Notifications/Modules.Notifications.csproj" />
+  </Folder>
+  <Folder Name="/Modules/Tickets/">
+    <Project Path="Modules/Tickets/Modules.Tickets.Contracts/Modules.Tickets.Contracts.csproj" />
+    <Project Path="Modules/Tickets/Modules.Tickets/Modules.Tickets.csproj" />
+  </Folder>
+  <Folder Name="/Modules/Webhooks/">
+    <Project Path="Modules/Webhooks/Modules.Webhooks.Contracts/Modules.Webhooks.Contracts.csproj" />
+    <Project Path="Modules/Webhooks/Modules.Webhooks/Modules.Webhooks.csproj" />
+  </Folder>
+  <Folder Name="/Host/">
+    <Project Path="Host/FSH.Starter.Api/FSH.Starter.Api.csproj" Id="187ce245-0a57-469c-96c2-a88902f2d40d" />
+    <Project Path="Host/FSH.Starter.DbMigrator/FSH.Starter.DbMigrator.csproj" />
+  </Folder>
+  <!--#if (aspire) -->
+  <Folder Name="/Host/AppHost/">
+    <Project Path="Host/FSH.Starter.AppHost/FSH.Starter.AppHost.csproj" Id="86bd02ee-f1b5-472c-b5bd-bc607fe084de" />
+  </Folder>
+  <!--#endif -->
+  <Folder Name="/Host/Migrations/">
+    <Project Path="Host/FSH.Starter.Migrations.PostgreSQL/FSH.Starter.Migrations.PostgreSQL.csproj" Id="2c21903e-5dfa-47e0-82d9-1a0bd627fcbd" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/Architecture.Tests/Architecture.Tests.csproj" />
+    <Project Path="Tests/Auditing.Tests/Auditing.Tests.csproj" />
+    <Project Path="Tests/Billing.Tests/Billing.Tests.csproj" />
+    <Project Path="Tests/Catalog.Tests/Catalog.Tests.csproj" />
+    <Project Path="Tests/Chat.Tests/Chat.Tests.csproj" />
+    <Project Path="Tests/Webhooks.Tests/Webhooks.Tests.csproj" />
+    <Project Path="Tests/Files.Tests/Files.Tests.csproj" />
+    <Project Path="Tests/Framework.Tests/Framework.Tests.csproj" />
+    <Project Path="Tests/Caching.Tests/Caching.Tests.csproj" />
+    <Project Path="Tests/Generic.Tests/Generic.Tests.csproj" />
+    <Project Path="Tests/Identity.Tests/Identity.Tests.csproj" />
+    <Project Path="Tests/Integration.Tests/Integration.Tests.csproj" />
+    <Project Path="Tests/Integration.Middleware.Tests/Integration.Middleware.Tests.csproj" />
+    <Project Path="Tests/Multitenancy.Tests/Multitenancy.Tests.csproj" Id="985345a2-edb4-4ef9-9a1b-59b704f523b6" />
+  </Folder>
+  <!--#if (includeTools) -->
+  <Folder Name="/Tools/">
+    <Project Path="Tools/CLI/FSH.CLI.csproj" />
+  </Folder>
+  <!--#endif -->
+
+  <Folder Name="/Solution Items/">
+    <File Path="../.gitignore" />
+    <File Path=".editorconfig" />
+    <File Path="Architecture.md" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+</Solution>

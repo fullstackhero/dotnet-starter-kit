@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<RootNamespace>FSH.Framework.Mailing</RootNamespace>
+		<AssemblyName>FSH.Framework.Mailing</AssemblyName>
+		<PackageId>FullStackHero.Framework.Mailing</PackageId>
+	</PropertyGroup>
+	
+	<ItemGroup>
+    <PackageReference Include="MailKit" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
+    <PackageReference Include="Microsoft.Extensions.Options" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+    <PackageReference Include="MimeKit" />
+    <PackageReference Include="SendGrid" />
+	</ItemGroup>
+	
+	<ItemGroup>
+	  <ProjectReference Include="..\Core\Core.csproj" />
+	</ItemGroup>
+
+</Project>

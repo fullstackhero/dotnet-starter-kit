@@ -1,18 +1,60 @@
 <Project>
-    <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
-        <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-        <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
-        <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        <NoDefaultExcludes>true</NoDefaultExcludes>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-        <AnalysisLevel>latest</AnalysisLevel>
-        <AnalysisMode>All</AnalysisMode>
-        <ContainerImageTags>2.0.4-rc;latest</ContainerImageTags>
-    </PropertyGroup>
-    <ItemGroup>
-        <PackageReference Include="SonarAnalyzer.CSharp" PrivateAssets="all" Condition="$(MSBuildProjectExtension) == '.csproj'" />
-    </ItemGroup>
+	<PropertyGroup>
+		<!-- Target framework -->
+		<TargetFramework>net10.0</TargetFramework>
+
+		<!-- Enable latest C# features and diagnostics -->
+		<LangVersion>latest</LangVersion>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+
+		<!-- Code quality & analysis. Warnings are errors locally so the
+		     dev loop matches CI (.github/workflows/backend.yml passes
+		     -warnaserror to dotnet build); previously the divergence
+		     let analyzer regressions slip through to CI. -->
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<AnalysisLevel>latest</AnalysisLevel>
+		<AnalysisMode>AllEnabledByDefault</AnalysisMode>
+
+		<!-- Docs -->
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<NoWarn>$(NoWarn);CS1591;MSG0005;CA1054;CA1056</NoWarn>
+		<!-- Suppress warning about missing XML docs -->
+
+		<!-- Container tags (if using container builds) -->
+		<ContainerImageTags>10.0.0-rc;latest</ContainerImageTags>
+
+		<!-- Prevent MSBuild from excluding common folders (optional) -->
+		<NoDefaultExcludes>true</NoDefaultExcludes>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- Sonar Analyzer for deep static analysis -->
+		<PackageReference Include="SonarAnalyzer.CSharp">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<PropertyGroup>
+		<!-- Default NuGet metadata -->
+		<Authors>Mukesh Murugan</Authors>
+		<Company>FullStackHero</Company>
+		<Version>10.0.0-rc.1</Version>
+		<RepositoryUrl>https://github.com/fullstackhero/dotnet-starter-kit</RepositoryUrl>
+		<PackageTags>FSH;FullStackHero;Modular;CQRS;VerticalSlice;DotNet;CleanArchitecture</PackageTags>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageProjectUrl>https://fullstackhero.net</PackageProjectUrl>
+		<Description>FullStackHero .NET Starter Kit - A production-ready modular .NET framework for building enterprise applications</Description>
+		<!-- Enable NuGet pack globally (overridden in Host/Tests) -->
+		<IsPackable>true</IsPackable>
+	</PropertyGroup>
+
+	<!-- Include root README.md in NuGet packages -->
+	<ItemGroup Condition="'$(IsPackable)' == 'true'">
+		<None Include="$(MSBuildThisFileDirectory)../README.md" Pack="true" PackagePath="/" />
+	</ItemGroup>
 </Project>

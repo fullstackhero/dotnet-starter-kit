@@ -1,0 +1,31 @@
+# .NET build artifacts
+**/bin
+**/obj
+**/.vs
+**/TestResults
+
+# Node / frontend build artifacts
+**/node_modules
+**/dist
+**/.vite
+**/coverage
+**/playwright-report
+**/test-results
+
+# Test projects (not needed in any runtime image)
+src/Tests/
+
+# VCS / editor / docs / local dev
+.git
+.github
+.idea
+.vscode
+*.md
+LICENSE
+**/.env
+**/.env.*
+!**/.env.example
+deploy/
+docs/
+clients/dashboard/public/config.json
+clients/admin/public/config.json

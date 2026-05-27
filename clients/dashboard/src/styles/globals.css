@@ -1,0 +1,1200 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================================================
+   FullStackHero Dashboard — Design Tokens
+   ----------------------------------------------------------------------------
+   Architecture (read top-down):
+     1. PRIMITIVES — raw oklch scales. Never reference these in components.
+     2. SEMANTICS  — purpose-named vars (--background, --primary, …). The
+                     public API. Components reference these.
+     3. SURFACES   — explicit elevation steps for layout chrome.
+     4. SYSTEM     — typography, motion, radii, shadows.
+   Theme contract: shadcn-compatible. The classic --color-* names all exist
+   so existing primitives (Button, Card, Input, Label) keep working.
+   ========================================================================== */
+
+:root {
+  /* ── 1. PRIMITIVES ──────────────────────────────────────────────────── */
+
+  /* Neutrals — true greys (chroma 0). The earlier "warm paper" chassis
+     tinted every surface yellow-cream, which fought with non-rose
+     accent palettes and read as a global yellow cast in dark mode.
+     Neutrals are now untinted so the selected accent (rose, indigo,
+     violet, sky, emerald, amber) is the only colour in the room. */
+  --neutral-0:    oklch(1.000 0  0);
+  --neutral-50:   oklch(0.985 0  0);
+  --neutral-100:  oklch(0.960 0  0);
+  --neutral-200:  oklch(0.920 0  0);
+  --neutral-300:  oklch(0.870 0  0);
+  --neutral-400:  oklch(0.735 0  0);
+  --neutral-500:  oklch(0.575 0  0);
+  --neutral-600:  oklch(0.460 0  0);
+  --neutral-700:  oklch(0.360 0  0);
+  --neutral-800:  oklch(0.245 0  0);
+  --neutral-850:  oklch(0.200 0  0);
+  --neutral-900:  oklch(0.155 0  0);
+  --neutral-950:  oklch(0.110 0  0);
+  --neutral-1000: oklch(0.075 0  0);
+
+  /* Brand — confident rose (#f91942 at the 600 stop). 600 is the
+     workhorse; 500 is for dark mode. Override these eleven stops via
+     an `accent-{id}` class on :root (defined further down) to swap the
+     entire brand palette. */
+  --brand-50:   oklch(0.972 0.022  13);
+  --brand-100:  oklch(0.945 0.045  13);
+  --brand-200:  oklch(0.895 0.090  13);
+  --brand-300:  oklch(0.825 0.145  13);
+  --brand-400:  oklch(0.720 0.195  13);
+  --brand-500:  oklch(0.640 0.225  13);
+  --brand-600:  oklch(0.575 0.232  13);
+  --brand-700:  oklch(0.495 0.215  13);
+  --brand-800:  oklch(0.410 0.180  13);
+  --brand-900:  oklch(0.330 0.140  13);
+  --brand-950:  oklch(0.235 0.095  13);
+
+  /* Saffron — secondary warm accent. Used sparingly for the second
+     channel of warmth against rose (gradient endpoints, hero numerals,
+     trust marks). Mirrors dentalOS #e8a54b. */
+  --saffron-400: oklch(0.815 0.115  72);
+  --saffron-500: oklch(0.760 0.137  72);
+  --saffron-600: oklch(0.680 0.135  68);
+
+  /* Status scales — emerald, amber, sky, rose. All at L≈0.6/0.7 so they
+     read as a coherent set when stacked next to each other. */
+  --success-500: oklch(0.660 0.155 162);
+  --success-600: oklch(0.575 0.155 162);
+  --warning-500: oklch(0.770 0.155  76);
+  --warning-600: oklch(0.685 0.155  76);
+  --info-500:    oklch(0.685 0.150 232);
+  --info-600:    oklch(0.605 0.150 232);
+  --danger-500:  oklch(0.625 0.220  20);
+  --danger-600:  oklch(0.555 0.220  20);
+
+  /* ── 2. SEMANTICS (light) ──────────────────────────────────────────── */
+  --background:                 var(--neutral-50);
+  --foreground:                 var(--neutral-950);
+
+  --card:                       var(--neutral-0);
+  --card-foreground:            var(--neutral-950);
+  --popover:                    var(--neutral-0);
+  --popover-foreground:         var(--neutral-950);
+
+  --primary:                    var(--brand-600);
+  /* Derive from the active brand stop so accent swaps re-tone these
+     too. The `from <color>` relative-color syntax resolves at runtime. */
+  --primary-foreground:         oklch(from var(--brand-600) 0.990 0.005 h);
+  --primary-hover:              var(--brand-700);
+  --primary-soft:               oklch(from var(--brand-600) l c h / 0.10);
+
+  /* Theme-independent. For content that sits on top of imagery or a dark
+     scrim (caption text, overlay action icons) and for the thumb of a
+     filled control — white stays legible in both light and dark, so these
+     are intentionally NOT flipped in the .dark block. */
+  --overlay:                    oklch(0 0 0 / 0.55);
+  --overlay-foreground:         oklch(1 0 0);
+
+  --secondary:                  var(--neutral-100);
+  --secondary-foreground:       var(--neutral-900);
+
+  --muted:                      var(--neutral-100);
+  /* Bumped from neutral-500 (L=0.575) to L=0.500 so that all muted body
+     copy and micro-labels clear WCAG 2.2 AA 4.5:1 contrast on every
+     surface, including the alpha-mask variants used for placeholders
+     and chevrons. */
+  --muted-foreground:           oklch(0.500 0  0);
+
+  /* Accent = neutral hover chip. Was previously a warm cream tint that
+     contributed to the global yellow cast; same L as before but with
+     zero chroma, so it still reads as a distinct hover chip a notch
+     darker than --muted / --secondary. */
+  --accent:                     oklch(0.940 0  0);
+  --accent-foreground:          var(--neutral-800);
+  --saffron:                    var(--saffron-500);
+  --saffron-foreground:         oklch(0.250 0.060  68);
+
+  --destructive:                var(--danger-600);
+  --destructive-foreground:     oklch(0.990 0.005  20);
+
+  --success:                    var(--success-600);
+  --success-foreground:         oklch(0.990 0.005 162);
+  --warning:                    var(--warning-600);
+  --warning-foreground:         var(--neutral-950);
+  --info:                       var(--info-600);
+  --info-foreground:            oklch(0.990 0.005 232);
+
+  --border:                     oklch(0.895 0  0 / 0.85);
+  --border-strong:              oklch(0.840 0  0);
+  --input:                      var(--neutral-200);
+  --ring:                       var(--brand-500);
+
+  /* ── 3. SURFACES — explicit elevation. Use these instead of mixing
+     card/muted/accent ad-hoc.
+     Light mode: canvas → tier-2 panel → tier-3 popover/sticky → tier-4 hover.
+     Each tier is one perceptual step distinct so cards visually float
+     above the canvas instead of merging into a hairline-edged plane. */
+  --surface-1:                  var(--neutral-50);   /* canvas */
+  --surface-2:                  var(--neutral-0);    /* sidebar, panels */
+  --surface-3:                  oklch(0.992 0  0);   /* cards, popovers, sticky chrome */
+  --surface-4:                  var(--neutral-100);  /* hover, raised */
+  --surface-1-hover:            var(--neutral-100);
+  --surface-2-hover:            var(--neutral-50);
+
+  /* ── Charts — laddered around the rose brand axis. Saffron is the
+     primary counter-hue (warm pair), with teal/emerald/violet rounding
+     out the harmonic ladder. ────────────────────────────────────────── */
+  --chart-1: var(--brand-500);                       /* rose */
+  --chart-2: var(--saffron-500);                     /* saffron */
+  --chart-3: oklch(0.700 0.135 195);                 /* teal */
+  --chart-4: oklch(0.660 0.180 320);                 /* violet */
+  --chart-5: oklch(0.665 0.155 162);                 /* emerald */
+  --chart-grid: oklch(0.895 0  0 / 0.6);
+
+  /* ── 4. SYSTEM ─────────────────────────────────────────────────────── */
+  /* Display = Outfit (rounded geometric, headings + hero numerals).
+     Body = Figtree (warm open sans-serif, everything else).
+     Mono = JetBrains Mono (terminal/console flourishes, tabular data). */
+  --font-display: "Outfit", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: "Figtree", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  /* Body uses tabular numerals so times, tokens, and costs don't jitter
+     between digits. Display reads with default proportional numerals
+     except where overridden (.text-display, mono numerics in lists). */
+  --font-feature-default: "tnum";
+  --font-feature-tabular: "tnum";
+
+  --radius:     0.625rem;
+  --radius-sm:  calc(var(--radius) - 4px);
+  --radius-md:  calc(var(--radius) - 2px);
+  --radius-lg:  var(--radius);
+  --radius-xl:  calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+
+  --ease-out-cubic:    cubic-bezier(0.215, 0.610, 0.355, 1.000);
+  --ease-out-quart:    cubic-bezier(0.165, 0.840, 0.440, 1.000);
+  --ease-in-out-cubic: cubic-bezier(0.645, 0.045, 0.355, 1.000);
+  --duration-fast:     120ms;
+  --duration-default:  200ms;
+  --duration-slow:     320ms;
+
+  /* Neutral shadows — cast in pure black so they read as a cool
+     shadow on any chassis (no warm tint bleeding into the canvas). */
+  --shadow-xs: 0 1px 2px 0 oklch(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 2px 0 oklch(0 0 0 / 0.06),
+               0 1px 3px 0 oklch(0 0 0 / 0.07);
+  --shadow-md: 0 4px 6px -1px oklch(0 0 0 / 0.08),
+               0 2px 4px -2px oklch(0 0 0 / 0.06);
+  --shadow-lg: 0 10px 15px -3px oklch(0 0 0 / 0.10),
+               0 4px 6px -4px oklch(0 0 0 / 0.06);
+  --shadow-lift: 0 12px 32px -16px oklch(0 0 0 / 0.22),
+                 0 4px 8px -4px oklch(0 0 0 / 0.12);
+
+  /* Top-edge highlight — kept very subtle. Earlier value (0.55 alpha)
+     read as 2014-era glassmorphism gloss; toned to 0.14 so it
+     whispers rather than shouts. Only present on surfaces that
+     explicitly opt in via `surface-edge`, `gradient-border`, etc. */
+  --highlight-top: inset 0 1px 0 oklch(1 0 0 / 0.14);
+
+  /* Display-weight tracking ratio applied to hero headings and page
+     titles. Tighter than body, slightly heavier optical weight. */
+  --tracking-display: -0.025em;
+  --tracking-tight:   -0.015em;
+
+  --color-scheme: light;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   ACCENT PALETTES — each class overrides the 11 brand stops with a
+   different hue, keeping the L/C ramp identical. Apply by toggling a
+   single class on :root (e.g. `accent-violet`).
+   Hue chosen per accent:
+     rose (default) → 13 · indigo → 268 · violet → 305 · sky → 232
+     emerald → 152 · amber → 76
+   Rose is the default in :root above so no `.accent-rose` is needed
+   unless an upstream selection persists. Indigo is an opt-in for
+   teams that prefer the cool Linear chassis.
+   ─────────────────────────────────────────────────────────────────────── */
+.accent-rose {
+  --brand-50:   oklch(0.972 0.022  13);
+  --brand-100:  oklch(0.945 0.045  13);
+  --brand-200:  oklch(0.895 0.090  13);
+  --brand-300:  oklch(0.825 0.145  13);
+  --brand-400:  oklch(0.720 0.195  13);
+  --brand-500:  oklch(0.640 0.225  13);
+  --brand-600:  oklch(0.575 0.232  13);
+  --brand-700:  oklch(0.495 0.215  13);
+  --brand-800:  oklch(0.410 0.180  13);
+  --brand-900:  oklch(0.330 0.140  13);
+  --brand-950:  oklch(0.235 0.095  13);
+}
+.accent-indigo {
+  --brand-50:   oklch(0.972 0.020 268);
+  --brand-100:  oklch(0.945 0.040 268);
+  --brand-200:  oklch(0.895 0.078 268);
+  --brand-300:  oklch(0.825 0.130 268);
+  --brand-400:  oklch(0.720 0.180 268);
+  --brand-500:  oklch(0.620 0.210 268);
+  --brand-600:  oklch(0.555 0.220 268);
+  --brand-700:  oklch(0.485 0.205 268);
+  --brand-800:  oklch(0.405 0.175 268);
+  --brand-900:  oklch(0.325 0.135 268);
+  --brand-950:  oklch(0.230 0.090 268);
+}
+.accent-violet {
+  --brand-50:   oklch(0.972 0.020 305);
+  --brand-100:  oklch(0.945 0.040 305);
+  --brand-200:  oklch(0.895 0.078 305);
+  --brand-300:  oklch(0.825 0.130 305);
+  --brand-400:  oklch(0.720 0.180 305);
+  --brand-500:  oklch(0.620 0.210 305);
+  --brand-600:  oklch(0.555 0.220 305);
+  --brand-700:  oklch(0.485 0.205 305);
+  --brand-800:  oklch(0.405 0.175 305);
+  --brand-900:  oklch(0.325 0.135 305);
+  --brand-950:  oklch(0.230 0.090 305);
+}
+.accent-sky {
+  --brand-50:   oklch(0.972 0.020 232);
+  --brand-100:  oklch(0.945 0.040 232);
+  --brand-200:  oklch(0.895 0.078 232);
+  --brand-300:  oklch(0.825 0.130 232);
+  --brand-400:  oklch(0.720 0.170 232);
+  --brand-500:  oklch(0.620 0.180 232);
+  --brand-600:  oklch(0.555 0.180 232);
+  --brand-700:  oklch(0.485 0.170 232);
+  --brand-800:  oklch(0.405 0.150 232);
+  --brand-900:  oklch(0.325 0.115 232);
+  --brand-950:  oklch(0.230 0.078 232);
+}
+.accent-emerald {
+  --brand-50:   oklch(0.972 0.020 152);
+  --brand-100:  oklch(0.945 0.040 152);
+  --brand-200:  oklch(0.895 0.078 152);
+  --brand-300:  oklch(0.825 0.120 152);
+  --brand-400:  oklch(0.720 0.155 152);
+  --brand-500:  oklch(0.620 0.170 152);
+  --brand-600:  oklch(0.545 0.170 152);
+  --brand-700:  oklch(0.470 0.155 152);
+  --brand-800:  oklch(0.395 0.135 152);
+  --brand-900:  oklch(0.320 0.110 152);
+  --brand-950:  oklch(0.225 0.075 152);
+}
+.accent-amber {
+  --brand-50:   oklch(0.972 0.025  76);
+  --brand-100:  oklch(0.945 0.050  76);
+  --brand-200:  oklch(0.895 0.090  76);
+  --brand-300:  oklch(0.840 0.130  76);
+  --brand-400:  oklch(0.770 0.155  76);
+  --brand-500:  oklch(0.700 0.170  76);
+  --brand-600:  oklch(0.620 0.165  76);
+  --brand-700:  oklch(0.530 0.150  76);
+  --brand-800:  oklch(0.440 0.130  76);
+  --brand-900:  oklch(0.355 0.105  76);
+  --brand-950:  oklch(0.255 0.075  76);
+}
+/* ─────────────────────────────────────────────────────────────────────────
+   DARK MODE — values flip; semantic names stay.
+   ─────────────────────────────────────────────────────────────────────── */
+.dark {
+  /* Deep graphite, untinted. Earlier value carried a warm undertone
+     (h≈66) that read as a yellow cast across every dark surface;
+     neutralised so the chosen accent is the only hue on screen. */
+  --background:                 var(--neutral-1000);
+  --foreground:                 oklch(0.925 0  0);
+
+  --card:                       var(--neutral-900);
+  --card-foreground:            oklch(0.925 0  0);
+  --popover:                    var(--neutral-850);
+  --popover-foreground:         oklch(0.925 0  0);
+
+  --primary:                    var(--brand-500);
+  --primary-foreground:         oklch(from var(--brand-500) 0.990 0.005 h);
+  --primary-hover:              var(--brand-400);
+  --primary-soft:               oklch(from var(--brand-500) l c h / 0.18);
+
+  --secondary:                  var(--neutral-850);
+  --secondary-foreground:       oklch(0.925 0  0);
+
+  --muted:                      var(--neutral-850);
+  /* Bumped from L=0.680 to L=0.730 so muted body copy clears 4.5:1
+     against the graphite background even when consumers apply an
+     /0.6 alpha mask (placeholders, chevrons, micro-meta). */
+  --muted-foreground:           oklch(0.730 0  0);
+
+  --accent:                     var(--neutral-800);
+  --accent-foreground:          oklch(0.925 0  0);
+  --saffron:                    var(--saffron-500);
+  --saffron-foreground:         oklch(0.115 0.025  62);
+
+  --destructive:                var(--danger-500);
+  --destructive-foreground:     oklch(0.990 0.005  20);
+
+  --success:                    var(--success-500);
+  --warning:                    var(--warning-500);
+  --info:                       var(--info-500);
+
+  --border:                     oklch(0.260 0  0 / 0.85);
+  --border-strong:              oklch(0.380 0  0);
+  --input:                      var(--neutral-800);
+  --ring:                       var(--brand-400);
+
+  --surface-1:                  var(--neutral-1000);
+  --surface-2:                  var(--neutral-900);
+  --surface-3:                  var(--neutral-850);
+  --surface-4:                  var(--neutral-800);
+  --surface-1-hover:            var(--neutral-950);
+  --surface-2-hover:            var(--neutral-850);
+
+  --chart-1: var(--brand-400);
+  --chart-2: var(--saffron-400);
+  --chart-3: oklch(0.745 0.135 195);
+  --chart-4: oklch(0.705 0.180 320);
+  --chart-5: oklch(0.710 0.155 162);
+  --chart-grid: oklch(0.260 0  0 / 0.6);
+
+  --highlight-top: inset 0 1px 0 oklch(1 0 0 / 0.06);
+
+  --shadow-sm: 0 1px 2px 0 oklch(0 0 0 / 0.20),
+               0 1px 3px 0 oklch(0 0 0 / 0.24);
+  --shadow-md: 0 4px 6px -1px oklch(0 0 0 / 0.28),
+               0 2px 4px -2px oklch(0 0 0 / 0.20);
+  --shadow-lg: 0 10px 15px -3px oklch(0 0 0 / 0.34),
+               0 4px 6px -4px oklch(0 0 0 / 0.22);
+  --shadow-lift: 0 16px 36px -18px oklch(0 0 0 / 0.55),
+                 0 6px 12px -6px oklch(0 0 0 / 0.35);
+
+  --color-scheme: dark;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   THEME BLOCK — exposes semantics as Tailwind v4 utilities.
+   `bg-[var(--color-X)]` and `bg-{X}` both work.
+   ─────────────────────────────────────────────────────────────────────── */
+@theme inline {
+  --color-background:             var(--background);
+  --color-foreground:             var(--foreground);
+  --color-card:                   var(--card);
+  --color-card-foreground:        var(--card-foreground);
+  --color-popover:                var(--popover);
+  --color-popover-foreground:     var(--popover-foreground);
+  --color-primary:                var(--primary);
+  --color-primary-foreground:     var(--primary-foreground);
+  --color-primary-hover:          var(--primary-hover);
+  --color-primary-soft:           var(--primary-soft);
+  --color-overlay:                var(--overlay);
+  --color-overlay-foreground:     var(--overlay-foreground);
+  --color-secondary:              var(--secondary);
+  --color-secondary-foreground:   var(--secondary-foreground);
+  --color-muted:                  var(--muted);
+  --color-muted-foreground:       var(--muted-foreground);
+  --color-accent:                 var(--accent);
+  --color-accent-foreground:      var(--accent-foreground);
+  --color-saffron:                var(--saffron);
+  --color-saffron-foreground:     var(--saffron-foreground);
+  --color-destructive:            var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success:                var(--success);
+  --color-success-foreground:     var(--success-foreground);
+  --color-warning:                var(--warning);
+  --color-warning-foreground:     var(--warning-foreground);
+  --color-info:                   var(--info);
+  --color-info-foreground:        var(--info-foreground);
+  --color-border:                 var(--border);
+  --color-border-strong:          var(--border-strong);
+  --color-input:                  var(--input);
+  --color-ring:                   var(--ring);
+
+  --color-surface-1:              var(--surface-1);
+  --color-surface-2:              var(--surface-2);
+  --color-surface-3:              var(--surface-3);
+  --color-surface-4:              var(--surface-4);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --radius-sm:  var(--radius-sm);
+  --radius-md:  var(--radius-md);
+  --radius-lg:  var(--radius-lg);
+  --radius-xl:  var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+
+  --font-sans:    var(--font-sans);
+  --font-mono:    var(--font-mono);
+  --font-display: var(--font-display);
+
+  /* Type scale — canonical display sizes consumed by page primitives.
+     Page = top-of-page hero (list & detail).
+     Section = nested section header inside a page (role-detail, etc.).
+     Card = card-level title.
+     Stat = big numerals on stat cards / billing widgets.
+     Tailwind v4 auto-generates `text-display-page` etc. utilities from
+     these tokens. */
+  --text-display-page:    1.5rem;        /* 24px */
+  --text-display-section: 1.25rem;       /* 20px */
+  --text-display-card:    1.0625rem;     /* 17px */
+  --text-display-stat:    1.75rem;       /* 28px */
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   BASE LAYER — global treatments
+   ─────────────────────────────────────────────────────────────────────── */
+@layer base {
+  *, ::before, ::after {
+    border-color: var(--color-border);
+  }
+
+  :root {
+    color-scheme: var(--color-scheme);
+  }
+
+  /* Cursor affordance — restore the classic "anything clickable shows a
+     pointer" behavior. Tailwind v4 follows the new browser default of
+     `cursor: default` on <button>, which leaves users guessing whether
+     an element is interactive. We override globally so every actionable
+     surface (native controls, ARIA-roled widgets, labels bound to inputs,
+     <summary> for collapsibles) reads as a clickable from the cursor alone.
+
+     Disabled / aria-disabled variants fall through to `not-allowed` so the
+     feedback flips cleanly when an action is unavailable. */
+  button:not(:disabled):not([aria-disabled="true"]),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="link"]:not([aria-disabled="true"]),
+  [role="menuitem"]:not([aria-disabled="true"]),
+  [role="menuitemcheckbox"]:not([aria-disabled="true"]),
+  [role="menuitemradio"]:not([aria-disabled="true"]),
+  [role="option"]:not([aria-disabled="true"]),
+  [role="tab"]:not([aria-disabled="true"]),
+  [role="switch"]:not([aria-disabled="true"]),
+  [role="checkbox"]:not([aria-disabled="true"]),
+  [role="radio"]:not([aria-disabled="true"]),
+  [role="treeitem"]:not([aria-disabled="true"]),
+  a[href],
+  summary,
+  label[for]:not([data-disabled]),
+  select:not(:disabled),
+  input[type="submit"]:not(:disabled),
+  input[type="reset"]:not(:disabled),
+  input[type="button"]:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled),
+  input[type="image"]:not(:disabled),
+  input[type="file"]:not(:disabled),
+  input[type="color"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  button[aria-disabled="true"],
+  [role="button"][aria-disabled="true"],
+  [role="link"][aria-disabled="true"],
+  [role="menuitem"][aria-disabled="true"],
+  [role="menuitemcheckbox"][aria-disabled="true"],
+  [role="menuitemradio"][aria-disabled="true"],
+  [role="option"][aria-disabled="true"],
+  [role="tab"][aria-disabled="true"],
+  [role="switch"][aria-disabled="true"],
+  [role="checkbox"][aria-disabled="true"],
+  [role="radio"][aria-disabled="true"],
+  select:disabled,
+  input:disabled,
+  fieldset:disabled,
+  fieldset:disabled * {
+    cursor: not-allowed;
+  }
+
+  html {
+    font-family: var(--font-sans);
+    font-feature-settings: var(--font-feature-default);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html, body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+  }
+
+  /* Atmospheric background — a single soft glow in the chosen brand
+     colour. The earlier two-channel layout paired this with a saffron
+     glow on the upper-right, but the second warm channel was the bulk
+     of the yellow cast people read as a "tint" — dropped. */
+  body {
+    background-image:
+      radial-gradient(ellipse 60% 40% at 15% -5%, oklch(from var(--brand-600) l c h / 0.10), transparent 70%);
+  }
+
+  .dark body {
+    background-image:
+      radial-gradient(ellipse 60% 40% at 15% -5%, oklch(from var(--brand-500) l c h / 0.12), transparent 70%);
+  }
+
+  /* Paper grain overlay — fine ink dots multiplying into the canvas.
+     Visible only on light surfaces, removed in dark so the graphite
+     stays clean. Positioned fixed so it tiles consistently as you
+     scroll, but z-index 0 keeps it behind every app surface. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.32;
+    mix-blend-mode: multiply;
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      oklch(0 0 0 / 0.05) 1px,
+      transparent 0
+    );
+    background-size: 3px 3px;
+  }
+  .dark body::before { opacity: 0; }
+
+  /* Tabular numerals everywhere a number is rendered as data. */
+  table, .tabular-nums, [data-tabular="true"], .font-mono, code, kbd, samp, pre {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: var(--font-feature-tabular);
+  }
+
+  /* Focus indicator — clean 2px outline, no bloom. The previous outer
+     brand-tinted halo (box-shadow) read as garish, especially in dark
+     mode and on input fields. The outline alone is enough for keyboard
+     accessibility and matches the rest of the dashboard's restraint. */
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+
+  /* Brand-tinted text selection. */
+  ::selection {
+    background-color: oklch(from var(--color-primary) l c h / 0.30);
+    color: var(--color-foreground);
+  }
+
+  /* Restrained scrollbars — Linear-style hairlines. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-strong) transparent;
+  }
+  *::-webkit-scrollbar { width: 8px; height: 8px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+  *::-webkit-scrollbar-thumb {
+    background-color: oklch(from var(--color-border-strong) l c h / 0.6);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-muted-foreground);
+  }
+
+  /* Heading rhythm — every heading wears the display face (Outfit) for
+     a refined, editorial weight that contrasts with Figtree body. */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: var(--tracking-tight);
+  }
+  h1 { letter-spacing: var(--tracking-display); }
+
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  /* Display class for hero numbers / page titles. Tight, heavy, with
+     tabular numerals so big counters don't jitter as they animate. */
+  .text-display {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: var(--tracking-display);
+    font-feature-settings: "tnum";
+  }
+
+  /* ──────────────────────────────────────────────────────────────────
+     Theme cross-fade.
+
+     Primary mechanism: View Transitions API. The browser snapshots the
+     page bitmap before/after the dark-class flip and crossfades
+     between them. This is the only technique that morphs gradients,
+     box-shadows, conic backgrounds, SVG fills, and image-based
+     surfaces uniformly with text and surfaces — per-property CSS
+     transitions cannot interpolate any of those.
+
+     Fallback: `.theme-switching` blanket transition for browsers
+     without View Transitions (Firefox today). Limited to the
+     interpolatable subset. Better than nothing, worse than VT.
+
+     Reduced-motion users skip both paths via JS and never see either
+     transition. The block below also nukes view-transition animations
+     defensively in case the user toggles the OS pref mid-session.
+     ──────────────────────────────────────────────────────────────── */
+
+  html.theme-switching,
+  html.theme-switching *,
+  html.theme-switching *::before,
+  html.theme-switching *::after {
+    transition:
+      background-color var(--duration-default) var(--ease-out-cubic),
+      background-image var(--duration-default) var(--ease-out-cubic),
+      border-color     var(--duration-default) var(--ease-out-cubic),
+      color            var(--duration-default) var(--ease-out-cubic),
+      fill             var(--duration-default) var(--ease-out-cubic),
+      stroke           var(--duration-default) var(--ease-out-cubic),
+      box-shadow       var(--duration-default) var(--ease-out-cubic) !important;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   COMPONENT UTILITIES
+   ─────────────────────────────────────────────────────────────────────── */
+@layer components {
+  .surface-1 { background-color: var(--color-surface-1); }
+  .surface-2 { background-color: var(--color-surface-2); }
+  .surface-3 { background-color: var(--color-surface-3); }
+  .surface-4 { background-color: var(--color-surface-4); }
+
+  /* Brand mark — flat warm rose tile with a quiet inner top-edge
+     highlight so the "F" reads as embossed paper, not Linear chrome.
+     No rotating conic gradient (that was 2014-era chrome) — the calm
+     paper aesthetic doesn't want spinning ornaments. */
+  .brand-mark {
+    position: relative;
+    isolation: isolate;
+    background: var(--color-primary);
+    box-shadow:
+      inset 0 1px 0 oklch(1 0 0 / 0.18),
+      0 4px 14px -6px oklch(from var(--color-primary) l c h / 0.45);
+  }
+  .brand-mark > * { position: relative; z-index: 1; }
+
+
+  /* Skeleton — placeholder block with a slow brand-tinted shimmer.
+     Tuned for the architectural card vocabulary: a softer resting fill
+     (so the skeleton doesn't compete with adjacent content) and a
+     longer, more ambient shimmer cycle that reads as "loading" rather
+     than "anxious." */
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+    background: oklch(from var(--color-muted) l c h / 0.5);
+    border-radius: var(--radius-sm);
+    /* Subtle inner ring so the skeleton has a defined edge when nested
+       inside a card-shell — without it the placeholder visually melts
+       into the card surface. */
+    box-shadow: inset 0 0 0 1px oklch(from var(--color-border) l c h / 0.55);
+  }
+  .skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    /* Brand-tinted sweep — alpha is intentionally low so the highlight
+       is more "atmosphere" than "wave." */
+    background: linear-gradient(
+      90deg,
+      transparent,
+      oklch(from var(--color-primary) l c h / 0.08),
+      oklch(from var(--color-foreground) l c h / 0.06),
+      transparent
+    );
+    transform: translateX(-100%);
+    animation: fsh-shimmer 2.4s var(--ease-in-out-cubic) infinite;
+  }
+  .dark .skeleton {
+    background: oklch(from var(--color-muted) l c h / 0.45);
+    box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.04);
+  }
+  .dark .skeleton::after {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      oklch(from var(--color-primary) l c h / 0.12),
+      oklch(1 0 0 / 0.06),
+      transparent
+    );
+  }
+
+  /* Status dot with breathing pulse. Used by SSE indicator when live. */
+  .pulse-dot {
+    position: relative;
+  }
+  .pulse-dot::before {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: 9999px;
+    background: currentColor;
+    opacity: 0.35;
+    animation: fsh-pulse 2.2s var(--ease-out-cubic) infinite;
+  }
+
+  /* (Removed dead classes: glow-frame, text-gradient-brand, btn-shimmer,
+     parallax-orb / parallax-orb-2, float-field, card-spotlight,
+     dot-grid-base / dot-grid-bright. None of these were referenced from
+     TSX/HTML anywhere — they were vestiges of earlier design eras the
+     dentalOS aesthetic moved past. If you grep for one and land here,
+     that's why nothing else turns up.) */
+
+  /* ─────────────────────────────────────────────────────────────────────
+     TOASTS — sonner override · "editorial card" treatment.
+
+     Calm warm-paper card with a single 3px tone-accent stripe pinned
+     to the left edge. The icon sits in a soft tinted square chip; the
+     title wears the display face; description sits in muted body. No
+     backdrop blur, no gradient border, no atmospheric glow, no drain
+     bar — just a refined card that reads as a printed note dropped on
+     the desk.
+  --------------------------------------------------------------------- */
+
+  /* Token map — per-type tone color carried via custom property. */
+  [data-sonner-toaster] [data-sonner-toast].fsh-toast {
+    --fsh-toast-tone: var(--color-foreground);
+  }
+  [data-sonner-toast][data-type="success"].fsh-toast { --fsh-toast-tone: var(--color-success); }
+  [data-sonner-toast][data-type="error"].fsh-toast   { --fsh-toast-tone: var(--color-destructive); }
+  [data-sonner-toast][data-type="warning"].fsh-toast { --fsh-toast-tone: var(--color-warning); }
+  [data-sonner-toast][data-type="info"].fsh-toast    { --fsh-toast-tone: var(--color-info); }
+  [data-sonner-toast][data-type="loading"].fsh-toast { --fsh-toast-tone: var(--color-primary); }
+
+  /* Base shell — warm paper card, soft warm shadow, 14px radius. */
+  [data-sonner-toaster] [data-sonner-toast].fsh-toast {
+    position: relative;
+    display: flex !important;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+    min-width: 340px;
+    max-width: 380px;
+    padding: 14px 16px 14px 18px;
+
+    background: var(--color-card);
+    color: var(--color-foreground) !important;
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    overflow: hidden;
+    font-family: var(--font-sans);
+
+    box-shadow:
+      0 1px 0 0 oklch(1 0 0 / 0.6) inset,
+      0 1px 2px oklch(0 0 0 / 0.04),
+      0 8px 24px -8px oklch(0 0 0 / 0.12),
+      0 24px 48px -16px oklch(0 0 0 / 0.08);
+  }
+  .dark [data-sonner-toaster] [data-sonner-toast].fsh-toast {
+    box-shadow:
+      0 1px 0 0 oklch(1 0 0 / 0.03) inset,
+      0 1px 2px oklch(0 0 0 / 0.4),
+      0 8px 24px -8px oklch(0 0 0 / 0.5),
+      0 24px 48px -16px oklch(0 0 0 / 0.6);
+  }
+
+  /* Left accent stripe — the signature detail. 3px wide, inset from
+     top/bottom by 10px so it reads as a marker, not a border. */
+  [data-sonner-toast].fsh-toast::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 10px;
+    bottom: 10px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--fsh-toast-tone);
+  }
+
+  /* Sonner content wrapper — keep its block layout (we use flex on the
+     toast root, not grid). */
+  [data-sonner-toast].fsh-toast > [data-content] {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+    padding-top: 1px;
+  }
+
+  /* Icon chip — soft tinted square. Sonner injects the Lucide glyph
+     via App.tsx's `icons` prop into this slot. */
+  [data-sonner-toast].fsh-toast [data-icon] {
+    flex-shrink: 0;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    margin: 1px 0 0 0 !important;
+    border-radius: 9px;
+    background: color-mix(in oklab, var(--fsh-toast-tone) 12%, var(--color-card));
+    color: var(--fsh-toast-tone);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--fsh-toast-tone) 22%, transparent);
+  }
+  [data-sonner-toast][data-type="loading"].fsh-toast [data-icon] {
+    background: color-mix(in oklab, var(--color-primary) 10%, var(--color-card));
+  }
+
+  /* Glyph sizing — Lucide icon rendered inside the chip. */
+  [data-sonner-toast].fsh-toast .fsh-toast-glyph {
+    width: 18px;
+    height: 18px;
+    color: var(--fsh-toast-tone);
+  }
+  [data-sonner-toast].fsh-toast .fsh-toast-glyph-spin {
+    animation: fsh-toast-glyph-spin 900ms linear infinite;
+  }
+  @keyframes fsh-toast-glyph-spin { to { transform: rotate(360deg); } }
+
+  /* Title — display face, 14px, tight letter-spacing. */
+  [data-sonner-toast].fsh-toast .fsh-toast-title {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: -0.015em;
+    color: var(--color-foreground);
+    margin: 0;
+  }
+  [data-sonner-toast].fsh-toast .fsh-toast-title::before {
+    display: none !important;
+  }
+
+  /* Description — muted body sans-face. */
+  [data-sonner-toast].fsh-toast .fsh-toast-description {
+    font-family: var(--font-sans);
+    font-size: 12.5px;
+    font-weight: 400;
+    line-height: 1.45;
+    color: var(--color-muted-foreground);
+    margin: 0;
+  }
+
+  /* Close — hover-reveal X button pinned top-right. */
+  [data-sonner-toast].fsh-toast .fsh-toast-close {
+    position: absolute !important;
+    top: 10px !important;
+    right: 10px !important;
+    left: auto !important;
+    width: 20px !important;
+    height: 20px !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 6px !important;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    color: var(--color-muted-foreground) !important;
+    opacity: 0;
+    transform: none !important;
+    cursor: pointer;
+    transition:
+      opacity 150ms ease,
+      background-color 150ms ease,
+      color 150ms ease;
+  }
+  [data-sonner-toast].fsh-toast:hover .fsh-toast-close {
+    opacity: 1;
+  }
+  [data-sonner-toast].fsh-toast .fsh-toast-close:hover {
+    background: var(--color-muted) !important;
+    color: var(--color-foreground) !important;
+  }
+  [data-sonner-toast].fsh-toast .fsh-toast-close svg {
+    width: 11px;
+    height: 11px;
+  }
+
+  /* Action + cancel — inline-block under the description. */
+  [data-sonner-toast].fsh-toast .fsh-toast-action {
+    margin-left: auto;
+    margin-top: 6px;
+    padding: 6px 12px !important;
+    font-family: var(--font-sans) !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.01em;
+    border-radius: 8px !important;
+    background: var(--color-foreground) !important;
+    color: var(--color-background) !important;
+    border: none !important;
+    cursor: pointer;
+    transition: transform 120ms ease, opacity 120ms ease;
+  }
+  [data-sonner-toast].fsh-toast .fsh-toast-action:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+  [data-sonner-toast].fsh-toast .fsh-toast-cancel {
+    margin-top: 6px;
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    color: var(--color-muted-foreground) !important;
+    border: 1px solid var(--color-border) !important;
+  }
+
+  /* Entrance: slide-from-right + fade. */
+  [data-sonner-toaster][data-y-position="top"] [data-sonner-toast].fsh-toast[data-mounted="true"] {
+    animation: fsh-toast-enter 320ms var(--ease-out-cubic) both;
+  }
+  @keyframes fsh-toast-enter {
+    0%   { opacity: 0; transform: translateX(20px) scale(0.98); }
+    100% { opacity: 1; transform: translateX(0)    scale(1);    }
+  }
+  [data-sonner-toaster] [data-sonner-toast].fsh-toast[data-removed="true"] {
+    animation: fsh-toast-exit 200ms var(--ease-out-cubic) forwards;
+  }
+  @keyframes fsh-toast-exit {
+    from { opacity: 1; transform: translateX(0)    scale(1);    }
+    to   { opacity: 0; transform: translateX(14px) scale(0.98); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-sonner-toast].fsh-toast,
+    [data-sonner-toast].fsh-toast .fsh-toast-glyph-spin {
+      animation: none !important;
+    }
+    [data-sonner-toaster] [data-sonner-toast].fsh-toast[data-mounted="true"] {
+      animation: fsh-toast-fade-in 200ms var(--ease-out-cubic) both;
+    }
+    @keyframes fsh-toast-fade-in { from { opacity: 0; } to { opacity: 1; } }
+  }
+
+  /* ── CHAT TOASTS — opt out of the console-card treatment.
+        Sonner appends per-toast `className` to the toaster's global
+        classNames.toast, so the wrapper li carries BOTH .fsh-toast (from
+        FshToaster) AND .fsh-chat-toast-wrapper (per-toast). The rules
+        below neutralise every piece of console-card chrome — the
+        gradient border, the frosted surface, the atmospheric glow, the
+        icon disc, the drain bar, the close button — so the chat card
+        rendered inside the title slot can paint edge-to-edge without
+        the surrounding toast peeking through.
+
+        We deliberately DO NOT `display: none` the title element itself,
+        because sonner hosts the custom JSX inside it. ────────────── */
+  [data-sonner-toast].fsh-toast.fsh-chat-toast-wrapper {
+    display: block !important;
+    grid-template-columns: none !important;
+    grid-template-areas: none !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  [data-sonner-toast].fsh-toast.fsh-chat-toast-wrapper::before,
+  [data-sonner-toast].fsh-toast.fsh-chat-toast-wrapper::after {
+    display: none !important;
+  }
+  [data-sonner-toast].fsh-toast.fsh-chat-toast-wrapper [data-icon],
+  [data-sonner-toast].fsh-toast.fsh-chat-toast-wrapper .fsh-toast-close {
+    display: none !important;
+  }
+  [data-sonner-toast].fsh-toast.fsh-chat-toast-wrapper .fsh-toast-title {
+    grid-area: unset !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+    color: inherit !important;
+  }
+  [data-sonner-toast].fsh-toast.fsh-chat-toast-wrapper .fsh-toast-title::before {
+    content: none !important;
+    display: none !important;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   DENSITY MODE — when `.density-compact` is on :root, tighten the
+   high-leverage paddings and rhythm tokens. Scope to `main` so chrome
+   (sidebar, topbar, dropdown menus) is unaffected.
+
+   The overrides target Tailwind utility classes that the Card / list
+   surfaces use directly, with !important to win the cascade. This is
+   pragmatic rather than purist — if more granular control is needed
+   later, swap to a `--card-py / --card-px` token system on the
+   primitives themselves.
+   ─────────────────────────────────────────────────────────────────────── */
+.density-compact main .space-y-7 > * + * { margin-top: 1.25rem; }
+.density-compact main .space-y-6 > * + * { margin-top: 1rem; }
+.density-compact main .space-y-5 > * + * { margin-top: 0.875rem; }
+.density-compact main .px-6 { padding-left: 1rem !important; padding-right: 1rem !important; }
+.density-compact main .pt-5 { padding-top: 0.75rem !important; }
+.density-compact main .pb-5 { padding-bottom: 0.75rem !important; }
+.density-compact main .py-3 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+.density-compact main .py-3\.5 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+.density-compact main .py-4 { padding-top: 0.625rem !important; padding-bottom: 0.625rem !important; }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   ENTRY ANIMATIONS — orchestrated stagger on first paint.
+   ─────────────────────────────────────────────────────────────────────── */
+@keyframes fsh-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+.fsh-enter   { animation: fsh-enter var(--duration-slow) var(--ease-out-cubic) both; }
+.fsh-enter-1 { animation-delay:  40ms; }
+.fsh-enter-2 { animation-delay:  90ms; }
+.fsh-enter-3 { animation-delay: 140ms; }
+.fsh-enter-4 { animation-delay: 200ms; }
+.fsh-enter-5 { animation-delay: 260ms; }
+
+/* Modern micro-animations referenced by .brand-mark, .skeleton, .pulse-dot */
+@keyframes fsh-spin    { to { transform: rotate(360deg); } }
+@keyframes fsh-shimmer { to { transform: translateX(100%); } }
+
+@keyframes fsh-pulse {
+  0%   { transform: scale(1);   opacity: 0.40; }
+  70%  { transform: scale(1.7); opacity: 0.00; }
+  100% { transform: scale(1.7); opacity: 0.00; }
+}
+
+/* Dialog enter/exit — overlay fades; content fades + scales + translates
+   from -2px so the dialog "rises" into place.  */
+@keyframes fsh-overlay-in  { from { opacity: 0; }                                   to { opacity: 1; } }
+@keyframes fsh-overlay-out { from { opacity: 1; }                                   to { opacity: 0; } }
+@keyframes fsh-dialog-in   { from { opacity: 0; transform: translate(-50%, -48%) scale(0.96); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+@keyframes fsh-dialog-out  { from { opacity: 1; transform: translate(-50%, -50%) scale(1); }     to { opacity: 0; transform: translate(-50%, -48%) scale(0.96); } }
+.animate-fsh-overlay-in  { animation: fsh-overlay-in  var(--duration-default) var(--ease-out-cubic) both; }
+.animate-fsh-overlay-out { animation: fsh-overlay-out var(--duration-fast)    var(--ease-out-cubic) both; }
+.animate-fsh-dialog-in   { animation: fsh-dialog-in   var(--duration-slow)    var(--ease-out-cubic) both; }
+.animate-fsh-dialog-out  { animation: fsh-dialog-out  var(--duration-fast)    var(--ease-out-cubic) both; }
+
+/* Sheet (Radix Dialog with side variant) — slides in from the four
+   edges. Consumed by mobile drawer + side sheets. */
+@keyframes fsh-sheet-in-right   { from { transform: translateX( 100%); } to { transform: translateX(0); } }
+@keyframes fsh-sheet-out-right  { from { transform: translateX(0); }     to { transform: translateX( 100%); } }
+@keyframes fsh-sheet-in-left    { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+@keyframes fsh-sheet-out-left   { from { transform: translateX(0); }     to { transform: translateX(-100%); } }
+@keyframes fsh-sheet-in-top     { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+@keyframes fsh-sheet-out-top    { from { transform: translateY(0); }     to { transform: translateY(-100%); } }
+@keyframes fsh-sheet-in-bottom  { from { transform: translateY( 100%); } to { transform: translateY(0); } }
+@keyframes fsh-sheet-out-bottom { from { transform: translateY(0); }     to { transform: translateY( 100%); } }
+.animate-fsh-sheet-in-right   { animation: fsh-sheet-in-right   var(--duration-slow) var(--ease-out-cubic) both; }
+.animate-fsh-sheet-out-right  { animation: fsh-sheet-out-right  var(--duration-fast) var(--ease-out-cubic) both; }
+.animate-fsh-sheet-in-left    { animation: fsh-sheet-in-left    var(--duration-slow) var(--ease-out-cubic) both; }
+.animate-fsh-sheet-out-left   { animation: fsh-sheet-out-left   var(--duration-fast) var(--ease-out-cubic) both; }
+.animate-fsh-sheet-in-top     { animation: fsh-sheet-in-top     var(--duration-slow) var(--ease-out-cubic) both; }
+.animate-fsh-sheet-out-top    { animation: fsh-sheet-out-top    var(--duration-fast) var(--ease-out-cubic) both; }
+.animate-fsh-sheet-in-bottom  { animation: fsh-sheet-in-bottom  var(--duration-slow) var(--ease-out-cubic) both; }
+.animate-fsh-sheet-out-bottom { animation: fsh-sheet-out-bottom var(--duration-fast) var(--ease-out-cubic) both; }
+
+/* Aurora drift — the rose + saffron upper-corner glows breathe slowly.
+   Kept very low amplitude (≤6% drift) so it stays peripheral, never
+   distracting. Two layers now (was three) since the SVG noise tile was
+   replaced with the multiplicative paper grain on body::before. */
+@keyframes fsh-aurora {
+  0%   { background-position:  0% 0%, 100% 0%; }
+  50%  { background-position:  6% 3%,  94% 5%; }
+  100% { background-position:  0% 0%, 100% 0%; }
+}
+
+/* Dot-grid pulse — the mask travels through five waypoints over 16s on
+   a closed path, so the bright zone reads as a single spotlight that's
+   slowly pacing the grid. Position values are sized for a 60% mask. */
+@keyframes fsh-dot-pulse {
+  0%   { -webkit-mask-position: 10%  20%; mask-position: 10%  20%; }
+  25%  { -webkit-mask-position: 70%  10%; mask-position: 70%  10%; }
+  50%  { -webkit-mask-position: 80%  70%; mask-position: 80%  70%; }
+  75%  { -webkit-mask-position: 20%  80%; mask-position: 20%  80%; }
+  100% { -webkit-mask-position: 10%  20%; mask-position: 10%  20%; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  body {
+    background-size: 130% 130%, 130% 130%;
+    animation: fsh-aurora 72s var(--ease-in-out-cubic) infinite;
+  }
+}
+
+/* View Transitions API — owns the dark/light crossfade in Chromium and
+   Safari. The default UA animations cross-dissolve; we only tune
+   duration and easing so the swap matches the rest of the motion
+   system. `mix-blend-mode: normal` overrides the spec's default
+   (`plus-lighter`), which can briefly flash white through bright
+   surfaces during the dissolve. The body's aurora animation pauses on
+   the snapshot — `animation-name: none` on the group prevents it from
+   re-triggering inside the captured pseudo-element. */
+@supports (view-transition-name: root) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 260ms;
+    animation-timing-function: var(--ease-out-cubic);
+    mix-blend-mode: normal;
+  }
+  ::view-transition-group(root) { animation-duration: 260ms; }
+}
+
+/* Honour user motion preferences. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  body { background-image: none; }
+}
+
+/* App-level override: the Appearance > "Reduce motion" toggle adds
+   `.reduce-motion` on :root to force the same reductions regardless of the
+   OS setting. Mirrors the media query above. */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-delay: 0ms !important;
+  transition-duration: 0.01ms !important;
+}
+.reduce-motion body { background-image: none; }
+
+/* CHAT-ONLY page chrome (.chat-typing-dot, .chat-unread-divider,
+   .chat-day-rule, .chat-reaction-chip, .chat-channel-header,
+   .chat-jump-pill, .chat-mention) lives in `pages/chat/chat.css` so
+   Vite extracts it into the chat-route CSS chunk — every other page
+   stops shipping ~3 KB gzip of selectors it'll never use.
+
+   The .chat-status-pill family below stays here because the same
+   primitive is consumed by the global notification-bell footer via
+   RealtimeStatusPill. */
+
+/* Connection-state pill — used in the rail footer + bell footer to honestly
+   reflect SignalR status. The dot pulses while reconnecting. */
+@keyframes fsh-chat-status-pulse {
+  0%, 100% { opacity: 1;   transform: scale(1);    }
+  50%      { opacity: 0.4; transform: scale(0.78); }
+}
+.chat-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-muted-foreground);
+}
+.chat-status-pill[data-status="connected"] .chat-status-dot {
+  background-color: var(--color-success);
+  box-shadow: 0 0 0 3px oklch(from var(--color-success) l c h / 0.18);
+}
+.chat-status-pill[data-status="reconnecting"] .chat-status-dot,
+.chat-status-pill[data-status="connecting"]   .chat-status-dot {
+  background-color: var(--color-warning);
+  box-shadow: 0 0 0 3px oklch(from var(--color-warning) l c h / 0.18);
+  animation: fsh-chat-status-pulse 1.2s var(--ease-in-out-cubic) infinite;
+}
+.chat-status-pill[data-status="error"] .chat-status-dot,
+.chat-status-pill[data-status="idle"]  .chat-status-dot {
+  background-color: var(--color-destructive);
+  box-shadow: 0 0 0 3px oklch(from var(--color-destructive) l c h / 0.18);
+}
+.chat-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+

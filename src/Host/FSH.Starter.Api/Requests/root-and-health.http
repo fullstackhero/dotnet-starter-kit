@@ -1,0 +1,14 @@
+@baseUrl = https://localhost:7030
+
+### Root hello
+GET {{baseUrl}}/
+Accept: application/json
+
+### Liveness probe
+GET {{baseUrl}}/health/live
+Accept: application/json
+
+### Readiness probe (includes DB checks)
+GET {{baseUrl}}/health/ready
+Accept: application/json
+

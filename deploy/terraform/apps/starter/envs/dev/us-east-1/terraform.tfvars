@@ -1,0 +1,65 @@
+################################################################################
+# Dev Environment — US East 1
+################################################################################
+
+environment = "dev"
+region      = "us-east-1"
+
+################################################################################
+# Network
+################################################################################
+
+vpc_cidr_block = "10.10.0.0/16"
+
+public_subnets = {
+  a = { cidr_block = "10.10.0.0/24", az = "us-east-1a" }
+  b = { cidr_block = "10.10.1.0/24", az = "us-east-1b" }
+}
+
+private_subnets = {
+  a = { cidr_block = "10.10.10.0/24", az = "us-east-1a" }
+  b = { cidr_block = "10.10.11.0/24", az = "us-east-1b" }
+}
+
+single_nat_gateway = true
+
+enable_s3_endpoint   = true
+enable_ecr_endpoints = true
+enable_logs_endpoint = true
+
+################################################################################
+# S3
+################################################################################
+
+app_s3_bucket_name        = "dev-fsh-app-bucket"
+app_s3_enable_public_read = false
+app_s3_enable_cloudfront  = true
+
+################################################################################
+# Frontend SPAs (S3 + CloudFront) — bucket names must be globally unique
+################################################################################
+
+dashboard_s3_bucket_name = "dev-fsh-dashboard"
+admin_s3_bucket_name     = "dev-fsh-admin"
+dashboard_demo_mode      = true
+
+################################################################################
+# Database
+################################################################################
+
+db_name                        = "fshdb"
+db_username                    = "fshadmin"
+db_manage_master_user_password = true
+
+################################################################################
+# Container Images
+################################################################################
+
+container_image_tag = "1d2c9f9d3b85bb86229f1bc1b9cd8196054f2166"
+
+################################################################################
+# Services (Fargate Spot for cost savings)
+################################################################################
+
+api_desired_count    = 1
+api_use_fargate_spot = true

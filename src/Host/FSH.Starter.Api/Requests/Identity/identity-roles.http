@@ -1,0 +1,53 @@
+@baseUrl = https://localhost:7030
+@tenant = root
+@token = {{access_token}}
+
+### List roles
+GET {{baseUrl}}/api/v1/identity/roles
+Accept: application/json
+tenant: {{tenant}}
+Authorization: Bearer {{token}}
+
+### Get role by id
+GET {{baseUrl}}/api/v1/identity/roles/{{roleId}}
+Accept: application/json
+tenant: {{tenant}}
+Authorization: Bearer {{token}}
+
+### Get role with permissions
+GET {{baseUrl}}/api/v1/identity/roles/{{roleId}}/permissions
+Accept: application/json
+tenant: {{tenant}}
+Authorization: Bearer {{token}}
+
+### Create or update role
+POST {{baseUrl}}/api/v1/identity
+Content-Type: application/json
+tenant: {{tenant}}
+Authorization: Bearer {{token}}
+
+{
+  "id": "{{roleId}}",
+  "name": "Administrators",
+  "description": "Administrator role"
+}
+
+### Update role permissions
+PUT {{baseUrl}}/api/v1/identity/{{roleId}}/permissions
+Content-Type: application/json
+tenant: {{tenant}}
+Authorization: Bearer {{token}}
+
+{
+  "roleId": "{{roleId}}",
+  "permissions": [
+    "Permissions.Users.View",
+    "Permissions.Users.Create"
+  ]
+}
+
+### Delete role
+DELETE {{baseUrl}}/api/v1/identity/roles/{{roleId}}
+tenant: {{tenant}}
+Authorization: Bearer {{token}}
+
