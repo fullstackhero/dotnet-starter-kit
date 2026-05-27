@@ -134,9 +134,9 @@
             "target": "./",
             "exclude": [
                 ".template.config/**",
-                ".idea/**",
-                ".vscode/**",
-                ".vs/**",
+                "**/.idea/**",
+                "**/.vscode/**",
+                "**/.vs/**",
                 ".github/**",
                 ".agents/**",
                 ".claude/**",
