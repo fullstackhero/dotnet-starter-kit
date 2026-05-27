@@ -2,11 +2,13 @@ using Aspire.Hosting.ApplicationModel;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-// Per-app prefix for Docker volume names, derived from the AppHost assembly name,
-// so two FSH-based apps (or this repo + a scaffolded app) on one machine get
-// isolated data volumes instead of clashing on shared "postgres-data"/etc. names.
-#pragma warning disable CA1308 // Docker volume names are conventionally lowercase
-var volumePrefix = builder.Environment.ApplicationName
+// Per-app prefix derived from the AppHost assembly name (`FSH.Starter.AppHost`
+// -> `fsh-starter`; a scaffolded `Acme.Store.AppHost` -> `acme-store`). Namespaces
+// both the Docker volume names AND the FSH app resource/container names, so two
+// FSH-based apps on one machine don't clash on shared volumes or container names —
+// and a CLI-scaffolded app's resources carry its own name, not the kit's.
+#pragma warning disable CA1308 // resource + volume names are conventionally lowercase
+var appPrefix = builder.Environment.ApplicationName
     .Replace(".AppHost", string.Empty, StringComparison.OrdinalIgnoreCase)
     .Replace('.', '-')
     .ToLowerInvariant();
@@ -20,7 +22,7 @@ var volumePrefix = builder.Environment.ApplicationName
 // us authoring a `servers.json` by hand. Persistent so the saved query
 // state and folder layout survive `dotnet run` restarts.
 var postgresServer = builder.AddPostgres("postgres")
-    .WithDataVolume($"{volumePrefix}-postgres-data")
+    .WithDataVolume($"{appPrefix}-postgres-data")
     .WithLifetime(ContainerLifetime.Persistent)
     .WithPgAdmin(pa => pa
         .WithHostPort(5050)
@@ -35,7 +37,7 @@ var postgres = postgresServer.AddDatabase("fsh-db");
 // Resource name stays "redis" so connection strings / config keys don't churn.
 var redis = builder.AddRedis("redis")
     .WithImage("valkey/valkey", "8")
-    .WithDataVolume($"{volumePrefix}-redis-data")
+    .WithDataVolume($"{appPrefix}-redis-data")
     .WithLifetime(ContainerLifetime.Persistent)
     // RedisInsight cache browser — Aspire auto-wires it to the resource above,
     // so it connects to Valkey with no manual config. It's SSPL (source-available),
@@ -72,7 +74,7 @@ var minio = builder.AddContainer("minio", "minio/minio")
     .WithEnvironment("MINIO_ROOT_USER", minioUser)
     .WithEnvironment("MINIO_ROOT_PASSWORD", minioPassword)
     .WithEnvironment("MINIO_API_CORS_ALLOW_ORIGIN", $"{AdminOrigin},{DashboardOrigin}")
-    .WithVolume($"{volumePrefix}-minio-data", "/data")
+    .WithVolume($"{appPrefix}-minio-data", "/data")
     .WithLifetime(ContainerLifetime.Persistent);
 
 // Init container: just bucket bootstrap (creation + public-read policy). CORS
@@ -110,7 +112,7 @@ var minioApiEndpoint = minio.GetEndpoint("api");
 // the box — without it the app comes up with an empty Users table and nobody can
 // log in. The seed password is a dev-only default that mirrors the API's
 // appsettings.Development.json; override it for non-dev use.
-var migrator = builder.AddProject<Projects.FSH_Starter_DbMigrator>("fsh-db-migrator")
+var migrator = builder.AddProject<Projects.FSH_Starter_DbMigrator>($"{appPrefix}-db-migrator")
     .WithReference(postgres)
     .WaitFor(postgres)
     .WithEnvironment("DatabaseOptions__Provider", "POSTGRESQL")
@@ -137,7 +139,7 @@ var migrator = builder.AddProject<Projects.FSH_Starter_DbMigrator>("fsh-db-migra
 // honor that). Aspire injects ASPNETCORE_ENVIRONMENT into child projects but not
 // DOTNET_ENVIRONMENT, so without this line the migrator defaults to Production
 // and seed-demo bails with "REFUSING to run".
-var demoSeeder = builder.AddProject<Projects.FSH_Starter_DbMigrator>("fsh-demo-seeder")
+var demoSeeder = builder.AddProject<Projects.FSH_Starter_DbMigrator>($"{appPrefix}-demo-seeder")
     .WithReference(postgres)
     .WaitFor(postgres)
     .WaitForCompletion(migrator)
@@ -149,7 +151,7 @@ var demoSeeder = builder.AddProject<Projects.FSH_Starter_DbMigrator>("fsh-demo-s
     .WithArgs("seed-demo");
 
 // API Service
-var api = builder.AddProject<Projects.FSH_Starter_Api>("fsh-api")
+var api = builder.AddProject<Projects.FSH_Starter_Api>($"{appPrefix}-api")
     .WithReference(postgres)
     .WithReference(redis)
     .WaitFor(postgres)
@@ -181,7 +183,7 @@ var api = builder.AddProject<Projects.FSH_Starter_Api>("fsh-api")
 // origin redirects (different scheme/port count as cross-origin per
 // the Fetch spec). Going straight to https avoids the redirect and
 // preserves the bearer token on every request.
-builder.AddJavaScriptApp("fsh-admin", "../../../clients/admin", "dev")
+builder.AddJavaScriptApp($"{appPrefix}-admin", "../../../clients/admin", "dev")
     .WithNpm()
     .WithReference(api)
     .WaitFor(api)
@@ -190,7 +192,7 @@ builder.AddJavaScriptApp("fsh-admin", "../../../clients/admin", "dev")
     .WithEnvironment("VITE_API_BASE_URL", api.GetEndpoint("https"));
 
 // Tenant-facing dashboard (React + Vite, with SSE live feed)
-builder.AddJavaScriptApp("fsh-dashboard", "../../../clients/dashboard", "dev")
+builder.AddJavaScriptApp($"{appPrefix}-dashboard", "../../../clients/dashboard", "dev")
     .WithNpm()
     .WithReference(api)
     .WaitFor(api)
