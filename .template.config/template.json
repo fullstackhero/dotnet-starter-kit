@@ -165,6 +165,7 @@
                 "**/bin/**",
                 "**/obj/**",
                 ".mcp.json",
+                "global.json",
                 "CLAUDE.md",
                 "GEMINI.md",
                 "README.md",
