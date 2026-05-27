@@ -305,22 +305,15 @@ export function InvoicesListPage() {
           ) : (
             <ul>
               {items.map((inv, i) => (
-                <li
-                  key={inv.id}
-                  className={cn(
-                    "fsh-enter grid grid-cols-[1fr_auto] items-center gap-x-6 gap-y-1 border-t border-[var(--color-border)] px-6 py-4 transition-colors hover:bg-[var(--color-muted)] first:border-t-0 cursor-pointer",
-                  )}
-                  style={{ animationDelay: `${Math.min(i, 8) * 25}ms` }}
-                  onClick={() => navigate(`/billing/invoices/${inv.id}`)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      navigate(`/billing/invoices/${inv.id}`);
-                    }
-                  }}
-                  role="button"
-                  tabIndex={0}
-                >
+                <li key={inv.id} className="border-t border-[var(--color-border)] first:border-t-0">
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/billing/invoices/${inv.id}`)}
+                    className={cn(
+                      "fsh-enter grid w-full grid-cols-[1fr_auto] items-center gap-x-6 gap-y-1 px-6 py-4 text-left transition-colors hover:bg-[var(--color-muted)] cursor-pointer",
+                    )}
+                    style={{ animationDelay: `${Math.min(i, 8) * 25}ms` }}
+                  >
                   {/* Identity column */}
                   <div className="flex min-w-0 items-center gap-3">
                     <span
@@ -371,6 +364,7 @@ export function InvoicesListPage() {
                       </div>
                     )}
                   </div>
+                  </button>
                 </li>
               ))}
             </ul>

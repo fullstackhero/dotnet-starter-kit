@@ -110,6 +110,7 @@ export function UsersListPage() {
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Search name, username, email…"
+            aria-label="Search users"
             className="pl-9 font-mono text-xs placeholder:font-mono placeholder:text-xs"
           />
         </div>
@@ -155,7 +156,10 @@ export function UsersListPage() {
       {/* Roster */}
       <div className="border-t border-[var(--color-border)]">
         {usersQuery.isError && (
-          <div className="border-b border-[var(--color-border)] px-1 py-4 text-sm text-[var(--color-destructive)]">
+          <div
+            role="alert"
+            className="border-b border-[var(--color-border)] px-1 py-4 text-sm text-[var(--color-destructive)]"
+          >
             {usersQuery.error instanceof ApiRequestError
               ? usersQuery.error.problem?.detail ?? usersQuery.error.message
               : "Failed to load users."}
@@ -163,7 +167,10 @@ export function UsersListPage() {
         )}
 
         {usersQuery.isLoading && items.length === 0 && (
-          <div className="px-1 py-12 text-center text-sm text-[var(--color-muted-foreground)] font-mono uppercase tracking-[0.18em]">
+          <div
+            role="status"
+            className="px-1 py-12 text-center text-sm text-[var(--color-muted-foreground)] font-mono uppercase tracking-[0.18em]"
+          >
             Loading…
           </div>
         )}
@@ -303,8 +310,8 @@ type SegmentedProps<T extends string> = {
 function Segmented<T extends string>({ label, value, onChange, options }: SegmentedProps<T>) {
   return (
     <div className="flex items-center gap-2 text-[0.6875rem] font-mono uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-      <span>{label}</span>
-      <div className="flex overflow-hidden rounded-sm border border-[var(--color-border)]">
+      <span id={`seg-${label}`}>{label}</span>
+      <div role="group" aria-labelledby={`seg-${label}`} className="flex overflow-hidden rounded-sm border border-[var(--color-border)]">
         {options.map((o) => {
           const selected = o.value === value;
           return (
@@ -312,6 +319,7 @@ function Segmented<T extends string>({ label, value, onChange, options }: Segmen
               key={o.value}
               type="button"
               onClick={() => onChange(o.value)}
+              aria-pressed={selected}
               className={cn(
                 "px-2.5 py-1 text-[0.6875rem] tracking-[0.18em] transition-colors",
                 selected

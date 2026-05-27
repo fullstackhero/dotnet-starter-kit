@@ -45,32 +45,32 @@ export function ImpersonationListPage() {
   const [targetGrant, setTargetGrant] = useState<ImpersonationGrantDto | null>(null);
   const [reopenGrant, setReopenGrant] = useState<ImpersonationGrantDto | null>(null);
 
+  // One poll fetches all grants; the filtered list AND the KPI counts are both
+  // derived client-side, so we don't run two overlapping take:200 polls.
   const grants = useQuery({
-    queryKey: ["impersonation-grants", { status }],
-    queryFn: () => listImpersonationGrants({ status: status || undefined, take: 200 }),
+    queryKey: ["impersonation-grants", "all"],
+    queryFn: () => listImpersonationGrants({ take: 200 }),
     // Poll while viewing — admins watching an active session expect near-real-time updates.
     refetchInterval: REFRESH_INTERVAL_MS,
     refetchOnWindowFocus: true,
   });
 
-  // Compute counts independent of the current filter so the strip is a true KPI summary.
-  const summary = useQuery({
-    queryKey: ["impersonation-grants", "all"],
-    queryFn: () => listImpersonationGrants({ take: 200 }),
-    refetchInterval: REFRESH_INTERVAL_MS,
-  });
+  const allGrants = useMemo(() => grants.data ?? [], [grants.data]);
 
-  const counts = useMemo(() => {
-    const all = summary.data ?? [];
-    return {
-      active: all.filter((g) => g.status === "Active").length,
-      ended: all.filter((g) => g.status === "Ended").length,
-      revoked: all.filter((g) => g.status === "Revoked").length,
-      expired: all.filter((g) => g.status === "Expired").length,
-    };
-  }, [summary.data]);
+  const counts = useMemo(
+    () => ({
+      active: allGrants.filter((g) => g.status === "Active").length,
+      ended: allGrants.filter((g) => g.status === "Ended").length,
+      revoked: allGrants.filter((g) => g.status === "Revoked").length,
+      expired: allGrants.filter((g) => g.status === "Expired").length,
+    }),
+    [allGrants],
+  );
 
-  const items = grants.data ?? [];
+  const items = useMemo(
+    () => (status ? allGrants.filter((g) => g.status === status) : allGrants),
+    [allGrants, status],
+  );
 
   return (
     <div className="space-y-8">
@@ -93,10 +93,10 @@ export function ImpersonationListPage() {
       />
 
       <StatStrip cols={4}>
-        <Stat label="Active" value={summary.isLoading ? "—" : counts.active.toString()} hint="in-flight tokens" tone={counts.active > 0 ? "signal" : "default"} />
-        <Stat label="Ended" value={summary.isLoading ? "—" : counts.ended.toString()} hint="operator clicked End" />
-        <Stat label="Revoked" value={summary.isLoading ? "—" : counts.revoked.toString()} hint="forcibly invalidated" tone={counts.revoked > 0 ? "danger" : "default"} />
-        <Stat label="Expired" value={summary.isLoading ? "—" : counts.expired.toString()} hint="reached natural TTL" />
+        <Stat label="Active" value={grants.isLoading ? "—" : counts.active.toString()} hint="in-flight tokens" tone={counts.active > 0 ? "signal" : "default"} />
+        <Stat label="Ended" value={grants.isLoading ? "—" : counts.ended.toString()} hint="operator clicked End" />
+        <Stat label="Revoked" value={grants.isLoading ? "—" : counts.revoked.toString()} hint="forcibly invalidated" tone={counts.revoked > 0 ? "danger" : "default"} />
+        <Stat label="Expired" value={grants.isLoading ? "—" : counts.expired.toString()} hint="reached natural TTL" />
       </StatStrip>
 
       <FilterBar>
@@ -258,6 +258,8 @@ function GrantRow({
             <button
               type="button"
               onClick={() => setOpen((v) => !v)}
+              aria-expanded={open}
+              aria-label={open ? "Hide grant details" : "Show grant details"}
               className="ml-1 inline-flex items-center gap-0.5 underline-offset-2 hover:text-[var(--color-foreground)] hover:underline"
             >
               {open ? "hide" : "details"}

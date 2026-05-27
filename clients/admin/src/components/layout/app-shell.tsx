@@ -12,10 +12,18 @@ import { Topbar } from "@/components/layout/topbar";
 export function AppShell() {
   return (
     <div className="flex h-screen bg-[var(--color-background)] text-[var(--color-foreground)]">
+      {/* Skip link — first focusable element so keyboard/AT users can jump
+          past the sidebar + topbar straight to page content. */}
+      <a
+        href="#main-content"
+        className="sr-only z-[100] rounded-md bg-[var(--color-foreground)] px-4 py-2 text-sm font-medium text-[var(--color-background)] focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:outline-none focus:ring-2 focus:ring-[var(--color-ring)]"
+      >
+        Skip to content
+      </a>
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar />
-        <main className="relative flex-1 overflow-auto">
+        <main id="main-content" tabIndex={-1} className="relative flex-1 overflow-auto outline-none">
           {/* A soft corner vignette only — the canvas-grid texture used to
               live here too but read as visual noise on dense list surfaces.
               Login + Dashboard hero still apply canvas-mesh locally where
@@ -39,7 +47,10 @@ export function AppShell() {
           <div className="relative w-full px-6 py-8 lg:px-10">
             <Suspense
               fallback={
-                <div className="flex min-h-[40vh] items-center justify-center text-sm font-mono uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
+                <div
+                  role="status"
+                  className="flex min-h-[40vh] items-center justify-center text-sm font-mono uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]"
+                >
                   Loading view
                   <span className="caret text-[var(--color-accent-signal)]" aria-hidden />
                 </div>

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { RouterProvider } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
@@ -13,7 +14,20 @@ export function App() {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <RealtimeProvider>
-            <RouterProvider router={router} />
+            {/* Top-level boundary so the public lazy routes (login, password
+                reset, confirm-email) have a Suspense ancestor on cold chunk
+                fetch — the protected routes also have AppShell's own. */}
+            <Suspense
+              fallback={
+                <div
+                  role="status"
+                  aria-label="Loading"
+                  className="grid min-h-dvh place-items-center bg-[var(--color-background)]"
+                />
+              }
+            >
+              <RouterProvider router={router} />
+            </Suspense>
           </RealtimeProvider>
           <Toaster
             position="top-right"

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell, BellRing, CheckCheck } from "lucide-react";
@@ -41,13 +41,34 @@ export function NotificationBell() {
     staleTime: 15_000,
   });
 
+  // Coalesce a burst of NotificationCreated events into a single refetch so a
+  // flood doesn't trigger a flood of badge/preview queries.
+  const refreshTimer = useRef<number | null>(null);
   useRealtimeEvent<unknown>("NotificationCreated", () => {
-    // New notification — bump both queries so the badge and the open popover
-    // refresh, and flash the bell briefly for visibility.
-    queryClient.invalidateQueries({ queryKey: ["notifications"] });
     setPulse(true);
     window.setTimeout(() => setPulse(false), 1500);
+    if (refreshTimer.current !== null) return;
+    refreshTimer.current = window.setTimeout(() => {
+      refreshTimer.current = null;
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    }, 800);
   });
+  useEffect(
+    () => () => {
+      if (refreshTimer.current !== null) window.clearTimeout(refreshTimer.current);
+    },
+    [],
+  );
+
+  // Close the popover on Escape (it isn't a focus-trapping modal).
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
 
   const markOne = useMutation({
     mutationFn: (id: string) => markNotificationRead(id),
@@ -73,7 +94,7 @@ export function NotificationBell() {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label={count > 0 ? `${count} unread notifications` : "Notifications"}
-        aria-haspopup="menu"
+        aria-haspopup="true"
         aria-expanded={open}
         className={cn(
           "relative grid h-8 w-8 place-items-center rounded-md text-[var(--color-muted-foreground)]",
@@ -94,15 +115,16 @@ export function NotificationBell() {
 
       {open && (
         <>
-          {/* Click-away catcher */}
+          {/* Click-away catcher — not in the tab order or AT tree. */}
           <button
             type="button"
             aria-hidden
+            tabIndex={-1}
             onClick={() => setOpen(false)}
             className="fixed inset-0 z-40 cursor-default bg-transparent"
           />
           <div
-            role="menu"
+            aria-label="Notifications"
             className="absolute right-0 z-50 mt-2 w-[22rem] overflow-hidden rounded-xl card-shell shadow-[0_24px_64px_-24px_oklch(0_0_0/0.30)]"
           >
             <div className="flex items-center justify-between border-b border-[var(--color-border)] px-3 py-2.5">
@@ -122,7 +144,10 @@ export function NotificationBell() {
 
             <div className="max-h-[24rem] overflow-y-auto">
               {recent.isLoading && (
-                <p className="px-3 py-6 text-center font-mono text-xs uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
+                <p
+                  role="status"
+                  className="px-3 py-6 text-center font-mono text-xs uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]"
+                >
                   Loading<span className="caret text-[var(--color-accent-signal)]" />
                 </p>
               )}
@@ -171,14 +196,21 @@ function Row({
   onClick: () => void;
 }) {
   const unread = !notif.readAtUtc;
-  const Container = ({ children }: { children: React.ReactNode }) =>
-    notif.link ? (
-      <Link to={notif.link} onClick={onClick} className="block">
-        {children}
-      </Link>
-    ) : (
-      <div>{children}</div>
-    );
+  const body = (
+    <div className="min-w-0 flex-1">
+      <div className="flex flex-wrap items-baseline gap-x-2">
+        <span className="truncate font-medium">{notif.title}</span>
+        <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+          {formatRelative(notif.createdAtUtc)}
+        </span>
+      </div>
+      {notif.body && (
+        <p className="mt-0.5 line-clamp-2 text-[12px] text-[var(--color-muted-foreground)]">
+          {notif.body}
+        </p>
+      )}
+    </div>
+  );
 
   return (
     <li
@@ -195,21 +227,13 @@ function Row({
           unread ? "bg-[var(--color-accent-signal)]" : "bg-transparent",
         )}
       />
-      <Container>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-baseline gap-x-2">
-            <span className="truncate font-medium">{notif.title}</span>
-            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
-              {formatRelative(notif.createdAtUtc)}
-            </span>
-          </div>
-          {notif.body && (
-            <p className="mt-0.5 line-clamp-2 text-[12px] text-[var(--color-muted-foreground)]">
-              {notif.body}
-            </p>
-          )}
-        </div>
-      </Container>
+      {notif.link ? (
+        <Link to={notif.link} onClick={onClick} className="block min-w-0 flex-1">
+          {body}
+        </Link>
+      ) : (
+        body
+      )}
       {unread && (
         <button
           type="button"

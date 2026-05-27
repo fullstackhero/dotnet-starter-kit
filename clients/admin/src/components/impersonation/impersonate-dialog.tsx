@@ -165,6 +165,7 @@ function PickStep({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name, email, or username…"
+            aria-label="Search users to impersonate"
             className="pl-9"
           />
         </div>

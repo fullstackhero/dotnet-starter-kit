@@ -9,7 +9,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 
 		<!-- Code quality & analysis. Warnings are errors locally so the
-		     dev loop matches CI (.github/workflows/ci.yml passes
+		     dev loop matches CI (.github/workflows/backend.yml passes
 		     -warnaserror to dotnet build); previously the divergence
 		     let analyzer regressions slip through to CI. -->
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>

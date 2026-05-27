@@ -240,6 +240,7 @@ function Row({
           size="sm"
           onClick={onDelete}
           disabled={busy}
+          aria-label={`Delete subscription to ${sub.url}`}
           className="text-[var(--color-destructive)] hover:bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.08)]"
         >
           <Trash2 className="h-3.5 w-3.5" />

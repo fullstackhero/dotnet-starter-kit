@@ -35,17 +35,24 @@ export function SessionsSettings() {
 
   const sorted = useMemo(() => sortSessions(query.data ?? []), [query.data]);
   const activeOtherCount = sorted.filter((s) => s.isActive && !s.isCurrentSession).length;
-  const [busyId, setBusyId] = useState<string | null>(null);
+  // A Set (not a single id) so concurrent revokes track independently and the
+  // first to resolve doesn't clear a still-pending row's busy state.
+  const [busyIds, setBusyIds] = useState<ReadonlySet<string>>(() => new Set());
 
   const revokeOne = useMutation({
     mutationFn: (sessionId: string) => revokeMySession(sessionId),
-    onMutate: (sessionId) => setBusyId(sessionId),
+    onMutate: (sessionId) => setBusyIds((prev) => new Set(prev).add(sessionId)),
     onSuccess: () => {
       toast.success("Session revoked");
       queryClient.invalidateQueries({ queryKey: ["identity", "sessions", "me"] });
     },
     onError: (err) => toast.error("Revoke failed", { description: describe(err) }),
-    onSettled: () => setBusyId(null),
+    onSettled: (_d, _e, sessionId) =>
+      setBusyIds((prev) => {
+        const next = new Set(prev);
+        next.delete(sessionId);
+        return next;
+      }),
   });
 
   const revokeAll = useMutation({
@@ -86,7 +93,7 @@ export function SessionsSettings() {
               <SessionRow
                 key={s.id}
                 session={s}
-                busy={busyId === s.id}
+                busy={busyIds.has(s.id)}
                 onRevoke={() => revokeOne.mutate(s.id)}
               />
             ))}
