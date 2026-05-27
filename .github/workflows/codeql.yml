@@ -1,7 +1,7 @@
 name: CodeQL Analysis
 on:
   pull_request:
-    branches: [main, develop]
+    branches: [main]
     paths:
       - 'src/**'
   schedule:
