@@ -103,7 +103,6 @@ export function ActiveGrantsCard({ tenantId }: { tenantId: string }) {
                   </div>
                 </div>
                 <RowActions
-                  grant={g}
                   canRevoke={canRevoke}
                   // Re-open: operator's own grant + still Active + has start perm.
                   // Closed-browser recovery path — issues a fresh token, leaves
@@ -139,13 +138,11 @@ export function ActiveGrantsCard({ tenantId }: { tenantId: string }) {
 }
 
 function RowActions({
-  grant: _grant,
   canRevoke,
   canReopen,
   onRevoke,
   onReopen,
 }: {
-  grant: ImpersonationGrantDto;
   canRevoke: boolean;
   canReopen: boolean;
   onRevoke: () => void;

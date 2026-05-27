@@ -31,7 +31,17 @@ export function UserSessionsCard({ userId }: { userId: string }) {
   const canView = granted.includes(IdentityPermissions.Sessions.ViewAll);
   const canRevoke = granted.includes(IdentityPermissions.Sessions.RevokeAll);
   const queryClient = useQueryClient();
-  const [busyId, setBusyId] = useState<string | null>(null);
+  // A Set (not a single id) so two quick revokes track independently and the
+  // first to resolve doesn't clear the still-pending second row's busy state.
+  const [busyIds, setBusyIds] = useState<ReadonlySet<string>>(() => new Set());
+  const addBusy = (id: string) =>
+    setBusyIds((prev) => new Set(prev).add(id));
+  const clearBusy = (id: string) =>
+    setBusyIds((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
 
   const query = useQuery({
     queryKey: ["admin", "user-sessions", userId],
@@ -42,13 +52,13 @@ export function UserSessionsCard({ userId }: { userId: string }) {
 
   const revokeOne = useMutation({
     mutationFn: (sessionId: string) => adminRevokeUserSession(userId, sessionId),
-    onMutate: (sessionId) => setBusyId(sessionId),
+    onMutate: (sessionId) => addBusy(sessionId),
     onSuccess: () => {
       toast.success("Session revoked");
       queryClient.invalidateQueries({ queryKey: ["admin", "user-sessions", userId] });
     },
     onError: (err) => toast.error("Revoke failed", { description: describe(err) }),
-    onSettled: () => setBusyId(null),
+    onSettled: (_d, _e, sessionId) => clearBusy(sessionId),
   });
 
   const revokeAll = useMutation({
@@ -95,7 +105,7 @@ export function UserSessionsCard({ userId }: { userId: string }) {
                   key={s.id}
                   session={s}
                   canRevoke={canRevoke && s.isActive}
-                  busy={busyId === s.id}
+                  busy={busyIds.has(s.id)}
                   onRevoke={() => revokeOne.mutate(s.id)}
                 />
               ))}

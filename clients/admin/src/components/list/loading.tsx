@@ -13,6 +13,7 @@ type LoadingRowProps = {
 export function LoadingRow({ className, label = "Loading" }: LoadingRowProps) {
   return (
     <div
+      role="status"
       className={cn(
         "px-1 py-12 text-center text-sm font-mono uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]",
         className,

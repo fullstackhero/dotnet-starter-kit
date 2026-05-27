@@ -63,7 +63,10 @@ export function TenantsListPage() {
       {/* Roster */}
       <div className="border-t border-[var(--color-border)]">
         {query.isError && (
-          <div className="border-b border-[var(--color-border)] px-1 py-4 text-sm text-[var(--color-destructive)]">
+          <div
+            role="alert"
+            className="border-b border-[var(--color-border)] px-1 py-4 text-sm text-[var(--color-destructive)]"
+          >
             {query.error instanceof ApiRequestError
               ? query.error.problem?.detail ?? query.error.message
               : "Failed to load tenants."}
@@ -71,7 +74,10 @@ export function TenantsListPage() {
         )}
 
         {query.isLoading && items.length === 0 && (
-          <div className="px-1 py-12 text-center text-sm font-mono uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
+          <div
+            role="status"
+            className="px-1 py-12 text-center text-sm font-mono uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]"
+          >
             Loading…
           </div>
         )}

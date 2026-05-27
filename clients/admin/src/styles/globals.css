@@ -484,6 +484,8 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .caret { animation: none; opacity: 0.6; }
+  /* Tailwind's spinner utility isn't a custom keyframe, so stop it too. */
+  .animate-spin { animation: none; }
 }
 
 /* ============================================================================

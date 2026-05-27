@@ -183,7 +183,10 @@ export function LoginPage() {
             />
 
             {error && (
-              <div className="rounded-md border border-[var(--color-destructive)]/40 bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.08)] px-3 py-2 text-sm text-[var(--color-destructive)]">
+              <div
+                role="alert"
+                className="rounded-md border border-[var(--color-destructive)]/40 bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.08)] px-3 py-2 text-sm text-[var(--color-destructive)]"
+              >
                 {error}
               </div>
             )}

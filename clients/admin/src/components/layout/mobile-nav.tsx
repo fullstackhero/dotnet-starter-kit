@@ -24,6 +24,9 @@ export function MobileNav() {
   // Close on Escape; lock body scroll while open.
   useEffect(() => {
     if (!open) return;
+    // Capture the trigger node now (it's stable) so the cleanup focuses the
+    // right element without reading a possibly-changed ref at teardown.
+    const trigger = buttonRef.current;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
     };
@@ -34,7 +37,7 @@ export function MobileNav() {
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", onKey);
       // Return focus to the trigger so the next tap-target is the menu button.
-      buttonRef.current?.focus();
+      trigger?.focus();
     };
   }, [open]);
 

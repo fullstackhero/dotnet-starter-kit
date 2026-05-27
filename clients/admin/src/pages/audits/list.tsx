@@ -168,6 +168,7 @@ export function AuditsListPage() {
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Search user, source, correlation…"
+            aria-label="Search audit trail"
             className="h-8"
           />
         </div>
@@ -191,6 +192,7 @@ export function AuditsListPage() {
               value={tenantId}
               onChange={(e) => setParam("tenant", e.target.value || null)}
               placeholder="Tenant id (cross-tenant)"
+              aria-label="Filter by tenant id"
               className="h-8 font-mono text-xs"
             />
           </div>
@@ -200,6 +202,7 @@ export function AuditsListPage() {
             value={correlationId}
             onChange={(e) => setParam("corr", e.target.value || null)}
             placeholder="Correlation id"
+            aria-label="Filter by correlation id"
             className="h-8 font-mono text-xs"
           />
         </div>

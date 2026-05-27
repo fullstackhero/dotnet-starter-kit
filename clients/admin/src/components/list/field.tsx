@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { cloneElement, isValidElement, type ReactElement, type ReactNode } from "react";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/cn";
 
@@ -19,6 +19,20 @@ type FieldProps = {
  * primitive (Input, Combobox, Textarea, etc.).
  */
 export function Field({ id, label, hint, error, required, className, children }: FieldProps) {
+  // Tie the control to its hint/error so AT announces them, and reflect the
+  // error as aria-invalid — without forcing every caller to wire it by hand.
+  // A caller-supplied value always wins (?? merge). Only a single element
+  // child is augmented; anything else renders untouched.
+  const describedBy = error ? `${id}-error` : hint ? `${id}-hint` : undefined;
+  const control = isValidElement(children)
+    ? cloneElement(children as ReactElement<Record<string, unknown>>, {
+        "aria-describedby":
+          (children.props as Record<string, unknown>)["aria-describedby"] ?? describedBy,
+        "aria-invalid":
+          (children.props as Record<string, unknown>)["aria-invalid"] ?? (error ? true : undefined),
+      })
+    : children;
+
   return (
     <div className={cn("space-y-1.5", className)}>
       <Label htmlFor={id} className="flex items-center gap-1.5">
@@ -29,7 +43,7 @@ export function Field({ id, label, hint, error, required, className, children }:
           </span>
         )}
       </Label>
-      {children}
+      {control}
       {error ? (
         <p
           id={`${id}-error`}
