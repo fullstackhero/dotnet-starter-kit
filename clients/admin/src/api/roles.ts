@@ -21,8 +21,12 @@ export type UpdateRolePermissionsInput = {
 
 const ROOT = "/api/v1/identity";
 
-export function listRoles(): Promise<RoleDto[]> {
-  return apiFetch<RoleDto[]>(`${ROOT}/roles`);
+export async function listRoles(): Promise<RoleDto[]> {
+  // The endpoint is paged (`PagedResponse<RoleDto>` → `{ items, … }`), but every
+  // caller here wants the flat list. Unwrap defensively so a bare array still works.
+  const result = await apiFetch<RoleDto[] | { items?: RoleDto[] }>(`${ROOT}/roles`);
+  if (Array.isArray(result)) return result;
+  return result.items ?? [];
 }
 
 export function getRole(id: string): Promise<RoleDto> {

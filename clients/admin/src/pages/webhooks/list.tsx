@@ -24,9 +24,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
+  EntityPageHeader,
   ErrorBand,
   LoadingRow,
-  PageHeader,
   Pagination,
 } from "@/components/list";
 import { EmptyState } from "@/components/empty-state";
@@ -83,28 +83,27 @@ export function WebhooksListPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        crumbs={[{ label: "\\ Webhooks" }, { label: "Subscriptions", muted: true }]}
-        trailing={data ? `${data.totalCount} TOTAL` : "—"}
+      <EntityPageHeader
+        icon={Webhook}
         title="Webhooks"
+        total={data?.totalCount ?? null}
+        unit="subscription"
         description="Subscribe HTTP endpoints to domain events. Payloads are signed with HMAC-SHA256 using the secret you provide — verify the X-FSH-Signature header on your side before trusting the body."
-        actions={
-          <>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={query.isFetching}
-              onClick={() => query.refetch()}
-            >
-              <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", query.isFetching && "animate-spin")} />
-              Refresh
-            </Button>
-            <Button onClick={() => setCreateOpen(true)}>
-              <Plus className="mr-1 h-4 w-4" /> New subscription
-            </Button>
-          </>
-        }
-      />
+      >
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={query.isFetching}
+          onClick={() => query.refetch()}
+          className="flex-1 sm:flex-none"
+        >
+          <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", query.isFetching && "animate-spin")} />
+          Refresh
+        </Button>
+        <Button onClick={() => setCreateOpen(true)} className="flex-1 sm:flex-none">
+          <Plus className="mr-1 h-4 w-4" /> New subscription
+        </Button>
+      </EntityPageHeader>
 
       {query.isError && (
         <ErrorBand

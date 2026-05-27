@@ -1,24 +1,24 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowUpRight, Building2, FileText, Receipt, UsersRound } from "lucide-react";
+import {
+  ArrowRight,
+  Building2,
+  FileText,
+  LayoutDashboard,
+  Receipt,
+  UsersRound,
+} from "lucide-react";
 import { listTenants } from "@/api/tenants";
 import { listInvoices, getPlans } from "@/api/billing";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { KpiTile } from "@/components/kpi-tile";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EntityPageHeader, Stat, StatStrip, ToneIconTile, type ToneIconTileTone } from "@/components/list";
 import { useAuth } from "@/auth/use-auth";
+import { cn } from "@/lib/cn";
 
 /**
- * DashboardPage — the Console "overview." A live system status header, four
- * KPI tiles drawing from real data, then quick-pivot cards into the rest of
- * the app. No fake "Coming soon" filler; every panel is either real data
- * or removed.
+ * DashboardPage — the operator overview. EntityPageHeader greeting,
+ * four KPI stat tiles drawing from real data, then pivot cards into
+ * the rest of the app. No fake "Coming soon" filler.
  */
 export function DashboardPage() {
   const { user } = useAuth();
@@ -43,37 +43,29 @@ export function DashboardPage() {
   const outstandingCount =
     invoicesPage?.items.filter((i) => i.status === "Issued").length ?? 0;
 
-  return (
-    <div className="space-y-8">
-      {/* ── Hero header ──────────────────────────────────────────────── */}
-      <header className="fsh-enter space-y-3">
-        <div className="section-rule">
-          <span className="section-rule__crumb">// OVERVIEW</span>
-          <span className="section-rule__crumb section-rule__crumb--muted">
-            platform status
-          </span>
-          <span className="ml-auto inline-flex items-center gap-2">
-            <span className="pulse-dot" aria-hidden />
-            <span className="meta text-[var(--color-muted-foreground)]">live</span>
-          </span>
-        </div>
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h1 className="font-display text-4xl font-semibold leading-none tracking-tight">
-              Console{user?.name ? <span className="text-[var(--color-muted-foreground)]">, {user.name.split(" ")[0]}</span> : null}
-              <span className="text-[var(--color-accent-signal)]">.</span>
-            </h1>
-            <p className="mt-2 max-w-xl text-sm text-[var(--color-muted-foreground)] leading-relaxed">
-              Operate every tenant on this instance — identity, multitenancy, billing,
-              and the rest of the system surface, from one place.
-            </p>
-          </div>
-        </div>
-      </header>
+  const firstName = user?.name?.split(" ")[0];
 
-      {/* ── KPI strip ────────────────────────────────────────────────── */}
-      <section className="fsh-enter fsh-enter-2 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiTile
+  return (
+    <div className="space-y-6">
+      {/* ── Page header ──────────────────────────────────────────────── */}
+      <div className="fsh-enter">
+        <EntityPageHeader
+          icon={LayoutDashboard}
+          title={
+            <>
+              Overview{firstName ? (
+                <span className="text-[var(--color-muted-foreground)]">, {firstName}</span>
+              ) : null}
+            </>
+          }
+          tone="primary"
+          description="Operate every tenant on this instance — identity, multitenancy, billing, and the rest of the system surface."
+        />
+      </div>
+
+      {/* ── KPI stat strip ───────────────────────────────────────────── */}
+      <StatStrip cols={4} className="fsh-enter fsh-enter-2">
+        <Stat
           label="Tenants"
           value={
             tenantsQuery.isLoading ? (
@@ -82,9 +74,9 @@ export function DashboardPage() {
               tenantsTotal?.toLocaleString() ?? "—"
             )
           }
-          subtitle="registered on this instance"
+          hint="registered on this instance"
         />
-        <KpiTile
+        <Stat
           label="Plans"
           value={
             plansQuery.isLoading ? (
@@ -93,10 +85,10 @@ export function DashboardPage() {
               plans.length.toLocaleString()
             )
           }
-          subtitle={`${activePlans} active`}
+          hint={`${activePlans} active`}
         />
-        <KpiTile
-          label="Invoices · this page"
+        <Stat
+          label="Invoices"
           value={
             invoicesQuery.isLoading ? (
               <Skeleton className="h-7 w-16" />
@@ -104,13 +96,13 @@ export function DashboardPage() {
               invoicesPage?.items.length.toLocaleString() ?? "—"
             )
           }
-          subtitle={
+          hint={
             invoicesPage
               ? `${invoicesPage.totalCount.toLocaleString()} total ledger`
               : "loading…"
           }
         />
-        <KpiTile
+        <Stat
           label="Outstanding"
           value={
             invoicesQuery.isLoading ? (
@@ -119,37 +111,44 @@ export function DashboardPage() {
               outstandingCount.toLocaleString()
             )
           }
-          subtitle="issued, awaiting payment"
+          hint="issued, awaiting payment"
+          tone={outstandingCount > 0 ? "warning" : "default"}
         />
-      </section>
+      </StatStrip>
 
       {/* ── Quick pivots ─────────────────────────────────────────────── */}
       <section className="fsh-enter fsh-enter-3 space-y-3">
-        <div className="meta text-[var(--color-muted-foreground)]">// ENTRY POINTS</div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
+          Entry points
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <PivotCard
             to="/tenants"
             icon={Building2}
+            tone="info"
             title="Tenants"
-            description="Provision, suspend, and inspect tenants. Watch provisioning runs in real time."
+            description="Provision, suspend, and inspect tenants."
           />
           <PivotCard
             to="/users"
             icon={UsersRound}
+            tone="primary"
             title="Users"
-            description="Root-tenant operators. Tenant-scoped users live in each tenant's own dashboard."
+            description="Root-tenant operators and role management."
           />
           <PivotCard
             to="/billing/plans"
             icon={Receipt}
+            tone="success"
             title="Billing"
-            description="Plans, subscriptions, invoices. Drive pricing and the invoice state machine."
+            description="Plans, subscriptions, invoices and pricing."
           />
           <PivotCard
             to="/billing/invoices"
             icon={FileText}
+            tone="warning"
             title="Invoices"
-            description="Cross-tenant ledger with filters. Issue, mark paid, void — all guarded server-side."
+            description="Cross-tenant ledger. Issue, mark paid, void."
           />
         </div>
       </section>
@@ -162,33 +161,40 @@ export function DashboardPage() {
 function PivotCard({
   to,
   icon: Icon,
+  tone,
   title,
   description,
 }: {
   to: string;
   icon: typeof Building2;
+  tone: ToneIconTileTone;
   title: string;
   description: string;
 }) {
   return (
     <Link to={to} className="group block focus:outline-none">
-      <Card interactive className="h-full">
-        <CardHeader className="flex flex-row items-start justify-between gap-3">
-          <div className="space-y-1">
-            <span
-              aria-hidden
-              className="inline-grid h-9 w-9 place-items-center rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] text-[var(--color-muted-foreground)] transition-colors group-hover:text-[var(--color-foreground)]"
-            >
-              <Icon className="h-4 w-4" />
-            </span>
-            <CardTitle className="font-display text-xl">{title}</CardTitle>
+      <div
+        className={cn(
+          "flex h-full flex-col gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 shadow-xs",
+          "transition-colors duration-200 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-accent)]",
+        )}
+      >
+        <div className="flex items-start justify-between">
+          <ToneIconTile icon={Icon} tone={tone} size="md" />
+          <ArrowRight
+            aria-hidden
+            className="size-3.5 text-[var(--color-muted-foreground)] opacity-0 transition-all duration-200 group-hover:translate-x-0.5 group-hover:opacity-100"
+          />
+        </div>
+        <div>
+          <div className="font-display text-[14px] font-semibold tracking-tight text-[var(--color-foreground)]">
+            {title}
           </div>
-          <ArrowUpRight className="h-4 w-4 text-[var(--color-muted-foreground)] transition-[color,transform] duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[var(--color-accent-signal)]" />
-        </CardHeader>
-        <CardContent>
-          <CardDescription>{description}</CardDescription>
-        </CardContent>
-      </Card>
+          <p className="mt-0.5 text-[12px] leading-snug text-[var(--color-muted-foreground)]">
+            {description}
+          </p>
+        </div>
+      </div>
     </Link>
   );
 }

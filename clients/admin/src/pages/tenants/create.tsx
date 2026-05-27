@@ -3,17 +3,15 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Building2, Database, KeyRound, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { createTenant } from "@/api/tenants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  PageHeader,
+  EntityPageHeader,
   Field,
-  FormShell,
-  FormSection,
-  FormActions,
+  SettingsSection,
 } from "@/components/list";
 import { ApiRequestError } from "@/lib/api-client";
 
@@ -87,24 +85,24 @@ export function CreateTenantPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        crumbs={[{ label: "\\ Tenants" }, { label: "New", muted: true }]}
-        trailing="Tenant · Draft"
+      <EntityPageHeader
+        icon={Building2}
         title="New tenant"
+        tone="info"
         description="Provision a new tenant and its seed admin user. The identifier is the URL-safe slug used in subdomain-like routing and JWT claims."
-        actions={
-          <Button variant="ghost" size="sm" onClick={() => navigate("/tenants")}>
-            <ArrowLeft className="mr-1 h-3.5 w-3.5" /> Registry
-          </Button>
-        }
-      />
+      >
+        <Button variant="ghost" size="sm" onClick={() => navigate("/tenants")}>
+          <ArrowLeft className="mr-1 h-3.5 w-3.5" /> Registry
+        </Button>
+      </EntityPageHeader>
 
-      <form onSubmit={onSubmit}>
-        <FormShell>
-          <FormSection
-            title="Identity"
-            description="How the tenant is named on the platform. The identifier is immutable."
-          >
+      <form onSubmit={onSubmit} className="max-w-2xl space-y-4">
+        <SettingsSection
+          title="Identity"
+          icon={UserRound}
+          description="How the tenant is named on the platform. The identifier is immutable."
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
             <Field
               id="id"
               label="Identifier"
@@ -155,57 +153,59 @@ export function CreateTenantPage() {
                 {...register("adminPassword")}
               />
             </Field>
-          </FormSection>
+          </div>
+        </SettingsSection>
 
-          <FormSection
-            title="Security"
-            description="JWT issuer claim emitted by tokens for this tenant. Used to scope sessions."
-          >
-            <Field id="issuer" label="JWT issuer" required error={errors.issuer?.message}>
-              <Input
-                id="issuer"
-                placeholder="acme-corp.issuer"
-                className="font-mono"
-                aria-invalid={errors.issuer ? true : undefined}
-                {...register("issuer")}
-              />
-            </Field>
-          </FormSection>
+        <SettingsSection
+          title="Security"
+          icon={KeyRound}
+          description="JWT issuer claim emitted by tokens for this tenant. Used to scope sessions."
+        >
+          <Field id="issuer" label="JWT issuer" required error={errors.issuer?.message}>
+            <Input
+              id="issuer"
+              placeholder="acme-corp.issuer"
+              className="font-mono"
+              aria-invalid={errors.issuer ? true : undefined}
+              {...register("issuer")}
+            />
+          </Field>
+        </SettingsSection>
 
-          <FormSection
-            title="Database"
-            description="Optional dedicated connection string. Leave blank to share the default database with row-level tenant scoping."
+        <SettingsSection
+          title="Database"
+          icon={Database}
+          description="Optional dedicated connection string. Leave blank to share the default database with row-level tenant scoping."
+        >
+          <Field
+            id="connectionString"
+            label="Connection string"
+            hint="Optional. Leave blank to use the shared catalog."
+            error={errors.connectionString?.message}
           >
-            <Field
+            <Input
               id="connectionString"
-              label="Connection string"
-              hint="Optional. Leave blank to use the shared catalog."
-              error={errors.connectionString?.message}
-            >
-              <Input
-                id="connectionString"
-                placeholder="Host=…;Database=…"
-                className="font-mono"
-                aria-invalid={errors.connectionString ? true : undefined}
-                {...register("connectionString")}
-              />
-            </Field>
-          </FormSection>
+              placeholder="Host=…;Database=…"
+              className="font-mono"
+              aria-invalid={errors.connectionString ? true : undefined}
+              {...register("connectionString")}
+            />
+          </Field>
+        </SettingsSection>
 
-          <FormActions>
-            <Button type="submit" disabled={submitting}>
-              {submitting ? "Provisioning…" : "Create tenant"}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate("/tenants")}
-              disabled={submitting}
-            >
-              Cancel
-            </Button>
-          </FormActions>
-        </FormShell>
+        <div className="flex flex-wrap items-center gap-2 pt-2">
+          <Button type="submit" disabled={submitting}>
+            {submitting ? "Provisioning…" : "Create tenant"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => navigate("/tenants")}
+            disabled={submitting}
+          >
+            Cancel
+          </Button>
+        </div>
       </form>
     </div>
   );

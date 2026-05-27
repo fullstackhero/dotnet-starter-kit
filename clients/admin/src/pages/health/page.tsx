@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { Activity, ChevronRight, RefreshCw } from "lucide-react";
+import { Activity, ChevronRight, Heart, RefreshCw } from "lucide-react";
 import { getLiveness, getReadiness, type HealthEntry, type HealthResult, type HealthStatus } from "@/api/health";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PageHeader, ErrorBand, StatStrip, Stat } from "@/components/list";
+import { EntityPageHeader, ErrorBand, SettingsSection, StatStrip, Stat } from "@/components/list";
 import { cn } from "@/lib/cn";
 
 const REFRESH_INTERVAL_MS = 10_000;
@@ -43,9 +43,9 @@ export function HealthPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        crumbs={[{ label: "\\ Health" }, { label: "Probes", muted: true }]}
-        trailing={isFetching ? "POLLING" : `EVERY ${REFRESH_INTERVAL_MS / 1000}S`}
+      <EntityPageHeader
+        icon={Heart}
+        tone="success"
         title="Health"
         description={
           <>
@@ -55,13 +55,12 @@ export function HealthPage() {
             scraped by load balancers and uptime monitors.
           </>
         }
-        actions={
-          <Button variant="outline" size="sm" disabled={isFetching} onClick={refetchAll}>
-            <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", isFetching && "animate-spin")} />
-            Refresh
-          </Button>
-        }
-      />
+      >
+        <Button variant="outline" size="sm" disabled={isFetching} onClick={refetchAll} className="flex-1 sm:flex-none">
+          <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", isFetching && "animate-spin")} />
+          Refresh
+        </Button>
+      </EntityPageHeader>
 
       <StatStrip cols={4}>
         <Stat
@@ -142,26 +141,22 @@ function ProbeSection({
   description: string;
 }) {
   return (
-    <section className="space-y-4">
-      <div className="flex items-end justify-between gap-4 border-b border-[var(--color-border)] pb-2">
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="font-display text-2xl font-semibold tracking-tight">{title}</h2>
-            {result && <StatusBadge status={result.status} />}
-          </div>
-          <p className="mt-1 max-w-2xl text-sm text-[var(--color-muted-foreground)]">
-            {description}
-          </p>
+    <SettingsSection
+      title={title}
+      description={description}
+      footer={
+        <div className="flex items-center justify-between">
+          {result && <StatusBadge status={result.status} />}
+          <code className="code-chip ml-auto">{path}</code>
         </div>
-        <code className="code-chip">{path}</code>
-      </div>
-
+      }
+    >
       {loading ? (
-        <div className="card-shell px-5 py-6 text-sm font-mono uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
+        <div className="px-1 py-6 text-sm font-mono uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
           Probing<span className="caret text-[var(--color-accent-signal)]" />
         </div>
       ) : !result || result.results.length === 0 ? (
-        <div className="card-shell flex items-center gap-3 px-5 py-5">
+        <div className="flex items-center gap-3 py-5">
           <Activity className="h-4 w-4 text-[var(--color-muted-foreground)]" />
           <div>
             <div className="text-sm font-medium">No dependency checks reported.</div>
@@ -171,13 +166,13 @@ function ProbeSection({
           </div>
         </div>
       ) : (
-        <ul className="card-shell divide-y divide-[var(--color-border)] overflow-hidden">
+        <ul className="-mx-5 divide-y divide-[var(--color-border)] border-t border-[var(--color-border)]">
           {result.results.map((entry) => (
             <CheckRow key={entry.name} entry={entry} />
           ))}
         </ul>
       )}
-    </section>
+    </SettingsSection>
   );
 }
 

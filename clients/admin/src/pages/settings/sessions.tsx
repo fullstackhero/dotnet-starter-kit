@@ -5,6 +5,7 @@ import {
   LogOut,
   Monitor,
   MoreHorizontal,
+  MonitorSmartphone,
   Smartphone,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -16,12 +17,7 @@ import {
 } from "@/api/sessions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  ErrorBand,
-  FormSection,
-  FormShell,
-  LoadingRow,
-} from "@/components/list";
+import { ErrorBand, LoadingRow, SettingsSection } from "@/components/list";
 import { ApiRequestError } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
 
@@ -44,7 +40,7 @@ export function SessionsSettings() {
     onMutate: (sessionId) => setBusyIds((prev) => new Set(prev).add(sessionId)),
     onSuccess: () => {
       toast.success("Session revoked");
-      queryClient.invalidateQueries({ queryKey: ["identity", "sessions", "me"] });
+      void queryClient.invalidateQueries({ queryKey: ["identity", "sessions", "me"] });
     },
     onError: (err) => toast.error("Revoke failed", { description: describe(err) }),
     onSettled: (_d, _e, sessionId) =>
@@ -58,8 +54,10 @@ export function SessionsSettings() {
   const revokeAll = useMutation({
     mutationFn: revokeAllMySessions,
     onSuccess: (data) => {
-      toast.success(`Revoked ${data.revokedCount} other ${data.revokedCount === 1 ? "session" : "sessions"}`);
-      queryClient.invalidateQueries({ queryKey: ["identity", "sessions", "me"] });
+      toast.success(
+        `Revoked ${data.revokedCount} other ${data.revokedCount === 1 ? "session" : "sessions"}`,
+      );
+      void queryClient.invalidateQueries({ queryKey: ["identity", "sessions", "me"] });
     },
     onError: (err) => toast.error("Revoke all failed", { description: describe(err) }),
   });
@@ -70,7 +68,7 @@ export function SessionsSettings() {
       <ErrorBand
         message={
           query.error instanceof ApiRequestError
-            ? query.error.problem?.detail ?? query.error.message
+            ? (query.error.problem?.detail ?? query.error.message)
             : "Failed to load sessions."
         }
       />
@@ -78,17 +76,44 @@ export function SessionsSettings() {
   }
 
   return (
-    <FormShell>
-      <FormSection
+    <div className="space-y-5 fsh-enter">
+      <SettingsSection
         title="Active sessions"
-        description="Every browser or device currently signed into your account. Revoking a session signs that device out within ~10 seconds (the session-cleanup background job + JWT cache TTL)."
+        icon={MonitorSmartphone}
+        description="Every browser or device currently signed into your account. Revoking a session signs that device out within ~10 seconds."
+        footer={
+          activeOtherCount > 0 ? (
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-start gap-2 text-xs">
+                <AlertTriangle
+                  className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--color-warning)]"
+                  aria-hidden
+                />
+                <span className="text-[var(--color-muted-foreground)]">
+                  {activeOtherCount} other{" "}
+                  {activeOtherCount === 1 ? "session is" : "sessions are"} active.
+                  Sign them all out at once if you suspect an account compromise.
+                </span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => revokeAll.mutate()}
+                disabled={revokeAll.isPending}
+              >
+                <LogOut className="mr-1.5 h-3.5 w-3.5" />
+                {revokeAll.isPending ? "Signing out…" : "Sign out everywhere else"}
+              </Button>
+            </div>
+          ) : undefined
+        }
       >
         {sorted.length === 0 ? (
           <p className="text-sm text-[var(--color-muted-foreground)]">
             No active sessions found. (Including this one? That would be a bug — please refresh.)
           </p>
         ) : (
-          <ul className="divide-y divide-[var(--color-border)] border-y border-[var(--color-border)]">
+          <ul className="divide-y divide-[var(--color-border)]">
             {sorted.map((s) => (
               <SessionRow
                 key={s.id}
@@ -99,29 +124,8 @@ export function SessionsSettings() {
             ))}
           </ul>
         )}
-
-        {activeOtherCount > 0 && (
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-[var(--color-warning)]/30 bg-[oklch(from_var(--color-warning)_l_c_h_/_0.06)] px-3.5 py-2.5">
-            <div className="flex items-start gap-2 text-xs">
-              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 text-[var(--color-warning)]" aria-hidden />
-              <span>
-                {activeOtherCount} other {activeOtherCount === 1 ? "session is" : "sessions are"} active.
-                Sign them all out at once if you suspect an account compromise.
-              </span>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => revokeAll.mutate()}
-              disabled={revokeAll.isPending}
-            >
-              <LogOut className="mr-1.5 h-3.5 w-3.5" />
-              {revokeAll.isPending ? "Signing out…" : "Sign out everywhere else"}
-            </Button>
-          </div>
-        )}
-      </FormSection>
-    </FormShell>
+      </SettingsSection>
+    </div>
   );
 }
 
@@ -134,15 +138,24 @@ function SessionRow({
   busy: boolean;
   onRevoke: () => void;
 }) {
-  const Icon = (session.deviceType ?? "").toLowerCase().includes("mobile") ? Smartphone : Monitor;
+  const isMobile = (session.deviceType ?? "").toLowerCase().includes("mobile");
+  const Icon = isMobile ? Smartphone : Monitor;
+
   return (
     <li
       className={cn(
-        "grid grid-cols-[auto_1fr_auto] items-center gap-4 px-1 py-3",
+        "grid grid-cols-[auto_1fr_auto] items-center gap-4 py-3",
         !session.isActive && "opacity-60",
       )}
     >
-      <span className="grid h-9 w-9 place-items-center rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] text-[var(--color-muted-foreground)]">
+      <span
+        className={cn(
+          "grid h-9 w-9 place-items-center rounded-full ring-1 ring-inset shrink-0",
+          session.isCurrentSession
+            ? "bg-[var(--color-primary-soft,oklch(from_var(--color-accent-signal)_l_c_h_/_0.12))] text-[var(--color-accent-signal)] ring-[oklch(from_var(--color-accent-signal)_l_c_h_/_0.30)]"
+            : "bg-[var(--color-muted)] text-[var(--color-muted-foreground)] ring-[var(--color-border)]",
+        )}
+      >
         <Icon className="h-4 w-4" />
       </span>
       <div className="min-w-0">
@@ -166,8 +179,8 @@ function SessionRow({
         </div>
       </div>
       {session.isCurrentSession ? (
-        <span className="meta text-[var(--color-muted-foreground)]">
-          <MoreHorizontal className="inline h-3.5 w-3.5" aria-hidden /> use Sign out
+        <span className="text-[10.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]/60 flex items-center gap-1">
+          <MoreHorizontal className="h-3.5 w-3.5" aria-hidden /> use Sign out
         </span>
       ) : session.isActive ? (
         <Button variant="outline" size="sm" onClick={onRevoke} disabled={busy}>
@@ -181,11 +194,9 @@ function SessionRow({
   );
 }
 
-// ─── helpers ────────────────────────────────────────────────────────────
+// ─── helpers ─────────────────────────────────────────────────────────────
 
 function sortSessions(rows: UserSessionDto[]): UserSessionDto[] {
-  // Current session pinned to top; then active sessions by last-activity desc;
-  // then inactive sessions also by last-activity desc.
   return [...rows].sort((a, b) => {
     if (a.isCurrentSession && !b.isCurrentSession) return -1;
     if (!a.isCurrentSession && b.isCurrentSession) return 1;

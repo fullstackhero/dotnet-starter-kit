@@ -1,6 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { MonitorSmartphone, Palette, ShieldCheck, UserRound } from "lucide-react";
-import { PageHeader } from "@/components/list";
+import { MonitorSmartphone, Palette, Settings, ShieldCheck, UserRound } from "lucide-react";
+import { EntityPageHeader } from "@/components/list";
 import { cn } from "@/lib/cn";
 
 type Tab = {
@@ -17,15 +17,15 @@ const TABS: Tab[] = [
 ];
 
 /**
- * SettingsLayout — header + pill tab nav + outlet for the active tab.
- * Mirrors dashboard's settings shell but in Console aesthetic: mono-caps
- * labels in the active pill, hairline borders, no brand-soft fills.
+ * SettingsLayout — EntityPageHeader + underline tab nav + outlet.
+ * Console aesthetic: underline indicator with chartreuse accent signal,
+ * mono-caps icon labels, hairline rule — no sidebar, no brand-soft pills.
  */
 export function SettingsLayout() {
   return (
     <div className="space-y-7">
-      <PageHeader
-        crumbs={[{ label: "\\ Settings" }, { label: "Account", muted: true }]}
+      <EntityPageHeader
+        icon={Settings}
         title="Settings"
         description="Manage your profile, credentials, sessions, and appearance preferences."
       />

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Check, Mail, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Check, Mail, ShieldCheck, User as UserIcon, Users } from "lucide-react";
 import { toast } from "sonner";
 import {
   assignUserRoles,
@@ -15,12 +15,10 @@ import { Badge } from "@/components/ui/badge";
 import { Monogram } from "@/components/monogram";
 import { UserSessionsCard } from "@/components/sessions/user-sessions-card";
 import {
-  PageHeader,
+  EntityPageHeader,
   ErrorBand,
   LoadingRow,
-  FormShell,
-  FormSection,
-  FormActions,
+  SettingsSection,
 } from "@/components/list";
 import { ApiRequestError } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
@@ -49,7 +47,7 @@ export function UserDetailPage() {
       queryClient.invalidateQueries({ queryKey: ["user", id] });
       queryClient.invalidateQueries({ queryKey: ["users"] });
     },
-    onError: (err) => toast.error("Status change failed", { description: describe(err) }),
+    onError: (err) => toast.error("Status change failed", { description: describeErr(err) }),
   });
 
   const user = userQuery.data;
@@ -62,105 +60,125 @@ export function UserDetailPage() {
     id;
 
   return (
-    <div className="space-y-8">
-      <PageHeader
-        crumbs={[
-          { label: "\\ Users" },
-          { label: user?.userName ?? user?.email ?? id, muted: true },
-        ]}
-        trailing={id ? `ID · ${shortId(id)}` : undefined}
+    <div className="space-y-6">
+      <EntityPageHeader
+        icon={Users}
         title={displayName}
-        description={user?.email}
-        actions={
-          <Button variant="ghost" size="sm" onClick={() => navigate("/users")}>
-            <ArrowLeft className="mr-1 h-3.5 w-3.5" /> Directory
-          </Button>
-        }
-      />
+        description={user?.email ?? undefined}
+      >
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate("/users")}
+          className="h-9 gap-1.5 rounded-lg px-3 text-[13px]"
+        >
+          <ArrowLeft className="size-3.5" /> Directory
+        </Button>
+      </EntityPageHeader>
 
-      {userQuery.isError && <ErrorBand message={describe(userQuery.error)} />}
+      {userQuery.isError && <ErrorBand message={describeErr(userQuery.error)} />}
 
       {userQuery.isLoading && !user && <LoadingRow label="Loading account" />}
 
       {user && (
         <>
-          <header className="card-shell flex flex-col items-start gap-6 px-6 py-6 sm:px-8 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center gap-5">
-              <Monogram
-                seed={user.id ?? user.userName ?? "user"}
-                firstName={user.firstName ?? undefined}
-                lastName={user.lastName ?? undefined}
-                fallback={user.userName ?? user.email ?? undefined}
-                size="lg"
-              />
-              <div>
-                <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
-                  {displayName}
-                </h2>
-                <div className="mt-1 flex flex-wrap items-baseline gap-x-4 gap-y-1 font-mono text-xs text-[var(--color-muted-foreground)]">
-                  {user.userName && <code className="code-chip">@{user.userName}</code>}
-                  {user.email && <span className="truncate">{user.email}</span>}
-                </div>
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <Badge
-                    variant={user.isActive ? "success" : "muted"}
-                    className="font-mono uppercase tracking-[0.14em]"
-                  >
-                    {user.isActive ? "Active" : "Disabled"}
-                  </Badge>
-                  <Badge
-                    variant={user.emailConfirmed ? "info" : "warning"}
-                    className="font-mono uppercase tracking-[0.14em]"
-                  >
-                    <Mail className="h-3 w-3" />
-                    {user.emailConfirmed ? "Email confirmed" : "Email pending"}
-                  </Badge>
+          {/* Hero card */}
+          <div className="overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] shadow-xs">
+            <div className="flex flex-col items-start gap-6 px-6 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+              <div className="flex items-center gap-5">
+                <Monogram
+                  seed={user.id ?? user.userName ?? "user"}
+                  firstName={user.firstName ?? undefined}
+                  lastName={user.lastName ?? undefined}
+                  fallback={user.userName ?? user.email ?? undefined}
+                  size="lg"
+                />
+                <div>
+                  <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
+                    {displayName}
+                  </h2>
+                  <div className="mt-1 flex flex-wrap items-baseline gap-x-4 gap-y-1 font-mono text-xs text-[var(--color-muted-foreground)]">
+                    {user.userName && (
+                      <code className="rounded bg-[var(--color-muted)] px-1 py-0.5 text-[11px]">
+                        @{user.userName}
+                      </code>
+                    )}
+                    {user.email && <span className="truncate">{user.email}</span>}
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <Badge
+                      variant={user.isActive ? "success" : "muted"}
+                      className="font-mono text-[10px] uppercase tracking-[0.14em]"
+                    >
+                      {user.isActive ? "Active" : "Disabled"}
+                    </Badge>
+                    <Badge
+                      variant={user.emailConfirmed ? "info" : "warning"}
+                      className="font-mono text-[10px] uppercase tracking-[0.14em]"
+                    >
+                      <Mail className="h-3 w-3" />
+                      {user.emailConfirmed ? "Email confirmed" : "Email pending"}
+                    </Badge>
+                  </div>
                 </div>
               </div>
+
+              <Button
+                variant={user.isActive ? "outline" : "default"}
+                onClick={() => toggleMutation.mutate(!user.isActive)}
+                disabled={toggleMutation.isPending}
+                className="shrink-0 h-9 rounded-lg px-4 text-[13px]"
+              >
+                {toggleMutation.isPending
+                  ? "Updating…"
+                  : user.isActive
+                    ? "Deactivate account"
+                    : "Activate account"}
+              </Button>
             </div>
+          </div>
 
-            <Button
-              variant={user.isActive ? "outline" : "default"}
-              onClick={() => toggleMutation.mutate(!user.isActive)}
-              disabled={toggleMutation.isPending}
-              className="shrink-0"
-            >
-              {toggleMutation.isPending
-                ? "Updating…"
-                : user.isActive
-                  ? "Deactivate account"
-                  : "Activate account"}
-            </Button>
-          </header>
-
-          <FormShell>
-            <FormSection
-              title="Identity"
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+            {/* Identity details */}
+            <SettingsSection
+              title="Identity card"
+              icon={UserIcon}
               description="Account identifiers and contact details captured at registration."
             >
-              <dl className="divide-y divide-[var(--color-border)]">
-                <DetailRow label="User ID" mono>{user.id ?? "—"}</DetailRow>
-                <DetailRow label="Username" mono>{user.userName ?? "—"}</DetailRow>
-                <DetailRow label="Email" mono>{user.email ?? "—"}</DetailRow>
-                <DetailRow label="Phone" mono>{user.phoneNumber ?? "—"}</DetailRow>
-                <DetailRow label="Status">{user.isActive ? "Active" : "Disabled"}</DetailRow>
+              <dl className="space-y-0 divide-y divide-[oklch(from_var(--color-border)_l_c_h_/_0.5)]">
+                <DetailRow label="User ID" mono>
+                  {user.id ?? "—"}
+                </DetailRow>
+                <DetailRow label="Username" mono>
+                  {user.userName ?? "—"}
+                </DetailRow>
+                <DetailRow label="Email" mono>
+                  {user.email ?? "—"}
+                </DetailRow>
+                <DetailRow label="Phone" mono>
+                  {user.phoneNumber ?? "—"}
+                </DetailRow>
+                <DetailRow label="Status">
+                  {user.isActive ? "Active" : "Disabled"}
+                </DetailRow>
                 <DetailRow label="Email confirmed">
                   {user.emailConfirmed ? "Yes" : "Pending confirmation"}
                 </DetailRow>
               </dl>
-            </FormSection>
-          </FormShell>
+            </SettingsSection>
 
-          <RolesEditor
-            userId={user.id ?? id}
-            roles={roles ?? []}
-            loading={rolesQuery.isLoading}
-            error={rolesQuery.error}
-            onSaved={() => {
-              queryClient.invalidateQueries({ queryKey: ["user", id, "roles"] });
-              queryClient.invalidateQueries({ queryKey: ["users"] });
-            }}
-          />
+            {/* Roles editor */}
+            <RolesEditor
+              userId={user.id ?? id}
+              roles={roles ?? []}
+              loading={rolesQuery.isLoading}
+              error={rolesQuery.error}
+              onSaved={() => {
+                queryClient.invalidateQueries({ queryKey: ["user", id, "roles"] });
+                queryClient.invalidateQueries({ queryKey: ["users"] });
+              }}
+            />
+          </div>
 
           <UserSessionsCard userId={user.id ?? id} />
         </>
@@ -181,9 +199,16 @@ function DetailRow({
   mono?: boolean;
 }) {
   return (
-    <div className="grid grid-cols-[10rem_1fr] items-baseline gap-4 py-2.5">
-      <dt className="meta text-[var(--color-muted-foreground)]">{label}</dt>
-      <dd className={cn("min-w-0 break-words text-sm", mono && "font-mono text-[0.8125rem]")}>
+    <div className="flex items-baseline justify-between gap-3 py-2.5">
+      <dt className="shrink-0 text-[11.5px] font-medium text-[var(--color-muted-foreground)]">
+        {label}
+      </dt>
+      <dd
+        className={cn(
+          "min-w-0 truncate text-right text-[13px] text-[var(--color-foreground)]",
+          mono && "font-mono text-[11.5px]",
+        )}
+      >
         {children}
       </dd>
     </div>
@@ -230,7 +255,7 @@ function RolesEditor({
       queryClient.invalidateQueries({ queryKey: ["user", userId, "roles"] });
       onSaved();
     },
-    onError: (err) => toast.error("Role update failed", { description: describe(err) }),
+    onError: (err) => toast.error("Role update failed", { description: describeErr(err) }),
   });
 
   const onSave = () => {
@@ -240,65 +265,66 @@ function RolesEditor({
   const onDiscard = () => setDraft(original);
 
   return (
-    <FormShell>
-      <FormSection
-        title="Roles"
-        description={
-          <>
-            Tap any role to toggle. Changes are batched — review and save when ready.
-            <span className="mt-2 block font-mono text-[10.5px] uppercase tracking-[0.18em]">
-              {dirtyCount === 0
-                ? "no pending changes"
-                : `${dirtyCount} ${dirtyCount === 1 ? "change" : "changes"} pending`}
-            </span>
-          </>
-        }
-      >
-        {error ? (
-          <ErrorBand message={describe(error)} />
-        ) : loading ? (
-          <p className="meta text-[var(--color-muted-foreground)]">
-            Loading<span className="caret text-[var(--color-accent-signal)]" />
-          </p>
-        ) : roles.length === 0 ? (
-          <p className="text-sm text-[var(--color-muted-foreground)]">
-            No roles defined for this tenant.
-          </p>
-        ) : (
-          <div className="flex flex-wrap gap-2">
-            {roles.map((r) => (
-              <RoleChip
-                key={r.roleId}
-                role={r}
-                enabled={!!draft[r.roleId]}
-                changed={Boolean(draft[r.roleId]) !== Boolean(original[r.roleId])}
-                onToggle={() => setDraft((d) => ({ ...d, [r.roleId]: !d[r.roleId] }))}
-              />
-            ))}
+    <SettingsSection
+      title="Role assignment"
+      icon={ShieldCheck}
+      description={
+        dirtyCount > 0
+          ? `${dirtyCount} pending change${dirtyCount === 1 ? "" : "s"} — review and save when ready.`
+          : "Tap any role to toggle. Changes are batched — review and save when ready."
+      }
+      footer={
+        !loading && roles.length > 0 ? (
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={onSave}
+              disabled={dirtyCount === 0 || mutation.isPending}
+              className="h-9 rounded-lg px-4 text-[13px]"
+            >
+              <Check className="mr-1 h-3.5 w-3.5" />
+              {mutation.isPending ? "Saving…" : "Save changes"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={onDiscard}
+              disabled={dirtyCount === 0 || mutation.isPending}
+              className="h-9 rounded-lg px-4 text-[13px]"
+            >
+              Discard
+            </Button>
           </div>
-        )}
-      </FormSection>
-
-      {!loading && roles.length > 0 && (
-        <FormActions>
-          <Button onClick={onSave} disabled={dirtyCount === 0 || mutation.isPending}>
-            <Check className="mr-1 h-3.5 w-3.5" />
-            {mutation.isPending ? "Saving…" : "Save changes"}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={onDiscard}
-            disabled={dirtyCount === 0 || mutation.isPending}
-          >
-            Discard
-          </Button>
-        </FormActions>
+        ) : undefined
+      }
+    >
+      {error ? (
+        <ErrorBand message={describeErr(error)} />
+      ) : loading ? (
+        <p className="text-sm text-[var(--color-muted-foreground)]">
+          Loading
+          <span className="caret text-[var(--color-accent-signal)]" />
+        </p>
+      ) : roles.length === 0 ? (
+        <p className="text-sm text-[var(--color-muted-foreground)]">
+          No roles defined for this tenant.
+        </p>
+      ) : (
+        <ul className="divide-y divide-[var(--color-border)]">
+          {roles.map((r) => (
+            <RoleRow
+              key={r.roleId}
+              role={r}
+              enabled={!!draft[r.roleId]}
+              changed={Boolean(draft[r.roleId]) !== Boolean(original[r.roleId])}
+              onToggle={() => setDraft((d) => ({ ...d, [r.roleId]: !d[r.roleId] }))}
+            />
+          ))}
+        </ul>
       )}
-    </FormShell>
+    </SettingsSection>
   );
 }
 
-function RoleChip({
+function RoleRow({
   role,
   enabled,
   changed,
@@ -310,36 +336,71 @@ function RoleChip({
   onToggle: () => void;
 }) {
   return (
+    <li className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
+      <div className="min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="text-[13px] font-medium tracking-tight text-[var(--color-foreground)]">
+            {role.roleName ?? "Untitled role"}
+          </span>
+          {changed && (
+            <span
+              className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--color-warning)]"
+              aria-label="modified"
+            />
+          )}
+        </div>
+        {role.description && (
+          <div className="mt-0.5 line-clamp-1 text-[11.5px] text-[var(--color-muted-foreground)]">
+            {role.description}
+          </div>
+        )}
+      </div>
+      <RoleChip
+        enabled={enabled}
+        changed={changed}
+        onToggle={onToggle}
+        label={role.roleName ?? "role"}
+      />
+    </li>
+  );
+}
+
+function RoleChip({
+  enabled,
+  changed,
+  onToggle,
+  label,
+}: {
+  enabled: boolean;
+  changed: boolean;
+  onToggle: () => void;
+  label: string;
+}) {
+  return (
     <button
       type="button"
       onClick={onToggle}
-      title={role.description ?? role.roleName}
+      aria-label={`Toggle ${label}`}
       className={cn(
-        "group inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1.5 font-mono text-xs transition-colors",
+        "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-[11px] transition-colors",
         enabled
           ? "border-[var(--color-foreground)] bg-[var(--color-foreground)] text-[var(--color-background)]"
           : "border-[var(--color-border)] text-[var(--color-foreground)] hover:bg-[var(--color-muted)]",
         changed &&
-          "ring-1 ring-offset-2 ring-offset-[var(--color-background)] ring-[var(--color-accent-signal)]/60",
+          "ring-1 ring-offset-2 ring-offset-[var(--color-background)] ring-[var(--color-warning)]/60",
       )}
     >
-      <ShieldCheck
-        className={cn("h-3 w-3", enabled ? "" : "opacity-40 group-hover:opacity-70")}
-      />
-      <span className="tracking-wide">{role.roleName}</span>
+      <ShieldCheck className={cn("h-3 w-3", enabled ? "" : "opacity-40")} />
+      <span>{enabled ? "On" : "Off"}</span>
     </button>
   );
 }
 
 // ─── helpers ────────────────────────────────────────────────────────────
 
-function shortId(id: string): string {
-  if (id.length <= 12) return id;
-  return `${id.slice(0, 4)}…${id.slice(-4)}`;
-}
-
-function describe(err: unknown): string {
-  if (err instanceof ApiRequestError) return err.problem?.detail ?? err.problem?.title ?? err.message;
+function describeErr(err: unknown): string {
+  if (err instanceof ApiRequestError)
+    return err.problem?.detail ?? err.problem?.title ?? err.message;
   if (err instanceof Error) return err.message;
   return String(err);
 }

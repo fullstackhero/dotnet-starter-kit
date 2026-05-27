@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
-  PageHeader,
+  EntityPageHeader,
   ErrorBand,
   Pagination,
   StatStrip,
@@ -125,27 +125,24 @@ export function AuditsListPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        crumbs={[{ label: "\\ Audits" }, { label: "Trail", muted: true }]}
-        trailing={
-          data
-            ? `${data.totalCount.toLocaleString()} EVENTS`
-            : "—"
-        }
+      <EntityPageHeader
+        icon={ScrollText}
         title="Audit trail"
+        total={data?.totalCount ?? null}
+        unit="event"
         description="Every security action, entity change, and exception captured by the auditing pipeline. Filter by event type, severity, or correlation id to follow a request end-to-end."
-        actions={
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={query.isFetching}
-            onClick={() => query.refetch()}
-          >
-            <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", query.isFetching && "animate-spin")} />
-            Refresh
-          </Button>
-        }
-      />
+      >
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={query.isFetching}
+          onClick={() => query.refetch()}
+          className="flex-1 sm:flex-none"
+        >
+          <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", query.isFetching && "animate-spin")} />
+          Refresh
+        </Button>
+      </EntityPageHeader>
 
       <StatStrip cols={4}>
         <Stat label="Total events" value={summary.isLoading ? "—" : summaryStats.total.toLocaleString()} hint="across all event types" />

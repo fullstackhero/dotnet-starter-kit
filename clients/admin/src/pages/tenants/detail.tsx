@@ -1,7 +1,18 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, CheckCircle2, CircleDashed, Loader2, RefreshCw, UserCog, XCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  Building2,
+  CheckCircle2,
+  CircleDashed,
+  ClipboardList,
+  Info,
+  Loader2,
+  RefreshCw,
+  UserCog,
+  XCircle,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/auth/use-auth";
 import { ImpersonateDialog } from "@/components/impersonation/impersonate-dialog";
@@ -19,11 +30,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Monogram } from "@/components/monogram";
 import {
-  PageHeader,
+  EntityPageHeader,
   ErrorBand,
   LoadingRow,
-  FormShell,
-  FormSection,
+  SettingsSection,
 } from "@/components/list";
 import { ApiRequestError } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
@@ -48,8 +58,16 @@ export function TenantDetailPage() {
     queryKey: ["tenant", id, "provisioning"],
     queryFn: () => getTenantProvisioningStatus(id),
     enabled: !!id,
-    // Poll while provisioning is in flight; stop once terminal.
+    // A 404 means this tenant was never run through the provisioning pipeline
+    // (e.g. demo/directly-created tenants) — a terminal "not tracked" state,
+    // not a transient failure. Don't retry or poll it.
+    retry: (failureCount, err) =>
+      !(err instanceof ApiRequestError && err.status === 404) && failureCount < 3,
+    // Poll while provisioning is in flight; stop once terminal (or not tracked).
     refetchInterval: (query) => {
+      if (query.state.error instanceof ApiRequestError && query.state.error.status === 404) {
+        return false;
+      }
       const status = query.state.data?.status;
       if (status === "Completed" || status === "Failed") return false;
       return 2000;
@@ -77,23 +95,22 @@ export function TenantDetailPage() {
 
   const tenant = tenantQuery.data;
   const provisioning = provisioningQuery.data;
+  const provisioningNotTracked =
+    provisioningQuery.error instanceof ApiRequestError &&
+    provisioningQuery.error.status === 404;
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        crumbs={[
-          { label: "\\ Tenants" },
-          { label: tenant?.name ?? id, muted: true },
-        ]}
-        trailing={id ? `ID · ${shortId(id)}` : undefined}
+      <EntityPageHeader
+        icon={Building2}
         title={tenant?.name ?? "Tenant"}
+        tone="info"
         description={tenant?.adminEmail}
-        actions={
-          <Button variant="ghost" size="sm" onClick={() => navigate("/tenants")}>
-            <ArrowLeft className="mr-1 h-3.5 w-3.5" /> Registry
-          </Button>
-        }
-      />
+      >
+        <Button variant="ghost" size="sm" onClick={() => navigate("/tenants")}>
+          <ArrowLeft className="mr-1 h-3.5 w-3.5" /> Registry
+        </Button>
+      </EntityPageHeader>
 
       {tenantQuery.isError && (
         <ErrorBand message={describe(tenantQuery.error)} />
@@ -103,59 +120,65 @@ export function TenantDetailPage() {
 
       {tenant && (
         <>
-          <header className="card-shell flex flex-col items-start gap-6 px-6 py-6 sm:px-8 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center gap-5">
-              <Monogram seed={tenant.id} fallback={tenant.name} size="lg" />
-              <div>
-                <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
-                  {tenant.name}
-                </h2>
-                <div className="mt-1 flex flex-wrap items-baseline gap-x-4 gap-y-1 font-mono text-xs text-[var(--color-muted-foreground)]">
-                  <code className="code-chip">{tenant.id}</code>
-                  <span className="truncate">{tenant.adminEmail}</span>
-                </div>
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <Badge variant={tenant.isActive ? "success" : "muted"} className="font-mono uppercase tracking-[0.14em]">
-                    {tenant.isActive ? "Active" : "Inactive"}
-                  </Badge>
-                  <Badge variant="outline" className="font-mono uppercase tracking-[0.14em]">
-                    valid · {formatDate(tenant.validUpto)}
-                  </Badge>
-                  {tenant.issuer && (
-                    <Badge variant="outline" className="font-mono uppercase tracking-[0.14em]">
-                      iss · {tenant.issuer}
+          {/* Hero identity card */}
+          <SettingsSection
+            title="Overview"
+            icon={Building2}
+          >
+            <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-5">
+                <Monogram seed={tenant.id} fallback={tenant.name} size="lg" />
+                <div>
+                  <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
+                    {tenant.name}
+                  </h2>
+                  <div className="mt-1 flex flex-wrap items-baseline gap-x-4 gap-y-1 font-mono text-xs text-[var(--color-muted-foreground)]">
+                    <code className="code-chip">{tenant.id}</code>
+                    <span className="truncate">{tenant.adminEmail}</span>
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <Badge variant={tenant.isActive ? "success" : "muted"} className="font-mono uppercase tracking-[0.14em]">
+                      {tenant.isActive ? "Active" : "Inactive"}
                     </Badge>
-                  )}
+                    <Badge variant="outline" className="font-mono uppercase tracking-[0.14em]">
+                      valid · {formatDate(tenant.validUpto)}
+                    </Badge>
+                    {tenant.issuer && (
+                      <Badge variant="outline" className="font-mono uppercase tracking-[0.14em]">
+                        iss · {tenant.issuer}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              {canImpersonate && tenant.isActive && (
+              <div className="flex flex-wrap items-center gap-2">
+                {canImpersonate && tenant.isActive && (
+                  <Button
+                    variant="signal"
+                    onClick={() => setImpersonateOpen(true)}
+                    className="shrink-0"
+                    title="Sign in as a user inside this tenant"
+                  >
+                    <UserCog className="mr-1.5 h-3.5 w-3.5" />
+                    Impersonate user
+                  </Button>
+                )}
                 <Button
-                  variant="signal"
-                  onClick={() => setImpersonateOpen(true)}
+                  variant={tenant.isActive ? "outline" : "default"}
+                  onClick={() => activationMutation.mutate(!tenant.isActive)}
+                  disabled={activationMutation.isPending}
                   className="shrink-0"
-                  title="Sign in as a user inside this tenant"
                 >
-                  <UserCog className="mr-1.5 h-3.5 w-3.5" />
-                  Impersonate user
+                  {activationMutation.isPending
+                    ? "Updating…"
+                    : tenant.isActive
+                      ? "Deactivate tenant"
+                      : "Activate tenant"}
                 </Button>
-              )}
-              <Button
-                variant={tenant.isActive ? "outline" : "default"}
-                onClick={() => activationMutation.mutate(!tenant.isActive)}
-                disabled={activationMutation.isPending}
-                className="shrink-0"
-              >
-                {activationMutation.isPending
-                  ? "Updating…"
-                  : tenant.isActive
-                    ? "Deactivate tenant"
-                    : "Activate tenant"}
-              </Button>
+              </div>
             </div>
-          </header>
+          </SettingsSection>
 
           <ImpersonateDialog
             open={impersonateOpen}
@@ -168,44 +191,42 @@ export function TenantDetailPage() {
 
           <TenantBrandingCard tenantId={tenant.id} />
 
-          <FormShell>
-            <FormSection
-              title="Details"
-              description="The tenant's identity, contact, and subscription window. Identifiers are immutable; the issuer is used to scope JWTs."
-            >
-              <dl className="divide-y divide-[var(--color-border)]">
-                <DetailRow label="Identifier" mono>{tenant.id}</DetailRow>
-                <DetailRow label="Name">{tenant.name}</DetailRow>
-                <DetailRow label="Admin email" mono>{tenant.adminEmail}</DetailRow>
-                <DetailRow label="JWT issuer" mono>{tenant.issuer ?? "—"}</DetailRow>
-                <DetailRow label="Valid until">{formatDate(tenant.validUpto)}</DetailRow>
-                <DetailRow label="Status">{tenant.isActive ? "Active" : "Inactive"}</DetailRow>
-              </dl>
-            </FormSection>
-          </FormShell>
+          {/* Details section */}
+          <SettingsSection
+            title="Details"
+            icon={Info}
+            description="The tenant's identity, contact, and subscription window. Identifiers are immutable; the issuer is used to scope JWTs."
+          >
+            <dl className="divide-y divide-[var(--color-border)]">
+              <DetailRow label="Identifier" mono>{tenant.id}</DetailRow>
+              <DetailRow label="Name">{tenant.name}</DetailRow>
+              <DetailRow label="Admin email" mono>{tenant.adminEmail}</DetailRow>
+              <DetailRow label="JWT issuer" mono>{tenant.issuer ?? "—"}</DetailRow>
+              <DetailRow label="Valid until">{formatDate(tenant.validUpto)}</DetailRow>
+              <DetailRow label="Status">{tenant.isActive ? "Active" : "Inactive"}</DetailRow>
+            </dl>
+          </SettingsSection>
 
-          <FormShell>
-            <FormSection
-              title="Provisioning"
-              description={
-                <>
-                  Live status of the background pipeline that seeds the tenant database,
-                  default roles, and admin user. Polls every 2 seconds while running.
-                </>
-              }
-            >
-              <ProvisioningPanel
-                steps={provisioning?.steps ?? []}
-                status={provisioning?.status}
-                currentStep={provisioning?.currentStep ?? undefined}
-                errorBody={provisioning?.error ?? undefined}
-                loading={provisioningQuery.isLoading}
-                error={provisioningQuery.error}
-                onRetry={() => retryMutation.mutate()}
-                retryPending={retryMutation.isPending}
-              />
-            </FormSection>
-          </FormShell>
+          {/* Provisioning section */}
+          <SettingsSection
+            title="Provisioning"
+            icon={ClipboardList}
+            description="Live status of the background pipeline that seeds the tenant database, default roles, and admin user. Polls every 2 seconds while running."
+          >
+            <ProvisioningPanel
+              steps={provisioning?.steps ?? []}
+              status={provisioning?.status}
+              currentStep={provisioning?.currentStep ?? undefined}
+              errorBody={provisioning?.error ?? undefined}
+              loading={provisioningQuery.isLoading}
+              // A 404 isn't an error to surface — the tenant was just never run
+              // through the pipeline. Swallow it and show the neutral state.
+              error={provisioningNotTracked ? undefined : provisioningQuery.error}
+              notTracked={provisioningNotTracked}
+              onRetry={() => retryMutation.mutate()}
+              retryPending={retryMutation.isPending}
+            />
+          </SettingsSection>
         </>
       )}
     </div>
@@ -240,6 +261,7 @@ function ProvisioningPanel({
   errorBody,
   loading,
   error,
+  notTracked = false,
   onRetry,
   retryPending,
 }: {
@@ -249,10 +271,11 @@ function ProvisioningPanel({
   errorBody?: string;
   loading: boolean;
   error: unknown;
+  notTracked?: boolean;
   onRetry: () => void;
   retryPending: boolean;
 }) {
-  const overall = status ?? (loading ? "Loading" : "Unknown");
+  const overall = notTracked ? "Not tracked" : status ?? (loading ? "Loading" : "Unknown");
   const overallVariant =
     status === "Completed"
       ? "success"
@@ -283,8 +306,11 @@ function ProvisioningPanel({
       {error ? (
         <ErrorBand message={describe(error)} />
       ) : loading && steps.length === 0 ? (
-        <p className="meta text-[var(--color-muted-foreground)]">
-          Loading<span className="caret text-[var(--color-accent-signal)]" />
+        <p className="text-sm text-[var(--color-muted-foreground)]">Loading…</p>
+      ) : notTracked ? (
+        <p className="text-sm text-[var(--color-muted-foreground)]">
+          This tenant wasn't created through the provisioning pipeline, so there's no run
+          history to show. Tenants created via the console report their seed/migrate steps here.
         </p>
       ) : steps.length === 0 ? (
         <p className="text-sm text-[var(--color-muted-foreground)]">
@@ -350,11 +376,6 @@ function StepRow({ step, index }: { step: TenantProvisioningStep; index: number 
 }
 
 // ─── helpers ────────────────────────────────────────────────────────────
-
-function shortId(id: string): string {
-  if (id.length <= 12) return id;
-  return `${id.slice(0, 4)}…${id.slice(-4)}`;
-}
 
 function formatDate(value: string | undefined): string {
   if (!value) return "—";

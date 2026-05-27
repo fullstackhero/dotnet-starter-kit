@@ -12,10 +12,10 @@ import { useRealtimeEvent } from "@/realtime/realtime-context";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
+  EntityPageHeader,
   ErrorBand,
   FilterBar,
   LoadingRow,
-  PageHeader,
   Select,
 } from "@/components/list";
 import { EmptyState } from "@/components/empty-state";
@@ -64,34 +64,34 @@ export function NotificationsInboxPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        crumbs={[{ label: "\\ Notifications" }, { label: "Inbox", muted: true }]}
-        trailing={`${items.length} ITEMS`}
+      <EntityPageHeader
+        icon={Bell}
         title="Notifications"
+        total={items.length}
+        unit="item"
         description="Events the system has surfaced for you. Live-updates as new notifications arrive — no refresh needed."
-        actions={
-          <>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={query.isFetching}
-              onClick={() => query.refetch()}
-            >
-              <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", query.isFetching && "animate-spin")} />
-              Refresh
-            </Button>
-            <Button
-              variant="signal"
-              size="sm"
-              onClick={() => markAll.mutate()}
-              disabled={markAll.isPending}
-            >
-              <CheckCheck className="mr-1.5 h-3.5 w-3.5" />
-              {markAll.isPending ? "Marking…" : "Mark all read"}
-            </Button>
-          </>
-        }
-      />
+      >
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={query.isFetching}
+          onClick={() => query.refetch()}
+          className="flex-1 sm:flex-none"
+        >
+          <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", query.isFetching && "animate-spin")} />
+          Refresh
+        </Button>
+        <Button
+          variant="signal"
+          size="sm"
+          onClick={() => markAll.mutate()}
+          disabled={markAll.isPending}
+          className="flex-1 sm:flex-none"
+        >
+          <CheckCheck className="mr-1.5 h-3.5 w-3.5" />
+          {markAll.isPending ? "Marking…" : "Mark all read"}
+        </Button>
+      </EntityPageHeader>
 
       <FilterBar>
         <Select
