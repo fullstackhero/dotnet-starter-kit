@@ -281,6 +281,11 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
             {
                 await ProcessRunner.RunAsync("git", "init", output, showOutput: false, cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
+                // Default the initial branch to `main` regardless of the user's git
+                // `init.defaultBranch` (older git defaults to `master`). symbolic-ref on
+                // the unborn HEAD works on every git version, unlike `git init -b`.
+                await ProcessRunner.RunAsync("git", "symbolic-ref HEAD refs/heads/main", output, showOutput: false, cancellationToken: cancellationToken)
+                    .ConfigureAwait(false);
                 await ProcessRunner.RunAsync("git", "add -A", output, showOutput: false, cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
                 await ProcessRunner.RunAsync("git", "commit -m \"Initial project from FullStackHero .NET Starter Kit\"", output, showOutput: false, cancellationToken: cancellationToken)
