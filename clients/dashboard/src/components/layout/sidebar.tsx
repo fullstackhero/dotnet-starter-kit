@@ -102,7 +102,7 @@ export function Sidebar() {
                 fullstack<span className="text-[var(--color-primary)]">hero</span>
               </span>
               <span className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.7)]">
-                Console
+                Dashboard
               </span>
             </div>
           )}
@@ -158,7 +158,7 @@ export function Sidebar() {
           </button>
         ) : (
           <p className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
-            v0.1 · console
+            v0.1 · dashboard
           </p>
         )}
       </div>

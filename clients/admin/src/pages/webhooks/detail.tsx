@@ -9,6 +9,8 @@ import {
 import {
   ArrowLeft,
   CheckCircle2,
+  Link2,
+  List,
   RefreshCw,
   Send,
   Trash2,
@@ -27,11 +29,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   ErrorBand,
-  FormSection,
-  FormShell,
   LoadingRow,
   PageHeader,
   Pagination,
+  SettingsSection,
 } from "@/components/list";
 import { ApiRequestError } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
@@ -113,24 +114,13 @@ export function WebhookDetailPage() {
       )}
 
       {sub && (
-        <>
-          <FormShell>
-            <FormSection
-              title="Endpoint"
-              description="Where we POST event payloads."
-            >
-              <dl className="divide-y divide-[var(--color-border)]">
-                <Row label="URL" mono value={sub.url} />
-                <Row label="Status" value={
-                  <Badge variant={sub.isActive ? "success" : "muted"} className="font-mono uppercase tracking-[0.14em]">
-                    {sub.isActive ? "Active" : "Inactive"}
-                  </Badge>
-                } />
-                <Row label="Subscription id" mono value={sub.id} />
-                <Row label="Created" mono value={new Date(sub.createdAtUtc).toLocaleString()} />
-              </dl>
-
-              <div className="flex flex-wrap items-center gap-2 pt-2">
+        <div className="space-y-4">
+          <SettingsSection
+            icon={Link2}
+            title="Endpoint"
+            description="Where we POST event payloads."
+            footer={
+              <div className="flex flex-wrap items-center gap-2">
                 <Button variant="outline" size="sm" onClick={() => test.mutate()} disabled={test.isPending}>
                   <Send className="mr-1.5 h-3.5 w-3.5" />
                   {test.isPending ? "Sending…" : "Send test event"}
@@ -150,30 +140,41 @@ export function WebhookDetailPage() {
                   {remove.isPending ? "Deleting…" : "Delete subscription"}
                 </Button>
               </div>
-            </FormSection>
+            }
+          >
+            <dl className="grid grid-cols-1 gap-y-3 sm:grid-cols-2">
+              <FieldRow label="URL" mono value={sub.url} />
+              <FieldRow label="Status" value={
+                <Badge variant={sub.isActive ? "success" : "muted"} className="font-mono uppercase tracking-[0.14em]">
+                  {sub.isActive ? "Active" : "Inactive"}
+                </Badge>
+              } />
+              <FieldRow label="Subscription id" mono value={sub.id} />
+              <FieldRow label="Created" mono value={new Date(sub.createdAtUtc).toLocaleString()} />
+            </dl>
+          </SettingsSection>
 
-            <FormSection
-              title="Events"
-              description="Event types this endpoint subscribes to."
-            >
-              <div className="flex flex-wrap gap-1.5">
-                {sub.events.map((e) => (
-                  <code key={e} className="code-chip">{e}</code>
-                ))}
-                {sub.events.length === 0 && (
-                  <span className="text-sm text-[var(--color-muted-foreground)]">— no events; subscription would never fire</span>
-                )}
-              </div>
-            </FormSection>
-          </FormShell>
+          <SettingsSection
+            icon={List}
+            title="Events"
+            description="Event types this endpoint subscribes to."
+          >
+            <div className="flex flex-wrap gap-1.5">
+              {sub.events.map((e) => (
+                <code key={e} className="code-chip">{e}</code>
+              ))}
+              {sub.events.length === 0 && (
+                <span className="text-sm text-[var(--color-muted-foreground)]">— no events; subscription would never fire</span>
+              )}
+            </div>
+          </SettingsSection>
 
-          <FormShell>
-            <FormSection
-              title="Deliveries"
-              description="Recent attempts to POST events to this endpoint. Auto-refreshes every 10s."
-            >
-              <div className="flex items-center justify-between gap-2 pb-2">
-                <span className="meta text-[var(--color-muted-foreground)]">
+          <SettingsSection
+            title="Deliveries"
+            description="Recent attempts to POST events to this endpoint. Auto-refreshes every 10s."
+            footer={
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
                   {deliveries.data ? `${deliveries.data.totalCount} attempts` : "—"}
                 </span>
                 <Button
@@ -186,23 +187,25 @@ export function WebhookDetailPage() {
                   Refresh
                 </Button>
               </div>
-
-              {deliveries.isError ? (
-                <ErrorBand message={describe(deliveries.error)} />
-              ) : deliveries.isLoading ? (
-                <LoadingRow label="Loading deliveries" />
-              ) : (deliveries.data?.items.length ?? 0) === 0 ? (
-                <p className="text-sm text-[var(--color-muted-foreground)]">
-                  No deliveries yet. Try the test button above, or wait for matching events to fire.
-                </p>
-              ) : (
-                <>
-                  <ol className="divide-y divide-[var(--color-border)] border-y border-[var(--color-border)]">
-                    {(deliveries.data!.items ?? []).map((d) => (
-                      <DeliveryRow key={d.id} delivery={d} />
-                    ))}
-                  </ol>
-                  {deliveries.data!.totalPages > 1 && (
+            }
+          >
+            {deliveries.isError ? (
+              <ErrorBand message={describe(deliveries.error)} />
+            ) : deliveries.isLoading ? (
+              <LoadingRow label="Loading deliveries" />
+            ) : (deliveries.data?.items.length ?? 0) === 0 ? (
+              <p className="text-sm text-[var(--color-muted-foreground)]">
+                No deliveries yet. Try the test button above, or wait for matching events to fire.
+              </p>
+            ) : (
+              <>
+                <ol className="-mx-5 divide-y divide-[var(--color-border)] border-y border-[var(--color-border)]">
+                  {(deliveries.data!.items ?? []).map((d) => (
+                    <DeliveryRow key={d.id} delivery={d} />
+                  ))}
+                </ol>
+                {deliveries.data!.totalPages > 1 && (
+                  <div className="mt-4">
                     <Pagination
                       page={deliveries.data!.pageNumber}
                       totalPages={deliveries.data!.totalPages}
@@ -215,12 +218,12 @@ export function WebhookDetailPage() {
                       onNext={() => setDeliveryPage((p) => p + 1)}
                       noun="deliveries"
                     />
-                  )}
-                </>
-              )}
-            </FormSection>
-          </FormShell>
-        </>
+                  </div>
+                )}
+              </>
+            )}
+          </SettingsSection>
+        </div>
       )}
     </div>
   );
@@ -230,7 +233,7 @@ function DeliveryRow({ delivery }: { delivery: WebhookDeliveryDto }) {
   const Icon = delivery.success ? CheckCircle2 : XCircle;
   const tone = delivery.success ? "text-[var(--color-success)]" : "text-[var(--color-destructive)]";
   return (
-    <li className="grid grid-cols-[auto_8rem_auto_1fr_auto_auto] items-center gap-3 py-2.5">
+    <li className="grid grid-cols-[auto_8rem_auto_1fr_auto_auto] items-center gap-3 px-5 py-2.5">
       <Icon className={cn("h-4 w-4", tone)} />
       <span className="font-mono text-[11px] tabular-nums text-[var(--color-muted-foreground)]">
         {formatTimestamp(delivery.attemptedAtUtc)}
@@ -252,10 +255,10 @@ function DeliveryRow({ delivery }: { delivery: WebhookDeliveryDto }) {
   );
 }
 
-function Row({ label, value, mono }: { label: string; value: React.ReactNode; mono?: boolean }) {
+function FieldRow({ label, value, mono }: { label: string; value: React.ReactNode; mono?: boolean }) {
   return (
-    <div className="grid grid-cols-[10rem_1fr] items-baseline gap-4 py-2.5">
-      <dt className="meta text-[var(--color-muted-foreground)]">{label}</dt>
+    <div className="grid grid-cols-[10rem_1fr] items-baseline gap-4">
+      <dt className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">{label}</dt>
       <dd className={cn("min-w-0 break-words text-sm", mono && "font-mono text-[0.8125rem]")}>
         {value}
       </dd>

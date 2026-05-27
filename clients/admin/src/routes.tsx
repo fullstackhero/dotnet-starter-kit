@@ -27,13 +27,10 @@ const lazyNamed = <T extends string>(
   });
 
 const TenantsListPage = lazyNamed(() => import("@/pages/tenants/list"), "TenantsListPage");
-const CreateTenantPage = lazyNamed(() => import("@/pages/tenants/create"), "CreateTenantPage");
 const TenantDetailPage = lazyNamed(() => import("@/pages/tenants/detail"), "TenantDetailPage");
 const UsersListPage = lazyNamed(() => import("@/pages/users/list"), "UsersListPage");
-const CreateUserPage = lazyNamed(() => import("@/pages/users/create"), "CreateUserPage");
 const UserDetailPage = lazyNamed(() => import("@/pages/users/detail"), "UserDetailPage");
 const RolesListPage = lazyNamed(() => import("@/pages/roles/list"), "RolesListPage");
-const CreateRolePage = lazyNamed(() => import("@/pages/roles/create"), "CreateRolePage");
 const RoleDetailPage = lazyNamed(() => import("@/pages/roles/detail"), "RoleDetailPage");
 const BillingLayout = lazyNamed(() => import("@/pages/billing/layout"), "BillingLayout");
 const PlansListPage = lazyNamed(() => import("@/pages/billing/plans-list"), "PlansListPage");
@@ -41,7 +38,6 @@ const PlanFormPage = lazyNamed(() => import("@/pages/billing/plan-form"), "PlanF
 const InvoicesListPage = lazyNamed(() => import("@/pages/billing/invoices-list"), "InvoicesListPage");
 const InvoiceDetailPage = lazyNamed(() => import("@/pages/billing/invoice-detail"), "InvoiceDetailPage");
 const AuditsListPage = lazyNamed(() => import("@/pages/audits/list"), "AuditsListPage");
-const AuditDetailPage = lazyNamed(() => import("@/pages/audits/detail"), "AuditDetailPage");
 const HealthPage = lazyNamed(() => import("@/pages/health/page"), "HealthPage");
 const ImpersonationListPage = lazyNamed(() => import("@/pages/impersonation/list"), "ImpersonationListPage");
 const WebhooksListPage = lazyNamed(() => import("@/pages/webhooks/list"), "WebhooksListPage");
@@ -94,12 +90,10 @@ export const router = createBrowserRouter([
             ),
           },
           {
+            // /tenants/new — creation is now a dialog on the list page.
+            // Redirect any bookmarked links back to /tenants.
             path: "tenants/new",
-            element: (
-              <RouteGuard perms={[MultitenancyPermissions.Tenants.Create]}>
-                <CreateTenantPage />
-              </RouteGuard>
-            ),
+            element: <Navigate to="/tenants" replace />,
           },
           {
             path: "tenants/:id",
@@ -120,12 +114,10 @@ export const router = createBrowserRouter([
             ),
           },
           {
+            // /users/new — creation is now a dialog on the list page.
+            // Redirect any bookmarked links back to /users.
             path: "users/new",
-            element: (
-              <RouteGuard perms={[IdentityPermissions.Users.Create]}>
-                <CreateUserPage />
-              </RouteGuard>
-            ),
+            element: <Navigate to="/users" replace />,
           },
           {
             path: "users/:id",
@@ -146,12 +138,10 @@ export const router = createBrowserRouter([
             ),
           },
           {
+            // /roles/new — creation is now a dialog on the list page.
+            // Redirect any bookmarked links back to /roles.
             path: "roles/new",
-            element: (
-              <RouteGuard perms={[IdentityPermissions.Roles.Create]}>
-                <CreateRolePage />
-              </RouteGuard>
-            ),
+            element: <Navigate to="/roles" replace />,
           },
           {
             path: "roles/:id",
@@ -190,7 +180,8 @@ export const router = createBrowserRouter([
             ),
           },
 
-          // Audits
+          // Audits — detail opens as a side sheet on the list page.
+          // Redirect any bookmarked /audits/:id links back to /audits.
           {
             path: "audits",
             element: (
@@ -201,11 +192,7 @@ export const router = createBrowserRouter([
           },
           {
             path: "audits/:id",
-            element: (
-              <RouteGuard perms={[AuditingPermissions.AuditTrails.View]}>
-                <AuditDetailPage />
-              </RouteGuard>
-            ),
+            element: <Navigate to="/audits" replace />,
           },
 
           // Webhooks — any signed-in user can manage their tenant's subscriptions

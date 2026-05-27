@@ -6,6 +6,7 @@
 
 `[Authorize] AppHub` mapped at **`/api/v1/realtime/hub`**. Groups: `user:{userId}`, `tenant:{tenantId}`, `channel:{channelId}`.
 
+- **Channel-group join is connect-time + on-demand.** `OnConnectedAsync` auto-joins `user:{id}`, `tenant:{id}`, and every `channel:{id}` the user is *already* a member of. A channel that becomes relevant **after** the socket is live (a new DM, or being added to a channel) is **not** auto-joined — the client must call the membership-gated **`JoinChannel(channelId)`** hub method (the dashboard does this on channel open + reconnect). Without it, group broadcasts silently miss that connection until a page reload re-runs `OnConnectedAsync`. New-DM creation pushes `ChatChannelAdded` to each other participant's `user:{id}` group so their channel list refreshes.
 - **⚠️ Read the user from `Context.User`, NOT `ICurrentUser`.** `ICurrentUser` flows through `IHttpContextAccessor`, but the negotiate `HttpContext` isn't pinned to subsequent hub invocations → `ICurrentUser` returns nulls inside the hub. Use `Context.User` (the hub's `GetUserId()`/`GetTenantId()` helpers).
 - Broadcasts are **scoped to groups** (`tenant:{id}`, `user:{id}`, `channel:{id}`), never `Clients.All`. `PresenceChanged` goes to the tenant group.
 - Redis backplane is added automatically when `CachingOptions:Redis` is set (channel prefix `fsh-signalr`) — required for multi-replica.

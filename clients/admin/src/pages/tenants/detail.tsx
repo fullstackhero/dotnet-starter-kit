@@ -1,7 +1,22 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, CheckCircle2, CircleDashed, Loader2, RefreshCw, UserCog, XCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  Building2,
+  CalendarClock,
+  CheckCircle2,
+  CircleDashed,
+  ClipboardList,
+  Info,
+  KeyRound,
+  Loader2,
+  Mail,
+  RefreshCw,
+  ServerCrash,
+  UserCog,
+  XCircle,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/auth/use-auth";
 import { ImpersonateDialog } from "@/components/impersonation/impersonate-dialog";
@@ -19,11 +34,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Monogram } from "@/components/monogram";
 import {
-  PageHeader,
+  EntityPageHeader,
   ErrorBand,
   LoadingRow,
-  FormShell,
-  FormSection,
+  SettingsSection,
 } from "@/components/list";
 import { ApiRequestError } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
@@ -49,8 +63,8 @@ export function TenantDetailPage() {
     queryFn: () => getTenantProvisioningStatus(id),
     enabled: !!id,
     // A 404 means this tenant was never run through the provisioning pipeline
-    // (e.g. demo/directly-created tenants). That's a terminal "not tracked"
-    // state, not a transient failure — don't retry or poll it.
+    // (e.g. demo/directly-created tenants) — a terminal "not tracked" state,
+    // not a transient failure. Don't retry or poll it.
     retry: (failureCount, err) =>
       !(err instanceof ApiRequestError && err.status === 404) && failureCount < 3,
     // Poll while provisioning is in flight; stop once terminal (or not tracked).
@@ -91,20 +105,16 @@ export function TenantDetailPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        crumbs={[
-          { label: "\\ Tenants" },
-          { label: tenant?.name ?? id, muted: true },
-        ]}
-        trailing={id ? `ID · ${shortId(id)}` : undefined}
+      <EntityPageHeader
+        icon={Building2}
         title={tenant?.name ?? "Tenant"}
+        tone="info"
         description={tenant?.adminEmail}
-        actions={
-          <Button variant="ghost" size="sm" onClick={() => navigate("/tenants")}>
-            <ArrowLeft className="mr-1 h-3.5 w-3.5" /> Registry
-          </Button>
-        }
-      />
+      >
+        <Button variant="ghost" size="sm" onClick={() => navigate("/tenants")}>
+          <ArrowLeft className="mr-1 h-3.5 w-3.5" /> Registry
+        </Button>
+      </EntityPageHeader>
 
       {tenantQuery.isError && (
         <ErrorBand message={describe(tenantQuery.error)} />
@@ -114,59 +124,71 @@ export function TenantDetailPage() {
 
       {tenant && (
         <>
-          <header className="card-shell flex flex-col items-start gap-6 px-6 py-6 sm:px-8 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center gap-5">
-              <Monogram seed={tenant.id} fallback={tenant.name} size="lg" />
-              <div>
-                <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
-                  {tenant.name}
-                </h2>
-                <div className="mt-1 flex flex-wrap items-baseline gap-x-4 gap-y-1 font-mono text-xs text-[var(--color-muted-foreground)]">
-                  <code className="code-chip">{tenant.id}</code>
-                  <span className="truncate">{tenant.adminEmail}</span>
-                </div>
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <Badge variant={tenant.isActive ? "success" : "muted"} className="font-mono uppercase tracking-[0.14em]">
-                    {tenant.isActive ? "Active" : "Inactive"}
-                  </Badge>
-                  <Badge variant="outline" className="font-mono uppercase tracking-[0.14em]">
-                    valid · {formatDate(tenant.validUpto)}
-                  </Badge>
-                  {tenant.issuer && (
-                    <Badge variant="outline" className="font-mono uppercase tracking-[0.14em]">
-                      iss · {tenant.issuer}
+          {/* ── Hero identity card ─────────────────────────────────────── */}
+          <SettingsSection title="Overview" icon={Building2}>
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+              {/* Left: monogram + name + meta + badges */}
+              <div className="flex items-start gap-4">
+                <Monogram seed={tenant.id} fallback={tenant.name} size="lg" />
+                <div className="min-w-0">
+                  <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
+                    {tenant.name}
+                  </h2>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <span className="inline-flex items-center gap-1.5 text-[12px] text-[var(--color-muted-foreground)]">
+                      <Mail className="h-3 w-3 shrink-0" />
+                      {tenant.adminEmail}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-[var(--color-muted-foreground)]">
+                      <KeyRound className="h-3 w-3 shrink-0" />
+                      <code>{tenant.id}</code>
+                    </span>
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <Badge variant={tenant.isActive ? "success" : "muted"}>
+                      {tenant.isActive ? "Active" : "Inactive"}
                     </Badge>
-                  )}
+                    <Badge variant="outline">
+                      <CalendarClock className="h-3 w-3" />
+                      Valid until {formatDate(tenant.validUpto)}
+                    </Badge>
+                    {tenant.issuer && (
+                      <Badge variant="outline" className="font-mono text-[10.5px]">
+                        iss · {tenant.issuer}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              {canImpersonate && tenant.isActive && (
+              {/* Right: action buttons */}
+              <div className="flex shrink-0 flex-wrap items-center gap-2">
+                {canImpersonate && tenant.isActive && (
+                  <Button
+                    variant="signal"
+                    onClick={() => setImpersonateOpen(true)}
+                    className="shrink-0"
+                    title="Sign in as a user inside this tenant"
+                  >
+                    <UserCog className="mr-1.5 h-3.5 w-3.5" />
+                    Impersonate user
+                  </Button>
+                )}
                 <Button
-                  variant="signal"
-                  onClick={() => setImpersonateOpen(true)}
+                  variant={tenant.isActive ? "outline" : "default"}
+                  onClick={() => activationMutation.mutate(!tenant.isActive)}
+                  disabled={activationMutation.isPending}
                   className="shrink-0"
-                  title="Sign in as a user inside this tenant"
                 >
-                  <UserCog className="mr-1.5 h-3.5 w-3.5" />
-                  Impersonate user
+                  {activationMutation.isPending
+                    ? "Updating…"
+                    : tenant.isActive
+                      ? "Deactivate tenant"
+                      : "Activate tenant"}
                 </Button>
-              )}
-              <Button
-                variant={tenant.isActive ? "outline" : "default"}
-                onClick={() => activationMutation.mutate(!tenant.isActive)}
-                disabled={activationMutation.isPending}
-                className="shrink-0"
-              >
-                {activationMutation.isPending
-                  ? "Updating…"
-                  : tenant.isActive
-                    ? "Deactivate tenant"
-                    : "Activate tenant"}
-              </Button>
+              </div>
             </div>
-          </header>
+          </SettingsSection>
 
           <ImpersonateDialog
             open={impersonateOpen}
@@ -179,75 +201,107 @@ export function TenantDetailPage() {
 
           <TenantBrandingCard tenantId={tenant.id} />
 
-          <FormShell>
-            <FormSection
-              title="Details"
-              description="The tenant's identity, contact, and subscription window. Identifiers are immutable; the issuer is used to scope JWTs."
-            >
-              <dl className="divide-y divide-[var(--color-border)]">
-                <DetailRow label="Identifier" mono>{tenant.id}</DetailRow>
-                <DetailRow label="Name">{tenant.name}</DetailRow>
-                <DetailRow label="Admin email" mono>{tenant.adminEmail}</DetailRow>
-                <DetailRow label="JWT issuer" mono>{tenant.issuer ?? "—"}</DetailRow>
-                <DetailRow label="Valid until">{formatDate(tenant.validUpto)}</DetailRow>
-                <DetailRow label="Status">{tenant.isActive ? "Active" : "Inactive"}</DetailRow>
-              </dl>
-            </FormSection>
-          </FormShell>
+          {/* ── Details section ────────────────────────────────────────── */}
+          <SettingsSection
+            title="Details"
+            icon={Info}
+            description="The tenant's identity, contact, and subscription window. Identifiers are immutable; the issuer scopes JWTs to this tenant."
+          >
+            <div className="space-y-0">
+              <InfoRow label="Identifier" mono>{tenant.id}</InfoRow>
+              <InfoRow label="Name">{tenant.name}</InfoRow>
+              <InfoRow label="Admin email" mono>{tenant.adminEmail}</InfoRow>
+              <InfoRow label="JWT issuer" mono>{tenant.issuer ?? "—"}</InfoRow>
+              <InfoRow label="Valid until">
+                <span className="flex items-center gap-1.5">
+                  <CalendarClock className="h-3.5 w-3.5 text-[var(--color-muted-foreground)]" />
+                  {formatDate(tenant.validUpto)}
+                </span>
+              </InfoRow>
+              <InfoRow label="Status" isLast>
+                <Badge variant={tenant.isActive ? "success" : "muted"}>
+                  {tenant.isActive ? "Active" : "Inactive"}
+                </Badge>
+              </InfoRow>
+            </div>
+          </SettingsSection>
 
-          <FormShell>
-            <FormSection
-              title="Provisioning"
-              description={
-                <>
-                  Live status of the background pipeline that seeds the tenant database,
-                  default roles, and admin user. Polls every 2 seconds while running.
-                </>
-              }
-            >
-              <ProvisioningPanel
-                steps={provisioning?.steps ?? []}
-                status={provisioning?.status}
-                currentStep={provisioning?.currentStep ?? undefined}
-                errorBody={provisioning?.error ?? undefined}
-                loading={provisioningQuery.isLoading}
-                // A 404 isn't an error to surface — it just means this tenant
-                // was never run through the pipeline. Swallow it here and let
-                // the panel render its neutral "not tracked" state instead.
-                error={provisioningNotTracked ? undefined : provisioningQuery.error}
-                notTracked={provisioningNotTracked}
-                onRetry={() => retryMutation.mutate()}
-                retryPending={retryMutation.isPending}
-              />
-            </FormSection>
-          </FormShell>
+          {/* ── Provisioning section ───────────────────────────────────── */}
+          <SettingsSection
+            title="Provisioning"
+            icon={ClipboardList}
+            description="Live status of the background pipeline that seeds the tenant database, default roles, and admin user. Polls every 2 seconds while running."
+          >
+            <ProvisioningPanel
+              steps={provisioning?.steps ?? []}
+              status={provisioning?.status}
+              currentStep={provisioning?.currentStep ?? undefined}
+              errorBody={provisioning?.error ?? undefined}
+              loading={provisioningQuery.isLoading}
+              // A 404 isn't an error to surface — the tenant was just never run
+              // through the pipeline. Swallow it and show the neutral state.
+              error={provisioningNotTracked ? undefined : provisioningQuery.error}
+              notTracked={provisioningNotTracked}
+              onRetry={() => retryMutation.mutate()}
+              retryPending={retryMutation.isPending}
+            />
+          </SettingsSection>
         </>
       )}
     </div>
   );
 }
 
-// ─── subcomponents ──────────────────────────────────────────────────────
+// ─── subcomponents ──────────────────────────────────────────────────────────
 
-function DetailRow({
+/**
+ * InfoRow — a single key/value row inside the Details card.
+ * Matches the `ProfileRow` pattern from the dashboard's user-detail page:
+ * label on the left (muted, small), value on the right (foreground, readable).
+ * Separated by a subtle half-opacity border.
+ */
+function InfoRow({
   label,
   children,
   mono,
+  isLast,
 }: {
   label: string;
   children: React.ReactNode;
   mono?: boolean;
+  isLast?: boolean;
 }) {
   return (
-    <div className="grid grid-cols-[10rem_1fr] items-baseline gap-4 py-2.5">
-      <dt className="meta text-[var(--color-muted-foreground)]">{label}</dt>
-      <dd className={cn("min-w-0 break-words text-sm", mono && "font-mono text-[0.8125rem]")}>
+    <div
+      className={cn(
+        "flex items-center justify-between gap-4 py-2.5",
+        !isLast &&
+          "border-b border-[oklch(from_var(--color-border)_l_c_h_/_0.5)]",
+      )}
+    >
+      <span className="shrink-0 text-[11.5px] font-medium text-[var(--color-muted-foreground)]">
+        {label}
+      </span>
+      <span
+        className={cn(
+          "min-w-0 truncate text-right text-[13px] text-[var(--color-foreground)]",
+          mono && "font-mono text-[12px]",
+        )}
+      >
         {children}
-      </dd>
+      </span>
     </div>
   );
 }
 
+/**
+ * ProvisioningPanel — live pipeline status.
+ * Renders a status badge + retry action, then either:
+ *  - a "not tracked" neutral state (provisioningNotTracked)
+ *  - a timeline-style step list
+ *  - loading / empty / error states
+ * The 404/notTracked logic is intentionally preserved verbatim.
+ */
 function ProvisioningPanel({
   steps,
   status,
@@ -270,6 +324,7 @@ function ProvisioningPanel({
   retryPending: boolean;
 }) {
   const overall = notTracked ? "Not tracked" : status ?? (loading ? "Loading" : "Unknown");
+
   const overallVariant =
     status === "Completed"
       ? "success"
@@ -281,47 +336,53 @@ function ProvisioningPanel({
 
   return (
     <div className="space-y-5">
+      {/* Status bar */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Badge variant={overallVariant} className="font-mono uppercase tracking-[0.14em]">
-          {status === "Failed"
-            ? `Failed at ${currentStep ?? "unknown step"}`
-            : currentStep
-              ? `${overall} · ${currentStep}`
-              : overall}
-        </Badge>
+        <div className="flex items-center gap-2.5">
+          <OverallStatusDot status={notTracked ? "NotTracked" : (status ?? "Unknown")} />
+          <Badge variant={overallVariant}>
+            {status === "Failed"
+              ? `Failed at ${currentStep ?? "unknown step"}`
+              : currentStep
+                ? `${overall} · ${currentStep}`
+                : overall}
+          </Badge>
+        </div>
         {status === "Failed" && (
           <Button size="sm" variant="outline" onClick={onRetry} disabled={retryPending}>
-            <RefreshCw className={cn("mr-1 h-3.5 w-3.5", retryPending && "animate-spin")} />
+            <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", retryPending && "animate-spin")} />
             {retryPending ? "Re-queuing…" : "Retry provisioning"}
           </Button>
         )}
       </div>
 
+      {/* Body */}
       {error ? (
         <ErrorBand message={describe(error)} />
       ) : loading && steps.length === 0 ? (
-        <p className="meta text-[var(--color-muted-foreground)]">
-          Loading<span className="caret text-[var(--color-accent-signal)]" />
-        </p>
+        <p className="text-[13px] text-[var(--color-muted-foreground)]">Loading…</p>
       ) : notTracked ? (
-        <p className="text-sm text-[var(--color-muted-foreground)]">
-          This tenant wasn't created through the provisioning pipeline, so there's no run
-          history to show. Tenants created via the console report their seed/migrate steps here.
-        </p>
+        <div className="flex items-start gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-muted)] px-4 py-3.5">
+          <ServerCrash
+            aria-hidden
+            className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-muted-foreground)]"
+          />
+          <p className="text-[13px] leading-relaxed text-[var(--color-muted-foreground)]">
+            This tenant wasn't created through the provisioning pipeline, so there's no run
+            history to show. Tenants created via the console report their seed/migrate steps here.
+          </p>
+        </div>
       ) : steps.length === 0 ? (
-        <p className="text-sm text-[var(--color-muted-foreground)]">
+        <p className="text-[13px] text-[var(--color-muted-foreground)]">
           No provisioning runs recorded.
         </p>
       ) : (
-        <ol className="divide-y divide-[var(--color-border)] border-y border-[var(--color-border)]">
-          {steps.map((step, i) => (
-            <StepRow key={step.step} step={step} index={i + 1} />
-          ))}
-        </ol>
+        <StepTimeline steps={steps} />
       )}
 
+      {/* Error body (failed step detail) */}
       {errorBody && (
-        <pre className="max-h-44 overflow-auto rounded-md border border-[var(--color-destructive)]/40 bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.06)] p-3 font-mono text-[11px] whitespace-pre-wrap text-[var(--color-destructive)]">
+        <pre className="max-h-44 overflow-auto rounded-lg border border-[var(--color-destructive)]/40 bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.06)] p-3.5 font-mono text-[11px] whitespace-pre-wrap text-[var(--color-destructive)]">
           {errorBody}
         </pre>
       )}
@@ -329,23 +390,97 @@ function ProvisioningPanel({
   );
 }
 
-function StepRow({ step, index }: { step: TenantProvisioningStep; index: number }) {
-  const tone =
-    step.status === "Completed"
-      ? "text-[var(--color-success)]"
-      : step.status === "Failed"
-        ? "text-[var(--color-destructive)]"
-        : step.status === "Running"
-          ? "text-[var(--color-info)]"
-          : "text-[var(--color-muted-foreground)]";
-  const Icon =
-    step.status === "Completed"
-      ? CheckCircle2
-      : step.status === "Failed"
-        ? XCircle
-        : step.status === "Running"
-          ? Loader2
-          : CircleDashed;
+/**
+ * OverallStatusDot — an animated pulsing dot that conveys overall
+ * pipeline status at a glance alongside the badge text.
+ */
+function OverallStatusDot({ status }: { status: string }) {
+  const color =
+    status === "Completed"
+      ? "bg-[var(--color-success)]"
+      : status === "Failed"
+        ? "bg-[var(--color-destructive)]"
+        : status === "Running"
+          ? "bg-[var(--color-info)]"
+          : "bg-[var(--color-muted-foreground)]";
+
+  const pulse = status === "Running";
+
+  return (
+    <span className="relative inline-flex h-2.5 w-2.5 shrink-0">
+      {pulse && (
+        <span
+          className={cn(
+            "absolute inline-flex h-full w-full animate-ping rounded-full opacity-60",
+            color,
+          )}
+        />
+      )}
+      <span className={cn("relative inline-flex h-2.5 w-2.5 rounded-full", color)} />
+    </span>
+  );
+}
+
+/**
+ * StepTimeline — renders provisioning steps as a connected vertical
+ * timeline instead of a flat `<ol>` with dividers.
+ * Each step has: a status icon track, step name, duration, and status label.
+ */
+function StepTimeline({ steps }: { steps: TenantProvisioningStep[] }) {
+  return (
+    <ol className="space-y-0">
+      {steps.map((step, i) => (
+        <StepRow key={step.step} step={step} index={i + 1} isLast={i === steps.length - 1} />
+      ))}
+    </ol>
+  );
+}
+
+function StepRow({
+  step,
+  index,
+  isLast,
+}: {
+  step: TenantProvisioningStep;
+  index: number;
+  isLast: boolean;
+}) {
+  const isCompleted = step.status === "Completed";
+  const isFailed = step.status === "Failed";
+  const isRunning = step.status === "Running";
+  const isPending = !isCompleted && !isFailed && !isRunning;
+
+  const iconColor = isCompleted
+    ? "text-[var(--color-success)]"
+    : isFailed
+      ? "text-[var(--color-destructive)]"
+      : isRunning
+        ? "text-[var(--color-info)]"
+        : "text-[var(--color-muted-foreground)]";
+
+  const Icon = isCompleted
+    ? CheckCircle2
+    : isFailed
+      ? XCircle
+      : isRunning
+        ? Loader2
+        : CircleDashed;
+
+  const trackColor = isCompleted
+    ? "bg-[var(--color-success)]"
+    : isFailed
+      ? "bg-[var(--color-destructive)]"
+      : isRunning
+        ? "bg-[var(--color-info)]"
+        : "bg-[var(--color-border-strong)]";
+
+  const statusVariant = isCompleted
+    ? "success"
+    : isFailed
+      ? "danger"
+      : isRunning
+        ? "info"
+        : ("outline" as const);
 
   const duration =
     step.startedUtc && step.completedUtc
@@ -355,28 +490,71 @@ function StepRow({ step, index }: { step: TenantProvisioningStep; index: number 
         : null;
 
   return (
-    <li className="grid grid-cols-[2rem_auto_1fr_auto_auto] items-center gap-3 py-2.5">
-      <span className="font-mono text-[10.5px] tabular-nums text-[var(--color-muted-foreground)]">
-        {String(index).padStart(2, "0")}
-      </span>
-      <Icon className={cn("h-4 w-4", tone, step.status === "Running" && "animate-spin")} />
-      <span className="truncate font-mono text-[13px]">{step.step}</span>
-      {duration && (
-        <span className="font-mono text-[10.5px] tabular-nums text-[var(--color-muted-foreground)]">
-          {duration}
+    <li className="flex items-stretch gap-3">
+      {/* Timeline track column */}
+      <div className="flex w-8 shrink-0 flex-col items-center">
+        {/* Icon */}
+        <span
+          className={cn(
+            "relative z-10 grid h-8 w-8 shrink-0 place-items-center rounded-full",
+            "border border-[var(--color-border)] bg-[var(--color-card)]",
+            iconColor,
+          )}
+        >
+          <Icon
+            className={cn("h-3.5 w-3.5", isRunning && "animate-spin")}
+          />
         </span>
-      )}
-      <span className={cn("meta", tone)}>{step.status}</span>
+        {/* Vertical connector line — hidden on last item */}
+        {!isLast && (
+          <div
+            className={cn("mt-1 w-[2px] flex-1 rounded-full opacity-30", trackColor)}
+            style={{ minHeight: "1.25rem" }}
+          />
+        )}
+      </div>
+
+      {/* Content */}
+      <div
+        className={cn(
+          "flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-4 gap-y-0.5 pb-4",
+          isLast && "pb-0",
+        )}
+      >
+        {/* Step index + name */}
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="font-mono text-[10.5px] tabular-nums text-[var(--color-muted-foreground)] opacity-60">
+            {String(index).padStart(2, "0")}
+          </span>
+          <span
+            className={cn(
+              "truncate font-mono text-[13px]",
+              isPending
+                ? "text-[var(--color-muted-foreground)]"
+                : "text-[var(--color-foreground)]",
+            )}
+          >
+            {step.step}
+          </span>
+        </div>
+
+        {/* Duration + status */}
+        <div className="flex shrink-0 items-center gap-2.5">
+          {duration && (
+            <span className="font-mono text-[11px] tabular-nums text-[var(--color-muted-foreground)]">
+              {duration}
+            </span>
+          )}
+          <Badge variant={statusVariant} className="font-mono uppercase tracking-[0.12em]">
+            {step.status}
+          </Badge>
+        </div>
+      </div>
     </li>
   );
 }
 
-// ─── helpers ────────────────────────────────────────────────────────────
-
-function shortId(id: string): string {
-  if (id.length <= 12) return id;
-  return `${id.slice(0, 4)}…${id.slice(-4)}`;
-}
+// ─── helpers ────────────────────────────────────────────────────────────────
 
 function formatDate(value: string | undefined): string {
   if (!value) return "—";

@@ -25,6 +25,7 @@ import { RealtimeStatusPill } from "@/components/realtime/realtime-status-pill";
 import { cn } from "@/lib/cn";
 import { useUserDisplay } from "@/lib/use-user-display";
 import { usePresence } from "@/realtime/use-presence";
+import { useRealtimeEvent } from "@/realtime/realtime-context";
 import { channelTitle } from "@/pages/chat/chat-utils";
 
 /**
@@ -53,11 +54,24 @@ export function ChannelRail({
   const [createChannelOpen, setCreateChannelOpen] = useState(false);
   const [newDmOpen, setNewDmOpen] = useState(false);
 
+  const queryClient = useQueryClient();
+
   const channelsQuery = useQuery({
     queryKey: ["chat", "my-channels"],
     queryFn: () => listMyChannels({ pageSize: 100 }),
     staleTime: 30_000,
   });
+
+  // A new conversation just became relevant to us (someone DM'd us, or we were
+  // added to a channel). The hub pushes ChatChannelAdded to our user:{id} group —
+  // which every tab joins on connect — so refresh the rail to surface it without a
+  // reload. Opening the conversation then joins its channel:{id} group for live
+  // messages (see chat-page's JoinChannel invoke).
+  useRealtimeEvent<{ channelId: string }>(
+    "ChatChannelAdded",
+    () => void queryClient.invalidateQueries({ queryKey: ["chat", "my-channels"] }),
+    [queryClient],
+  );
 
   const channels = useMemo(() => channelsQuery.data ?? [], [channelsQuery.data]);
 

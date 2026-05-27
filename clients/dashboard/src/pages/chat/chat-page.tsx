@@ -25,7 +25,7 @@ import {
 import { useAuth } from "@/auth/use-auth";
 import { ChannelRail } from "@/pages/chat/channel-rail";
 import { ChannelSettingsDialog } from "@/pages/chat/channel-settings";
-import { ChatPinnedDropdown } from "@/pages/chat/chat-pinned";
+import { ChatPinnedBar } from "@/pages/chat/chat-pinned";
 import { ChatSearchOverlay } from "@/pages/chat/chat-search";
 import { Composer } from "@/pages/chat/composer";
 import {
@@ -36,6 +36,7 @@ import { TypingIndicator } from "@/pages/chat/typing-indicator";
 import { channelTitle } from "@/pages/chat/chat-utils";
 import { cn } from "@/lib/cn";
 import { useUserDisplay } from "@/lib/use-user-display";
+import { useRealtime } from "@/realtime/realtime-context";
 
 /**
  * /chat — top-level chat shell.
@@ -151,6 +152,17 @@ function ActiveChannel({
   const [searching, setSearching] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const messageListRef = useRef<MessageListHandle | null>(null);
+  const { invoke, status } = useRealtime();
+
+  // Join this channel's realtime group whenever it's opened, and re-join when the
+  // socket (re)connects. AppHub.OnConnectedAsync only pre-joins channels that existed
+  // at connect time, so a DM/channel opened later — or created after the socket came
+  // up — wouldn't receive live messages until a reload without this. The hub method is
+  // membership-gated and idempotent, so calling it on every open/reconnect is safe.
+  useEffect(() => {
+    if (status !== "connected") return;
+    void invoke("JoinChannel", channelId);
+  }, [channelId, status, invoke]);
 
   // Clear ephemeral state when the user switches channels.
   useEffect(() => {
@@ -285,15 +297,6 @@ function ActiveChannel({
           >
             <Search className="size-3.5" />
           </button>
-          <ChatPinnedDropdown
-            channelId={channelId}
-            onJump={(id) => {
-              const ok = messageListRef.current?.jumpToMessage(id) ?? false;
-              if (!ok) {
-                toast.info("That message is older than the loaded window.");
-              }
-            }}
-          />
           {channel.type === 2 && (
             <button
               type="button"
@@ -313,6 +316,18 @@ function ActiveChannel({
         onOpenChange={setSettingsOpen}
         channel={channel}
         selfUserId={selfUserId}
+      />
+
+      {/* Pinned-messages bar — slim strip under the header; hidden when the
+          channel has nothing pinned. Click to review/jump to pins. */}
+      <ChatPinnedBar
+        channelId={channelId}
+        onJump={(id) => {
+          const ok = messageListRef.current?.jumpToMessage(id) ?? false;
+          if (!ok) {
+            toast.info("That message is older than the loaded window.");
+          }
+        }}
       />
 
       {/* Message list — fills the remaining height. */}

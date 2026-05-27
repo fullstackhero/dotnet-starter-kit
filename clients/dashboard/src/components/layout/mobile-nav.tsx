@@ -116,7 +116,7 @@ export function MobileNavRoot() {
 
         <div className="border-t border-[var(--color-border)] px-5 py-3">
           <p className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
-            v0.1 · console
+            v0.1 · dashboard
           </p>
         </div>
       </SheetContent>

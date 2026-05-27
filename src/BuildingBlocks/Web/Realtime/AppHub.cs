@@ -173,6 +173,29 @@ public sealed class AppHub : Hub
             .SendAsync("ChatTypingStarted", new { channelId, userId }, Context.ConnectionAborted)
             .ConfigureAwait(false);
     }
+
+    /// <summary>
+    /// Client invokes <c>JoinChannel(channelId)</c> when it opens a conversation.
+    /// <see cref="OnConnectedAsync"/> only pre-joins the channels that existed — and that the user
+    /// was already a member of — at connect time. A DM/channel created, or a membership granted,
+    /// <em>after</em> the socket is live would otherwise never receive <c>channel:{id}</c> broadcasts
+    /// until the page reloads and a fresh connection re-enumerates memberships. This joins the group
+    /// on demand, gated by the same membership check used for typing. Idempotent — re-joining a group
+    /// you're already in is a no-op, so the client can call it freely on open and on reconnect.
+    /// </summary>
+    public async Task JoinChannel(Guid channelId)
+    {
+        var userId = GetUserId();
+        if (string.IsNullOrEmpty(userId)) return;
+
+        if (!await _membership.IsMemberAsync(channelId, userId, Context.ConnectionAborted).ConfigureAwait(false))
+        {
+            return;
+        }
+
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"channel:{channelId}", Context.ConnectionAborted)
+            .ConfigureAwait(false);
+    }
 }
 
 internal static partial class AppHubLog

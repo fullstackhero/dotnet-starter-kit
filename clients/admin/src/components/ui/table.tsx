@@ -2,8 +2,8 @@ import * as React from "react";
 import { cn } from "@/lib/cn";
 
 /**
- * Table — Console treatment. Mono uppercase headers with wide tracking,
- * hairline row borders, hover row tinted in the muted surface.
+ * Table — FSH unified design tokens. Mono uppercase headers with wide
+ * tracking, hairline row borders, hover row tinted in the accent surface.
  */
 export const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
   ({ className, ...props }, ref) => (
@@ -24,7 +24,7 @@ export const TableHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <thead
     ref={ref}
-    className={cn("[&_tr]:border-b [&_tr]:border-[var(--color-border-strong)]", className)}
+    className={cn("[&_tr]:border-b [&_tr]:border-[var(--color-border)]", className)}
     {...props}
   />
 ));
@@ -45,7 +45,7 @@ export const TableRow = React.forwardRef<
   <tr
     ref={ref}
     className={cn(
-      "border-b border-[var(--color-border)] transition-colors hover:bg-[var(--color-muted)] data-[state=selected]:bg-[var(--color-muted)]",
+      "border-b border-[var(--color-border)] transition-colors hover:bg-[var(--color-accent)] data-[state=selected]:bg-[var(--color-accent)]",
       className,
     )}
     {...props}

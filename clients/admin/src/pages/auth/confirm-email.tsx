@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { AlertCircle, ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { AuthShell } from "@/components/auth/auth-shell";
 import { confirmEmail } from "@/api/users";
 import { ApiRequestError } from "@/lib/api-client";
 
@@ -15,9 +14,9 @@ type Status =
  * Confirm-email landing — admin variant.
  *
  * Same shape as the dashboard's: auto-fire GET on mount, surface stable
- * success or failure state with recovery affordances. Uses the admin's
- * editorial split-screen shell so the page reads as part of the same
- * surface as the login page.
+ * success or failure state with recovery affordances. Uses the unified
+ * centered-card auth shell so the page reads as part of the same surface
+ * as the login and other auth pages.
  */
 export function ConfirmEmailPage() {
   const [params] = useSearchParams();
@@ -63,88 +62,147 @@ export function ConfirmEmailPage() {
   }, [userId, code, tenant, malformed]);
 
   return (
-    <AuthShell
-      crumbLeft="// VERIFY EMAIL"
-      crumbRight={
-        status.kind === "loading"
-          ? "validating…"
-          : status.kind === "success"
-            ? "confirmed"
-            : "failed"
-      }
-      blurb={
-        status.kind === "loading"
-          ? "Checking the confirmation token with the server."
-          : status.kind === "success"
-            ? "Your email is now verified for this tenant."
-            : "We couldn't verify that confirmation token."
-      }
-    >
-      {status.kind === "loading" && (
-        <div className="space-y-4 py-2 text-center">
-          <div className="grid place-items-center pt-1">
-            <span
-              aria-hidden
-              className="grid h-12 w-12 place-items-center rounded-full border border-[var(--color-border)] bg-[var(--color-muted)] text-[var(--color-muted-foreground)]"
-            >
-              <Loader2 className="h-5 w-5 animate-spin" />
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[var(--color-background)] px-5 py-8 sm:py-12">
+      {/* Atmospheric background orbs */}
+      <div className="pointer-events-none absolute inset-0" aria-hidden>
+        <div
+          className="absolute -top-[25%] -left-[15%] h-[70vw] w-[70vw] rounded-full blur-[140px]"
+          style={{ backgroundColor: "oklch(from var(--color-primary) l c h / 0.05)" }}
+        />
+        <div
+          className="absolute -bottom-[20%] -right-[10%] h-[55vw] w-[55vw] rounded-full blur-[120px]"
+          style={{ backgroundColor: "oklch(from var(--color-saffron, var(--color-primary)) l c h / 0.07)" }}
+        />
+        <div
+          className="absolute top-[10%] right-[5%] h-[30vw] w-[30vw] rounded-full blur-[80px]"
+          style={{ backgroundColor: "oklch(from var(--color-primary) l c h / 0.025)" }}
+        />
+      </div>
+
+      {/* Card column */}
+      <div className="relative z-10 w-full max-w-[420px] fsh-enter fsh-enter-1">
+        {/* Brand lockup */}
+        <div className="mb-8 flex flex-col items-center">
+          <div className="flex items-center gap-2.5">
+            <img
+              src="/logo-fullstackhero.png"
+              alt="FullStackHero"
+              className="size-9 object-contain"
+            />
+            <span className="font-display text-[26px] font-semibold tracking-tight text-[var(--color-foreground)]">
+              fullstack<span className="text-[var(--color-primary)]">hero</span>
             </span>
+          </div>
+          <div className="mt-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.7)]">
+            <span aria-hidden className="h-px w-6 bg-[var(--color-border)]" />
+            <span>.NET 10 Starter Kit</span>
+            <span aria-hidden className="h-px w-6 bg-[var(--color-border)]" />
           </div>
         </div>
-      )}
 
-      {status.kind === "success" && (
-        <div className="space-y-5">
-          <div className="grid place-items-center">
-            <span
-              aria-hidden
-              className="grid h-12 w-12 place-items-center rounded-full border border-[oklch(from_var(--color-success)_l_c_h_/_0.30)] bg-[oklch(from_var(--color-success)_l_c_h_/_0.10)] text-[var(--color-success)]"
-            >
-              <CheckCircle2 className="h-5 w-5" />
-            </span>
+        {/* Status card */}
+        <div className="rounded-xl border border-[var(--color-border)] bg-[oklch(from_var(--color-card)_l_c_h_/_0.85)] shadow-[0_1px_3px_oklch(0_0_0_/_0.04),0_8px_24px_oklch(0_0_0_/_0.06)] backdrop-blur-xl">
+          <div className="px-6 py-7 sm:px-8 sm:py-9">
+            {status.kind === "loading" && (
+              <div className="space-y-5 text-center">
+                <div className="grid place-items-center">
+                  <span
+                    aria-hidden
+                    className="grid size-14 place-items-center rounded-2xl bg-[var(--color-muted)] text-[var(--color-muted-foreground)]"
+                  >
+                    <Loader2 className="size-6 animate-spin" />
+                  </span>
+                </div>
+                <div>
+                  <h1 className="mb-1.5 font-display text-[22px] font-semibold tracking-tight text-[var(--color-foreground)]">
+                    Verifying your{" "}
+                    <span className="text-[var(--color-primary)]">email…</span>
+                  </h1>
+                  <p className="text-[13px] leading-relaxed text-[var(--color-muted-foreground)]">
+                    One moment — checking the confirmation token with the server.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {status.kind === "success" && (
+              <div className="fsh-enter space-y-5 text-center">
+                <div className="grid place-items-center">
+                  <span
+                    aria-hidden
+                    className="grid size-14 place-items-center rounded-2xl bg-[oklch(from_var(--color-success)_l_c_h_/_0.10)] text-[var(--color-success)]"
+                  >
+                    <CheckCircle2 className="size-6" />
+                  </span>
+                </div>
+                <div>
+                  <h1 className="mb-1.5 font-display text-[22px] font-semibold tracking-tight text-[var(--color-foreground)]">
+                    Email{" "}
+                    <span className="text-[var(--color-primary)]">confirmed</span>
+                  </h1>
+                  <p className="text-[13px] leading-relaxed text-[var(--color-muted-foreground)]">
+                    {status.message}
+                  </p>
+                </div>
+                <Link to="/login" className="block">
+                  <Button type="button" className="group h-11 w-full text-[14px] font-semibold">
+                    <span>Continue to sign in</span>
+                    <ArrowRight className="size-[14px] opacity-60 transition-all duration-200 group-hover:translate-x-0.5 group-hover:opacity-100" />
+                  </Button>
+                </Link>
+              </div>
+            )}
+
+            {status.kind === "error" && (
+              <div className="fsh-enter space-y-5 text-center">
+                <div className="grid place-items-center">
+                  <span
+                    aria-hidden
+                    className="grid size-14 place-items-center rounded-2xl bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.10)] text-[var(--color-destructive)]"
+                  >
+                    <AlertCircle className="size-6" />
+                  </span>
+                </div>
+                <div>
+                  <h1 className="mb-1.5 font-display text-[22px] font-semibold tracking-tight text-[var(--color-foreground)]">
+                    Couldn't{" "}
+                    <span className="text-[var(--color-primary)]">confirm</span>{" "}
+                    your email
+                  </h1>
+                  <p className="text-[13px] leading-relaxed text-[var(--color-muted-foreground)]">
+                    {status.message}
+                  </p>
+                  <p className="mt-2 text-[12px] leading-relaxed text-[var(--color-muted-foreground)]">
+                    The link may have expired or been used already. If you've signed in since
+                    this email was sent, you can ignore it.
+                  </p>
+                </div>
+                <div className="flex items-center justify-center gap-2 pt-1">
+                  <Link to="/login">
+                    <Button type="button" variant="outline">
+                      Back to sign in
+                    </Button>
+                  </Link>
+                  <Link to="/forgot-password">
+                    <Button type="button" variant="ghost">
+                      Reset password instead
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
-          <p className="text-center text-sm leading-relaxed text-[var(--color-muted-foreground)]">
-            {status.message}
-          </p>
-          <Link to="/login" className="block">
-            <Button type="button" variant="signal" className="w-full">
-              Continue to sign in →
-            </Button>
+        </div>
+
+        <div className="mt-6 text-center">
+          <Link
+            to="/login"
+            className="text-[12.5px] text-[var(--color-muted-foreground)] underline-offset-4 hover:text-[var(--color-foreground)] hover:underline"
+          >
+            ← Back to sign in
           </Link>
         </div>
-      )}
-
-      {status.kind === "error" && (
-        <div className="space-y-5">
-          <div className="grid place-items-center">
-            <span
-              aria-hidden
-              className="grid h-12 w-12 place-items-center rounded-full border border-[var(--color-destructive)]/40 bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.10)] text-[var(--color-destructive)]"
-            >
-              <AlertCircle className="h-5 w-5" />
-            </span>
-          </div>
-          <p className="text-center text-sm leading-relaxed text-[var(--color-muted-foreground)]">
-            {status.message}
-          </p>
-          <p className="text-center text-xs leading-relaxed text-[var(--color-muted-foreground)]">
-            The link may have expired or been used already. If you've signed in since
-            this email was sent, you can ignore it.
-          </p>
-          <div className="flex items-center gap-2">
-            <Link to="/login">
-              <Button type="button" variant="outline">
-                Back to sign in
-              </Button>
-            </Link>
-            <Link to="/forgot-password" className="ml-auto">
-              <Button type="button" variant="ghost">
-                Reset password instead
-              </Button>
-            </Link>
-          </div>
-        </div>
-      )}
-    </AuthShell>
+      </div>
+    </div>
   );
 }

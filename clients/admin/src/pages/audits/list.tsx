@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { ChevronRight, RefreshCw, ScrollText, X } from "lucide-react";
 import {
@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
-  PageHeader,
+  EntityPageHeader,
   ErrorBand,
   Pagination,
   StatStrip,
@@ -28,6 +28,7 @@ import {
 import { EmptyState } from "@/components/empty-state";
 import { ApiRequestError } from "@/lib/api-client";
 import { AuditingPermissions } from "@/lib/permissions";
+import { AuditDetailSheet } from "@/pages/audits/detail";
 import { cn } from "@/lib/cn";
 
 const PAGE_SIZE = 25;
@@ -37,8 +38,8 @@ const PAGE_SIZE = 25;
 const SEARCH_DEBOUNCE_MS = 250;
 
 export function AuditsListPage() {
-  const navigate = useNavigate();
   const { user } = useAuth();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [params, setParams] = useSearchParams();
 
   const canCrossTenant = (user?.permissions ?? []).includes(
@@ -125,27 +126,24 @@ export function AuditsListPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        crumbs={[{ label: "\\ Audits" }, { label: "Trail", muted: true }]}
-        trailing={
-          data
-            ? `${data.totalCount.toLocaleString()} EVENTS`
-            : "—"
-        }
+      <EntityPageHeader
+        icon={ScrollText}
         title="Audit trail"
+        total={data?.totalCount ?? null}
+        unit="event"
         description="Every security action, entity change, and exception captured by the auditing pipeline. Filter by event type, severity, or correlation id to follow a request end-to-end."
-        actions={
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={query.isFetching}
-            onClick={() => query.refetch()}
-          >
-            <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", query.isFetching && "animate-spin")} />
-            Refresh
-          </Button>
-        }
-      />
+      >
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={query.isFetching}
+          onClick={() => query.refetch()}
+          className="flex-1 sm:flex-none"
+        >
+          <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", query.isFetching && "animate-spin")} />
+          Refresh
+        </Button>
+      </EntityPageHeader>
 
       <StatStrip cols={4}>
         <Stat label="Total events" value={summary.isLoading ? "—" : summaryStats.total.toLocaleString()} hint="across all event types" />
@@ -243,7 +241,7 @@ export function AuditsListPage() {
       {items.length > 0 && (
         <ol className="divide-y divide-[var(--color-border)] border-y border-[var(--color-border)]">
           {items.map((event) => (
-            <AuditRow key={event.id} event={event} onClick={() => navigate(`/audits/${event.id}`)} />
+            <AuditRow key={event.id} event={event} onClick={() => setSelectedId(event.id)} />
           ))}
         </ol>
       )}
@@ -262,6 +260,9 @@ export function AuditsListPage() {
           noun="events"
         />
       )}
+
+      {/* Audit detail side sheet */}
+      <AuditDetailSheet auditId={selectedId} onClose={() => setSelectedId(null)} />
     </div>
   );
 }

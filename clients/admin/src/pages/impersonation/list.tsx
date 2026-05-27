@@ -11,14 +11,14 @@ import { useAuth } from "@/auth/use-auth";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  PageHeader,
+  EntityPageHeader,
   ErrorBand,
   LoadingRow,
   StatStrip,
   Stat,
   FilterBar,
-  Select,
 } from "@/components/list";
+import { Select } from "@/components/ui/select";
 import { EmptyState } from "@/components/empty-state";
 import { ImpersonateDialog } from "@/components/impersonation/impersonate-dialog";
 import { RevokeGrantDialog } from "@/components/impersonation/revoke-grant-dialog";
@@ -74,23 +74,23 @@ export function ImpersonationListPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        crumbs={[{ label: "\\ Impersonation" }, { label: "Grants", muted: true }]}
-        trailing={`POLL EVERY ${REFRESH_INTERVAL_MS / 1000}S`}
+      <EntityPageHeader
+        icon={UserCog}
+        tone="warning"
         title="Impersonation"
         description="Every impersonation token issued by the server is tracked here. Active grants can be revoked — the token is rejected by the JWT validation hook within seconds."
-        actions={
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={grants.isFetching}
-            onClick={() => grants.refetch()}
-          >
-            <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", grants.isFetching && "animate-spin")} />
-            Refresh
-          </Button>
-        }
-      />
+      >
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={grants.isFetching}
+          onClick={() => grants.refetch()}
+          className="flex-1 sm:flex-none"
+        >
+          <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", grants.isFetching && "animate-spin")} />
+          Refresh
+        </Button>
+      </EntityPageHeader>
 
       <StatStrip cols={4}>
         <Stat label="Active" value={grants.isLoading ? "—" : counts.active.toString()} hint="in-flight tokens" tone={counts.active > 0 ? "signal" : "default"} />
@@ -102,10 +102,10 @@ export function ImpersonationListPage() {
       <FilterBar>
         <Select
           value={status}
-          onValueChange={(v) => setStatus(v as ImpersonationGrantStatus | "")}
+          onChange={(v) => setStatus(v as ImpersonationGrantStatus | "")}
           options={STATUS_OPTIONS}
-          emptyLabel="All statuses"
-          className="min-w-[12rem]"
+          placeholder="All statuses"
+          minWidth="12rem"
         />
       </FilterBar>
 
@@ -322,7 +322,7 @@ function Details({ grant }: { grant: ImpersonationGrantDto }) {
 function DRow({ label, children, wide }: { label: string; children: React.ReactNode; wide?: boolean }) {
   return (
     <div className={cn("flex items-baseline gap-2", wide && "sm:col-span-2")}>
-      <dt className="meta w-32 shrink-0 text-[var(--color-muted-foreground)]">{label}</dt>
+      <dt className="font-mono text-[10.5px] uppercase tracking-[0.14em] w-32 shrink-0 text-[var(--color-muted-foreground)]">{label}</dt>
       <dd className="min-w-0 truncate">{children}</dd>
     </div>
   );

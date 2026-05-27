@@ -1,144 +1,181 @@
 import { useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
-  ArrowLeft,
   Check,
   ClipboardCheck,
   Copy,
   FileText,
   Fingerprint,
+  ScrollText,
+  X,
 } from "lucide-react";
 import { getAudit, type AuditDetailDto } from "@/api/audits";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PageHeader, ErrorBand, LoadingRow } from "@/components/list";
+import { ErrorBand, LoadingRow } from "@/components/list";
 import { ApiRequestError } from "@/lib/api-client";
+import {
+  Sheet,
+  SheetContent,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/cn";
 
-/**
- * Audit detail — forensic record view.
- *
- * Layout is purpose-built for the data shape (12+ short metadata fields
- * + one large JSON payload) rather than the generic FormShell aside-rail
- * pattern, which left huge horizontal whitespace and let long stack-trace
- * lines blow out the page width.
- *
- * Sections, top to bottom:
- *   1. Identity strip — h1 + event-type + severity chips + occurred-at
- *   2. Correlation strip — trace / span / correlation / request IDs as
- *      copyable chips. Operators paste these into Grafana / Loki / Jaeger
- *      as their first move, so they get top billing.
- *   3. Context grid — auto-fit fact tiles for everything else.
- *   4. Payload viewer — full-width JSON pane with bounded inner scroll
- *      (both axes) so no payload, however ugly, ever pushes the page wider
- *      than the viewport.
- *
- * Page caps at `max-w-7xl mx-auto` so it doesn't sprawl on ultra-wide
- * monitors; sections themselves are full width inside that cap.
- */
-export function AuditDetailPage() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+// ─────────────────────────────────────────────────────────────────────────
+// AuditDetailSheet — side sheet shown when an audit row is clicked on the
+// list page. Fetches the full record by id and renders the same 4 sections
+// the old full-page route showed.
+// ─────────────────────────────────────────────────────────────────────────
 
+export interface AuditDetailSheetProps {
+  /** The audit id to load, or null / undefined when the sheet is closed. */
+  auditId: string | null | undefined;
+  onClose: () => void;
+}
+
+export function AuditDetailSheet({ auditId, onClose }: AuditDetailSheetProps) {
+  const open = Boolean(auditId);
+
+  return (
+    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
+      <SheetContent
+        side="right"
+        showClose={false}
+        className="w-[min(640px,95vw)] max-w-none overflow-hidden p-0"
+      >
+        <AuditDetailSheetBody auditId={auditId ?? null} onClose={onClose} />
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Inner body — data-fetch + layout. Exported so it can be composed
+// independently if needed.
+// ─────────────────────────────────────────────────────────────────────────
+
+export function AuditDetailSheetBody({
+  auditId,
+  onClose,
+}: {
+  auditId: string | null;
+  onClose: () => void;
+}) {
   const query = useQuery({
-    queryKey: ["audits", id],
-    queryFn: () => getAudit(id!),
-    enabled: Boolean(id),
+    queryKey: ["audits", auditId],
+    queryFn: () => getAudit(auditId!),
+    enabled: Boolean(auditId),
+    staleTime: 60_000,
   });
 
   const event = query.data;
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6">
-      <PageHeader
-        crumbs={[
-          { label: "\\ Audits" },
-          { label: id ? `${id.slice(0, 8)}…` : "—", muted: true },
-        ]}
-        trailing={event ? formatEventType(event.eventType).toUpperCase() : "—"}
-        title={event ? `${formatEventType(event.eventType)} event` : "Audit event"}
-        description={
-          event
-            ? "Forensic record · captured by the audit pipeline. Use the correlation strip below to cross-reference logs and traces."
-            : "Loading event details…"
-        }
-        actions={
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
-            <ArrowLeft className="mr-1 h-3.5 w-3.5" /> Back
-          </Button>
-        }
-      />
+    <div className="flex h-full flex-col">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3 border-b border-[var(--color-border)] px-6 py-5">
+        <div className="flex items-center gap-2.5">
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[var(--color-muted)]">
+            <ScrollText className="h-4 w-4 text-[var(--color-muted-foreground)]" />
+          </span>
+          <div>
+            <div className="text-[13px] font-semibold leading-tight tracking-tight text-[var(--color-foreground)]">
+              {event ? `${formatEventType(event.eventType)} event` : "Audit event"}
+            </div>
+            <div className="mt-0.5 font-mono text-[10.5px] text-[var(--color-muted-foreground)]">
+              {event ? formatTimestamp(event.occurredAtUtc) : "Loading…"}
+            </div>
+          </div>
+        </div>
+        <button
+          type="button"
+          aria-label="Close"
+          onClick={onClose}
+          className={cn(
+            "grid h-7 w-7 shrink-0 place-items-center rounded-md",
+            "text-[var(--color-muted-foreground)] transition-colors",
+            "hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
+          )}
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
 
-      {query.isError && (
-        <ErrorBand
-          message={
-            query.error instanceof ApiRequestError
-              ? query.error.problem?.detail ?? query.error.message
-              : "Failed to load event."
-          }
-        />
-      )}
+      {/* Scrollable body */}
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        {query.isLoading && !event && (
+          <div className="p-6">
+            <LoadingRow label="Loading event" />
+          </div>
+        )}
 
-      {query.isLoading && !event && <LoadingRow label="Loading event" />}
+        {query.isError && (
+          <div className="p-6">
+            <ErrorBand
+              message={
+                query.error instanceof ApiRequestError
+                  ? query.error.problem?.detail ?? query.error.message
+                  : "Failed to load event."
+              }
+            />
+          </div>
+        )}
 
-      {event && (
-        <>
-          <IdentityBand event={event} />
-          <CorrelationBand event={event} />
-          <ContextGrid event={event} />
-          <PayloadPanel payload={event.payload} />
-        </>
-      )}
+        {event && (
+          <div className="space-y-0 divide-y divide-[var(--color-border)]">
+            <IdentityBand event={event} />
+            <CorrelationBand event={event} />
+            <ContextGrid event={event} />
+            <PayloadPanel payload={event.payload} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// 1. Identity band — first thing the operator reads. eventType + severity
-//    chips, the source line, and a quick contextual line. Acts like a
-//    rich page subtitle and gives the page its sense of identity at a
-//    glance without making the user scan a metadata table first.
+// 1. Identity band — eventType + severity chips, the source line.
 // ─────────────────────────────────────────────────────────────────────────
 
 function IdentityBand({ event }: { event: AuditDetailDto }) {
   const sev = severityTone(event.severity);
   const eventLabel = formatEventType(event.eventType);
   return (
-    <section
-      className="card-shell flex flex-wrap items-center gap-x-5 gap-y-3 px-5 py-4 sm:px-6"
-      aria-label="Event identity"
-    >
-      <Badge
-        variant={eventTypeVariant(eventLabel)}
-        className="font-mono uppercase tracking-[0.16em]"
-      >
-        {eventLabel}
-      </Badge>
-      <Badge
-        variant={sev.variant}
-        className="font-mono uppercase tracking-[0.16em]"
-      >
-        {event.severity}
-      </Badge>
-      {event.source && (
-        <span className="min-w-0 truncate font-mono text-[12px] text-[var(--color-muted-foreground)]">
-          <span className="opacity-60">source · </span>
-          <span className="text-[var(--color-foreground)]">{event.source}</span>
+    <div className="px-6 py-4" aria-label="Event identity">
+      <div className="mb-2 font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
+        Identity
+      </div>
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+        <Badge
+          variant={eventTypeVariant(eventLabel)}
+          className="font-mono uppercase tracking-[0.16em]"
+        >
+          {eventLabel}
+        </Badge>
+        <Badge
+          variant={sev.variant}
+          className="font-mono uppercase tracking-[0.16em]"
+        >
+          {event.severity}
+        </Badge>
+        {event.source && (
+          <span className="min-w-0 truncate font-mono text-[12px] text-[var(--color-muted-foreground)]">
+            <span className="opacity-60">source · </span>
+            <span className="text-[var(--color-foreground)]">{event.source}</span>
+          </span>
+        )}
+        <span className="ml-auto shrink-0 font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+          {formatTimestamp(event.occurredAtUtc)}
         </span>
-      )}
-      <span className="ml-auto shrink-0 font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
-        {formatTimestamp(event.occurredAtUtc)}
-      </span>
-    </section>
+      </div>
+    </div>
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// 2. Correlation band — the most-used widget on the page. Each chip is a
-//    self-contained copy-to-clipboard target so operators can fire IDs
-//    into Grafana / Loki / Jaeger without text-selecting from a table row.
+// 2. Correlation band — copyable ID chips.
 // ─────────────────────────────────────────────────────────────────────────
 
 function CorrelationBand({ event }: { event: AuditDetailDto }) {
@@ -150,28 +187,28 @@ function CorrelationBand({ event }: { event: AuditDetailDto }) {
   ];
 
   return (
-    <section className="card-shell overflow-hidden" aria-label="Correlation identifiers">
-      <header className="flex items-center justify-between gap-3 border-b border-[var(--color-border)] px-5 py-3 sm:px-6">
-        <span className="flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.22em]">
-          <Fingerprint className="h-3 w-3 text-[var(--color-accent-signal)]" aria-hidden />
-          {"\\ Correlation"}
+    <div className="px-6 py-4">
+      <div className="mb-2 flex items-center gap-1.5">
+        <Fingerprint className="h-3.5 w-3.5 text-[var(--color-muted-foreground)]" />
+        <span className="font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
+          Correlation
         </span>
-        <span className="text-[10.5px] text-[var(--color-muted-foreground)]">
-          paste into your observability stack
+        <span className="ml-1 text-[10.5px] text-[var(--color-muted-foreground)]">
+          — paste into your observability stack
         </span>
-      </header>
-      <div className="grid grid-cols-1 divide-y divide-[var(--color-border)] sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4 lg:divide-y-0">
+      </div>
+      <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
         {slots.map((s) => (
           <CorrelationChip key={s.label} label={s.label} value={s.value ?? null} />
         ))}
       </div>
-    </section>
+    </div>
   );
 }
 
 function CorrelationChip({ label, value }: { label: string; value: string | null }) {
   const [copied, setCopied] = useState(false);
-  const hasValue = value && value !== "—";
+  const hasValue = Boolean(value && value !== "—");
 
   const onCopy = async () => {
     if (!hasValue) return;
@@ -190,18 +227,18 @@ function CorrelationChip({ label, value }: { label: string; value: string | null
       onClick={onCopy}
       disabled={!hasValue}
       className={cn(
-        "group/chip flex min-w-0 items-start gap-3 px-5 py-3.5 text-left transition-colors sm:px-6",
+        "group/chip flex min-w-0 items-start gap-3 rounded-lg border border-[var(--color-border)] px-3 py-2.5 text-left transition-colors",
         hasValue
           ? "hover:bg-[var(--color-muted)]/50"
           : "opacity-60",
       )}
       aria-label={hasValue ? `Copy ${label}` : `${label} not available`}
     >
-      <div className="min-w-0 flex-1 space-y-1">
-        <div className="meta truncate text-[var(--color-muted-foreground)]">
+      <div className="min-w-0 flex-1 space-y-0.5">
+        <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
           {label}
         </div>
-        <div className="truncate font-mono text-[12px] text-[var(--color-foreground)]">
+        <div className="truncate font-mono text-[11.5px] text-[var(--color-foreground)]">
           {hasValue ? value : "—"}
         </div>
       </div>
@@ -209,12 +246,12 @@ function CorrelationChip({ label, value }: { label: string; value: string | null
         <span
           aria-hidden
           className={cn(
-            "grid h-6 w-6 shrink-0 place-items-center rounded-md text-[var(--color-muted-foreground)] transition-all",
+            "grid h-5 w-5 shrink-0 place-items-center rounded text-[var(--color-muted-foreground)] transition-all",
             "opacity-0 group-hover/chip:opacity-100 group-focus-visible/chip:opacity-100",
             copied && "opacity-100 text-[var(--color-success)]",
           )}
         >
-          {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+          {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
         </span>
       )}
     </button>
@@ -222,9 +259,7 @@ function CorrelationChip({ label, value }: { label: string; value: string | null
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// 3. Context grid — auto-fit fact tiles. minmax(15rem, 1fr) gives ~4 cols
-//    on a wide editor pane, ~2 on a tablet, ~1 on phone, without any
-//    media queries. Each tile is self-contained so it can wrap freely.
+// 3. Context grid — who/where/when fact tiles.
 // ─────────────────────────────────────────────────────────────────────────
 
 function ContextGrid({ event }: { event: AuditDetailDto }) {
@@ -244,25 +279,22 @@ function ContextGrid({ event }: { event: AuditDetailDto }) {
   ];
 
   return (
-    <section className="card-shell overflow-hidden" aria-label="Event context">
-      <header className="flex items-center justify-between gap-3 border-b border-[var(--color-border)] px-5 py-3 sm:px-6">
-        <span className="flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.22em]">
-          <AlertTriangle className="h-3 w-3 text-[var(--color-accent-signal)]" aria-hidden />
-          {"\\ Context"}
+    <div className="px-6 py-4">
+      <div className="mb-2 flex items-center gap-1.5">
+        <AlertTriangle className="h-3.5 w-3.5 text-[var(--color-muted-foreground)]" />
+        <span className="font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
+          Context
         </span>
-        <span className="text-[10.5px] text-[var(--color-muted-foreground)]">
-          who, where, when — the surrounding facts
-        </span>
-      </header>
+      </div>
       <div
-        className="grid gap-px bg-[var(--color-border)]"
-        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(15rem, 1fr))" }}
+        className="grid gap-2"
+        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(13rem, 1fr))" }}
       >
         {tiles.map((t) => (
           <FactTile key={t.label} label={t.label} value={t.value} mono={t.mono} />
         ))}
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -276,12 +308,14 @@ function FactTile({
   mono?: boolean;
 }) {
   return (
-    <div className="min-w-0 space-y-1 bg-[var(--color-card)] px-5 py-3.5 sm:px-6">
-      <div className="meta text-[var(--color-muted-foreground)]">{label}</div>
+    <div className="min-w-0 space-y-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] px-3 py-2.5">
+      <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+        {label}
+      </div>
       <div
         className={cn(
           "min-w-0 break-words text-sm text-[var(--color-foreground)]",
-          mono && "font-mono text-[12.5px]",
+          mono && "font-mono text-[12px]",
         )}
       >
         {value}
@@ -291,13 +325,7 @@ function FactTile({
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// 4. Payload — full-width JSON pane.
-//
-//    The width-blowout fix is `min-w-0` on the OUTER section. Without it,
-//    the inner <pre> (whitespace: pre, default) reports its natural width
-//    to the parent grid/flex which then exceeds the page, forcing a
-//    horizontal scroll on the whole document. With min-w-0 in place the
-//    pre's own overflow-x:auto correctly takes over.
+// 4. Payload — JSON pane with copy button.
 // ─────────────────────────────────────────────────────────────────────────
 
 function PayloadPanel({ payload }: { payload: unknown }) {
@@ -317,43 +345,33 @@ function PayloadPanel({ payload }: { payload: unknown }) {
   const lineCount = useMemo(() => json.split("\n").length, [json]);
 
   return (
-    <section className="card-shell min-w-0 overflow-hidden" aria-label="Payload">
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--color-border)] px-5 py-3 sm:px-6">
-        <span className="flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.22em]">
-          <FileText className="h-3 w-3 text-[var(--color-accent-signal)]" aria-hidden />
-          {"\\ Payload"}
-        </span>
-        <div className="flex items-center gap-3">
-          <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
-            application/json · {lineCount} lines
+    <div className="px-6 py-4">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5">
+          <FileText className="h-3.5 w-3.5 text-[var(--color-muted-foreground)]" />
+          <span className="font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
+            Payload
           </span>
-          <Button variant="ghost" size="sm" onClick={copy} className="h-7 px-2 text-xs">
-            {copied ? (
-              <>
-                <ClipboardCheck className="mr-1 h-3.5 w-3.5" /> Copied
-              </>
-            ) : (
-              <>
-                <Copy className="mr-1 h-3.5 w-3.5" /> Copy
-              </>
-            )}
-          </Button>
+          <span className="text-[10.5px] text-[var(--color-muted-foreground)]">
+            · {lineCount} lines
+          </span>
         </div>
-      </header>
-
-      {/* Gutter + scrollable code. The outer wrapper sets `min-w-0` so the
-          page never widens past the viewport regardless of payload shape;
-          the inner <pre> then scrolls horizontally on its own. */}
-      <div className="min-w-0 bg-[var(--color-surface-2)]">
-        <pre
-          className={cn(
-            "max-h-[70vh] min-w-0 overflow-auto px-5 py-4 font-mono text-[12px] leading-relaxed text-[var(--color-foreground)] sm:px-6",
+        <Button variant="ghost" size="sm" onClick={copy} className="h-6 px-2 text-[11px]">
+          {copied ? (
+            <>
+              <ClipboardCheck className="mr-1 h-3 w-3" /> Copied
+            </>
+          ) : (
+            <>
+              <Copy className="mr-1 h-3 w-3" /> Copy
+            </>
           )}
-        >
-          <code>{json}</code>
-        </pre>
+        </Button>
       </div>
-    </section>
+      <pre className="max-h-[50vh] overflow-auto rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-4 py-3 font-mono text-[11.5px] leading-relaxed text-[var(--color-foreground)]">
+        <code>{json}</code>
+      </pre>
+    </div>
   );
 }
 
@@ -362,9 +380,6 @@ function PayloadPanel({ payload }: { payload: unknown }) {
 // ─────────────────────────────────────────────────────────────────────────
 
 function formatEventType(raw: unknown): string {
-  // Defensive — the API boundary coerces to a string union, but if an
-  // unknown shape ever sneaks through we render something instead of
-  // crashing on .toUpperCase().
   return typeof raw === "string" && raw.length > 0 ? raw : "Event";
 }
 
