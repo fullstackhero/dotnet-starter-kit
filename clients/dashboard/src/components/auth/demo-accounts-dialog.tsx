@@ -149,7 +149,7 @@ function TenantRail({
                 "font-display text-[15px] font-semibold tabular-nums",
                 "transition-all duration-300",
                 isActive
-                  ? "bg-primary text-white shadow-[0_4px_14px_color-mix(in_srgb,var(--primary)_35%,transparent)]"
+                  ? "bg-primary text-primary-foreground shadow-[0_4px_14px_color-mix(in_srgb,var(--primary)_35%,transparent)]"
                   : "border border-border/80 bg-background text-muted-foreground/70 group-hover:border-primary/30 group-hover:text-primary",
               ].join(" ")}
             >
@@ -235,7 +235,7 @@ function UserRow({
       />
 
       {/* Initial monogram */}
-      <span className="relative flex size-8 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background font-mono text-[10.5px] font-semibold text-muted-foreground/80 transition-all duration-300 group-hover:border-primary group-hover:bg-primary group-hover:text-white group-hover:shadow-[0_0_0_3px_color-mix(in_srgb,var(--primary)_18%,transparent)]">
+      <span className="relative flex size-8 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background font-mono text-[10.5px] font-semibold text-muted-foreground/80 transition-all duration-300 group-hover:border-primary group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-[0_0_0_3px_color-mix(in_srgb,var(--primary)_18%,transparent)]">
         {initials || "?"}
       </span>
 

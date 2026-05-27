@@ -74,7 +74,7 @@ test.describe("identity/roles — list", () => {
     await page.getByPlaceholder("Search by name or description…").fill("zzzznope");
 
     await expect(
-      page.getByRole("heading", { name: "No roles found", level: 3 }),
+      page.getByRole("heading", { name: "No roles found", level: 2 }),
     ).toBeVisible();
     await expect(page.getByText(/nothing matches "zzzznope"/i)).toBeVisible();
   });

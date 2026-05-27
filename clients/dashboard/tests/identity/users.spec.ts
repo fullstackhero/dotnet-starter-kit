@@ -62,7 +62,7 @@ test.describe("identity/users — list", () => {
 
     // No search/filter active → "No users yet" empty headline.
     await expect(
-      page.getByRole("heading", { name: "No users yet", level: 3 }),
+      page.getByRole("heading", { name: "No users yet", level: 2 }),
     ).toBeVisible();
     await expect(
       page.getByText(/register the first member to seed this tenant/i),

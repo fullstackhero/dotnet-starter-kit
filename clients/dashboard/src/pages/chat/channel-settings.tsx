@@ -360,7 +360,7 @@ function MemberRow({
           aria-label={`Remove ${display.name}`}
           className={cn(
             "grid h-8 w-8 cursor-pointer place-items-center rounded-md",
-            "text-[var(--color-muted-foreground)] hover:bg-[var(--color-destructive)] hover:text-white",
+            "text-[var(--color-muted-foreground)] hover:bg-[var(--color-destructive)] hover:text-[var(--color-destructive-foreground)]",
             "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
             "disabled:opacity-50",
           )}

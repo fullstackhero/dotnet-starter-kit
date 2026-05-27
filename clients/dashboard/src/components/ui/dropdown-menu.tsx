@@ -77,10 +77,14 @@ export const DropdownMenuLinkItem = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item> & {
     href: string;
   }
->(({ href, children, onClick, ...props }, ref) => {
+>(({ href, children, ...props }, ref) => {
   return (
-    <DropdownMenuItem ref={ref} onClick={onClick} {...props}>
-      <a href={href} className="flex w-full items-center gap-2.5">
+    // `asChild` makes the anchor itself the menuitem (keyboard-reachable,
+    // single role) rather than nesting an <a> inside a role="menuitem".
+    // Radix's Slot merges the Item's handlers (onClick/onSelect) onto the
+    // anchor, so they ride through `...props`.
+    <DropdownMenuItem ref={ref} asChild {...props}>
+      <a href={href} className="w-full">
         {children}
         <ChevronRight className="ml-auto h-3.5 w-3.5 text-[var(--color-muted-foreground)]" aria-hidden />
       </a>

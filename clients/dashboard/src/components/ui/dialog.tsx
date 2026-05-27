@@ -33,7 +33,7 @@ export const DialogOverlay = React.forwardRef<
     ref={ref}
     data-slot="dialog-overlay"
     className={cn(
-      "fixed inset-0 z-50 bg-black/40 backdrop-blur-[6px]",
+      "fixed inset-0 z-50 bg-[oklch(0_0_0_/_0.4)] backdrop-blur-[6px]",
       "data-[state=open]:animate-fsh-overlay-in data-[state=closed]:animate-fsh-overlay-out",
       className,
     )}

@@ -472,12 +472,7 @@ function CategoryEditorDialog({
       description: category?.description ?? "",
       parentCategoryId: category?.parentCategoryId ?? "",
     }),
-    [
-      category?.id,
-      category?.name,
-      category?.description,
-      category?.parentCategoryId,
-    ],
+    [category?.name, category?.description, category?.parentCategoryId],
   );
 
   const [name, setName] = useState(initial.name);

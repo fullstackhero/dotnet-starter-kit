@@ -463,7 +463,7 @@ function AttachmentTile({ attachment }: { attachment: MessageAttachmentDto }) {
           className={cn(
             "pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 px-2.5 py-1.5",
             "bg-gradient-to-t from-[oklch(0_0_0_/_0.55)] to-transparent",
-            "text-[11px] font-medium text-white",
+            "text-[11px] font-medium text-[var(--color-overlay-foreground)]",
             "opacity-0 transition-opacity duration-[var(--duration-fast)] group-hover/att:opacity-100",
           )}
         >
@@ -679,6 +679,8 @@ function ReactionChip({
       data-mine={mine || undefined}
       onClick={() => mutation.mutate()}
       disabled={mutation.isPending}
+      aria-pressed={mine}
+      aria-label={`${mine ? "Remove your" : "Add"} ${emoji} reaction, ${count} so far`}
       className="chat-reaction-chip"
     >
       <span aria-hidden>{emoji}</span>
@@ -793,6 +795,7 @@ function MessageActions({
             <button
               key={emoji}
               type="button"
+              aria-label={`React with ${emoji}`}
               onClick={() => {
                 reactMutation.mutate(emoji);
                 setPickerOpen(false);

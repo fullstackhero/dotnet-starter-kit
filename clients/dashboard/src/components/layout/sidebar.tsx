@@ -391,6 +391,9 @@ function NavItemLink({
       to={item.to}
       end={item.to === "/"}
       title={collapsed ? item.label : undefined}
+      // When collapsed the text label is hidden, so the icon-only link needs
+      // an explicit accessible name (title alone is the weakest AT signal).
+      aria-label={collapsed ? item.label : undefined}
       onClick={onNavigate}
       className={({ isActive }) =>
         cn(

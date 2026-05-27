@@ -130,13 +130,17 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         "ChatMessageCreated",
         "ChatMessageEdited",
         "ChatMessageDeleted",
+        "ChatMessagePinned",
+        "ChatMessageUnpinned",
         "ChatChannelMemberAdded",
         "ChatChannelMemberRemoved",
+        "ChatChannelMemberRead",
         "ChatChannelAdded",
         "ChatChannelRemoved",
         "ChatChannelRead",
         "ChatReactionChanged",
         "ChatTypingStarted",
+        "PresenceChanged",
         "NotificationCreated",
       ]) {
         wire(event);

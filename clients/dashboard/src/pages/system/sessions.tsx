@@ -6,7 +6,6 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import {
-  AlertCircle,
   AlertTriangle,
   Globe,
   LogOut,
@@ -83,7 +82,7 @@ export function SessionsPage() {
     refetchInterval: 30_000, // light auto-refresh — sessions move fast
   });
 
-  const items = query.data?.items ?? [];
+  const items = useMemo(() => query.data?.items ?? [], [query.data]);
 
   const stats = useMemo(() => {
     const active = items.filter((s) => s.isActive).length;
@@ -489,6 +488,3 @@ function SessionDesktopRow({
     </EntityListRow>
   );
 }
-
-// AlertCircle reserved for a future stale-session callout.
-void AlertCircle;

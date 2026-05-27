@@ -1,7 +1,7 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  Boxes,
   FileText,
   FolderTree,
   Package,
@@ -375,6 +375,7 @@ function TrashShell<T>({
   setPageNumber: (n: number) => void;
   mapRow: (item: T) => RowVm;
 }) {
+  const navigate = useNavigate();
   const items = query.data?.items ?? [];
   const total = query.data?.totalCount ?? 0;
   const rows = items.map(mapRow);
@@ -403,9 +404,7 @@ function TrashShell<T>({
         action={
           <Button
             variant="outline"
-            onClick={() => {
-              window.location.href = `/${tabPath(label)}`;
-            }}
+            onClick={() => navigate(`/${tabPath(label)}`)}
             className="h-9 rounded-lg px-4 text-[13px]"
           >
             Back to {label.toLowerCase()}
@@ -570,6 +569,3 @@ function TrashDesktopRow({ row, isLast }: { row: RowVm; isLast: boolean }) {
     </EntityListRow>
   );
 }
-
-// Suppress unused warnings for shared icons when bundling per-tab views.
-void Boxes;

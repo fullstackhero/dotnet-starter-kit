@@ -607,8 +607,17 @@ function UploadingChip({
       </div>
       {/* Inline progress strip, hidden on error. */}
       {!isError && (
-        <div className="relative h-1 w-16 overflow-hidden rounded-full bg-[var(--color-card)]">
+        <div
+          role="progressbar"
+          aria-label="Upload progress"
+          aria-valuenow={percent}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuetext={label}
+          className="relative h-1 w-16 overflow-hidden rounded-full bg-[var(--color-card)]"
+        >
           <span
+            aria-hidden
             className="absolute inset-y-0 left-0 bg-[var(--color-primary)] transition-[width] duration-[var(--duration-fast)]"
             style={{ width: `${Math.max(4, percent)}%` }}
           />

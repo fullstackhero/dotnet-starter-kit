@@ -423,7 +423,7 @@ function BrandEditorDialog({
       description: brand?.description ?? "",
       logoUrl: brand?.logoUrl ?? "",
     }),
-    [brand?.id, brand?.name, brand?.description, brand?.logoUrl],
+    [brand?.name, brand?.description, brand?.logoUrl],
   );
 
   const [name, setName] = useState(initial.name);

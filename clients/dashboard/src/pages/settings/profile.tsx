@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Camera, Fingerprint, UserCircle2 } from "lucide-react";
 import { toast } from "sonner";
@@ -23,22 +23,28 @@ export function ProfileSettings() {
   });
 
   const profile = profileQuery.data;
+  const loading = profileQuery.isLoading;
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
 
-  // Seed form state from the fetched profile (falls back to the JWT-derived
-  // user while the query is in flight so the form isn't empty on first paint).
+  // Seed the form from the fetched profile exactly once. The JWT-derived
+  // `user` provides an immediate non-empty paint; the authoritative profile
+  // then seeds and locks. Seeding once means a later background refetch
+  // can't clobber edits the user has already made.
+  const seededRef = useRef(false);
   useEffect(() => {
+    if (seededRef.current) return;
     if (profile) {
       setFirstName(profile.firstName ?? "");
       setLastName(profile.lastName ?? "");
       setPhone(profile.phoneNumber ?? "");
-    } else if (user) {
+      seededRef.current = true;
+    } else if (user && loading) {
       setFirstName(user.name?.split(" ")[0] ?? "");
       setLastName(user.name?.split(" ").slice(1).join(" ") ?? "");
     }
-  }, [profile, user]);
+  }, [profile, user, loading]);
 
   const saveMutation = useMutation({
     mutationFn: () =>
@@ -96,6 +102,17 @@ export function ProfileSettings() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-5 fsh-enter">
+      {profileQuery.isError && (
+        <div
+          role="alert"
+          className="flex items-start gap-2 rounded-lg border border-[oklch(from_var(--color-destructive)_l_c_h_/_0.30)] bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.06)] px-3 py-2 text-[13px] text-[var(--color-destructive)]"
+        >
+          <span>
+            Couldn't load your profile. Showing details from your session;
+            saved changes may not reflect the latest server state.
+          </span>
+        </div>
+      )}
       <SettingsSection
         title="Photo"
         icon={Camera}
@@ -138,6 +155,7 @@ export function ProfileSettings() {
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
               autoComplete="given-name"
+              disabled={loading}
               className="h-10 text-[13px]"
             />
           </Field>
@@ -147,6 +165,7 @@ export function ProfileSettings() {
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               autoComplete="family-name"
+              disabled={loading}
               className="h-10 text-[13px]"
             />
           </Field>
@@ -171,6 +190,7 @@ export function ProfileSettings() {
               onChange={(e) => setPhone(e.target.value)}
               autoComplete="tel"
               placeholder="+1 (555) 123-4567"
+              disabled={loading}
               className="h-10 text-[13px]"
             />
           </Field>

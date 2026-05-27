@@ -89,6 +89,7 @@ export function NotificationBell() {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
+          data-notification-bell
           aria-label={`Notifications${unread > 0 ? `, ${unread} unread` : ""}`}
           title="Notifications"
           className={cn(
