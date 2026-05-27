@@ -8,6 +8,6 @@ tenant: {{tenant}}
 
 {
   "email": "admin@root.com",
-  "password": "123Pa$$word!"
+  "password": "Password123!"
 }
 
