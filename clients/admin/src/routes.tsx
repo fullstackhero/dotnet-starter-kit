@@ -29,10 +29,8 @@ const lazyNamed = <T extends string>(
 const TenantsListPage = lazyNamed(() => import("@/pages/tenants/list"), "TenantsListPage");
 const TenantDetailPage = lazyNamed(() => import("@/pages/tenants/detail"), "TenantDetailPage");
 const UsersListPage = lazyNamed(() => import("@/pages/users/list"), "UsersListPage");
-const CreateUserPage = lazyNamed(() => import("@/pages/users/create"), "CreateUserPage");
 const UserDetailPage = lazyNamed(() => import("@/pages/users/detail"), "UserDetailPage");
 const RolesListPage = lazyNamed(() => import("@/pages/roles/list"), "RolesListPage");
-const CreateRolePage = lazyNamed(() => import("@/pages/roles/create"), "CreateRolePage");
 const RoleDetailPage = lazyNamed(() => import("@/pages/roles/detail"), "RoleDetailPage");
 const BillingLayout = lazyNamed(() => import("@/pages/billing/layout"), "BillingLayout");
 const PlansListPage = lazyNamed(() => import("@/pages/billing/plans-list"), "PlansListPage");
@@ -116,12 +114,10 @@ export const router = createBrowserRouter([
             ),
           },
           {
+            // /users/new — creation is now a dialog on the list page.
+            // Redirect any bookmarked links back to /users.
             path: "users/new",
-            element: (
-              <RouteGuard perms={[IdentityPermissions.Users.Create]}>
-                <CreateUserPage />
-              </RouteGuard>
-            ),
+            element: <Navigate to="/users" replace />,
           },
           {
             path: "users/:id",
@@ -142,12 +138,10 @@ export const router = createBrowserRouter([
             ),
           },
           {
+            // /roles/new — creation is now a dialog on the list page.
+            // Redirect any bookmarked links back to /roles.
             path: "roles/new",
-            element: (
-              <RouteGuard perms={[IdentityPermissions.Roles.Create]}>
-                <CreateRolePage />
-              </RouteGuard>
-            ),
+            element: <Navigate to="/roles" replace />,
           },
           {
             path: "roles/:id",

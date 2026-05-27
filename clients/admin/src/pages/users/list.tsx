@@ -10,6 +10,7 @@ import { Monogram } from "@/components/monogram";
 import { EntityPageHeader, ErrorBand } from "@/components/list";
 import { ApiRequestError } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
+import { CreateUserDialog } from "@/components/users/create-user-dialog";
 
 const PAGE_SIZE = 12;
 
@@ -34,6 +35,7 @@ export function UsersListPage() {
   const [activeFilter, setActiveFilter] = useState<Tri>("any");
   const [confirmedFilter, setConfirmedFilter] = useState<Tri>("any");
   const [roleId, setRoleId] = useState<string>("");
+  const [createOpen, setCreateOpen] = useState(false);
 
   // Debounce the search input → searchTerm
   useEffect(() => {
@@ -106,7 +108,7 @@ export function UsersListPage() {
           : "Loading the roster…"}
       >
         <Button
-          onClick={() => navigate("/users/new")}
+          onClick={() => setCreateOpen(true)}
           className="h-9 flex-1 gap-1.5 rounded-lg px-4 text-[13px] font-semibold sm:flex-none"
         >
           <Plus className="size-4" /> New user
@@ -277,6 +279,8 @@ export function UsersListPage() {
           </div>
         </div>
       )}
+
+      <CreateUserDialog open={createOpen} onOpenChange={setCreateOpen} />
     </div>
   );
 }

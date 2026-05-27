@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { EntityPageHeader, ErrorBand, LoadingRow } from "@/components/list";
 import { EmptyState } from "@/components/empty-state";
 import { ApiRequestError } from "@/lib/api-client";
+import { CreateRoleDialog } from "@/components/roles/create-role-dialog";
 
 const ROOT_ROLE_NAMES = new Set(["Admin", "Basic"]);
 
@@ -19,6 +20,7 @@ export function RolesListPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
+  const [createOpen, setCreateOpen] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setDebounced(search.trim().toLowerCase()), 200);
@@ -59,7 +61,7 @@ export function RolesListPage() {
         description="Define what people can do. Each role bundles a set of permissions; users inherit a role's permissions by being assigned to it."
       >
         <Button
-          onClick={() => navigate("/roles/new")}
+          onClick={() => setCreateOpen(true)}
           className="h-9 flex-1 gap-1.5 rounded-lg px-4 text-[13px] font-semibold sm:flex-none"
         >
           <Plus className="size-4" />
@@ -116,7 +118,7 @@ export function RolesListPage() {
             title="No roles defined yet."
             description="Create your first role to start bundling permissions."
             action={
-              <Button onClick={() => navigate("/roles/new")} className="h-9 rounded-lg px-4 text-[13px]">
+              <Button onClick={() => setCreateOpen(true)} className="h-9 rounded-lg px-4 text-[13px]">
                 <Plus className="mr-1.5 h-4 w-4" /> New role
               </Button>
             }
@@ -172,6 +174,8 @@ export function RolesListPage() {
           </div>
         </div>
       )}
+
+      <CreateRoleDialog open={createOpen} onOpenChange={setCreateOpen} />
     </div>
   );
 }
