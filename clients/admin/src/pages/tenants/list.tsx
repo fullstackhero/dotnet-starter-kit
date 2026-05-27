@@ -8,6 +8,7 @@ import { Monogram } from "@/components/monogram";
 import { EntityPageHeader, ErrorBand } from "@/components/list";
 import { ApiRequestError } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
+import { CreateTenantDialog } from "@/components/tenants/create-tenant-dialog";
 
 const PAGE_SIZE = 12;
 
@@ -21,6 +22,7 @@ function formatDate(value: string): string {
 
 export function TenantsListPage() {
   const [pageNumber, setPageNumber] = useState(1);
+  const [createOpen, setCreateOpen] = useState(false);
   const navigate = useNavigate();
 
   const query = useQuery({
@@ -54,7 +56,7 @@ export function TenantsListPage() {
         }
       >
         <Button
-          onClick={() => navigate("/tenants/new")}
+          onClick={() => setCreateOpen(true)}
           className="h-9 flex-1 gap-1.5 rounded-lg px-4 text-[13px] font-semibold sm:flex-none"
         >
           <Plus className="size-4" /> New tenant
@@ -164,6 +166,8 @@ export function TenantsListPage() {
           </div>
         </div>
       )}
+
+      <CreateTenantDialog open={createOpen} onOpenChange={setCreateOpen} />
     </div>
   );
 }

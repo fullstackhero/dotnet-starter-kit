@@ -27,7 +27,6 @@ const lazyNamed = <T extends string>(
   });
 
 const TenantsListPage = lazyNamed(() => import("@/pages/tenants/list"), "TenantsListPage");
-const CreateTenantPage = lazyNamed(() => import("@/pages/tenants/create"), "CreateTenantPage");
 const TenantDetailPage = lazyNamed(() => import("@/pages/tenants/detail"), "TenantDetailPage");
 const UsersListPage = lazyNamed(() => import("@/pages/users/list"), "UsersListPage");
 const CreateUserPage = lazyNamed(() => import("@/pages/users/create"), "CreateUserPage");
@@ -94,12 +93,10 @@ export const router = createBrowserRouter([
             ),
           },
           {
+            // /tenants/new — creation is now a dialog on the list page.
+            // Redirect any bookmarked links back to /tenants.
             path: "tenants/new",
-            element: (
-              <RouteGuard perms={[MultitenancyPermissions.Tenants.Create]}>
-                <CreateTenantPage />
-              </RouteGuard>
-            ),
+            element: <Navigate to="/tenants" replace />,
           },
           {
             path: "tenants/:id",
