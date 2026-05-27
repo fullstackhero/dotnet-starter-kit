@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { forwardRef, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Download, Eye, Paperclip, Pencil, Pin, PinOff, SmilePlus, Trash2 } from "lucide-react";
@@ -157,7 +157,7 @@ export function Message({
 
       <div
         className={cn(
-          "flex min-w-0 max-w-[78%] flex-col",
+          "relative flex min-w-0 max-w-[78%] flex-col",
           isOwn ? "items-end" : "items-start",
         )}
       >
@@ -264,6 +264,11 @@ export function Message({
           )}
         </div>
 
+        {/* Hover action rail — anchored to the bubble's column so it tucks
+            into the margin right beside the bubble (left of own messages,
+            right of others) instead of drifting to the far pane edge. */}
+        <MessageActions message={message} isOwn={isOwn} onReply={onReply} />
+
         {/* Reactions — align toward the bubble's outer edge. */}
         {reactions.length > 0 && (
           <div
@@ -293,10 +298,6 @@ export function Message({
           />
         )}
       </div>
-
-      {/* Hover action rail — floats in the empty space opposite the bubble
-          (left side for own, right side for others). */}
-      <MessageActions message={message} isOwn={isOwn} onReply={onReply} />
     </div>
   );
 }
@@ -741,17 +742,52 @@ function MessageActions({
     <>
       <div
         className={cn(
-          "absolute top-1 z-10 hidden gap-0.5 rounded-lg border border-[var(--color-border)]",
+          "absolute top-0 z-10 hidden gap-0.5 rounded-lg border border-[var(--color-border)]",
           "bg-[var(--color-popover)] p-0.5 shadow-[var(--shadow-md)]",
-          "group-hover/message:flex",
-          // Float on the empty side: own messages sit right, so the rail
-          // floats on the left; other messages sit left, so the rail floats right.
-          isOwn ? "left-3" : "right-3",
+          // Keep the rail mounted while its emoji picker is open so the
+          // portaled picker stays anchored to a visible trigger.
+          pickerOpen ? "flex" : "group-hover/message:flex",
+          // Float in the margin immediately beside the bubble (anchored to the
+          // bubble's column, not the pane): own messages sit right so the rail
+          // tucks just left of the bubble; others sit left so it tucks right.
+          isOwn ? "right-full mr-1.5" : "left-full ml-1.5",
         )}
       >
-        <ActionButton title="React" onClick={() => setPickerOpen((v) => !v)}>
-          <SmilePlus className="h-3.5 w-3.5" />
-        </ActionButton>
+        {/* React — a portaled menu so the picker can't be clipped or
+            click-blocked by the next virtualized message row (the old
+            absolutely-positioned picker overflowed its row and the row
+            below stole the clicks). */}
+        <DropdownMenu open={pickerOpen} onOpenChange={setPickerOpen}>
+          <DropdownMenuTrigger asChild>
+            <ActionButton title="React">
+              <SmilePlus className="h-3.5 w-3.5" />
+            </ActionButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            side="top"
+            align={isOwn ? "end" : "start"}
+            className="flex w-auto min-w-0 gap-1 p-1"
+          >
+            {QUICK_REACTIONS.map((emoji) => (
+              <button
+                key={emoji}
+                type="button"
+                aria-label={`React with ${emoji}`}
+                onClick={() => {
+                  reactMutation.mutate(emoji);
+                  setPickerOpen(false);
+                }}
+                className={cn(
+                  "grid h-8 w-8 cursor-pointer place-items-center rounded-md text-base",
+                  "hover:bg-[var(--color-accent)]",
+                  "transition-transform duration-[var(--duration-fast)] hover:scale-110",
+                )}
+              >
+                {emoji}
+              </button>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
         {!message.parentMessageId && onReply && (
           <ActionButton title="Reply" onClick={() => onReply(message)}>
             <span className="text-[12px] font-semibold leading-none">↪</span>
@@ -782,35 +818,6 @@ function MessageActions({
           </ActionButton>
         )}
       </div>
-
-      {pickerOpen && (
-        <div
-          className={cn(
-            "absolute top-9 z-20 flex gap-1 rounded-lg border border-[var(--color-border)]",
-            "bg-[var(--color-popover)] p-1 shadow-[var(--shadow-lg)]",
-            isOwn ? "left-3" : "right-3",
-          )}
-        >
-          {QUICK_REACTIONS.map((emoji) => (
-            <button
-              key={emoji}
-              type="button"
-              aria-label={`React with ${emoji}`}
-              onClick={() => {
-                reactMutation.mutate(emoji);
-                setPickerOpen(false);
-              }}
-              className={cn(
-                "grid h-8 w-8 cursor-pointer place-items-center rounded-md text-base",
-                "hover:bg-[var(--color-accent)]",
-                "transition-transform duration-[var(--duration-fast)] hover:scale-110",
-              )}
-            >
-              {emoji}
-            </button>
-          ))}
-        </div>
-      )}
 
       {editing && (
         <EditMessageInline
@@ -888,35 +895,33 @@ function DeleteMessageDialog({
   );
 }
 
-function ActionButton({
-  title,
-  onClick,
-  destructive,
-  children,
-}: {
-  title: string;
-  onClick: () => void;
-  destructive?: boolean;
-  children: React.ReactNode;
-}) {
+// forwardRef + prop spread so this can serve as a Radix `asChild` trigger
+// (the React button is a DropdownMenuTrigger) — Radix injects ref, onClick,
+// and aria/data-state props that must reach the underlying <button>.
+const ActionButton = forwardRef<
+  HTMLButtonElement,
+  React.ComponentPropsWithoutRef<"button"> & { destructive?: boolean }
+>(function ActionButton({ title, destructive, children, className, ...rest }, ref) {
   return (
     <button
-      type="button"
+      ref={ref}
       title={title}
       aria-label={title}
-      onClick={onClick}
       className={cn(
         "grid h-7 w-7 cursor-pointer place-items-center rounded-md",
         "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
         destructive
           ? "text-[var(--color-destructive)] hover:bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.10)]"
           : "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
+        className,
       )}
+      {...rest}
+      type="button"
     >
       {children}
     </button>
   );
-}
+});
 
 function EditMessageInline({
   message,
@@ -965,7 +970,7 @@ function EditMessageInline({
   };
 
   return (
-    <div className="ml-12 mt-1.5 space-y-1.5">
+    <div className="mt-1.5 w-full space-y-1.5">
       <div
         className={cn(
           "relative rounded-xl border bg-[var(--color-card)] transition-all",

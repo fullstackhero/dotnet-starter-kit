@@ -25,7 +25,7 @@ import {
 import { useAuth } from "@/auth/use-auth";
 import { ChannelRail } from "@/pages/chat/channel-rail";
 import { ChannelSettingsDialog } from "@/pages/chat/channel-settings";
-import { ChatPinnedDropdown } from "@/pages/chat/chat-pinned";
+import { ChatPinnedBar } from "@/pages/chat/chat-pinned";
 import { ChatSearchOverlay } from "@/pages/chat/chat-search";
 import { Composer } from "@/pages/chat/composer";
 import {
@@ -297,15 +297,6 @@ function ActiveChannel({
           >
             <Search className="size-3.5" />
           </button>
-          <ChatPinnedDropdown
-            channelId={channelId}
-            onJump={(id) => {
-              const ok = messageListRef.current?.jumpToMessage(id) ?? false;
-              if (!ok) {
-                toast.info("That message is older than the loaded window.");
-              }
-            }}
-          />
           {channel.type === 2 && (
             <button
               type="button"
@@ -325,6 +316,18 @@ function ActiveChannel({
         onOpenChange={setSettingsOpen}
         channel={channel}
         selfUserId={selfUserId}
+      />
+
+      {/* Pinned-messages bar — slim strip under the header; hidden when the
+          channel has nothing pinned. Click to review/jump to pins. */}
+      <ChatPinnedBar
+        channelId={channelId}
+        onJump={(id) => {
+          const ok = messageListRef.current?.jumpToMessage(id) ?? false;
+          if (!ok) {
+            toast.info("That message is older than the loaded window.");
+          }
+        }}
       />
 
       {/* Message list — fills the remaining height. */}
