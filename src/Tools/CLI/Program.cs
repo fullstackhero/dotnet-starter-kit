@@ -10,7 +10,6 @@ app.Configure(config =>
     config.AddCommand<NewCommand>("new")
         .WithDescription("Create a new FullStackHero .NET project.")
         .WithExample("new", "MyApp")
-        .WithExample("new", "MyApp", "--db", "sqlserver")
         .WithExample("new", "MyApp", "--no-aspire", "--no-git");
 
     config.AddCommand<DoctorCommand>("doctor")

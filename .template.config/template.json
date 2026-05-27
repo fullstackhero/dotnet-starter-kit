@@ -23,22 +23,6 @@
     "sourceName": "FSH.Starter",
     "preferNameDirectory": true,
     "symbols": {
-        "db": {
-            "type": "parameter",
-            "datatype": "choice",
-            "description": "Database provider for migrations and persistence.",
-            "defaultValue": "postgresql",
-            "choices": [
-                {
-                    "choice": "postgresql",
-                    "description": "PostgreSQL (default)"
-                },
-                {
-                    "choice": "sqlserver",
-                    "description": "SQL Server"
-                }
-            ]
-        },
         "aspire": {
             "type": "parameter",
             "datatype": "bool",

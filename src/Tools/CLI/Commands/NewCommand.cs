@@ -18,10 +18,6 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
         [CommandOption("-o|--output")]
         public string? Output { get; init; }
 
-        [Description("Database provider: postgresql (default) or sqlserver.")]
-        [CommandOption("--db")]
-        public string? Database { get; init; }
-
         [Description("Exclude the .NET Aspire AppHost project.")]
         [CommandOption("--no-aspire")]
         [DefaultValue(false)]
@@ -69,8 +65,6 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
             return 1;
         }
 
-        string db = await ResolveDatabaseAsync(settings, cancellationToken).ConfigureAwait(false);
-
         bool aspire = await ResolveAspireAsync(settings, cancellationToken).ConfigureAwait(false);
 
         bool frontend = await ResolveFrontendAsync(settings, cancellationToken).ConfigureAwait(false);
@@ -95,7 +89,7 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
         }
 
         // 3. Print summary
-        PrintSummary(name, db, aspire, frontend, output, settings.DryRun);
+        PrintSummary(name, aspire, frontend, output, settings.DryRun);
 
         if (settings.DryRun)
         {
@@ -108,7 +102,7 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
             return 1;
 
         // 5. Scaffold project
-        int result = await ScaffoldProjectAsync(name, db, aspire, frontend, output, cancellationToken).ConfigureAwait(false);
+        int result = await ScaffoldProjectAsync(name, aspire, frontend, output, cancellationToken).ConfigureAwait(false);
         if (result != 0)
         {
             AnsiConsole.MarkupLine($"[{FshConstants.ErrorColor}]Scaffolding failed. Check the output above for errors.[/]");
@@ -165,17 +159,6 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
             .ShowAsync(AnsiConsole.Console, cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task<string> ResolveDatabaseAsync(Settings settings, CancellationToken cancellationToken)
-    {
-        if (settings.Database is not null) return settings.Database;
-        if (settings.NonInteractive) return "postgresql";
-
-        return await new SelectionPrompt<string>()
-            .Title($"[{FshConstants.AccentColor}]Database provider:[/]")
-            .AddChoices("postgresql", "sqlserver")
-            .ShowAsync(AnsiConsole.Console, cancellationToken).ConfigureAwait(false);
-    }
-
     private static async Task<bool> ResolveAspireAsync(Settings settings, CancellationToken cancellationToken)
     {
         if (settings.NoAspire) return false;
@@ -196,13 +179,12 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
             .ShowAsync(AnsiConsole.Console, cancellationToken).ConfigureAwait(false);
     }
 
-    private static void PrintSummary(string name, string db, bool aspire, bool frontend, string output, bool dryRun)
+    private static void PrintSummary(string name, bool aspire, bool frontend, string output, bool dryRun)
     {
         AnsiConsole.WriteLine();
 
         string mode = dryRun ? " [yellow](dry run)[/]" : "";
         AnsiConsole.MarkupLine($"[bold]Creating project:[/] {name.EscapeMarkup()}{mode}");
-        AnsiConsole.MarkupLine($"  [{FshConstants.DimColor}]Database:[/]  {db}");
         AnsiConsole.MarkupLine($"  [{FshConstants.DimColor}]Aspire:[/]    {(aspire ? "yes" : "no")}");
         AnsiConsole.MarkupLine($"  [{FshConstants.DimColor}]Frontend:[/]  {(frontend ? "yes (admin + dashboard)" : "no")}");
         AnsiConsole.MarkupLine($"  [{FshConstants.DimColor}]Output:[/]    {output.EscapeMarkup()}");
@@ -242,7 +224,7 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
     }
 
     private static async Task<int> ScaffoldProjectAsync(
-        string name, string db, bool aspire, bool frontend, string output, CancellationToken cancellationToken)
+        string name, bool aspire, bool frontend, string output, CancellationToken cancellationToken)
     {
         return await AnsiConsole.Status()
             .Spinner(Spinner.Known.Dots)
@@ -251,7 +233,7 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
             {
                 string aspireFlag = aspire ? "true" : "false";
                 string frontendFlag = frontend ? "true" : "false";
-                string args = $"new {FshConstants.TemplateShortName} -n {name} -o \"{output}\" --db {db} --aspire {aspireFlag} --frontend {frontendFlag} --force";
+                string args = $"new {FshConstants.TemplateShortName} -n {name} -o \"{output}\" --aspire {aspireFlag} --frontend {frontendFlag} --force";
                 await ProcessRunner.RunAsync("dotnet", args, showOutput: false, cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
 
