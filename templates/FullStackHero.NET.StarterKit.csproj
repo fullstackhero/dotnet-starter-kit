@@ -46,9 +46,9 @@
       nested .template.config that would otherwise collide on `dotnet new install`.
     -->
     <Content Include="..\**\*"
-             Exclude="..\**\bin\**;..\**\obj\**;..\.git\**;..\.github\**;..\.claude\**;..\.agents\**;..\.vs\**;..\.idea\**;..\.vscode\**;..\.devcontainer\**;..\**\node_modules\**;..\**\dist\**;..\**\build\**;..\**\TestResults\**;..\**\playwright-report\**;..\**\test-results\**;..\coverage-report\**;..\nupkgs\**;..\nupkgs-test\**;..\docs\**;..\templates\**;..\**\*.user"
+             Exclude="..\**\bin\**;..\**\obj\**;..\.git\**;..\.github\**;..\.claude\**;..\.agents\**;..\**\.vs\**;..\**\.idea\**;..\**\.vscode\**;..\.devcontainer\**;..\**\node_modules\**;..\**\dist\**;..\**\build\**;..\**\TestResults\**;..\**\playwright-report\**;..\**\test-results\**;..\coverage-report\**;..\nupkgs\**;..\nupkgs-test\**;..\docs\**;..\templates\**;..\**\*.user"
              Pack="true"
-             PackagePath="content\%(RecursiveDir)%(Filename)%(Extension)" />
+             PackagePath="content" />
     <Compile Remove="**\*" />
   </ItemGroup>
 
