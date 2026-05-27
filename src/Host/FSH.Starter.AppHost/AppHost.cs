@@ -2,6 +2,16 @@ using Aspire.Hosting.ApplicationModel;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
+// Per-app prefix for Docker volume names, derived from the AppHost assembly name,
+// so two FSH-based apps (or this repo + a scaffolded app) on one machine get
+// isolated data volumes instead of clashing on shared "postgres-data"/etc. names.
+#pragma warning disable CA1308 // Docker volume names are conventionally lowercase
+var volumePrefix = builder.Environment.ApplicationName
+    .Replace(".AppHost", string.Empty, StringComparison.OrdinalIgnoreCase)
+    .Replace('.', '-')
+    .ToLowerInvariant();
+#pragma warning restore CA1308
+
 // Infrastructure
 //
 // pgAdmin sidecar attaches to the same Postgres server resource. Aspire
@@ -10,7 +20,7 @@ var builder = DistributedApplication.CreateBuilder(args);
 // us authoring a `servers.json` by hand. Persistent so the saved query
 // state and folder layout survive `dotnet run` restarts.
 var postgresServer = builder.AddPostgres("postgres")
-    .WithDataVolume("postgres-data")
+    .WithDataVolume($"{volumePrefix}-postgres-data")
     .WithLifetime(ContainerLifetime.Persistent)
     .WithPgAdmin(pa => pa
         .WithHostPort(5050)
@@ -25,7 +35,7 @@ var postgres = postgresServer.AddDatabase("fsh-db");
 // Resource name stays "redis" so connection strings / config keys don't churn.
 var redis = builder.AddRedis("redis")
     .WithImage("valkey/valkey", "8")
-    .WithDataVolume("fsh-redis-data")
+    .WithDataVolume($"{volumePrefix}-redis-data")
     .WithLifetime(ContainerLifetime.Persistent)
     // RedisInsight cache browser — Aspire auto-wires it to the resource above,
     // so it connects to Valkey with no manual config. It's SSPL (source-available),
@@ -62,7 +72,7 @@ var minio = builder.AddContainer("minio", "minio/minio")
     .WithEnvironment("MINIO_ROOT_USER", minioUser)
     .WithEnvironment("MINIO_ROOT_PASSWORD", minioPassword)
     .WithEnvironment("MINIO_API_CORS_ALLOW_ORIGIN", $"{AdminOrigin},{DashboardOrigin}")
-    .WithVolume("fsh-minio-data", "/data")
+    .WithVolume($"{volumePrefix}-minio-data", "/data")
     .WithLifetime(ContainerLifetime.Persistent);
 
 // Init container: just bucket bootstrap (creation + public-read policy). CORS
@@ -91,17 +101,23 @@ var minioInit = builder.AddContainer("minio-init", "minio/mc")
 var minioApiEndpoint = minio.GetEndpoint("api");
 
 // Database migrator — runs once on each AppHost launch, applies pending
-// migrations across the tenant catalog + every tenant's per-module
-// databases, then exits. The API depends on its completion below, so
-// the API never starts against an unmigrated database. Production
-// deployments use this same project as an explicit deploy step.
+// migrations across the tenant catalog + every tenant's per-module databases,
+// then seeds the root tenant's admin user, then exits. The API depends on its
+// completion below, so the API never starts against an unmigrated/unseeded
+// database. Production deployments use this same project as an explicit step.
+//
+// `--seed` runs SeedTenantAsync so the root admin (admin@root.com) exists out of
+// the box — without it the app comes up with an empty Users table and nobody can
+// log in. The seed password is a dev-only default that mirrors the API's
+// appsettings.Development.json; override it for non-dev use.
 var migrator = builder.AddProject<Projects.FSH_Starter_DbMigrator>("fsh-db-migrator")
     .WithReference(postgres)
     .WaitFor(postgres)
     .WithEnvironment("DatabaseOptions__Provider", "POSTGRESQL")
     .WithEnvironment("DatabaseOptions__ConnectionString", postgres.Resource.ConnectionStringExpression)
     .WithEnvironment("DatabaseOptions__MigrationsAssembly", "FSH.Starter.Migrations.PostgreSQL")
-    .WithArgs("apply");
+    .WithEnvironment("Seed__DefaultAdminPassword", "123Pa$$word!")
+    .WithArgs("apply", "--seed");
 
 // API Service
 var api = builder.AddProject<Projects.FSH_Starter_Api>("fsh-api")
