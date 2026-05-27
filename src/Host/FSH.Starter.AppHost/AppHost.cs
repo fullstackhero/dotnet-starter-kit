@@ -119,6 +119,35 @@ var migrator = builder.AddProject<Projects.FSH_Starter_DbMigrator>("fsh-db-migra
     .WithEnvironment("Seed__DefaultAdminPassword", "123Pa$$word!")
     .WithArgs("apply", "--seed");
 
+// Demo data seeder (dev-only) — provisions the `acme` and `globex` demo
+// tenants plus the users the dashboard's demo-login panel advertises. The base
+// migrator above runs `apply --seed`, which only creates the root tenant +
+// root admin; the demo tenants are created exclusively by the migrator's
+// `seed-demo` verb. Without this step those acme/globex logins fail against a
+// freshly-provisioned database even though the login panel offers them.
+//
+// Chained after the base migration (shares the same Postgres). Idempotent, so
+// re-running on each launch is a no-op once seeded. DOTNET_ENVIRONMENT is pinned
+// to Development and Seed__DemoPassword passed explicitly because seed-demo
+// refuses to run outside Development and requires the demo credential in config
+// (mirrors the dashboard's DEMO_PASSWORD = "Password123!").
+//
+// IMPORTANT: the migrator is a generic-host console app, so its IHostEnvironment
+// reads DOTNET_ENVIRONMENT — NOT ASPNETCORE_ENVIRONMENT (only ASP.NET web hosts
+// honor that). Aspire injects ASPNETCORE_ENVIRONMENT into child projects but not
+// DOTNET_ENVIRONMENT, so without this line the migrator defaults to Production
+// and seed-demo bails with "REFUSING to run".
+var demoSeeder = builder.AddProject<Projects.FSH_Starter_DbMigrator>("fsh-demo-seeder")
+    .WithReference(postgres)
+    .WaitFor(postgres)
+    .WaitForCompletion(migrator)
+    .WithEnvironment("DOTNET_ENVIRONMENT", "Development")
+    .WithEnvironment("DatabaseOptions__Provider", "POSTGRESQL")
+    .WithEnvironment("DatabaseOptions__ConnectionString", postgres.Resource.ConnectionStringExpression)
+    .WithEnvironment("DatabaseOptions__MigrationsAssembly", "FSH.Starter.Migrations.PostgreSQL")
+    .WithEnvironment("Seed__DemoPassword", "Password123!")
+    .WithArgs("seed-demo");
+
 // API Service
 var api = builder.AddProject<Projects.FSH_Starter_Api>("fsh-api")
     .WithReference(postgres)
@@ -127,6 +156,7 @@ var api = builder.AddProject<Projects.FSH_Starter_Api>("fsh-api")
     .WaitFor(redis)
     .WaitForCompletion(minioInit)
     .WaitForCompletion(migrator)
+    .WaitForCompletion(demoSeeder)
     .WithExternalHttpEndpoints()
     .WithEnvironment("DatabaseOptions__Provider", "POSTGRESQL")
     .WithEnvironment("DatabaseOptions__ConnectionString", postgres.Resource.ConnectionStringExpression)

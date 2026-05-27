@@ -49,6 +49,17 @@ if (cli.Help)
 }
 var builder = Host.CreateApplicationBuilder(args);
 
+// The migrator loads every module so DbInitializers/seeders resolve, but runs a
+// deliberately reduced service graph (Mailing, Realtime/SignalR, Jobs disabled
+// via AddHeroPlatform below). The default container's build-time validation —
+// auto-on in Development — walks ALL registered descriptors, including request
+// handlers this process never invokes (Chat handlers needing IHubContext,
+// Identity handlers needing IMailService) and throws at startup. Disable it: the
+// migrator only resolves migration/seed services, so full-graph validation is a
+// false positive here. No-op in Production, where it's already off.
+builder.ConfigureContainer(new DefaultServiceProviderFactory(
+    new ServiceProviderOptions { ValidateOnBuild = false, ValidateScopes = false }));
+
 // In local development (dotnet run), the working directory is the project folder,
 // but appsettings.json is linked and copied to the output directory.
 // We explicitly load it from AppContext.BaseDirectory so IdentityModule's JwtOptions validate.
