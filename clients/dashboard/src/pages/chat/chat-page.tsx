@@ -36,6 +36,7 @@ import { TypingIndicator } from "@/pages/chat/typing-indicator";
 import { channelTitle } from "@/pages/chat/chat-utils";
 import { cn } from "@/lib/cn";
 import { useUserDisplay } from "@/lib/use-user-display";
+import { useRealtime } from "@/realtime/realtime-context";
 
 /**
  * /chat — top-level chat shell.
@@ -151,6 +152,17 @@ function ActiveChannel({
   const [searching, setSearching] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const messageListRef = useRef<MessageListHandle | null>(null);
+  const { invoke, status } = useRealtime();
+
+  // Join this channel's realtime group whenever it's opened, and re-join when the
+  // socket (re)connects. AppHub.OnConnectedAsync only pre-joins channels that existed
+  // at connect time, so a DM/channel opened later — or created after the socket came
+  // up — wouldn't receive live messages until a reload without this. The hub method is
+  // membership-gated and idempotent, so calling it on every open/reconnect is safe.
+  useEffect(() => {
+    if (status !== "connected") return;
+    void invoke("JoinChannel", channelId);
+  }, [channelId, status, invoke]);
 
   // Clear ephemeral state when the user switches channels.
   useEffect(() => {

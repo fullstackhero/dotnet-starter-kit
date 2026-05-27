@@ -1,15 +1,18 @@
 using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
+using FSH.Framework.Web.Realtime;
 using FSH.Modules.Chat.Contracts.v1.Commands;
 using FSH.Modules.Chat.Data;
 using FSH.Modules.Chat.Domain;
 using Mediator;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Modules.Chat.Features.v1.Channels.FindOrCreateDm;
 
 public sealed class FindOrCreateDmCommandHandler(
     ChatDbContext db,
+    IHubContext<AppHub> hub,
     ICurrentUser currentUser)
     : ICommandHandler<FindOrCreateDmCommand, Guid>
 {
@@ -42,6 +45,7 @@ public sealed class FindOrCreateDmCommandHandler(
             var dm = ChatChannel.CreateDirect(currentUserId, otherIds[0]);
             db.Channels.Add(dm);
             await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await NotifyChannelAddedAsync(dm.Id, otherIds, cancellationToken).ConfigureAwait(false);
             return dm.Id;
         }
 
@@ -51,6 +55,24 @@ public sealed class FindOrCreateDmCommandHandler(
         var group = ChatChannel.CreateGroupDm(allUserIds, currentUserId);
         db.Channels.Add(group);
         await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        await NotifyChannelAddedAsync(group.Id, otherIds, cancellationToken).ConfigureAwait(false);
         return group.Id;
+    }
+
+    /// <summary>
+    /// Tell every other participant's open tabs that a new conversation exists so their channel rail
+    /// refreshes without a reload. Targets each user's <c>user:{id}</c> group — always joined on connect
+    /// (see <see cref="AppHub.OnConnectedAsync"/>) — because their live sockets aren't in the new
+    /// <c>channel:{id}</c> group yet; the client joins that on demand when it opens the conversation.
+    /// The caller's own rail refreshes via the mutation's <c>onSuccess</c> on the client.
+    /// </summary>
+    private async Task NotifyChannelAddedAsync(Guid channelId, IEnumerable<string> otherUserIds, CancellationToken cancellationToken)
+    {
+        foreach (var uid in otherUserIds)
+        {
+            await hub.Clients.Group($"user:{uid}")
+                .SendAsync("ChatChannelAdded", new { channelId }, cancellationToken)
+                .ConfigureAwait(false);
+        }
     }
 }
