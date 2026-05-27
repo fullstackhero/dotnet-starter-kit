@@ -1,83 +1,136 @@
 import { useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
-  ArrowLeft,
   Check,
   ClipboardCheck,
   Copy,
   FileText,
   Fingerprint,
   ScrollText,
+  X,
 } from "lucide-react";
 import { getAudit, type AuditDetailDto } from "@/api/audits";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { EntityPageHeader, ErrorBand, LoadingRow, SettingsSection } from "@/components/list";
+import { ErrorBand, LoadingRow } from "@/components/list";
 import { ApiRequestError } from "@/lib/api-client";
+import {
+  Sheet,
+  SheetContent,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/cn";
 
-/**
- * Audit detail — forensic record view.
- *
- * Layout top to bottom:
- *   1. EntityPageHeader — icon + event-type + occurred-at
- *   2. Identity strip — event-type + severity chips + source
- *   3. Correlation strip — trace / span / correlation / request IDs as
- *      copyable chips.
- *   4. Context grid — fact tiles.
- *   5. Payload viewer — full-width JSON pane with bounded inner scroll.
- */
-export function AuditDetailPage() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+// ─────────────────────────────────────────────────────────────────────────
+// AuditDetailSheet — side sheet shown when an audit row is clicked on the
+// list page. Fetches the full record by id and renders the same 4 sections
+// the old full-page route showed.
+// ─────────────────────────────────────────────────────────────────────────
 
+export interface AuditDetailSheetProps {
+  /** The audit id to load, or null / undefined when the sheet is closed. */
+  auditId: string | null | undefined;
+  onClose: () => void;
+}
+
+export function AuditDetailSheet({ auditId, onClose }: AuditDetailSheetProps) {
+  const open = Boolean(auditId);
+
+  return (
+    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
+      <SheetContent
+        side="right"
+        showClose={false}
+        className="w-[min(640px,95vw)] max-w-none overflow-hidden p-0"
+      >
+        <AuditDetailSheetBody auditId={auditId ?? null} onClose={onClose} />
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Inner body — data-fetch + layout. Exported so it can be composed
+// independently if needed.
+// ─────────────────────────────────────────────────────────────────────────
+
+export function AuditDetailSheetBody({
+  auditId,
+  onClose,
+}: {
+  auditId: string | null;
+  onClose: () => void;
+}) {
   const query = useQuery({
-    queryKey: ["audits", id],
-    queryFn: () => getAudit(id!),
-    enabled: Boolean(id),
+    queryKey: ["audits", auditId],
+    queryFn: () => getAudit(auditId!),
+    enabled: Boolean(auditId),
+    staleTime: 60_000,
   });
 
   const event = query.data;
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6">
-      <div>
-        <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="-ml-2 mb-4">
-          <ArrowLeft className="mr-1 h-3.5 w-3.5" /> Back
-        </Button>
-        <EntityPageHeader
-          icon={ScrollText}
-          title={event ? `${formatEventType(event.eventType)} event` : "Audit event"}
-          description={
-            event
-              ? "Forensic record · captured by the audit pipeline. Use the correlation strip below to cross-reference logs and traces."
-              : "Loading event details…"
-          }
-        />
+    <div className="flex h-full flex-col">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3 border-b border-[var(--color-border)] px-6 py-5">
+        <div className="flex items-center gap-2.5">
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[var(--color-muted)]">
+            <ScrollText className="h-4 w-4 text-[var(--color-muted-foreground)]" />
+          </span>
+          <div>
+            <div className="text-[13px] font-semibold leading-tight tracking-tight text-[var(--color-foreground)]">
+              {event ? `${formatEventType(event.eventType)} event` : "Audit event"}
+            </div>
+            <div className="mt-0.5 font-mono text-[10.5px] text-[var(--color-muted-foreground)]">
+              {event ? formatTimestamp(event.occurredAtUtc) : "Loading…"}
+            </div>
+          </div>
+        </div>
+        <button
+          type="button"
+          aria-label="Close"
+          onClick={onClose}
+          className={cn(
+            "grid h-7 w-7 shrink-0 place-items-center rounded-md",
+            "text-[var(--color-muted-foreground)] transition-colors",
+            "hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
+          )}
+        >
+          <X className="h-4 w-4" />
+        </button>
       </div>
 
-      {query.isError && (
-        <ErrorBand
-          message={
-            query.error instanceof ApiRequestError
-              ? query.error.problem?.detail ?? query.error.message
-              : "Failed to load event."
-          }
-        />
-      )}
+      {/* Scrollable body */}
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        {query.isLoading && !event && (
+          <div className="p-6">
+            <LoadingRow label="Loading event" />
+          </div>
+        )}
 
-      {query.isLoading && !event && <LoadingRow label="Loading event" />}
+        {query.isError && (
+          <div className="p-6">
+            <ErrorBand
+              message={
+                query.error instanceof ApiRequestError
+                  ? query.error.problem?.detail ?? query.error.message
+                  : "Failed to load event."
+              }
+            />
+          </div>
+        )}
 
-      {event && (
-        <>
-          <IdentityBand event={event} />
-          <CorrelationBand event={event} />
-          <ContextGrid event={event} />
-          <PayloadPanel payload={event.payload} />
-        </>
-      )}
+        {event && (
+          <div className="space-y-0 divide-y divide-[var(--color-border)]">
+            <IdentityBand event={event} />
+            <CorrelationBand event={event} />
+            <ContextGrid event={event} />
+            <PayloadPanel payload={event.payload} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -90,8 +143,11 @@ function IdentityBand({ event }: { event: AuditDetailDto }) {
   const sev = severityTone(event.severity);
   const eventLabel = formatEventType(event.eventType);
   return (
-    <SettingsSection>
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-3" aria-label="Event identity">
+    <div className="px-6 py-4" aria-label="Event identity">
+      <div className="mb-2 font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
+        Identity
+      </div>
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
         <Badge
           variant={eventTypeVariant(eventLabel)}
           className="font-mono uppercase tracking-[0.16em]"
@@ -114,12 +170,12 @@ function IdentityBand({ event }: { event: AuditDetailDto }) {
           {formatTimestamp(event.occurredAtUtc)}
         </span>
       </div>
-    </SettingsSection>
+    </div>
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// 2. Correlation band — the most-used widget on the page.
+// 2. Correlation band — copyable ID chips.
 // ─────────────────────────────────────────────────────────────────────────
 
 function CorrelationBand({ event }: { event: AuditDetailDto }) {
@@ -131,23 +187,28 @@ function CorrelationBand({ event }: { event: AuditDetailDto }) {
   ];
 
   return (
-    <SettingsSection
-      icon={Fingerprint}
-      title="\\ Correlation"
-      description="Paste into your observability stack"
-    >
-      <div className="grid grid-cols-1 divide-y divide-[var(--color-border)] sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4 lg:divide-y-0 -mx-5 border-t border-[var(--color-border)]">
+    <div className="px-6 py-4">
+      <div className="mb-2 flex items-center gap-1.5">
+        <Fingerprint className="h-3.5 w-3.5 text-[var(--color-muted-foreground)]" />
+        <span className="font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
+          Correlation
+        </span>
+        <span className="ml-1 text-[10.5px] text-[var(--color-muted-foreground)]">
+          — paste into your observability stack
+        </span>
+      </div>
+      <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
         {slots.map((s) => (
           <CorrelationChip key={s.label} label={s.label} value={s.value ?? null} />
         ))}
       </div>
-    </SettingsSection>
+    </div>
   );
 }
 
 function CorrelationChip({ label, value }: { label: string; value: string | null }) {
   const [copied, setCopied] = useState(false);
-  const hasValue = value && value !== "—";
+  const hasValue = Boolean(value && value !== "—");
 
   const onCopy = async () => {
     if (!hasValue) return;
@@ -166,18 +227,18 @@ function CorrelationChip({ label, value }: { label: string; value: string | null
       onClick={onCopy}
       disabled={!hasValue}
       className={cn(
-        "group/chip flex min-w-0 items-start gap-3 px-5 py-3.5 text-left transition-colors sm:px-6",
+        "group/chip flex min-w-0 items-start gap-3 rounded-lg border border-[var(--color-border)] px-3 py-2.5 text-left transition-colors",
         hasValue
           ? "hover:bg-[var(--color-muted)]/50"
           : "opacity-60",
       )}
       aria-label={hasValue ? `Copy ${label}` : `${label} not available`}
     >
-      <div className="min-w-0 flex-1 space-y-1">
-        <div className="font-mono text-[10.5px] uppercase tracking-[0.14em] truncate text-[var(--color-muted-foreground)]">
+      <div className="min-w-0 flex-1 space-y-0.5">
+        <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
           {label}
         </div>
-        <div className="truncate font-mono text-[12px] text-[var(--color-foreground)]">
+        <div className="truncate font-mono text-[11.5px] text-[var(--color-foreground)]">
           {hasValue ? value : "—"}
         </div>
       </div>
@@ -185,12 +246,12 @@ function CorrelationChip({ label, value }: { label: string; value: string | null
         <span
           aria-hidden
           className={cn(
-            "grid h-6 w-6 shrink-0 place-items-center rounded-md text-[var(--color-muted-foreground)] transition-all",
+            "grid h-5 w-5 shrink-0 place-items-center rounded text-[var(--color-muted-foreground)] transition-all",
             "opacity-0 group-hover/chip:opacity-100 group-focus-visible/chip:opacity-100",
             copied && "opacity-100 text-[var(--color-success)]",
           )}
         >
-          {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+          {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
         </span>
       )}
     </button>
@@ -198,7 +259,7 @@ function CorrelationChip({ label, value }: { label: string; value: string | null
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// 3. Context grid — auto-fit fact tiles.
+// 3. Context grid — who/where/when fact tiles.
 // ─────────────────────────────────────────────────────────────────────────
 
 function ContextGrid({ event }: { event: AuditDetailDto }) {
@@ -218,20 +279,22 @@ function ContextGrid({ event }: { event: AuditDetailDto }) {
   ];
 
   return (
-    <SettingsSection
-      icon={AlertTriangle}
-      title="\\ Context"
-      description="Who, where, when — the surrounding facts"
-    >
+    <div className="px-6 py-4">
+      <div className="mb-2 flex items-center gap-1.5">
+        <AlertTriangle className="h-3.5 w-3.5 text-[var(--color-muted-foreground)]" />
+        <span className="font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
+          Context
+        </span>
+      </div>
       <div
-        className="grid gap-px -mx-5 bg-[var(--color-border)] border-t border-[var(--color-border)]"
-        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(15rem, 1fr))" }}
+        className="grid gap-2"
+        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(13rem, 1fr))" }}
       >
         {tiles.map((t) => (
           <FactTile key={t.label} label={t.label} value={t.value} mono={t.mono} />
         ))}
       </div>
-    </SettingsSection>
+    </div>
   );
 }
 
@@ -245,12 +308,14 @@ function FactTile({
   mono?: boolean;
 }) {
   return (
-    <div className="min-w-0 space-y-1 bg-[var(--color-card)] px-5 py-3.5 sm:px-6">
-      <div className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">{label}</div>
+    <div className="min-w-0 space-y-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] px-3 py-2.5">
+      <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
+        {label}
+      </div>
       <div
         className={cn(
           "min-w-0 break-words text-sm text-[var(--color-foreground)]",
-          mono && "font-mono text-[12.5px]",
+          mono && "font-mono text-[12px]",
         )}
       >
         {value}
@@ -260,7 +325,7 @@ function FactTile({
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// 4. Payload — full-width JSON pane.
+// 4. Payload — JSON pane with copy button.
 // ─────────────────────────────────────────────────────────────────────────
 
 function PayloadPanel({ payload }: { payload: unknown }) {
@@ -280,33 +345,33 @@ function PayloadPanel({ payload }: { payload: unknown }) {
   const lineCount = useMemo(() => json.split("\n").length, [json]);
 
   return (
-    <SettingsSection
-      icon={FileText}
-      title="\\ Payload"
-      description={`application/json · ${lineCount} lines`}
-      footer={
-        <Button variant="ghost" size="sm" onClick={copy} className="h-7 px-2 text-xs">
+    <div className="px-6 py-4">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5">
+          <FileText className="h-3.5 w-3.5 text-[var(--color-muted-foreground)]" />
+          <span className="font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
+            Payload
+          </span>
+          <span className="text-[10.5px] text-[var(--color-muted-foreground)]">
+            · {lineCount} lines
+          </span>
+        </div>
+        <Button variant="ghost" size="sm" onClick={copy} className="h-6 px-2 text-[11px]">
           {copied ? (
             <>
-              <ClipboardCheck className="mr-1 h-3.5 w-3.5" /> Copied
+              <ClipboardCheck className="mr-1 h-3 w-3" /> Copied
             </>
           ) : (
             <>
-              <Copy className="mr-1 h-3.5 w-3.5" /> Copy JSON
+              <Copy className="mr-1 h-3 w-3" /> Copy
             </>
           )}
         </Button>
-      }
-    >
-      {/* min-w-0 prevents the pre from blowing out the page width */}
-      <div className="-mx-5 min-w-0 bg-[var(--color-surface-2)] border-t border-[var(--color-border)]">
-        <pre
-          className="max-h-[70vh] min-w-0 overflow-auto px-5 py-4 font-mono text-[12px] leading-relaxed text-[var(--color-foreground)] sm:px-6"
-        >
-          <code>{json}</code>
-        </pre>
       </div>
-    </SettingsSection>
+      <pre className="max-h-[50vh] overflow-auto rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-4 py-3 font-mono text-[11.5px] leading-relaxed text-[var(--color-foreground)]">
+        <code>{json}</code>
+      </pre>
+    </div>
   );
 }
 

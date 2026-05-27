@@ -17,8 +17,8 @@ import {
   StatStrip,
   Stat,
   FilterBar,
-  Select,
 } from "@/components/list";
+import { Select } from "@/components/ui/select";
 import { EmptyState } from "@/components/empty-state";
 import { ImpersonateDialog } from "@/components/impersonation/impersonate-dialog";
 import { RevokeGrantDialog } from "@/components/impersonation/revoke-grant-dialog";
@@ -102,10 +102,10 @@ export function ImpersonationListPage() {
       <FilterBar>
         <Select
           value={status}
-          onValueChange={(v) => setStatus(v as ImpersonationGrantStatus | "")}
+          onChange={(v) => setStatus(v as ImpersonationGrantStatus | "")}
           options={STATUS_OPTIONS}
-          emptyLabel="All statuses"
-          className="min-w-[12rem]"
+          placeholder="All statuses"
+          minWidth="12rem"
         />
       </FilterBar>
 

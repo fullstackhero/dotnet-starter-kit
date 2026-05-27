@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Plus, Users } from "lucide-react";
 import { searchUsers, type UserDto } from "@/api/users";
 import { listRoles } from "@/api/roles";
 import { Button } from "@/components/ui/button";
+import { Select } from "@/components/ui/select";
 import { Monogram } from "@/components/monogram";
 import { EntityPageHeader, ErrorBand } from "@/components/list";
 import { ApiRequestError } from "@/lib/api-client";
@@ -149,21 +150,14 @@ export function UsersListPage() {
           ]}
         />
 
-        <label className="flex items-center gap-2 text-[0.6875rem] font-mono uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-          Role
-          <select
-            value={roleId}
-            onChange={(e) => setRoleId(e.target.value)}
-            className="h-8 rounded-md border border-[var(--color-border)] bg-transparent px-2 text-xs font-mono normal-case tracking-normal text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--color-ring)]"
-          >
-            <option value="">Any role</option>
-            {rolesQuery.data?.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        <Select
+          label="Role"
+          value={roleId}
+          onChange={(v) => setRoleId(v)}
+          options={(rolesQuery.data ?? []).map((r) => ({ value: r.id ?? "", label: r.name ?? r.id ?? "" }))}
+          placeholder="Any role"
+          minWidth="9rem"
+        />
       </div>
 
       {usersQuery.isError && (

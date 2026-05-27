@@ -40,7 +40,6 @@ const PlanFormPage = lazyNamed(() => import("@/pages/billing/plan-form"), "PlanF
 const InvoicesListPage = lazyNamed(() => import("@/pages/billing/invoices-list"), "InvoicesListPage");
 const InvoiceDetailPage = lazyNamed(() => import("@/pages/billing/invoice-detail"), "InvoiceDetailPage");
 const AuditsListPage = lazyNamed(() => import("@/pages/audits/list"), "AuditsListPage");
-const AuditDetailPage = lazyNamed(() => import("@/pages/audits/detail"), "AuditDetailPage");
 const HealthPage = lazyNamed(() => import("@/pages/health/page"), "HealthPage");
 const ImpersonationListPage = lazyNamed(() => import("@/pages/impersonation/list"), "ImpersonationListPage");
 const WebhooksListPage = lazyNamed(() => import("@/pages/webhooks/list"), "WebhooksListPage");
@@ -187,7 +186,8 @@ export const router = createBrowserRouter([
             ),
           },
 
-          // Audits
+          // Audits — detail opens as a side sheet on the list page.
+          // Redirect any bookmarked /audits/:id links back to /audits.
           {
             path: "audits",
             element: (
@@ -198,11 +198,7 @@ export const router = createBrowserRouter([
           },
           {
             path: "audits/:id",
-            element: (
-              <RouteGuard perms={[AuditingPermissions.AuditTrails.View]}>
-                <AuditDetailPage />
-              </RouteGuard>
-            ),
+            element: <Navigate to="/audits" replace />,
           },
 
           // Webhooks — any signed-in user can manage their tenant's subscriptions
