@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Activity, ChevronRight, Heart, RefreshCw } from "lucide-react";
 import { getLiveness, getReadiness, type HealthEntry, type HealthResult, type HealthStatus } from "@/api/health";
@@ -152,9 +153,7 @@ function ProbeSection({
       }
     >
       {loading ? (
-        <div className="px-1 py-6 text-sm font-mono uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-          Probing<span className="caret text-[var(--color-accent-signal)]" />
-        </div>
+        <div className="py-6 text-sm text-[var(--color-muted-foreground)]">Probing…</div>
       ) : !result || result.results.length === 0 ? (
         <div className="flex items-center gap-3 py-5">
           <Activity className="h-4 w-4 text-[var(--color-muted-foreground)]" />
@@ -177,41 +176,68 @@ function ProbeSection({
 }
 
 function CheckRow({ entry }: { entry: HealthEntry }) {
-  return (
-    <li>
-      <details className="group">
-        <summary className="grid cursor-pointer grid-cols-[auto_1fr_auto_auto] items-center gap-4 px-5 py-3.5 transition-colors hover:bg-[var(--color-muted)]/50">
-          <StatusDot status={entry.status} />
-          <div className="min-w-0">
-            <div className="truncate font-mono text-[13px] font-medium">{entry.name}</div>
-            {entry.description && (
-              <div className="mt-0.5 truncate text-xs text-[var(--color-muted-foreground)]">
-                {entry.description}
-              </div>
-            )}
-          </div>
-          <span className="font-mono text-[11px] tabular-nums text-[var(--color-muted-foreground)]">
-            {entry.durationMs.toFixed(1)}ms
-          </span>
-          <ChevronRight className="h-4 w-4 text-[var(--color-muted-foreground)] transition-transform group-open:rotate-90" />
-        </summary>
-        {entry.details && Object.keys(entry.details).length > 0 && (
-          <div className="border-t border-[var(--color-border)] bg-[var(--color-surface-2)] px-5 py-3">
-            <dl className="grid grid-cols-1 gap-x-6 gap-y-1.5 sm:grid-cols-2">
-              {Object.entries(entry.details).map(([k, v]) => (
-                <div key={k} className="flex items-baseline justify-between gap-3 border-b border-dashed border-[var(--color-border)] py-1.5">
-                  <dt className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
-                    {k}
-                  </dt>
-                  <dd className="truncate font-mono text-[12px] text-[var(--color-foreground)]">
-                    {String(v)}
-                  </dd>
-                </div>
-              ))}
-            </dl>
+  const [open, setOpen] = useState(false);
+  const hasDetails = !!entry.details && Object.keys(entry.details).length > 0;
+
+  const rowInner = (
+    <>
+      <StatusDot status={entry.status} />
+      <div className="min-w-0">
+        <div className="truncate font-mono text-[13px] font-medium">{entry.name}</div>
+        {entry.description && (
+          <div className="mt-0.5 truncate text-xs text-[var(--color-muted-foreground)]">
+            {entry.description}
           </div>
         )}
-      </details>
+      </div>
+      <span className="font-mono text-[11px] tabular-nums text-[var(--color-muted-foreground)]">
+        {entry.durationMs.toFixed(1)}ms
+      </span>
+      {hasDetails ? (
+        <ChevronRight
+          className={cn(
+            "h-4 w-4 text-[var(--color-muted-foreground)] transition-transform",
+            open && "rotate-90",
+          )}
+        />
+      ) : (
+        <span className="h-4 w-4" aria-hidden />
+      )}
+    </>
+  );
+
+  return (
+    <li>
+      {hasDetails ? (
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          className="grid w-full grid-cols-[auto_1fr_auto_auto] items-center gap-4 px-5 py-3.5 text-left transition-colors hover:bg-[var(--color-muted)]/50 focus-visible:bg-[var(--color-muted)]/50 focus-visible:outline-none"
+        >
+          {rowInner}
+        </button>
+      ) : (
+        <div className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-4 px-5 py-3.5">
+          {rowInner}
+        </div>
+      )}
+      {hasDetails && open && (
+        <div className="border-t border-[var(--color-border)] bg-[var(--color-surface-2)] px-5 py-3">
+          <dl className="grid grid-cols-1 gap-x-6 gap-y-1.5 sm:grid-cols-2">
+            {Object.entries(entry.details ?? {}).map(([k, v]) => (
+              <div key={k} className="flex items-baseline justify-between gap-3 border-b border-dashed border-[var(--color-border)] py-1.5">
+                <dt className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-[var(--color-muted-foreground)]">
+                  {k}
+                </dt>
+                <dd className="truncate font-mono text-[12px] text-[var(--color-foreground)]">
+                  {String(v)}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      )}
     </li>
   );
 }
