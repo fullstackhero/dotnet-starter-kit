@@ -1,101 +1,169 @@
-import { useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { useLocation } from "react-router-dom";
-import { Menu, X } from "lucide-react";
-import { SidebarContent } from "@/components/layout/sidebar-content";
+import { Menu } from "lucide-react";
+import {
+  Dialog as Sheet,
+  SheetContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { SidebarNavBody } from "@/components/layout/sidebar";
+import { findSectionForPath, sections, filterNavSpec } from "@/components/layout/nav-items";
+import { useAuth } from "@/auth/use-auth";
 import { cn } from "@/lib/cn";
+import type { NavSection } from "@/components/layout/nav-items";
 
 /**
- * MobileNav — hamburger trigger + slide-over drawer for screens below `md`.
- * Closes on route change, on Escape, and on backdrop click. The drawer
- * uses the same SidebarContent as the desktop rail so numbering and
- * active-state styling stay identical.
+ * Mobile nav drawer.
+ *
+ * Below `md`, the desktop <Sidebar> is hidden. <MobileNavProvider> mounts
+ * a left-edge Sheet that the Topbar's hamburger triggers. The drawer reuses
+ * <SidebarNavBody> so there is one source of truth for the nav.
+ *
+ * Composition:
+ *   <MobileNavProvider>
+ *     <MobileNavRoot />       ← renders the Sheet (mount once at root)
+ *     <MobileNavTrigger />    ← the hamburger (place in Topbar)
+ *   </MobileNavProvider>
  */
-export function MobileNav() {
+
+type MobileNavContextValue = {
+  open: boolean;
+  setOpen: (next: boolean) => void;
+};
+
+const MobileNavContext = createContext<MobileNavContextValue | null>(null);
+
+export function useMobileNav() {
+  const ctx = useContext(MobileNavContext);
+  if (!ctx) throw new Error("useMobileNav must be used within MobileNavProvider");
+  return ctx;
+}
+
+export function MobileNavProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
-  const location = useLocation();
-  const buttonRef = useRef<HTMLButtonElement>(null);
-
-  // Close on route change. We intentionally listen on pathname only — the
-  // search/hash changing shouldn't dismiss the drawer.
-  useEffect(() => {
-    setOpen(false);
-  }, [location.pathname]);
-
-  // Close on Escape; lock body scroll while open.
-  useEffect(() => {
-    if (!open) return;
-    // Capture the trigger node now (it's stable) so the cleanup focuses the
-    // right element without reading a possibly-changed ref at teardown.
-    const trigger = buttonRef.current;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener("keydown", onKey);
-      // Return focus to the trigger so the next tap-target is the menu button.
-      trigger?.focus();
-    };
-  }, [open]);
-
+  const value = useMemo(() => ({ open, setOpen }), [open]);
   return (
-    <>
-      <button
-        ref={buttonRef}
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-label="Open navigation"
-        aria-expanded={open}
-        className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-transparent text-[var(--color-muted-foreground)] transition-colors hover:border-[var(--color-border)] hover:text-[var(--color-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] md:hidden"
-      >
-        <Menu className="h-4 w-4" />
-      </button>
-
-      {/* Drawer + backdrop */}
-      <div
-        aria-hidden={!open}
-        className={cn(
-          "fixed inset-0 z-50 md:hidden",
-          open ? "pointer-events-auto" : "pointer-events-none",
-        )}
-      >
-        {/* Backdrop — dim + slight blur. canvas-grid sits under it so the
-            console texture stays continuous through the dim. */}
-        <button
-          type="button"
-          aria-label="Close navigation"
-          onClick={() => setOpen(false)}
-          className={cn(
-            "absolute inset-0 cursor-default bg-[oklch(0_0_0_/_0.55)] backdrop-blur-sm transition-opacity duration-200",
-            open ? "opacity-100" : "opacity-0",
-          )}
-        />
-
-        {/* Drawer */}
-        <aside
-          role="dialog"
-          aria-modal="true"
-          aria-label="Navigation"
-          className={cn(
-            "absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col border-r border-[var(--color-border)] bg-[var(--color-surface-2)] shadow-2xl transition-transform duration-300 ease-[var(--ease-out-cubic)]",
-            open ? "translate-x-0" : "-translate-x-full",
-          )}
-        >
-          {/* Close button positioned in the brand row so it doesn't push content */}
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            aria-label="Close navigation"
-            className="absolute right-3 top-3 z-10 inline-flex h-8 w-8 items-center justify-center rounded-md text-[var(--color-muted-foreground)] transition-colors hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]"
-          >
-            <X className="h-4 w-4" />
-          </button>
-          <SidebarContent onNavigate={() => setOpen(false)} />
-        </aside>
-      </div>
-    </>
+    <MobileNavContext.Provider value={value}>{children}</MobileNavContext.Provider>
   );
 }
+
+/**
+ * The Sheet itself — mount once near the root (inside the provider).
+ * Auto-closes on route changes.
+ */
+export function MobileNavRoot() {
+  const { open, setOpen } = useMobileNav();
+  const location = useLocation();
+  const { user, permissionsHydrated } = useAuth();
+
+  const granted = permissionsHydrated ? (user?.permissions ?? []) : [];
+  const visibleSections: NavSection[] = useMemo(
+    () =>
+      sections
+        .map((s) => ({ ...s, items: filterNavSpec(s.items, granted) }))
+        .filter((s) => s.items.length > 0),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [granted.join(",")],
+  );
+
+  const [openSection, setOpenSection] = useState<string | null>(() =>
+    findSectionForPath(location.pathname),
+  );
+
+  useEffect(() => {
+    setOpenSection(findSectionForPath(location.pathname));
+  }, [location.pathname]);
+
+  // Close the drawer on route changes (e.g. browser back/forward).
+  useEffect(() => {
+    setOpen(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetContent side="left" className="flex flex-col p-0">
+        {/* Radix Dialog requires a Title for the accessible tree. */}
+        <DialogTitle className="sr-only">Primary navigation</DialogTitle>
+        <DialogDescription className="sr-only">
+          Admin sections and account links.
+        </DialogDescription>
+
+        {/* Brand row — matches Topbar height */}
+        <div className="flex h-14 shrink-0 items-center gap-2.5 border-b border-[var(--color-border)] px-4">
+          <span
+            aria-hidden
+            className={cn(
+              "brand-mark grid h-7 w-7 place-items-center rounded-md shrink-0",
+              "text-[11px] font-bold tracking-tight text-[var(--color-primary-foreground)]",
+              "shadow-[0_1px_0_oklch(1_0_0_/_0.18)_inset,0_4px_14px_-4px_oklch(from_var(--color-primary)_l_c_h_/_0.45)]",
+            )}
+          >
+            F
+          </span>
+          <div className="flex flex-col">
+            <span className="whitespace-nowrap font-display text-[15px] font-bold leading-none tracking-tight text-[var(--color-foreground)]">
+              fullstack<span className="text-[var(--color-primary)]">hero</span>
+            </span>
+            <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.7)]">
+              Admin
+            </span>
+          </div>
+        </div>
+
+        <SidebarNavBody
+          collapsed={false}
+          openSection={openSection}
+          setOpenSection={setOpenSection}
+          visibleSections={visibleSections}
+          onNavigate={() => setOpen(false)}
+        />
+
+        <div className="border-t border-[var(--color-border)] px-5 py-3">
+          <p className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-[var(--color-muted-foreground)]">
+            v0.1 · admin
+          </p>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+/**
+ * Hamburger trigger — `md:hidden`. Place in the Topbar.
+ */
+export function MobileNavTrigger({ className }: { className?: string }) {
+  const { setOpen } = useMobileNav();
+  const onClick = useCallback(() => setOpen(true), [setOpen]);
+  return (
+    <button
+      type="button"
+      aria-label="Open navigation menu"
+      onClick={onClick}
+      className={cn(
+        "grid h-9 w-9 cursor-pointer place-items-center rounded-md md:hidden",
+        "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
+        "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
+        className,
+      )}
+    >
+      <Menu className="h-4 w-4" aria-hidden />
+    </button>
+  );
+}
+
+/**
+ * @deprecated Use MobileNavTrigger + MobileNavProvider + MobileNavRoot instead.
+ * Kept only for any lingering direct usages of the old <MobileNav />.
+ */
+export { MobileNavTrigger as MobileNav };
