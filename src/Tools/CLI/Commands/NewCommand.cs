@@ -423,7 +423,7 @@ public sealed class NewCommand : AsyncCommand<NewCommand.Settings>
 
             string currentVersion = typeof(NewCommand).Assembly.GetName().Version?.ToString(3) ?? "0.0.0";
 
-            if (latest is not null && latest != currentVersion)
+            if (VersionComparer.IsNewer(latest, currentVersion))
             {
                 AnsiConsole.WriteLine();
                 AnsiConsole.MarkupLine($"[{FshConstants.WarningColor}]A newer version of FSH CLI is available: {latest} (current: {currentVersion})[/]");

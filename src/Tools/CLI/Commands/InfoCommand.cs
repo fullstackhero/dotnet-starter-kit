@@ -41,10 +41,10 @@ public sealed class InfoCommand : AsyncCommand
         // Latest CLI
         if (latestCli is not null)
         {
-            bool isUpToDate = latestCli == currentVersion;
-            table.AddRow("Latest CLI", isUpToDate
-                ? $"[{FshConstants.SuccessColor}]{latestCli} (up to date)[/]"
-                : $"[{FshConstants.WarningColor}]{latestCli} (update available — run 'fsh update')[/]");
+            bool updateAvailable = VersionComparer.IsNewer(latestCli, currentVersion);
+            table.AddRow("Latest CLI", updateAvailable
+                ? $"[{FshConstants.WarningColor}]{latestCli} (update available — run 'fsh update')[/]"
+                : $"[{FshConstants.SuccessColor}]{latestCli} (up to date)[/]");
         }
         else
         {
@@ -61,10 +61,10 @@ public sealed class InfoCommand : AsyncCommand
 
         if (latestTemplate is not null)
         {
-            bool isUpToDate = latestTemplate == templateVersion;
-            table.AddRow("Latest Template", isUpToDate
-                ? $"[{FshConstants.SuccessColor}]{latestTemplate} (up to date)[/]"
-                : $"[{FshConstants.WarningColor}]{latestTemplate} (update available)[/]");
+            bool updateAvailable = VersionComparer.IsNewer(latestTemplate, templateVersion);
+            table.AddRow("Latest Template", updateAvailable
+                ? $"[{FshConstants.WarningColor}]{latestTemplate} (update available)[/]"
+                : $"[{FshConstants.SuccessColor}]{latestTemplate} (up to date)[/]");
         }
 
         // .NET SDK
