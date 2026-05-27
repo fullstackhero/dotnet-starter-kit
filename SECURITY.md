@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-This is a starter kit. Only the current `develop` branch receives security fixes from upstream. Forks, downstream projects, and tagged releases are owned by their maintainers — pull fixes in on your own cadence.
+This is a starter kit. Only the current `main` branch receives security fixes from upstream. Forks, downstream projects, and tagged releases are owned by their maintainers — pull fixes in on your own cadence.
 
 ## Reporting a vulnerability
 
@@ -23,7 +23,7 @@ Please include:
 - Triage decision within 7 days.
 - Coordinated disclosure window of ~90 days from triage, longer for changes that need careful migration paths.
 
-Fixes ship as a patched commit on `develop` plus a GitHub Security Advisory. Reporters are credited with permission.
+Fixes ship as a patched commit on `main` plus a GitHub Security Advisory. Reporters are credited with permission.
 
 ## Scope
 

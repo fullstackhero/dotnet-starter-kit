@@ -8,10 +8,10 @@ name: Backend CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
     tags: ['v*']
   pull_request:
-    branches: [main, develop]
+    branches: [main]
   workflow_dispatch:
     inputs:
       version:
@@ -37,7 +37,7 @@ jobs:
     name: Detect changes
     runs-on: ubuntu-latest
     outputs:
-      # On any non-PR event (push to develop/main, tags, manual release) run the
+      # On any non-PR event (push to main, tags, manual release) run the
       # full pipeline. On PRs, run only when backend-relevant paths changed.
       backend: ${{ github.event_name != 'pull_request' || steps.filter.outputs.backend == 'true' }}
     steps:
@@ -284,7 +284,7 @@ jobs:
   publish-dev-containers:
     name: Publish Dev Containers
     needs: [changes, test, integration-test]
-    if: needs.changes.outputs.backend == 'true' && github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    if: needs.changes.outputs.backend == 'true' && github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
