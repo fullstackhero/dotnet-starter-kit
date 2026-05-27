@@ -40,7 +40,7 @@ Wait until you see something like `[migrator] DbMigrator completed` and the `mig
 ## Verify it's healthy
 
 ```bash
-curl -fsS http://localhost:8080/health        # API
+curl -fsS http://localhost:8080/health/live   # API liveness
 curl -fsSI http://localhost:8081/ | head -1   # admin SPA — HTTP/1.1 200 OK
 curl -fsS  http://localhost:8081/config.json  # admin runtime config — shows FSH_API_URL
 curl -fsSI http://localhost:8082/ | head -1   # dashboard SPA

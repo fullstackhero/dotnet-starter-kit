@@ -199,6 +199,12 @@ builder.AddJavaScriptApp($"{appPrefix}-dashboard", "../../../clients/dashboard",
     .WithHttpEndpoint(port: 5174, targetPort: 5174, isProxied: false)
     .WithExternalHttpEndpoints()
     .WithEnvironment("VITE_API_BASE_URL", api.GetEndpoint("https"));
+//#else
+// With the React apps excluded, nothing else references the `api` resource
+// handle, which would trip the unused-local analyzer (S1481) under
+// TreatWarningsAsErrors. Discard it explicitly to keep the no-frontend
+// scaffold warning-clean. (In the full template this branch is dropped.)
+_ = api;
 //#endif
 
 await builder.Build().RunAsync();
