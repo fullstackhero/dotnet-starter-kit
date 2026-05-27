@@ -1,8 +1,9 @@
 import { createContext, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { tokenStore } from "@/auth/token-store";
-import { decodeJwt, type JwtClaims } from "@/auth/jwt";
+import { decodeJwt, isTokenExpired, type JwtClaims } from "@/auth/jwt";
 import { issueToken } from "@/auth/api";
+import { refreshAccessToken } from "@/lib/api-client";
 import { endImpersonation, startImpersonation } from "@/api/identity";
 
 export type AuthUser = {
@@ -25,6 +26,13 @@ export type ImpersonationInfo = {
 export type AuthContextValue = {
   user: AuthUser | null;
   isAuthenticated: boolean;
+  /**
+   * True while the provider resolves a stored session at boot — the access
+   * token was missing/expired but a refresh token was present, so a silent
+   * refresh is in flight. Routes render a loader (not the page, not a redirect)
+   * while this is true, so a stale token never flashes a doomed dashboard.
+   */
+  isInitializing: boolean;
   /** Truthy iff the current access token carries act_sub (impersonation mode). */
   impersonation: ImpersonationInfo | null;
   login: (input: { email: string; password: string; tenant: string }) => Promise<void>;
@@ -79,14 +87,53 @@ function pickFirstNonEmpty(...candidates: Array<string | undefined>): string | u
   return undefined;
 }
 
+// Read the stored session, treating an EXPIRED access token as "not usable
+// yet": the boot effect attempts a silent refresh before we trust it. A
+// decodable-but-expired token must not flip the app to authenticated, or it
+// renders protected surfaces that 401 in a loop instead of refreshing.
+function readStoredSession(): { claims: JwtClaims | null; usable: boolean } {
+  const claims = decodeJwt(tokenStore.getAccessToken());
+  return { claims, usable: claims !== null && !isTokenExpired(claims) };
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
-  const [user, setUser] = useState<AuthUser | null>(() =>
-    claimsToUser(decodeJwt(tokenStore.getAccessToken())),
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    const { claims, usable } = readStoredSession();
+    return usable ? claimsToUser(claims) : null;
+  });
+  const [impersonation, setImpersonation] = useState<ImpersonationInfo | null>(() => {
+    const { claims, usable } = readStoredSession();
+    return usable ? claimsToImpersonation(claims) : null;
+  });
+  // When the stored access token is missing/expired but a refresh token is
+  // present, attempt one silent refresh at boot before rendering — this keeps
+  // long-lived sessions alive (45-min access / 7-day refresh) AND stops a stale
+  // token from flashing a doomed dashboard that fires 401-ing requests.
+  const [isInitializing, setIsInitializing] = useState<boolean>(
+    () => !readStoredSession().usable && tokenStore.getRefreshToken() !== null,
   );
-  const [impersonation, setImpersonation] = useState<ImpersonationInfo | null>(() =>
-    claimsToImpersonation(decodeJwt(tokenStore.getAccessToken())),
-  );
+
+  useEffect(() => {
+    if (!isInitializing) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        await refreshAccessToken();
+      } catch {
+        // Refresh token dead (expired, revoked, or DB reseeded) — drop the
+        // stale session so routing falls through to /login cleanly.
+        tokenStore.clear();
+      } finally {
+        if (!cancelled) setIsInitializing(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // Boot-only: isInitializing only ever flips false, never back on.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const refresh = () => {
@@ -181,13 +228,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       user,
       isAuthenticated: user !== null,
+      isInitializing,
       impersonation,
       login,
       logout,
       beginImpersonation,
       stopImpersonation,
     }),
-    [user, impersonation, login, logout, beginImpersonation, stopImpersonation],
+    [user, isInitializing, impersonation, login, logout, beginImpersonation, stopImpersonation],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

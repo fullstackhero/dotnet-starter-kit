@@ -27,7 +27,7 @@ const DEFAULT_TIMEOUT_MS = 30_000;
 
 let refreshPromise: Promise<void> | null = null;
 
-async function refreshAccessToken() {
+export async function refreshAccessToken() {
   const refreshToken = tokenStore.getRefreshToken();
   const accessToken = tokenStore.getAccessToken();
   if (!refreshToken || !accessToken) {
