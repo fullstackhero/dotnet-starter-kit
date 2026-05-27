@@ -22,7 +22,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           "transition-[color,box-shadow,border-color,background-color] duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
           "selection:bg-[var(--color-primary)] selection:text-[var(--color-primary-foreground)]",
           "file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-foreground)]",
-          "placeholder:text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.6)]",
+          "placeholder:text-[var(--color-muted-foreground)]",
           "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
           "md:text-sm",
           "dark:bg-[oklch(from_var(--color-input)_l_c_h_/_0.3)]",

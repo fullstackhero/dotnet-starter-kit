@@ -88,6 +88,13 @@
   --primary-hover:              var(--brand-700);
   --primary-soft:               oklch(from var(--brand-600) l c h / 0.10);
 
+  /* Theme-independent. For content that sits on top of imagery or a dark
+     scrim (caption text, overlay action icons) and for the thumb of a
+     filled control — white stays legible in both light and dark, so these
+     are intentionally NOT flipped in the .dark block. */
+  --overlay:                    oklch(0 0 0 / 0.55);
+  --overlay-foreground:         oklch(1 0 0);
+
   --secondary:                  var(--neutral-100);
   --secondary-foreground:       var(--neutral-900);
 
@@ -375,6 +382,8 @@
   --color-primary-foreground:     var(--primary-foreground);
   --color-primary-hover:          var(--primary-hover);
   --color-primary-soft:           var(--primary-soft);
+  --color-overlay:                var(--overlay);
+  --color-overlay-foreground:     var(--overlay-foreground);
   --color-secondary:              var(--secondary);
   --color-secondary-foreground:   var(--secondary-foreground);
   --color-muted:                  var(--muted);
@@ -1128,6 +1137,18 @@
   }
   body { background-image: none; }
 }
+
+/* App-level override: the Appearance > "Reduce motion" toggle adds
+   `.reduce-motion` on :root to force the same reductions regardless of the
+   OS setting. Mirrors the media query above. */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-delay: 0ms !important;
+  transition-duration: 0.01ms !important;
+}
+.reduce-motion body { background-image: none; }
 
 /* CHAT-ONLY page chrome (.chat-typing-dot, .chat-unread-divider,
    .chat-day-rule, .chat-reaction-chip, .chat-channel-header,

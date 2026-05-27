@@ -22,7 +22,6 @@ import {
   Trash2,
   User as UserIcon,
   UserCog,
-  Users as UsersIcon,
   XCircle,
 } from "lucide-react";
 import {
@@ -106,12 +105,15 @@ export function UserDetailPage() {
   });
 
   const user = userQuery.data;
-  const roles = rolesQuery.data ?? [];
+  const roles = useMemo(() => rolesQuery.data ?? [], [rolesQuery.data]);
 
-  // Reset pending changes when fresh data arrives
+  // Clear staged toggles only when navigating to a different user — NOT on
+  // every `roles` array identity change. `roles` is `rolesQuery.data ?? []`,
+  // so an incidental background refetch would otherwise wipe unsaved edits.
+  // The deterministic post-save clear lives in saveRoles.onSuccess.
   useEffect(() => {
     setPending(new Map());
-  }, [roles]);
+  }, [userId]);
 
   const effective = (role: UserRoleDto) => {
     if (!role.roleId) return role.enabled;
@@ -155,6 +157,7 @@ export function UserDetailPage() {
       toast.success("Roles updated", {
         description: `${dirtyIds.length} role${dirtyIds.length === 1 ? "" : "s"} changed.`,
       });
+      setPending(new Map());
       void queryClient.invalidateQueries({
         queryKey: ["identity", "users", userId, "roles"],
       });
@@ -838,7 +841,3 @@ function SessionsCard({
     </EntityDetailSection>
   );
 }
-
-// Suppress unused-import warning for UsersIcon if we ever drop it; keep
-// because tooltips and future actions may reuse it.
-void UsersIcon;

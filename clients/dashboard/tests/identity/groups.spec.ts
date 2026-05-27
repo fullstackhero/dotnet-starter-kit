@@ -62,7 +62,7 @@ test.describe("identity/groups — list", () => {
     await page.goto("/identity/groups");
 
     await expect(
-      page.getByRole("heading", { name: "No groups yet", level: 3 }),
+      page.getByRole("heading", { name: "No groups yet", level: 2 }),
     ).toBeVisible();
     await expect(
       page.getByText(/create the first group to bundle members and roles/i),

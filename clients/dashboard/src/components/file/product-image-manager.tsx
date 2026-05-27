@@ -221,7 +221,7 @@ function ImageTile({
             disabled={busy}
             title="Set as cover"
             aria-label="Set as cover"
-            className="bg-[oklch(0_0_0/0.45)] text-white hover:bg-[oklch(0_0_0/0.65)]"
+            className="bg-[var(--color-overlay)] text-[var(--color-overlay-foreground)] hover:bg-[oklch(0_0_0/0.65)]"
           >
             <StarOff className="h-4 w-4" />
           </Button>
@@ -237,7 +237,7 @@ function ImageTile({
           disabled={busy}
           title="Remove image"
           aria-label="Remove image"
-          className="bg-[oklch(0_0_0/0.45)] text-white hover:bg-[var(--color-destructive)]"
+          className="bg-[var(--color-overlay)] text-[var(--color-overlay-foreground)] hover:bg-[var(--color-destructive)]"
         >
           <Trash2 className="h-4 w-4" />
         </Button>

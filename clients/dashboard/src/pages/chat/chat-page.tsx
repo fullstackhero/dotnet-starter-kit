@@ -60,7 +60,7 @@ export function ChatPage() {
     staleTime: 30_000,
   });
 
-  const channels = channelsQuery.data ?? [];
+  const channels = useMemo(() => channelsQuery.data ?? [], [channelsQuery.data]);
 
   // Auto-pick the first channel when no channelId is in the route.
   useEffect(() => {

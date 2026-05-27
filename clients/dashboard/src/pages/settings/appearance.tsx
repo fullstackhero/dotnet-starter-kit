@@ -49,8 +49,8 @@ export function AppearanceSettings() {
     accent, setAccent,
     customAccent, setCustomAccent,
     density, setDensity,
+    reducedMotion, setReducedMotion,
   } = useTheme();
-  const [reducedMotion, setReducedMotion] = useState(false);
   const [customOpen, setCustomOpen] = useState(false);
 
   // Fetch the nine lazy-loaded selectable font families the first time
@@ -461,7 +461,7 @@ function CustomAccentDialog({
                 step={1}
                 value={Math.round(draft.h)}
                 onChange={(e) => setDraft((d) => ({ ...d, h: Number(e.target.value) }))}
-                className="absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent [&::-webkit-slider-thumb]:h-7 [&::-webkit-slider-thumb]:w-1.5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-sm [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-[oklch(0_0_0_/_0.4)] [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-[0_2px_6px_-2px_oklch(0_0_0_/_0.4)] [&::-moz-range-thumb]:h-7 [&::-moz-range-thumb]:w-1.5 [&::-moz-range-thumb]:rounded-sm [&::-moz-range-thumb]:border [&::-moz-range-thumb]:border-[oklch(0_0_0_/_0.4)] [&::-moz-range-thumb]:bg-white"
+                className="absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent [&::-webkit-slider-thumb]:h-7 [&::-webkit-slider-thumb]:w-1.5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-sm [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-[oklch(0_0_0_/_0.4)] [&::-webkit-slider-thumb]:bg-[var(--color-overlay-foreground)] [&::-webkit-slider-thumb]:shadow-[0_2px_6px_-2px_oklch(0_0_0_/_0.4)] [&::-moz-range-thumb]:h-7 [&::-moz-range-thumb]:w-1.5 [&::-moz-range-thumb]:rounded-sm [&::-moz-range-thumb]:border [&::-moz-range-thumb]:border-[oklch(0_0_0_/_0.4)] [&::-moz-range-thumb]:bg-[var(--color-overlay-foreground)]"
                 aria-label="Hue"
               />
             </div>

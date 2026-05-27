@@ -425,7 +425,7 @@ export function CommandPaletteDialog({
               placeholder="Type a command or search…"
               aria-label="Search commands"
               className={cn(
-                "h-7 flex-1 bg-transparent text-[14px] tracking-tight placeholder:text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.5)]",
+                "h-7 flex-1 bg-transparent text-[14px] tracking-tight placeholder:text-[var(--color-muted-foreground)]",
                 "focus:outline-none focus-visible:outline-none focus-visible:shadow-none",
               )}
               autoFocus

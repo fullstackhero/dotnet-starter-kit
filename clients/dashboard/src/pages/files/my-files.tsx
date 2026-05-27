@@ -143,7 +143,10 @@ export function MyFilesPage() {
     void queryClient.invalidateQueries({ queryKey: SHARED_FILES_KEY });
   };
 
-  const allFiles = tab === "mine" ? myFilesQuery.data ?? [] : sharedFilesQuery.data ?? [];
+  const allFiles = useMemo(
+    () => (tab === "mine" ? myFilesQuery.data ?? [] : sharedFilesQuery.data ?? []),
+    [tab, myFilesQuery.data, sharedFilesQuery.data],
+  );
   const activeQuery = tab === "mine" ? myFilesQuery : sharedFilesQuery;
 
   // Type-bucket counts run against the unfiltered list so the chips show

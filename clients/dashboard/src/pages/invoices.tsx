@@ -78,7 +78,7 @@ export function InvoicesPage() {
 
   const [search, setSearch] = useState("");
 
-  const invoices = query.data ?? [];
+  const invoices = useMemo(() => query.data ?? [], [query.data]);
 
   const sorted = useMemo(
     () =>

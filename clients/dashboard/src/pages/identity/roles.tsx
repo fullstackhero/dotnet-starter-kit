@@ -66,7 +66,7 @@ export function RolesPage() {
     queryFn: listRoles,
   });
 
-  const roles = query.data ?? [];
+  const roles = useMemo(() => query.data ?? [], [query.data]);
 
   const filtered = useMemo(() => {
     if (!debounced) return roles;

@@ -39,7 +39,7 @@ export const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(
         <span
           aria-hidden
           className={cn(
-            "pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-[0_1px_2px_oklch(0_0_0_/_0.20)]",
+            "pointer-events-none inline-block h-4 w-4 rounded-full bg-[var(--color-overlay-foreground)] shadow-[0_1px_2px_oklch(0_0_0_/_0.20)]",
             "transition-transform duration-[var(--duration-default)] ease-[var(--ease-out-cubic)]",
             checked ? "translate-x-[18px]" : "translate-x-0.5",
           )}

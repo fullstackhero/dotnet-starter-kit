@@ -21,9 +21,9 @@ export function NotificationsSettings() {
           <div className="mb-4 grid size-14 place-items-center rounded-2xl bg-[var(--color-muted)]">
             <Bell className="size-6 text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.4)]" />
           </div>
-          <h3 className="mb-1.5 font-display text-[17px] font-semibold text-[var(--color-foreground)]">
+          <h2 className="mb-1.5 font-display text-[17px] font-semibold text-[var(--color-foreground)]">
             Per-event preferences aren't tunable yet.
-          </h3>
+          </h2>
           <p className="mb-6 max-w-[380px] text-[13px] text-[var(--color-muted-foreground)]">
             In-app notifications are already delivered to your bell — open it from
             the top bar to see them. Granular per-event email opt-ins are on the

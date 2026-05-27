@@ -567,13 +567,21 @@ export const MessageList = forwardRef<
         aria-relevant="additions"
         aria-label="Channel messages"
       >
+        {/* aria-hidden so these status rows aren't announced as new messages
+            by the role="log" live region (it only relays additions). */}
         {loadingOlder && (
-          <div className="flex h-9 items-center justify-center text-[11px] text-[var(--color-muted-foreground)]">
+          <div
+            aria-hidden
+            className="flex h-9 items-center justify-center text-[11px] text-[var(--color-muted-foreground)]"
+          >
             Loading older…
           </div>
         )}
         {!hasMoreOlder && messages.length >= 100 && (
-          <div className="flex h-9 items-center justify-center text-[11px] text-[var(--color-muted-foreground)]">
+          <div
+            aria-hidden
+            className="flex h-9 items-center justify-center text-[11px] text-[var(--color-muted-foreground)]"
+          >
             Beginning of the conversation
           </div>
         )}
