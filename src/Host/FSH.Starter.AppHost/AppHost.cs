@@ -101,17 +101,23 @@ var minioInit = builder.AddContainer("minio-init", "minio/mc")
 var minioApiEndpoint = minio.GetEndpoint("api");
 
 // Database migrator — runs once on each AppHost launch, applies pending
-// migrations across the tenant catalog + every tenant's per-module
-// databases, then exits. The API depends on its completion below, so
-// the API never starts against an unmigrated database. Production
-// deployments use this same project as an explicit deploy step.
+// migrations across the tenant catalog + every tenant's per-module databases,
+// then seeds the root tenant's admin user, then exits. The API depends on its
+// completion below, so the API never starts against an unmigrated/unseeded
+// database. Production deployments use this same project as an explicit step.
+//
+// `--seed` runs SeedTenantAsync so the root admin (admin@root.com) exists out of
+// the box — without it the app comes up with an empty Users table and nobody can
+// log in. The seed password is a dev-only default that mirrors the API's
+// appsettings.Development.json; override it for non-dev use.
 var migrator = builder.AddProject<Projects.FSH_Starter_DbMigrator>("fsh-db-migrator")
     .WithReference(postgres)
     .WaitFor(postgres)
     .WithEnvironment("DatabaseOptions__Provider", "POSTGRESQL")
     .WithEnvironment("DatabaseOptions__ConnectionString", postgres.Resource.ConnectionStringExpression)
     .WithEnvironment("DatabaseOptions__MigrationsAssembly", "FSH.Starter.Migrations.PostgreSQL")
-    .WithArgs("apply");
+    .WithEnvironment("Seed__DefaultAdminPassword", "123Pa$$word!")
+    .WithArgs("apply", "--seed");
 
 // API Service
 var api = builder.AddProject<Projects.FSH_Starter_Api>("fsh-api")
