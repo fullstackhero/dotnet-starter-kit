@@ -79,19 +79,6 @@ export function ImpersonationBanner() {
         backgroundColor: "var(--color-muted)",
       }}
     >
-      {/* Soft tone wash — radial in the tone color from the top-left.
-          Replaces the previous diagonal-stripe alarm with the editorial
-          surface treatment used on the overview welcome panel. */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10"
-        style={{
-          background: `radial-gradient(60% 90% at 0% 0%, oklch(from ${tone} l c h / ${
-            isCrossTenant ? 0.14 : 0.10
-          }), transparent 75%)`,
-        }}
-      />
-
       {/* Left ribbon — 2px tone strip only for cross-tenant. Subtle but
           scannable for an operator skimming the chrome. */}
       {isCrossTenant && (
@@ -109,7 +96,7 @@ export function ImpersonationBanner() {
           aria-hidden
           className="grid h-8 w-8 shrink-0 place-items-center rounded-xl"
           style={{
-            background: `linear-gradient(135deg, oklch(from ${tone} l c h / 0.22), oklch(from ${tone} l c h / 0.04))`,
+            backgroundColor: `oklch(from ${tone} l c h / 0.14)`,
             color: tone,
             boxShadow: `inset 0 0 0 1px oklch(from ${tone} l c h / 0.32)`,
           }}
