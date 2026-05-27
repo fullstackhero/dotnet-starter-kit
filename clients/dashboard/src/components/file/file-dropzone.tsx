@@ -236,7 +236,14 @@ function detailFor(
 function ProgressBar({ percent, loaded, total }: { percent: number; loaded: number; total: number }) {
   return (
     <div className="w-full max-w-sm space-y-1.5">
-      <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-[var(--color-muted)]">
+      <div
+        role="progressbar"
+        aria-label="Upload progress"
+        aria-valuenow={percent}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        className="relative h-1.5 w-full overflow-hidden rounded-full bg-[var(--color-muted)]"
+      >
         <span
           aria-hidden
           className="absolute inset-y-0 left-0 rounded-full bg-[var(--color-primary)] transition-[width] duration-200"

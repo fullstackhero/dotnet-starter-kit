@@ -216,12 +216,12 @@ export function SettingsSection({
     >
       {title && (
         <div className="border-b border-[oklch(from_var(--color-border)_l_c_h_/_0.5)] px-5 py-3">
-          <h3 className="flex items-center gap-2 text-[13px] font-semibold text-[var(--color-foreground)]">
+          <h2 className="flex items-center gap-2 text-[13px] font-semibold text-[var(--color-foreground)]">
             {Icon && (
               <Icon className="size-3.5 text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.5)]" />
             )}
             {title}
-          </h3>
+          </h2>
           {description && (
             <p className="mt-1 text-[12px] text-[var(--color-muted-foreground)]">
               {description}

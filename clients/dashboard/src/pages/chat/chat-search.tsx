@@ -228,10 +228,12 @@ function ResultPlaceholder({ label }: { label: string; mono?: boolean }) {
 function highlight(body: string, term: string): React.ReactNode {
   if (term.length === 0) return body;
   const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const re = new RegExp(`(${escaped})`, "ig");
-  const parts = body.split(re);
+  const parts = body.split(new RegExp(`(${escaped})`, "ig"));
+  // split() with a capturing group emits the matched term as the odd-index
+  // segments; a case-insensitive equality is enough to pick them out (and
+  // avoids a stateful `/g` RegExp.test whose lastIndex drifts across calls).
   return parts.map((part, i) =>
-    re.test(part) && part.toLowerCase() === term.toLowerCase() ? (
+    part.toLowerCase() === term.toLowerCase() ? (
       <mark
         key={i}
         className="rounded-sm bg-[var(--color-primary-soft)] px-0.5 text-[var(--color-primary)]"

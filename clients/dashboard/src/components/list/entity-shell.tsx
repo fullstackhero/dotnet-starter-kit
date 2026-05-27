@@ -81,13 +81,14 @@ export function EntitySearch({
       <input
         type="text"
         placeholder={placeholder}
+        aria-label={placeholder ?? "Search"}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         autoFocus={autoFocus}
         className={cn(
           "h-[46px] w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]",
           "pl-12 pr-4 text-[14px] font-normal text-[var(--color-foreground)] outline-none",
-          "placeholder:text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.5)]",
+          "placeholder:text-[var(--color-muted-foreground)]",
           "shadow-xs",
           "transition-all duration-200",
           "focus:border-[oklch(from_var(--color-ring)_l_c_h_/_0.30)] focus:ring-2 focus:ring-[oklch(from_var(--color-ring)_l_c_h_/_0.10)]",
@@ -96,7 +97,8 @@ export function EntitySearch({
       {value && (
         <button
           onClick={() => onChange("")}
-          className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-[11px] font-medium text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.5)] transition-colors hover:text-[var(--color-muted-foreground)]"
+          aria-label="Clear search"
+          className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-[11px] font-medium text-[var(--color-muted-foreground)] transition-colors hover:text-[var(--color-foreground)]"
           type="button"
         >
           Clear
@@ -221,9 +223,9 @@ export function EntityEmpty({
       <div className="mb-4 grid size-14 place-items-center rounded-2xl bg-[var(--color-muted)]">
         <Icon className="size-6 text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.4)]" />
       </div>
-      <h3 className="mb-1.5 font-display text-[17px] font-semibold text-[var(--color-foreground)]">
+      <h2 className="mb-1.5 font-display text-[17px] font-semibold text-[var(--color-foreground)]">
         {title}
-      </h3>
+      </h2>
       {body && (
         <p className="mb-6 max-w-[320px] text-[13px] text-[var(--color-muted-foreground)]">
           {body}
@@ -477,7 +479,8 @@ export function EntityListLoading({
   mobile?: boolean;
 }) {
   return (
-    <div>
+    <div role="status" aria-busy="true">
+      <span className="sr-only">Loading…</span>
       {mobile && (
         <div className="space-y-2 md:hidden">
           {Array.from({ length: rows }).map((_, i) => (
