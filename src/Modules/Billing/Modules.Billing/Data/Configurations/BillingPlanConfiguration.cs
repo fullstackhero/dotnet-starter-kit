@@ -19,6 +19,8 @@ public sealed class BillingPlanConfiguration : IEntityTypeConfiguration<BillingP
         builder.Property(x => x.Name).IsRequired().HasMaxLength(128);
         builder.Property(x => x.Currency).IsRequired().HasMaxLength(8);
         builder.Property(x => x.MonthlyBasePrice).HasPrecision(18, 4);
+        builder.Property(x => x.Interval).HasConversion<int>().HasDefaultValue(Contracts.PlanInterval.Monthly);
+        builder.Property(x => x.AnnualPrice).HasPrecision(18, 4);
 
         // Overage rates map to jsonb so the plan's pricing schedule is a single column.
         builder.Property<Dictionary<QuotaResource, decimal>>("_overageRates")

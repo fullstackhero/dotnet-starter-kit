@@ -21,3 +21,15 @@ public enum InvoiceLineItemKind
     Overage = 1,
     Adjustment = 2
 }
+
+public enum PlanInterval
+{
+    Monthly = 0,
+    Yearly = 1
+}
+
+public enum InvoicePurpose
+{
+    Subscription = 0,
+    Usage = 1
+}
