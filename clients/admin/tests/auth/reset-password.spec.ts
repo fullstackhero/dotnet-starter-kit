@@ -6,15 +6,15 @@ const VALID_LINK = "/reset-password?token=ABC123&email=admin@root.com&tenant=roo
 test.describe("admin reset-password", () => {
   test("guards against malformed links", async ({ page }) => {
     await page.goto("/reset-password");
-    await expect(page.getByText(/this reset link is incomplete/i)).toBeVisible();
+    await expect(page.getByRole("heading", { name: /this link is incomplete/i })).toBeVisible();
     await expect(page.getByRole("link", { name: /request a new link/i })).toBeVisible();
   });
 
   test("renders the form with the email + tenant echoed back", async ({ page }) => {
     await page.goto(VALID_LINK);
-    await expect(page.getByText("// RECOVER ACCOUNT")).toBeVisible();
-    await expect(page.getByText("admin@root.com")).toBeVisible();
-    await expect(page.locator("code").filter({ hasText: /^root$/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /set a new password/i })).toBeVisible();
+    await expect(page.getByText("admin@root.com", { exact: true })).toBeVisible();
+    await expect(page.getByText("root", { exact: true })).toBeVisible();
     await expect(page.getByLabel("New password")).toBeVisible();
     await expect(page.getByLabel("Confirm password")).toBeVisible();
   });

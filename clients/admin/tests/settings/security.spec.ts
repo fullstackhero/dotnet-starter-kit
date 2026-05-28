@@ -32,16 +32,23 @@ test.describe("settings · security", () => {
     await page.goto("/settings/security");
 
     const main = page.getByRole("main");
-    // Section title renders with a literal "\\ " prefix; anchor to it to avoid
-    // colliding with prose that also contains "password".
-    await expect(main.getByText(/\\ Password/)).toBeVisible({ timeout: 10_000 });
-    await expect(main.getByLabel(/^Current password/)).toBeVisible();
-    await expect(main.getByLabel(/^New password/)).toBeVisible();
-    await expect(main.getByLabel(/^Confirm new password/)).toBeVisible();
+    // The Password section now renders as a SettingsSection <h2> heading; the
+    // actual form lives behind a "Change password" button (Dialog pattern).
+    await expect(main.getByRole("heading", { name: "Password" })).toBeVisible({ timeout: 10_000 });
 
-    // 2FA disabled → enroll affordance + "off" badge.
+    // 2FA disabled → enroll affordance + "off" badge. Assert these BEFORE
+    // opening the modal — an open Radix dialog marks <main> aria-hidden, which
+    // would hide these from the accessibility tree.
     await expect(main.getByRole("button", { name: /enable two-factor/i })).toBeVisible();
     await expect(main.getByText("off", { exact: true })).toBeVisible();
+
+    // Open the change-password dialog; its form portals OUTSIDE <main>, so
+    // scope the password fields to the dialog.
+    await main.getByRole("button", { name: /change password/i }).click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByLabel(/^Current password/)).toBeVisible();
+    await expect(dialog.getByLabel(/^New password/)).toBeVisible();
+    await expect(dialog.getByLabel(/^Confirm new password/)).toBeVisible();
   });
 
   test("POSTs the change-password payload on submit", async ({ page }) => {
@@ -56,18 +63,22 @@ test.describe("settings · security", () => {
     await page.goto("/settings/security");
 
     const main = page.getByRole("main");
-    await expect(main.getByLabel(/^Current password/)).toBeVisible({ timeout: 10_000 });
+    await main
+      .getByRole("button", { name: /change password/i })
+      .click({ timeout: 10_000 });
 
-    await main.getByLabel(/^Current password/).fill("OldPass123!");
-    await main.getByLabel(/^New password/).fill("NewPass456!");
-    await main.getByLabel(/^Confirm new password/).fill("NewPass456!");
+    // The form is inside the portaled dialog.
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel(/^Current password/).fill("OldPass123!");
+    await dialog.getByLabel(/^New password/).fill("NewPass456!");
+    await dialog.getByLabel(/^Confirm new password/).fill("NewPass456!");
 
     const reqPromise = page.waitForRequest(
       (r) =>
         r.url().includes("/api/v1/identity/users/change-password") && r.method() === "POST",
       { timeout: 5_000 },
     );
-    await main.getByRole("button", { name: /update password/i }).click();
+    await dialog.getByRole("button", { name: /update password/i }).click();
     const req = await reqPromise;
 
     const body = JSON.parse(req.postData() ?? "{}");
@@ -84,19 +95,23 @@ test.describe("settings · security", () => {
     await page.goto("/settings/security");
 
     const main = page.getByRole("main");
-    await expect(main.getByLabel(/^Current password/)).toBeVisible({ timeout: 10_000 });
+    await main
+      .getByRole("button", { name: /change password/i })
+      .click({ timeout: 10_000 });
 
-    await main.getByLabel(/^Current password/).fill("OldPass123!");
-    await main.getByLabel(/^New password/).fill("NewPass456!");
-    await main.getByLabel(/^Confirm new password/).fill("Different789!");
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel(/^Current password/).fill("OldPass123!");
+    await dialog.getByLabel(/^New password/).fill("NewPass456!");
+    await dialog.getByLabel(/^Confirm new password/).fill("Different789!");
 
     let posted = false;
     page.on("request", (r) => {
       if (r.url().includes("/change-password") && r.method() === "POST") posted = true;
     });
 
-    await main.getByRole("button", { name: /update password/i }).click();
-    await expect(main.getByText(/passwords don't match/i)).toBeVisible();
+    await dialog.getByRole("button", { name: /update password/i }).click();
+    // Zod refine surfaces the mismatch on the confirm Field's error line.
+    await expect(dialog.getByText(/passwords don't match/i)).toBeVisible();
     expect(posted).toBe(false);
   });
 
@@ -128,12 +143,18 @@ test.describe("settings · security", () => {
     await page.goto("/settings/security");
 
     const main = page.getByRole("main");
-    await expect(main.getByLabel(/^Current password/)).toBeVisible({ timeout: 10_000 });
-    await main.getByLabel(/^Current password/).fill("WrongPass1!");
-    await main.getByLabel(/^New password/).fill("NewPass456!");
-    await main.getByLabel(/^Confirm new password/).fill("NewPass456!");
-    await main.getByRole("button", { name: /update password/i }).click();
+    await main
+      .getByRole("button", { name: /change password/i })
+      .click({ timeout: 10_000 });
 
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel(/^Current password/).fill("WrongPass1!");
+    await dialog.getByLabel(/^New password/).fill("NewPass456!");
+    await dialog.getByLabel(/^Confirm new password/).fill("NewPass456!");
+    await dialog.getByRole("button", { name: /update password/i }).click();
+
+    // The mutation's onError raises a sonner toast whose description carries
+    // the ProblemDetails detail; assert on that copy.
     await expect(page.getByText(/current password is incorrect/i)).toBeVisible();
   });
 });

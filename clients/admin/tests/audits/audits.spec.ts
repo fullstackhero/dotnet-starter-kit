@@ -84,18 +84,15 @@ test.describe("audit trail list", () => {
       main.getByRole("heading", { name: "Audit trail", exact: true }),
     ).toBeVisible({ timeout: 10_000 });
 
-    // The // Filters rail with its two native <select> comboboxes. Options are
-    // hidden inside a native select, so assert the comboboxes + their default
-    // empty-label option text (attached, not visible) instead.
+    // The // Filters rail with its two dropdown triggers (Radix button-based
+    // selects). Assert the triggers by their default empty-label text.
     await expect(main.getByText("// Filters", { exact: true })).toBeVisible();
-    const combos = main.getByRole("combobox");
-    await expect(combos).toHaveCount(2);
     await expect(
-      main.getByRole("option", { name: "All event types" }),
-    ).toBeAttached();
+      main.getByRole("button", { name: "All event types" }),
+    ).toBeVisible();
     await expect(
-      main.getByRole("option", { name: "All severities" }),
-    ).toBeAttached();
+      main.getByRole("button", { name: "All severities" }),
+    ).toBeVisible();
     // Search box.
     await expect(
       main.getByPlaceholder("Search user, source, correlation…"),
@@ -105,21 +102,28 @@ test.describe("audit trail list", () => {
 
 test.describe("audit detail", () => {
   test("loads the forensic record with correlation + payload", async ({ page }) => {
+    // The detail is now a side sheet opened by clicking a list row — the old
+    // /audits/:id route redirects to /audits. Mock the list + the detail by id.
+    await mockJsonResponse(page, "**/api/v1/audits/?*", paged([AUDIT_ROW], { pageSize: 25 }));
+    await mockJsonResponse(page, "**/api/v1/audits/summary*", SUMMARY);
     await mockJsonResponse(page, `**/api/v1/audits/${AUDIT_DETAIL.id}`, AUDIT_DETAIL);
 
-    await page.goto(`/audits/${AUDIT_DETAIL.id}`);
+    await page.goto("/audits");
 
+    // Click the audit row (its source line) to open the detail sheet.
     const main = page.getByRole("main");
-    // h1 renders "<EventType> event" — Security → "Security event".
-    await expect(
-      main.getByRole("heading", { name: "Security event", exact: true }),
-    ).toBeVisible({ timeout: 10_000 });
+    await main.getByText("POST /api/v1/identity/token", { exact: true }).click();
+
+    // The sheet renders in a Radix portal (role=dialog), outside <main>.
+    const sheet = page.getByRole("dialog");
+    // Header shows "<EventType> event" — Security → "Security event".
+    await expect(sheet.getByText("Security event")).toBeVisible({ timeout: 10_000 });
 
     // Correlation chip + value.
-    await expect(main.getByText("Correlation id", { exact: true })).toBeVisible();
-    await expect(main.getByText("corr-xyz-001", { exact: true })).toBeVisible();
+    await expect(sheet.getByText("Correlation id", { exact: true })).toBeVisible();
+    await expect(sheet.getByText("corr-xyz-001", { exact: true })).toBeVisible();
 
     // Payload pane shows the JSON we returned.
-    await expect(main.getByText(/"action": "login"/)).toBeVisible();
+    await expect(sheet.getByText(/"action": "login"/)).toBeVisible();
   });
 });

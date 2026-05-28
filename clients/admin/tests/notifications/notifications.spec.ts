@@ -63,10 +63,10 @@ test.describe("notifications inbox", () => {
     ).toBeVisible({ timeout: 10_000 });
 
     await expect(main.getByRole("button", { name: /mark all read/i })).toBeVisible();
-    // The filter is a native <select> — its options are hidden, so assert the
-    // combobox itself plus the default "unread" value.
-    const combo = main.getByRole("combobox");
-    await expect(combo).toBeVisible();
-    await expect(combo).toHaveValue("unread");
+    // The filter is a dropdown trigger (Radix button-based select); its default
+    // value is "unread", so assert the trigger shows the "Unread" label.
+    await expect(
+      main.getByRole("button", { name: "Unread", exact: true }),
+    ).toBeVisible();
   });
 });

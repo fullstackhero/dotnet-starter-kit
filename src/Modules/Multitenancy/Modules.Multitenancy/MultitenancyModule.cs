@@ -21,8 +21,8 @@ using FSH.Modules.Multitenancy.Features.v1.GetTenantTheme;
 using FSH.Modules.Multitenancy.Features.v1.ResetTenantTheme;
 using FSH.Modules.Multitenancy.Features.v1.TenantProvisioning.GetTenantProvisioningStatus;
 using FSH.Modules.Multitenancy.Features.v1.TenantProvisioning.RetryTenantProvisioning;
+using FSH.Modules.Multitenancy.Features.v1.RenewTenant;
 using FSH.Modules.Multitenancy.Features.v1.UpdateTenantTheme;
-using FSH.Modules.Multitenancy.Features.v1.UpgradeTenant;
 using FSH.Modules.Multitenancy.Provisioning;
 using FSH.Modules.Multitenancy.Services;
 using Microsoft.AspNetCore.Builder;
@@ -31,6 +31,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using System.Security.Claims;
 
 namespace FSH.Modules.Multitenancy;
@@ -43,6 +44,9 @@ public sealed class MultitenancyModule : IModule
 
         FSH.Framework.Shared.Constants.PermissionConstants.Register(
             FSH.Modules.Multitenancy.Contracts.Authorization.MultitenancyPermissions.All);
+
+        builder.Services.Configure<TenantBillingOptions>(
+            builder.Configuration.GetSection(TenantBillingOptions.SectionName));
 
         builder.Services.AddScoped<ITenantService, TenantService>();
         builder.Services.AddScoped<ITenantThemeService, TenantThemeService>();
@@ -179,10 +183,23 @@ public sealed class MultitenancyModule : IModule
                     tenant = await store.GetAsync(callerTenant).ConfigureAwait(false);
                 }
 
-                if (tenant is { IsActive: false } &&
+                if (tenant is not null &&
                     !string.Equals(tenant.Id, MultitenancyConstants.Root.Id, StringComparison.Ordinal))
                 {
-                    throw new ForbiddenException("This tenant has been deactivated. Contact your administrator.");
+                    if (!tenant.IsActive)
+                    {
+                        throw new ForbiddenException("This tenant has been deactivated. Contact your administrator.");
+                    }
+
+                    // Expiry is enforced on every request (not just at login) with a grace window:
+                    // a tenant past ValidUpto still works until ValidUpto + grace, then is hard-blocked.
+                    var graceDays = ctx.RequestServices
+                        .GetRequiredService<IOptions<TenantBillingOptions>>().Value.GraceWindowDays;
+                    var nowUtc = ctx.RequestServices.GetRequiredService<TimeProvider>().GetUtcNow().UtcDateTime;
+                    if (nowUtc > tenant.ValidUpto.AddDays(graceDays))
+                    {
+                        throw new ForbiddenException("This tenant's subscription has expired. Please renew to continue.");
+                    }
                 }
             }
 
@@ -204,7 +221,7 @@ public sealed class MultitenancyModule : IModule
             .WithApiVersionSet(versionSet);
         ChangeTenantActivationEndpoint.Map(group);
         GetTenantsEndpoint.Map(group);
-        UpgradeTenantEndpoint.Map(group);
+        RenewTenantEndpoint.Map(group);
         CreateTenantEndpoint.Map(group);
         GetTenantStatusEndpoint.Map(group);
         GetTenantProvisioningStatusEndpoint.Map(group);

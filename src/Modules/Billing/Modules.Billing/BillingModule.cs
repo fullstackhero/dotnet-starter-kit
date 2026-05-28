@@ -1,4 +1,5 @@
 using Asp.Versioning;
+using FSH.Framework.Eventing;
 using FSH.Framework.Persistence;
 using FSH.Framework.Web.Modules;
 using FSH.Modules.Billing.Data;
@@ -43,6 +44,9 @@ public sealed class BillingModule : IModule
         builder.Services.AddScoped<IDbInitializer, BillingDbInitializer>();
         builder.Services.AddScoped<IUsageReporter, UsageReporter>();
         builder.Services.AddScoped<IBillingService, BillingService>();
+
+        // React to tenant create/renew events (Multitenancy.Contracts) to drive subscriptions + invoices.
+        builder.Services.AddIntegrationEventHandlers(typeof(BillingModule).Assembly);
 
         builder.Services.AddHealthChecks()
             .AddDbContextCheck<BillingDbContext>(

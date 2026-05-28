@@ -127,9 +127,13 @@ public sealed class BillingTenantIsolationTests
         // A different tenant must not be able to read root's subscription by passing root's tenant id.
         crossBody.ShouldNotContain(rootSubId.ToString());
 
+        // The attacking tenant has its own (auto-provisioned) subscription, so the fetch may return
+        // THAT — but never root's. The isolation guarantee is "you never see another tenant's row".
         var crossSub = await GetSubscriptionAsync(otherClient, TestConstants.RootTenantId);
-        crossSub.ShouldBeNull(
-            "cross-tenant subscription fetch must resolve to no subscription for the attacking tenant");
+        crossSub?.Id.ShouldNotBe(rootSubId,
+            "cross-tenant subscription fetch must never resolve to root's subscription");
+        crossSub?.TenantId.ShouldNotBe(TestConstants.RootTenantId,
+            "cross-tenant subscription fetch must never resolve to root's subscription");
     }
 
     #endregion

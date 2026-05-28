@@ -16,6 +16,19 @@ public sealed class Invoice : AggregateRoot<Guid>
     public string InvoiceNumber { get; private set; } = default!;
     public int PeriodYear { get; private set; }
     public int PeriodMonth { get; private set; }
+
+    /// <summary>
+    /// What this invoice bills. <see cref="InvoicePurpose.Subscription"/> covers a plan term (created
+    /// on tenant create/renew); <see cref="InvoicePurpose.Usage"/> covers metered overage for a month
+    /// (created by the monthly job). The two streams never collide on idempotency keys.
+    /// </summary>
+    public InvoicePurpose Purpose { get; private set; } = InvoicePurpose.Usage;
+
+    /// <summary>Start of the billed term (subscription invoices only).</summary>
+    public DateTime? PeriodStartUtc { get; private set; }
+
+    /// <summary>End of the billed term (subscription invoices only).</summary>
+    public DateTime? PeriodEndUtc { get; private set; }
     public string Currency { get; private set; } = "USD";
     public decimal SubtotalAmount { get; private set; }
     public InvoiceStatus Status { get; private set; }
@@ -36,6 +49,18 @@ public sealed class Invoice : AggregateRoot<Guid>
         int periodYear,
         int periodMonth,
         string currency)
+        => CreateDraft(tenantId, invoiceNumber, periodYear, periodMonth, currency,
+            InvoicePurpose.Usage, periodStartUtc: null, periodEndUtc: null);
+
+    public static Invoice CreateDraft(
+        string tenantId,
+        string invoiceNumber,
+        int periodYear,
+        int periodMonth,
+        string currency,
+        InvoicePurpose purpose,
+        DateTime? periodStartUtc,
+        DateTime? periodEndUtc)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         ArgumentException.ThrowIfNullOrWhiteSpace(invoiceNumber);
@@ -56,6 +81,9 @@ public sealed class Invoice : AggregateRoot<Guid>
             InvoiceNumber = invoiceNumber,
             PeriodYear = periodYear,
             PeriodMonth = periodMonth,
+            Purpose = purpose,
+            PeriodStartUtc = periodStartUtc is { } s ? DateTime.SpecifyKind(s, DateTimeKind.Utc) : null,
+            PeriodEndUtc = periodEndUtc is { } e ? DateTime.SpecifyKind(e, DateTimeKind.Utc) : null,
             Currency = currency.ToUpperInvariant(),
             Status = InvoiceStatus.Draft,
             CreatedAtUtc = DateTime.UtcNow

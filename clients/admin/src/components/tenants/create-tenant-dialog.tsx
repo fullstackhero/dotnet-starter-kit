@@ -1,10 +1,12 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
   Building2,
+  CreditCard,
   Database,
   KeyRound,
   UserRound,
@@ -12,9 +14,10 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { createTenant } from "@/api/tenants";
+import { getPlans, planTermPrice } from "@/api/billing";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Field } from "@/components/list";
+import { Field, Select, type SelectOption } from "@/components/list";
 import {
   Dialog,
   DialogContent,
@@ -46,7 +49,18 @@ const schema = z.object({
     .max(128, "Maximum 128 characters."),
   issuer: z.string().trim().min(2, "Required.").max(256),
   connectionString: z.string().trim().max(2048).optional(),
+  // Optional: preselected to the default plan when plans load; if left empty (e.g. plans
+  // unavailable) the server falls back to the configured trial plan.
+  planKey: z.string().trim().optional(),
 });
+
+function formatMoney(amount: number, currency: string): string {
+  try {
+    return new Intl.NumberFormat(undefined, { style: "currency", currency }).format(amount);
+  } catch {
+    return `${amount.toFixed(2)} ${currency}`;
+  }
+}
 
 type FormValues = z.infer<typeof schema>;
 
@@ -91,10 +105,28 @@ export function CreateTenantDialog({
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+  const plansQuery = useQuery({
+    queryKey: ["billing", "plans", "active"],
+    queryFn: () => getPlans(false),
+    enabled: open,
+  });
+
+  const planOptions: SelectOption[] = (plansQuery.data ?? []).map((p) => ({
+    value: p.key,
+    label: p.name,
+    hint: `${p.interval} · ${formatMoney(planTermPrice(p), p.currency)}`,
+  }));
+  // Prefer the conventional trial plan, else the first active plan.
+  const defaultPlanKey =
+    plansQuery.data?.find((p) => p.key === "free")?.key ?? plansQuery.data?.[0]?.key ?? "";
+
   const {
     register,
     handleSubmit,
+    control,
     reset,
+    setValue,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -105,8 +137,16 @@ export function CreateTenantDialog({
       adminPassword: "",
       issuer: "",
       connectionString: "",
+      planKey: "",
     },
   });
+
+  // Preselect the default/trial plan once plans load (without clobbering an explicit choice).
+  useEffect(() => {
+    if (defaultPlanKey && !getValues("planKey")) {
+      setValue("planKey", defaultPlanKey);
+    }
+  }, [defaultPlanKey, getValues, setValue]);
 
   const mutation = useMutation({
     // Pass values via mutate(arg) — no closed-over state captured at submit time.
@@ -118,6 +158,7 @@ export function CreateTenantDialog({
         adminPassword: values.adminPassword,
         issuer: values.issuer,
         connectionString: values.connectionString?.trim() ? values.connectionString : null,
+        planKey: values.planKey?.trim() ? values.planKey : null,
       }),
     onSuccess: (result) => {
       toast.success(`Tenant ${result.id} created`, {
@@ -254,6 +295,47 @@ export function CreateTenantDialog({
                   />
                 </Field>
               </div>
+            </div>
+
+            {/* ── Plan section ── */}
+            <div className="space-y-3">
+              <SectionLabel
+                icon={CreditCard}
+                title="Plan"
+                description="Subscription plan to bill. The tenant's validity is set from the plan term and a term invoice is issued."
+              />
+              <div className="h-px bg-[var(--color-border)] opacity-60" />
+              <Field
+                id="ct-plan"
+                label="Billing plan"
+                hint={
+                  plansQuery.isError
+                    ? "Could not load plans — the tenant will fall back to the default plan."
+                    : "Determines the first invoice and how long the tenant stays valid. Defaults to the trial plan."
+                }
+                error={errors.planKey?.message}
+              >
+                <Controller
+                  control={control}
+                  name="planKey"
+                  render={({ field }) => (
+                    <Select
+                      id="ct-plan"
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      options={planOptions}
+                      emptyLabel={
+                        plansQuery.isLoading
+                          ? "Loading plans…"
+                          : planOptions.length === 0
+                            ? "No active plans"
+                            : undefined
+                      }
+                      disabled={plansQuery.isLoading || planOptions.length === 0}
+                    />
+                  )}
+                />
+              </Field>
             </div>
 
             {/* ── Security section ── */}

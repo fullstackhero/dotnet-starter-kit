@@ -7,7 +7,7 @@ test.describe("admin confirm-email", () => {
   test("malformed-link state when params are missing", async ({ page }) => {
     await page.goto("/confirm-email");
     await expect(page.getByText(/missing required parameters/i)).toBeVisible();
-    await expect(page.getByText(/failed/i)).toBeVisible();
+    await expect(page.getByRole("heading", { name: /couldn't confirm your email/i })).toBeVisible();
   });
 
   test("success state on 2xx with continue-to-signin CTA", async ({ page }) => {
@@ -33,7 +33,7 @@ test.describe("admin confirm-email", () => {
     await page.goto(VALID_LINK);
 
     await expect(page.getByText(/no longer valid/i)).toBeVisible();
-    await expect(page.getByRole("link", { name: /back to sign in/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Back to sign in", exact: true })).toBeVisible();
     await expect(page.getByRole("link", { name: /reset password instead/i })).toBeVisible();
   });
 });

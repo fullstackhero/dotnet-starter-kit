@@ -8,6 +8,47 @@ public sealed class InvoiceTests
     private static Invoice NewDraft() =>
         Invoice.CreateDraft("tenant-1", "INV-202601-tenant-1", 2026, 1, "usd");
 
+    #region Purpose / period span
+
+    [Fact]
+    public void CreateDraft_Should_Default_To_Usage_Purpose()
+    {
+        var inv = NewDraft();
+
+        inv.Purpose.ShouldBe(InvoicePurpose.Usage);
+        inv.PeriodStartUtc.ShouldBeNull();
+        inv.PeriodEndUtc.ShouldBeNull();
+    }
+
+    [Fact]
+    public void CreateDraft_Subscription_Should_Carry_Purpose_And_Period_Span()
+    {
+        var start = new DateTime(2026, 5, 1, 0, 0, 0, DateTimeKind.Utc);
+        var end = start.AddMonths(12);
+
+        var inv = Invoice.CreateDraft("acme", "SUB-202605-acme", 2026, 5, "USD",
+            InvoicePurpose.Subscription, start, end);
+
+        inv.Purpose.ShouldBe(InvoicePurpose.Subscription);
+        inv.PeriodStartUtc.ShouldBe(start);
+        inv.PeriodEndUtc.ShouldBe(end);
+    }
+
+    [Fact]
+    public void CreateDraft_Subscription_Should_Normalize_Period_To_Utc()
+    {
+        var start = new DateTime(2026, 5, 1, 0, 0, 0, DateTimeKind.Unspecified);
+        var end = new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Unspecified);
+
+        var inv = Invoice.CreateDraft("acme", "SUB-202605-acme", 2026, 5, "USD",
+            InvoicePurpose.Subscription, start, end);
+
+        inv.PeriodStartUtc!.Value.Kind.ShouldBe(DateTimeKind.Utc);
+        inv.PeriodEndUtc!.Value.Kind.ShouldBe(DateTimeKind.Utc);
+    }
+
+    #endregion
+
     #region Happy Path
 
     [Fact]

@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   CircleDashed,
   ClipboardList,
+  CreditCard,
   Info,
   KeyRound,
   Loader2,
@@ -22,6 +23,7 @@ import { useAuth } from "@/auth/use-auth";
 import { ImpersonateDialog } from "@/components/impersonation/impersonate-dialog";
 import { ActiveGrantsCard } from "@/components/impersonation/active-grants-card";
 import { TenantBrandingCard } from "@/components/tenants/tenant-branding-card";
+import { RenewTenantDialog } from "@/components/tenants/renew-tenant-dialog";
 import { IdentityPermissions } from "@/lib/permissions";
 import {
   changeTenantActivation,
@@ -48,6 +50,7 @@ export function TenantDetailPage() {
   const queryClient = useQueryClient();
   const { user: currentUser } = useAuth();
   const [impersonateOpen, setImpersonateOpen] = useState(false);
+  const [renewOpen, setRenewOpen] = useState(false);
   const canImpersonate = (currentUser?.permissions ?? []).includes(
     IdentityPermissions.Users.Impersonate,
   );
@@ -148,6 +151,17 @@ export function TenantDetailPage() {
                     <Badge variant={tenant.isActive ? "success" : "muted"}>
                       {tenant.isActive ? "Active" : "Inactive"}
                     </Badge>
+                    {tenant.expiryState && tenant.expiryState !== "Active" && (
+                      <Badge variant={expiryVariant(tenant.expiryState)}>
+                        {tenant.expiryState === "InGrace" ? "In grace" : "Expired"}
+                      </Badge>
+                    )}
+                    {tenant.plan && (
+                      <Badge variant="outline">
+                        <CreditCard className="h-3 w-3" />
+                        {tenant.plan}
+                      </Badge>
+                    )}
                     <Badge variant="outline">
                       <CalendarClock className="h-3 w-3" />
                       Valid until {formatDate(tenant.validUpto)}
@@ -175,6 +189,15 @@ export function TenantDetailPage() {
                   </Button>
                 )}
                 <Button
+                  variant="outline"
+                  onClick={() => setRenewOpen(true)}
+                  className="shrink-0"
+                  title="Extend validity by one plan term, or switch plans"
+                >
+                  <CalendarClock className="mr-1.5 h-3.5 w-3.5" />
+                  Renew / change plan
+                </Button>
+                <Button
                   variant={tenant.isActive ? "outline" : "default"}
                   onClick={() => activationMutation.mutate(!tenant.isActive)}
                   disabled={activationMutation.isPending}
@@ -197,6 +220,14 @@ export function TenantDetailPage() {
             tenantName={tenant.name}
           />
 
+          <RenewTenantDialog
+            open={renewOpen}
+            onOpenChange={setRenewOpen}
+            tenantId={tenant.id}
+            currentPlanKey={tenant.plan}
+            validUpto={tenant.validUpto}
+          />
+
           <ActiveGrantsCard tenantId={tenant.id} />
 
           <TenantBrandingCard tenantId={tenant.id} />
@@ -212,10 +243,16 @@ export function TenantDetailPage() {
               <InfoRow label="Name">{tenant.name}</InfoRow>
               <InfoRow label="Admin email" mono>{tenant.adminEmail}</InfoRow>
               <InfoRow label="JWT issuer" mono>{tenant.issuer ?? "—"}</InfoRow>
+              <InfoRow label="Plan">{tenant.plan ?? "—"}</InfoRow>
               <InfoRow label="Valid until">
                 <span className="flex items-center gap-1.5">
                   <CalendarClock className="h-3.5 w-3.5 text-[var(--color-muted-foreground)]" />
                   {formatDate(tenant.validUpto)}
+                  {tenant.expiryState && tenant.expiryState !== "Active" && (
+                    <Badge variant={expiryVariant(tenant.expiryState)}>
+                      {tenant.expiryState === "InGrace" ? "In grace" : "Expired"}
+                    </Badge>
+                  )}
                 </span>
               </InfoRow>
               <InfoRow label="Status" isLast>
@@ -560,6 +597,10 @@ function formatDate(value: string | undefined): string {
   if (!value) return "—";
   const d = new Date(value);
   return Number.isNaN(d.getTime()) ? value : d.toLocaleDateString();
+}
+
+function expiryVariant(state: string): React.ComponentProps<typeof Badge>["variant"] {
+  return state === "Expired" ? "danger" : state === "InGrace" ? "warning" : "outline";
 }
 
 function formatDuration(start: string, end: string): string {

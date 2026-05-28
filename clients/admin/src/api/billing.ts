@@ -9,6 +9,10 @@ export type SubscriptionStatus = "Active" | "Suspended" | "Cancelled" | (string 
 
 export type InvoiceLineItemKind = "BaseFee" | "Overage" | "Adjustment" | (string & {});
 
+export type PlanInterval = "Monthly" | "Yearly" | (string & {});
+
+export type InvoicePurpose = "Usage" | "Subscription" | (string & {});
+
 export type QuotaResource =
   | "ApiCalls"
   | "StorageBytes"
@@ -26,6 +30,8 @@ export type BillingPlanDto = {
   monthlyBasePrice: number;
   overageRates: Partial<Record<QuotaResource, number>>;
   isActive: boolean;
+  interval: PlanInterval;
+  annualPrice?: number | null;
 };
 
 export type CreatePlanInput = {
@@ -34,6 +40,8 @@ export type CreatePlanInput = {
   currency: string;
   monthlyBasePrice: number;
   overageRates?: Partial<Record<QuotaResource, number>> | null;
+  interval?: PlanInterval;
+  annualPrice?: number | null;
 };
 
 export type UpdatePlanInput = {
@@ -41,7 +49,16 @@ export type UpdatePlanInput = {
   name: string;
   monthlyBasePrice: number;
   overageRates?: Partial<Record<QuotaResource, number>> | null;
+  interval?: PlanInterval;
+  annualPrice?: number | null;
 };
+
+/** Price charged for one billing term: annual price (or 12x monthly) for yearly plans, else monthly. */
+export function planTermPrice(plan: Pick<BillingPlanDto, "interval" | "monthlyBasePrice" | "annualPrice">): number {
+  return plan.interval === "Yearly"
+    ? plan.annualPrice ?? plan.monthlyBasePrice * 12
+    : plan.monthlyBasePrice;
+}
 
 export function getPlans(includeInactive = false): Promise<BillingPlanDto[]> {
   const query = new URLSearchParams({ includeInactive: includeInactive ? "true" : "false" });
@@ -57,6 +74,8 @@ export function createPlan(input: CreatePlanInput): Promise<string> {
       currency: input.currency,
       monthlyBasePrice: input.monthlyBasePrice,
       overageRates: input.overageRates ?? null,
+      interval: input.interval ?? "Monthly",
+      annualPrice: input.annualPrice ?? null,
     }),
   });
 }
@@ -69,6 +88,8 @@ export function updatePlan(input: UpdatePlanInput): Promise<string> {
       name: input.name,
       monthlyBasePrice: input.monthlyBasePrice,
       overageRates: input.overageRates ?? null,
+      interval: input.interval ?? "Monthly",
+      annualPrice: input.annualPrice ?? null,
     }),
   });
 }
@@ -132,6 +153,9 @@ export type InvoiceDto = {
   voidedAtUtc?: string | null;
   notes?: string | null;
   lineItems: InvoiceLineItemDto[];
+  purpose: InvoicePurpose;
+  periodStartUtc?: string | null;
+  periodEndUtc?: string | null;
 };
 
 export type ListInvoicesParams = {

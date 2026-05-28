@@ -64,13 +64,12 @@ public sealed class BillingService : IBillingService
 
         var snapshots = await _usageReporter.CaptureForPeriodAsync(tenantId, periodYear, periodMonth, cancellationToken).ConfigureAwait(false);
 
-        var invoiceNumber = BuildInvoiceNumber(tenantId, periodYear, periodMonth);
-        var invoice = Invoice.CreateDraft(tenantId, invoiceNumber, periodYear, periodMonth, plan.Currency);
-
-        if (plan.MonthlyBasePrice > 0)
-        {
-            invoice.AddLineItem(InvoiceLineItemKind.BaseFee, $"{plan.Name} — base fee ({periodYear}-{periodMonth:00})", 1m, plan.MonthlyBasePrice);
-        }
+        // Usage invoices bill metered overage only. The plan's base fee is billed by the
+        // subscription invoice on tenant create/renew (see CreateSubscriptionInvoiceAsync), so it is
+        // intentionally NOT added here — otherwise monthly plans would be double-billed.
+        var invoiceNumber = BuildUsageInvoiceNumber(tenantId, periodYear, periodMonth);
+        var invoice = Invoice.CreateDraft(tenantId, invoiceNumber, periodYear, periodMonth, plan.Currency,
+            InvoicePurpose.Usage, periodStartUtc: null, periodEndUtc: null);
 
         foreach (var snap in snapshots)
         {
@@ -168,9 +167,73 @@ public sealed class BillingService : IBillingService
         await _db.Invoices.FirstOrDefaultAsync(i => i.Id == invoiceId, cancellationToken).ConfigureAwait(false)
             ?? throw new NotFoundException($"Invoice {invoiceId} not found.");
 
-    private static string BuildInvoiceNumber(string tenantId, int periodYear, int periodMonth)
+    public async Task<Invoice?> CreateSubscriptionInvoiceAsync(
+        string tenantId,
+        Guid planId,
+        DateTime periodStartUtc,
+        DateTime periodEndUtc,
+        CancellationToken cancellationToken = default)
     {
-        var shortTenant = tenantId.Length <= 8 ? tenantId : tenantId[..8];
-        return $"INV-{periodYear}{periodMonth:00}-{shortTenant}";
+        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+
+        var plan = await _db.Plans.FirstOrDefaultAsync(p => p.Id == planId, cancellationToken).ConfigureAwait(false)
+            ?? throw new NotFoundException($"Plan {planId} not found for tenant {tenantId}.");
+
+        var termPrice = plan.TermPrice;
+        if (termPrice <= 0)
+        {
+            // Free / trial plan — validity is still set, but there is nothing to bill.
+            if (_logger.IsEnabled(LogLevel.Information))
+            {
+                _logger.LogInformation("[Billing] plan {PlanKey} term price is zero for tenant {TenantId}, no subscription invoice", plan.Key, tenantId);
+            }
+            return null;
+        }
+
+        var periodStart = DateTime.SpecifyKind(periodStartUtc, DateTimeKind.Utc);
+        var periodEnd = DateTime.SpecifyKind(periodEndUtc, DateTimeKind.Utc);
+        var invoiceNumber = BuildSubscriptionInvoiceNumber(tenantId, periodStart);
+
+        // Idempotency: redelivery of the subscribe/renew event must not double-invoice the term.
+        var existing = await _db.Invoices
+            .FirstOrDefaultAsync(i => i.TenantId == tenantId && i.InvoiceNumber == invoiceNumber, cancellationToken)
+            .ConfigureAwait(false);
+        if (existing is not null)
+        {
+            return existing;
+        }
+
+        var invoice = Invoice.CreateDraft(tenantId, invoiceNumber, periodStart.Year, periodStart.Month,
+            plan.Currency, InvoicePurpose.Subscription, periodStart, periodEnd);
+        invoice.AddLineItem(
+            InvoiceLineItemKind.BaseFee,
+            $"{plan.Name} — {plan.Interval} subscription ({periodStart:yyyy-MM-dd} to {periodEnd:yyyy-MM-dd})",
+            1m,
+            termPrice);
+        invoice.Issue();
+
+        _db.Invoices.Add(invoice);
+        await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("[Billing] issued subscription invoice {InvoiceNumber} for tenant {TenantId} total={Total} {Currency}",
+                invoice.InvoiceNumber, tenantId, invoice.SubtotalAmount, invoice.Currency);
+        }
+        return invoice;
+    }
+
+    private static string BuildUsageInvoiceNumber(string tenantId, int periodYear, int periodMonth) =>
+        $"USG-{periodYear}{periodMonth:00}-{TenantToken(tenantId)}";
+
+    private static string BuildSubscriptionInvoiceNumber(string tenantId, DateTime periodStartUtc) =>
+        $"SUB-{periodStartUtc:yyyyMM}-{TenantToken(tenantId)}";
+
+    // A stable, collision-resistant token from the full tenant id. A naive prefix truncation collides
+    // for tenants sharing a prefix (e.g. "billing-a", "billing-b"), which would clash on the unique
+    // InvoiceNumber index when the monthly job invoices many tenants for the same period.
+    private static string TenantToken(string tenantId)
+    {
+        var hash = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(tenantId));
+        return Convert.ToHexString(hash, 0, 6);
     }
 }

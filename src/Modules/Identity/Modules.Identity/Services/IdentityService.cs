@@ -8,6 +8,7 @@ using FSH.Modules.Identity.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
@@ -22,6 +23,7 @@ public sealed class IdentityService : IIdentityService
     private readonly IGroupRoleService _groupRoleService;
     private readonly TimeProvider _timeProvider;
     private readonly IdentityDbContext _dbContext;
+    private readonly int _graceWindowDays;
 
     public IdentityService(
         UserManager<FshUser> userManager,
@@ -29,14 +31,17 @@ public sealed class IdentityService : IIdentityService
         ILogger<IdentityService> logger,
         IGroupRoleService groupRoleService,
         TimeProvider timeProvider,
-        IdentityDbContext dbContext)
+        IdentityDbContext dbContext,
+        IOptions<TenantGraceOptions> graceOptions)
     {
+        ArgumentNullException.ThrowIfNull(graceOptions);
         _userManager = userManager;
         _multiTenantContextAccessor = multiTenantContextAccessor;
         _logger = logger;
         _groupRoleService = groupRoleService;
         _timeProvider = timeProvider;
         _dbContext = dbContext;
+        _graceWindowDays = graceOptions.Value.GraceWindowDays;
     }
 
     public async Task<(string Subject, IEnumerable<Claim> Claims)?>
@@ -284,7 +289,9 @@ public sealed class IdentityService : IIdentityService
             throw new UnauthorizedException($"tenant {tenant.Id} is deactivated");
         }
 
-        if (_timeProvider.GetUtcNow().UtcDateTime > tenant.ValidUpto)
+        // Honor the billing grace window: a lapsed tenant can still authenticate until
+        // ValidUpto + grace (matching the request-time guard in MultitenancyModule).
+        if (_timeProvider.GetUtcNow().UtcDateTime > tenant.ValidUpto.AddDays(_graceWindowDays))
         {
             throw new UnauthorizedException($"tenant {tenant.Id} validity has expired");
         }

@@ -1,28 +1,45 @@
 import { expect, test } from "@playwright/test";
 import { seedAuthedSession, TEST_USER } from "../helpers/auth-seed";
-import { installAdminShellMocks, ADMIN_PERMS } from "../helpers/shell-mocks";
+import { installAdminShellMocks, ADMIN_PERMS, paged } from "../helpers/shell-mocks";
 
 test.beforeEach(async ({ page }) => {
   await seedAuthedSession(page, { ...TEST_USER, permissions: [...ADMIN_PERMS] });
   await installAdminShellMocks(page);
+  // Tenant creation is now a dialog launched from the list page, so every test
+  // lands on /tenants first — keep the list query satisfied so the page (and
+  // its "New tenant" trigger) renders.
+  await page.route("**/api/v1/tenants/?*", (route) =>
+    route.fulfill({
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(paged([])),
+    }),
+  );
 });
 
-test.describe("tenant create form", () => {
+test.describe("tenant create dialog", () => {
   test("renders all required fields and the create action", async ({ page }) => {
-    await page.goto("/tenants/new");
+    await page.goto("/tenants");
 
+    // Open the create dialog from the list-page trigger. `exact` keeps this off
+    // the dialog's own "Create tenant" submit button.
+    await page
+      .getByRole("button", { name: "New tenant", exact: true })
+      .click();
+
+    const dialog = page.getByRole("dialog");
     await expect(
-      page.getByRole("heading", { name: "New tenant", exact: true }),
+      dialog.getByRole("heading", { name: "New tenant", exact: true }),
     ).toBeVisible({ timeout: 10_000 });
 
-    await expect(page.getByLabel(/^Identifier/)).toBeVisible();
-    await expect(page.getByLabel(/^Display name/)).toBeVisible();
-    await expect(page.getByLabel(/^Admin email/)).toBeVisible();
-    await expect(page.getByLabel(/^Initial admin password/)).toBeVisible();
-    await expect(page.getByLabel(/^JWT issuer/)).toBeVisible();
+    await expect(dialog.getByLabel(/^Identifier/)).toBeVisible();
+    await expect(dialog.getByLabel(/^Display name/)).toBeVisible();
+    await expect(dialog.getByLabel(/^Admin email/)).toBeVisible();
+    await expect(dialog.getByLabel(/^Initial admin password/)).toBeVisible();
+    await expect(dialog.getByLabel(/^JWT issuer/)).toBeVisible();
 
     await expect(
-      page.getByRole("button", { name: "Create tenant", exact: true }),
+      dialog.getByRole("button", { name: "Create tenant", exact: true }),
     ).toBeVisible();
   });
 
@@ -67,20 +84,25 @@ test.describe("tenant create form", () => {
       route.fulfill({ status: 200, headers: { "Content-Type": "application/json" }, body: "[]" }),
     );
 
-    await page.goto("/tenants/new");
-    await expect(page.getByLabel(/^Identifier/)).toBeVisible({ timeout: 10_000 });
+    await page.goto("/tenants");
+    await page
+      .getByRole("button", { name: "New tenant", exact: true })
+      .click();
 
-    await page.getByLabel(/^Identifier/).fill("acme-corp");
-    await page.getByLabel(/^Display name/).fill("Acme Corp");
-    await page.getByLabel(/^Admin email/).fill("admin@acme.example");
-    await page.getByLabel(/^Initial admin password/).fill("Sup3rSecret!");
-    await page.getByLabel(/^JWT issuer/).fill("acme-corp.issuer");
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByLabel(/^Identifier/)).toBeVisible({ timeout: 10_000 });
+
+    await dialog.getByLabel(/^Identifier/).fill("acme-corp");
+    await dialog.getByLabel(/^Display name/).fill("Acme Corp");
+    await dialog.getByLabel(/^Admin email/).fill("admin@acme.example");
+    await dialog.getByLabel(/^Initial admin password/).fill("Sup3rSecret!");
+    await dialog.getByLabel(/^JWT issuer/).fill("acme-corp.issuer");
 
     const reqPromise = page.waitForRequest(
       (r) => r.url().endsWith("/api/v1/tenants/") && r.method() === "POST",
       { timeout: 5_000 },
     );
-    await page.getByRole("button", { name: "Create tenant", exact: true }).click();
+    await dialog.getByRole("button", { name: "Create tenant", exact: true }).click();
     const req = await reqPromise;
 
     const body = JSON.parse(req.postData() ?? "{}");
@@ -104,25 +126,30 @@ test.describe("tenant create form", () => {
       });
     });
 
-    await page.goto("/tenants/new");
-    await expect(page.getByLabel(/^Identifier/)).toBeVisible({ timeout: 10_000 });
+    await page.goto("/tenants");
+    await page
+      .getByRole("button", { name: "New tenant", exact: true })
+      .click();
+
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByLabel(/^Identifier/)).toBeVisible({ timeout: 10_000 });
 
     // Invalid identifier (uppercase + too short) and a too-short password.
     // We leave the email blank so the browser's native <input type=email>
     // constraint doesn't pre-empt react-hook-form's submit handler — that lets
     // zod report the field-level errors we assert on.
-    await page.getByLabel(/^Identifier/).fill("A");
-    await page.getByLabel(/^Display name/).fill("Acme Corp");
-    await page.getByLabel(/^Initial admin password/).fill("short");
-    await page.getByLabel(/^JWT issuer/).fill("acme-corp.issuer");
+    await dialog.getByLabel(/^Identifier/).fill("A");
+    await dialog.getByLabel(/^Display name/).fill("Acme Corp");
+    await dialog.getByLabel(/^Initial admin password/).fill("short");
+    await dialog.getByLabel(/^JWT issuer/).fill("acme-corp.issuer");
 
-    await page.getByRole("button", { name: "Create tenant", exact: true }).click();
+    await dialog.getByRole("button", { name: "Create tenant", exact: true }).click();
 
     // Zod messages surface and no POST is fired.
     await expect(
-      page.getByText(/Lowercase letters, digits, hyphens/i),
+      dialog.getByText(/Lowercase letters, digits, hyphens/i),
     ).toBeVisible();
-    await expect(page.getByText(/At least 8 characters\./i)).toBeVisible();
+    await expect(dialog.getByText(/At least 8 characters\./i)).toBeVisible();
     expect(posted).toBe(false);
   });
 });

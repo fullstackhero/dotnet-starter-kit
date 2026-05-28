@@ -1,5 +1,6 @@
 using FSH.Framework.Core.Domain;
 using FSH.Framework.Shared.Quota;
+using FSH.Modules.Billing.Contracts;
 
 namespace FSH.Modules.Billing.Domain;
 
@@ -19,6 +20,14 @@ public sealed class BillingPlan : BaseEntity<Guid>, IGlobalEntity
     public string Name { get; private set; } = default!;
     public string Currency { get; private set; } = "USD";
     public decimal MonthlyBasePrice { get; private set; }
+    public PlanInterval Interval { get; private set; } = PlanInterval.Monthly;
+
+    /// <summary>
+    /// Flat price charged per yearly term. Only meaningful when <see cref="Interval"/> is
+    /// <see cref="PlanInterval.Yearly"/>; <c>null</c> falls back to twelve times the monthly base
+    /// price so a yearly plan can be configured without restating the discount.
+    /// </summary>
+    public decimal? AnnualPrice { get; private set; }
     public bool IsActive { get; private set; } = true;
     public DateTime CreatedAtUtc { get; private set; }
     public DateTime? UpdatedAtUtc { get; private set; }
@@ -32,7 +41,9 @@ public sealed class BillingPlan : BaseEntity<Guid>, IGlobalEntity
         string name,
         string currency,
         decimal monthlyBasePrice,
-        IReadOnlyDictionary<QuotaResource, decimal>? overageRates = null)
+        IReadOnlyDictionary<QuotaResource, decimal>? overageRates = null,
+        PlanInterval interval = PlanInterval.Monthly,
+        decimal? annualPrice = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -40,6 +51,10 @@ public sealed class BillingPlan : BaseEntity<Guid>, IGlobalEntity
         if (monthlyBasePrice < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(monthlyBasePrice), "Price cannot be negative.");
+        }
+        if (annualPrice is < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(annualPrice), "Annual price cannot be negative.");
         }
 
         var plan = new BillingPlan
@@ -51,6 +66,8 @@ public sealed class BillingPlan : BaseEntity<Guid>, IGlobalEntity
             Name = name,
             Currency = currency.ToUpperInvariant(),
             MonthlyBasePrice = monthlyBasePrice,
+            Interval = interval,
+            AnnualPrice = annualPrice,
             IsActive = true,
             CreatedAtUtc = DateTime.UtcNow
         };
@@ -66,16 +83,27 @@ public sealed class BillingPlan : BaseEntity<Guid>, IGlobalEntity
         return plan;
     }
 
-    public void Update(string name, decimal monthlyBasePrice, IReadOnlyDictionary<QuotaResource, decimal>? overageRates)
+    public void Update(
+        string name,
+        decimal monthlyBasePrice,
+        IReadOnlyDictionary<QuotaResource, decimal>? overageRates,
+        PlanInterval interval = PlanInterval.Monthly,
+        decimal? annualPrice = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         if (monthlyBasePrice < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(monthlyBasePrice), "Price cannot be negative.");
         }
+        if (annualPrice is < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(annualPrice), "Annual price cannot be negative.");
+        }
 
         Name = name;
         MonthlyBasePrice = monthlyBasePrice;
+        Interval = interval;
+        AnnualPrice = annualPrice;
         _overageRates.Clear();
         if (overageRates is not null)
         {
@@ -95,4 +123,16 @@ public sealed class BillingPlan : BaseEntity<Guid>, IGlobalEntity
 
     public decimal GetOverageRate(QuotaResource resource) =>
         _overageRates.TryGetValue(resource, out var rate) ? rate : 0m;
+
+    /// <summary>Number of months the plan's billing interval covers (1 monthly, 12 yearly).</summary>
+    public int TermMonths => Interval == PlanInterval.Yearly ? 12 : 1;
+
+    /// <summary>
+    /// Price charged for a single billing term: the monthly base price for monthly plans, or the
+    /// annual price (falling back to twelve months) for yearly plans.
+    /// </summary>
+    public decimal TermPrice =>
+        Interval == PlanInterval.Yearly
+            ? AnnualPrice ?? (MonthlyBasePrice * 12m)
+            : MonthlyBasePrice;
 }

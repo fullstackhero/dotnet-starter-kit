@@ -55,10 +55,16 @@ test.describe("users directory list", () => {
     });
     // Account count line.
     await expect(main.getByText(/2 accounts on this tenant\./i)).toBeVisible();
-    // A row from the mock.
-    await expect(main.getByText("Bob Patel", { exact: true })).toBeVisible();
+    // A row from the mock. The name renders in both the mobile card and the
+    // desktop row (responsive duplication) — scope to the desktop row's
+    // username chip (`@bob.patel`, desktop-only) and the row buttons' names.
     await expect(main.getByText("@bob.patel", { exact: true })).toBeVisible();
-    await expect(main.getByText("Dana Lee", { exact: true })).toBeVisible();
+    await expect(
+      main.getByRole("button", { name: /^Bob Patel/ }).first(),
+    ).toBeVisible();
+    await expect(
+      main.getByRole("button", { name: /^Dana Lee/ }).first(),
+    ).toBeVisible();
   });
 
   test("shows the empty state when the search returns no users", async ({ page }) => {
@@ -72,7 +78,12 @@ test.describe("users directory list", () => {
 
     const main = page.getByRole("main");
     await expect(main.getByText("No matches.", { exact: true })).toBeVisible({ timeout: 10_000 });
-    await expect(main.getByText("Adjust filters or invite a new user.")).toBeVisible();
+    // No search term / filters are active here, so the empty state shows the
+    // "seed this tenant" prompt (the "adjust filters" copy only renders when a
+    // search/filter is active).
+    await expect(
+      main.getByText("Register the first member to seed this tenant."),
+    ).toBeVisible();
   });
 
   test("typing in the search box issues a search request with the term", async ({ page }) => {
@@ -100,21 +111,30 @@ test.describe("users directory list", () => {
 
 test.describe("users create form", () => {
   test("renders the identity + credential fields and the create action", async ({ page }) => {
-    await page.goto("/users/new");
+    // /users/new now redirects to /users — creation is a modal dialog opened
+    // from the list's "New user" trigger.
+    await mockJsonResponse(
+      page,
+      "**/api/v1/identity/users/search**",
+      paged(USERS, { pageSize: 12, totalCount: 2 }),
+    );
+    await page.goto("/users");
+    await page.getByRole("button", { name: "New user", exact: true }).click();
 
+    const dialog = page.getByRole("dialog");
     await expect(
-      page.getByRole("heading", { name: "New account", exact: true }),
+      dialog.getByRole("heading", { name: "New account", exact: true }),
     ).toBeVisible({ timeout: 10_000 });
 
-    await expect(page.getByLabel(/^First name/)).toBeVisible();
-    await expect(page.getByLabel(/^Last name/)).toBeVisible();
-    await expect(page.getByLabel(/^Username/)).toBeVisible();
-    await expect(page.getByLabel(/^Email/)).toBeVisible();
-    await expect(page.getByLabel(/^Password/, { exact: false })).toBeVisible();
-    await expect(page.getByLabel(/^Confirm password/)).toBeVisible();
+    await expect(dialog.getByLabel(/^First name/)).toBeVisible();
+    await expect(dialog.getByLabel(/^Last name/)).toBeVisible();
+    await expect(dialog.getByLabel(/^Username/)).toBeVisible();
+    await expect(dialog.getByLabel(/^Email/)).toBeVisible();
+    await expect(dialog.getByLabel(/^Password/, { exact: false })).toBeVisible();
+    await expect(dialog.getByLabel(/^Confirm password/)).toBeVisible();
 
     await expect(
-      page.getByRole("button", { name: "Create account", exact: true }),
+      dialog.getByRole("button", { name: "Create account", exact: true }),
     ).toBeVisible();
   });
 
@@ -138,22 +158,31 @@ test.describe("users create form", () => {
     });
     await mockJsonResponse(page, "**/api/v1/identity/users/u-new/roles", []);
     await mockJsonResponse(page, "**/api/v1/identity/users/u-new/sessions", []);
+    // Need the list to render so the "New user" dialog trigger is present.
+    await mockJsonResponse(
+      page,
+      "**/api/v1/identity/users/search**",
+      paged(USERS, { pageSize: 12, totalCount: 2 }),
+    );
 
-    await page.goto("/users/new");
-    await expect(page.getByLabel(/^First name/)).toBeVisible({ timeout: 10_000 });
+    await page.goto("/users");
+    await page.getByRole("button", { name: "New user", exact: true }).click();
 
-    await page.getByLabel(/^First name/).fill("Mei");
-    await page.getByLabel(/^Last name/).fill("Chen");
-    await page.getByLabel(/^Username/).fill("m.chen");
-    await page.getByLabel(/^Email/).fill("m.chen@root.com");
-    await page.getByLabel(/^Password/, { exact: false }).first().fill("Sup3rSecret!");
-    await page.getByLabel(/^Confirm password/).fill("Sup3rSecret!");
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByLabel(/^First name/)).toBeVisible({ timeout: 10_000 });
+
+    await dialog.getByLabel(/^First name/).fill("Mei");
+    await dialog.getByLabel(/^Last name/).fill("Chen");
+    await dialog.getByLabel(/^Username/).fill("m.chen");
+    await dialog.getByLabel(/^Email/).fill("m.chen@root.com");
+    await dialog.getByLabel(/^Password/, { exact: false }).first().fill("Sup3rSecret!");
+    await dialog.getByLabel(/^Confirm password/).fill("Sup3rSecret!");
 
     const reqPromise = page.waitForRequest(
       (r) => r.url().endsWith("/api/v1/identity/users/register") && r.method() === "POST",
       { timeout: 5_000 },
     );
-    await page.getByRole("button", { name: "Create account", exact: true }).click();
+    await dialog.getByRole("button", { name: "Create account", exact: true }).click();
     const req = await reqPromise;
 
     const body = JSON.parse(req.postData() ?? "{}");
@@ -178,20 +207,30 @@ test.describe("users create form", () => {
       });
     });
 
-    await page.goto("/users/new");
-    await expect(page.getByLabel(/^First name/)).toBeVisible({ timeout: 10_000 });
+    // Need the list to render so the "New user" dialog trigger is present.
+    await mockJsonResponse(
+      page,
+      "**/api/v1/identity/users/search**",
+      paged(USERS, { pageSize: 12, totalCount: 2 }),
+    );
+
+    await page.goto("/users");
+    await page.getByRole("button", { name: "New user", exact: true }).click();
+
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByLabel(/^First name/)).toBeVisible({ timeout: 10_000 });
 
     // Leave email blank so native email validation doesn't pre-empt zod.
     // Username "1x" violates the start-with-a-letter / length rule.
-    await page.getByLabel(/^First name/).fill("Mei");
-    await page.getByLabel(/^Last name/).fill("Chen");
-    await page.getByLabel(/^Username/).fill("1x");
-    await page.getByLabel(/^Password/, { exact: false }).first().fill("Sup3rSecret!");
-    await page.getByLabel(/^Confirm password/).fill("Sup3rSecret!");
+    await dialog.getByLabel(/^First name/).fill("Mei");
+    await dialog.getByLabel(/^Last name/).fill("Chen");
+    await dialog.getByLabel(/^Username/).fill("1x");
+    await dialog.getByLabel(/^Password/, { exact: false }).first().fill("Sup3rSecret!");
+    await dialog.getByLabel(/^Confirm password/).fill("Sup3rSecret!");
 
-    await page.getByRole("button", { name: "Create account", exact: true }).click();
+    await dialog.getByRole("button", { name: "Create account", exact: true }).click();
 
-    await expect(page.getByText(/Start with a letter\./i)).toBeVisible();
+    await expect(dialog.getByText(/Start with a letter\./i)).toBeVisible();
     expect(posted).toBe(false);
   });
 });
@@ -234,9 +273,14 @@ test.describe("user detail page", () => {
     await expect(main.getByText("Active", { exact: true }).first()).toBeVisible();
     await expect(main.getByText(/Email confirmed/i).first()).toBeVisible();
 
-    // Section headings (FormSection renders the title as "\ Title").
-    await expect(main.getByText(/\\ Identity/i).first()).toBeVisible();
-    await expect(main.getByText(/\\ Roles/i).first()).toBeVisible();
+    // Section headings. Identity + roles now render via SettingsSection (h2
+    // with plain titles); the sessions card still uses FormSection ("\ Sessions").
+    await expect(
+      main.getByRole("heading", { name: "Identity card", exact: true }),
+    ).toBeVisible();
+    await expect(
+      main.getByRole("heading", { name: "Role assignment", exact: true }),
+    ).toBeVisible();
     await expect(main.getByText(/\\ Sessions/i).first()).toBeVisible();
 
     // Role chips rendered from the roles endpoint.

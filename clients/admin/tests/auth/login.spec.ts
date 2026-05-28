@@ -17,27 +17,27 @@ const TOKEN_RESPONSE = {
 };
 
 test.describe("admin login", () => {
-  test("renders the FSH brand lockup + the // AUTHENTICATE form", async ({ page }) => {
+  test("renders the FSH brand lockup + the welcome form", async ({ page }) => {
     await page.goto("/login");
 
-    // Brand lockup (BrandMarkXL). The wordmark + monogram appear in both the
-    // left brand pane and the mobile-only header, so scope to the form column
-    // for the wordmark/monogram and use .first() for the logo image.
+    // Brand lockup: logo image, the fullstackhero wordmark, and the
+    // "Platform Admin" divider label that marks this as the operator app.
     await expect(page.getByRole("img", { name: /fullstackhero/i }).first()).toBeVisible();
     await expect(page.getByText("fullstackhero").first()).toBeVisible();
-    await expect(page.getByText("Console.", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("Platform Admin").first()).toBeVisible();
 
-    // Section rule crumb.
-    await expect(page.getByText("// AUTHENTICATE")).toBeVisible();
+    // Card heading.
+    await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
 
-    // Form fields (plain labels, exact match is safe).
+    // Form fields (plain labels). Password is exact — a "Show password"
+    // toggle button shares the substring otherwise.
     await expect(page.getByLabel("Tenant")).toBeVisible();
     await expect(page.getByLabel("Email")).toBeVisible();
-    await expect(page.getByLabel("Password")).toBeVisible();
+    await expect(page.getByLabel("Password", { exact: true })).toBeVisible();
 
-    // Submit + forgot-password link.
-    await expect(page.getByRole("button", { name: "Sign in →" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "// forgot password?" })).toBeVisible();
+    // Submit (exact — the dev demo button also contains "Sign in") + forgot link.
+    await expect(page.getByRole("button", { name: "Sign in", exact: true })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Forgot?" })).toBeVisible();
   });
 
   test("manual sign-in posts to token/issue with the admin app + tenant headers", async ({
@@ -50,14 +50,14 @@ test.describe("admin login", () => {
     // Tenant pre-fills from env.defaultTenant ("root"); set email + password.
     await page.getByLabel("Tenant").fill("root");
     await page.getByLabel("Email").fill("operator@root.example");
-    await page.getByLabel("Password").fill("Sup3rSecret!");
+    await page.getByLabel("Password", { exact: true }).fill("Sup3rSecret!");
 
     const reqPromise = page.waitForRequest(
       (r) =>
         r.url().includes("/api/v1/identity/token/issue") && r.method() === "POST",
       { timeout: 5_000 },
     );
-    await page.getByRole("button", { name: "Sign in →" }).click();
+    await page.getByRole("button", { name: "Sign in", exact: true }).click();
     const req = await reqPromise;
 
     // X-FSH-App marks this as the platform-admin client; tenant rides the header.
@@ -78,23 +78,37 @@ test.describe("admin login", () => {
     await page.goto("/login");
     await page.getByLabel("Tenant").fill("root");
     await page.getByLabel("Email").fill("operator@root.example");
-    await page.getByLabel("Password").fill("wrong-password");
-    await page.getByRole("button", { name: "Sign in →" }).click();
+    await page.getByLabel("Password", { exact: true }).fill("wrong-password");
+    await page.getByRole("button", { name: "Sign in", exact: true }).click();
 
     await expect(page.getByText("Invalid credentials.")).toBeVisible();
     await expect(page).toHaveURL(/\/login$/);
   });
 
-  test("DEV demo callout renders and 'use →' prefills the email field", async ({ page }) => {
+  test("DEV demo dialog lists the superadmin account and signs in on pick", async ({ page }) => {
+    await mockJsonResponse(page, "**/api/v1/identity/token/issue", TOKEN_RESPONSE);
     await page.goto("/login");
 
-    // The dev server runs in DEV, so the demo callout region is rendered.
-    const callout = page.getByRole("region", { name: /development demo account/i });
-    await expect(callout).toBeVisible();
-    await expect(callout.getByText("superadmin@root.com")).toBeVisible();
+    // The dev server runs in DEV, so the demo affordance is rendered. It now
+    // opens a dialog account picker (the old inline "callout" was replaced).
+    await page.getByRole("button", { name: "Sign in with a demo account" }).click();
 
-    // Clicking the account button ("use →") prefills the email field.
-    await callout.getByRole("button", { name: /use →/i }).click();
-    await expect(page.getByLabel("Email")).toHaveValue("superadmin@root.com");
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByText("superadmin@root.com")).toBeVisible();
+
+    // Picking the account fills the creds and signs in instantly — assert the
+    // resulting token/issue POST carries the demo email + tenant header.
+    const reqPromise = page.waitForRequest(
+      (r) =>
+        r.url().includes("/api/v1/identity/token/issue") && r.method() === "POST",
+      { timeout: 5_000 },
+    );
+    await dialog.getByRole("button", { name: /SuperAdmin/ }).click();
+    const req = await reqPromise;
+
+    const body = JSON.parse(req.postData() ?? "{}");
+    expect(body.email).toBe("superadmin@root.com");
+    expect(req.headers().tenant).toBe("root");
   });
 });

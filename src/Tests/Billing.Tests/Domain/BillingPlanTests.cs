@@ -1,10 +1,62 @@
 using FSH.Framework.Shared.Quota;
+using FSH.Modules.Billing.Contracts;
 using FSH.Modules.Billing.Domain;
 
 namespace Billing.Tests.Domain;
 
 public sealed class BillingPlanTests
 {
+    #region Billing interval / term
+
+    [Fact]
+    public void Create_Should_Default_To_Monthly_Interval()
+    {
+        var plan = BillingPlan.Create("pro", "Pro", "USD", 30m);
+
+        plan.Interval.ShouldBe(PlanInterval.Monthly);
+        plan.TermMonths.ShouldBe(1);
+        plan.TermPrice.ShouldBe(30m);
+    }
+
+    [Fact]
+    public void Yearly_Plan_Should_Use_AnnualPrice_When_Set()
+    {
+        var plan = BillingPlan.Create("pro-yr", "Pro Annual", "USD", 30m, interval: PlanInterval.Yearly, annualPrice: 300m);
+
+        plan.Interval.ShouldBe(PlanInterval.Yearly);
+        plan.TermMonths.ShouldBe(12);
+        plan.TermPrice.ShouldBe(300m);
+    }
+
+    [Fact]
+    public void Yearly_Plan_Should_Fall_Back_To_Twelve_Times_Monthly()
+    {
+        var plan = BillingPlan.Create("pro-yr", "Pro Annual", "USD", 30m, interval: PlanInterval.Yearly);
+
+        plan.TermPrice.ShouldBe(360m);
+    }
+
+    [Fact]
+    public void Create_Should_Throw_When_AnnualPrice_Negative()
+    {
+        Should.Throw<ArgumentOutOfRangeException>(() =>
+            BillingPlan.Create("pro", "Pro", "USD", 10m, interval: PlanInterval.Yearly, annualPrice: -1m));
+    }
+
+    [Fact]
+    public void Update_Should_Replace_Interval_And_AnnualPrice()
+    {
+        var plan = BillingPlan.Create("pro", "Pro", "USD", 30m);
+
+        plan.Update("Pro", 30m, null, PlanInterval.Yearly, 300m);
+
+        plan.Interval.ShouldBe(PlanInterval.Yearly);
+        plan.AnnualPrice.ShouldBe(300m);
+        plan.TermPrice.ShouldBe(300m);
+    }
+
+    #endregion
+
     #region Happy Path
 
     [Fact]
